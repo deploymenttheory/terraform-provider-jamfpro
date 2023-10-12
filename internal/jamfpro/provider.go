@@ -1,4 +1,4 @@
-package jamfproprovider
+package jamfpro
 
 import (
 	"context"
