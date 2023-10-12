@@ -1,6 +1,6 @@
 /*
  */
-package jamfpro_provider
+package jamfproprovider
 
 import (
 	"fmt"
@@ -24,7 +24,7 @@ func TestAccDepartmentDataSource(t *testing.T) {
 			},
 			// Step 2: Update the department
 			{
-				Config: testAccDepartmentResourceConfig("updated_name"),
+				Config: testAccDepartmentDataSourceConfig("updated_name"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("jamfpro_department.test", "name", "updated_name"),
 				),
@@ -39,7 +39,7 @@ func TestAccDepartmentDataSource(t *testing.T) {
 	})
 }
 
-func testAccDepartmentResourceConfig(name string) string {
+func testAccDepartmentDataSourceConfig(name string) string {
 	return fmt.Sprintf(`
 	provider "jamfpro" {
 		client_id     = "%s"
