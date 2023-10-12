@@ -12,8 +12,8 @@ permissions:
   contents: read # Changelog commit operations use service account PAT
 
 env:
-  CI_COMMIT_AUTHOR: hc-github-team-tf-provider-devex
-  CI_COMMIT_EMAIL: github-team-tf-provider-devex@hashicorp.com
+  CI_COMMIT_AUTHOR: deploymenttheory-team-tf-provider-jamfpro
+  CI_COMMIT_EMAIL: shocone@deploymenttheory.com
 
 jobs:
   major-version:
