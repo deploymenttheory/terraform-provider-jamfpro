@@ -1,4 +1,4 @@
-package jamfpro_provider
+package jamfproprovider
 
 import (
 	"os"

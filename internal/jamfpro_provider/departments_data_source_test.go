@@ -1,6 +1,6 @@
 /*
  */
-package jamfpro_provider
+package jamfproprovider
 
 import (
 	"fmt"
