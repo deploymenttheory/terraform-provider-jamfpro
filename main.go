@@ -8,7 +8,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/provider"
+	jamfpro "github.com/deploymenttheory/terraform-provider-jamfpro/internal/jamfpro"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 )
 
@@ -43,7 +43,7 @@ func main() {
 		Debug:   debug,
 	}
 
-	err := providerserver.Serve(context.Background(), provider.New(version), opts)
+	err := providerserver.Serve(context.Background(), jamfpro.New(version), opts)
 
 	if err != nil {
 		log.Fatal(err.Error())
