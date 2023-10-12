@@ -1,9 +1,7 @@
-// Copyright (c) HashiCorp, Inc.
-// SPDX-License-Identifier: MPL-2.0
-
-package provider
+package jamfproprovider
 
 import (
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
@@ -15,11 +13,22 @@ import (
 // CLI command executed to create a provider server to which the CLI can
 // reattach.
 var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
-	"scaffolding": providerserver.NewProtocol6WithError(New("test")()),
+	"jamfpro": providerserver.NewProtocol6WithError(New("test")()),
 }
 
 func testAccPreCheck(t *testing.T) {
-	// You can add code here to run prior to any test case execution, for example assertions
-	// about the appropriate environment variables being set are common to see in a pre-check
-	// function.
+	// Check if environment variables are set
+	if v := os.Getenv("JAMFPRO_INSTANCE_NAME"); v == "" {
+		t.Fatal("JAMFPRO_INSTANCE_NAME must be set for acceptance tests")
+	}
+	if v := os.Getenv("JAMFPRO_CLIENT_ID"); v == "" {
+		t.Fatal("JAMFPRO_CLIENT_ID must be set for acceptance tests")
+	}
+	if v := os.Getenv("JAMFPRO_CLIENT_SECRET"); v == "" {
+		t.Fatal("JAMFPRO_CLIENT_SECRET must be set for acceptance tests")
+	}
+	if v := os.Getenv("JAMFPRO_DEBUG_MODE"); v == "" {
+		t.Fatal("JAMFPRO_DEBUG_MODE must be set to true or false for acceptance tests")
+	}
+	// ... add any other necessary checks
 }
