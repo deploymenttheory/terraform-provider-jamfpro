@@ -1,0 +1,72 @@
+on:
+  workflow_call:
+    inputs:
+      goreleaser-release-args:
+        description: 'goreleaser release Arguments (e.g. --skip-validate)'
+        required: false
+        type: string
+      release-notes:
+        description: 'Enable release notes handling (must have previously uploaded artifact named "release-notes" with file "release-notes.txt")'
+        required: false
+        type: boolean
+      setup-go-version:
+        description: 'setup-go Go Version'
+        required: false
+        type: string
+      setup-go-version-file:
+        description: 'setup-go File From Which To Read Go Version'
+        required: false
+        type: string
+      git-ref:
+        description: 'branch, tag or SHA to checkout'
+        required: false
+        type: string
+    secrets:
+      gpg-private-key:
+        description: 'GPG Private Key'
+        required: true
+      gpg-private-key-passphrase:
+        description: 'GPG Private Key Passphrase'
+        required: false
+
+jobs:
+  Release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+        with:
+          ref: ${{ inputs.git-ref }}
+          fetch-depth: 0
+      - uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
+        with:
+          go-version: ${{ inputs.setup-go-version }}
+          go-version-file: ${{ inputs.setup-go-version-file }}
+      - name: Import GPG key
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@82a020f1f7f605c65dd2449b392a52c3fcfef7ef # v6.0.0
+        with:
+          gpg_private_key: ${{ secrets.gpg-private-key }}
+          passphrase: ${{ secrets.gpg-private-key-passphrase }}
+      - if: inputs.release-notes != true
+        name: goreleaser release (without release notes)
+        uses: goreleaser/goreleaser-action@7ec5c2b0c6cdda6e8bbb49444bc797dd33d74dd8 # v5.0.0
+        with:
+          args: release --clean ${{ inputs.goreleaser-release-args }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+      - if: inputs.release-notes
+        id: release-notes-download
+        name: Release Notes Download
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: release-notes
+          path: /tmp
+      - if: inputs.release-notes
+        name: goreleaser release (with release notes)
+        uses: goreleaser/goreleaser-action@7ec5c2b0c6cdda6e8bbb49444bc797dd33d74dd8 # v5.0.0
+        with:
+          args: release --release-notes ${{ steps.release-notes-download.outputs.download-path }}/release-notes.txt --clean ${{ inputs.goreleaser-release-args }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
