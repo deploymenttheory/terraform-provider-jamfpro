@@ -39,7 +39,7 @@ func main() {
 
 	opts := providerserver.ServeOpts{
 		// TODO: Update this string with the published name of your provider.
-		Address: "terraform.local/local/jamfpro",
+		Address: "registry.terraform.io/deploymenttheory/jamfpro",
 		Debug:   debug,
 	}
 
