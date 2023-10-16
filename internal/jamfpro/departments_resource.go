@@ -22,7 +22,8 @@ func NewDepartmentResource() resource.Resource {
 
 // DepartmentResource defines the resource implementation.
 type DepartmentResource struct {
-	client *jamfpro.Client
+	providerConfig JamfProProviderModel
+	apiClient      *jamfpro.Client
 }
 
 // DepartmentResourceModel describes the resource data model.
@@ -33,11 +34,11 @@ type DepartmentResourceModel struct {
 }
 
 func (r *DepartmentResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = "jamfpro_department"
+	resp.TypeName = req.ProviderTypeName + "_department"
 }
 
 func (r *DepartmentResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
+	schema := schema.Schema{
 		MarkdownDescription: "Jamf Pro Department",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.NumberAttribute{
@@ -54,6 +55,7 @@ func (r *DepartmentResource) Schema(ctx context.Context, req resource.SchemaRequ
 			},
 		},
 	}
+	resp.Schema = schema
 }
 
 // Configure sets up the client for the resource.
@@ -63,7 +65,7 @@ func (r *DepartmentResource) Configure(ctx context.Context, req resource.Configu
 		resp.Diagnostics.AddError("Unexpected ProviderData type", fmt.Sprintf("Expected *jamfpro.Client but got %T", req.ProviderData))
 		return
 	}
-	r.client = client
+	r.apiClient = client
 }
 
 // Create handles the creation of a department resource in Jamf Pro.
@@ -74,7 +76,7 @@ func (r *DepartmentResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	department, err := r.client.CreateDepartment(data.Name.ValueString())
+	department, err := r.apiClient.CreateDepartment(data.Name.ValueString())
 
 	if err != nil {
 		tflog.Error(ctx, "Failed to create department", map[string]interface{}{"error": err.Error()})
@@ -100,10 +102,10 @@ func (r *DepartmentResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	department, err := r.client.GetDepartmentByID(int(data.Id.ValueInt64()))
+	department, err := r.apiClient.GetDepartmentByID(int(data.Id.ValueInt64()))
 	if err != nil {
 		tflog.Warn(ctx, "Failed to fetch department by ID. Attempting to fetch by name.", map[string]interface{}{"reason": err.Error()})
-		department, err = r.client.GetDepartmentByName(data.Name.ValueString())
+		department, err = r.apiClient.GetDepartmentByName(data.Name.ValueString())
 		if err != nil {
 			tflog.Error(ctx, "Failed to read department", map[string]interface{}{"error": err.Error()})
 			resp.Diagnostics.AddError("Failed to read department", err.Error())
@@ -133,13 +135,13 @@ func (r *DepartmentResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	// Attempt to update the department details using the ID and name from the planned state
-	updatedDepartment, err := r.client.UpdateDepartmentByID(int(data.Id.ValueInt64()), data.Name.ValueString())
+	updatedDepartment, err := r.apiClient.UpdateDepartmentByID(int(data.Id.ValueInt64()), data.Name.ValueString())
 
 	// If there's an error in updating the department by ID...
 	if err != nil {
 		// Log a warning about the failure to update by ID and try updating by name
 		tflog.Warn(ctx, "Failed to update department by ID. Attempting to update by name.", map[string]interface{}{"reason": err.Error()})
-		updatedDepartment, err = r.client.UpdateDepartmentByName(data.Name.ValueString(), data.Name.ValueString())
+		updatedDepartment, err = r.apiClient.UpdateDepartmentByName(data.Name.ValueString(), data.Name.ValueString())
 
 		// If there's still an error in updating the department by name...
 		if err != nil {
@@ -176,13 +178,13 @@ func (r *DepartmentResource) Delete(ctx context.Context, req resource.DeleteRequ
 	departmentID := int(data.Id.ValueInt64())
 
 	// Attempt to delete the department using the ID from the current state
-	err := r.client.DeleteDepartmentByID(departmentID)
+	err := r.apiClient.DeleteDepartmentByID(departmentID)
 
 	// If there's an error in deleting the department by ID...
 	if err != nil {
 		// Log a warning about the failure to delete by ID and try deleting by name
 		tflog.Warn(ctx, "Failed to delete department by ID. Attempting to delete by name.", map[string]interface{}{"reason": err.Error()})
-		err = r.client.DeleteDepartmentByName(data.Name.ValueString())
+		err = r.apiClient.DeleteDepartmentByName(data.Name.ValueString())
 
 		// If there's still an error in deleting the department by name...
 		if err != nil {
