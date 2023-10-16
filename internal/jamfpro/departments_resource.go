@@ -56,17 +56,13 @@ func (r *DepartmentResource) Schema(ctx context.Context, req resource.SchemaRequ
 	}
 }
 
+// Configure sets up the client for the resource.
 func (r *DepartmentResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	client, ok := req.ProviderData.(*jamfpro.Client)
-
 	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *jamfpro.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
+		resp.Diagnostics.AddError("Unexpected ProviderData type", fmt.Sprintf("Expected *jamfpro.Client but got %T", req.ProviderData))
 		return
 	}
-
 	r.client = client
 }
 
