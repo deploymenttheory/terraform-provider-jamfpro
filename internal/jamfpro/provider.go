@@ -32,6 +32,7 @@ type JamfProProviderModel struct {
 }
 
 func New(version string) func() provider.Provider {
+	tflog.Info(context.Background(), "Initializing JamfPro provider")
 	return func() provider.Provider {
 		return &JamfProProvider{
 			version: version,
