@@ -1,0 +1,163 @@
+name: Code Check and Acceptance Tests
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/code-check-and-tests.yaml'
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
+      - 'Makefile'
+      - '.golangci.yml'
+  push:
+    branches:
+      - "main"
+
+permissions:
+  contents: read
+
+jobs:
+# Ensure the project can build first
+  build:
+    name: Build
+    runs-on: ubuntu-20.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - name: Get dependencies
+        run: |
+          go mod tidy
+          git diff --compact-summary --exit-code || \
+            (echo; echo "Unexpected difference after 'go mod tidy'. Run 'go mod tidy' command and commit."; exit 1)
+      - name: Build
+        run: |
+          make install
+  fmt:
+    name: go fmt
+    needs: [build]
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - run: |
+          if [ "$(go fmt ./... | wc -l)" -gt 0 ]; then
+            echo "::error::'go fmt' found required formatting changes. Run 'make fmt' on your branch."
+            exit 1;
+          fi
+  vet:
+    name: go vet
+    needs: [build]
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - run: go vet ./...
+  lint:
+    name: golangcli-lint
+    needs: [build]
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - run: make golangcilint
+  generate:
+    name: go generate
+    needs: [build]
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      # Use git add -N . to ensure that new files are listed in the git diff check
+      - run: |
+          go generate ./...
+          git add -N .
+          git diff --exit-code || \
+            (echo; echo "Unexpected difference after code generation. Run 'make generate' command and commit."; exit 1)
+  importfmt:
+    name: importfmt
+    needs: [build]
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - run: make importfmtlint
+  tfproviderlint:
+    name: tfproviderlintx
+    needs: [fmt, vet, lint, generate, importfmt]
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - run: make tfproviderlint
+  tflint:
+    name: tflint
+    needs: [fmt, vet, lint, generate, importfmt]
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - run: make tflint
+  terrafmt:
+    name: terrafmt
+    needs: [fmt, vet, lint, generate, importfmt]
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - run: |
+          find ./internal/acctest -type f -name '*_test.go' \
+          | sort -u \
+          | xargs -I {} go run github.com/katbyte/terrafmt diff -f --check --fmtcompat {} ; if [ $$? -ne 0 ]; then \
+          echo ""; \
+          echo "terrafmt found bad formatting of HCL embedded in the test scripts. Please run "; \
+          echo "\"make terrafmtlint\" before submitting the code for review."; \
+          exit 1; \
+          fi
+  acceptance:
+    name: Acceptance Tests
+    needs: [fmt, vet, lint, generate, importfmt, tfproviderlint, tflint, terrafmt]
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.5.*'
+          terraform_wrapper: false
+      - run:
+          mkdir -p $HOME/.pingidentity/ && echo "$CONFIG" >> $HOME/.pingidentity/config && grep -E "[a-zA-Z]" $HOME/.pingidentity/config || exit 1 && make testacccomplete && make removetestcontainer
+        env:
+          TF_ACC: '1'
+          CONFIG: ${{ secrets.Config }}

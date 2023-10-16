@@ -2,6 +2,9 @@ package jamfpro
 
 import (
 	"context"
+	"strconv"
+
+	"os"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -15,22 +18,25 @@ import (
 // Ensure JamfProProvider satisfies various provider interfaces.
 var _ provider.Provider = &JamfProProvider{}
 
-// constants
-const defaultMaxConcurrentRequests = 10
-
 // JamfProProvider defines the provider implementation.
 type JamfProProvider struct {
-	version               string
-	InstanceName          string `tfsdk:"instance_name"`
-	ClientID              string `tfsdk:"client_id"`
-	ClientSecret          string `tfsdk:"client_secret"`
-	DebugMode             bool   `tfsdk:"debug_mode"`
-	MaxConcurrentRequests *int   `tfsdk:"max_concurrent_requests"`
+	version string
 }
 
-// JamfProProviderModel describes the provider data model.
+// JamfPro ProviderModel maps provider schema data to a Go type.
 type JamfProProviderModel struct {
-	Endpoint types.String `tfsdk:"endpoint"`
+	InstanceName types.String `tfsdk:"instance_name"`
+	ClientID     types.String `tfsdk:"client_id"`
+	ClientSecret types.String `tfsdk:"client_secret"`
+	DebugMode    types.Bool   `tfsdk:"debug_mode"`
+}
+
+func New(version string) func() provider.Provider {
+	return func() provider.Provider {
+		return &JamfProProvider{
+			version: version,
+		}
+	}
 }
 
 func (p *JamfProProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -52,70 +58,136 @@ func (p *JamfProProvider) Schema(ctx context.Context, req provider.SchemaRequest
 			},
 			"client_secret": schema.StringAttribute{
 				Required:    true,
+				Sensitive:   true,
 				Description: "Client secret for authentication.",
 			},
 			"debug_mode": schema.BoolAttribute{
 				Required:    true,
 				Description: "Enable or disable debug mode for verbose logging.",
 			},
-			"max_concurrent_requests": schema.NumberAttribute{
-				Optional:    true,
-				Description: "Maximum number of simultaneous requests allowed.",
-			},
-			// Add other attributes you wish to add from the http client
 		},
 	}
 }
 
 func (p *JamfProProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	// Starting the configuration process
-	tflog.Info(ctx, "Configuring the JamfProProvider...")
-
-	// Extract configuration into the JamfProProvider directly
-	resp.Diagnostics.Append(req.Config.Get(ctx, p)...)
+	// Retrieve provider data from configuration
+	var config JamfProProviderModel
+	diags := req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Error occurred while extracting configuration.")
 		return
 	}
 
-	// Handle optional fields
-	maxConcurrentRequests := defaultMaxConcurrentRequests
-	if p.MaxConcurrentRequests != nil {
-		maxConcurrentRequests = *p.MaxConcurrentRequests
+	// User must provide a instance name to the provider
+	var instanceName string
+	if config.InstanceName.IsUnknown() {
+		// Cannot connect to PingFederate with an unknown value
+		resp.Diagnostics.AddError(
+			"Unable to connect to the Jamf Pro Server",
+			"Cannot use unknown value as instance_name",
+		)
+	} else {
+		if config.InstanceName.IsNull() {
+			instanceName = os.Getenv("JAMFPRO_PROVIDER_INSTANCE_NAME")
+		} else {
+			instanceName = config.InstanceName.ValueString()
+		}
+		if instanceName == "" {
+			resp.Diagnostics.AddError(
+				"Unable to find instance_name",
+				"instance_name cannot be an empty string. Either set it in the configuration or use the JAMFPRO_PROVIDER_INSTANCE_NAME environment variable.",
+			)
+		}
 	}
 
-	// Configuration for the jamfpro
-	config := jamfpro.Config{
-		InstanceName:          p.InstanceName,
-		DebugMode:             p.DebugMode,
-		Logger:                jamfpro.NewDefaultLogger(),
-		MaxConcurrentRequests: maxConcurrentRequests,
-		TokenLifespan:         30,
-		BufferPeriod:          5,
-		ClientID:              p.ClientID,
-		ClientSecret:          p.ClientSecret,
+	// User must provide a client id to the provider
+	var clientID string
+	if config.ClientID.IsUnknown() {
+		// Cannot connect to PingFederate with an unknown value
+		resp.Diagnostics.AddError(
+			"Unable to connect to the Jamf Pro Server",
+			"Cannot use unknown value as client_id",
+		)
+	} else {
+		if config.ClientID.IsNull() {
+			clientID = os.Getenv("JAMFPRO_PROVIDER_CLIENTID")
+		} else {
+			clientID = config.ClientID.ValueString()
+		}
+		if clientID == "" {
+			resp.Diagnostics.AddError(
+				"Unable to find client_id",
+				"client_id cannot be an empty string. Either set it in the configuration or use the JAMFPRO_PROVIDER_CLIENTID environment variable.",
+			)
+		}
 	}
 
-	// Create a new jamfpro client instance
-	client := jamfpro.NewClient(config)
-	if client == nil {
-		tflog.Error(ctx, "JamfPro client is nil after initialization. Configuration failed.")
-		resp.Diagnostics.AddError("JamfPro Client Initialization Error", "JamfPro client is nil after initialization. This may be due to an internal issue in the NewClient function.")
+	// User must provide a client secret to the provider
+	var clientSecret string
+	if config.ClientSecret.IsUnknown() {
+		// Cannot connect to PingFederate with an unknown value
+		resp.Diagnostics.AddError(
+			"Unable to connect to the Jamf Pro Server",
+			"Cannot use unknown value as client_secret",
+		)
+	} else {
+		if config.ClientSecret.IsNull() {
+			clientSecret = os.Getenv("JAMFPRO_PROVIDER_CLIENT_SECRET")
+		} else {
+			clientSecret = config.ClientSecret.ValueString()
+		}
+		if clientSecret == "" {
+			resp.Diagnostics.AddError(
+				"Unable to find client_secret",
+				"client_secret cannot be an empty string. Either set it in the configuration or use the JAMFPRO_PROVIDER_CLIENT_SECRET environment variable.",
+			)
+		}
+	}
+
+	// Optional attributes
+	var debugMode bool
+	var err error
+	if !config.DebugMode.IsUnknown() && !config.DebugMode.IsNull() {
+		debugMode = config.DebugMode.ValueBool()
+	} else {
+		debugMode, err = strconv.ParseBool(os.Getenv("JAMFPRO_PROVIDER_DEBUG_MODE"))
+		if err != nil {
+			debugMode = false
+			tflog.Info(ctx, "Failed to parse boolean from 'JAMFPRO_PROVIDER_DEBUG_MODE' environment variable, defaulting 'debug_mode' to false")
+		}
+	}
+
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Assign the jamfpro client to the provider
-	resp.DataSourceData = client
-	resp.ResourceData = client
+	// Create a configuration for the JamfPro client based on the provider's configuration
+	jamfProConfig := jamfpro.Config{
+		InstanceName: instanceName,
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		DebugMode:    debugMode,
+		// Add other necessary fields as required
+	}
 
-	// Check if the client was correctly assigned
-	if resp.DataSourceData == nil || resp.ResourceData == nil {
-		tflog.Error(ctx, "resp.DataSourceData or resp.ResourceData is nil after assignment.")
-		resp.Diagnostics.AddError("Assignment Error", "resp.DataSourceData or resp.ResourceData is nil after assignment.")
+	// Initialize the JamfPro client
+	jamfProClient, err := jamfpro.NewClient(jamfProConfig)
+	if err != nil {
+		resp.Diagnostics.AddError("Failed to create JamfPro client", err.Error())
 		return
 	}
 
-	tflog.Info(ctx, "JamfProProvider configuration completed successfully.")
+	// Validate the client's OAuth credentials
+	if jamfProClient.HTTP.GetOAuthCredentials().ClientID == "" || jamfProClient.HTTP.GetOAuthCredentials().ClientSecret == "" {
+		resp.Diagnostics.AddError("OAuth credentials error", "OAuth credentials (ClientID and ClientSecret) must be provided")
+		return
+	}
+
+	// Store the JamfPro client in the response so it's available to resources and data sources
+	resp.ResourceData = jamfProClient
+	resp.DataSourceData = jamfProClient
+
+	tflog.Info(ctx, "Configured JamfPro client", map[string]interface{}{"success": true})
 }
 
 func (p *JamfProProvider) Resources(ctx context.Context) []func() resource.Resource {
@@ -127,13 +199,5 @@ func (p *JamfProProvider) Resources(ctx context.Context) []func() resource.Resou
 func (p *JamfProProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewDepartmentDataSource, // Use the NewDepartmentDataSource function here
-	}
-}
-
-func New(version string) func() provider.Provider {
-	return func() provider.Provider {
-		return &JamfProProvider{
-			version: version,
-		}
 	}
 }

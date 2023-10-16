@@ -31,8 +31,8 @@ github.com/cloudflare/circl v1.3.3/go.mod h1:5XYMA4rFBvNIrhs50XuiBJ15vF2pZn4nnUK
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/deploymenttheory/go-api-sdk-jamfpro v0.0.21 h1:FHvQrjfucZ7bl71FtbimhFzf7qAJr/HYeSnU2u9EXW0=
-github.com/deploymenttheory/go-api-sdk-jamfpro v0.0.21/go.mod h1:eVkZa6dzciBHdq2Ui3jHdm2S7bMuKjsczBl3nmgm0Z4=
+github.com/deploymenttheory/go-api-sdk-jamfpro v0.0.22 h1:cHH3xfrTGtZdwJZ0k0+W7krITLtA/5g9k8IWu14bGrU=
+github.com/deploymenttheory/go-api-sdk-jamfpro v0.0.22/go.mod h1:eVkZa6dzciBHdq2Ui3jHdm2S7bMuKjsczBl3nmgm0Z4=
 github.com/emirpasic/gods v1.18.1 h1:FXtiHYKDGKCW2KzwZKx0iC0PQmdlorYgdFG9jPXJ1Bc=
 github.com/emirpasic/gods v1.18.1/go.mod h1:8tpGGwCnJ5H4r6BWwaV6OrWmMoPhUl5jm/FMNAnJvWQ=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
