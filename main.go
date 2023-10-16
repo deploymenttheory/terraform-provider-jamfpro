@@ -4,12 +4,11 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"log"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/jamfpro"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 )
 
 // Run "go generate" to format example terraform files and generate the docs for the registry/website
@@ -31,22 +30,22 @@ var (
 	// https://goreleaser.com/cookbooks/using-main.version/
 )
 
-func main() {
-	println("-----THIS IS MAIN.GO-----")
-	var debug bool
+const noLogPrefix = 0
 
-	flag.BoolVar(&debug, "debug", true, "set to true to run the provider with support for debuggers like delve")
+func main() {
+	var debugMode bool
+
+	flag.BoolVar(&debugMode, "debug", false, "set to true to run the provider with support for debuggers like delve")
 	flag.Parse()
 
-	opts := providerserver.ServeOpts{
-		// TODO: Update this string with the published name of your provider.
-		Address: "registry.terraform.io/deploymenttheory/jamfpro",
-		Debug:   debug,
+	opts := &plugin.ServeOpts{ProviderFunc: jamfpro.Provider}
+
+	// Prevent logger from prepending date/time to logs, which breaks log-level parsing/filtering
+	log.SetFlags(noLogPrefix)
+
+	if debugMode {
+		opts.Debug = true
 	}
 
-	err := providerserver.Serve(context.Background(), jamfpro.New(version), opts)
-
-	if err != nil {
-		log.Fatal(err.Error())
-	}
+	plugin.Serve(opts)
 }
