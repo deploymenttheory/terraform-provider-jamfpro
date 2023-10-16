@@ -35,7 +35,7 @@ func main() {
 	println("-----THIS IS MAIN.GO-----")
 	var debug bool
 
-	flag.BoolVar(&debug, "debug", false, "set to true to run the provider with support for debuggers like delve")
+	flag.BoolVar(&debug, "debug", true, "set to true to run the provider with support for debuggers like delve")
 	flag.Parse()
 
 	opts := providerserver.ServeOpts{
