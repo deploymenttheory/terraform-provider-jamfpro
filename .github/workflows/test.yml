@@ -77,5 +77,5 @@ jobs:
       - run: go mod download
       - env:
           TF_ACC: "1"
-        run: go test -v -cover ./internal/provider/
+        run: go test -v -cover ./internal/jamfpro/
         timeout-minutes: 10

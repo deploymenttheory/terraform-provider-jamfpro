@@ -8,7 +8,7 @@ import (
 	"flag"
 	"log"
 
-	jamfpro "github.com/deploymenttheory/terraform-provider-jamfpro/internal/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/jamfpro"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 )
 
