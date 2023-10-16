@@ -16,7 +16,7 @@ import (
 )
 
 // Ensure JamfProProvider satisfies various provider interfaces.
-var _ provider.Provider = &JamfProProvider{}
+var _ provider.Provider = (*JamfProProvider)(nil)
 
 // JamfProProvider defines the provider implementation.
 type JamfProProvider struct {
@@ -71,6 +71,7 @@ func (p *JamfProProvider) Schema(ctx context.Context, req provider.SchemaRequest
 }
 
 func (p *JamfProProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+	println("hello")
 	// Retrieve provider data from configuration
 	var config JamfProProviderModel
 	diags := req.Config.Get(ctx, &config)
