@@ -173,8 +173,11 @@ func (p *JamfProProvider) Configure(ctx context.Context, req provider.ConfigureR
 	// Initialize the JamfPro client
 	jamfProClient, err := jamfpro.NewClient(jamfProConfig)
 	if err != nil {
+		tflog.Error(ctx, "Error while initializing the JamfPro client", map[string]interface{}{"error": err.Error()})
 		resp.Diagnostics.AddError("Failed to create JamfPro client", err.Error())
 		return
+	} else {
+		tflog.Info(ctx, "Successfully initialized the JamfPro client", map[string]interface{}{"success": true})
 	}
 
 	// Validate the client's OAuth credentials
