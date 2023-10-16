@@ -14,6 +14,7 @@ func resourceJamfProDepartments() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProDepartmentsCreate,
 		ReadContext:   resourceJamfProDepartmentsRead,
+		UpdateContext: resourceJamfProDepartmentsUpdate,
 		DeleteContext: resourceJamfProDepartmentsDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -28,6 +29,7 @@ func resourceJamfProDepartments() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The unique name of the Jamf Pro department.",
+				ForceNew:    true,
 			},
 		},
 	}
@@ -104,6 +106,41 @@ func resourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 			Detail:   err.Error(),
 		})
 	}
+
+	return diags
+}
+
+func resourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	conn := meta.(*APIClient).conn
+
+	var diags diag.Diagnostics
+
+	if d.HasChange("name") {
+		oldName, newName := d.GetChange("name")
+
+		// Initially attempt to update the department by its ID.
+		departmentID, err := strconv.Atoi(d.Id())
+		if err == nil {
+			_, err = conn.UpdateDepartmentByID(departmentID, newName.(string))
+		}
+
+		// If updating by ID failed or wasn't possible, try to update by the old name.
+		if err != nil {
+			_, err = conn.UpdateDepartmentByName(oldName.(string), newName.(string))
+			if err != nil {
+				diags = append(diags, diag.Diagnostic{
+					Severity: diag.Error,
+					Summary:  fmt.Sprintf("Failed to update department with old name %s to new name %s", oldName.(string), newName.(string)),
+					Detail:   err.Error(),
+				})
+				return diags
+			}
+		}
+	}
+
+	// Even if the update was successful, we run the Read function to get the latest state and verify the update.
+	readDiags := resourceJamfProDepartmentsRead(ctx, d, meta)
+	diags = append(diags, readDiags...)
 
 	return diags
 }
