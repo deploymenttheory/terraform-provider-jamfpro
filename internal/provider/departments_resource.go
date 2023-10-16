@@ -21,7 +21,7 @@ func resourceJamfProDepartments() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:        schema.TypeInt,
+				Type:        schema.TypeString, // While we use an int value to represent the id, Terraform still expects this value to be stored as a string in the state.
 				Computed:    true,
 				Description: "The unique identifier of the department.",
 			},
