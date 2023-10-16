@@ -7,7 +7,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/provider"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 )
 
@@ -38,7 +38,7 @@ func main() {
 	flag.BoolVar(&debugMode, "debug", false, "set to true to run the provider with support for debuggers like delve")
 	flag.Parse()
 
-	opts := &plugin.ServeOpts{ProviderFunc: jamfpro.Provider}
+	opts := &plugin.ServeOpts{ProviderFunc: provider.Provider}
 
 	// Prevent logger from prepending date/time to logs, which breaks log-level parsing/filtering
 	log.SetFlags(noLogPrefix)
