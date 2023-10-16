@@ -32,6 +32,7 @@ type JamfProProviderModel struct {
 }
 
 func New(version string) func() provider.Provider {
+	println("-----THIS IS func NEW-----")
 	tflog.Info(context.Background(), "Initializing JamfPro provider")
 	return func() provider.Provider {
 		return &JamfProProvider{
@@ -71,7 +72,7 @@ func (p *JamfProProvider) Schema(ctx context.Context, req provider.SchemaRequest
 }
 
 func (p *JamfProProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	println("hello")
+	println("-----(p *JamfProProvider) Configure-----")
 	// Retrieve provider data from configuration
 	var config JamfProProviderModel
 	diags := req.Config.Get(ctx, &config)

@@ -62,6 +62,7 @@ func (d *DepartmentDataSource) Schema(ctx context.Context, req datasource.Schema
 // It checks if the provider data (which should contain configuration details) is available,
 // and then attempts to cast it to a specific type (in this case, a Jamf Pro client).
 func (d *DepartmentDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	println("-----func (d *DepartmentDataSource) Configure-----")
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
