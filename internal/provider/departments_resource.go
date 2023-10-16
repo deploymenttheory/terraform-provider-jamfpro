@@ -28,7 +28,6 @@ func resourceJamfProDepartments() *schema.Resource {
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Optional:    true,
 				ForceNew:    true,
 				Description: "The unique name of the Jamf Pro department.",
 			},
