@@ -16,9 +16,9 @@ import (
 // any API requests made by the provider.
 const TerraformProviderProductUserAgent = "terraform-provider-jamfpro"
 
-// getInstanceName retrieves the 'instance_name' value from the Terraform configuration.
+// GetInstanceName retrieves the 'instance_name' value from the Terraform configuration.
 // If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_INSTANCE environment variable.
-func getInstanceName(d *schema.ResourceData) (string, error) {
+func GetInstanceName(d *schema.ResourceData) (string, error) {
 	instanceName := d.Get("instance_name").(string)
 	if instanceName == "" {
 		instanceName = os.Getenv("JAMFPRO_INSTANCE")
@@ -29,9 +29,9 @@ func getInstanceName(d *schema.ResourceData) (string, error) {
 	return instanceName, nil
 }
 
-// getClientID retrieves the 'client_id' value from the Terraform configuration.
+// GetClientID retrieves the 'client_id' value from the Terraform configuration.
 // If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_CLIENT_ID environment variable.
-func getClientID(d *schema.ResourceData) (string, error) {
+func GetClientID(d *schema.ResourceData) (string, error) {
 	clientID := d.Get("client_id").(string)
 	if clientID == "" {
 		clientID = os.Getenv("JAMFPRO_CLIENT_ID")
@@ -42,9 +42,9 @@ func getClientID(d *schema.ResourceData) (string, error) {
 	return clientID, nil
 }
 
-// getClientSecret retrieves the 'client_secret' value from the Terraform configuration.
+// GetClientSecret retrieves the 'client_secret' value from the Terraform configuration.
 // If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_CLIENT_SECRET environment variable.
-func getClientSecret(d *schema.ResourceData) (string, error) {
+func GetClientSecret(d *schema.ResourceData) (string, error) {
 	clientSecret := d.Get("client_secret").(string)
 	if clientSecret == "" {
 		clientSecret = os.Getenv("JAMFPRO_CLIENT_SECRET")
@@ -95,7 +95,7 @@ func Provider() *schema.Provider {
 	provider.ConfigureContextFunc = func(_ context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 		var diags diag.Diagnostics
 
-		instanceName, err := getInstanceName(d)
+		instanceName, err := GetInstanceName(d)
 		if err != nil {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
@@ -105,7 +105,7 @@ func Provider() *schema.Provider {
 			return nil, diags
 		}
 
-		clientID, err := getClientID(d)
+		clientID, err := GetClientID(d)
 		if err != nil {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
@@ -115,7 +115,7 @@ func Provider() *schema.Provider {
 			return nil, diags
 		}
 
-		clientSecret, err := getClientSecret(d)
+		clientSecret, err := GetClientSecret(d)
 		if err != nil {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
