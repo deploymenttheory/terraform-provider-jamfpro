@@ -1,3 +1,4 @@
+// department_resource.go
 package provider
 
 import (
