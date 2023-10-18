@@ -4,6 +4,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -15,26 +16,41 @@ import (
 // any API requests made by the provider.
 const TerraformProviderProductUserAgent = "terraform-provider-jamfpro"
 
+// getInstanceName retrieves the 'instance_name' value from the Terraform configuration.
+// If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_INSTANCE environment variable.
 func getInstanceName(d *schema.ResourceData) (string, error) {
 	instanceName := d.Get("instance_name").(string)
 	if instanceName == "" {
-		return "", fmt.Errorf("instance_name must be provided either as an environment variable (JAMFPRO_INSTANCE) or in the Terraform configuration.")
+		instanceName = os.Getenv("JAMFPRO_INSTANCE")
+		if instanceName == "" {
+			return "", fmt.Errorf("instance_name must be provided either as an environment variable (JAMFPRO_INSTANCE) or in the Terraform configuration")
+		}
 	}
 	return instanceName, nil
 }
 
+// getClientID retrieves the 'client_id' value from the Terraform configuration.
+// If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_CLIENT_ID environment variable.
 func getClientID(d *schema.ResourceData) (string, error) {
 	clientID := d.Get("client_id").(string)
 	if clientID == "" {
-		return "", fmt.Errorf("client_id must be provided either as an environment variable (JAMFPRO_CLIENT_ID) or in the Terraform configuration.")
+		clientID = os.Getenv("JAMFPRO_CLIENT_ID")
+		if clientID == "" {
+			return "", fmt.Errorf("client_id must be provided either as an environment variable (JAMFPRO_CLIENT_ID) or in the Terraform configuration")
+		}
 	}
 	return clientID, nil
 }
 
+// getClientSecret retrieves the 'client_secret' value from the Terraform configuration.
+// If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_CLIENT_SECRET environment variable.
 func getClientSecret(d *schema.ResourceData) (string, error) {
 	clientSecret := d.Get("client_secret").(string)
 	if clientSecret == "" {
-		return "", fmt.Errorf("client_secret must be provided either as an environment variable (JAMFPRO_CLIENT_SECRET) or in the Terraform configuration.")
+		clientSecret = os.Getenv("JAMFPRO_CLIENT_SECRET")
+		if clientSecret == "" {
+			return "", fmt.Errorf("client_secret must be provided either as an environment variable (JAMFPRO_CLIENT_SECRET) or in the Terraform configuration")
+		}
 	}
 	return clientSecret, nil
 }
