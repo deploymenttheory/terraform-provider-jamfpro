@@ -162,7 +162,12 @@ func TestProviderWithSuccessfulClientInitialization(t *testing.T) {
 	})
 
 	// Override the function for this test
-	NewClientFunc = mockNewClientSuccess
+	NewClientFunc = mockNewClientFail
+
+	// Ensure NewClientFunc is reset after the test
+	defer func() {
+		NewClientFunc = jamfpro.NewClient
+	}()
 
 	// Now invoke the provider with the mock setup
 	_, diags := Provider().ConfigureContextFunc(context.Background(), d)
@@ -184,6 +189,11 @@ func TestProviderWithFailedClientInitialization(t *testing.T) {
 	})
 	// Override the function for this test
 	NewClientFunc = mockNewClientFail
+
+	// Ensure NewClientFunc is reset after the test
+	defer func() {
+		NewClientFunc = jamfpro.NewClient
+	}()
 
 	// Now invoke the provider with the mock setup
 	_, diags := Provider().ConfigureContextFunc(context.Background(), d)
