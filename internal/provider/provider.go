@@ -26,13 +26,15 @@ func Provider() *schema.Provider {
 			"client_id": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Client ID for authentication.",
+				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_CLIENT_ID", nil),
+				Description: "The Jamf Pro Client ID for authentication.",
 			},
 			"client_secret": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Sensitive:   true,
-				Description: "Client secret for authentication.",
+				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_CLIENT_SECRET", nil),
+				Description: "The Jamf Pro Client secret for authentication.",
 			},
 			"debug_mode": {
 				Type:        schema.TypeBool,
