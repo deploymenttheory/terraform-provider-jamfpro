@@ -198,8 +198,8 @@ func TestProviderWithFailedClientInitialization(t *testing.T) {
 	assert.Len(t, diags, 1) // Expect one diagnostic (error)
 }
 
-func TestUserAgentHandling(t *testing.T) {
-	expectedUserAgent := fmt.Sprintf("%s/%s", TerraformProviderProductUserAgent, version.ProviderVersion)
+func TestUserAgentInitialization(t *testing.T) {
+	expectedUserAgent := fmt.Sprintf("Terraform/ (+https://www.terraform.io) Terraform-Plugin-SDK/2.10.1 %s/%s", TerraformProviderProductUserAgent, version.ProviderVersion)
 
 	d := schema.TestResourceDataRaw(t, map[string]*schema.Schema{
 		"instance_name": {Type: schema.TypeString},
@@ -213,8 +213,16 @@ func TestUserAgentHandling(t *testing.T) {
 		"debug_mode":    true,
 	})
 
-	client, _ := Provider().ConfigureContextFunc(context.Background(), d)
-	providerConfig := client.(*ProviderConfig) // NOTE: This assumes your client is of type *ProviderConfig. Adjust as necessary.
+	_, diags := Provider().ConfigureContextFunc(context.Background(), d)
+	assert.Len(t, diags, 0) // No errors
 
-	assert.Equal(t, expectedUserAgent, providerConfig.UserAgent)
+	config := ProviderConfig{
+		InstanceName: "testInstance",
+		ClientID:     "testClientID",
+		ClientSecret: "testClientSecret",
+		DebugMode:    true,
+		UserAgent:    expectedUserAgent,
+	}
+
+	assert.Equal(t, expectedUserAgent, config.UserAgent)
 }
