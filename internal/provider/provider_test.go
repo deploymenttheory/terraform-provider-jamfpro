@@ -1,9 +1,12 @@
 package provider
 
 import (
+	"context"
+	"fmt"
 	"os"
 	"testing"
 
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
 )
@@ -63,20 +66,126 @@ func TestGetClientID(t *testing.T) {
 }
 
 func TestGetClientSecret(t *testing.T) {
-	// Similar tests as for getInstanceName but for client secret
+	// Mock schema.ResourceData
+	d := schema.TestResourceDataRaw(t, map[string]*schema.Schema{
+		"client_secret": {
+			Type: schema.TypeString,
+		},
+	}, map[string]interface{}{})
+
+	// Test 1: Get client secret from d
+	d.Set("client_secret", "testClientSecret")
+	clientSecret, err := GetClientSecret(d)
+	assert.NoError(t, err)
+	assert.Equal(t, "testClientSecret", clientSecret)
+
+	// Test 2: Get client secret from environment variable
+	os.Setenv("JAMFPRO_CLIENT_SECRET", "testEnvClientSecret")
+	d.Set("client_secret", "") // Clear the previous set value
+	clientSecret, err = GetClientSecret(d)
+	assert.NoError(t, err)
+	assert.Equal(t, "testEnvClientSecret", clientSecret)
+
+	// Test 3: No client secret set anywhere
+	os.Unsetenv("JAMFPRO_CLIENT_SECRET")
+	_, err = GetClientSecret(d)
+	assert.Error(t, err)
 }
 
 func TestProvider(t *testing.T) {
-	// Test the Provider function, especially the ConfigureContextFunc
-	// This might be a bit more complex and might require more mocking
-
 	// Test 1: Everything set correctly
+	d := schema.TestResourceDataRaw(t, map[string]*schema.Schema{
+		"instance_name": {
+			Type: schema.TypeString,
+		},
+		"client_id": {
+			Type: schema.TypeString,
+		},
+		"client_secret": {
+			Type: schema.TypeString,
+		},
+		"debug_mode": {
+			Type: schema.TypeBool,
+		},
+	}, map[string]interface{}{
+		"instance_name": "testInstance",
+		"client_id":     "testClientID",
+		"client_secret": "testClientSecret",
+		"debug_mode":    true,
+	})
+
+	_, diags := Provider().ConfigureContextFunc(context.Background(), d)
+	assert.Len(t, diags, 0)
 
 	// Test 2: Missing instance name
+	d.Set("instance_name", "")
+	_, diags = Provider().ConfigureContextFunc(context.Background(), d)
+	assert.Len(t, diags, 1)
 
 	// Test 3: Missing client ID
+	d.Set("instance_name", "testInstance") // reset instance_name
+	d.Set("client_id", "")
+	_, diags = Provider().ConfigureContextFunc(context.Background(), d)
+	assert.Len(t, diags, 1)
 
 	// Test 4: Missing client secret
+	d.Set("client_id", "testClientID") // reset client_id
+	d.Set("client_secret", "")
+	_, diags = Provider().ConfigureContextFunc(context.Background(), d)
+	assert.Len(t, diags, 1)
 
 	// ... and so on
+}
+
+func mockNewClientSuccess(cfg jamfpro.Config) (*jamfpro.Client, error) {
+	// Return a mock client. This can be a real client with a mock configuration or a completely mocked client.
+	// For this example, I'll just return a pointer to an empty client.
+	return &jamfpro.Client{}, nil
+}
+
+func mockNewClientFail(cfg jamfpro.Config) (*jamfpro.Client, error) {
+	return nil, fmt.Errorf("mocked client initialization failure")
+}
+
+func TestProviderWithSuccessfulClientInitialization(t *testing.T) {
+	// Setup your schema.ResourceData
+	d := schema.TestResourceDataRaw(t, map[string]*schema.Schema{
+		"instance_name": {Type: schema.TypeString},
+		"client_id":     {Type: schema.TypeString},
+		"client_secret": {Type: schema.TypeString},
+		"debug_mode":    {Type: schema.TypeBool},
+	}, map[string]interface{}{
+		"instance_name": "testInstance",
+		"client_id":     "testClientID",
+		"client_secret": "testClientSecret",
+		"debug_mode":    true,
+	})
+
+	// Override the function for this test
+	NewClientFunc = mockNewClientSuccess
+
+	// Now invoke the provider with the mock setup
+	_, diags := Provider().ConfigureContextFunc(context.Background(), d)
+	assert.Len(t, diags, 0) // Expect no diagnostics (errors)
+}
+
+func TestProviderWithFailedClientInitialization(t *testing.T) {
+	// Setup your schema.ResourceData
+	d := schema.TestResourceDataRaw(t, map[string]*schema.Schema{
+		"instance_name": {Type: schema.TypeString},
+		"client_id":     {Type: schema.TypeString},
+		"client_secret": {Type: schema.TypeString},
+		"debug_mode":    {Type: schema.TypeBool},
+	}, map[string]interface{}{
+		"instance_name": "testInstance",
+		"client_id":     "testClientID",
+		"client_secret": "testClientSecret",
+		"debug_mode":    true,
+	})
+	// Override the function for this test
+	NewClientFunc = mockNewClientFail
+
+	// Now invoke the provider with the mock setup
+	_, diags := Provider().ConfigureContextFunc(context.Background(), d)
+	assert.Len(t, diags, 1) // Expect one diagnostic (error)
 }

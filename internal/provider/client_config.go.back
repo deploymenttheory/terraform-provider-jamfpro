@@ -19,22 +19,20 @@ type APIClient struct {
 	conn *jamfpro.Client
 }
 
-// NewClientFunc is a global function variable for client creation that defaults to jamfpro.NewClient.
-// It can be overridden in tests to use mock client creation functions.
 var NewClientFunc = jamfpro.NewClient
 
 // Client returns a new client for accessing Jamf Pro.
 func (c *ProviderConfig) Client() (*APIClient, diag.Diagnostics) {
 	var client APIClient
 
-	jamfProConfig := jamfpro.Config{
+	jamfProConfig := jamfpro.Config{ // Ensure it's using jamfpro.Config
 		InstanceName: c.InstanceName,
 		ClientID:     c.ClientID,
 		ClientSecret: c.ClientSecret,
 		DebugMode:    c.DebugMode,
 	}
 
-	jamfProClient, err := NewClientFunc(jamfProConfig)
+	jamfProClient, err := jamfpro.NewClient(jamfProConfig) // Using jamfpro.NewClient
 	if err != nil {
 		return nil, diag.FromErr(err)
 	}
