@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/version"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
 )
@@ -133,13 +134,10 @@ func TestProvider(t *testing.T) {
 	d.Set("client_secret", "")
 	_, diags = Provider().ConfigureContextFunc(context.Background(), d)
 	assert.Len(t, diags, 1)
-
-	// ... and so on
 }
 
+// Return a mock client.
 func mockNewClientSuccess(cfg jamfpro.Config) (*jamfpro.Client, error) {
-	// Return a mock client. This can be a real client with a mock configuration or a completely mocked client.
-	// For this example, I'll just return a pointer to an empty client.
 	return &jamfpro.Client{}, nil
 }
 
@@ -162,7 +160,7 @@ func TestProviderWithSuccessfulClientInitialization(t *testing.T) {
 	})
 
 	// Override the function for this test
-	NewClientFunc = mockNewClientFail
+	NewClientFunc = mockNewClientSuccess
 
 	// Ensure NewClientFunc is reset after the test
 	defer func() {
@@ -198,4 +196,25 @@ func TestProviderWithFailedClientInitialization(t *testing.T) {
 	// Now invoke the provider with the mock setup
 	_, diags := Provider().ConfigureContextFunc(context.Background(), d)
 	assert.Len(t, diags, 1) // Expect one diagnostic (error)
+}
+
+func TestUserAgentHandling(t *testing.T) {
+	expectedUserAgent := fmt.Sprintf("%s/%s", TerraformProviderProductUserAgent, version.ProviderVersion)
+
+	d := schema.TestResourceDataRaw(t, map[string]*schema.Schema{
+		"instance_name": {Type: schema.TypeString},
+		"client_id":     {Type: schema.TypeString},
+		"client_secret": {Type: schema.TypeString},
+		"debug_mode":    {Type: schema.TypeBool},
+	}, map[string]interface{}{
+		"instance_name": "testInstance",
+		"client_id":     "testClientID",
+		"client_secret": "testClientSecret",
+		"debug_mode":    true,
+	})
+
+	client, _ := Provider().ConfigureContextFunc(context.Background(), d)
+	providerConfig := client.(*ProviderConfig) // NOTE: This assumes your client is of type *ProviderConfig. Adjust as necessary.
+
+	assert.Equal(t, expectedUserAgent, providerConfig.UserAgent)
 }
