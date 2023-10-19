@@ -28,6 +28,12 @@ type APIClient struct {
 	conn *jamfpro.Client
 }
 
+/*
+type APIClient struct {
+	conn JamfProClientInterface
+}
+*/
+
 // NewClientFunc is a global function variable for client creation that defaults to jamfpro.NewClient.
 // It can be overridden in tests to use mock client creation functions.
 var NewClientFunc = jamfpro.NewClient
