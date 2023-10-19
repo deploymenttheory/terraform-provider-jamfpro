@@ -1,8 +1,10 @@
 package provider
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"testing"
 
@@ -160,11 +162,11 @@ func TestProviderWithSuccessfulClientInitialization(t *testing.T) {
 	})
 
 	// Override the function for this test
-	NewClientFunc = mockNewClientSuccess
+	BuildClient = mockNewClientSuccess
 
-	// Ensure NewClientFunc is reset after the test
+	// Ensure BuildClient is reset after the test
 	defer func() {
-		NewClientFunc = jamfpro.NewClient
+		BuildClient = jamfpro.NewClient
 	}()
 
 	// Now invoke the provider with the mock setup
@@ -186,11 +188,11 @@ func TestProviderWithFailedClientInitialization(t *testing.T) {
 		"debug_mode":    true,
 	})
 	// Override the function for this test
-	NewClientFunc = mockNewClientFail
+	BuildClient = mockNewClientFail
 
-	// Ensure NewClientFunc is reset after the test
+	// Ensure BuildClient is reset after the test
 	defer func() {
-		NewClientFunc = jamfpro.NewClient
+		BuildClient = jamfpro.NewClient
 	}()
 
 	// Now invoke the provider with the mock setup
@@ -225,4 +227,58 @@ func TestUserAgentInitialization(t *testing.T) {
 	}
 
 	assert.Equal(t, expectedUserAgent, config.UserAgent)
+}
+
+func mockSDKError(cfg jamfpro.Config) (*jamfpro.Client, error) {
+	return nil, fmt.Errorf("deeper error for testing propagation")
+}
+
+func TestErrorPropagation(t *testing.T) {
+	BuildClient = mockSDKError
+
+	defer func() {
+		BuildClient = jamfpro.NewClient
+	}()
+
+	d := schema.TestResourceDataRaw(t, map[string]*schema.Schema{
+		"instance_name": {Type: schema.TypeString},
+		"client_id":     {Type: schema.TypeString},
+		"client_secret": {Type: schema.TypeString},
+		"debug_mode":    {Type: schema.TypeBool},
+	}, map[string]interface{}{
+		"instance_name": "testInstance",
+		"client_id":     "testClientID",
+		"client_secret": "testClientSecret",
+		"debug_mode":    true,
+	})
+
+	_, diags := Provider().ConfigureContextFunc(context.Background(), d)
+	assert.Len(t, diags, 1)
+	assert.Contains(t, diags[0].Summary, "deeper error for testing propagation")
+}
+
+func TestSensitiveInformationLogging(t *testing.T) {
+	// Capture log output
+	var buf bytes.Buffer
+	log.SetOutput(&buf)
+	defer func() {
+		log.SetOutput(os.Stderr)
+	}()
+
+	d := schema.TestResourceDataRaw(t, map[string]*schema.Schema{
+		"instance_name": {Type: schema.TypeString},
+		"client_id":     {Type: schema.TypeString},
+		"client_secret": {Type: schema.TypeString},
+		"debug_mode":    {Type: schema.TypeBool},
+	}, map[string]interface{}{
+		"instance_name": "testInstance",
+		"client_id":     "testClientID",
+		"client_secret": "testClientSecret",
+		"debug_mode":    true,
+	})
+
+	Provider().ConfigureContextFunc(context.Background(), d)
+
+	logs := buf.String()
+	assert.NotContains(t, logs, "testClientSecret")
 }

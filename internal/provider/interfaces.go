@@ -1,0 +1,2 @@
+// interfaces.go
+package provider
