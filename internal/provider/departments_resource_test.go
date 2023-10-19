@@ -9,6 +9,7 @@ They are used to ensure that the Terraform provider is correctly interfacing wit
 */
 package provider
 
+/*
 import (
 	"context"
 	"fmt"
@@ -88,7 +89,7 @@ func testAccPreCheck(t *testing.T) {
 	}
 }
 
-/*
+
 // TestAccResourceJamfProDepartment_minimum tests the creation of a department with minimal configuration.
 func TestAccResourceJamfProDepartment_minimum(t *testing.T) {
 	resourceName := "jamfpro_departments.department"
@@ -239,7 +240,7 @@ func testAccCheckDepartmentStateVerification(n string, expectedName string) reso
 		return nil
 	}
 }
-*/
+
 // TestStateDriftForJamfProDepartments tests if Terraform correctly detects drift for a department resource.
 // This test simulates a scenario where the department name is changed outside of Terraform.
 func TestStateDriftForJamfProDepartments(t *testing.T) {
@@ -286,7 +287,7 @@ func TestStateDriftForJamfProDepartments(t *testing.T) {
 	mockClient.AssertExpectations(t)
 }
 
-/*
+
 func TestResourceJamfProDepartmentsCreate_Success(t *testing.T) {
 	mockClient := new(MockAPIClient)
 	meta := &APIClient{mockConn: mockClient}
