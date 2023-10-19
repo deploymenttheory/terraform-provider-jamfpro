@@ -4,6 +4,7 @@ package provider
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/stretchr/testify/mock"
 )
 
 type ProviderConfig struct {
@@ -19,8 +20,9 @@ type ProviderConfig struct {
 	conn *jamfpro.Client
 }*/
 
-type APIClient struct {
-	conn JamfProDepartmentCRUDOperations
+// MockAPIClient is a mock version of APIClient for testing.
+type MockAPIClient struct {
+	mock.Mock
 }
 
 // BuildClient is a global function variable for client creation that defaults to jamfpro.NewClient.

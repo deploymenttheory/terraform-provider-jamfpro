@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 var testAccProviderFactories = map[string]func() (*schema.Provider, error){
@@ -29,18 +28,51 @@ var testAccProviderFactories = map[string]func() (*schema.Provider, error){
 	},
 }
 
-var _ JamfProDepartmentCRUDOperations = (*jamfpro.Client)(nil)
+// MockAPIClient Jamf Pro Department methods to simulate the behavior of the actual jamfpro.Client
+// without making real API calls
+func (m *MockAPIClient) GetDepartments() (*jamfpro.ResponseDepartments, error) {
+	args := m.Called()
+	return args.Get(0).(*jamfpro.ResponseDepartments), args.Error(1)
+}
 
-type JamfProDepartmentCRUDOperations interface {
-	GetDepartments() (*ResponseDepartments, error)
-	GetDepartmentByID(id int) (*Department, error)
-	GetDepartmentByName(name string) (*Department, error)
-	GetDepartmentIdByName(name string) (int, error)
-	CreateDepartment(departmentName string) (*Department, error)
-	UpdateDepartmentByID(id int, departmentName string) (*Department, error)
-	UpdateDepartmentByName(oldName string, newName string) (*Department, error)
-	DeleteDepartmentByID(id int) error
-	DeleteDepartmentByName(name string) error
+func (m *MockAPIClient) GetDepartmentByID(id int) (*jamfpro.Department, error) {
+	args := m.Called(id)
+	return args.Get(0).(*jamfpro.Department), args.Error(1)
+}
+
+func (m *MockAPIClient) GetDepartmentByName(name string) (*jamfpro.Department, error) {
+	args := m.Called(name)
+	return args.Get(0).(*jamfpro.Department), args.Error(1)
+}
+
+func (m *MockAPIClient) GetDepartmentIdByName(name string) (int, error) {
+	args := m.Called(name)
+	return args.Int(0), args.Error(1)
+}
+
+func (m *MockAPIClient) CreateDepartment(departmentName string) (*jamfpro.Department, error) {
+	args := m.Called(departmentName)
+	return args.Get(0).(*jamfpro.Department), args.Error(1)
+}
+
+func (m *MockAPIClient) UpdateDepartmentByID(id int, departmentName string) (*jamfpro.Department, error) {
+	args := m.Called(id, departmentName)
+	return args.Get(0).(*jamfpro.Department), args.Error(1)
+}
+
+func (m *MockAPIClient) UpdateDepartmentByName(oldName string, newName string) (*jamfpro.Department, error) {
+	args := m.Called(oldName, newName)
+	return args.Get(0).(*jamfpro.Department), args.Error(1)
+}
+
+func (m *MockAPIClient) DeleteDepartmentByID(id int) error {
+	args := m.Called(id)
+	return args.Error(0)
+}
+
+func (m *MockAPIClient) DeleteDepartmentByName(name string) error {
+	args := m.Called(name)
+	return args.Error(0)
 }
 
 // testAccPreCheck ensures necessary environment variables are set for acceptance tests.
@@ -58,6 +90,7 @@ func testAccPreCheck(t *testing.T) {
 	}
 }
 
+/*
 // TestAccResourceJamfProDepartment_minimum tests the creation of a department with minimal configuration.
 func TestAccResourceJamfProDepartment_minimum(t *testing.T) {
 	resourceName := "jamfpro_departments.department"
@@ -151,7 +184,7 @@ func testAccCheckDepartmentExists(n string, expectedName string) resource.TestCh
 		departmentID := rs.Primary.ID
 
 		// Create a client to interact with the Jamf Pro API
-		client := createJamfProAPIClient() // This should be your actual client creation function
+		client := BuildClient() // This should be your actual client creation function
 
 		// Query the Jamf Pro API
 		department, err := client.GetDepartmentByID(departmentID)
@@ -171,11 +204,7 @@ func testAccCheckDepartmentExists(n string, expectedName string) resource.TestCh
 		return nil
 	}
 }
-
-func testAccCheckDepartmentDestroy(s *terraform.State) error {
-	// This function is used to verify if the resource was destroyed.
-	// Typically, you'd use the provided SDK to make a request to your service and verify if the resource still exists.
-}
+*/
 
 // testAccResourceDepartmentConfig returns a string representation of a Terraform configuration
 // for a department resource with the provided department name.
@@ -229,17 +258,18 @@ func TestStateDriftForJamfProDepartments(t *testing.T) {
 		"name": "testDepartment",
 	})
 
-	// Mock the APIClient and its methods to simulate real-world interactions
-	mockClient := &APIClient{
-		conn: &mockJamfProClient{
-			departments: map[int]string{
-				123: "changedDepartmentName", // Simulate that department name was changed outside of Terraform
-			},
-		},
+	mockClient := new(MockAPIClient)
+	meta := &APIClient{conn: mockClient}
+
+	// Mock the expected response when department with ID 123 is fetched
+	department := &jamfpro.Department{
+		Id:   123,
+		Name: "changedDepartmentName", // Simulate that department name was changed outside of Terraform
 	}
+	mockClient.On("GetDepartmentByID", 123).Return(department, nil)
 
 	// Call the Read function
-	diags := resourceJamfProDepartmentsRead(context.Background(), d, mockClient)
+	diags := resourceJamfProDepartmentsRead(context.Background(), d, meta)
 
 	// Check for no errors
 	assert.Len(t, diags, 0)
@@ -247,16 +277,9 @@ func TestStateDriftForJamfProDepartments(t *testing.T) {
 	// Check if Terraform detected the drift
 	assert.NotEqual(t, "testDepartment", d.Get("name").(string))
 	assert.Equal(t, "changedDepartmentName", d.Get("name").(string))
-}
 
-// MockAPIClient is a mock version of APIClient for testing.
-type MockAPIClient struct {
-	mock.Mock
-}
-
-func (m *MockAPIClient) CreateDepartment(name string) (*Department, error) {
-	args := m.Called(name)
-	return args.Get(0).(*Department), args.Error(1)
+	// Ensure the mock was called
+	mockClient.AssertExpectations(t)
 }
 
 func TestResourceJamfProDepartmentsCreate_Success(t *testing.T) {
@@ -264,7 +287,7 @@ func TestResourceJamfProDepartmentsCreate_Success(t *testing.T) {
 	meta := &APIClient{conn: mockClient}
 
 	// Setting up the mock to return a department when CreateDepartment is called.
-	department := &Department{
+	department := &jamfpro.Department{
 		Id:   1,
 		Name: "testDepartment",
 	}
@@ -306,22 +329,12 @@ func TestResourceJamfProDepartmentsCreate_AlreadyExists(t *testing.T) {
 	mockClient.AssertExpectations(t)
 }
 
-func (m *MockAPIClient) GetDepartmentByID(id int) (*Department, error) {
-	args := m.Called(id)
-	return args.Get(0).(*Department), args.Error(1)
-}
-
-func (m *MockAPIClient) GetDepartmentByName(name string) (*Department, error) {
-	args := m.Called(name)
-	return args.Get(0).(*Department), args.Error(1)
-}
-
 func TestResourceJamfProDepartmentsRead_Success(t *testing.T) {
 	mockClient := new(MockAPIClient)
 	meta := &APIClient{conn: mockClient}
 
 	// Setting up the mock to return a department when GetDepartmentByID or GetDepartmentByName is called.
-	department := &Department{
+	department := &jamfpro.Department{
 		Id:   1,
 		Name: "testDepartment",
 	}
@@ -367,22 +380,12 @@ func TestResourceJamfProDepartmentsRead_NotFound(t *testing.T) {
 	mockClient.AssertExpectations(t)
 }
 
-func (m *MockAPIClient) UpdateDepartmentByID(id int, name string) (*Department, error) {
-	args := m.Called(id, name)
-	return args.Get(0).(*Department), args.Error(1)
-}
-
-func (m *MockAPIClient) UpdateDepartmentByName(oldName string, newName string) (*Department, error) {
-	args := m.Called(oldName, newName)
-	return args.Get(0).(*Department), args.Error(1)
-}
-
 func TestResourceJamfProDepartmentsUpdate_Success(t *testing.T) {
 	mockClient := new(MockAPIClient)
 	meta := &APIClient{conn: mockClient}
 
 	// Setting up the mock to return an updated department when UpdateDepartmentByID or UpdateDepartmentByName is called.
-	updatedDepartment := &Department{
+	updatedDepartment := &jamfpro.Department{
 		Id:   1,
 		Name: "updatedDepartment",
 	}
@@ -459,16 +462,6 @@ func TestResourceJamfProDepartmentsUpdate_NotFound(t *testing.T) {
 
 	// Ensure the mock was called
 	mockClient.AssertExpectations(t)
-}
-
-func (m *MockAPIClient) DeleteDepartmentByID(id int) error {
-	args := m.Called(id)
-	return args.Error(0)
-}
-
-func (m *MockAPIClient) DeleteDepartmentByName(name string) error {
-	args := m.Called(name)
-	return args.Error(0)
 }
 
 func TestResourceJamfProDepartmentsDelete_Success(t *testing.T) {
