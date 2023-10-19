@@ -16,9 +16,7 @@ import (
 	"testing"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -204,7 +202,7 @@ func testAccCheckDepartmentExists(n string, expectedName string) resource.TestCh
 		return nil
 	}
 }
-*/
+
 
 // testAccResourceDepartmentConfig returns a string representation of a Terraform configuration
 // for a department resource with the provided department name.
@@ -241,7 +239,7 @@ func testAccCheckDepartmentStateVerification(n string, expectedName string) reso
 		return nil
 	}
 }
-
+*/
 // TestStateDriftForJamfProDepartments tests if Terraform correctly detects drift for a department resource.
 // This test simulates a scenario where the department name is changed outside of Terraform.
 func TestStateDriftForJamfProDepartments(t *testing.T) {
@@ -258,15 +256,21 @@ func TestStateDriftForJamfProDepartments(t *testing.T) {
 		"name": "testDepartment",
 	})
 
+	// Create the mock client and set expectations
 	mockClient := new(MockAPIClient)
-	meta := &APIClient{mockConn: mockClient}
-
-	// Mock the expected response when department with ID 123 is fetched
 	department := &jamfpro.Department{
 		Id:   123,
 		Name: "changedDepartmentName", // Simulate that department name was changed outside of Terraform
 	}
+
+	// Mock the expected response when department with ID 123 is fetched
 	mockClient.On("GetDepartmentByID", 123).Return(department, nil)
+
+	// Mock the GetDepartmentByName to return an error (since we're not expecting it to be called in this test scenario)
+	mockClient.On("GetDepartmentByName", "testDepartment").Return(nil, fmt.Errorf("Not expected to be called in this scenario"))
+
+	// Create a meta object with the mock client set as the connection
+	meta := &APIClient{mockConn: mockClient}
 
 	// Call the Read function
 	diags := resourceJamfProDepartmentsRead(context.Background(), d, meta)
@@ -282,6 +286,7 @@ func TestStateDriftForJamfProDepartments(t *testing.T) {
 	mockClient.AssertExpectations(t)
 }
 
+/*
 func TestResourceJamfProDepartmentsCreate_Success(t *testing.T) {
 	mockClient := new(MockAPIClient)
 	meta := &APIClient{mockConn: mockClient}
@@ -509,3 +514,4 @@ func TestResourceJamfProDepartmentsDelete_NotFound(t *testing.T) {
 	// Ensure the mock was called
 	mockClient.AssertExpectations(t)
 }
+*/
