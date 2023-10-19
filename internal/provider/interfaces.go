@@ -6,7 +6,8 @@ import "github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 var _ JamfProDepartmentCRUDOperations = (*jamfpro.Client)(nil)
 
 type APIClient struct {
-	conn JamfProDepartmentCRUDOperations
+	mockConn JamfProDepartmentCRUDOperations
+	conn     *jamfpro.Client
 }
 
 type JamfProDepartmentCRUDOperations interface {

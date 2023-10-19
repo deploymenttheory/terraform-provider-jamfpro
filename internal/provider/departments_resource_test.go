@@ -259,7 +259,7 @@ func TestStateDriftForJamfProDepartments(t *testing.T) {
 	})
 
 	mockClient := new(MockAPIClient)
-	meta := &APIClient{conn: mockClient}
+	meta := &APIClient{mockConn: mockClient}
 
 	// Mock the expected response when department with ID 123 is fetched
 	department := &jamfpro.Department{
@@ -284,7 +284,7 @@ func TestStateDriftForJamfProDepartments(t *testing.T) {
 
 func TestResourceJamfProDepartmentsCreate_Success(t *testing.T) {
 	mockClient := new(MockAPIClient)
-	meta := &APIClient{conn: mockClient}
+	meta := &APIClient{mockConn: mockClient}
 
 	// Setting up the mock to return a department when CreateDepartment is called.
 	department := &jamfpro.Department{
@@ -309,7 +309,7 @@ func TestResourceJamfProDepartmentsCreate_Success(t *testing.T) {
 
 func TestResourceJamfProDepartmentsCreate_AlreadyExists(t *testing.T) {
 	mockClient := new(MockAPIClient)
-	meta := &APIClient{conn: mockClient}
+	meta := &APIClient{mockConn: mockClient}
 
 	// Setting up the mock to return an error when CreateDepartment is called with a name that already exists.
 	err := fmt.Errorf("Department with name 'testDepartment' already exists")
@@ -331,7 +331,7 @@ func TestResourceJamfProDepartmentsCreate_AlreadyExists(t *testing.T) {
 
 func TestResourceJamfProDepartmentsRead_Success(t *testing.T) {
 	mockClient := new(MockAPIClient)
-	meta := &APIClient{conn: mockClient}
+	meta := &APIClient{mockConn: mockClient}
 
 	// Setting up the mock to return a department when GetDepartmentByID or GetDepartmentByName is called.
 	department := &jamfpro.Department{
@@ -358,7 +358,7 @@ func TestResourceJamfProDepartmentsRead_Success(t *testing.T) {
 
 func TestResourceJamfProDepartmentsRead_NotFound(t *testing.T) {
 	mockClient := new(MockAPIClient)
-	meta := &APIClient{conn: mockClient}
+	meta := &APIClient{mockConn: mockClient}
 
 	// Setting up the mock to return an error when GetDepartmentByID or GetDepartmentByName is called with a non-existent department.
 	err := fmt.Errorf("Department not found")
@@ -382,7 +382,7 @@ func TestResourceJamfProDepartmentsRead_NotFound(t *testing.T) {
 
 func TestResourceJamfProDepartmentsUpdate_Success(t *testing.T) {
 	mockClient := new(MockAPIClient)
-	meta := &APIClient{conn: mockClient}
+	meta := &APIClient{mockConn: mockClient}
 
 	// Setting up the mock to return an updated department when UpdateDepartmentByID or UpdateDepartmentByName is called.
 	updatedDepartment := &jamfpro.Department{
@@ -412,7 +412,7 @@ func TestResourceJamfProDepartmentsUpdate_Success(t *testing.T) {
 
 func TestResourceJamfProDepartmentsUpdate_NameInUse(t *testing.T) {
 	mockClient := new(MockAPIClient)
-	meta := &APIClient{conn: mockClient}
+	meta := &APIClient{mockConn: mockClient}
 
 	// Setting up the mock to return an error indicating the department name is already in use.
 	err := fmt.Errorf("Department with name 'updatedDepartment' already exists")
@@ -439,7 +439,7 @@ func TestResourceJamfProDepartmentsUpdate_NameInUse(t *testing.T) {
 
 func TestResourceJamfProDepartmentsUpdate_NotFound(t *testing.T) {
 	mockClient := new(MockAPIClient)
-	meta := &APIClient{conn: mockClient}
+	meta := &APIClient{mockConn: mockClient}
 
 	// Setting up the mock to return an error indicating the department was not found.
 	err := fmt.Errorf("Department not found")
@@ -466,7 +466,7 @@ func TestResourceJamfProDepartmentsUpdate_NotFound(t *testing.T) {
 
 func TestResourceJamfProDepartmentsDelete_Success(t *testing.T) {
 	mockClient := new(MockAPIClient)
-	meta := &APIClient{conn: mockClient}
+	meta := &APIClient{mockConn: mockClient}
 
 	// Setting up the mock to handle successful deletion when DeleteDepartmentByID or DeleteDepartmentByName is called.
 	mockClient.On("DeleteDepartmentByID", 1).Return(nil)
@@ -488,7 +488,7 @@ func TestResourceJamfProDepartmentsDelete_Success(t *testing.T) {
 
 func TestResourceJamfProDepartmentsDelete_NotFound(t *testing.T) {
 	mockClient := new(MockAPIClient)
-	meta := &APIClient{conn: mockClient}
+	meta := &APIClient{mockConn: mockClient}
 
 	// Setting up the mock to return an error indicating the department was not found.
 	err := fmt.Errorf("Department not found")
