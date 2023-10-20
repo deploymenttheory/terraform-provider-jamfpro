@@ -16,9 +16,9 @@ type ProviderConfig struct {
 }
 
 // APIClient is a HTTP API Client.
-/*type APIClient struct {
+type APIClient struct {
 	conn *jamfpro.Client
-}*/
+}
 
 // MockAPIClient is a mock version of APIClient for testing.
 type MockAPIClient struct {
