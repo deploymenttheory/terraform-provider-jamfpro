@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/deploymenttheory/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/acceptance/check"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -23,7 +23,7 @@ func TestAccJamfProDepartments_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInProvider(r),
+				check.That(data.ResourceName).ExistsInJamfPro(r),
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("test-dept-%d", data.RandomInteger)),
 			),
 		},
@@ -38,7 +38,7 @@ func TestAccJamfProDepartments_complete(t *testing.T) {
 		{
 			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInProvider(r),
+				check.That(data.ResourceName).ExistsInJamfPro(r),
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("complete-dept-%d", data.RandomInteger)),
 			),
 		},
@@ -53,21 +53,21 @@ func TestAccJamfProDepartments_update(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInProvider(r),
+				check.That(data.ResourceName).ExistsInJamfPro(r),
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("test-dept-%d", data.RandomInteger)),
 			),
 		},
 		{
 			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInProvider(r),
+				check.That(data.ResourceName).ExistsInJamfPro(r),
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("complete-dept-%d", data.RandomInteger)),
 			),
 		},
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInProvider(r),
+				check.That(data.ResourceName).ExistsInJamfPro(r),
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("test-dept-%d", data.RandomInteger)),
 			),
 		},
@@ -82,7 +82,7 @@ func TestAccJamfProDepartments_requiresImport(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInProvider(r),
+				check.That(data.ResourceName).ExistsInJamfPro(r),
 			),
 		},
 		{
