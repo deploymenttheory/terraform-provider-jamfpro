@@ -1,4 +1,4 @@
-package departments_test
+package departments
 
 import (
 	"context"
