@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/departments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/version"
 )
@@ -87,10 +88,12 @@ func Provider() *schema.Provider {
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"jamfpro_departments": departments.DataSourceJamfProDepartments(),
+			"jamfpro_departments":     departments.DataSourceJamfProDepartments(),
+			"jamfpro_computer_groups": computergroups.DataSourceJamfProComputerGroups(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"jamfpro_departments": departments.ResourceJamfProDepartments(),
+			"jamfpro_departments":     departments.ResourceJamfProDepartments(),
+			"jamfpro_computer_groups": computergroups.ResourceJamfProComputerGroups(),
 		},
 	}
 
