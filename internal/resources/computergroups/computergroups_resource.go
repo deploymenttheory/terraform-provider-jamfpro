@@ -18,6 +18,15 @@ const (
 	Or  DeviceGroupAndOr = "or"
 )
 
+const (
+	SearchTypeIs           = "is"
+	SearchTypeIsNot        = "is not"
+	SearchTypeLike         = "like"
+	SearchTypeNotLike      = "not like"
+	SearchTypeMatchesRegex = "matches regex"
+	SearchTypeDoesNotMatch = "does not match regex"
+)
+
 type DeviceGroupAndOr string
 
 func ResourceJamfProComputerGroups() *schema.Resource {
@@ -73,7 +82,7 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 						"name": {
 							Type:        schema.TypeString,
 							Required:    true,
-							Description: "Name of the criteria.",
+							Description: "Name of the smart group search criteria.",
 						},
 						"priority": {
 							Type:        schema.TypeInt,
@@ -90,9 +99,18 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 							}, false),
 						},
 						"search_type": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "Operator.",
+							Type:     schema.TypeString,
+							Required: true,
+							Description: fmt.Sprintf("The type of search operator. Allowed values are '%s', '%s', '%s', '%s', '%s', and '%s'.",
+								SearchTypeIs, SearchTypeIsNot, SearchTypeLike, SearchTypeNotLike, SearchTypeMatchesRegex, SearchTypeDoesNotMatch),
+							ValidateFunc: validation.StringInSlice([]string{
+								SearchTypeIs,
+								SearchTypeIsNot,
+								SearchTypeLike,
+								SearchTypeNotLike,
+								SearchTypeMatchesRegex,
+								SearchTypeDoesNotMatch,
+							}, false),
 						},
 						"value": {
 							Type:        schema.TypeString,
