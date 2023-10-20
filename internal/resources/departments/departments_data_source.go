@@ -1,5 +1,5 @@
 // department_data_source.go
-package provider
+package departments
 
 import (
 	"context"
@@ -7,6 +7,8 @@ import (
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -14,9 +16,9 @@ import (
 // DepartmentDataSource provides information about a specific department in Jamf Pro.
 // It can fetch department details using either the department's unique Name or its Id.
 // The Name attribute is prioritized for fetching if provided. Otherwise, the Id is used.
-func dataSourceJamfProDepartments() *schema.Resource {
+func DataSourceJamfProDepartments() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceJamfProDepartmentsRead,
+		ReadContext: DataSourceJamfProDepartmentsRead,
 
 		Schema: map[string]*schema.Schema{
 			"id": {
@@ -35,15 +37,15 @@ func dataSourceJamfProDepartments() *schema.Resource {
 	}
 }
 
-func dataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*APIClient) // Ensure your meta object is of type *APIClient, which contains methods to interact with the Jamf Pro API.
+func DataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	conn := meta.(*client.APIClient).Conn
 
-	var department *jamfpro.Department // Ensure to use the correct namespace
+	var department *jamfpro.Department
 	var err error
 
 	if v, ok := d.GetOk("name"); ok && v.(string) != "" {
 		departmentName := v.(string)
-		department, err = conn.conn.GetDepartmentByName(departmentName) // Using the method from the jamfpro package
+		department, err = conn.GetDepartmentByName(departmentName) // Corrected this line
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to fetch department by name: %v", err))
 		}
@@ -52,7 +54,7 @@ func dataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceDat
 		if convertErr != nil {
 			return diag.FromErr(fmt.Errorf("failed to convert department ID to integer: %v", convertErr))
 		}
-		department, err = conn.conn.GetDepartmentByID(departmentID) // Using the method from the jamfpro package
+		department, err = conn.GetDepartmentByID(departmentID) // Corrected this line
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to fetch department by ID: %v", err))
 		}

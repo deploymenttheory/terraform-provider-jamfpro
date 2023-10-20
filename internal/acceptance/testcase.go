@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/types"
 	"github.com/hashicorp/terraform-provider-jamfpro/internal/acceptance/helpers"
+	"github.com/hashicorp/terraform-provider-jamfpro/internal/acceptance/testclient"
+	"github.com/hashicorp/terraform-provider-jamfpro/internal/acceptance/types"
 	"github.com/hashicorp/terraform-provider-jamfpro/internal/provider"
 )
 

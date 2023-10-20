@@ -1,22 +1,23 @@
 // department_resource.go
-package provider
+package departments
 
 import (
 	"context"
 	"fmt"
 	"strconv"
 
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceJamfProDepartments() *schema.Resource {
+func ResourceJamfProDepartments() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProDepartmentsCreate,
-		ReadContext:   resourceJamfProDepartmentsRead,
-		UpdateContext: resourceJamfProDepartmentsUpdate,
-		DeleteContext: resourceJamfProDepartmentsDelete,
+		CreateContext: ResourceJamfProDepartmentsCreate,
+		ReadContext:   ResourceJamfProDepartmentsRead,
+		UpdateContext: ResourceJamfProDepartmentsUpdate,
+		DeleteContext: ResourceJamfProDepartmentsDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -35,8 +36,8 @@ func resourceJamfProDepartments() *schema.Resource {
 	}
 }
 
-func resourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*APIClient).conn
+func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	conn := meta.(*client.APIClient).Conn
 
 	departmentName := d.Get("name").(string)
 	department, err := conn.CreateDepartment(departmentName)
@@ -47,11 +48,11 @@ func resourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 	// Set the ID of the department in the Terraform state
 	d.SetId(fmt.Sprintf("%d", department.Id))
 
-	return resourceJamfProDepartmentsRead(ctx, d, meta)
+	return ResourceJamfProDepartmentsRead(ctx, d, meta)
 }
 
-func resourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*APIClient).conn
+func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	conn := meta.(*client.APIClient).Conn
 
 	var diags diag.Diagnostics
 
@@ -110,8 +111,8 @@ func resourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 	return diags
 }
 
-func resourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*APIClient).conn
+func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	conn := meta.(*client.APIClient).Conn
 
 	var diags diag.Diagnostics
 
@@ -139,14 +140,14 @@ func resourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 	}
 
 	// Even if the update was successful, we run the Read function to get the latest state and verify the update.
-	readDiags := resourceJamfProDepartmentsRead(ctx, d, meta)
+	readDiags := ResourceJamfProDepartmentsRead(ctx, d, meta)
 	diags = append(diags, readDiags...)
 
 	return diags
 }
 
-func resourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*APIClient).conn
+func ResourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	conn := meta.(*client.APIClient).Conn
 
 	var diags diag.Diagnostics
 

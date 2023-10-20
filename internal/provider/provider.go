@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/departments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/version"
 )
 
@@ -85,10 +87,10 @@ func Provider() *schema.Provider {
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"jamfpro_departments": dataSourceJamfProDepartments(),
+			"jamfpro_departments": departments.DataSourceJamfProDepartments(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"jamfpro_departments": resourceJamfProDepartments(),
+			"jamfpro_departments": departments.ResourceJamfProDepartments(),
 		},
 	}
 
@@ -125,7 +127,7 @@ func Provider() *schema.Provider {
 			return nil, diags
 		}
 
-		config := ProviderConfig{
+		config := client.ProviderConfig{
 			InstanceName: instanceName,
 			ClientID:     clientID,
 			ClientSecret: clientSecret,

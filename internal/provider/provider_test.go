@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/version"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
@@ -162,11 +163,11 @@ func TestProviderWithSuccessfulClientInitialization(t *testing.T) {
 	})
 
 	// Override the function for this test
-	BuildClient = mockNewClientSuccess
+	client.BuildClient = mockNewClientSuccess
 
 	// Ensure BuildClient is reset after the test
 	defer func() {
-		BuildClient = jamfpro.NewClient
+		client.BuildClient = jamfpro.NewClient
 	}()
 
 	// Now invoke the provider with the mock setup
@@ -188,11 +189,11 @@ func TestProviderWithFailedClientInitialization(t *testing.T) {
 		"debug_mode":    true,
 	})
 	// Override the function for this test
-	BuildClient = mockNewClientFail
+	client.BuildClient = mockNewClientFail
 
 	// Ensure BuildClient is reset after the test
 	defer func() {
-		BuildClient = jamfpro.NewClient
+		client.BuildClient = jamfpro.NewClient
 	}()
 
 	// Now invoke the provider with the mock setup
@@ -218,7 +219,7 @@ func TestUserAgentInitialization(t *testing.T) {
 	_, diags := Provider().ConfigureContextFunc(context.Background(), d)
 	assert.Len(t, diags, 0) // No errors
 
-	config := ProviderConfig{
+	config := client.ProviderConfig{
 		InstanceName: "testInstance",
 		ClientID:     "testClientID",
 		ClientSecret: "testClientSecret",
@@ -234,10 +235,10 @@ func mockSDKError(cfg jamfpro.Config) (*jamfpro.Client, error) {
 }
 
 func TestErrorPropagation(t *testing.T) {
-	BuildClient = mockSDKError
+	client.BuildClient = mockSDKError
 
 	defer func() {
-		BuildClient = jamfpro.NewClient
+		client.BuildClient = jamfpro.NewClient
 	}()
 
 	d := schema.TestResourceDataRaw(t, map[string]*schema.Schema{

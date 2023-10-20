@@ -1,5 +1,5 @@
 // config_client.go
-package provider
+package client
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -17,7 +17,7 @@ type ProviderConfig struct {
 
 // APIClient is a HTTP API Client.
 type APIClient struct {
-	conn *jamfpro.Client
+	Conn *jamfpro.Client
 }
 
 // MockAPIClient is a mock version of APIClient for testing.
@@ -45,6 +45,6 @@ func (c *ProviderConfig) Client() (*APIClient, diag.Diagnostics) {
 		return nil, diag.FromErr(err)
 	}
 
-	client.conn = jamfProClient
+	client.Conn = jamfProClient
 	return &client, nil
 }
