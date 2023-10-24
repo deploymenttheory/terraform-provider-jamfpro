@@ -31,12 +31,6 @@ func validateDataType(val interface{}, key string) (warns []string, errs []error
 }
 
 // customDiffComputerExtensionAttributes performs custom validation on the Resource's schema.
-// It ensures the following conditions:
-// 1. If the input_type is "script":
-//   - The platform must be provided and be either "Mac" or "Windows".
-//   - The 'script' field must be populated.
-//
-// 2. If the input_type is "Pop-up Menu", the 'choices' field must be populated.
 func customDiffComputerExtensionAttributes(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
 	// Extract the first item from the input_type list, which should be a map
 	inputTypes, ok := diff.GetOk("input_type")
@@ -47,32 +41,46 @@ func customDiffComputerExtensionAttributes(ctx context.Context, diff *schema.Res
 	inputTypeMap := inputTypes.([]interface{})[0].(map[string]interface{})
 
 	inputType := inputTypeMap["type"].(string)
-	platform, platformExists := inputTypeMap["platform"].(string), inputTypeMap["platform"] != nil
-	_, scriptExists := inputTypeMap["script"].(string), inputTypeMap["script"] != nil
-	_, choicesExist := inputTypeMap["choices"].([]interface{}), len(inputTypeMap["choices"].([]interface{})) > 0
+	platform := inputTypeMap["platform"].(string)
+	script := inputTypeMap["script"].(string)
+	choices := inputTypeMap["choices"].([]interface{})
 
 	switch inputType {
 	case "script":
 		// Ensure platform is either "Mac" or "Windows"
-		if !platformExists || (platform != "Mac" && platform != "Windows") {
+		if platform != "Mac" && platform != "Windows" {
 			return fmt.Errorf("platform must be either 'Mac' or 'Windows' when input_type is 'script'")
 		}
 		// Ensure "script" is populated
-		if !scriptExists {
+		if script == "" {
 			return fmt.Errorf("'script' field must be populated when input_type is 'script'")
+		}
+		// Ensure "choices" is not populated
+		if len(choices) > 0 {
+			return fmt.Errorf("'choices' must not be populated when input_type is 'script'")
 		}
 	case "Pop-up Menu":
 		// Ensure "choices" is populated
-		if !choicesExist {
+		if len(choices) == 0 {
 			return fmt.Errorf("'choices' must be populated when input_type is 'Pop-up Menu'")
 		}
+		// Ensure platform and script are not populated
+		if platform != "" {
+			return fmt.Errorf("'platform' must not be populated when input_type is 'Pop-up Menu'")
+		}
+		if script != "" {
+			return fmt.Errorf("'script' must not be populated when input_type is 'Pop-up Menu'")
+		}
 	case "Text Field":
-		// Ensure neither "script" nor "choices" are populated
-		if scriptExists {
+		// Ensure neither "script", "platform" nor "choices" are populated
+		if script != "" {
 			return fmt.Errorf("'script' field must not be populated when input_type is 'Text Field'")
 		}
-		if choicesExist {
+		if len(choices) > 0 {
 			return fmt.Errorf("'choices' must not be populated when input_type is 'Text Field'")
+		}
+		if platform != "" {
+			return fmt.Errorf("'platform' must not be populated when input_type is 'Text Field'")
 		}
 	}
 
