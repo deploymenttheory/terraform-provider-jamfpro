@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
@@ -231,29 +232,18 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf("failed to construct the computer extension attribute due to missing or invalid input_type"))
 	}
 
-	// Create a channel to communicate the result of the creation process
-	resultCh := make(chan *jamfpro.ComputerExtensionAttributeResponse)
-	errorCh := make(chan error)
-
-	// Start the creation process in a separate goroutine
-	go func() {
-		createdAttribute, err := conn.CreateComputerExtensionAttribute(attribute)
-		if err != nil {
-			errorCh <- err
-			return
-		}
-		resultCh <- createdAttribute
-	}()
-
-	// Wait for the creation process to complete
-	select {
-	case createdAttribute := <-resultCh:
-		// Set the ID of the created attribute in the Terraform state
-		d.SetId(fmt.Sprintf("%d", createdAttribute.ID))
-		return ResourceJamfProComputerExtensionAttributesRead(ctx, d, meta)
-	case err := <-errorCh:
+	createdAttribute, err := conn.CreateComputerExtensionAttribute(attribute)
+	if err != nil {
 		return diag.FromErr(err)
 	}
+
+	// Introduce a delay to allow for the resource creation to complete
+	time.Sleep(5 * time.Second)
+
+	// Set the ID of the created attribute in the Terraform state
+	d.SetId(fmt.Sprintf("%d", createdAttribute.ID))
+
+	return ResourceJamfProComputerExtensionAttributesRead(ctx, d, meta)
 }
 
 // ResourceJamfProComputerExtensionAttributesRead is responsible for reading the current state of a Jamf Pro Computer Extension Attribute from the remote system.
@@ -344,37 +334,26 @@ func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf("failed to parse attribute ID: %v", err))
 	}
 
-	// Create channels to communicate the result of the update process
-	successCh := make(chan *jamfpro.ComputerExtensionAttributeResponse)
-	errorCh := make(chan error)
+	// Try updating the computer extension attribute using the ID
+	updatedAttribute, err := conn.UpdateComputerExtensionAttributeByID(attributeID, attribute)
 
-	// Start the update process in a separate goroutine
-	go func() {
-		// Try updating the computer extension attribute using the ID
-		updatedAttribute, err := conn.UpdateComputerExtensionAttributeByID(attributeID, attribute)
-		// If the update by ID fails, try updating by name
+	// If the update by ID fails, try updating by name
+	if err != nil {
+		attributeName := d.Get("name").(string)
+		updatedAttribute, err = conn.UpdateComputerExtensionAttributeByName(attributeName, attribute)
 		if err != nil {
-			attributeName := d.Get("name").(string)
-			updatedAttribute, err = conn.UpdateComputerExtensionAttributeByName(attributeName, attribute)
-			if err != nil {
-				errorCh <- err
-				return
-			}
+			return diag.FromErr(err)
 		}
-		successCh <- updatedAttribute
-	}()
-
-	// Wait for the update process to complete
-	var updatedAttribute *jamfpro.ComputerExtensionAttributeResponse
-	select {
-	case updatedAttribute = <-successCh:
-		// After successful update, set the ID of the updated attribute in the Terraform state
-		d.SetId(fmt.Sprintf("%d", updatedAttribute.ID))
-		// Return the read function to ensure the state is properly updated to match the remote system
-		return ResourceJamfProComputerExtensionAttributesRead(ctx, d, meta)
-	case err := <-errorCh:
-		return diag.FromErr(err)
 	}
+
+	// Introduce a delay to allow for the resource update to complete
+	time.Sleep(5 * time.Second)
+
+	// After successful update, set the ID of the updated attribute in the Terraform state
+	d.SetId(fmt.Sprintf("%d", updatedAttribute.ID))
+
+	// Return the read function to ensure the state is properly updated to match the remote system
+	return ResourceJamfProComputerExtensionAttributesRead(ctx, d, meta)
 }
 
 // ResourceJamfProComputerExtensionAttributesDelete is responsible for deleting a Jamf Pro Computer Extension Attribute.
@@ -387,32 +366,20 @@ func ResourceJamfProComputerExtensionAttributesDelete(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf("failed to parse attribute ID: %v", err))
 	}
 
-	// Create channels to communicate the result of the deletion process
-	successCh := make(chan bool)
-	errorCh := make(chan error)
+	// Try deleting the computer extension attribute using the ID
+	err = conn.DeleteComputerExtensionAttributeByID(attributeID)
 
-	// Start the deletion process in a separate goroutine
-	go func() {
-		err := conn.DeleteComputerExtensionAttributeByID(attributeID)
-		// If the delete by ID fails, try deleting by name
+	// If the delete by ID fails, try deleting by name
+	if err != nil {
+		attributeName := d.Get("name").(string)
+		err = conn.DeleteComputerExtensionAttributeByNameByID(attributeName)
 		if err != nil {
-			attributeName := d.Get("name").(string)
-			err = conn.DeleteComputerExtensionAttributeByNameByID(attributeName)
-			if err != nil {
-				errorCh <- fmt.Errorf("failed to delete Computer Extension Attribute: %v", err)
-				return
-			}
+			return diag.FromErr(fmt.Errorf("failed to delete Computer Extension Attribute: %v", err))
 		}
-		successCh <- true
-	}()
-
-	// Wait for the deletion process to complete
-	select {
-	case <-successCh:
-		// Clear the ID from the Terraform state as the resource has been deleted
-		d.SetId("")
-		return nil
-	case err := <-errorCh:
-		return diag.FromErr(err)
 	}
+
+	// Clear the ID from the Terraform state as the resource has been deleted
+	d.SetId("")
+
+	return nil
 }
