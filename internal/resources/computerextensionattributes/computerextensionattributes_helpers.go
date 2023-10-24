@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	maxRetries = 10
-	maxDelay   = 30 * time.Second // Max delay of 30 seconds
+	maxReadResourceRetries = 10
+	maxDelay               = 30 * time.Second // Max delay of 30 seconds
 )
 
 // exponentialBackoffWithJitter computes the wait duration for the current Resource Read retry attempt.

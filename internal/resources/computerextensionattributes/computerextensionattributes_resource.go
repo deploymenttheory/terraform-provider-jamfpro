@@ -232,34 +232,38 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf("failed to construct the computer extension attribute due to missing or invalid input_type"))
 	}
 
-	// Create a channel to communicate the result of the creation process
-	resultCh := make(chan *jamfpro.ComputerExtensionAttributeResponse)
-	errorCh := make(chan error)
-
-	// Start the creation process in a separate goroutine
-	go func() {
-		createdAttribute, err := conn.CreateComputerExtensionAttribute(attribute)
-		if err != nil {
-			errorCh <- err
-			return
-		}
-		resultCh <- createdAttribute
-	}()
-
-	// Wait for the creation process to complete
-	var createdAttribute *jamfpro.ComputerExtensionAttributeResponse
-	select {
-	case createdAttribute = <-resultCh:
-	case err := <-errorCh:
+	// Directly call the API to create the resource
+	createdAttribute, err := conn.CreateComputerExtensionAttribute(attribute)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Introduce a delay after creation but before reading the attribute back and updating state
-	time.Sleep(5 * time.Second)
-
 	// Set the ID of the created attribute in the Terraform state
 	d.SetId(fmt.Sprintf("%d", createdAttribute.ID))
-	return ResourceJamfProComputerExtensionAttributesRead(ctx, d, meta)
+
+	// Initialize diagnostics to capture comments about retries
+	var diags diag.Diagnostics
+
+	// Retry mechanism for the Read operation
+	for i := 0; i < maxReadResourceRetries; i++ {
+		readDiags := ResourceJamfProComputerExtensionAttributesRead(ctx, d, meta)
+		if len(readDiags) == 0 {
+			return nil // If Read is successful or there are no diagnostics, exit
+		}
+
+		// Append a comment about the retry attempt
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  fmt.Sprintf("Attempted to update resource state. Resource read attempt %d failed. Retrying...", i+1),
+		})
+		diags = append(diags, readDiags...)
+
+		// Sleep using exponential backoff with jitter before retrying the Read operation
+		time.Sleep(exponentialBackoffWithJitter(i))
+	}
+
+	// If we've exhausted all retries and still have diagnostics, return them
+	return diags
 }
 
 // ResourceJamfProComputerExtensionAttributesRead is responsible for reading the current state of a Jamf Pro Computer Extension Attribute from the remote system.
@@ -280,7 +284,7 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 	var attribute *jamfpro.ComputerExtensionAttributeResponse
 
 	// Retry mechanism
-	for i := 0; i < maxRetries; i++ {
+	for i := 0; i < maxReadResourceRetries; i++ {
 		// Try fetching the computer extension attribute using the ID
 		attribute, err = conn.GetComputerExtensionAttributeByID(attributeID)
 		if err != nil || attribute == nil {
@@ -298,7 +302,7 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 	}
 
 	if err != nil || attribute == nil {
-		return diag.Errorf("Failed to fetch attribute by both ID (%d) and name after %d retries", attributeID, maxRetries)
+		return diag.Errorf("Failed to fetch attribute by both ID (%d) and name after %d retries", attributeID, maxReadResourceRetries)
 	}
 
 	// Safely set attributes in the Terraform state
@@ -368,41 +372,43 @@ func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf("failed to parse attribute ID: %v", err))
 	}
 
-	// Create channels to communicate the result of the update process
-	successCh := make(chan *jamfpro.ComputerExtensionAttributeResponse)
-	errorCh := make(chan error)
-
-	// Start the update process in a separate goroutine
-	go func() {
-		// Try updating the computer extension attribute using the ID
-		updatedAttribute, err := conn.UpdateComputerExtensionAttributeByID(attributeID, attribute)
+	// Directly call the API to update the resource
+	updatedAttribute, err := conn.UpdateComputerExtensionAttributeByID(attributeID, attribute)
+	if err != nil {
 		// If the update by ID fails, try updating by name
+		attributeName := d.Get("name").(string)
+		updatedAttribute, err = conn.UpdateComputerExtensionAttributeByName(attributeName, attribute)
 		if err != nil {
-			attributeName := d.Get("name").(string)
-			updatedAttribute, err = conn.UpdateComputerExtensionAttributeByName(attributeName, attribute)
-			if err != nil {
-				errorCh <- err
-				return
-			}
+			return diag.FromErr(err)
 		}
-		successCh <- updatedAttribute
-	}()
-
-	// Wait for the update process to complete
-	var updatedAttribute *jamfpro.ComputerExtensionAttributeResponse
-	select {
-	case updatedAttribute = <-successCh:
-	case err := <-errorCh:
-		return diag.FromErr(err)
 	}
 
-	// Introduce a delay after resource update but before reading the attribute back to state
-	time.Sleep(5 * time.Second)
-
-	// After successful update, set the ID of the updated attribute in the Terraform state
+	// Set the ID of the updated attribute in the Terraform state
 	d.SetId(fmt.Sprintf("%d", updatedAttribute.ID))
-	// Return the read function to ensure the state is properly updated to match the remote system
-	return ResourceJamfProComputerExtensionAttributesRead(ctx, d, meta)
+
+	// Initialize diagnostics to capture comments about retries
+	var diags diag.Diagnostics
+
+	// Retry mechanism for the Read operation
+	for i := 0; i < maxReadResourceRetries; i++ {
+		readDiags := ResourceJamfProComputerExtensionAttributesRead(ctx, d, meta)
+		if len(readDiags) == 0 {
+			return nil // If Read is successful or there are no diagnostics, exit
+		}
+
+		// Append a comment about the retry attempt
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  fmt.Sprintf("Attempted to update resource state. Read attempt %d failed after update. Retrying...", i+1),
+		})
+		diags = append(diags, readDiags...)
+
+		// Sleep using exponential backoff with jitter before retrying the Read operation
+		time.Sleep(exponentialBackoffWithJitter(i))
+	}
+
+	// If we've exhausted all retries and still have diagnostics, return them
+	return diags
 }
 
 // ResourceJamfProComputerExtensionAttributesDelete is responsible for deleting a Jamf Pro Computer Extension Attribute.
