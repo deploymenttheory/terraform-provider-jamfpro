@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	maxRetries = 5
+	maxRetries = 10
 	maxDelay   = 30 * time.Second // Max delay of 30 seconds
 )
 
