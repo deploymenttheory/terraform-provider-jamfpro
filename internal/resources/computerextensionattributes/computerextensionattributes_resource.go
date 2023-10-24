@@ -4,7 +4,6 @@ package computerextensionattributes
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"regexp"
 	"strconv"
 	"time"
@@ -16,29 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
-
-const (
-	maxRetries = 10
-	maxDelay   = 30 * time.Second // Max delay of 30 seconds
-)
-
-// exponentialBackoffWithJitter computes the wait duration for the current Resource Read retry attempt.
-// The function uses exponential backoff with jitter to introduce randomness. This helps distribute the
-// request load evenly and reduces the chances of "thundering herd" issues. The formula starts with a
-// delay of 3 seconds (3<<attempt) and introduces a random jitter.
-func exponentialBackoffWithJitter(attempt int) time.Duration {
-	expBackoff := time.Duration(3<<attempt) * time.Second
-	jitter := time.Duration(rand.Int63n(int64(expBackoff)))
-	return time.Duration(minDuration(expBackoff+jitter, maxDelay))
-}
-
-// minDuration returns the smaller of the two provided time durations.
-func minDuration(a, b time.Duration) time.Duration {
-	if a < b {
-		return a
-	}
-	return b
-}
 
 // validateDataType ensures the provided value adheres to the accepted formats for the data_type attribute.
 // The accepted formats are "String", "Integer", and a date string in the "YYYY-MM-DD hh:mm:ss" format.
