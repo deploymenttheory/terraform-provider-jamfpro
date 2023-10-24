@@ -263,6 +263,8 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	// Introduce a delay before starting the read operation
+	time.Sleep(10 * time.Second)
 	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
 
