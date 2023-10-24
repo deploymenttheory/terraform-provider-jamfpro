@@ -321,7 +321,11 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 	inputType["type"] = attribute.InputType.Type
 	inputType["platform"] = attribute.InputType.Platform
 	inputType["script"] = attribute.InputType.Script
-	inputType["choices"] = attribute.InputType.Choices
+	if attribute.InputType.Choices == nil || len(attribute.InputType.Choices) == 0 {
+		inputType["choices"] = []string{}
+	} else {
+		inputType["choices"] = attribute.InputType.Choices
+	}
 
 	// Wrap the map in a slice and set it to the Terraform state
 	if err := d.Set("input_type", []interface{}{inputType}); err != nil {
