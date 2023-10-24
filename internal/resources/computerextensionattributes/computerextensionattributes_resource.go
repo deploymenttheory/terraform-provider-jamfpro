@@ -247,14 +247,19 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 	}()
 
 	// Wait for the creation process to complete
+	var createdAttribute *jamfpro.ComputerExtensionAttributeResponse
 	select {
-	case createdAttribute := <-resultCh:
-		// Set the ID of the created attribute in the Terraform state
-		d.SetId(fmt.Sprintf("%d", createdAttribute.ID))
-		return ResourceJamfProComputerExtensionAttributesRead(ctx, d, meta)
+	case createdAttribute = <-resultCh:
 	case err := <-errorCh:
 		return diag.FromErr(err)
 	}
+
+	// Introduce a delay after creation but before reading the attribute back and updating state
+	time.Sleep(5 * time.Second)
+
+	// Set the ID of the created attribute in the Terraform state
+	d.SetId(fmt.Sprintf("%d", createdAttribute.ID))
+	return ResourceJamfProComputerExtensionAttributesRead(ctx, d, meta)
 }
 
 // ResourceJamfProComputerExtensionAttributesRead is responsible for reading the current state of a Jamf Pro Computer Extension Attribute from the remote system.
@@ -263,8 +268,6 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Introduce a delay before starting the read operation
-	time.Sleep(10 * time.Second)
 	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
 
@@ -389,13 +392,17 @@ func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 	var updatedAttribute *jamfpro.ComputerExtensionAttributeResponse
 	select {
 	case updatedAttribute = <-successCh:
-		// After successful update, set the ID of the updated attribute in the Terraform state
-		d.SetId(fmt.Sprintf("%d", updatedAttribute.ID))
-		// Return the read function to ensure the state is properly updated to match the remote system
-		return ResourceJamfProComputerExtensionAttributesRead(ctx, d, meta)
 	case err := <-errorCh:
 		return diag.FromErr(err)
 	}
+
+	// Introduce a delay after resource update but before reading the attribute back to state
+	time.Sleep(5 * time.Second)
+
+	// After successful update, set the ID of the updated attribute in the Terraform state
+	d.SetId(fmt.Sprintf("%d", updatedAttribute.ID))
+	// Return the read function to ensure the state is properly updated to match the remote system
+	return ResourceJamfProComputerExtensionAttributesRead(ctx, d, meta)
 }
 
 // ResourceJamfProComputerExtensionAttributesDelete is responsible for deleting a Jamf Pro Computer Extension Attribute.
