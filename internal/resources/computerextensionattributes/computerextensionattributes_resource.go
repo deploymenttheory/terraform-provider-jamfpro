@@ -4,8 +4,10 @@ package computerextensionattributes
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"regexp"
 	"strconv"
+	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
@@ -14,6 +16,24 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
+
+const (
+	maxRetries = 5
+	maxDelay   = 30 * time.Second // Max delay of 30 seconds
+)
+
+func exponentialBackoffWithJitter(attempt int) time.Duration {
+	expBackoff := time.Duration(1<<attempt) * time.Second
+	jitter := time.Duration(rand.Int63n(int64(expBackoff)))
+	return time.Duration(minDuration(expBackoff+jitter, maxDelay))
+}
+
+func minDuration(a, b time.Duration) time.Duration {
+	if a < b {
+		return a
+	}
+	return b
+}
 
 // validateDataType ensures the provided value adheres to the accepted formats for the data_type attribute.
 // The accepted formats are "String", "Integer", and a date string in the "YYYY-MM-DD hh:mm:ss" format.
@@ -271,14 +291,28 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 		return diag.FromErr(fmt.Errorf("failed to parse attribute ID: %v", err))
 	}
 
-	// Try fetching the computer extension attribute using the ID
-	attribute, err := conn.GetComputerExtensionAttributeByID(attributeID)
-	if err != nil || attribute == nil {
-		attributeName := d.Get("name").(string)
-		attribute, err = conn.GetComputerExtensionAttributeByName(attributeName)
+	var attribute *jamfpro.ComputerExtensionAttributeResponse
+
+	// Retry mechanism
+	for i := 0; i < maxRetries; i++ {
+		// Try fetching the computer extension attribute using the ID
+		attribute, err = conn.GetComputerExtensionAttributeByID(attributeID)
 		if err != nil || attribute == nil {
-			return diag.Errorf("Failed to fetch attribute by both ID (%d) and name (%s): %v", attributeID, attributeName, err)
+			// If fetching by ID fails, try fetching by Name
+			attributeName := d.Get("name").(string)
+			attribute, err = conn.GetComputerExtensionAttributeByName(attributeName)
 		}
+
+		if err == nil && attribute != nil {
+			break
+		}
+
+		// If both attempts failed, sleep and then retry
+		time.Sleep(exponentialBackoffWithJitter(i))
+	}
+
+	if err != nil || attribute == nil {
+		return diag.Errorf("Failed to fetch attribute by both ID (%d) and name after %d retries", attributeID, maxRetries)
 	}
 
 	// Safely set attributes in the Terraform state

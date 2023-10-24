@@ -4,6 +4,7 @@ package computerextensionattributes
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"regexp"
 	"strconv"
 	"time"
@@ -15,6 +16,24 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
+
+const (
+	maxRetries = 5
+	maxDelay   = 30 * time.Second // Max delay of 30 seconds
+)
+
+func exponentialBackoffWithJitter(attempt int) time.Duration {
+	expBackoff := time.Duration(1<<attempt) * time.Second
+	jitter := time.Duration(rand.Int63n(int64(expBackoff)))
+	return time.Duration(minDuration(expBackoff+jitter, maxDelay))
+}
+
+func minDuration(a, b time.Duration) time.Duration {
+	if a < b {
+		return a
+	}
+	return b
+}
 
 // validateDataType ensures the provided value adheres to the accepted formats for the data_type attribute.
 // The accepted formats are "String", "Integer", and a date string in the "YYYY-MM-DD hh:mm:ss" format.
@@ -232,18 +251,29 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf("failed to construct the computer extension attribute due to missing or invalid input_type"))
 	}
 
-	createdAttribute, err := conn.CreateComputerExtensionAttribute(attribute)
-	if err != nil {
+	// Create a channel to communicate the result of the creation process
+	resultCh := make(chan *jamfpro.ComputerExtensionAttributeResponse)
+	errorCh := make(chan error)
+
+	// Start the creation process in a separate goroutine
+	go func() {
+		createdAttribute, err := conn.CreateComputerExtensionAttribute(attribute)
+		if err != nil {
+			errorCh <- err
+			return
+		}
+		resultCh <- createdAttribute
+	}()
+
+	// Wait for the creation process to complete
+	select {
+	case createdAttribute := <-resultCh:
+		// Set the ID of the created attribute in the Terraform state
+		d.SetId(fmt.Sprintf("%d", createdAttribute.ID))
+		return ResourceJamfProComputerExtensionAttributesRead(ctx, d, meta)
+	case err := <-errorCh:
 		return diag.FromErr(err)
 	}
-
-	// Introduce a delay to allow for the resource creation to complete
-	time.Sleep(5 * time.Second)
-
-	// Set the ID of the created attribute in the Terraform state
-	d.SetId(fmt.Sprintf("%d", createdAttribute.ID))
-
-	return ResourceJamfProComputerExtensionAttributesRead(ctx, d, meta)
 }
 
 // ResourceJamfProComputerExtensionAttributesRead is responsible for reading the current state of a Jamf Pro Computer Extension Attribute from the remote system.
@@ -311,7 +341,11 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 	inputType["type"] = attribute.InputType.Type
 	inputType["platform"] = attribute.InputType.Platform
 	inputType["script"] = attribute.InputType.Script
-	inputType["choices"] = attribute.InputType.Choices
+	if attribute.InputType.Choices == nil || len(attribute.InputType.Choices) == 0 {
+		inputType["choices"] = []string{}
+	} else {
+		inputType["choices"] = attribute.InputType.Choices
+	}
 
 	// Wrap the map in a slice and set it to the Terraform state
 	if err := d.Set("input_type", []interface{}{inputType}); err != nil {
@@ -334,26 +368,37 @@ func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf("failed to parse attribute ID: %v", err))
 	}
 
-	// Try updating the computer extension attribute using the ID
-	updatedAttribute, err := conn.UpdateComputerExtensionAttributeByID(attributeID, attribute)
+	// Create channels to communicate the result of the update process
+	successCh := make(chan *jamfpro.ComputerExtensionAttributeResponse)
+	errorCh := make(chan error)
 
-	// If the update by ID fails, try updating by name
-	if err != nil {
-		attributeName := d.Get("name").(string)
-		updatedAttribute, err = conn.UpdateComputerExtensionAttributeByName(attributeName, attribute)
+	// Start the update process in a separate goroutine
+	go func() {
+		// Try updating the computer extension attribute using the ID
+		updatedAttribute, err := conn.UpdateComputerExtensionAttributeByID(attributeID, attribute)
+		// If the update by ID fails, try updating by name
 		if err != nil {
-			return diag.FromErr(err)
+			attributeName := d.Get("name").(string)
+			updatedAttribute, err = conn.UpdateComputerExtensionAttributeByName(attributeName, attribute)
+			if err != nil {
+				errorCh <- err
+				return
+			}
 		}
+		successCh <- updatedAttribute
+	}()
+
+	// Wait for the update process to complete
+	var updatedAttribute *jamfpro.ComputerExtensionAttributeResponse
+	select {
+	case updatedAttribute = <-successCh:
+		// After successful update, set the ID of the updated attribute in the Terraform state
+		d.SetId(fmt.Sprintf("%d", updatedAttribute.ID))
+		// Return the read function to ensure the state is properly updated to match the remote system
+		return ResourceJamfProComputerExtensionAttributesRead(ctx, d, meta)
+	case err := <-errorCh:
+		return diag.FromErr(err)
 	}
-
-	// Introduce a delay to allow for the resource update to complete
-	time.Sleep(5 * time.Second)
-
-	// After successful update, set the ID of the updated attribute in the Terraform state
-	d.SetId(fmt.Sprintf("%d", updatedAttribute.ID))
-
-	// Return the read function to ensure the state is properly updated to match the remote system
-	return ResourceJamfProComputerExtensionAttributesRead(ctx, d, meta)
 }
 
 // ResourceJamfProComputerExtensionAttributesDelete is responsible for deleting a Jamf Pro Computer Extension Attribute.
@@ -366,20 +411,32 @@ func ResourceJamfProComputerExtensionAttributesDelete(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf("failed to parse attribute ID: %v", err))
 	}
 
-	// Try deleting the computer extension attribute using the ID
-	err = conn.DeleteComputerExtensionAttributeByID(attributeID)
+	// Create channels to communicate the result of the deletion process
+	successCh := make(chan bool)
+	errorCh := make(chan error)
 
-	// If the delete by ID fails, try deleting by name
-	if err != nil {
-		attributeName := d.Get("name").(string)
-		err = conn.DeleteComputerExtensionAttributeByNameByID(attributeName)
+	// Start the deletion process in a separate goroutine
+	go func() {
+		err := conn.DeleteComputerExtensionAttributeByID(attributeID)
+		// If the delete by ID fails, try deleting by name
 		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to delete Computer Extension Attribute: %v", err))
+			attributeName := d.Get("name").(string)
+			err = conn.DeleteComputerExtensionAttributeByNameByID(attributeName)
+			if err != nil {
+				errorCh <- fmt.Errorf("failed to delete Computer Extension Attribute: %v", err)
+				return
+			}
 		}
+		successCh <- true
+	}()
+
+	// Wait for the deletion process to complete
+	select {
+	case <-successCh:
+		// Clear the ID from the Terraform state as the resource has been deleted
+		d.SetId("")
+		return nil
+	case err := <-errorCh:
+		return diag.FromErr(err)
 	}
-
-	// Clear the ID from the Terraform state as the resource has been deleted
-	d.SetId("")
-
-	return nil
 }
