@@ -6,7 +6,7 @@ toolchain go1.21.0
 
 require (
 	github.com/bflad/tfproviderlint v0.29.0
-	github.com/deploymenttheory/go-api-sdk-jamfpro v0.0.30
+	github.com/deploymenttheory/go-api-sdk-jamfpro v0.0.31
 	github.com/hashicorp/terraform-plugin-docs v0.16.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.29.0
 	github.com/stretchr/testify v1.8.4
@@ -17,7 +17,9 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230717121422-5aa5874ade95 // indirect
+	github.com/PuerkitoBio/goquery v1.8.1 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
+	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/bflad/gopaniccheck v0.1.0 // indirect
