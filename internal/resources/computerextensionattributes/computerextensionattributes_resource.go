@@ -445,10 +445,18 @@ func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 		// Directly call the API to update the resource
 		_, apiErr := conn.UpdateComputerExtensionAttributeByID(attributeID, attribute)
 		if apiErr != nil {
+			// Handle the APIError
+			if apiError, ok := apiErr.(*http_client.APIError); ok {
+				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+			}
 			// If the update by ID fails, try updating by name
 			attributeName := d.Get("name").(string)
 			_, apiErr = conn.UpdateComputerExtensionAttributeByName(attributeName, attribute)
 			if apiErr != nil {
+				// Handle the APIError
+				if apiError, ok := apiErr.(*http_client.APIError); ok {
+					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+				}
 				return retry.RetryableError(apiErr)
 			}
 		}
@@ -461,11 +469,20 @@ func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 			resourceName = "unknown"
 		}
 
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to update the resource with name: %s", resourceName),
-			Detail:   err.Error(),
-		})
+		// Handle the APIError in the diagnostic
+		if apiErr, ok := err.(*http_client.APIError); ok {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("Failed to update the resource with name: %s", resourceName),
+				Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
+			})
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("Failed to update the resource with name: %s", resourceName),
+				Detail:   err.Error(),
+			})
+		}
 		return diags
 	}
 
@@ -484,11 +501,20 @@ func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 			resourceName = "unknown"
 		}
 
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to update the Terraform state for the resource with name: %s", resourceName),
-			Detail:   err.Error(),
-		})
+		// Handle the APIError in the diagnostic
+		if apiErr, ok := err.(*http_client.APIError); ok {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("Failed to update the Terraform state for the resource with name: %s", resourceName),
+				Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
+			})
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("Failed to update the Terraform state for the resource with name: %s", resourceName),
+				Detail:   err.Error(),
+			})
+		}
 		return diags
 	}
 
