@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 
@@ -247,8 +248,11 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 		// Directly call the API to create the resource
 		createdAttribute, err = conn.CreateComputerExtensionAttribute(attribute)
 		if err != nil {
-			// Here, you might want to check if the error is retryable or not
-			// For simplicity, we're considering all errors as retryable
+			// Check if the error is an APIError
+			if apiErr, ok := err.(*http_client.APIError); ok {
+				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message))
+			}
+			// For simplicity, we're considering all other errors as retryable
 			return retry.RetryableError(err)
 		}
 
@@ -261,11 +265,20 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 			resourceName = "unknown"
 		}
 
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to create resource with name: %s", resourceName),
-			Detail:   err.Error(),
-		})
+		// Handle the APIError in the diagnostic
+		if apiErr, ok := err.(*http_client.APIError); ok {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("Failed to create resource with name: %s", resourceName),
+				Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
+			})
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("Failed to create resource with name: %s", resourceName),
+				Detail:   err.Error(),
+			})
+		}
 		return diags
 	}
 
@@ -288,11 +301,20 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 			resourceName = "unknown"
 		}
 
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to update the state of the resource with name: %s", resourceName),
-			Detail:   err.Error(),
-		})
+		// Handle the APIError in the diagnostic
+		if apiErr, ok := err.(*http_client.APIError); ok {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("Failed to update the state of the resource with name: %s", resourceName),
+				Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
+			})
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("Failed to update the state of the resource with name: %s", resourceName),
+				Detail:   err.Error(),
+			})
+		}
 		return diags
 	}
 
@@ -321,11 +343,19 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 		// Try fetching the computer extension attribute using the ID
 		var apiErr error
 		attribute, apiErr = conn.GetComputerExtensionAttributeByID(attributeID)
-		if apiErr != nil || attribute == nil {
+		if apiErr != nil {
+			// Handle the APIError
+			if apiError, ok := apiErr.(*http_client.APIError); ok {
+				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+			}
 			// If fetching by ID fails, try fetching by Name
 			attributeName := d.Get("name").(string)
 			attribute, apiErr = conn.GetComputerExtensionAttributeByName(attributeName)
 			if apiErr != nil {
+				// Handle the APIError
+				if apiError, ok := apiErr.(*http_client.APIError); ok {
+					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+				}
 				return retry.RetryableError(apiErr)
 			}
 		}
@@ -339,11 +369,20 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 			resourceName = "unknown"
 		}
 
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to fetch the state of the resource with name: %s", resourceName),
-			Detail:   err.Error(),
-		})
+		// Handle the APIError in the diagnostic
+		if apiErr, ok := err.(*http_client.APIError); ok {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("Failed to fetch the state of the resource with name: %s", resourceName),
+				Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
+			})
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("Failed to fetch the state of the resource with name: %s", resourceName),
+				Detail:   err.Error(),
+			})
+		}
 		return diags
 	}
 
@@ -406,10 +445,18 @@ func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 		// Directly call the API to update the resource
 		_, apiErr := conn.UpdateComputerExtensionAttributeByID(attributeID, attribute)
 		if apiErr != nil {
+			// Handle the APIError
+			if apiError, ok := apiErr.(*http_client.APIError); ok {
+				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+			}
 			// If the update by ID fails, try updating by name
 			attributeName := d.Get("name").(string)
 			_, apiErr = conn.UpdateComputerExtensionAttributeByName(attributeName, attribute)
 			if apiErr != nil {
+				// Handle the APIError
+				if apiError, ok := apiErr.(*http_client.APIError); ok {
+					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+				}
 				return retry.RetryableError(apiErr)
 			}
 		}
@@ -422,11 +469,20 @@ func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 			resourceName = "unknown"
 		}
 
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to update the resource with name: %s", resourceName),
-			Detail:   err.Error(),
-		})
+		// Handle the APIError in the diagnostic
+		if apiErr, ok := err.(*http_client.APIError); ok {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("Failed to update the resource with name: %s", resourceName),
+				Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
+			})
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("Failed to update the resource with name: %s", resourceName),
+				Detail:   err.Error(),
+			})
+		}
 		return diags
 	}
 
@@ -445,11 +501,20 @@ func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 			resourceName = "unknown"
 		}
 
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to update the Terraform state for the resource with name: %s", resourceName),
-			Detail:   err.Error(),
-		})
+		// Handle the APIError in the diagnostic
+		if apiErr, ok := err.(*http_client.APIError); ok {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("Failed to update the Terraform state for the resource with name: %s", resourceName),
+				Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
+			})
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("Failed to update the Terraform state for the resource with name: %s", resourceName),
+				Detail:   err.Error(),
+			})
+		}
 		return diags
 	}
 
