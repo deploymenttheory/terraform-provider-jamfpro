@@ -17,7 +17,7 @@ import (
 )
 
 // ResourceJamfProSite defines the schema and CRUD operations for managing Jamf Pro Sites in Terraform.
-func ResourceJamfProSite() *schema.Resource {
+func ResourceJamfProSites() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: ResourceJamfProSitesCreate,
 		ReadContext:   ResourceJamfProSitesRead,
