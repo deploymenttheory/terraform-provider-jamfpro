@@ -223,6 +223,31 @@ func constructComputerExtensionAttribute(d *schema.ResourceData) *jamfpro.Comput
 	}
 }
 
+// Helper function to generate diagnostics based on the error type
+func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
+	var diags diag.Diagnostics
+	resourceName, exists := d.GetOk("name")
+	if !exists {
+		resourceName = "unknown"
+	}
+
+	// Handle the APIError in the diagnostic
+	if apiErr, ok := err.(*http_client.APIError); ok {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
+			Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
+		})
+	} else {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
+			Detail:   err.Error(),
+		})
+	}
+	return diags
+}
+
 // ResourceJamfProComputerExtensionAttributesCreate is responsible for creating a new Jamf Pro Computer Extension Attribute in the remote system.
 // The function:
 // 1. Constructs the attribute data using the provided Terraform configuration.
@@ -260,32 +285,14 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 	})
 
 	if err != nil {
-		resourceName, exists := d.GetOk("name")
-		if !exists {
-			resourceName = "unknown"
-		}
-
-		// Handle the APIError in the diagnostic
-		if apiErr, ok := err.(*http_client.APIError); ok {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  fmt.Sprintf("Failed to create resource with name: %s", resourceName),
-				Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
-			})
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  fmt.Sprintf("Failed to create resource with name: %s", resourceName),
-				Detail:   err.Error(),
-			})
-		}
-		return diags
+		// If there's an error while creating the resource, generate diagnostics using the helper function.
+		return generateTFDiagsFromHTTPError(err, d, "create")
 	}
 
 	// Set the ID of the created resource in the Terraform state
 	d.SetId(strconv.Itoa(createdAttribute.ID))
 
-	// Use the retry function for the read operation to update the Terraform state
+	// Use the retry function for the read operation to update the Terraform state with the resource attributes
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		readDiags := ResourceJamfProComputerExtensionAttributesRead(ctx, d, meta)
 		if len(readDiags) > 0 {
@@ -296,26 +303,8 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 	})
 
 	if err != nil {
-		resourceName, exists := d.GetOk("name")
-		if !exists {
-			resourceName = "unknown"
-		}
-
-		// Handle the APIError in the diagnostic
-		if apiErr, ok := err.(*http_client.APIError); ok {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  fmt.Sprintf("Failed to update the state of the resource with name: %s", resourceName),
-				Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
-			})
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  fmt.Sprintf("Failed to update the state of the resource with name: %s", resourceName),
-				Detail:   err.Error(),
-			})
-		}
-		return diags
+		// If there's an error while updating the state for the resource, generate diagnostics using the helper function.
+		return generateTFDiagsFromHTTPError(err, d, "update state for")
 	}
 
 	return diags
@@ -364,26 +353,8 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 
 	// Handle error from the retry function
 	if err != nil {
-		resourceName, exists := d.GetOk("name")
-		if !exists {
-			resourceName = "unknown"
-		}
-
-		// Handle the APIError in the diagnostic
-		if apiErr, ok := err.(*http_client.APIError); ok {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  fmt.Sprintf("Failed to fetch the state of the resource with name: %s", resourceName),
-				Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
-			})
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  fmt.Sprintf("Failed to fetch the state of the resource with name: %s", resourceName),
-				Detail:   err.Error(),
-			})
-		}
-		return diags
+		// If there's an error while reading the resource, generate diagnostics using the helper function.
+		return generateTFDiagsFromHTTPError(err, d, "read")
 	}
 
 	// Safely set attributes in the Terraform state
@@ -463,27 +434,10 @@ func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 		return nil
 	})
 
+	// Handle error from the retry function
 	if err != nil {
-		resourceName, exists := d.GetOk("name")
-		if !exists {
-			resourceName = "unknown"
-		}
-
-		// Handle the APIError in the diagnostic
-		if apiErr, ok := err.(*http_client.APIError); ok {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  fmt.Sprintf("Failed to update the resource with name: %s", resourceName),
-				Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
-			})
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  fmt.Sprintf("Failed to update the resource with name: %s", resourceName),
-				Detail:   err.Error(),
-			})
-		}
-		return diags
+		// If there's an error while update the resource, generate diagnostics using the helper function.
+		return generateTFDiagsFromHTTPError(err, d, "update")
 	}
 
 	// Use the retry function for the read operation to update the Terraform state
@@ -495,27 +449,10 @@ func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 		return nil
 	})
 
+	// Handle error from the retry function
 	if err != nil {
-		resourceName, exists := d.GetOk("name")
-		if !exists {
-			resourceName = "unknown"
-		}
-
-		// Handle the APIError in the diagnostic
-		if apiErr, ok := err.(*http_client.APIError); ok {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  fmt.Sprintf("Failed to update the Terraform state for the resource with name: %s", resourceName),
-				Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
-			})
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  fmt.Sprintf("Failed to update the Terraform state for the resource with name: %s", resourceName),
-				Detail:   err.Error(),
-			})
-		}
-		return diags
+		// If there's an error while update the resource, generate diagnostics using the helper function.
+		return generateTFDiagsFromHTTPError(err, d, "update")
 	}
 
 	return diags
@@ -547,18 +484,10 @@ func ResourceJamfProComputerExtensionAttributesDelete(ctx context.Context, d *sc
 		return nil
 	})
 
+	// Handle error from the retry function
 	if err != nil {
-		resourceName, exists := d.GetOk("name")
-		if !exists {
-			resourceName = "unknown"
-		}
-
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to delete the resource with name: %s", resourceName),
-			Detail:   err.Error(),
-		})
-		return diags
+		// If there's an error while update the resource, generate diagnostics using the helper function.
+		return generateTFDiagsFromHTTPError(err, d, "delete")
 	}
 
 	// Clear the ID from the Terraform state as the resource has been deleted
