@@ -91,9 +91,10 @@ func Provider() *schema.Provider {
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"jamfpro_departments":     departments.DataSourceJamfProDepartments(),
-			"jamfpro_computer_groups": computergroups.DataSourceJamfProComputerGroups(),
-			"jamfpro_sites":           sites.DataSourceJamfProSites(),
+			"jamfpro_departments":                   departments.DataSourceJamfProDepartments(),
+			"jamfpro_computer_groups":               computergroups.DataSourceJamfProComputerGroups(),
+			"jamfpro_computer_extension_attributes": computerextensionattributes.DataSourceJamfProComputerExtensionAttributes(),
+			"jamfpro_sites":                         sites.DataSourceJamfProSites(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"jamfpro_departments":                   departments.ResourceJamfProDepartments(),
