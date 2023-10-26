@@ -38,7 +38,7 @@ func DataSourceJamfProDepartments() *schema.Resource {
 func DataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*client.APIClient).Conn
 
-	var department *jamfpro.Department
+	var department *jamfpro.ResponseDepartment
 	var err error
 
 	// Check if Name is provided in the data source configuration
@@ -66,7 +66,7 @@ func DataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceDat
 	}
 
 	// Set the data source attributes using the fetched data
-	d.SetId(fmt.Sprintf("%d", department.Id))
+	d.SetId(fmt.Sprintf("%d", department.ID))
 	d.Set("name", department.Name)
 
 	return nil
