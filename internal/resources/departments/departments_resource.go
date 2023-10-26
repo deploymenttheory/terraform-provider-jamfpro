@@ -47,10 +47,10 @@ func ResourceJamfProDepartments() *schema.Resource {
 	}
 }
 
-// constructSite constructs a SiteResponse object from the provided schema data.
-// It captures attributes from the schema and returns the constructed object.
-func constructDepartment(d *schema.ResourceData) *jamfpro.SiteResponse {
-	return &jamfpro.SiteResponse{
+// constructDepartment constructs a ResponseDepartment object from the provided schema data.
+// It captures the 'name' attribute from the schema and returns the constructed ResponseDepartment object.
+func constructDepartment(d *schema.ResourceData) *jamfpro.ResponseDepartments {
+	return &jamfpro.ResponseDepartments{
 		Name: d.Get("name").(string),
 	}
 }

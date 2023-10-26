@@ -49,7 +49,7 @@ func DataSourceJamfProSites() *schema.Resource {
 func dataSourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*client.APIClient).Conn
 
-	var site *jamfpro.SiteResponse
+	var site *jamfpro.ResponseSite
 	var err error
 
 	// Check if Name is provided in the data source configuration

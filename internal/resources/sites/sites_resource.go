@@ -47,10 +47,10 @@ func ResourceJamfProSites() *schema.Resource {
 	}
 }
 
-// constructSite constructs a SiteResponse object from the provided schema data.
+// constructSite constructs a ResponseSite object from the provided schema data.
 // It captures attributes from the schema and returns the constructed object.
-func constructSite(d *schema.ResourceData) *jamfpro.SiteResponse {
-	return &jamfpro.SiteResponse{
+func constructSite(d *schema.ResourceData) *jamfpro.ResponseSite {
+	return &jamfpro.ResponseSite{
 		Name: d.Get("name").(string),
 	}
 }
@@ -91,7 +91,7 @@ func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, met
 	var diags diag.Diagnostics
 
 	// Use the retry function for the create operation
-	var createdAttribute *jamfpro.SiteResponse
+	var createdAttribute *jamfpro.ResponseSite
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the computer extension attribute
@@ -151,7 +151,7 @@ func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta 
 	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
 
-	var attribute *jamfpro.SiteResponse
+	var attribute *jamfpro.ResponseSite
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
