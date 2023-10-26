@@ -13,6 +13,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerextensionattributes"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/departments"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/sites"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/version"
 )
@@ -92,11 +93,13 @@ func Provider() *schema.Provider {
 		DataSourcesMap: map[string]*schema.Resource{
 			"jamfpro_departments":     departments.DataSourceJamfProDepartments(),
 			"jamfpro_computer_groups": computergroups.DataSourceJamfProComputerGroups(),
+			"jamfpro_sites":           sites.DataSourceJamfProSites(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"jamfpro_departments":                   departments.ResourceJamfProDepartments(),
 			"jamfpro_computer_groups":               computergroups.ResourceJamfProComputerGroups(),
 			"jamfpro_computer_extension_attributes": computerextensionattributes.ResourceJamfProComputerExtensionAttributes(),
+			"jamfpro_sites":                         sites.ResourceJamfProSites(),
 		},
 	}
 

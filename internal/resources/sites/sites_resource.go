@@ -1,5 +1,5 @@
-// department_resource.go
-package departments
+// sites_resource.go
+package sites
 
 import (
 	"context"
@@ -16,13 +16,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProDepartmentse defines the schema and CRUD operations for managing Jamf Pro Departments in Terraform.
-func ResourceJamfProDepartments() *schema.Resource {
+// ResourceJamfProSite defines the schema and CRUD operations for managing Jamf Pro Sites in Terraform.
+func ResourceJamfProSites() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProDepartmentsCreate,
-		ReadContext:   ResourceJamfProDepartmentsRead,
-		UpdateContext: ResourceJamfProDepartmentsUpdate,
-		DeleteContext: ResourceJamfProDepartmentsDelete,
+		CreateContext: ResourceJamfProSitesCreate,
+		ReadContext:   ResourceJamfProSitesRead,
+		UpdateContext: ResourceJamfProSitesUpdate,
+		DeleteContext: ResourceJamfProSitesDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(10 * time.Minute),
@@ -36,21 +36,21 @@ func ResourceJamfProDepartments() *schema.Resource {
 			"id": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The unique identifier of the department.",
+				Description: "The unique identifier of the site.",
 			},
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The unique name of the Jamf Pro department.",
+				Description: "The unique name of the Jamf Pro site.",
 			},
 		},
 	}
 }
 
-// constructDepartment constructs a ResponseDepartment object from the provided schema data.
-// It captures the 'name' attribute from the schema and returns the constructed ResponseDepartment object.
-func constructDepartment(d *schema.ResourceData) *jamfpro.ResponseDepartment {
-	return &jamfpro.ResponseDepartment{
+// constructSite constructs a ResponseSite object from the provided schema data.
+// It captures attributes from the schema and returns the constructed object.
+func constructSite(d *schema.ResourceData) *jamfpro.ResponseSite {
+	return &jamfpro.ResponseSite{
 		Name: d.Get("name").(string),
 	}
 }
@@ -80,30 +80,30 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 	return diags
 }
 
-// ResourceJamfProDepartmentsCreate is responsible for creating a new Jamf Pro Site in the remote system.
+// ResourceJamfProSitesCreate is responsible for creating a new Jamf Pro Site in the remote system.
 // The function:
 // 1. Constructs the attribute data using the provided Terraform configuration.
 // 2. Calls the API to create the attribute in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
 
 	// Use the retry function for the create operation
-	var createdAttribute *jamfpro.ResponseDepartment
+	var createdAttribute *jamfpro.ResponseSite
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the computer extension attribute
-		department := constructDepartment(d)
+		attribute := constructSite(d)
 
-		// Check if the department is nil
-		if department == nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the department"))
+		// Check if the attribute is nil (indicating an issue with input_type)
+		if attribute == nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the computer extension attribute due to missing or invalid input_type"))
 		}
 
 		// Directly call the API to create the resource
-		createdAttribute, err = conn.CreateDepartment(department.Name)
+		createdAttribute, err = conn.CreateSite(attribute)
 		if err != nil {
 			// Check if the error is an APIError
 			if apiErr, ok := err.(*http_client.APIError); ok {
@@ -126,7 +126,7 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 
 	// Use the retry function for the read operation to update the Terraform state with the resource attributes
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProDepartmentsRead(ctx, d, meta)
+		readDiags := ResourceJamfProSitesRead(ctx, d, meta)
 		if len(readDiags) > 0 {
 			// If readDiags is not empty, it means there's an error, so we retry
 			return retry.RetryableError(fmt.Errorf("failed to read the created resource"))
@@ -142,16 +142,16 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 	return diags
 }
 
-// ResourceJamfProDepartmentsRead is responsible for reading the current state of a Jamf Pro Department Resource from the remote system.
+// ResourceJamfProSitesRead is responsible for reading the current state of a Jamf Pro Site Resource from the remote system.
 // The function:
 // 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
-func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
 
-	var attribute *jamfpro.ResponseDepartment
+	var attribute *jamfpro.ResponseSite
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
@@ -163,7 +163,7 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 
 		// Try fetching the site using the ID
 		var apiErr error
-		attribute, apiErr = conn.GetDepartmentByID(attributeID)
+		attribute, apiErr = conn.GetSiteByID(attributeID)
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -171,7 +171,7 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 			}
 			// If fetching by ID fails, try fetching by Name
 			attributeName := d.Get("name").(string)
-			attribute, apiErr = conn.GetDepartmentByName(attributeName)
+			attribute, apiErr = conn.GetSiteByName(attributeName)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -197,33 +197,33 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 	return diags
 }
 
-// ResourceJamfProDepartmentsUpdate is responsible for updating an existing Jamf Pro Site on the remote system.
-func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// ResourceJamfProSitesUpdate is responsible for updating an existing Jamf Pro Site on the remote system.
+func ResourceJamfProSitesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
 
 	// Use the retry function for the update operation
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		// Construct the department
-		department := constructDepartment(d)
+		// Construct the updated site
+		site := constructSite(d)
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request
-		departmentID, convertErr := strconv.Atoi(d.Id())
+		siteID, convertErr := strconv.Atoi(d.Id())
 		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse department ID: %v", convertErr))
+			return retry.NonRetryableError(fmt.Errorf("failed to parse site ID: %v", convertErr))
 		}
 
-		// Directly call the API to update the resource by ID
-		_, apiErr := conn.UpdateDepartmentByID(departmentID, department.Name)
+		// Directly call the API to update the resource
+		_, apiErr := conn.UpdateSiteByID(siteID, site)
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If the update by ID fails, try updating by name
-			departmentName := d.Get("name").(string)
-			_, apiErr = conn.UpdateDepartmentByName(departmentName, department.Name)
+			siteName := d.Get("name").(string)
+			_, apiErr = conn.UpdateSiteByName(siteName, site)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -243,7 +243,7 @@ func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 
 	// Use the retry function for the read operation to update the Terraform state
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProDepartmentsRead(ctx, d, meta)
+		readDiags := ResourceJamfProSitesRead(ctx, d, meta)
 		if len(readDiags) > 0 {
 			return retry.RetryableError(fmt.Errorf("failed to update the Terraform state for the updated resource"))
 		}
@@ -259,8 +259,8 @@ func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 	return diags
 }
 
-// ResourceJamfProDepartmentsDelete is responsible for deleting a Jamf Pro Department.
-func ResourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// ResourceJamfProSitesDelete is responsible for deleting a Jamf Pro Site.
+func ResourceJamfProSitesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
 
@@ -269,15 +269,15 @@ func ResourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceDat
 		// Convert the ID from the Terraform state into an integer to be used for the API request
 		siteID, convertErr := strconv.Atoi(d.Id())
 		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse department ID: %v", convertErr))
+			return retry.NonRetryableError(fmt.Errorf("failed to parse site ID: %v", convertErr))
 		}
 
 		// Directly call the API to delete the resource
-		apiErr := conn.DeleteDepartmentByID(siteID)
+		apiErr := conn.DeleteSiteByID(siteID)
 		if apiErr != nil {
 			// If the delete by ID fails, try deleting by name
 			siteName := d.Get("name").(string)
-			apiErr = conn.DeleteDepartmentByName(siteName)
+			apiErr = conn.DeleteSiteByName(siteName)
 			if apiErr != nil {
 				return retry.RetryableError(apiErr)
 			}

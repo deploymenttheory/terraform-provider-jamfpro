@@ -13,60 +13,60 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DepartmentDataSource provides information about a specific department in Jamf Pro.
-// It can fetch department details using either the department's unique Name or its Id.
-// The Name attribute is prioritized for fetching if provided. Otherwise, the Id is used.
+// DataSourceJamfProDepartments provides information about a specific department in Jamf Pro.
 func DataSourceJamfProDepartments() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: DataSourceJamfProDepartmentsRead,
-
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
+				Type:        schema.TypeInt,
+				Optional:    true,
 				Description: "The unique identifier of the department.",
+				Computed:    true,
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
+				Optional:    true,
 				Description: "The unique name of the jamf pro department.",
+				Computed:    true,
 			},
 		},
 	}
 }
 
+// DataSourceJamfProDepartmentsRead fetches the details of a specific department from Jamf Pro using either its unique Name or its Id.
 func DataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*client.APIClient).Conn
 
-	var department *jamfpro.Department
+	var department *jamfpro.ResponseDepartment
 	var err error
 
+	// Check if Name is provided in the data source configuration
 	if v, ok := d.GetOk("name"); ok && v.(string) != "" {
 		departmentName := v.(string)
-		department, err = conn.GetDepartmentByName(departmentName) // Corrected this line
+		department, err = conn.GetDepartmentByName(departmentName)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to fetch department by name: %v", err))
 		}
-	} else if v, ok := d.GetOk("id"); ok && v.(string) != "" {
+	} else if v, ok := d.GetOk("id"); ok {
 		departmentID, convertErr := strconv.Atoi(v.(string))
 		if convertErr != nil {
 			return diag.FromErr(fmt.Errorf("failed to convert department ID to integer: %v", convertErr))
 		}
-		department, err = conn.GetDepartmentByID(departmentID) // Corrected this line
+		department, err = conn.GetDepartmentByID(departmentID)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to fetch department by ID: %v", err))
 		}
 	} else {
-		return diag.FromErr(fmt.Errorf("either 'name' or 'id' must be specified"))
+		return diag.Errorf("Either 'name' or 'id' must be provided")
 	}
 
 	if department == nil {
 		return diag.FromErr(fmt.Errorf("department not found"))
 	}
 
-	d.SetId(fmt.Sprintf("%d", department.Id))
+	// Set the data source attributes using the fetched data
+	d.SetId(fmt.Sprintf("%d", department.ID))
 	d.Set("name", department.Name)
 
 	return nil
