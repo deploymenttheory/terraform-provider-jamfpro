@@ -87,6 +87,20 @@ func generateTerraformConfig(client *jamfpro.Client, departmentIDs *jamfpro.Resp
 			continue
 		}
 
+		resourceAddress := fmt.Sprintf("jamfpro_department.department_%d", department.ID)
+
+		// Check if the resource is already imported
+		imported, err := isResourceImported(resourceAddress)
+		if err != nil {
+			log.Printf("Failed to check if resource %s is imported: %v", resourceAddress, err)
+			continue
+		}
+
+		if imported {
+			log.Printf("Resource %s is already imported into Terraform state, skipping...", resourceAddress)
+			continue
+		}
+
 		hcl := generateDepartmentHCL(*department)
 		_, err = f.WriteString(hcl)
 		if err != nil {
@@ -110,7 +124,7 @@ func generateTerraformConfig(client *jamfpro.Client, departmentIDs *jamfpro.Resp
 func generateDepartmentHCL(department jamfpro.ResponseDepartment) string {
 	// Generate Terraform HCL for the given department
 	hcl := fmt.Sprintf(`
-resource "jamfpro_department" "department_%d" {
+resource "jamfpro_departments" "department_%d" {
   name = "%s"
 }
 `, department.ID, department.Name)
@@ -159,4 +173,24 @@ func importIntoTerraformState(departmentID int) error {
 
 	log.Printf("Successfully imported resource %s into Terraform state.", resourceAddress)
 	return nil
+}
+
+// isResourcePlannedForCreation checks if a given resource is planned for creation by Terraform.
+// It returns true if the resource is planned for creation, false otherwise.
+func isResourcePlannedForCreation(resourceAddress string) (bool, error) {
+	cmd := exec.Command("terraform", "plan", "-detailed-exitcode")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		// Exit code 2 indicates changes to be applied, which is not an error in our context
+		if _, ok := err.(*exec.ExitError); !ok {
+			return false, fmt.Errorf("failed to execute terraform plan: %v, output: %s", err, output)
+		}
+	}
+
+	// If the output contains the resource address with "will be created", it means the resource is planned for creation.
+	if strings.Contains(string(output), resourceAddress) && strings.Contains(string(output), "will be created") {
+		return true, nil
+	}
+
+	return false, nil
 }
