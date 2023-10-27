@@ -1,5 +1,5 @@
-// computerextensionattributes_helpers.go
-package computerextensionattributes
+// provider_helpers.go
+package providerhelpers
 
 import (
 	"math/rand"

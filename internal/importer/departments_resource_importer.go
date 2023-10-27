@@ -48,7 +48,7 @@ func initializeJamfProClient() *jamfpro.Client {
 	return client
 }
 
-func generateTerraformConfig(client *jamfpro.Client, departmentIDs *jamfpro.ResponseDepartments) {
+func generateTerraformConfig(client *jamfpro.Client, departmentIDs *jamfpro.ResponseDepartmentsList) {
 	log.Println("Starting generation of Terraform config...")
 
 	// Open a file for writing the Terraform configuration
@@ -74,30 +74,30 @@ func generateTerraformConfig(client *jamfpro.Client, departmentIDs *jamfpro.Resp
 		hcl := generateDepartmentHCL(*department)
 		_, err = f.WriteString(hcl)
 		if err != nil {
-			log.Printf("Failed to write department (ID: %d, Name: %s) to Terraform file: %v", department.Id, department.Name, err)
+			log.Printf("Failed to write department (ID: %d, Name: %s) to Terraform file: %v", department.ID, department.Name, err)
 			continue
 		}
 
-		log.Printf("Successfully added department (ID: %d, Name: %s) to Terraform config.", department.Id, department.Name)
+		log.Printf("Successfully added department (ID: %d, Name: %s) to Terraform config.", department.ID, department.Name)
 
-		err = importIntoTerraformState(department.Id)
+		err = importIntoTerraformState(department.ID)
 		if err != nil {
-			log.Printf("Failed to import department (ID: %d, Name: %s) into Terraform state: %v", department.Id, department.Name, err)
+			log.Printf("Failed to import department (ID: %d, Name: %s) into Terraform state: %v", department.ID, department.Name, err)
 		} else {
-			log.Printf("Successfully imported department (ID: %d, Name: %s) into Terraform state.", department.Id, department.Name)
+			log.Printf("Successfully imported department (ID: %d, Name: %s) into Terraform state.", department.ID, department.Name)
 		}
 	}
 
 	log.Println("Finished generation of Terraform config.")
 }
 
-func generateDepartmentHCL(department jamfpro.Department) string {
+func generateDepartmentHCL(department jamfpro.ResponseDepartment) string {
 	// Generate Terraform HCL for the given department
 	hcl := fmt.Sprintf(`
-resource "jamfpro_departments" "department_%d" {
+resource "jamfpro_department" "department_%d" {
   name = "%s"
 }
-`, department.Id, department.Name)
+`, department.ID, department.Name) // Note: Changed from department.Id to department.ID
 
 	return hcl
 }
