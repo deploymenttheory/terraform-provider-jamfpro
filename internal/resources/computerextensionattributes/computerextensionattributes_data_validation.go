@@ -9,7 +9,7 @@ import (
 )
 
 // validateResourceComputerExtensionAttributesDataFields performs custom validation on the Resource's schema so that passed values from
-// teraform align with attibute combinations supported by the Jamf Pro api.
+// teraform resource declarations align with attibute combinations supported by the Jamf Pro api.
 func validateResourceComputerExtensionAttributesDataFields(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
 	// Extract the first item from the input_type list, which should be a map
 	inputTypes, ok := diff.GetOk("input_type")
