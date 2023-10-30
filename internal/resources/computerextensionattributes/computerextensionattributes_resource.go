@@ -28,7 +28,7 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 		CustomizeDiff: validateResourceComputerExtensionAttributesDataFields,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute), // default timeout for create operation
-			Read:   schema.DefaultTimeout(10 * time.Minute), // default timeout for read operation
+			Read:   schema.DefaultTimeout(1 * time.Minute),  // default timeout for read operation
 			Update: schema.DefaultTimeout(30 * time.Minute), // default timeout for update operation
 			Delete: schema.DefaultTimeout(15 * time.Minute), // default timeout for delete operation
 		},
