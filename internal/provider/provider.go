@@ -23,13 +23,13 @@ import (
 const TerraformProviderProductUserAgent = "terraform-provider-jamfpro"
 
 // GetInstanceName retrieves the 'instance_name' value from the Terraform configuration.
-// If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_INSTANCE environment variable.
+// If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_INSTANCE_NAME environment variable.
 func GetInstanceName(d *schema.ResourceData) (string, error) {
 	instanceName := d.Get("instance_name").(string)
 	if instanceName == "" {
-		instanceName = os.Getenv("JAMFPRO_INSTANCE")
+		instanceName = os.Getenv("JAMFPRO_INSTANCE_NAME")
 		if instanceName == "" {
-			return "", fmt.Errorf("instance_name must be provided either as an environment variable (JAMFPRO_INSTANCE) or in the Terraform configuration")
+			return "", fmt.Errorf("instance_name must be provided either as an environment variable (JAMFPRO_INSTANCE_NAME) or in the Terraform configuration")
 		}
 	}
 	return instanceName, nil
@@ -68,7 +68,7 @@ func Provider() *schema.Provider {
 			"instance_name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_INSTANCE", ""),
+				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_INSTANCE_NAME", ""),
 				Description: "The Jamf Pro instance name. For mycompany.jamfcloud.com, define mycompany in this field.",
 			},
 			"client_id": {
