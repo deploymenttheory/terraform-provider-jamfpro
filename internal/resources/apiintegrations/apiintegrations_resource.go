@@ -71,6 +71,13 @@ func ResourceJamfProApiIntegrations() *schema.Resource {
 				Required:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "The list of authorization scopes for the API integration.",
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := val.([]interface{})
+					if len(v) < 1 {
+						errs = append(errs, fmt.Errorf("%q must include at least one authorization scope, got: %d", key, len(v)))
+					}
+					return
+				},
 			},
 		},
 	}
