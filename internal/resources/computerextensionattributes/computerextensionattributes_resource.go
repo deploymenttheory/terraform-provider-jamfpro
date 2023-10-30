@@ -112,9 +112,9 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 	}
 }
 
-// constructComputerExtensionAttribute constructs a ComputerExtensionAttributeResponse object from the provided schema data.
+// constructComputerExtensionAttribute constructs a ResponseComputerExtensionAttribute object from the provided schema data.
 // It captures attributes from the schema, including nested attributes under "input_type", and returns the constructed object.
-func constructComputerExtensionAttribute(d *schema.ResourceData) *jamfpro.ComputerExtensionAttributeResponse {
+func constructComputerExtensionAttribute(d *schema.ResourceData) *jamfpro.ResponseComputerExtensionAttribute {
 
 	// Extract the first item from the input_type list, which should be a map
 	inputTypes := d.Get("input_type").([]interface{})
@@ -139,8 +139,8 @@ func constructComputerExtensionAttribute(d *schema.ResourceData) *jamfpro.Comput
 		}
 	}
 
-	// Construct and return the ComputerExtensionAttributeResponse object using the captured attributes
-	return &jamfpro.ComputerExtensionAttributeResponse{
+	// Construct and return the ResponseComputerExtensionAttribute object using the captured attributes
+	return &jamfpro.ResponseComputerExtensionAttribute{
 		Name:             d.Get("name").(string),
 		Enabled:          d.Get("enabled").(bool),
 		Description:      d.Get("description").(string),
@@ -187,7 +187,7 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 	var diags diag.Diagnostics
 
 	// Use the retry function for the create operation
-	var createdAttribute *jamfpro.ComputerExtensionAttributeResponse
+	var createdAttribute *jamfpro.ResponseComputerExtensionAttribute
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the computer extension attribute
@@ -247,7 +247,7 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
 
-	var attribute *jamfpro.ComputerExtensionAttributeResponse
+	var attribute *jamfpro.ResponseComputerExtensionAttribute
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
