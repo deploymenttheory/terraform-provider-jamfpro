@@ -1,9 +1,9 @@
+// computerextensionattributes_data_source.go
 package computerextensionattributes
 
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
@@ -19,9 +19,8 @@ func DataSourceJamfProComputerExtensionAttributes() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeInt,
-				Optional:    true,
+				Required:    true,
 				Description: "The unique identifier of the computer extension attribute.",
-				Computed:    true,
 			},
 			"name": {
 				Type:        schema.TypeString,
@@ -48,7 +47,7 @@ func DataSourceJamfProComputerExtensionAttributes() *schema.Resource {
 				Type:        schema.TypeList,
 				Description: "Input type details of the computer extension attribute.",
 				Computed:    true,
-				MaxItems:    1,
+				//MaxItems:    1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
@@ -117,10 +116,7 @@ func dataSourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sc
 			return diag.FromErr(fmt.Errorf("failed to fetch computer extension attribute by name: %v", err))
 		}
 	} else if v, ok := d.GetOk("id"); ok {
-		attributeID, convertErr := strconv.Atoi(v.(string))
-		if convertErr != nil {
-			return diag.FromErr(fmt.Errorf("failed to convert computer extension attribute ID to integer: %v", convertErr))
-		}
+		attributeID := v.(int) // Correctly cast to int
 		attribute, err = conn.GetComputerExtensionAttributeByID(attributeID)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to fetch computer extension attribute by ID: %v", err))
