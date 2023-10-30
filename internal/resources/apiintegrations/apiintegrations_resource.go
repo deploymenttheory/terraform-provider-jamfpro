@@ -25,6 +25,7 @@ func ResourceJamfProApiIntegrations() *schema.Resource {
 		ReadContext:   ResourceJamfProApiIntegrationsRead,
 		UpdateContext: ResourceJamfProApiIntegrationsUpdate,
 		DeleteContext: ResourceJamfProApiIntegrationsDelete,
+		CustomizeDiff: validateResourceAPIIntegrationsDataFields,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(10 * time.Minute),
@@ -70,14 +71,7 @@ func ResourceJamfProApiIntegrations() *schema.Resource {
 				Type:        schema.TypeList,
 				Required:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
-				Description: "The list of authorization scopes for the API integration.",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := val.([]interface{})
-					if len(v) < 1 {
-						errs = append(errs, fmt.Errorf("%q must include at least one authorization scope, got: %d", key, len(v)))
-					}
-					return
-				},
+				Description: "The list of authorization roles scoped to the API integration.",
 			},
 		},
 	}
