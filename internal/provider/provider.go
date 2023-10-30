@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiintegrations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerextensionattributes"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/departments"
@@ -91,12 +92,14 @@ func Provider() *schema.Provider {
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
+			"jamfpro_api_integrations":              apiintegrations.DataSourceJamfProApiIntegrations(),
 			"jamfpro_computer_extension_attributes": computerextensionattributes.DataSourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_groups":               computergroups.DataSourceJamfProComputerGroups(),
 			"jamfpro_departments":                   departments.DataSourceJamfProDepartments(),
 			"jamfpro_sites":                         sites.DataSourceJamfProSites(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
+			"jamfpro_api_integrations":              apiintegrations.ResourceJamfProApiIntegrations(),
 			"jamfpro_computer_extension_attributes": computerextensionattributes.ResourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_groups":               computergroups.ResourceJamfProComputerGroups(),
 			"jamfpro_departments":                   departments.ResourceJamfProDepartments(),

@@ -1,4 +1,4 @@
-// api_integrations_resource.go
+// apiintegrations_resource.go
 package apiintegrations
 
 import (
