@@ -3,6 +3,7 @@ package apiroles
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -32,7 +33,6 @@ var validPrivileges = []string{
 	"Create Computer PreStage Enrollments",
 	"Create Computers",
 	"Create Custom Paths",
-	"Create Department",
 	"Create Departments",
 	"Create Device Enrollment Program Instances",
 	"Create Device Name Patterns",
@@ -119,7 +119,6 @@ var validPrivileges = []string{
 	"Delete Computer PreStage Enrollments",
 	"Delete Computers",
 	"Delete Custom Paths",
-	"Delete Department",
 	"Delete Departments",
 	"Delete Device Enrollment Program Instances",
 	"Delete Device Name Patterns",
@@ -231,6 +230,7 @@ var validPrivileges = []string{
 	"Read Conditional Access",
 	"Read Custom Paths",
 	"Read Customer Experience Metrics",
+	"Read Departments",
 	"Read Device Compliance Information",
 	"Read Device Enrollment Program Instances",
 	"Read Device Name Patterns",
@@ -411,7 +411,6 @@ var validPrivileges = []string{
 	"Update Conditional Access",
 	"Update Custom Paths",
 	"Update Customer Experience Metrics",
-	"Update Department",
 	"Update Departments",
 	"Update Device Enrollment Program Instances",
 	"Update Device Name Patterns",
@@ -516,16 +515,69 @@ var validPrivileges = []string{
 	"View Recovery Lock",
 }
 
-// validatePrivilege checks if a given privilege is in the list of valid privileges
+// validateResourceApiRolesDataFields checks if a given privilege is in the list of valid privileges
+// and groups privileges by category
 func validateResourceApiRolesDataFields(val interface{}, key string) (warns []string, errs []error) {
 	v := val.(string)
+
+	categories := make(map[string][]string)
+	var nonCrudPrivileges []string
+	var MDMCommands []string
+
 	for _, priv := range validPrivileges {
 		if v == priv {
 			return
 		}
+
+		// Split the privilege into operation and category
+		parts := strings.SplitN(priv, " ", 2)
+		if len(parts) == 2 {
+			operation, category := parts[0], parts[1]
+
+			// Group CRUD privileges by category
+			if operation == "Create" || operation == "Read" || operation == "Update" || operation == "Delete" {
+				categories[category] = append(categories[category], priv)
+			} else if operation == "Send" {
+				MDMCommands = append(MDMCommands, priv)
+			} else {
+				nonCrudPrivileges = append(nonCrudPrivileges, priv)
+			}
+		} else {
+			nonCrudPrivileges = append(nonCrudPrivileges, priv)
+		}
 	}
-	// Create a comma-delimited list with each entry on a new line
-	formattedPrivileges := strings.Join(validPrivileges, ",\n")
-	errs = append(errs, fmt.Errorf("%q contains an invalid privilege: %s; must be one of:\n%s", key, v, formattedPrivileges))
+
+	var formattedPrivileges strings.Builder
+
+	// Sort categories for consistent ordering
+	sortedCategories := make([]string, 0, len(categories))
+	for category := range categories {
+		sortedCategories = append(sortedCategories, category)
+	}
+	sort.Strings(sortedCategories)
+
+	for _, category := range sortedCategories {
+		privileges := categories[category]
+		// Adding a spacer with the category name
+		formattedPrivileges.WriteString(fmt.Sprintf("---- Priviledge Set: %s ----\n", category))
+		formattedPrivileges.WriteString(fmt.Sprintf("    %s\n", strings.Join(privileges, "\n    ")))
+		formattedPrivileges.WriteString("---- End ----\n\n")
+	}
+
+	if len(MDMCommands) > 0 {
+		// Adding a spacer for Send MDM Commands
+		formattedPrivileges.WriteString("---- MDM Commands ----\n")
+		formattedPrivileges.WriteString(fmt.Sprintf("    %s\n", strings.Join(MDMCommands, "\n    ")))
+		formattedPrivileges.WriteString("---- End ----\n\n")
+	}
+
+	if len(nonCrudPrivileges) > 0 {
+		// Adding a spacer for non-CRUD privileges
+		formattedPrivileges.WriteString("---- Other Jamf Pro Operations ----\n")
+		formattedPrivileges.WriteString(fmt.Sprintf("    %s\n", strings.Join(nonCrudPrivileges, "\n    ")))
+		formattedPrivileges.WriteString("---- End ----\n\n")
+	}
+
+	errs = append(errs, fmt.Errorf("%q contains an invalid privilege: %s; must be one of:\n%s", key, v, formattedPrivileges.String()))
 	return
 }
