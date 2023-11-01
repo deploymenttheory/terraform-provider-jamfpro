@@ -35,11 +35,15 @@ func ResourceJamfProAPIRoles() *schema.Resource {
 				Description: "The display name of the Jamf API Role.",
 			},
 			"privileges": {
-				Type:         schema.TypeList,
-				Required:     true,
-				Elem:         &schema.Schema{Type: schema.TypeString},
-				Description:  "List of privileges associated with the Jamf API Role.",
-				ValidateFunc: validateResourceApiRolesDataFields,
+				Type:        schema.TypeList,
+				Required:    true,
+				Description: "List of privileges associated with the Jamf API Role.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+					ValidateFunc: func(val interface{}, key string) ([]string, []error) {
+						return validateResourceApiRolesDataFields(val, key)
+					},
+				},
 			},
 		},
 	}
