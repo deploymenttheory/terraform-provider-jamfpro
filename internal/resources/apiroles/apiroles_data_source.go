@@ -1,6 +1,4 @@
 // apiroles_data_source.go
-
-// apiroles_data_source.go
 package apiroles
 
 import (
@@ -69,7 +67,7 @@ func dataSourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	// Set the data source attributes using the fetched data
-	d.SetId(fmt.Sprintf("%d", role.ID))
+	d.SetId(role.ID)
 	d.Set("name", role.DisplayName)
 	d.Set("privileges", role.Privileges)
 
