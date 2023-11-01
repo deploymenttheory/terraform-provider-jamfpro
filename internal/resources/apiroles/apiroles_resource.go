@@ -35,7 +35,7 @@ func ResourceJamfProAPIRoles() *schema.Resource {
 				Description: "The display name of the Jamf API Role.",
 			},
 			"privileges": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Required:    true,
 				Description: "List of privileges associated with the Jamf API Role.",
 				Elem: &schema.Schema{
@@ -78,7 +78,8 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 func constructAPIRoleFromSchema(d *schema.ResourceData) *jamfpro.APIRole {
 	// Extract the display name and privileges from the schema
 	displayName := d.Get("display_name").(string)
-	privilegesInterface := d.Get("privileges").([]interface{})
+	privilegesSet := d.Get("privileges").(*schema.Set)
+	privilegesInterface := privilegesSet.List()
 
 	// Convert privileges from []interface{} to []string
 	privileges := make([]string, len(privilegesInterface))

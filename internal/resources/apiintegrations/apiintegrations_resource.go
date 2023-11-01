@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 // ResourceJamfProApiIntegrations defines the schema and CRUD operations for managing Jamf Pro API Integrations in Terraform.
@@ -57,10 +56,11 @@ func ResourceJamfProApiIntegrations() *schema.Resource {
 				Description: "The access token lifetime in seconds for the API integration.",
 			},
 			"app_type": {
-				Type:         schema.TypeString,
-				Required:     true,
-				Description:  "The app type of the API integration.",
-				ValidateFunc: validation.StringInSlice([]string{"CLIENT_CREDENTIALS", "NATIVE_APP_OAUTH", "NONE"}, false),
+				Type:     schema.TypeString,
+				Computed: true,
+				//Required:     true,
+				Description: "The app type of the API integration.",
+				//ValidateFunc: validation.StringInSlice([]string{"CLIENT_CREDENTIALS", "NATIVE_APP_OAUTH", "NONE"}, false),
 			},
 			"client_id": {
 				Type:        schema.TypeString,
