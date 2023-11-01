@@ -3,6 +3,7 @@ package apiroles
 
 import (
 	"fmt"
+	"strings"
 )
 
 // List of valid privileges - replace these with actual valid privileges
@@ -523,6 +524,8 @@ func validateResourceApiRolesDataFields(val interface{}, key string) (warns []st
 			return
 		}
 	}
-	errs = append(errs, fmt.Errorf("%q contains an invalid privilege: %s; must be one of %v", key, v, validPrivileges))
+	// Create a comma-delimited list with each entry on a new line
+	formattedPrivileges := strings.Join(validPrivileges, ",\n")
+	errs = append(errs, fmt.Errorf("%q contains an invalid privilege: %s; must be one of:\n%s", key, v, formattedPrivileges))
 	return
 }
