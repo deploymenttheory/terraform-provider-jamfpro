@@ -68,7 +68,7 @@ func ResourceJamfProApiIntegrations() *schema.Resource {
 				Description: "The client ID of the API integration.",
 			},
 			"authorization_scopes": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Required:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "The list of authorization roles scoped to the API integration.",
@@ -109,8 +109,8 @@ func constructApiIntegration(d *schema.ResourceData) *jamfpro.ApiIntegration {
 		DisplayName:                d.Get("display_name").(string),
 		Enabled:                    d.Get("enabled").(bool),
 		AccessTokenLifetimeSeconds: d.Get("access_token_lifetime_seconds").(int),
-		AppType:                    d.Get("app_type").(string),
-		AuthorizationScopes:        convertToStringSlice(d.Get("authorization_scopes").([]interface{})),
+		//AppType:                    d.Get("app_type").(string),
+		AuthorizationScopes: convertToStringSlice(d.Get("authorization_scopes").(*schema.Set)),
 	}
 
 	// Log the successful construction of the integration
@@ -119,8 +119,9 @@ func constructApiIntegration(d *schema.ResourceData) *jamfpro.ApiIntegration {
 	return integration
 }
 
-// convertToStringSlice is a helper function that converts an interface slice to a string slice.
-func convertToStringSlice(interfaceSlice []interface{}) []string {
+// convertToStringSlice is a helper function that converts a schema.Set to a string slice.
+func convertToStringSlice(set *schema.Set) []string {
+	interfaceSlice := set.List()
 	stringSlice := make([]string, len(interfaceSlice))
 	for i, v := range interfaceSlice {
 		stringSlice[i] = v.(string)

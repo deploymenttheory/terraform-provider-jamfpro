@@ -29,7 +29,7 @@ func DataSourceJamfProAPIRoles() *schema.Resource {
 				Computed:    true,
 			},
 			"privileges": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Description: "List of privileges associated with the API role.",
 				Computed:    true,
 				Elem: &schema.Schema{

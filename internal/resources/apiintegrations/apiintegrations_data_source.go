@@ -49,7 +49,7 @@ func DataSourceJamfProApiIntegrations() *schema.Resource {
 				Computed:    true,
 			},
 			"authorization_scopes": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Description: "The list of authorization scopes for the API integration.",
 				Computed:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
@@ -100,7 +100,13 @@ func dataSourceJamfProApiIntegrationsRead(ctx context.Context, d *schema.Resourc
 	d.Set("access_token_lifetime_seconds", integration.AccessTokenLifetimeSeconds)
 	d.Set("app_type", integration.AppType)
 	d.Set("client_id", integration.ClientID)
-	d.Set("authorization_scopes", integration.AuthorizationScopes)
+
+	// Convert the authorization scopes to a schema.Set before setting it
+	authorizationScopesSet := schema.NewSet(schema.HashString, []interface{}{})
+	for _, scope := range integration.AuthorizationScopes {
+		authorizationScopesSet.Add(scope)
+	}
+	d.Set("authorization_scopes", authorizationScopesSet)
 
 	return nil
 }
