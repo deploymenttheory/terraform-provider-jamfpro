@@ -182,13 +182,13 @@ func DataSourceJamfProComputerGroupsRead(ctx context.Context, d *schema.Resource
 	criteriaList := make([]interface{}, len(group.Criteria))
 	for i, crit := range group.Criteria {
 		criteriaList[i] = map[string]interface{}{
-			"name":          crit.Criterion.Name,
-			"priority":      crit.Criterion.Priority,
-			"and_or":        string(crit.Criterion.AndOr),
-			"search_type":   crit.Criterion.SearchType,
-			"value":         crit.Criterion.SearchValue,
-			"opening_paren": crit.Criterion.OpeningParen,
-			"closing_paren": crit.Criterion.ClosingParen,
+			"name":          crit.Name,
+			"priority":      crit.Priority,
+			"and_or":        string(crit.AndOr),
+			"search_type":   crit.SearchType,
+			"value":         crit.SearchValue,
+			"opening_paren": crit.OpeningParen,
+			"closing_paren": crit.ClosingParen,
 		}
 	}
 	d.Set("criteria", criteriaList)
@@ -197,11 +197,11 @@ func DataSourceJamfProComputerGroupsRead(ctx context.Context, d *schema.Resource
 	computersList := make([]interface{}, len(group.Computers))
 	for i, comp := range group.Computers {
 		computersList[i] = map[string]interface{}{
-			"id":              comp.Computer.ID,
-			"name":            comp.Computer.Name,
-			"mac_address":     comp.Computer.MacAddress,
-			"alt_mac_address": comp.Computer.AltMacAddress,
-			"serial_number":   comp.Computer.SerialNumber,
+			"id":              comp.ID,
+			"name":            comp.Name,
+			"mac_address":     comp.MacAddress,
+			"alt_mac_address": comp.AltMacAddress,
+			"serial_number":   comp.SerialNumber,
 		}
 	}
 	d.Set("computers", computersList)

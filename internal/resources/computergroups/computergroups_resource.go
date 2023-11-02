@@ -85,10 +85,10 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							Description:  "Name of the smart group search criteria.",
-							ValidateFunc: validateSmartGroupCriteriaNameWrapper,
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Name of the smart group search criteria.",
+							//ValidateFunc: validateSmartGroupCriteriaNameWrapper,
 						},
 						"priority": {
 							Type:        schema.TypeInt,
@@ -98,8 +98,9 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 						"and_or": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "Either 'and' or 'or'.",
+							Description: "Either 'and', 'or', or blank.",
 							ValidateFunc: validation.StringInSlice([]string{
+								"",
 								string(And),
 								string(Or),
 							}, false),
@@ -175,97 +176,90 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 
 // constructComputerGroup constructs a ResponseComputerGroup object from the provided schema data.
 func constructComputerGroup(d *schema.ResourceData) *jamfpro.ResponseComputerGroup {
-	// Construct the Site struct
+	var group jamfpro.ResponseComputerGroup
+
+	// Handle optional "name" field
+	if v, ok := d.GetOk("name"); ok {
+		group.Name = v.(string)
+	}
+
+	// Handle optional "is_smart" field
+	if v, ok := d.GetOk("is_smart"); ok {
+		group.IsSmart = v.(bool)
+	}
+
+	// Handle optional "site" field
 	siteList := d.Get("site").([]interface{})
-	var site jamfpro.ComputerGroupSite
 	if len(siteList) > 0 {
-		// Handle the provided site data.
 		siteMap := siteList[0].(map[string]interface{})
-		site = jamfpro.ComputerGroupSite{
+		group.Site = jamfpro.ComputerGroupSite{
 			ID:   siteMap["id"].(int),
 			Name: siteMap["name"].(string),
 		}
 	}
 
-	// Construct the slice of ComputerGroupCriterion
-	var criteria []jamfpro.CriterionContainer
+	// Handle optional "criteria" field
 	if v, ok := d.GetOk("criteria"); ok {
 		for _, crit := range v.([]interface{}) {
 			criterionMap := crit.(map[string]interface{})
-
-			var name, searchType, searchValue string
-			var priority int
-			var andOr jamfpro.DeviceGroupAndOr
-			var openingParen, closingParen bool
+			var criterion jamfpro.ComputerGroupCriterion
 
 			if nameValue, ok := criterionMap["name"].(string); ok {
-				name = nameValue
+				criterion.Name = nameValue
 			}
 			if priorityValue, ok := criterionMap["priority"].(int); ok {
-				priority = priorityValue
+				criterion.Priority = priorityValue
 			}
 			if andOrValue, ok := criterionMap["and_or"].(string); ok {
-				andOr = jamfpro.DeviceGroupAndOr(andOrValue)
+				criterion.AndOr = jamfpro.DeviceGroupAndOr(andOrValue)
 			}
 			if searchTypeValue, ok := criterionMap["search_type"].(string); ok {
-				searchType = searchTypeValue
+				criterion.SearchType = searchTypeValue
 			}
 			if searchValueValue, ok := criterionMap["search_value"].(string); ok {
-				searchValue = searchValueValue
+				criterion.SearchValue = searchValueValue
 			}
 			if openingParenValue, ok := criterionMap["opening_paren"].(bool); ok {
-				openingParen = openingParenValue
+				criterion.OpeningParen = openingParenValue
 			}
 			if closingParenValue, ok := criterionMap["closing_paren"].(bool); ok {
-				closingParen = closingParenValue
+				criterion.ClosingParen = closingParenValue
 			}
 
-			criteria = append(criteria, jamfpro.CriterionContainer{
-				Size: 1, // You may need to adjust this as per your implementation
-				Criterion: jamfpro.ComputerGroupCriterion{
-					Name:         name,
-					Priority:     priority,
-					AndOr:        andOr,
-					SearchType:   searchType,
-					SearchValue:  searchValue,
-					OpeningParen: openingParen,
-					ClosingParen: closingParen,
-				},
-			})
+			group.Criteria = append(group.Criteria, criterion)
 		}
 	}
 
-	// Construct the slice of ComputerGroupComputerItem
-	var computers []jamfpro.ComputerContainer
+	// Handle optional "computers" field
 	if v, ok := d.GetOk("computers"); ok {
 		for _, comp := range v.([]interface{}) {
 			computerMap := comp.(map[string]interface{})
-			computers = append(computers, jamfpro.ComputerContainer{
-				Size: 1, // You may need to adjust this as per your implementation
-				Computer: jamfpro.ComputerGroupComputerItem{
-					ID:            computerMap["id"].(int),
-					Name:          computerMap["name"].(string),
-					SerialNumber:  computerMap["serial_number"].(string),
-					MacAddress:    computerMap["mac_address"].(string),
-					AltMacAddress: computerMap["alt_mac_address"].(string),
-				},
-			})
-		}
-	}
+			var computer jamfpro.ComputerGroupComputerItem
 
-	// Construct the ResponseComputerGroup object
-	group := &jamfpro.ResponseComputerGroup{
-		Name:      d.Get("name").(string),
-		IsSmart:   d.Get("is_smart").(bool),
-		Site:      site,
-		Criteria:  criteria,
-		Computers: computers,
+			if idValue, ok := computerMap["id"].(int); ok {
+				computer.ID = idValue
+			}
+			if nameValue, ok := computerMap["name"].(string); ok {
+				computer.Name = nameValue
+			}
+			if serialNumberValue, ok := computerMap["serial_number"].(string); ok {
+				computer.SerialNumber = serialNumberValue
+			}
+			if macAddressValue, ok := computerMap["mac_address"].(string); ok {
+				computer.MacAddress = macAddressValue
+			}
+			if altMacAddressValue, ok := computerMap["alt_mac_address"].(string); ok {
+				computer.AltMacAddress = altMacAddressValue
+			}
+
+			group.Computers = append(group.Computers, computer)
+		}
 	}
 
 	// Log the successful construction of the group
 	log.Printf("[INFO] Successfully constructed ComputerGroup with name: %s", group.Name)
 
-	return group
+	return &group
 }
 
 // Helper function to generate diagnostics based on the error type
@@ -415,13 +409,13 @@ func ResourceJamfProComputerGroupsRead(ctx context.Context, d *schema.ResourceDa
 	criteriaList := make([]interface{}, len(group.Criteria))
 	for i, crit := range group.Criteria {
 		criteriaList[i] = map[string]interface{}{
-			"name":          crit.Criterion.Name,
-			"priority":      crit.Criterion.Priority,
-			"and_or":        string(crit.Criterion.AndOr),
-			"search_type":   crit.Criterion.SearchType,
-			"value":         crit.Criterion.SearchValue,
-			"opening_paren": crit.Criterion.OpeningParen,
-			"closing_paren": crit.Criterion.ClosingParen,
+			"name":          crit.Name,
+			"priority":      crit.Priority,
+			"and_or":        string(crit.AndOr),
+			"search_type":   crit.SearchType,
+			"value":         crit.SearchValue,
+			"opening_paren": crit.OpeningParen,
+			"closing_paren": crit.ClosingParen,
 		}
 	}
 	if err := d.Set("criteria", criteriaList); err != nil {
@@ -432,11 +426,11 @@ func ResourceJamfProComputerGroupsRead(ctx context.Context, d *schema.ResourceDa
 	computersList := make([]interface{}, len(group.Computers))
 	for i, comp := range group.Computers {
 		computersList[i] = map[string]interface{}{
-			"id":              comp.Computer.ID,
-			"name":            comp.Computer.Name,
-			"mac_address":     comp.Computer.MacAddress,
-			"alt_mac_address": comp.Computer.AltMacAddress,
-			"serial_number":   comp.Computer.SerialNumber,
+			"id":              comp.ID,
+			"name":            comp.Name,
+			"mac_address":     comp.MacAddress,
+			"alt_mac_address": comp.AltMacAddress,
+			"serial_number":   comp.SerialNumber,
 		}
 	}
 	if err := d.Set("computers", computersList); err != nil {
@@ -444,7 +438,6 @@ func ResourceJamfProComputerGroupsRead(ctx context.Context, d *schema.ResourceDa
 	}
 
 	return diags
-
 }
 
 // ResourceJamfProComputerGroupsUpdate is responsible for updating an existing Jamf Pro Computer Group on the remote system.
