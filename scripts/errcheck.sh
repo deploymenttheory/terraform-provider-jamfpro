@@ -9,10 +9,10 @@ if ! which errcheck > /dev/null; then
 fi
 
 err_files=$(errcheck -ignoretests \
-                      -ignore 'github.com/hashicorp/terraform/helper/schema:Set' \
-                      -ignore 'bytes:.*' \
-                      -ignore 'io:Close|Write' \
-                      $(go list ./...| grep -v /vendor/))
+                        -ignore 'github.com/hashicorp/terraform/helper/schema:Set' \
+                        -ignore 'bytes:.*' \
+                        -ignore 'io:Close|Write' \
+                        $(go list ./...| grep -v /vendor/))
 
 if [[ -n ${err_files} ]]; then
     echo 'Unchecked errors found in the following places:'
