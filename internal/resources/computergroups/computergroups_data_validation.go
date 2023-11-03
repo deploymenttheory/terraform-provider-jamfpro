@@ -2,9 +2,11 @@
 package computergroups
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // Define a slice containing all the valid built-in smart group criteria names.
@@ -152,8 +154,14 @@ var validBuiltInSmartGroupCriteriaNames = []string{
 	"XProtect Definitions Version",
 }
 
-func getComputerExtensionAttributeNames(client *jamfpro.Client) ([]string, error) {
-	// Call the SDK function to get the list of computer extension attributes.
+func getComputerExtensionAttributeNames(ctx context.Context) ([]string, error) {
+	// Extract the client from the context
+	client, ok := ctx.Value("client").(*jamfpro.Client)
+	if !ok {
+		return nil, fmt.Errorf("could not retrieve Jamf Pro client from context")
+	}
+
+	// Call the SDK function to get the list of computer extension attributes using the client from the context.
 	response, err := client.GetComputerExtensionAttributes()
 	if err != nil {
 		return nil, fmt.Errorf("error fetching computer extension attributes: %v", err)
@@ -169,8 +177,8 @@ func getComputerExtensionAttributeNames(client *jamfpro.Client) ([]string, error
 	return customNames, nil
 }
 
-// Create a validation function.
-func validateSmartGroupCriteriaName(client *jamfpro.Client, val interface{}, key string) (warns []string, errs []error) {
+// validateSmartGroupCriteriaName uses the provider's context to validate the criteria name.
+func validateSmartGroupCriteriaName(ctx context.Context, val interface{}, key string) (warns []string, errs []error) {
 	name, ok := val.(string)
 	if !ok {
 		errs = append(errs, fmt.Errorf("expected type of %s to be string", key))
@@ -185,7 +193,7 @@ func validateSmartGroupCriteriaName(client *jamfpro.Client, val interface{}, key
 	}
 
 	// If not a built-in criteria, check if it's a valid custom extension attribute name.
-	customNames, err := getComputerExtensionAttributeNames(client)
+	customNames, err := getComputerExtensionAttributeNames(ctx)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("error validating %s: %v", key, err))
 		return
@@ -202,10 +210,50 @@ func validateSmartGroupCriteriaName(client *jamfpro.Client, val interface{}, key
 	return
 }
 
-// Define a global variable to hold the Jamf Pro client.
-var globalJamfProClient *jamfpro.Client
+// customDiffComputeGroups is a CustomDiff function that enforces conditional logic on the 'computers' and 'criteria' fields of the JamfProComputerGroups resource based on the value of 'is_smart'.
+// When 'is_smart' is true, the 'computers' field is not allowed, and certain sub-fields within 'criteria' become required.
+// Conversely, when 'is_smart' is false, the 'criteria' field is not allowed.
+func customDiffComputeGroups(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
+	// Check if 'is_smart' is set to true.
+	if diff.Get("is_smart").(bool) {
+		// If 'is_smart' is true, 'computers' should not be set.
+		if diff.Get("computers") != nil {
+			if len(diff.Get("computers").([]interface{})) > 0 {
+				return fmt.Errorf("'computers' field is not allowed when 'is_smart' is true")
+			}
+		}
 
-// Wrapper function for schema validation.
-func validateSmartGroupCriteriaNameWrapper(val interface{}, key string) ([]string, []error) {
-	return validateSmartGroupCriteriaName(globalJamfProClient, val, key)
+		// When 'is_smart' is true, 'name', 'and_or', and 'search_type' are required within each criterion.
+		criteria, ok := diff.GetOk("criteria")
+		if !ok || len(criteria.([]interface{})) == 0 {
+			return fmt.Errorf("'criteria' field must be set when 'is_smart' is true")
+		}
+
+		for i, c := range criteria.([]interface{}) {
+			criterion, ok := c.(map[string]interface{})
+			if !ok {
+				continue // Should not happen, but continue just in case.
+			}
+
+			// Check if 'name', 'and_or', and 'search_type' are set.
+			if criterion["name"] == nil || criterion["name"].(string) == "" {
+				return fmt.Errorf("'name' field is required for 'criteria' at index %d when 'is_smart' is true", i)
+			}
+			if criterion["and_or"] == nil || criterion["and_or"].(string) == "" {
+				return fmt.Errorf("'and_or' field is required for 'criteria' at index %d when 'is_smart' is true", i)
+			}
+			if criterion["search_type"] == nil || criterion["search_type"].(string) == "" {
+				return fmt.Errorf("'search_type' field is required for 'criteria' at index %d when 'is_smart' is true", i)
+			}
+		}
+	} else {
+		// If 'is_smart' is false, 'criteria' should not be set.
+		if diff.Get("criteria") != nil {
+			if len(diff.Get("criteria").([]interface{})) > 0 {
+				return fmt.Errorf("'criteria' field is not allowed when 'is_smart' is false")
+			}
+		}
+	}
+
+	return nil
 }

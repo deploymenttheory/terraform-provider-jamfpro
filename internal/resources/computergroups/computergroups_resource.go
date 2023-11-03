@@ -39,6 +39,7 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 		ReadContext:   ResourceJamfProComputerGroupsRead,
 		UpdateContext: ResourceJamfProComputerGroupsUpdate,
 		DeleteContext: ResourceJamfProComputerGroupsDelete,
+		CustomizeDiff: customDiffComputeGroups,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -87,8 +88,8 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 						"name": {
 							Type:        schema.TypeString,
 							Required:    true,
-							Description: "Name of the smart group search criteria.",
-							//ValidateFunc: validateSmartGroupCriteriaNameWrapper,
+							Description: "Name of the smart group search criteria. Can be from the Jamf built in enteries or can be an extension attribute.",
+							//ValidateFunc: validateSmartGroupCriteriaName,
 						},
 						"priority": {
 							Type:        schema.TypeInt,
@@ -99,6 +100,7 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Either 'and', 'or', or blank.",
+							Default:     "and",
 							ValidateFunc: validation.StringInSlice([]string{
 								"",
 								string(And),
@@ -122,16 +124,18 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 						"value": {
 							Type:        schema.TypeString,
 							Required:    true,
-							Description: "Search value.",
+							Description: "Search value for the smart group criteria to match with.",
 						},
 						"opening_paren": {
 							Type:        schema.TypeBool,
 							Optional:    true,
+							Default:     false,
 							Description: "Opening parenthesis flag.",
 						},
 						"closing_paren": {
 							Type:        schema.TypeBool,
 							Optional:    true,
+							Default:     false,
 							Description: "Closing parenthesis flag.",
 						},
 					},
@@ -216,7 +220,7 @@ func constructComputerGroup(d *schema.ResourceData) *jamfpro.ResponseComputerGro
 			if searchTypeValue, ok := criterionMap["search_type"].(string); ok {
 				criterion.SearchType = searchTypeValue
 			}
-			if searchValueValue, ok := criterionMap["search_value"].(string); ok {
+			if searchValueValue, ok := criterionMap["value"].(string); ok {
 				criterion.SearchValue = searchValueValue
 			}
 			if openingParenValue, ok := criterionMap["opening_paren"].(bool); ok {

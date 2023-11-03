@@ -74,12 +74,12 @@ func DataSourceJamfProComputerGroups() *schema.Resource {
 						"search_type": {
 							Type:        schema.TypeString,
 							Computed:    true,
-							Description: "Operator.",
+							Description: "The type of search operator.",
 						},
 						"value": {
 							Type:        schema.TypeString,
 							Computed:    true,
-							Description: "Search value.",
+							Description: "Criteria search value.",
 						},
 						"opening_paren": {
 							Type:        schema.TypeBool,
