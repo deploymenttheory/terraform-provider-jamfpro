@@ -105,7 +105,7 @@ func DataSourceJamfProComputerExtensionAttributes() *schema.Resource {
 func dataSourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*client.APIClient).Conn
 
-	var attribute *jamfpro.ComputerExtensionAttributeResponse
+	var attribute *jamfpro.ResponseComputerExtensionAttribute
 	var err error
 
 	// Check if Name is provided in the data source configuration

@@ -8,8 +8,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiintegrations"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiroles"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerextensionattributes"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/departments"
@@ -23,13 +26,13 @@ import (
 const TerraformProviderProductUserAgent = "terraform-provider-jamfpro"
 
 // GetInstanceName retrieves the 'instance_name' value from the Terraform configuration.
-// If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_INSTANCE environment variable.
+// If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_INSTANCE_NAME environment variable.
 func GetInstanceName(d *schema.ResourceData) (string, error) {
 	instanceName := d.Get("instance_name").(string)
 	if instanceName == "" {
-		instanceName = os.Getenv("JAMFPRO_INSTANCE")
+		instanceName = os.Getenv("JAMFPRO_INSTANCE_NAME")
 		if instanceName == "" {
-			return "", fmt.Errorf("instance_name must be provided either as an environment variable (JAMFPRO_INSTANCE) or in the Terraform configuration")
+			return "", fmt.Errorf("instance_name must be provided either as an environment variable (JAMFPRO_INSTANCE_NAME) or in the Terraform configuration")
 		}
 	}
 	return instanceName, nil
@@ -68,7 +71,7 @@ func Provider() *schema.Provider {
 			"instance_name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_INSTANCE", ""),
+				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_INSTANCE_NAME", ""),
 				Description: "The Jamf Pro instance name. For mycompany.jamfcloud.com, define mycompany in this field.",
 			},
 			"client_id": {
@@ -84,19 +87,27 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_CLIENT_SECRET", ""),
 				Description: "The Jamf Pro Client secret for authentication.",
 			},
-			"debug_mode": {
-				Type:        schema.TypeBool,
-				Required:    true,
-				Description: "Enable or disable debug mode for verbose logging.",
+			"log_level": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "warning", // Set default log level as warning to align with http_client package
+				ValidateFunc: validation.StringInSlice([]string{
+					"debug", "info", "warning", "none",
+				}, false),
+				Description: "The logging level: debug, info, warning, or none",
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
+			"jamfpro_api_integrations":              apiintegrations.DataSourceJamfProApiIntegrations(),
+			"jamfpro_api_roles":                     apiroles.DataSourceJamfProAPIRoles(),
 			"jamfpro_computer_extension_attributes": computerextensionattributes.DataSourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_groups":               computergroups.DataSourceJamfProComputerGroups(),
 			"jamfpro_departments":                   departments.DataSourceJamfProDepartments(),
 			"jamfpro_sites":                         sites.DataSourceJamfProSites(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
+			"jamfpro_api_integrations":              apiintegrations.ResourceJamfProApiIntegrations(),
+			"jamfpro_api_roles":                     apiroles.ResourceJamfProAPIRoles(),
 			"jamfpro_computer_extension_attributes": computerextensionattributes.ResourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_groups":               computergroups.ResourceJamfProComputerGroups(),
 			"jamfpro_departments":                   departments.ResourceJamfProDepartments(),
@@ -137,11 +148,26 @@ func Provider() *schema.Provider {
 			return nil, diags
 		}
 
+		// Retrieve the log level from the configuration.
+		logLevel := d.Get("log_level").(string)
+
+		// Convert the log level from string to the LogLevel type.
+		// (Assuming there's a function in your client package that does this)
+		parsedLogLevel, err := client.ConvertToLogLevel(logLevel)
+		if err != nil {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Invalid log level",
+				Detail:   err.Error(),
+			})
+			return nil, diags
+		}
+
 		config := client.ProviderConfig{
 			InstanceName: instanceName,
 			ClientID:     clientID,
 			ClientSecret: clientSecret,
-			DebugMode:    d.Get("debug_mode").(bool),
+			LogLevel:     parsedLogLevel,
 			UserAgent:    provider.UserAgent(TerraformProviderProductUserAgent, version.ProviderVersion),
 		}
 		return config.Client()

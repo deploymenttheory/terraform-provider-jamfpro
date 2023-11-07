@@ -74,12 +74,12 @@ func DataSourceJamfProComputerGroups() *schema.Resource {
 						"search_type": {
 							Type:        schema.TypeString,
 							Computed:    true,
-							Description: "Operator.",
+							Description: "The type of search operator.",
 						},
 						"value": {
 							Type:        schema.TypeString,
 							Computed:    true,
-							Description: "Search value.",
+							Description: "Criteria search value.",
 						},
 						"opening_paren": {
 							Type:        schema.TypeBool,
@@ -131,71 +131,57 @@ func DataSourceJamfProComputerGroups() *schema.Resource {
 	}
 }
 
-// DataSourceJamfProComputerGroupsRead retrieves details about a specific computer group in Jamf Pro
-// using the provided name or ID. The function prioritizes fetching details using the computer group's
-// unique Name if provided. Otherwise, it uses the Id.
+// DataSourceJamfProComputerGroupsRead fetches the details of a specific computer group
+// from Jamf Pro using either its unique Name or its Id. The function prioritizes the 'name' attribute over the 'id'
+// attribute for fetching details. If neither 'name' nor 'id' is provided, it returns an error.
+// Once the details are fetched, they are set in the data source's state.
 //
-// The function populates all the fields from the schema to the Terraform state, ensuring all the
-// details of the computer group are available for use in the Terraform configuration.
-//
-// The Jamf Pro API client is used to interact with the Jamf Pro instance to fetch the necessary details.
-//
-// Params:
-// - ctx: The current context.
-// - d: The Terraform resource data which contains information about the resource's attributes.
-// - meta: The provider meta object, which contains a pre-configured Jamf Pro API client.
+// Parameters:
+// - ctx: The context within which the function is called. It's used for timeouts and cancellation.
+// - d: The current state of the data source.
+// - meta: The meta object that can be used to retrieve the API client connection.
 //
 // Returns:
-// - diag.Diagnostics: A list of diagnostic messages that provide information, warnings, or errors
-//   encountered during the read operation.
-
+// - diag.Diagnostics: Returns any diagnostics (errors or warnings) encountered during the function's execution.
 func DataSourceJamfProComputerGroupsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*client.APIClient).Conn
 
-	var computerGroup *jamfpro.ComputerGroup
+	var group *jamfpro.ResponseComputerGroup
 	var err error
 
+	// Check if Name is provided in the data source configuration
 	if v, ok := d.GetOk("name"); ok && v.(string) != "" {
-		computerGroupName := v.(string)
-		computerGroup, err = conn.GetComputerGroupByName(computerGroupName)
+		groupName := v.(string)
+		group, err = conn.GetComputerGroupByName(groupName)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to fetch computer group by name: %v", err))
 		}
-	} else if v, ok := d.GetOk("id"); ok && v.(string) != "" {
-		computerGroupID, convertErr := strconv.Atoi(v.(string))
-		if convertErr != nil {
-			return diag.FromErr(fmt.Errorf("failed to convert computer group ID to integer: %v", convertErr))
+	} else if v, ok := d.GetOk("id"); ok {
+		groupID, err := strconv.Atoi(v.(string))
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("failed to parse computer group ID: %v", err))
 		}
-		computerGroup, err = conn.GetComputerGroupByID(computerGroupID)
+		group, err = conn.GetComputerGroupByID(groupID)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to fetch computer group by ID: %v", err))
 		}
 	} else {
-		return diag.FromErr(fmt.Errorf("either 'name' or 'id' must be specified"))
+		return diag.Errorf("Either 'name' or 'id' must be provided")
 	}
 
-	if computerGroup == nil {
-		return diag.FromErr(fmt.Errorf("computer group not found"))
-	}
+	// Set the data source attributes using the fetched data
+	d.SetId(fmt.Sprintf("%d", group.ID))
+	d.Set("name", group.Name)
+	d.Set("is_smart", group.IsSmart)
+	d.Set("site", []interface{}{map[string]interface{}{
+		"id":   group.Site.ID,
+		"name": group.Site.Name,
+	}})
 
-	// Set values to the state
-	d.SetId(fmt.Sprintf("%d", computerGroup.ID))
-	d.Set("name", computerGroup.Name)
-	d.Set("is_smart", computerGroup.IsSmart)
-
-	// Set site values
-	site := []interface{}{
-		map[string]interface{}{
-			"id":   computerGroup.Site.ID,
-			"name": computerGroup.Site.Name,
-		},
-	}
-	d.Set("site", site)
-
-	// Set criteria values
-	var criteriaList []interface{}
-	for _, crit := range computerGroup.Criteria {
-		criteriaMap := map[string]interface{}{
+	// Set the criteria
+	criteriaList := make([]interface{}, len(group.Criteria))
+	for i, crit := range group.Criteria {
+		criteriaList[i] = map[string]interface{}{
 			"name":          crit.Name,
 			"priority":      crit.Priority,
 			"and_or":        string(crit.AndOr),
@@ -204,23 +190,21 @@ func DataSourceJamfProComputerGroupsRead(ctx context.Context, d *schema.Resource
 			"opening_paren": crit.OpeningParen,
 			"closing_paren": crit.ClosingParen,
 		}
-		criteriaList = append(criteriaList, criteriaMap)
 	}
 	d.Set("criteria", criteriaList)
 
-	// Set computer values
-	var computerList []interface{}
-	for _, comp := range computerGroup.Computers {
-		computerMap := map[string]interface{}{
+	// Set the computers
+	computersList := make([]interface{}, len(group.Computers))
+	for i, comp := range group.Computers {
+		computersList[i] = map[string]interface{}{
 			"id":              comp.ID,
 			"name":            comp.Name,
 			"mac_address":     comp.MacAddress,
 			"alt_mac_address": comp.AltMacAddress,
 			"serial_number":   comp.SerialNumber,
 		}
-		computerList = append(computerList, computerMap)
 	}
-	d.Set("computers", computerList)
+	d.Set("computers", computersList)
 
 	return nil
 }

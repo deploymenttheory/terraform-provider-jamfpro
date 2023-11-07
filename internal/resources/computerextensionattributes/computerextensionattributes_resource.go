@@ -4,6 +4,7 @@ package computerextensionattributes
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -28,7 +29,7 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 		CustomizeDiff: validateResourceComputerExtensionAttributesDataFields,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute), // default timeout for create operation
-			Read:   schema.DefaultTimeout(10 * time.Minute), // default timeout for read operation
+			Read:   schema.DefaultTimeout(1 * time.Minute),  // default timeout for read operation
 			Update: schema.DefaultTimeout(30 * time.Minute), // default timeout for update operation
 			Delete: schema.DefaultTimeout(15 * time.Minute), // default timeout for delete operation
 		},
@@ -112,10 +113,9 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 	}
 }
 
-// constructComputerExtensionAttribute constructs a ComputerExtensionAttributeResponse object from the provided schema data.
+// constructComputerExtensionAttribute constructs a ResponseComputerExtensionAttribute object from the provided schema data.
 // It captures attributes from the schema, including nested attributes under "input_type", and returns the constructed object.
-func constructComputerExtensionAttribute(d *schema.ResourceData) *jamfpro.ComputerExtensionAttributeResponse {
-
+func constructComputerExtensionAttribute(d *schema.ResourceData) *jamfpro.ResponseComputerExtensionAttribute {
 	// Extract the first item from the input_type list, which should be a map
 	inputTypes := d.Get("input_type").([]interface{})
 	if len(inputTypes) == 0 {
@@ -139,8 +139,8 @@ func constructComputerExtensionAttribute(d *schema.ResourceData) *jamfpro.Comput
 		}
 	}
 
-	// Construct and return the ComputerExtensionAttributeResponse object using the captured attributes
-	return &jamfpro.ComputerExtensionAttributeResponse{
+	// Construct the ResponseComputerExtensionAttribute object
+	attribute := &jamfpro.ResponseComputerExtensionAttribute{
 		Name:             d.Get("name").(string),
 		Enabled:          d.Get("enabled").(bool),
 		Description:      d.Get("description").(string),
@@ -149,6 +149,11 @@ func constructComputerExtensionAttribute(d *schema.ResourceData) *jamfpro.Comput
 		ReconDisplay:     d.Get("recon_display").(string),
 		InputType:        inputType,
 	}
+
+	// Log the successful construction of the attribute
+	log.Printf("[INFO] Successfully constructed ComputerExtensionAttribute with name: %s", attribute.Name)
+
+	return attribute
 }
 
 // Helper function to generate diagnostics based on the error type
@@ -187,7 +192,7 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 	var diags diag.Diagnostics
 
 	// Use the retry function for the create operation
-	var createdAttribute *jamfpro.ComputerExtensionAttributeResponse
+	var createdAttribute *jamfpro.ResponseComputerExtensionAttribute
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the computer extension attribute
@@ -198,9 +203,15 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 			return retry.NonRetryableError(fmt.Errorf("failed to construct the computer extension attribute due to missing or invalid input_type"))
 		}
 
+		// Log the details of the attribute that is about to be created
+		log.Printf("[INFO] Attempting to create ComputerExtensionAttribute with name: %s", attribute.Name)
+
 		// Directly call the API to create the resource
 		createdAttribute, err = conn.CreateComputerExtensionAttribute(attribute)
 		if err != nil {
+			// Log the error from the API call
+			log.Printf("[ERROR] Error creating ComputerExtensionAttribute with name: %s. Error: %s", attribute.Name, err)
+
 			// Check if the error is an APIError
 			if apiErr, ok := err.(*http_client.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message))
@@ -208,6 +219,9 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 			// For simplicity, we're considering all other errors as retryable
 			return retry.RetryableError(err)
 		}
+
+		// Log the response from the API call
+		log.Printf("[INFO] Successfully created ComputerExtensionAttribute with ID: %d and name: %s", createdAttribute.ID, createdAttribute.Name)
 
 		return nil
 	})
@@ -247,7 +261,7 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
 
-	var attribute *jamfpro.ComputerExtensionAttributeResponse
+	var attribute *jamfpro.ResponseComputerExtensionAttribute
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {

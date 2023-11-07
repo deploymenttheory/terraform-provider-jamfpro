@@ -6,7 +6,7 @@ toolchain go1.21.0
 
 require (
 	github.com/bflad/tfproviderlint v0.29.0
-	github.com/deploymenttheory/go-api-sdk-jamfpro v0.0.36
+	github.com/deploymenttheory/go-api-sdk-jamfpro v0.0.51
 	github.com/hashicorp/terraform-plugin-docs v0.16.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.29.0
 	github.com/stretchr/testify v1.8.4
@@ -79,7 +79,8 @@ require (
 	golang.org/x/exp v0.0.0-20230809150735-7b3493d9a819 // indirect
 	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/net v0.14.0 // indirect
-	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/sync v0.4.0 // indirect
+	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/tools v0.12.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
