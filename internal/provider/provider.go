@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiintegrations"
@@ -86,10 +87,14 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_CLIENT_SECRET", ""),
 				Description: "The Jamf Pro Client secret for authentication.",
 			},
-			"debug_mode": {
-				Type:        schema.TypeBool,
-				Required:    true,
-				Description: "Enable or disable debug mode for verbose logging.",
+			"log_level": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "warning", // Set default log level as warning to align with http_client package
+				ValidateFunc: validation.StringInSlice([]string{
+					"debug", "info", "warning", "none",
+				}, false),
+				Description: "The logging level: debug, info, warning, or none",
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
@@ -143,11 +148,26 @@ func Provider() *schema.Provider {
 			return nil, diags
 		}
 
+		// Retrieve the log level from the configuration.
+		logLevel := d.Get("log_level").(string)
+
+		// Convert the log level from string to the LogLevel type.
+		// (Assuming there's a function in your client package that does this)
+		parsedLogLevel, err := client.ConvertToLogLevel(logLevel)
+		if err != nil {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Invalid log level",
+				Detail:   err.Error(),
+			})
+			return nil, diags
+		}
+
 		config := client.ProviderConfig{
 			InstanceName: instanceName,
 			ClientID:     clientID,
 			ClientSecret: clientSecret,
-			DebugMode:    d.Get("debug_mode").(bool),
+			LogLevel:     parsedLogLevel,
 			UserAgent:    provider.UserAgent(TerraformProviderProductUserAgent, version.ProviderVersion),
 		}
 		return config.Client()
