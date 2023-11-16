@@ -119,7 +119,6 @@ func constructComputerExtensionAttribute(d *schema.ResourceData) *jamfpro.Respon
 	// Extract the first item from the input_type list, which should be a map
 	inputTypes := d.Get("input_type").([]interface{})
 	if len(inputTypes) == 0 {
-		// Handle this case as you see fit; here I'll just return nil to indicate an error
 		return nil
 	}
 
