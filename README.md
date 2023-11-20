@@ -36,7 +36,7 @@ This provider uses [Go modules](https://github.com/golang/go/wiki/Modules).
 To add a new dependency `github.com/author/dependency` to your Terraform provider:
 
 ```shell
-go get github.com/author/dependency
+go **GET** github.com/author/dependency
 go mod tidy
 ```
 
@@ -50,7 +50,7 @@ To use this provider, you need to configure it with your Jamf Pro instance's URL
 
 If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (see [Requirements](#requirements) above).
 
-To compile the provider, run `go install`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
+To compile the provider, run `go install`. This will build the provider and **PUT** the provider binary in the `$GOPATH/bin` directory.
 
 To generate or update documentation, run `go generate`.
 
@@ -61,3 +61,23 @@ To run the full suite of Acceptance tests, execute `make testacc`.
 ```shell
 make testacc
 ```
+
+## Benchmarking
+
+Indicative time taken to implement changes using this terraform provider against a jamf cloud instance of jamf pro.
+
+Setup:
+Jamf Cloud instance of Jamf Pro
+Empty instance of jamf pro with 0 devices enrolled
+Deployment of jamf pro departments (Simplement resource type in jamf pro)
+
+| API Calls      | Resource Type | CRUD Operation        | Time Taken   |
+| ---------------| ------------- |-----------------------|--------------|
+| 1000           | Departments   | Create                | 8m10s        |
+| 1000           | Departments   | Read                  | 8ms          |
+| 1000           | Departments   | Update                | 8ms          |
+| 1000           | Departments   | **DELETE**                | 8ms          |
+| 10000          | Departments   | Create (TF Plan+Apply)| 8m10s        |
+| 10000          | Departments   | Read (TF Plan)        | 2m49s        |
+| 10000          | Departments   | Update (TF Plan+Apply)| 8ms          |
+| 10000          | Departments   | **DELETE**                | 8ms          |

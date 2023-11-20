@@ -331,7 +331,7 @@ var validPrivileges = []string{
 	"Send Blank Pushes to Mobile Devices",
 	"Send Command to Renew MDM Profile",
 	"Send Computer Bluetooth Command",
-	"Send Computer Delete User Account Command",
+	"Send Computer **DELETE** User Account Command",
 	"Send Computer Remote Command to Download and Install OS X Update",
 	"Send Computer Remote Command to Install Package",
 	"Send Computer Remote Desktop Command",
