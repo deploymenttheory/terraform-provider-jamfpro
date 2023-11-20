@@ -37,7 +37,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			// GeneralConfig fields
 			"id": {
-				Type:        schema.TypeInt,
+				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The unique identifier of the macOS configuration profile.",
 			},
@@ -161,6 +161,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"computer": {
 										Type:     schema.TypeList,
+										Optional: true,
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
@@ -192,6 +193,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"building": {
 										Type:     schema.TypeList,
+										Optional: true,
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
@@ -218,6 +220,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"department": {
 										Type:     schema.TypeList,
+										Optional: true,
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
@@ -244,6 +247,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"computer_group": {
 										Type:     schema.TypeList,
+										Optional: true,
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
@@ -270,6 +274,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"jss_user": {
 										Type:     schema.TypeList,
+										Optional: true,
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
@@ -294,23 +299,15 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"jss_user_group": {
-										Type:     schema.TypeList,
-										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:        schema.TypeInt,
-													Optional:    true,
-													Description: "The unique identifier of the scoped JSS user group.",
-												},
-												"name": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "Name of the scoped JSS user group.",
-												},
-											},
-										},
+									"id": {
+										Type:        schema.TypeInt,
+										Optional:    true,
+										Description: "The unique identifier of the scoped JSS user group.",
+									},
+									"name": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "Name of the scoped JSS user group.",
 									},
 								},
 							},
@@ -327,6 +324,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"user": {
 													Type:     schema.TypeList,
+													Optional: true,
 													MaxItems: 1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
@@ -353,6 +351,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"user_group": {
 													Type:     schema.TypeList,
+													Optional: true,
 													MaxItems: 1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
@@ -379,6 +378,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"network_segment": {
 													Type:     schema.TypeList,
+													Optional: true,
 													MaxItems: 1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
@@ -410,6 +410,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"ibeacon": {
 													Type:     schema.TypeList,
+													Optional: true,
 													MaxItems: 1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
@@ -444,6 +445,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"computer": {
 													Type:     schema.TypeList,
+													Optional: true,
 													MaxItems: 1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
@@ -475,6 +477,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"building": {
 													Type:     schema.TypeList,
+													Optional: true,
 													MaxItems: 1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
@@ -501,6 +504,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"department": {
 													Type:     schema.TypeList,
+													Optional: true,
 													MaxItems: 1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
@@ -527,6 +531,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"computer_group": {
 													Type:     schema.TypeList,
+													Optional: true,
 													MaxItems: 1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
@@ -553,6 +558,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"user": {
 													Type:     schema.TypeList,
+													Optional: true,
 													MaxItems: 1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
@@ -579,6 +585,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"user_group": {
 													Type:     schema.TypeList,
+													Optional: true,
 													MaxItems: 1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
@@ -605,6 +612,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"network_segment": {
 													Type:     schema.TypeList,
+													Optional: true,
 													MaxItems: 1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
@@ -636,6 +644,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"ibeacon": {
 													Type:     schema.TypeList,
+													Optional: true,
 													MaxItems: 1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
@@ -662,6 +671,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"jss_user": {
 													Type:     schema.TypeList,
+													Optional: true,
 													MaxItems: 1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
@@ -688,6 +698,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"jss_user_group": {
 													Type:     schema.TypeList,
+													Optional: true,
 													MaxItems: 1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{

@@ -19,7 +19,7 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			// GeneralConfig fields
 			"id": {
-				Type:        schema.TypeInt,
+				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The unique identifier of the macOS configuration profile.",
 			},
@@ -35,32 +35,42 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 			},
 			"site": {
 				Type:        schema.TypeList,
-				MaxItems:    1,
 				Computed:    true,
-				Description: "Site information.",
+				Optional:    true, // Allow users to optionally filter by 'site'
+				Description: "The jamf pro site the configuration profile is assigned to.",
+				MaxItems:    1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
-							Type: schema.TypeInt,
+							Type:     schema.TypeInt,
+							Optional: true, // User can filter by 'id'
+							Computed: true, // 'id' will also be populated based on fetched data
 						},
 						"name": {
-							Type: schema.TypeString,
+							Type:     schema.TypeString,
+							Optional: true, // User can filter by 'name'
+							Computed: true, // 'name' will also be populated based on fetched data
 						},
 					},
 				},
 			},
 			"category": {
 				Type:        schema.TypeList,
-				MaxItems:    1,
 				Computed:    true,
-				Description: "Category information.",
+				Optional:    true, // Allow users to optionally filter by 'site'
+				Description: "The jamf pro category the configuration profile is assigned to.",
+				MaxItems:    1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
-							Type: schema.TypeInt,
+							Type:     schema.TypeInt,
+							Optional: true, // User can filter by 'id'
+							Computed: true, // 'id' will also be populated based on fetched data
 						},
 						"name": {
-							Type: schema.TypeString,
+							Type:     schema.TypeString,
+							Optional: true, // User can filter by 'name'
+							Computed: true, // 'name' will also be populated based on fetched data
 						},
 					},
 				},
@@ -81,13 +91,16 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Description: "The level defines what level the MDM profile is deployed at. It can either be device wide using computer, or for an individual user.",
 			},
 			"uuid": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"redeploy_on_update": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"payloads": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			// ScopeConfig fields
 			"scope": {
@@ -109,12 +122,10 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 						},
 						"computers": {
 							Type: schema.TypeList,
-
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"computer": {
-										Type:     schema.TypeList,
-										MaxItems: 1,
+										Type: schema.TypeList,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"id": {
@@ -140,12 +151,10 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 						},
 						"buildings": {
 							Type: schema.TypeList,
-
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"building": {
-										Type:     schema.TypeList,
-										MaxItems: 1,
+										Type: schema.TypeList,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"id": {
@@ -166,12 +175,10 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 						},
 						"departments": {
 							Type: schema.TypeList,
-
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"department": {
-										Type:     schema.TypeList,
-										MaxItems: 1,
+										Type: schema.TypeList,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"id": {
@@ -192,12 +199,10 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 						},
 						"computer_groups": {
 							Type: schema.TypeList,
-
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"computer_group": {
-										Type:     schema.TypeList,
-										MaxItems: 1,
+										Type: schema.TypeList,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"id": {
@@ -218,12 +223,10 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 						},
 						"jss_users": {
 							Type: schema.TypeList,
-
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"jss_user": {
-										Type:     schema.TypeList,
-										MaxItems: 1,
+										Type: schema.TypeList,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"id": {
@@ -244,12 +247,10 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 						},
 						"jss_user_groups": {
 							Type: schema.TypeList,
-
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"jss_user_group": {
-										Type:     schema.TypeList,
-										MaxItems: 1,
+										Type: schema.TypeList,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"id": {
@@ -270,17 +271,14 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 						},
 						"limitations": {
 							Type: schema.TypeList,
-
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"users": {
 										Type: schema.TypeList,
-
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"user": {
-													Type:     schema.TypeList,
-													MaxItems: 1,
+													Type: schema.TypeList,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -301,12 +299,10 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 									},
 									"user_groups": {
 										Type: schema.TypeList,
-
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"user_group": {
-													Type:     schema.TypeList,
-													MaxItems: 1,
+													Type: schema.TypeList,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -330,8 +326,6 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"network_segment": {
-													Type:     schema.TypeList,
-													MaxItems: 1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -360,8 +354,7 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"ibeacon": {
-													Type:     schema.TypeList,
-													MaxItems: 1,
+													Type: schema.TypeList,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -385,17 +378,14 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 						},
 						"exclusions": {
 							Type: schema.TypeList,
-
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"computers": {
 										Type: schema.TypeList,
-
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"computer": {
-													Type:     schema.TypeList,
-													MaxItems: 1,
+													Type: schema.TypeList,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -421,12 +411,10 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 									},
 									"buildings": {
 										Type: schema.TypeList,
-
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"building": {
-													Type:     schema.TypeList,
-													MaxItems: 1,
+													Type: schema.TypeList,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -447,12 +435,10 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 									},
 									"departments": {
 										Type: schema.TypeList,
-
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"department": {
-													Type:     schema.TypeList,
-													MaxItems: 1,
+													Type: schema.TypeList,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -473,12 +459,10 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 									},
 									"computer_groups": {
 										Type: schema.TypeList,
-
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"computer_group": {
-													Type:     schema.TypeList,
-													MaxItems: 1,
+													Type: schema.TypeList,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -499,12 +483,10 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 									},
 									"users": {
 										Type: schema.TypeList,
-
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"user": {
-													Type:     schema.TypeList,
-													MaxItems: 1,
+													Type: schema.TypeList,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -525,12 +507,10 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 									},
 									"user_groups": {
 										Type: schema.TypeList,
-
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"user_group": {
-													Type:     schema.TypeList,
-													MaxItems: 1,
+													Type: schema.TypeList,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -551,12 +531,10 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 									},
 									"network_segments": {
 										Type: schema.TypeList,
-
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"network_segment": {
-													Type:     schema.TypeList,
-													MaxItems: 1,
+													Type: schema.TypeList,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -582,12 +560,10 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 									},
 									"ibeacons": {
 										Type: schema.TypeList,
-
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"ibeacon": {
-													Type:     schema.TypeList,
-													MaxItems: 1,
+													Type: schema.TypeList,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -608,12 +584,10 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 									},
 									"jss_users": {
 										Type: schema.TypeList,
-
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"jss_user": {
-													Type:     schema.TypeList,
-													MaxItems: 1,
+													Type: schema.TypeList,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -634,12 +608,10 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 									},
 									"jss_user_groups": {
 										Type: schema.TypeList,
-
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"jss_user_group": {
-													Type:     schema.TypeList,
-													MaxItems: 1,
+													Type: schema.TypeList,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -674,34 +646,40 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"install_button_text": {
-							Type: schema.TypeString,
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 						"self_service_description": {
-							Type: schema.TypeString,
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 						"force_users_to_view_description": {
-							Type: schema.TypeBool,
+							Type:     schema.TypeBool,
+							Computed: true,
 						},
 						"self_service_icon": {
 							Type:     schema.TypeList,
-							MaxItems: 1,
-
+							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
-										Type: schema.TypeInt,
+										Type:     schema.TypeInt,
+										Computed: true,
 									},
 									"uri": {
-										Type: schema.TypeString,
+										Type:     schema.TypeString,
+										Computed: true,
 									},
 									"data": {
-										Type: schema.TypeString,
+										Type:     schema.TypeString,
+										Computed: true,
 									},
 								},
 							},
 						},
 						"feature_on_main_page": {
-							Type: schema.TypeBool,
+							Type:     schema.TypeBool,
+							Computed: true,
 						},
 						"self_service_categories": {
 							Type:        schema.TypeList,
@@ -743,13 +721,16 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 							},
 						},
 						"notification": {
-							Type: schema.TypeString,
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 						"notification_subject": {
-							Type: schema.TypeString,
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 						"notification_message": {
-							Type: schema.TypeString,
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
