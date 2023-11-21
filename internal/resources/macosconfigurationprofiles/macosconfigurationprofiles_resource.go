@@ -143,11 +143,12 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "Newly Assigned",
-				Description: "The level d",
+				Description: "",
 			},
 			"payloads": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The configuration profile payload in xml and delivered as a plist to the macOS device by Jamf Pro.",
 			},
 			// ScopeConfig fields
 			"scope": {
@@ -1692,7 +1693,13 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := d.Set("payloads", profile.General.Payloads); err != nil {
+	// Format XML Payload before setting it in the Terraform state
+	formattedPayload, err := formatmacOSConfigurationProfileXMLPayload(profile.General.Payloads)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error formatting XML payload: %s", err))
+	}
+
+	if err := d.Set("payloads", formattedPayload); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
