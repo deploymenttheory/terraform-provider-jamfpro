@@ -4,6 +4,7 @@ package macosconfigurationprofiles
 import (
 	"context"
 	"fmt"
+	"log"
 	"reflect"
 	"strconv"
 	"strings"
@@ -81,7 +82,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
-							Type:        schema.TypeInt,
+							Type:        schema.TypeString,
 							Optional:    true,
 							Default:     "-1", // Set default value as string "-1"
 							Description: "Category ID. Value defaults to -1 aka not used.",
@@ -1563,9 +1564,15 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 			return retry.NonRetryableError(fmt.Errorf("failed to construct the macOS Configuration Profile"))
 		}
 
+		// Log the details of the attribute that is about to be created
+		log.Printf("[INFO] Attempting to create macOSConfigurationProfile with name: %s", profile.General.Name)
+
 		// Directly call the API to create the resource
 		createdProfile, err = conn.CreateMacOSConfigurationProfile(profile)
 		if err != nil {
+			// Log the error from the API call
+			log.Printf("[ERROR] Error creating macOSConfigurationProfile with name: %s. Error: %s", profile.General.Name, err)
+
 			// Check if the error is an APIError
 			if apiErr, ok := err.(*http_client.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message))
@@ -1573,6 +1580,9 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 			// For simplicity, we're considering all other errors as retryable
 			return retry.RetryableError(err)
 		}
+
+		// Log the response from the API call
+		log.Printf("[INFO] Successfully created ComputerExtensionAttribute with ID: %d and name: %s", createdProfile.General.ID, createdProfile.General.Name)
 
 		return nil
 	})
@@ -1711,8 +1721,8 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		"computer_groups": constructNestedSliceOfMaps(profile.Scope.ComputerGroups, "ComputerGroup"),
 		"jss_users":       constructNestedSliceOfMaps(profile.Scope.JSSUsers, "JSSUser"),
 		"jss_user_groups": constructNestedSliceOfMaps(profile.Scope.JSSUserGroups, "JSSUserGroup"),
-		"limitations":     constructLimitationsExclusions(profile.Scope.Limitations),
-		"exclusions":      constructLimitationsExclusions(profile.Scope.Exclusions),
+		"limitations":     constructSliceOfMapsForLimitationsAndExclusions(profile.Scope.Limitations),
+		"exclusions":      constructSliceOfMapsForLimitationsAndExclusions(profile.Scope.Exclusions),
 	}
 
 	// Add the 'scope' to Terraform state
@@ -1770,7 +1780,11 @@ func constructNestedSliceOfMaps(entities interface{}, entityName string) []inter
 		entity := entityValue.Interface()
 		// Convert the entity to a map
 		entityMap := structToMap(entity)
-		result = append(result, entityMap)
+		formattedMap := make(map[string]interface{})
+		for k, v := range entityMap {
+			formattedMap[strings.ToLower(k)] = v // Ensure keys are lowercase
+		}
+		result = append(result, formattedMap)
 	}
 	return result
 }
@@ -1787,20 +1801,42 @@ func structToMap(obj interface{}) map[string]interface{} {
 	return out
 }
 
-// ConstructLimitationsExclusions constructs a map for limitations or exclusions
-func constructLimitationsExclusions(limExc interface{}) map[string]interface{} {
-	result := make(map[string]interface{})
+// constructSliceOfMapsForLimitationsAndExclusions constructs a slice of maps for limitations or exclusions
+func constructSliceOfMapsForLimitationsAndExclusions(limExc interface{}) []interface{} {
+	var result []interface{}
 	v := reflect.ValueOf(limExc)
 	typeOfS := v.Type()
+
 	for i := 0; i < v.NumField(); i++ {
 		field := typeOfS.Field(i)
 		fieldName := field.Name
-		fieldSlice := v.Field(i).Interface()
+		fieldValue := v.Field(i).Interface()
 
-		// Create a slice of maps for each field
-		entitySlice := constructNestedSliceOfMaps(fieldSlice, fieldName)
-		result[strings.ToLower(fieldName)] = entitySlice // Use lowercase for the key
+		// Skip if the field is not a slice or an array
+		if reflect.TypeOf(fieldValue).Kind() != reflect.Slice && reflect.TypeOf(fieldValue).Kind() != reflect.Array {
+			continue
+		}
+
+		fieldSlice := reflect.ValueOf(fieldValue)
+
+		// Construct a slice of maps for the field
+		var entitySlice []interface{}
+		for j := 0; j < fieldSlice.Len(); j++ {
+			entityValue := fieldSlice.Index(j).Interface()
+			entityMap := structToMap(entityValue)
+			formattedMap := make(map[string]interface{})
+			for k, v := range entityMap {
+				formattedMap[strings.ToLower(k)] = v // Ensure keys are lowercase
+			}
+			entitySlice = append(entitySlice, formattedMap)
+		}
+
+		// Add the constructed slice to the result
+		if len(entitySlice) > 0 {
+			result = append(result, map[string]interface{}{strings.ToLower(fieldName): entitySlice})
+		}
 	}
+
 	return result
 }
 
