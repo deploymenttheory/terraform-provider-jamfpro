@@ -973,7 +973,6 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) *jamfpro.
 		}
 
 		// Similar pattern for Buildings, Departments, ComputerGroups, JSSUsers, JSSUserGroups
-		// Example for Buildings
 		if buildings, ok := scopeMap["buildings"].([]interface{}); ok {
 			for _, bld := range buildings {
 				bldMap := bld.(map[string]interface{})
@@ -1717,47 +1716,77 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	scopeAttr["all_computers"] = profile.Scope.AllComputers
 	scopeAttr["all_jss_users"] = profile.Scope.AllJSSUsers
 
-	if len(profile.Scope.Computers) > 0 {
-		scopeAttr["computers"] = constructNestedSliceOfMaps(profile.Scope.Computers, "Computer")
-	} else {
-		scopeAttr["computers"] = []interface{}{}
+	// Safely construct and set Computers within scopeAttr
+	var computersList []interface{}
+	for _, compItem := range profile.Scope.Computers {
+		computerMap := map[string]interface{}{
+			"id":   compItem.Computer.ID,
+			"name": compItem.Computer.Name,
+			"udid": compItem.Computer.UDID,
+		}
+		// Wrap the computerMap in another map with key 'computer'
+		computersList = append(computersList, map[string]interface{}{"computer": []interface{}{computerMap}})
+	}
+	scopeAttr["computers"] = computersList
+
+	// Safely construct and set Buildings within scopeAttr
+	var buildingsList []interface{}
+	for _, bldgItem := range profile.Scope.Buildings {
+		buildingMap := map[string]interface{}{
+			"id":   bldgItem.Building.ID,
+			"name": bldgItem.Building.Name,
+		}
+		// Wrap the buildingMap in another map with key 'building'
+		buildingsList = append(buildingsList, map[string]interface{}{"building": []interface{}{buildingMap}})
+	}
+	scopeAttr["buildings"] = buildingsList
+
+	// Safely construct and set Departments
+	var departmentsList []interface{}
+	for _, deptItem := range profile.Scope.Departments {
+		departmentMap := map[string]interface{}{
+			"id":   deptItem.Department.ID,
+			"name": deptItem.Department.Name,
+		}
+		// Append a map representing a single department resource
+		departmentsList = append(departmentsList, map[string]interface{}{"department": []interface{}{departmentMap}})
 	}
 
-	if len(profile.Scope.Buildings) > 0 {
-		scopeAttr["buildings"] = constructNestedSliceOfMaps(profile.Scope.Buildings, "Building")
-	} else {
-		scopeAttr["buildings"] = []interface{}{}
-	}
+	// Set the 'departments' attribute in the Terraform state
+	scopeAttr["departments"] = departmentsList
 
-	if len(profile.Scope.Departments) > 0 {
-		scopeAttr["departments"] = constructNestedSliceOfMaps(profile.Scope.Buildings, "departments")
-	} else {
-		scopeAttr["departments"] = []interface{}{}
+	// Safely construct and set Computer Groups
+	var computerGroupsList []interface{}
+	for _, cgItem := range profile.Scope.ComputerGroups {
+		computerGroupMap := map[string]interface{}{
+			"id":   cgItem.ComputerGroup.ID,
+			"name": cgItem.ComputerGroup.Name,
+		}
+		computerGroupsList = append(computerGroupsList, map[string]interface{}{"computer_group": []interface{}{computerGroupMap}})
 	}
+	scopeAttr["computer_groups"] = computerGroupsList
 
-	if len(profile.Scope.Departments) > 0 {
-		scopeAttr["departments"] = constructNestedSliceOfMaps(profile.Scope.Departments, "Department")
-	} else {
-		scopeAttr["departments"] = []interface{}{}
+	// Safely construct and set JSSUsers
+	var jssUsersList []interface{}
+	for _, jssUserItem := range profile.Scope.JSSUsers {
+		jssUserMap := map[string]interface{}{
+			"id":   jssUserItem.JSSUser.ID,
+			"name": jssUserItem.JSSUser.Name,
+		}
+		jssUsersList = append(jssUsersList, map[string]interface{}{"jss_user": []interface{}{jssUserMap}})
 	}
+	scopeAttr["jss_users"] = jssUsersList
 
-	if len(profile.Scope.ComputerGroups) > 0 {
-		scopeAttr["computer_groups"] = constructNestedSliceOfMaps(profile.Scope.ComputerGroups, "ComputerGroup")
-	} else {
-		scopeAttr["computer_groups"] = []interface{}{}
+	// Safely construct and set JSSUserGroups
+	var jssUserGroupsList []interface{}
+	for _, jssUGItem := range profile.Scope.JSSUserGroups {
+		jssUserGroupMap := map[string]interface{}{
+			"id":   jssUGItem.JSSUserGroup.ID,
+			"name": jssUGItem.JSSUserGroup.Name,
+		}
+		jssUserGroupsList = append(jssUserGroupsList, jssUserGroupMap)
 	}
-
-	if len(profile.Scope.JSSUsers) > 0 {
-		scopeAttr["jss_users"] = constructNestedSliceOfMaps(profile.Scope.JSSUsers, "JSSUser")
-	} else {
-		scopeAttr["jss_users"] = []interface{}{}
-	}
-
-	if len(profile.Scope.JSSUserGroups) > 0 {
-		scopeAttr["jss_user_groups"] = constructNestedSliceOfMaps(profile.Scope.JSSUserGroups, "JSSUserGroup")
-	} else {
-		scopeAttr["jss_user_groups"] = []interface{}{}
-	}
+	scopeAttr["jss_user_groups"] = jssUserGroupsList
 
 	// Handling Limitations
 	limitationsAttr := make(map[string]interface{})
@@ -1768,9 +1797,19 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	if len(profile.Scope.Limitations.UserGroups) > 0 {
 		limitationsAttr["user_groups"] = constructNestedSliceOfMaps(profile.Scope.Limitations.UserGroups, "UserGroup")
 	}
-	if len(profile.Scope.Limitations.NetworkSegments) > 0 {
-		limitationsAttr["network_segments"] = constructNestedSliceOfMaps(profile.Scope.Limitations.NetworkSegments, "NetworkSegment")
+	// Safely construct and set networkSegmentsList
+	var networkSegmentsList []interface{}
+	for _, networkSegmentItem := range profile.Scope.Limitations.NetworkSegments {
+		networkSegmentMap := map[string]interface{}{
+			"id":   networkSegmentItem.NetworkSegment.ID,
+			"name": networkSegmentItem.NetworkSegment.Name,
+			"uid":  networkSegmentItem.NetworkSegment.UID,
+		}
+		networkSegmentsList = append(networkSegmentsList, map[string]interface{}{"network_segment": []interface{}{networkSegmentMap}})
 	}
+
+	limitationsAttr["network_segments"] = networkSegmentsList
+
 	if len(profile.Scope.Limitations.IBeacons) > 0 {
 		limitationsAttr["ibeacons"] = constructNestedSliceOfMaps(profile.Scope.Limitations.IBeacons, "IBeacon")
 	}
@@ -1791,9 +1830,11 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	if len(profile.Scope.Exclusions.Buildings) > 0 {
 		exclusionsAttr["buildings"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.Buildings, "Building")
 	}
-	if len(profile.Scope.Exclusions.Departments) > 0 {
-		exclusionsAttr["departments"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.Departments, "Department")
-	}
+	/*
+		if len(profile.Scope.Exclusions.Departments) > 0 {
+			exclusionsAttr["departments"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.Departments, "Department")
+		}
+	*/
 	if len(profile.Scope.Exclusions.ComputerGroups) > 0 {
 		exclusionsAttr["computer_groups"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.ComputerGroups, "ComputerGroup")
 	}
@@ -1802,9 +1843,6 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	}
 	if len(profile.Scope.Exclusions.UserGroups) > 0 {
 		exclusionsAttr["user_groups"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.UserGroups, "UserGroup")
-	}
-	if len(profile.Scope.Exclusions.NetworkSegments) > 0 {
-		exclusionsAttr["network_segments"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.NetworkSegments, "NetworkSegment")
 	}
 	if len(profile.Scope.Exclusions.IBeacons) > 0 {
 		exclusionsAttr["ibeacons"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.IBeacons, "IBeacon")
