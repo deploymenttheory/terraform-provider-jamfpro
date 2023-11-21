@@ -1683,15 +1683,19 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	siteIDStr := strconv.Itoa(profile.General.Site.ID) // Convert site integer ID to string
+
 	if err := d.Set("site", []interface{}{map[string]interface{}{
-		"id":   profile.General.Site.ID,
+		"id":   siteIDStr, // Set the converted string ID
 		"name": profile.General.Site.Name,
 	}}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	categoryIDStr := strconv.Itoa(profile.General.Category.ID) // Convert integer ID to string
+
 	if err := d.Set("category", []interface{}{map[string]interface{}{
-		"id":   profile.General.Category.ID,
+		"id":   categoryIDStr, // Set the converted string ID
 		"name": profile.General.Category.Name,
 	}}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
@@ -1757,10 +1761,13 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 // Helper function to construct a nested slice of maps for structures like 'computers', 'buildings', etc.
 func constructNestedSliceOfMaps(entities interface{}, entityName string) []interface{} {
 	var result []interface{}
-	// Use reflection to iterate over the slice of entities
 	v := reflect.ValueOf(entities)
 	for i := 0; i < v.Len(); i++ {
-		entity := v.Index(i).FieldByName(entityName).Interface()
+		entityValue := v.Index(i).FieldByName(entityName)
+		if !entityValue.IsValid() {
+			continue // Skip if the value is invalid
+		}
+		entity := entityValue.Interface()
 		// Convert the entity to a map
 		entityMap := structToMap(entity)
 		result = append(result, entityMap)
