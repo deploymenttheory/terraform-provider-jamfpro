@@ -1711,18 +1711,116 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Setting 'scope' attribute
-	scopeAttr := map[string]interface{}{
-		"all_computers":   profile.Scope.AllComputers,
-		"all_jss_users":   profile.Scope.AllJSSUsers,
-		"computers":       constructNestedSliceOfMaps(profile.Scope.Computers, "Computer"),
-		"buildings":       constructNestedSliceOfMaps(profile.Scope.Buildings, "Building"),
-		"departments":     constructNestedSliceOfMaps(profile.Scope.Departments, "Department"),
-		"computer_groups": constructNestedSliceOfMaps(profile.Scope.ComputerGroups, "ComputerGroup"),
-		"jss_users":       constructNestedSliceOfMaps(profile.Scope.JSSUsers, "JSSUser"),
-		"jss_user_groups": constructNestedSliceOfMaps(profile.Scope.JSSUserGroups, "JSSUserGroup"),
-		"limitations":     constructSliceOfMapsForLimitationsAndExclusions(profile.Scope.Limitations),
-		"exclusions":      constructSliceOfMapsForLimitationsAndExclusions(profile.Scope.Exclusions),
+	// Check and set each field within the scope attribute
+	scopeAttr := map[string]interface{}{}
+
+	scopeAttr["all_computers"] = profile.Scope.AllComputers
+	scopeAttr["all_jss_users"] = profile.Scope.AllJSSUsers
+
+	if len(profile.Scope.Computers) > 0 {
+		scopeAttr["computers"] = constructNestedSliceOfMaps(profile.Scope.Computers, "Computer")
+	} else {
+		scopeAttr["computers"] = []interface{}{}
+	}
+
+	if len(profile.Scope.Buildings) > 0 {
+		scopeAttr["buildings"] = constructNestedSliceOfMaps(profile.Scope.Buildings, "Building")
+	} else {
+		scopeAttr["buildings"] = []interface{}{}
+	}
+
+	if len(profile.Scope.Departments) > 0 {
+		scopeAttr["departments"] = constructNestedSliceOfMaps(profile.Scope.Buildings, "departments")
+	} else {
+		scopeAttr["departments"] = []interface{}{}
+	}
+
+	if len(profile.Scope.Departments) > 0 {
+		scopeAttr["departments"] = constructNestedSliceOfMaps(profile.Scope.Departments, "Department")
+	} else {
+		scopeAttr["departments"] = []interface{}{}
+	}
+
+	if len(profile.Scope.ComputerGroups) > 0 {
+		scopeAttr["computer_groups"] = constructNestedSliceOfMaps(profile.Scope.ComputerGroups, "ComputerGroup")
+	} else {
+		scopeAttr["computer_groups"] = []interface{}{}
+	}
+
+	if len(profile.Scope.JSSUsers) > 0 {
+		scopeAttr["jss_users"] = constructNestedSliceOfMaps(profile.Scope.JSSUsers, "JSSUser")
+	} else {
+		scopeAttr["jss_users"] = []interface{}{}
+	}
+
+	if len(profile.Scope.JSSUserGroups) > 0 {
+		scopeAttr["jss_user_groups"] = constructNestedSliceOfMaps(profile.Scope.JSSUserGroups, "JSSUserGroup")
+	} else {
+		scopeAttr["jss_user_groups"] = []interface{}{}
+	}
+
+	// Handling Limitations
+	limitationsAttr := make(map[string]interface{})
+
+	if len(profile.Scope.Limitations.Users) > 0 {
+		limitationsAttr["users"] = constructNestedSliceOfMaps(profile.Scope.Limitations.Users, "User")
+	}
+	if len(profile.Scope.Limitations.UserGroups) > 0 {
+		limitationsAttr["user_groups"] = constructNestedSliceOfMaps(profile.Scope.Limitations.UserGroups, "UserGroup")
+	}
+	if len(profile.Scope.Limitations.NetworkSegments) > 0 {
+		limitationsAttr["network_segments"] = constructNestedSliceOfMaps(profile.Scope.Limitations.NetworkSegments, "NetworkSegment")
+	}
+	if len(profile.Scope.Limitations.IBeacons) > 0 {
+		limitationsAttr["ibeacons"] = constructNestedSliceOfMaps(profile.Scope.Limitations.IBeacons, "IBeacon")
+	}
+
+	// Add limitations if not empty
+	if len(limitationsAttr) > 0 {
+		scopeAttr["limitations"] = []interface{}{limitationsAttr}
+	} else {
+		scopeAttr["limitations"] = []interface{}{}
+	}
+
+	// Handling Exclusions
+	exclusionsAttr := make(map[string]interface{})
+
+	if len(profile.Scope.Exclusions.Computers) > 0 {
+		exclusionsAttr["computers"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.Computers, "Computer")
+	}
+	if len(profile.Scope.Exclusions.Buildings) > 0 {
+		exclusionsAttr["buildings"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.Buildings, "Building")
+	}
+	if len(profile.Scope.Exclusions.Departments) > 0 {
+		exclusionsAttr["departments"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.Departments, "Department")
+	}
+	if len(profile.Scope.Exclusions.ComputerGroups) > 0 {
+		exclusionsAttr["computer_groups"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.ComputerGroups, "ComputerGroup")
+	}
+	if len(profile.Scope.Exclusions.Users) > 0 {
+		exclusionsAttr["users"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.Users, "User")
+	}
+	if len(profile.Scope.Exclusions.UserGroups) > 0 {
+		exclusionsAttr["user_groups"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.UserGroups, "UserGroup")
+	}
+	if len(profile.Scope.Exclusions.NetworkSegments) > 0 {
+		exclusionsAttr["network_segments"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.NetworkSegments, "NetworkSegment")
+	}
+	if len(profile.Scope.Exclusions.IBeacons) > 0 {
+		exclusionsAttr["ibeacons"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.IBeacons, "IBeacon")
+	}
+	if len(profile.Scope.Exclusions.JSSUsers) > 0 {
+		exclusionsAttr["jss_users"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.JSSUsers, "JSSUser")
+	}
+	if len(profile.Scope.Exclusions.JSSUserGroups) > 0 {
+		exclusionsAttr["jss_user_groups"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.JSSUserGroups, "JSSUserGroup")
+	}
+
+	// Add exclusions if not empty
+	if len(exclusionsAttr) > 0 {
+		scopeAttr["exclusions"] = []interface{}{exclusionsAttr}
+	} else {
+		scopeAttr["exclusions"] = []interface{}{}
 	}
 
 	// Add the 'scope' to Terraform state
@@ -1772,13 +1870,15 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 func constructNestedSliceOfMaps(entities interface{}, entityName string) []interface{} {
 	var result []interface{}
 	v := reflect.ValueOf(entities)
+	if !v.IsValid() || v.IsNil() {
+		return result // Return an empty slice if the entities are nil or invalid
+	}
 	for i := 0; i < v.Len(); i++ {
 		entityValue := v.Index(i).FieldByName(entityName)
 		if !entityValue.IsValid() {
 			continue // Skip if the value is invalid
 		}
 		entity := entityValue.Interface()
-		// Convert the entity to a map
 		entityMap := structToMap(entity)
 		formattedMap := make(map[string]interface{})
 		for k, v := range entityMap {
