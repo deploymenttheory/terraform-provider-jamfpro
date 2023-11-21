@@ -1,0 +1,2 @@
+// macosconfigurationprofiles_data_validation.go
+package macosconfigurationprofiles

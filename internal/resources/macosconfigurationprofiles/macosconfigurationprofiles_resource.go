@@ -120,16 +120,16 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 			"level": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The level defines what level the MDM profile is deployed at. It can either be device wide using computer, or for an individual user.",
+				Description: "The level defines what level the MDM profile is deployed at. It can either be device wide using 'System'', or for an individual user using 'User'.",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					value := val.(string)
-					allowedValues := []string{"computer", "user"}
+					allowedValues := []string{"System", "User"}
 					for _, v := range allowedValues {
 						if value == v {
 							return
 						}
 					}
-					errs = append(errs, fmt.Errorf("%q must be either 'computer' or 'user', got: %s", key, value))
+					errs = append(errs, fmt.Errorf("%q must be either 'System' or 'User', got: %s", key, value))
 					return
 				},
 			},
