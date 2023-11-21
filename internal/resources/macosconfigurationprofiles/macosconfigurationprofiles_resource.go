@@ -115,7 +115,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 			"user_removable": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Define whether the macOS configuration profile is removeable by the end user.",
+				Description: "Define whether the macOS configuration profile is removeable by the end user using jamf self service.",
 			},
 			"level": {
 				Type:        schema.TypeString,
@@ -134,12 +134,16 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				},
 			},
 			"uuid": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "The uuid of the macos configuration profile",
 			},
 			"redeploy_on_update": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "Newly Assigned",
+				Description: "The level d",
 			},
 			"payloads": {
 				Type:     schema.TypeString,
@@ -1791,13 +1795,35 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Handling Limitations
 	limitationsAttr := make(map[string]interface{})
 
+	// Safely construct and set limitations users list
 	if len(profile.Scope.Limitations.Users) > 0 {
-		limitationsAttr["users"] = constructNestedSliceOfMaps(profile.Scope.Limitations.Users, "User")
+		var usersList []interface{}
+		for _, userItem := range profile.Scope.Limitations.Users {
+			userMap := map[string]interface{}{
+				"id":   userItem.User.ID,
+				"name": userItem.User.Name,
+			}
+			// Wrap the userMap in another map with key 'user'
+			usersList = append(usersList, map[string]interface{}{"user": []interface{}{userMap}})
+		}
+		limitationsAttr["users"] = usersList
 	}
+
+	// Safely construct and set limitations user groups list
 	if len(profile.Scope.Limitations.UserGroups) > 0 {
-		limitationsAttr["user_groups"] = constructNestedSliceOfMaps(profile.Scope.Limitations.UserGroups, "UserGroup")
+		var userGroupsList []interface{}
+		for _, userGroupItem := range profile.Scope.Limitations.UserGroups {
+			userGroupMap := map[string]interface{}{
+				"id":   userGroupItem.UserGroup.ID,
+				"name": userGroupItem.UserGroup.Name,
+			}
+			// Wrap the userGroupMap in another map with key 'user_group'
+			userGroupsList = append(userGroupsList, map[string]interface{}{"user_group": []interface{}{userGroupMap}})
+		}
+		limitationsAttr["user_groups"] = userGroupsList
 	}
-	// Safely construct and set networkSegmentsList
+
+	// Safely construct and set limitations networkSegmentsList
 	var networkSegmentsList []interface{}
 	for _, networkSegmentItem := range profile.Scope.Limitations.NetworkSegments {
 		networkSegmentMap := map[string]interface{}{
@@ -1833,8 +1859,19 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Handling Exclusions
 	exclusionsAttr := make(map[string]interface{})
 
+	// Safely construct and set computers list in exclusions
 	if len(profile.Scope.Exclusions.Computers) > 0 {
-		exclusionsAttr["computers"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.Computers, "Computer")
+		var computersList []interface{}
+		for _, computerItem := range profile.Scope.Exclusions.Computers {
+			computerMap := map[string]interface{}{
+				"id":   computerItem.Computer.ID,
+				"name": computerItem.Computer.Name,
+				"udid": computerItem.Computer.UDID, // Include this if your schema requires it
+			}
+			// Wrap the computerMap in another map with key 'computer'
+			computersList = append(computersList, map[string]interface{}{"computer": []interface{}{computerMap}})
+		}
+		exclusionsAttr["computers"] = computersList
 	}
 
 	// Safely construct and set exclusions buildings list
