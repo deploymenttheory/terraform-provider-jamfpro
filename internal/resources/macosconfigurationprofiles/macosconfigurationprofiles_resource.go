@@ -1810,8 +1810,17 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 
 	limitationsAttr["network_segments"] = networkSegmentsList
 
+	// Safely construct and set ibeaconsList
 	if len(profile.Scope.Limitations.IBeacons) > 0 {
-		limitationsAttr["ibeacons"] = constructNestedSliceOfMaps(profile.Scope.Limitations.IBeacons, "IBeacon")
+		var ibeaconsList []interface{}
+		for _, ibeaconItem := range profile.Scope.Limitations.IBeacons {
+			ibeaconMap := map[string]interface{}{
+				"id":   ibeaconItem.IBeacon.ID,
+				"name": ibeaconItem.IBeacon.Name,
+			}
+			ibeaconsList = append(ibeaconsList, map[string]interface{}{"ibeacon": []interface{}{ibeaconMap}})
+		}
+		limitationsAttr["ibeacons"] = ibeaconsList
 	}
 
 	// Add limitations if not empty
@@ -1827,31 +1836,99 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	if len(profile.Scope.Exclusions.Computers) > 0 {
 		exclusionsAttr["computers"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.Computers, "Computer")
 	}
+
+	// Safely construct and set exclusions buildings list
 	if len(profile.Scope.Exclusions.Buildings) > 0 {
-		exclusionsAttr["buildings"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.Buildings, "Building")
-	}
-	/*
-		if len(profile.Scope.Exclusions.Departments) > 0 {
-			exclusionsAttr["departments"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.Departments, "Department")
+		var buildingsList []interface{}
+		for _, buildingItem := range profile.Scope.Exclusions.Buildings {
+			buildingMap := map[string]interface{}{
+				"id":   buildingItem.Building.ID,
+				"name": buildingItem.Building.Name,
+			}
+			// Wrap the buildingMap in another map with key 'building'
+			buildingsList = append(buildingsList, map[string]interface{}{"building": []interface{}{buildingMap}})
 		}
-	*/
+		exclusionsAttr["buildings"] = buildingsList
+	}
+
+	// Safely construct and set exclusions computer groups list
 	if len(profile.Scope.Exclusions.ComputerGroups) > 0 {
-		exclusionsAttr["computer_groups"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.ComputerGroups, "ComputerGroup")
+		var computerGroupsList []interface{}
+		for _, computerGroupsItem := range profile.Scope.Exclusions.ComputerGroups {
+			computerGroupMap := map[string]interface{}{
+				"id":   computerGroupsItem.ComputerGroup.ID,
+				"name": computerGroupsItem.ComputerGroup.Name,
+			}
+			// Wrap the computerGroupMap in another map with key 'computer_group'
+			computerGroupsList = append(computerGroupsList, map[string]interface{}{"computer_group": []interface{}{computerGroupMap}})
+		}
+		exclusionsAttr["computer_groups"] = computerGroupsList
 	}
+
+	// Safely construct and set exclusions user list
 	if len(profile.Scope.Exclusions.Users) > 0 {
-		exclusionsAttr["users"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.Users, "User")
+		var usersList []interface{}
+		for _, userItem := range profile.Scope.Exclusions.Users {
+			userMap := map[string]interface{}{
+				"id":   userItem.User.ID,
+				"name": userItem.User.Name,
+			}
+			usersList = append(usersList, map[string]interface{}{"user": []interface{}{userMap}})
+		}
+		exclusionsAttr["users"] = usersList
 	}
+
+	// Safely construct and set exclusions user groups list
 	if len(profile.Scope.Exclusions.UserGroups) > 0 {
-		exclusionsAttr["user_groups"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.UserGroups, "UserGroup")
+		var userGroupsList []interface{}
+		for _, userGroupsItem := range profile.Scope.Exclusions.UserGroups {
+			userGroupMap := map[string]interface{}{
+				"id":   userGroupsItem.UserGroup.ID,
+				"name": userGroupsItem.UserGroup.Name,
+			}
+			userGroupsList = append(userGroupsList, map[string]interface{}{"user_group": []interface{}{userGroupMap}})
+		}
+		exclusionsAttr["user_groups"] = userGroupsList
 	}
+
+	// Safely construct and set exclusions iBeacons list
 	if len(profile.Scope.Exclusions.IBeacons) > 0 {
-		exclusionsAttr["ibeacons"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.IBeacons, "IBeacon")
+		var iBeaconsList []interface{}
+		for _, iBeaconsItem := range profile.Scope.Exclusions.IBeacons {
+			iBeaconMap := map[string]interface{}{
+				"id":   iBeaconsItem.IBeacon.ID,
+				"name": iBeaconsItem.IBeacon.Name,
+			}
+			iBeaconsList = append(iBeaconsList, map[string]interface{}{"ibeacon": []interface{}{iBeaconMap}})
+		}
+		exclusionsAttr["ibeacons"] = iBeaconsList
 	}
+
+	// Safely construct and set exclusions JSSUsers list
 	if len(profile.Scope.Exclusions.JSSUsers) > 0 {
-		exclusionsAttr["jss_users"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.JSSUsers, "JSSUser")
+		var jssUsersList []interface{}
+		for _, jssUserItem := range profile.Scope.Exclusions.JSSUsers {
+			jssUserMap := map[string]interface{}{
+				"id":   jssUserItem.JSSUser.ID,
+				"name": jssUserItem.JSSUser.Name,
+			}
+			jssUsersList = append(jssUsersList, map[string]interface{}{"jss_user": []interface{}{jssUserMap}})
+		}
+		exclusionsAttr["jss_users"] = jssUsersList
 	}
+
+	// Safely construct and set exclusions JSSUserGroup list
 	if len(profile.Scope.Exclusions.JSSUserGroups) > 0 {
-		exclusionsAttr["jss_user_groups"] = constructNestedSliceOfMaps(profile.Scope.Exclusions.JSSUserGroups, "JSSUserGroup")
+		var jssUserGroupsList []interface{}
+		for _, jssUserGroupsItem := range profile.Scope.Exclusions.JSSUserGroups {
+			jssUserGroupMap := map[string]interface{}{
+				"id":   jssUserGroupsItem.JSSUserGroup.ID,
+				"name": jssUserGroupsItem.JSSUserGroup.Name,
+			}
+			// Wrap the jssUserGroupMap in another map with key 'jss_user_group'
+			jssUserGroupsList = append(jssUserGroupsList, map[string]interface{}{"jss_user_group": []interface{}{jssUserGroupMap}})
+		}
+		exclusionsAttr["jss_user_groups"] = jssUserGroupsList
 	}
 
 	// Add exclusions if not empty
