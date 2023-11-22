@@ -1558,64 +1558,52 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
 
-	// Use the retry function for the create operation
-	var createdProfile *jamfpro.ResponseMacOSConfigurationProfiles
-	var err error
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the macOS Configuration Profile
 		profile := constructJamfProMacOSConfigurationProfile(d)
-
-		// Check if the profile is nil
 		if profile == nil {
 			return retry.NonRetryableError(fmt.Errorf("failed to construct the macOS Configuration Profile"))
 		}
 
-		// Log the details of the attribute that is about to be created
+		// Log the details of the profile that is about to be created
 		log.Printf("[INFO] Attempting to create macOS Configuration Profile with name: %s", profile.General.Name)
 
-		// Directly call the API to create the resource
-		createdProfile, err = conn.CreateMacOSConfigurationProfile(profile)
+		// Call the API to create the profile and get its ID
+		profileID, err := conn.CreateMacOSConfigurationProfile(profile)
 		if err != nil {
-			// Log the error from the API call
 			log.Printf("[ERROR] Error creating macOS Configuration Profile with name: %s. Error: %s", profile.General.Name, err)
-
-			// Check if the error is an APIError
 			if apiErr, ok := err.(*http_client.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message))
 			}
-			// For simplicity, we're considering all other errors as retryable
 			return retry.RetryableError(err)
 		}
 
-		// Log the response from the API call
-		log.Printf("[INFO] Successfully created macOS Configuration Profile with ID: %d and name: %s", createdProfile.General.ID, createdProfile.General.Name)
+		// Log the successfully resource creation
+		log.Printf("[INFO] Successfully created macOS Configuration Profile with ID: %d", profileID)
+
+		// Set the ID in the Terraform state
+		d.SetId(strconv.Itoa(profileID))
 
 		return nil
 	})
 
 	if err != nil {
-		// If there's an error while creating the resource, generate diagnostics using the helper function.
 		return generateTFDiagsFromHTTPError(err, d, "create")
 	}
 
-	// Set the ID of the created resource in the Terraform state
-	d.SetId(strconv.Itoa(createdProfile.General.ID))
+	// Log the ID that was set in the Terraform state
+	log.Printf("[INFO] Terraform state was successfully updated with new macOS Configuration Profile with ID: %s", d.Id())
 
-	// Log the ID that was set
-	log.Printf("[INFO] Set newly created macOSConfigurationProfile ID in Terraform state: %d", createdProfile.General.ID)
-
-	// Use the retry function for the read operation to update the Terraform state with the resource attributes
+	// Perform a read operation to update the Terraform state
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		readDiags := ResourceJamfProMacOSConfigurationProfilesRead(ctx, d, meta)
 		if len(readDiags) > 0 {
-			// If readDiags is not empty, it means there's an error, so we retry
 			return retry.RetryableError(fmt.Errorf("failed to read the created resource"))
 		}
 		return nil
 	})
 
 	if err != nil {
-		// If there's an error while updating the state for the resource, generate diagnostics using the helper function.
 		return generateTFDiagsFromHTTPError(err, d, "update state for")
 	}
 
