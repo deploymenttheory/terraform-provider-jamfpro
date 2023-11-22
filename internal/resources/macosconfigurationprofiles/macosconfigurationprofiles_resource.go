@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -1513,6 +1512,9 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) *jamfpro.
 		}
 	}
 
+	// Log the successful construction of the MacOS Config Profile
+	log.Printf("[INFO] Successfully constructed macOS Configuration Profile with display name: %s", general.Name)
+
 	return &jamfpro.ResponseMacOSConfigurationProfiles{
 		General:     general,
 		Scope:       scope,
@@ -1569,13 +1571,13 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 		}
 
 		// Log the details of the attribute that is about to be created
-		log.Printf("[INFO] Attempting to create macOSConfigurationProfile with name: %s", profile.General.Name)
+		log.Printf("[INFO] Attempting to create macOS Configuration Profile with name: %s", profile.General.Name)
 
 		// Directly call the API to create the resource
 		createdProfile, err = conn.CreateMacOSConfigurationProfile(profile)
 		if err != nil {
 			// Log the error from the API call
-			log.Printf("[ERROR] Error creating macOSConfigurationProfile with name: %s. Error: %s", profile.General.Name, err)
+			log.Printf("[ERROR] Error creating macOS Configuration Profile with name: %s. Error: %s", profile.General.Name, err)
 
 			// Check if the error is an APIError
 			if apiErr, ok := err.(*http_client.APIError); ok {
@@ -1586,7 +1588,7 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 		}
 
 		// Log the response from the API call
-		log.Printf("[INFO] Successfully created ComputerExtensionAttribute with ID: %d and name: %s", createdProfile.General.ID, createdProfile.General.Name)
+		log.Printf("[INFO] Successfully created macOS Configuration Profile with ID: %d and name: %s", createdProfile.General.ID, createdProfile.General.Name)
 
 		return nil
 	})
@@ -1598,6 +1600,9 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 
 	// Set the ID of the created resource in the Terraform state
 	d.SetId(strconv.Itoa(createdProfile.General.ID))
+
+	// Log the ID that was set
+	log.Printf("[INFO] Set newly created macOSConfigurationProfile ID in Terraform state: %d", createdProfile.General.ID)
 
 	// Use the retry function for the read operation to update the Terraform state with the resource attributes
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
@@ -2023,80 +2028,6 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 
 	return diags
 
-}
-
-// Helper function to construct a nested slice of maps for structures like 'computers', 'buildings', etc.
-func constructNestedSliceOfMaps(entities interface{}, entityName string) []interface{} {
-	var result []interface{}
-	v := reflect.ValueOf(entities)
-	if !v.IsValid() || v.IsNil() {
-		return result // Return an empty slice if the entities are nil or invalid
-	}
-	for i := 0; i < v.Len(); i++ {
-		entityValue := v.Index(i).FieldByName(entityName)
-		if !entityValue.IsValid() {
-			continue // Skip if the value is invalid
-		}
-		entity := entityValue.Interface()
-		entityMap := structToMap(entity)
-		formattedMap := make(map[string]interface{})
-		for k, v := range entityMap {
-			formattedMap[strings.ToLower(k)] = v // Ensure keys are lowercase
-		}
-		result = append(result, formattedMap)
-	}
-	return result
-}
-
-// Helper function to convert a struct to a map
-func structToMap(obj interface{}) map[string]interface{} {
-	out := make(map[string]interface{})
-	v := reflect.ValueOf(obj)
-	typeOfS := v.Type()
-	for i := 0; i < v.NumField(); i++ {
-		field := typeOfS.Field(i)
-		out[field.Name] = v.Field(i).Interface()
-	}
-	return out
-}
-
-// constructSliceOfMapsForLimitationsAndExclusions constructs a slice of maps for limitations or exclusions
-func constructSliceOfMapsForLimitationsAndExclusions(limExc interface{}) []interface{} {
-	var result []interface{}
-	v := reflect.ValueOf(limExc)
-	typeOfS := v.Type()
-
-	for i := 0; i < v.NumField(); i++ {
-		field := typeOfS.Field(i)
-		fieldName := field.Name
-		fieldValue := v.Field(i).Interface()
-
-		// Skip if the field is not a slice or an array
-		if reflect.TypeOf(fieldValue).Kind() != reflect.Slice && reflect.TypeOf(fieldValue).Kind() != reflect.Array {
-			continue
-		}
-
-		fieldSlice := reflect.ValueOf(fieldValue)
-
-		// Construct a slice of maps for the field
-		var entitySlice []interface{}
-		for j := 0; j < fieldSlice.Len(); j++ {
-			entityValue := fieldSlice.Index(j).Interface()
-			entityMap := structToMap(entityValue)
-			formattedMap := make(map[string]interface{})
-			for k, v := range entityMap {
-				formattedMap[strings.ToLower(k)] = v // Ensure keys are lowercase
-			}
-			entitySlice = append(entitySlice, formattedMap)
-		}
-
-		// Add the constructed slice to the result
-		if len(entitySlice) > 0 {
-			result = append(result, map[string]interface{}{strings.ToLower(fieldName): entitySlice})
-		}
-	}
-
-	return result
 }
 
 // ResourceJamfProMacOSConfigurationProfilesUpdate is responsible for updating an existing Jamf Pro macOS Configuration Profile on the remote system.

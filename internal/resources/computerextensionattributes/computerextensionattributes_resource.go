@@ -233,6 +233,9 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 	// Set the ID of the created resource in the Terraform state
 	d.SetId(strconv.Itoa(createdAttribute.ID))
 
+	// Log the ID that was set
+	log.Printf("[INFO] Set newly created computer extension attribute ID in Terraform state: %d", createdAttribute.ID)
+
 	// Use the retry function for the read operation to update the Terraform state with the resource attributes
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		readDiags := ResourceJamfProComputerExtensionAttributesRead(ctx, d, meta)
