@@ -1698,20 +1698,36 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 
 	siteIDStr := strconv.Itoa(profile.General.Site.ID) // Convert site integer ID to string
 
-	if err := d.Set("site", []interface{}{map[string]interface{}{
-		"id":   siteIDStr, // Set the converted string ID
-		"name": profile.General.Site.Name,
-	}}); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	// Only set the site attribute in state if it's not the default value
+	if siteIDStr != "-1" || profile.General.Site.Name != "None" {
+		if err := d.Set("site", []interface{}{map[string]interface{}{
+			"id":   siteIDStr,
+			"name": profile.General.Site.Name,
+		}}); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	} else {
+		// If the site is the default value, set it as an empty list to avoid nullifying in the plan
+		if err := d.Set("site", []interface{}{}); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
-	categoryIDStr := strconv.Itoa(profile.General.Category.ID) // Convert integer ID to string
+	categoryIDStr := strconv.Itoa(profile.General.Category.ID) // Convert category integer ID to string
 
-	if err := d.Set("category", []interface{}{map[string]interface{}{
-		"id":   categoryIDStr, // Set the converted string ID
-		"name": profile.General.Category.Name,
-	}}); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	// Only set the category attribute in state if it's not the default value
+	if categoryIDStr != "-1" || profile.General.Category.Name != "No category assigned" {
+		if err := d.Set("category", []interface{}{map[string]interface{}{
+			"id":   categoryIDStr,
+			"name": profile.General.Category.Name,
+		}}); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	} else {
+		// If the category is the default value, set it as an empty list to avoid nullifying in the plan
+		if err := d.Set("category", []interface{}{}); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	// Check and set each field within the scope attribute
@@ -1720,85 +1736,111 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	scopeAttr["all_computers"] = profile.Scope.AllComputers
 	scopeAttr["all_jss_users"] = profile.Scope.AllJSSUsers
 
-	// Safely construct and set Computers within scopeAttr
+	// Safely construct and set Computers within scopeAttr if value not empty.
 	var computersList []interface{}
 	for _, compItem := range profile.Scope.Computers {
-		computerMap := map[string]interface{}{
-			"id":   compItem.Computer.ID,
-			"name": compItem.Computer.Name,
-			"udid": compItem.Computer.UDID,
+		if compItem.Computer.ID != 0 {
+			computerMap := map[string]interface{}{
+				"id":   compItem.Computer.ID,
+				"name": compItem.Computer.Name,
+				"udid": compItem.Computer.UDID,
+			}
+			// Wrap the computerMap in another map with key 'computer'
+			computersList = append(computersList, map[string]interface{}{"computer": []interface{}{computerMap}})
 		}
-		// Wrap the computerMap in another map with key 'computer'
-		computersList = append(computersList, map[string]interface{}{"computer": []interface{}{computerMap}})
 	}
 	scopeAttr["computers"] = computersList
-
-	// Safely construct and set Buildings within scopeAttr
-	var buildingsList []interface{}
-	for _, bldgItem := range profile.Scope.Buildings {
-		buildingMap := map[string]interface{}{
-			"id":   bldgItem.Building.ID,
-			"name": bldgItem.Building.Name,
-		}
-		// Wrap the buildingMap in another map with key 'building'
-		buildingsList = append(buildingsList, map[string]interface{}{"building": []interface{}{buildingMap}})
-	}
-	scopeAttr["buildings"] = buildingsList
-
-	// Safely construct and set Departments
-	var departmentsList []interface{}
-	for _, deptItem := range profile.Scope.Departments {
-		departmentMap := map[string]interface{}{
-			"id":   deptItem.Department.ID,
-			"name": deptItem.Department.Name,
-		}
-		// Append a map representing a single department resource
-		departmentsList = append(departmentsList, map[string]interface{}{"department": []interface{}{departmentMap}})
-	}
-
-	// Set the 'departments' attribute in the Terraform state
-	scopeAttr["departments"] = departmentsList
 
 	// Safely construct and set Computer Groups
 	var computerGroupsList []interface{}
 	for _, cgItem := range profile.Scope.ComputerGroups {
-		computerGroupMap := map[string]interface{}{
-			"id":   cgItem.ComputerGroup.ID,
-			"name": cgItem.ComputerGroup.Name,
+		if cgItem.ComputerGroup.ID != 0 {
+			computerGroupMap := map[string]interface{}{
+				"id":   cgItem.ComputerGroup.ID,
+				"name": cgItem.ComputerGroup.Name,
+			}
+			computerGroupsList = append(computerGroupsList, map[string]interface{}{"computer_group": []interface{}{computerGroupMap}})
 		}
-		computerGroupsList = append(computerGroupsList, map[string]interface{}{"computer_group": []interface{}{computerGroupMap}})
 	}
 	scopeAttr["computer_groups"] = computerGroupsList
 
-	// Safely construct and set JSSUsers
+	// Safely construct and set jss_users within scope
 	var jssUsersList []interface{}
 	for _, jssUserItem := range profile.Scope.JSSUsers {
-		jssUserMap := map[string]interface{}{
-			"id":   jssUserItem.JSSUser.ID,
-			"name": jssUserItem.JSSUser.Name,
+		if jssUserItem.JSSUser.ID != 0 { // Check if ID is not 0
+			jssUserMap := map[string]interface{}{
+				"id":   jssUserItem.JSSUser.ID,
+				"name": jssUserItem.JSSUser.Name,
+			}
+			jssUsersList = append(jssUsersList, map[string]interface{}{"jss_user": []interface{}{jssUserMap}})
 		}
-		jssUsersList = append(jssUsersList, map[string]interface{}{"jss_user": []interface{}{jssUserMap}})
 	}
 	scopeAttr["jss_users"] = jssUsersList
 
-	// Safely construct and set JSSUserGroups
+	// Safely construct and set jss_user_groups within scope
 	var jssUserGroupsList []interface{}
 	for _, jssUGItem := range profile.Scope.JSSUserGroups {
-		jssUserGroupMap := map[string]interface{}{
-			"id":   jssUGItem.JSSUserGroup.ID,
-			"name": jssUGItem.JSSUserGroup.Name,
+		if jssUGItem.JSSUserGroup.ID != 0 {
+			jssUserGroupMap := map[string]interface{}{
+				"id":   jssUGItem.JSSUserGroup.ID,
+				"name": jssUGItem.JSSUserGroup.Name,
+			}
+			// Wrap the jssUserGroupMap in another map with key 'jss_user_group'
+			jssUserGroupsList = append(jssUserGroupsList, jssUserGroupMap)
 		}
-		jssUserGroupsList = append(jssUserGroupsList, jssUserGroupMap)
 	}
 	scopeAttr["jss_user_groups"] = jssUserGroupsList
+
+	// Safely construct and set Buildings within scopeAttr
+	var buildingsList []interface{}
+	for _, bldgItem := range profile.Scope.Buildings {
+		// Only add the building to the list if its ID is not the default (0 in this case)
+		if bldgItem.Building.ID != 0 {
+			buildingMap := map[string]interface{}{
+				"id":   bldgItem.Building.ID,
+				"name": bldgItem.Building.Name,
+			}
+			// Wrap the buildingMap in another map with key 'building'
+			buildingsList = append(buildingsList, map[string]interface{}{"building": []interface{}{buildingMap}})
+		}
+	}
+	scopeAttr["buildings"] = buildingsList
+
+	// Safely construct and set Departments if values are not null
+	var departmentsList []interface{}
+	for _, deptItem := range profile.Scope.Departments {
+		if deptItem.Department.ID != 0 {
+			departmentMap := map[string]interface{}{
+				"id":   deptItem.Department.ID,
+				"name": deptItem.Department.Name,
+			}
+			departmentsList = append(departmentsList, map[string]interface{}{"department": []interface{}{departmentMap}})
+		}
+	}
+	scopeAttr["departments"] = departmentsList
 
 	// Handling Limitations
 	limitationsAttr := make(map[string]interface{})
 
+	// Safely construct and set network_segments limitations
+	var networkSegmentsList []interface{}
+	for _, networkSegmentItem := range profile.Scope.Limitations.NetworkSegments {
+		if networkSegmentItem.NetworkSegment.ID != 0 { // Check if ID is not 0
+			networkSegmentMap := map[string]interface{}{
+				"id":   networkSegmentItem.NetworkSegment.ID,
+				"name": networkSegmentItem.NetworkSegment.Name,
+				"uid":  networkSegmentItem.NetworkSegment.UID,
+			}
+			// Wrap the networkSegmentMap in another map with key 'network_segment'
+			networkSegmentsList = append(networkSegmentsList, map[string]interface{}{"network_segment": []interface{}{networkSegmentMap}})
+		}
+	}
+	limitationsAttr["network_segments"] = networkSegmentsList
+
 	// Safely construct and set limitations users list
-	if len(profile.Scope.Limitations.Users) > 0 {
-		var usersList []interface{}
-		for _, userItem := range profile.Scope.Limitations.Users {
+	var usersList []interface{}
+	for _, userItem := range profile.Scope.Limitations.Users {
+		if userItem.User.ID != 0 {
 			userMap := map[string]interface{}{
 				"id":   userItem.User.ID,
 				"name": userItem.User.Name,
@@ -1806,13 +1848,13 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 			// Wrap the userMap in another map with key 'user'
 			usersList = append(usersList, map[string]interface{}{"user": []interface{}{userMap}})
 		}
-		limitationsAttr["users"] = usersList
 	}
+	limitationsAttr["users"] = usersList
 
 	// Safely construct and set limitations user groups list
-	if len(profile.Scope.Limitations.UserGroups) > 0 {
-		var userGroupsList []interface{}
-		for _, userGroupItem := range profile.Scope.Limitations.UserGroups {
+	var userGroupsList []interface{}
+	for _, userGroupItem := range profile.Scope.Limitations.UserGroups {
+		if userGroupItem.UserGroup.ID != 0 {
 			userGroupMap := map[string]interface{}{
 				"id":   userGroupItem.UserGroup.ID,
 				"name": userGroupItem.UserGroup.Name,
@@ -1820,39 +1862,28 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 			// Wrap the userGroupMap in another map with key 'user_group'
 			userGroupsList = append(userGroupsList, map[string]interface{}{"user_group": []interface{}{userGroupMap}})
 		}
-		limitationsAttr["user_groups"] = userGroupsList
 	}
+	limitationsAttr["user_groups"] = userGroupsList
 
-	// Safely construct and set limitations networkSegmentsList
-	var networkSegmentsList []interface{}
-	for _, networkSegmentItem := range profile.Scope.Limitations.NetworkSegments {
-		networkSegmentMap := map[string]interface{}{
-			"id":   networkSegmentItem.NetworkSegment.ID,
-			"name": networkSegmentItem.NetworkSegment.Name,
-			"uid":  networkSegmentItem.NetworkSegment.UID,
-		}
-		networkSegmentsList = append(networkSegmentsList, map[string]interface{}{"network_segment": []interface{}{networkSegmentMap}})
-	}
-
-	limitationsAttr["network_segments"] = networkSegmentsList
-
-	// Safely construct and set ibeaconsList
-	if len(profile.Scope.Limitations.IBeacons) > 0 {
-		var ibeaconsList []interface{}
-		for _, ibeaconItem := range profile.Scope.Limitations.IBeacons {
+	// Safely construct and set limitations ibeacons list
+	var ibeaconsList []interface{}
+	for _, ibeaconItem := range profile.Scope.Limitations.IBeacons {
+		if ibeaconItem.IBeacon.ID != 0 {
 			ibeaconMap := map[string]interface{}{
 				"id":   ibeaconItem.IBeacon.ID,
 				"name": ibeaconItem.IBeacon.Name,
 			}
+			// Wrap the ibeaconMap in another map with key 'ibeacon'
 			ibeaconsList = append(ibeaconsList, map[string]interface{}{"ibeacon": []interface{}{ibeaconMap}})
 		}
-		limitationsAttr["ibeacons"] = ibeaconsList
 	}
+	limitationsAttr["ibeacons"] = ibeaconsList
 
-	// Add limitations if not empty
+	// After constructing limitationsAttr
 	if len(limitationsAttr) > 0 {
 		scopeAttr["limitations"] = []interface{}{limitationsAttr}
 	} else {
+		// Set an empty list to avoid diff if there are no limitations
 		scopeAttr["limitations"] = []interface{}{}
 	}
 
@@ -1860,118 +1891,151 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	exclusionsAttr := make(map[string]interface{})
 
 	// Safely construct and set computers list in exclusions
-	if len(profile.Scope.Exclusions.Computers) > 0 {
-		var computersList []interface{}
-		for _, computerItem := range profile.Scope.Exclusions.Computers {
+	var excludedComputersList []interface{}
+	for _, computerItem := range profile.Scope.Exclusions.Computers {
+		if computerItem.Computer.ID != 0 {
 			computerMap := map[string]interface{}{
 				"id":   computerItem.Computer.ID,
 				"name": computerItem.Computer.Name,
-				"udid": computerItem.Computer.UDID, // Include this if your schema requires it
+				"udid": computerItem.Computer.UDID,
 			}
 			// Wrap the computerMap in another map with key 'computer'
-			computersList = append(computersList, map[string]interface{}{"computer": []interface{}{computerMap}})
+			excludedComputersList = append(excludedComputersList, map[string]interface{}{"computer": []interface{}{computerMap}})
 		}
-		exclusionsAttr["computers"] = computersList
 	}
-
-	// Safely construct and set exclusions buildings list
-	if len(profile.Scope.Exclusions.Buildings) > 0 {
-		var buildingsList []interface{}
-		for _, buildingItem := range profile.Scope.Exclusions.Buildings {
-			buildingMap := map[string]interface{}{
-				"id":   buildingItem.Building.ID,
-				"name": buildingItem.Building.Name,
-			}
-			// Wrap the buildingMap in another map with key 'building'
-			buildingsList = append(buildingsList, map[string]interface{}{"building": []interface{}{buildingMap}})
-		}
-		exclusionsAttr["buildings"] = buildingsList
-	}
+	exclusionsAttr["computers"] = excludedComputersList
 
 	// Safely construct and set exclusions computer groups list
-	if len(profile.Scope.Exclusions.ComputerGroups) > 0 {
-		var computerGroupsList []interface{}
-		for _, computerGroupsItem := range profile.Scope.Exclusions.ComputerGroups {
+	var excludedComputerGroupsList []interface{}
+	for _, cgItem := range profile.Scope.Exclusions.ComputerGroups {
+		if cgItem.ComputerGroup.ID != 0 {
 			computerGroupMap := map[string]interface{}{
-				"id":   computerGroupsItem.ComputerGroup.ID,
-				"name": computerGroupsItem.ComputerGroup.Name,
+				"id":   cgItem.ComputerGroup.ID,
+				"name": cgItem.ComputerGroup.Name,
 			}
-			// Wrap the computerGroupMap in another map with key 'computer_group'
-			computerGroupsList = append(computerGroupsList, map[string]interface{}{"computer_group": []interface{}{computerGroupMap}})
+			excludedComputerGroupsList = append(excludedComputerGroupsList, map[string]interface{}{"computer_group": []interface{}{computerGroupMap}})
 		}
-		exclusionsAttr["computer_groups"] = computerGroupsList
 	}
+	exclusionsAttr["computer_groups"] = excludedComputerGroupsList
 
-	// Safely construct and set exclusions user list
-	if len(profile.Scope.Exclusions.Users) > 0 {
-		var usersList []interface{}
-		for _, userItem := range profile.Scope.Exclusions.Users {
-			userMap := map[string]interface{}{
-				"id":   userItem.User.ID,
-				"name": userItem.User.Name,
-			}
-			usersList = append(usersList, map[string]interface{}{"user": []interface{}{userMap}})
-		}
-		exclusionsAttr["users"] = usersList
-	}
-
-	// Safely construct and set exclusions user groups list
-	if len(profile.Scope.Exclusions.UserGroups) > 0 {
-		var userGroupsList []interface{}
-		for _, userGroupsItem := range profile.Scope.Exclusions.UserGroups {
-			userGroupMap := map[string]interface{}{
-				"id":   userGroupsItem.UserGroup.ID,
-				"name": userGroupsItem.UserGroup.Name,
-			}
-			userGroupsList = append(userGroupsList, map[string]interface{}{"user_group": []interface{}{userGroupMap}})
-		}
-		exclusionsAttr["user_groups"] = userGroupsList
-	}
-
-	// Safely construct and set exclusions iBeacons list
-	if len(profile.Scope.Exclusions.IBeacons) > 0 {
-		var iBeaconsList []interface{}
-		for _, iBeaconsItem := range profile.Scope.Exclusions.IBeacons {
-			iBeaconMap := map[string]interface{}{
-				"id":   iBeaconsItem.IBeacon.ID,
-				"name": iBeaconsItem.IBeacon.Name,
-			}
-			iBeaconsList = append(iBeaconsList, map[string]interface{}{"ibeacon": []interface{}{iBeaconMap}})
-		}
-		exclusionsAttr["ibeacons"] = iBeaconsList
-	}
-
-	// Safely construct and set exclusions JSSUsers list
-	if len(profile.Scope.Exclusions.JSSUsers) > 0 {
-		var jssUsersList []interface{}
-		for _, jssUserItem := range profile.Scope.Exclusions.JSSUsers {
+	// Safely construct and set exclusions jss_users list
+	var excludedJSSUsersList []interface{}
+	for _, jssUserItem := range profile.Scope.Exclusions.JSSUsers {
+		if jssUserItem.JSSUser.ID != 0 { // Check if ID is not 0
 			jssUserMap := map[string]interface{}{
 				"id":   jssUserItem.JSSUser.ID,
 				"name": jssUserItem.JSSUser.Name,
 			}
-			jssUsersList = append(jssUsersList, map[string]interface{}{"jss_user": []interface{}{jssUserMap}})
+			// Wrap the jssUserMap in another map with key 'jss_user'
+			excludedJSSUsersList = append(excludedJSSUsersList, map[string]interface{}{"jss_user": []interface{}{jssUserMap}})
 		}
-		exclusionsAttr["jss_users"] = jssUsersList
 	}
+	exclusionsAttr["jss_users"] = excludedJSSUsersList
 
-	// Safely construct and set exclusions JSSUserGroup list
-	if len(profile.Scope.Exclusions.JSSUserGroups) > 0 {
-		var jssUserGroupsList []interface{}
-		for _, jssUserGroupsItem := range profile.Scope.Exclusions.JSSUserGroups {
+	// Safely construct and set exclusions jss_user_groups list
+	var excludedJSSUserGroupsList []interface{}
+	for _, jssUGItem := range profile.Scope.Exclusions.JSSUserGroups {
+		if jssUGItem.JSSUserGroup.ID != 0 {
 			jssUserGroupMap := map[string]interface{}{
-				"id":   jssUserGroupsItem.JSSUserGroup.ID,
-				"name": jssUserGroupsItem.JSSUserGroup.Name,
+				"id":   jssUGItem.JSSUserGroup.ID,
+				"name": jssUGItem.JSSUserGroup.Name,
 			}
 			// Wrap the jssUserGroupMap in another map with key 'jss_user_group'
-			jssUserGroupsList = append(jssUserGroupsList, map[string]interface{}{"jss_user_group": []interface{}{jssUserGroupMap}})
+			excludedJSSUserGroupsList = append(excludedJSSUserGroupsList, map[string]interface{}{"jss_user_group": []interface{}{jssUserGroupMap}})
 		}
-		exclusionsAttr["jss_user_groups"] = jssUserGroupsList
 	}
+	exclusionsAttr["jss_user_groups"] = excludedJSSUserGroupsList
 
-	// Add exclusions if not empty
+	// Safely construct and set exclusions buildings list
+	var excludedBuildingsList []interface{}
+	for _, bldgItem := range profile.Scope.Exclusions.Buildings {
+		// Only add the building to the list if its ID is not the default (0 in this case)
+		if bldgItem.Building.ID != 0 {
+			buildingMap := map[string]interface{}{
+				"id":   bldgItem.Building.ID,
+				"name": bldgItem.Building.Name,
+			}
+			excludedBuildingsList = append(excludedBuildingsList, map[string]interface{}{"building": []interface{}{buildingMap}})
+		}
+	}
+	exclusionsAttr["buildings"] = excludedBuildingsList
+
+	// Safely construct and set exclusions departments list
+	var excludedDepartmentsList []interface{}
+	for _, deptItem := range profile.Scope.Exclusions.Departments {
+		if deptItem.Department.ID != 0 {
+			departmentMap := map[string]interface{}{
+				"id":   deptItem.Department.ID,
+				"name": deptItem.Department.Name,
+			}
+			// Wrap the departmentMap in another map with key 'department'
+			excludedDepartmentsList = append(excludedDepartmentsList, map[string]interface{}{"department": []interface{}{departmentMap}})
+		}
+	}
+	exclusionsAttr["departments"] = excludedDepartmentsList
+
+	// Safely construct and set exclusions network_segments list
+	var excludedNetworkSegmentsList []interface{}
+	for _, netSegItem := range profile.Scope.Exclusions.NetworkSegments {
+		if netSegItem.NetworkSegment.ID != 0 {
+			networkSegmentMap := map[string]interface{}{
+				"id":   netSegItem.NetworkSegment.ID,
+				"name": netSegItem.NetworkSegment.Name,
+				"uid":  netSegItem.NetworkSegment.UID,
+			}
+			// Wrap the networkSegmentMap in another map with key 'network_segment'
+			excludedNetworkSegmentsList = append(excludedNetworkSegmentsList, map[string]interface{}{"network_segment": []interface{}{networkSegmentMap}})
+		}
+	}
+	exclusionsAttr["network_segments"] = excludedNetworkSegmentsList
+
+	// Safely construct and set exclusions user list
+	var excludedUsersList []interface{}
+	for _, userItem := range profile.Scope.Exclusions.Users {
+		if userItem.User.ID != 0 {
+			userMap := map[string]interface{}{
+				"id":   userItem.User.ID,
+				"name": userItem.User.Name,
+			}
+			// Wrap the userMap in another map with key 'user'
+			excludedUsersList = append(excludedUsersList, map[string]interface{}{"user": []interface{}{userMap}})
+		}
+	}
+	exclusionsAttr["users"] = excludedUsersList
+
+	// Safely construct and set exclusions user groups list
+	var excludedUserGroupsList []interface{}
+	for _, userGroupItem := range profile.Scope.Exclusions.UserGroups {
+		if userGroupItem.UserGroup.ID != 0 {
+			userGroupMap := map[string]interface{}{
+				"id":   userGroupItem.UserGroup.ID,
+				"name": userGroupItem.UserGroup.Name,
+			}
+			// Wrap the userGroupMap in another map with key 'user_group'
+			excludedUserGroupsList = append(excludedUserGroupsList, map[string]interface{}{"user_group": []interface{}{userGroupMap}})
+		}
+	}
+	exclusionsAttr["user_groups"] = excludedUserGroupsList
+
+	// Safely construct and set ibeacons list in Exclusions
+	var excludedIBeaconsList []interface{}
+	for _, ibeaconItem := range profile.Scope.Exclusions.IBeacons {
+		if ibeaconItem.IBeacon.ID != 0 {
+			ibeaconMap := map[string]interface{}{
+				"id":   ibeaconItem.IBeacon.ID,
+				"name": ibeaconItem.IBeacon.Name,
+			}
+			// Wrap the ibeaconMap in another map with key 'ibeacon'
+			excludedIBeaconsList = append(excludedIBeaconsList, map[string]interface{}{"ibeacon": []interface{}{ibeaconMap}})
+		}
+	}
+	exclusionsAttr["ibeacons"] = excludedIBeaconsList
+
+	// After constructing exclusionsAttr
 	if len(exclusionsAttr) > 0 {
 		scopeAttr["exclusions"] = []interface{}{exclusionsAttr}
 	} else {
+		// Set an empty list to avoid diff if there are no exclusions
 		scopeAttr["exclusions"] = []interface{}{}
 	}
 

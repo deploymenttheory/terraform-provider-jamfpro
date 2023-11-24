@@ -4,6 +4,7 @@ package macosconfigurationprofiles
 import (
 	"bytes"
 	"encoding/xml"
+	"io"
 )
 
 // formatmacOSConfigurationProfileXMLPayload prepares the xml payload for upload into Jamf Pro
@@ -12,12 +13,15 @@ func formatmacOSConfigurationProfileXMLPayload(input string) (string, error) {
 	var buffer bytes.Buffer
 	decoder := xml.NewDecoder(bytes.NewBufferString(input))
 	encoder := xml.NewEncoder(&buffer)
-	encoder.Indent("", "    ") // Set indentation here if needed
+	encoder.Indent("  ", "    ") // Set indentation: prefix for each element, indent for each level
 
 	for {
 		token, err := decoder.Token()
 		if err != nil {
-			break
+			if err == io.EOF {
+				break // End of file, break out of loop
+			}
+			return "", err // Return with error
 		}
 
 		// Write the token to the buffer in a standard format
