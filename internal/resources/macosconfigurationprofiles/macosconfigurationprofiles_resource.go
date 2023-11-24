@@ -145,9 +145,10 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Description: "",
 			},
 			"payloads": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The configuration profile payload in xml and delivered as a plist to the macOS device by Jamf Pro.",
+				Type:             schema.TypeString,
+				Optional:         true,
+				Description:      "The configuration profile payload in xml and delivered as a plist to the macOS device by Jamf Pro.",
+				DiffSuppressFunc: suppressPayloadDiff,
 			},
 			// ScopeConfig fields
 			"scope": {
@@ -1880,11 +1881,11 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	limitationsAttr["ibeacons"] = ibeaconsList
 
 	// After constructing limitationsAttr
-	if len(limitationsAttr) > 0 {
+	if len(limitationsAttr) > 0 && (len(limitationsAttr["network_segments"].([]interface{})) > 0 || len(limitationsAttr["users"].([]interface{})) > 0 || len(limitationsAttr["user_groups"].([]interface{})) > 0 || len(limitationsAttr["ibeacons"].([]interface{})) > 0) {
 		scopeAttr["limitations"] = []interface{}{limitationsAttr}
+		log.Printf("[DEBUG] Setting non-empty limitations in state: %+v", limitationsAttr)
 	} else {
-		// Set an empty list to avoid diff if there are no limitations
-		scopeAttr["limitations"] = []interface{}{}
+		log.Printf("[DEBUG] Not setting limitations in state because received data has only empty collections")
 	}
 
 	// Handling Exclusions
@@ -2032,11 +2033,11 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	exclusionsAttr["ibeacons"] = excludedIBeaconsList
 
 	// After constructing exclusionsAttr
-	if len(exclusionsAttr) > 0 {
+	if len(exclusionsAttr) > 0 && (len(exclusionsAttr["computers"].([]interface{})) > 0 || len(exclusionsAttr["computer_groups"].([]interface{})) > 0 || len(exclusionsAttr["jss_users"].([]interface{})) > 0 || len(exclusionsAttr["jss_user_groups"].([]interface{})) > 0 || len(exclusionsAttr["buildings"].([]interface{})) > 0 || len(exclusionsAttr["departments"].([]interface{})) > 0 || len(exclusionsAttr["network_segments"].([]interface{})) > 0 || len(exclusionsAttr["user_groups"].([]interface{})) > 0 || len(exclusionsAttr["users"].([]interface{})) > 0 || len(exclusionsAttr["ibeacons"].([]interface{})) > 0) {
 		scopeAttr["exclusions"] = []interface{}{exclusionsAttr}
+		log.Printf("[DEBUG] Setting non-empty exclusions in state: %+v", exclusionsAttr)
 	} else {
-		// Set an empty list to avoid diff if there are no exclusions
-		scopeAttr["exclusions"] = []interface{}{}
+		log.Printf("[DEBUG] Not setting exclusions in state because received data has only empty collections")
 	}
 
 	// Add the 'scope' to Terraform state
@@ -2071,6 +2072,17 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 			"feature_in": profile.SelfService.SelfServiceCategories.Category.FeatureIn,
 		}
 		selfServiceAttr["self_service_categories"] = []interface{}{selfServiceCategory}
+	}
+
+	// Safely set the 'notification', 'notification_subject', and 'notification_message' attributes in the Terraform state
+	if err := d.Set("notification", profile.SelfService.Notification); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("notification_subject", profile.SelfService.NotificationSubject); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("notification_message", profile.SelfService.NotificationMessage); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	// Set the 'self_service' attribute in the Terraform state
