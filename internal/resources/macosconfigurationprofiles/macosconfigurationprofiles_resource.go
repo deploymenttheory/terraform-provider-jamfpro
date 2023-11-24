@@ -145,10 +145,10 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Description: "",
 			},
 			"payloads": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The configuration profile payload in xml and delivered as a plist to the macOS device by Jamf Pro.",
-				//DiffSuppressFunc: suppressPayloadDiff,
+				Type:             schema.TypeString,
+				Optional:         true,
+				Description:      "The configuration profile payload in xml and delivered as a plist to the macOS device by Jamf Pro.",
+				DiffSuppressFunc: suppressPayloadDiff,
 			},
 			// ScopeConfig fields
 			"scope": {

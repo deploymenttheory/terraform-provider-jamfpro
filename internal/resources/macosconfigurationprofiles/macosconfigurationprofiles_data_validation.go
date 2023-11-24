@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// suppressPayloadDiff suppresses diff if only ignored fields are different
+// suppressPayloadDiff suppresses diff if only ignored fields are different.
+// This function is a custom diff function for Terraform that compares old and new XML payloads,
+// ignoring specific fields that are known to be auto-modified by external systems (like Jamf Pro).
 func suppressPayloadDiff(k, old, new string, d *schema.ResourceData) bool {
 	oldPayload, err := parsePayloadXML(old)
 	if err != nil {
@@ -25,10 +27,12 @@ func suppressPayloadDiff(k, old, new string, d *schema.ResourceData) bool {
 		return false
 	}
 
-	return comparePayloads(oldPayload, newPayload)
+	// Check for differences in payloads, ignoring the specified fields
+	return comparePayloadsWithIgnoredFields(oldPayload, newPayload)
 }
 
-// parsePayloadXML parses XML string and returns a map of key-value pairs, excluding specific fields
+// parsePayloadXML parses an XML string and returns a map of key-value pairs, excluding specific fields.
+// It reads through the XML, builds a map of the XML paths to values, and skips over paths that match ignored fields.
 func parsePayloadXML(xmlString string) (map[string]string, error) {
 	decoder := xml.NewDecoder(strings.NewReader(xmlString))
 	payload := make(map[string]string)
@@ -58,21 +62,19 @@ func parsePayloadXML(xmlString string) (map[string]string, error) {
 		}
 	}
 
+	// Remove the ignored fields from the map
+	for key := range payload {
+		if isIgnoredField(key) {
+			delete(payload, key)
+		}
+	}
+
 	return payload, nil
 }
 
-// comparePayloads compares two payload maps
-func comparePayloads(oldPayload, newPayload map[string]string) bool {
-	for key, oldValue := range oldPayload {
-		if newValue, exists := newPayload[key]; !exists || oldValue != newValue {
-			return false
-		}
-	}
-	return true
-}
-
-// isIgnoredField returns true if the field should be ignored
-// "PayloadUUID", "PayloadOrganization", "PayloadIdentifier" are tenant specific fields injected into Jamf Pro config profiles and should be ignored.
+// isIgnoredField returns true if the field should be ignored.
+// This helper function checks if a given XML path ends with any of the predefined ignored field names,
+// such as 'PayloadUUID', 'PayloadOrganization', or 'PayloadIdentifier'.
 func isIgnoredField(field string) bool {
 	ignoredFields := []string{"PayloadUUID", "PayloadOrganization", "PayloadIdentifier"}
 	for _, ignored := range ignoredFields {
@@ -81,6 +83,29 @@ func isIgnoredField(field string) bool {
 		}
 	}
 	return false
+}
+
+// comparePayloadsWithIgnoredFields checks if the payloads are equal, ignoring specific fields.
+// This function compares two payload maps (representing old and new states) and returns true if they are equal,
+// ignoring changes in specific fields like 'PayloadUUID', 'PayloadOrganization', and 'PayloadIdentifier'.
+func comparePayloadsWithIgnoredFields(oldPayload, newPayload map[string]string) bool {
+	for key, oldValue := range oldPayload {
+		if isIgnoredField(key) {
+			continue
+		}
+		if newValue, exists := newPayload[key]; !exists || oldValue != newValue {
+			return false
+		}
+	}
+	for key, newValue := range newPayload {
+		if isIgnoredField(key) {
+			continue
+		}
+		if oldValue, exists := oldPayload[key]; !exists || oldValue != newValue {
+			return false
+		}
+	}
+	return true
 }
 
 // formatmacOSConfigurationProfileXMLPayload prepares the xml payload for upload into Jamf Pro
