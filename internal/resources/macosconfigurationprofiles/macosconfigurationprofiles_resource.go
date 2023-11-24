@@ -885,8 +885,18 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) *jamfpro.
 	}
 
 	// Safely retrieve and set the "payloads" field if it exists
+	// Retrieve the "payloads" field from the schema, if present. Sanitize the XML payload to remove specific fields
+	// like "PayloadUUID", "PayloadOrganization", "PayloadIdentifier", and then set the sanitized payload in the profile object.
+	// This ensures that only relevant configuration data is sent to Jamf Pro, and any unwanted or instance-specific fields are
+	// excluded from the Terraform state and the API request to Jamf Pro.
 	if v, ok := d.GetOk("payloads"); ok {
-		general.Payloads = v.(string)
+		sanitizedPayload, err := sanitizePayloadXML(v.(string))
+		if err != nil {
+			// Handle error, perhaps log it or return an error
+			log.Printf("[ERROR] Failed to sanitize payload XML: %s", err)
+			return nil // or return an appropriate error
+		}
+		general.Payloads = sanitizedPayload
 	}
 
 	// Safely construct the Site field from the Terraform schema
