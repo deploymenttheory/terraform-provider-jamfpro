@@ -94,12 +94,12 @@ func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, met
 	var createdAttribute *jamfpro.ResponseSite
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		// Construct the computer extension attribute
+		// Construct the site
 		attribute := constructSite(d)
 
 		// Check if the attribute is nil (indicating an issue with input_type)
 		if attribute == nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the computer extension attribute due to missing or invalid input_type"))
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the site due to missing or invalid input_type"))
 		}
 
 		// Directly call the API to create the resource
@@ -264,7 +264,7 @@ func ResourceJamfProSitesDelete(ctx context.Context, d *schema.ResourceData, met
 	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
 
-	// Use the retry function for the delete operation
+	// Use the retry function for the **DELETE** operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Convert the ID from the Terraform state into an integer to be used for the API request
 		siteID, convertErr := strconv.Atoi(d.Id())
@@ -272,10 +272,10 @@ func ResourceJamfProSitesDelete(ctx context.Context, d *schema.ResourceData, met
 			return retry.NonRetryableError(fmt.Errorf("failed to parse site ID: %v", convertErr))
 		}
 
-		// Directly call the API to delete the resource
+		// Directly call the API to **DELETE** the resource
 		apiErr := conn.DeleteSiteByID(siteID)
 		if apiErr != nil {
-			// If the delete by ID fails, try deleting by name
+			// If the **DELETE** by ID fails, try deleting by name
 			siteName := d.Get("name").(string)
 			apiErr = conn.DeleteSiteByName(siteName)
 			if apiErr != nil {

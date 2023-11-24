@@ -1,5 +1,5 @@
-// department_resource.go
-package departments
+// scripts_resource.go
+package scripts
 
 import (
 	"context"
@@ -14,15 +14,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-// ResourceJamfProDepartmentse defines the schema and CRUD operations for managing Jamf Pro Departments in Terraform.
-func ResourceJamfProDepartments() *schema.Resource {
+// ResourceJamfProScripts defines the schema and CRUD operations for managing Jamf Pro Scripts in Terraform.
+func ResourceJamfProScripts() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProDepartmentsCreate,
-		ReadContext:   ResourceJamfProDepartmentsRead,
-		UpdateContext: ResourceJamfProDepartmentsUpdate,
-		DeleteContext: ResourceJamfProDepartmentsDelete,
+		CreateContext: ResourceJamfProScriptsCreate,
+		ReadContext:   ResourceJamfProScriptsRead,
+		UpdateContext: ResourceJamfProScriptsUpdate,
+		DeleteContext: ResourceJamfProScriptsDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(10 * time.Minute),
@@ -36,22 +37,134 @@ func ResourceJamfProDepartments() *schema.Resource {
 			"id": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The unique identifier of the department.",
+				Description: "The Jamf Pro unique identifier (ID) of the script.",
 			},
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The unique name of the Jamf Pro department.",
+				Description: "Display name for the script.",
+			},
+			"category": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Category to add the script to.",
+			},
+			"filename": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Filename of the script.",
+			},
+			"info": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Information to display to the administrator when the script is run.",
+			},
+			"notes": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Notes to display about the script (e.g., who created it and when it was created).",
+			},
+			"priority": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "Execution priority of the script (Before, After, At Reboot).",
+				ValidateFunc: validation.StringInSlice([]string{"Before", "After", "At Reboot"}, false),
+			},
+			"parameters": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Labels to use for script parameters. Parameters 1 through 3 are predefined as mount point, computer name, and username",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"parameter4": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"parameter5": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"parameter6": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"parameter7": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"parameter8": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"parameter9": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"parameter10": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"parameter11": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+			"os_requirements": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The script can only be run on computers with these operating system versions. Each version must be separated by a comma (e.g., 10.11, 15, 16.1).",
+			},
+			"script_contents": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Contents of the script.",
+			},
+			"script_contents_encoded": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Encoded contents of the script.",
 			},
 		},
 	}
 }
 
-// constructDepartment constructs a ResponseDepartment object from the provided schema data.
-// It captures the 'name' attribute from the schema and returns the constructed ResponseDepartment object.
-func constructDepartment(d *schema.ResourceData) *jamfpro.ResponseDepartment {
-	return &jamfpro.ResponseDepartment{
-		Name: d.Get("name").(string),
+// constructScript constructs a ResponseScript object from the provided schema data.
+// It captures attributes from the schema and maps them to the fields of the structs in
+// the jamf pro sdk.
+func constructScript(d *schema.ResourceData) *jamfpro.ResponseScript {
+	// Handling Parameters
+	var params jamfpro.Parameters
+	if p, ok := d.GetOk("parameters"); ok {
+		paramsList := p.([]interface{})
+		if len(paramsList) > 0 && paramsList[0] != nil {
+			paramMap := paramsList[0].(map[string]interface{})
+			params = jamfpro.Parameters{
+				Parameter4:  paramMap["parameter4"].(string),
+				Parameter5:  paramMap["parameter5"].(string),
+				Parameter6:  paramMap["parameter6"].(string),
+				Parameter7:  paramMap["parameter7"].(string),
+				Parameter8:  paramMap["parameter8"].(string),
+				Parameter9:  paramMap["parameter9"].(string),
+				Parameter10: paramMap["parameter10"].(string),
+				Parameter11: paramMap["parameter11"].(string),
+			}
+		}
+	}
+
+	// Constructing the ResponseScript
+	return &jamfpro.ResponseScript{
+		Name:           d.Get("name").(string),
+		Category:       d.Get("category").(string),
+		Filename:       d.Get("filename").(string),
+		Info:           d.Get("info").(string),
+		Notes:          d.Get("notes").(string),
+		Priority:       d.Get("priority").(string),
+		Parameters:     params,
+		OSRequirements: d.Get("os_requirements").(string),
+		ScriptContents: d.Get("script_contents").(string),
+		// ScriptContentsEncoded is not set here as it's a computed field
 	}
 }
 
@@ -80,30 +193,30 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 	return diags
 }
 
-// ResourceJamfProDepartmentsCreate is responsible for creating a new Jamf Pro Site in the remote system.
+// ResourceJamfProScriptsCreate is responsible for creating a new Jamf Pro Script in the remote system.
 // The function:
 // 1. Constructs the attribute data using the provided Terraform configuration.
 // 2. Calls the API to create the attribute in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
 
 	// Use the retry function for the create operation
-	var createdAttribute *jamfpro.ResponseDepartment
+	var createdAttribute *jamfpro.ResponseScript
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		// Construct the computer extension attribute
-		department := constructDepartment(d)
+		// Construct the script
+		attribute := constructScript(d)
 
-		// Check if the department is nil
-		if department == nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the department"))
+		// Check if the attribute is nil (indicating an issue with input_type)
+		if attribute == nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the computer extension attribute due to missing or invalid input_type"))
 		}
 
 		// Directly call the API to create the resource
-		createdAttribute, err = conn.CreateDepartment(department.Name)
+		createdAttribute, err = conn.CreateScriptByID(attribute)
 		if err != nil {
 			// Check if the error is an APIError
 			if apiErr, ok := err.(*http_client.APIError); ok {
@@ -126,7 +239,7 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 
 	// Use the retry function for the read operation to update the Terraform state with the resource attributes
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProDepartmentsRead(ctx, d, meta)
+		readDiags := ResourceJamfProScriptsRead(ctx, d, meta)
 		if len(readDiags) > 0 {
 			// If readDiags is not empty, it means there's an error, so we retry
 			return retry.RetryableError(fmt.Errorf("failed to read the created resource"))
@@ -142,16 +255,16 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 	return diags
 }
 
-// ResourceJamfProDepartmentsRead is responsible for reading the current state of a Jamf Pro Department Resource from the remote system.
+// ResourceJamfProScriptsRead is responsible for reading the current state of a Jamf Pro Script Resource from the remote system.
 // The function:
 // 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
-func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
 
-	var attribute *jamfpro.ResponseDepartment
+	var attribute *jamfpro.ResponseScript
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
@@ -161,9 +274,9 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 			return retry.NonRetryableError(fmt.Errorf("failed to parse attribute ID: %v", convertErr))
 		}
 
-		// Try fetching the site using the ID
+		// Try fetching the script using the ID
 		var apiErr error
-		attribute, apiErr = conn.GetDepartmentByID(attributeID)
+		attribute, apiErr = conn.GetScriptsByID(attributeID)
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -171,7 +284,7 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 			}
 			// If fetching by ID fails, try fetching by Name
 			attributeName := d.Get("name").(string)
-			attribute, apiErr = conn.GetDepartmentByName(attributeName)
+			attribute, apiErr = conn.GetScriptsByName(attributeName)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -197,33 +310,33 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 	return diags
 }
 
-// ResourceJamfProDepartmentsUpdate is responsible for updating an existing Jamf Pro Site on the remote system.
-func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// ResourceJamfProScriptsUpdate is responsible for updating an existing Jamf Pro Script on the remote system.
+func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
 
 	// Use the retry function for the update operation
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		// Construct the department
-		department := constructDepartment(d)
+		// Construct the updated script
+		script := constructScript(d)
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request
-		departmentID, convertErr := strconv.Atoi(d.Id())
+		scriptID, convertErr := strconv.Atoi(d.Id())
 		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse department ID: %v", convertErr))
+			return retry.NonRetryableError(fmt.Errorf("failed to parse script ID: %v", convertErr))
 		}
 
-		// Directly call the API to update the resource by ID
-		_, apiErr := conn.UpdateDepartmentByID(departmentID, department.Name)
+		// Directly call the API to update the resource
+		_, apiErr := conn.UpdateScriptByID(scriptID, script)
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If the update by ID fails, try updating by name
-			departmentName := d.Get("name").(string)
-			_, apiErr = conn.UpdateDepartmentByName(departmentName, department.Name)
+			scriptName := d.Get("name").(string)
+			_, apiErr = conn.UpdateScriptByName(scriptName, script)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -243,7 +356,7 @@ func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 
 	// Use the retry function for the read operation to update the Terraform state
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProDepartmentsRead(ctx, d, meta)
+		readDiags := ResourceJamfProScriptsRead(ctx, d, meta)
 		if len(readDiags) > 0 {
 			return retry.RetryableError(fmt.Errorf("failed to update the Terraform state for the updated resource"))
 		}
@@ -259,25 +372,25 @@ func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 	return diags
 }
 
-// ResourceJamfProDepartmentsDelete is responsible for deleting a Jamf Pro Department.
-func ResourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// ResourceJamfProScriptsDelete is responsible for deleting a Jamf Pro script.
+func ResourceJamfProScriptsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
 
 	// Use the retry function for the **DELETE** operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Convert the ID from the Terraform state into an integer to be used for the API request
-		siteID, convertErr := strconv.Atoi(d.Id())
+		scriptID, convertErr := strconv.Atoi(d.Id())
 		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse department ID: %v", convertErr))
+			return retry.NonRetryableError(fmt.Errorf("failed to parse script ID: %v", convertErr))
 		}
 
 		// Directly call the API to **DELETE** the resource
-		apiErr := conn.DeleteDepartmentByID(siteID)
+		apiErr := conn.DeleteScriptByID(scriptID)
 		if apiErr != nil {
 			// If the **DELETE** by ID fails, try deleting by name
-			siteName := d.Get("name").(string)
-			apiErr = conn.DeleteDepartmentByName(siteName)
+			scriptName := d.Get("name").(string)
+			apiErr = conn.DeleteScriptByName(scriptName)
 			if apiErr != nil {
 				return retry.RetryableError(apiErr)
 			}

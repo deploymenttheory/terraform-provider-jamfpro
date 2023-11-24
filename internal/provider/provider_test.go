@@ -20,13 +20,13 @@ func TestGetInstanceName(t *testing.T) {
 		},
 	}, map[string]interface{}{})
 
-	// Test 1: Get instance name from d
+	// Test 1: **GET** instance name from d
 	d.Set("instance_name", "testInstance")
 	name, err := GetInstanceName(d)
 	assert.NoError(t, err)
 	assert.Equal(t, "testInstance", name)
 
-	// Test 2: Get instance name from environment variable
+	// Test 2: **GET** instance name from environment variable
 	os.Setenv("JAMFPRO_INSTANCE", "testEnvInstance")
 	d.Set("instance_name", "") // Clear the previous set value
 	name, err = GetInstanceName(d)
@@ -47,13 +47,13 @@ func TestGetClientID(t *testing.T) {
 		},
 	}, map[string]interface{}{})
 
-	// Test 1: Get client ID from d
+	// Test 1: **GET** client ID from d
 	d.Set("client_id", "testClientID")
 	clientID, err := GetClientID(d)
 	assert.NoError(t, err)
 	assert.Equal(t, "testClientID", clientID)
 
-	// Test 2: Get client ID from environment variable
+	// Test 2: **GET** client ID from environment variable
 	os.Setenv("JAMFPRO_CLIENT_ID", "testEnvClientID")
 	d.Set("client_id", "") // Clear the previous set value
 	clientID, err = GetClientID(d)
@@ -74,13 +74,13 @@ func TestGetClientSecret(t *testing.T) {
 		},
 	}, map[string]interface{}{})
 
-	// Test 1: Get client secret from d
+	// Test 1: **GET** client secret from d
 	d.Set("client_secret", "testClientSecret")
 	clientSecret, err := GetClientSecret(d)
 	assert.NoError(t, err)
 	assert.Equal(t, "testClientSecret", clientSecret)
 
-	// Test 2: Get client secret from environment variable
+	// Test 2: **GET** client secret from environment variable
 	os.Setenv("JAMFPRO_CLIENT_SECRET", "testEnvClientSecret")
 	d.Set("client_secret", "") // Clear the previous set value
 	clientSecret, err = GetClientSecret(d)
@@ -228,7 +228,7 @@ func TestUserAgentInitialization(t *testing.T) {
 	// Create a new ResourceData object for the test
 	d := schema.TestResourceDataRaw(t, resourceDataMap, resourceDataValues)
 
-	// Call the provider's ConfigureContextFunc to get a configured client
+	// Call the provider's ConfigureContextFunc to **GET** a configured client
 	clientInterface, diags := Provider().ConfigureContextFunc(context.Background(), d)
 	assert.Len(t, diags, 0) // Ensure no errors are returned
 

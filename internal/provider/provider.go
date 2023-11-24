@@ -16,6 +16,8 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerextensionattributes"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/departments"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macosconfigurationprofiles"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/scripts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/sites"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/version"
@@ -104,6 +106,8 @@ func Provider() *schema.Provider {
 			"jamfpro_computer_groups":               computergroups.DataSourceJamfProComputerGroups(),
 			"jamfpro_departments":                   departments.DataSourceJamfProDepartments(),
 			"jamfpro_sites":                         sites.DataSourceJamfProSites(),
+			"jamfpro_scripts":                       scripts.DataSourceJamfProScripts(),
+			//"jamfpro_macos_configuration_profiles":  macosconfigurationprofiles.DataSourceJamfProMacOSConfigurationProfiles(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"jamfpro_api_integrations":              apiintegrations.ResourceJamfProApiIntegrations(),
@@ -112,6 +116,8 @@ func Provider() *schema.Provider {
 			"jamfpro_computer_groups":               computergroups.ResourceJamfProComputerGroups(),
 			"jamfpro_departments":                   departments.ResourceJamfProDepartments(),
 			"jamfpro_sites":                         sites.ResourceJamfProSites(),
+			"jamfpro_scripts":                       scripts.ResourceJamfProScripts(),
+			"jamfpro_macos_configuration_profiles":  macosconfigurationprofiles.ResourceJamfProMacOSConfigurationProfiles(),
 		},
 	}
 

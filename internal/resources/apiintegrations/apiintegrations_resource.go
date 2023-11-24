@@ -323,7 +323,7 @@ func ResourceJamfProApiIntegrationsDelete(ctx context.Context, d *schema.Resourc
 	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
 
-	// Use the retry function for the delete operation
+	// Use the retry function for the **DELETE** operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Convert the ID from the Terraform state into an integer to be used for the API request
 		integrationID, convertErr := strconv.Atoi(d.Id())
@@ -331,10 +331,10 @@ func ResourceJamfProApiIntegrationsDelete(ctx context.Context, d *schema.Resourc
 			return retry.NonRetryableError(fmt.Errorf("failed to parse integration ID: %v", convertErr))
 		}
 
-		// Directly call the API to delete the resource
+		// Directly call the API to **DELETE** the resource
 		apiErr := conn.DeleteApiIntegrationByID(strconv.Itoa(integrationID))
 		if apiErr != nil {
-			// If the delete by ID fails, try deleting by display name
+			// If the **DELETE** by ID fails, try deleting by display name
 			integrationName := d.Get("display_name").(string)
 			apiErr = conn.DeleteApiIntegrationByName(integrationName)
 			if apiErr != nil {
