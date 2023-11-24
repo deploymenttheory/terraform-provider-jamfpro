@@ -145,10 +145,10 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Description: "",
 			},
 			"payloads": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Description:      "The configuration profile payload in xml and delivered as a plist to the macOS device by Jamf Pro.",
-				DiffSuppressFunc: suppressPayloadDiff,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The configuration profile payload in xml and delivered as a plist to the macOS device by Jamf Pro.",
+				//DiffSuppressFunc: suppressPayloadDiff,
 			},
 			// ScopeConfig fields
 			"scope": {
@@ -1445,7 +1445,7 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) *jamfpro.
 	if len(selfServiceData) > 0 {
 		ssMap := selfServiceData[0].(map[string]interface{})
 
-		// Safely retrieve and set each field if it exists
+		// Safely retrieve and set each self service field if it exists
 		if v, ok := ssMap["install_button_text"].(string); ok {
 			selfService.InstallButtonText = v
 		}
@@ -1457,6 +1457,15 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) *jamfpro.
 		}
 		if v, ok := ssMap["feature_on_main_page"].(bool); ok {
 			selfService.FeatureOnMainPage = v
+		}
+		if v, ok := ssMap["notification"].(string); ok {
+			selfService.Notification = v
+		}
+		if v, ok := ssMap["notification_subject"].(string); ok {
+			selfService.NotificationSubject = v
+		}
+		if v, ok := ssMap["notification_message"].(string); ok {
+			selfService.NotificationMessage = v
 		}
 
 		// Safely construct and set SelfServiceIcon
@@ -2051,6 +2060,9 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		"self_service_description":        profile.SelfService.SelfServiceDescription,
 		"force_users_to_view_description": profile.SelfService.ForceUsersToViewDescription,
 		"feature_on_main_page":            profile.SelfService.FeatureOnMainPage,
+		"notification":                    profile.SelfService.Notification,
+		"notification_subject":            profile.SelfService.NotificationSubject,
+		"notification_message":            profile.SelfService.NotificationMessage,
 	}
 
 	// Constructing 'self_service_icon'
@@ -2072,17 +2084,6 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 			"feature_in": profile.SelfService.SelfServiceCategories.Category.FeatureIn,
 		}
 		selfServiceAttr["self_service_categories"] = []interface{}{selfServiceCategory}
-	}
-
-	// Safely set the 'notification', 'notification_subject', and 'notification_message' attributes in the Terraform state
-	if err := d.Set("notification", profile.SelfService.Notification); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("notification_subject", profile.SelfService.NotificationSubject); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("notification_message", profile.SelfService.NotificationMessage); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	// Set the 'self_service' attribute in the Terraform state
