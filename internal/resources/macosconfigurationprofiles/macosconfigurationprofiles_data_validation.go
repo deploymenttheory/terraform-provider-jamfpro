@@ -11,6 +11,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// XMLElement represents an xml key and value pair and it's path.
+type XMLElement struct {
+	Path  string
+	Key   string
+	Value string
+}
+
 // suppressPayloadDiff compares Terraform state and Jamf Pro state payloads, suppressing diffs for specified fields.
 func suppressPayloadDiff(k, old, new string, d *schema.ResourceData) bool {
 	currentTFStateOfConfigProfilePayload, err := parsePayloadXML(old)
@@ -31,12 +38,13 @@ func suppressPayloadDiff(k, old, new string, d *schema.ResourceData) bool {
 	return result
 }
 
-// parsePayloadXML parses an XML string into a map of key-value pairs, excluding specific fields.
-func parsePayloadXML(xmlString string) (map[string]string, error) {
+// parsePayloadXML parses an XML string into a map of XMLElements.
+func parsePayloadXML(xmlString string) (map[string]XMLElement, error) {
 	log.Printf("[DEBUG] Starting parsePayloadXML")
 	decoder := xml.NewDecoder(strings.NewReader(xmlString))
-	payload := make(map[string]string)
+	payload := make(map[string]XMLElement)
 	var currentPath []string
+	var lastKey string
 
 	for {
 		token, err := decoder.Token()
@@ -52,28 +60,17 @@ func parsePayloadXML(xmlString string) (map[string]string, error) {
 		switch se := token.(type) {
 		case xml.StartElement:
 			currentPath = append(currentPath, se.Name.Local)
-			log.Printf("[DEBUG] Start Element: %s, Current Path: %s", se.Name.Local, strings.Join(currentPath, "/"))
+			lastKey = strings.Join(currentPath, "/")
 		case xml.CharData:
-			path := strings.Join(currentPath, "/")
 			trimmedData := string(bytes.TrimSpace(se))
-			log.Printf("[DEBUG] Char Data: %s, Path: %s, Trimmed Data: '%s'", se, path, trimmedData)
-			if !isIgnoredField(path) {
-				payload[path] = trimmedData
+			if !isIgnoredField(lastKey) {
+				payload[lastKey] = XMLElement{Key: lastKey, Value: trimmedData}
 			}
 		case xml.EndElement:
-			log.Printf("[DEBUG] End Element: %s", se.Name.Local)
 			if len(currentPath) > 0 {
 				currentPath = currentPath[:len(currentPath)-1]
 			}
-		}
-	}
-
-	for key, value := range payload {
-		if isIgnoredField(key) {
-			log.Printf("[DEBUG] Ignoring field: %s", key)
-			delete(payload, key)
-		} else {
-			log.Printf("[DEBUG] Field: %s, Value: %s", key, value)
+			lastKey = strings.Join(currentPath, "/")
 		}
 	}
 
@@ -94,64 +91,42 @@ func isIgnoredField(fieldPath string) bool {
 
 // comparePayloadsWithIgnoredFields checks if the XML payloads from Terraform state and Jamf Pro server state are equal,
 // while ignoring specific fields. This comparison is not sensitive to the order of XML elements.
-// It first converts both payloads into sets (excluding ignored fields), then compares these sets.
+// It first converts both payloads into maps of XMLElements, which include the path, key name, and value,
+// then compares these maps.
 // The function returns false if:
 // - A key exists in one payload but not the other.
 // - The same key exists in both payloads but with different values.
 // - There is a new field in the Jamf Pro state that is not in the Terraform state, and it's not an ignored field.
-// This approach ensures a more flexible comparison that can accurately detect meaningful differences,
-// including new fields added in the Jamf Pro state, while ignoring the differences in the order of XML elements and ignored fields.
-func comparePayloadsWithIgnoredFields(tfPayload, jamfPayload map[string]string) bool {
-	// Convert maps to sets for comparison
-	tfSet := make(map[string]struct{})
-	jamfSet := make(map[string]struct{})
+func comparePayloadsWithIgnoredFields(tfPayload, jamfPayload map[string]XMLElement) bool {
+	// Initialize a map to track differences
+	differences := make(map[string][]XMLElement)
 
-	// Populate the sets, ignoring the specified fields
-	for key, value := range tfPayload {
-		if !isIgnoredField(key) {
-			tfSet[key] = struct{}{}
-			log.Printf("[DEBUG] Terraform Payload - Key: %s, Value: %s", key, value)
-		}
-	}
-	for key, value := range jamfPayload {
-		if !isIgnoredField(key) {
-			jamfSet[key] = struct{}{}
-			log.Printf("[DEBUG] Jamf Pro Payload - Key: %s, Value: %s", key, value)
+	// Compare the payloads and record differences
+	for path, tfElement := range tfPayload {
+		if jamfElement, exists := jamfPayload[path]; !exists {
+			differences[path] = []XMLElement{tfElement, {Key: "Missing in Jamf Pro"}}
+		} else if tfElement.Value != jamfElement.Value {
+			differences[path] = []XMLElement{tfElement, jamfElement}
 		}
 	}
 
-	// Initialize a variable to track differences
-	var hasDifferences bool
-
-	// Compare the sets and log differences
-	for key := range tfSet {
-		if _, exists := jamfSet[key]; !exists {
-			log.Printf("[DIFFERENCE] Key missing in Jamf Pro state: %s", key)
-			hasDifferences = true
-			continue
-		}
-		if tfValue, jamfValue := tfPayload[key], jamfPayload[key]; tfValue != jamfValue {
-			log.Printf("[DIFFERENCE] Value difference found for key '%s': Terraform State: '%s', Jamf Pro State: '%s'", key, tfValue, jamfValue)
-			hasDifferences = true
+	for path, jamfElement := range jamfPayload {
+		if _, exists := tfPayload[path]; !exists {
+			differences[path] = []XMLElement{{Key: "New in Jamf Pro"}, jamfElement}
 		}
 	}
 
-	for key := range jamfSet {
-		if _, exists := tfSet[key]; !exists {
-			log.Printf("[DIFFERENCE] New key found in Jamf Pro state: %s", key)
-			hasDifferences = true
+	// Log the differences
+	if len(differences) > 0 {
+		for path, elements := range differences {
+			log.Printf("[DIFFERENCE] XML Path: '%s', Terraform Key Name: '%s', Terraform Value: '%s', Jamf Pro Key Name: '%s', Jamf Pro Value: '%s'",
+				path, elements[0].Key, elements[0].Value, elements[1].Key, elements[1].Value)
 		}
+		return false
 	}
 
-	// If differences were found, log them
-	if hasDifferences {
-		log.Printf("[DEBUG] Differences detected between Terraform state and Jamf Pro state.")
-	} else {
-		log.Printf("[DEBUG] No differences found between Terraform state and Jamf Pro state.")
-	}
-
-	// Return false if differences were found
-	return !hasDifferences
+	log.Printf("[DEBUG] No differences found between Configuration Profile in Terraform state and Jamf Pro state.")
+	return true
 }
 
 // formatmacOSConfigurationProfileXMLPayload prepares the xml payload for upload into Jamf Pro
