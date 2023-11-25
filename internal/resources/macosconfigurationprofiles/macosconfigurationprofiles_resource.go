@@ -1706,7 +1706,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Format XML Payload before setting it in the Terraform state
+	// Format the XML Payload before setting it in the Terraform state
 	formattedPayload, err := formatmacOSConfigurationProfileXMLPayload(profile.General.Payloads)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error formatting XML payload: %s", err))
