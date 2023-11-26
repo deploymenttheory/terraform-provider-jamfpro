@@ -16,8 +16,10 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
+	"html"
 	"io"
 	"log"
+	"strconv"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -34,18 +36,35 @@ type XMLElement struct {
 // suppressPayloadDiff compares Terraform state and Jamf Pro state payloads, suppressing diffs for specified fields.
 // It calls comparePayloadsWithIgnoredFields with the root elements of both XML structures.
 func suppressPayloadDiff(k, old, new string, d *schema.ResourceData) bool {
-	currentTFStateOfConfigProfilePayload, err := parsePayloadXML(old)
+	// Convert Terraform state to regular XML format
+	terraformStateXML, err := convertTerraformStateToXML(old)
+	if err != nil {
+		log.Printf("[ERROR] Failed to convert Terraform state to XML: %v", err)
+		return false
+	}
+
+	// Convert Jamf Pro state (if necessary) to regular XML format
+	jamfProStateXML, err := convertJamfProXMLResponseToRegularXML(new)
+	if err != nil {
+		log.Printf("[ERROR] Failed to convert Jamf Pro state to XML: %v", err)
+		return false
+	}
+
+	// Parse the normalized Terraform state XML
+	currentTFStateOfConfigProfilePayload, err := parsePayloadXML(terraformStateXML)
 	if err != nil {
 		log.Printf("[ERROR] Failed to parse current TFState Of ConfigProfile payload: %v", err)
 		return false
 	}
 
-	currentJamfProStateOfConfigProfilePayload, err := parsePayloadXML(new)
+	// Parse the normalized Jamf Pro state XML
+	currentJamfProStateOfConfigProfilePayload, err := parsePayloadXML(jamfProStateXML)
 	if err != nil {
 		log.Printf("[ERROR] Failed to parse current Jamf Pro State Of ConfigProfile payload: %v", err)
 		return false
 	}
 
+	// Compare the parsed XML payloads
 	result, differences := comparePayloadsWithIgnoredFields(currentTFStateOfConfigProfilePayload, currentJamfProStateOfConfigProfilePayload)
 	if !result {
 		for _, diff := range differences {
@@ -139,36 +158,49 @@ func comparePayloadsWithIgnoredFields(tfElement, jamfElement *XMLElement) (bool,
 	var differences []string
 
 	// Function to recursively compare elements
-	var compareElements func(*XMLElement, *XMLElement)
-	compareElements = func(tfElem, jamfElem *XMLElement) {
+	var compareElements func(*XMLElement, *XMLElement, string)
+	compareElements = func(tfElem, jamfElem *XMLElement, path string) {
+		// Handle nil elements to avoid nil pointer dereference
+		if tfElem == nil || jamfElem == nil {
+			if tfElem != nil {
+				differences = append(differences, fmt.Sprintf("Path: '%s', Key missing in Jamf Pro state: '%s'", path, tfElem.KeyName))
+			}
+			if jamfElem != nil {
+				differences = append(differences, fmt.Sprintf("Path: '%s', Key missing in Terraform state: '%s'", path, jamfElem.KeyName))
+			}
+			return
+		}
+
 		// Skip ignored fields
 		if isIgnoredField(tfElem.KeyName) {
 			return
 		}
 
 		// Check for value difference at the same hierarchy level
-		if tfElem.KeyName == jamfElem.KeyName && tfElem.Value != jamfElem.Value {
-			differences = append(differences, fmt.Sprintf("Value difference for key '%s': Terraform Value: '%s', Jamf Pro Value: '%s'", tfElem.KeyName, tfElem.Value, jamfElem.Value))
+		if tfElem.Value != jamfElem.Value {
+			differences = append(differences, fmt.Sprintf("Path: '%s', Value difference for key '%s': Terraform Value: '%s', Jamf Pro Value: '%s'", path, tfElem.KeyName, tfElem.Value, jamfElem.Value))
 		}
 
 		// Recursively compare children elements
 		for key, tfChild := range tfElem.Children {
+			newPath := path + "/" + key
 			if jamfChild, exists := jamfElem.Children[key]; exists {
-				compareElements(tfChild, jamfChild)
-			} else {
-				differences = append(differences, fmt.Sprintf("Key missing in Jamf Pro state: '%s'", key))
+				compareElements(tfChild, jamfChild, newPath)
+			} else if !isIgnoredField(key) {
+				differences = append(differences, fmt.Sprintf("Path: '%s', Key missing in Jamf Pro state: '%s'", newPath, key))
 			}
 		}
 
 		// Check for new keys in Jamf Pro state
-		for key := range jamfElem.Children {
-			if _, exists := tfElem.Children[key]; !exists {
-				differences = append(differences, fmt.Sprintf("New key found in Jamf Pro state: '%s'", key))
+		for key, jamfChild := range jamfElem.Children {
+			newPath := path + "/" + key
+			if _, exists := tfElem.Children[key]; !exists && !isIgnoredField(key) {
+				compareElements(nil, jamfChild, newPath) // Nil indicates the key is missing in TF state
 			}
 		}
 	}
 
-	compareElements(tfElement, jamfElement)
+	compareElements(tfElement, jamfElement, "")
 	return len(differences) == 0, differences
 }
 
@@ -186,6 +218,83 @@ func contains(slice []string, item string) bool {
 		}
 	}
 	return false
+}
+
+// convertTerraformStateToXML converts a Terraform state string containing an XML payload with escaped characters into a properly formatted XML string.
+func convertTerraformStateToXML(terraformState string) (string, error) {
+	log.Printf("[DEBUG] Raw Terraform state: %s", terraformState) // Log the raw state
+
+	// Unescaping unicode characters
+	unescapedStr, err := strconv.Unquote(`"` + terraformState + `"`)
+	if err != nil {
+		log.Printf("[ERROR] Failed to unescape Terraform state string: %v", err)
+		return "", fmt.Errorf("failed to unescape string: %w", err)
+	}
+
+	// Replace escaped XML characters
+	unescapedStr = strings.ReplaceAll(unescapedStr, `\u003c`, "<")
+	unescapedStr = strings.ReplaceAll(unescapedStr, `\u003e`, ">")
+	unescapedStr = strings.ReplaceAll(unescapedStr, `\n`, "\n")
+	unescapedStr = strings.ReplaceAll(unescapedStr, `\t`, "\t")
+
+	// Format XML with indentation
+	formattedXML, err := formatXML(unescapedStr)
+	if err != nil {
+		return "", fmt.Errorf("failed to format XML: %w", err)
+	}
+
+	// Debug: Print formatted XML
+	log.Printf("[DEBUG] Formatted XML: \n%s", formattedXML)
+
+	return formattedXML, nil
+}
+
+// formatXML formats an XML string with proper indentation and removes unnecessary spaces.
+func formatXML(xmlStr string) (string, error) {
+	var buf bytes.Buffer
+	decoder := xml.NewDecoder(strings.NewReader(xmlStr))
+	encoder := xml.NewEncoder(&buf)
+	encoder.Indent("", "    ") // Indent with 4 spaces
+
+	for {
+		token, err := decoder.Token()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return "", err
+		}
+
+		if err := encoder.EncodeToken(token); err != nil {
+			return "", err
+		}
+	}
+
+	if err := encoder.Flush(); err != nil {
+		return "", err
+	}
+
+	// Remove spaces between XML tags
+	formatted := strings.ReplaceAll(buf.String(), ">\n    <", "><")
+
+	return formatted, nil
+}
+
+// convertJamfProXMLResponseToRegularXML converts an XML string with HTML entity-encoded characters into regular XML and formats it.
+func convertJamfProXMLResponseToRegularXML(escapedXML string) (string, error) {
+	// Unescape HTML entities
+	unescapedXML := html.UnescapeString(escapedXML)
+
+	// Format the unescaped XML
+	formattedXML, err := formatXML(unescapedXML)
+	if err != nil {
+		return "", fmt.Errorf("failed to format XML: %w", err)
+	}
+
+	// Debug: Print formatted XML
+	log.Printf("[DEBUG] Formatted XML: \n%s", formattedXML)
+
+	return formattedXML, nil
 }
 
 // formatmacOSConfigurationProfileXMLPayload prepares the xml payload for upload into Jamf Pro
