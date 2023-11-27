@@ -68,7 +68,7 @@ func ResourceJamfProDockItems() *schema.Resource {
 			},
 			"contents": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "Contents of the dock item.",
 			},
 		},
