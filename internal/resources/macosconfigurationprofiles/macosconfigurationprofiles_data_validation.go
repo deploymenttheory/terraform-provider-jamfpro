@@ -72,19 +72,21 @@ func suppressPayloadDiff(k, old, new string, d *schema.ResourceData) bool {
 		}
 	}
 
-	log.Printf("[DEBUG] suppressPayloadDiff result: %t", result)
+	log.Printf("[DEBUG] Apply Difference Suppression for Configuration Profile: %t", result)
 	return result
 }
 
+// parsePayloadXML parses an XML string into a hierarchical structure of XMLElements.
 // parsePayloadXML parses an XML string into a hierarchical structure of XMLElements.
 func parsePayloadXML(xmlString string) (*XMLElement, error) {
 	log.Printf("[DEBUG] Starting parsePayloadXML")
 	decoder := xml.NewDecoder(strings.NewReader(xmlString))
 
-	root := &XMLElement{Children: make(map[string]*XMLElement)} // Root of the XML tree
-	currentElement := root
-	stack := []*XMLElement{}  // Stack to keep track of parent elements
-	var currentKeyName string // Variable to store the current key name
+	var root *XMLElement
+	var currentElement *XMLElement
+	stack := []*XMLElement{}
+	var currentKeyName string // Temporary variable to hold the key name
+	currentPath := ""         // Initialize current path
 
 	for {
 		token, err := decoder.Token()
@@ -98,36 +100,48 @@ func parsePayloadXML(xmlString string) (*XMLElement, error) {
 
 		switch se := token.(type) {
 		case xml.StartElement:
-			// Only create a new element if it's not a <key> element
-			if se.Name.Local != "key" {
-				newElement := &XMLElement{
-					KeyName:  currentKeyName,
-					Children: make(map[string]*XMLElement),
-				}
-				// Add the new element as a child of the current element
-				currentElement.Children[currentKeyName] = newElement
-				// Push the current element onto the stack and make the new element the current element
-				stack = append(stack, currentElement)
-				currentElement = newElement
-				// Reset the currentKeyName since we've used it
-				currentKeyName = ""
+			// Build the path for the new element
+			newPath := currentPath
+			if newPath != "" {
+				newPath += "/" // Add a separator if the path is not empty
 			}
+			newPath += currentKeyName
+
+			newElement := &XMLElement{
+				KeyName:  currentKeyName,
+				Value:    "",
+				Path:     newPath, // Assign the path to the new element
+				Children: make(map[string]*XMLElement),
+			}
+
+			if root == nil {
+				root = newElement
+			} else {
+				currentElement.Children[currentKeyName] = newElement
+			}
+
+			stack = append(stack, newElement)
+			currentElement = newElement
+			currentPath = newPath // Update current path
+			currentKeyName = ""   // Reset key name after starting a new element
 
 		case xml.CharData:
 			trimmedData := string(bytes.TrimSpace(se))
-			if currentElement.KeyName == "" {
-				// If KeyName is empty, this CharData is the key name
-				currentKeyName = trimmedData
-			} else {
-				// Else, it's the value of the current element
+			if currentElement != nil && currentKeyName != "" {
 				currentElement.Value = trimmedData
+			} else {
+				currentKeyName = trimmedData
 			}
 
 		case xml.EndElement:
-			// Pop the last element from the stack and make it the current element
-			if len(stack) > 0 {
+			if len(stack) > 1 { // Check if there are more elements in the stack
+				stack = stack[:len(stack)-1] // Pop the stack
 				currentElement = stack[len(stack)-1]
-				stack = stack[:len(stack)-1]
+				currentPath = currentElement.Path // Update current path to the parent element's path
+			} else {
+				// Resetting at the root level
+				currentPath = ""
+				currentElement = nil
 			}
 		}
 	}
@@ -157,11 +171,14 @@ func parsePayloadXML(xmlString string) (*XMLElement, error) {
 func comparePayloadsWithIgnoredFields(tfElement, jamfElement *XMLElement) (bool, []string) {
 	var differences []string
 
-	// Function to recursively compare elements
 	var compareElements func(*XMLElement, *XMLElement, string)
 	compareElements = func(tfElem, jamfElem *XMLElement, path string) {
-		// Handle nil elements to avoid nil pointer dereference
+		// Log the beginning of a comparison at a new path
+		log.Printf("[DEBUG] Starting comparison at path: %s", path)
+
 		if tfElem == nil || jamfElem == nil {
+			// Handle nil elements
+			log.Printf("[DEBUG] One or both elements are nil at path: %s", path)
 			if tfElem != nil {
 				differences = append(differences, fmt.Sprintf("Path: '%s', Key missing in Jamf Pro state: '%s'", path, tfElem.KeyName))
 			}
@@ -171,31 +188,40 @@ func comparePayloadsWithIgnoredFields(tfElement, jamfElement *XMLElement) (bool,
 			return
 		}
 
-		// Skip ignored fields
-		if isIgnoredField(tfElem.KeyName) {
-			return
-		}
+		// Log the number of children in each element for debugging
+		log.Printf("[DEBUG] Number of children in Terraform element: %d, Jamf Pro element: %d at path: %s", len(tfElem.Children), len(jamfElem.Children), path)
 
-		// Check for value difference at the same hierarchy level
-		if tfElem.Value != jamfElem.Value {
-			differences = append(differences, fmt.Sprintf("Path: '%s', Value difference for key '%s': Terraform Value: '%s', Jamf Pro Value: '%s'", path, tfElem.KeyName, tfElem.Value, jamfElem.Value))
-		}
-
-		// Recursively compare children elements
 		for key, tfChild := range tfElem.Children {
+			// Check if the current key should be ignored
+			if isIgnoredField(key) {
+				log.Printf("[DEBUG] Ignoring field '%s' at path: %s", key, path)
+				continue // Skip comparison for this ignored field
+			}
+
+			jamfChild, exists := jamfElem.Children[key]
 			newPath := path + "/" + key
-			if jamfChild, exists := jamfElem.Children[key]; exists {
-				compareElements(tfChild, jamfChild, newPath)
-			} else if !isIgnoredField(key) {
+
+			// Log the comparison of each key and value
+			log.Printf("[DEBUG] Comparing key: '%s' at path: %s", key, newPath)
+
+			if exists {
+				// Compare values and log
+				if tfChild.Value != jamfChild.Value {
+					differences = append(differences, fmt.Sprintf("Path: '%s', Value difference for key '%s': Terraform Value: '%s', Jamf Pro Value: '%s'", newPath, key, tfChild.Value, jamfChild.Value))
+					log.Printf("[DEBUG] Value difference found for key '%s' at path: %s", key, newPath)
+				}
+				compareElements(tfChild, jamfChild, newPath) // Recursively compare children
+			} else {
 				differences = append(differences, fmt.Sprintf("Path: '%s', Key missing in Jamf Pro state: '%s'", newPath, key))
+				log.Printf("[DEBUG] Key missing in Jamf Pro state: '%s' at path: %s", key, newPath)
 			}
 		}
 
 		// Check for new keys in Jamf Pro state
-		for key, jamfChild := range jamfElem.Children {
-			newPath := path + "/" + key
-			if _, exists := tfElem.Children[key]; !exists && !isIgnoredField(key) {
-				compareElements(nil, jamfChild, newPath) // Nil indicates the key is missing in TF state
+		for key := range jamfElem.Children {
+			if _, exists := tfElem.Children[key]; !exists {
+				differences = append(differences, fmt.Sprintf("Path: '%s', New key in Jamf Pro state: '%s'", path, key))
+				log.Printf("[DEBUG] New key in Jamf Pro state: '%s' at path: %s", key, path)
 			}
 		}
 	}
@@ -220,33 +246,26 @@ func contains(slice []string, item string) bool {
 	return false
 }
 
-// convertTerraformStateToXML converts a Terraform state string containing an XML payload with escaped characters into a properly formatted XML string.
-func convertTerraformStateToXML(terraformState string) (string, error) {
-	log.Printf("[DEBUG] Raw Terraform state: %s", terraformState) // Log the raw state
+// convertTerraformStateToXML attempts to unescape a JSON-encoded XML string.
+// If the string is not JSON-encoded, it returns it as is.
+func convertTerraformStateToXML(jsonEncodedXML string) (string, error) {
+	// Log the JSON-encoded XML for debugging
+	log.Printf("[DEBUG] JSON-Encoded XML: %s", jsonEncodedXML)
 
-	// Unescaping unicode characters
-	unescapedStr, err := strconv.Unquote(`"` + terraformState + `"`)
-	if err != nil {
-		log.Printf("[ERROR] Failed to unescape Terraform state string: %v", err)
-		return "", fmt.Errorf("failed to unescape string: %w", err)
+	// Try to unescape as if it's a JSON string
+	unescapedXML, err := strconv.Unquote(`"` + jsonEncodedXML + `"`)
+	if err == nil {
+		return unescapedXML, nil
 	}
 
-	// Replace escaped XML characters
-	unescapedStr = strings.ReplaceAll(unescapedStr, `\u003c`, "<")
-	unescapedStr = strings.ReplaceAll(unescapedStr, `\u003e`, ">")
-	unescapedStr = strings.ReplaceAll(unescapedStr, `\n`, "\n")
-	unescapedStr = strings.ReplaceAll(unescapedStr, `\t`, "\t")
-
-	// Format XML with indentation
-	formattedXML, err := formatXML(unescapedStr)
-	if err != nil {
-		return "", fmt.Errorf("failed to format XML: %w", err)
+	// If unquote fails, check if it's already a regular XML
+	if strings.HasPrefix(jsonEncodedXML, "<?xml") {
+		return jsonEncodedXML, nil
 	}
 
-	// Debug: Print formatted XML
-	log.Printf("[DEBUG] Formatted XML: \n%s", formattedXML)
-
-	return formattedXML, nil
+	// If neither, return the original error
+	log.Printf("[ERROR] Failed to unescape JSON-encoded XML string: %v", err)
+	return "", fmt.Errorf("failed to unescape string: %w", err)
 }
 
 // formatXML formats an XML string with proper indentation and removes unnecessary spaces.
@@ -292,7 +311,7 @@ func convertJamfProXMLResponseToRegularXML(escapedXML string) (string, error) {
 	}
 
 	// Debug: Print formatted XML
-	log.Printf("[DEBUG] Formatted XML: \n%s", formattedXML)
+	log.Printf("[DEBUG] Jamf Pro Server XML Payload is: \n%s", formattedXML)
 
 	return formattedXML, nil
 }
