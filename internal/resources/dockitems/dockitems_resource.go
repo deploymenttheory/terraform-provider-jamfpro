@@ -34,7 +34,7 @@ func ResourceJamfProDockItems() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:        schema.TypeInt,
+				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The unique identifier of the dock item.",
 			},

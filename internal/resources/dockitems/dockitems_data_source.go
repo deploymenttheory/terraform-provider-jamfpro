@@ -19,7 +19,7 @@ func DataSourceJamfProDockItems() *schema.Resource {
 		ReadContext: DataSourceJamfProDockItemsRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:        schema.TypeInt,
+				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The unique identifier of the dock item.",
 				Computed:    true,
