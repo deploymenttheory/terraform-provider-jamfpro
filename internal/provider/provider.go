@@ -16,6 +16,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerextensionattributes"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/departments"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/dockitems"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macosconfigurationprofiles"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/scripts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/sites"
@@ -105,6 +106,7 @@ func Provider() *schema.Provider {
 			"jamfpro_computer_extension_attributes": computerextensionattributes.DataSourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_groups":               computergroups.DataSourceJamfProComputerGroups(),
 			"jamfpro_departments":                   departments.DataSourceJamfProDepartments(),
+			"jamfpro_dock_items":                    dockitems.DataSourceJamfProDockItems(),
 			"jamfpro_sites":                         sites.DataSourceJamfProSites(),
 			"jamfpro_scripts":                       scripts.DataSourceJamfProScripts(),
 			//"jamfpro_macos_configuration_profiles":  macosconfigurationprofiles.DataSourceJamfProMacOSConfigurationProfiles(),
@@ -115,6 +117,7 @@ func Provider() *schema.Provider {
 			"jamfpro_computer_extension_attributes": computerextensionattributes.ResourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_groups":               computergroups.ResourceJamfProComputerGroups(),
 			"jamfpro_departments":                   departments.ResourceJamfProDepartments(),
+			"jamfpro_dock_items":                    dockitems.ResourceJamfProDockItems(),
 			"jamfpro_sites":                         sites.ResourceJamfProSites(),
 			"jamfpro_scripts":                       scripts.ResourceJamfProScripts(),
 			"jamfpro_macos_configuration_profiles":  macosconfigurationprofiles.ResourceJamfProMacOSConfigurationProfiles(),
