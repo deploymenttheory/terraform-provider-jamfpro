@@ -230,13 +230,13 @@ func comparePayloadsWithIgnoredFields(tfElement, jamfElement *XMLElement) (bool,
 	return len(differences) == 0, differences
 }
 
-// isIgnoredField checks if a key should be ignored
+// isIgnoredField checks if a key should be ignored.
 func isIgnoredField(keyName string) bool {
 	ignoredFields := []string{"PayloadUUID", "PayloadOrganization", "PayloadIdentifier"}
 	return contains(ignoredFields, keyName)
 }
 
-// contains checks if a string slice contains a specific string
+// contains checks if a string slice contains a specific string.
 func contains(slice []string, item string) bool {
 	for _, s := range slice {
 		if s == item {
@@ -316,7 +316,7 @@ func convertJamfProXMLResponseToRegularXML(escapedXML string) (string, error) {
 	return formattedXML, nil
 }
 
-// formatmacOSConfigurationProfileXMLPayload prepares the xml payload for upload into Jamf Pro
+// formatmacOSConfigurationProfileXMLPayload prepares the xml payload for upload into Jamf Pro..
 func formatmacOSConfigurationProfileXMLPayload(input string) (string, error) {
 	// Decode the XML data
 	var buffer bytes.Buffer

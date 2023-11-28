@@ -65,7 +65,12 @@ func DataSourceJamfProBuilding() *schema.Resource {
 
 // DataSourceBuildingRead fetches the details of a specific building from Jamf Pro using either its unique Name or its Id.
 func DataSourceBuildingRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	var building *jamfpro.ResponseBuilding
 	var err error
@@ -92,14 +97,29 @@ func DataSourceBuildingRead(ctx context.Context, d *schema.ResourceData, meta in
 	}
 
 	// Set the data source attributes using the fetched data
+	if err := d.Set("name", building.Name); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'name': %v", err))
+	}
+	if err := d.Set("streetAddress1", building.StreetAddress1); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'streetAddress1': %v", err))
+	}
+	if err := d.Set("streetAddress2", building.StreetAddress2); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'streetAddress2': %v", err))
+	}
+	if err := d.Set("city", building.City); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'city': %v", err))
+	}
+	if err := d.Set("stateProvince", building.StateProvince); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'stateProvince': %v", err))
+	}
+	if err := d.Set("zipPostalCode", building.ZipPostalCode); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'zipPostalCode': %v", err))
+	}
+	if err := d.Set("country", building.Country); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'country': %v", err))
+	}
+
 	d.SetId(building.ID)
-	d.Set("name", building.Name)
-	d.Set("streetAddress1", building.StreetAddress1)
-	d.Set("streetAddress2", building.StreetAddress2)
-	d.Set("city", building.City)
-	d.Set("stateProvince", building.StateProvince)
-	d.Set("zipPostalCode", building.ZipPostalCode)
-	d.Set("country", building.Country)
 
 	return nil
 }

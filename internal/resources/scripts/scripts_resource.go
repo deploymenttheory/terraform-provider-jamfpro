@@ -134,41 +134,58 @@ func ResourceJamfProScripts() *schema.Resource {
 // It captures attributes from the schema and maps them to the fields of the structs in
 // the jamf pro sdk.
 func constructScript(d *schema.ResourceData) *jamfpro.ResponseScript {
-	// Handling Parameters
 	var params jamfpro.Parameters
+
+	// Handling Parameters with checked type assertions
 	if p, ok := d.GetOk("parameters"); ok {
-		paramsList := p.([]interface{})
-		if len(paramsList) > 0 && paramsList[0] != nil {
-			paramMap := paramsList[0].(map[string]interface{})
-			params = jamfpro.Parameters{
-				Parameter4:  paramMap["parameter4"].(string),
-				Parameter5:  paramMap["parameter5"].(string),
-				Parameter6:  paramMap["parameter6"].(string),
-				Parameter7:  paramMap["parameter7"].(string),
-				Parameter8:  paramMap["parameter8"].(string),
-				Parameter9:  paramMap["parameter9"].(string),
-				Parameter10: paramMap["parameter10"].(string),
-				Parameter11: paramMap["parameter11"].(string),
+		paramsList, ok := p.([]interface{})
+		if ok && len(paramsList) > 0 {
+			paramMap, ok := paramsList[0].(map[string]interface{})
+			if ok {
+				params = jamfpro.Parameters{
+					Parameter4:  getString(paramMap, "parameter4"),
+					Parameter5:  getString(paramMap, "parameter5"),
+					Parameter6:  getString(paramMap, "parameter6"),
+					Parameter7:  getString(paramMap, "parameter7"),
+					Parameter8:  getString(paramMap, "parameter8"),
+					Parameter9:  getString(paramMap, "parameter9"),
+					Parameter10: getString(paramMap, "parameter10"),
+					Parameter11: getString(paramMap, "parameter11"),
+				}
 			}
 		}
 	}
 
-	// Constructing the ResponseScript
+	// Constructing the ResponseScript with checked type assertions
 	return &jamfpro.ResponseScript{
-		Name:           d.Get("name").(string),
-		Category:       d.Get("category").(string),
-		Filename:       d.Get("filename").(string),
-		Info:           d.Get("info").(string),
-		Notes:          d.Get("notes").(string),
-		Priority:       d.Get("priority").(string),
+		Name:           getString(d, "name"),
+		Category:       getString(d, "category"),
+		Filename:       getString(d, "filename"),
+		Info:           getString(d, "info"),
+		Notes:          getString(d, "notes"),
+		Priority:       getString(d, "priority"),
 		Parameters:     params,
-		OSRequirements: d.Get("os_requirements").(string),
-		ScriptContents: d.Get("script_contents").(string),
-		// ScriptContentsEncoded is not set here as it's a computed field
+		OSRequirements: getString(d, "os_requirements"),
+		ScriptContents: getString(d, "script_contents"),
 	}
 }
 
-// Helper function to generate diagnostics based on the error type
+// getString safely retrieves a string from a map or ResourceData.
+func getString(source interface{}, key string) string {
+	switch v := source.(type) {
+	case map[string]interface{}:
+		if value, ok := v[key].(string); ok {
+			return value
+		}
+	case *schema.ResourceData:
+		if value, ok := v.Get(key).(string); ok {
+			return value
+		}
+	}
+	return ""
+}
+
+// Helper function to generate diagnostics based on the error type.
 func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
 	var diags diag.Diagnostics
 	resourceName, exists := d.GetOk("name")

@@ -27,7 +27,7 @@ func TestGetInstanceName(t *testing.T) {
 	assert.Equal(t, "testInstance", name)
 
 	// Test 2: Get instance name from environment variable
-	os.Setenv("JAMFPRO_INSTANCE", "testEnvInstance")
+	t.Setenv("JAMFPRO_INSTANCE", "testEnvInstance")
 	d.Set("instance_name", "") // Clear the previous set value
 	name, err = GetInstanceName(d)
 	assert.NoError(t, err)
@@ -54,7 +54,7 @@ func TestGetClientID(t *testing.T) {
 	assert.Equal(t, "testClientID", clientID)
 
 	// Test 2: Get client ID from environment variable
-	os.Setenv("JAMFPRO_CLIENT_ID", "testEnvClientID")
+	t.Setenv("JAMFPRO_CLIENT_ID", "testEnvClientID")
 	d.Set("client_id", "") // Clear the previous set value
 	clientID, err = GetClientID(d)
 	assert.NoError(t, err)
@@ -81,7 +81,7 @@ func TestGetClientSecret(t *testing.T) {
 	assert.Equal(t, "testClientSecret", clientSecret)
 
 	// Test 2: Get client secret from environment variable
-	os.Setenv("JAMFPRO_CLIENT_SECRET", "testEnvClientSecret")
+	t.Setenv("JAMFPRO_CLIENT_SECRET", "testEnvClientSecret")
 	d.Set("client_secret", "") // Clear the previous set value
 	clientSecret, err = GetClientSecret(d)
 	assert.NoError(t, err)

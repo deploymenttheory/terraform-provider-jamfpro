@@ -48,13 +48,16 @@ func ResourceJamfProDockItems() *schema.Resource {
 				Required:    true,
 				Description: "The type of the dock item (App/File/Folder).",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := val.(string)
+					v, ok := val.(string)
+					if !ok {
+						errs = append(errs, fmt.Errorf("expected a string for %q but got a different type", key))
+						return
+					}
 					validTypes := map[string]bool{
 						"App":    true,
 						"File":   true,
 						"Folder": true,
 					}
-
 					if !validTypes[v] {
 						errs = append(errs, fmt.Errorf("%q must be one of 'App', 'File', or 'Folder', got: %s", key, v))
 					}
@@ -93,7 +96,7 @@ func constructDockItem(d *schema.ResourceData) *jamfpro.ResponseDockItem {
 	return dockItem
 }
 
-// Helper function to generate diagnostics based on the error type
+// Helper function to generate diagnostics based on the error type.
 func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
 	var diags diag.Diagnostics
 	resourceName, exists := d.GetOk("name")

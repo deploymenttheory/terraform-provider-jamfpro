@@ -155,7 +155,7 @@ func constructComputerExtensionAttribute(d *schema.ResourceData) *jamfpro.Respon
 	return attribute
 }
 
-// Helper function to generate diagnostics based on the error type
+// Helper function to generate diagnostics based on the error type.
 func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
 	var diags diag.Diagnostics
 	resourceName, exists := d.GetOk("name")

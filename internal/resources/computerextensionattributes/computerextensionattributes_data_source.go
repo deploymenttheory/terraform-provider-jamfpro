@@ -103,7 +103,12 @@ func DataSourceJamfProComputerExtensionAttributes() *schema.Resource {
 // Returns:
 // - diag.Diagnostics: Returns any diagnostics (errors or warnings) encountered during the function's execution.
 func dataSourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	var attribute *jamfpro.ResponseComputerExtensionAttribute
 	var err error
@@ -126,13 +131,29 @@ func dataSourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sc
 	}
 
 	// Set the data source attributes using the fetched data
-	d.SetId(fmt.Sprintf("%d", attribute.ID))
-	d.Set("name", attribute.Name)
-	d.Set("enabled", attribute.Enabled)
-	d.Set("description", attribute.Description)
-	d.Set("data_type", attribute.DataType)
-	d.Set("inventory_display", attribute.InventoryDisplay)
-	d.Set("recon_display", attribute.ReconDisplay)
+	if attribute == nil {
+		return diag.FromErr(fmt.Errorf("computer extension attribute not found"))
+	}
+
+	// Set the data source attributes using the fetched data
+	if err := d.Set("name", attribute.Name); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'name': %v", err))
+	}
+	if err := d.Set("enabled", attribute.Enabled); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'enabled': %v", err))
+	}
+	if err := d.Set("description", attribute.Description); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'description': %v", err))
+	}
+	if err := d.Set("data_type", attribute.DataType); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'data_type': %v", err))
+	}
+	if err := d.Set("inventory_display", attribute.InventoryDisplay); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'inventory_display': %v", err))
+	}
+	if err := d.Set("recon_display", attribute.ReconDisplay); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'recon_display': %v", err))
+	}
 
 	// Extract the input type details and set them in the data source
 	inputType := make(map[string]interface{})
@@ -140,7 +161,11 @@ func dataSourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sc
 	inputType["platform"] = attribute.InputType.Platform
 	inputType["script"] = attribute.InputType.Script
 	inputType["choices"] = attribute.InputType.Choices
-	d.Set("input_type", []interface{}{inputType})
+	if err := d.Set("input_type", []interface{}{inputType}); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'input_type': %v", err))
+	}
+
+	d.SetId(fmt.Sprintf("%d", attribute.ID))
 
 	return nil
 }

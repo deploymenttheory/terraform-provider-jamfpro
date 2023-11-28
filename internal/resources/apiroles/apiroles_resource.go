@@ -49,7 +49,7 @@ func ResourceJamfProAPIRoles() *schema.Resource {
 	}
 }
 
-// Helper function to generate diagnostics based on the error type
+// Helper function to generate diagnostics based on the error type.
 func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
 	var diags diag.Diagnostics
 	resourceName, exists := d.GetOk("name")
@@ -225,9 +225,15 @@ func ResourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	// Update the Terraform state with the fetched data
-	d.Set("id", fetchedRole.ID)
-	d.Set("display_name", fetchedRole.DisplayName)
-	d.Set("privileges", fetchedRole.Privileges)
+	if err := d.Set("id", fetchedRole.ID); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'id': %v", err))
+	}
+	if err := d.Set("display_name", fetchedRole.DisplayName); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'display_name': %v", err))
+	}
+	if err := d.Set("privileges", fetchedRole.Privileges); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'privileges': %v", err))
+	}
 
 	return diags
 }
