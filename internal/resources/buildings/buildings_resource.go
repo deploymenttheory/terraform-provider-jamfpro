@@ -230,10 +230,10 @@ func ResourceJamfProBuildingRead(ctx context.Context, d *schema.ResourceData, me
 	if err := d.Set("name", building.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("street_Address1", building.StreetAddress1); err != nil {
+	if err := d.Set("street_address1", building.StreetAddress1); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("street_Address2", building.StreetAddress2); err != nil {
+	if err := d.Set("street_address2", building.StreetAddress2); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("city", building.City); err != nil {
