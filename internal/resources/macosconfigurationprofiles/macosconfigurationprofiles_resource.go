@@ -842,8 +842,6 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 	}
 }
 
-// constructJamfProMacOSConfigurationProfile constructs a ResponseMacOSConfigurationProfile object from the provided schema data.
-// It captures each attribute from the schema and returns the constructed ResponseMacOSConfigurationProfile object.
 // constructJamfProMacOSConfigurationProfile constructs a ResponseMacOSConfigurationProfile object from the provided schema data and returns any errors encountered.
 func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro.ResponseMacOSConfigurationProfiles, error) {
 	profile := &jamfpro.ResponseMacOSConfigurationProfiles{

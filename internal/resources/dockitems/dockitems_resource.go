@@ -79,8 +79,8 @@ func ResourceJamfProDockItems() *schema.Resource {
 	}
 }
 
-// constructDockItem constructs a ResponseDockItem object from the provided schema data and returns any errors encountered.
-func constructDockItem(d *schema.ResourceData) (*jamfpro.ResponseDockItem, error) {
+// constructJamfProDockItem constructs a ResponseDockItem object from the provided schema data and returns any errors encountered.
+func constructJamfProDockItem(d *schema.ResourceData) (*jamfpro.ResponseDockItem, error) {
 	dockItem := &jamfpro.ResponseDockItem{}
 
 	fields := map[string]interface{}{
@@ -153,7 +153,7 @@ func ResourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData,
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the dock item.
-		dockItem, err := constructDockItem(d)
+		dockItem, err := constructJamfProDockItem(d)
 
 		// Check if the dock item is nil.
 		if dockItem == nil {
@@ -287,7 +287,7 @@ func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData,
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		// Construct the dock item
-		dockItem, err := constructDockItem(d)
+		dockItem, err := constructJamfProDockItem(d)
 		if err != nil {
 			return retry.NonRetryableError(fmt.Errorf("failed to construct the dock item: %w", err))
 		}

@@ -131,8 +131,8 @@ func ResourceJamfProScripts() *schema.Resource {
 	}
 }
 
-// constructScript constructs a ResponseScript object from the provided schema data and returns any errors encountered.
-func constructScript(d *schema.ResourceData) (*jamfpro.ResponseScript, error) {
+// constructJamfProScript constructs a ResponseScript object from the provided schema data and returns any errors encountered.
+func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResponseScript, error) {
 	script := &jamfpro.ResponseScript{}
 
 	fields := map[string]interface{}{
@@ -239,7 +239,7 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the script
-		attribute, err := constructScript(d)
+		attribute, err := constructJamfProScript(d)
 
 		// Check if the attribute is nil (indicating an issue with input_type)
 		if attribute == nil {
@@ -362,7 +362,7 @@ func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, m
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		// Construct the updated script
-		script, err := constructScript(d)
+		script, err := constructJamfProScript(d)
 		if err != nil {
 			return retry.NonRetryableError(fmt.Errorf("failed to construct the script: %w", err))
 		}

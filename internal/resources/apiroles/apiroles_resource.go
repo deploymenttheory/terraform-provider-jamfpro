@@ -74,8 +74,8 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 	return diags
 }
 
-// constructAPIRoleFromSchema constructs an APIRole object from the provided schema data.
-func constructAPIRoleFromSchema(d *schema.ResourceData) *jamfpro.APIRole {
+// constructJamfProApiRole constructs an APIRole object from the provided schema data.
+func constructJamfProApiRole(d *schema.ResourceData) *jamfpro.APIRole {
 	// Extract the display name and privileges from the schema
 	displayName := d.Get("display_name").(string)
 	privilegesSet := d.Get("privileges").(*schema.Set)
@@ -120,7 +120,7 @@ func ResourceJamfProAPIRolesCreate(ctx context.Context, d *schema.ResourceData, 
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the API role
-		role := constructAPIRoleFromSchema(d)
+		role := constructJamfProApiRole(d)
 
 		// Log the details of the role that is about to be created
 		log.Printf("[INFO] Attempting to create APIRole with display name: %s", role.DisplayName)
@@ -257,7 +257,7 @@ func ResourceJamfProAPIRolesUpdate(ctx context.Context, d *schema.ResourceData, 
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		// Construct the updated API role
-		role := constructAPIRoleFromSchema(d)
+		role := constructJamfProApiRole(d)
 
 		// Convert the ID from the Terraform state into a string to be used for the API request
 		roleID := d.Id()

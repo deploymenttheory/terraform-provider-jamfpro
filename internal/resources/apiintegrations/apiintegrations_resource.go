@@ -102,8 +102,8 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 	return diags
 }
 
-// constructApiIntegration constructs a ResponseApiIntegration object from the provided schema data.
-func constructApiIntegration(d *schema.ResourceData) *jamfpro.ApiIntegration {
+// constructJamfProApiIntegration constructs a ResponseApiIntegration object from the provided schema data.
+func constructJamfProApiIntegration(d *schema.ResourceData) *jamfpro.ApiIntegration {
 	// Construct the ApiIntegration object
 	integration := &jamfpro.ApiIntegration{
 		DisplayName:                d.Get("display_name").(string),
@@ -145,7 +145,7 @@ func ResourceJamfProApiIntegrationsCreate(ctx context.Context, d *schema.Resourc
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the API integration
-		integration := constructApiIntegration(d)
+		integration := constructJamfProApiIntegration(d)
 
 		// Log the details of the integration that is about to be created
 		log.Printf("[INFO] Attempting to create ApiIntegration with display name: %s", integration.DisplayName)
@@ -283,7 +283,7 @@ func ResourceJamfProApiIntegrationsUpdate(ctx context.Context, d *schema.Resourc
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		// Construct the updated API integration
-		integration := constructApiIntegration(d)
+		integration := constructJamfProApiIntegration(d)
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request
 		integrationID, convertErr := strconv.Atoi(d.Id())

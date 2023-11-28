@@ -178,9 +178,8 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 	}
 }
 
-// constructComputerGroup constructs a ResponseComputerGroup object from the provided schema data.
-// constructComputerGroup constructs a ResponseComputerGroup object from the provided schema data and returns any errors encountered.
-func constructComputerGroup(d *schema.ResourceData) (*jamfpro.ResponseComputerGroup, error) {
+// constructJamfProComputerGroup constructs a ResponseComputerGroup object from the provided schema data and returns any errors encountered.
+func constructJamfProComputerGroup(d *schema.ResourceData) (*jamfpro.ResponseComputerGroup, error) {
 	group := &jamfpro.ResponseComputerGroup{}
 
 	// Handle simple fields
@@ -297,7 +296,7 @@ func ResourceJamfProComputerGroupsCreate(ctx context.Context, d *schema.Resource
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the computer group
-		group, err := constructComputerGroup(d)
+		group, err := constructJamfProComputerGroup(d)
 
 		// Log the details of the group that is about to be created
 		log.Printf("[INFO] Attempting to create ComputerGroup with name: %s", group.Name)
@@ -461,7 +460,7 @@ func ResourceJamfProComputerGroupsUpdate(ctx context.Context, d *schema.Resource
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		// Construct the updated computer group
-		group, err := constructComputerGroup(d)
+		group, err := constructJamfProComputerGroup(d)
 		if err != nil {
 			return retry.NonRetryableError(fmt.Errorf("failed to construct the computer group: %w", err))
 		}

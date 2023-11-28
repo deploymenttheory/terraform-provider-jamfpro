@@ -67,8 +67,8 @@ func ResourceJamfProBuilding() *schema.Resource {
 	}
 }
 
-// constructBuilding constructs a Building object from the provided schema data and returns any errors encountered.
-func constructBuilding(d *schema.ResourceData) (*jamfpro.ResponseBuilding, error) {
+// constructJamfProBuilding constructs a Building object from the provided schema data and returns any errors encountered.
+func constructJamfProBuilding(d *schema.ResourceData) (*jamfpro.ResponseBuilding, error) {
 	building := &jamfpro.ResponseBuilding{}
 
 	fields := map[string]*string{
@@ -143,7 +143,7 @@ func ResourceJamfProBuildingCreate(ctx context.Context, d *schema.ResourceData, 
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the building
-		building, err := constructBuilding(d)
+		building, err := constructJamfProBuilding(d)
 
 		// Check if the building is nil
 		if building == nil {
@@ -281,7 +281,7 @@ func ResourceJamfProBuildingUpdate(ctx context.Context, d *schema.ResourceData, 
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		// Construct the building
-		building, err := constructBuilding(d)
+		building, err := constructJamfProBuilding(d)
 		if err != nil {
 			return retry.NonRetryableError(fmt.Errorf("failed to construct the building: %w", err))
 		}

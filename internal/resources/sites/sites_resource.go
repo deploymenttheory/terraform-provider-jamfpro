@@ -47,9 +47,9 @@ func ResourceJamfProSites() *schema.Resource {
 	}
 }
 
-// constructSite constructs a ResponseSite object from the provided schema data.
+// constructJamfProSite constructs a ResponseSite object from the provided schema data.
 // It captures attributes from the schema and returns the constructed object.
-func constructSite(d *schema.ResourceData) *jamfpro.ResponseSite {
+func constructJamfProSite(d *schema.ResourceData) *jamfpro.ResponseSite {
 	return &jamfpro.ResponseSite{
 		Name: d.Get("name").(string),
 	}
@@ -101,7 +101,7 @@ func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, met
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the site
-		attribute := constructSite(d)
+		attribute := constructJamfProSite(d)
 
 		// Check if the attribute is nil (indicating an issue with input_type)
 		if attribute == nil {
@@ -224,7 +224,7 @@ func ResourceJamfProSitesUpdate(ctx context.Context, d *schema.ResourceData, met
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		// Construct the updated site
-		site := constructSite(d)
+		site := constructJamfProSite(d)
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request
 		siteID, convertErr := strconv.Atoi(d.Id())
