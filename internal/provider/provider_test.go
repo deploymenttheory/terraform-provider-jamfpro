@@ -21,14 +21,20 @@ func TestGetInstanceName(t *testing.T) {
 	}, map[string]interface{}{})
 
 	// Test 1: Get instance name from d
-	d.Set("instance_name", "testInstance")
+	err := d.Set("instance_name", "testInstance")
+	if err != nil {
+		t.Fatalf("error setting instance_name: %v", err)
+	}
 	name, err := GetInstanceName(d)
 	assert.NoError(t, err)
 	assert.Equal(t, "testInstance", name)
 
 	// Test 2: Get instance name from environment variable
 	t.Setenv("JAMFPRO_INSTANCE", "testEnvInstance")
-	d.Set("instance_name", "") // Clear the previous set value
+	err = d.Set("instance_name", "") // Clear the previous set value
+	if err != nil {
+		t.Fatalf("error clearing instance_name: %v", err)
+	}
 	name, err = GetInstanceName(d)
 	assert.NoError(t, err)
 	assert.Equal(t, "testEnvInstance", name)
