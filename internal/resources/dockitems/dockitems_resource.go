@@ -125,29 +125,35 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 // 3. Updates the Terraform state with the ID of the newly created dock item.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
 
-	// Use the retry function for the create operation
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
+
+	// Use the retry function for the create operation.
 	var createdDockItem *jamfpro.ResponseDockItem
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		// Construct the dock item
+		// Construct the dock item.
 		dockItem := constructDockItem(d)
 
-		// Check if the dock item is nil
+		// Check if the dock item is nil.
 		if dockItem == nil {
 			return retry.NonRetryableError(fmt.Errorf("failed to construct the dock item"))
 		}
 
-		// Directly call the API to create the resource
+		// Directly call the API to create the resource.
 		createdDockItem, err = conn.CreateDockItems(dockItem)
 		if err != nil {
-			// Check if the error is an APIError
+			// Check if the error is an APIError.
 			if apiErr, ok := err.(*http_client.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message))
 			}
-			// For simplicity, we're considering all other errors as retryable
+			// For simplicity, we're considering all other errors as retryable.
 			return retry.RetryableError(err)
 		}
 
@@ -186,8 +192,14 @@ func ResourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData,
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the dock item being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	var dockItem *jamfpro.ResponseDockItem
 
@@ -248,8 +260,14 @@ func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, m
 
 // ResourceJamfProDockItemsUpdate is responsible for updating an existing Jamf Pro Dock Item on the remote system.
 func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	// Use the retry function for the update operation
 	var err error
@@ -310,8 +328,14 @@ func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData,
 
 // ResourceJamfProDockItemsDelete is responsible for deleting a Jamf Pro Dock Item.
 func ResourceJamfProDockItemsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	// Use the retry function for the DELETE operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {

@@ -77,7 +77,7 @@ func ResourceJamfProApiIntegrations() *schema.Resource {
 	}
 }
 
-// Helper function to generate diagnostics based on the error type
+// Helper function to generate diagnostics based on the error type.
 func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
 	var diags diag.Diagnostics
 	resourceName, exists := d.GetOk("name")
@@ -85,7 +85,7 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 		resourceName = "unknown"
 	}
 
-	// Handle the APIError in the diagnostic
+	// Handle the APIError in the diagnostic.
 	if apiErr, ok := err.(*http_client.APIError); ok {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -131,8 +131,14 @@ func convertToStringSlice(set *schema.Set) []string {
 
 // ResourceJamfProApiIntegrationsCreate is responsible for creating a new Jamf Pro API Integration in the remote system.
 func ResourceJamfProApiIntegrationsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	// Use the retry function for the create operation
 	var createdIntegration *jamfpro.ApiIntegration
@@ -192,8 +198,14 @@ func ResourceJamfProApiIntegrationsCreate(ctx context.Context, d *schema.Resourc
 
 // ResourceJamfProApiIntegrationsRead is responsible for reading the current state of a Jamf Pro API Integration from the remote system.
 func ResourceJamfProApiIntegrationsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	var integration *jamfpro.ApiIntegration
 
@@ -258,8 +270,14 @@ func ResourceJamfProApiIntegrationsRead(ctx context.Context, d *schema.ResourceD
 
 // ResourceJamfProApiIntegrationsUpdate is responsible for updating an existing Jamf Pro API Integration on the remote system.
 func ResourceJamfProApiIntegrationsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	// Use the retry function for the update operation
 	var err error
@@ -320,10 +338,16 @@ func ResourceJamfProApiIntegrationsUpdate(ctx context.Context, d *schema.Resourc
 
 // ResourceJamfProApiIntegrationsDelete is responsible for deleting a Jamf Pro API Integration.
 func ResourceJamfProApiIntegrationsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
 
-	// Use the retry function for the **DELETE** operation
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
+
+	// Use the retry function for the delete operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Convert the ID from the Terraform state into an integer to be used for the API request
 		integrationID, convertErr := strconv.Atoi(d.Id())
@@ -331,10 +355,10 @@ func ResourceJamfProApiIntegrationsDelete(ctx context.Context, d *schema.Resourc
 			return retry.NonRetryableError(fmt.Errorf("failed to parse integration ID: %v", convertErr))
 		}
 
-		// Directly call the API to **DELETE** the resource
+		// Directly call the API to delete the resource
 		apiErr := conn.DeleteApiIntegrationByID(strconv.Itoa(integrationID))
 		if apiErr != nil {
-			// If the **DELETE** by ID fails, try deleting by display name
+			// If the delete by ID fails, try deleting by display name
 			integrationName := d.Get("display_name").(string)
 			apiErr = conn.DeleteApiIntegrationByName(integrationName)
 			if apiErr != nil {

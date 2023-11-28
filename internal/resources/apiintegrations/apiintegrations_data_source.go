@@ -95,18 +95,36 @@ func dataSourceJamfProApiIntegrationsRead(ctx context.Context, d *schema.Resourc
 
 	// Set the data source attributes using the fetched data
 	d.SetId(fmt.Sprintf("%d", integration.ID))
-	d.Set("display_name", integration.DisplayName)
-	d.Set("enabled", integration.Enabled)
-	d.Set("access_token_lifetime_seconds", integration.AccessTokenLifetimeSeconds)
-	d.Set("app_type", integration.AppType)
-	d.Set("client_id", integration.ClientID)
+
+	if err := d.Set("display_name", integration.DisplayName); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'display_name': %v", err))
+	}
+
+	if err := d.Set("enabled", integration.Enabled); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'enabled': %v", err))
+	}
+
+	if err := d.Set("access_token_lifetime_seconds", integration.AccessTokenLifetimeSeconds); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'access_token_lifetime_seconds': %v", err))
+	}
+
+	if err := d.Set("app_type", integration.AppType); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'app_type': %v", err))
+	}
+
+	if err := d.Set("client_id", integration.ClientID); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'client_id': %v", err))
+	}
 
 	// Convert the authorization scopes to a schema.Set before setting it
 	authorizationScopesSet := schema.NewSet(schema.HashString, []interface{}{})
 	for _, scope := range integration.AuthorizationScopes {
 		authorizationScopesSet.Add(scope)
 	}
-	d.Set("authorization_scopes", authorizationScopesSet)
+
+	if err := d.Set("authorization_scopes", authorizationScopesSet); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'authorization_scopes': %v", err))
+	}
 
 	return nil
 }
