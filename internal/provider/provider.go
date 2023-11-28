@@ -13,6 +13,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiintegrations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiroles"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/buildings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerextensionattributes"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/departments"
@@ -103,17 +104,19 @@ func Provider() *schema.Provider {
 		DataSourcesMap: map[string]*schema.Resource{
 			"jamfpro_api_integrations":              apiintegrations.DataSourceJamfProApiIntegrations(),
 			"jamfpro_api_roles":                     apiroles.DataSourceJamfProAPIRoles(),
+			"jamfpro_buildings":                     buildings.DataSourceJamfProBuilding(),
 			"jamfpro_computer_extension_attributes": computerextensionattributes.DataSourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_groups":               computergroups.DataSourceJamfProComputerGroups(),
 			"jamfpro_departments":                   departments.DataSourceJamfProDepartments(),
-			"jamfpro_dock_items":                    dockitems.DataSourceJamfProDockItems(),
-			"jamfpro_sites":                         sites.DataSourceJamfProSites(),
-			"jamfpro_scripts":                       scripts.DataSourceJamfProScripts(),
+			//"jamfpro_dock_items":                    dockitems.DataSourceJamfProDockItems(),
+			"jamfpro_sites":   sites.DataSourceJamfProSites(),
+			"jamfpro_scripts": scripts.DataSourceJamfProScripts(),
 			//"jamfpro_macos_configuration_profiles":  macosconfigurationprofiles.DataSourceJamfProMacOSConfigurationProfiles(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"jamfpro_api_integrations":              apiintegrations.ResourceJamfProApiIntegrations(),
 			"jamfpro_api_roles":                     apiroles.ResourceJamfProAPIRoles(),
+			"jamfpro_buildings":                     buildings.ResourceJamfProBuilding(),
 			"jamfpro_computer_extension_attributes": computerextensionattributes.ResourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_groups":               computergroups.ResourceJamfProComputerGroups(),
 			"jamfpro_departments":                   departments.ResourceJamfProDepartments(),
