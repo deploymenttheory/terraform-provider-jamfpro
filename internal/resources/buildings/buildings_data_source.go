@@ -76,14 +76,22 @@ func DataSourceBuildingRead(ctx context.Context, d *schema.ResourceData, meta in
 	var err error
 
 	// Check if Name is provided in the data source configuration
-	if v, ok := d.GetOk("name"); ok && v.(string) != "" {
-		buildingName := v.(string)
-		building, err = conn.GetBuildingByNameByID(buildingName)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to fetch building by name: %v", err))
+	if v, ok := d.GetOk("name"); ok {
+		buildingName, ok := v.(string)
+		if !ok {
+			return diag.Errorf("expected 'name' to be a string")
+		}
+		if buildingName != "" {
+			building, err = conn.GetBuildingByNameByID(buildingName)
+			if err != nil {
+				return diag.FromErr(fmt.Errorf("failed to fetch building by name: %v", err))
+			}
 		}
 	} else if v, ok := d.GetOk("id"); ok {
-		buildingID := v.(string)
+		buildingID, ok := v.(string)
+		if !ok {
+			return diag.Errorf("expected 'id' to be a string")
+		}
 		building, err = conn.GetBuildingByID(buildingID)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to fetch building by ID: %v", err))

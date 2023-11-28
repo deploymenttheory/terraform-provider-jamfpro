@@ -82,15 +82,36 @@ func ResourceJamfProDockItems() *schema.Resource {
 // It captures the 'name', 'type', 'path', and 'contents' attributes from the schema
 // and returns the constructed ResponseDockItem object.
 func constructDockItem(d *schema.ResourceData) *jamfpro.ResponseDockItem {
-	dockItem := &jamfpro.ResponseDockItem{
-		Name: d.Get("name").(string),
-		Type: d.Get("type").(string),
-		Path: d.Get("path").(string),
+	dockItem := &jamfpro.ResponseDockItem{}
+
+	// Safely assert type for 'name'
+	if name, ok := d.Get("name").(string); ok {
+		dockItem.Name = name
+	} else {
+		return nil
 	}
 
-	// 'contents' is optional, so it needs a presence check
+	// Safely assert type for 'type'
+	if typeStr, ok := d.Get("type").(string); ok {
+		dockItem.Type = typeStr
+	} else {
+		return nil
+	}
+
+	// Safely assert type for 'path'
+	if path, ok := d.Get("path").(string); ok {
+		dockItem.Path = path
+	} else {
+		return nil
+	}
+
+	// Safely assert type for 'contents' if it exists
 	if v, ok := d.GetOk("contents"); ok {
-		dockItem.Contents = v.(string)
+		if contents, ok := v.(string); ok {
+			dockItem.Contents = contents
+		} else {
+			return nil
+		}
 	}
 
 	return dockItem

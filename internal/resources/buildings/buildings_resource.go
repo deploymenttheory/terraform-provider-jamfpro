@@ -4,6 +4,7 @@ package buildings
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -66,31 +67,60 @@ func ResourceJamfProBuilding() *schema.Resource {
 	}
 }
 
+// assertString returns the string along with a boolean indicating whether the assertion was successful.
+func assertString(val interface{}) (string, bool) {
+	strVal, ok := val.(string)
+	return strVal, ok
+}
+
 // constructBuilding constructs a Building object from the provided schema data.
 func constructBuilding(d *schema.ResourceData) *jamfpro.ResponseBuilding {
 	building := &jamfpro.ResponseBuilding{}
 
 	if v, ok := d.GetOk("name"); ok {
-		building.Name = v.(string)
+		if building.Name, ok = assertString(v); !ok {
+			return nil
+		}
 	}
+
 	if v, ok := d.GetOk("street_address1"); ok {
-		building.StreetAddress1 = v.(string)
+		if building.StreetAddress1, ok = assertString(v); !ok {
+			return nil
+		}
 	}
+
 	if v, ok := d.GetOk("street_address2"); ok {
-		building.StreetAddress2 = v.(string)
+		if building.StreetAddress2, ok = assertString(v); !ok {
+			return nil
+		}
 	}
+
 	if v, ok := d.GetOk("city"); ok {
-		building.City = v.(string)
+		if building.City, ok = assertString(v); !ok {
+			return nil
+		}
 	}
+
 	if v, ok := d.GetOk("state_province"); ok {
-		building.StateProvince = v.(string)
+		if building.StateProvince, ok = assertString(v); !ok {
+			return nil
+		}
 	}
+
 	if v, ok := d.GetOk("zip_postal_code"); ok {
-		building.ZipPostalCode = v.(string)
+		if building.ZipPostalCode, ok = assertString(v); !ok {
+			return nil
+		}
 	}
+
 	if v, ok := d.GetOk("country"); ok {
-		building.Country = v.(string)
+		if building.Country, ok = assertString(v); !ok {
+			return nil
+		}
 	}
+
+	// After successful construction
+	log.Printf("[INFO] Successfully constructed Building with name: %s", building.Name)
 
 	return building
 }
