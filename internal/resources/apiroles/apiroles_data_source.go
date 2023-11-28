@@ -44,7 +44,12 @@ func DataSourceJamfProAPIRoles() *schema.Resource {
 // The function prioritizes the 'name' attribute over the 'id' attribute for fetching details. If neither 'name' nor 'id' is provided,
 // it returns an error. Once the details are fetched, they are set in the data source's state.
 func dataSourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	var role *jamfpro.APIRole
 	var err error
@@ -67,9 +72,14 @@ func dataSourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	// Set the data source attributes using the fetched data
-	d.SetId(role.ID)
-	d.Set("name", role.DisplayName)
-	d.Set("privileges", role.Privileges)
+	if err := d.Set("name", role.DisplayName); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'name': %v", err))
+	}
+	if err := d.Set("privileges", role.Privileges); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'privileges': %v", err))
+	}
+
+	d.SetId(role.ID) // Assuming d.SetId does not return an error
 
 	return nil
 }

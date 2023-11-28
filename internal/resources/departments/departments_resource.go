@@ -4,6 +4,7 @@ package departments
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -47,15 +48,31 @@ func ResourceJamfProDepartments() *schema.Resource {
 	}
 }
 
-// constructDepartment constructs a ResponseDepartment object from the provided schema data.
-// It captures the 'name' attribute from the schema and returns the constructed ResponseDepartment object.
-func constructDepartment(d *schema.ResourceData) *jamfpro.ResponseDepartment {
-	return &jamfpro.ResponseDepartment{
-		Name: d.Get("name").(string),
+// constructDepartment constructs a ResponseDepartment object from the provided schema data and returns any errors encountered.
+func constructDepartment(d *schema.ResourceData) (*jamfpro.ResponseDepartment, error) {
+	department := &jamfpro.ResponseDepartment{}
+
+	fields := map[string]*string{
+		"name": &department.Name,
 	}
+
+	for key, ptr := range fields {
+		if v, ok := d.GetOk(key); ok {
+			strVal, ok := v.(string)
+			if !ok {
+				return nil, fmt.Errorf("failed to assert '%s' as a string", key)
+			}
+			*ptr = strVal
+		}
+	}
+
+	// Log the successful construction of the department
+	log.Printf("[INFO] Successfully constructed Department with name: %s", department.Name)
+
+	return department, nil
 }
 
-// Helper function to generate diagnostics based on the error type
+// Helper function to generate diagnostics based on the error type..
 func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
 	var diags diag.Diagnostics
 	resourceName, exists := d.GetOk("name")
@@ -87,15 +104,21 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	// Use the retry function for the create operation
 	var createdAttribute *jamfpro.ResponseDepartment
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the computer extension attribute
-		department := constructDepartment(d)
+		department, err := constructDepartment(d)
 
 		// Check if the department is nil
 		if department == nil {
@@ -148,8 +171,14 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	var attribute *jamfpro.ResponseDepartment
 
@@ -199,14 +228,23 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 
 // ResourceJamfProDepartmentsUpdate is responsible for updating an existing Jamf Pro Site on the remote system.
 func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	// Use the retry function for the update operation
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		// Construct the department
-		department := constructDepartment(d)
+		department, err := constructDepartment(d)
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the department: %w", err))
+		}
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request
 		departmentID, convertErr := strconv.Atoi(d.Id())
@@ -261,8 +299,14 @@ func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 
 // ResourceJamfProDepartmentsDelete is responsible for deleting a Jamf Pro Department.
 func ResourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	// Use the retry function for the **DELETE** operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {

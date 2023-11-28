@@ -144,20 +144,34 @@ func DataSourceJamfProComputerGroups() *schema.Resource {
 // Returns:
 // - diag.Diagnostics: Returns any diagnostics (errors or warnings) encountered during the function's execution.
 func DataSourceJamfProComputerGroupsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	var group *jamfpro.ResponseComputerGroup
 	var err error
 
 	// Check if Name is provided in the data source configuration
-	if v, ok := d.GetOk("name"); ok && v.(string) != "" {
-		groupName := v.(string)
-		group, err = conn.GetComputerGroupByName(groupName)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to fetch computer group by name: %v", err))
+	if v, ok := d.GetOk("name"); ok {
+		groupName, ok := v.(string)
+		if !ok {
+			return diag.Errorf("error asserting 'name' as string")
+		}
+		if groupName != "" {
+			group, err = conn.GetComputerGroupByName(groupName)
+			if err != nil {
+				return diag.FromErr(fmt.Errorf("failed to fetch computer group by name: %v", err))
+			}
 		}
 	} else if v, ok := d.GetOk("id"); ok {
-		groupID, err := strconv.Atoi(v.(string))
+		groupIDStr, ok := v.(string)
+		if !ok {
+			return diag.Errorf("error asserting 'id' as string")
+		}
+		groupID, err := strconv.Atoi(groupIDStr)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to parse computer group ID: %v", err))
 		}
@@ -171,40 +185,53 @@ func DataSourceJamfProComputerGroupsRead(ctx context.Context, d *schema.Resource
 
 	// Set the data source attributes using the fetched data
 	d.SetId(fmt.Sprintf("%d", group.ID))
-	d.Set("name", group.Name)
-	d.Set("is_smart", group.IsSmart)
-	d.Set("site", []interface{}{map[string]interface{}{
+
+	if err := d.Set("name", group.Name); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting 'name': %v", err))
+	}
+	if err := d.Set("is_smart", group.IsSmart); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting 'is_smart': %v", err))
+	}
+	if err := d.Set("site", []interface{}{map[string]interface{}{
 		"id":   group.Site.ID,
 		"name": group.Site.Name,
-	}})
+	}}); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting 'site': %v", err))
+	}
 
 	// Set the criteria
 	criteriaList := make([]interface{}, len(group.Criteria))
-	for i, crit := range group.Criteria {
+	for i, criteria := range group.Criteria {
 		criteriaList[i] = map[string]interface{}{
-			"name":          crit.Name,
-			"priority":      crit.Priority,
-			"and_or":        string(crit.AndOr),
-			"search_type":   crit.SearchType,
-			"value":         crit.SearchValue,
-			"opening_paren": crit.OpeningParen,
-			"closing_paren": crit.ClosingParen,
+			"name":          criteria.Name,
+			"priority":      criteria.Priority,
+			"and_or":        string(criteria.AndOr),
+			"search_type":   criteria.SearchType,
+			"value":         criteria.SearchValue,
+			"opening_paren": criteria.OpeningParen,
+			"closing_paren": criteria.ClosingParen,
 		}
 	}
-	d.Set("criteria", criteriaList)
+
+	if err := d.Set("criteria", criteriaList); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting 'criteria': %v", err))
+	}
 
 	// Set the computers
 	computersList := make([]interface{}, len(group.Computers))
-	for i, comp := range group.Computers {
+	for i, computer := range group.Computers {
 		computersList[i] = map[string]interface{}{
-			"id":              comp.ID,
-			"name":            comp.Name,
-			"mac_address":     comp.MacAddress,
-			"alt_mac_address": comp.AltMacAddress,
-			"serial_number":   comp.SerialNumber,
+			"id":              computer.ID,
+			"name":            computer.Name,
+			"mac_address":     computer.MacAddress,
+			"alt_mac_address": computer.AltMacAddress,
+			"serial_number":   computer.SerialNumber,
 		}
 	}
-	d.Set("computers", computersList)
+
+	if err := d.Set("computers", computersList); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting 'computers': %v", err))
+	}
 
 	return nil
 }

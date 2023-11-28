@@ -844,706 +844,407 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 
 // constructJamfProMacOSConfigurationProfile constructs a ResponseMacOSConfigurationProfile object from the provided schema data.
 // It captures each attribute from the schema and returns the constructed ResponseMacOSConfigurationProfile object.
-func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) *jamfpro.ResponseMacOSConfigurationProfiles {
-	// Construct General section
-	// Initialize an empty General struct
-	general := jamfpro.MacOSConfigurationProfilesDataSubsetGeneral{}
-
-	// Safely retrieve and set the "name" field if it exists
-	if v, ok := d.GetOk("name"); ok {
-		general.Name = v.(string)
+// constructJamfProMacOSConfigurationProfile constructs a ResponseMacOSConfigurationProfile object from the provided schema data and returns any errors encountered.
+func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro.ResponseMacOSConfigurationProfiles, error) {
+	profile := &jamfpro.ResponseMacOSConfigurationProfiles{
+		General:     jamfpro.MacOSConfigurationProfilesDataSubsetGeneral{},
+		Scope:       jamfpro.MacOSConfigurationProfilesDataSubsetScope{},
+		SelfService: jamfpro.MacOSConfigurationProfilesDataSubsetSelfService{},
 	}
 
-	// Safely retrieve and set the "description" field if it exists
-	if v, ok := d.GetOk("description"); ok {
-		general.Description = v.(string)
+	// General fields
+	fields := map[string]interface{}{
+		"name":                &profile.General.Name,
+		"description":         &profile.General.Description,
+		"distribution_method": &profile.General.DistributionMethod,
+		"user_removable":      &profile.General.UserRemovable,
+		"level":               &profile.General.Level,
+		"uuid":                &profile.General.UUID,
+		"redeploy_on_update":  &profile.General.RedeployOnUpdate,
 	}
 
-	// Safely retrieve and set the "distribution_method" field if it exists
-	if v, ok := d.GetOk("distribution_method"); ok {
-		general.DistributionMethod = v.(string)
-	}
-
-	// Safely retrieve and set the "user_removable" field if it exists
-	if v, ok := d.GetOk("user_removable"); ok {
-		general.UserRemovable = v.(bool)
-	}
-
-	// Safely retrieve and set the "level" field if it exists
-	if v, ok := d.GetOk("level"); ok {
-		general.Level = v.(string)
-	}
-
-	// Safely retrieve and set the "uuid" field if it exists
-	if v, ok := d.GetOk("uuid"); ok {
-		general.UUID = v.(string)
-	}
-
-	// Safely retrieve and set the "redeploy_on_update" field if it exists
-	if v, ok := d.GetOk("redeploy_on_update"); ok {
-		general.RedeployOnUpdate = v.(string)
-	}
-
-	// Safely retrieve and set the "payloads" field if it exists
-	// Retrieve the "payloads" field from the schema, if present. Sanitize the XML payload to remove specific fields
-	// like "PayloadUUID", "PayloadOrganization", "PayloadIdentifier", and then set the sanitized payload in the profile object.
-	// This ensures that only relevant configuration data is sent to Jamf Pro, and any unwanted or instance-specific fields are
-	// excluded from the Terraform state and the API request to Jamf Pro.
-	if v, ok := d.GetOk("payloads"); ok {
-		sanitizedPayload, err := sanitizePayloadXML(v.(string))
-		if err != nil {
-			// Handle error, perhaps log it or return an error
-			log.Printf("[ERROR] Failed to sanitize payload XML: %s", err)
-			return nil // or return an appropriate error
+	for key, ptr := range fields {
+		if v, ok := d.GetOk(key); ok {
+			switch ptr := ptr.(type) {
+			case *string:
+				*ptr = v.(string)
+			case *bool:
+				*ptr = v.(bool)
+			default:
+				return nil, fmt.Errorf("unsupported data type for key '%s'", key)
+			}
 		}
-		general.Payloads = sanitizedPayload
 	}
 
-	// Safely construct the Site field from the Terraform schema
+	// Site field
 	if siteList, ok := d.GetOk("site"); ok && len(siteList.([]interface{})) > 0 {
 		siteMap := siteList.([]interface{})[0].(map[string]interface{})
-
-		var siteID int
-		var siteName string
-
-		// Convert the site ID from string to int and check for presence
-		if idStr, ok := siteMap["id"].(string); ok {
-			siteID, _ = strconv.Atoi(idStr) // Convert string to int, ignoring error as default value is a valid int
-		}
-
-		// Check for presence of site name
-		if name, ok := siteMap["name"].(string); ok {
-			siteName = name
-		}
-
-		general.Site = jamfpro.MacOSConfigurationProfilesDataSubsetSite{
+		siteID, _ := strconv.Atoi(siteMap["id"].(string))
+		profile.General.Site = jamfpro.MacOSConfigurationProfilesDataSubsetSite{
 			ID:   siteID,
-			Name: siteName,
+			Name: siteMap["name"].(string),
 		}
 	}
 
-	// Safely construct the Category field from the Terraform schema
+	// Category field
 	if categoryList, ok := d.GetOk("category"); ok && len(categoryList.([]interface{})) > 0 {
 		categoryMap := categoryList.([]interface{})[0].(map[string]interface{})
-
-		var categoryID int
-		var categoryName string
-
-		// Convert the category ID from string to int and check for presence
-		if idStr, ok := categoryMap["id"].(string); ok {
-			categoryID, _ = strconv.Atoi(idStr) // Convert string to int, ignoring error as default value is a valid int
-		}
-
-		// Check for presence of category name
-		if name, ok := categoryMap["name"].(string); ok {
-			categoryName = name
-		}
-
-		general.Category = jamfpro.MacOSConfigurationProfilesDataSubsetCategory{
+		categoryID, _ := strconv.Atoi(categoryMap["id"].(string))
+		profile.General.Category = jamfpro.MacOSConfigurationProfilesDataSubsetCategory{
 			ID:   categoryID,
-			Name: categoryName,
+			Name: categoryMap["name"].(string),
 		}
 	}
 
-	// Construct Scope section
-	scopeData := d.Get("scope").([]interface{})
-	var scope jamfpro.MacOSConfigurationProfilesDataSubsetScope
-	if len(scopeData) > 0 {
-		scopeMap := scopeData[0].(map[string]interface{})
+	// Handling Scope field
+	if scopeList, ok := d.GetOk("scope"); ok && len(scopeList.([]interface{})) > 0 {
+		scopeMap := scopeList.([]interface{})[0].(map[string]interface{})
 
-		// Safely set the AllComputers and AllJSSUsers fields
-		if v, ok := scopeMap["all_computers"].(bool); ok {
-			scope.AllComputers = v
-		}
-		if v, ok := scopeMap["all_jss_users"].(bool); ok {
-			scope.AllJSSUsers = v
-		}
+		profile.Scope.AllComputers = scopeMap["all_computers"].(bool)
+		profile.Scope.AllJSSUsers = scopeMap["all_jss_users"].(bool)
 
-		// Safely construct and append Computers
+		// Process computers
 		if computers, ok := scopeMap["computers"].([]interface{}); ok {
-			for _, comp := range computers {
-				compMap := comp.(map[string]interface{})
-				var compID int
-				var compName, compUDID string
-
-				if id, ok := compMap["id"].(int); ok {
-					compID = id
-				}
-				if name, ok := compMap["name"].(string); ok {
-					compName = name
-				}
-				if udid, ok := compMap["udid"].(string); ok {
-					compUDID = udid
-				}
-
+			for _, c := range computers {
+				computerMap := c.(map[string]interface{})
 				computer := jamfpro.MacOSConfigurationProfilesDataSubsetComputer{
 					Computer: jamfpro.MacOSConfigurationProfilesDataSubsetComputerItem{
-						ID:   compID,
-						Name: compName,
-						UDID: compUDID,
+						ID:   computerMap["id"].(int),
+						Name: computerMap["name"].(string),
+						UDID: computerMap["udid"].(string),
 					},
 				}
-				scope.Computers = append(scope.Computers, computer)
+				profile.Scope.Computers = append(profile.Scope.Computers, computer)
 			}
 		}
 
-		// Similar pattern for Buildings, Departments, ComputerGroups, JSSUsers, JSSUserGroups
+		// Process buildings
 		if buildings, ok := scopeMap["buildings"].([]interface{}); ok {
-			for _, bld := range buildings {
-				bldMap := bld.(map[string]interface{})
-				var bldID int
-				var bldName string
-
-				if id, ok := bldMap["id"].(int); ok {
-					bldID = id
-				}
-				if name, ok := bldMap["name"].(string); ok {
-					bldName = name
-				}
-
+			for _, b := range buildings {
+				buildingMap := b.(map[string]interface{})
 				building := jamfpro.MacOSConfigurationProfilesDataSubsetBuilding{
 					Building: jamfpro.MacOSConfigurationProfilesDataSubsetBuildingItem{
-						ID:   bldID,
-						Name: bldName,
+						ID:   buildingMap["id"].(int),
+						Name: buildingMap["name"].(string),
 					},
 				}
-				scope.Buildings = append(scope.Buildings, building)
+				profile.Scope.Buildings = append(profile.Scope.Buildings, building)
 			}
 		}
 
-		// Safely construct and append Departments
+		// Process departments
 		if departments, ok := scopeMap["departments"].([]interface{}); ok {
-			for _, dept := range departments {
-				deptMap := dept.(map[string]interface{})
-				var deptID int
-				var deptName string
-
-				if id, ok := deptMap["id"].(int); ok {
-					deptID = id
-				}
-				if name, ok := deptMap["name"].(string); ok {
-					deptName = name
-				}
-
+			for _, d := range departments {
+				departmentMap := d.(map[string]interface{})
 				department := jamfpro.MacOSConfigurationProfilesDataSubsetDepartment{
 					Department: jamfpro.MacOSConfigurationProfilesDataSubsetDepartmentItem{
-						ID:   deptID,
-						Name: deptName,
+						ID:   departmentMap["id"].(int),
+						Name: departmentMap["name"].(string),
 					},
 				}
-				scope.Departments = append(scope.Departments, department)
+				profile.Scope.Departments = append(profile.Scope.Departments, department)
 			}
 		}
 
-		// Safely construct and append ComputerGroups
+		// Process computer_groups
 		if computerGroups, ok := scopeMap["computer_groups"].([]interface{}); ok {
-			for _, grp := range computerGroups {
-				grpMap := grp.(map[string]interface{})
-				var grpID int
-				var grpName string
-
-				if id, ok := grpMap["id"].(int); ok {
-					grpID = id
-				}
-				if name, ok := grpMap["name"].(string); ok {
-					grpName = name
-				}
-
+			for _, cg := range computerGroups {
+				computerGroupMap := cg.(map[string]interface{})
 				computerGroup := jamfpro.MacOSConfigurationProfilesDataSubsetComputerGroup{
 					ComputerGroup: jamfpro.MacOSConfigurationProfilesDataSubsetComputerGroupItem{
-						ID:   grpID,
-						Name: grpName,
+						ID:   computerGroupMap["id"].(int),
+						Name: computerGroupMap["name"].(string),
 					},
 				}
-				scope.ComputerGroups = append(scope.ComputerGroups, computerGroup)
+				profile.Scope.ComputerGroups = append(profile.Scope.ComputerGroups, computerGroup)
 			}
 		}
 
-		// Safely construct and append JSSUsers
+		// Process jss_users
 		if jssUsers, ok := scopeMap["jss_users"].([]interface{}); ok {
-			for _, usr := range jssUsers {
-				usrMap := usr.(map[string]interface{})
-				var usrID int
-				var usrName string
-
-				if id, ok := usrMap["id"].(int); ok {
-					usrID = id
-				}
-				if name, ok := usrMap["name"].(string); ok {
-					usrName = name
-				}
-
+			for _, ju := range jssUsers {
+				jssUserMap := ju.(map[string]interface{})
 				jssUser := jamfpro.MacOSConfigurationProfilesDataSubsetJSSUser{
 					JSSUser: jamfpro.MacOSConfigurationProfilesDataSubsetJSSUserItem{
-						ID:   usrID,
-						Name: usrName,
+						ID:   jssUserMap["id"].(int),
+						Name: jssUserMap["name"].(string),
 					},
 				}
-				scope.JSSUsers = append(scope.JSSUsers, jssUser)
+				profile.Scope.JSSUsers = append(profile.Scope.JSSUsers, jssUser)
 			}
 		}
 
-		// Safely construct and append JSSUserGroups
+		// Process jss_user_groups
 		if jssUserGroups, ok := scopeMap["jss_user_groups"].([]interface{}); ok {
-			for _, grp := range jssUserGroups {
-				grpMap := grp.(map[string]interface{})
-				var grpID int
-				var grpName string
-
-				if id, ok := grpMap["id"].(int); ok {
-					grpID = id
-				}
-				if name, ok := grpMap["name"].(string); ok {
-					grpName = name
-				}
-
+			for _, jug := range jssUserGroups {
+				jssUserGroupMap := jug.(map[string]interface{})
 				jssUserGroup := jamfpro.MacOSConfigurationProfilesDataSubsetJSSUserGroup{
 					JSSUserGroup: jamfpro.MacOSConfigurationProfilesDataSubsetJSSUserGroupItem{
-						ID:   grpID,
-						Name: grpName,
+						ID:   jssUserGroupMap["id"].(int),
+						Name: jssUserGroupMap["name"].(string),
 					},
 				}
-				scope.JSSUserGroups = append(scope.JSSUserGroups, jssUserGroup)
+				profile.Scope.JSSUserGroups = append(profile.Scope.JSSUserGroups, jssUserGroup)
 			}
 		}
 
-		// Construct Limitations
+		// Process limitations
 		if limitations, ok := scopeMap["limitations"].([]interface{}); ok && len(limitations) > 0 {
-			limMap := limitations[0].(map[string]interface{})
-			var lim jamfpro.MacOSConfigurationProfilesDataSubsetLimitations
-
-			// Safely construct and append Users in Limitations
-			if users, ok := limMap["users"].([]interface{}); ok {
-				for _, usr := range users {
-					usrMap := usr.(map[string]interface{})
-					var usrID int
-					var usrName string
-
-					if id, ok := usrMap["id"].(int); ok {
-						usrID = id
-					}
-					if name, ok := usrMap["name"].(string); ok {
-						usrName = name
-					}
-
+			limitationMap := limitations[0].(map[string]interface{})
+			// Process users under (Directory Service/Local Users) limitations
+			if users, ok := limitationMap["users"].([]interface{}); ok {
+				for _, u := range users {
+					userMap := u.(map[string]interface{})
 					user := jamfpro.MacOSConfigurationProfilesDataSubsetUser{
 						User: jamfpro.MacOSConfigurationProfilesDataSubsetUserItem{
-							ID:   usrID,
-							Name: usrName,
+							ID:   userMap["id"].(int),
+							Name: userMap["name"].(string),
 						},
 					}
-					lim.Users = append(lim.Users, user)
+					profile.Scope.Limitations.Users = append(profile.Scope.Limitations.Users, user)
 				}
 			}
-
-			// Safely construct and append UserGroups in Limitations
-			if userGroups, ok := limMap["user_groups"].([]interface{}); ok {
-				for _, grp := range userGroups {
-					grpMap := grp.(map[string]interface{})
-					var grpID int
-					var grpName string
-
-					if id, ok := grpMap["id"].(int); ok {
-						grpID = id
-					}
-					if name, ok := grpMap["name"].(string); ok {
-						grpName = name
-					}
-
+			// Process user_groups (Directory Service User Groups) under limitations
+			if userGroups, ok := limitationMap["user_groups"].([]interface{}); ok {
+				for _, ug := range userGroups {
+					userGroupMap := ug.(map[string]interface{})
 					userGroup := jamfpro.MacOSConfigurationProfilesDataSubsetUserGroup{
 						UserGroup: jamfpro.MacOSConfigurationProfilesDataSubsetUserGroupItem{
-							ID:   grpID,
-							Name: grpName,
+							ID:   userGroupMap["id"].(int),
+							Name: userGroupMap["name"].(string),
 						},
 					}
-					lim.UserGroups = append(lim.UserGroups, userGroup)
+					profile.Scope.Limitations.UserGroups = append(profile.Scope.Limitations.UserGroups, userGroup)
 				}
 			}
 
-			// Safely construct and append NetworkSegments in Limitations
-			if networkSegments, ok := limMap["network_segments"].([]interface{}); ok {
-				for _, seg := range networkSegments {
-					segMap := seg.(map[string]interface{})
-					var segID int
-					var segUID, segName string
-
-					if id, ok := segMap["id"].(int); ok {
-						segID = id
-					}
-					if uid, ok := segMap["uid"].(string); ok {
-						segUID = uid
-					}
-					if name, ok := segMap["name"].(string); ok {
-						segName = name
-					}
-
+			// Process network_segments under limitations
+			if networkSegments, ok := limitationMap["network_segments"].([]interface{}); ok {
+				for _, ns := range networkSegments {
+					networkSegmentMap := ns.(map[string]interface{})
 					networkSegment := jamfpro.MacOSConfigurationProfilesDataSubsetNetworkSegment{
 						NetworkSegment: jamfpro.MacOSConfigurationProfilesDataSubsetNetworkSegmentItem{
-							ID:   segID,
-							UID:  segUID,
-							Name: segName,
+							ID:   networkSegmentMap["id"].(int),
+							UID:  networkSegmentMap["uid"].(string),
+							Name: networkSegmentMap["name"].(string),
 						},
 					}
-					lim.NetworkSegments = append(lim.NetworkSegments, networkSegment)
+					profile.Scope.Limitations.NetworkSegments = append(profile.Scope.Limitations.NetworkSegments, networkSegment)
 				}
 			}
 
-			// Safely construct and append IBeacons in Limitations
-			if ibeacons, ok := limMap["ibeacons"].([]interface{}); ok {
-				for _, ibc := range ibeacons {
-					ibcMap := ibc.(map[string]interface{})
-					var ibcID int
-					var ibcName string
-
-					if id, ok := ibcMap["id"].(int); ok {
-						ibcID = id
-					}
-					if name, ok := ibcMap["name"].(string); ok {
-						ibcName = name
-					}
-
+			// Process ibeacons under limitations
+			if ibeacons, ok := limitationMap["ibeacons"].([]interface{}); ok {
+				for _, ib := range ibeacons {
+					ibeaconMap := ib.(map[string]interface{})
 					ibeacon := jamfpro.MacOSConfigurationProfilesDataSubsetIBeacon{
 						IBeacon: jamfpro.MacOSConfigurationProfilesDataSubsetIBeaconItem{
-							ID:   ibcID,
-							Name: ibcName,
+							ID:   ibeaconMap["id"].(int),
+							Name: ibeaconMap["name"].(string),
 						},
 					}
-					lim.IBeacons = append(lim.IBeacons, ibeacon)
+					profile.Scope.Limitations.IBeacons = append(profile.Scope.Limitations.IBeacons, ibeacon)
 				}
 			}
-
-			scope.Limitations = lim
 		}
-		// Construct Exclusions
+
+		// Process exclusions
 		if exclusions, ok := scopeMap["exclusions"].([]interface{}); ok && len(exclusions) > 0 {
-			excMap := exclusions[0].(map[string]interface{})
-			var exc jamfpro.MacOSConfigurationProfilesDataSubsetExclusions
-
-			// Safely construct and append Computers in Exclusions
-			if computers, ok := excMap["computers"].([]interface{}); ok {
-				for _, comp := range computers {
-					compMap := comp.(map[string]interface{})
-					var compID int
-					var compName, compUDID string
-
-					if id, ok := compMap["id"].(int); ok {
-						compID = id
-					}
-					if name, ok := compMap["name"].(string); ok {
-						compName = name
-					}
-					if udid, ok := compMap["udid"].(string); ok {
-						compUDID = udid
-					}
-
+			exclusionMap := exclusions[0].(map[string]interface{})
+			// Process computers under exclusions
+			if computers, ok := exclusionMap["computers"].([]interface{}); ok {
+				for _, c := range computers {
+					computerMap := c.(map[string]interface{})
 					computer := jamfpro.MacOSConfigurationProfilesDataSubsetComputer{
 						Computer: jamfpro.MacOSConfigurationProfilesDataSubsetComputerItem{
-							ID:   compID,
-							Name: compName,
-							UDID: compUDID,
+							ID:   computerMap["id"].(int),
+							Name: computerMap["name"].(string),
+							UDID: computerMap["udid"].(string),
 						},
 					}
-					exc.Computers = append(exc.Computers, computer)
+					profile.Scope.Exclusions.Computers = append(profile.Scope.Exclusions.Computers, computer)
 				}
 			}
-
-			// Similar pattern for Buildings, Departments, ComputerGroups, UserGroups, NetworkSegments, IBeacons, JSSUsers, JSSUserGroups
-			// Example for Buildings
-			if buildings, ok := excMap["buildings"].([]interface{}); ok {
-				for _, bld := range buildings {
-					bldMap := bld.(map[string]interface{})
-					var bldID int
-					var bldName string
-
-					if id, ok := bldMap["id"].(int); ok {
-						bldID = id
-					}
-					if name, ok := bldMap["name"].(string); ok {
-						bldName = name
-					}
-
-					building := jamfpro.MacOSConfigurationProfilesDataSubsetBuilding{
-						Building: jamfpro.MacOSConfigurationProfilesDataSubsetBuildingItem{
-							ID:   bldID,
-							Name: bldName,
-						},
-					}
-					exc.Buildings = append(exc.Buildings, building)
-				}
-			}
-
-			// Safely construct and append Departments in Exclusions
-			if departments, ok := excMap["departments"].([]interface{}); ok {
-				for _, dept := range departments {
-					deptMap := dept.(map[string]interface{})
-					var deptID int
-					var deptName string
-
-					if id, ok := deptMap["id"].(int); ok {
-						deptID = id
-					}
-					if name, ok := deptMap["name"].(string); ok {
-						deptName = name
-					}
-
-					department := jamfpro.MacOSConfigurationProfilesDataSubsetDepartment{
-						Department: jamfpro.MacOSConfigurationProfilesDataSubsetDepartmentItem{
-							ID:   deptID,
-							Name: deptName,
-						},
-					}
-					exc.Departments = append(exc.Departments, department)
-				}
-			}
-
-			// Safely construct and append ComputerGroups in Exclusions
-			if computerGroups, ok := excMap["computer_groups"].([]interface{}); ok {
-				for _, grp := range computerGroups {
-					grpMap := grp.(map[string]interface{})
-					var grpID int
-					var grpName string
-
-					if id, ok := grpMap["id"].(int); ok {
-						grpID = id
-					}
-					if name, ok := grpMap["name"].(string); ok {
-						grpName = name
-					}
-
+			// Process computer_groups under exclusions
+			if computerGroups, ok := exclusionMap["computer_groups"].([]interface{}); ok {
+				for _, cg := range computerGroups {
+					computerGroupMap := cg.(map[string]interface{})
 					computerGroup := jamfpro.MacOSConfigurationProfilesDataSubsetComputerGroup{
 						ComputerGroup: jamfpro.MacOSConfigurationProfilesDataSubsetComputerGroupItem{
-							ID:   grpID,
-							Name: grpName,
+							ID:   computerGroupMap["id"].(int),
+							Name: computerGroupMap["name"].(string),
 						},
 					}
-					exc.ComputerGroups = append(exc.ComputerGroups, computerGroup)
+					profile.Scope.Exclusions.ComputerGroups = append(profile.Scope.Exclusions.ComputerGroups, computerGroup)
 				}
 			}
 
-			// Similar approach for UserGroups, NetworkSegments, IBeacons, JSSUsers, JSSUserGroups
-			// Example for UserGroups
-			if userGroups, ok := excMap["user_groups"].([]interface{}); ok {
-				for _, grp := range userGroups {
-					grpMap := grp.(map[string]interface{})
-					var grpID int
-					var grpName string
-
-					if id, ok := grpMap["id"].(int); ok {
-						grpID = id
-					}
-					if name, ok := grpMap["name"].(string); ok {
-						grpName = name
-					}
-
-					userGroup := jamfpro.MacOSConfigurationProfilesDataSubsetUserGroup{
-						UserGroup: jamfpro.MacOSConfigurationProfilesDataSubsetUserGroupItem{
-							ID:   grpID,
-							Name: grpName,
-						},
-					}
-					exc.UserGroups = append(exc.UserGroups, userGroup)
-				}
-			}
-
-			// Safely construct and append NetworkSegments in Exclusions
-			if networkSegments, ok := excMap["network_segments"].([]interface{}); ok {
-				for _, seg := range networkSegments {
-					segMap := seg.(map[string]interface{})
-					var segID int
-					var segUID, segName string
-
-					if id, ok := segMap["id"].(int); ok {
-						segID = id
-					}
-					if uid, ok := segMap["uid"].(string); ok {
-						segUID = uid
-					}
-					if name, ok := segMap["name"].(string); ok {
-						segName = name
-					}
-
-					networkSegment := jamfpro.MacOSConfigurationProfilesDataSubsetNetworkSegment{
-						NetworkSegment: jamfpro.MacOSConfigurationProfilesDataSubsetNetworkSegmentItem{
-							ID:   segID,
-							UID:  segUID,
-							Name: segName,
-						},
-					}
-					exc.NetworkSegments = append(exc.NetworkSegments, networkSegment)
-				}
-			}
-
-			// Safely construct and append IBeacons in Exclusions
-			if ibeacons, ok := excMap["ibeacons"].([]interface{}); ok {
-				for _, ibc := range ibeacons {
-					ibcMap := ibc.(map[string]interface{})
-					var ibcID int
-					var ibcName string
-
-					if id, ok := ibcMap["id"].(int); ok {
-						ibcID = id
-					}
-					if name, ok := ibcMap["name"].(string); ok {
-						ibcName = name
-					}
-
-					ibeacon := jamfpro.MacOSConfigurationProfilesDataSubsetIBeacon{
-						IBeacon: jamfpro.MacOSConfigurationProfilesDataSubsetIBeaconItem{
-							ID:   ibcID,
-							Name: ibcName,
-						},
-					}
-					exc.IBeacons = append(exc.IBeacons, ibeacon)
-				}
-			}
-
-			// Safely construct and append JSSUsers in Exclusions
-			if jssUsers, ok := excMap["jss_users"].([]interface{}); ok {
-				for _, usr := range jssUsers {
-					usrMap := usr.(map[string]interface{})
-					var usrID int
-					var usrName string
-
-					if id, ok := usrMap["id"].(int); ok {
-						usrID = id
-					}
-					if name, ok := usrMap["name"].(string); ok {
-						usrName = name
-					}
-
+			// Process jss_users under exclusions
+			if jssUsers, ok := exclusionMap["jss_users"].([]interface{}); ok {
+				for _, ju := range jssUsers {
+					jssUserMap := ju.(map[string]interface{})
 					jssUser := jamfpro.MacOSConfigurationProfilesDataSubsetJSSUser{
 						JSSUser: jamfpro.MacOSConfigurationProfilesDataSubsetJSSUserItem{
-							ID:   usrID,
-							Name: usrName,
+							ID:   jssUserMap["id"].(int),
+							Name: jssUserMap["name"].(string),
 						},
 					}
-					exc.JSSUsers = append(exc.JSSUsers, jssUser)
+					profile.Scope.Exclusions.JSSUsers = append(profile.Scope.Exclusions.JSSUsers, jssUser)
 				}
 			}
 
-			// Safely construct and append JSSUserGroups in Exclusions
-			if jssUserGroups, ok := excMap["jss_user_groups"].([]interface{}); ok {
-				for _, grp := range jssUserGroups {
-					grpMap := grp.(map[string]interface{})
-					var grpID int
-					var grpName string
-
-					if id, ok := grpMap["id"].(int); ok {
-						grpID = id
-					}
-					if name, ok := grpMap["name"].(string); ok {
-						grpName = name
-					}
-
+			// Process jss_user_groups under exclusions
+			if jssUserGroups, ok := exclusionMap["jss_user_groups"].([]interface{}); ok {
+				for _, jug := range jssUserGroups {
+					jssUserGroupMap := jug.(map[string]interface{})
 					jssUserGroup := jamfpro.MacOSConfigurationProfilesDataSubsetJSSUserGroup{
 						JSSUserGroup: jamfpro.MacOSConfigurationProfilesDataSubsetJSSUserGroupItem{
-							ID:   grpID,
-							Name: grpName,
+							ID:   jssUserGroupMap["id"].(int),
+							Name: jssUserGroupMap["name"].(string),
 						},
 					}
-					exc.JSSUserGroups = append(exc.JSSUserGroups, jssUserGroup)
+					profile.Scope.Exclusions.JSSUserGroups = append(profile.Scope.Exclusions.JSSUserGroups, jssUserGroup)
 				}
 			}
-			scope.Exclusions = exc
+
+			// Process buildings under exclusions
+			if buildings, ok := exclusionMap["buildings"].([]interface{}); ok {
+				for _, b := range buildings {
+					buildingMap := b.(map[string]interface{})
+					building := jamfpro.MacOSConfigurationProfilesDataSubsetBuilding{
+						Building: jamfpro.MacOSConfigurationProfilesDataSubsetBuildingItem{
+							ID:   buildingMap["id"].(int),
+							Name: buildingMap["name"].(string),
+						},
+					}
+					profile.Scope.Exclusions.Buildings = append(profile.Scope.Exclusions.Buildings, building)
+				}
+			}
+
+			// Process departments under exclusions
+			if departments, ok := exclusionMap["departments"].([]interface{}); ok {
+				for _, d := range departments {
+					departmentMap := d.(map[string]interface{})
+					department := jamfpro.MacOSConfigurationProfilesDataSubsetDepartment{
+						Department: jamfpro.MacOSConfigurationProfilesDataSubsetDepartmentItem{
+							ID:   departmentMap["id"].(int),
+							Name: departmentMap["name"].(string),
+						},
+					}
+					profile.Scope.Exclusions.Departments = append(profile.Scope.Exclusions.Departments, department)
+				}
+			}
+
+			// Process network_segments under exclusions
+			if networkSegments, ok := exclusionMap["network_segments"].([]interface{}); ok {
+				for _, ns := range networkSegments {
+					networkSegmentMap := ns.(map[string]interface{})
+					networkSegment := jamfpro.MacOSConfigurationProfilesDataSubsetNetworkSegment{
+						NetworkSegment: jamfpro.MacOSConfigurationProfilesDataSubsetNetworkSegmentItem{
+							ID:   networkSegmentMap["id"].(int),
+							UID:  networkSegmentMap["uid"].(string),
+							Name: networkSegmentMap["name"].(string),
+						},
+					}
+					profile.Scope.Exclusions.NetworkSegments = append(profile.Scope.Exclusions.NetworkSegments, networkSegment)
+				}
+			}
+
+			// Process users under exclusions
+			if users, ok := exclusionMap["users"].([]interface{}); ok {
+				for _, u := range users {
+					userMap := u.(map[string]interface{})
+					user := jamfpro.MacOSConfigurationProfilesDataSubsetUser{
+						User: jamfpro.MacOSConfigurationProfilesDataSubsetUserItem{
+							ID:   userMap["id"].(int),
+							Name: userMap["name"].(string),
+						},
+					}
+					profile.Scope.Exclusions.Users = append(profile.Scope.Exclusions.Users, user)
+				}
+			}
+
+			// Process user_groups under exclusions
+			if userGroups, ok := exclusionMap["user_groups"].([]interface{}); ok {
+				for _, ug := range userGroups {
+					userGroupMap := ug.(map[string]interface{})
+					userGroup := jamfpro.MacOSConfigurationProfilesDataSubsetUserGroup{
+						UserGroup: jamfpro.MacOSConfigurationProfilesDataSubsetUserGroupItem{
+							ID:   userGroupMap["id"].(int),
+							Name: userGroupMap["name"].(string),
+						},
+					}
+					profile.Scope.Exclusions.UserGroups = append(profile.Scope.Exclusions.UserGroups, userGroup)
+				}
+			}
+
+			// Process ibeacons under exclusions
+			if ibeacons, ok := exclusionMap["ibeacons"].([]interface{}); ok {
+				for _, ib := range ibeacons {
+					ibeaconMap := ib.(map[string]interface{})
+					ibeacon := jamfpro.MacOSConfigurationProfilesDataSubsetIBeacon{
+						IBeacon: jamfpro.MacOSConfigurationProfilesDataSubsetIBeaconItem{
+							ID:   ibeaconMap["id"].(int),
+							Name: ibeaconMap["name"].(string),
+						},
+					}
+					profile.Scope.Exclusions.IBeacons = append(profile.Scope.Exclusions.IBeacons, ibeacon)
+				}
+			}
+
 		}
 	}
-	// Initialize an empty SelfService struct
-	selfService := jamfpro.MacOSConfigurationProfilesDataSubsetSelfService{}
 
-	// Retrieve the "self_service" data
-	selfServiceData := d.Get("self_service").([]interface{})
-	if len(selfServiceData) > 0 {
-		ssMap := selfServiceData[0].(map[string]interface{})
+	// Handling SelfService field
+	if selfServiceList, ok := d.GetOk("self_service"); ok && len(selfServiceList.([]interface{})) > 0 {
+		ssMap := selfServiceList.([]interface{})[0].(map[string]interface{})
 
-		// Safely retrieve and set each self service field if it exists
-		if v, ok := ssMap["install_button_text"].(string); ok {
-			selfService.InstallButtonText = v
-		}
-		if v, ok := ssMap["self_service_description"].(string); ok {
-			selfService.SelfServiceDescription = v
-		}
-		if v, ok := ssMap["force_users_to_view_description"].(bool); ok {
-			selfService.ForceUsersToViewDescription = v
-		}
-		if v, ok := ssMap["feature_on_main_page"].(bool); ok {
-			selfService.FeatureOnMainPage = v
-		}
-		if v, ok := ssMap["notification"].(string); ok {
-			selfService.Notification = v
-		}
-		if v, ok := ssMap["notification_subject"].(string); ok {
-			selfService.NotificationSubject = v
-		}
-		if v, ok := ssMap["notification_message"].(string); ok {
-			selfService.NotificationMessage = v
-		}
+		profile.SelfService.InstallButtonText = ssMap["install_button_text"].(string)
+		profile.SelfService.SelfServiceDescription = ssMap["self_service_description"].(string)
+		profile.SelfService.ForceUsersToViewDescription = ssMap["force_users_to_view_description"].(bool)
+		profile.SelfService.FeatureOnMainPage = ssMap["feature_on_main_page"].(bool)
 
-		// Safely construct and set SelfServiceIcon
 		if iconData, ok := ssMap["self_service_icon"].([]interface{}); ok && len(iconData) > 0 {
 			iconMap := iconData[0].(map[string]interface{})
-			var iconID int
-			var iconURI, iconDataStr string
+			icon := jamfpro.MacOSConfigurationProfilesDataSubsetSelfServiceIcon{
+				ID:   iconMap["id"].(int),
+				URI:  iconMap["uri"].(string),
+				Data: iconMap["data"].(string),
+			}
+			profile.SelfService.SelfServiceIcon = icon
+		}
 
-			if id, ok := iconMap["id"].(int); ok {
-				iconID = id
+		// Handling self_service_categories
+		if categories, ok := ssMap["self_service_categories"].([]interface{}); ok && len(categories) > 0 {
+			var selfServiceCategories []jamfpro.MacOSConfigurationProfilesDataSubsetSelfServiceCategory
+			for _, cat := range categories {
+				categoryMap := cat.(map[string]interface{})
+				category := jamfpro.MacOSConfigurationProfilesDataSubsetSelfServiceCategory{
+					ID:        categoryMap["id"].(int),
+					Name:      categoryMap["name"].(string),
+					DisplayIn: categoryMap["display_in"].(bool),
+					FeatureIn: categoryMap["feature_in"].(bool),
+				}
+				selfServiceCategories = append(selfServiceCategories, category)
 			}
-			if uri, ok := iconMap["uri"].(string); ok {
-				iconURI = uri
-			}
-			if data, ok := iconMap["data"].(string); ok {
-				iconDataStr = data
-			}
-
-			selfService.SelfServiceIcon = jamfpro.MacOSConfigurationProfilesDataSubsetSelfServiceIcon{
-				ID:   iconID,
-				URI:  iconURI,
-				Data: iconDataStr,
+			if len(selfServiceCategories) > 0 {
+				profile.SelfService.SelfServiceCategories = jamfpro.MacOSConfigurationProfilesDataSubsetSelfServiceCategories{
+					Category: selfServiceCategories[0], // Only 1 category can be asssigned per config profile
+				}
 			}
 		}
 
-		// Safely construct and set SelfServiceCategories
-		if categoriesData, ok := ssMap["self_service_categories"].([]interface{}); ok && len(categoriesData) > 0 {
-			catMap := categoriesData[0].(map[string]interface{})
-			var catID int
-			var catName string
-			var displayIn, featureIn bool
-
-			if id, ok := catMap["id"].(int); ok {
-				catID = id
-			}
-			if name, ok := catMap["name"].(string); ok {
-				catName = name
-			}
-			if display, ok := catMap["display_in"].(bool); ok {
-				displayIn = display
-			}
-			if feature, ok := catMap["feature_in"].(bool); ok {
-				featureIn = feature
-			}
-
-			selfService.SelfServiceCategories = jamfpro.MacOSConfigurationProfilesDataSubsetSelfServiceCategories{
-				Category: jamfpro.MacOSConfigurationProfilesDataSubsetSelfServiceCategory{
-					ID:        catID,
-					Name:      catName,
-					DisplayIn: displayIn,
-					FeatureIn: featureIn,
-				},
-			}
-		}
+		// Handling notifications
+		profile.SelfService.Notification = ssMap["notification"].(string)
+		profile.SelfService.NotificationSubject = ssMap["notification_subject"].(string)
+		profile.SelfService.NotificationMessage = ssMap["notification_message"].(string)
 	}
 
-	// Log the successful construction of the MacOS Config Profile
-	log.Printf("[INFO] Successfully constructed macOS Configuration Profile with display name: %s", general.Name)
-
-	return &jamfpro.ResponseMacOSConfigurationProfiles{
-		General:     general,
-		Scope:       scope,
-		SelfService: selfService,
-	}
-
+	log.Printf("[INFO] Successfully constructed macOS Configuration Profile with name: %s", profile.General.Name)
+	return profile, nil
 }
 
-// Helper function to generate diagnostics based on the error type
+// Helper function to generate diagnostics based on the error type.
 func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
 	var diags diag.Diagnostics
 	resourceName, exists := d.GetOk("name")
@@ -1575,12 +1276,18 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 // 3. Updates the Terraform state with the ID of the newly created profile.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the macOS Configuration Profile
-		profile := constructJamfProMacOSConfigurationProfile(d)
+		profile, err := constructJamfProMacOSConfigurationProfile(d)
 		if profile == nil {
 			return retry.NonRetryableError(fmt.Errorf("failed to construct the macOS Configuration Profile"))
 		}
@@ -1636,8 +1343,14 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the profile being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	var profile *jamfpro.ResponseMacOSConfigurationProfiles
 
@@ -1706,7 +1419,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Format XML Payload before setting it in the Terraform state
+	// Format the XML Payload before setting it in the Terraform state
 	formattedPayload, err := formatmacOSConfigurationProfileXMLPayload(profile.General.Payloads)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error formatting XML payload: %s", err))
@@ -2107,14 +1820,23 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 
 // ResourceJamfProMacOSConfigurationProfilesUpdate is responsible for updating an existing Jamf Pro macOS Configuration Profile on the remote system.
 func ResourceJamfProMacOSConfigurationProfilesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	// Use the retry function for the update operation
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		// Construct the updated macOS configuration profile
-		profile := constructJamfProMacOSConfigurationProfile(d)
+		profile, err := constructJamfProMacOSConfigurationProfile(d)
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the macOS configuration profile: %w", err))
+		}
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request
 		profileID, convertErr := strconv.Atoi(d.Id())
@@ -2169,8 +1891,14 @@ func ResourceJamfProMacOSConfigurationProfilesUpdate(ctx context.Context, d *sch
 
 // ResourceJamfProMacOSConfigurationProfilesDelete is responsible for deleting a macOS Configuration Profile.
 func ResourceJamfProMacOSConfigurationProfilesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	// Use the retry function for the **DELETE** operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {

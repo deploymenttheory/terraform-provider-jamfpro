@@ -4,6 +4,7 @@ package scripts
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -130,45 +131,69 @@ func ResourceJamfProScripts() *schema.Resource {
 	}
 }
 
-// constructScript constructs a ResponseScript object from the provided schema data.
-// It captures attributes from the schema and maps them to the fields of the structs in
-// the jamf pro sdk.
-func constructScript(d *schema.ResourceData) *jamfpro.ResponseScript {
-	// Handling Parameters
-	var params jamfpro.Parameters
-	if p, ok := d.GetOk("parameters"); ok {
-		paramsList := p.([]interface{})
-		if len(paramsList) > 0 && paramsList[0] != nil {
-			paramMap := paramsList[0].(map[string]interface{})
-			params = jamfpro.Parameters{
-				Parameter4:  paramMap["parameter4"].(string),
-				Parameter5:  paramMap["parameter5"].(string),
-				Parameter6:  paramMap["parameter6"].(string),
-				Parameter7:  paramMap["parameter7"].(string),
-				Parameter8:  paramMap["parameter8"].(string),
-				Parameter9:  paramMap["parameter9"].(string),
-				Parameter10: paramMap["parameter10"].(string),
-				Parameter11: paramMap["parameter11"].(string),
+// constructScript constructs a ResponseScript object from the provided schema data and returns any errors encountered.
+func constructScript(d *schema.ResourceData) (*jamfpro.ResponseScript, error) {
+	script := &jamfpro.ResponseScript{}
+
+	fields := map[string]interface{}{
+		"name":            &script.Name,
+		"category":        &script.Category,
+		"filename":        &script.Filename,
+		"info":            &script.Info,
+		"notes":           &script.Notes,
+		"priority":        &script.Priority,
+		"os_requirements": &script.OSRequirements,
+		"script_contents": &script.ScriptContents,
+	}
+
+	for key, ptr := range fields {
+		if v, ok := d.GetOk(key); ok {
+			switch ptr := ptr.(type) {
+			case *string:
+				*ptr = v.(string)
+			default:
+				return nil, fmt.Errorf("unsupported data type for key '%s'", key)
 			}
 		}
 	}
 
-	// Constructing the ResponseScript
-	return &jamfpro.ResponseScript{
-		Name:           d.Get("name").(string),
-		Category:       d.Get("category").(string),
-		Filename:       d.Get("filename").(string),
-		Info:           d.Get("info").(string),
-		Notes:          d.Get("notes").(string),
-		Priority:       d.Get("priority").(string),
-		Parameters:     params,
-		OSRequirements: d.Get("os_requirements").(string),
-		ScriptContents: d.Get("script_contents").(string),
-		// ScriptContentsEncoded is not set here as it's a computed field
+	// Handle nested "parameters" field
+	if params, ok := d.GetOk("parameters"); ok {
+		paramsList, ok := params.([]interface{})
+		if !ok || len(paramsList) == 0 {
+			return nil, fmt.Errorf("invalid data for 'parameters'")
+		}
+		paramMap, ok := paramsList[0].(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("invalid data structure for 'parameters'")
+		}
+		script.Parameters = jamfpro.Parameters{
+			Parameter4:  getString(paramMap, "parameter4"),
+			Parameter5:  getString(paramMap, "parameter5"),
+			Parameter6:  getString(paramMap, "parameter6"),
+			Parameter7:  getString(paramMap, "parameter7"),
+			Parameter8:  getString(paramMap, "parameter8"),
+			Parameter9:  getString(paramMap, "parameter9"),
+			Parameter10: getString(paramMap, "parameter10"),
+			Parameter11: getString(paramMap, "parameter11"),
+		}
 	}
+
+	// Log the successful construction of the script
+	log.Printf("[INFO] Successfully constructed Script with name: %s", script.Name)
+
+	return script, nil
 }
 
-// Helper function to generate diagnostics based on the error type
+// getString is a helper function to safely extract string values from a map.
+func getString(m map[string]interface{}, key string) string {
+	if val, ok := m[key]; ok {
+		return val.(string)
+	}
+	return ""
+}
+
+// Helper function to generate diagnostics based on the error type.
 func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
 	var diags diag.Diagnostics
 	resourceName, exists := d.GetOk("name")
@@ -200,15 +225,21 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	// Use the retry function for the create operation
 	var createdAttribute *jamfpro.ResponseScript
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the script
-		attribute := constructScript(d)
+		attribute, err := constructScript(d)
 
 		// Check if the attribute is nil (indicating an issue with input_type)
 		if attribute == nil {
@@ -261,8 +292,14 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	var attribute *jamfpro.ResponseScript
 
@@ -312,14 +349,23 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 
 // ResourceJamfProScriptsUpdate is responsible for updating an existing Jamf Pro Script on the remote system.
 func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	// Use the retry function for the update operation
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		// Construct the updated script
-		script := constructScript(d)
+		script, err := constructScript(d)
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the script: %w", err))
+		}
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request
 		scriptID, convertErr := strconv.Atoi(d.Id())
@@ -374,8 +420,14 @@ func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, m
 
 // ResourceJamfProScriptsDelete is responsible for deleting a Jamf Pro script.
 func ResourceJamfProScriptsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	// Use the retry function for the **DELETE** operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {

@@ -36,20 +36,34 @@ func DataSourceJamfProDepartments() *schema.Resource {
 
 // DataSourceJamfProDepartmentsRead fetches the details of a specific department from Jamf Pro using either its unique Name or its Id.
 func DataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	var department *jamfpro.ResponseDepartment
 	var err error
 
 	// Check if Name is provided in the data source configuration
-	if v, ok := d.GetOk("name"); ok && v.(string) != "" {
-		departmentName := v.(string)
-		department, err = conn.GetDepartmentByName(departmentName)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to fetch department by name: %v", err))
+	if v, ok := d.GetOk("name"); ok {
+		departmentName, ok := v.(string)
+		if !ok {
+			return diag.Errorf("error asserting 'name' as string")
+		}
+		if departmentName != "" {
+			department, err = conn.GetDepartmentByName(departmentName)
+			if err != nil {
+				return diag.FromErr(fmt.Errorf("failed to fetch department by name: %v", err))
+			}
 		}
 	} else if v, ok := d.GetOk("id"); ok {
-		departmentID, convertErr := strconv.Atoi(v.(string))
+		departmentIDStr, ok := v.(string)
+		if !ok {
+			return diag.Errorf("error asserting 'id' as string")
+		}
+		departmentID, convertErr := strconv.Atoi(departmentIDStr)
 		if convertErr != nil {
 			return diag.FromErr(fmt.Errorf("failed to convert department ID to integer: %v", convertErr))
 		}
@@ -66,8 +80,12 @@ func DataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceDat
 	}
 
 	// Set the data source attributes using the fetched data
-	d.SetId(fmt.Sprintf("%d", department.ID))
-	d.Set("name", department.Name)
+	if err := d.Set("id", department.ID); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting 'id': %v", err))
+	}
+	if err := d.Set("name", department.Name); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting 'name': %v", err))
+	}
 
 	return nil
 }

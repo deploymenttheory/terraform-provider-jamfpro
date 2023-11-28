@@ -113,28 +113,50 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 	}
 }
 
+// assertString returns the string along with a boolean indicating whether the assertion was successful.
+func assertString(val interface{}) (string, bool) {
+	strVal, ok := val.(string)
+	return strVal, ok
+}
+
 // constructComputerExtensionAttribute constructs a ResponseComputerExtensionAttribute object from the provided schema data.
 // It captures attributes from the schema, including nested attributes under "input_type", and returns the constructed object.
 func constructComputerExtensionAttribute(d *schema.ResourceData) *jamfpro.ResponseComputerExtensionAttribute {
-	// Extract the first item from the input_type list, which should be a map
-	inputTypes := d.Get("input_type").([]interface{})
-	if len(inputTypes) == 0 {
+	// Extract the first item from the input_type list
+	inputTypes, ok := d.Get("input_type").([]interface{})
+	if !ok || len(inputTypes) == 0 {
 		return nil
 	}
 
-	inputTypeMap := inputTypes[0].(map[string]interface{})
-
-	// Construct the InputType struct, capturing attributes such as type, platform, and script
-	inputType := jamfpro.ComputerExtensionAttributeInputType{
-		Type:     inputTypeMap["type"].(string),
-		Platform: inputTypeMap["platform"].(string),
-		Script:   inputTypeMap["script"].(string),
+	inputTypeMap, ok := inputTypes[0].(map[string]interface{})
+	if !ok {
+		return nil
 	}
 
-	// If choices are provided under "input_type", extract and append them to the InputType struct
+	var inputType jamfpro.ComputerExtensionAttributeInputType
+	var strVal string
+
+	// Safely assert type for 'type', 'platform', and 'script'
+	if strVal, ok = assertString(inputTypeMap["type"]); ok {
+		inputType.Type = strVal
+	}
+	if strVal, ok = assertString(inputTypeMap["platform"]); ok {
+		inputType.Platform = strVal
+	}
+	if strVal, ok = assertString(inputTypeMap["script"]); ok {
+		inputType.Script = strVal
+	}
+
+	// Safely extract and append 'choices'
 	if choices, exists := inputTypeMap["choices"]; exists {
-		for _, choice := range choices.([]interface{}) {
-			inputType.Choices = append(inputType.Choices, choice.(string))
+		choiceSlice, ok := choices.([]interface{})
+		if !ok {
+			return nil
+		}
+		for _, choice := range choiceSlice {
+			if strVal, ok := assertString(choice); ok {
+				inputType.Choices = append(inputType.Choices, strVal)
+			}
 		}
 	}
 
@@ -149,13 +171,12 @@ func constructComputerExtensionAttribute(d *schema.ResourceData) *jamfpro.Respon
 		InputType:        inputType,
 	}
 
-	// Log the successful construction of the attribute
 	log.Printf("[INFO] Successfully constructed ComputerExtensionAttribute with name: %s", attribute.Name)
 
 	return attribute
 }
 
-// Helper function to generate diagnostics based on the error type
+// Helper function to generate diagnostics based on the error type.
 func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
 	var diags diag.Diagnostics
 	resourceName, exists := d.GetOk("name")
@@ -187,8 +208,14 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	// Use the retry function for the create operation
 	var createdAttribute *jamfpro.ResponseComputerExtensionAttribute
@@ -260,8 +287,14 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	var attribute *jamfpro.ResponseComputerExtensionAttribute
 
@@ -342,8 +375,14 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 
 // ResourceJamfProComputerExtensionAttributesUpdate is responsible for updating an existing Jamf Pro Computer Extension Attribute on the remote system.
 func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	// Use the retry function for the update operation
 	var err error
@@ -404,8 +443,14 @@ func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 
 // ResourceJamfProComputerExtensionAttributesDelete is responsible for deleting a Jamf Pro Computer Extension Attribute.
 func ResourceJamfProComputerExtensionAttributesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	// Use the retry function for the **DELETE** operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {

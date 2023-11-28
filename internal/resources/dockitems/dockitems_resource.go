@@ -1,9 +1,10 @@
-// sites_resource.go
-package sites
+// dockitems_resource.go
+package dockitems
 
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -16,13 +17,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProSite defines the schema and CRUD operations for managing Jamf Pro Sites in Terraform.
-func ResourceJamfProSites() *schema.Resource {
+// ResourceJamfProDockItems defines the schema and CRUD operations for managing Jamf Pro Dock Items in Terraform.
+func ResourceJamfProDockItems() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProSitesCreate,
-		ReadContext:   ResourceJamfProSitesRead,
-		UpdateContext: ResourceJamfProSitesUpdate,
-		DeleteContext: ResourceJamfProSitesDelete,
+		CreateContext: ResourceJamfProDockItemsCreate,
+		ReadContext:   ResourceJamfProDockItemsRead,
+		UpdateContext: ResourceJamfProDockItemsUpdate,
+		DeleteContext: ResourceJamfProDockItemsDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(10 * time.Minute),
@@ -36,23 +37,74 @@ func ResourceJamfProSites() *schema.Resource {
 			"id": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The unique identifier of the site.",
+				Description: "The unique identifier of the dock item.",
 			},
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The unique name of the Jamf Pro site.",
+				Description: "The name of the dock item.",
+			},
+			"type": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The type of the dock item (App/File/Folder).",
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v, ok := val.(string)
+					if !ok {
+						errs = append(errs, fmt.Errorf("expected a string for %q but got a different type", key))
+						return
+					}
+					validTypes := map[string]bool{
+						"App":    true,
+						"File":   true,
+						"Folder": true,
+					}
+					if !validTypes[v] {
+						errs = append(errs, fmt.Errorf("%q must be one of 'App', 'File', or 'Folder', got: %s", key, v))
+					}
+					return
+				},
+			},
+			"path": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The path of the dock item.",
+			},
+			"contents": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Contents of the dock item.",
 			},
 		},
 	}
 }
 
-// constructSite constructs a ResponseSite object from the provided schema data.
-// It captures attributes from the schema and returns the constructed object.
-func constructSite(d *schema.ResourceData) *jamfpro.ResponseSite {
-	return &jamfpro.ResponseSite{
-		Name: d.Get("name").(string),
+// constructDockItem constructs a ResponseDockItem object from the provided schema data and returns any errors encountered.
+func constructDockItem(d *schema.ResourceData) (*jamfpro.ResponseDockItem, error) {
+	dockItem := &jamfpro.ResponseDockItem{}
+
+	fields := map[string]interface{}{
+		"name":     &dockItem.Name,
+		"type":     &dockItem.Type,
+		"path":     &dockItem.Path,
+		"contents": &dockItem.Contents,
 	}
+
+	for key, ptr := range fields {
+		if v, ok := d.GetOk(key); ok {
+			switch ptr := ptr.(type) {
+			case *string:
+				*ptr = v.(string)
+			default:
+				return nil, fmt.Errorf("unsupported data type for key '%s'", key)
+			}
+		}
+	}
+
+	// Log the successful construction of the dock item
+	log.Printf("[INFO] Successfully constructed DockItem with name: %s", dockItem.Name)
+
+	return dockItem, nil
 }
 
 // Helper function to generate diagnostics based on the error type.
@@ -80,13 +132,13 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 	return diags
 }
 
-// ResourceJamfProSitesCreate is responsible for creating a new Jamf Pro Site in the remote system.
+// ResourceJamfProDockItemsCreate is responsible for creating a new Jamf Pro Dock Item in the remote system.
 // The function:
-// 1. Constructs the attribute data using the provided Terraform configuration.
-// 2. Calls the API to create the attribute in Jamf Pro.
-// 3. Updates the Terraform state with the ID of the newly created attribute.
+// 1. Constructs the dock item data using the provided Terraform configuration.
+// 2. Calls the API to create the dock item in Jamf Pro.
+// 3. Updates the Terraform state with the ID of the newly created dock item.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ResourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Asserts 'meta' as '*client.APIClient'
@@ -96,26 +148,26 @@ func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, met
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the create operation
-	var createdAttribute *jamfpro.ResponseSite
+	// Use the retry function for the create operation.
+	var createdDockItem *jamfpro.ResponseDockItem
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		// Construct the site
-		attribute := constructSite(d)
+		// Construct the dock item.
+		dockItem, err := constructDockItem(d)
 
-		// Check if the attribute is nil (indicating an issue with input_type)
-		if attribute == nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the site due to missing or invalid input_type"))
+		// Check if the dock item is nil.
+		if dockItem == nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the dock item"))
 		}
 
-		// Directly call the API to create the resource
-		createdAttribute, err = conn.CreateSite(attribute)
+		// Directly call the API to create the resource.
+		createdDockItem, err = conn.CreateDockItems(dockItem)
 		if err != nil {
-			// Check if the error is an APIError
+			// Check if the error is an APIError.
 			if apiErr, ok := err.(*http_client.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message))
 			}
-			// For simplicity, we're considering all other errors as retryable
+			// For simplicity, we're considering all other errors as retryable.
 			return retry.RetryableError(err)
 		}
 
@@ -128,11 +180,11 @@ func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, met
 	}
 
 	// Set the ID of the created resource in the Terraform state
-	d.SetId(strconv.Itoa(createdAttribute.ID))
+	d.SetId(strconv.Itoa(createdDockItem.ID))
 
 	// Use the retry function for the read operation to update the Terraform state with the resource attributes
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProSitesRead(ctx, d, meta)
+		readDiags := ResourceJamfProDockItemsRead(ctx, d, meta)
 		if len(readDiags) > 0 {
 			// If readDiags is not empty, it means there's an error, so we retry
 			return retry.RetryableError(fmt.Errorf("failed to read the created resource"))
@@ -148,12 +200,12 @@ func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, met
 	return diags
 }
 
-// ResourceJamfProSitesRead is responsible for reading the current state of a Jamf Pro Site Resource from the remote system.
+// ResourceJamfProDockItemsRead is responsible for reading the current state of a Jamf Pro Dock Item Resource from the remote system.
 // The function:
-// 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
+// 1. Fetches the dock item's current state using its ID. If it fails then obtain dock item's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
-// 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
-func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// 3. Handles any discrepancies, such as the dock item being deleted outside of Terraform, to keep the Terraform state synchronized.
+func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Asserts 'meta' as '*client.APIClient'
@@ -163,27 +215,27 @@ func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta 
 	}
 	conn := apiclient.Conn
 
-	var attribute *jamfpro.ResponseSite
+	var dockItem *jamfpro.ResponseDockItem
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		// Convert the ID from the Terraform state into an integer to be used for the API request
-		attributeID, convertErr := strconv.Atoi(d.Id())
+		dockItemID, convertErr := strconv.Atoi(d.Id())
 		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse attribute ID: %v", convertErr))
+			return retry.NonRetryableError(fmt.Errorf("failed to parse dock item ID: %v", convertErr))
 		}
 
-		// Try fetching the site using the ID
+		// Try fetching the dock item using the ID
 		var apiErr error
-		attribute, apiErr = conn.GetSiteByID(attributeID)
+		dockItem, apiErr = conn.GetDockItemsByID(dockItemID)
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If fetching by ID fails, try fetching by Name
-			attributeName := d.Get("name").(string)
-			attribute, apiErr = conn.GetSiteByName(attributeName)
+			dockItemName := d.Get("name").(string)
+			dockItem, apiErr = conn.GetDockItemsByName(dockItemName)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -202,15 +254,26 @@ func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta 
 	}
 
 	// Safely set attributes in the Terraform state
-	if err := d.Set("name", attribute.Name); err != nil {
+	if err := d.Set("name", dockItem.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("type", dockItem.Type); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("path", dockItem.Path); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if dockItem.Contents != "" {
+		if err := d.Set("contents", dockItem.Contents); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	return diags
 }
 
-// ResourceJamfProSitesUpdate is responsible for updating an existing Jamf Pro Site on the remote system.
-func ResourceJamfProSitesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// ResourceJamfProDockItemsUpdate is responsible for updating an existing Jamf Pro Dock Item on the remote system.
+func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Asserts 'meta' as '*client.APIClient'
@@ -223,25 +286,28 @@ func ResourceJamfProSitesUpdate(ctx context.Context, d *schema.ResourceData, met
 	// Use the retry function for the update operation
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		// Construct the updated site
-		site := constructSite(d)
-
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		siteID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse site ID: %v", convertErr))
+		// Construct the dock item
+		dockItem, err := constructDockItem(d)
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the dock item: %w", err))
 		}
 
-		// Directly call the API to update the resource
-		_, apiErr := conn.UpdateSiteByID(siteID, site)
+		// Convert the ID from the Terraform state into an integer to be used for the API request
+		dockItemID, convertErr := strconv.Atoi(d.Id())
+		if convertErr != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to parse dock item ID: %v", convertErr))
+		}
+
+		// Directly call the API to update the resource by ID
+		_, apiErr := conn.UpdateDockItemsByID(dockItemID, dockItem)
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If the update by ID fails, try updating by name
-			siteName := d.Get("name").(string)
-			_, apiErr = conn.UpdateSiteByName(siteName, site)
+			dockItemName := d.Get("name").(string)
+			_, apiErr = conn.UpdateDockItemsByName(dockItemName, dockItem)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -261,7 +327,7 @@ func ResourceJamfProSitesUpdate(ctx context.Context, d *schema.ResourceData, met
 
 	// Use the retry function for the read operation to update the Terraform state
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProSitesRead(ctx, d, meta)
+		readDiags := ResourceJamfProDockItemsRead(ctx, d, meta)
 		if len(readDiags) > 0 {
 			return retry.RetryableError(fmt.Errorf("failed to update the Terraform state for the updated resource"))
 		}
@@ -277,8 +343,8 @@ func ResourceJamfProSitesUpdate(ctx context.Context, d *schema.ResourceData, met
 	return diags
 }
 
-// ResourceJamfProSitesDelete is responsible for deleting a Jamf Pro Site.
-func ResourceJamfProSitesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// ResourceJamfProDockItemsDelete is responsible for deleting a Jamf Pro Dock Item.
+func ResourceJamfProDockItemsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Asserts 'meta' as '*client.APIClient'
@@ -288,20 +354,20 @@ func ResourceJamfProSitesDelete(ctx context.Context, d *schema.ResourceData, met
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the **DELETE** operation
+	// Use the retry function for the DELETE operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Convert the ID from the Terraform state into an integer to be used for the API request
-		siteID, convertErr := strconv.Atoi(d.Id())
+		dockItemID, convertErr := strconv.Atoi(d.Id())
 		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse site ID: %v", convertErr))
+			return retry.NonRetryableError(fmt.Errorf("failed to parse dock item ID: %v", convertErr))
 		}
 
-		// Directly call the API to **DELETE** the resource
-		apiErr := conn.DeleteSiteByID(siteID)
+		// Directly call the API to DELETE the resource
+		apiErr := conn.DeleteDockItemsByID(dockItemID)
 		if apiErr != nil {
-			// If the **DELETE** by ID fails, try deleting by name
-			siteName := d.Get("name").(string)
-			apiErr = conn.DeleteSiteByName(siteName)
+			// If the DELETE by ID fails, try deleting by name
+			dockItemName := d.Get("name").(string)
+			apiErr = conn.DeleteDockItemsByName(dockItemName)
 			if apiErr != nil {
 				return retry.RetryableError(apiErr)
 			}

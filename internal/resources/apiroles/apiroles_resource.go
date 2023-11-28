@@ -49,7 +49,7 @@ func ResourceJamfProAPIRoles() *schema.Resource {
 	}
 }
 
-// Helper function to generate diagnostics based on the error type
+// Helper function to generate diagnostics based on the error type.
 func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
 	var diags diag.Diagnostics
 	resourceName, exists := d.GetOk("name")
@@ -106,8 +106,14 @@ func constructAPIRoleFromSchema(d *schema.ResourceData) *jamfpro.APIRole {
 // 3. Updates the Terraform state with the ID of the newly created role.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProAPIRolesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	// Use the retry function for the create operation
 	var createdRole *jamfpro.APIRole
@@ -171,8 +177,14 @@ func ResourceJamfProAPIRolesCreate(ctx context.Context, d *schema.ResourceData, 
 // 2. If fetching by ID fails, attempts to fetch it by the display name.
 // 3. Updates the Terraform state with the fetched data.
 func ResourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	// Retrieve the ID and display name of the API role from the Terraform state
 	roleIDString := d.Id()
@@ -213,9 +225,15 @@ func ResourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	// Update the Terraform state with the fetched data
-	d.Set("id", fetchedRole.ID)
-	d.Set("display_name", fetchedRole.DisplayName)
-	d.Set("privileges", fetchedRole.Privileges)
+	if err := d.Set("id", fetchedRole.ID); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'id': %v", err))
+	}
+	if err := d.Set("display_name", fetchedRole.DisplayName); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'display_name': %v", err))
+	}
+	if err := d.Set("privileges", fetchedRole.Privileges); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'privileges': %v", err))
+	}
 
 	return diags
 }
@@ -226,8 +244,14 @@ func ResourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, me
 // 2. Calls the API to update the role in Jamf Pro.
 // 3. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProAPIRolesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	// Use the retry function for the update operation
 	var err error
@@ -284,8 +308,14 @@ func ResourceJamfProAPIRolesUpdate(ctx context.Context, d *schema.ResourceData, 
 
 // ResourceJamfProAPIRolesDelete handles the deletion of a Jamf Pro API Role.
 func ResourceJamfProAPIRolesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*client.APIClient).Conn
 	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
 
 	// Use the retry function for the **DELETE** operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {

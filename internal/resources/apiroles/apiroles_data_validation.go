@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// List of valid privileges - replace these with actual valid privileges
+// List of valid privileges - replace these with actual valid privileges.
 var validPrivileges = []string{
 	"Allow User to Enroll",
 	"Assign Users to Computers",
@@ -516,7 +516,7 @@ var validPrivileges = []string{
 }
 
 // validateResourceApiRolesDataFields checks if a given privilege is in the list of valid privileges
-// and groups privileges by category
+// and groups privileges by category.
 func validateResourceApiRolesDataFields(val interface{}, key string) (warns []string, errs []error) {
 	v := val.(string)
 
