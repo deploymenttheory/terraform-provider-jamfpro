@@ -67,62 +67,34 @@ func ResourceJamfProBuilding() *schema.Resource {
 	}
 }
 
-// assertString returns the string along with a boolean indicating whether the assertion was successful.
-func assertString(val interface{}) (string, bool) {
-	strVal, ok := val.(string)
-	return strVal, ok
-}
-
-// constructBuilding constructs a Building object from the provided schema data.
-func constructBuilding(d *schema.ResourceData) *jamfpro.ResponseBuilding {
+// constructBuilding constructs a Building object from the provided schema data and returns any errors encountered.
+func constructBuilding(d *schema.ResourceData) (*jamfpro.ResponseBuilding, error) {
 	building := &jamfpro.ResponseBuilding{}
 
-	if v, ok := d.GetOk("name"); ok {
-		if building.Name, ok = assertString(v); !ok {
-			return nil
-		}
+	fields := map[string]*string{
+		"name":            &building.Name,
+		"street_address1": &building.StreetAddress1,
+		"street_address2": &building.StreetAddress2,
+		"city":            &building.City,
+		"state_province":  &building.StateProvince,
+		"zip_postal_code": &building.ZipPostalCode,
+		"country":         &building.Country,
 	}
 
-	if v, ok := d.GetOk("street_address1"); ok {
-		if building.StreetAddress1, ok = assertString(v); !ok {
-			return nil
-		}
-	}
-
-	if v, ok := d.GetOk("street_address2"); ok {
-		if building.StreetAddress2, ok = assertString(v); !ok {
-			return nil
-		}
-	}
-
-	if v, ok := d.GetOk("city"); ok {
-		if building.City, ok = assertString(v); !ok {
-			return nil
-		}
-	}
-
-	if v, ok := d.GetOk("state_province"); ok {
-		if building.StateProvince, ok = assertString(v); !ok {
-			return nil
-		}
-	}
-
-	if v, ok := d.GetOk("zip_postal_code"); ok {
-		if building.ZipPostalCode, ok = assertString(v); !ok {
-			return nil
-		}
-	}
-
-	if v, ok := d.GetOk("country"); ok {
-		if building.Country, ok = assertString(v); !ok {
-			return nil
+	for key, ptr := range fields {
+		if v, ok := d.GetOk(key); ok {
+			strVal, ok := v.(string)
+			if !ok {
+				return nil, fmt.Errorf("failed to assert '%s' as a string", key)
+			}
+			*ptr = strVal
 		}
 	}
 
 	// After successful construction
 	log.Printf("[INFO] Successfully constructed Building with name: %s", building.Name)
 
-	return building
+	return building, nil
 }
 
 // Helper function to generate diagnostics based on the error type.
@@ -171,7 +143,7 @@ func ResourceJamfProBuildingCreate(ctx context.Context, d *schema.ResourceData, 
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the building
-		building := constructBuilding(d)
+		building, err := constructBuilding(d)
 
 		// Check if the building is nil
 		if building == nil {
@@ -309,7 +281,10 @@ func ResourceJamfProBuildingUpdate(ctx context.Context, d *schema.ResourceData, 
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		// Construct the building
-		building := constructBuilding(d)
+		building, err := constructBuilding(d)
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the building: %w", err))
+		}
 
 		// The ID in Terraform state is already a string, so we use it directly for the API request
 		buildingID := d.Id()

@@ -4,6 +4,7 @@ package scripts
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -130,57 +131,64 @@ func ResourceJamfProScripts() *schema.Resource {
 	}
 }
 
-// constructScript constructs a ResponseScript object from the provided schema data.
-// It captures attributes from the schema and maps them to the fields of the structs in
-// the jamf pro sdk.
-func constructScript(d *schema.ResourceData) *jamfpro.ResponseScript {
-	var params jamfpro.Parameters
+// constructScript constructs a ResponseScript object from the provided schema data and returns any errors encountered.
+func constructScript(d *schema.ResourceData) (*jamfpro.ResponseScript, error) {
+	script := &jamfpro.ResponseScript{}
 
-	// Handling Parameters with checked type assertions
-	if p, ok := d.GetOk("parameters"); ok {
-		paramsList, ok := p.([]interface{})
-		if ok && len(paramsList) > 0 {
-			paramMap, ok := paramsList[0].(map[string]interface{})
-			if ok {
-				params = jamfpro.Parameters{
-					Parameter4:  getString(paramMap, "parameter4"),
-					Parameter5:  getString(paramMap, "parameter5"),
-					Parameter6:  getString(paramMap, "parameter6"),
-					Parameter7:  getString(paramMap, "parameter7"),
-					Parameter8:  getString(paramMap, "parameter8"),
-					Parameter9:  getString(paramMap, "parameter9"),
-					Parameter10: getString(paramMap, "parameter10"),
-					Parameter11: getString(paramMap, "parameter11"),
-				}
+	fields := map[string]interface{}{
+		"name":            &script.Name,
+		"category":        &script.Category,
+		"filename":        &script.Filename,
+		"info":            &script.Info,
+		"notes":           &script.Notes,
+		"priority":        &script.Priority,
+		"os_requirements": &script.OSRequirements,
+		"script_contents": &script.ScriptContents,
+	}
+
+	for key, ptr := range fields {
+		if v, ok := d.GetOk(key); ok {
+			switch ptr := ptr.(type) {
+			case *string:
+				*ptr = v.(string)
+			default:
+				return nil, fmt.Errorf("unsupported data type for key '%s'", key)
 			}
 		}
 	}
 
-	// Constructing the ResponseScript with checked type assertions
-	return &jamfpro.ResponseScript{
-		Name:           getString(d, "name"),
-		Category:       getString(d, "category"),
-		Filename:       getString(d, "filename"),
-		Info:           getString(d, "info"),
-		Notes:          getString(d, "notes"),
-		Priority:       getString(d, "priority"),
-		Parameters:     params,
-		OSRequirements: getString(d, "os_requirements"),
-		ScriptContents: getString(d, "script_contents"),
+	// Handle nested "parameters" field
+	if params, ok := d.GetOk("parameters"); ok {
+		paramsList, ok := params.([]interface{})
+		if !ok || len(paramsList) == 0 {
+			return nil, fmt.Errorf("invalid data for 'parameters'")
+		}
+		paramMap, ok := paramsList[0].(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("invalid data structure for 'parameters'")
+		}
+		script.Parameters = jamfpro.Parameters{
+			Parameter4:  getString(paramMap, "parameter4"),
+			Parameter5:  getString(paramMap, "parameter5"),
+			Parameter6:  getString(paramMap, "parameter6"),
+			Parameter7:  getString(paramMap, "parameter7"),
+			Parameter8:  getString(paramMap, "parameter8"),
+			Parameter9:  getString(paramMap, "parameter9"),
+			Parameter10: getString(paramMap, "parameter10"),
+			Parameter11: getString(paramMap, "parameter11"),
+		}
 	}
+
+	// Log the successful construction of the script
+	log.Printf("[INFO] Successfully constructed Script with name: %s", script.Name)
+
+	return script, nil
 }
 
-// getString safely retrieves a string from a map or ResourceData.
-func getString(source interface{}, key string) string {
-	switch v := source.(type) {
-	case map[string]interface{}:
-		if value, ok := v[key].(string); ok {
-			return value
-		}
-	case *schema.ResourceData:
-		if value, ok := v.Get(key).(string); ok {
-			return value
-		}
+// getString is a helper function to safely extract string values from a map.
+func getString(m map[string]interface{}, key string) string {
+	if val, ok := m[key]; ok {
+		return val.(string)
 	}
 	return ""
 }
@@ -231,7 +239,7 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the script
-		attribute := constructScript(d)
+		attribute, err := constructScript(d)
 
 		// Check if the attribute is nil (indicating an issue with input_type)
 		if attribute == nil {
@@ -354,7 +362,10 @@ func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, m
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		// Construct the updated script
-		script := constructScript(d)
+		script, err := constructScript(d)
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the script: %w", err))
+		}
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request
 		scriptID, convertErr := strconv.Atoi(d.Id())

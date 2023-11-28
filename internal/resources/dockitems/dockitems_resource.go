@@ -4,6 +4,7 @@ package dockitems
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -78,43 +79,32 @@ func ResourceJamfProDockItems() *schema.Resource {
 	}
 }
 
-// constructDockItem constructs a ResponseDockItem object from the provided schema data.
-// It captures the 'name', 'type', 'path', and 'contents' attributes from the schema
-// and returns the constructed ResponseDockItem object.
-func constructDockItem(d *schema.ResourceData) *jamfpro.ResponseDockItem {
+// constructDockItem constructs a ResponseDockItem object from the provided schema data and returns any errors encountered.
+func constructDockItem(d *schema.ResourceData) (*jamfpro.ResponseDockItem, error) {
 	dockItem := &jamfpro.ResponseDockItem{}
 
-	// Safely assert type for 'name'
-	if name, ok := d.Get("name").(string); ok {
-		dockItem.Name = name
-	} else {
-		return nil
+	fields := map[string]interface{}{
+		"name":     &dockItem.Name,
+		"type":     &dockItem.Type,
+		"path":     &dockItem.Path,
+		"contents": &dockItem.Contents,
 	}
 
-	// Safely assert type for 'type'
-	if typeStr, ok := d.Get("type").(string); ok {
-		dockItem.Type = typeStr
-	} else {
-		return nil
-	}
-
-	// Safely assert type for 'path'
-	if path, ok := d.Get("path").(string); ok {
-		dockItem.Path = path
-	} else {
-		return nil
-	}
-
-	// Safely assert type for 'contents' if it exists
-	if v, ok := d.GetOk("contents"); ok {
-		if contents, ok := v.(string); ok {
-			dockItem.Contents = contents
-		} else {
-			return nil
+	for key, ptr := range fields {
+		if v, ok := d.GetOk(key); ok {
+			switch ptr := ptr.(type) {
+			case *string:
+				*ptr = v.(string)
+			default:
+				return nil, fmt.Errorf("unsupported data type for key '%s'", key)
+			}
 		}
 	}
 
-	return dockItem
+	// Log the successful construction of the dock item
+	log.Printf("[INFO] Successfully constructed DockItem with name: %s", dockItem.Name)
+
+	return dockItem, nil
 }
 
 // Helper function to generate diagnostics based on the error type.
@@ -163,7 +153,7 @@ func ResourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData,
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the dock item.
-		dockItem := constructDockItem(d)
+		dockItem, err := constructDockItem(d)
 
 		// Check if the dock item is nil.
 		if dockItem == nil {
@@ -297,7 +287,10 @@ func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData,
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		// Construct the dock item
-		dockItem := constructDockItem(d)
+		dockItem, err := constructDockItem(d)
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the dock item: %w", err))
+		}
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request
 		dockItemID, convertErr := strconv.Atoi(d.Id())

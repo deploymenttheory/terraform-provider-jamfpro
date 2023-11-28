@@ -179,82 +179,72 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 }
 
 // constructComputerGroup constructs a ResponseComputerGroup object from the provided schema data.
-func constructComputerGroup(d *schema.ResourceData) *jamfpro.ResponseComputerGroup {
-	var group jamfpro.ResponseComputerGroup
+// constructComputerGroup constructs a ResponseComputerGroup object from the provided schema data and returns any errors encountered.
+func constructComputerGroup(d *schema.ResourceData) (*jamfpro.ResponseComputerGroup, error) {
+	group := &jamfpro.ResponseComputerGroup{}
 
-	// Handle optional "name" field
-	if v, ok := d.GetOk("name"); ok {
-		group.Name = v.(string)
+	// Handle simple fields
+	fields := map[string]interface{}{
+		"name":     &group.Name,
+		"is_smart": &group.IsSmart,
 	}
 
-	// Handle optional "is_smart" field
-	if v, ok := d.GetOk("is_smart"); ok {
-		group.IsSmart = v.(bool)
+	for key, ptr := range fields {
+		if v, ok := d.GetOk(key); ok {
+			switch ptr := ptr.(type) {
+			case *string:
+				*ptr = v.(string)
+			case *bool:
+				*ptr = v.(bool)
+			default:
+				return nil, fmt.Errorf("unsupported data type for key '%s'", key)
+			}
+		}
 	}
 
-	// Handle optional "site" field
-	siteList := d.Get("site").([]interface{})
-	if len(siteList) > 0 {
-		siteMap := siteList[0].(map[string]interface{})
+	// Handle nested "site" field
+	if siteList, ok := d.GetOk("site"); ok {
+		siteData, ok := siteList.([]interface{})
+		if !ok || len(siteData) == 0 {
+			return nil, fmt.Errorf("invalid data for 'site'")
+		}
+		siteMap, ok := siteData[0].(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("invalid data structure for 'site'")
+		}
 		group.Site = jamfpro.ComputerGroupSite{
 			ID:   siteMap["id"].(int),
 			Name: siteMap["name"].(string),
 		}
 	}
 
-	// Handle optional "criteria" field
-	if v, ok := d.GetOk("criteria"); ok {
-		for _, crit := range v.([]interface{}) {
+	// Handle "criteria" field
+	if criteria, ok := d.GetOk("criteria"); ok {
+		for _, crit := range criteria.([]interface{}) {
 			criterionMap := crit.(map[string]interface{})
 			var criterion jamfpro.ComputerGroupCriterion
-
-			if nameValue, ok := criterionMap["name"].(string); ok {
-				criterion.Name = nameValue
-			}
-			if priorityValue, ok := criterionMap["priority"].(int); ok {
-				criterion.Priority = priorityValue
-			}
-			if andOrValue, ok := criterionMap["and_or"].(string); ok {
-				criterion.AndOr = jamfpro.DeviceGroupAndOr(andOrValue)
-			}
-			if searchTypeValue, ok := criterionMap["search_type"].(string); ok {
-				criterion.SearchType = searchTypeValue
-			}
-			if searchValueValue, ok := criterionMap["value"].(string); ok {
-				criterion.SearchValue = searchValueValue
-			}
-			if openingParenValue, ok := criterionMap["opening_paren"].(bool); ok {
-				criterion.OpeningParen = openingParenValue
-			}
-			if closingParenValue, ok := criterionMap["closing_paren"].(bool); ok {
-				criterion.ClosingParen = closingParenValue
-			}
+			criterion.Name = criterionMap["name"].(string)
+			criterion.Priority = criterionMap["priority"].(int)
+			criterion.AndOr = jamfpro.DeviceGroupAndOr(criterionMap["and_or"].(string))
+			criterion.SearchType = criterionMap["search_type"].(string)
+			criterion.SearchValue = criterionMap["value"].(string)
+			criterion.OpeningParen = criterionMap["opening_paren"].(bool)
+			criterion.ClosingParen = criterionMap["closing_paren"].(bool)
 
 			group.Criteria = append(group.Criteria, criterion)
 		}
 	}
 
-	// Handle optional "computers" field
-	if v, ok := d.GetOk("computers"); ok {
-		for _, comp := range v.([]interface{}) {
+	// Handle "computers" field
+	if computers, ok := d.GetOk("computers"); ok {
+		for _, comp := range computers.([]interface{}) {
 			computerMap := comp.(map[string]interface{})
 			var computer jamfpro.ComputerGroupComputerItem
-
-			if idValue, ok := computerMap["id"].(int); ok {
-				computer.ID = idValue
-			}
-			if nameValue, ok := computerMap["name"].(string); ok {
-				computer.Name = nameValue
-			}
-			if serialNumberValue, ok := computerMap["serial_number"].(string); ok {
-				computer.SerialNumber = serialNumberValue
-			}
-			if macAddressValue, ok := computerMap["mac_address"].(string); ok {
-				computer.MacAddress = macAddressValue
-			}
-			if altMacAddressValue, ok := computerMap["alt_mac_address"].(string); ok {
-				computer.AltMacAddress = altMacAddressValue
-			}
+			computer.ID = computerMap["id"].(int)
+			computer.Name = computerMap["name"].(string)
+			computer.SerialNumber = computerMap["serial_number"].(string)
+			computer.MacAddress = computerMap["mac_address"].(string)
+			computer.AltMacAddress = computerMap["alt_mac_address"].(string)
 
 			group.Computers = append(group.Computers, computer)
 		}
@@ -263,7 +253,7 @@ func constructComputerGroup(d *schema.ResourceData) *jamfpro.ResponseComputerGro
 	// Log the successful construction of the group
 	log.Printf("[INFO] Successfully constructed ComputerGroup with name: %s", group.Name)
 
-	return &group
+	return group, nil
 }
 
 // Helper function to generate diagnostics based on the error type.
@@ -307,7 +297,7 @@ func ResourceJamfProComputerGroupsCreate(ctx context.Context, d *schema.Resource
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the computer group
-		group := constructComputerGroup(d)
+		group, err := constructComputerGroup(d)
 
 		// Log the details of the group that is about to be created
 		log.Printf("[INFO] Attempting to create ComputerGroup with name: %s", group.Name)
@@ -471,7 +461,10 @@ func ResourceJamfProComputerGroupsUpdate(ctx context.Context, d *schema.Resource
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		// Construct the updated computer group
-		group := constructComputerGroup(d)
+		group, err := constructComputerGroup(d)
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the computer group: %w", err))
+		}
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request
 		groupID, convertErr := strconv.Atoi(d.Id())

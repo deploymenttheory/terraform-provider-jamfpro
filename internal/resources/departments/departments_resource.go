@@ -4,6 +4,7 @@ package departments
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -47,12 +48,28 @@ func ResourceJamfProDepartments() *schema.Resource {
 	}
 }
 
-// constructDepartment constructs a ResponseDepartment object from the provided schema data.
-// It captures the 'name' attribute from the schema and returns the constructed ResponseDepartment object.
-func constructDepartment(d *schema.ResourceData) *jamfpro.ResponseDepartment {
-	return &jamfpro.ResponseDepartment{
-		Name: d.Get("name").(string),
+// constructDepartment constructs a ResponseDepartment object from the provided schema data and returns any errors encountered.
+func constructDepartment(d *schema.ResourceData) (*jamfpro.ResponseDepartment, error) {
+	department := &jamfpro.ResponseDepartment{}
+
+	fields := map[string]*string{
+		"name": &department.Name,
 	}
+
+	for key, ptr := range fields {
+		if v, ok := d.GetOk(key); ok {
+			strVal, ok := v.(string)
+			if !ok {
+				return nil, fmt.Errorf("failed to assert '%s' as a string", key)
+			}
+			*ptr = strVal
+		}
+	}
+
+	// Log the successful construction of the department
+	log.Printf("[INFO] Successfully constructed Department with name: %s", department.Name)
+
+	return department, nil
 }
 
 // Helper function to generate diagnostics based on the error type..
@@ -101,7 +118,7 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the computer extension attribute
-		department := constructDepartment(d)
+		department, err := constructDepartment(d)
 
 		// Check if the department is nil
 		if department == nil {
@@ -224,7 +241,10 @@ func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		// Construct the department
-		department := constructDepartment(d)
+		department, err := constructDepartment(d)
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the department: %w", err))
+		}
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request
 		departmentID, convertErr := strconv.Atoi(d.Id())
