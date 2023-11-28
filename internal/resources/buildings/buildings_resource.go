@@ -32,12 +32,12 @@ func ResourceJamfProBuilding() *schema.Resource {
 				Required:    true,
 				Description: "The name of the building.",
 			},
-			"streetAddress1": {
+			"street_address1": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The first line of the street address of the building.",
 			},
-			"streetAddress2": {
+			"street_address2": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The second line of the street address of the building.",
@@ -47,12 +47,12 @@ func ResourceJamfProBuilding() *schema.Resource {
 				Optional:    true,
 				Description: "The city in which the building is located.",
 			},
-			"stateProvince": {
+			"state_province": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The state or province in which the building is located.",
 			},
-			"zipPostalCode": {
+			"zip_postal_code": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The ZIP or postal code of the building.",
@@ -68,15 +68,31 @@ func ResourceJamfProBuilding() *schema.Resource {
 
 // constructBuilding constructs a Building object from the provided schema data.
 func constructBuilding(d *schema.ResourceData) *jamfpro.ResponseBuilding {
-	return &jamfpro.ResponseBuilding{
-		Name:           d.Get("name").(string),
-		StreetAddress1: d.Get("streetAddress1").(string),
-		StreetAddress2: d.Get("streetAddress2").(string),
-		City:           d.Get("city").(string),
-		StateProvince:  d.Get("stateProvince").(string),
-		ZipPostalCode:  d.Get("zipPostalCode").(string),
-		Country:        d.Get("country").(string),
+	building := &jamfpro.ResponseBuilding{}
+
+	if v, ok := d.GetOk("name"); ok {
+		building.Name = v.(string)
 	}
+	if v, ok := d.GetOk("street_address1"); ok {
+		building.StreetAddress1 = v.(string)
+	}
+	if v, ok := d.GetOk("street_address2"); ok {
+		building.StreetAddress2 = v.(string)
+	}
+	if v, ok := d.GetOk("city"); ok {
+		building.City = v.(string)
+	}
+	if v, ok := d.GetOk("state_province"); ok {
+		building.StateProvince = v.(string)
+	}
+	if v, ok := d.GetOk("zip_postal_code"); ok {
+		building.ZipPostalCode = v.(string)
+	}
+	if v, ok := d.GetOk("country"); ok {
+		building.Country = v.(string)
+	}
+
+	return building
 }
 
 // Helper function to generate diagnostics based on the error type
@@ -214,19 +230,19 @@ func ResourceJamfProBuildingRead(ctx context.Context, d *schema.ResourceData, me
 	if err := d.Set("name", building.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("streetAddress1", building.StreetAddress1); err != nil {
+	if err := d.Set("street_Address1", building.StreetAddress1); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("streetAddress2", building.StreetAddress2); err != nil {
+	if err := d.Set("street_Address2", building.StreetAddress2); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("city", building.City); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("stateProvince", building.StateProvince); err != nil {
+	if err := d.Set("state_province", building.StateProvince); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("zipPostalCode", building.ZipPostalCode); err != nil {
+	if err := d.Set("zip_postal_code", building.ZipPostalCode); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("country", building.Country); err != nil {

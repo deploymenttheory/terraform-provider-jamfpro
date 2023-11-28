@@ -29,12 +29,12 @@ func DataSourceJamfProBuilding() *schema.Resource {
 				Description: "The name of the building.",
 				Computed:    true,
 			},
-			"streetAddress1": {
+			"street_address1": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The first line of the street address of the building.",
 			},
-			"streetAddress2": {
+			"street_address2": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The second line of the street address of the building.",
@@ -44,12 +44,12 @@ func DataSourceJamfProBuilding() *schema.Resource {
 				Computed:    true,
 				Description: "The city in which the building is located.",
 			},
-			"stateProvince": {
+			"state_province": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The state or province in which the building is located.",
 			},
-			"zipPostalCode": {
+			"zip_postal_code": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The ZIP or postal code of the building.",
