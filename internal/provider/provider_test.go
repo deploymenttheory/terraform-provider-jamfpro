@@ -31,7 +31,10 @@ func TestGetInstanceName(t *testing.T) {
 
 	// Test 2: Get instance name from environment variable
 	t.Setenv("JAMFPRO_INSTANCE", "testEnvInstance")
-	err = d.Set("instance_name", "") // Clear the previous set value
+	if err := d.Set("instance_name", ""); err != nil {
+		t.Fatalf("error clearing instance_name: %v", err)
+	}
+
 	if err != nil {
 		t.Fatalf("error clearing instance_name: %v", err)
 	}
@@ -54,14 +57,19 @@ func TestGetClientID(t *testing.T) {
 	}, map[string]interface{}{})
 
 	// Test 1: Get client ID from d
-	d.Set("client_id", "testClientID")
+	if err := d.Set("client_id", "testClientID"); err != nil {
+		t.Fatalf("error setting client_id: %v", err)
+	}
+
 	clientID, err := GetClientID(d)
 	assert.NoError(t, err)
 	assert.Equal(t, "testClientID", clientID)
 
 	// Test 2: Get client ID from environment variable
 	t.Setenv("JAMFPRO_CLIENT_ID", "testEnvClientID")
-	d.Set("client_id", "") // Clear the previous set value
+	if err := d.Set("client_id", ""); err != nil {
+		t.Fatalf("error clearing client_id: %v", err)
+	}
 	clientID, err = GetClientID(d)
 	assert.NoError(t, err)
 	assert.Equal(t, "testEnvClientID", clientID)
@@ -81,14 +89,18 @@ func TestGetClientSecret(t *testing.T) {
 	}, map[string]interface{}{})
 
 	// Test 1: Get client secret from d
-	d.Set("client_secret", "testClientSecret")
+	if err := d.Set("client_secret", "testClientSecret"); err != nil {
+		t.Fatalf("error setting client_secret: %v", err)
+	}
 	clientSecret, err := GetClientSecret(d)
 	assert.NoError(t, err)
 	assert.Equal(t, "testClientSecret", clientSecret)
 
 	// Test 2: Get client secret from environment variable
 	t.Setenv("JAMFPRO_CLIENT_SECRET", "testEnvClientSecret")
-	d.Set("client_secret", "") // Clear the previous set value
+	if err := d.Set("client_secret", ""); err != nil {
+		t.Fatalf("error clearing client_secret: %v", err)
+	}
 	clientSecret, err = GetClientSecret(d)
 	assert.NoError(t, err)
 	assert.Equal(t, "testEnvClientSecret", clientSecret)
@@ -125,19 +137,32 @@ func TestProvider(t *testing.T) {
 	assert.Len(t, diags, 0)
 
 	// Test 2: Missing instance name
-	d.Set("instance_name", "")
+	if err := d.Set("instance_name", ""); err != nil {
+		t.Fatalf("error clearing instance_name: %v", err)
+	}
+
 	_, diags = Provider().ConfigureContextFunc(context.Background(), d)
 	assert.Len(t, diags, 1)
 
 	// Test 3: Missing client ID
-	d.Set("instance_name", "testInstance") // reset instance_name
-	d.Set("client_id", "")
+	if err := d.Set("instance_name", "testInstance"); err != nil {
+		t.Fatalf("error setting instance_name: %v", err)
+	}
+	if err := d.Set("client_id", ""); err != nil {
+		t.Fatalf("error clearing client_id: %v", err)
+	}
 	_, diags = Provider().ConfigureContextFunc(context.Background(), d)
 	assert.Len(t, diags, 1)
 
 	// Test 4: Missing client secret
-	d.Set("client_id", "testClientID") // reset client_id
-	d.Set("client_secret", "")
+	if err := d.Set("client_id", "testClientID"); err != nil {
+		t.Fatalf("error setting client_id: %v", err)
+	}
+
+	if err := d.Set("client_secret", ""); err != nil {
+		t.Fatalf("error clearing client_secret: %v", err)
+	}
+
 	_, diags = Provider().ConfigureContextFunc(context.Background(), d)
 	assert.Len(t, diags, 1)
 }
