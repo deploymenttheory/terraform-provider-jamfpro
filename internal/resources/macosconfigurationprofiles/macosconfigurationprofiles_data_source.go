@@ -4,6 +4,7 @@ package macosconfigurationprofiles
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
@@ -754,26 +755,78 @@ func dataSourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *sch
 	var profile *jamfpro.ResponseMacOSConfigurationProfiles
 	var err error
 
-	if v, ok := d.GetOk("name"); ok && v.(string) != "" {
-		profileName := v.(string)
+	// Fetch profile by 'name' or 'id'
+	if v, ok := d.GetOk("name"); ok {
+		profileName, ok := v.(string)
+		if !ok {
+			return diag.Errorf("error asserting 'name' as string")
+		}
 		profile, err = conn.GetMacOSConfigurationProfileByName(profileName)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to fetch macOS Configuration Profile by name: %v", err))
-		}
 	} else if v, ok := d.GetOk("id"); ok {
-		profileID := v.(int)
-		profile, err = conn.GetMacOSConfigurationProfileByID(profileID)
+		var profileID int
+		profileID, err = strconv.Atoi(v.(string)) // Use existing 'err' variable
 		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to fetch macOS Configuration Profile by ID: %v", err))
+			return diag.FromErr(fmt.Errorf("failed to convert 'id' to integer: %v", err))
 		}
+		profile, err = conn.GetMacOSConfigurationProfileByID(profileID)
 	} else {
 		return diag.Errorf("Either 'name' or 'id' must be provided")
 	}
 
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to fetch macOS Configuration Profile: %v", err))
+	}
+
 	// Set the data source attributes using the fetched data
-	d.SetId(fmt.Sprintf("%d", profile.General.ID))
-	d.Set("name", profile.General.Name)
-	// Set other necessary attributes
+	if err := d.Set("name", profile.General.Name); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting 'name': %v", err))
+	}
+	if err := d.Set("description", profile.General.Description); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting 'description': %v", err))
+	}
+
+	// Handling nested object 'site'
+	site := profile.General.Site
+	if site.ID != 0 || site.Name != "" {
+		if err := d.Set("site", []interface{}{
+			map[string]interface{}{
+				"id":   site.ID,
+				"name": site.Name,
+			},
+		}); err != nil {
+			return diag.FromErr(fmt.Errorf("error setting 'site': %v", err))
+		}
+	}
+
+	// Repeat this pattern for other fields
+	if err := d.Set("distribution_method", profile.General.DistributionMethod); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting 'distribution_method': %v", err))
+	}
+	// Set 'user_removable'
+	if err := d.Set("user_removable", profile.General.UserRemovable); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting 'user_removable': %v", err))
+	}
+
+	// Set 'level'
+	if err := d.Set("level", profile.General.Level); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting 'level': %v", err))
+	}
+
+	// Set 'uuid'
+	if err := d.Set("uuid", profile.General.UUID); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting 'uuid': %v", err))
+	}
+
+	// Set 'redeploy_on_update'
+	if err := d.Set("redeploy_on_update", profile.General.RedeployOnUpdate); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting 'redeploy_on_update': %v", err))
+	}
+
+	// Set 'payloads'
+	if err := d.Set("payloads", profile.General.Payloads); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting 'payloads': %v", err))
+	}
 
 	return nil
+
 }

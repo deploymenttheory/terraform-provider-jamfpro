@@ -1,5 +1,5 @@
-// dockitems_resource.go
-package dockitems
+// printers_resource.go
+package printers
 
 import (
 	"context"
@@ -17,13 +17,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProDockItems defines the schema and CRUD operations for managing Jamf Pro Dock Items in Terraform.
-func ResourceJamfProDockItems() *schema.Resource {
+// ResourceJamfProPrinters defines the schema and CRUD operations for managing Jamf Pro Printers in Terraform.
+func ResourceJamfProPrinters() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProDockItemsCreate,
-		ReadContext:   ResourceJamfProDockItemsRead,
-		UpdateContext: ResourceJamfProDockItemsUpdate,
-		DeleteContext: ResourceJamfProDockItemsDelete,
+		CreateContext: ResourceJamfProPrintersCreate,
+		ReadContext:   ResourceJamfProPrintersRead,
+		UpdateContext: ResourceJamfProPrintersUpdate,
+		DeleteContext: ResourceJamfProPrintersDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(10 * time.Minute),
@@ -37,57 +37,95 @@ func ResourceJamfProDockItems() *schema.Resource {
 			"id": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The unique identifier of the dock item.",
+				Description: "The unique identifier of the printer.",
 			},
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The name of the dock item.",
+				Description: "The name of the printer.",
 			},
-			"type": {
+			"category": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The type of the dock item (App/File/Folder).",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v, ok := val.(string)
-					if !ok {
-						errs = append(errs, fmt.Errorf("expected a string for %q but got a different type", key))
-						return
-					}
-					validTypes := map[string]bool{
-						"App":    true,
-						"File":   true,
-						"Folder": true,
-					}
-					if !validTypes[v] {
-						errs = append(errs, fmt.Errorf("%q must be one of 'App', 'File', or 'Folder', got: %s", key, v))
-					}
-					return
-				},
+				Optional:    true,
+				Description: "The category of the printer.",
 			},
-			"path": {
+			"uri": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The path of the dock item.",
+				Optional:    true,
+				Description: "The URI of the printer.",
 			},
-			"contents": {
+			"CUPS_name": {
 				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Contents of the dock item.",
+				Optional:    true,
+				Description: "The CUPS name of the printer.",
+			},
+			"location": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The location of the printer.",
+			},
+			"model": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The model of the printer.",
+			},
+			"info": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Additional information about the printer.",
+			},
+			"notes": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Notes about the printer.",
+			},
+			"make_default": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Indicates if the printer is the default printer.",
+			},
+			"use_generic": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Indicates if the printer uses a generic driver.",
+			},
+			"ppd": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The PPD file name of the printer.",
+			},
+			"ppd_path": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The path to the PPD file of the printer.",
+			},
+			"ppd_contents": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The contents of the PPD file.",
 			},
 		},
 	}
 }
 
-// constructJamfProDockItem constructs a ResponseDockItem object from the provided schema data and returns any errors encountered.
-func constructJamfProDockItem(d *schema.ResourceData) (*jamfpro.ResponseDockItem, error) {
-	dockItem := &jamfpro.ResponseDockItem{}
+// constructJamfProPrinter constructs a ResponsePrinters object from the provided schema data and returns any errors encountered.
+func constructJamfProPrinter(d *schema.ResourceData) (*jamfpro.ResponsePrinters, error) {
+	printer := &jamfpro.ResponsePrinters{}
 
 	fields := map[string]interface{}{
-		"name":     &dockItem.Name,
-		"type":     &dockItem.Type,
-		"path":     &dockItem.Path,
-		"contents": &dockItem.Contents,
+		"name":         &printer.Name,
+		"category":     &printer.Category,
+		"uri":          &printer.URI,
+		"CUPS_name":    &printer.CUPSName,
+		"location":     &printer.Location,
+		"model":        &printer.Model,
+		"info":         &printer.Info,
+		"notes":        &printer.Notes,
+		"make_default": &printer.MakeDefault,
+		"use_generic":  &printer.UseGeneric,
+		"ppd":          &printer.PPD,
+		"ppd_path":     &printer.PPDPath,
+		"ppd_contents": &printer.PPDContents,
 	}
 
 	for key, ptr := range fields {
@@ -95,16 +133,18 @@ func constructJamfProDockItem(d *schema.ResourceData) (*jamfpro.ResponseDockItem
 			switch ptr := ptr.(type) {
 			case *string:
 				*ptr = v.(string)
+			case *bool:
+				*ptr = v.(bool)
 			default:
 				return nil, fmt.Errorf("unsupported data type for key '%s'", key)
 			}
 		}
 	}
 
-	// Log the successful construction of the dock item
-	log.Printf("[INFO] Successfully constructed DockItem with name: %s", dockItem.Name)
+	// Log the successful construction of the printer
+	log.Printf("[INFO] Successfully constructed Printer with name: %s", printer.Name)
 
-	return dockItem, nil
+	return printer, nil
 }
 
 // Helper function to generate diagnostics based on the error type.
@@ -132,13 +172,15 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 	return diags
 }
 
-// ResourceJamfProDockItemsCreate is responsible for creating a new Jamf Pro Dock Item in the remote system.
+// Further CRUD function definitions would go here...
+
+// ResourceJamfProPrintersCreate is responsible for creating a new Jamf Pro Printer in the remote system.
 // The function:
-// 1. Constructs the dock item data using the provided Terraform configuration.
-// 2. Calls the API to create the dock item in Jamf Pro.
-// 3. Updates the Terraform state with the ID of the newly created dock item.
+// 1. Constructs the printer data using the provided Terraform configuration.
+// 2. Calls the API to create the printer in Jamf Pro.
+// 3. Updates the Terraform state with the ID of the newly created printer.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func ResourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ResourceJamfProPrintersCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Asserts 'meta' as '*client.APIClient'
@@ -149,17 +191,17 @@ func ResourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData,
 	conn := apiclient.Conn
 
 	// Use the retry function for the create operation.
-	var createdDockItem *jamfpro.ResponseDockItem
+	var createdPrinter *jamfpro.ResponsePrinters
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		// Construct the dock item.
-		dockItem, err := constructJamfProDockItem(d)
+		// Construct the printer.
+		printer, err := constructJamfProPrinter(d)
 		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the department for terraform create: %w", err))
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the printer for terraform create: %w", err))
 		}
 
 		// Directly call the API to create the resource.
-		createdDockItem, err = conn.CreateDockItems(dockItem)
+		createdPrinter, err = conn.CreatePrinters(printer)
 		if err != nil {
 			// Check if the error is an APIError.
 			if apiErr, ok := err.(*http_client.APIError); ok {
@@ -178,11 +220,11 @@ func ResourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData,
 	}
 
 	// Set the ID of the created resource in the Terraform state
-	d.SetId(strconv.Itoa(createdDockItem.ID))
+	d.SetId(strconv.Itoa(createdPrinter.ID))
 
 	// Use the retry function for the read operation to update the Terraform state with the resource attributes
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProDockItemsRead(ctx, d, meta)
+		readDiags := ResourceJamfProPrintersRead(ctx, d, meta)
 		if len(readDiags) > 0 {
 			// If readDiags is not empty, it means there's an error, so we retry
 			return retry.RetryableError(fmt.Errorf("failed to read the created resource"))
@@ -198,12 +240,12 @@ func ResourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData,
 	return diags
 }
 
-// ResourceJamfProDockItemsRead is responsible for reading the current state of a Jamf Pro Dock Item Resource from the remote system.
+// ResourceJamfProPrintersRead is responsible for reading the current state of a Jamf Pro Printer Resource from the remote system.
 // The function:
-// 1. Fetches the dock item's current state using its ID. If it fails then obtain dock item's current state using its Name.
+// 1. Fetches the printer's current state using its ID. If it fails, then obtain the printer's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
-// 3. Handles any discrepancies, such as the dock item being deleted outside of Terraform, to keep the Terraform state synchronized.
-func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// 3. Handles any discrepancies, such as the printer being deleted outside of Terraform, to keep the Terraform state synchronized.
+func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Asserts 'meta' as '*client.APIClient'
@@ -213,31 +255,31 @@ func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, m
 	}
 	conn := apiclient.Conn
 
-	var dockItem *jamfpro.ResponseDockItem
+	var printer *jamfpro.ResponsePrinters
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		// Convert the ID from the Terraform state into an integer to be used for the API request
-		dockItemID, convertErr := strconv.Atoi(d.Id())
+		printerID, convertErr := strconv.Atoi(d.Id())
 		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse dock item ID: %v", convertErr))
+			return retry.NonRetryableError(fmt.Errorf("failed to parse printer ID: %v", convertErr))
 		}
 
-		// Try fetching the dock item using the ID
+		// Try fetching the printer using the ID
 		var apiErr error
-		dockItem, apiErr = conn.GetDockItemsByID(dockItemID)
+		printer, apiErr = conn.GetPrinterByID(printerID)
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If fetching by ID fails, try fetching by Name
-			dockItemName, ok := d.Get("name").(string)
+			printerName, ok := d.Get("name").(string)
 			if !ok {
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
 
-			dockItem, apiErr = conn.GetDockItemsByName(dockItemName)
+			printer, apiErr = conn.GetPrinterByName(printerName)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -256,26 +298,52 @@ func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	// Safely set attributes in the Terraform state
-	if err := d.Set("name", dockItem.Name); err != nil {
+	if err := d.Set("name", printer.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("type", dockItem.Type); err != nil {
+	if err := d.Set("category", printer.Category); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("path", dockItem.Path); err != nil {
+	if err := d.Set("uri", printer.URI); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if dockItem.Contents != "" {
-		if err := d.Set("contents", dockItem.Contents); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+	if err := d.Set("CUPS_name", printer.CUPSName); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("location", printer.Location); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("model", printer.Model); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("info", printer.Info); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("notes", printer.Notes); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("make_default", printer.MakeDefault); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("use_generic", printer.UseGeneric); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("ppd", printer.PPD); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("ppd_path", printer.PPDPath); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("ppd_contents", printer.PPDContents); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	return diags
+
 }
 
-// ResourceJamfProDockItemsUpdate is responsible for updating an existing Jamf Pro Dock Item on the remote system.
-func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// ResourceJamfProPrintersUpdate is responsible for updating an existing Jamf Pro Printer on the remote system.
+func ResourceJamfProPrintersUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Asserts 'meta' as '*client.APIClient'
@@ -288,32 +356,32 @@ func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData,
 	// Use the retry function for the update operation
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		// Construct the dock item
-		dockItem, err := constructJamfProDockItem(d)
+		// Construct the printer
+		printer, err := constructJamfProPrinter(d)
 		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the department for terraform update: %w", err))
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the printer for terraform update: %w", err))
 		}
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request
-		dockItemID, convertErr := strconv.Atoi(d.Id())
+		printerID, convertErr := strconv.Atoi(d.Id())
 		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse dock item ID: %v", convertErr))
+			return retry.NonRetryableError(fmt.Errorf("failed to parse printer ID: %v", convertErr))
 		}
 
 		// Directly call the API to update the resource by ID
-		_, apiErr := conn.UpdateDockItemsByID(dockItemID, dockItem)
+		_, apiErr := conn.UpdatePrinterByID(printerID, printer)
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If the update by ID fails, try updating by name
-			dockItemName, ok := d.Get("name").(string)
+			printerName, ok := d.Get("name").(string)
 			if !ok {
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
 
-			_, apiErr = conn.UpdateDockItemsByName(dockItemName, dockItem)
+			_, apiErr = conn.UpdatePrinterByName(printerName, printer)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -333,7 +401,7 @@ func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData,
 
 	// Use the retry function for the read operation to update the Terraform state
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProDockItemsRead(ctx, d, meta)
+		readDiags := ResourceJamfProPrintersRead(ctx, d, meta)
 		if len(readDiags) > 0 {
 			return retry.RetryableError(fmt.Errorf("failed to update the Terraform state for the updated resource"))
 		}
@@ -349,8 +417,8 @@ func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData,
 	return diags
 }
 
-// ResourceJamfProDockItemsDelete is responsible for deleting a Jamf Pro Dock Item.
-func ResourceJamfProDockItemsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// ResourceJamfProPrintersDelete is responsible for deleting a Jamf Pro Printer.
+func ResourceJamfProPrintersDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Asserts 'meta' as '*client.APIClient'
@@ -363,21 +431,21 @@ func ResourceJamfProDockItemsDelete(ctx context.Context, d *schema.ResourceData,
 	// Use the retry function for the DELETE operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Convert the ID from the Terraform state into an integer to be used for the API request
-		dockItemID, convertErr := strconv.Atoi(d.Id())
+		printerID, convertErr := strconv.Atoi(d.Id())
 		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse dock item ID: %v", convertErr))
+			return retry.NonRetryableError(fmt.Errorf("failed to parse printer ID: %v", convertErr))
 		}
 
 		// Directly call the API to DELETE the resource
-		apiErr := conn.DeleteDockItemsByID(dockItemID)
+		apiErr := conn.DeletePrinterByID(printerID)
 		if apiErr != nil {
 			// If the DELETE by ID fails, try deleting by name
-			dockItemName, ok := d.Get("name").(string)
+			printerName, ok := d.Get("name").(string)
 			if !ok {
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
 
-			apiErr = conn.DeleteDockItemsByName(dockItemName)
+			apiErr = conn.DeletePrinterByName(printerName)
 			if apiErr != nil {
 				return retry.RetryableError(apiErr)
 			}
