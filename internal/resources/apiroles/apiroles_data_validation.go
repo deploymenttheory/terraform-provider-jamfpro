@@ -559,7 +559,7 @@ func validateResourceApiRolesDataFields(val interface{}, key string) (warns []st
 	for _, category := range sortedCategories {
 		privileges := categories[category]
 		// Adding a spacer with the category name
-		formattedPrivileges.WriteString(fmt.Sprintf("---- Priviledge Set: %s ----\n", category))
+		formattedPrivileges.WriteString(fmt.Sprintf("---- Privilege Set: %s ----\n", category))
 		formattedPrivileges.WriteString(fmt.Sprintf("    %s\n", strings.Join(privileges, "\n    ")))
 		formattedPrivileges.WriteString("---- End ----\n\n")
 	}

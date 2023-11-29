@@ -297,6 +297,9 @@ func ResourceJamfProComputerGroupsCreate(ctx context.Context, d *schema.Resource
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the computer group
 		group, err := constructJamfProComputerGroup(d)
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the computer group for terraform create: %w", err))
+		}
 
 		// Log the details of the group that is about to be created
 		log.Printf("[INFO] Attempting to create ComputerGroup with name: %s", group.Name)
@@ -466,7 +469,7 @@ func ResourceJamfProComputerGroupsUpdate(ctx context.Context, d *schema.Resource
 		// Construct the updated computer group
 		group, err := constructJamfProComputerGroup(d)
 		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the computer group: %w", err))
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the computer group for terraform update: %w", err))
 		}
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request

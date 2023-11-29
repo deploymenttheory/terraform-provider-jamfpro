@@ -119,10 +119,8 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the computer extension attribute
 		department, err := constructJamfProDepartment(d)
-
-		// Check if the department is nil
-		if department == nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the department"))
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the department for terraform create: %w", err))
 		}
 
 		// Directly call the API to create the resource
@@ -247,7 +245,7 @@ func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 		// Construct the department
 		department, err := constructJamfProDepartment(d)
 		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the department: %w", err))
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the department for terraform update: %w", err))
 		}
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request
