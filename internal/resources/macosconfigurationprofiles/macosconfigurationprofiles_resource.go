@@ -1286,8 +1286,8 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the macOS Configuration Profile
 		profile, err := constructJamfProMacOSConfigurationProfile(d)
-		if profile == nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the macOS Configuration Profile"))
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the configuration profile for terraform create: %w", err))
 		}
 
 		// Log the details of the profile that is about to be created
@@ -1369,7 +1369,11 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If fetching by ID fails, try fetching by Name
-			profileName := d.Get("name").(string)
+			profileName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
 			profile, apiErr = conn.GetMacOSConfigurationProfileByName(profileName)
 			if apiErr != nil {
 				// Handle the APIError
@@ -1833,7 +1837,7 @@ func ResourceJamfProMacOSConfigurationProfilesUpdate(ctx context.Context, d *sch
 		// Construct the updated macOS configuration profile
 		profile, err := constructJamfProMacOSConfigurationProfile(d)
 		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the macOS configuration profile: %w", err))
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the configuration profile for terraform update: %w", err))
 		}
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request
@@ -1850,7 +1854,11 @@ func ResourceJamfProMacOSConfigurationProfilesUpdate(ctx context.Context, d *sch
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If the update by ID fails, try updating by name
-			profileName := d.Get("name").(string)
+			profileName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
 			_, apiErr = conn.UpdateMacOSConfigurationProfileByName(profileName, profile)
 			if apiErr != nil {
 				// Handle the APIError
@@ -1910,8 +1918,12 @@ func ResourceJamfProMacOSConfigurationProfilesDelete(ctx context.Context, d *sch
 		apiErr := conn.DeleteMacOSConfigurationProfileByID(macOSConfigurationProfileID)
 		if apiErr != nil {
 			// If the **DELETE** by ID fails, try deleting by name
-			siteName := d.Get("name").(string)
-			apiErr = conn.DeleteDepartmentByName(siteName)
+			profileName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
+			apiErr = conn.DeleteMacOSConfigurationProfileByName(profileName)
 			if apiErr != nil {
 				return retry.RetryableError(apiErr)
 			}

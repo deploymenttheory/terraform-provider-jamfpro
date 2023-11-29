@@ -78,8 +78,12 @@ func dataSourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, met
 	}
 
 	// Set the data source attributes using the fetched data
-	d.SetId(fmt.Sprintf("%d", site.ID))
-	d.Set("name", site.Name)
+	if err := d.Set("id", site.ID); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting 'id': %v", err))
+	}
+	if err := d.Set("name", site.Name); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting 'name': %v", err))
+	}
 
 	return nil
 }

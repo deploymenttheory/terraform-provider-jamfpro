@@ -315,7 +315,11 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If fetching by ID fails, try fetching by Name
-			attributeName := d.Get("name").(string)
+			attributeName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
 			attribute, apiErr = conn.GetComputerExtensionAttributeByName(attributeName)
 			if apiErr != nil {
 				// Handle the APIError
@@ -404,7 +408,11 @@ func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If the update by ID fails, try updating by name
-			attributeName := d.Get("name").(string)
+			attributeName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
 			_, apiErr = conn.UpdateComputerExtensionAttributeByName(attributeName, attribute)
 			if apiErr != nil {
 				// Handle the APIError
@@ -464,7 +472,11 @@ func ResourceJamfProComputerExtensionAttributesDelete(ctx context.Context, d *sc
 		apiErr := conn.DeleteComputerExtensionAttributeByID(attributeID)
 		if apiErr != nil {
 			// If the **DELETE** by ID fails, try deleting by name
-			attributeName := d.Get("name").(string)
+			attributeName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
 			apiErr = conn.DeleteComputerExtensionAttributeByNameByID(attributeName)
 			if apiErr != nil {
 				return retry.RetryableError(apiErr)

@@ -377,7 +377,11 @@ func ResourceJamfProComputerGroupsRead(ctx context.Context, d *schema.ResourceDa
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If fetching by ID fails, try fetching by Name
-			groupName := d.Get("name").(string)
+			groupName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
 			group, apiErr = conn.GetComputerGroupByName(groupName)
 			if apiErr != nil {
 				// Handle the APIError
@@ -479,7 +483,10 @@ func ResourceJamfProComputerGroupsUpdate(ctx context.Context, d *schema.Resource
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If the update by ID fails, try updating by name
-			groupName := d.Get("name").(string)
+			groupName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
 			_, apiErr = conn.UpdateComputerGroupByName(groupName, group)
 			if apiErr != nil {
 				// Handle the APIError
@@ -539,7 +546,10 @@ func ResourceJamfProComputerGroupsDelete(ctx context.Context, d *schema.Resource
 		apiErr := conn.DeleteComputerGroupByID(groupID)
 		if apiErr != nil {
 			// If the **DELETE** by ID fails, try deleting by name
-			groupName := d.Get("name").(string)
+			groupName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
 			apiErr = conn.DeleteComputerGroupByName(groupName)
 			if apiErr != nil {
 				return retry.RetryableError(apiErr)

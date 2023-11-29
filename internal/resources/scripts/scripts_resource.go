@@ -240,10 +240,8 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the script
 		attribute, err := constructJamfProScript(d)
-
-		// Check if the attribute is nil (indicating an issue with input_type)
-		if attribute == nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the computer extension attribute due to missing or invalid input_type"))
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the script for terraform create: %w", err))
 		}
 
 		// Directly call the API to create the resource
@@ -320,7 +318,11 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If fetching by ID fails, try fetching by Name
-			attributeName := d.Get("name").(string)
+			attributeName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
 			attribute, apiErr = conn.GetScriptsByName(attributeName)
 			if apiErr != nil {
 				// Handle the APIError
@@ -364,7 +366,7 @@ func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, m
 		// Construct the updated script
 		script, err := constructJamfProScript(d)
 		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the script: %w", err))
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the script for terraform update: %w", err))
 		}
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request
@@ -381,7 +383,11 @@ func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, m
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If the update by ID fails, try updating by name
-			scriptName := d.Get("name").(string)
+			scriptName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
 			_, apiErr = conn.UpdateScriptByName(scriptName, script)
 			if apiErr != nil {
 				// Handle the APIError
@@ -429,7 +435,7 @@ func ResourceJamfProScriptsDelete(ctx context.Context, d *schema.ResourceData, m
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the **DELETE** operation
+	// Use the retry function for the delete operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Convert the ID from the Terraform state into an integer to be used for the API request
 		scriptID, convertErr := strconv.Atoi(d.Id())
@@ -437,11 +443,15 @@ func ResourceJamfProScriptsDelete(ctx context.Context, d *schema.ResourceData, m
 			return retry.NonRetryableError(fmt.Errorf("failed to parse script ID: %v", convertErr))
 		}
 
-		// Directly call the API to **DELETE** the resource
+		// Directly call the API to delete the resource
 		apiErr := conn.DeleteScriptByID(scriptID)
 		if apiErr != nil {
-			// If the **DELETE** by ID fails, try deleting by name
-			scriptName := d.Get("name").(string)
+			// If the delete by ID fails, try deleting by name
+			scriptName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
 			apiErr = conn.DeleteScriptByName(scriptName)
 			if apiErr != nil {
 				return retry.RetryableError(apiErr)

@@ -234,7 +234,11 @@ func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, m
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If fetching by ID fails, try fetching by Name
-			dockItemName := d.Get("name").(string)
+			dockItemName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
 			dockItem, apiErr = conn.GetDockItemsByName(dockItemName)
 			if apiErr != nil {
 				// Handle the APIError
@@ -306,7 +310,11 @@ func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData,
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If the update by ID fails, try updating by name
-			dockItemName := d.Get("name").(string)
+			dockItemName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
 			_, apiErr = conn.UpdateDockItemsByName(dockItemName, dockItem)
 			if apiErr != nil {
 				// Handle the APIError
@@ -366,7 +374,11 @@ func ResourceJamfProDockItemsDelete(ctx context.Context, d *schema.ResourceData,
 		apiErr := conn.DeleteDockItemsByID(dockItemID)
 		if apiErr != nil {
 			// If the DELETE by ID fails, try deleting by name
-			dockItemName := d.Get("name").(string)
+			dockItemName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
 			apiErr = conn.DeleteDockItemsByName(dockItemName)
 			if apiErr != nil {
 				return retry.RetryableError(apiErr)

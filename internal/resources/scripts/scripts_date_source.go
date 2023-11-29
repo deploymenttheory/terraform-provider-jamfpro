@@ -155,9 +155,61 @@ func DataSourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.Errorf("Either 'name' or 'id' must be provided")
 	}
 
-	d.SetId(fmt.Sprintf("%d", script.ID))
-	d.Set("name", script.Name)
-	// Set other script attributes to the data source state
+	// Set all script attributes to the data source state
+	var errSet error
+
+	// Set all script attributes to the data source state
+	if errSet = d.Set("name", script.Name); errSet != nil {
+		return diag.FromErr(errSet)
+	}
+	if errSet = d.Set("category", script.Category); errSet != nil {
+		return diag.FromErr(errSet)
+	}
+	if errSet = d.Set("filename", script.Filename); errSet != nil {
+		return diag.FromErr(errSet)
+	}
+	if errSet = d.Set("info", script.Info); errSet != nil {
+		return diag.FromErr(errSet)
+	}
+	if errSet = d.Set("notes", script.Notes); errSet != nil {
+		return diag.FromErr(errSet)
+	}
+	if errSet = d.Set("priority", script.Priority); errSet != nil {
+		return diag.FromErr(errSet)
+	}
+	if errSet = d.Set("os_requirements", script.OSRequirements); errSet != nil {
+		return diag.FromErr(errSet)
+	}
+	if errSet = d.Set("script_contents", script.ScriptContents); errSet != nil {
+		return diag.FromErr(errSet)
+	}
+	if errSet = d.Set("script_contents_encoded", script.ScriptContentsEncoded); errSet != nil {
+		return diag.FromErr(errSet)
+	}
+
+	// Set the parameters
+	parameters := make([]interface{}, 0)
+	paramFields := map[string]*string{
+		"parameter4":  &script.Parameters.Parameter4,
+		"parameter5":  &script.Parameters.Parameter5,
+		"parameter6":  &script.Parameters.Parameter6,
+		"parameter7":  &script.Parameters.Parameter7,
+		"parameter8":  &script.Parameters.Parameter8,
+		"parameter9":  &script.Parameters.Parameter9,
+		"parameter10": &script.Parameters.Parameter10,
+		"parameter11": &script.Parameters.Parameter11,
+	}
+
+	for key, value := range paramFields {
+		if *value != "" {
+			parameters = append(parameters, map[string]interface{}{key: *value})
+		}
+	}
+
+	if err := d.Set("parameters", parameters); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return nil
+
 }

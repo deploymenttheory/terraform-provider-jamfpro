@@ -144,10 +144,8 @@ func ResourceJamfProBuildingCreate(ctx context.Context, d *schema.ResourceData, 
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the building
 		building, err := constructJamfProBuilding(d)
-
-		// Check if the building is nil
-		if building == nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the building"))
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the building for terraform create: %w", err))
 		}
 
 		// Directly call the API to create the resource
@@ -221,7 +219,11 @@ func ResourceJamfProBuildingRead(ctx context.Context, d *schema.ResourceData, me
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If fetching by ID fails, try fetching by Name
-			buildingName := d.Get("name").(string)
+			buildingName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
 			building, apiErr = conn.GetBuildingByNameByID(buildingName)
 			if apiErr != nil {
 				// Handle the APIError
@@ -283,7 +285,7 @@ func ResourceJamfProBuildingUpdate(ctx context.Context, d *schema.ResourceData, 
 		// Construct the building
 		building, err := constructJamfProBuilding(d)
 		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the building: %w", err))
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the building for terraform update: %w", err))
 		}
 
 		// The ID in Terraform state is already a string, so we use it directly for the API request
@@ -297,7 +299,11 @@ func ResourceJamfProBuildingUpdate(ctx context.Context, d *schema.ResourceData, 
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If the update by ID fails, try updating by name
-			buildingName := d.Get("name").(string)
+			buildingName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
 			_, apiErr = conn.UpdateBuildingByNameByID(buildingName, building)
 			if apiErr != nil {
 				// Handle the APIError
@@ -354,7 +360,11 @@ func ResourceJamfProBuildingDelete(ctx context.Context, d *schema.ResourceData, 
 		apiErr := conn.DeleteBuildingByID(buildingID)
 		if apiErr != nil {
 			// If the DELETE by ID fails, try deleting by name
-			buildingName := d.Get("name").(string)
+			buildingName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
 			apiErr = conn.DeleteBuildingByNameByID(buildingName)
 			if apiErr != nil {
 				// Handle the APIError

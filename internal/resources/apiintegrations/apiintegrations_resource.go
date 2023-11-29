@@ -102,21 +102,54 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 	return diags
 }
 
-// constructJamfProApiIntegration constructs a ResponseApiIntegration object from the provided schema data.
-func constructJamfProApiIntegration(d *schema.ResourceData) *jamfpro.ApiIntegration {
-	// Construct the ApiIntegration object
-	integration := &jamfpro.ApiIntegration{
-		DisplayName:                d.Get("display_name").(string),
-		Enabled:                    d.Get("enabled").(bool),
-		AccessTokenLifetimeSeconds: d.Get("access_token_lifetime_seconds").(int),
-		//AppType:                    d.Get("app_type").(string),
-		AuthorizationScopes: convertToStringSlice(d.Get("authorization_scopes").(*schema.Set)),
+// constructJamfProApiIntegration constructs a ResponseApiIntegration object from the provided schema data and returns any errors encountered.
+func constructJamfProApiIntegration(d *schema.ResourceData) (*jamfpro.ApiIntegration, error) {
+	integration := &jamfpro.ApiIntegration{}
+
+	// Map for the fields which are expected to be string or bool or int
+	fields := map[string]interface{}{
+		"display_name":                  &integration.DisplayName,
+		"enabled":                       &integration.Enabled,
+		"access_token_lifetime_seconds": &integration.AccessTokenLifetimeSeconds,
+		// "app_type":                     &integration.AppType,
+	}
+
+	for key, ptr := range fields {
+		if v, ok := d.GetOk(key); ok {
+			switch val := ptr.(type) {
+			case *string:
+				strVal, ok := v.(string)
+				if !ok {
+					return nil, fmt.Errorf("failed to assert '%s' as a string", key)
+				}
+				*val = strVal
+			case *bool:
+				boolVal, ok := v.(bool)
+				if !ok {
+					return nil, fmt.Errorf("failed to assert '%s' as a bool", key)
+				}
+				*val = boolVal
+			case *int:
+				intVal, ok := v.(int)
+				if !ok {
+					return nil, fmt.Errorf("failed to assert '%s' as an int", key)
+				}
+				*val = intVal
+			default:
+				return nil, fmt.Errorf("unhandled type for field '%s'", key)
+			}
+		}
+	}
+
+	// Special handling for the 'authorization_scopes' field
+	if v, ok := d.GetOk("authorization_scopes"); ok {
+		integration.AuthorizationScopes = convertToStringSlice(v.(*schema.Set))
 	}
 
 	// Log the successful construction of the integration
 	log.Printf("[INFO] Successfully constructed ApiIntegration with display name: %s", integration.DisplayName)
 
-	return integration
+	return integration, nil
 }
 
 // convertToStringSlice is a helper function that converts a schema.Set to a string slice.
@@ -145,7 +178,10 @@ func ResourceJamfProApiIntegrationsCreate(ctx context.Context, d *schema.Resourc
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the API integration
-		integration := constructJamfProApiIntegration(d)
+		integration, err := constructJamfProApiIntegration(d)
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the api integration for terraform create: %w", err))
+		}
 
 		// Log the details of the integration that is about to be created
 		log.Printf("[INFO] Attempting to create ApiIntegration with display name: %s", integration.DisplayName)
@@ -282,8 +318,11 @@ func ResourceJamfProApiIntegrationsUpdate(ctx context.Context, d *schema.Resourc
 	// Use the retry function for the update operation
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		// Construct the updated API integration
-		integration := constructJamfProApiIntegration(d)
+		// Construct the API integration
+		integration, err := constructJamfProApiIntegration(d)
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the api integration for terraform update: %w", err))
+		}
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request
 		integrationID, convertErr := strconv.Atoi(d.Id())
