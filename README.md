@@ -50,7 +50,7 @@ To use this provider, you need to configure it with your Jamf Pro instance's URL
 
 If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (see [Requirements](#requirements) above).
 
-To compile the provider, run `go install`. This will build the provider and **PUT** the provider binary in the `$GOPATH/bin` directory.
+To compile the provider, run `go install`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
 
 To generate or update documentation, run `go generate`.
 
@@ -76,8 +76,8 @@ Deployment of jamf pro departments (Simplement resource type in jamf pro)
 | 1000           | Departments   | Create                | 8m10s        |
 | 1000           | Departments   | Read                  | 8ms          |
 | 1000           | Departments   | Update                | 8ms          |
-| 1000           | Departments   | **DELETE**                | 8ms          |
+| 1000           | Departments   | delete                | 8ms          |
 | 10000          | Departments   | Create (TF Plan+Apply)| 8m10s        |
 | 10000          | Departments   | Read (TF Plan)        | 2m49s        |
 | 10000          | Departments   | Update (TF Plan+Apply)| 8ms          |
-| 10000          | Departments   | **DELETE**                | 8ms          |
+| 10000          | Departments   | delete                | 8ms          |

@@ -310,7 +310,7 @@ func ResourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceDat
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the **DELETE** operation
+	// Use the retry function for the delete operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Convert the ID from the Terraform state into an integer to be used for the API request
 		siteID, convertErr := strconv.Atoi(d.Id())
@@ -318,10 +318,10 @@ func ResourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceDat
 			return retry.NonRetryableError(fmt.Errorf("failed to parse department ID: %v", convertErr))
 		}
 
-		// Directly call the API to **DELETE** the resource
+		// Directly call the API to delete the resource
 		apiErr := conn.DeleteDepartmentByID(siteID)
 		if apiErr != nil {
-			// If the **DELETE** by ID fails, try deleting by name
+			// If the delete by ID fails, try deleting by name
 			siteName := d.Get("name").(string)
 			apiErr = conn.DeleteDepartmentByName(siteName)
 			if apiErr != nil {

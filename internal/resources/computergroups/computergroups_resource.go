@@ -537,7 +537,7 @@ func ResourceJamfProComputerGroupsDelete(ctx context.Context, d *schema.Resource
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the **DELETE** operation
+	// Use the retry function for the delete operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Convert the ID from the Terraform state into an integer to be used for the API request
 		groupID, convertErr := strconv.Atoi(d.Id())
@@ -545,10 +545,10 @@ func ResourceJamfProComputerGroupsDelete(ctx context.Context, d *schema.Resource
 			return retry.NonRetryableError(fmt.Errorf("failed to parse group ID: %v", convertErr))
 		}
 
-		// Directly call the API to **DELETE** the resource
+		// Directly call the API to delete the resource
 		apiErr := conn.DeleteComputerGroupByID(groupID)
 		if apiErr != nil {
-			// If the **DELETE** by ID fails, try deleting by name
+			// If the delete by ID fails, try deleting by name
 			groupName, ok := d.Get("name").(string)
 			if !ok {
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
