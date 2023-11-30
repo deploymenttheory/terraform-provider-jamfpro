@@ -161,7 +161,7 @@ func getComputerExtensionAttributeNames(ctx context.Context) ([]string, error) {
 		return nil, fmt.Errorf("could not retrieve Jamf Pro client from context")
 	}
 
-	// Call the SDK function to **GET** the list of computer extension attributes using the client from the context.
+	// Call the SDK function to Get the list of computer extension attributes using the client from the context.
 	response, err := client.GetComputerExtensionAttributes()
 	if err != nil {
 		return nil, fmt.Errorf("error fetching computer extension attributes: %v", err)

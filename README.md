@@ -36,7 +36,7 @@ This provider uses [Go modules](https://github.com/golang/go/wiki/Modules).
 To add a new dependency `github.com/author/dependency` to your Terraform provider:
 
 ```shell
-go **GET** github.com/author/dependency
+go Get github.com/author/dependency
 go mod tidy
 ```
 
