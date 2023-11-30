@@ -178,9 +178,8 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 	}
 }
 
-// constructComputerGroup constructs a ResponseComputerGroup object from the provided schema data.
-// constructComputerGroup constructs a ResponseComputerGroup object from the provided schema data and returns any errors encountered.
-func constructComputerGroup(d *schema.ResourceData) (*jamfpro.ResponseComputerGroup, error) {
+// constructJamfProComputerGroup constructs a ResponseComputerGroup object from the provided schema data and returns any errors encountered.
+func constructJamfProComputerGroup(d *schema.ResourceData) (*jamfpro.ResponseComputerGroup, error) {
 	group := &jamfpro.ResponseComputerGroup{}
 
 	// Handle simple fields
@@ -297,7 +296,10 @@ func ResourceJamfProComputerGroupsCreate(ctx context.Context, d *schema.Resource
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the computer group
-		group, err := constructComputerGroup(d)
+		group, err := constructJamfProComputerGroup(d)
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the computer group for terraform create: %w", err))
+		}
 
 		// Log the details of the group that is about to be created
 		log.Printf("[INFO] Attempting to create ComputerGroup with name: %s", group.Name)
@@ -378,7 +380,11 @@ func ResourceJamfProComputerGroupsRead(ctx context.Context, d *schema.ResourceDa
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If fetching by ID fails, try fetching by Name
-			groupName := d.Get("name").(string)
+			groupName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
 			group, apiErr = conn.GetComputerGroupByName(groupName)
 			if apiErr != nil {
 				// Handle the APIError
@@ -461,9 +467,9 @@ func ResourceJamfProComputerGroupsUpdate(ctx context.Context, d *schema.Resource
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		// Construct the updated computer group
-		group, err := constructComputerGroup(d)
+		group, err := constructJamfProComputerGroup(d)
 		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the computer group: %w", err))
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the computer group for terraform update: %w", err))
 		}
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request
@@ -480,7 +486,10 @@ func ResourceJamfProComputerGroupsUpdate(ctx context.Context, d *schema.Resource
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If the update by ID fails, try updating by name
-			groupName := d.Get("name").(string)
+			groupName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
 			_, apiErr = conn.UpdateComputerGroupByName(groupName, group)
 			if apiErr != nil {
 				// Handle the APIError
@@ -540,7 +549,10 @@ func ResourceJamfProComputerGroupsDelete(ctx context.Context, d *schema.Resource
 		apiErr := conn.DeleteComputerGroupByID(groupID)
 		if apiErr != nil {
 			// If the **DELETE** by ID fails, try deleting by name
-			groupName := d.Get("name").(string)
+			groupName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
 			apiErr = conn.DeleteComputerGroupByName(groupName)
 			if apiErr != nil {
 				return retry.RetryableError(apiErr)

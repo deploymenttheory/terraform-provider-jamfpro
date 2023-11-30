@@ -119,9 +119,9 @@ func assertString(val interface{}) (string, bool) {
 	return strVal, ok
 }
 
-// constructComputerExtensionAttribute constructs a ResponseComputerExtensionAttribute object from the provided schema data.
+// constructJamfProComputerExtensionAttribute constructs a ResponseComputerExtensionAttribute object from the provided schema data.
 // It captures attributes from the schema, including nested attributes under "input_type", and returns the constructed object.
-func constructComputerExtensionAttribute(d *schema.ResourceData) *jamfpro.ResponseComputerExtensionAttribute {
+func constructJamfProComputerExtensionAttribute(d *schema.ResourceData) *jamfpro.ResponseComputerExtensionAttribute {
 	// Extract the first item from the input_type list
 	inputTypes, ok := d.Get("input_type").([]interface{})
 	if !ok || len(inputTypes) == 0 {
@@ -222,7 +222,7 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the computer extension attribute
-		attribute := constructComputerExtensionAttribute(d)
+		attribute := constructJamfProComputerExtensionAttribute(d)
 
 		// Check if the attribute is nil (indicating an issue with input_type)
 		if attribute == nil {
@@ -315,7 +315,11 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If fetching by ID fails, try fetching by Name
-			attributeName := d.Get("name").(string)
+			attributeName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
 			attribute, apiErr = conn.GetComputerExtensionAttributeByName(attributeName)
 			if apiErr != nil {
 				// Handle the APIError
@@ -388,7 +392,7 @@ func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		// Construct the updated computer extension attribute
-		attribute := constructComputerExtensionAttribute(d)
+		attribute := constructJamfProComputerExtensionAttribute(d)
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request
 		attributeID, convertErr := strconv.Atoi(d.Id())
@@ -404,7 +408,11 @@ func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If the update by ID fails, try updating by name
-			attributeName := d.Get("name").(string)
+			attributeName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
 			_, apiErr = conn.UpdateComputerExtensionAttributeByName(attributeName, attribute)
 			if apiErr != nil {
 				// Handle the APIError
@@ -464,7 +472,11 @@ func ResourceJamfProComputerExtensionAttributesDelete(ctx context.Context, d *sc
 		apiErr := conn.DeleteComputerExtensionAttributeByID(attributeID)
 		if apiErr != nil {
 			// If the **DELETE** by ID fails, try deleting by name
-			attributeName := d.Get("name").(string)
+			attributeName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
 			apiErr = conn.DeleteComputerExtensionAttributeByNameByID(attributeName)
 			if apiErr != nil {
 				return retry.RetryableError(apiErr)

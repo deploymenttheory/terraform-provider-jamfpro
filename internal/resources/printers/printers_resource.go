@@ -1,10 +1,12 @@
-// buildings_resource.go
-package buildings
+// printers_resource.go
+package printers
 
 import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
+	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -15,86 +17,134 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProBuilding defines the schema and CRUD operations for managing buildings in Terraform.
-func ResourceJamfProBuilding() *schema.Resource {
+// ResourceJamfProPrinters defines the schema and CRUD operations for managing Jamf Pro Printers in Terraform.
+func ResourceJamfProPrinters() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProBuildingCreate,
-		ReadContext:   ResourceJamfProBuildingRead,
-		UpdateContext: ResourceJamfProBuildingUpdate,
-		DeleteContext: ResourceJamfProBuildingDelete,
+		CreateContext: ResourceJamfProPrintersCreate,
+		ReadContext:   ResourceJamfProPrintersRead,
+		UpdateContext: ResourceJamfProPrintersUpdate,
+		DeleteContext: ResourceJamfProPrintersDelete,
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(10 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(15 * time.Minute),
+		},
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The unique identifier of the building.",
+				Description: "The unique identifier of the printer.",
 			},
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The name of the building.",
+				Description: "The name of the printer.",
 			},
-			"street_address1": {
+			"category": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The first line of the street address of the building.",
+				Description: "The category of the printer.",
 			},
-			"street_address2": {
+			"uri": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The second line of the street address of the building.",
+				Description: "The URI of the printer.",
 			},
-			"city": {
+			"CUPS_name": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The city in which the building is located.",
+				Description: "The CUPS name of the printer.",
 			},
-			"state_province": {
+			"location": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The state or province in which the building is located.",
+				Description: "The location of the printer.",
 			},
-			"zip_postal_code": {
+			"model": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The ZIP or postal code of the building.",
+				Description: "The model of the printer.",
 			},
-			"country": {
+			"info": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The country in which the building is located.",
+				Description: "Additional information about the printer.",
+			},
+			"notes": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Notes about the printer.",
+			},
+			"make_default": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Indicates if the printer is the default printer.",
+			},
+			"use_generic": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Indicates if the printer uses a generic driver.",
+			},
+			"ppd": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The PPD file name of the printer.",
+			},
+			"ppd_path": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The path to the PPD file of the printer.",
+			},
+			"ppd_contents": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The contents of the PPD file.",
 			},
 		},
 	}
 }
 
-// constructJamfProBuilding constructs a Building object from the provided schema data and returns any errors encountered.
-func constructJamfProBuilding(d *schema.ResourceData) (*jamfpro.ResponseBuilding, error) {
-	building := &jamfpro.ResponseBuilding{}
+// constructJamfProPrinter constructs a ResponsePrinters object from the provided schema data and returns any errors encountered.
+func constructJamfProPrinter(d *schema.ResourceData) (*jamfpro.ResponsePrinters, error) {
+	printer := &jamfpro.ResponsePrinters{}
 
-	fields := map[string]*string{
-		"name":            &building.Name,
-		"street_address1": &building.StreetAddress1,
-		"street_address2": &building.StreetAddress2,
-		"city":            &building.City,
-		"state_province":  &building.StateProvince,
-		"zip_postal_code": &building.ZipPostalCode,
-		"country":         &building.Country,
+	fields := map[string]interface{}{
+		"name":         &printer.Name,
+		"category":     &printer.Category,
+		"uri":          &printer.URI,
+		"CUPS_name":    &printer.CUPSName,
+		"location":     &printer.Location,
+		"model":        &printer.Model,
+		"info":         &printer.Info,
+		"notes":        &printer.Notes,
+		"make_default": &printer.MakeDefault,
+		"use_generic":  &printer.UseGeneric,
+		"ppd":          &printer.PPD,
+		"ppd_path":     &printer.PPDPath,
+		"ppd_contents": &printer.PPDContents,
 	}
 
 	for key, ptr := range fields {
 		if v, ok := d.GetOk(key); ok {
-			strVal, ok := v.(string)
-			if !ok {
-				return nil, fmt.Errorf("failed to assert '%s' as a string", key)
+			switch ptr := ptr.(type) {
+			case *string:
+				*ptr = v.(string)
+			case *bool:
+				*ptr = v.(bool)
+			default:
+				return nil, fmt.Errorf("unsupported data type for key '%s'", key)
 			}
-			*ptr = strVal
 		}
 	}
 
-	// After successful construction
-	log.Printf("[INFO] Successfully constructed Building with name: %s", building.Name)
+	// Log the successful construction of the printer
+	log.Printf("[INFO] Successfully constructed Printer with name: %s", printer.Name)
 
-	return building, nil
+	return printer, nil
 }
 
 // Helper function to generate diagnostics based on the error type.
@@ -122,13 +172,15 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 	return diags
 }
 
-// ResourceJamfProBuildingCreate is responsible for creating a new Building in the remote system.
+// Further CRUD function definitions would go here...
+
+// ResourceJamfProPrintersCreate is responsible for creating a new Jamf Pro Printer in the remote system.
 // The function:
-// 1. Constructs the building data using the provided Terraform configuration.
-// 2. Calls the API to create the building in Jamf Pro.
-// 3. Updates the Terraform state with the ID of the newly created building.
+// 1. Constructs the printer data using the provided Terraform configuration.
+// 2. Calls the API to create the printer in Jamf Pro.
+// 3. Updates the Terraform state with the ID of the newly created printer.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func ResourceJamfProBuildingCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ResourceJamfProPrintersCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Asserts 'meta' as '*client.APIClient'
@@ -138,24 +190,24 @@ func ResourceJamfProBuildingCreate(ctx context.Context, d *schema.ResourceData, 
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the create operation
-	var createdBuilding *jamfpro.ResponseBuildingCreate
+	// Use the retry function for the create operation.
+	var createdPrinter *jamfpro.ResponsePrinters
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		// Construct the building
-		building, err := constructJamfProBuilding(d)
+		// Construct the printer.
+		printer, err := constructJamfProPrinter(d)
 		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the building for terraform create: %w", err))
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the printer for terraform create: %w", err))
 		}
 
-		// Directly call the API to create the resource
-		createdBuilding, err = conn.CreateBuilding(building)
+		// Directly call the API to create the resource.
+		createdPrinter, err = conn.CreatePrinters(printer)
 		if err != nil {
-			// Check if the error is an APIError
+			// Check if the error is an APIError.
 			if apiErr, ok := err.(*http_client.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message))
 			}
-			// For simplicity, we're considering all other errors as retryable
+			// For simplicity, we're considering all other errors as retryable.
 			return retry.RetryableError(err)
 		}
 
@@ -168,11 +220,11 @@ func ResourceJamfProBuildingCreate(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	// Set the ID of the created resource in the Terraform state
-	d.SetId(createdBuilding.ID)
+	d.SetId(strconv.Itoa(createdPrinter.ID))
 
 	// Use the retry function for the read operation to update the Terraform state with the resource attributes
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProBuildingRead(ctx, d, meta)
+		readDiags := ResourceJamfProPrintersRead(ctx, d, meta)
 		if len(readDiags) > 0 {
 			// If readDiags is not empty, it means there's an error, so we retry
 			return retry.RetryableError(fmt.Errorf("failed to read the created resource"))
@@ -188,12 +240,12 @@ func ResourceJamfProBuildingCreate(ctx context.Context, d *schema.ResourceData, 
 	return diags
 }
 
-// ResourceJamfProBuildingRead is responsible for reading the current state of a Building Resource from the remote system.
+// ResourceJamfProPrintersRead is responsible for reading the current state of a Jamf Pro Printer Resource from the remote system.
 // The function:
-// 1. Fetches the building's current state using its ID. If it fails, then obtain the building's current state using its Name.
+// 1. Fetches the printer's current state using its ID. If it fails, then obtain the printer's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
-// 3. Handles any discrepancies, such as the building being deleted outside of Terraform, to keep the Terraform state synchronized.
-func ResourceJamfProBuildingRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// 3. Handles any discrepancies, such as the printer being deleted outside of Terraform, to keep the Terraform state synchronized.
+func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Asserts 'meta' as '*client.APIClient'
@@ -203,28 +255,31 @@ func ResourceJamfProBuildingRead(ctx context.Context, d *schema.ResourceData, me
 	}
 	conn := apiclient.Conn
 
-	var building *jamfpro.ResponseBuilding
+	var printer *jamfpro.ResponsePrinters
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		// The ID in Terraform state is already a string, so we use it directly for the API request
-		buildingID := d.Id()
+		// Convert the ID from the Terraform state into an integer to be used for the API request
+		printerID, convertErr := strconv.Atoi(d.Id())
+		if convertErr != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to parse printer ID: %v", convertErr))
+		}
 
-		// Try fetching the building using the ID
+		// Try fetching the printer using the ID
 		var apiErr error
-		building, apiErr = conn.GetBuildingByID(buildingID)
+		printer, apiErr = conn.GetPrinterByID(printerID)
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If fetching by ID fails, try fetching by Name
-			buildingName, ok := d.Get("name").(string)
+			printerName, ok := d.Get("name").(string)
 			if !ok {
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
 
-			building, apiErr = conn.GetBuildingByNameByID(buildingName)
+			printer, apiErr = conn.GetPrinterByName(printerName)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -242,34 +297,53 @@ func ResourceJamfProBuildingRead(ctx context.Context, d *schema.ResourceData, me
 		return generateTFDiagsFromHTTPError(err, d, "read")
 	}
 
-	// Safely set all attributes in the Terraform state
-	if err := d.Set("name", building.Name); err != nil {
+	// Safely set attributes in the Terraform state
+	if err := d.Set("name", printer.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("street_address1", building.StreetAddress1); err != nil {
+	if err := d.Set("category", printer.Category); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("street_address2", building.StreetAddress2); err != nil {
+	if err := d.Set("uri", printer.URI); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("city", building.City); err != nil {
+	if err := d.Set("CUPS_name", printer.CUPSName); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("state_province", building.StateProvince); err != nil {
+	if err := d.Set("location", printer.Location); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("zip_postal_code", building.ZipPostalCode); err != nil {
+	if err := d.Set("model", printer.Model); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("country", building.Country); err != nil {
+	if err := d.Set("info", printer.Info); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("notes", printer.Notes); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("make_default", printer.MakeDefault); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("use_generic", printer.UseGeneric); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("ppd", printer.PPD); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("ppd_path", printer.PPDPath); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("ppd_contents", printer.PPDContents); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	return diags
+
 }
 
-// ResourceJamfProBuildingUpdate is responsible for updating an existing Building on the remote system.
-func ResourceJamfProBuildingUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// ResourceJamfProPrintersUpdate is responsible for updating an existing Jamf Pro Printer on the remote system.
+func ResourceJamfProPrintersUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Asserts 'meta' as '*client.APIClient'
@@ -282,29 +356,32 @@ func ResourceJamfProBuildingUpdate(ctx context.Context, d *schema.ResourceData, 
 	// Use the retry function for the update operation
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		// Construct the building
-		building, err := constructJamfProBuilding(d)
+		// Construct the printer
+		printer, err := constructJamfProPrinter(d)
 		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the building for terraform update: %w", err))
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the printer for terraform update: %w", err))
 		}
 
-		// The ID in Terraform state is already a string, so we use it directly for the API request
-		buildingID := d.Id()
+		// Convert the ID from the Terraform state into an integer to be used for the API request
+		printerID, convertErr := strconv.Atoi(d.Id())
+		if convertErr != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to parse printer ID: %v", convertErr))
+		}
 
 		// Directly call the API to update the resource by ID
-		_, apiErr := conn.UpdateBuildingByID(buildingID, building)
+		_, apiErr := conn.UpdatePrinterByID(printerID, printer)
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If the update by ID fails, try updating by name
-			buildingName, ok := d.Get("name").(string)
+			printerName, ok := d.Get("name").(string)
 			if !ok {
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
 
-			_, apiErr = conn.UpdateBuildingByNameByID(buildingName, building)
+			_, apiErr = conn.UpdatePrinterByName(printerName, printer)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -324,7 +401,7 @@ func ResourceJamfProBuildingUpdate(ctx context.Context, d *schema.ResourceData, 
 
 	// Use the retry function for the read operation to update the Terraform state
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProBuildingRead(ctx, d, meta)
+		readDiags := ResourceJamfProPrintersRead(ctx, d, meta)
 		if len(readDiags) > 0 {
 			return retry.RetryableError(fmt.Errorf("failed to update the Terraform state for the updated resource"))
 		}
@@ -340,8 +417,8 @@ func ResourceJamfProBuildingUpdate(ctx context.Context, d *schema.ResourceData, 
 	return diags
 }
 
-// ResourceJamfProBuildingDelete is responsible for deleting a Building.
-func ResourceJamfProBuildingDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// ResourceJamfProPrintersDelete is responsible for deleting a Jamf Pro Printer.
+func ResourceJamfProPrintersDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Asserts 'meta' as '*client.APIClient'
@@ -353,24 +430,23 @@ func ResourceJamfProBuildingDelete(ctx context.Context, d *schema.ResourceData, 
 
 	// Use the retry function for the DELETE operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// The ID in Terraform state is already a string, so we use it directly for the API request
-		buildingID := d.Id()
+		// Convert the ID from the Terraform state into an integer to be used for the API request
+		printerID, convertErr := strconv.Atoi(d.Id())
+		if convertErr != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to parse printer ID: %v", convertErr))
+		}
 
-		// Directly call the API to DELETE the resource by ID
-		apiErr := conn.DeleteBuildingByID(buildingID)
+		// Directly call the API to DELETE the resource
+		apiErr := conn.DeletePrinterByID(printerID)
 		if apiErr != nil {
 			// If the DELETE by ID fails, try deleting by name
-			buildingName, ok := d.Get("name").(string)
+			printerName, ok := d.Get("name").(string)
 			if !ok {
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
 
-			apiErr = conn.DeleteBuildingByNameByID(buildingName)
+			apiErr = conn.DeletePrinterByName(printerName)
 			if apiErr != nil {
-				// Handle the APIError
-				if apiError, ok := apiErr.(*http_client.APIError); ok {
-					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-				}
 				return retry.RetryableError(apiErr)
 			}
 		}

@@ -48,8 +48,8 @@ func ResourceJamfProDepartments() *schema.Resource {
 	}
 }
 
-// constructDepartment constructs a ResponseDepartment object from the provided schema data and returns any errors encountered.
-func constructDepartment(d *schema.ResourceData) (*jamfpro.ResponseDepartment, error) {
+// constructJamfProDepartment constructs a ResponseDepartment object from the provided schema data and returns any errors encountered.
+func constructJamfProDepartment(d *schema.ResourceData) (*jamfpro.ResponseDepartment, error) {
 	department := &jamfpro.ResponseDepartment{}
 
 	fields := map[string]*string{
@@ -118,11 +118,9 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the computer extension attribute
-		department, err := constructDepartment(d)
-
-		// Check if the department is nil
-		if department == nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the department"))
+		department, err := constructJamfProDepartment(d)
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the department for terraform create: %w", err))
 		}
 
 		// Directly call the API to create the resource
@@ -199,7 +197,11 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If fetching by ID fails, try fetching by Name
-			attributeName := d.Get("name").(string)
+			attributeName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
 			attribute, apiErr = conn.GetDepartmentByName(attributeName)
 			if apiErr != nil {
 				// Handle the APIError
@@ -241,9 +243,9 @@ func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		// Construct the department
-		department, err := constructDepartment(d)
+		department, err := constructJamfProDepartment(d)
 		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the department: %w", err))
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the department for terraform update: %w", err))
 		}
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request

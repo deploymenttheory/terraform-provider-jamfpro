@@ -4,6 +4,7 @@ package sites
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -47,12 +48,29 @@ func ResourceJamfProSites() *schema.Resource {
 	}
 }
 
-// constructSite constructs a ResponseSite object from the provided schema data.
+// constructJamfProSite constructs a ResponseSite object from the provided schema data.
 // It captures attributes from the schema and returns the constructed object.
-func constructSite(d *schema.ResourceData) *jamfpro.ResponseSite {
-	return &jamfpro.ResponseSite{
-		Name: d.Get("name").(string),
+func constructJamfProSite(d *schema.ResourceData) (*jamfpro.ResponseSite, error) {
+	site := &jamfpro.ResponseSite{}
+
+	fields := map[string]*string{
+		"name": &site.Name,
 	}
+
+	for key, ptr := range fields {
+		if v, ok := d.GetOk(key); ok {
+			strVal, ok := v.(string)
+			if !ok {
+				return nil, fmt.Errorf("failed to assert '%s' as a string", key)
+			}
+			*ptr = strVal
+		}
+	}
+
+	// After successful construction
+	log.Printf("[INFO] Successfully constructed Site with name: %s", site.Name)
+
+	return site, nil
 }
 
 // Helper function to generate diagnostics based on the error type.
@@ -101,11 +119,9 @@ func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, met
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the site
-		attribute := constructSite(d)
-
-		// Check if the attribute is nil (indicating an issue with input_type)
-		if attribute == nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the site due to missing or invalid input_type"))
+		attribute, err := constructJamfProSite(d)
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the site for terraform create: %w", err))
 		}
 
 		// Directly call the API to create the resource
@@ -182,7 +198,11 @@ func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta 
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If fetching by ID fails, try fetching by Name
-			attributeName := d.Get("name").(string)
+			attributeName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
 			attribute, apiErr = conn.GetSiteByName(attributeName)
 			if apiErr != nil {
 				// Handle the APIError
@@ -224,7 +244,10 @@ func ResourceJamfProSitesUpdate(ctx context.Context, d *schema.ResourceData, met
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		// Construct the updated site
-		site := constructSite(d)
+		site, err := constructJamfProSite(d)
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the site for terraform update: %w", err))
+		}
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request
 		siteID, convertErr := strconv.Atoi(d.Id())
@@ -240,7 +263,11 @@ func ResourceJamfProSitesUpdate(ctx context.Context, d *schema.ResourceData, met
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If the update by ID fails, try updating by name
-			siteName := d.Get("name").(string)
+			siteName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
 			_, apiErr = conn.UpdateSiteByName(siteName, site)
 			if apiErr != nil {
 				// Handle the APIError
@@ -288,7 +315,7 @@ func ResourceJamfProSitesDelete(ctx context.Context, d *schema.ResourceData, met
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the **DELETE** operation
+	// Use the retry function for the delete operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Convert the ID from the Terraform state into an integer to be used for the API request
 		siteID, convertErr := strconv.Atoi(d.Id())
@@ -296,11 +323,15 @@ func ResourceJamfProSitesDelete(ctx context.Context, d *schema.ResourceData, met
 			return retry.NonRetryableError(fmt.Errorf("failed to parse site ID: %v", convertErr))
 		}
 
-		// Directly call the API to **DELETE** the resource
+		// Directly call the API to delete the resource
 		apiErr := conn.DeleteSiteByID(siteID)
 		if apiErr != nil {
-			// If the **DELETE** by ID fails, try deleting by name
-			siteName := d.Get("name").(string)
+			// If the delete by ID fails, try deleting by name
+			siteName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
 			apiErr = conn.DeleteSiteByName(siteName)
 			if apiErr != nil {
 				return retry.RetryableError(apiErr)
