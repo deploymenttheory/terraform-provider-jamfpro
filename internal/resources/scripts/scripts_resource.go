@@ -138,7 +138,7 @@ func ResourceJamfProScripts() *schema.Resource {
 			"script_contents": {
 				Type:             schema.TypeString,
 				Required:         true,
-				Description:      "Contents of the script. The script contents must be non-compiled and in one of the following formats: Bash (.sh), Shell (.sh), Non-compiled AppleScript (.applescript), C Shell (.csh), Zsh (.zsh),Korn Shell (.ksh), Tool Command Language (.tcl), and Python (.py). Ref - https://learn.jamf.com/bundle/jamf-pro-documentation-current/page/Scripts.html",
+				Description:      "Contents of the script. The script contents must be non-compiled and in one of the following formats: Bash (.sh), Shell (.sh), Non-compiled AppleScript (.applescript), C Shell (.csh), Zsh (.zsh),Korn Shell (.ksh), Tool Command Language (.tcl), and Python (.py). Ref - https://learn.jamf.com/bundle/jamf-pro-documentation-current/page/Scripts.html . The script contents should also have trailing whitespace at the end removed, to avoid tf state false positives.",
 				DiffSuppressFunc: suppressBase64EncodedScriptDiff,
 			},
 			"script_contents_encoded": {
