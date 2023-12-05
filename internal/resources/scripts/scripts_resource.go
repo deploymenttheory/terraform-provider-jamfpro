@@ -136,9 +136,10 @@ func ResourceJamfProScripts() *schema.Resource {
 				Description: "The script can only be run on computers with these operating system versions. Each version must be separated by a comma (e.g., 10.11, 15, 16.1).",
 			},
 			"script_contents": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Contents of the script.",
+				Type:             schema.TypeString,
+				Required:         true,
+				Description:      "Contents of the script. The script contents must be non-compiled and in one of the following formats: Bash (.sh), Shell (.sh), Non-compiled AppleScript (.applescript), C Shell (.csh), Zsh (.zsh),Korn Shell (.ksh), Tool Command Language (.tcl), and Python (.py). Ref - https://learn.jamf.com/bundle/jamf-pro-documentation-current/page/Scripts.html",
+				DiffSuppressFunc: suppressBase64EncodedScriptDiff,
 			},
 			"script_contents_encoded": {
 				Type:        schema.TypeString,
@@ -158,6 +159,7 @@ func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResponseScript, er
 		"name":            &script.Name,
 		"filename":        &script.Filename,
 		"info":            &script.Info,
+		"script_contents": &script.ScriptContents,
 		"notes":           &script.Notes,
 		"priority":        &script.Priority,
 		"os_requirements": &script.OSRequirements,
@@ -167,12 +169,6 @@ func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResponseScript, er
 		if v, ok := d.GetOk(key); ok {
 			*ptr.(*string) = v.(string)
 		}
-	}
-
-	// construct fields that require encoding
-	if v, ok := d.GetOk("script_contents"); ok {
-		encodedContent := encodeScriptContent(v.(string))
-		script.ScriptContents = encodedContent
 	}
 
 	// construct fields with default values
@@ -396,20 +392,13 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 	if err := d.Set("os_requirements", attribute.OSRequirements); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-
-	if isBase64Encoded(attribute.ScriptContents) {
-		if decodedContent, err := decodeScriptContent(attribute.ScriptContents); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		} else {
-			if err := d.Set("script_contents", decodedContent); err != nil {
-				diags = append(diags, diag.FromErr(err)...)
-			}
-		}
-	} else {
-		// Assume the content is already in plain text
-		if err := d.Set("script_contents", attribute.ScriptContents); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+	// Fetch script content from Jamf Pro
+	scriptContentFromJamf := attribute.ScriptContents
+	// Encode the Jamf Pro script content to base64
+	encodedContentFromJamf := encodeScriptContent(scriptContentFromJamf)
+	// Update the Terraform state with the base64 encoded script content
+	if err := d.Set("script_contents", encodedContentFromJamf); err != nil {
+		return diag.FromErr(err)
 	}
 
 	// Handling parameters
