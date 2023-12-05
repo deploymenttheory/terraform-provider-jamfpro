@@ -48,6 +48,7 @@ func ResourceJamfProScripts() *schema.Resource {
 			"category": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Computed:    true,
 				Description: "Category to add the script to.",
 			},
 			"filename": {
@@ -74,40 +75,57 @@ func ResourceJamfProScripts() *schema.Resource {
 			"parameters": {
 				Type:        schema.TypeList,
 				Optional:    true,
+				Computed:    true,
 				Description: "Labels to use for script parameters. Parameters 1 through 3 are predefined as mount point, computer name, and username",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"parameter4": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
+							Computed:    true,
+							Description: "Script parameter label 4",
 						},
 						"parameter5": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
+							Computed:    true,
+							Description: "Script parameter label 5",
 						},
 						"parameter6": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
+							Computed:    true,
+							Description: "Script parameter label 6",
 						},
 						"parameter7": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
+							Computed:    true,
+							Description: "Script parameter label 7",
 						},
 						"parameter8": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
+							Computed:    true,
+							Description: "Script parameter label 8",
 						},
 						"parameter9": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
+							Computed:    true,
+							Description: "Script parameter label 9",
 						},
 						"parameter10": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
+							Computed:    true,
+							Description: "Script parameter label 10",
 						},
 						"parameter11": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
+							Computed:    true,
+							Description: "Script parameter label 11",
 						},
 					},
 				},
@@ -135,29 +153,36 @@ func ResourceJamfProScripts() *schema.Resource {
 func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResponseScript, error) {
 	script := &jamfpro.ResponseScript{}
 
+	// construct regular fields
 	fields := map[string]interface{}{
 		"name":            &script.Name,
-		"category":        &script.Category,
 		"filename":        &script.Filename,
 		"info":            &script.Info,
 		"notes":           &script.Notes,
 		"priority":        &script.Priority,
 		"os_requirements": &script.OSRequirements,
-		"script_contents": &script.ScriptContents,
 	}
 
 	for key, ptr := range fields {
 		if v, ok := d.GetOk(key); ok {
-			switch ptr := ptr.(type) {
-			case *string:
-				*ptr = v.(string)
-			default:
-				return nil, fmt.Errorf("unsupported data type for key '%s'", key)
-			}
+			*ptr.(*string) = v.(string)
 		}
 	}
 
-	// Handle nested "parameters" field
+	// construct fields that require encoding
+	if v, ok := d.GetOk("script_contents"); ok {
+		encodedContent := encodeScriptContent(v.(string))
+		script.ScriptContents = encodedContent
+	}
+
+	// construct fields with default values
+	if v, ok := d.GetOk("category"); ok {
+		script.Category = v.(string)
+	} else {
+		script.Category = "No category assigned"
+	}
+
+	// construct nested fields
 	if params, ok := d.GetOk("parameters"); ok {
 		paramsList, ok := params.([]interface{})
 		if !ok || len(paramsList) == 0 {
@@ -167,15 +192,16 @@ func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResponseScript, er
 		if !ok {
 			return nil, fmt.Errorf("invalid data structure for 'parameters'")
 		}
+
 		script.Parameters = jamfpro.Parameters{
-			Parameter4:  getString(paramMap, "parameter4"),
-			Parameter5:  getString(paramMap, "parameter5"),
-			Parameter6:  getString(paramMap, "parameter6"),
-			Parameter7:  getString(paramMap, "parameter7"),
-			Parameter8:  getString(paramMap, "parameter8"),
-			Parameter9:  getString(paramMap, "parameter9"),
-			Parameter10: getString(paramMap, "parameter10"),
-			Parameter11: getString(paramMap, "parameter11"),
+			Parameter4:  getStringFromMap(paramMap, "parameter4"),
+			Parameter5:  getStringFromMap(paramMap, "parameter5"),
+			Parameter6:  getStringFromMap(paramMap, "parameter6"),
+			Parameter7:  getStringFromMap(paramMap, "parameter7"),
+			Parameter8:  getStringFromMap(paramMap, "parameter8"),
+			Parameter9:  getStringFromMap(paramMap, "parameter9"),
+			Parameter10: getStringFromMap(paramMap, "parameter10"),
+			Parameter11: getStringFromMap(paramMap, "parameter11"),
 		}
 	}
 
@@ -185,9 +211,10 @@ func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResponseScript, er
 	return script, nil
 }
 
-// getString is a helper function to safely extract string values from a map.
-func getString(m map[string]interface{}, key string) string {
-	if val, ok := m[key]; ok {
+// getStringFromMap is a helper function to safely extract string values from a map.
+// Returns an empty string if the key is not found.
+func getStringFromMap(m map[string]interface{}, key string) string {
+	if val, ok := m[key]; ok && val != "" {
 		return val.(string)
 	}
 	return ""
@@ -344,6 +371,84 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 	// Safely set attributes in the Terraform state
 	if err := d.Set("name", attribute.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
+	}
+	if attribute.Category == "" {
+		if err := d.Set("category", "No category assigned"); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	} else {
+		if err := d.Set("category", attribute.Category); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+	if err := d.Set("filename", attribute.Filename); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("info", attribute.Info); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("notes", attribute.Notes); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("priority", attribute.Priority); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("os_requirements", attribute.OSRequirements); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if isBase64Encoded(attribute.ScriptContents) {
+		if decodedContent, err := decodeScriptContent(attribute.ScriptContents); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		} else {
+			if err := d.Set("script_contents", decodedContent); err != nil {
+				diags = append(diags, diag.FromErr(err)...)
+			}
+		}
+	} else {
+		// Assume the content is already in plain text
+		if err := d.Set("script_contents", attribute.ScriptContents); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	// Handling parameters
+	parameters := make(map[string]interface{})
+	if attribute.Parameters.Parameter4 != "" {
+		parameters["parameter4"] = attribute.Parameters.Parameter4
+	}
+	if attribute.Parameters.Parameter5 != "" {
+		parameters["parameter5"] = attribute.Parameters.Parameter5
+	}
+	// Apply this pattern to the rest of the parameters
+	if attribute.Parameters.Parameter6 != "" {
+		parameters["parameter6"] = attribute.Parameters.Parameter6
+	}
+	if attribute.Parameters.Parameter7 != "" {
+		parameters["parameter7"] = attribute.Parameters.Parameter7
+	}
+	if attribute.Parameters.Parameter8 != "" {
+		parameters["parameter8"] = attribute.Parameters.Parameter8
+	}
+	if attribute.Parameters.Parameter9 != "" {
+		parameters["parameter9"] = attribute.Parameters.Parameter9
+	}
+	if attribute.Parameters.Parameter10 != "" {
+		parameters["parameter10"] = attribute.Parameters.Parameter10
+	}
+	if attribute.Parameters.Parameter11 != "" {
+		parameters["parameter11"] = attribute.Parameters.Parameter11
+	}
+
+	if len(parameters) > 0 {
+		if err := d.Set("parameters", []interface{}{parameters}); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	} else {
+		// Explicitly setting parameters to nil if they are absent
+		if err := d.Set("parameters", nil); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	return diags
