@@ -145,7 +145,7 @@ func ResourceJamfProScripts() *schema.Resource {
 			"script_contents_encoded": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "Encoded contents of the script.",
+				Description: "Jamf Pro encoded contents of the script.",
 			},
 		},
 	}
@@ -479,7 +479,8 @@ func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, m
 			return retry.NonRetryableError(fmt.Errorf("failed to construct the script for terraform update: %w", err))
 		}
 
-		// If script_contents has not been modified, decode it from the state
+		// If script_contents has not been modified, decode it from the state to ensure that base64
+		// decoded version of script payload is sent to jamf.
 		if !d.HasChange("script_contents") {
 			encodedScriptContents, _ := d.Get("script_contents_encoded").(string)
 			decodedBytes, err := base64.StdEncoding.DecodeString(encodedScriptContents)
