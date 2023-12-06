@@ -350,15 +350,15 @@ func ResourceJamfProAPIRolesDelete(ctx context.Context, d *schema.ResourceData, 
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the **DELETE** operation
+	// Use the retry function for the delete operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Retrieve the ID of the API role from the Terraform state
 		roleID := d.Id()
 
 		// Log the details of the role that is about to be deleted
-		log.Printf("[INFO] Attempting to **DELETE** APIRole with ID: %s", roleID)
+		log.Printf("[INFO] Attempting to delete APIRole with ID: %s", roleID)
 
-		// Directly call the API to **DELETE** the resource
+		// Directly call the API to delete the resource
 		apiErr := conn.DeleteJamfApiRoleByID(roleID)
 		if apiErr != nil {
 			// Handle the APIError

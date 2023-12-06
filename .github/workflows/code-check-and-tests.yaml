@@ -28,7 +28,7 @@ jobs:
         with:
           go-version-file: 'go.mod'
           cache: true
-      - name: **GET** dependencies
+      - name: get dependencies
         run: |
           go mod tidy
           git diff --compact-summary --exit-code || \

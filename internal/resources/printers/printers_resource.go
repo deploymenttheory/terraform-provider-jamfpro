@@ -47,14 +47,15 @@ func ResourceJamfProPrinters() *schema.Resource {
 			"category": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The category of the printer.",
+				Default:     "No category assigned",
+				Description: "The jamf pro category of the printer.",
 			},
 			"uri": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The URI of the printer.",
 			},
-			"CUPS_name": {
+			"cups_name": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The CUPS name of the printer.",
@@ -116,7 +117,7 @@ func constructJamfProPrinter(d *schema.ResourceData) (*jamfpro.ResponsePrinters,
 		"name":         &printer.Name,
 		"category":     &printer.Category,
 		"uri":          &printer.URI,
-		"CUPS_name":    &printer.CUPSName,
+		"cups_name":    &printer.CUPSName,
 		"location":     &printer.Location,
 		"model":        &printer.Model,
 		"info":         &printer.Info,
@@ -307,7 +308,7 @@ func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, me
 	if err := d.Set("uri", printer.URI); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("CUPS_name", printer.CUPSName); err != nil {
+	if err := d.Set("cups_name", printer.CUPSName); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("location", printer.Location); err != nil {

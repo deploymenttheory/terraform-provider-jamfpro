@@ -38,7 +38,7 @@ func DataSourceJamfProPrinters() *schema.Resource {
 				Computed:    true,
 				Description: "The URI of the printer.",
 			},
-			"CUPS_name": {
+			"cups_name": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The CUPS name of the printer.",
@@ -137,8 +137,8 @@ func dataSourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, 
 	if err := d.Set("uri", printer.URI); err != nil {
 		return diag.FromErr(fmt.Errorf("failed to set 'uri': %v", err))
 	}
-	if err := d.Set("CUPS_name", printer.CUPSName); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'CUPS_name': %v", err))
+	if err := d.Set("cups_name", printer.CUPSName); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set 'cups_name': %v", err))
 	}
 	if err := d.Set("location", printer.Location); err != nil {
 		return diag.FromErr(fmt.Errorf("failed to set 'location': %v", err))

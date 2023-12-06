@@ -1906,7 +1906,7 @@ func ResourceJamfProMacOSConfigurationProfilesDelete(ctx context.Context, d *sch
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the **DELETE** operation
+	// Use the retry function for the delete operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Convert the ID from the Terraform state into an integer to be used for the API request
 		macOSConfigurationProfileID, convertErr := strconv.Atoi(d.Id())
@@ -1914,10 +1914,10 @@ func ResourceJamfProMacOSConfigurationProfilesDelete(ctx context.Context, d *sch
 			return retry.NonRetryableError(fmt.Errorf("failed to parse department ID: %v", convertErr))
 		}
 
-		// Directly call the API to **DELETE** the resource
+		// Directly call the API to delete the resource
 		apiErr := conn.DeleteMacOSConfigurationProfileByID(macOSConfigurationProfileID)
 		if apiErr != nil {
-			// If the **DELETE** by ID fails, try deleting by name
+			// If the delete by ID fails, try deleting by name
 			profileName, ok := d.Get("name").(string)
 			if !ok {
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
