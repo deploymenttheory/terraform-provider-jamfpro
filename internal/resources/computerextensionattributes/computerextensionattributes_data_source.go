@@ -47,7 +47,6 @@ func DataSourceJamfProComputerExtensionAttributes() *schema.Resource {
 				Type:        schema.TypeList,
 				Description: "Input type details of the computer extension attribute.",
 				Computed:    true,
-				//MaxItems:    1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {

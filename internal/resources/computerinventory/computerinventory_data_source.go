@@ -27,7 +27,6 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 			"general": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -65,7 +64,6 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 						"remote_management": {
 							Type:     schema.TypeList,
 							Computed: true,
-							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"managed": {
@@ -86,7 +84,6 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 						"mdm_capable": {
 							Type:     schema.TypeList,
 							Computed: true,
-							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"capable": {
@@ -134,7 +131,6 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 						"enrollment_method": {
 							Type:     schema.TypeList,
 							Computed: true,
-							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
@@ -155,7 +151,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 						"site": {
 							Type:     schema.TypeList,
 							Computed: true,
-							MaxItems: 1,
+
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
@@ -245,13 +241,11 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 			"disk_encryption": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"boot_partition_encryption_details": {
 							Type:     schema.TypeList,
 							Computed: true,
-							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"partition_name": {
@@ -298,7 +292,6 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 			"purchasing": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"leased": {
@@ -445,7 +438,6 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 			"storage": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"boot_drive_available_space_megabytes": {
@@ -538,7 +530,6 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 			"user_and_location": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"username": {
@@ -697,7 +688,6 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 			"hardware": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"make": {
@@ -1024,7 +1014,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 			"package_receipts": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
+
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"installed_by_jamf_pro": {
@@ -1074,7 +1064,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 			"security": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
+
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"sip_status": {
@@ -1127,7 +1117,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 			"operating_system": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
+
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
