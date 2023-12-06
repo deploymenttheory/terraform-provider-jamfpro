@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProMacOSComputerInventory provides information about a specific computers inventory by its ID or Name.
+// DataSourceJamfProMacOSComputerInventory provides information about a specific computer's inventory by its ID or Name.
 func DataSourceJamfProComputerInventory() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceJamfProComputerInventoryRead,
@@ -34,15 +34,15 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"lastIpAddress": {
+						"last_ip_address": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"lastReportedIp": {
+						"last_reported_ip": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"jamfBinaryVersion": {
+						"jamf_binary_version": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -58,11 +58,11 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"assetTag": {
+						"asset_tag": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"remoteManagement": {
+						"remote_management": {
 							Type:     schema.TypeList,
 							Computed: true,
 							MaxItems: 1,
@@ -72,7 +72,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 										Type:     schema.TypeBool,
 										Computed: true,
 									},
-									"managementUsername": {
+									"management_username": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -83,7 +83,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"mdmCapable": {
+						"mdm_capable": {
 							Type:     schema.TypeList,
 							Computed: true,
 							MaxItems: 1,
@@ -93,7 +93,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 										Type:     schema.TypeBool,
 										Computed: true,
 									},
-									"capableUsers": {
+									"capable_users": {
 										Type:     schema.TypeList,
 										Computed: true,
 										Elem: &schema.Schema{
@@ -103,35 +103,35 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 								},
 							},
 						},
-						"reportDate": {
+						"report_date": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"lastContactTime": {
+						"last_contact_time": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"lastCloudBackupDate": {
+						"last_cloud_backup_date": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"lastEnrolledDate": {
+						"last_enrolled_date": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"mdmProfileExpiration": {
+						"mdm_profile_expiration": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"initialEntryDate": {
+						"initial_entry_date": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"distributionPoint": {
+						"distribution_point": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"enrollmentMethod": {
+						"enrollment_method": {
 							Type:     schema.TypeList,
 							Computed: true,
 							MaxItems: 1,
@@ -141,11 +141,11 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
-									"objectName": {
+									"object_name": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
-									"objectType": {
+									"object_type": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -169,28 +169,28 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 								},
 							},
 						},
-						"itunesStoreAccountActive": {
+						"itunes_store_account_active": {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"enrolledViaAutomatedDeviceEnrollment": {
+						"enrolled_via_automated_device_enrollment": {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"userApprovedMdm": {
+						"user_approved_mdm": {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"declarativeDeviceManagementEnabled": {
+						"declarative_device_management_enabled": {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"extensionAttributes": {
+						"extension_attributes": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"definitionId": {
+									"definition_id": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -206,7 +206,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 										Type:     schema.TypeBool,
 										Computed: true,
 									},
-									"multiValue": {
+									"multi_value": {
 										Type:     schema.TypeBool,
 										Computed: true,
 									},
@@ -217,7 +217,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 											Type: schema.TypeString,
 										},
 									},
-									"dataType": {
+									"data_type": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -228,67 +228,67 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 											Type: schema.TypeString,
 										},
 									},
-									"inputType": {
+									"input_type": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
 								},
 							},
 						},
-						"managementId": {
+						"management_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
 				},
 			},
-			"diskEncryption": {
+			"disk_encryption": {
 				Type:     schema.TypeList,
 				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"bootPartitionEncryptionDetails": {
+						"boot_partition_encryption_details": {
 							Type:     schema.TypeList,
 							Computed: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"partitionName": {
+									"partition_name": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
-									"partitionFileVault2State": {
+									"partition_file_vault2_state": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
-									"partitionFileVault2Percent": {
+									"partition_file_vault2_percent": {
 										Type:     schema.TypeInt,
 										Computed: true,
 									},
 								},
 							},
 						},
-						"individualRecoveryKeyValidityStatus": {
+						"individual_recovery_key_validity_status": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"institutionalRecoveryKeyPresent": {
+						"institutional_recovery_key_present": {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"diskEncryptionConfigurationName": {
+						"disk_encryption_configuration_name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"fileVault2EnabledUserNames": {
+						"file_vault2_enabled_user_names": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
 						},
-						"fileVault2EligibilityMessage": {
+						"file_vault2_eligibility_message": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -309,11 +309,11 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"poNumber": {
+						"po_number": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"poDate": {
+						"po_date": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -321,40 +321,40 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"warrantyDate": {
+						"warranty_date": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"appleCareId": {
+						"apple_care_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"leaseDate": {
+						"lease_date": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"purchasePrice": {
+						"purchase_price": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"lifeExpectancy": {
+						"life_expectancy": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
-						"purchasingAccount": {
+						"purchasing_account": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"purchasingContact": {
+						"purchasing_contact": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"extensionAttributes": {
+						"extension_attributes": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"definitionId": {
+									"definition_id": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -370,7 +370,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 										Type:     schema.TypeBool,
 										Computed: true,
 									},
-									"multiValue": {
+									"multi_value": {
 										Type:     schema.TypeBool,
 										Computed: true,
 									},
@@ -381,7 +381,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 											Type: schema.TypeString,
 										},
 									},
-									"dataType": {
+									"data_type": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -392,7 +392,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 											Type: schema.TypeString,
 										},
 									},
-									"inputType": {
+									"input_type": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -419,23 +419,23 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"macAppStore": {
+						"mac_app_store": {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"sizeMegabytes": {
+						"size_megabytes": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
-						"bundleId": {
+						"bundle_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"updateAvailable": {
+						"update_available": {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"externalVersionId": {
+						"external_version_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -448,7 +448,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"bootDriveAvailableSpaceMegabytes": {
+						"boot_drive_available_space_megabytes": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
@@ -473,15 +473,15 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
-									"serialNumber": {
+									"serial_number": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
-									"sizeMegabytes": {
+									"size_megabytes": {
 										Type:     schema.TypeInt,
 										Computed: true,
 									},
-									"smartStatus": {
+									"smart_status": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -498,31 +498,31 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
-												"sizeMegabytes": {
+												"size_megabytes": {
 													Type:     schema.TypeInt,
 													Computed: true,
 												},
-												"availableMegabytes": {
+												"available_megabytes": {
 													Type:     schema.TypeInt,
 													Computed: true,
 												},
-												"partitionType": {
+												"partition_type": {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
-												"percentUsed": {
+												"percent_used": {
 													Type:     schema.TypeInt,
 													Computed: true,
 												},
-												"fileVault2State": {
+												"file_vault2_state": {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
-												"fileVault2ProgressPercent": {
+												"file_vault2_progress_percent": {
 													Type:     schema.TypeInt,
 													Computed: true,
 												},
-												"lvmManaged": {
+												"lvm_managed": {
 													Type:     schema.TypeBool,
 													Computed: true,
 												},
@@ -535,7 +535,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 					},
 				},
 			},
-			"userAndLocation": {
+			"user_and_location": {
 				Type:     schema.TypeList,
 				Computed: true,
 				MaxItems: 1,
@@ -561,11 +561,11 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"departmentId": {
+						"department_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"buildingId": {
+						"building_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -573,12 +573,12 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"extensionAttributes": {
+						"extension_attributes": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"definitionId": {
+									"definition_id": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -594,7 +594,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 										Type:     schema.TypeBool,
 										Computed: true,
 									},
-									"multiValue": {
+									"multi_value": {
 										Type:     schema.TypeBool,
 										Computed: true,
 									},
@@ -605,7 +605,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 											Type: schema.TypeString,
 										},
 									},
-									"dataType": {
+									"data_type": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -616,7 +616,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 											Type: schema.TypeString,
 										},
 									},
-									"inputType": {
+									"input_type": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -626,7 +626,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 					},
 				},
 			},
-			"configurationProfiles": {
+			"configuration_profiles": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -639,7 +639,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"lastInstalled": {
+						"last_installed": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -647,11 +647,11 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"displayName": {
+						"display_name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"profileIdentifier": {
+						"profile_identifier": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -708,104 +708,104 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"modelIdentifier": {
+						"model_identifier": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"serialNumber": {
+						"serial_number": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"processorSpeedMhz": {
+						"processor_speed_mhz": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
-						"processorCount": {
+						"processor_count": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
-						"coreCount": {
+						"core_count": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
-						"processorType": {
+						"processor_type": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"processorArchitecture": {
+						"processor_architecture": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"busSpeedMhz": {
+						"bus_speed_mhz": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
-						"cacheSizeKilobytes": {
+						"cache_size_kilobytes": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
-						"networkAdapterType": {
+						"network_adapter_type": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"macAddress": {
+						"mac_address": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"altNetworkAdapterType": {
+						"alt_network_adapter_type": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"altMacAddress": {
+						"alt_mac_address": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"totalRamMegabytes": {
+						"total_ram_megabytes": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
-						"openRamSlots": {
+						"open_ram_slots": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
-						"batteryCapacityPercent": {
+						"battery_capacity_percent": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
-						"smcVersion": {
+						"smc_version": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"nicSpeed": {
+						"nic_speed": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"opticalDrive": {
+						"optical_drive": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"bootRom": {
+						"boot_rom": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"bleCapable": {
+						"ble_capable": {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"supportsIosAppInstalls": {
+						"supports_ios_app_installs": {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"appleSilicon": {
+						"apple_silicon": {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"extensionAttributes": {
+						"extension_attributes": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"definitionId": {
+									"definition_id": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -821,7 +821,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 										Type:     schema.TypeBool,
 										Computed: true,
 									},
-									"multiValue": {
+									"multi_value": {
 										Type:     schema.TypeBool,
 										Computed: true,
 									},
@@ -832,7 +832,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 											Type: schema.TypeString,
 										},
 									},
-									"dataType": {
+									"data_type": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -843,7 +843,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 											Type: schema.TypeString,
 										},
 									},
-									"inputType": {
+									"input_type": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -853,7 +853,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 					},
 				},
 			},
-			"localUserAccounts": {
+			"local_user_accounts": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -862,7 +862,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"userGuid": {
+						"user_guid": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -870,7 +870,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"fullName": {
+						"full_name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -878,51 +878,51 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"homeDirectory": {
+						"home_directory": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"homeDirectorySizeMb": {
+						"home_directory_size_mb": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
-						"fileVault2Enabled": {
+						"file_vault2_enabled": {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"userAccountType": {
+						"user_account_type": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"passwordMinLength": {
+						"password_min_length": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
-						"passwordMaxAge": {
+						"password_max_age": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
-						"passwordMinComplexCharacters": {
+						"password_min_complex_characters": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
-						"passwordHistoryDepth": {
+						"password_history_depth": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
-						"passwordRequireAlphanumeric": {
+						"password_require_alphanumeric": {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"computerAzureActiveDirectoryId": {
+						"computer_azure_active_directory_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"userAzureActiveDirectoryId": {
+						"user_azure_active_directory_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"azureActiveDirectoryId": {
+						"azure_active_directory_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -934,7 +934,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"commonName": {
+						"common_name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -942,7 +942,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"expirationDate": {
+						"expiration_date": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -950,27 +950,27 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"lifecycleStatus": {
+						"lifecycle_status": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"certificateStatus": {
+						"certificate_status": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"subjectName": {
+						"subject_name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"serialNumber": {
+						"serial_number": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"sha1Fingerprint": {
+						"sha1_fingerprint": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"issuedDate": {
+						"issued_date": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -990,11 +990,11 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"fileType": {
+						"file_type": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"sizeBytes": {
+						"size_bytes": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
@@ -1021,20 +1021,20 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 					},
 				},
 			},
-			"packageReceipts": {
+			"package_receipts": {
 				Type:     schema.TypeList,
 				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"installedByJamfPro": {
+						"installed_by_jamf_pro": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
 						},
-						"installedByInstallerSwu": {
+						"installed_by_installer_swu": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Schema{
@@ -1077,54 +1077,54 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"sipStatus": {
+						"sip_status": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"gatekeeperStatus": {
+						"gatekeeper_status": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"xprotectVersion": {
+						"xprotect_version": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"autoLoginDisabled": {
+						"auto_login_disabled": {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"remoteDesktopEnabled": {
+						"remote_desktop_enabled": {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"activationLockEnabled": {
+						"activation_lock_enabled": {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"recoveryLockEnabled": {
+						"recovery_lock_enabled": {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"firewallEnabled": {
+						"firewall_enabled": {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"secureBootLevel": {
+						"secure_boot_level": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"externalBootLevel": {
+						"external_boot_level": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"bootstrapTokenAllowed": {
+						"bootstrap_token_allowed": {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
 					},
 				},
 			},
-			"operatingSystem": {
+			"operating_system": {
 				Type:     schema.TypeList,
 				Computed: true,
 				MaxItems: 1,
@@ -1142,32 +1142,32 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"supplementalBuildVersion": {
+						"supplemental_build_version": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"rapidSecurityResponse": {
+						"rapid_security_response": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"activeDirectoryStatus": {
+						"active_directory_status": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"fileVault2Status": {
+						"file_vault2_status": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"softwareUpdateDeviceId": {
+						"software_update_device_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"extensionAttributes": {
+						"extension_attributes": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"definitionId": {
+									"definition_id": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -1183,7 +1183,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 										Type:     schema.TypeBool,
 										Computed: true,
 									},
-									"multiValue": {
+									"multi_value": {
 										Type:     schema.TypeBool,
 										Computed: true,
 									},
@@ -1194,7 +1194,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 											Type: schema.TypeString,
 										},
 									},
-									"dataType": {
+									"data_type": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -1205,7 +1205,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 											Type: schema.TypeString,
 										},
 									},
-									"inputType": {
+									"input_type": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -1215,7 +1215,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 					},
 				},
 			},
-			"licensedSoftware": {
+			"licensed_software": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -1243,7 +1243,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 					},
 				},
 			},
-			"softwareUpdates": {
+			"software_updates": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -1256,19 +1256,19 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"packageName": {
+						"package_name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
 				},
 			},
-			"extensionAttributes": {
+			"extension_attributes": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"definitionId": {
+						"definition_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -1284,7 +1284,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"multiValue": {
+						"multi_value": {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
@@ -1295,7 +1295,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
-						"dataType": {
+						"data_type": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -1306,388 +1306,28 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
-						"inputType": {
+						"input_type": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
 				},
 			},
-			"contentCaching": {
-				Type:     schema.TypeList,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"computerContentCachingInformationId": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"parents": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"contentCachingParentId": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"address": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"alerts": {
-										Type:     schema.TypeList,
-										Computed: true,
-										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"contentCachingParentAlertId": {
-													Type:     schema.TypeString,
-													Computed: true,
-												},
-												"addresses": {
-													Type:     schema.TypeList,
-													Computed: true,
-													Elem: &schema.Schema{
-														Type: schema.TypeString,
-													},
-												},
-												"className": {
-													Type:     schema.TypeString,
-													Computed: true,
-												},
-												"postDate": {
-													Type:     schema.TypeString,
-													Computed: true,
-												},
-											},
-										},
-									},
-									"details": {
-										Type:     schema.TypeList,
-										Computed: true,
-										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"contentCachingParentDetailsId": {
-													Type:     schema.TypeString,
-													Computed: true,
-												},
-												"acPower": {
-													Type:     schema.TypeBool,
-													Computed: true,
-												},
-												"cacheSizeBytes": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"capabilities": {
-													Type:     schema.TypeList,
-													Computed: true,
-													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"contentCachingParentCapabilitiesId": {
-																Type:     schema.TypeString,
-																Computed: true,
-															},
-															"imports": {
-																Type:     schema.TypeBool,
-																Computed: true,
-															},
-															"namespaces": {
-																Type:     schema.TypeBool,
-																Computed: true,
-															},
-															"personalContent": {
-																Type:     schema.TypeBool,
-																Computed: true,
-															},
-															"queryParameters": {
-																Type:     schema.TypeBool,
-																Computed: true,
-															},
-															"sharedContent": {
-																Type:     schema.TypeBool,
-																Computed: true,
-															},
-															"prioritization": {
-																Type:     schema.TypeBool,
-																Computed: true,
-															},
-														},
-													},
-												},
-												"portable": {
-													Type:     schema.TypeBool,
-													Computed: true,
-												},
-												"localNetwork": {
-													Type:     schema.TypeList,
-													Computed: true,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"contentCachingParentLocalNetworkId": {
-																Type:     schema.TypeString,
-																Computed: true,
-															},
-															"speed": {
-																Type:     schema.TypeInt,
-																Computed: true,
-															},
-															"wired": {
-																Type:     schema.TypeBool,
-																Computed: true,
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-									"guid": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"healthy": {
-										Type:     schema.TypeBool,
-										Computed: true,
-									},
-									"port": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"version": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-								},
-							},
-						},
-						"alerts": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"cacheBytesLimit": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"className": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"pathPreventingAccess": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"postDate": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"reservedVolumeBytes": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"resource": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-								},
-							},
-						},
-						"activated": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-						"active": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-						"actualCacheBytesUsed": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"cacheDetails": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"computerContentCachingCacheDetailsId": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"categoryName": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"diskSpaceBytesUsed": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-								},
-							},
-						},
-						"cacheBytesFree": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"cacheBytesLimit": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"cacheStatus": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"cacheBytesUsed": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"dataMigrationCompleted": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-						"dataMigrationProgressPercentage": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"dataMigrationError": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"code": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"domain": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"userInfo": {
-										Type:     schema.TypeList,
-										Computed: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeMap,
-											Elem: &schema.Schema{
-												Type: schema.TypeString,
-											},
-										},
-									},
-								},
-							},
-						},
-						"maxCachePressureLast1HourPercentage": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"personalCacheBytesFree": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"personalCacheBytesLimit": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"personalCacheBytesUsed": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"port": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"publicAddress": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"registrationError": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"registrationResponseCode": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"registrationStarted": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"registrationStatus": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"restrictedMedia": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-						"serverGuid": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"startupStatus": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"tetheratorStatus": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"totalBytesAreSince": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"totalBytesDropped": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"totalBytesImported": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"totalBytesReturnedToChildren": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"totalBytesReturnedToClients": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"totalBytesReturnedToPeers": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"totalBytesStoredFromOrigin": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"totalBytesStoredFromParents": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"totalBytesStoredFromPeers": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-					},
-				},
-			},
-			"groupMemberships": {
+			// ignoring contentCashing section intentionally as it doesnt serve any use in terraform scenarios
+			"group_memberships": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"groupId": {
+						"group_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"groupName": {
+						"group_name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"smartGroup": {
+						"smart_group": {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
@@ -1774,7 +1414,75 @@ func dataSourceJamfProComputerInventoryRead(ctx context.Context, d *schema.Resou
 		return diag.FromErr(err)
 	}
 
-	// ... repeat for other sections ...
+	// Set 'hardware' section
+	if err := setHardwareSection(d, profile.Hardware); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Set 'localUserAccounts' section
+	if err := setLocalUserAccountsSection(d, profile.LocalUserAccounts); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Set 'certificates' section
+	if err := setCertificatesSection(d, profile.Certificates); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Set 'attachments' section
+	if err := setAttachmentsSection(d, profile.Attachments); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Set 'plugins' section
+	if err := setPluginsSection(d, profile.Plugins); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Set 'packageReceipts' section
+	if err := setPackageReceiptsSection(d, profile.PackageReceipts); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Set 'fonts' section
+	if err := setFontsSection(d, profile.Fonts); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Set 'security' section
+	if err := setSecuritySection(d, profile.Security); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Set 'operatingSystem' section
+	if err := setOperatingSystemSection(d, profile.OperatingSystem); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Set 'licensedSoftware' section
+	if err := setLicensedSoftwareSection(d, profile.LicensedSoftware); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Set 'ibeacons' section
+	if err := setIBeaconsSection(d, profile.Ibeacons); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Set 'softwareUpdates' section
+	if err := setSoftwareUpdatesSection(d, profile.SoftwareUpdates); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Set 'extensionAttributes' section
+	if err := setExtensionAttributesSection(d, profile.ExtensionAttributes); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Set 'groupMemberships' section
+	if err := setGroupMembershipsSection(d, profile.GroupMemberships); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return nil
 }
@@ -1786,8 +1494,8 @@ func setGeneralSection(d *schema.ResourceData, general jamfpro.ComputerInventory
 
 	// Map each attribute of the 'general' section from the API response to the corresponding Terraform schema attribute.
 	gen["name"] = general.Name
-	gen["lastIpAddress"] = general.LastIpAddress
-	gen["lastReportedIp"] = general.LastReportedIp
+	gen["last_Ip_Address"] = general.LastIpAddress
+	gen["last_Reported_Ip"] = general.LastReportedIp
 	gen["jamfBinaryVersion"] = general.JamfBinaryVersion
 	gen["platform"] = general.Platform
 	gen["barcode1"] = general.Barcode1
@@ -2151,6 +1859,7 @@ func setPackageReceiptsSection(d *schema.ResourceData, packageReceipts jamfpro.C
 	return d.Set("packageReceipts", []interface{}{prMap})
 }
 
+// setFontsSection maps the 'fonts' section of the computer inventory response to the Terraform schema.
 func setFontsSection(d *schema.ResourceData, fonts []jamfpro.ComputerInventoryDataSubsetFont) error {
 	fontsList := make([]interface{}, len(fonts))
 	for i, font := range fonts {
@@ -2163,6 +1872,7 @@ func setFontsSection(d *schema.ResourceData, fonts []jamfpro.ComputerInventoryDa
 	return d.Set("fonts", fontsList)
 }
 
+// setSecuritySection maps the 'security' section of the computer inventory response to the Terraform schema.
 func setSecuritySection(d *schema.ResourceData, security jamfpro.ComputerInventoryDataSubsetSecurity) error {
 	securityMap := make(map[string]interface{})
 	securityMap["sipStatus"] = security.SipStatus
@@ -2179,6 +1889,7 @@ func setSecuritySection(d *schema.ResourceData, security jamfpro.ComputerInvento
 	return d.Set("security", []interface{}{securityMap})
 }
 
+// setOperatingSystemSection maps the 'Operating System' section of the computer inventory response to the Terraform schema.
 func setOperatingSystemSection(d *schema.ResourceData, operatingSystem jamfpro.ComputerInventoryDataSubsetOperatingSystem) error {
 	osMap := make(map[string]interface{})
 	osMap["name"] = operatingSystem.Name
@@ -2209,6 +1920,7 @@ func setOperatingSystemSection(d *schema.ResourceData, operatingSystem jamfpro.C
 	return d.Set("operatingSystem", []interface{}{osMap})
 }
 
+// setLicensedSoftwareSection maps the 'Licensed Software' section of the computer inventory response to the Terraform schema.
 func setLicensedSoftwareSection(d *schema.ResourceData, licensedSoftware []jamfpro.ComputerInventoryDataSubsetLicensedSoftware) error {
 	softwareList := make([]interface{}, len(licensedSoftware))
 	for i, software := range licensedSoftware {
@@ -2220,6 +1932,7 @@ func setLicensedSoftwareSection(d *schema.ResourceData, licensedSoftware []jamfp
 	return d.Set("licensedSoftware", softwareList)
 }
 
+// setIBeaconsSection maps the 'IBeacons' section of the computer inventory response to the Terraform schema.
 func setIBeaconsSection(d *schema.ResourceData, ibeacons []jamfpro.ComputerInventoryDataSubsetIbeacon) error {
 	ibeaconList := make([]interface{}, len(ibeacons))
 	for i, ibeacon := range ibeacons {
@@ -2230,6 +1943,7 @@ func setIBeaconsSection(d *schema.ResourceData, ibeacons []jamfpro.ComputerInven
 	return d.Set("ibeacons", ibeaconList)
 }
 
+// setSoftwareUpdatesSection maps the 'Software Updates' section of the computer inventory response to the Terraform schema.
 func setSoftwareUpdatesSection(d *schema.ResourceData, softwareUpdates []jamfpro.ComputerInventoryDataSubsetSoftwareUpdate) error {
 	updateList := make([]interface{}, len(softwareUpdates))
 	for i, update := range softwareUpdates {
@@ -2242,6 +1956,7 @@ func setSoftwareUpdatesSection(d *schema.ResourceData, softwareUpdates []jamfpro
 	return d.Set("softwareUpdates", updateList)
 }
 
+// setExtensionAttributesSection maps the 'Extension Attributes' section of the computer inventory response to the Terraform schema.
 func setExtensionAttributesSection(d *schema.ResourceData, extensionAttributes []jamfpro.ComputerInventoryDataSubsetExtensionAttribute) error {
 	attrList := make([]interface{}, len(extensionAttributes))
 	for i, attr := range extensionAttributes {
@@ -2260,27 +1975,16 @@ func setExtensionAttributesSection(d *schema.ResourceData, extensionAttributes [
 	return d.Set("extensionAttributes", attrList)
 }
 
-func setContentCachingSection(d *schema.ResourceData, contentCaching jamfpro.ComputerInventoryDataSubsetContentCaching) error {
-	cachingMap := make(map[string]interface{})
-	cachingMap["computerContentCachingInformationId"] = contentCaching.ComputerContentCachingInformationId
-	// ... map other content caching attributes ...
+// setGroupMembershipsSection maps the 'groupMemberships' section of the computer inventory response to the Terraform schema.
+func setGroupMembershipsSection(d *schema.ResourceData, groupMemberships []jamfpro.ComputerInventoryDataSubsetGroupMembership) error {
+	memberships := make([]interface{}, len(groupMemberships))
+	for i, group := range groupMemberships {
+		groupMap := make(map[string]interface{})
+		groupMap["groupId"] = group.GroupId
+		groupMap["groupName"] = group.GroupName
+		groupMap["smartGroup"] = group.SmartGroup
 
-	// Handle nested objects like 'parents', 'alerts', etc. if needed
-	// ...
-
-	return d.Set("contentCaching", []interface{}{cachingMap})
-}
-
-func setAlertsSection(d *schema.ResourceData, alerts []jamfpro.ComputerInventoryDataSubsetContentCachingAlert) error {
-	alertsList := make([]interface{}, len(alerts))
-	for i, alert := range alerts {
-		alertMap := make(map[string]interface{})
-		alertMap["contentCachingParentAlertId"] = alert.ContentCachingParentAlertId
-		alertMap["addresses"] = alert.Addresses
-		alertMap["className"] = alert.ClassName
-		alertMap["postDate"] = alert.PostDate
-		// ... map other alert attributes ...
-		alertsList[i] = alertMap
+		memberships[i] = groupMap
 	}
-	return d.Set("alerts", alertsList)
+	return d.Set("groupMemberships", memberships)
 }
