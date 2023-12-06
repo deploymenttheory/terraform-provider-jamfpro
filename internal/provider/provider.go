@@ -16,7 +16,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/buildings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerextensionattributes"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computergroups"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerinventory"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/departments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/dockitems"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macosconfigurationprofiles"
@@ -109,11 +108,11 @@ func Provider() *schema.Provider {
 			"jamfpro_buildings":                     buildings.DataSourceJamfProBuilding(),
 			"jamfpro_computer_extension_attributes": computerextensionattributes.DataSourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_groups":               computergroups.DataSourceJamfProComputerGroups(),
-			"jamfpro_computer_inventory":            computerinventory.DataSourceJamfProComputerInventory(),
-			"jamfpro_departments":                   departments.DataSourceJamfProDepartments(),
-			"jamfpro_dock_items":                    dockitems.DataSourceJamfProDockItems(),
-			"jamfpro_sites":                         sites.DataSourceJamfProSites(),
-			"jamfpro_scripts":                       scripts.DataSourceJamfProScripts(),
+			//"jamfpro_computer_inventory":            computerinventory.DataSourceJamfProComputerInventory(),
+			"jamfpro_departments": departments.DataSourceJamfProDepartments(),
+			"jamfpro_dock_items":  dockitems.DataSourceJamfProDockItems(),
+			"jamfpro_sites":       sites.DataSourceJamfProSites(),
+			"jamfpro_scripts":     scripts.DataSourceJamfProScripts(),
 			//"jamfpro_macos_configuration_profiles":  macosconfigurationprofiles.DataSourceJamfProMacOSConfigurationProfiles(),
 			"jamfpro_printers": printers.DataSourceJamfProPrinters(),
 		},

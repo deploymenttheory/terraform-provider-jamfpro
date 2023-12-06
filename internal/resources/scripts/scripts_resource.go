@@ -3,6 +3,7 @@ package scripts
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"strconv"
@@ -156,10 +157,10 @@ func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResponseScript, er
 
 	// construct regular fields
 	fields := map[string]interface{}{
-		"name":            &script.Name,
-		"filename":        &script.Filename,
-		"info":            &script.Info,
-		"script_contents": &script.ScriptContents,
+		"name":     &script.Name,
+		"filename": &script.Filename,
+		"info":     &script.Info,
+		//"script_contents": &script.ScriptContents,
 		"notes":           &script.Notes,
 		"priority":        &script.Priority,
 		"os_requirements": &script.OSRequirements,
@@ -169,6 +170,21 @@ func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResponseScript, er
 		if v, ok := d.GetOk(key); ok {
 			*ptr.(*string) = v.(string)
 		}
+	}
+
+	// construct script_contents
+	scriptContents, isScriptContentPresent := d.GetOk("script_contents")
+	if isScriptContentPresent {
+		// If the script contents were modified, use the new value directly
+		script.ScriptContents = scriptContents.(string)
+	} else {
+		// If the script contents were not modified, decode them from the state
+		encodedScriptContents, _ := d.Get("script_contents_encoded").(string)
+		decodedBytes, err := base64.StdEncoding.DecodeString(encodedScriptContents)
+		if err != nil {
+			return nil, fmt.Errorf("error decoding script contents: %s", err)
+		}
+		script.ScriptContents = string(decodedBytes)
 	}
 
 	// construct fields with default values
@@ -461,6 +477,16 @@ func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, m
 		script, err := constructJamfProScript(d)
 		if err != nil {
 			return retry.NonRetryableError(fmt.Errorf("failed to construct the script for terraform update: %w", err))
+		}
+
+		// If script_contents has not been modified, decode it from the state
+		if !d.HasChange("script_contents") {
+			encodedScriptContents, _ := d.Get("script_contents_encoded").(string)
+			decodedBytes, err := base64.StdEncoding.DecodeString(encodedScriptContents)
+			if err != nil {
+				return retry.NonRetryableError(fmt.Errorf("error decoding script contents: %s", err))
+			}
+			script.ScriptContents = string(decodedBytes)
 		}
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request
