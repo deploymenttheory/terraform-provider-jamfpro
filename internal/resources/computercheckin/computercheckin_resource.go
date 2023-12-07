@@ -22,9 +22,11 @@ func ResourceJamfProComputerCheckin() *schema.Resource {
 	return &schema.Resource{
 		ReadContext:   ResourceJamfProComputerCheckinRead,
 		UpdateContext: ResourceJamfProComputerCheckinUpdate,
+		DeleteContext: ResourceJamfProComputerCheckinDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Read:   schema.DefaultTimeout(1 * time.Minute),
 			Update: schema.DefaultTimeout(3 * time.Minute),
+			Delete: schema.DefaultTimeout(1 * time.Minute),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -295,4 +297,14 @@ func ResourceJamfProComputerCheckinUpdate(ctx context.Context, d *schema.Resourc
 	}
 
 	return diags
+}
+
+// ResourceJamfProComputerCheckinDelete is responsible for 'deleting' the Jamf Pro computer check-in configuration.
+// Since this resource represents a configuration and not an actual entity that can be deleted,
+// this function will simply remove it from the Terraform state.
+func ResourceJamfProComputerCheckinDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	// Simply remove the resource from the Terraform state by setting the ID to an empty string.
+	d.SetId("")
+
+	return nil
 }
