@@ -109,7 +109,6 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 							Type:        schema.TypeString,
 							Required:    true,
 							Description: "Name of the smart group search criteria. Can be from the Jamf built in enteries or can be an extension attribute.",
-							//ValidateFunc: validateSmartGroupCriteriaName,
 						},
 						"priority": {
 							Type:        schema.TypeInt,
