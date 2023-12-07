@@ -231,7 +231,7 @@ func ResourceJamfProComputerCheckinRead(ctx context.Context, d *schema.ResourceD
 	if err := d.Set("check_for_policies_at_startup", checkinConfig.CheckForPoliciesAtStartup); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("apply_computer_level_managed_prefs", checkinConfig.ApplyComputerLevelManagedPrefs); err != nil {
+	if err := d.Set("apply_computer_level_managed_preferences", checkinConfig.ApplyComputerLevelManagedPrefs); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("ensure_ssh_is_enabled", checkinConfig.EnsureSSHIsEnabled); err != nil {
@@ -246,7 +246,7 @@ func ResourceJamfProComputerCheckinRead(ctx context.Context, d *schema.ResourceD
 	if err := d.Set("check_for_policies_at_login_logout", checkinConfig.CheckForPoliciesAtLoginLogout); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("apply_user_level_managed_prefs", checkinConfig.ApplyUserLevelManagedPreferences); err != nil {
+	if err := d.Set("apply_user_level_managed_preferences", checkinConfig.ApplyUserLevelManagedPreferences); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("hide_restore_partition", checkinConfig.HideRestorePartition); err != nil {
