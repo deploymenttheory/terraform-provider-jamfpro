@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -23,12 +24,24 @@ const (
 )
 
 const (
-	SearchTypeIs           = "is"
-	SearchTypeIsNot        = "is not"
-	SearchTypeLike         = "like"
-	SearchTypeNotLike      = "not like"
-	SearchTypeMatchesRegex = "matches regex"
-	SearchTypeDoesNotMatch = "does not match regex"
+	SearchTypeIs                 = "is"
+	SearchTypeIsNot              = "is not"
+	SearchTypeHas                = "has"
+	SearchTypeDoesNotHave        = "does not have"
+	SearchTypeMemberOf           = "member of"
+	SearchTypeNotMemberOf        = "not member of"
+	SearchTypeBeforeYYYYMMDD     = "before (yyyy-mm-dd)"
+	SearchTypeAfterYYYYMMDD      = "after (yyyy-mm-dd)"
+	SearchTypeMoreThanXDaysAgo   = "more than x days ago"
+	SearchTypeLessThanXDaysAgo   = "less than x days ago"
+	SearchTypeLike               = "like"
+	SearchTypeNotLike            = "not like"
+	SearchTypeGreaterThan        = "greater than"
+	SearchTypeLessThan           = "less than"
+	SearchTypeGreaterThanOrEqual = "greater than or equal"
+	SearchTypeLessThanOrEqual    = "less than or equal"
+	SearchTypeMatchesRegex       = "matches regex"
+	SearchTypeDoesNotMatch       = "does not match regex"
 )
 
 type DeviceGroupAndOr string
@@ -39,6 +52,12 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 		ReadContext:   ResourceJamfProComputerGroupsRead,
 		UpdateContext: ResourceJamfProComputerGroupsUpdate,
 		DeleteContext: ResourceJamfProComputerGroupsDelete,
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(3 * time.Minute),
+			Read:   schema.DefaultTimeout(1 * time.Minute),
+			Update: schema.DefaultTimeout(3 * time.Minute),
+			Delete: schema.DefaultTimeout(1 * time.Minute),
+		},
 		CustomizeDiff: customDiffComputeGroups,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -110,15 +129,16 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 						"search_type": {
 							Type:     schema.TypeString,
 							Required: true,
-							Description: fmt.Sprintf("The type of search operator. Allowed values are '%s', '%s', '%s', '%s', '%s', and '%s'.",
-								SearchTypeIs, SearchTypeIsNot, SearchTypeLike, SearchTypeNotLike, SearchTypeMatchesRegex, SearchTypeDoesNotMatch),
+							Description: fmt.Sprintf("The type of smart group search operator. Allowed values are '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'. ",
+								SearchTypeIs, SearchTypeIsNot, SearchTypeHas, SearchTypeDoesNotHave, SearchTypeMemberOf, SearchTypeNotMemberOf,
+								SearchTypeBeforeYYYYMMDD, SearchTypeAfterYYYYMMDD, SearchTypeMoreThanXDaysAgo, SearchTypeLessThanXDaysAgo,
+								SearchTypeLike, SearchTypeNotLike, SearchTypeGreaterThan, SearchTypeLessThan, SearchTypeGreaterThanOrEqual,
+								SearchTypeLessThanOrEqual, SearchTypeMatchesRegex, SearchTypeDoesNotMatch),
 							ValidateFunc: validation.StringInSlice([]string{
-								SearchTypeIs,
-								SearchTypeIsNot,
-								SearchTypeLike,
-								SearchTypeNotLike,
-								SearchTypeMatchesRegex,
-								SearchTypeDoesNotMatch,
+								SearchTypeIs, SearchTypeIsNot, SearchTypeHas, SearchTypeDoesNotHave, SearchTypeMemberOf, SearchTypeNotMemberOf,
+								SearchTypeBeforeYYYYMMDD, SearchTypeAfterYYYYMMDD, SearchTypeMoreThanXDaysAgo, SearchTypeLessThanXDaysAgo,
+								SearchTypeLike, SearchTypeNotLike, SearchTypeGreaterThan, SearchTypeLessThan, SearchTypeGreaterThanOrEqual,
+								SearchTypeLessThanOrEqual, SearchTypeMatchesRegex, SearchTypeDoesNotMatch,
 							}, false),
 						},
 						"value": {
@@ -144,31 +164,37 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 			"computers": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:        schema.TypeInt,
 							Optional:    true,
+							Computed:    true,
 							Description: "The ID of the computer.",
 						},
 						"name": {
 							Type:        schema.TypeString,
 							Optional:    true,
+							Computed:    true,
 							Description: "Name of the computer.",
 						},
 						"mac_address": {
 							Type:        schema.TypeString,
 							Optional:    true,
+							Computed:    true,
 							Description: "MAC Address of the computer.",
 						},
 						"alt_mac_address": {
 							Type:        schema.TypeString,
 							Optional:    true,
+							Computed:    true,
 							Description: "Alternative MAC Address of the computer.",
 						},
 						"serial_number": {
 							Type:        schema.TypeString,
 							Optional:    true,
+							Computed:    true,
 							Description: "Serial number of the computer.",
 						},
 					},
