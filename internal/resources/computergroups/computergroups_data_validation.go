@@ -211,19 +211,25 @@ func validateSmartGroupCriteriaName(ctx context.Context, val interface{}, key st
 }
 
 // customDiffComputeGroups is a CustomDiff function that enforces conditional logic on the 'computers' and 'criteria' fields of the JamfProComputerGroups resource based on the value of 'is_smart'.
-// When 'is_smart' is true, the 'computers' field is not allowed, and certain sub-fields within 'criteria' become required.
-// Conversely, when 'is_smart' is false, the 'criteria' field is not allowed.
+// When is_smart is true, the criteria block is valid, and the computers block should not be set.
+// When is_smart is false, the computers block is valid, and the criteria block should not be set.
 func customDiffComputeGroups(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
-	// Check if 'is_smart' is set to true.
-	if diff.Get("is_smart").(bool) {
-		// If 'is_smart' is true, 'computers' should not be set.
-		if diff.Get("computers") != nil {
-			if len(diff.Get("computers").([]interface{})) > 0 {
-				return fmt.Errorf("'computers' field is not allowed when 'is_smart' is true")
-			}
-		}
+	isSmart := diff.Get("is_smart").(bool)
 
-		// When 'is_smart' is true, 'name', 'and_or', and 'search_type' are required within each criterion.
+	// When 'is_smart' is true, 'computers' should not be set.
+	if isSmart {
+		if computers, exists := diff.GetOk("computers"); exists && len(computers.([]interface{})) > 0 {
+			return fmt.Errorf("'computers' field is not allowed when 'is_smart' is true")
+		}
+	} else {
+		// If 'is_smart' is false, 'criteria' should not be set.
+		if criteria, exists := diff.GetOk("criteria"); exists && len(criteria.([]interface{})) > 0 {
+			return fmt.Errorf("'criteria' field is not allowed when 'is_smart' is false")
+		}
+	}
+
+	// Additional validations for 'criteria' when 'is_smart' is true.
+	if isSmart {
 		criteria, ok := diff.GetOk("criteria")
 		if !ok || len(criteria.([]interface{})) == 0 {
 			return fmt.Errorf("'criteria' field must be set when 'is_smart' is true")
@@ -232,10 +238,10 @@ func customDiffComputeGroups(ctx context.Context, diff *schema.ResourceDiff, v i
 		for i, c := range criteria.([]interface{}) {
 			criterion, ok := c.(map[string]interface{})
 			if !ok {
-				continue // Should not happen, but continue just in case.
+				continue // Skip invalid structure.
 			}
 
-			// Check if 'name', 'and_or', and 'search_type' are set.
+			// Validate 'name', 'and_or', and 'search_type' in each criterion.
 			if criterion["name"] == nil || criterion["name"].(string) == "" {
 				return fmt.Errorf("'name' field is required for 'criteria' at index %d when 'is_smart' is true", i)
 			}
@@ -244,13 +250,6 @@ func customDiffComputeGroups(ctx context.Context, diff *schema.ResourceDiff, v i
 			}
 			if criterion["search_type"] == nil || criterion["search_type"].(string) == "" {
 				return fmt.Errorf("'search_type' field is required for 'criteria' at index %d when 'is_smart' is true", i)
-			}
-		}
-	} else {
-		// If 'is_smart' is false, 'criteria' should not be set.
-		if diff.Get("criteria") != nil {
-			if len(diff.Get("criteria").([]interface{})) > 0 {
-				return fmt.Errorf("'criteria' field is not allowed when 'is_smart' is false")
 			}
 		}
 	}

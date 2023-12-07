@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProDepartmentse defines the schema and CRUD operations for managing Jamf Pro Departments in Terraform.
+// ResourceJamfProDepartments defines the schema and CRUD operations for managing Jamf Pro Departments in Terraform.
 func ResourceJamfProDepartments() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: ResourceJamfProDepartmentsCreate,

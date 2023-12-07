@@ -46,6 +46,7 @@ const (
 
 type DeviceGroupAndOr string
 
+// ResourceJamfProComputerGroups defines the schema and CRUD operations for managing Jamf Pro Computer Groups in Terraform.
 func ResourceJamfProComputerGroups() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: ResourceJamfProComputerGroupsCreate,
@@ -77,7 +78,7 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
-				Description: "Smart or static group.",
+				Description: "Boolean selection to state if the group is a Smart group or not. If false then the group is a static group.",
 			},
 			"site": {
 				Type:     schema.TypeList,
@@ -89,12 +90,12 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 						"id": {
 							Type:        schema.TypeInt,
 							Optional:    true,
-							Description: "The ID of the site.",
+							Description: "The ID of the site assigned to the computer group.",
 						},
 						"name": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "Name of the site.",
+							Description: "Name of the site assigned to the computer group.",
 						},
 					},
 				},
@@ -150,13 +151,13 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Default:     false,
-							Description: "Opening parenthesis flag.",
+							Description: "Opening parenthesis flag used during smart group construction.",
 						},
 						"closing_paren": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Default:     false,
-							Description: "Closing parenthesis flag.",
+							Description: "Closing parenthesis flag used during smart group construction.",
 						},
 					},
 				},
@@ -171,31 +172,31 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 							Type:        schema.TypeInt,
 							Optional:    true,
 							Computed:    true,
-							Description: "The ID of the computer.",
+							Description: "The ID of the computer used during static computer group construction.",
 						},
 						"name": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Computed:    true,
-							Description: "Name of the computer.",
+							Description: "Name of the computer used during static computer group construction.",
 						},
 						"mac_address": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Computed:    true,
-							Description: "MAC Address of the computer.",
+							Description: "MAC Address of the computer used during static computer group construction.",
 						},
 						"alt_mac_address": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Computed:    true,
-							Description: "Alternative MAC Address of the computer.",
+							Description: "Alternative MAC Address of the computer used during static computer group construction.",
 						},
 						"serial_number": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Computed:    true,
-							Description: "Serial number of the computer.",
+							Description: "Serial number of the computer used during static computer group construction.",
 						},
 					},
 				},
