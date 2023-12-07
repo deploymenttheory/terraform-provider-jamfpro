@@ -20,6 +20,7 @@ import (
 // ResourceJamfProComputerCheckindefines the schema and RU operations for managing Jamf Pro computer checkin configuration in Terraform.
 func ResourceJamfProComputerCheckin() *schema.Resource {
 	return &schema.Resource{
+		CreateContext: ResourceJamfProComputerCheckinCreate,
 		ReadContext:   ResourceJamfProComputerCheckinRead,
 		UpdateContext: ResourceJamfProComputerCheckinUpdate,
 		DeleteContext: ResourceJamfProComputerCheckinDelete,
@@ -107,19 +108,19 @@ func constructComputerCheckin(d *schema.ResourceData) (*jamfpro.ResponseComputer
 	checkin := &jamfpro.ResponseComputerCheckin{}
 
 	fields := map[string]interface{}{
-		"check_in_frequency":                  &checkin.CheckInFrequency,
-		"create_startup_script":               &checkin.CreateStartupScript,
-		"log_startup_event":                   &checkin.LogStartupEvent,
-		"check_for_policies_at_startup":       &checkin.CheckForPoliciesAtStartup,
-		"apply_computer_level_managed_prefs":  &checkin.ApplyComputerLevelManagedPrefs,
-		"ensure_ssh_is_enabled":               &checkin.EnsureSSHIsEnabled,
-		"create_login_logout_hooks":           &checkin.CreateLoginLogoutHooks,
-		"log_username":                        &checkin.LogUsername,
-		"check_for_policies_at_login_logout":  &checkin.CheckForPoliciesAtLoginLogout,
-		"apply_user_level_managed_prefs":      &checkin.ApplyUserLevelManagedPreferences,
-		"hide_restore_partition":              &checkin.HideRestorePartition,
-		"perform_login_actions_in_background": &checkin.PerformLoginActionsInBackground,
-		"display_status_to_user":              &checkin.DisplayStatusToUser,
+		"check_in_frequency":                       &checkin.CheckInFrequency,
+		"create_startup_script":                    &checkin.CreateStartupScript,
+		"log_startup_event":                        &checkin.LogStartupEvent,
+		"check_for_policies_at_startup":            &checkin.CheckForPoliciesAtStartup,
+		"apply_computer_level_managed_preferences": &checkin.ApplyComputerLevelManagedPrefs,
+		"ensure_ssh_is_enabled":                    &checkin.EnsureSSHIsEnabled,
+		"create_login_logout_hooks":                &checkin.CreateLoginLogoutHooks,
+		"log_username":                             &checkin.LogUsername,
+		"check_for_policies_at_login_logout":       &checkin.CheckForPoliciesAtLoginLogout,
+		"apply_user_level_managed_preferences":     &checkin.ApplyUserLevelManagedPreferences,
+		"hide_restore_partition":                   &checkin.HideRestorePartition,
+		"perform_login_actions_in_background":      &checkin.PerformLoginActionsInBackground,
+		"display_status_to_user":                   &checkin.DisplayStatusToUser,
 	}
 
 	for key, ptr := range fields {
@@ -164,6 +165,22 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 		})
 	}
 	return diags
+}
+
+// ResourceJamfProComputerCheckinCreate is responsible for initializing the Jamf Pro computer check-in configuration in Terraform.
+// Since this resource is a configuration set and not a resource that is 'created' in the traditional sense,
+// this function will simply set the initial state in Terraform.
+func ResourceJamfProComputerCheckinCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	// Initially, perform a Read operation to sync the current state from Jamf Pro.
+	readDiags := ResourceJamfProComputerCheckinRead(ctx, d, meta)
+	if len(readDiags) > 0 {
+		return readDiags
+	}
+
+	// Set a constant ID to satisfy Terraform's requirement for a resource ID.
+	d.SetId("jamfpro_computer_checkin_singleton")
+
+	return nil
 }
 
 // ResourceJamfProComputerCheckinRead is responsible for reading the current state of the Jamf Pro computer check-in configuration.
