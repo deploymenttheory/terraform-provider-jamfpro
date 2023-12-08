@@ -20,7 +20,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerinventory"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/departments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/dockitems"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macosconfigurationprofiles"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/policies"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/printers"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/scripts"
@@ -130,9 +129,9 @@ func Provider() *schema.Provider {
 			"jamfpro_dock_items":                    dockitems.ResourceJamfProDockItems(),
 			"jamfpro_sites":                         sites.ResourceJamfProSites(),
 			"jamfpro_scripts":                       scripts.ResourceJamfProScripts(),
-			"jamfpro_macos_configuration_profiles":  macosconfigurationprofiles.ResourceJamfProMacOSConfigurationProfiles(),
-			"jamfpro_policies":                      policies.ResourceJamfProPolicies(),
-			"jamfpro_printers":                      printers.ResourceJamfProPrinters(),
+			//"jamfpro_macos_configuration_profiles":  macosconfigurationprofiles.ResourceJamfProMacOSConfigurationProfiles(),
+			"jamfpro_policies": policies.ResourceJamfProPolicies(),
+			"jamfpro_printers": printers.ResourceJamfProPrinters(),
 		},
 	}
 

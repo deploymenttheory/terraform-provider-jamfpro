@@ -2452,35 +2452,682 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 
 	// Update the Terraform state with the fetched data
 	// Set 'general' attributes
-	if err := d.Set("general", []interface{}{
-		map[string]interface{}{
-			"id":      policy.General.ID,
-			"name":    policy.General.Name,
-			"enabled": policy.General.Enabled,
-			"trigger": policy.General.Trigger,
-			// ... add other fields from policy.General
-		},
-	}); err != nil {
+	generalAttributes := map[string]interface{}{
+		"id":                            policy.General.ID,
+		"name":                          policy.General.Name,
+		"enabled":                       policy.General.Enabled,
+		"trigger":                       policy.General.Trigger,
+		"trigger_checkin":               policy.General.TriggerCheckin,
+		"trigger_enrollment_complete":   policy.General.TriggerEnrollmentComplete,
+		"trigger_login":                 policy.General.TriggerLogin,
+		"trigger_logout":                policy.General.TriggerLogout,
+		"trigger_network_state_changed": policy.General.TriggerNetworkStateChanged,
+		"trigger_startup":               policy.General.TriggerStartup,
+		"trigger_other":                 policy.General.TriggerOther,
+		"frequency":                     policy.General.Frequency,
+		"retry_event":                   policy.General.RetryEvent,
+		"retry_attempts":                policy.General.RetryAttempts,
+		"notify_on_each_failed_retry":   policy.General.NotifyOnEachFailedRetry,
+		"location_user_only":            policy.General.LocationUserOnly,
+		"target_drive":                  policy.General.TargetDrive,
+		"offline":                       policy.General.Offline,
+		"category": []interface{}{map[string]interface{}{
+			"id":   policy.General.Category.ID,
+			"name": policy.General.Category.Name,
+		}},
+		"date_time_limitations": []interface{}{map[string]interface{}{
+			"activation_date":       policy.General.DateTimeLimitations.ActivationDate,
+			"activation_date_epoch": policy.General.DateTimeLimitations.ActivationDateEpoch,
+			"activation_date_utc":   policy.General.DateTimeLimitations.ActivationDateUTC,
+			"expiration_date":       policy.General.DateTimeLimitations.ExpirationDate,
+			"expiration_date_epoch": policy.General.DateTimeLimitations.ExpirationDateEpoch,
+			"expiration_date_utc":   policy.General.DateTimeLimitations.ExpirationDateUTC,
+			"no_execute_on":         policy.General.DateTimeLimitations.NoExecuteOn,
+			"no_execute_start":      policy.General.DateTimeLimitations.NoExecuteStart,
+			"no_execute_end":        policy.General.DateTimeLimitations.NoExecuteEnd,
+		}},
+		"network_limitations": []interface{}{map[string]interface{}{
+			"minimum_network_connection": policy.General.NetworkLimitations.MinimumNetworkConnection,
+			"any_ip_address":             policy.General.NetworkLimitations.AnyIPAddress,
+		}},
+		"override_default_settings": []interface{}{map[string]interface{}{
+			"target_drive":       policy.General.OverrideDefaultSettings.TargetDrive,
+			"distribution_point": policy.General.OverrideDefaultSettings.DistributionPoint,
+			"force_afp_smb":      policy.General.OverrideDefaultSettings.ForceAfpSmb,
+			"sus":                policy.General.OverrideDefaultSettings.SUS,
+		}},
+		"network_requirements": policy.General.NetworkRequirements,
+		"site": []interface{}{map[string]interface{}{
+			"id":   policy.General.Site.ID,
+			"name": policy.General.Site.Name,
+		}},
+	}
+
+	if err := d.Set("general", []interface{}{generalAttributes}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	// Set 'scope' attributes
-	scope := make(map[string]interface{})
-	scope["all_computers"] = policy.Scope.AllComputers
-	// ... add other fields from policy.Scope
-	if err := d.Set("scope", []interface{}{scope}); err != nil {
+	scopeAttributes := map[string]interface{}{
+		"all_computers": policy.Scope.AllComputers,
+		"all_jss_users": policy.Scope.AllJSSUsers,
+		"computers": func() []interface{} {
+			computersInterfaces := make([]interface{}, len(policy.Scope.Computers))
+			for i, computer := range policy.Scope.Computers {
+				computersInterfaces[i] = map[string]interface{}{
+					"id":   computer.ID,
+					"name": computer.Name,
+					"udid": computer.UDID,
+				}
+			}
+			return computersInterfaces
+		}(),
+		"computer_groups": func() []interface{} {
+			groupInterfaces := make([]interface{}, len(policy.Scope.ComputerGroups))
+			for i, group := range policy.Scope.ComputerGroups {
+				groupInterfaces[i] = map[string]interface{}{
+					"id":   group.ID,
+					"name": group.Name,
+				}
+			}
+			return groupInterfaces
+		}(),
+		"jss_users": func() []interface{} {
+			userInterfaces := make([]interface{}, len(policy.Scope.JSSUsers))
+			for i, user := range policy.Scope.JSSUsers {
+				userInterfaces[i] = map[string]interface{}{
+					"id":   user.ID,
+					"name": user.Name,
+				}
+			}
+			return userInterfaces
+		}(),
+		"jss_user_groups": func() []interface{} {
+			userGroupInterfaces := make([]interface{}, len(policy.Scope.JSSUserGroups))
+			for i, group := range policy.Scope.JSSUserGroups {
+				userGroupInterfaces[i] = map[string]interface{}{
+					"id":   group.ID,
+					"name": group.Name,
+				}
+			}
+			return userGroupInterfaces
+		}(),
+		"buildings": func() []interface{} {
+			buildingInterfaces := make([]interface{}, len(policy.Scope.Buildings))
+			for i, building := range policy.Scope.Buildings {
+				buildingInterfaces[i] = map[string]interface{}{
+					"id":   building.ID,
+					"name": building.Name,
+				}
+			}
+			return buildingInterfaces
+		}(),
+		"departments": func() []interface{} {
+			departmentInterfaces := make([]interface{}, len(policy.Scope.Departments))
+			for i, department := range policy.Scope.Departments {
+				departmentInterfaces[i] = map[string]interface{}{
+					"id":   department.ID,
+					"name": department.Name,
+				}
+			}
+			return departmentInterfaces
+		}(),
+		"limitations": func() []interface{} {
+			limitationInterfaces := make([]interface{}, 0)
+			limitationData := map[string]interface{}{}
+
+			// Network Segments
+			networkSegmentInterfaces := make([]interface{}, len(policy.Scope.Limitations.NetworkSegments))
+			for i, segment := range policy.Scope.Limitations.NetworkSegments {
+				networkSegmentInterfaces[i] = map[string]interface{}{
+					"id":   segment.ID,
+					"name": segment.Name,
+					"uid":  segment.UID,
+				}
+			}
+			limitationData["network_segments"] = networkSegmentInterfaces
+
+			// Users
+			userInterfaces := make([]interface{}, len(policy.Scope.Limitations.Users))
+			for i, user := range policy.Scope.Limitations.Users {
+				userInterfaces[i] = map[string]interface{}{
+					"id":   user.ID,
+					"name": user.Name,
+				}
+			}
+			limitationData["users"] = userInterfaces
+
+			// User Groups
+			userGroupInterfaces := make([]interface{}, len(policy.Scope.Limitations.UserGroups))
+			for i, group := range policy.Scope.Limitations.UserGroups {
+				userGroupInterfaces[i] = map[string]interface{}{
+					"id":   group.ID,
+					"name": group.Name,
+				}
+			}
+			limitationData["user_groups"] = userGroupInterfaces
+
+			// iBeacons
+			iBeaconInterfaces := make([]interface{}, len(policy.Scope.Limitations.IBeacons))
+			for i, beacon := range policy.Scope.Limitations.IBeacons {
+				iBeaconInterfaces[i] = map[string]interface{}{
+					"id":   beacon.ID,
+					"name": beacon.Name,
+				}
+			}
+			limitationData["ibeacons"] = iBeaconInterfaces
+
+			limitationInterfaces = append(limitationInterfaces, limitationData)
+			return limitationInterfaces
+		}(),
+		"exclusions": func() []interface{} {
+			exclusionsInterfaces := make([]interface{}, 0)
+			exclusionsData := map[string]interface{}{}
+
+			// Computers
+			computerInterfaces := make([]interface{}, len(policy.Scope.Exclusions.Computers))
+			for i, computer := range policy.Scope.Exclusions.Computers {
+				computerInterfaces[i] = map[string]interface{}{
+					"id":   computer.ID,
+					"name": computer.Name,
+					"udid": computer.UDID,
+				}
+			}
+			exclusionsData["computers"] = computerInterfaces
+
+			// Computer Groups
+			computerGroupInterfaces := make([]interface{}, len(policy.Scope.Exclusions.ComputerGroups))
+			for i, group := range policy.Scope.Exclusions.ComputerGroups {
+				computerGroupInterfaces[i] = map[string]interface{}{
+					"id":   group.ID,
+					"name": group.Name,
+				}
+			}
+			exclusionsData["computer_groups"] = computerGroupInterfaces
+
+			// Users
+			userInterfaces := make([]interface{}, len(policy.Scope.Exclusions.Users))
+			for i, user := range policy.Scope.Exclusions.Users {
+				userInterfaces[i] = map[string]interface{}{
+					"id":   user.ID,
+					"name": user.Name,
+				}
+			}
+			exclusionsData["users"] = userInterfaces
+
+			// User Groups
+			userGroupInterfaces := make([]interface{}, len(policy.Scope.Exclusions.UserGroups))
+			for i, group := range policy.Scope.Exclusions.UserGroups {
+				userGroupInterfaces[i] = map[string]interface{}{
+					"id":   group.ID,
+					"name": group.Name,
+				}
+			}
+			exclusionsData["user_groups"] = userGroupInterfaces
+
+			// Buildings
+			buildingInterfaces := make([]interface{}, len(policy.Scope.Exclusions.Buildings))
+			for i, building := range policy.Scope.Exclusions.Buildings {
+				buildingInterfaces[i] = map[string]interface{}{
+					"id":   building.ID,
+					"name": building.Name,
+				}
+			}
+			exclusionsData["buildings"] = buildingInterfaces
+
+			// Departments
+			departmentInterfaces := make([]interface{}, len(policy.Scope.Exclusions.Departments))
+			for i, department := range policy.Scope.Exclusions.Departments {
+				departmentInterfaces[i] = map[string]interface{}{
+					"id":   department.ID,
+					"name": department.Name,
+				}
+			}
+			exclusionsData["departments"] = departmentInterfaces
+
+			// Network Segments
+			networkSegmentInterfaces := make([]interface{}, len(policy.Scope.Exclusions.NetworkSegments))
+			for i, segment := range policy.Scope.Exclusions.NetworkSegments {
+				networkSegmentInterfaces[i] = map[string]interface{}{
+					"id":   segment.ID,
+					"name": segment.Name,
+					"uid":  segment.UID,
+				}
+			}
+			exclusionsData["network_segments"] = networkSegmentInterfaces
+
+			// JSS Users
+			jssUserInterfaces := make([]interface{}, len(policy.Scope.Exclusions.JSSUsers))
+			for i, user := range policy.Scope.Exclusions.JSSUsers {
+				jssUserInterfaces[i] = map[string]interface{}{
+					"id":   user.ID,
+					"name": user.Name,
+				}
+			}
+			exclusionsData["jss_users"] = jssUserInterfaces
+
+			// JSS User Groups
+			jssUserGroupInterfaces := make([]interface{}, len(policy.Scope.Exclusions.JSSUserGroups))
+			for i, group := range policy.Scope.Exclusions.JSSUserGroups {
+				jssUserGroupInterfaces[i] = map[string]interface{}{
+					"id":   group.ID,
+					"name": group.Name,
+				}
+			}
+			exclusionsData["jss_user_groups"] = jssUserGroupInterfaces
+
+			// IBeacons
+			iBeaconInterfaces := make([]interface{}, len(policy.Scope.Exclusions.IBeacons))
+			for i, beacon := range policy.Scope.Exclusions.IBeacons {
+				iBeaconInterfaces[i] = map[string]interface{}{
+					"id":   beacon.ID,
+					"name": beacon.Name,
+				}
+			}
+			exclusionsData["ibeacons"] = iBeaconInterfaces
+
+			exclusionsInterfaces = append(exclusionsInterfaces, exclusionsData)
+			return exclusionsInterfaces
+		}(),
+	}
+
+	if err := d.Set("scope", []interface{}{scopeAttributes}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	// Set 'self_service' attributes
-	selfService := make(map[string]interface{})
-	selfService["use_for_self_service"] = policy.SelfService.UseForSelfService
-	// ... add other fields from policy.SelfService
-	if err := d.Set("self_service", []interface{}{selfService}); err != nil {
+	selfServiceAttributes := map[string]interface{}{
+		"use_for_self_service":            policy.SelfService.UseForSelfService,
+		"self_service_display_name":       policy.SelfService.SelfServiceDisplayName,
+		"install_button_text":             policy.SelfService.InstallButtonText,
+		"re_install_button_text":          policy.SelfService.ReinstallButtonText,
+		"self_service_description":        policy.SelfService.SelfServiceDescription,
+		"force_users_to_view_description": policy.SelfService.ForceUsersToViewDescription,
+		"self_service_icon": []interface{}{map[string]interface{}{
+			"id":       policy.SelfService.SelfServiceIcon.ID,
+			"filename": policy.SelfService.SelfServiceIcon.Filename,
+			"uri":      policy.SelfService.SelfServiceIcon.URI,
+		}},
+		"feature_on_main_page": policy.SelfService.FeatureOnMainPage,
+		"self_service_categories": func() []interface{} {
+			categories := make([]interface{}, len(policy.SelfService.SelfServiceCategories))
+			for i, cat := range policy.SelfService.SelfServiceCategories {
+				categories[i] = map[string]interface{}{
+					"id":         cat.Category.ID,
+					"name":       cat.Category.Name,
+					"display_in": cat.Category.DisplayIn,
+					"feature_in": cat.Category.FeatureIn,
+				}
+			}
+			return categories
+		}(),
+	}
+
+	if err := d.Set("self_service", []interface{}{selfServiceAttributes}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Repeat this pattern for other sections like 'package_configuration', 'scripts', etc.
+	// PackageConfiguration section of the policy
+	if v, ok := d.GetOk("package_configuration"); ok {
+		packageConfigData := v.([]interface{})[0].(map[string]interface{})
+		var packageItems []jamfpro.PolicyPackage
+
+		// Iterate over the packages
+		if pkgs, ok := packageConfigData["packages"].([]interface{}); ok {
+			for _, pkg := range pkgs {
+				pkgMap := pkg.(map[string]interface{})
+				packageItem := jamfpro.PolicyPackage{
+					ID:                pkgMap["id"].(int),
+					Name:              pkgMap["name"].(string),
+					Action:            pkgMap["action"].(string),
+					FillUserTemplate:  pkgMap["fut"].(bool),
+					FillExistingUsers: pkgMap["feu"].(bool),
+					UpdateAutorun:     pkgMap["update_autorun"].(bool),
+				}
+				packageItems = append(packageItems, packageItem)
+			}
+		}
+
+		// Set the PackageConfiguration in the policy
+		policy.PackageConfiguration = jamfpro.PolicyPackageConfiguration{
+			Packages: packageItems,
+		}
+	}
+
+	// set scripts attributes
+	if v, ok := d.GetOk("scripts"); ok {
+		scriptsData := v.([]interface{})[0].(map[string]interface{})
+		var scriptItems []jamfpro.PolicyScriptItem
+
+		// Iterate over the scripts
+		if scripts, ok := scriptsData["script"].([]interface{}); ok {
+			for _, script := range scripts {
+				scriptMap := script.(map[string]interface{})
+				scriptItem := jamfpro.PolicyScriptItem{
+					ID:          scriptMap["id"].(string),
+					Name:        scriptMap["name"].(string),
+					Priority:    scriptMap["priority"].(string),
+					Parameter4:  scriptMap["parameter4"].(string),
+					Parameter5:  scriptMap["parameter5"].(string),
+					Parameter6:  scriptMap["parameter6"].(string),
+					Parameter7:  scriptMap["parameter7"].(string),
+					Parameter8:  scriptMap["parameter8"].(string),
+					Parameter9:  scriptMap["parameter9"].(string),
+					Parameter10: scriptMap["parameter10"].(string),
+					Parameter11: scriptMap["parameter11"].(string),
+				}
+				scriptItems = append(scriptItems, scriptItem)
+			}
+		}
+
+		// Set the Scripts in the policy
+		policy.Scripts = jamfpro.PolicyScripts{
+			Size:   scriptsData["size"].(int),
+			Script: scriptItems,
+		}
+	}
+
+	// Set printer attributes
+	if v, ok := d.GetOk("printers"); ok {
+		printersData := v.([]interface{})[0].(map[string]interface{})
+		var printerItems []jamfpro.PolicyPrinterItem
+
+		if printers, ok := printersData["printer"].([]interface{}); ok {
+			for _, printer := range printers {
+				printerMap := printer.(map[string]interface{})
+				printerItem := jamfpro.PolicyPrinterItem{
+					ID:          printerMap["id"].(int),
+					Name:        printerMap["name"].(string),
+					Action:      printerMap["action"].(string),
+					MakeDefault: printerMap["make_default"].(bool),
+				}
+				printerItems = append(printerItems, printerItem)
+			}
+		}
+
+		policy.Printers = jamfpro.PolicyPrinters{
+			Size:                 printersData["size"].(int),
+			LeaveExistingDefault: printersData["leave_existing_default"].(bool),
+			Printer:              printerItems,
+		}
+	}
+
+	// Set Dock Items attributes
+	if v, ok := d.GetOk("dock_items"); ok {
+		dockItemsData := v.([]interface{})[0].(map[string]interface{})
+		var dockItems []jamfpro.PolicyDockItem
+
+		if docks, ok := dockItemsData["dock_item"].([]interface{}); ok {
+			for _, dock := range docks {
+				dockMap := dock.(map[string]interface{})
+				dockItem := jamfpro.PolicyDockItem{
+					ID:     dockMap["id"].(int),
+					Name:   dockMap["name"].(string),
+					Action: dockMap["action"].(string),
+				}
+				dockItems = append(dockItems, dockItem)
+			}
+		}
+
+		policy.DockItems = jamfpro.PolicyDockItems{
+			Size:     dockItemsData["size"].(int),
+			DockItem: dockItems,
+		}
+	}
+
+	// Set Account Maintenance attributes
+	if v, ok := d.GetOk("account_maintenance"); ok {
+		accountMaintenanceData := v.([]interface{})[0].(map[string]interface{})
+		var accounts []jamfpro.PolicyAccount
+
+		if accs, ok := accountMaintenanceData["accounts"].([]interface{}); ok {
+			for _, acc := range accs {
+				accMap := acc.(map[string]interface{})
+				account := jamfpro.PolicyAccount{
+					Action:                 accMap["action"].(string),
+					Username:               accMap["username"].(string),
+					Realname:               accMap["realname"].(string),
+					Password:               accMap["password"].(string),
+					ArchiveHomeDirectory:   accMap["archive_home_directory"].(bool),
+					ArchiveHomeDirectoryTo: accMap["archive_home_directory_to"].(string),
+					Home:                   accMap["home"].(string),
+					Picture:                accMap["picture"].(string),
+					Admin:                  accMap["admin"].(bool),
+					FilevaultEnabled:       accMap["filevault_enabled"].(bool),
+				}
+				accounts = append(accounts, account)
+			}
+		}
+
+		policy.AccountMaintenance = jamfpro.PolicyAccountMaintenance{
+			Accounts: accounts,
+		}
+	}
+
+	// Set Directory Bindings attributes
+	if v, ok := d.GetOk("directory_bindings"); ok {
+		directoryBindingsData := v.([]interface{})[0].(map[string]interface{})
+		var directoryBindings []jamfpro.PolicyDirectoryBinding
+
+		if bindings, ok := directoryBindingsData["binding"].([]interface{}); ok {
+			for _, binding := range bindings {
+				bindingMap := binding.(map[string]interface{})
+				directoryBinding := jamfpro.PolicyDirectoryBinding{
+					ID:   bindingMap["id"].(int),
+					Name: bindingMap["name"].(string),
+				}
+				directoryBindings = append(directoryBindings, directoryBinding)
+			}
+		}
+
+		policy.AccountMaintenance.DirectoryBindings = directoryBindings
+	}
+
+	// Set Management Account attributes
+	if v, ok := d.GetOk("management_account"); ok {
+		managementAccountData := v.([]interface{})[0].(map[string]interface{})
+		var managementAccount jamfpro.PolicyManagementAccount
+
+		managementAccount = jamfpro.PolicyManagementAccount{
+			Action:                managementAccountData["action"].(string),
+			ManagedPassword:       managementAccountData["managed_password"].(string),
+			ManagedPasswordLength: managementAccountData["managed_password_length"].(int),
+		}
+
+		policy.AccountMaintenance.ManagementAccount = managementAccount
+	}
+
+	// Set Open Firmware/EFI Password attributes
+	if v, ok := d.GetOk("open_firmware_efi_password"); ok {
+		openFirmwareEfiPasswordData := v.([]interface{})[0].(map[string]interface{})
+		var openFirmwareEfiPassword jamfpro.PolicyOpenFirmwareEfiPassword
+
+		openFirmwareEfiPassword = jamfpro.PolicyOpenFirmwareEfiPassword{
+			OfMode:     openFirmwareEfiPasswordData["of_mode"].(string),
+			OfPassword: openFirmwareEfiPasswordData["of_password"].(string),
+		}
+
+		policy.AccountMaintenance.OpenFirmwareEfiPassword = openFirmwareEfiPassword
+	}
+
+	// Set Maintenance attributes
+	if v, ok := d.GetOk("maintenance"); ok {
+		maintenanceData := v.([]interface{})[0].(map[string]interface{})
+		policy.Maintenance = jamfpro.PolicyMaintenance{
+			Recon:                    maintenanceData["recon"].(bool),
+			ResetName:                maintenanceData["reset_name"].(bool),
+			InstallAllCachedPackages: maintenanceData["install_all_cached_packages"].(bool),
+			Heal:                     maintenanceData["heal"].(bool),
+			Prebindings:              maintenanceData["prebindings"].(bool),
+			Permissions:              maintenanceData["permissions"].(bool),
+			Byhost:                   maintenanceData["byhost"].(bool),
+			SystemCache:              maintenanceData["system_cache"].(bool),
+			UserCache:                maintenanceData["user_cache"].(bool),
+			Verify:                   maintenanceData["verify"].(bool),
+		}
+	}
+
+	// set Files and Processes attributes
+	if v, ok := d.GetOk("files_processes"); ok {
+		filesProcessesData := v.([]interface{})[0].(map[string]interface{})
+		policy.FilesProcesses = jamfpro.PolicyFilesProcesses{
+			SearchByPath:         filesProcessesData["search_by_path"].(string),
+			DeleteFile:           filesProcessesData["delete_file"].(bool),
+			LocateFile:           filesProcessesData["locate_file"].(string),
+			UpdateLocateDatabase: filesProcessesData["update_locate_database"].(bool),
+			SpotlightSearch:      filesProcessesData["spotlight_search"].(string),
+			SearchForProcess:     filesProcessesData["search_for_process"].(string),
+			KillProcess:          filesProcessesData["kill_process"].(bool),
+			RunCommand:           filesProcessesData["run_command"].(string),
+		}
+	}
+
+	// Set User Interaction attributes
+	if v, ok := d.GetOk("user_interaction"); ok {
+		userInteractionData := v.([]interface{})[0].(map[string]interface{})
+		policy.UserInteraction = jamfpro.PolicyUserInteraction{
+			MessageStart:          userInteractionData["message_start"].(string),
+			AllowUserToDefer:      userInteractionData["allow_user_to_defer"].(bool),
+			AllowDeferralUntilUtc: userInteractionData["allow_deferral_until_utc"].(string),
+			AllowDeferralMinutes:  userInteractionData["allow_deferral_minutes"].(int),
+			MessageFinish:         userInteractionData["message_finish"].(string),
+		}
+	}
+
+	// Set Disk Encryption attributes
+	if v, ok := d.GetOk("disk_encryption"); ok {
+		diskEncryptionData := v.([]interface{})[0].(map[string]interface{})
+		policy.DiskEncryption = jamfpro.PolicyDiskEncryption{
+			Action:                                 diskEncryptionData["action"].(string),
+			DiskEncryptionConfigurationID:          diskEncryptionData["disk_encryption_configuration_id"].(int),
+			AuthRestart:                            diskEncryptionData["auth_restart"].(bool),
+			RemediateKeyType:                       diskEncryptionData["remediate_key_type"].(string),
+			RemediateDiskEncryptionConfigurationID: diskEncryptionData["remediate_disk_encryption_configuration_id"].(int),
+		}
+	}
+
+	return diags
+}
+
+// ResourceJamfProPoliciesUpdate is responsible for updating an existing Jamf Pro policy on the remote system.
+func ResourceJamfProPoliciesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
+
+	// Use the retry function for the update operation
+	var err error
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+		// Construct the updated jamf pro policy
+		policy, err := constructJamfProPolicy(d)
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the configuration policy for terraform update: %w", err))
+		}
+
+		// Convert the ID from the Terraform state into an integer to be used for the API request
+		policyID, convertErr := strconv.Atoi(d.Id())
+		if convertErr != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to parse policy ID: %v", convertErr))
+		}
+
+		// Directly call the API to update the policy
+		_, apiErr := conn.UpdatePolicyByID(policyID, policy)
+		if apiErr != nil {
+			// Handle the APIError
+			if apiError, ok := apiErr.(*http_client.APIError); ok {
+				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+			}
+			// If the update by ID fails, try updating by name
+			policyName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
+			_, apiErr = conn.UpdatePolicyByName(policyName, policy)
+			if apiErr != nil {
+				// Handle the APIError
+				if apiError, ok := apiErr.(*http_client.APIError); ok {
+					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+				}
+				return retry.RetryableError(apiErr)
+			}
+		}
+		return nil
+	})
+
+	// Handle error from the retry function
+	if err != nil {
+		// If there's an error while updating the resource, generate diagnostics using the helper function.
+		return generateTFDiagsFromHTTPError(err, d, "update")
+	}
+
+	// Use the retry function for the read operation to update the Terraform state
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		readDiags := ResourceJamfProPoliciesRead(ctx, d, meta)
+		if len(readDiags) > 0 {
+			return retry.RetryableError(fmt.Errorf("failed to update the Terraform state for the updated resource"))
+		}
+		return nil
+	})
+
+	// Handle error from the retry function
+	if err != nil {
+		// If there's an error while updating the Terraform state, generate diagnostics using the helper function.
+		return generateTFDiagsFromHTTPError(err, d, "update")
+	}
+
+	return diags
+}
+
+// ResourceJamfProPoliciesDelete is responsible for deleting a Jamf Pro policy.
+func ResourceJamfProPoliciesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
+
+	// Use the retry function for the DELETE operation
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
+		// Convert the ID from the Terraform state into an integer to be used for the API request
+		policyID, convertErr := strconv.Atoi(d.Id())
+		if convertErr != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to parse dock item ID: %v", convertErr))
+		}
+
+		// Directly call the API to DELETE the resource
+		apiErr := conn.DeletePolicyByID(policyID)
+		if apiErr != nil {
+			// If the DELETE by ID fails, try deleting by name
+			policyName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
+			apiErr = conn.DeletePolicyByName(policyName)
+			if apiErr != nil {
+				return retry.RetryableError(apiErr)
+			}
+		}
+		return nil
+	})
+
+	// Handle error from the retry function
+	if err != nil {
+		// If there's an error while deleting the resource, generate diagnostics using the helper function.
+		return generateTFDiagsFromHTTPError(err, d, "delete")
+	}
+
+	// Clear the ID from the Terraform state as the resource has been deleted
+	d.SetId("")
 
 	return diags
 }
