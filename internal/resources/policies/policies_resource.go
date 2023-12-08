@@ -3,7 +3,6 @@ package policies
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
@@ -477,6 +476,38 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									"network_segments": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"network_segment": {
+													Type:     schema.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"id": {
+																Type:        schema.TypeInt,
+																Optional:    true,
+																Description: "The unique identifier of the scoped network segment.",
+															},
+															"name": {
+																Type:        schema.TypeString,
+																Optional:    true,
+																Description: "Name of the scoped network segment.",
+															},
+															"uid": {
+																Type:        schema.TypeString,
+																Optional:    true,
+																Description: "UID of the scoped network segment.",
+															},
+														},
+													},
+												},
+											},
+										},
+									},
 									"users": {
 										Type:     schema.TypeList,
 										Optional: true,
@@ -524,38 +555,6 @@ func ResourceJamfProPolicies() *schema.Resource {
 																Type:        schema.TypeString,
 																Optional:    true,
 																Description: "Name of the scoped user group.",
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-									"network_segments": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"network_segment": {
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"id": {
-																Type:        schema.TypeInt,
-																Optional:    true,
-																Description: "The unique identifier of the scoped network segment.",
-															},
-															"name": {
-																Type:        schema.TypeString,
-																Optional:    true,
-																Description: "Name of the scoped network segment.",
-															},
-															"uid": {
-																Type:        schema.TypeString,
-																Optional:    true,
-																Description: "UID of the scoped network segment.",
 															},
 														},
 													},
@@ -630,6 +629,87 @@ func ResourceJamfProPolicies() *schema.Resource {
 											},
 										},
 									},
+									"computer_groups": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"computer_group": {
+													Type:     schema.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"id": {
+																Type:        schema.TypeInt,
+																Optional:    true,
+																Description: "The unique identifier of the computer group.",
+															},
+															"name": {
+																Type:        schema.TypeString,
+																Optional:    true,
+																Description: "Name of the computer group.",
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+									"jss_users": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"jss_user": {
+													Type:     schema.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"id": {
+																Type:        schema.TypeInt,
+																Optional:    true,
+																Description: "The unique identifier of the JSS user.",
+															},
+															"name": {
+																Type:        schema.TypeString,
+																Optional:    true,
+																Description: "Name of the JSS user.",
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+									"jss_user_groups": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"jss_user_group": {
+													Type:     schema.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"id": {
+																Type:        schema.TypeInt,
+																Optional:    true,
+																Description: "The unique identifier of the JSS user group.",
+															},
+															"name": {
+																Type:        schema.TypeString,
+																Optional:    true,
+																Description: "Name of the JSS user group.",
+															},
+														},
+													},
+												},
+											},
+										},
+									},
 									"buildings": {
 										Type:     schema.TypeList,
 										Optional: true,
@@ -684,12 +764,12 @@ func ResourceJamfProPolicies() *schema.Resource {
 											},
 										},
 									},
-									"computer_groups": {
+									"network_segments": {
 										Type:     schema.TypeList,
 										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
-												"computer_group": {
+												"network_segment": {
 													Type:     schema.TypeList,
 													Optional: true,
 													MaxItems: 1,
@@ -698,12 +778,17 @@ func ResourceJamfProPolicies() *schema.Resource {
 															"id": {
 																Type:        schema.TypeInt,
 																Optional:    true,
-																Description: "The unique identifier of the computer group.",
+																Description: "The unique identifier of the network segment.",
+															},
+															"uid": {
+																Type:        schema.TypeString,
+																Optional:    true,
+																Description: "UID of the network segment.",
 															},
 															"name": {
 																Type:        schema.TypeString,
 																Optional:    true,
-																Description: "Name of the computer group.",
+																Description: "Name of the network segment.",
 															},
 														},
 													},
@@ -765,38 +850,6 @@ func ResourceJamfProPolicies() *schema.Resource {
 											},
 										},
 									},
-									"network_segments": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"network_segment": {
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"id": {
-																Type:        schema.TypeInt,
-																Optional:    true,
-																Description: "The unique identifier of the network segment.",
-															},
-															"uid": {
-																Type:        schema.TypeString,
-																Optional:    true,
-																Description: "UID of the network segment.",
-															},
-															"name": {
-																Type:        schema.TypeString,
-																Optional:    true,
-																Description: "Name of the network segment.",
-															},
-														},
-													},
-												},
-											},
-										},
-									},
 									"ibeacons": {
 										Type:     schema.TypeList,
 										Optional: true,
@@ -817,60 +870,6 @@ func ResourceJamfProPolicies() *schema.Resource {
 																Type:        schema.TypeString,
 																Optional:    true,
 																Description: "Name of the iBeacon.",
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-									"jss_users": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"jss_user": {
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"id": {
-																Type:        schema.TypeInt,
-																Optional:    true,
-																Description: "The unique identifier of the JSS user.",
-															},
-															"name": {
-																Type:        schema.TypeString,
-																Optional:    true,
-																Description: "Name of the JSS user.",
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-									"jss_user_groups": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"jss_user_group": {
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"id": {
-																Type:        schema.TypeInt,
-																Optional:    true,
-																Description: "The unique identifier of the JSS user group.",
-															},
-															"name": {
-																Type:        schema.TypeString,
-																Optional:    true,
-																Description: "Name of the JSS user group.",
 															},
 														},
 													},
@@ -1573,51 +1572,428 @@ func ResourceJamfProPolicies() *schema.Resource {
 
 // constructJamfProPolicy constructs a ResponsePolicy object from the provided schema data.
 func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, error) {
-	policy := &ResponsePolicy{
-		General:              PolicyGeneral{},
-		Scope:                PolicyScope{},
-		SelfService:          PolicySelfService{},
-		PackageConfiguration: PolicyPackageConfiguration{},
-		// ... other policy sections ...
+	// Initialize a new ResponsePolicy struct with all its sub-components.
+	policy := &jamfpro.ResponsePolicy{
+		General:              jamfpro.PolicyGeneral{},
+		Scope:                jamfpro.PolicyScope{},
+		SelfService:          jamfpro.PolicySelfService{},
+		PackageConfiguration: jamfpro.PolicyPackageConfiguration{},
+		Scripts:              jamfpro.PolicyScripts{},
+		Printers:             jamfpro.PolicyPrinters{},
+		DockItems:            jamfpro.PolicyDockItems{},
+		AccountMaintenance:   jamfpro.PolicyAccountMaintenance{},
+		Maintenance:          jamfpro.PolicyMaintenance{},
+		FilesProcesses:       jamfpro.PolicyFilesProcesses{},
+		UserInteraction:      jamfpro.PolicyUserInteraction{},
+		DiskEncryption:       jamfpro.PolicyDiskEncryption{},
+		Reboot:               jamfpro.PolicyReboot{},
 	}
 
-	// Mapping General fields
-	generalFields := map[string]interface{}{
-		"general.0.id":      &policy.General.ID,
-		"general.0.name":    &policy.General.Name,
-		"general.0.enabled": &policy.General.Enabled,
-		// ... other general fields ...
+	// Construct the General section
+	if v, ok := d.GetOk("general"); ok {
+		generalData := v.([]interface{})[0].(map[string]interface{})
+		policy.General = jamfpro.PolicyGeneral{
+			ID:                         generalData["id"].(int),
+			Name:                       generalData["name"].(string),
+			Enabled:                    generalData["enabled"].(bool),
+			Trigger:                    generalData["trigger"].(string),
+			TriggerCheckin:             generalData["trigger_checkin"].(bool),
+			TriggerEnrollmentComplete:  generalData["trigger_enrollment_complete"].(bool),
+			TriggerLogin:               generalData["trigger_login"].(bool),
+			TriggerLogout:              generalData["trigger_logout"].(bool),
+			TriggerNetworkStateChanged: generalData["trigger_network_state_changed"].(bool),
+			TriggerStartup:             generalData["trigger_startup"].(bool),
+			TriggerOther:               generalData["trigger_other"].(string),
+			Frequency:                  generalData["frequency"].(string),
+			RetryEvent:                 generalData["retry_event"].(string),
+			RetryAttempts:              generalData["retry_attempts"].(int),
+			NotifyOnEachFailedRetry:    generalData["notify_on_each_failed_retry"].(bool),
+			LocationUserOnly:           generalData["location_user_only"].(bool),
+			TargetDrive:                generalData["target_drive"].(string),
+			Offline:                    generalData["offline"].(bool),
+			Category: func() jamfpro.PolicyCategory {
+				if catData, ok := generalData["category"].([]interface{}); ok && len(catData) > 0 {
+					catMap := catData[0].(map[string]interface{})
+					return jamfpro.PolicyCategory{
+						ID:   catMap["id"].(string),
+						Name: catMap["name"].(string),
+					}
+				}
+				return jamfpro.PolicyCategory{}
+			}(),
+			// DateTimeLimitations field
+			DateTimeLimitations: func() jamfpro.PolicyDateTimeLimitations {
+				if dtData, ok := generalData["date_time_limitations"].([]interface{}); ok && len(dtData) > 0 {
+					dateTimeMap := dtData[0].(map[string]interface{})
+					dateTimeLimitations := jamfpro.PolicyDateTimeLimitations{
+						ActivationDate:      dateTimeMap["activation_date"].(string),
+						ActivationDateEpoch: dateTimeMap["activation_date_epoch"].(int64),
+						ActivationDateUTC:   dateTimeMap["activation_date_utc"].(string),
+						ExpirationDate:      dateTimeMap["expiration_date"].(string),
+						ExpirationDateEpoch: dateTimeMap["expiration_date_epoch"].(int64),
+						ExpirationDateUTC:   dateTimeMap["expiration_date_utc"].(string),
+					}
+
+					// Handling NoExecuteOn field
+					if noExecOn, ok := dateTimeMap["no_execute_on"].([]interface{}); ok && len(noExecOn) > 0 {
+						// Assuming no_execute_on is a single string value
+						policy.General.DateTimeLimitations.NoExecuteOn = jamfpro.PolicyNoExecuteOn{
+							Day: noExecOn[0].(string),
+						}
+					}
+
+					// Handling NoExecuteStart and NoExecuteEnd fields
+					if noExecStart, ok := dateTimeMap["no_execute_start"].(string); ok {
+						dateTimeLimitations.NoExecuteStart = noExecStart
+					}
+					if noExecEnd, ok := dateTimeMap["no_execute_end"].(string); ok {
+						dateTimeLimitations.NoExecuteEnd = noExecEnd
+					}
+
+					return dateTimeLimitations
+				}
+				return jamfpro.PolicyDateTimeLimitations{}
+			}(),
+			// NetworkLimitations field
+			NetworkLimitations: func() jamfpro.PolicyNetworkLimitations {
+				if networkLimitationsData, ok := generalData["network_limitations"].([]interface{}); ok && len(networkLimitationsData) > 0 {
+					netMap := networkLimitationsData[0].(map[string]interface{})
+					networkLimitations := jamfpro.PolicyNetworkLimitations{
+						MinimumNetworkConnection: netMap["minimum_network_connection"].(string),
+						AnyIPAddress:             netMap["any_ip_address"].(bool),
+					}
+
+					// Handling NetworkSegments field
+					if networkSegments, ok := netMap["network_segments"].(string); ok {
+						networkLimitations.NetworkSegments = networkSegments
+					}
+
+					return networkLimitations
+				}
+				return jamfpro.PolicyNetworkLimitations{}
+			}(),
+			// OverrideDefaultSettings field
+			OverrideDefaultSettings: func() jamfpro.PolicyOverrideSettings {
+				if overrideData, ok := generalData["override_default_settings"].([]interface{}); ok && len(overrideData) > 0 {
+					overrideMap := overrideData[0].(map[string]interface{})
+					overrideSettings := jamfpro.PolicyOverrideSettings{
+						TargetDrive:       overrideMap["target_drive"].(string),
+						DistributionPoint: overrideMap["distribution_point"].(string),
+						ForceAfpSmb:       overrideMap["force_afp_smb"].(bool),
+						SUS:               overrideMap["sus"].(string),
+						NetbootServer:     overrideMap["netboot_server"].(string),
+					}
+
+					return overrideSettings
+				}
+				return jamfpro.PolicyOverrideSettings{}
+			}(),
+			// NetworkRequirements field
+			NetworkRequirements: generalData["network_requirements"].(string),
+			// Site field
+			Site: func() jamfpro.PolicySite {
+				if siteData, ok := generalData["site"].([]interface{}); ok && len(siteData) > 0 {
+					siteMap := siteData[0].(map[string]interface{})
+					return jamfpro.PolicySite{
+						ID:   siteMap["id"].(int),
+						Name: siteMap["name"].(string),
+					}
+				}
+				return jamfpro.PolicySite{}
+			}(),
+		}
 	}
 
-	for key, ptr := range generalFields {
-		if v, ok := d.GetOk(key); ok {
-			switch ptr := ptr.(type) {
-			case *int:
-				*ptr = v.(int)
-			case *string:
-				*ptr = v.(string)
-			case *bool:
-				*ptr = v.(bool)
-			// ... handle other types as needed ...
-			default:
-				return nil, fmt.Errorf("unsupported data type for key '%s'", key)
+	// Construct the Scope section
+	if v, ok := d.GetOk("scope"); ok {
+		scopeData := v.([]interface{})[0].(map[string]interface{})
+		var computers []jamfpro.PolicyComputer
+		var computerGroups []jamfpro.PolicyComputerGroup
+		var buildings []jamfpro.PolicyBuilding
+		var departments []jamfpro.PolicyDepartment
+
+		// Construct Computers slice
+		if comps, ok := scopeData["computers"].([]interface{}); ok {
+			for _, comp := range comps {
+				compMap := comp.(map[string]interface{})
+				computers = append(computers, jamfpro.PolicyComputer{
+					ID:   compMap["id"].(int),
+					Name: compMap["name"].(string),
+					UDID: compMap["udid"].(string),
+				})
 			}
 		}
-	}
 
-	// ... similar mappings for Scope, SelfService, PackageConfiguration, etc. ...
+		// Construct ComputerGroups slice
+		if groups, ok := scopeData["computer_groups"].([]interface{}); ok {
+			for _, group := range groups {
+				groupMap := group.(map[string]interface{})
+				computerGroups = append(computerGroups, jamfpro.PolicyComputerGroup{
+					ID:   groupMap["id"].(int),
+					Name: groupMap["name"].(string),
+				})
+			}
+		}
 
-	// Example: Mapping Category in General
-	if categoryList, ok := d.GetOk("general.0.category"); ok && len(categoryList.([]interface{})) > 0 {
-		categoryMap := categoryList.([]interface{})[0].(map[string]interface{})
-		categoryID, _ := strconv.Atoi(categoryMap["id"].(string))
-		policy.General.Category = PolicyCategory{
-			ID:   categoryID,
-			Name: categoryMap["name"].(string),
+		// Construct Buildings slice
+		if bldgs, ok := scopeData["buildings"].([]interface{}); ok {
+			for _, bldg := range bldgs {
+				bldgMap := bldg.(map[string]interface{})
+				buildings = append(buildings, jamfpro.PolicyBuilding{
+					ID:   bldgMap["id"].(int),
+					Name: bldgMap["name"].(string),
+				})
+			}
+		}
+
+		// Construct Departments slice
+		if depts, ok := scopeData["departments"].([]interface{}); ok {
+			for _, dept := range depts {
+				deptMap := dept.(map[string]interface{})
+				departments = append(departments, jamfpro.PolicyDepartment{
+					ID:   deptMap["id"].(int),
+					Name: deptMap["name"].(string),
+				})
+			}
+		}
+
+		// Construct LimitToUsers field
+		var limitToUsers jamfpro.PolicyLimitToUsers
+		if luData, ok := scopeData["limit_to_users"].([]interface{}); ok && len(luData) > 0 {
+			luMap := luData[0].(map[string]interface{})
+			var userGroups []string
+			if uGroups, ok := luMap["user_groups"].([]interface{}); ok {
+				for _, uGroup := range uGroups {
+					userGroups = append(userGroups, uGroup.(string))
+				}
+			}
+			limitToUsers = jamfpro.PolicyLimitToUsers{UserGroups: userGroups}
+		}
+
+		// Construct Limitations field
+		var limitations jamfpro.PolicyLimitations
+		if limitationsData, ok := scopeData["limitations"].([]interface{}); ok && len(limitationsData) > 0 {
+			limitationsMap := limitationsData[0].(map[string]interface{})
+
+			// Construct Directory Service/Local Users slice
+			var users []jamfpro.PolicyUser
+			if directoryServicesUsersData, ok := limitationsMap["users"].([]interface{}); ok {
+				for _, user := range directoryServicesUsersData {
+					userMap := user.(map[string]interface{})
+					users = append(users, jamfpro.PolicyUser{
+						ID:   userMap["id"].(int),
+						Name: userMap["name"].(string),
+					})
+				}
+			}
+
+			// Construct Directory Service User Groups slice
+			var userGroups []jamfpro.PolicyUserGroup
+			if userGroupsData, ok := limitationsMap["user_groups"].([]interface{}); ok {
+				for _, group := range userGroupsData {
+					groupMap := group.(map[string]interface{})
+					userGroups = append(userGroups, jamfpro.PolicyUserGroup{
+						ID:   groupMap["id"].(int),
+						Name: groupMap["name"].(string),
+					})
+				}
+			}
+
+			// Construct NetworkSegments slice
+			var networkSegments []jamfpro.PolicyNetworkSegment
+			if netSegsData, ok := limitationsMap["network_segments"].([]interface{}); ok {
+				for _, seg := range netSegsData {
+					segMap := seg.(map[string]interface{})
+					networkSegments = append(networkSegments, jamfpro.PolicyNetworkSegment{
+						ID:   segMap["id"].(int),
+						Name: segMap["name"].(string),
+						UID:  segMap["uid"].(string),
+					})
+				}
+			}
+
+			// Construct iBeacons slice
+			var iBeacons []jamfpro.PolicyIBeacon
+			if beaconsData, ok := limitationsMap["ibeacons"].([]interface{}); ok {
+				for _, beacon := range beaconsData {
+					beaconMap := beacon.(map[string]interface{})
+					iBeacons = append(iBeacons, jamfpro.PolicyIBeacon{
+						ID:   beaconMap["id"].(int),
+						Name: beaconMap["name"].(string),
+					})
+				}
+			}
+
+			// Assign constructed slices to limitations struct
+			limitations = jamfpro.PolicyLimitations{
+				Users:           users,
+				UserGroups:      userGroups,
+				NetworkSegments: networkSegments,
+				IBeacons:        iBeacons,
+			}
+		}
+
+		// Assign Limitations to policy's Scope
+		policy.Scope.Limitations = limitations
+
+		// Construct Exclusions field
+		var exclusions jamfpro.PolicyExclusions
+		if exclusionsData, ok := scopeData["exclusions"].([]interface{}); ok && len(exclusionsData) > 0 {
+			exclusionsMap := exclusionsData[0].(map[string]interface{})
+
+			// Construct exclusion Computers slice
+			var exclusionComputers []jamfpro.PolicyComputer
+			if comps, ok := exclusionsMap["computers"].([]interface{}); ok {
+				for _, comp := range comps {
+					compMap := comp.(map[string]interface{})
+					exclusionComputers = append(exclusionComputers, jamfpro.PolicyComputer{
+						ID:   compMap["id"].(int),
+						Name: compMap["name"].(string),
+						UDID: compMap["udid"].(string),
+					})
+				}
+			}
+
+			// Construct exclusion ComputerGroups slice
+			var exclusionComputerGroups []jamfpro.PolicyComputerGroup
+			if groups, ok := exclusionsMap["computer_groups"].([]interface{}); ok {
+				for _, group := range groups {
+					groupMap := group.(map[string]interface{})
+					exclusionComputerGroups = append(exclusionComputerGroups, jamfpro.PolicyComputerGroup{
+						ID:   groupMap["id"].(int),
+						Name: groupMap["name"].(string),
+					})
+				}
+			}
+
+			// Construct exclusion JSSUsers slice
+			var exclusionJSSUsers []jamfpro.PolicyJSSUser
+			if jssUsers, ok := exclusionsMap["jss_users"].([]interface{}); ok {
+				for _, jssUser := range jssUsers {
+					jssUserMap := jssUser.(map[string]interface{})
+					exclusionJSSUsers = append(exclusionJSSUsers, jamfpro.PolicyJSSUser{
+						ID:   jssUserMap["id"].(int),
+						Name: jssUserMap["name"].(string),
+					})
+				}
+			}
+
+			// Construct exclusion JSSUserGroups slice
+			var exclusionJSSUserGroups []jamfpro.PolicyJSSUserGroup
+			if jssUserGroups, ok := exclusionsMap["jss_user_groups"].([]interface{}); ok {
+				for _, jssUserGroup := range jssUserGroups {
+					jssUserGroupMap := jssUserGroup.(map[string]interface{})
+					exclusionJSSUserGroups = append(exclusionJSSUserGroups, jamfpro.PolicyJSSUserGroup{
+						ID:   jssUserGroupMap["id"].(int),
+						Name: jssUserGroupMap["name"].(string),
+					})
+				}
+			}
+
+			// Construct exclusion Buildings slice
+			var exclusionBuildings []jamfpro.PolicyBuilding
+			if bldgs, ok := exclusionsMap["buildings"].([]interface{}); ok {
+				for _, bldg := range bldgs {
+					bldgMap := bldg.(map[string]interface{})
+					exclusionBuildings = append(exclusionBuildings, jamfpro.PolicyBuilding{
+						ID:   bldgMap["id"].(int),
+						Name: bldgMap["name"].(string),
+					})
+				}
+			}
+
+			// Construct exclusion Departments slice
+			var exclusionDepartments []jamfpro.PolicyDepartment
+			if depts, ok := exclusionsMap["departments"].([]interface{}); ok {
+				for _, dept := range depts {
+					deptMap := dept.(map[string]interface{})
+					exclusionDepartments = append(exclusionDepartments, jamfpro.PolicyDepartment{
+						ID:   deptMap["id"].(int),
+						Name: deptMap["name"].(string),
+					})
+				}
+			}
+
+			// Construct exclusion Users slice
+			var exclusionUsers []jamfpro.PolicyUser
+			if users, ok := exclusionsMap["users"].([]interface{}); ok {
+				for _, user := range users {
+					userMap := user.(map[string]interface{})
+					exclusionUsers = append(exclusionUsers, jamfpro.PolicyUser{
+						ID:   userMap["id"].(int),
+						Name: userMap["name"].(string),
+					})
+				}
+			}
+
+			// Construct exclusion UserGroups slice
+			var exclusionUserGroups []jamfpro.PolicyUserGroup
+			if userGroups, ok := exclusionsMap["user_groups"].([]interface{}); ok {
+				for _, group := range userGroups {
+					groupMap := group.(map[string]interface{})
+					exclusionUserGroups = append(exclusionUserGroups, jamfpro.PolicyUserGroup{
+						ID:   groupMap["id"].(int),
+						Name: groupMap["name"].(string),
+					})
+				}
+			}
+
+			// Construct exclusion NetworkSegments slice
+			var exclusionNetworkSegments []jamfpro.PolicyNetworkSegment
+			if netSegments, ok := exclusionsMap["network_segments"].([]interface{}); ok {
+				for _, segment := range netSegments {
+					segmentMap := segment.(map[string]interface{})
+					exclusionNetworkSegments = append(exclusionNetworkSegments, jamfpro.PolicyNetworkSegment{
+						ID:   segmentMap["id"].(int),
+						Name: segmentMap["name"].(string),
+						UID:  segmentMap["uid"].(string),
+					})
+				}
+			}
+
+			// Construct exclusion iBeacons slice
+			var exclusionIBeacons []jamfpro.PolicyIBeacon
+			if beacons, ok := exclusionsMap["ibeacons"].([]interface{}); ok {
+				for _, beacon := range beacons {
+					beaconMap := beacon.(map[string]interface{})
+					exclusionIBeacons = append(exclusionIBeacons, jamfpro.PolicyIBeacon{
+						ID:   beaconMap["id"].(int),
+						Name: beaconMap["name"].(string),
+					})
+				}
+			}
+
+			// Assign constructed slices to exclusions struct
+			exclusions = jamfpro.PolicyExclusions{
+				Computers:       exclusionComputers,
+				ComputerGroups:  exclusionComputerGroups,
+				Buildings:       exclusionBuildings,
+				Departments:     exclusionDepartments,
+				Users:           exclusionUsers,
+				UserGroups:      exclusionUserGroups,
+				NetworkSegments: exclusionNetworkSegments,
+				IBeacons:        exclusionIBeacons,
+				JSSUsers:        exclusionJSSUsers,
+				JSSUserGroups:   exclusionJSSUserGroups,
+			}
+
+		}
+
+		// Assign Exclusions to policy's Scope
+		policy.Scope.Exclusions = exclusions
+
+		// Assign constructed fields to the policy's Scope
+		policy.Scope = jamfpro.PolicyScope{
+			AllComputers:   scopeData["all_computers"].(bool),
+			Computers:      computers,
+			ComputerGroups: computerGroups,
+			Buildings:      buildings,
+			Departments:    departments,
+			LimitToUsers:   limitToUsers,
+			Limitations:    limitations,
+			Exclusions:     exclusions,
 		}
 	}
-
-	// ... Repeat similar mappings for other nested structures ...
 
 	return policy, nil
 }
