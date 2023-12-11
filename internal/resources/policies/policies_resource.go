@@ -26,9 +26,9 @@ func ResourceJamfProPolicies() *schema.Resource {
 		UpdateContext: ResourceJamfProPoliciesUpdate,
 		DeleteContext: ResourceJamfProPoliciesDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(3 * time.Minute),
+			Create: schema.DefaultTimeout(1 * time.Minute),
 			Read:   schema.DefaultTimeout(1 * time.Minute),
-			Update: schema.DefaultTimeout(3 * time.Minute),
+			Update: schema.DefaultTimeout(1 * time.Minute),
 			Delete: schema.DefaultTimeout(1 * time.Minute),
 		},
 		Importer: &schema.ResourceImporter{
@@ -2397,6 +2397,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 
 			// Check if values are provided in Terraform and override defaults if necessary
 			if maData, ok := accountMaintenanceData["management_account"].(map[string]interface{}); ok {
+				// Override with provided values if available
 				defaultManagementAccount.Action = getStringFromMap(maData, "action")
 				defaultManagementAccount.ManagedPassword = getStringFromMap(maData, "managed_password")
 				defaultManagementAccount.ManagedPasswordLength = getIntFromMap(maData, "managed_password_length")
@@ -2415,6 +2416,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 
 			// Check if values are provided in Terraform and override defaults if necessary
 			if ofData, ok := accountMaintenanceData["open_firmware_efi_password"].(map[string]interface{}); ok {
+				// Override with provided values if available
 				defaultOpenFirmwareEfiPassword.OfMode = getStringFromMap(ofData, "of_mode")
 				defaultOpenFirmwareEfiPassword.OfPassword = getStringFromMap(ofData, "of_password")
 				defaultOpenFirmwareEfiPassword.OfPasswordSHA256 = getStringFromMap(ofData, "of_password_sha256")
