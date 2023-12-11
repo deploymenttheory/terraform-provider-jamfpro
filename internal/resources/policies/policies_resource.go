@@ -132,7 +132,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeInt,
 							Optional:    true,
 							Description: "Number of retry attempts for the jamf pro policy.",
-							Default:     "-1",
+							Default:     -1,
 						},
 						"notify_on_each_failed_retry": {
 							Type:        schema.TypeBool,
@@ -166,7 +166,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 									"id": {
 										Type:        schema.TypeString,
 										Optional:    true,
-										Default:     "-1",
+										Default:     -1,
 										Description: "The category ID assigned to the jamf pro policy. Defaults to '-1' aka not used.",
 									},
 									"name": {
@@ -301,7 +301,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 									"id": {
 										Type:        schema.TypeString,
 										Optional:    true,
-										Default:     "-1", // Set default value as string "-1"
+										Default:     -1, // Set default value as string "-1"
 										Description: "Jamf Pro Site ID. Value defaults to -1 aka not used.",
 									},
 									"name": {
@@ -1756,14 +1756,24 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			TargetDrive:                getStringFromMap(generalData, "target_drive"),
 			Offline:                    getBoolFromMap(generalData, "offline"),
 			Category: func() jamfpro.PolicyCategory {
+				defaultCategory := jamfpro.PolicyCategory{
+					ID:   "-1",                   // Default ID
+					Name: "No category assigned", // Default Name
+				}
 				if catData, ok := generalData["category"].([]interface{}); ok && len(catData) > 0 {
 					catMap := catData[0].(map[string]interface{})
-					return jamfpro.PolicyCategory{
-						ID:   getStringFromMap(catMap, "id"),
-						Name: getStringFromMap(catMap, "name"),
+
+					catID := getStringFromMap(catMap, "id")
+					catName := getStringFromMap(catMap, "name")
+					// Only override the default if a non-empty value is provided
+					if catID != "" {
+						defaultCategory.ID = catID
+					}
+					if catName != "" {
+						defaultCategory.Name = catName
 					}
 				}
-				return jamfpro.PolicyCategory{}
+				return defaultCategory
 			}(),
 			// DateTimeLimitations field
 			DateTimeLimitations: func() jamfpro.PolicyDateTimeLimitations {
@@ -1828,16 +1838,27 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			}(),
 			// NetworkRequirements field
 			NetworkRequirements: getStringFromMap(generalData, "network_requirements"),
-			// Site field
+			// construct Site fields, use default values if none popualted in tf.
 			Site: func() jamfpro.PolicySite {
+				defaultSite := jamfpro.PolicySite{
+					ID:   -1,     // Assuming -1 is the default ID
+					Name: "None", // Default site name
+				}
+
 				if siteData, ok := generalData["site"].([]interface{}); ok && len(siteData) > 0 {
 					siteMap := siteData[0].(map[string]interface{})
-					return jamfpro.PolicySite{
-						ID:   getIntFromMap(siteMap, "id"),
-						Name: getStringFromMap(siteMap, "name"),
+
+					siteID := getIntFromMap(siteMap, "id")
+					siteName := getStringFromMap(siteMap, "name")
+
+					if siteID != 0 { // Assuming 0 is an empty value for ID
+						defaultSite.ID = siteID
+					}
+					if siteName != "" {
+						defaultSite.Name = siteName
 					}
 				}
-				return jamfpro.PolicySite{}
+				return defaultSite
 			}(),
 		}
 	}
@@ -2367,24 +2388,39 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 		}()
 
 		managementAccount := func() jamfpro.PolicyManagementAccount {
-			if maData, ok := accountMaintenanceData["management_account"].(map[string]interface{}); ok {
-				return jamfpro.PolicyManagementAccount{
-					Action:                getStringFromMap(maData, "action"),
-					ManagedPassword:       getStringFromMap(maData, "managed_password"),
-					ManagedPasswordLength: getIntFromMap(maData, "managed_password_length"),
-				}
+			// Set default values
+			defaultManagementAccount := jamfpro.PolicyManagementAccount{
+				Action:                "doNotChange",
+				ManagedPassword:       "",
+				ManagedPasswordLength: 0,
 			}
-			return jamfpro.PolicyManagementAccount{}
+
+			// Check if values are provided in Terraform and override defaults if necessary
+			if maData, ok := accountMaintenanceData["management_account"].(map[string]interface{}); ok {
+				defaultManagementAccount.Action = getStringFromMap(maData, "action")
+				defaultManagementAccount.ManagedPassword = getStringFromMap(maData, "managed_password")
+				defaultManagementAccount.ManagedPasswordLength = getIntFromMap(maData, "managed_password_length")
+			}
+
+			return defaultManagementAccount
 		}()
 
 		openFirmwareEfiPassword := func() jamfpro.PolicyOpenFirmwareEfiPassword {
-			if ofData, ok := accountMaintenanceData["open_firmware_efi_password"].(map[string]interface{}); ok {
-				return jamfpro.PolicyOpenFirmwareEfiPassword{
-					OfMode:     getStringFromMap(ofData, "of_mode"),
-					OfPassword: getStringFromMap(ofData, "of_password"),
-				}
+			// Set default values
+			defaultOpenFirmwareEfiPassword := jamfpro.PolicyOpenFirmwareEfiPassword{
+				OfMode:           "none",
+				OfPassword:       "",
+				OfPasswordSHA256: "",
 			}
-			return jamfpro.PolicyOpenFirmwareEfiPassword{}
+
+			// Check if values are provided in Terraform and override defaults if necessary
+			if ofData, ok := accountMaintenanceData["open_firmware_efi_password"].(map[string]interface{}); ok {
+				defaultOpenFirmwareEfiPassword.OfMode = getStringFromMap(ofData, "of_mode")
+				defaultOpenFirmwareEfiPassword.OfPassword = getStringFromMap(ofData, "of_password")
+				defaultOpenFirmwareEfiPassword.OfPasswordSHA256 = getStringFromMap(ofData, "of_password_sha256")
+			}
+
+			return defaultOpenFirmwareEfiPassword
 		}()
 
 		// Assign all constructed components to AccountMaintenance
@@ -2396,20 +2432,37 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 		}
 	}
 
-	// Construct the Reboot section
-	if v, ok := d.GetOk("reboot"); ok {
-		rebootData := v.(*schema.Set).List()[0].(map[string]interface{})
-		policy.Reboot = jamfpro.PolicyReboot{
-			Message:                     getStringFromMap(rebootData, "message"),
-			SpecifyStartup:              getStringFromMap(rebootData, "specify_startup"),
-			StartupDisk:                 getStringFromMap(rebootData, "startup_disk"),
-			NoUserLoggedIn:              getStringFromMap(rebootData, "no_user_logged_in"),
-			UserLoggedIn:                getStringFromMap(rebootData, "user_logged_in"),
-			MinutesUntilReboot:          getIntFromMap(rebootData, "minutes_until_reboot"),
-			StartRebootTimerImmediately: getBoolFromMap(rebootData, "start_reboot_timer_immediately"),
-			FileVault2Reboot:            getBoolFromMap(rebootData, "file_vault_2_reboot"),
+	// Construct the Reboot section and set default values if none are defined in terraform
+	policy.Reboot = func() jamfpro.PolicyReboot {
+		// Set default values
+		defaultReboot := jamfpro.PolicyReboot{
+			Message:                     "This computer will restart in 5 minutes. Please save anything you are working on and log out by choosing Log Out from the bottom of the Apple menu.",
+			StartupDisk:                 "Current Startup Disk",
+			SpecifyStartup:              "",
+			NoUserLoggedIn:              "Do not restart",
+			UserLoggedIn:                "Do not restart",
+			MinutesUntilReboot:          5,
+			StartRebootTimerImmediately: false,
+			FileVault2Reboot:            false,
 		}
-	}
+
+		// Check if values are provided in Terraform and override defaults if necessary
+		if v, ok := d.GetOk("reboot"); ok {
+			rebootData := v.(*schema.Set).List()[0].(map[string]interface{})
+
+			// Override with provided values if available
+			defaultReboot.Message = getStringFromMap(rebootData, "message")
+			defaultReboot.SpecifyStartup = getStringFromMap(rebootData, "specify_startup")
+			defaultReboot.StartupDisk = getStringFromMap(rebootData, "startup_disk")
+			defaultReboot.NoUserLoggedIn = getStringFromMap(rebootData, "no_user_logged_in")
+			defaultReboot.UserLoggedIn = getStringFromMap(rebootData, "user_logged_in")
+			defaultReboot.MinutesUntilReboot = getIntFromMap(rebootData, "minutes_until_reboot")
+			defaultReboot.StartRebootTimerImmediately = getBoolFromMap(rebootData, "start_reboot_timer_immediately")
+			defaultReboot.FileVault2Reboot = getBoolFromMap(rebootData, "file_vault_2_reboot")
+		}
+
+		return defaultReboot
+	}()
 
 	// Construct the Maintenance section
 	if v, ok := d.GetOk("maintenance"); ok {
