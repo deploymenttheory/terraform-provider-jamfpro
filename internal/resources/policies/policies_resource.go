@@ -55,6 +55,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether the policy is enabled.",
+							Default:     false,
 						},
 						"trigger": {
 							Type:        schema.TypeString,
@@ -65,31 +66,37 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Trigger policy when device performs recurring check-in against the frequency configured in Jamf Pro",
+							Default:     false,
 						},
 						"trigger_enrollment_complete": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Trigger policy when device enrollment is complete.",
+							Default:     false,
 						},
 						"trigger_login": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Trigger policy when a user logs in to a computer. A login event that checks for policies must be configured in Jamf Pro for this to work",
+							Default:     false,
 						},
 						"trigger_logout": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Trigger policy when a user logout.",
+							Default:     false,
 						},
 						"trigger_network_state_changed": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Trigger policy when it's network state changes. When a computer's network state changes (e.g., when the network connection changes, when the computer name changes, when the IP address changes)",
+							Default:     false,
 						},
 						"trigger_startup": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Trigger policy when a computer starts up. A startup script that checks for policies must be configured in Jamf Pro for this to work",
+							Default:     false,
 						},
 						"trigger_other": {
 							Type:        schema.TypeString,
@@ -119,21 +126,25 @@ func ResourceJamfProPolicies() *schema.Resource {
 								"trigger",
 								"check-in",
 							}, false),
+							Default: "none",
 						},
 						"retry_attempts": {
 							Type:        schema.TypeInt,
 							Optional:    true,
 							Description: "Number of retry attempts for the jamf pro policy.",
+							Default:     "-1",
 						},
 						"notify_on_each_failed_retry": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Send notifications for each failed policy retry attempt. ",
+							Default:     false,
 						},
 						"location_user_only": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Location-based policy for user only.",
+							Default:     false,
 						},
 						"target_drive": {
 							Type:        schema.TypeString,
@@ -144,6 +155,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether the policy applies when offline.",
+							Default:     false,
 						},
 						"category": {
 							Type:        schema.TypeList,
@@ -240,6 +252,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 										Type:        schema.TypeBool,
 										Optional:    true,
 										Description: "Whether the policy applies to any IP address.",
+										Default:     false,
 									},
 								},
 							},
@@ -264,6 +277,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 										Type:        schema.TypeBool,
 										Optional:    true,
 										Description: "Whether to force AFP/SMB.",
+										Default:     false,
 									},
 									"sus": {
 										Type:        schema.TypeString,
@@ -899,6 +913,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether the policy is available for self-service.",
+							Default:     false,
 						},
 						"self_service_display_name": {
 							Type:        schema.TypeString,
@@ -909,8 +924,9 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Text displayed on the install button in self-service.",
+							Default:     "Install",
 						},
-						"re_install_button_text": {
+						"reinstall_button_text": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Text displayed on the re-install button in self-service.",
@@ -924,6 +940,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to force users to view the policy description in self-service.",
+							Default:     false,
 						},
 						"self_service_icon": {
 							Type:        schema.TypeList,
@@ -953,6 +970,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to feature the policy on the main page of self-service.",
+							Default:     false,
 						},
 						"self_service_categories": {
 							Type:        schema.TypeList,
@@ -980,11 +998,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 													Type:        schema.TypeBool,
 													Optional:    true,
 													Description: "Whether to display the category in self-service.",
+													Default:     false,
 												},
 												"feature_in": {
 													Type:        schema.TypeBool,
 													Optional:    true,
 													Description: "Whether to feature the category in self-service.",
+													Default:     false,
 												},
 											},
 										},
@@ -1357,6 +1377,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 										Optional:     true,
 										Description:  "Action to perform on the management account.Rotates management account password at next policy execution. Management account passwords will be automatically randomized with 29 characters. Valid values are 'rotate' or 'doNotChange'.",
 										ValidateFunc: validation.StringInSlice([]string{"rotate", "doNotChange"}, false),
+										Default:      "doNotChange",
 									},
 									"managed_password": {
 										Type:        schema.TypeString,
@@ -1382,6 +1403,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 										Optional:     true,
 										Description:  "Mode for the open firmware/EFI password. Valid values are 'command' or 'none'.",
 										ValidateFunc: validation.StringInSlice([]string{"command", "none"}, false),
+										Default:      "none",
 									},
 									"of_password": {
 										Type:        schema.TypeString,
@@ -1390,6 +1412,106 @@ func ResourceJamfProPolicies() *schema.Resource {
 									},
 								},
 							},
+						},
+					},
+				},
+			},
+			"reboot": {
+				Type:        schema.TypeSet,
+				Optional:    true,
+				Description: "Use this section to restart computers and specify the disk to boot them to",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"message": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "The reboot message displayed to the user.",
+							Default:     "This computer will restart in 5 minutes. Please save anything you are working on and log out by choosing Log Out from the bottom of the Apple menu.",
+						},
+						"specify_startup": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Reboot Method",
+							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+								v := val.(string)
+								validMethods := []string{"Standard Restart", "MDM Restart with Kernel Cache Rebuild"}
+								for _, method := range validMethods {
+									if v == method {
+										return
+									}
+								}
+								errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validMethods, v))
+								return
+							},
+						},
+						"startup_disk": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Disk to boot computers to",
+							Default:     "Current Startup Disk",
+							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+								v := val.(string)
+								validDisks := []string{"Current Startup Disk", "Currently Selected Startup Disk (No Bless)", "macOS Installer", "Specify Local Startup Disk"}
+								for _, disk := range validDisks {
+									if v == disk {
+										return
+									}
+								}
+								errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validDisks, v))
+								return
+							},
+						},
+						"no_user_logged_in": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Action to take if no user is logged in to the computer",
+							Default:     "Do not restart",
+							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+								v := val.(string)
+								validOptions := []string{"Restart if a package or update requires it", "Restart Immediately", "Do not restart"}
+								for _, option := range validOptions {
+									if v == option {
+										return
+									}
+								}
+								errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validOptions, v))
+								return
+							},
+						},
+						"user_logged_in": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "Do not restart",
+							Description: "Action to take if a user is logged in to the computer",
+							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+								v := val.(string)
+								validOptions := []string{"Restart if a package or update requires it", "Restart Immediately", "Restart", "Do not restart"}
+								for _, option := range validOptions {
+									if v == option {
+										return
+									}
+								}
+								errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validOptions, v))
+								return
+							},
+						},
+						"minutes_until_reboot": {
+							Type:        schema.TypeInt,
+							Optional:    true,
+							Description: "Amount of time to wait before the restart begins.",
+							Default:     5,
+						},
+						"start_reboot_timer_immediately": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "",
+							Default:     false,
+						},
+						"file_vault_2_reboot": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Perform authenticated restart on computers with FileVault 2 enabled. Restart FileVault 2-encrypted computers without requiring an unlock during the next startup",
+							Default:     false,
 						},
 					},
 				},
@@ -1404,51 +1526,61 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to run recon (inventory update) as part of the maintenance. Forces computers to submit updated inventory information to Jamf Pro",
+							Default:     false,
 						},
 						"reset_name": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to reset the computer name to the name stored in Jamf Pro. Changes the computer name on computers to match the computer name in Jamf Pro",
+							Default:     false,
 						},
 						"install_all_cached_packages": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to install all cached packages. Installs packages cached by Jamf Pro",
+							Default:     false,
 						},
 						"heal": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to heal the policy.",
+							Default:     false,
 						},
 						"prebindings": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to update prebindings.",
+							Default:     false,
 						},
 						"permissions": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to fix Disk Permissions (Not compatible with macOS v10.12 or later)",
+							Default:     false,
 						},
 						"byhost": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to fix ByHost files andnpreferences.",
+							Default:     false,
 						},
 						"system_cache": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to flush caches from /Library/Caches/ and /System/Library/Caches/, except for any com.apple.LaunchServices caches",
+							Default:     false,
 						},
 						"user_cache": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to flush caches from ~/Library/Caches/, ~/.jpi_cache/, and ~/Library/Preferences/Microsoft/Office version #/Office Font Cache. Enabling this may cause problems with system fonts displaying unless a restart option is configured.",
+							Default:     false,
 						},
 						"verify": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to verify system files and structure on the Startup Disk",
+							Default:     false,
 						},
 					},
 				},
@@ -1468,6 +1600,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to delete the file found at the specified path.",
+							Default:     false,
 						},
 						"locate_file": {
 							Type:        schema.TypeString,
@@ -1478,6 +1611,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to update the locate database. Update the locate database before searching for the file",
+							Default:     false,
 						},
 						"spotlight_search": {
 							Type:        schema.TypeString,
@@ -1493,6 +1627,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to kill the process if found. This works with exact matches only",
+							Default:     false,
 						},
 						"run_command": {
 							Type:        schema.TypeString,
@@ -1517,6 +1652,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Allow user deferral and configure deferral type. A deferral limit must be specified for this to work.",
+							Default:     false,
 						},
 						"allow_deferral_until_utc": {
 							Type:        schema.TypeString,
@@ -1527,6 +1663,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeInt,
 							Optional:    true,
 							Description: "Number of minutes after the user was first prompted by the policy at which the policy runs and deferrals are prohibited",
+							Default:     "0",
 						},
 						"message_finish": {
 							Type:        schema.TypeString,
@@ -1557,6 +1694,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to allow authentication restart.",
+							Default:     false,
 						},
 						"remediate_key_type": {
 							Type:         schema.TypeString,
@@ -1599,30 +1737,30 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	if v, ok := d.GetOk("general"); ok {
 		generalData := v.([]interface{})[0].(map[string]interface{})
 		policy.General = jamfpro.PolicyGeneral{
-			ID:                         generalData["id"].(int),
-			Name:                       generalData["name"].(string),
-			Enabled:                    generalData["enabled"].(bool),
-			Trigger:                    generalData["trigger"].(string),
-			TriggerCheckin:             generalData["trigger_checkin"].(bool),
-			TriggerEnrollmentComplete:  generalData["trigger_enrollment_complete"].(bool),
-			TriggerLogin:               generalData["trigger_login"].(bool),
-			TriggerLogout:              generalData["trigger_logout"].(bool),
-			TriggerNetworkStateChanged: generalData["trigger_network_state_changed"].(bool),
-			TriggerStartup:             generalData["trigger_startup"].(bool),
-			TriggerOther:               generalData["trigger_other"].(string),
-			Frequency:                  generalData["frequency"].(string),
-			RetryEvent:                 generalData["retry_event"].(string),
-			RetryAttempts:              generalData["retry_attempts"].(int),
-			NotifyOnEachFailedRetry:    generalData["notify_on_each_failed_retry"].(bool),
-			LocationUserOnly:           generalData["location_user_only"].(bool),
-			TargetDrive:                generalData["target_drive"].(string),
-			Offline:                    generalData["offline"].(bool),
+			ID:                         getIntFromMap(generalData, "id"),
+			Name:                       getStringFromMap(generalData, "name"),
+			Enabled:                    getBoolFromMap(generalData, "enabled"),
+			Trigger:                    getStringFromMap(generalData, "trigger"),
+			TriggerCheckin:             getBoolFromMap(generalData, "trigger_checkin"),
+			TriggerEnrollmentComplete:  getBoolFromMap(generalData, "trigger_enrollment_complete"),
+			TriggerLogin:               getBoolFromMap(generalData, "trigger_login"),
+			TriggerLogout:              getBoolFromMap(generalData, "trigger_logout"),
+			TriggerNetworkStateChanged: getBoolFromMap(generalData, "trigger_network_state_changed"),
+			TriggerStartup:             getBoolFromMap(generalData, "trigger_startup"),
+			TriggerOther:               getStringFromMap(generalData, "trigger_other"),
+			Frequency:                  getStringFromMap(generalData, "frequency"),
+			RetryEvent:                 getStringFromMap(generalData, "retry_event"),
+			RetryAttempts:              getIntFromMap(generalData, "retry_attempts"),
+			NotifyOnEachFailedRetry:    getBoolFromMap(generalData, "notify_on_each_failed_retry"),
+			LocationUserOnly:           getBoolFromMap(generalData, "location_user_only"),
+			TargetDrive:                getStringFromMap(generalData, "target_drive"),
+			Offline:                    getBoolFromMap(generalData, "offline"),
 			Category: func() jamfpro.PolicyCategory {
 				if catData, ok := generalData["category"].([]interface{}); ok && len(catData) > 0 {
 					catMap := catData[0].(map[string]interface{})
 					return jamfpro.PolicyCategory{
-						ID:   catMap["id"].(string),
-						Name: catMap["name"].(string),
+						ID:   getStringFromMap(catMap, "id"),
+						Name: getStringFromMap(catMap, "name"),
 					}
 				}
 				return jamfpro.PolicyCategory{}
@@ -1632,29 +1770,24 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 				if dtData, ok := generalData["date_time_limitations"].([]interface{}); ok && len(dtData) > 0 {
 					dateTimeMap := dtData[0].(map[string]interface{})
 					dateTimeLimitations := jamfpro.PolicyDateTimeLimitations{
-						ActivationDate:      dateTimeMap["activation_date"].(string),
-						ActivationDateEpoch: dateTimeMap["activation_date_epoch"].(int64),
-						ActivationDateUTC:   dateTimeMap["activation_date_utc"].(string),
-						ExpirationDate:      dateTimeMap["expiration_date"].(string),
-						ExpirationDateEpoch: dateTimeMap["expiration_date_epoch"].(int64),
-						ExpirationDateUTC:   dateTimeMap["expiration_date_utc"].(string),
+						ActivationDate:      getStringFromMap(dateTimeMap, "activation_date"),
+						ActivationDateEpoch: getInt64FromMap(dateTimeMap, "activation_date_epoch"), // Assuming getInt64FromMap is similar to getIntFromMap
+						ActivationDateUTC:   getStringFromMap(dateTimeMap, "activation_date_utc"),
+						ExpirationDate:      getStringFromMap(dateTimeMap, "expiration_date"),
+						ExpirationDateEpoch: getInt64FromMap(dateTimeMap, "expiration_date_epoch"),
+						ExpirationDateUTC:   getStringFromMap(dateTimeMap, "expiration_date_utc"),
 					}
 
 					// Handling NoExecuteOn field
 					if noExecOn, ok := dateTimeMap["no_execute_on"].([]interface{}); ok && len(noExecOn) > 0 {
-						// Assuming no_execute_on is a single string value
-						policy.General.DateTimeLimitations.NoExecuteOn = jamfpro.PolicyNoExecuteOn{
-							Day: noExecOn[0].(string),
+						dateTimeLimitations.NoExecuteOn = jamfpro.PolicyNoExecuteOn{
+							Day: getStringFromArray(noExecOn, 0), // getStringFromArray is a new helper to safely get string from array
 						}
 					}
 
 					// Handling NoExecuteStart and NoExecuteEnd fields
-					if noExecStart, ok := dateTimeMap["no_execute_start"].(string); ok {
-						dateTimeLimitations.NoExecuteStart = noExecStart
-					}
-					if noExecEnd, ok := dateTimeMap["no_execute_end"].(string); ok {
-						dateTimeLimitations.NoExecuteEnd = noExecEnd
-					}
+					dateTimeLimitations.NoExecuteStart = getStringFromMap(dateTimeMap, "no_execute_start")
+					dateTimeLimitations.NoExecuteEnd = getStringFromMap(dateTimeMap, "no_execute_end")
 
 					return dateTimeLimitations
 				}
@@ -1665,14 +1798,13 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 				if networkLimitationsData, ok := generalData["network_limitations"].([]interface{}); ok && len(networkLimitationsData) > 0 {
 					netMap := networkLimitationsData[0].(map[string]interface{})
 					networkLimitations := jamfpro.PolicyNetworkLimitations{
-						MinimumNetworkConnection: netMap["minimum_network_connection"].(string),
-						AnyIPAddress:             netMap["any_ip_address"].(bool),
+						MinimumNetworkConnection: getStringFromMap(netMap, "minimum_network_connection"),
+						AnyIPAddress:             getBoolFromMap(netMap, "any_ip_address"),
 					}
 
 					// Handling NetworkSegments field
-					if networkSegments, ok := netMap["network_segments"].(string); ok {
-						networkLimitations.NetworkSegments = networkSegments
-					}
+					networkSegments := getStringFromMap(netMap, "network_segments")
+					networkLimitations.NetworkSegments = networkSegments
 
 					return networkLimitations
 				}
@@ -1683,11 +1815,11 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 				if overrideData, ok := generalData["override_default_settings"].([]interface{}); ok && len(overrideData) > 0 {
 					overrideMap := overrideData[0].(map[string]interface{})
 					overrideSettings := jamfpro.PolicyOverrideSettings{
-						TargetDrive:       overrideMap["target_drive"].(string),
-						DistributionPoint: overrideMap["distribution_point"].(string),
-						ForceAfpSmb:       overrideMap["force_afp_smb"].(bool),
-						SUS:               overrideMap["sus"].(string),
-						NetbootServer:     overrideMap["netboot_server"].(string),
+						TargetDrive:       getStringFromMap(overrideMap, "target_drive"),
+						DistributionPoint: getStringFromMap(overrideMap, "distribution_point"),
+						ForceAfpSmb:       getBoolFromMap(overrideMap, "force_afp_smb"),
+						SUS:               getStringFromMap(overrideMap, "sus"),
+						NetbootServer:     getStringFromMap(overrideMap, "netboot_server"),
 					}
 
 					return overrideSettings
@@ -1695,14 +1827,14 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 				return jamfpro.PolicyOverrideSettings{}
 			}(),
 			// NetworkRequirements field
-			NetworkRequirements: generalData["network_requirements"].(string),
+			NetworkRequirements: getStringFromMap(generalData, "network_requirements"),
 			// Site field
 			Site: func() jamfpro.PolicySite {
 				if siteData, ok := generalData["site"].([]interface{}); ok && len(siteData) > 0 {
 					siteMap := siteData[0].(map[string]interface{})
 					return jamfpro.PolicySite{
-						ID:   siteMap["id"].(int),
-						Name: siteMap["name"].(string),
+						ID:   getIntFromMap(siteMap, "id"),
+						Name: getStringFromMap(siteMap, "name"),
 					}
 				}
 				return jamfpro.PolicySite{}
@@ -2032,20 +2164,20 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	if v, ok := d.GetOk("self_service"); ok {
 		selfServiceData := v.([]interface{})[0].(map[string]interface{})
 		policy.SelfService = jamfpro.PolicySelfService{
-			UseForSelfService:           selfServiceData["use_for_self_service"].(bool),
-			SelfServiceDisplayName:      selfServiceData["self_service_display_name"].(string),
-			InstallButtonText:           selfServiceData["install_button_text"].(string),
-			ReinstallButtonText:         selfServiceData["re_install_button_text"].(string),
-			SelfServiceDescription:      selfServiceData["self_service_description"].(string),
-			ForceUsersToViewDescription: selfServiceData["force_users_to_view_description"].(bool),
-			FeatureOnMainPage:           selfServiceData["feature_on_main_page"].(bool),
+			UseForSelfService:           getBoolFromMap(selfServiceData, "use_for_self_service"),
+			SelfServiceDisplayName:      getStringFromMap(selfServiceData, "self_service_display_name"),
+			InstallButtonText:           getStringFromMap(selfServiceData, "install_button_text"),
+			ReinstallButtonText:         getStringFromMap(selfServiceData, "reinstall_button_text"),
+			SelfServiceDescription:      getStringFromMap(selfServiceData, "self_service_description"),
+			ForceUsersToViewDescription: getBoolFromMap(selfServiceData, "force_users_to_view_description"),
+			FeatureOnMainPage:           getBoolFromMap(selfServiceData, "feature_on_main_page"),
 			SelfServiceIcon: func() jamfpro.PolicySelfServiceIcon {
 				if iconData, ok := selfServiceData["self_service_icon"].([]interface{}); ok && len(iconData) > 0 {
 					iconMap := iconData[0].(map[string]interface{})
 					return jamfpro.PolicySelfServiceIcon{
-						ID:       iconMap["id"].(int),
-						Filename: iconMap["filename"].(string),
-						URI:      iconMap["uri"].(string),
+						ID:       getIntFromMap(iconMap, "id"),
+						Filename: getStringFromMap(iconMap, "filename"),
+						URI:      getStringFromMap(iconMap, "uri"),
 					}
 				}
 				return jamfpro.PolicySelfServiceIcon{}
@@ -2057,10 +2189,10 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 						catMap := cat.(map[string]interface{})
 						category := jamfpro.PolicySelfServiceCategory{
 							Category: jamfpro.PolicyCategory{
-								ID:        catMap["id"].(string),
-								Name:      catMap["name"].(string),
-								DisplayIn: catMap["display_in"].(bool),
-								FeatureIn: catMap["feature_in"].(bool),
+								ID:        getStringFromMap(catMap, "id"),
+								Name:      getStringFromMap(catMap, "name"),
+								DisplayIn: getBoolFromMap(catMap, "display_in"),
+								FeatureIn: getBoolFromMap(catMap, "feature_in"),
 							},
 						}
 						categories = append(categories, category)
@@ -2070,59 +2202,65 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			}(),
 		}
 	}
-
 	// Construct the PackageConfiguration section
 	if v, ok := d.GetOk("package_configuration"); ok {
 		packageConfigData := v.([]interface{})[0].(map[string]interface{})
-		var packageItems []jamfpro.PolicyPackage
 
-		if pkgs, ok := packageConfigData["packages"].([]interface{}); ok {
-			for _, pkg := range pkgs {
-				pkgMap := pkg.(map[string]interface{})
-				packageItem := jamfpro.PolicyPackage{
-					ID:                pkgMap["id"].(int),
-					Name:              pkgMap["name"].(string),
-					Action:            pkgMap["action"].(string),
-					FillUserTemplate:  pkgMap["fut"].(bool),
-					FillExistingUsers: pkgMap["feu"].(bool),
-					UpdateAutorun:     pkgMap["update_autorun"].(bool),
+		packageItems := func() []jamfpro.PolicyPackage {
+			var items []jamfpro.PolicyPackage
+			if pkgs, ok := packageConfigData["packages"].([]interface{}); ok {
+				for _, pkg := range pkgs {
+					pkgMap := pkg.(map[string]interface{})
+
+					items = append(items, jamfpro.PolicyPackage{
+						ID:                getIntFromMap(pkgMap, "id"),
+						Name:              getStringFromMap(pkgMap, "name"),
+						Action:            getStringFromMap(pkgMap, "action"),
+						FillUserTemplate:  getBoolFromMap(pkgMap, "fut"),
+						FillExistingUsers: getBoolFromMap(pkgMap, "feu"),
+						UpdateAutorun:     getBoolFromMap(pkgMap, "update_autorun"),
+					})
 				}
-				packageItems = append(packageItems, packageItem)
 			}
-		}
+			return items
+		}()
 
 		policy.PackageConfiguration = jamfpro.PolicyPackageConfiguration{
 			Packages: packageItems,
 		}
 	}
-
 	// Construct the Scripts section
 	if v, ok := d.GetOk("scripts"); ok {
 		scriptsData := v.([]interface{})[0].(map[string]interface{})
-		var scriptItems []jamfpro.PolicyScriptItem
 
-		if scripts, ok := scriptsData["script"].([]interface{}); ok {
-			for _, script := range scripts {
-				scriptMap := script.(map[string]interface{})
-				scriptItem := jamfpro.PolicyScriptItem{
-					ID:          scriptMap["id"].(string),
-					Name:        scriptMap["name"].(string),
-					Priority:    scriptMap["priority"].(string),
-					Parameter4:  scriptMap["parameter4"].(string),
-					Parameter5:  scriptMap["parameter5"].(string),
-					Parameter6:  scriptMap["parameter6"].(string),
-					Parameter7:  scriptMap["parameter7"].(string),
-					Parameter8:  scriptMap["parameter8"].(string),
-					Parameter9:  scriptMap["parameter9"].(string),
-					Parameter10: scriptMap["parameter10"].(string),
-					Parameter11: scriptMap["parameter11"].(string),
+		scriptItems := func() []jamfpro.PolicyScriptItem {
+			var items []jamfpro.PolicyScriptItem
+			if scripts, ok := scriptsData["script"].([]interface{}); ok {
+				for _, script := range scripts {
+					scriptMap := script.(map[string]interface{})
+
+					items = append(items, jamfpro.PolicyScriptItem{
+						ID:          getStringFromMap(scriptMap, "id"),
+						Name:        getStringFromMap(scriptMap, "name"),
+						Priority:    getStringFromMap(scriptMap, "priority"),
+						Parameter4:  getStringFromMap(scriptMap, "parameter4"),
+						Parameter5:  getStringFromMap(scriptMap, "parameter5"),
+						Parameter6:  getStringFromMap(scriptMap, "parameter6"),
+						Parameter7:  getStringFromMap(scriptMap, "parameter7"),
+						Parameter8:  getStringFromMap(scriptMap, "parameter8"),
+						Parameter9:  getStringFromMap(scriptMap, "parameter9"),
+						Parameter10: getStringFromMap(scriptMap, "parameter10"),
+						Parameter11: getStringFromMap(scriptMap, "parameter11"),
+					})
 				}
-				scriptItems = append(scriptItems, scriptItem)
 			}
-		}
+			return items
+		}()
+
+		size := getIntFromMap(scriptsData, "size") // Safely get 'size', default to 0 if not found or if type is different
 
 		policy.Scripts = jamfpro.PolicyScripts{
-			Size:   scriptsData["size"].(int),
+			Size:   size,
 			Script: scriptItems,
 		}
 	}
@@ -2130,24 +2268,30 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	// Construct the Printers section
 	if v, ok := d.GetOk("printers"); ok {
 		printersData := v.([]interface{})[0].(map[string]interface{})
-		var printerItems []jamfpro.PolicyPrinterItem
 
-		if printers, ok := printersData["printer"].([]interface{}); ok {
-			for _, printer := range printers {
-				printerMap := printer.(map[string]interface{})
-				printerItem := jamfpro.PolicyPrinterItem{
-					ID:          printerMap["id"].(int),
-					Name:        printerMap["name"].(string),
-					Action:      printerMap["action"].(string),
-					MakeDefault: printerMap["make_default"].(bool),
+		printerItems := func() []jamfpro.PolicyPrinterItem {
+			var items []jamfpro.PolicyPrinterItem
+			if printers, ok := printersData["printer"].([]interface{}); ok {
+				for _, printer := range printers {
+					printerMap := printer.(map[string]interface{})
+
+					items = append(items, jamfpro.PolicyPrinterItem{
+						ID:          getIntFromMap(printerMap, "id"),
+						Name:        getStringFromMap(printerMap, "name"),
+						Action:      getStringFromMap(printerMap, "action"),
+						MakeDefault: getBoolFromMap(printerMap, "make_default"),
+					})
 				}
-				printerItems = append(printerItems, printerItem)
 			}
-		}
+			return items
+		}()
+
+		size := getIntFromMap(printersData, "size")                                    // Safely get 'size', default to 0 if not found or if type is different
+		leaveExistingDefault := getBoolFromMap(printersData, "leave_existing_default") // Safely get bool, default to false if not found
 
 		policy.Printers = jamfpro.PolicyPrinters{
-			Size:                 printersData["size"].(int),
-			LeaveExistingDefault: printersData["leave_existing_default"].(bool),
+			Size:                 size,
+			LeaveExistingDefault: leaveExistingDefault,
 			Printer:              printerItems,
 		}
 	}
@@ -2155,22 +2299,28 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	// Construct the DockItems section
 	if v, ok := d.GetOk("dock_items"); ok {
 		dockItemsData := v.([]interface{})[0].(map[string]interface{})
-		var dockItems []jamfpro.PolicyDockItem
 
-		if docks, ok := dockItemsData["dock_item"].([]interface{}); ok {
-			for _, dock := range docks {
-				dockMap := dock.(map[string]interface{})
-				dockItem := jamfpro.PolicyDockItem{
-					ID:     dockMap["id"].(int),
-					Name:   dockMap["name"].(string),
-					Action: dockMap["action"].(string),
+		dockItems := func() []jamfpro.PolicyDockItem {
+			var items []jamfpro.PolicyDockItem
+			if docks, ok := dockItemsData["dock_item"].([]interface{}); ok {
+				for _, dock := range docks {
+					dockMap := dock.(map[string]interface{})
+
+					items = append(items, jamfpro.PolicyDockItem{
+						ID:     getIntFromMap(dockMap, "id"),
+						Name:   getStringFromMap(dockMap, "name"),
+						Action: getStringFromMap(dockMap, "action"),
+					})
 				}
-				dockItems = append(dockItems, dockItem)
 			}
-		}
+			return items
+		}()
+
+		// Safely get 'size', default to 0 if not found or if type is different
+		size := getIntFromMap(dockItemsData, "size")
 
 		policy.DockItems = jamfpro.PolicyDockItems{
-			Size:     dockItemsData["size"].(int),
+			Size:     size,
 			DockItem: dockItems,
 		}
 	}
@@ -2178,60 +2328,64 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	// Construct the AccountMaintenance section
 	if v, ok := d.GetOk("account_maintenance"); ok {
 		accountMaintenanceData := v.([]interface{})[0].(map[string]interface{})
-		var accounts []jamfpro.PolicyAccount
-		var directoryBindings []jamfpro.PolicyDirectoryBinding
 
-		// Construct Accounts slice
-		if accs, ok := accountMaintenanceData["accounts"].([]interface{}); ok {
-			for _, acc := range accs {
-				accMap := acc.(map[string]interface{})
-				account := jamfpro.PolicyAccount{
-					Action:                 accMap["action"].(string),
-					Username:               accMap["username"].(string),
-					Realname:               accMap["realname"].(string),
-					Password:               accMap["password"].(string),
-					ArchiveHomeDirectory:   accMap["archive_home_directory"].(bool),
-					ArchiveHomeDirectoryTo: accMap["archive_home_directory_to"].(string),
-					Home:                   accMap["home"].(string),
-					Hint:                   accMap["hint"].(string),
-					Picture:                accMap["picture"].(string),
-					Admin:                  accMap["admin"].(bool),
-					FilevaultEnabled:       accMap["filevault_enabled"].(bool),
+		accounts := func() []jamfpro.PolicyAccount {
+			var items []jamfpro.PolicyAccount
+			if accs, ok := accountMaintenanceData["accounts"].([]interface{}); ok {
+				for _, acc := range accs {
+					accMap := acc.(map[string]interface{})
+					items = append(items, jamfpro.PolicyAccount{
+						Action:                 getStringFromMap(accMap, "action"),
+						Username:               getStringFromMap(accMap, "username"),
+						Realname:               getStringFromMap(accMap, "realname"),
+						Password:               getStringFromMap(accMap, "password"),
+						ArchiveHomeDirectory:   getBoolFromMap(accMap, "archive_home_directory"),
+						ArchiveHomeDirectoryTo: getStringFromMap(accMap, "archive_home_directory_to"),
+						Home:                   getStringFromMap(accMap, "home"),
+						Hint:                   getStringFromMap(accMap, "hint"),
+						Picture:                getStringFromMap(accMap, "picture"),
+						Admin:                  getBoolFromMap(accMap, "admin"),
+						FilevaultEnabled:       getBoolFromMap(accMap, "filevault_enabled"),
+					})
 				}
-				accounts = append(accounts, account)
 			}
-		}
+			return items
+		}()
 
-		// Construct DirectoryBindings slice
-		if bindings, ok := accountMaintenanceData["directory_bindings"].([]interface{}); ok {
-			for _, binding := range bindings {
-				bindingMap := binding.(map[string]interface{})
-				directoryBinding := jamfpro.PolicyDirectoryBinding{
-					ID:   bindingMap["id"].(int),
-					Name: bindingMap["name"].(string),
+		directoryBindings := func() []jamfpro.PolicyDirectoryBinding {
+			var items []jamfpro.PolicyDirectoryBinding
+			if bindings, ok := accountMaintenanceData["directory_bindings"].([]interface{}); ok {
+				for _, binding := range bindings {
+					bindingMap := binding.(map[string]interface{})
+					items = append(items, jamfpro.PolicyDirectoryBinding{
+						ID:   getIntFromMap(bindingMap, "id"),
+						Name: getStringFromMap(bindingMap, "name"),
+					})
 				}
-				directoryBindings = append(directoryBindings, directoryBinding)
 			}
-		}
+			return items
+		}()
 
-		// Construct ManagementAccount field
-		var managementAccount jamfpro.PolicyManagementAccount
-		if maData, ok := accountMaintenanceData["management_account"].(map[string]interface{}); ok {
-			managementAccount = jamfpro.PolicyManagementAccount{
-				Action:                maData["action"].(string),
-				ManagedPassword:       maData["managed_password"].(string),
-				ManagedPasswordLength: maData["managed_password_length"].(int),
+		managementAccount := func() jamfpro.PolicyManagementAccount {
+			if maData, ok := accountMaintenanceData["management_account"].(map[string]interface{}); ok {
+				return jamfpro.PolicyManagementAccount{
+					Action:                getStringFromMap(maData, "action"),
+					ManagedPassword:       getStringFromMap(maData, "managed_password"),
+					ManagedPasswordLength: getIntFromMap(maData, "managed_password_length"),
+				}
 			}
-		}
+			return jamfpro.PolicyManagementAccount{}
+		}()
 
-		// Construct OpenFirmwareEfiPassword field
-		var openFirmwareEfiPassword jamfpro.PolicyOpenFirmwareEfiPassword
-		if ofData, ok := accountMaintenanceData["open_firmware_efi_password"].(map[string]interface{}); ok {
-			openFirmwareEfiPassword = jamfpro.PolicyOpenFirmwareEfiPassword{
-				OfMode:     ofData["of_mode"].(string),
-				OfPassword: ofData["of_password"].(string),
+		openFirmwareEfiPassword := func() jamfpro.PolicyOpenFirmwareEfiPassword {
+			if ofData, ok := accountMaintenanceData["open_firmware_efi_password"].(map[string]interface{}); ok {
+				return jamfpro.PolicyOpenFirmwareEfiPassword{
+					OfMode:     getStringFromMap(ofData, "of_mode"),
+					OfPassword: getStringFromMap(ofData, "of_password"),
+				}
 			}
-		}
+			return jamfpro.PolicyOpenFirmwareEfiPassword{}
+		}()
 
 		// Assign all constructed components to AccountMaintenance
 		policy.AccountMaintenance = jamfpro.PolicyAccountMaintenance{
@@ -2242,20 +2396,35 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 		}
 	}
 
+	// Construct the Reboot section
+	if v, ok := d.GetOk("reboot"); ok {
+		rebootData := v.(*schema.Set).List()[0].(map[string]interface{})
+		policy.Reboot = jamfpro.PolicyReboot{
+			Message:                     getStringFromMap(rebootData, "message"),
+			SpecifyStartup:              getStringFromMap(rebootData, "specify_startup"),
+			StartupDisk:                 getStringFromMap(rebootData, "startup_disk"),
+			NoUserLoggedIn:              getStringFromMap(rebootData, "no_user_logged_in"),
+			UserLoggedIn:                getStringFromMap(rebootData, "user_logged_in"),
+			MinutesUntilReboot:          getIntFromMap(rebootData, "minutes_until_reboot"),
+			StartRebootTimerImmediately: getBoolFromMap(rebootData, "start_reboot_timer_immediately"),
+			FileVault2Reboot:            getBoolFromMap(rebootData, "file_vault_2_reboot"),
+		}
+	}
+
 	// Construct the Maintenance section
 	if v, ok := d.GetOk("maintenance"); ok {
 		maintenanceData := v.([]interface{})[0].(map[string]interface{})
 		policy.Maintenance = jamfpro.PolicyMaintenance{
-			Recon:                    maintenanceData["recon"].(bool),
-			ResetName:                maintenanceData["reset_name"].(bool),
-			InstallAllCachedPackages: maintenanceData["install_all_cached_packages"].(bool),
-			Heal:                     maintenanceData["heal"].(bool),
-			Prebindings:              maintenanceData["prebindings"].(bool),
-			Permissions:              maintenanceData["permissions"].(bool),
-			Byhost:                   maintenanceData["byhost"].(bool),
-			SystemCache:              maintenanceData["system_cache"].(bool),
-			UserCache:                maintenanceData["user_cache"].(bool),
-			Verify:                   maintenanceData["verify"].(bool),
+			Recon:                    getBoolFromMap(maintenanceData, "recon"),
+			ResetName:                getBoolFromMap(maintenanceData, "reset_name"),
+			InstallAllCachedPackages: getBoolFromMap(maintenanceData, "install_all_cached_packages"),
+			Heal:                     getBoolFromMap(maintenanceData, "heal"),
+			Prebindings:              getBoolFromMap(maintenanceData, "prebindings"),
+			Permissions:              getBoolFromMap(maintenanceData, "permissions"),
+			Byhost:                   getBoolFromMap(maintenanceData, "byhost"),
+			SystemCache:              getBoolFromMap(maintenanceData, "system_cache"),
+			UserCache:                getBoolFromMap(maintenanceData, "user_cache"),
+			Verify:                   getBoolFromMap(maintenanceData, "verify"),
 		}
 	}
 
@@ -2263,14 +2432,14 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	if v, ok := d.GetOk("files_processes"); ok {
 		filesProcessesData := v.([]interface{})[0].(map[string]interface{})
 		policy.FilesProcesses = jamfpro.PolicyFilesProcesses{
-			SearchByPath:         filesProcessesData["search_by_path"].(string),
-			DeleteFile:           filesProcessesData["delete_file"].(bool),
-			LocateFile:           filesProcessesData["locate_file"].(string),
-			UpdateLocateDatabase: filesProcessesData["update_locate_database"].(bool),
-			SpotlightSearch:      filesProcessesData["spotlight_search"].(string),
-			SearchForProcess:     filesProcessesData["search_for_process"].(string),
-			KillProcess:          filesProcessesData["kill_process"].(bool),
-			RunCommand:           filesProcessesData["run_command"].(string),
+			SearchByPath:         getStringFromMap(filesProcessesData, "search_by_path"),
+			DeleteFile:           getBoolFromMap(filesProcessesData, "delete_file"),
+			LocateFile:           getStringFromMap(filesProcessesData, "locate_file"),
+			UpdateLocateDatabase: getBoolFromMap(filesProcessesData, "update_locate_database"),
+			SpotlightSearch:      getStringFromMap(filesProcessesData, "spotlight_search"),
+			SearchForProcess:     getStringFromMap(filesProcessesData, "search_for_process"),
+			KillProcess:          getBoolFromMap(filesProcessesData, "kill_process"),
+			RunCommand:           getStringFromMap(filesProcessesData, "run_command"),
 		}
 	}
 
@@ -2278,11 +2447,11 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	if v, ok := d.GetOk("user_interaction"); ok {
 		userInteractionData := v.([]interface{})[0].(map[string]interface{})
 		policy.UserInteraction = jamfpro.PolicyUserInteraction{
-			MessageStart:          userInteractionData["message_start"].(string),
-			AllowUserToDefer:      userInteractionData["allow_user_to_defer"].(bool),
-			AllowDeferralUntilUtc: userInteractionData["allow_deferral_until_utc"].(string),
-			AllowDeferralMinutes:  userInteractionData["allow_deferral_minutes"].(int),
-			MessageFinish:         userInteractionData["message_finish"].(string),
+			MessageStart:          getStringFromMap(userInteractionData, "message_start"),
+			AllowUserToDefer:      getBoolFromMap(userInteractionData, "allow_user_to_defer"),
+			AllowDeferralUntilUtc: getStringFromMap(userInteractionData, "allow_deferral_until_utc"),
+			AllowDeferralMinutes:  getIntFromMap(userInteractionData, "allow_deferral_minutes"),
+			MessageFinish:         getStringFromMap(userInteractionData, "message_finish"),
 		}
 	}
 
@@ -2290,17 +2459,67 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	if v, ok := d.GetOk("disk_encryption"); ok {
 		diskEncryptionData := v.([]interface{})[0].(map[string]interface{})
 		policy.DiskEncryption = jamfpro.PolicyDiskEncryption{
-			Action:                                 diskEncryptionData["action"].(string),
-			DiskEncryptionConfigurationID:          diskEncryptionData["disk_encryption_configuration_id"].(int),
-			AuthRestart:                            diskEncryptionData["auth_restart"].(bool),
-			RemediateKeyType:                       diskEncryptionData["remediate_key_type"].(string),
-			RemediateDiskEncryptionConfigurationID: diskEncryptionData["remediate_disk_encryption_configuration_id"].(int),
+			Action:                                 getStringFromMap(diskEncryptionData, "action"),
+			DiskEncryptionConfigurationID:          getIntFromMap(diskEncryptionData, "disk_encryption_configuration_id"),
+			AuthRestart:                            getBoolFromMap(diskEncryptionData, "auth_restart"),
+			RemediateKeyType:                       getStringFromMap(diskEncryptionData, "remediate_key_type"),
+			RemediateDiskEncryptionConfigurationID: getIntFromMap(diskEncryptionData, "remediate_disk_encryption_configuration_id"),
 		}
 	}
 
 	log.Printf("[INFO] Successfully constructed Jamf Pro Policy with name: %s", policy.General.Name)
 
 	return policy, nil
+}
+
+// Helper function to safely get an int value from a map. Returns 0 if key is absent or nil.
+func getIntFromMap(m map[string]interface{}, key string) int {
+	if val, ok := m[key]; ok && val != nil {
+		if intVal, ok := val.(int); ok {
+			return intVal
+		}
+	}
+	return 0 // Return default zero value if key is not found or nil
+}
+
+// Helper function to safely get a bool value from a map. Returns false if key is absent or nil.
+func getBoolFromMap(m map[string]interface{}, key string) bool {
+	if val, ok := m[key]; ok && val != nil {
+		if boolVal, ok := val.(bool); ok {
+			return boolVal
+		}
+	}
+	return false // Return default false value if key is not found or nil
+}
+
+// Helper function to safely get a string value from a map. Returns an empty string if key is absent or nil.
+func getStringFromMap(m map[string]interface{}, key string) string {
+	if val, ok := m[key]; ok && val != nil {
+		if strVal, ok := val.(string); ok {
+			return strVal
+		}
+	}
+	return "" // Return default empty string if key is not found or nil
+}
+
+// Helper function to safely get an int64 value from a map. Returns 0 if key is absent, nil, or not an int64.
+func getInt64FromMap(m map[string]interface{}, key string) int64 {
+	if val, ok := m[key]; ok && val != nil {
+		if int64Val, ok := val.(int64); ok {
+			return int64Val
+		}
+	}
+	return 0 // Return default zero value if key is not found, nil, or not an int64
+}
+
+// Helper function to safely get a string value from an array at a given index. Returns an empty string if index is out of range or value is not a string.
+func getStringFromArray(arr []interface{}, index int) string {
+	if len(arr) > index {
+		if strVal, ok := arr[index].(string); ok {
+			return strVal
+		}
+	}
+	return "" // Return default empty string if index is out of range or value is not a string
 }
 
 // Helper function to generate diagnostics based on the error type.
@@ -2740,7 +2959,7 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 		"use_for_self_service":            policy.SelfService.UseForSelfService,
 		"self_service_display_name":       policy.SelfService.SelfServiceDisplayName,
 		"install_button_text":             policy.SelfService.InstallButtonText,
-		"re_install_button_text":          policy.SelfService.ReinstallButtonText,
+		"reinstall_button_text":           policy.SelfService.ReinstallButtonText,
 		"self_service_description":        policy.SelfService.SelfServiceDescription,
 		"force_users_to_view_description": policy.SelfService.ForceUsersToViewDescription,
 		"self_service_icon": []interface{}{map[string]interface{}{
@@ -2767,243 +2986,212 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// PackageConfiguration section of the policy
-	if v, ok := d.GetOk("package_configuration"); ok {
-		packageConfigData := v.([]interface{})[0].(map[string]interface{})
-		var packageItems []jamfpro.PolicyPackage
-
-		// Iterate over the packages
-		if pkgs, ok := packageConfigData["packages"].([]interface{}); ok {
-			for _, pkg := range pkgs {
-				pkgMap := pkg.(map[string]interface{})
-				packageItem := jamfpro.PolicyPackage{
-					ID:                pkgMap["id"].(int),
-					Name:              pkgMap["name"].(string),
-					Action:            pkgMap["action"].(string),
-					FillUserTemplate:  pkgMap["fut"].(bool),
-					FillExistingUsers: pkgMap["feu"].(bool),
-					UpdateAutorun:     pkgMap["update_autorun"].(bool),
-				}
-				packageItems = append(packageItems, packageItem)
-			}
-		}
-
-		// Set the PackageConfiguration in the policy
-		policy.PackageConfiguration = jamfpro.PolicyPackageConfiguration{
-			Packages: packageItems,
-		}
+	// Fetch the package configuration from the policy and set it in Terraform state
+	packageConfigurations := make([]interface{}, 0)
+	for _, packageItem := range policy.PackageConfiguration.Packages {
+		pkg := make(map[string]interface{})
+		pkg["id"] = packageItem.ID
+		pkg["name"] = packageItem.Name
+		pkg["action"] = packageItem.Action
+		pkg["fut"] = packageItem.FillUserTemplate
+		pkg["feu"] = packageItem.FillExistingUsers
+		pkg["update_autorun"] = packageItem.UpdateAutorun
+		packageConfigurations = append(packageConfigurations, pkg)
 	}
 
-	// set scripts attributes
-	if v, ok := d.GetOk("scripts"); ok {
-		scriptsData := v.([]interface{})[0].(map[string]interface{})
-		var scriptItems []jamfpro.PolicyScriptItem
-
-		// Iterate over the scripts
-		if scripts, ok := scriptsData["script"].([]interface{}); ok {
-			for _, script := range scripts {
-				scriptMap := script.(map[string]interface{})
-				scriptItem := jamfpro.PolicyScriptItem{
-					ID:          scriptMap["id"].(string),
-					Name:        scriptMap["name"].(string),
-					Priority:    scriptMap["priority"].(string),
-					Parameter4:  scriptMap["parameter4"].(string),
-					Parameter5:  scriptMap["parameter5"].(string),
-					Parameter6:  scriptMap["parameter6"].(string),
-					Parameter7:  scriptMap["parameter7"].(string),
-					Parameter8:  scriptMap["parameter8"].(string),
-					Parameter9:  scriptMap["parameter9"].(string),
-					Parameter10: scriptMap["parameter10"].(string),
-					Parameter11: scriptMap["parameter11"].(string),
-				}
-				scriptItems = append(scriptItems, scriptItem)
-			}
-		}
-
-		// Set the Scripts in the policy
-		policy.Scripts = jamfpro.PolicyScripts{
-			Size:   scriptsData["size"].(int),
-			Script: scriptItems,
-		}
+	if err := d.Set("package_configuration", packageConfigurations); err != nil {
+		return diag.FromErr(err)
 	}
 
-	// Set printer attributes
-	if v, ok := d.GetOk("printers"); ok {
-		printersData := v.([]interface{})[0].(map[string]interface{})
-		var printerItems []jamfpro.PolicyPrinterItem
-
-		if printers, ok := printersData["printer"].([]interface{}); ok {
-			for _, printer := range printers {
-				printerMap := printer.(map[string]interface{})
-				printerItem := jamfpro.PolicyPrinterItem{
-					ID:          printerMap["id"].(int),
-					Name:        printerMap["name"].(string),
-					Action:      printerMap["action"].(string),
-					MakeDefault: printerMap["make_default"].(bool),
-				}
-				printerItems = append(printerItems, printerItem)
-			}
-		}
-
-		policy.Printers = jamfpro.PolicyPrinters{
-			Size:                 printersData["size"].(int),
-			LeaveExistingDefault: printersData["leave_existing_default"].(bool),
-			Printer:              printerItems,
-		}
+	// Fetch the scripts from the policy and set them in Terraform state
+	scriptConfigurations := make([]interface{}, 0)
+	for _, scriptItem := range policy.Scripts.Script {
+		script := make(map[string]interface{})
+		script["id"] = scriptItem.ID
+		script["name"] = scriptItem.Name
+		script["priority"] = scriptItem.Priority
+		script["parameter4"] = scriptItem.Parameter4
+		script["parameter5"] = scriptItem.Parameter5
+		script["parameter6"] = scriptItem.Parameter6
+		script["parameter7"] = scriptItem.Parameter7
+		script["parameter8"] = scriptItem.Parameter8
+		script["parameter9"] = scriptItem.Parameter9
+		script["parameter10"] = scriptItem.Parameter10
+		script["parameter11"] = scriptItem.Parameter11
+		scriptConfigurations = append(scriptConfigurations, script)
 	}
 
-	// Set Dock Items attributes
-	if v, ok := d.GetOk("dock_items"); ok {
-		dockItemsData := v.([]interface{})[0].(map[string]interface{})
-		var dockItems []jamfpro.PolicyDockItem
-
-		if docks, ok := dockItemsData["dock_item"].([]interface{}); ok {
-			for _, dock := range docks {
-				dockMap := dock.(map[string]interface{})
-				dockItem := jamfpro.PolicyDockItem{
-					ID:     dockMap["id"].(int),
-					Name:   dockMap["name"].(string),
-					Action: dockMap["action"].(string),
-				}
-				dockItems = append(dockItems, dockItem)
-			}
-		}
-
-		policy.DockItems = jamfpro.PolicyDockItems{
-			Size:     dockItemsData["size"].(int),
-			DockItem: dockItems,
-		}
+	if err := d.Set("scripts", scriptConfigurations); err != nil {
+		return diag.FromErr(err)
 	}
 
-	// Set Account Maintenance attributes
-	if v, ok := d.GetOk("account_maintenance"); ok {
-		accountMaintenanceData := v.([]interface{})[0].(map[string]interface{})
-		var accounts []jamfpro.PolicyAccount
-
-		if accs, ok := accountMaintenanceData["accounts"].([]interface{}); ok {
-			for _, acc := range accs {
-				accMap := acc.(map[string]interface{})
-				account := jamfpro.PolicyAccount{
-					Action:                 accMap["action"].(string),
-					Username:               accMap["username"].(string),
-					Realname:               accMap["realname"].(string),
-					Password:               accMap["password"].(string),
-					ArchiveHomeDirectory:   accMap["archive_home_directory"].(bool),
-					ArchiveHomeDirectoryTo: accMap["archive_home_directory_to"].(string),
-					Home:                   accMap["home"].(string),
-					Picture:                accMap["picture"].(string),
-					Admin:                  accMap["admin"].(bool),
-					FilevaultEnabled:       accMap["filevault_enabled"].(bool),
-				}
-				accounts = append(accounts, account)
-			}
-		}
-
-		policy.AccountMaintenance = jamfpro.PolicyAccountMaintenance{
-			Accounts: accounts,
-		}
+	// Fetch the printers from the policy and set them in Terraform state
+	printerConfigurations := make([]interface{}, 0)
+	for _, printerItem := range policy.Printers.Printer {
+		printer := make(map[string]interface{})
+		printer["id"] = printerItem.ID
+		printer["name"] = printerItem.Name
+		printer["action"] = printerItem.Action
+		printer["make_default"] = printerItem.MakeDefault
+		printerConfigurations = append(printerConfigurations, printer)
 	}
 
-	// Set Directory Bindings attributes
-	if v, ok := d.GetOk("directory_bindings"); ok {
-		directoryBindingsData := v.([]interface{})[0].(map[string]interface{})
-		var directoryBindings []jamfpro.PolicyDirectoryBinding
-
-		if bindings, ok := directoryBindingsData["binding"].([]interface{}); ok {
-			for _, binding := range bindings {
-				bindingMap := binding.(map[string]interface{})
-				directoryBinding := jamfpro.PolicyDirectoryBinding{
-					ID:   bindingMap["id"].(int),
-					Name: bindingMap["name"].(string),
-				}
-				directoryBindings = append(directoryBindings, directoryBinding)
-			}
-		}
-
-		policy.AccountMaintenance.DirectoryBindings = directoryBindings
+	if err := d.Set("printers", []interface{}{
+		map[string]interface{}{
+			"size":                   len(policy.Printers.Printer),
+			"leave_existing_default": policy.Printers.LeaveExistingDefault,
+			"printer":                printerConfigurations,
+		},
+	}); err != nil {
+		return diag.FromErr(err)
 	}
 
-	// Set Management Account attributes
-	if v, ok := d.GetOk("management_account"); ok {
-		managementAccountData := v.([]interface{})[0].(map[string]interface{})
-		var managementAccount jamfpro.PolicyManagementAccount
-
-		managementAccount = jamfpro.PolicyManagementAccount{
-			Action:                managementAccountData["action"].(string),
-			ManagedPassword:       managementAccountData["managed_password"].(string),
-			ManagedPasswordLength: managementAccountData["managed_password_length"].(int),
-		}
-
-		policy.AccountMaintenance.ManagementAccount = managementAccount
+	// Fetch the dock items from the policy and set them in Terraform state
+	dockItemConfigurations := make([]interface{}, 0)
+	for _, dockItem := range policy.DockItems.DockItem {
+		dock := make(map[string]interface{})
+		dock["id"] = dockItem.ID
+		dock["name"] = dockItem.Name
+		dock["action"] = dockItem.Action
+		dockItemConfigurations = append(dockItemConfigurations, dock)
 	}
 
-	// Set Open Firmware/EFI Password attributes
-	if v, ok := d.GetOk("open_firmware_efi_password"); ok {
-		openFirmwareEfiPasswordData := v.([]interface{})[0].(map[string]interface{})
-		var openFirmwareEfiPassword jamfpro.PolicyOpenFirmwareEfiPassword
-
-		openFirmwareEfiPassword = jamfpro.PolicyOpenFirmwareEfiPassword{
-			OfMode:     openFirmwareEfiPasswordData["of_mode"].(string),
-			OfPassword: openFirmwareEfiPasswordData["of_password"].(string),
-		}
-
-		policy.AccountMaintenance.OpenFirmwareEfiPassword = openFirmwareEfiPassword
+	if err := d.Set("dock_items", []interface{}{
+		map[string]interface{}{
+			"size":      len(policy.DockItems.DockItem),
+			"dock_item": dockItemConfigurations,
+		},
+	}); err != nil {
+		return diag.FromErr(err)
 	}
 
-	// Set Maintenance attributes
-	if v, ok := d.GetOk("maintenance"); ok {
-		maintenanceData := v.([]interface{})[0].(map[string]interface{})
-		policy.Maintenance = jamfpro.PolicyMaintenance{
-			Recon:                    maintenanceData["recon"].(bool),
-			ResetName:                maintenanceData["reset_name"].(bool),
-			InstallAllCachedPackages: maintenanceData["install_all_cached_packages"].(bool),
-			Heal:                     maintenanceData["heal"].(bool),
-			Prebindings:              maintenanceData["prebindings"].(bool),
-			Permissions:              maintenanceData["permissions"].(bool),
-			Byhost:                   maintenanceData["byhost"].(bool),
-			SystemCache:              maintenanceData["system_cache"].(bool),
-			UserCache:                maintenanceData["user_cache"].(bool),
-			Verify:                   maintenanceData["verify"].(bool),
-		}
+	// Fetch the account maintenance data from the policy and set it in Terraform state
+	accountMaintenanceConfigs := make([]interface{}, 0)
+
+	for _, account := range policy.AccountMaintenance.Accounts {
+		acc := make(map[string]interface{})
+		acc["action"] = account.Action
+		acc["username"] = account.Username
+		acc["realname"] = account.Realname
+		acc["password"] = account.Password
+		acc["archive_home_directory"] = account.ArchiveHomeDirectory
+		acc["archive_home_directory_to"] = account.ArchiveHomeDirectoryTo
+		acc["home"] = account.Home
+		acc["picture"] = account.Picture
+		acc["admin"] = account.Admin
+		acc["filevault_enabled"] = account.FilevaultEnabled
+		accountMaintenanceConfigs = append(accountMaintenanceConfigs, acc)
 	}
 
-	// set Files and Processes attributes
-	if v, ok := d.GetOk("files_processes"); ok {
-		filesProcessesData := v.([]interface{})[0].(map[string]interface{})
-		policy.FilesProcesses = jamfpro.PolicyFilesProcesses{
-			SearchByPath:         filesProcessesData["search_by_path"].(string),
-			DeleteFile:           filesProcessesData["delete_file"].(bool),
-			LocateFile:           filesProcessesData["locate_file"].(string),
-			UpdateLocateDatabase: filesProcessesData["update_locate_database"].(bool),
-			SpotlightSearch:      filesProcessesData["spotlight_search"].(string),
-			SearchForProcess:     filesProcessesData["search_for_process"].(string),
-			KillProcess:          filesProcessesData["kill_process"].(bool),
-			RunCommand:           filesProcessesData["run_command"].(string),
-		}
+	if err := d.Set("account_maintenance", []interface{}{
+		map[string]interface{}{
+			"accounts": accountMaintenanceConfigs,
+		},
+	}); err != nil {
+		return diag.FromErr(err)
 	}
 
-	// Set User Interaction attributes
-	if v, ok := d.GetOk("user_interaction"); ok {
-		userInteractionData := v.([]interface{})[0].(map[string]interface{})
-		policy.UserInteraction = jamfpro.PolicyUserInteraction{
-			MessageStart:          userInteractionData["message_start"].(string),
-			AllowUserToDefer:      userInteractionData["allow_user_to_defer"].(bool),
-			AllowDeferralUntilUtc: userInteractionData["allow_deferral_until_utc"].(string),
-			AllowDeferralMinutes:  userInteractionData["allow_deferral_minutes"].(int),
-			MessageFinish:         userInteractionData["message_finish"].(string),
-		}
+	// Fetch the Directory Bindings data from the policy and set it in Terraform state
+	directoryBindingsList := make([]interface{}, len(policy.AccountMaintenance.DirectoryBindings))
+	for i, binding := range policy.AccountMaintenance.DirectoryBindings {
+		bindingConfig := make(map[string]interface{})
+		bindingConfig["id"] = binding.ID
+		bindingConfig["name"] = binding.Name
+		directoryBindingsList[i] = bindingConfig
 	}
 
-	// Set Disk Encryption attributes
-	if v, ok := d.GetOk("disk_encryption"); ok {
-		diskEncryptionData := v.([]interface{})[0].(map[string]interface{})
-		policy.DiskEncryption = jamfpro.PolicyDiskEncryption{
-			Action:                                 diskEncryptionData["action"].(string),
-			DiskEncryptionConfigurationID:          diskEncryptionData["disk_encryption_configuration_id"].(int),
-			AuthRestart:                            diskEncryptionData["auth_restart"].(bool),
-			RemediateKeyType:                       diskEncryptionData["remediate_key_type"].(string),
-			RemediateDiskEncryptionConfigurationID: diskEncryptionData["remediate_disk_encryption_configuration_id"].(int),
-		}
+	if err := d.Set("directory_bindings", directoryBindingsList); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Fetch the Management Account data from the policy and set it in Terraform state
+	managementAccountConfig := make(map[string]interface{})
+	managementAccountConfig["action"] = policy.AccountMaintenance.ManagementAccount.Action
+	managementAccountConfig["managed_password"] = policy.AccountMaintenance.ManagementAccount.ManagedPassword
+	managementAccountConfig["managed_password_length"] = policy.AccountMaintenance.ManagementAccount.ManagedPasswordLength
+
+	if err := d.Set("management_account", []interface{}{managementAccountConfig}); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Fetch the Open Firmware/EFI Password data from the policy and set it in Terraform state
+	openFirmwareEfiPasswordConfig := make(map[string]interface{})
+	openFirmwareEfiPasswordConfig["of_mode"] = policy.AccountMaintenance.OpenFirmwareEfiPassword.OfMode
+	openFirmwareEfiPasswordConfig["of_password"] = policy.AccountMaintenance.OpenFirmwareEfiPassword.OfPassword
+
+	if err := d.Set("open_firmware_efi_password", []interface{}{openFirmwareEfiPasswordConfig}); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Fetch the reboot data from the policy and set it in Terraform state
+	rebootConfig := make(map[string]interface{})
+	rebootConfig["message"] = policy.Reboot.Message
+	rebootConfig["specify_startup"] = policy.Reboot.SpecifyStartup
+	rebootConfig["startup_disk"] = policy.Reboot.StartupDisk
+	rebootConfig["no_user_logged_in"] = policy.Reboot.NoUserLoggedIn
+	rebootConfig["user_logged_in"] = policy.Reboot.UserLoggedIn
+	rebootConfig["minutes_until_reboot"] = policy.Reboot.MinutesUntilReboot
+	rebootConfig["start_reboot_timer_immediately"] = policy.Reboot.StartRebootTimerImmediately
+	rebootConfig["file_vault_2_reboot"] = policy.Reboot.FileVault2Reboot
+
+	if err := d.Set("reboot", []interface{}{rebootConfig}); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Fetch the maintenance data from the policy and set it in Terraform state
+	maintenanceConfig := make(map[string]interface{})
+	maintenanceConfig["recon"] = policy.Maintenance.Recon
+	maintenanceConfig["reset_name"] = policy.Maintenance.ResetName
+	maintenanceConfig["install_all_cached_packages"] = policy.Maintenance.InstallAllCachedPackages
+	maintenanceConfig["heal"] = policy.Maintenance.Heal
+	maintenanceConfig["prebindings"] = policy.Maintenance.Prebindings
+	maintenanceConfig["permissions"] = policy.Maintenance.Permissions
+	maintenanceConfig["byhost"] = policy.Maintenance.Byhost
+	maintenanceConfig["system_cache"] = policy.Maintenance.SystemCache
+	maintenanceConfig["user_cache"] = policy.Maintenance.UserCache
+	maintenanceConfig["verify"] = policy.Maintenance.Verify
+
+	if err := d.Set("maintenance", []interface{}{maintenanceConfig}); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Fetch the files and processes data from the policy and set it in Terraform state
+	filesProcessesConfig := make(map[string]interface{})
+	filesProcessesConfig["search_by_path"] = policy.FilesProcesses.SearchByPath
+	filesProcessesConfig["delete_file"] = policy.FilesProcesses.DeleteFile
+	filesProcessesConfig["locate_file"] = policy.FilesProcesses.LocateFile
+	filesProcessesConfig["update_locate_database"] = policy.FilesProcesses.UpdateLocateDatabase
+	filesProcessesConfig["spotlight_search"] = policy.FilesProcesses.SpotlightSearch
+	filesProcessesConfig["search_for_process"] = policy.FilesProcesses.SearchForProcess
+	filesProcessesConfig["kill_process"] = policy.FilesProcesses.KillProcess
+	filesProcessesConfig["run_command"] = policy.FilesProcesses.RunCommand
+
+	if err := d.Set("files_processes", []interface{}{filesProcessesConfig}); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Fetch the user interaction data from the policy and set it in Terraform state
+	userInteractionConfig := make(map[string]interface{})
+	userInteractionConfig["message_start"] = policy.UserInteraction.MessageStart
+	userInteractionConfig["allow_user_to_defer"] = policy.UserInteraction.AllowUserToDefer
+	userInteractionConfig["allow_deferral_until_utc"] = policy.UserInteraction.AllowDeferralUntilUtc
+	userInteractionConfig["allow_deferral_minutes"] = policy.UserInteraction.AllowDeferralMinutes
+	userInteractionConfig["message_finish"] = policy.UserInteraction.MessageFinish
+
+	if err := d.Set("user_interaction", []interface{}{userInteractionConfig}); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Fetch the disk encryption data from the policy and set it in Terraform state
+	diskEncryptionConfig := make(map[string]interface{})
+	diskEncryptionConfig["action"] = policy.DiskEncryption.Action
+	diskEncryptionConfig["disk_encryption_configuration_id"] = policy.DiskEncryption.DiskEncryptionConfigurationID
+	diskEncryptionConfig["auth_restart"] = policy.DiskEncryption.AuthRestart
+	diskEncryptionConfig["remediate_key_type"] = policy.DiskEncryption.RemediateKeyType
+	diskEncryptionConfig["remediate_disk_encryption_configuration_id"] = policy.DiskEncryption.RemediateDiskEncryptionConfigurationID
+
+	if err := d.Set("disk_encryption", []interface{}{diskEncryptionConfig}); err != nil {
+		return diag.FromErr(err)
 	}
 
 	return diags
