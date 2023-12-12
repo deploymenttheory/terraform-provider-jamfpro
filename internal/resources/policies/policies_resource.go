@@ -102,6 +102,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Any other trigger for the policy.",
+							Computed:    true,
 						},
 						"frequency": {
 							Type:        schema.TypeString,
@@ -246,7 +247,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 										Type:         schema.TypeString,
 										Optional:     true,
 										Description:  "Minimum network connection required for the policy.",
-										ValidateFunc: validation.StringInSlice([]string{"Any", "Ethernet"}, false),
+										ValidateFunc: validation.StringInSlice([]string{"No Minimum", "Ethernet"}, false),
 									},
 									"any_ip_address": {
 										Type:        schema.TypeBool,
@@ -267,22 +268,25 @@ func ResourceJamfProPolicies() *schema.Resource {
 										Type:        schema.TypeString,
 										Optional:    true,
 										Description: "Target drive for the policy.",
+										Computed:    true,
 									},
 									"distribution_point": {
 										Type:        schema.TypeString,
 										Optional:    true,
 										Description: "Distribution point for the policy.",
+										Computed:    true,
 									},
 									"force_afp_smb": {
 										Type:        schema.TypeBool,
 										Optional:    true,
 										Description: "Whether to force AFP/SMB.",
-										Default:     false,
+										Computed:    true,
 									},
 									"sus": {
 										Type:        schema.TypeString,
 										Optional:    true,
 										Description: "Software Update Service for the policy.",
+										Computed:    true,
 									},
 								},
 							},
@@ -291,6 +295,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Network requirements for the policy.",
+							Computed:    true,
 						},
 						"site": {
 							Type:        schema.TypeList,
@@ -952,6 +957,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 										Type:        schema.TypeInt,
 										Optional:    true,
 										Description: "ID of the icon used in self-service.",
+										Computed:    true,
 									},
 									"filename": {
 										Type:        schema.TypeString,
@@ -988,6 +994,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 													Type:        schema.TypeInt,
 													Optional:    true,
 													Description: "Category ID for the policy in self-service.",
+													Computed:    true,
 												},
 												"name": {
 													Type:        schema.TypeString,
@@ -998,11 +1005,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 													Type:        schema.TypeBool,
 													Optional:    true,
 													Description: "Whether to display the category in self-service.",
+													Computed:    true,
 												},
 												"feature_in": {
 													Type:        schema.TypeBool,
 													Optional:    true,
 													Description: "Whether to feature the category in self-service.",
+													Computed:    true,
 												},
 											},
 										},
@@ -1670,24 +1679,27 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Disk encryption settings of the policy. Use this section to enable FileVault 2 or to issue a new recovery key.",
+				Computed:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"action": {
 							Type:         schema.TypeString,
-							Required:     true,
+							Optional:     true,
 							Description:  "The action to perform for disk encryption (e.g., apply, remediate).",
-							ValidateFunc: validation.StringInSlice([]string{"apply", "remediate"}, false),
+							ValidateFunc: validation.StringInSlice([]string{"none", "apply", "remediate"}, false),
+							Computed:     true,
 						},
 						"disk_encryption_configuration_id": {
 							Type:        schema.TypeInt,
 							Optional:    true,
 							Description: "ID of the disk encryption configuration to apply.",
+							Computed:    true,
 						},
 						"auth_restart": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to allow authentication restart.",
-							Default:     false,
+							Computed:    true,
 						},
 						"remediate_key_type": {
 							Type:         schema.TypeString,
@@ -1730,7 +1742,6 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	if v, ok := d.GetOk("general"); ok {
 		generalData := v.([]interface{})[0].(map[string]interface{})
 		policy.General = jamfpro.PolicyGeneral{
-			//ID:                         getIntFromMap(generalData, "id"),
 			Name:                       getStringFromMap(generalData, "name"),
 			Enabled:                    getBoolFromMap(generalData, "enabled"),
 			Trigger:                    getStringFromMap(generalData, "trigger"),
@@ -1740,14 +1751,26 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			TriggerLogout:              getBoolFromMap(generalData, "trigger_logout"),
 			TriggerNetworkStateChanged: getBoolFromMap(generalData, "trigger_network_state_changed"),
 			TriggerStartup:             getBoolFromMap(generalData, "trigger_startup"),
-			TriggerOther:               getStringFromMap(generalData, "trigger_other"),
-			Frequency:                  getStringFromMap(generalData, "frequency"),
-			RetryEvent:                 getStringFromMap(generalData, "retry_event"),
-			RetryAttempts:              getIntFromMap(generalData, "retry_attempts"),
-			NotifyOnEachFailedRetry:    getBoolFromMap(generalData, "notify_on_each_failed_retry"),
-			LocationUserOnly:           getBoolFromMap(generalData, "location_user_only"),
-			TargetDrive:                getStringFromMap(generalData, "target_drive"),
-			Offline:                    getBoolFromMap(generalData, "offline"),
+			TriggerOther: func() string {
+				to := getStringFromMap(generalData, "trigger_other")
+				if to != "" {
+					return to
+				}
+				return "" // Default to an empty string if not specified
+			}(),
+			Frequency:               getStringFromMap(generalData, "frequency"),
+			RetryEvent:              getStringFromMap(generalData, "retry_event"),
+			RetryAttempts:           getIntFromMap(generalData, "retry_attempts"),
+			NotifyOnEachFailedRetry: getBoolFromMap(generalData, "notify_on_each_failed_retry"),
+			LocationUserOnly:        getBoolFromMap(generalData, "location_user_only"),
+			TargetDrive: func() string {
+				targetDriveValue := getStringFromMap(generalData, "target_drive")
+				if targetDriveValue != "" {
+					return targetDriveValue
+				}
+				return "/" // Set target drive default value
+			}(),
+			Offline: getBoolFromMap(generalData, "offline"),
 			Category: func() jamfpro.PolicyCategory {
 				// Initialize with default values
 				defaultCategory := jamfpro.PolicyCategory{
@@ -1807,33 +1830,54 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 				}
 				return jamfpro.PolicyDateTimeLimitations{}
 			}(),
-			// NetworkLimitations field
 			NetworkLimitations: func() jamfpro.PolicyNetworkLimitations {
+				networkLimitations := jamfpro.PolicyNetworkLimitations{
+					MinimumNetworkConnection: "No Minimum", // Default value
+					AnyIPAddress:             true,         // Default value
+				}
+
 				if networkLimitationsData, ok := generalData["network_limitations"].([]interface{}); ok && len(networkLimitationsData) > 0 {
 					netMap := networkLimitationsData[0].(map[string]interface{})
-					networkLimitations := jamfpro.PolicyNetworkLimitations{
-						MinimumNetworkConnection: getStringFromMap(netMap, "minimum_network_connection"),
-						AnyIPAddress:             getBoolFromMap(netMap, "any_ip_address"),
+
+					if mnConn, ok := netMap["minimum_network_connection"]; ok && mnConn != "" {
+						networkLimitations.MinimumNetworkConnection = getStringFromMap(netMap, "minimum_network_connection")
+					}
+					if _, ok := netMap["any_ip_address"]; ok {
+						networkLimitations.AnyIPAddress = getBoolFromMap(netMap, "any_ip_address")
 					}
 
 					// Handling NetworkSegments field
 					networkSegments := getStringFromMap(netMap, "network_segments")
 					networkLimitations.NetworkSegments = networkSegments
-
-					return networkLimitations
 				}
-				return jamfpro.PolicyNetworkLimitations{}
+
+				return networkLimitations
 			}(),
 			// OverrideDefaultSettings field
 			OverrideDefaultSettings: func() jamfpro.PolicyOverrideSettings {
 				if overrideData, ok := generalData["override_default_settings"].([]interface{}); ok && len(overrideData) > 0 {
 					overrideMap := overrideData[0].(map[string]interface{})
 					overrideSettings := jamfpro.PolicyOverrideSettings{
-						TargetDrive:       getStringFromMap(overrideMap, "target_drive"),
-						DistributionPoint: getStringFromMap(overrideMap, "distribution_point"),
-						ForceAfpSmb:       getBoolFromMap(overrideMap, "force_afp_smb"),
-						SUS:               getStringFromMap(overrideMap, "sus"),
-						NetbootServer:     getStringFromMap(overrideMap, "netboot_server"),
+						TargetDrive: getStringFromMap(overrideMap, "target_drive"),
+						DistributionPoint: func() string {
+							distributionPointValue := getStringFromMap(overrideMap, "distribution_point")
+							if distributionPointValue != "" {
+								return distributionPointValue
+							}
+							return "default" // Set distribution point default value
+						}(),
+						ForceAfpSmb: func() bool {
+							forceAfpSmbValue, exists := overrideMap["force_afp_smb"].(bool)
+							return exists && forceAfpSmbValue // Return the value if it exists, otherwise default (false)
+						}(),
+						SUS: func() string {
+							susValue := getStringFromMap(overrideMap, "sus")
+							if susValue != "" {
+								return susValue
+							}
+							return "default" // Set SUS default value
+						}(),
+						NetbootServer: getStringFromMap(overrideMap, "netboot_server"),
 					}
 
 					return overrideSettings
@@ -1841,7 +1885,13 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 				return jamfpro.PolicyOverrideSettings{}
 			}(),
 			// NetworkRequirements field
-			NetworkRequirements: getStringFromMap(generalData, "network_requirements"),
+			NetworkRequirements: func() string {
+				networkRequirements := getStringFromMap(generalData, "network_requirements")
+				if networkRequirements != "" {
+					return networkRequirements
+				}
+				return "Any" // Default network requirements
+			}(),
 			// construct Site fields, and Initialize with default values
 			Site: func() jamfpro.PolicySite {
 
@@ -2217,7 +2267,6 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 					for _, cat := range catData {
 						catMap := cat.(map[string]interface{})
 						if catDetails, ok := catMap["category"].([]interface{}); ok && len(catDetails) > 0 {
-							// Assuming each 'category' only contains one element as per the schema structure
 							details := catDetails[0].(map[string]interface{})
 							category := jamfpro.PolicySelfServiceCategory{
 								Category: jamfpro.PolicyCategory{
@@ -2526,16 +2575,30 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	}
 
 	// Construct the DiskEncryption section
-	if v, ok := d.GetOk("disk_encryption"); ok {
-		diskEncryptionData := v.([]interface{})[0].(map[string]interface{})
-		policy.DiskEncryption = jamfpro.PolicyDiskEncryption{
-			Action:                                 getStringFromMap(diskEncryptionData, "action"),
-			DiskEncryptionConfigurationID:          getIntFromMap(diskEncryptionData, "disk_encryption_configuration_id"),
-			AuthRestart:                            getBoolFromMap(diskEncryptionData, "auth_restart"),
-			RemediateKeyType:                       getStringFromMap(diskEncryptionData, "remediate_key_type"),
-			RemediateDiskEncryptionConfigurationID: getIntFromMap(diskEncryptionData, "remediate_disk_encryption_configuration_id"),
+	policy.DiskEncryption = func() jamfpro.PolicyDiskEncryption {
+		// Initialize with default values
+		defaultDiskEncryption := jamfpro.PolicyDiskEncryption{
+			Action:                                 "none",
+			DiskEncryptionConfigurationID:          0,
+			AuthRestart:                            false,
+			RemediateKeyType:                       "",
+			RemediateDiskEncryptionConfigurationID: 0,
 		}
-	}
+
+		// Check if values are provided in Terraform and override defaults if necessary
+		if v, ok := d.GetOk("disk_encryption"); ok && len(v.([]interface{})) > 0 {
+			diskEncryptionData := v.([]interface{})[0].(map[string]interface{})
+
+			// Override with provided values if available
+			defaultDiskEncryption.Action = getStringFromMap(diskEncryptionData, "action")
+			defaultDiskEncryption.DiskEncryptionConfigurationID = getIntFromMap(diskEncryptionData, "disk_encryption_configuration_id")
+			defaultDiskEncryption.AuthRestart = getBoolFromMap(diskEncryptionData, "auth_restart")
+			defaultDiskEncryption.RemediateKeyType = getStringFromMap(diskEncryptionData, "remediate_key_type")
+			defaultDiskEncryption.RemediateDiskEncryptionConfigurationID = getIntFromMap(diskEncryptionData, "remediate_disk_encryption_configuration_id")
+		}
+
+		return defaultDiskEncryption
+	}()
 
 	log.Printf("[INFO] Successfully constructed Jamf Pro Policy with name: %s", policy.General.Name)
 
