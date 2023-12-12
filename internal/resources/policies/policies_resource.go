@@ -951,6 +951,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeList,
 							Optional:    true,
 							Description: "Icon settings for the policy in self-service.",
+							Computed:    true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
@@ -1178,15 +1179,11 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Description: "Printers settings of the policy.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"size": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "Number of printer configurations in the policy.",
-						},
 						"leave_existing_default": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Policy for handling existing default printers.",
+							Computed:    true,
 						},
 						"printer": {
 							Type:        schema.TypeList,
@@ -2351,28 +2348,22 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	if v, ok := d.GetOk("printers"); ok {
 		printersData := v.([]interface{})[0].(map[string]interface{})
 
-		printerItems := func() []jamfpro.PolicyPrinterItem {
-			var items []jamfpro.PolicyPrinterItem
-			if printers, ok := printersData["printer"].([]interface{}); ok {
-				for _, printer := range printers {
-					printerMap := printer.(map[string]interface{})
-
-					items = append(items, jamfpro.PolicyPrinterItem{
-						ID:          getIntFromMap(printerMap, "id"),
-						Name:        getStringFromMap(printerMap, "name"),
-						Action:      getStringFromMap(printerMap, "action"),
-						MakeDefault: getBoolFromMap(printerMap, "make_default"),
-					})
-				}
+		var printerItems []jamfpro.PolicyPrinterItem
+		if printers, ok := printersData["printer"].([]interface{}); ok {
+			for _, printer := range printers {
+				printerMap := printer.(map[string]interface{})
+				printerItems = append(printerItems, jamfpro.PolicyPrinterItem{
+					ID:          getIntFromMap(printerMap, "id"),
+					Name:        getStringFromMap(printerMap, "name"),
+					Action:      getStringFromMap(printerMap, "action"),
+					MakeDefault: getBoolFromMap(printerMap, "make_default"),
+				})
 			}
-			return items
-		}()
+		}
 
-		size := getIntFromMap(printersData, "size")                                    // Safely get 'size', default to 0 if not found or if type is different
-		leaveExistingDefault := getBoolFromMap(printersData, "leave_existing_default") // Safely get bool, default to false if not found
+		leaveExistingDefault := getBoolFromMap(printersData, "leave_existing_default")
 
 		policy.Printers = jamfpro.PolicyPrinters{
-			Size:                 size,
 			LeaveExistingDefault: leaveExistingDefault,
 			Printer:              printerItems,
 		}
@@ -3182,7 +3173,6 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 
 	if err := d.Set("printers", []interface{}{
 		map[string]interface{}{
-			"size":                   len(policy.Printers.Printer),
 			"leave_existing_default": policy.Printers.LeaveExistingDefault,
 			"printer":                printerConfigurations,
 		},
