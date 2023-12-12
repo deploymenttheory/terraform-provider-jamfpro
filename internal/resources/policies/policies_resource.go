@@ -299,15 +299,15 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
-										Type:        schema.TypeString,
+										Type:        schema.TypeInt,
 										Optional:    true,
-										Default:     -1, // Set default value as string "-1"
+										Default:     -1,
 										Description: "Jamf Pro Site ID. Value defaults to -1 aka not used.",
 									},
 									"name": {
 										Type:        schema.TypeString,
 										Optional:    true,
-										Default:     "None", // Set default value as "None"
+										Default:     "None",
 										Description: "Jamf Pro Site Name. Value defaults to 'None' aka not used",
 									},
 								},
@@ -3182,16 +3182,20 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	// Fetch the Directory Bindings data from the policy and set it in Terraform state
-	directoryBindingsConfigs := make([]interface{}, 0)
-
-	for _, binding := range policy.AccountMaintenance.DirectoryBindings {
-		bindingMap := make(map[string]interface{})
-		bindingMap["id"] = binding.ID
-		bindingMap["name"] = binding.Name
-		directoryBindingsConfigs = append(directoryBindingsConfigs, bindingMap)
+	directoryBindingMaps := make([]map[string]interface{}, len(policy.AccountMaintenance.DirectoryBindings))
+	for i, binding := range policy.AccountMaintenance.DirectoryBindings {
+		directoryBindingMaps[i] = map[string]interface{}{
+			"id":   binding.ID,
+			"name": binding.Name,
+		}
 	}
 
-	if err := d.Set("directory_bindings", directoryBindingsConfigs); err != nil {
+	directoryBindingsConfigs := map[string]interface{}{
+		"size":    len(directoryBindingMaps),
+		"binding": directoryBindingMaps,
+	}
+
+	if err := d.Set("directory_bindings", []interface{}{directoryBindingsConfigs}); err != nil {
 		return diag.FromErr(err)
 	}
 
