@@ -164,7 +164,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
-										Type:        schema.TypeString,
+										Type:        schema.TypeInt,
 										Optional:    true,
 										Default:     -1,
 										Description: "The category ID assigned to the jamf pro policy. Defaults to '-1' aka not used.",
@@ -3174,15 +3174,16 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	// Fetch the Directory Bindings data from the policy and set it in Terraform state
-	directoryBindingsList := make([]interface{}, len(policy.AccountMaintenance.DirectoryBindings))
-	for i, binding := range policy.AccountMaintenance.DirectoryBindings {
-		bindingConfig := make(map[string]interface{})
-		bindingConfig["id"] = binding.ID
-		bindingConfig["name"] = binding.Name
-		directoryBindingsList[i] = bindingConfig
+	directoryBindingsConfigs := make([]interface{}, 0)
+
+	for _, binding := range policy.AccountMaintenance.DirectoryBindings {
+		bindingMap := make(map[string]interface{})
+		bindingMap["id"] = binding.ID
+		bindingMap["name"] = binding.Name
+		directoryBindingsConfigs = append(directoryBindingsConfigs, bindingMap)
 	}
 
-	if err := d.Set("directory_bindings", directoryBindingsList); err != nil {
+	if err := d.Set("directory_bindings", directoryBindingsConfigs); err != nil {
 		return diag.FromErr(err)
 	}
 
