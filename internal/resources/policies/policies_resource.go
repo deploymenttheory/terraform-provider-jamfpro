@@ -1177,7 +1177,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Description: "Number of printer configurations in the policy.",
 						},
 						"leave_existing_default": {
-							Type:        schema.TypeString,
+							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Policy for handling existing default printers.",
 						},
@@ -2639,7 +2639,7 @@ func ResourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, 
 		log.Printf("[INFO] Attempting to create Jamf Pro Policy with name: %s", policy.General.Name)
 
 		// Call the API to create the policy and get its ID
-		policyID, err := conn.CreatePolicyByID(policy)
+		createdPolicy, err := conn.CreatePolicyByID(policy)
 		if err != nil {
 			log.Printf("[ERROR] Error creating Jamf Pro Policy with name: %s. Error: %s", policy.General.Name, err)
 			if apiErr, ok := err.(*http_client.APIError); ok {
@@ -2649,10 +2649,10 @@ func ResourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, 
 		}
 
 		// Log the successfully resource creation
-		log.Printf("[INFO] Successfully created Jamf Pro Policy with ID: %d", policyID)
+		log.Printf("[INFO] Successfully created Jamf Pro Policy with ID: %d", createdPolicy.ID)
 
 		// Set the ID in the Terraform state
-		d.SetId(strconv.Itoa(policy.General.ID))
+		d.SetId(strconv.Itoa(createdPolicy.ID))
 
 		return nil
 	})
@@ -2740,7 +2740,6 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 	// Update the Terraform state with the fetched data
 	// Set 'general' attributes
 	generalAttributes := map[string]interface{}{
-		//"id":                            policy.General.ID,
 		"name":                          policy.General.Name,
 		"enabled":                       policy.General.Enabled,
 		"trigger":                       policy.General.Trigger,
@@ -2762,17 +2761,23 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 			"id":   policy.General.Category.ID,
 			"name": policy.General.Category.Name,
 		}},
-		"date_time_limitations": []interface{}{map[string]interface{}{
-			"activation_date":       policy.General.DateTimeLimitations.ActivationDate,
-			"activation_date_epoch": policy.General.DateTimeLimitations.ActivationDateEpoch,
-			"activation_date_utc":   policy.General.DateTimeLimitations.ActivationDateUTC,
-			"expiration_date":       policy.General.DateTimeLimitations.ExpirationDate,
-			"expiration_date_epoch": policy.General.DateTimeLimitations.ExpirationDateEpoch,
-			"expiration_date_utc":   policy.General.DateTimeLimitations.ExpirationDateUTC,
-			"no_execute_on":         policy.General.DateTimeLimitations.NoExecuteOn,
-			"no_execute_start":      policy.General.DateTimeLimitations.NoExecuteStart,
-			"no_execute_end":        policy.General.DateTimeLimitations.NoExecuteEnd,
-		}},
+		"date_time_limitations": []interface{}{
+			map[string]interface{}{
+				"activation_date":       policy.General.DateTimeLimitations.ActivationDate,
+				"activation_date_epoch": policy.General.DateTimeLimitations.ActivationDateEpoch,
+				"activation_date_utc":   policy.General.DateTimeLimitations.ActivationDateUTC,
+				"expiration_date":       policy.General.DateTimeLimitations.ExpirationDate,
+				"expiration_date_epoch": policy.General.DateTimeLimitations.ExpirationDateEpoch,
+				"expiration_date_utc":   policy.General.DateTimeLimitations.ExpirationDateUTC,
+				"no_execute_on": []interface{}{
+					map[string]interface{}{
+						"day": policy.General.DateTimeLimitations.NoExecuteOn.Day,
+					},
+				},
+				"no_execute_start": policy.General.DateTimeLimitations.NoExecuteStart,
+				"no_execute_end":   policy.General.DateTimeLimitations.NoExecuteEnd,
+			},
+		},
 		"network_limitations": []interface{}{map[string]interface{}{
 			"minimum_network_connection": policy.General.NetworkLimitations.MinimumNetworkConnection,
 			"any_ip_address":             policy.General.NetworkLimitations.AnyIPAddress,
