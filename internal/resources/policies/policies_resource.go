@@ -3147,68 +3147,63 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	// Fetch the account maintenance data from the policy and set it in Terraform state
-	accountMaintenanceConfigs := make([]interface{}, 0)
+	accountMaintenanceState := make(map[string]interface{})
+	accountMaintenanceState["accounts"] = []interface{}{} // Initialize as empty list, fill below if accounts exist
 
-	for _, account := range policy.AccountMaintenance.Accounts {
-		acc := make(map[string]interface{})
-		acc["action"] = account.Action
-		acc["username"] = account.Username
-		acc["realname"] = account.Realname
-		acc["password"] = account.Password
-		acc["archive_home_directory"] = account.ArchiveHomeDirectory
-		acc["archive_home_directory_to"] = account.ArchiveHomeDirectoryTo
-		acc["home"] = account.Home
-		acc["hint"] = account.Hint
-		acc["picture"] = account.Picture
-		acc["admin"] = account.Admin
-		acc["filevault_enabled"] = account.FilevaultEnabled
-		accountMaintenanceConfigs = append(accountMaintenanceConfigs, acc)
-	}
-
-	if err := d.Set("account_maintenance", []interface{}{
-		map[string]interface{}{
-			"accounts": accountMaintenanceConfigs,
-		},
-	}); err != nil {
-		return diag.FromErr(err)
-	}
-
-	// Fetch the Directory Bindings data from the policy and set it in Terraform state
-	directoryBindingMaps := make([]map[string]interface{}, len(policy.AccountMaintenance.DirectoryBindings))
-	for i, binding := range policy.AccountMaintenance.DirectoryBindings {
-		directoryBindingMaps[i] = map[string]interface{}{
-			"id":   binding.ID,
-			"name": binding.Name,
+	// Add account data if present
+	if len(policy.AccountMaintenance.Accounts) > 0 {
+		accountsState := make([]interface{}, len(policy.AccountMaintenance.Accounts))
+		for i, account := range policy.AccountMaintenance.Accounts {
+			accountMap := map[string]interface{}{
+				"action":                    account.Action,
+				"username":                  account.Username,
+				"realname":                  account.Realname,
+				"password":                  account.Password,
+				"archive_home_directory":    account.ArchiveHomeDirectory,
+				"archive_home_directory_to": account.ArchiveHomeDirectoryTo,
+				"home":                      account.Home,
+				"hint":                      account.Hint,
+				"picture":                   account.Picture,
+				"admin":                     account.Admin,
+				"filevault_enabled":         account.FilevaultEnabled,
+			}
+			accountsState[i] = map[string]interface{}{"account": accountMap}
 		}
+		accountMaintenanceState["accounts"] = accountsState
 	}
 
-	// Wrap the list of binding maps in an object with the size key
-	directoryBindingsConfig := map[string]interface{}{
-		"size":    len(directoryBindingMaps),
-		"binding": directoryBindingMaps,
+	// Add directory bindings data if present
+	if len(policy.AccountMaintenance.DirectoryBindings) > 0 {
+		bindingsState := make([]interface{}, len(policy.AccountMaintenance.DirectoryBindings))
+		for i, binding := range policy.AccountMaintenance.DirectoryBindings {
+			bindingMap := map[string]interface{}{
+				"id":   binding.ID,
+				"name": binding.Name,
+			}
+			bindingsState[i] = map[string]interface{}{"binding": bindingMap}
+		}
+		accountMaintenanceState["directory_bindings"] = bindingsState
 	}
 
-	// Set this object under the directory_bindings key in the Terraform state
-	if err := d.Set("directory_bindings", []interface{}{directoryBindingsConfig}); err != nil {
-		return diag.FromErr(err)
+	// Add management account data
+	accountMaintenanceState["management_account"] = []interface{}{
+		map[string]interface{}{
+			"action":                  policy.AccountMaintenance.ManagementAccount.Action,
+			"managed_password":        policy.AccountMaintenance.ManagementAccount.ManagedPassword,
+			"managed_password_length": policy.AccountMaintenance.ManagementAccount.ManagedPasswordLength,
+		},
 	}
 
-	// Fetch the Management Account data from the policy and set it in Terraform state
-	managementAccountConfig := make(map[string]interface{})
-	managementAccountConfig["action"] = policy.AccountMaintenance.ManagementAccount.Action
-	managementAccountConfig["managed_password"] = policy.AccountMaintenance.ManagementAccount.ManagedPassword
-	managementAccountConfig["managed_password_length"] = policy.AccountMaintenance.ManagementAccount.ManagedPasswordLength
-
-	if err := d.Set("management_account", []interface{}{managementAccountConfig}); err != nil {
-		return diag.FromErr(err)
+	// Add open firmware/EFI password data
+	accountMaintenanceState["open_firmware_efi_password"] = []interface{}{
+		map[string]interface{}{
+			"of_mode":     policy.AccountMaintenance.OpenFirmwareEfiPassword.OfMode,
+			"of_password": policy.AccountMaintenance.OpenFirmwareEfiPassword.OfPassword,
+		},
 	}
 
-	// Fetch the Open Firmware/EFI Password data from the policy and set it in Terraform state
-	openFirmwareEfiPasswordConfig := make(map[string]interface{})
-	openFirmwareEfiPasswordConfig["of_mode"] = policy.AccountMaintenance.OpenFirmwareEfiPassword.OfMode
-	openFirmwareEfiPasswordConfig["of_password"] = policy.AccountMaintenance.OpenFirmwareEfiPassword.OfPassword
-
-	if err := d.Set("open_firmware_efi_password", []interface{}{openFirmwareEfiPasswordConfig}); err != nil {
+	// Set the account_maintenance in state
+	if err := d.Set("account_maintenance", []interface{}{accountMaintenanceState}); err != nil {
 		return diag.FromErr(err)
 	}
 
