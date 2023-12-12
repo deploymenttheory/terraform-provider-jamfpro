@@ -1737,7 +1737,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	if v, ok := d.GetOk("general"); ok {
 		generalData := v.([]interface{})[0].(map[string]interface{})
 		policy.General = jamfpro.PolicyGeneral{
-			ID:                         getIntFromMap(generalData, "id"),
+			//ID:                         getIntFromMap(generalData, "id"),
 			Name:                       getStringFromMap(generalData, "name"),
 			Enabled:                    getBoolFromMap(generalData, "enabled"),
 			Trigger:                    getStringFromMap(generalData, "trigger"),
@@ -2204,8 +2204,11 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 				return jamfpro.PolicySelfServiceIcon{}
 			}(),
 			SelfServiceCategories: func() []jamfpro.PolicySelfServiceCategory {
+				// Initialize with an empty slice of categories
 				categories := []jamfpro.PolicySelfServiceCategory{}
-				if catData, ok := selfServiceData["self_service_categories"].([]interface{}); ok {
+
+				// Check if values are provided in Terraform and override defaults if necessary
+				if catData, ok := selfServiceData["self_service_categories"].([]interface{}); ok && len(catData) > 0 {
 					for _, cat := range catData {
 						catMap := cat.(map[string]interface{})
 						category := jamfpro.PolicySelfServiceCategory{
@@ -2218,7 +2221,18 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 						}
 						categories = append(categories, category)
 					}
+				} else {
+					// Set default category if no values are provided in Terraform
+					categories = append(categories, jamfpro.PolicySelfServiceCategory{
+						Category: jamfpro.PolicyCategory{
+							ID:        "-1",
+							Name:      "None",
+							DisplayIn: false,
+							FeatureIn: false,
+						},
+					})
 				}
+
 				return categories
 			}(),
 		}
@@ -2388,7 +2402,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 		}()
 
 		managementAccount := func() jamfpro.PolicyManagementAccount {
-			// Set default values
+			// Initialize with default values
 			defaultManagementAccount := jamfpro.PolicyManagementAccount{
 				Action:                "doNotChange",
 				ManagedPassword:       "",
@@ -2397,7 +2411,6 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 
 			// Check if values are provided in Terraform and override defaults if necessary
 			if maData, ok := accountMaintenanceData["management_account"].(map[string]interface{}); ok {
-				// Override with provided values if available
 				defaultManagementAccount.Action = getStringFromMap(maData, "action")
 				defaultManagementAccount.ManagedPassword = getStringFromMap(maData, "managed_password")
 				defaultManagementAccount.ManagedPasswordLength = getIntFromMap(maData, "managed_password_length")
@@ -2407,7 +2420,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 		}()
 
 		openFirmwareEfiPassword := func() jamfpro.PolicyOpenFirmwareEfiPassword {
-			// Set default values
+			// Initialize with default values
 			defaultOpenFirmwareEfiPassword := jamfpro.PolicyOpenFirmwareEfiPassword{
 				OfMode:           "none",
 				OfPassword:       "",
@@ -2416,7 +2429,6 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 
 			// Check if values are provided in Terraform and override defaults if necessary
 			if ofData, ok := accountMaintenanceData["open_firmware_efi_password"].(map[string]interface{}); ok {
-				// Override with provided values if available
 				defaultOpenFirmwareEfiPassword.OfMode = getStringFromMap(ofData, "of_mode")
 				defaultOpenFirmwareEfiPassword.OfPassword = getStringFromMap(ofData, "of_password")
 				defaultOpenFirmwareEfiPassword.OfPasswordSHA256 = getStringFromMap(ofData, "of_password_sha256")
@@ -2705,6 +2717,7 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 					if !ok {
 						return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 					}
+					// If fetching by ID fails, try fetching by Name
 					policy, apiErr = conn.GetPolicyByName(policyName)
 					if apiErr != nil {
 						return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
@@ -2727,7 +2740,7 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 	// Update the Terraform state with the fetched data
 	// Set 'general' attributes
 	generalAttributes := map[string]interface{}{
-		"id":                            policy.General.ID,
+		//"id":                            policy.General.ID,
 		"name":                          policy.General.Name,
 		"enabled":                       policy.General.Enabled,
 		"trigger":                       policy.General.Trigger,
