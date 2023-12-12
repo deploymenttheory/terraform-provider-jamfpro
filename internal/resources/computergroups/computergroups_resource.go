@@ -54,9 +54,9 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 		UpdateContext: ResourceJamfProComputerGroupsUpdate,
 		DeleteContext: ResourceJamfProComputerGroupsDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(3 * time.Minute),
+			Create: schema.DefaultTimeout(1 * time.Minute),
 			Read:   schema.DefaultTimeout(1 * time.Minute),
-			Update: schema.DefaultTimeout(3 * time.Minute),
+			Update: schema.DefaultTimeout(1 * time.Minute),
 			Delete: schema.DefaultTimeout(1 * time.Minute),
 		},
 		CustomizeDiff: customDiffComputeGroups,
