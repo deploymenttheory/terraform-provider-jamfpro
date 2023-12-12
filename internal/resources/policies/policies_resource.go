@@ -1786,10 +1786,10 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 					dateTimeMap := dtData[0].(map[string]interface{})
 					dateTimeLimitations := jamfpro.PolicyDateTimeLimitations{
 						ActivationDate:      getStringFromMap(dateTimeMap, "activation_date"),
-						ActivationDateEpoch: getInt64FromMap(dateTimeMap, "activation_date_epoch"), // Assuming getInt64FromMap is similar to getIntFromMap
+						ActivationDateEpoch: getIntFromMap(dateTimeMap, "activation_date_epoch"),
 						ActivationDateUTC:   getStringFromMap(dateTimeMap, "activation_date_utc"),
 						ExpirationDate:      getStringFromMap(dateTimeMap, "expiration_date"),
-						ExpirationDateEpoch: getInt64FromMap(dateTimeMap, "expiration_date_epoch"),
+						ExpirationDateEpoch: getIntFromMap(dateTimeMap, "expiration_date_epoch"),
 						ExpirationDateUTC:   getStringFromMap(dateTimeMap, "expiration_date_utc"),
 					}
 
