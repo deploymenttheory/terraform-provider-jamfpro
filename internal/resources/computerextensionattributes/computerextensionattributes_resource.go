@@ -28,10 +28,10 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 		DeleteContext: ResourceJamfProComputerExtensionAttributesDelete,
 		CustomizeDiff: validateResourceComputerExtensionAttributesDataFields,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute), // default timeout for create operation
-			Read:   schema.DefaultTimeout(1 * time.Minute),  // default timeout for read operation
-			Update: schema.DefaultTimeout(30 * time.Minute), // default timeout for update operation
-			Delete: schema.DefaultTimeout(15 * time.Minute), // default timeout for delete operation
+			Create: schema.DefaultTimeout(1 * time.Minute),
+			Read:   schema.DefaultTimeout(1 * time.Minute),
+			Update: schema.DefaultTimeout(1 * time.Minute),
+			Delete: schema.DefaultTimeout(1 * time.Minute),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
