@@ -1794,10 +1794,16 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 					}
 
 					// Handling NoExecuteOn field
-					if noExecOn, ok := dateTimeMap["no_execute_on"].([]interface{}); ok && len(noExecOn) > 0 {
-						dateTimeLimitations.NoExecuteOn = jamfpro.PolicyNoExecuteOn{
-							Day: getStringFromArray(noExecOn, 0), // getStringFromArray is a new helper to safely get string from array
+					if noExecOnData, ok := dateTimeMap["no_execute_on"].([]interface{}); ok {
+						var noExecOnDays []jamfpro.PolicyNoExecuteOn
+						for _, day := range noExecOnData {
+							if dayMap, ok := day.(map[string]interface{}); ok {
+								noExecOnDays = append(noExecOnDays, jamfpro.PolicyNoExecuteOn{
+									Day: getStringFromMap(dayMap, "day"),
+								})
+							}
 						}
+						dateTimeLimitations.NoExecuteOn = noExecOnDays
 					}
 
 					// Handling NoExecuteStart and NoExecuteEnd fields
@@ -2778,11 +2784,13 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 				"expiration_date":       policy.General.DateTimeLimitations.ExpirationDate,
 				"expiration_date_epoch": policy.General.DateTimeLimitations.ExpirationDateEpoch,
 				"expiration_date_utc":   policy.General.DateTimeLimitations.ExpirationDateUTC,
-				"no_execute_on": []interface{}{
-					map[string]interface{}{
-						"day": policy.General.DateTimeLimitations.NoExecuteOn.Day,
-					},
-				},
+				"no_execute_on": func() []interface{} {
+					noExecOnDays := make([]interface{}, len(policy.General.DateTimeLimitations.NoExecuteOn))
+					for i, noExecOn := range policy.General.DateTimeLimitations.NoExecuteOn {
+						noExecOnDays[i] = map[string]interface{}{"day": noExecOn.Day}
+					}
+					return noExecOnDays
+				}(),
 				"no_execute_start": policy.General.DateTimeLimitations.NoExecuteStart,
 				"no_execute_end":   policy.General.DateTimeLimitations.NoExecuteEnd,
 			},
