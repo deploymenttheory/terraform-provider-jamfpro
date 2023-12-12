@@ -14,11 +14,13 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiintegrations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiroles"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/buildings"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computercheckin"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerextensionattributes"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computergroups"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerinventory"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/departments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/dockitems"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macosconfigurationprofiles"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/policies"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/printers"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/scripts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/sites"
@@ -108,11 +110,11 @@ func Provider() *schema.Provider {
 			"jamfpro_buildings":                     buildings.DataSourceJamfProBuilding(),
 			"jamfpro_computer_extension_attributes": computerextensionattributes.DataSourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_groups":               computergroups.DataSourceJamfProComputerGroups(),
-			//"jamfpro_computer_inventory":            computerinventory.DataSourceJamfProComputerInventory(),
-			"jamfpro_departments": departments.DataSourceJamfProDepartments(),
-			"jamfpro_dock_items":  dockitems.DataSourceJamfProDockItems(),
-			"jamfpro_sites":       sites.DataSourceJamfProSites(),
-			"jamfpro_scripts":     scripts.DataSourceJamfProScripts(),
+			"jamfpro_computer_inventory":            computerinventory.DataSourceJamfProComputerInventory(),
+			"jamfpro_departments":                   departments.DataSourceJamfProDepartments(),
+			"jamfpro_dock_items":                    dockitems.DataSourceJamfProDockItems(),
+			"jamfpro_sites":                         sites.DataSourceJamfProSites(),
+			"jamfpro_scripts":                       scripts.DataSourceJamfProScripts(),
 			//"jamfpro_macos_configuration_profiles":  macosconfigurationprofiles.DataSourceJamfProMacOSConfigurationProfiles(),
 			"jamfpro_printers": printers.DataSourceJamfProPrinters(),
 		},
@@ -120,14 +122,16 @@ func Provider() *schema.Provider {
 			"jamfpro_api_integrations":              apiintegrations.ResourceJamfProApiIntegrations(),
 			"jamfpro_api_roles":                     apiroles.ResourceJamfProAPIRoles(),
 			"jamfpro_buildings":                     buildings.ResourceJamfProBuilding(),
+			"jamfpro_computer_checkin":              computercheckin.ResourceJamfProComputerCheckin(),
 			"jamfpro_computer_extension_attributes": computerextensionattributes.ResourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_groups":               computergroups.ResourceJamfProComputerGroups(),
 			"jamfpro_departments":                   departments.ResourceJamfProDepartments(),
 			"jamfpro_dock_items":                    dockitems.ResourceJamfProDockItems(),
 			"jamfpro_sites":                         sites.ResourceJamfProSites(),
 			"jamfpro_scripts":                       scripts.ResourceJamfProScripts(),
-			"jamfpro_macos_configuration_profiles":  macosconfigurationprofiles.ResourceJamfProMacOSConfigurationProfiles(),
-			"jamfpro_printers":                      printers.ResourceJamfProPrinters(),
+			//"jamfpro_macos_configuration_profiles":  macosconfigurationprofiles.ResourceJamfProMacOSConfigurationProfiles(),
+			"jamfpro_policies": policies.ResourceJamfProPolicies(),
+			"jamfpro_printers": printers.ResourceJamfProPrinters(),
 		},
 	}
 
