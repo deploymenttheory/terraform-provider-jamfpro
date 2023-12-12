@@ -1263,11 +1263,6 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Description: "List of account maintenance configurations.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"size": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "Number of accounts in the policy.",
-									},
 									"account": {
 										Type:        schema.TypeList,
 										Optional:    true,
@@ -1310,6 +1305,11 @@ func ResourceJamfProPolicies() *schema.Resource {
 													Optional:    true,
 													Description: "Full path in which to create the home directory (e.g. /Users/username/ or /private/var/username/)",
 												},
+												"hint": {
+													Type:        schema.TypeString,
+													Optional:    true,
+													Description: "Hint to help the user remember the password",
+												},
 												"picture": {
 													Type:        schema.TypeString,
 													Optional:    true,
@@ -1337,11 +1337,6 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Description: "Directory binding settings for the policy. Use this section to bind computers to a directory service",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"size": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "Number of directory bindings.",
-									},
 									"binding": {
 										Type:        schema.TypeList,
 										Optional:    true,
@@ -2392,13 +2387,18 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 
 		directoryBindings := func() []jamfpro.PolicyDirectoryBinding {
 			var items []jamfpro.PolicyDirectoryBinding
-			if bindings, ok := accountMaintenanceData["directory_bindings"].([]interface{}); ok {
-				for _, binding := range bindings {
-					bindingMap := binding.(map[string]interface{})
-					items = append(items, jamfpro.PolicyDirectoryBinding{
-						ID:   getIntFromMap(bindingMap, "id"),
-						Name: getStringFromMap(bindingMap, "name"),
-					})
+			if bindingsList, ok := accountMaintenanceData["directory_bindings"].([]interface{}); ok {
+				for _, bindingEntry := range bindingsList {
+					bindingData := bindingEntry.(map[string]interface{})
+					if bindings, ok := bindingData["binding"].([]interface{}); ok {
+						for _, binding := range bindings {
+							bindingMap := binding.(map[string]interface{})
+							items = append(items, jamfpro.PolicyDirectoryBinding{
+								ID:   getIntFromMap(bindingMap, "id"),
+								Name: getStringFromMap(bindingMap, "name"),
+							})
+						}
+					}
 				}
 			}
 			return items
@@ -3158,6 +3158,7 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 		acc["archive_home_directory"] = account.ArchiveHomeDirectory
 		acc["archive_home_directory_to"] = account.ArchiveHomeDirectoryTo
 		acc["home"] = account.Home
+		acc["hint"] = account.Hint
 		acc["picture"] = account.Picture
 		acc["admin"] = account.Admin
 		acc["filevault_enabled"] = account.FilevaultEnabled
