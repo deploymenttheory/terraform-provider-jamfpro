@@ -998,13 +998,11 @@ func ResourceJamfProPolicies() *schema.Resource {
 													Type:        schema.TypeBool,
 													Optional:    true,
 													Description: "Whether to display the category in self-service.",
-													Default:     false,
 												},
 												"feature_in": {
 													Type:        schema.TypeBool,
 													Optional:    true,
 													Description: "Whether to feature the category in self-service.",
-													Default:     false,
 												},
 											},
 										},
@@ -2219,35 +2217,25 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 				return jamfpro.PolicySelfServiceIcon{}
 			}(),
 			SelfServiceCategories: func() []jamfpro.PolicySelfServiceCategory {
-				// Initialize with an empty slice of categories
-				categories := []jamfpro.PolicySelfServiceCategory{}
-
-				// Check if values are provided in Terraform and override defaults if necessary
-				if catData, ok := selfServiceData["self_service_categories"].([]interface{}); ok && len(catData) > 0 {
+				var categories []jamfpro.PolicySelfServiceCategory
+				if catData, ok := selfServiceData["self_service_categories"].([]interface{}); ok {
 					for _, cat := range catData {
 						catMap := cat.(map[string]interface{})
-						category := jamfpro.PolicySelfServiceCategory{
-							Category: jamfpro.PolicyCategory{
-								ID:        getIntFromMap(catMap, "id"),
-								Name:      getStringFromMap(catMap, "name"),
-								DisplayIn: getBoolFromMap(catMap, "display_in"),
-								FeatureIn: getBoolFromMap(catMap, "feature_in"),
-							},
+						if catDetails, ok := catMap["category"].([]interface{}); ok && len(catDetails) > 0 {
+							// Assuming each 'category' only contains one element as per the schema structure
+							details := catDetails[0].(map[string]interface{})
+							category := jamfpro.PolicySelfServiceCategory{
+								Category: jamfpro.PolicyCategory{
+									ID:        getIntFromMap(details, "id"),
+									Name:      getStringFromMap(details, "name"),
+									DisplayIn: getBoolFromMap(details, "display_in"),
+									FeatureIn: getBoolFromMap(details, "feature_in"),
+								},
+							}
+							categories = append(categories, category)
 						}
-						categories = append(categories, category)
 					}
-				} else {
-					// Set default category if no values are provided in Terraform
-					categories = append(categories, jamfpro.PolicySelfServiceCategory{
-						Category: jamfpro.PolicyCategory{
-							ID:        -1,
-							Name:      "None",
-							DisplayIn: false,
-							FeatureIn: false,
-						},
-					})
 				}
-
 				return categories
 			}(),
 		}
@@ -3061,11 +3049,14 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 		"self_service_categories": func() []interface{} {
 			categories := make([]interface{}, len(policy.SelfService.SelfServiceCategories))
 			for i, cat := range policy.SelfService.SelfServiceCategories {
-				categories[i] = map[string]interface{}{
+				categoryMap := map[string]interface{}{
 					"id":         cat.Category.ID,
 					"name":       cat.Category.Name,
 					"display_in": cat.Category.DisplayIn,
 					"feature_in": cat.Category.FeatureIn,
+				}
+				categories[i] = map[string]interface{}{
+					"category": []interface{}{categoryMap},
 				}
 			}
 			return categories
@@ -3190,12 +3181,14 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 		}
 	}
 
-	directoryBindingsConfigs := map[string]interface{}{
+	// Wrap the list of binding maps in an object with the size key
+	directoryBindingsConfig := map[string]interface{}{
 		"size":    len(directoryBindingMaps),
 		"binding": directoryBindingMaps,
 	}
 
-	if err := d.Set("directory_bindings", []interface{}{directoryBindingsConfigs}); err != nil {
+	// Set this object under the directory_bindings key in the Terraform state
+	if err := d.Set("directory_bindings", []interface{}{directoryBindingsConfig}); err != nil {
 		return diag.FromErr(err)
 	}
 
