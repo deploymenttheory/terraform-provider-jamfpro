@@ -1756,23 +1756,28 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			TargetDrive:                getStringFromMap(generalData, "target_drive"),
 			Offline:                    getBoolFromMap(generalData, "offline"),
 			Category: func() jamfpro.PolicyCategory {
+				// Initialize with default values
 				defaultCategory := jamfpro.PolicyCategory{
-					ID:   "-1",                   // Default ID
+					ID:   -1,                     // Default ID as integer
 					Name: "No category assigned", // Default Name
 				}
+
+				// Check if values are provided in Terraform and override defaults if necessary
 				if catData, ok := generalData["category"].([]interface{}); ok && len(catData) > 0 {
 					catMap := catData[0].(map[string]interface{})
 
-					catID := getStringFromMap(catMap, "id")
+					catID := getIntFromMap(catMap, "id")
 					catName := getStringFromMap(catMap, "name")
-					// Only override the default if a non-empty value is provided
-					if catID != "" {
+
+					// Only override the default if a valid value is provided
+					if catID != -1 {
 						defaultCategory.ID = catID
 					}
 					if catName != "" {
 						defaultCategory.Name = catName
 					}
 				}
+
 				return defaultCategory
 			}(),
 			// DateTimeLimitations field
@@ -1838,26 +1843,30 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			}(),
 			// NetworkRequirements field
 			NetworkRequirements: getStringFromMap(generalData, "network_requirements"),
-			// construct Site fields, use default values if none popualted in tf.
+			// construct Site fields, and Initialize with default values
 			Site: func() jamfpro.PolicySite {
+
 				defaultSite := jamfpro.PolicySite{
-					ID:   -1,     // Assuming -1 is the default ID
-					Name: "None", // Default site name
+					ID:   -1,
+					Name: "None",
 				}
 
+				// Check if values are provided in Terraform and override defaults if necessary
 				if siteData, ok := generalData["site"].([]interface{}); ok && len(siteData) > 0 {
 					siteMap := siteData[0].(map[string]interface{})
 
 					siteID := getIntFromMap(siteMap, "id")
 					siteName := getStringFromMap(siteMap, "name")
 
-					if siteID != 0 { // Assuming 0 is an empty value for ID
+					// Only override the default if a valid value is provided
+					if siteID != -1 {
 						defaultSite.ID = siteID
 					}
 					if siteName != "" {
 						defaultSite.Name = siteName
 					}
 				}
+
 				return defaultSite
 			}(),
 		}
@@ -2213,7 +2222,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 						catMap := cat.(map[string]interface{})
 						category := jamfpro.PolicySelfServiceCategory{
 							Category: jamfpro.PolicyCategory{
-								ID:        getStringFromMap(catMap, "id"),
+								ID:        getIntFromMap(catMap, "id"),
 								Name:      getStringFromMap(catMap, "name"),
 								DisplayIn: getBoolFromMap(catMap, "display_in"),
 								FeatureIn: getBoolFromMap(catMap, "feature_in"),
@@ -2225,7 +2234,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 					// Set default category if no values are provided in Terraform
 					categories = append(categories, jamfpro.PolicySelfServiceCategory{
 						Category: jamfpro.PolicyCategory{
-							ID:        "-1",
+							ID:        -1,
 							Name:      "None",
 							DisplayIn: false,
 							FeatureIn: false,
