@@ -3402,9 +3402,14 @@ func ResourceJamfProPoliciesUpdate(ctx context.Context, d *schema.ResourceData, 
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If the update by ID fails, try updating by name
-			policyName, ok := d.Get("name").(string)
+			generalSettings, ok := d.GetOk("general")
+			if !ok || len(generalSettings.([]interface{})) == 0 {
+				return retry.NonRetryableError(fmt.Errorf("unable to find 'general' block for terraform update operation"))
+			}
+			generalMap := generalSettings.([]interface{})[0].(map[string]interface{})
+			policyName, ok := generalMap["name"].(string)
 			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string for terraform update operation"))
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' within 'general' as a string for terraform update operation"))
 			}
 
 			_, apiErr = conn.UpdatePolicyByName(policyName, policy)
@@ -3459,16 +3464,21 @@ func ResourceJamfProPoliciesDelete(ctx context.Context, d *schema.ResourceData, 
 		// Convert the ID from the Terraform state into an integer to be used for the API request
 		policyID, convertErr := strconv.Atoi(d.Id())
 		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse dock item ID: %v", convertErr))
+			return retry.NonRetryableError(fmt.Errorf("failed to parse policy ID: %v", convertErr))
 		}
 
 		// Directly call the API to DELETE the resource
 		apiErr := conn.DeletePolicyByID(policyID)
 		if apiErr != nil {
 			// If the DELETE by ID fails, try deleting by name
-			policyName, ok := d.Get("name").(string)
+			generalSettings, ok := d.GetOk("general")
+			if !ok || len(generalSettings.([]interface{})) == 0 {
+				return retry.NonRetryableError(fmt.Errorf("unable to find 'general' block for terraform delete operation"))
+			}
+			generalMap := generalSettings.([]interface{})[0].(map[string]interface{})
+			policyName, ok := generalMap["name"].(string)
 			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string for terraform delete operation"))
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' within 'general' as a string for terraform delete operation"))
 			}
 
 			apiErr = conn.DeletePolicyByName(policyName)
