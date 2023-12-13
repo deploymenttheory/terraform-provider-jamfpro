@@ -2825,6 +2825,7 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 	// Update the Terraform state with the fetched data
 	// Set 'general' attributes
 	generalAttributes := map[string]interface{}{
+		"id":                            policy.General.ID,
 		"name":                          policy.General.Name,
 		"enabled":                       policy.General.Enabled,
 		"trigger":                       policy.General.Trigger,
