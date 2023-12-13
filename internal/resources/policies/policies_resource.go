@@ -160,7 +160,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 						"offline": {
 							Type:        schema.TypeBool,
 							Optional:    true,
-							Description: "Whether the policy applies when offline.",
+							Description: "Make policy available offline by caching the policy to the macOS device to ensure it runs when Jamf Pro is unavailable. Only used when execution policy is set to 'ongoing'. ",
 							Default:     false,
 						},
 						"category": {
