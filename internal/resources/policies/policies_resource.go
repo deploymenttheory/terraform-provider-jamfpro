@@ -55,7 +55,6 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether the policy is enabled.",
-							Default:     false,
 						},
 						"trigger": {
 							Type:        schema.TypeString,
@@ -66,37 +65,31 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Trigger policy when device performs recurring check-in against the frequency configured in Jamf Pro",
-							Default:     false,
 						},
 						"trigger_enrollment_complete": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Trigger policy when device enrollment is complete.",
-							Default:     false,
 						},
 						"trigger_login": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Trigger policy when a user logs in to a computer. A login event that checks for policies must be configured in Jamf Pro for this to work",
-							Default:     false,
 						},
 						"trigger_logout": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Trigger policy when a user logout.",
-							Default:     false,
 						},
 						"trigger_network_state_changed": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Trigger policy when it's network state changes. When a computer's network state changes (e.g., when the network connection changes, when the computer name changes, when the IP address changes)",
-							Default:     false,
 						},
 						"trigger_startup": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Trigger policy when a computer starts up. A startup script that checks for policies must be configured in Jamf Pro for this to work",
-							Default:     false,
 						},
 						"trigger_other": {
 							Type:        schema.TypeString,
@@ -127,54 +120,51 @@ func ResourceJamfProPolicies() *schema.Resource {
 								"trigger",
 								"check-in",
 							}, false),
-							Default: "none",
 						},
 						"retry_attempts": {
 							Type:        schema.TypeInt,
 							Optional:    true,
 							Description: "Number of retry attempts for the jamf pro policy.",
-							Default:     -1,
 						},
 						"notify_on_each_failed_retry": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Send notifications for each failed policy retry attempt. ",
-							Default:     false,
 						},
 						"location_user_only": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Location-based policy for user only.",
-							Default:     false,
 						},
 						"target_drive": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "The drive on which to run the policy (e.g. /Volumes/Restore/ ). The policy runs on the boot drive by default",
+							Computed:    true,
 						},
 						"offline": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether the policy applies when offline.",
-							Default:     false,
 						},
 						"category": {
 							Type:        schema.TypeList,
 							Optional:    true,
 							Description: "Category to add the policy to.",
+							Computed:    true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
 										Type:        schema.TypeInt,
 										Optional:    true,
-										Default:     -1,
 										Description: "The category ID assigned to the jamf pro policy. Defaults to '-1' aka not used.",
+										Computed:    true,
 									},
 									"name": {
 										Type:        schema.TypeString,
 										Optional:    true,
-										Default:     "No category assigned",
 										Description: "Category Name for assigned jamf pro policy. Value defaults to 'No category assigned' aka not used",
+										Computed:    true,
 									},
 								},
 							},
@@ -183,6 +173,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeList,
 							Optional:    true,
 							Description: "Server-side limitations use your Jamf Pro host server's time zone and settings. The Jamf Pro host service is in UTC time.",
+							Computed:    true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"activation_date": {
@@ -194,6 +185,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 										Type:        schema.TypeInt,
 										Optional:    true,
 										Description: "The epoch time of the activation date.",
+										Computed:    true,
 									},
 									"activation_date_utc": {
 										Type:        schema.TypeString,
@@ -209,6 +201,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 										Type:        schema.TypeInt,
 										Optional:    true,
 										Description: "The epoch time of the expiration date.",
+										Computed:    true,
 									},
 									"expiration_date_utc": {
 										Type:        schema.TypeString,
@@ -223,6 +216,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 											ValidateFunc: validation.StringInSlice([]string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}, false),
 										},
 										Description: "Client-side limitations are enforced based on the settings on computers. This field sets specific days when the policy should not execute.",
+										Computed:    true,
 									},
 									"no_execute_start": {
 										Type:        schema.TypeString,
@@ -241,19 +235,21 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeList,
 							Optional:    true,
 							Description: "Network limitations for the policy.",
+							Computed:    true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"minimum_network_connection": {
 										Type:         schema.TypeString,
 										Optional:     true,
 										Description:  "Minimum network connection required for the policy.",
+										Computed:     true,
 										ValidateFunc: validation.StringInSlice([]string{"No Minimum", "Ethernet"}, false),
 									},
 									"any_ip_address": {
 										Type:        schema.TypeBool,
 										Optional:    true,
 										Description: "Whether the policy applies to any IP address.",
-										Default:     false,
+										Computed:    true,
 									},
 								},
 							},
@@ -262,6 +258,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeList,
 							Optional:    true,
 							Description: "Settings to override default configurations.",
+							Computed:    true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"target_drive": {
@@ -301,19 +298,20 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeList,
 							Optional:    true,
 							Description: "Jamf Pro Site-related settings of the policy.",
+							Computed:    true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
 										Type:        schema.TypeInt,
 										Optional:    true,
-										Default:     -1,
 										Description: "Jamf Pro Site ID. Value defaults to -1 aka not used.",
+										Computed:    true,
 									},
 									"name": {
 										Type:        schema.TypeString,
 										Optional:    true,
-										Default:     "None",
 										Description: "Jamf Pro Site Name. Value defaults to 'None' aka not used",
+										Computed:    true,
 									},
 								},
 							},
@@ -326,17 +324,20 @@ func ResourceJamfProPolicies() *schema.Resource {
 				MaxItems:    1,
 				Optional:    true,
 				Description: "Scope configuration for the profile.",
+				Computed:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"all_computers": {
 							Type:        schema.TypeBool,
 							Optional:    true,
-							Description: "If true, applies the profile to all computers.",
+							Description: "If true, applies the profile to all computers. If false applies to specific computers. Default is false.",
+							Computed:    true,
 						},
 						"all_jss_users": {
 							Type:        schema.TypeBool,
 							Optional:    true,
-							Description: "If true, applies the profile to all JSS users.",
+							Description: "If true, applies the profile to all JSS users. If false applies to specific jss users. Default is false.",
+							Computed:    true,
 						},
 						"computers": {
 							Type:     schema.TypeList,
@@ -497,8 +498,10 @@ func ResourceJamfProPolicies() *schema.Resource {
 							},
 						},
 						"limitations": {
-							Type:     schema.TypeList,
-							Optional: true,
+							Type:        schema.TypeList,
+							Optional:    true,
+							Description: "Scoped limitations for the policy.",
+							Computed:    true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"network_segments": {
@@ -618,19 +621,23 @@ func ResourceJamfProPolicies() *schema.Resource {
 							},
 						},
 						"exclusions": {
-							Type:     schema.TypeList,
-							Optional: true,
+							Type:        schema.TypeList,
+							Optional:    true,
+							Description: "Scoped exclusions to exclude from the policy.",
+							Computed:    true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"computers": {
-										Type:     schema.TypeList,
-										Optional: true,
+										Type:        schema.TypeList,
+										Optional:    true,
+										Description: "Scoped computer exclusions to exclude from the policy.",
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"computer": {
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
+													Type:        schema.TypeList,
+													Optional:    true,
+													Description: "The individual computer to exclude from the policy.",
+													MaxItems:    1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -912,13 +919,14 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Self-service settings of the policy.",
+				Computed:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"use_for_self_service": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether the policy is available for self-service.",
-							Default:     false,
+							Computed:    true,
 						},
 						"self_service_display_name": {
 							Type:        schema.TypeString,
@@ -929,7 +937,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Text displayed on the install button in self-service.",
-							Default:     "Install",
+							Computed:    true,
 						},
 						"reinstall_button_text": {
 							Type:        schema.TypeString,
@@ -940,12 +948,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Description of the policy displayed in self-service.",
+							Computed:    true,
 						},
 						"force_users_to_view_description": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to force users to view the policy description in self-service.",
-							Default:     false,
+							Computed:    true,
 						},
 						"self_service_icon": {
 							Type:        schema.TypeList,
@@ -977,18 +986,20 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to feature the policy on the main page of self-service.",
-							Default:     false,
+							Computed:    true,
 						},
 						"self_service_categories": {
 							Type:        schema.TypeList,
 							Optional:    true,
 							Description: "Category settings for the policy in self-service.",
+							Computed:    true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"category": {
 										Type:        schema.TypeList,
 										Optional:    true,
 										Description: "Category details for the policy in self-service.",
+										Computed:    true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"id": {
@@ -1177,6 +1188,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Printers settings of the policy.",
+				Computed:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"leave_existing_default": {
@@ -1222,13 +1234,9 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Dock items settings of the policy.",
+				Computed:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"size": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "Number of dock items in the policy.",
-						},
 						"dock_item": {
 							Type:        schema.TypeList,
 							Optional:    true,
@@ -1419,13 +1427,14 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Use this section to restart computers and specify the disk to boot them to",
+				Computed:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"message": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "The reboot message displayed to the user.",
-							Default:     "This computer will restart in 5 minutes. Please save anything you are working on and log out by choosing Log Out from the bottom of the Apple menu.",
+							Computed:    true,
 						},
 						"specify_startup": {
 							Type:        schema.TypeString,
@@ -1447,7 +1456,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Disk to boot computers to",
-							Default:     "Current Startup Disk",
+							Computed:    true,
 							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 								v := val.(string)
 								validDisks := []string{"Current Startup Disk", "Currently Selected Startup Disk (No Bless)", "macOS Installer", "Specify Local Startup Disk"}
@@ -1464,7 +1473,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Action to take if no user is logged in to the computer",
-							Default:     "Do not restart",
+							Computed:    true,
 							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 								v := val.(string)
 								validOptions := []string{"Restart if a package or update requires it", "Restart Immediately", "Do not restart"}
@@ -1480,7 +1489,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 						"user_logged_in": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Default:     "Do not restart",
+							Computed:    true,
 							Description: "Action to take if a user is logged in to the computer",
 							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 								v := val.(string)
@@ -1498,19 +1507,19 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeInt,
 							Optional:    true,
 							Description: "Amount of time to wait before the restart begins.",
-							Default:     5,
+							Computed:    true,
 						},
 						"start_reboot_timer_immediately": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "",
-							Default:     false,
+							Computed:    true,
 						},
 						"file_vault_2_reboot": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Perform authenticated restart on computers with FileVault 2 enabled. Restart FileVault 2-encrypted computers without requiring an unlock during the next startup",
-							Default:     false,
+							Computed:    true,
 						},
 					},
 				},
@@ -1519,67 +1528,68 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Maintenance settings of the policy. Use this section to update inventory, reset computer names, install all cached packages, and run common maintenance tasks.",
+				Computed:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"recon": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to run recon (inventory update) as part of the maintenance. Forces computers to submit updated inventory information to Jamf Pro",
-							Default:     false,
+							Computed:    true,
 						},
 						"reset_name": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to reset the computer name to the name stored in Jamf Pro. Changes the computer name on computers to match the computer name in Jamf Pro",
-							Default:     false,
+							Computed:    true,
 						},
 						"install_all_cached_packages": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to install all cached packages. Installs packages cached by Jamf Pro",
-							Default:     false,
+							Computed:    true,
 						},
 						"heal": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to heal the policy.",
-							Default:     false,
+							Computed:    true,
 						},
 						"prebindings": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to update prebindings.",
-							Default:     false,
+							Computed:    true,
 						},
 						"permissions": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to fix Disk Permissions (Not compatible with macOS v10.12 or later)",
-							Default:     false,
+							Computed:    true,
 						},
 						"byhost": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to fix ByHost files andnpreferences.",
-							Default:     false,
+							Computed:    true,
 						},
 						"system_cache": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to flush caches from /Library/Caches/ and /System/Library/Caches/, except for any com.apple.LaunchServices caches",
-							Default:     false,
+							Computed:    true,
 						},
 						"user_cache": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to flush caches from ~/Library/Caches/, ~/.jpi_cache/, and ~/Library/Preferences/Microsoft/Office version #/Office Font Cache. Enabling this may cause problems with system fonts displaying unless a restart option is configured.",
-							Default:     false,
+							Computed:    true,
 						},
 						"verify": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to verify system files and structure on the Startup Disk",
-							Default:     false,
+							Computed:    true,
 						},
 					},
 				},
@@ -1588,6 +1598,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Files and processes settings of the policy. Use this section to search for and log specific files and processes. Also use this section to execute a command.",
+				Computed:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"search_by_path": {
@@ -1599,7 +1610,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to delete the file found at the specified path.",
-							Default:     false,
+							Computed:    true,
 						},
 						"locate_file": {
 							Type:        schema.TypeString,
@@ -1610,7 +1621,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to update the locate database. Update the locate database before searching for the file",
-							Default:     false,
+							Computed:    true,
 						},
 						"spotlight_search": {
 							Type:        schema.TypeString,
@@ -1626,7 +1637,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to kill the process if found. This works with exact matches only",
-							Default:     false,
+							Computed:    true,
 						},
 						"run_command": {
 							Type:        schema.TypeString,
@@ -1739,9 +1750,15 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	if v, ok := d.GetOk("general"); ok {
 		generalData := v.([]interface{})[0].(map[string]interface{})
 		policy.General = jamfpro.PolicyGeneral{
-			Name:                       getStringFromMap(generalData, "name"),
-			Enabled:                    getBoolFromMap(generalData, "enabled"),
-			Trigger:                    getStringFromMap(generalData, "trigger"),
+			Name:    getStringFromMap(generalData, "name"),
+			Enabled: getBoolFromMap(generalData, "enabled"),
+			Trigger: func() string {
+				trigger := getStringFromMap(generalData, "trigger")
+				if trigger != "" {
+					return trigger
+				}
+				return "EVENT" // Default to "EVENT" if not specified
+			}(),
 			TriggerCheckin:             getBoolFromMap(generalData, "trigger_checkin"),
 			TriggerEnrollmentComplete:  getBoolFromMap(generalData, "trigger_enrollment_complete"),
 			TriggerLogin:               getBoolFromMap(generalData, "trigger_login"),
@@ -2222,8 +2239,18 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 
 		// Assign constructed fields to the policy's Scope
 		policy.Scope = jamfpro.PolicyScope{
-			AllComputers:   scopeData["all_computers"].(bool),
-			AllJSSUsers:    scopeData["all_jss_users"].(bool),
+			AllComputers: func() bool {
+				if val, ok := scopeData["all_computers"].(bool); ok {
+					return val
+				}
+				return false // Default value if not specified
+			}(),
+			AllJSSUsers: func() bool {
+				if val, ok := scopeData["all_jss_users"].(bool); ok {
+					return val
+				}
+				return false // Default value if not specified
+			}(),
 			Computers:      computers,
 			ComputerGroups: computerGroups,
 			JSSUsers:       jssUsers,
@@ -2336,7 +2363,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			return items
 		}()
 
-		size := getIntFromMap(scriptsData, "size") // Safely get 'size', default to 0 if not found or if type is different
+		size := getIntFromMap(scriptsData, "size")
 
 		policy.Scripts = jamfpro.PolicyScripts{
 			Size:   size,
@@ -2361,7 +2388,10 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			}
 		}
 
-		leaveExistingDefault := getBoolFromMap(printersData, "leave_existing_default")
+		leaveExistingDefault := false
+		if val, ok := printersData["leave_existing_default"].(bool); ok {
+			leaveExistingDefault = val
+		}
 
 		policy.Printers = jamfpro.PolicyPrinters{
 			LeaveExistingDefault: leaveExistingDefault,
@@ -3192,7 +3222,6 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 
 	if err := d.Set("dock_items", []interface{}{
 		map[string]interface{}{
-			"size":      len(policy.DockItems.DockItem),
 			"dock_item": dockItemConfigurations,
 		},
 	}); err != nil {
@@ -3201,7 +3230,7 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 
 	// Fetch the account maintenance data from the policy and set it in Terraform state
 	accountMaintenanceState := make(map[string]interface{})
-	accountMaintenanceState["accounts"] = []interface{}{} // Initialize as empty list, fill below if accounts exist
+	accountMaintenanceState["accounts"] = []interface{}{}
 
 	// Add account data if present
 	if len(policy.AccountMaintenance.Accounts) > 0 {
