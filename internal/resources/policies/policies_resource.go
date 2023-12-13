@@ -55,41 +55,50 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether the policy is enabled.",
+							Default:     false,
 						},
 						"trigger": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Event(s) triggers to use to initiate the policy.",
+							Type:         schema.TypeString,
+							Optional:     true,
+							Description:  "Event(s) triggers to use to initiate the policy. Values can be 'USER_INITIATED' for self self trigger and 'EVENT' for an event based trigger",
+							Default:      "EVENT",
+							ValidateFunc: validation.StringInSlice([]string{"EVENT", "USER_INITIATED"}, false),
 						},
 						"trigger_checkin": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Trigger policy when device performs recurring check-in against the frequency configured in Jamf Pro",
+							Default:     false,
 						},
 						"trigger_enrollment_complete": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Trigger policy when device enrollment is complete.",
+							Default:     false,
 						},
 						"trigger_login": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Trigger policy when a user logs in to a computer. A login event that checks for policies must be configured in Jamf Pro for this to work",
+							Default:     false,
 						},
 						"trigger_logout": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Trigger policy when a user logout.",
+							Default:     false,
 						},
 						"trigger_network_state_changed": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Trigger policy when it's network state changes. When a computer's network state changes (e.g., when the network connection changes, when the computer name changes, when the IP address changes)",
+							Default:     false,
 						},
 						"trigger_startup": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Trigger policy when a computer starts up. A startup script that checks for policies must be configured in Jamf Pro for this to work",
+							Default:     false,
 						},
 						"trigger_other": {
 							Type:        schema.TypeString,
@@ -101,6 +110,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Frequency of policy execution.",
+							Default:     "Once per computer",
 							ValidateFunc: validation.StringInSlice([]string{
 								"Once per computer",
 								"Once per user per computer",
@@ -115,6 +125,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Event on which to retry policy execution.",
+							Default:     "none",
 							ValidateFunc: validation.StringInSlice([]string{
 								"none",
 								"trigger",
@@ -125,27 +136,31 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeInt,
 							Optional:    true,
 							Description: "Number of retry attempts for the jamf pro policy.",
+							Default:     -1,
 						},
 						"notify_on_each_failed_retry": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Send notifications for each failed policy retry attempt. ",
+							Default:     false,
 						},
 						"location_user_only": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Location-based policy for user only.",
+							Default:     false,
 						},
 						"target_drive": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "The drive on which to run the policy (e.g. /Volumes/Restore/ ). The policy runs on the boot drive by default",
-							Computed:    true,
+							Default:     "/",
 						},
 						"offline": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether the policy applies when offline.",
+							Default:     false,
 						},
 						"category": {
 							Type:        schema.TypeList,
@@ -180,6 +195,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 										Type:        schema.TypeString,
 										Optional:    true,
 										Description: "The activation date of the policy.",
+										Computed:    true,
 									},
 									"activation_date_epoch": {
 										Type:        schema.TypeInt,
@@ -191,11 +207,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 										Type:        schema.TypeString,
 										Optional:    true,
 										Description: "The UTC time of the activation date.",
+										Computed:    true,
 									},
 									"expiration_date": {
 										Type:        schema.TypeString,
 										Optional:    true,
 										Description: "The expiration date of the policy.",
+										Computed:    true,
 									},
 									"expiration_date_epoch": {
 										Type:        schema.TypeInt,
@@ -242,48 +260,52 @@ func ResourceJamfProPolicies() *schema.Resource {
 										Type:         schema.TypeString,
 										Optional:     true,
 										Description:  "Minimum network connection required for the policy.",
-										Computed:     true,
+										Default:      "No Minimum",
 										ValidateFunc: validation.StringInSlice([]string{"No Minimum", "Ethernet"}, false),
 									},
 									"any_ip_address": {
 										Type:        schema.TypeBool,
 										Optional:    true,
 										Description: "Whether the policy applies to any IP address.",
-										Computed:    true,
+										Default:     true,
+									},
+									"network_segments": {
+										Type:        schema.TypeString,
+										Description: "Network segment limitations for the policy.",
+										Optional:    true,
 									},
 								},
 							},
 						},
 						"override_default_settings": {
 							Type:        schema.TypeList,
-							Optional:    true,
+							Required:    true,
 							Description: "Settings to override default configurations.",
-							Computed:    true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"target_drive": {
 										Type:        schema.TypeString,
 										Optional:    true,
 										Description: "Target drive for the policy.",
-										Computed:    true,
+										Default:     "/",
 									},
 									"distribution_point": {
 										Type:        schema.TypeString,
 										Optional:    true,
 										Description: "Distribution point for the policy.",
-										Computed:    true,
+										Default:     "default",
 									},
 									"force_afp_smb": {
 										Type:        schema.TypeBool,
 										Optional:    true,
 										Description: "Whether to force AFP/SMB.",
-										Computed:    true,
+										Default:     false,
 									},
 									"sus": {
 										Type:        schema.TypeString,
 										Optional:    true,
 										Description: "Software Update Service for the policy.",
-										Computed:    true,
+										Default:     "default",
 									},
 								},
 							},
@@ -292,20 +314,19 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Network requirements for the policy.",
-							Computed:    true,
+							Default:     "Any",
 						},
 						"site": {
 							Type:        schema.TypeList,
-							Optional:    true,
+							Required:    true,
 							Description: "Jamf Pro Site-related settings of the policy.",
-							Computed:    true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
 										Type:        schema.TypeInt,
 										Optional:    true,
 										Description: "Jamf Pro Site ID. Value defaults to -1 aka not used.",
-										Computed:    true,
+										Default:     -1,
 									},
 									"name": {
 										Type:        schema.TypeString,
@@ -322,21 +343,14 @@ func ResourceJamfProPolicies() *schema.Resource {
 			"scope": {
 				Type:        schema.TypeList,
 				MaxItems:    1,
-				Optional:    true,
+				Required:    true,
 				Description: "Scope configuration for the profile.",
-				Computed:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"all_computers": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "If true, applies the profile to all computers. If false applies to specific computers. Default is false.",
-							Computed:    true,
-						},
-						"all_jss_users": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "If true, applies the profile to all JSS users. If false applies to specific jss users. Default is false.",
 							Computed:    true,
 						},
 						"computers": {
@@ -352,17 +366,17 @@ func ResourceJamfProPolicies() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"id": {
 													Type:        schema.TypeInt,
-													Optional:    true,
+													Required:    true,
 													Description: "The unique identifier of the scoped computer.",
 												},
 												"name": {
 													Type:        schema.TypeString,
-													Optional:    true,
+													Computed:    true,
 													Description: "Name of the scoped computer.",
 												},
 												"udid": {
 													Type:        schema.TypeString,
-													Optional:    true,
+													Computed:    true,
 													Description: "UDID of the scoped computer.",
 												},
 											},
@@ -384,13 +398,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"id": {
 													Type:        schema.TypeInt,
-													Optional:    true,
+													Required:    true,
 													Description: "The unique identifier of the scoped building.",
 												},
 												"name": {
 													Type:        schema.TypeString,
-													Optional:    true,
 													Description: "Name of the scoped building.",
+													Computed:    true,
 												},
 											},
 										},
@@ -411,13 +425,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"id": {
 													Type:        schema.TypeInt,
-													Optional:    true,
+													Required:    true,
 													Description: "The unique identifier of the scoped department.",
 												},
 												"name": {
 													Type:        schema.TypeString,
-													Optional:    true,
 													Description: "Name of the scoped department.",
+													Computed:    true,
 												},
 											},
 										},
@@ -438,13 +452,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"id": {
 													Type:        schema.TypeInt,
-													Optional:    true,
+													Required:    true,
 													Description: "The unique identifier of the scoped computer group.",
 												},
 												"name": {
 													Type:        schema.TypeString,
-													Optional:    true,
 													Description: "Name of the computer scoped group.",
+													Computed:    true,
 												},
 											},
 										},
@@ -465,13 +479,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"id": {
 													Type:        schema.TypeInt,
-													Optional:    true,
+													Required:    true,
 													Description: "The unique identifier of the scoped JSS user.",
 												},
 												"name": {
 													Type:        schema.TypeString,
-													Optional:    true,
 													Description: "Name of the scoped JSS user.",
+													Computed:    true,
 												},
 											},
 										},
@@ -486,13 +500,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"id": {
 										Type:        schema.TypeInt,
-										Optional:    true,
+										Required:    true,
 										Description: "The unique identifier of the scoped JSS user group.",
 									},
 									"name": {
 										Type:        schema.TypeString,
-										Optional:    true,
 										Description: "Name of the scoped JSS user group.",
+										Computed:    true,
 									},
 								},
 							},
@@ -501,7 +515,6 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeList,
 							Optional:    true,
 							Description: "Scoped limitations for the policy.",
-							Computed:    true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"network_segments": {
@@ -517,18 +530,18 @@ func ResourceJamfProPolicies() *schema.Resource {
 														Schema: map[string]*schema.Schema{
 															"id": {
 																Type:        schema.TypeInt,
-																Optional:    true,
+																Required:    true,
 																Description: "The unique identifier of the scoped network segment.",
 															},
 															"name": {
 																Type:        schema.TypeString,
-																Optional:    true,
 																Description: "Name of the scoped network segment.",
+																Computed:    true,
 															},
 															"uid": {
 																Type:        schema.TypeString,
-																Optional:    true,
 																Description: "UID of the scoped network segment.",
+																Computed:    true,
 															},
 														},
 													},
@@ -549,13 +562,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 														Schema: map[string]*schema.Schema{
 															"id": {
 																Type:        schema.TypeInt,
-																Optional:    true,
+																Required:    true,
 																Description: "The unique identifier of the user.",
 															},
 															"name": {
 																Type:        schema.TypeString,
-																Optional:    true,
 																Description: "Name of the user.",
+																Computed:    true,
 															},
 														},
 													},
@@ -576,13 +589,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 														Schema: map[string]*schema.Schema{
 															"id": {
 																Type:        schema.TypeInt,
-																Optional:    true,
+																Required:    true,
 																Description: "The unique identifier of the scoped user group.",
 															},
 															"name": {
 																Type:        schema.TypeString,
-																Optional:    true,
 																Description: "Name of the scoped user group.",
+																Computed:    true,
 															},
 														},
 													},
@@ -603,13 +616,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 														Schema: map[string]*schema.Schema{
 															"id": {
 																Type:        schema.TypeInt,
-																Optional:    true,
+																Required:    true,
 																Description: "The unique identifier of the scoped iBeacon.",
 															},
 															"name": {
 																Type:        schema.TypeString,
-																Optional:    true,
 																Description: "Name of the scoped iBeacon.",
+																Computed:    true,
 															},
 														},
 													},
@@ -624,7 +637,6 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeList,
 							Optional:    true,
 							Description: "Scoped exclusions to exclude from the policy.",
-							Computed:    true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"computers": {
@@ -642,18 +654,18 @@ func ResourceJamfProPolicies() *schema.Resource {
 														Schema: map[string]*schema.Schema{
 															"id": {
 																Type:        schema.TypeInt,
-																Optional:    true,
+																Required:    true,
 																Description: "The unique identifier of the computer.",
 															},
 															"name": {
 																Type:        schema.TypeString,
-																Optional:    true,
 																Description: "Name of the computer.",
+																Computed:    true,
 															},
 															"udid": {
 																Type:        schema.TypeString,
-																Optional:    true,
 																Description: "UDID of the computer.",
+																Computed:    true,
 															},
 														},
 													},
@@ -674,13 +686,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 														Schema: map[string]*schema.Schema{
 															"id": {
 																Type:        schema.TypeInt,
-																Optional:    true,
+																Required:    true,
 																Description: "The unique identifier of the computer group.",
 															},
 															"name": {
 																Type:        schema.TypeString,
-																Optional:    true,
 																Description: "Name of the computer group.",
+																Computed:    true,
 															},
 														},
 													},
@@ -701,13 +713,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 														Schema: map[string]*schema.Schema{
 															"id": {
 																Type:        schema.TypeInt,
-																Optional:    true,
+																Required:    true,
 																Description: "The unique identifier of the JSS user.",
 															},
 															"name": {
 																Type:        schema.TypeString,
-																Optional:    true,
 																Description: "Name of the JSS user.",
+																Computed:    true,
 															},
 														},
 													},
@@ -728,13 +740,14 @@ func ResourceJamfProPolicies() *schema.Resource {
 														Schema: map[string]*schema.Schema{
 															"id": {
 																Type:        schema.TypeInt,
-																Optional:    true,
+																Required:    true,
 																Description: "The unique identifier of the JSS user group.",
 															},
 															"name": {
 																Type:        schema.TypeString,
 																Optional:    true,
 																Description: "Name of the JSS user group.",
+																Computed:    true,
 															},
 														},
 													},
@@ -755,13 +768,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 														Schema: map[string]*schema.Schema{
 															"id": {
 																Type:        schema.TypeInt,
-																Optional:    true,
+																Required:    true,
 																Description: "The unique identifier of the building.",
 															},
 															"name": {
 																Type:        schema.TypeString,
-																Optional:    true,
 																Description: "Name of the building.",
+																Computed:    true,
 															},
 														},
 													},
@@ -782,13 +795,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 														Schema: map[string]*schema.Schema{
 															"id": {
 																Type:        schema.TypeInt,
-																Optional:    true,
+																Required:    true,
 																Description: "The unique identifier of the department.",
 															},
 															"name": {
 																Type:        schema.TypeString,
-																Optional:    true,
 																Description: "Name of the department.",
+																Computed:    true,
 															},
 														},
 													},
@@ -809,18 +822,18 @@ func ResourceJamfProPolicies() *schema.Resource {
 														Schema: map[string]*schema.Schema{
 															"id": {
 																Type:        schema.TypeInt,
-																Optional:    true,
+																Required:    true,
 																Description: "The unique identifier of the network segment.",
 															},
 															"uid": {
 																Type:        schema.TypeString,
-																Optional:    true,
 																Description: "UID of the network segment.",
+																Computed:    true,
 															},
 															"name": {
 																Type:        schema.TypeString,
-																Optional:    true,
 																Description: "Name of the network segment.",
+																Computed:    true,
 															},
 														},
 													},
@@ -841,13 +854,14 @@ func ResourceJamfProPolicies() *schema.Resource {
 														Schema: map[string]*schema.Schema{
 															"id": {
 																Type:        schema.TypeInt,
-																Optional:    true,
+																Required:    true,
 																Description: "The unique identifier of the user.",
 															},
 															"name": {
 																Type:        schema.TypeString,
 																Optional:    true,
 																Description: "Name of the user.",
+																Computed:    true,
 															},
 														},
 													},
@@ -868,13 +882,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 														Schema: map[string]*schema.Schema{
 															"id": {
 																Type:        schema.TypeInt,
-																Optional:    true,
+																Required:    true,
 																Description: "The unique identifier of the user group.",
 															},
 															"name": {
 																Type:        schema.TypeString,
-																Optional:    true,
 																Description: "Name of the user group.",
+																Computed:    true,
 															},
 														},
 													},
@@ -895,13 +909,14 @@ func ResourceJamfProPolicies() *schema.Resource {
 														Schema: map[string]*schema.Schema{
 															"id": {
 																Type:        schema.TypeInt,
-																Optional:    true,
+																Required:    true,
 																Description: "The unique identifier of the iBeacon.",
 															},
 															"name": {
 																Type:        schema.TypeString,
 																Optional:    true,
 																Description: "Name of the iBeacon.",
+																Computed:    true,
 															},
 														},
 													},
@@ -917,16 +932,15 @@ func ResourceJamfProPolicies() *schema.Resource {
 			},
 			"self_service": {
 				Type:        schema.TypeList,
-				Optional:    true,
+				Required:    true,
 				Description: "Self-service settings of the policy.",
-				Computed:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"use_for_self_service": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether the policy is available for self-service.",
-							Computed:    true,
+							Default:     false,
 						},
 						"self_service_display_name": {
 							Type:        schema.TypeString,
@@ -937,47 +951,46 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Text displayed on the install button in self-service.",
-							Computed:    true,
+							Default:     "Install",
 						},
 						"reinstall_button_text": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Text displayed on the re-install button in self-service.",
+							Default:     "Reinstall",
 						},
 						"self_service_description": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Description of the policy displayed in self-service.",
-							Computed:    true,
 						},
 						"force_users_to_view_description": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to force users to view the policy description in self-service.",
-							Computed:    true,
+							Default:     false,
 						},
 						"self_service_icon": {
 							Type:        schema.TypeList,
-							Optional:    true,
+							Required:    true,
 							Description: "Icon settings for the policy in self-service.",
-							Computed:    true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
 										Type:        schema.TypeInt,
 										Optional:    true,
 										Description: "ID of the icon used in self-service.",
-										Computed:    true,
+										Default:     0,
 									},
 									"filename": {
 										Type:        schema.TypeString,
-										Optional:    true,
 										Description: "Filename of the icon used in self-service.",
+										Computed:    true,
 									},
 									"uri": {
 										Type:        schema.TypeString,
-										Optional:    true,
 										Description: "URI of the icon used in self-service.",
+										Computed:    true,
 									},
 								},
 							},
@@ -986,7 +999,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to feature the policy on the main page of self-service.",
-							Computed:    true,
+							Default:     false,
 						},
 						"self_service_categories": {
 							Type:        schema.TypeList,
@@ -1004,9 +1017,8 @@ func ResourceJamfProPolicies() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"id": {
 													Type:        schema.TypeInt,
-													Optional:    true,
+													Required:    true,
 													Description: "Category ID for the policy in self-service.",
-													Computed:    true,
 												},
 												"name": {
 													Type:        schema.TypeString,
@@ -1017,13 +1029,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 													Type:        schema.TypeBool,
 													Optional:    true,
 													Description: "Whether to display the category in self-service.",
-													Computed:    true,
+													Default:     true,
 												},
 												"feature_in": {
 													Type:        schema.TypeBool,
 													Optional:    true,
 													Description: "Whether to feature the category in self-service.",
-													Computed:    true,
+													Default:     true,
 												},
 											},
 										},
@@ -1046,11 +1058,6 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Description: "List of packages included in the policy.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"size": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "The number of packages included in the policy.",
-									},
 									"package": {
 										Type:        schema.TypeList,
 										Optional:    true,
@@ -1059,19 +1066,20 @@ func ResourceJamfProPolicies() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"id": {
 													Type:        schema.TypeInt,
-													Optional:    true,
+													Required:    true,
 													Description: "Unique identifier of the package.",
 												},
 												"name": {
 													Type:        schema.TypeString,
-													Optional:    true,
 													Description: "Name of the package.",
+													Computed:    true,
 												},
 												"action": {
 													Type:         schema.TypeString,
 													Optional:     true,
 													Description:  "Action to be performed for the package.",
 													ValidateFunc: validation.StringInSlice([]string{"Install", "Cache", "Install Cached"}, false),
+													Default:      "Install",
 												},
 												"fut": {
 													Type:        schema.TypeBool,
@@ -1103,11 +1111,6 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Description: "Scripts settings of the policy.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"size": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "The number of scripts included in the policy.",
-						},
 						"script": {
 							Type:        schema.TypeList,
 							Optional:    true,
@@ -1129,53 +1132,46 @@ func ResourceJamfProPolicies() *schema.Resource {
 										Optional:     true,
 										Description:  "Execution priority of the script.",
 										ValidateFunc: validation.StringInSlice([]string{"Before", "After"}, false),
+										Default:      "After",
 									},
 									"parameter4": {
 										Type:        schema.TypeString,
 										Optional:    true,
-										Computed:    true,
 										Description: "Custom parameter 4 for the script.",
 									},
 									"parameter5": {
 										Type:        schema.TypeString,
 										Optional:    true,
-										Computed:    true,
 										Description: "Custom parameter 5 for the script.",
 									},
 									"parameter6": {
 										Type:        schema.TypeString,
 										Optional:    true,
-										Computed:    true,
 										Description: "Custom parameter 6 for the script.",
 									},
 									"parameter7": {
 										Type:        schema.TypeString,
 										Optional:    true,
-										Computed:    true,
 										Description: "Custom parameter 7 for the script.",
 									},
 									"parameter8": {
 										Type:        schema.TypeString,
 										Optional:    true,
-										Computed:    true,
 										Description: "Custom parameter 8 for the script.",
 									},
 									"parameter9": {
 										Type:        schema.TypeString,
 										Optional:    true,
-										Computed:    true,
 										Description: "Custom parameter 9 for the script.",
 									},
 									"parameter10": {
 										Type:        schema.TypeString,
 										Optional:    true,
-										Computed:    true,
 										Description: "Custom parameter 10 for the script.",
 									},
 									"parameter11": {
 										Type:        schema.TypeString,
 										Optional:    true,
-										Computed:    true,
 										Description: "Custom parameter 11 for the script.",
 									},
 								},
@@ -1188,14 +1184,12 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Printers settings of the policy.",
-				Computed:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"leave_existing_default": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Policy for handling existing default printers.",
-							Computed:    true,
 						},
 						"printer": {
 							Type:        schema.TypeList,
@@ -1205,13 +1199,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"id": {
 										Type:        schema.TypeInt,
-										Optional:    true,
+										Required:    true,
 										Description: "Unique identifier of the printer.",
 									},
 									"name": {
 										Type:        schema.TypeString,
-										Optional:    true,
 										Description: "Name of the printer.",
+										Computed:    true,
 									},
 									"action": {
 										Type:         schema.TypeString,
@@ -1245,13 +1239,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"id": {
 										Type:        schema.TypeInt,
-										Optional:    true,
+										Required:    true,
 										Description: "Unique identifier of the dock item.",
 									},
 									"name": {
 										Type:        schema.TypeString,
-										Optional:    true,
 										Description: "Name of the dock item.",
+										Computed:    true,
 									},
 									"action": {
 										Type:         schema.TypeString,
@@ -1359,13 +1353,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"id": {
 													Type:        schema.TypeInt,
-													Optional:    true,
+													Required:    true,
 													Description: "The unique identifier of the binding.",
 												},
 												"name": {
 													Type:        schema.TypeString,
-													Optional:    true,
 													Description: "The name of the binding.",
+													Computed:    true,
 												},
 											},
 										},
@@ -1427,14 +1421,12 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Use this section to restart computers and specify the disk to boot them to",
-				Computed:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"message": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "The reboot message displayed to the user.",
-							Computed:    true,
 						},
 						"specify_startup": {
 							Type:        schema.TypeString,
@@ -1456,7 +1448,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Disk to boot computers to",
-							Computed:    true,
+							Default:     "Current Startup Disk",
 							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 								v := val.(string)
 								validDisks := []string{"Current Startup Disk", "Currently Selected Startup Disk (No Bless)", "macOS Installer", "Specify Local Startup Disk"}
@@ -1473,7 +1465,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Action to take if no user is logged in to the computer",
-							Computed:    true,
+							Default:     "Do not restart",
 							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 								v := val.(string)
 								validOptions := []string{"Restart if a package or update requires it", "Restart Immediately", "Do not restart"}
@@ -1489,7 +1481,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 						"user_logged_in": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Computed:    true,
+							Default:     "Do not restart",
 							Description: "Action to take if a user is logged in to the computer",
 							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 								v := val.(string)
@@ -1507,19 +1499,19 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeInt,
 							Optional:    true,
 							Description: "Amount of time to wait before the restart begins.",
-							Computed:    true,
+							Default:     5,
 						},
 						"start_reboot_timer_immediately": {
 							Type:        schema.TypeBool,
 							Optional:    true,
-							Description: "",
-							Computed:    true,
+							Description: "Defines if the reboot timer should start immediately once the policy applies to a macOS device.",
+							Default:     false,
 						},
 						"file_vault_2_reboot": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Perform authenticated restart on computers with FileVault 2 enabled. Restart FileVault 2-encrypted computers without requiring an unlock during the next startup",
-							Computed:    true,
+							Default:     false,
 						},
 					},
 				},
@@ -1528,68 +1520,67 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Maintenance settings of the policy. Use this section to update inventory, reset computer names, install all cached packages, and run common maintenance tasks.",
-				Computed:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"recon": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to run recon (inventory update) as part of the maintenance. Forces computers to submit updated inventory information to Jamf Pro",
-							Computed:    true,
+							Default:     false,
 						},
 						"reset_name": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to reset the computer name to the name stored in Jamf Pro. Changes the computer name on computers to match the computer name in Jamf Pro",
-							Computed:    true,
+							Default:     false,
 						},
 						"install_all_cached_packages": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to install all cached packages. Installs packages cached by Jamf Pro",
-							Computed:    true,
+							Default:     false,
 						},
 						"heal": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to heal the policy.",
-							Computed:    true,
+							Default:     false,
 						},
 						"prebindings": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to update prebindings.",
-							Computed:    true,
+							Default:     false,
 						},
 						"permissions": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to fix Disk Permissions (Not compatible with macOS v10.12 or later)",
-							Computed:    true,
+							Default:     false,
 						},
 						"byhost": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to fix ByHost files andnpreferences.",
-							Computed:    true,
+							Default:     false,
 						},
 						"system_cache": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to flush caches from /Library/Caches/ and /System/Library/Caches/, except for any com.apple.LaunchServices caches",
-							Computed:    true,
+							Default:     false,
 						},
 						"user_cache": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to flush caches from ~/Library/Caches/, ~/.jpi_cache/, and ~/Library/Preferences/Microsoft/Office version #/Office Font Cache. Enabling this may cause problems with system fonts displaying unless a restart option is configured.",
-							Computed:    true,
+							Default:     false,
 						},
 						"verify": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to verify system files and structure on the Startup Disk",
-							Computed:    true,
+							Default:     false,
 						},
 					},
 				},
@@ -1598,7 +1589,6 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Files and processes settings of the policy. Use this section to search for and log specific files and processes. Also use this section to execute a command.",
-				Computed:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"search_by_path": {
@@ -1637,7 +1627,6 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to kill the process if found. This works with exact matches only",
-							Computed:    true,
 						},
 						"run_command": {
 							Type:        schema.TypeString,
@@ -1695,19 +1684,19 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Optional:     true,
 							Description:  "The action to perform for disk encryption (e.g., apply, remediate).",
 							ValidateFunc: validation.StringInSlice([]string{"none", "apply", "remediate"}, false),
-							Computed:     true,
+							Default:      "none",
 						},
 						"disk_encryption_configuration_id": {
 							Type:        schema.TypeInt,
 							Optional:    true,
 							Description: "ID of the disk encryption configuration to apply.",
-							Computed:    true,
+							Default:     "0",
 						},
 						"auth_restart": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to allow authentication restart.",
-							Computed:    true,
+							Default:     false,
 						},
 						"remediate_key_type": {
 							Type:         schema.TypeString,
@@ -2245,12 +2234,6 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 				}
 				return false // Default value if not specified
 			}(),
-			AllJSSUsers: func() bool {
-				if val, ok := scopeData["all_jss_users"].(bool); ok {
-					return val
-				}
-				return false // Default value if not specified
-			}(),
 			Computers:      computers,
 			ComputerGroups: computerGroups,
 			JSSUsers:       jssUsers,
@@ -2316,7 +2299,10 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			var items []jamfpro.PolicyPackage
 			if pkgs, ok := packageConfigData["packages"].([]interface{}); ok {
 				for _, pkg := range pkgs {
-					pkgMap := pkg.(map[string]interface{})
+					pkgMap := getMapFromInterface(pkg)
+					if pkgMap == nil {
+						continue // Skip if package is nil
+					}
 
 					items = append(items, jamfpro.PolicyPackage{
 						ID:                getIntFromMap(pkgMap, "id"),
@@ -2330,7 +2316,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			}
 			return items
 		}()
-
+		// Assign the constructed package items to the policy's package configuration
 		policy.PackageConfiguration = jamfpro.PolicyPackageConfiguration{
 			Packages: packageItems,
 		}
@@ -2343,7 +2329,10 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			var items []jamfpro.PolicyScriptItem
 			if scripts, ok := scriptsData["script"].([]interface{}); ok {
 				for _, script := range scripts {
-					scriptMap := script.(map[string]interface{})
+					scriptMap := getMapFromInterface(script)
+					if scriptMap == nil {
+						continue // Skip if script is nil or not a map
+					}
 
 					items = append(items, jamfpro.PolicyScriptItem{
 						ID:          getStringFromMap(scriptMap, "id"),
@@ -2363,14 +2352,11 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			return items
 		}()
 
-		size := getIntFromMap(scriptsData, "size")
-
+		// Assign the constructed script items to the policy's scripts
 		policy.Scripts = jamfpro.PolicyScripts{
-			Size:   size,
 			Script: scriptItems,
 		}
 	}
-
 	// Construct the Printers section
 	if v, ok := d.GetOk("printers"); ok {
 		printersData := v.([]interface{})[0].(map[string]interface{})
@@ -2436,7 +2422,11 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			var items []jamfpro.PolicyAccount
 			if accs, ok := accountMaintenanceData["accounts"].([]interface{}); ok {
 				for _, acc := range accs {
-					accMap := acc.(map[string]interface{})
+					accMap := getMapFromInterface(acc)
+					if accMap == nil {
+						// Skip this account as the map is nil
+						continue
+					}
 					items = append(items, jamfpro.PolicyAccount{
 						Action:                 getStringFromMap(accMap, "action"),
 						Username:               getStringFromMap(accMap, "username"),
@@ -2676,6 +2666,14 @@ func getStringFromArray(arr []interface{}, index int) string {
 	return "" // Return default empty string if index is out of range or value is not a string
 }
 
+// Helper function to safely convert an interface{} to a map[string]interface{}. Returns nil if the conversion is not possible.
+func getMapFromInterface(value interface{}) map[string]interface{} {
+	if val, ok := value.(map[string]interface{}); ok {
+		return val
+	}
+	return nil // Return nil if conversion is not possible
+}
+
 // Helper function to generate diagnostics based on the error type.
 func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
 	var diags diag.Diagnostics
@@ -2798,22 +2796,22 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				if apiError.StatusCode == 404 {
-					// If fetching by ID fails, try fetching by Name
-					policyName, ok := d.Get("name").(string)
-					if !ok {
-						return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
-					}
-					// If fetching by ID fails, try fetching by Name
-					policy, apiErr = conn.GetPolicyByName(policyName)
-					if apiErr != nil {
-						return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-					}
-				} else {
+				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+			}
+			// If fetching by ID fails, try fetching by Name
+			policyName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string for terraform read operation"))
+			}
+
+			policy, apiErr = conn.GetPolicyByName(policyName)
+			if apiErr != nil {
+				// Handle the APIError
+				if apiError, ok := apiErr.(*http_client.APIError); ok {
 					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 				}
+				return retry.RetryableError(apiErr)
 			}
-			return retry.RetryableError(apiErr)
 		}
 		return nil
 	})
@@ -2827,6 +2825,7 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 	// Update the Terraform state with the fetched data
 	// Set 'general' attributes
 	generalAttributes := map[string]interface{}{
+		"id":                            policy.General.ID,
 		"name":                          policy.General.Name,
 		"enabled":                       policy.General.Enabled,
 		"trigger":                       policy.General.Trigger,
@@ -2870,6 +2869,7 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 		"network_limitations": []interface{}{map[string]interface{}{
 			"minimum_network_connection": policy.General.NetworkLimitations.MinimumNetworkConnection,
 			"any_ip_address":             policy.General.NetworkLimitations.AnyIPAddress,
+			"network_segments":           policy.General.NetworkLimitations.NetworkSegments,
 		}},
 		"override_default_settings": []interface{}{map[string]interface{}{
 			"target_drive":       policy.General.OverrideDefaultSettings.TargetDrive,
@@ -2891,7 +2891,6 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 	// Set 'scope' attributes
 	scopeAttributes := map[string]interface{}{
 		"all_computers": policy.Scope.AllComputers,
-		"all_jss_users": policy.Scope.AllJSSUsers,
 		"computers": func() []interface{} {
 			computersInterfaces := make([]interface{}, len(policy.Scope.Computers))
 			for i, computer := range policy.Scope.Computers {
@@ -3164,7 +3163,13 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 		packageConfigurations = append(packageConfigurations, pkg)
 	}
 
-	if err := d.Set("package_configuration", packageConfigurations); err != nil {
+	// Wrap packageConfigurations in a map under the key 'packages'
+	packageConfiguration := map[string]interface{}{
+		"packages": packageConfigurations,
+	}
+
+	// Wrap this map in a slice to set in the Terraform state
+	if err := d.Set("package_configuration", []interface{}{packageConfiguration}); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -3399,7 +3404,7 @@ func ResourceJamfProPoliciesUpdate(ctx context.Context, d *schema.ResourceData, 
 			// If the update by ID fails, try updating by name
 			policyName, ok := d.Get("name").(string)
 			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string for terraform update operation"))
 			}
 
 			_, apiErr = conn.UpdatePolicyByName(policyName, policy)
@@ -3463,7 +3468,7 @@ func ResourceJamfProPoliciesDelete(ctx context.Context, d *schema.ResourceData, 
 			// If the DELETE by ID fails, try deleting by name
 			policyName, ok := d.Get("name").(string)
 			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string for terraform delete operation"))
 			}
 
 			apiErr = conn.DeletePolicyByName(policyName)
