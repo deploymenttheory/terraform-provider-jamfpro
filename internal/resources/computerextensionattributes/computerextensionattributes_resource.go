@@ -26,7 +26,7 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 		ReadContext:   ResourceJamfProComputerExtensionAttributesRead,
 		UpdateContext: ResourceJamfProComputerExtensionAttributesUpdate,
 		DeleteContext: ResourceJamfProComputerExtensionAttributesDelete,
-		CustomizeDiff: validateResourceComputerExtensionAttributesDataFields,
+		CustomizeDiff: validateJamfProRResourceComputerExtensionAttributesDataFields,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(1 * time.Minute),
 			Read:   schema.DefaultTimeout(1 * time.Minute),

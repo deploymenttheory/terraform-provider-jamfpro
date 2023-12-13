@@ -25,6 +25,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 		ReadContext:   ResourceJamfProPoliciesRead,
 		UpdateContext: ResourceJamfProPoliciesUpdate,
 		DeleteContext: ResourceJamfProPoliciesDelete,
+		CustomizeDiff: validateJamfProResourcePolicyDataFields,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(1 * time.Minute),
 			Read:   schema.DefaultTimeout(1 * time.Minute),
@@ -957,7 +958,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Text displayed on the re-install button in self-service.",
-							Default:     "Reinstall",
+							Default:     "REINSTALL",
 						},
 						"self_service_description": {
 							Type:        schema.TypeString,

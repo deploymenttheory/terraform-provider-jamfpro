@@ -23,9 +23,9 @@ func validateDataType(val interface{}, key string) (warns []string, errs []error
 	return
 }
 
-// validateResourceComputerExtensionAttributesDataFields performs custom validation on the Resource's schema so that passed values from
+// validateJamfProRResourceComputerExtensionAttributesDataFields performs custom validation on the Resource's schema so that passed values from
 // teraform resource declarations align with attibute combinations supported by the Jamf Pro api.
-func validateResourceComputerExtensionAttributesDataFields(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
+func validateJamfProRResourceComputerExtensionAttributesDataFields(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
 	// Extract the first item from the input_type list, which should be a map
 	inputTypes, ok := diff.GetOk("input_type")
 	if !ok || len(inputTypes.([]interface{})) == 0 {
