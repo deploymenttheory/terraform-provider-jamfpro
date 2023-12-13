@@ -58,10 +58,11 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Default:     false,
 						},
 						"trigger": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Event(s) triggers to use to initiate the policy.",
-							Default:     "EVENT",
+							Type:         schema.TypeString,
+							Optional:     true,
+							Description:  "Event(s) triggers to use to initiate the policy. Values can be 'USER_INITIATED' for self self trigger and 'EVENT' for an event based trigger",
+							Default:      "EVENT",
+							ValidateFunc: validation.StringInSlice([]string{"EVENT", "USER_INITIATED"}, false),
 						},
 						"trigger_checkin": {
 							Type:        schema.TypeBool,
@@ -1110,11 +1111,6 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Description: "Scripts settings of the policy.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"size": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "The number of scripts included in the policy.",
-						},
 						"script": {
 							Type:        schema.TypeList,
 							Optional:    true,
@@ -1423,7 +1419,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 			},
 			"reboot": {
 				Type:        schema.TypeSet,
-				Required:    true,
+				Optional:    true,
 				Description: "Use this section to restart computers and specify the disk to boot them to",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -1530,51 +1526,61 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to run recon (inventory update) as part of the maintenance. Forces computers to submit updated inventory information to Jamf Pro",
+							Default:     false,
 						},
 						"reset_name": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to reset the computer name to the name stored in Jamf Pro. Changes the computer name on computers to match the computer name in Jamf Pro",
+							Default:     false,
 						},
 						"install_all_cached_packages": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to install all cached packages. Installs packages cached by Jamf Pro",
+							Default:     false,
 						},
 						"heal": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to heal the policy.",
+							Default:     false,
 						},
 						"prebindings": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to update prebindings.",
+							Default:     false,
 						},
 						"permissions": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to fix Disk Permissions (Not compatible with macOS v10.12 or later)",
+							Default:     false,
 						},
 						"byhost": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to fix ByHost files andnpreferences.",
+							Default:     false,
 						},
 						"system_cache": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to flush caches from /Library/Caches/ and /System/Library/Caches/, except for any com.apple.LaunchServices caches",
+							Default:     false,
 						},
 						"user_cache": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to flush caches from ~/Library/Caches/, ~/.jpi_cache/, and ~/Library/Preferences/Microsoft/Office version #/Office Font Cache. Enabling this may cause problems with system fonts displaying unless a restart option is configured.",
+							Default:     false,
 						},
 						"verify": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to verify system files and structure on the Startup Disk",
+							Default:     false,
 						},
 					},
 				},
@@ -2293,7 +2299,10 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			var items []jamfpro.PolicyPackage
 			if pkgs, ok := packageConfigData["packages"].([]interface{}); ok {
 				for _, pkg := range pkgs {
-					pkgMap := pkg.(map[string]interface{})
+					pkgMap := getMapFromInterface(pkg)
+					if pkgMap == nil {
+						continue // Skip if package is nil
+					}
 
 					items = append(items, jamfpro.PolicyPackage{
 						ID:                getIntFromMap(pkgMap, "id"),
@@ -2307,7 +2316,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			}
 			return items
 		}()
-
+		// Assign the constructed package items to the policy's package configuration
 		policy.PackageConfiguration = jamfpro.PolicyPackageConfiguration{
 			Packages: packageItems,
 		}
@@ -2320,7 +2329,10 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			var items []jamfpro.PolicyScriptItem
 			if scripts, ok := scriptsData["script"].([]interface{}); ok {
 				for _, script := range scripts {
-					scriptMap := script.(map[string]interface{})
+					scriptMap := getMapFromInterface(script)
+					if scriptMap == nil {
+						continue // Skip if script is nil or not a map
+					}
 
 					items = append(items, jamfpro.PolicyScriptItem{
 						ID:          getStringFromMap(scriptMap, "id"),
@@ -2340,14 +2352,11 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			return items
 		}()
 
-		size := getIntFromMap(scriptsData, "size")
-
+		// Assign the constructed script items to the policy's scripts
 		policy.Scripts = jamfpro.PolicyScripts{
-			Size:   size,
 			Script: scriptItems,
 		}
 	}
-
 	// Construct the Printers section
 	if v, ok := d.GetOk("printers"); ok {
 		printersData := v.([]interface{})[0].(map[string]interface{})
@@ -2413,7 +2422,11 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			var items []jamfpro.PolicyAccount
 			if accs, ok := accountMaintenanceData["accounts"].([]interface{}); ok {
 				for _, acc := range accs {
-					accMap := acc.(map[string]interface{})
+					accMap := getMapFromInterface(acc)
+					if accMap == nil {
+						// Skip this account as the map is nil
+						continue
+					}
 					items = append(items, jamfpro.PolicyAccount{
 						Action:                 getStringFromMap(accMap, "action"),
 						Username:               getStringFromMap(accMap, "username"),
@@ -2653,6 +2666,14 @@ func getStringFromArray(arr []interface{}, index int) string {
 	return "" // Return default empty string if index is out of range or value is not a string
 }
 
+// Helper function to safely convert an interface{} to a map[string]interface{}. Returns nil if the conversion is not possible.
+func getMapFromInterface(value interface{}) map[string]interface{} {
+	if val, ok := value.(map[string]interface{}); ok {
+		return val
+	}
+	return nil // Return nil if conversion is not possible
+}
+
 // Helper function to generate diagnostics based on the error type.
 func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
 	var diags diag.Diagnostics
@@ -2775,22 +2796,22 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				if apiError.StatusCode == 404 {
-					// If fetching by ID fails, try fetching by Name
-					policyName, ok := d.Get("name").(string)
-					if !ok {
-						return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
-					}
-					// If fetching by ID fails, try fetching by Name
-					policy, apiErr = conn.GetPolicyByName(policyName)
-					if apiErr != nil {
-						return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-					}
-				} else {
+				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+			}
+			// If fetching by ID fails, try fetching by Name
+			policyName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string for terraform read operation"))
+			}
+
+			policy, apiErr = conn.GetPolicyByName(policyName)
+			if apiErr != nil {
+				// Handle the APIError
+				if apiError, ok := apiErr.(*http_client.APIError); ok {
 					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 				}
+				return retry.RetryableError(apiErr)
 			}
-			return retry.RetryableError(apiErr)
 		}
 		return nil
 	})
@@ -3382,7 +3403,7 @@ func ResourceJamfProPoliciesUpdate(ctx context.Context, d *schema.ResourceData, 
 			// If the update by ID fails, try updating by name
 			policyName, ok := d.Get("name").(string)
 			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string for terraform update operation"))
 			}
 
 			_, apiErr = conn.UpdatePolicyByName(policyName, policy)
@@ -3446,7 +3467,7 @@ func ResourceJamfProPoliciesDelete(ctx context.Context, d *schema.ResourceData, 
 			// If the DELETE by ID fails, try deleting by name
 			policyName, ok := d.Get("name").(string)
 			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string for terraform delete operation"))
 			}
 
 			apiErr = conn.DeletePolicyByName(policyName)
