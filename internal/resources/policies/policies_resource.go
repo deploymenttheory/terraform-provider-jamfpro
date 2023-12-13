@@ -2794,14 +2794,15 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 		var apiErr error
 		policy, apiErr = conn.GetPolicyByID(policyID)
 		if apiErr != nil {
-			// Handle the APIError
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+			// If fetching by ID fails, try fetching by Name from the 'general' section
+			generalSettings, ok := d.GetOk("general")
+			if !ok || len(generalSettings.([]interface{})) == 0 {
+				return retry.NonRetryableError(fmt.Errorf("unable to find 'general' block for terraform read operation"))
 			}
-			// If fetching by ID fails, try fetching by Name
-			policyName, ok := d.Get("name").(string)
+			generalMap := generalSettings.([]interface{})[0].(map[string]interface{})
+			policyName, ok := generalMap["name"].(string)
 			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string for terraform read operation"))
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' within 'general' as a string for terraform read operation"))
 			}
 
 			policy, apiErr = conn.GetPolicyByName(policyName)
