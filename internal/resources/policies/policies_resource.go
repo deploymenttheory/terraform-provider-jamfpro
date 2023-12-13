@@ -25,6 +25,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 		ReadContext:   ResourceJamfProPoliciesRead,
 		UpdateContext: ResourceJamfProPoliciesUpdate,
 		DeleteContext: ResourceJamfProPoliciesDelete,
+		CustomizeDiff: validateJamfProResourcePolicyDataFields,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(1 * time.Minute),
 			Read:   schema.DefaultTimeout(1 * time.Minute),
@@ -159,7 +160,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 						"offline": {
 							Type:        schema.TypeBool,
 							Optional:    true,
-							Description: "Whether the policy applies when offline.",
+							Description: "Make policy available offline by caching the policy to the macOS device to ensure it runs when Jamf Pro is unavailable. Only used when execution policy is set to 'ongoing'. ",
 							Default:     false,
 						},
 						"category": {
@@ -957,7 +958,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Text displayed on the re-install button in self-service.",
-							Default:     "Reinstall",
+							Default:     "REINSTALL",
 						},
 						"self_service_description": {
 							Type:        schema.TypeString,
@@ -2794,14 +2795,15 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 		var apiErr error
 		policy, apiErr = conn.GetPolicyByID(policyID)
 		if apiErr != nil {
-			// Handle the APIError
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+			// If fetching by ID fails, try fetching by Name from the 'general' section
+			generalSettings, ok := d.GetOk("general")
+			if !ok || len(generalSettings.([]interface{})) == 0 {
+				return retry.NonRetryableError(fmt.Errorf("unable to find 'general' block for terraform read operation"))
 			}
-			// If fetching by ID fails, try fetching by Name
-			policyName, ok := d.Get("name").(string)
+			generalMap := generalSettings.([]interface{})[0].(map[string]interface{})
+			policyName, ok := generalMap["name"].(string)
 			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string for terraform read operation"))
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' within 'general' as a string for terraform read operation"))
 			}
 
 			policy, apiErr = conn.GetPolicyByName(policyName)
