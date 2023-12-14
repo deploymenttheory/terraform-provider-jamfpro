@@ -2393,19 +2393,24 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			}
 			return items
 		}()
-
+		// TODO refactor this section to use default values from schema. recent attempts cause 400 request errors.
+		// Action: "doNotChange", is not being correctly passed from the schema despite it's correct config.
 		managementAccount := func() jamfpro.PolicyManagementAccount {
-			var managementAccount jamfpro.PolicyManagementAccount
-
-			// Check if management account data is provided in Terraform
-			if managementAccountData, ok := accountMaintenanceData["management_account"].(map[string]interface{}); ok && len(managementAccountData) > 0 {
-				// Extract values from the Terraform data
-				managementAccount.Action = getStringFromMap(managementAccountData, "action")
-				managementAccount.ManagedPassword = getStringFromMap(managementAccountData, "managed_password")
-				managementAccount.ManagedPasswordLength = getIntFromMap(managementAccountData, "managed_password_length")
+			// Initialize with default values
+			defaultManagementAccount := jamfpro.PolicyManagementAccount{
+				Action:                "doNotChange",
+				ManagedPassword:       "",
+				ManagedPasswordLength: 0,
 			}
 
-			return managementAccount
+			// Check if values are provided in Terraform and override defaults if necessary
+			if managementAccountData, ok := accountMaintenanceData["management_account"].(map[string]interface{}); ok {
+				defaultManagementAccount.Action = getStringFromMap(managementAccountData, "action")
+				defaultManagementAccount.ManagedPassword = getStringFromMap(managementAccountData, "managed_password")
+				defaultManagementAccount.ManagedPasswordLength = getIntFromMap(managementAccountData, "managed_password_length")
+			}
+
+			return defaultManagementAccount
 		}()
 
 		openFirmwareEfiPassword := func() jamfpro.PolicyOpenFirmwareEfiPassword {
