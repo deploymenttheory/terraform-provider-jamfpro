@@ -1390,11 +1390,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 										Type:        schema.TypeString,
 										Optional:    true,
 										Description: "Managed password for the account.",
+										Default:     "",
 									},
 									"managed_password_length": {
 										Type:        schema.TypeInt,
 										Optional:    true,
 										Description: "Length of the managed password. Only necessary when utilizing the random action",
+										Default:     0,
 									},
 								},
 							},
@@ -1416,6 +1418,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 										Type:        schema.TypeString,
 										Optional:    true,
 										Description: "Password for the open firmware/EFI.",
+										Default:     "",
 									},
 								},
 							},
@@ -1433,14 +1436,16 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "The reboot message displayed to the user.",
+							Default:     "This computer will restart in 5 minutes. Please save anything you are working on and log out by choosing Log Out from the bottom of the Apple menu.",
 						},
 						"specify_startup": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Reboot Method",
+							Default:     "",
 							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 								v := val.(string)
-								validMethods := []string{"Standard Restart", "MDM Restart with Kernel Cache Rebuild"}
+								validMethods := []string{"", "Standard Restart", "MDM Restart with Kernel Cache Rebuild"}
 								for _, method := range validMethods {
 									if v == method {
 										return
@@ -1696,7 +1701,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeInt,
 							Optional:    true,
 							Description: "ID of the disk encryption configuration to apply.",
-							Default:     "0",
+							Default:     0,
 						},
 						"auth_restart": {
 							Type:        schema.TypeBool,
@@ -1714,6 +1719,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeInt,
 							Optional:    true,
 							Description: "Disk encryption ID to utilize for remediating institutional recovery key types.",
+							Default:     0,
 						},
 					},
 				},
@@ -1807,25 +1813,16 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 				}
 				return jamfpro.PolicyDateTimeLimitations{}
 			}(),
+			// NetworkLimitations field
 			NetworkLimitations: func() jamfpro.PolicyNetworkLimitations {
-				networkLimitations := jamfpro.PolicyNetworkLimitations{
-					MinimumNetworkConnection: "No Minimum", // Default value
-					AnyIPAddress:             true,         // Default value
-				}
+				var networkLimitations jamfpro.PolicyNetworkLimitations
 
 				if networkLimitationsData, ok := generalData["network_limitations"].([]interface{}); ok && len(networkLimitationsData) > 0 {
 					netMap := networkLimitationsData[0].(map[string]interface{})
 
-					if mnConn, ok := netMap["minimum_network_connection"]; ok && mnConn != "" {
-						networkLimitations.MinimumNetworkConnection = getStringFromMap(netMap, "minimum_network_connection")
-					}
-					if _, ok := netMap["any_ip_address"]; ok {
-						networkLimitations.AnyIPAddress = getBoolFromMap(netMap, "any_ip_address")
-					}
-
-					// Handling NetworkSegments field
-					networkSegments := getStringFromMap(netMap, "network_segments")
-					networkLimitations.NetworkSegments = networkSegments
+					networkLimitations.MinimumNetworkConnection = getStringFromMap(netMap, "minimum_network_connection")
+					networkLimitations.AnyIPAddress = getBoolFromMap(netMap, "any_ip_address")
+					networkLimitations.NetworkSegments = getStringFromMap(netMap, "network_segments")
 				}
 
 				return networkLimitations
@@ -1834,66 +1831,34 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			OverrideDefaultSettings: func() jamfpro.PolicyOverrideSettings {
 				if overrideData, ok := generalData["override_default_settings"].([]interface{}); ok && len(overrideData) > 0 {
 					overrideMap := overrideData[0].(map[string]interface{})
-					overrideSettings := jamfpro.PolicyOverrideSettings{
-						TargetDrive: getStringFromMap(overrideMap, "target_drive"),
-						DistributionPoint: func() string {
-							distributionPointValue := getStringFromMap(overrideMap, "distribution_point")
-							if distributionPointValue != "" {
-								return distributionPointValue
-							}
-							return "default" // Set distribution point default value
-						}(),
-						ForceAfpSmb: func() bool {
-							forceAfpSmbValue, exists := overrideMap["force_afp_smb"].(bool)
-							return exists && forceAfpSmbValue // Return the value if it exists, otherwise default (false)
-						}(),
-						SUS: func() string {
-							susValue := getStringFromMap(overrideMap, "sus")
-							if susValue != "" {
-								return susValue
-							}
-							return "default" // Set SUS default value
-						}(),
-						NetbootServer: getStringFromMap(overrideMap, "netboot_server"),
+					return jamfpro.PolicyOverrideSettings{
+						TargetDrive:       getStringFromMap(overrideMap, "target_drive"),
+						DistributionPoint: getStringFromMap(overrideMap, "distribution_point"),
+						ForceAfpSmb:       getBoolFromMap(overrideMap, "force_afp_smb"),
+						SUS:               getStringFromMap(overrideMap, "sus"),
+						NetbootServer:     getStringFromMap(overrideMap, "netboot_server"),
 					}
-
-					return overrideSettings
 				}
 				return jamfpro.PolicyOverrideSettings{}
 			}(),
 			// NetworkRequirements field
 			NetworkRequirements: func() string {
-				networkRequirements := getStringFromMap(generalData, "network_requirements")
-				if networkRequirements != "" {
-					return networkRequirements
-				}
-				return "Any" // Default network requirements
+				return getStringFromMap(generalData, "network_requirements")
 			}(),
-			// construct Site fields, and Initialize with default values
+			// Construct the Site fields
 			Site: func() jamfpro.PolicySite {
+				var site jamfpro.PolicySite
 
-				defaultSite := jamfpro.PolicySite{
-					ID:   -1,
-					Name: "None",
-				}
-
-				// Check if values are provided in Terraform and override defaults if necessary
+				// Check if values are provided in Terraform
 				if siteData, ok := generalData["site"].([]interface{}); ok && len(siteData) > 0 {
 					siteMap := siteData[0].(map[string]interface{})
 
-					siteID := getIntFromMap(siteMap, "id")
-					siteName := getStringFromMap(siteMap, "name")
-
-					// Only override the default if a valid value is provided
-					if siteID != -1 {
-						defaultSite.ID = siteID
-					}
-					if siteName != "" {
-						defaultSite.Name = siteName
-					}
+					// Extract values directly from the Terraform data
+					site.ID = getIntFromMap(siteMap, "id")
+					site.Name = getStringFromMap(siteMap, "name")
 				}
 
-				return defaultSite
+				return site
 			}(),
 		}
 	}
@@ -2374,11 +2339,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			return items
 		}()
 
-		// Safely get 'size', default to 0 if not found or if type is different
-		size := getIntFromMap(dockItemsData, "size")
-
 		policy.DockItems = jamfpro.PolicyDockItems{
-			Size:     size,
 			DockItem: dockItems,
 		}
 	}
@@ -2434,39 +2395,31 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 		}()
 
 		managementAccount := func() jamfpro.PolicyManagementAccount {
-			// Initialize with default values
-			defaultManagementAccount := jamfpro.PolicyManagementAccount{
-				Action:                "doNotChange",
-				ManagedPassword:       "",
-				ManagedPasswordLength: 0,
+			var managementAccount jamfpro.PolicyManagementAccount
+
+			// Check if management account data is provided in Terraform
+			if managementAccountData, ok := accountMaintenanceData["management_account"].(map[string]interface{}); ok && len(managementAccountData) > 0 {
+				// Extract values from the Terraform data
+				managementAccount.Action = getStringFromMap(managementAccountData, "action")
+				managementAccount.ManagedPassword = getStringFromMap(managementAccountData, "managed_password")
+				managementAccount.ManagedPasswordLength = getIntFromMap(managementAccountData, "managed_password_length")
 			}
 
-			// Check if values are provided in Terraform and override defaults if necessary
-			if maData, ok := accountMaintenanceData["management_account"].(map[string]interface{}); ok {
-				defaultManagementAccount.Action = getStringFromMap(maData, "action")
-				defaultManagementAccount.ManagedPassword = getStringFromMap(maData, "managed_password")
-				defaultManagementAccount.ManagedPasswordLength = getIntFromMap(maData, "managed_password_length")
-			}
-
-			return defaultManagementAccount
+			return managementAccount
 		}()
 
 		openFirmwareEfiPassword := func() jamfpro.PolicyOpenFirmwareEfiPassword {
-			// Initialize with default values
-			defaultOpenFirmwareEfiPassword := jamfpro.PolicyOpenFirmwareEfiPassword{
-				OfMode:           "none",
-				OfPassword:       "",
-				OfPasswordSHA256: "",
+			var openFirmwareEfiPassword jamfpro.PolicyOpenFirmwareEfiPassword
+
+			// Check if open firmware EFI password data is provided in Terraform
+			if openFirmwareEfiPasswordData, ok := accountMaintenanceData["open_firmware_efi_password"].(map[string]interface{}); ok && len(openFirmwareEfiPasswordData) > 0 {
+				// Extract values from the Terraform data
+				openFirmwareEfiPassword.OfMode = getStringFromMap(openFirmwareEfiPasswordData, "of_mode")
+				openFirmwareEfiPassword.OfPassword = getStringFromMap(openFirmwareEfiPasswordData, "of_password")
+				openFirmwareEfiPassword.OfPasswordSHA256 = getStringFromMap(openFirmwareEfiPasswordData, "of_password_sha256")
 			}
 
-			// Check if values are provided in Terraform and override defaults if necessary
-			if ofData, ok := accountMaintenanceData["open_firmware_efi_password"].(map[string]interface{}); ok {
-				defaultOpenFirmwareEfiPassword.OfMode = getStringFromMap(ofData, "of_mode")
-				defaultOpenFirmwareEfiPassword.OfPassword = getStringFromMap(ofData, "of_password")
-				defaultOpenFirmwareEfiPassword.OfPasswordSHA256 = getStringFromMap(ofData, "of_password_sha256")
-			}
-
-			return defaultOpenFirmwareEfiPassword
+			return openFirmwareEfiPassword
 		}()
 
 		// Assign all constructed components to AccountMaintenance
@@ -2478,36 +2431,26 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 		}
 	}
 
-	// Construct the Reboot section and set default values if none are defined in terraform
+	// Construct the Reboot section
 	policy.Reboot = func() jamfpro.PolicyReboot {
-		// Set default values
-		defaultReboot := jamfpro.PolicyReboot{
-			Message:                     "This computer will restart in 5 minutes. Please save anything you are working on and log out by choosing Log Out from the bottom of the Apple menu.",
-			StartupDisk:                 "Current Startup Disk",
-			SpecifyStartup:              "",
-			NoUserLoggedIn:              "Do not restart",
-			UserLoggedIn:                "Do not restart",
-			MinutesUntilReboot:          5,
-			StartRebootTimerImmediately: false,
-			FileVault2Reboot:            false,
-		}
+		var reboot jamfpro.PolicyReboot
 
-		// Check if values are provided in Terraform and override defaults if necessary
+		// Check if values are provided in Terraform
 		if v, ok := d.GetOk("reboot"); ok {
 			rebootData := v.(*schema.Set).List()[0].(map[string]interface{})
 
-			// Override with provided values if available
-			defaultReboot.Message = getStringFromMap(rebootData, "message")
-			defaultReboot.SpecifyStartup = getStringFromMap(rebootData, "specify_startup")
-			defaultReboot.StartupDisk = getStringFromMap(rebootData, "startup_disk")
-			defaultReboot.NoUserLoggedIn = getStringFromMap(rebootData, "no_user_logged_in")
-			defaultReboot.UserLoggedIn = getStringFromMap(rebootData, "user_logged_in")
-			defaultReboot.MinutesUntilReboot = getIntFromMap(rebootData, "minutes_until_reboot")
-			defaultReboot.StartRebootTimerImmediately = getBoolFromMap(rebootData, "start_reboot_timer_immediately")
-			defaultReboot.FileVault2Reboot = getBoolFromMap(rebootData, "file_vault_2_reboot")
+			// Extract values from the Terraform data
+			reboot.Message = getStringFromMap(rebootData, "message")
+			reboot.SpecifyStartup = getStringFromMap(rebootData, "specify_startup")
+			reboot.StartupDisk = getStringFromMap(rebootData, "startup_disk")
+			reboot.NoUserLoggedIn = getStringFromMap(rebootData, "no_user_logged_in")
+			reboot.UserLoggedIn = getStringFromMap(rebootData, "user_logged_in")
+			reboot.MinutesUntilReboot = getIntFromMap(rebootData, "minutes_until_reboot")
+			reboot.StartRebootTimerImmediately = getBoolFromMap(rebootData, "start_reboot_timer_immediately")
+			reboot.FileVault2Reboot = getBoolFromMap(rebootData, "file_vault_2_reboot")
 		}
 
-		return defaultReboot
+		return reboot
 	}()
 
 	// Construct the Maintenance section
@@ -2556,31 +2499,38 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 
 	// Construct the DiskEncryption section
 	policy.DiskEncryption = func() jamfpro.PolicyDiskEncryption {
-		// Initialize with default values
-		defaultDiskEncryption := jamfpro.PolicyDiskEncryption{
-			Action:                                 "none",
-			DiskEncryptionConfigurationID:          0,
-			AuthRestart:                            false,
-			RemediateKeyType:                       "",
-			RemediateDiskEncryptionConfigurationID: 0,
-		}
+		var diskEncryption jamfpro.PolicyDiskEncryption
 
-		// Check if values are provided in Terraform and override defaults if necessary
+		// Check if values are provided in Terraform
 		if v, ok := d.GetOk("disk_encryption"); ok && len(v.([]interface{})) > 0 {
 			diskEncryptionData := v.([]interface{})[0].(map[string]interface{})
 
-			// Override with provided values if available
-			defaultDiskEncryption.Action = getStringFromMap(diskEncryptionData, "action")
-			defaultDiskEncryption.DiskEncryptionConfigurationID = getIntFromMap(diskEncryptionData, "disk_encryption_configuration_id")
-			defaultDiskEncryption.AuthRestart = getBoolFromMap(diskEncryptionData, "auth_restart")
-			defaultDiskEncryption.RemediateKeyType = getStringFromMap(diskEncryptionData, "remediate_key_type")
-			defaultDiskEncryption.RemediateDiskEncryptionConfigurationID = getIntFromMap(diskEncryptionData, "remediate_disk_encryption_configuration_id")
+			// Extract values from the Terraform data
+			diskEncryption.Action = getStringFromMap(diskEncryptionData, "action")
+			diskEncryption.DiskEncryptionConfigurationID = getIntFromMap(diskEncryptionData, "disk_encryption_configuration_id")
+			diskEncryption.AuthRestart = getBoolFromMap(diskEncryptionData, "auth_restart")
+			diskEncryption.RemediateKeyType = getStringFromMap(diskEncryptionData, "remediate_key_type")
+			diskEncryption.RemediateDiskEncryptionConfigurationID = getIntFromMap(diskEncryptionData, "remediate_disk_encryption_configuration_id")
 		}
 
-		return defaultDiskEncryption
+		return diskEncryption
 	}()
 
-	log.Printf("[INFO] Successfully constructed Jamf Pro Policy with name: %s", policy.General.Name)
+	log.Printf("[DEBUG] Successfully constructed Jamf Pro Policy with name: %s", policy.General.Name)
+	log.Printf("[DEBUG] The constructed Jamf Pro Policy Object:\n")
+	log.Printf("\tGeneral: %+v\n", policy.General)
+	log.Printf("\tScope: %+v\n", policy.Scope)
+	log.Printf("\tSelfService: %+v\n", policy.SelfService)
+	log.Printf("\tPackageConfiguration: %+v\n", policy.PackageConfiguration)
+	log.Printf("\tScripts: %+v\n", policy.Scripts)
+	log.Printf("\tPrinters: %+v\n", policy.Printers)
+	log.Printf("\tDockItems: %+v\n", policy.DockItems)
+	log.Printf("\tAccountMaintenance: %+v\n", policy.AccountMaintenance)
+	log.Printf("\tMaintenance: %+v\n", policy.Maintenance)
+	log.Printf("\tFilesProcesses: %+v\n", policy.FilesProcesses)
+	log.Printf("\tUserInteraction: %+v\n", policy.UserInteraction)
+	log.Printf("\tDiskEncryption: %+v\n", policy.DiskEncryption)
+	log.Printf("\tReboot: %+v\n", policy.Reboot)
 
 	return policy, nil
 }
