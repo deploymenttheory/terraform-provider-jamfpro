@@ -27,10 +27,10 @@ func ResourceJamfProPolicies() *schema.Resource {
 		DeleteContext: ResourceJamfProPoliciesDelete,
 		CustomizeDiff: validateJamfProResourcePolicyDataFields,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(1 * time.Minute),
-			Read:   schema.DefaultTimeout(1 * time.Minute),
-			Update: schema.DefaultTimeout(1 * time.Minute),
-			Delete: schema.DefaultTimeout(1 * time.Minute),
+			Create: schema.DefaultTimeout(30 * time.Second),
+			Read:   schema.DefaultTimeout(30 * time.Second),
+			Update: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(30 * time.Second),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -38,7 +38,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"general": {
 				Type:        schema.TypeList,
-				Optional:    true,
+				Required:    true,
 				Description: "General settings of the policy.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -54,15 +54,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 						},
 						"enabled": {
 							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Whether the policy is enabled.",
-							Default:     false,
+							Required:    true,
+							Description: "Define whether the policy is enabled.",
 						},
 						"trigger": {
 							Type:         schema.TypeString,
-							Optional:     true,
+							Required:     true,
 							Description:  "Event(s) triggers to use to initiate the policy. Values can be 'USER_INITIATED' for self self trigger and 'EVENT' for an event based trigger",
-							Default:      "EVENT",
 							ValidateFunc: validation.StringInSlice([]string{"EVENT", "USER_INITIATED"}, false),
 						},
 						"trigger_checkin": {
@@ -105,7 +103,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Any other trigger for the policy.",
-							Computed:    true,
+							Default:     "",
 						},
 						"frequency": {
 							Type:        schema.TypeString,
@@ -136,8 +134,16 @@ func ResourceJamfProPolicies() *schema.Resource {
 						"retry_attempts": {
 							Type:        schema.TypeInt,
 							Optional:    true,
-							Description: "Number of retry attempts for the jamf pro policy.",
+							Description: "Number of retry attempts for the jamf pro policy. Valid values are -1 (not configured) and 1 through 10.",
 							Default:     -1,
+							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+								v := val.(int)
+								if v == -1 || (v > 0 && v <= 10) {
+									return
+								}
+								errs = append(errs, fmt.Errorf("%q must be -1 if not being set or between 1 and 10 if it is being set, got: %d", key, v))
+								return warns, errs
+							},
 						},
 						"notify_on_each_failed_retry": {
 							Type:        schema.TypeBool,
@@ -174,13 +180,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 										Type:        schema.TypeInt,
 										Optional:    true,
 										Description: "The category ID assigned to the jamf pro policy. Defaults to '-1' aka not used.",
-										Computed:    true,
+										Default:     "-1",
 									},
 									"name": {
 										Type:        schema.TypeString,
 										Optional:    true,
 										Description: "Category Name for assigned jamf pro policy. Value defaults to 'No category assigned' aka not used",
-										Computed:    true,
+										Default:     "No category assigned",
 									},
 								},
 							},
@@ -287,7 +293,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 									"target_drive": {
 										Type:        schema.TypeString,
 										Optional:    true,
-										Description: "Target drive for the policy.",
+										Description: "The drive on which to run the policy (e.g. '/Volumes/Restore/'). Defaults to '/' if no value is defined, which is the root of the file system.",
 										Default:     "/",
 									},
 									"distribution_point": {
@@ -350,9 +356,8 @@ func ResourceJamfProPolicies() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"all_computers": {
 							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "If true, applies the profile to all computers. If false applies to specific computers. Default is false.",
-							Computed:    true,
+							Required:    true,
+							Description: "scope all_computers if true, applies the profile to all computers. If false applies to specific computers.",
 						},
 						"computers": {
 							Type:     schema.TypeList,
@@ -1740,65 +1745,33 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	if v, ok := d.GetOk("general"); ok {
 		generalData := v.([]interface{})[0].(map[string]interface{})
 		policy.General = jamfpro.PolicyGeneral{
-			Name:    getStringFromMap(generalData, "name"),
-			Enabled: getBoolFromMap(generalData, "enabled"),
-			Trigger: func() string {
-				trigger := getStringFromMap(generalData, "trigger")
-				if trigger != "" {
-					return trigger
-				}
-				return "EVENT" // Default to "EVENT" if not specified
-			}(),
+			Name:                       getStringFromMap(generalData, "name"),
+			Enabled:                    getBoolFromMap(generalData, "enabled"),
+			Trigger:                    getStringFromMap(generalData, "trigger"),
 			TriggerCheckin:             getBoolFromMap(generalData, "trigger_checkin"),
 			TriggerEnrollmentComplete:  getBoolFromMap(generalData, "trigger_enrollment_complete"),
 			TriggerLogin:               getBoolFromMap(generalData, "trigger_login"),
 			TriggerLogout:              getBoolFromMap(generalData, "trigger_logout"),
 			TriggerNetworkStateChanged: getBoolFromMap(generalData, "trigger_network_state_changed"),
 			TriggerStartup:             getBoolFromMap(generalData, "trigger_startup"),
-			TriggerOther: func() string {
-				to := getStringFromMap(generalData, "trigger_other")
-				if to != "" {
-					return to
-				}
-				return "" // Default to an empty string if not specified
-			}(),
-			Frequency:               getStringFromMap(generalData, "frequency"),
-			RetryEvent:              getStringFromMap(generalData, "retry_event"),
-			RetryAttempts:           getIntFromMap(generalData, "retry_attempts"),
-			NotifyOnEachFailedRetry: getBoolFromMap(generalData, "notify_on_each_failed_retry"),
-			LocationUserOnly:        getBoolFromMap(generalData, "location_user_only"),
-			TargetDrive: func() string {
-				targetDriveValue := getStringFromMap(generalData, "target_drive")
-				if targetDriveValue != "" {
-					return targetDriveValue
-				}
-				return "/" // Set target drive default value
-			}(),
-			Offline: getBoolFromMap(generalData, "offline"),
+			TriggerOther:               getStringFromMap(generalData, "trigger_other"),
+			Frequency:                  getStringFromMap(generalData, "frequency"),
+			RetryEvent:                 getStringFromMap(generalData, "retry_event"),
+			RetryAttempts:              getIntFromMap(generalData, "retry_attempts"),
+			NotifyOnEachFailedRetry:    getBoolFromMap(generalData, "notify_on_each_failed_retry"),
+			LocationUserOnly:           getBoolFromMap(generalData, "location_user_only"),
+			TargetDrive:                getStringFromMap(generalData, "target_drive"),
+			Offline:                    getBoolFromMap(generalData, "offline"),
 			Category: func() jamfpro.PolicyCategory {
-				// Initialize with default values
-				defaultCategory := jamfpro.PolicyCategory{
-					ID:   -1,                     // Default ID as integer
-					Name: "No category assigned", // Default Name
+				var category jamfpro.PolicyCategory
+
+				if categoryData, ok := generalData["category"].([]interface{}); ok && len(categoryData) > 0 {
+					catMap := categoryData[0].(map[string]interface{})
+					category.ID = getIntFromMap(catMap, "id")
+					category.Name = getStringFromMap(catMap, "name")
 				}
 
-				// Check if values are provided in Terraform and override defaults if necessary
-				if catData, ok := generalData["category"].([]interface{}); ok && len(catData) > 0 {
-					catMap := catData[0].(map[string]interface{})
-
-					catID := getIntFromMap(catMap, "id")
-					catName := getStringFromMap(catMap, "name")
-
-					// Only override the default if a valid value is provided
-					if catID != -1 {
-						defaultCategory.ID = catID
-					}
-					if catName != "" {
-						defaultCategory.Name = catName
-					}
-				}
-
-				return defaultCategory
+				return category
 			}(),
 			// DateTimeLimitations field
 			DateTimeLimitations: func() jamfpro.PolicyDateTimeLimitations {
@@ -2229,12 +2202,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 
 		// Assign constructed fields to the policy's Scope
 		policy.Scope = jamfpro.PolicyScope{
-			AllComputers: func() bool {
-				if val, ok := scopeData["all_computers"].(bool); ok {
-					return val
-				}
-				return false // Default value if not specified
-			}(),
+			AllComputers:   getBoolFromMap(scopeData, "all_computers"),
 			Computers:      computers,
 			ComputerGroups: computerGroups,
 			JSSUsers:       jssUsers,
@@ -2645,26 +2613,6 @@ func getStringFromMap(m map[string]interface{}, key string) string {
 		}
 	}
 	return "" // Return default empty string if key is not found or nil
-}
-
-// Helper function to safely get an int64 value from a map. Returns 0 if key is absent, nil, or not an int64.
-func getInt64FromMap(m map[string]interface{}, key string) int64 {
-	if val, ok := m[key]; ok && val != nil {
-		if int64Val, ok := val.(int64); ok {
-			return int64Val
-		}
-	}
-	return 0 // Return default zero value if key is not found, nil, or not an int64
-}
-
-// Helper function to safely get a string value from an array at a given index. Returns an empty string if index is out of range or value is not a string.
-func getStringFromArray(arr []interface{}, index int) string {
-	if len(arr) > index {
-		if strVal, ok := arr[index].(string); ok {
-			return strVal
-		}
-	}
-	return "" // Return default empty string if index is out of range or value is not a string
 }
 
 // Helper function to safely convert an interface{} to a map[string]interface{}. Returns nil if the conversion is not possible.
