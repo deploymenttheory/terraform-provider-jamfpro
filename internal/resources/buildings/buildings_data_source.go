@@ -72,7 +72,7 @@ func DataSourceBuildingRead(ctx context.Context, d *schema.ResourceData, meta in
 	}
 	conn := apiclient.Conn
 
-	var building *jamfpro.ResponseBuilding
+	var building *jamfpro.ResourceBuilding
 	var err error
 
 	// Check if Name is provided in the data source configuration
@@ -82,7 +82,7 @@ func DataSourceBuildingRead(ctx context.Context, d *schema.ResourceData, meta in
 			return diag.Errorf("expected 'name' to be a string")
 		}
 		if buildingName != "" {
-			building, err = conn.GetBuildingByNameByID(buildingName)
+			building, err = conn.GetBuildingByName(buildingName)
 			if err != nil {
 				return diag.FromErr(fmt.Errorf("failed to fetch building by name: %v", err))
 			}

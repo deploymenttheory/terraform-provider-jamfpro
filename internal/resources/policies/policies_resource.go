@@ -11,6 +11,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -1752,30 +1753,30 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	if v, ok := d.GetOk("general"); ok {
 		generalData := v.([]interface{})[0].(map[string]interface{})
 		policy.General = jamfpro.PolicyGeneral{
-			Name:                       getStringFromMap(generalData, "name"),
-			Enabled:                    getBoolFromMap(generalData, "enabled"),
-			Trigger:                    getStringFromMap(generalData, "trigger"),
-			TriggerCheckin:             getBoolFromMap(generalData, "trigger_checkin"),
-			TriggerEnrollmentComplete:  getBoolFromMap(generalData, "trigger_enrollment_complete"),
-			TriggerLogin:               getBoolFromMap(generalData, "trigger_login"),
-			TriggerLogout:              getBoolFromMap(generalData, "trigger_logout"),
-			TriggerNetworkStateChanged: getBoolFromMap(generalData, "trigger_network_state_changed"),
-			TriggerStartup:             getBoolFromMap(generalData, "trigger_startup"),
-			TriggerOther:               getStringFromMap(generalData, "trigger_other"),
-			Frequency:                  getStringFromMap(generalData, "frequency"),
-			RetryEvent:                 getStringFromMap(generalData, "retry_event"),
-			RetryAttempts:              getIntFromMap(generalData, "retry_attempts"),
-			NotifyOnEachFailedRetry:    getBoolFromMap(generalData, "notify_on_each_failed_retry"),
-			LocationUserOnly:           getBoolFromMap(generalData, "location_user_only"),
-			TargetDrive:                getStringFromMap(generalData, "target_drive"),
-			Offline:                    getBoolFromMap(generalData, "offline"),
+			Name:                       util.GetStringFromMap(generalData, "name"),
+			Enabled:                    util.GetBoolFromMap(generalData, "enabled"),
+			Trigger:                    util.GetStringFromMap(generalData, "trigger"),
+			TriggerCheckin:             util.GetBoolFromMap(generalData, "trigger_checkin"),
+			TriggerEnrollmentComplete:  util.GetBoolFromMap(generalData, "trigger_enrollment_complete"),
+			TriggerLogin:               util.GetBoolFromMap(generalData, "trigger_login"),
+			TriggerLogout:              util.GetBoolFromMap(generalData, "trigger_logout"),
+			TriggerNetworkStateChanged: util.GetBoolFromMap(generalData, "trigger_network_state_changed"),
+			TriggerStartup:             util.GetBoolFromMap(generalData, "trigger_startup"),
+			TriggerOther:               util.GetStringFromMap(generalData, "trigger_other"),
+			Frequency:                  util.GetStringFromMap(generalData, "frequency"),
+			RetryEvent:                 util.GetStringFromMap(generalData, "retry_event"),
+			RetryAttempts:              util.GetIntFromMap(generalData, "retry_attempts"),
+			NotifyOnEachFailedRetry:    util.GetBoolFromMap(generalData, "notify_on_each_failed_retry"),
+			LocationUserOnly:           util.GetBoolFromMap(generalData, "location_user_only"),
+			TargetDrive:                util.GetStringFromMap(generalData, "target_drive"),
+			Offline:                    util.GetBoolFromMap(generalData, "offline"),
 			Category: func() jamfpro.PolicyCategory {
 				var category jamfpro.PolicyCategory
 
 				if categoryData, ok := generalData["category"].([]interface{}); ok && len(categoryData) > 0 {
 					catMap := categoryData[0].(map[string]interface{})
-					category.ID = getIntFromMap(catMap, "id")
-					category.Name = getStringFromMap(catMap, "name")
+					category.ID = util.GetIntFromMap(catMap, "id")
+					category.Name = util.GetStringFromMap(catMap, "name")
 				}
 
 				return category
@@ -1785,12 +1786,12 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 				if dtData, ok := generalData["date_time_limitations"].([]interface{}); ok && len(dtData) > 0 {
 					dateTimeMap := dtData[0].(map[string]interface{})
 					dateTimeLimitations := jamfpro.PolicyDateTimeLimitations{
-						ActivationDate:      getStringFromMap(dateTimeMap, "activation_date"),
-						ActivationDateEpoch: getIntFromMap(dateTimeMap, "activation_date_epoch"),
-						ActivationDateUTC:   getStringFromMap(dateTimeMap, "activation_date_utc"),
-						ExpirationDate:      getStringFromMap(dateTimeMap, "expiration_date"),
-						ExpirationDateEpoch: getIntFromMap(dateTimeMap, "expiration_date_epoch"),
-						ExpirationDateUTC:   getStringFromMap(dateTimeMap, "expiration_date_utc"),
+						ActivationDate:      util.GetStringFromMap(dateTimeMap, "activation_date"),
+						ActivationDateEpoch: util.GetIntFromMap(dateTimeMap, "activation_date_epoch"),
+						ActivationDateUTC:   util.GetStringFromMap(dateTimeMap, "activation_date_utc"),
+						ExpirationDate:      util.GetStringFromMap(dateTimeMap, "expiration_date"),
+						ExpirationDateEpoch: util.GetIntFromMap(dateTimeMap, "expiration_date_epoch"),
+						ExpirationDateUTC:   util.GetStringFromMap(dateTimeMap, "expiration_date_utc"),
 					}
 
 					// Handling NoExecuteOn field
@@ -1799,7 +1800,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 						for _, day := range noExecOnData {
 							if dayMap, ok := day.(map[string]interface{}); ok {
 								noExecOnDays = append(noExecOnDays, jamfpro.PolicyNoExecuteOn{
-									Day: getStringFromMap(dayMap, "day"),
+									Day: util.GetStringFromMap(dayMap, "day"),
 								})
 							}
 						}
@@ -1807,8 +1808,8 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 					}
 
 					// Handling NoExecuteStart and NoExecuteEnd fields
-					dateTimeLimitations.NoExecuteStart = getStringFromMap(dateTimeMap, "no_execute_start")
-					dateTimeLimitations.NoExecuteEnd = getStringFromMap(dateTimeMap, "no_execute_end")
+					dateTimeLimitations.NoExecuteStart = util.GetStringFromMap(dateTimeMap, "no_execute_start")
+					dateTimeLimitations.NoExecuteEnd = util.GetStringFromMap(dateTimeMap, "no_execute_end")
 
 					return dateTimeLimitations
 				}
@@ -1821,9 +1822,9 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 				if networkLimitationsData, ok := generalData["network_limitations"].([]interface{}); ok && len(networkLimitationsData) > 0 {
 					netMap := networkLimitationsData[0].(map[string]interface{})
 
-					networkLimitations.MinimumNetworkConnection = getStringFromMap(netMap, "minimum_network_connection")
-					networkLimitations.AnyIPAddress = getBoolFromMap(netMap, "any_ip_address")
-					networkLimitations.NetworkSegments = getStringFromMap(netMap, "network_segments")
+					networkLimitations.MinimumNetworkConnection = util.GetStringFromMap(netMap, "minimum_network_connection")
+					networkLimitations.AnyIPAddress = util.GetBoolFromMap(netMap, "any_ip_address")
+					networkLimitations.NetworkSegments = util.GetStringFromMap(netMap, "network_segments")
 				}
 
 				return networkLimitations
@@ -1833,18 +1834,18 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 				if overrideData, ok := generalData["override_default_settings"].([]interface{}); ok && len(overrideData) > 0 {
 					overrideMap := overrideData[0].(map[string]interface{})
 					return jamfpro.PolicyOverrideSettings{
-						TargetDrive:       type_assertion.getStringFromMap(overrideMap, "target_drive"),
-						DistributionPoint: getStringFromMap(overrideMap, "distribution_point"),
-						ForceAfpSmb:       getBoolFromMap(overrideMap, "force_afp_smb"),
-						SUS:               getStringFromMap(overrideMap, "sus"),
-						NetbootServer:     getStringFromMap(overrideMap, "netboot_server"),
+						TargetDrive:       util.GetStringFromMap(overrideMap, "target_drive"),
+						DistributionPoint: util.GetStringFromMap(overrideMap, "distribution_point"),
+						ForceAfpSmb:       util.GetBoolFromMap(overrideMap, "force_afp_smb"),
+						SUS:               util.GetStringFromMap(overrideMap, "sus"),
+						NetbootServer:     util.GetStringFromMap(overrideMap, "netboot_server"),
 					}
 				}
 				return jamfpro.PolicyOverrideSettings{}
 			}(),
 			// NetworkRequirements field
 			NetworkRequirements: func() string {
-				return getStringFromMap(generalData, "network_requirements")
+				return util.GetStringFromMap(generalData, "network_requirements")
 			}(),
 			// Construct the Site fields
 			Site: func() jamfpro.PolicySite {
@@ -1855,8 +1856,8 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 					siteMap := siteData[0].(map[string]interface{})
 
 					// Extract values directly from the Terraform data
-					site.ID = getIntFromMap(siteMap, "id")
-					site.Name = getStringFromMap(siteMap, "name")
+					site.ID = util.GetIntFromMap(siteMap, "id")
+					site.Name = util.GetStringFromMap(siteMap, "name")
 				}
 
 				return site
@@ -2168,7 +2169,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 
 		// Assign constructed fields to the policy's Scope
 		policy.Scope = jamfpro.PolicyScope{
-			AllComputers:   getBoolFromMap(scopeData, "all_computers"),
+			AllComputers:   util.GetBoolFromMap(scopeData, "all_computers"),
 			Computers:      computers,
 			ComputerGroups: computerGroups,
 			JSSUsers:       jssUsers,
@@ -2185,20 +2186,20 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	if v, ok := d.GetOk("self_service"); ok {
 		selfServiceData := v.([]interface{})[0].(map[string]interface{})
 		policy.SelfService = jamfpro.PolicySelfService{
-			UseForSelfService:           getBoolFromMap(selfServiceData, "use_for_self_service"),
-			SelfServiceDisplayName:      getStringFromMap(selfServiceData, "self_service_display_name"),
-			InstallButtonText:           getStringFromMap(selfServiceData, "install_button_text"),
-			ReinstallButtonText:         getStringFromMap(selfServiceData, "reinstall_button_text"),
-			SelfServiceDescription:      getStringFromMap(selfServiceData, "self_service_description"),
-			ForceUsersToViewDescription: getBoolFromMap(selfServiceData, "force_users_to_view_description"),
-			FeatureOnMainPage:           getBoolFromMap(selfServiceData, "feature_on_main_page"),
+			UseForSelfService:           util.GetBoolFromMap(selfServiceData, "use_for_self_service"),
+			SelfServiceDisplayName:      util.GetStringFromMap(selfServiceData, "self_service_display_name"),
+			InstallButtonText:           util.GetStringFromMap(selfServiceData, "install_button_text"),
+			ReinstallButtonText:         util.GetStringFromMap(selfServiceData, "reinstall_button_text"),
+			SelfServiceDescription:      util.GetStringFromMap(selfServiceData, "self_service_description"),
+			ForceUsersToViewDescription: util.GetBoolFromMap(selfServiceData, "force_users_to_view_description"),
+			FeatureOnMainPage:           util.GetBoolFromMap(selfServiceData, "feature_on_main_page"),
 			SelfServiceIcon: func() jamfpro.PolicySelfServiceIcon {
 				if iconData, ok := selfServiceData["self_service_icon"].([]interface{}); ok && len(iconData) > 0 {
 					iconMap := iconData[0].(map[string]interface{})
 					return jamfpro.PolicySelfServiceIcon{
-						ID:       getIntFromMap(iconMap, "id"),
-						Filename: getStringFromMap(iconMap, "filename"),
-						URI:      getStringFromMap(iconMap, "uri"),
+						ID:       util.GetIntFromMap(iconMap, "id"),
+						Filename: util.GetStringFromMap(iconMap, "filename"),
+						URI:      util.GetStringFromMap(iconMap, "uri"),
 					}
 				}
 				return jamfpro.PolicySelfServiceIcon{}
@@ -2212,10 +2213,10 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 							details := catDetails[0].(map[string]interface{})
 							category := jamfpro.PolicySelfServiceCategory{
 								Category: jamfpro.PolicyCategory{
-									ID:        getIntFromMap(details, "id"),
-									Name:      getStringFromMap(details, "name"),
-									DisplayIn: getBoolFromMap(details, "display_in"),
-									FeatureIn: getBoolFromMap(details, "feature_in"),
+									ID:        util.GetIntFromMap(details, "id"),
+									Name:      util.GetStringFromMap(details, "name"),
+									DisplayIn: util.GetBoolFromMap(details, "display_in"),
+									FeatureIn: util.GetBoolFromMap(details, "feature_in"),
 								},
 							}
 							categories = append(categories, category)
@@ -2234,18 +2235,18 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			var items []jamfpro.PolicyPackage
 			if pkgs, ok := packageConfigData["packages"].([]interface{}); ok {
 				for _, pkg := range pkgs {
-					pkgMap := getMapFromInterface(pkg)
+					pkgMap := util.GetMapFromInterface(pkg)
 					if pkgMap == nil {
 						continue // Skip if package is nil
 					}
 
 					items = append(items, jamfpro.PolicyPackage{
-						ID:                getIntFromMap(pkgMap, "id"),
-						Name:              getStringFromMap(pkgMap, "name"),
-						Action:            getStringFromMap(pkgMap, "action"),
-						FillUserTemplate:  getBoolFromMap(pkgMap, "fut"),
-						FillExistingUsers: getBoolFromMap(pkgMap, "feu"),
-						UpdateAutorun:     getBoolFromMap(pkgMap, "update_autorun"),
+						ID:                util.GetIntFromMap(pkgMap, "id"),
+						Name:              util.GetStringFromMap(pkgMap, "name"),
+						Action:            util.GetStringFromMap(pkgMap, "action"),
+						FillUserTemplate:  util.GetBoolFromMap(pkgMap, "fut"),
+						FillExistingUsers: util.GetBoolFromMap(pkgMap, "feu"),
+						UpdateAutorun:     util.GetBoolFromMap(pkgMap, "update_autorun"),
 					})
 				}
 			}
@@ -2264,23 +2265,23 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			var items []jamfpro.PolicyScriptItem
 			if scripts, ok := scriptsData["script"].([]interface{}); ok {
 				for _, script := range scripts {
-					scriptMap := getMapFromInterface(script)
+					scriptMap := util.GetMapFromInterface(script)
 					if scriptMap == nil {
 						continue // Skip if script is nil or not a map
 					}
 
 					items = append(items, jamfpro.PolicyScriptItem{
-						ID:          getStringFromMap(scriptMap, "id"),
-						Name:        getStringFromMap(scriptMap, "name"),
-						Priority:    getStringFromMap(scriptMap, "priority"),
-						Parameter4:  getStringFromMap(scriptMap, "parameter4"),
-						Parameter5:  getStringFromMap(scriptMap, "parameter5"),
-						Parameter6:  getStringFromMap(scriptMap, "parameter6"),
-						Parameter7:  getStringFromMap(scriptMap, "parameter7"),
-						Parameter8:  getStringFromMap(scriptMap, "parameter8"),
-						Parameter9:  getStringFromMap(scriptMap, "parameter9"),
-						Parameter10: getStringFromMap(scriptMap, "parameter10"),
-						Parameter11: getStringFromMap(scriptMap, "parameter11"),
+						ID:          util.GetStringFromMap(scriptMap, "id"),
+						Name:        util.GetStringFromMap(scriptMap, "name"),
+						Priority:    util.GetStringFromMap(scriptMap, "priority"),
+						Parameter4:  util.GetStringFromMap(scriptMap, "parameter4"),
+						Parameter5:  util.GetStringFromMap(scriptMap, "parameter5"),
+						Parameter6:  util.GetStringFromMap(scriptMap, "parameter6"),
+						Parameter7:  util.GetStringFromMap(scriptMap, "parameter7"),
+						Parameter8:  util.GetStringFromMap(scriptMap, "parameter8"),
+						Parameter9:  util.GetStringFromMap(scriptMap, "parameter9"),
+						Parameter10: util.GetStringFromMap(scriptMap, "parameter10"),
+						Parameter11: util.GetStringFromMap(scriptMap, "parameter11"),
 					})
 				}
 			}
@@ -2301,10 +2302,10 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			for _, printer := range printers {
 				printerMap := printer.(map[string]interface{})
 				printerItems = append(printerItems, jamfpro.PolicyPrinterItem{
-					ID:          getIntFromMap(printerMap, "id"),
-					Name:        getStringFromMap(printerMap, "name"),
-					Action:      getStringFromMap(printerMap, "action"),
-					MakeDefault: getBoolFromMap(printerMap, "make_default"),
+					ID:          util.GetIntFromMap(printerMap, "id"),
+					Name:        util.GetStringFromMap(printerMap, "name"),
+					Action:      util.GetStringFromMap(printerMap, "action"),
+					MakeDefault: util.GetBoolFromMap(printerMap, "make_default"),
 				})
 			}
 		}
@@ -2331,9 +2332,9 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 					dockMap := dock.(map[string]interface{})
 
 					items = append(items, jamfpro.PolicyDockItem{
-						ID:     getIntFromMap(dockMap, "id"),
-						Name:   getStringFromMap(dockMap, "name"),
-						Action: getStringFromMap(dockMap, "action"),
+						ID:     util.GetIntFromMap(dockMap, "id"),
+						Name:   util.GetStringFromMap(dockMap, "name"),
+						Action: util.GetStringFromMap(dockMap, "action"),
 					})
 				}
 			}
@@ -2360,17 +2361,17 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 					}
 
 					var account jamfpro.PolicyAccount
-					account.Action = getStringFromMap(accMap, "action")
-					account.Username = getStringFromMap(accMap, "username")
-					account.Realname = getStringFromMap(accMap, "realname")
-					account.Password = getStringFromMap(accMap, "password")
-					account.ArchiveHomeDirectory = getBoolFromMap(accMap, "archive_home_directory")
-					account.ArchiveHomeDirectoryTo = getStringFromMap(accMap, "archive_home_directory_to")
-					account.Home = getStringFromMap(accMap, "home")
-					account.Hint = getStringFromMap(accMap, "hint")
-					account.Picture = getStringFromMap(accMap, "picture")
-					account.Admin = getBoolFromMap(accMap, "admin")
-					account.FilevaultEnabled = getBoolFromMap(accMap, "filevault_enabled")
+					account.Action = util.GetStringFromMap(accMap, "action")
+					account.Username = util.GetStringFromMap(accMap, "username")
+					account.Realname = util.GetStringFromMap(accMap, "realname")
+					account.Password = util.GetStringFromMap(accMap, "password")
+					account.ArchiveHomeDirectory = util.GetBoolFromMap(accMap, "archive_home_directory")
+					account.ArchiveHomeDirectoryTo = util.GetStringFromMap(accMap, "archive_home_directory_to")
+					account.Home = util.GetStringFromMap(accMap, "home")
+					account.Hint = util.GetStringFromMap(accMap, "hint")
+					account.Picture = util.GetStringFromMap(accMap, "picture")
+					account.Admin = util.GetBoolFromMap(accMap, "admin")
+					account.FilevaultEnabled = util.GetBoolFromMap(accMap, "filevault_enabled")
 
 					policyAccountItems = append(policyAccountItems, account)
 				}
@@ -2382,19 +2383,19 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			var directoryBindings []jamfpro.PolicyDirectoryBinding
 			if bindingsList, ok := accountMaintenanceData["directory_bindings"].([]interface{}); ok && len(bindingsList) > 0 {
 				for _, bindingEntry := range bindingsList {
-					bindingData := getMapFromInterface(bindingEntry)
+					bindingData := util.GetMapFromInterface(bindingEntry)
 					if bindingData == nil {
 						continue // Skip if the map is nil
 					}
 					if bindings, ok := bindingData["binding"].([]interface{}); ok {
 						for _, binding := range bindings {
-							bindingMap := getMapFromInterface(binding)
+							bindingMap := util.GetMapFromInterface(binding)
 							if bindingMap == nil {
 								continue // Skip if the binding map is nil
 							}
 							directoryBindings = append(directoryBindings, jamfpro.PolicyDirectoryBinding{
-								ID:   getIntFromMap(bindingMap, "id"),
-								Name: getStringFromMap(bindingMap, "name"),
+								ID:   util.GetIntFromMap(bindingMap, "id"),
+								Name: util.GetStringFromMap(bindingMap, "name"),
 							})
 						}
 					}
@@ -2415,9 +2416,9 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 
 			// Check if values are provided in Terraform and override defaults if necessary
 			if managementAccountData, ok := accountMaintenanceData["management_account"].(map[string]interface{}); ok {
-				defaultManagementAccount.Action = getStringFromMap(managementAccountData, "action")
-				defaultManagementAccount.ManagedPassword = getStringFromMap(managementAccountData, "managed_password")
-				defaultManagementAccount.ManagedPasswordLength = getIntFromMap(managementAccountData, "managed_password_length")
+				defaultManagementAccount.Action = util.GetStringFromMap(managementAccountData, "action")
+				defaultManagementAccount.ManagedPassword = util.GetStringFromMap(managementAccountData, "managed_password")
+				defaultManagementAccount.ManagedPasswordLength = util.GetIntFromMap(managementAccountData, "managed_password_length")
 			}
 
 			return defaultManagementAccount
@@ -2428,16 +2429,16 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 
 			// Check if open firmware EFI password data is provided in Terraform
 			if openFirmwareEfiPasswordData, ok := accountMaintenanceData["open_firmware_efi_password"].(map[string]interface{}); ok {
-				openFirmwareEfiPasswordDataMap := getMapFromInterface(openFirmwareEfiPasswordData)
+				openFirmwareEfiPasswordDataMap := util.GetMapFromInterface(openFirmwareEfiPasswordData)
 				if openFirmwareEfiPasswordDataMap == nil {
 					// Skip if the open firmware EFI password data map is nil
 					return openFirmwareEfiPassword
 				}
 
 				// Extract values from the Terraform data
-				openFirmwareEfiPassword.OfMode = getStringFromMap(openFirmwareEfiPasswordDataMap, "of_mode")
-				openFirmwareEfiPassword.OfPassword = getStringFromMap(openFirmwareEfiPasswordDataMap, "of_password")
-				openFirmwareEfiPassword.OfPasswordSHA256 = getStringFromMap(openFirmwareEfiPasswordDataMap, "of_password_sha256")
+				openFirmwareEfiPassword.OfMode = util.GetStringFromMap(openFirmwareEfiPasswordDataMap, "of_mode")
+				openFirmwareEfiPassword.OfPassword = util.GetStringFromMap(openFirmwareEfiPasswordDataMap, "of_password")
+				openFirmwareEfiPassword.OfPasswordSHA256 = util.GetStringFromMap(openFirmwareEfiPasswordDataMap, "of_password_sha256")
 			}
 
 			return openFirmwareEfiPassword
@@ -2461,14 +2462,14 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			rebootData := v.(*schema.Set).List()[0].(map[string]interface{})
 
 			// Extract values from the Terraform data
-			reboot.Message = getStringFromMap(rebootData, "message")
-			reboot.SpecifyStartup = getStringFromMap(rebootData, "specify_startup")
-			reboot.StartupDisk = getStringFromMap(rebootData, "startup_disk")
-			reboot.NoUserLoggedIn = getStringFromMap(rebootData, "no_user_logged_in")
-			reboot.UserLoggedIn = getStringFromMap(rebootData, "user_logged_in")
-			reboot.MinutesUntilReboot = getIntFromMap(rebootData, "minutes_until_reboot")
-			reboot.StartRebootTimerImmediately = getBoolFromMap(rebootData, "start_reboot_timer_immediately")
-			reboot.FileVault2Reboot = getBoolFromMap(rebootData, "file_vault_2_reboot")
+			reboot.Message = util.GetStringFromMap(rebootData, "message")
+			reboot.SpecifyStartup = util.GetStringFromMap(rebootData, "specify_startup")
+			reboot.StartupDisk = util.GetStringFromMap(rebootData, "startup_disk")
+			reboot.NoUserLoggedIn = util.GetStringFromMap(rebootData, "no_user_logged_in")
+			reboot.UserLoggedIn = util.GetStringFromMap(rebootData, "user_logged_in")
+			reboot.MinutesUntilReboot = util.GetIntFromMap(rebootData, "minutes_until_reboot")
+			reboot.StartRebootTimerImmediately = util.GetBoolFromMap(rebootData, "start_reboot_timer_immediately")
+			reboot.FileVault2Reboot = util.GetBoolFromMap(rebootData, "file_vault_2_reboot")
 		}
 
 		return reboot
@@ -2478,16 +2479,16 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	if v, ok := d.GetOk("maintenance"); ok {
 		maintenanceData := v.([]interface{})[0].(map[string]interface{})
 		policy.Maintenance = jamfpro.PolicyMaintenance{
-			Recon:                    getBoolFromMap(maintenanceData, "recon"),
-			ResetName:                getBoolFromMap(maintenanceData, "reset_name"),
-			InstallAllCachedPackages: getBoolFromMap(maintenanceData, "install_all_cached_packages"),
-			Heal:                     getBoolFromMap(maintenanceData, "heal"),
-			Prebindings:              getBoolFromMap(maintenanceData, "prebindings"),
-			Permissions:              getBoolFromMap(maintenanceData, "permissions"),
-			Byhost:                   getBoolFromMap(maintenanceData, "byhost"),
-			SystemCache:              getBoolFromMap(maintenanceData, "system_cache"),
-			UserCache:                getBoolFromMap(maintenanceData, "user_cache"),
-			Verify:                   getBoolFromMap(maintenanceData, "verify"),
+			Recon:                    util.GetBoolFromMap(maintenanceData, "recon"),
+			ResetName:                util.GetBoolFromMap(maintenanceData, "reset_name"),
+			InstallAllCachedPackages: util.GetBoolFromMap(maintenanceData, "install_all_cached_packages"),
+			Heal:                     util.GetBoolFromMap(maintenanceData, "heal"),
+			Prebindings:              util.GetBoolFromMap(maintenanceData, "prebindings"),
+			Permissions:              util.GetBoolFromMap(maintenanceData, "permissions"),
+			Byhost:                   util.GetBoolFromMap(maintenanceData, "byhost"),
+			SystemCache:              util.GetBoolFromMap(maintenanceData, "system_cache"),
+			UserCache:                util.GetBoolFromMap(maintenanceData, "user_cache"),
+			Verify:                   util.GetBoolFromMap(maintenanceData, "verify"),
 		}
 	}
 
@@ -2495,14 +2496,14 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	if v, ok := d.GetOk("files_processes"); ok {
 		filesProcessesData := v.([]interface{})[0].(map[string]interface{})
 		policy.FilesProcesses = jamfpro.PolicyFilesProcesses{
-			SearchByPath:         getStringFromMap(filesProcessesData, "search_by_path"),
-			DeleteFile:           getBoolFromMap(filesProcessesData, "delete_file"),
-			LocateFile:           getStringFromMap(filesProcessesData, "locate_file"),
-			UpdateLocateDatabase: getBoolFromMap(filesProcessesData, "update_locate_database"),
-			SpotlightSearch:      getStringFromMap(filesProcessesData, "spotlight_search"),
-			SearchForProcess:     getStringFromMap(filesProcessesData, "search_for_process"),
-			KillProcess:          getBoolFromMap(filesProcessesData, "kill_process"),
-			RunCommand:           getStringFromMap(filesProcessesData, "run_command"),
+			SearchByPath:         util.GetStringFromMap(filesProcessesData, "search_by_path"),
+			DeleteFile:           util.GetBoolFromMap(filesProcessesData, "delete_file"),
+			LocateFile:           util.GetStringFromMap(filesProcessesData, "locate_file"),
+			UpdateLocateDatabase: util.GetBoolFromMap(filesProcessesData, "update_locate_database"),
+			SpotlightSearch:      util.GetStringFromMap(filesProcessesData, "spotlight_search"),
+			SearchForProcess:     util.GetStringFromMap(filesProcessesData, "search_for_process"),
+			KillProcess:          util.GetBoolFromMap(filesProcessesData, "kill_process"),
+			RunCommand:           util.GetStringFromMap(filesProcessesData, "run_command"),
 		}
 	}
 
@@ -2510,11 +2511,11 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	if v, ok := d.GetOk("user_interaction"); ok {
 		userInteractionData := v.([]interface{})[0].(map[string]interface{})
 		policy.UserInteraction = jamfpro.PolicyUserInteraction{
-			MessageStart:          getStringFromMap(userInteractionData, "message_start"),
-			AllowUserToDefer:      getBoolFromMap(userInteractionData, "allow_user_to_defer"),
-			AllowDeferralUntilUtc: getStringFromMap(userInteractionData, "allow_deferral_until_utc"),
-			AllowDeferralMinutes:  getIntFromMap(userInteractionData, "allow_deferral_minutes"),
-			MessageFinish:         getStringFromMap(userInteractionData, "message_finish"),
+			MessageStart:          util.GetStringFromMap(userInteractionData, "message_start"),
+			AllowUserToDefer:      util.GetBoolFromMap(userInteractionData, "allow_user_to_defer"),
+			AllowDeferralUntilUtc: util.GetStringFromMap(userInteractionData, "allow_deferral_until_utc"),
+			AllowDeferralMinutes:  util.GetIntFromMap(userInteractionData, "allow_deferral_minutes"),
+			MessageFinish:         util.GetStringFromMap(userInteractionData, "message_finish"),
 		}
 	}
 
@@ -2527,11 +2528,11 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			diskEncryptionData := v.([]interface{})[0].(map[string]interface{})
 
 			// Extract values from the Terraform data
-			diskEncryption.Action = getStringFromMap(diskEncryptionData, "action")
-			diskEncryption.DiskEncryptionConfigurationID = getIntFromMap(diskEncryptionData, "disk_encryption_configuration_id")
-			diskEncryption.AuthRestart = getBoolFromMap(diskEncryptionData, "auth_restart")
-			diskEncryption.RemediateKeyType = getStringFromMap(diskEncryptionData, "remediate_key_type")
-			diskEncryption.RemediateDiskEncryptionConfigurationID = getIntFromMap(diskEncryptionData, "remediate_disk_encryption_configuration_id")
+			diskEncryption.Action = util.GetStringFromMap(diskEncryptionData, "action")
+			diskEncryption.DiskEncryptionConfigurationID = util.GetIntFromMap(diskEncryptionData, "disk_encryption_configuration_id")
+			diskEncryption.AuthRestart = util.GetBoolFromMap(diskEncryptionData, "auth_restart")
+			diskEncryption.RemediateKeyType = util.GetStringFromMap(diskEncryptionData, "remediate_key_type")
+			diskEncryption.RemediateDiskEncryptionConfigurationID = util.GetIntFromMap(diskEncryptionData, "remediate_disk_encryption_configuration_id")
 		}
 
 		return diskEncryption
@@ -2556,8 +2557,9 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	return policy, nil
 }
 
+/*
 // Helper function to safely get an int value from a map. Returns 0 if key is absent or nil.
-func getIntFromMap(m map[string]interface{}, key string) int {
+func util.GetIntFromMap(m map[string]interface{}, key string) int {
 	if val, ok := m[key]; ok && val != nil {
 		if intVal, ok := val.(int); ok {
 			return intVal
@@ -2567,7 +2569,7 @@ func getIntFromMap(m map[string]interface{}, key string) int {
 }
 
 // Helper function to safely get a bool value from a map. Returns false if key is absent or nil.
-func getBoolFromMap(m map[string]interface{}, key string) bool {
+func util.GetBoolFromMap(m map[string]interface{}, key string) bool {
 	if val, ok := m[key]; ok && val != nil {
 		if boolVal, ok := val.(bool); ok {
 			return boolVal
@@ -2577,7 +2579,7 @@ func getBoolFromMap(m map[string]interface{}, key string) bool {
 }
 
 // Helper function to safely get a string value from a map. Returns an empty string if key is absent or nil.
-func getStringFromMap(m map[string]interface{}, key string) string {
+func util.GetStringFromMap(m map[string]interface{}, key string) string {
 	if val, ok := m[key]; ok && val != nil {
 		if strVal, ok := val.(string); ok {
 			return strVal
@@ -2587,13 +2589,13 @@ func getStringFromMap(m map[string]interface{}, key string) string {
 }
 
 // Helper function to safely convert an interface{} to a map[string]interface{}. Returns nil if the conversion is not possible.
-func getMapFromInterface(value interface{}) map[string]interface{} {
+func util.GetMapFromInterface(value interface{}) map[string]interface{} {
 	if val, ok := value.(map[string]interface{}); ok {
 		return val
 	}
 	return nil // Return nil if conversion is not possible
 }
-
+*/
 // Helper function to generate diagnostics based on the error type.
 func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
 	var diags diag.Diagnostics

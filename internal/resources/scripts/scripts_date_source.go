@@ -133,12 +133,12 @@ func DataSourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, m
 	}
 	conn := apiclient.Conn
 
-	var script *jamfpro.ResponseScript
+	var script *jamfpro.ResourceScript
 	var err error
 
 	if v, ok := d.GetOk("name"); ok && v.(string) != "" {
 		scriptName := v.(string)
-		script, err = conn.GetScriptsByName(scriptName)
+		script, err = conn.GetScriptByName(scriptName)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to fetch Jamf Pro script by name: %v", err))
 		}
@@ -147,7 +147,7 @@ func DataSourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, m
 		if convertErr != nil {
 			return diag.FromErr(fmt.Errorf("failed to convert Jamf Pro script ID to integer: %v", convertErr))
 		}
-		script, err = conn.GetScriptsByID(scriptID)
+		script, err = conn.GetScriptByID(scriptID)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to fetch Jamf Pro script by ID: %v", err))
 		}

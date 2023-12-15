@@ -75,8 +75,8 @@ func ResourceJamfProBuilding() *schema.Resource {
 }
 
 // constructJamfProBuilding constructs a Building object from the provided schema data and returns any errors encountered.
-func constructJamfProBuilding(d *schema.ResourceData) (*jamfpro.ResponseBuilding, error) {
-	building := &jamfpro.ResponseBuilding{}
+func constructJamfProBuilding(d *schema.ResourceData) (*jamfpro.ResourceBuilding, error) {
+	building := &jamfpro.ResourceBuilding{}
 
 	fields := map[string]*string{
 		"name":            &building.Name,
@@ -210,7 +210,7 @@ func ResourceJamfProBuildingRead(ctx context.Context, d *schema.ResourceData, me
 	}
 	conn := apiclient.Conn
 
-	var building *jamfpro.ResponseBuilding
+	var building *jamfpro.ResourceBuilding
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
@@ -231,7 +231,7 @@ func ResourceJamfProBuildingRead(ctx context.Context, d *schema.ResourceData, me
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
 
-			building, apiErr = conn.GetBuildingByNameByID(buildingName)
+			building, apiErr = conn.GetBuildingByName(buildingName)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -311,7 +311,7 @@ func ResourceJamfProBuildingUpdate(ctx context.Context, d *schema.ResourceData, 
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
 
-			_, apiErr = conn.UpdateBuildingByNameByID(buildingName, building)
+			_, apiErr = conn.UpdateBuildingByName(buildingName, building)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -372,7 +372,7 @@ func ResourceJamfProBuildingDelete(ctx context.Context, d *schema.ResourceData, 
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
 
-			apiErr = conn.DeleteBuildingByNameByID(buildingName)
+			apiErr = conn.DeleteBuildingByName(buildingName)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {

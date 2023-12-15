@@ -6,12 +6,12 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -46,16 +46,16 @@ func ResourceJamfProScripts() *schema.Resource {
 				Required:    true,
 				Description: "Display name for the script.",
 			},
-			"category": {
+			"category_name": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Computed:    true,
-				Description: "Category to add the script to.",
+				Description: "Name of the category to add the script to.",
 			},
-			"filename": {
+			"category_id": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Filename of the script.",
+				Computed:    true,
+				Description: "The Jamf Pro unique identifier (ID) of the category.",
 			},
 			"info": {
 				Type:        schema.TypeString,
@@ -67,118 +67,102 @@ func ResourceJamfProScripts() *schema.Resource {
 				Optional:    true,
 				Description: "Notes to display about the script (e.g., who created it and when it was created).",
 			},
+			"os_requirements": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The script can only be run on computers with these operating system versions. Each version must be separated by a comma (e.g., 10.11, 15, 16.1).",
+			},
 			"priority": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Description:  "Execution priority of the script (Before, After, At Reboot).",
 				ValidateFunc: validation.StringInSlice([]string{"Before", "After", "At Reboot"}, false),
 			},
-			"parameters": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Computed:    true,
-				Description: "Labels to use for script parameters. Parameters 1 through 3 are predefined as mount point, computer name, and username",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"parameter4": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Computed:    true,
-							Description: "Script parameter label 4",
-						},
-						"parameter5": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Computed:    true,
-							Description: "Script parameter label 5",
-						},
-						"parameter6": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Computed:    true,
-							Description: "Script parameter label 6",
-						},
-						"parameter7": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Computed:    true,
-							Description: "Script parameter label 7",
-						},
-						"parameter8": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Computed:    true,
-							Description: "Script parameter label 8",
-						},
-						"parameter9": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Computed:    true,
-							Description: "Script parameter label 9",
-						},
-						"parameter10": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Computed:    true,
-							Description: "Script parameter label 10",
-						},
-						"parameter11": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Computed:    true,
-							Description: "Script parameter label 11",
-						},
-					},
-				},
-			},
-			"os_requirements": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The script can only be run on computers with these operating system versions. Each version must be separated by a comma (e.g., 10.11, 15, 16.1).",
-			},
 			"script_contents": {
 				Type:             schema.TypeString,
 				Required:         true,
-				Description:      "Contents of the script. The script contents must be non-compiled and in one of the following formats: Bash (.sh), Shell (.sh), Non-compiled AppleScript (.applescript), C Shell (.csh), Zsh (.zsh),Korn Shell (.ksh), Tool Command Language (.tcl), and Python (.py). Ref - https://learn.jamf.com/bundle/jamf-pro-documentation-current/page/Scripts.html . The script contents should also have trailing whitespace at the end removed, to avoid tf state false positives.",
+				Description:      "Contents of the script. Must be non-compiled and in an accepted format.",
 				DiffSuppressFunc: suppressBase64EncodedScriptDiff,
 			},
-			"script_contents_encoded": {
+			"parameter4": {
 				Type:        schema.TypeString,
+				Optional:    true,
 				Computed:    true,
-				Description: "Jamf Pro encoded contents of the script.",
+				Description: "Script parameter label 4",
+			},
+			"parameter5": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "Script parameter label 5",
+			},
+			"parameter6": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "Script parameter label 6",
+			},
+			"parameter7": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "Script parameter label 7",
+			},
+			"parameter8": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "Script parameter label 8",
+			},
+			"parameter9": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "Script parameter label 9",
+			},
+			"parameter10": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "Script parameter label 10",
+			},
+			"parameter11": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "Script parameter label 11",
 			},
 		},
 	}
 }
 
-// constructJamfProScript constructs a ResponseScript object from the provided schema data and returns any errors encountered.
-func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResponseScript, error) {
-	script := &jamfpro.ResponseScript{}
+func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResourceScript, error) {
+	script := &jamfpro.ResourceScript{}
 
-	// construct regular fields
-	fields := map[string]interface{}{
-		"name":     &script.Name,
-		"filename": &script.Filename,
-		"info":     &script.Info,
-		//"script_contents": &script.ScriptContents,
-		"notes":           &script.Notes,
-		"priority":        &script.Priority,
-		"os_requirements": &script.OSRequirements,
-	}
+	// Utilize type assertion helper functions for direct field extraction
+	script.Name = util.GetString(d.Get("name").(string))
+	script.CategoryName = util.GetString(d.Get("category_name").(string))
+	script.CategoryId = util.GetString(d.Get("category_id").(string))
+	script.Info = util.GetString(d.Get("info").(string))
+	script.Notes = util.GetString(d.Get("notes").(string))
+	script.OSRequirements = util.GetString(d.Get("os_requirements").(string))
+	script.Priority = util.GetString(d.Get("priority").(string))
 
-	for key, ptr := range fields {
-		if v, ok := d.GetOk(key); ok {
-			*ptr.(*string) = v.(string)
-		}
-	}
+	// Extracting script parameters
+	script.Parameter4 = util.GetString(d.Get("parameter4").(string))
+	script.Parameter5 = util.GetString(d.Get("parameter5").(string))
+	script.Parameter6 = util.GetString(d.Get("parameter6").(string))
+	script.Parameter7 = util.GetString(d.Get("parameter7").(string))
+	script.Parameter8 = util.GetString(d.Get("parameter8").(string))
+	script.Parameter9 = util.GetString(d.Get("parameter9").(string))
+	script.Parameter10 = util.GetString(d.Get("parameter10").(string))
+	script.Parameter11 = util.GetString(d.Get("parameter11").(string))
 
-	// construct script_contents
-	scriptContents, isScriptContentPresent := d.GetOk("script_contents")
-	if isScriptContentPresent {
-		// If the script contents were modified, use the new value directly
-		script.ScriptContents = scriptContents.(string)
+	// Handle script_contents
+	if scriptContent, ok := d.GetOk("script_contents"); ok {
+		script.ScriptContents = scriptContent.(string)
 	} else {
-		// If the script contents were not modified, decode them from the state
+		// Decode script contents from the state if not directly modified
 		encodedScriptContents, _ := d.Get("script_contents_encoded").(string)
 		decodedBytes, err := base64.StdEncoding.DecodeString(encodedScriptContents)
 		if err != nil {
@@ -187,49 +171,9 @@ func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResponseScript, er
 		script.ScriptContents = string(decodedBytes)
 	}
 
-	// construct fields with default values
-	if v, ok := d.GetOk("category"); ok {
-		script.Category = v.(string)
-	} else {
-		script.Category = "No category assigned"
-	}
-
-	// construct nested fields
-	if params, ok := d.GetOk("parameters"); ok {
-		paramsList, ok := params.([]interface{})
-		if !ok || len(paramsList) == 0 {
-			return nil, fmt.Errorf("invalid data for 'parameters'")
-		}
-		paramMap, ok := paramsList[0].(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("invalid data structure for 'parameters'")
-		}
-
-		script.Parameters = jamfpro.Parameters{
-			Parameter4:  getStringFromMap(paramMap, "parameter4"),
-			Parameter5:  getStringFromMap(paramMap, "parameter5"),
-			Parameter6:  getStringFromMap(paramMap, "parameter6"),
-			Parameter7:  getStringFromMap(paramMap, "parameter7"),
-			Parameter8:  getStringFromMap(paramMap, "parameter8"),
-			Parameter9:  getStringFromMap(paramMap, "parameter9"),
-			Parameter10: getStringFromMap(paramMap, "parameter10"),
-			Parameter11: getStringFromMap(paramMap, "parameter11"),
-		}
-	}
-
-	// Log the successful construction of the script
 	log.Printf("[INFO] Successfully constructed Script with name: %s", script.Name)
 
 	return script, nil
-}
-
-// getStringFromMap is a helper function to safely extract string values from a map.
-// Returns an empty string if the key is not found.
-func getStringFromMap(m map[string]interface{}, key string) string {
-	if val, ok := m[key]; ok && val != "" {
-		return val.(string)
-	}
-	return ""
 }
 
 // Helper function to generate diagnostics based on the error type.
@@ -274,7 +218,7 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 	conn := apiclient.Conn
 
 	// Use the retry function for the create operation
-	var createdAttribute *jamfpro.ResponseScript
+	var createdAttribute *jamfpro.ResponseScriptCreate
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the script
@@ -284,7 +228,7 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 		}
 
 		// Directly call the API to create the resource
-		createdAttribute, err = conn.CreateScriptByID(attribute)
+		createdAttribute, err = conn.CreateScript(attribute)
 		if err != nil {
 			// Check if the error is an APIError
 			if apiErr, ok := err.(*http_client.APIError); ok {
@@ -303,7 +247,7 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	// Set the ID of the created resource in the Terraform state
-	d.SetId(strconv.Itoa(createdAttribute.ID))
+	d.SetId(createdAttribute.ID)
 
 	// Use the retry function for the read operation to update the Terraform state with the resource attributes
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
@@ -338,19 +282,16 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 	}
 	conn := apiclient.Conn
 
-	var attribute *jamfpro.ResponseScript
+	var attribute *jamfpro.ResourceScript
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		// Convert the ID from the Terraform state into an integer to be used for the API request
-		attributeID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse attribute ID: %v", convertErr))
-		}
+		attributeID := d.Id()
 
 		// Try fetching the script using the ID
 		var apiErr error
-		attribute, apiErr = conn.GetScriptsByID(attributeID)
+		attribute, apiErr = conn.GetScriptByID(attributeID)
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -359,10 +300,10 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 			// If fetching by ID fails, try fetching by Name
 			attributeName, ok := d.Get("name").(string)
 			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string for read function"))
 			}
 
-			attribute, apiErr = conn.GetScriptsByName(attributeName)
+			attribute, apiErr = conn.GetScriptByName(attributeName)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -380,79 +321,31 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 		return generateTFDiagsFromHTTPError(err, d, "read")
 	}
 
-	// Safely set attributes in the Terraform state
-	if err := d.Set("name", attribute.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if attribute.Category == "" {
-		if err := d.Set("category", "No category assigned"); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	} else {
-		if err := d.Set("category", attribute.Category); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-	if err := d.Set("filename", attribute.Filename); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("info", attribute.Info); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("notes", attribute.Notes); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("priority", attribute.Priority); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("os_requirements", attribute.OSRequirements); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	// Fetch script content from Jamf Pro
-	scriptContentFromJamf := attribute.ScriptContents
-	// Encode the Jamf Pro script content to base64
-	encodedContentFromJamf := encodeScriptContent(scriptContentFromJamf)
-	// Update the Terraform state with the base64 encoded script content
-	if err := d.Set("script_contents", encodedContentFromJamf); err != nil {
-		return diag.FromErr(err)
+	// Construct a map of script attributes
+	scriptAttributes := map[string]interface{}{
+		"name":            attribute.Name,
+		"category_name":   attribute.CategoryName,
+		"category_id":     attribute.CategoryId,
+		"info":            attribute.Info,
+		"notes":           attribute.Notes,
+		"os_requirements": attribute.OSRequirements,
+		"priority":        attribute.Priority,
+		"script_contents": encodeScriptContent(attribute.ScriptContents),
+		"parameter4":      attribute.Parameter4,
+		"parameter5":      attribute.Parameter5,
+		"parameter6":      attribute.Parameter6,
+		"parameter7":      attribute.Parameter7,
+		"parameter8":      attribute.Parameter8,
+		"parameter9":      attribute.Parameter9,
+		"parameter10":     attribute.Parameter10,
+		"parameter11":     attribute.Parameter11,
 	}
 
-	// Handling parameters
-	parameters := make(map[string]interface{})
-	if attribute.Parameters.Parameter4 != "" {
-		parameters["parameter4"] = attribute.Parameters.Parameter4
-	}
-	if attribute.Parameters.Parameter5 != "" {
-		parameters["parameter5"] = attribute.Parameters.Parameter5
-	}
-	// Apply this pattern to the rest of the parameters
-	if attribute.Parameters.Parameter6 != "" {
-		parameters["parameter6"] = attribute.Parameters.Parameter6
-	}
-	if attribute.Parameters.Parameter7 != "" {
-		parameters["parameter7"] = attribute.Parameters.Parameter7
-	}
-	if attribute.Parameters.Parameter8 != "" {
-		parameters["parameter8"] = attribute.Parameters.Parameter8
-	}
-	if attribute.Parameters.Parameter9 != "" {
-		parameters["parameter9"] = attribute.Parameters.Parameter9
-	}
-	if attribute.Parameters.Parameter10 != "" {
-		parameters["parameter10"] = attribute.Parameters.Parameter10
-	}
-	if attribute.Parameters.Parameter11 != "" {
-		parameters["parameter11"] = attribute.Parameters.Parameter11
-	}
-
-	if len(parameters) > 0 {
-		if err := d.Set("parameters", []interface{}{parameters}); err != nil {
+	// Update the Terraform state with script attributes
+	for key, value := range scriptAttributes {
+		if err := d.Set(key, value); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
-		}
-	} else {
-		// Explicitly setting parameters to nil if they are absent
-		if err := d.Set("parameters", nil); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+			return diags
 		}
 	}
 
@@ -490,11 +383,8 @@ func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, m
 			script.ScriptContents = string(decodedBytes)
 		}
 
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		scriptID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse script ID: %v", convertErr))
-		}
+		// Obtain the ID from the Terraform state to be used for the API request
+		scriptID := d.Id()
 
 		// Directly call the API to update the resource
 		_, apiErr := conn.UpdateScriptByID(scriptID, script)
@@ -506,7 +396,7 @@ func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, m
 			// If the update by ID fails, try updating by name
 			scriptName, ok := d.Get("name").(string)
 			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string in update"))
 			}
 
 			_, apiErr = conn.UpdateScriptByName(scriptName, script)
@@ -558,11 +448,8 @@ func ResourceJamfProScriptsDelete(ctx context.Context, d *schema.ResourceData, m
 
 	// Use the retry function for the delete operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		scriptID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse script ID: %v", convertErr))
-		}
+		// Obtain the ID from the Terraform state to be used for the API request
+		scriptID := d.Id()
 
 		// Directly call the API to delete the resource
 		apiErr := conn.DeleteScriptByID(scriptID)
