@@ -103,8 +103,8 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 }
 
 // constructJamfProApiIntegration constructs a ResponseApiIntegration object from the provided schema data and returns any errors encountered.
-func constructJamfProApiIntegration(d *schema.ResourceData) (*jamfpro.ApiIntegration, error) {
-	integration := &jamfpro.ApiIntegration{}
+func constructJamfProApiIntegration(d *schema.ResourceData) (*jamfpro.ResourceApiIntegration, error) {
+	integration := &jamfpro.ResourceApiIntegration{}
 
 	// Map for the fields which are expected to be string or bool or int
 	fields := map[string]interface{}{
@@ -174,7 +174,7 @@ func ResourceJamfProApiIntegrationsCreate(ctx context.Context, d *schema.Resourc
 	conn := apiclient.Conn
 
 	// Use the retry function for the create operation
-	var createdIntegration *jamfpro.ApiIntegration
+	var createdIntegration *jamfpro.ResourceApiIntegration
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the API integration
@@ -243,7 +243,7 @@ func ResourceJamfProApiIntegrationsRead(ctx context.Context, d *schema.ResourceD
 	}
 	conn := apiclient.Conn
 
-	var integration *jamfpro.ApiIntegration
+	var integration *jamfpro.ResourceApiIntegration
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
@@ -263,7 +263,7 @@ func ResourceJamfProApiIntegrationsRead(ctx context.Context, d *schema.ResourceD
 			}
 			// If fetching by ID fails, try fetching by Name
 			integrationName := d.Get("display_name").(string)
-			integration, apiErr = conn.GetApiIntegrationNameByID(integrationName)
+			integration, apiErr = conn.GetApiIntegrationByName(integrationName)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -331,7 +331,7 @@ func ResourceJamfProApiIntegrationsUpdate(ctx context.Context, d *schema.Resourc
 		}
 
 		// Directly call the API to update the resource
-		_, apiErr := conn.UpdateApiIntegrationByID(strconv.Itoa(integrationID), integration)
+		_, apiErr := conn.UpdateApiIntegrationByID((integrationID), integration)
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -395,7 +395,7 @@ func ResourceJamfProApiIntegrationsDelete(ctx context.Context, d *schema.Resourc
 		}
 
 		// Directly call the API to delete the resource
-		apiErr := conn.DeleteApiIntegrationByID(strconv.Itoa(integrationID))
+		apiErr := conn.DeleteApiIntegrationByID(integrationID)
 		if apiErr != nil {
 			// If the delete by ID fails, try deleting by display name
 			integrationName := d.Get("display_name").(string)

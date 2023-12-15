@@ -51,19 +51,19 @@ func dataSourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, 
 	}
 	conn := apiclient.Conn
 
-	var role *jamfpro.APIRole
+	var role *jamfpro.ResourceAPIRole
 	var err error
 
 	// Check if Name is provided in the data source configuration
 	if v, ok := d.GetOk("name"); ok && v.(string) != "" {
 		roleName := v.(string)
-		role, err = conn.GetJamfApiRolesNameById(roleName)
+		role, err = conn.GetJamfApiRoleByName(roleName)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to fetch API role by name: %v", err))
 		}
 	} else if v, ok := d.GetOk("id"); ok {
-		roleID := v.(int) // Correctly cast to int
-		role, err = conn.GetJamfApiRolesByID(roleID)
+		roleID := v.(string)
+		role, err = conn.GetJamfApiRoleByID(roleID)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to fetch API role by ID: %v", err))
 		}

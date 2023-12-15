@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
@@ -81,9 +80,9 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 	return diags
 }
 
-// constructJamfProApiRole constructs an APIRole object from the provided schema data and returns any errors encountered.
-func constructJamfProApiRole(d *schema.ResourceData) (*jamfpro.APIRole, error) {
-	apiRole := &jamfpro.APIRole{}
+// constructJamfProApiRole constructs an ResourceAPIRole object from the provided schema data and returns any errors encountered.
+func constructJamfProApiRole(d *schema.ResourceData) (*jamfpro.ResourceAPIRole, error) {
+	apiRole := &jamfpro.ResourceAPIRole{}
 
 	// Map for the fields which are expected to be string
 	fields := map[string]interface{}{
@@ -150,7 +149,7 @@ func ResourceJamfProAPIRolesCreate(ctx context.Context, d *schema.ResourceData, 
 	conn := apiclient.Conn
 
 	// Use the retry function for the create operation
-	var createdRole *jamfpro.APIRole
+	var createdRole *jamfpro.ResourceAPIRole
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the API role
@@ -224,25 +223,20 @@ func ResourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, me
 	conn := apiclient.Conn
 
 	// Retrieve the ID and display name of the API role from the Terraform state
-	roleIDString := d.Id()
+	roleID := d.Id()
 	displayName, _ := d.GetOk("display_name")
 
-	// Convert roleIDString to an integer
-	roleID, err := strconv.Atoi(roleIDString)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to convert role ID to integer: %v", err))
-	}
-
 	// Use the retry function for the read operation
-	var fetchedRole *jamfpro.APIRole
+	var fetchedRole *jamfpro.ResourceAPIRole
+	var err error // Declare 'err' here
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		// Try to fetch the role by ID
-		fetchedRole, err = conn.GetJamfApiRolesByID(roleID)
+		fetchedRole, err = conn.GetJamfApiRoleByID(roleID)
 		if err != nil {
-			log.Printf("[WARN] Error reading APIRole with ID: %d. Error: %s. Trying by display name: %s", roleID, err, displayName)
+			log.Printf("[WARN] Error reading APIRole with ID: %s. Error: %s. Trying by display name: %s", roleID, err, displayName)
 
 			// If fetching by ID fails, try fetching by display name
-			fetchedRole, err = conn.GetJamfApiRolesNameById(displayName.(string))
+			fetchedRole, err = conn.GetJamfApiRoleByName(displayName.(string))
 			if err != nil {
 				// Log the error from the second API call
 				log.Printf("[ERROR] Error reading APIRole with display name: %s. Error: %s", displayName, err)
@@ -251,7 +245,7 @@ func ResourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, me
 		}
 
 		// Log the response from the successful API call
-		log.Printf("[INFO] Successfully read APIRole with ID: %d and display name: %s", roleID, fetchedRole.DisplayName)
+		log.Printf("[INFO] Successfully read APIRole with ID: %s and display name: %s", roleID, fetchedRole.DisplayName)
 
 		return nil
 	})

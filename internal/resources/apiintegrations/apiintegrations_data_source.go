@@ -78,13 +78,13 @@ func dataSourceJamfProApiIntegrationsRead(ctx context.Context, d *schema.Resourc
 	}
 	conn := apiclient.Conn
 
-	var integration *jamfpro.ApiIntegration
+	var integration *jamfpro.ResourceApiIntegration
 	var err error
 
 	// Check if DisplayName is provided in the data source configuration
 	if v, ok := d.GetOk("display_name"); ok && v.(string) != "" {
 		integrationName := v.(string)
-		integration, err = conn.GetApiIntegrationNameByID(integrationName)
+		integration, err = conn.GetApiIntegrationByName(integrationName)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to fetch API integration by display name: %v", err))
 		}

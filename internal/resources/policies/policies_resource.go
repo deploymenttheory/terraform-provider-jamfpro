@@ -1833,7 +1833,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 				if overrideData, ok := generalData["override_default_settings"].([]interface{}); ok && len(overrideData) > 0 {
 					overrideMap := overrideData[0].(map[string]interface{})
 					return jamfpro.PolicyOverrideSettings{
-						TargetDrive:       getStringFromMap(overrideMap, "target_drive"),
+						TargetDrive:       type_assertion.getStringFromMap(overrideMap, "target_drive"),
 						DistributionPoint: getStringFromMap(overrideMap, "distribution_point"),
 						ForceAfpSmb:       getBoolFromMap(overrideMap, "force_afp_smb"),
 						SUS:               getStringFromMap(overrideMap, "sus"),
