@@ -138,10 +138,16 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Description: "Number of retry attempts for the jamf pro policy. Valid values are -1 (not configured) and 1 through 10.",
 							Default:     -1,
 							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-								v := val.(int)
+								v, ok := util.GetInt(val)
+								if !ok {
+									errs = append(errs, fmt.Errorf("%q expects an integer, got: %T", key, val))
+									return
+								}
+
 								if v == -1 || (v > 0 && v <= 10) {
 									return
 								}
+
 								errs = append(errs, fmt.Errorf("%q must be -1 if not being set or between 1 and 10 if it is being set, got: %d", key, v))
 								return warns, errs
 							},

@@ -80,3 +80,10 @@ func GetString(val interface{}) (string, bool) {
 	strVal, ok := val.(string)
 	return strVal, ok
 }
+
+// GetInt safely performs an int type assertion.
+// It returns the asserted int and a boolean indicating whether the assertion was successful.
+func GetInt(val interface{}) (int, bool) {
+	intVal, ok := val.(int)
+	return intVal, ok
+}
