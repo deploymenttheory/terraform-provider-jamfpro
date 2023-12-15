@@ -1,89 +1,133 @@
 // type_assertion.go
 package type_assertion
 
-// Helper function to safely get an int value from a map. Returns 0 if key is absent or nil.
-func GetIntFromMap(m map[string]interface{}, key string) int {
-	if val, ok := m[key]; ok && val != nil {
-		if intVal, ok := val.(int); ok {
-			return intVal
-		}
+import "fmt"
+
+/*
+A set of helper functions designed to handle type assertion. The funcs support scenarios where the value is null (nil in Go).
+When you check for val, ok := m[key], you're not only checking if the key exists in the map but also if the value associated with that key is nil.
+
+For Map Functions (GetIntFromMap, GetBoolFromMap, GetStringFromMap):
+
+val, ok := m[key]: This checks if the key exists in the map. If the key does not exist, ok will be false.
+if !ok || val == nil: This checks both if the key is not found (!ok) and if the value is nil (val == nil). If either condition is true, the function returns a default value (0 for integers, false for booleans, "" for strings) and false for the boolean indicator.
+For Interface Functions (GetStringFromInterface, GetIntFromInterface, GetBoolFromInterface):
+
+These functions directly perform a type assertion on the provided interface{} value.
+If val is nil, the type assertion will fail, and ok will be false. This is because a nil interface cannot be asserted to any concrete type.
+For Direct Type Assertion Functions (GetString, GetInt):
+
+These functions are similar to the interface functions. They perform a type assertion and return the result along with the success indicator.
+Again, if the passed interface{} is nil, the assertion will fail, and ok will be false.
+*/
+
+// GetIntFromMap safely retrieves an int value from a map, returning a default value for nil or not found.
+func GetIntFromMap(m map[string]interface{}, key string) (int, error) {
+	val, ok := m[key]
+	if !ok || val == nil {
+		return 0, nil
 	}
-	return 0 // Return default zero value if key is not found or nil
+	intVal, ok := val.(int)
+	if !ok {
+		return 0, fmt.Errorf("value for key '%s' is not of type int", key)
+	}
+	return intVal, nil
 }
 
-// GetBoolFromMap safely retrieves a bool value from a map.
-// It returns false if the key is absent, nil, or not a bool.
-func GetBoolFromMap(m map[string]interface{}, key string) bool {
+// GetBoolFromMap safely retrieves a bool value from a map, returning a default value for nil or not found.
+func GetBoolFromMap(m map[string]interface{}, key string) (bool, error) {
 	val, ok := m[key]
-	if !ok {
-		// Key not found or value is nil, return the default false value
-		return false
+	if !ok || val == nil {
+		return false, nil
 	}
-
 	boolVal, ok := val.(bool)
 	if !ok {
-		// Value is not of type bool, return the default false value
-		return false
+		return false, fmt.Errorf("value for key '%s' is not of type bool", key)
 	}
-
-	return boolVal
+	return boolVal, nil
 }
 
-// Helper function to safely get a string value from a map. Returns an empty string if key is absent or nil.
-func GetStringFromMap(m map[string]interface{}, key string) string {
-	if val, ok := m[key]; ok && val != nil {
-		if strVal, ok := val.(string); ok {
-			return strVal
-		}
+// GetStringFromMap safely retrieves a string value from a map, returning a default value for nil or not found.
+func GetStringFromMap(m map[string]interface{}, key string) (string, error) {
+	val, ok := m[key]
+	if !ok || val == nil {
+		return "", nil
 	}
-	return "" // Return default empty string if key is not found or nil
-}
-
-// ConvertToMapFromInterface is a helper function to safely convert an interface{} to a map[string]interface{}. Returns nil if the conversion is not possible.
-func ConvertToMapFromInterface(value interface{}) map[string]interface{} {
-	if val, ok := value.(map[string]interface{}); ok {
-		return val
-	}
-	return nil // Return nil if conversion is not possible
-}
-
-// GetStringFromInterface safely retrieves a string value from an interface{}.
-// It returns an empty string if the value is absent, nil, or not a string.
-func GetStringFromInterface(val interface{}) string {
-	if strVal, ok := val.(string); ok {
-		return strVal
-	}
-	return "" // Return default empty string if value is not a string
-}
-
-// GetIntFromInterface safely retrieves an int value from an interface{}.
-// It returns 0 if the value is absent, nil, or not an int.
-func GetIntFromInterface(val interface{}) int {
-	if intVal, ok := val.(int); ok {
-		return intVal
-	}
-	return 0 // Return default zero value if value is not an int
-}
-
-// GetBoolFromInterface safely retrieves a bool value from an interface{}.
-// It returns false if the value is absent, nil, or not a bool.
-func GetBoolFromInterface(val interface{}) bool {
-	if boolVal, ok := val.(bool); ok {
-		return boolVal
-	}
-	return false // Return default false value if value is not a bool
-}
-
-// GetString safely performs a string type assertion.
-// It returns the asserted string and a boolean indicating whether the assertion was successful.
-func GetString(val interface{}) (string, bool) {
 	strVal, ok := val.(string)
-	return strVal, ok
+	if !ok {
+		return "", fmt.Errorf("value for key '%s' is not of type string", key)
+	}
+	return strVal, nil
 }
 
-// GetInt safely performs an int type assertion.
-// It returns the asserted int and a boolean indicating whether the assertion was successful.
-func GetInt(val interface{}) (int, bool) {
+// ConvertToMapFromInterface safely converts an interface{} to a map[string]interface{}, handling nil values.
+func ConvertToMapFromInterface(value interface{}) (map[string]interface{}, error) {
+	if value == nil {
+		return nil, nil
+	}
+	val, ok := value.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("value is not a map[string]interface{}")
+	}
+	return val, nil
+}
+
+// GetStringFromInterface safely retrieves a string value from an interface{}, handling nil values.
+func GetStringFromInterface(val interface{}) (string, error) {
+	if val == nil {
+		return "", nil
+	}
+	strVal, ok := val.(string)
+	if !ok {
+		return "", fmt.Errorf("value is not a string")
+	}
+	return strVal, nil
+}
+
+// GetIntFromInterface safely retrieves an int value from an interface{}, handling nil values.
+func GetIntFromInterface(val interface{}) (int, error) {
+	if val == nil {
+		return 0, nil
+	}
 	intVal, ok := val.(int)
-	return intVal, ok
+	if !ok {
+		return 0, fmt.Errorf("value is not an int")
+	}
+	return intVal, nil
+}
+
+// GetBoolFromInterface safely retrieves a bool value from an interface{}, handling nil values.
+func GetBoolFromInterface(val interface{}) (bool, error) {
+	if val == nil {
+		return false, nil
+	}
+	boolVal, ok := val.(bool)
+	if !ok {
+		return false, fmt.Errorf("value is not a bool")
+	}
+	return boolVal, nil
+}
+
+// GetString safely performs a string type assertion, handling nil values.
+func GetString(val interface{}) (string, error) {
+	if val == nil {
+		return "", nil
+	}
+	strVal, ok := val.(string)
+	if !ok {
+		return "", fmt.Errorf("value is not a string")
+	}
+	return strVal, nil
+}
+
+// GetInt safely performs an int type assertion, handling nil values.
+func GetInt(val interface{}) (int, error) {
+	if val == nil {
+		return 0, nil
+	}
+	intVal, ok := val.(int)
+	if !ok {
+		return 0, fmt.Errorf("value is not an int")
+	}
+	return intVal, nil
 }
