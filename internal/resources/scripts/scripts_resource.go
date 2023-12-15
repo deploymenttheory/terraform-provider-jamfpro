@@ -140,23 +140,23 @@ func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResourceScript, er
 	script := &jamfpro.ResourceScript{}
 
 	// Utilize type assertion helper functions for direct field extraction
-	script.Name = util.GetString(d.Get("name").(string))
-	script.CategoryName = util.GetString(d.Get("category_name").(string))
-	script.CategoryId = util.GetString(d.Get("category_id").(string))
-	script.Info = util.GetString(d.Get("info").(string))
-	script.Notes = util.GetString(d.Get("notes").(string))
-	script.OSRequirements = util.GetString(d.Get("os_requirements").(string))
-	script.Priority = util.GetString(d.Get("priority").(string))
+	script.Name = util.GetStringFromInterface(d.Get("name").(string))
+	script.CategoryName = util.GetStringFromInterface(d.Get("category_name").(string))
+	script.CategoryId = util.GetStringFromInterface(d.Get("category_id").(string))
+	script.Info = util.GetStringFromInterface(d.Get("info").(string))
+	script.Notes = util.GetStringFromInterface(d.Get("notes").(string))
+	script.OSRequirements = util.GetStringFromInterface(d.Get("os_requirements").(string))
+	script.Priority = util.GetStringFromInterface(d.Get("priority").(string))
 
 	// Extracting script parameters
-	script.Parameter4 = util.GetString(d.Get("parameter4").(string))
-	script.Parameter5 = util.GetString(d.Get("parameter5").(string))
-	script.Parameter6 = util.GetString(d.Get("parameter6").(string))
-	script.Parameter7 = util.GetString(d.Get("parameter7").(string))
-	script.Parameter8 = util.GetString(d.Get("parameter8").(string))
-	script.Parameter9 = util.GetString(d.Get("parameter9").(string))
-	script.Parameter10 = util.GetString(d.Get("parameter10").(string))
-	script.Parameter11 = util.GetString(d.Get("parameter11").(string))
+	script.Parameter4 = util.GetStringFromInterface(d.Get("parameter4").(string))
+	script.Parameter5 = util.GetStringFromInterface(d.Get("parameter5").(string))
+	script.Parameter6 = util.GetStringFromInterface(d.Get("parameter6").(string))
+	script.Parameter7 = util.GetStringFromInterface(d.Get("parameter7").(string))
+	script.Parameter8 = util.GetStringFromInterface(d.Get("parameter8").(string))
+	script.Parameter9 = util.GetStringFromInterface(d.Get("parameter9").(string))
+	script.Parameter10 = util.GetStringFromInterface(d.Get("parameter10").(string))
+	script.Parameter11 = util.GetStringFromInterface(d.Get("parameter11").(string))
 
 	// Handle script_contents
 	if scriptContent, ok := d.GetOk("script_contents"); ok {

@@ -19,19 +19,18 @@ func DataSourceJamfProAPIRoles() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeInt,
-				Optional:    true,
+				Computed:    true,
 				Description: "The unique identifier of the API role.",
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The unique name of the Jamf Pro API role.",
 				Computed:    true,
+				Description: "The unique name of the Jamf Pro API role.",
 			},
 			"privileges": {
 				Type:        schema.TypeSet,
-				Description: "List of privileges associated with the API role.",
 				Computed:    true,
+				Description: "List of privileges associated with the API role.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},

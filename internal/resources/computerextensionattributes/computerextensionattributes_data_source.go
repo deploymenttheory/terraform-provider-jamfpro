@@ -24,50 +24,49 @@ func DataSourceJamfProComputerExtensionAttributes() *schema.Resource {
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The unique name of the Jamf Pro computer extension attribute.",
 				Computed:    true,
+				Description: "The unique name of the Jamf Pro computer extension attribute.",
 			},
 			"enabled": {
 				Type:        schema.TypeBool,
-				Description: "Indicates if the computer extension attribute is enabled.",
 				Computed:    true,
+				Description: "Indicates if the computer extension attribute is enabled.",
 			},
 			"description": {
 				Type:        schema.TypeString,
-				Description: "Description of the computer extension attribute.",
 				Computed:    true,
+				Description: "Description of the computer extension attribute.",
 			},
 			"data_type": {
 				Type:        schema.TypeString,
-				Description: "Data type of the computer extension attribute. Can be String / Integer / Date (YYYY-MM-DD hh:mm:ss)",
 				Computed:    true,
+				Description: "Data type of the computer extension attribute. Can be String / Integer / Date (YYYY-MM-DD hh:mm:ss)",
 			},
 			"input_type": {
 				Type:        schema.TypeList,
-				Description: "Input type details of the computer extension attribute.",
 				Computed:    true,
+				Description: "Input type details of the computer extension attribute.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
 							Type:        schema.TypeString,
-							Description: "Type of the input for the computer extension attribute.",
 							Computed:    true,
+							Description: "Type of the input for the computer extension attribute.",
 						},
 						"platform": {
 							Type:        schema.TypeString,
-							Description: "Platform type for the computer extension attribute.",
 							Computed:    true,
+							Description: "Platform type for the computer extension attribute.",
 						},
 						"script": {
 							Type:        schema.TypeString,
-							Description: "Script associated with the computer extension attribute.",
 							Computed:    true,
+							Description: "Script associated with the computer extension attribute.",
 						},
 						"choices": {
 							Type:        schema.TypeList,
-							Description: "Choices associated with the computer extension attribute if it is a pop-up menu type.",
 							Computed:    true,
+							Description: "Choices associated with the computer extension attribute if it is a pop-up menu type.",
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
@@ -77,13 +76,13 @@ func DataSourceJamfProComputerExtensionAttributes() *schema.Resource {
 			},
 			"inventory_display": {
 				Type:        schema.TypeString,
-				Description: "Display details for inventory for the computer extension attribute.",
 				Computed:    true,
+				Description: "Display details for inventory for the computer extension attribute.",
 			},
 			"recon_display": {
 				Type:        schema.TypeString,
-				Description: "Display details for recon for the computer extension attribute.",
 				Computed:    true,
+				Description: "Display details for recon for the computer extension attribute.",
 			},
 		},
 	}

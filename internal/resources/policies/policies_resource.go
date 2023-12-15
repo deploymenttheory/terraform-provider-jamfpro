@@ -2235,7 +2235,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			var items []jamfpro.PolicyPackage
 			if pkgs, ok := packageConfigData["packages"].([]interface{}); ok {
 				for _, pkg := range pkgs {
-					pkgMap := util.GetMapFromInterface(pkg)
+					pkgMap := util.ConvertToMapFromInterface(pkg)
 					if pkgMap == nil {
 						continue // Skip if package is nil
 					}
@@ -2265,7 +2265,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			var items []jamfpro.PolicyScriptItem
 			if scripts, ok := scriptsData["script"].([]interface{}); ok {
 				for _, script := range scripts {
-					scriptMap := util.GetMapFromInterface(script)
+					scriptMap := util.ConvertToMapFromInterface(script)
 					if scriptMap == nil {
 						continue // Skip if script is nil or not a map
 					}
@@ -2383,13 +2383,13 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			var directoryBindings []jamfpro.PolicyDirectoryBinding
 			if bindingsList, ok := accountMaintenanceData["directory_bindings"].([]interface{}); ok && len(bindingsList) > 0 {
 				for _, bindingEntry := range bindingsList {
-					bindingData := util.GetMapFromInterface(bindingEntry)
+					bindingData := util.ConvertToMapFromInterface(bindingEntry)
 					if bindingData == nil {
 						continue // Skip if the map is nil
 					}
 					if bindings, ok := bindingData["binding"].([]interface{}); ok {
 						for _, binding := range bindings {
-							bindingMap := util.GetMapFromInterface(binding)
+							bindingMap := util.ConvertToMapFromInterface(binding)
 							if bindingMap == nil {
 								continue // Skip if the binding map is nil
 							}
@@ -2429,7 +2429,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 
 			// Check if open firmware EFI password data is provided in Terraform
 			if openFirmwareEfiPasswordData, ok := accountMaintenanceData["open_firmware_efi_password"].(map[string]interface{}); ok {
-				openFirmwareEfiPasswordDataMap := util.GetMapFromInterface(openFirmwareEfiPasswordData)
+				openFirmwareEfiPasswordDataMap := util.ConvertToMapFromInterface(openFirmwareEfiPasswordData)
 				if openFirmwareEfiPasswordDataMap == nil {
 					// Skip if the open firmware EFI password data map is nil
 					return openFirmwareEfiPassword

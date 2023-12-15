@@ -19,15 +19,13 @@ func DataSourceJamfProBuilding() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The unique identifier of the building.",
 				Computed:    true,
+				Description: "The unique identifier of the building.",
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The name of the building.",
 				Computed:    true,
+				Description: "The name of the building.",
 			},
 			"street_address1": {
 				Type:        schema.TypeString,

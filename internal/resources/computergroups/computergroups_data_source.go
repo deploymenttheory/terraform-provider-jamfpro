@@ -25,7 +25,7 @@ func DataSourceJamfProComputerGroups() *schema.Resource {
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Computed:    true,
 				Description: "The unique name of the Jamf Pro computer group.",
 			},
 			"is_smart": {
@@ -34,8 +34,9 @@ func DataSourceJamfProComputerGroups() *schema.Resource {
 				Description: "Smart or static group.",
 			},
 			"site": {
-				Type:     schema.TypeList,
-				Computed: true,
+				Type:        schema.TypeList,
+				Computed:    true,
+				Description: "Jamf Pro Site-related settings of the computer group.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {

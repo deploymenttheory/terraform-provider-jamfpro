@@ -39,35 +39,35 @@ func GetStringFromMap(m map[string]interface{}, key string) string {
 	return "" // Return default empty string if key is not found or nil
 }
 
-// Helper function to safely convert an interface{} to a map[string]interface{}. Returns nil if the conversion is not possible.
-func GetMapFromInterface(value interface{}) map[string]interface{} {
+// ConvertToMapFromInterface is a helper function to safely convert an interface{} to a map[string]interface{}. Returns nil if the conversion is not possible.
+func ConvertToMapFromInterface(value interface{}) map[string]interface{} {
 	if val, ok := value.(map[string]interface{}); ok {
 		return val
 	}
 	return nil // Return nil if conversion is not possible
 }
 
-// GetString safely retrieves a string value from an interface{}.
+// GetStringFromInterface safely retrieves a string value from an interface{}.
 // It returns an empty string if the value is absent, nil, or not a string.
-func GetString(val interface{}) string {
+func GetStringFromInterface(val interface{}) string {
 	if strVal, ok := val.(string); ok {
 		return strVal
 	}
 	return "" // Return default empty string if value is not a string
 }
 
-// GetInt safely retrieves an int value from an interface{}.
+// GetIntFromInterface safely retrieves an int value from an interface{}.
 // It returns 0 if the value is absent, nil, or not an int.
-func GetInt(val interface{}) int {
+func GetIntFromInterface(val interface{}) int {
 	if intVal, ok := val.(int); ok {
 		return intVal
 	}
 	return 0 // Return default zero value if value is not an int
 }
 
-// GetBool safely retrieves a bool value from an interface{}.
+// GetBoolFromInterface safely retrieves a bool value from an interface{}.
 // It returns false if the value is absent, nil, or not a bool.
-func GetBool(val interface{}) bool {
+func GetBoolFromInterface(val interface{}) bool {
 	if boolVal, ok := val.(bool); ok {
 		return boolVal
 	}
