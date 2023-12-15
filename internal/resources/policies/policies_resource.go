@@ -1280,7 +1280,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 									"account": {
 										Type:        schema.TypeList,
 										Optional:    true,
-										Description: "Details of the account configuration.",
+										Description: "Details of each account configuration.",
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"action": {
@@ -1382,15 +1382,16 @@ func ResourceJamfProPolicies() *schema.Resource {
 									"action": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										Description:  "Action to perform on the management account.Rotates management account password at next policy execution. Management account passwords will be automatically randomized with 29 characters. Valid values are 'rotate' or 'doNotChange'.",
+										Description:  "Action to perform on the management account.Rotates management account password at next policy execution. Valid values are 'rotate' or 'doNotChange'.",
 										ValidateFunc: validation.StringInSlice([]string{"rotate", "doNotChange"}, false),
 										Default:      "doNotChange",
 									},
 									"managed_password": {
 										Type:        schema.TypeString,
 										Optional:    true,
-										Description: "Managed password for the account.",
-										Default:     "",
+										Description: "Managed password for the account. Management account passwords will be automatically randomized with 29 characters by jamf pro.",
+										//Default:     "",
+										Computed: true,
 									},
 									"managed_password_length": {
 										Type:        schema.TypeInt,
@@ -2348,42 +2349,50 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	if v, ok := d.GetOk("account_maintenance"); ok {
 		accountMaintenanceData := v.([]interface{})[0].(map[string]interface{})
 
+		// Construct user accounts
 		accounts := func() []jamfpro.PolicyAccount {
-			var items []jamfpro.PolicyAccount
+			var policyAccountItems []jamfpro.PolicyAccount
 			if accs, ok := accountMaintenanceData["accounts"].([]interface{}); ok {
 				for _, acc := range accs {
-					accMap := getMapFromInterface(acc)
-					if accMap == nil {
-						// Skip this account as the map is nil
-						continue
+					accMap, ok := acc.(map[string]interface{})
+					if !ok || accMap == nil {
+						continue // Skip if not a map or if nil
 					}
-					items = append(items, jamfpro.PolicyAccount{
-						Action:                 getStringFromMap(accMap, "action"),
-						Username:               getStringFromMap(accMap, "username"),
-						Realname:               getStringFromMap(accMap, "realname"),
-						Password:               getStringFromMap(accMap, "password"),
-						ArchiveHomeDirectory:   getBoolFromMap(accMap, "archive_home_directory"),
-						ArchiveHomeDirectoryTo: getStringFromMap(accMap, "archive_home_directory_to"),
-						Home:                   getStringFromMap(accMap, "home"),
-						Hint:                   getStringFromMap(accMap, "hint"),
-						Picture:                getStringFromMap(accMap, "picture"),
-						Admin:                  getBoolFromMap(accMap, "admin"),
-						FilevaultEnabled:       getBoolFromMap(accMap, "filevault_enabled"),
-					})
+
+					var account jamfpro.PolicyAccount
+					account.Action = getStringFromMap(accMap, "action")
+					account.Username = getStringFromMap(accMap, "username")
+					account.Realname = getStringFromMap(accMap, "realname")
+					account.Password = getStringFromMap(accMap, "password")
+					account.ArchiveHomeDirectory = getBoolFromMap(accMap, "archive_home_directory")
+					account.ArchiveHomeDirectoryTo = getStringFromMap(accMap, "archive_home_directory_to")
+					account.Home = getStringFromMap(accMap, "home")
+					account.Hint = getStringFromMap(accMap, "hint")
+					account.Picture = getStringFromMap(accMap, "picture")
+					account.Admin = getBoolFromMap(accMap, "admin")
+					account.FilevaultEnabled = getBoolFromMap(accMap, "filevault_enabled")
+
+					policyAccountItems = append(policyAccountItems, account)
 				}
 			}
-			return items
+			return policyAccountItems
 		}()
 
 		directoryBindings := func() []jamfpro.PolicyDirectoryBinding {
-			var items []jamfpro.PolicyDirectoryBinding
-			if bindingsList, ok := accountMaintenanceData["directory_bindings"].([]interface{}); ok {
+			var directoryBindings []jamfpro.PolicyDirectoryBinding
+			if bindingsList, ok := accountMaintenanceData["directory_bindings"].([]interface{}); ok && len(bindingsList) > 0 {
 				for _, bindingEntry := range bindingsList {
-					bindingData := bindingEntry.(map[string]interface{})
+					bindingData := getMapFromInterface(bindingEntry)
+					if bindingData == nil {
+						continue // Skip if the map is nil
+					}
 					if bindings, ok := bindingData["binding"].([]interface{}); ok {
 						for _, binding := range bindings {
-							bindingMap := binding.(map[string]interface{})
-							items = append(items, jamfpro.PolicyDirectoryBinding{
+							bindingMap := getMapFromInterface(binding)
+							if bindingMap == nil {
+								continue // Skip if the binding map is nil
+							}
+							directoryBindings = append(directoryBindings, jamfpro.PolicyDirectoryBinding{
 								ID:   getIntFromMap(bindingMap, "id"),
 								Name: getStringFromMap(bindingMap, "name"),
 							})
@@ -2391,8 +2400,9 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 					}
 				}
 			}
-			return items
+			return directoryBindings
 		}()
+
 		// TODO refactor this section to use default values from schema. recent attempts cause 400 request errors.
 		// Action: "doNotChange", is not being correctly passed from the schema despite it's correct config.
 		managementAccount := func() jamfpro.PolicyManagementAccount {
@@ -2417,11 +2427,17 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			var openFirmwareEfiPassword jamfpro.PolicyOpenFirmwareEfiPassword
 
 			// Check if open firmware EFI password data is provided in Terraform
-			if openFirmwareEfiPasswordData, ok := accountMaintenanceData["open_firmware_efi_password"].(map[string]interface{}); ok && len(openFirmwareEfiPasswordData) > 0 {
+			if openFirmwareEfiPasswordData, ok := accountMaintenanceData["open_firmware_efi_password"].(map[string]interface{}); ok {
+				openFirmwareEfiPasswordDataMap := getMapFromInterface(openFirmwareEfiPasswordData)
+				if openFirmwareEfiPasswordDataMap == nil {
+					// Skip if the open firmware EFI password data map is nil
+					return openFirmwareEfiPassword
+				}
+
 				// Extract values from the Terraform data
-				openFirmwareEfiPassword.OfMode = getStringFromMap(openFirmwareEfiPasswordData, "of_mode")
-				openFirmwareEfiPassword.OfPassword = getStringFromMap(openFirmwareEfiPasswordData, "of_password")
-				openFirmwareEfiPassword.OfPasswordSHA256 = getStringFromMap(openFirmwareEfiPasswordData, "of_password_sha256")
+				openFirmwareEfiPassword.OfMode = getStringFromMap(openFirmwareEfiPasswordDataMap, "of_mode")
+				openFirmwareEfiPassword.OfPassword = getStringFromMap(openFirmwareEfiPasswordDataMap, "of_password")
+				openFirmwareEfiPassword.OfPasswordSHA256 = getStringFromMap(openFirmwareEfiPasswordDataMap, "of_password_sha256")
 			}
 
 			return openFirmwareEfiPassword
