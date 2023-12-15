@@ -73,3 +73,10 @@ func GetBoolFromInterface(val interface{}) bool {
 	}
 	return false // Return default false value if value is not a bool
 }
+
+// GetString safely performs a string type assertion.
+// It returns the asserted string and a boolean indicating whether the assertion was successful.
+func GetString(val interface{}) (string, bool) {
+	strVal, ok := val.(string)
+	return strVal, ok
+}

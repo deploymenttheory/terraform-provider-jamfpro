@@ -1446,7 +1446,11 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Description: "Reboot Method",
 							Default:     "",
 							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-								v := val.(string)
+								v, ok := util.GetString(val)
+								if !ok {
+									errs = append(errs, fmt.Errorf("%q expects a string, got: %T", key, val))
+									return
+								}
 								validMethods := []string{"", "Standard Restart", "MDM Restart with Kernel Cache Rebuild"}
 								for _, method := range validMethods {
 									if v == method {
@@ -1463,7 +1467,11 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Description: "Disk to boot computers to",
 							Default:     "Current Startup Disk",
 							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-								v := val.(string)
+								v, ok := util.GetString(val)
+								if !ok {
+									errs = append(errs, fmt.Errorf("%q expects a string, got: %T", key, val))
+									return
+								}
 								validDisks := []string{"Current Startup Disk", "Currently Selected Startup Disk (No Bless)", "macOS Installer", "Specify Local Startup Disk"}
 								for _, disk := range validDisks {
 									if v == disk {
@@ -1480,7 +1488,12 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Description: "Action to take if no user is logged in to the computer",
 							Default:     "Do not restart",
 							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-								v := val.(string)
+								v, ok := util.GetString(val)
+								if !ok {
+									errs = append(errs, fmt.Errorf("%q expects a string, got: %T", key, val))
+									return
+								}
+
 								validOptions := []string{"Restart if a package or update requires it", "Restart Immediately", "Do not restart"}
 								for _, option := range validOptions {
 									if v == option {
@@ -1497,7 +1510,11 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Default:     "Do not restart",
 							Description: "Action to take if a user is logged in to the computer",
 							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-								v := val.(string)
+								v, ok := util.GetString(val)
+								if !ok {
+									errs = append(errs, fmt.Errorf("%q expects a string, got: %T", key, val))
+									return
+								}
 								validOptions := []string{"Restart if a package or update requires it", "Restart Immediately", "Restart", "Do not restart"}
 								for _, option := range validOptions {
 									if v == option {
