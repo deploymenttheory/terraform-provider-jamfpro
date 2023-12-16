@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 // DataSourceJamfProPolicies provides information about specific Jamf Pro policies by their ID or Name.
@@ -46,10 +45,9 @@ func DataSourceJamfProPolicies() *schema.Resource {
 							Description: "Define whether the policy is enabled.",
 						},
 						"trigger": {
-							Type:         schema.TypeString,
-							Computed:     true,
-							Description:  "Event(s) triggers to use to initiate the policy. Values can be 'USER_INITIATED' for self self trigger and 'EVENT' for an event based trigger",
-							ValidateFunc: validation.StringInSlice([]string{"EVENT", "USER_INITIATED"}, false),
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Event(s) triggers to use to initiate the policy. Values can be 'USER_INITIATED' for self self trigger and 'EVENT' for an event based trigger",
 						},
 						"trigger_checkin": {
 							Type:        schema.TypeBool,
@@ -90,40 +88,16 @@ func DataSourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "Frequency of policy execution.",
-
-							ValidateFunc: validation.StringInSlice([]string{
-								"Once per computer",
-								"Once per user per computer",
-								"Once per user",
-								"Once every day",
-								"Once every week",
-								"Once every month",
-								"Ongoing",
-							}, false),
 						},
 						"retry_event": {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "Event on which to retry policy execution.",
-
-							ValidateFunc: validation.StringInSlice([]string{
-								"none",
-								"trigger",
-								"check-in",
-							}, false),
 						},
 						"retry_attempts": {
 							Type:        schema.TypeInt,
 							Computed:    true,
 							Description: "Number of retry attempts for the jamf pro policy. Valid values are -1 (not configured) and 1 through 10.",
-							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-								v := val.(int)
-								if v == -1 || (v > 0 && v <= 10) {
-									return
-								}
-								errs = append(errs, fmt.Errorf("%q must be -1 if not being set or between 1 and 10 if it is being set, got: %d", key, v))
-								return warns, errs
-							},
 						},
 						"notify_on_each_failed_retry": {
 							Type:        schema.TypeBool,
@@ -201,14 +175,12 @@ func DataSourceJamfProPolicies() *schema.Resource {
 										Description: "The UTC time of the expiration date.",
 									},
 									"no_execute_on": {
-										Type:     schema.TypeSet,
-										Optional: true,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}, false),
-										},
-										Description: "Client-side limitations are enforced based on the settings on computers. This field sets specific days when the policy should not execute.",
+										Type:        schema.TypeSet,
 										Computed:    true,
+										Description: "Client-side limitations are enforced based on the settings on computers. This field sets specific days when the policy should not execute.",
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
 									},
 									"no_execute_start": {
 										Type:        schema.TypeString,
@@ -230,10 +202,9 @@ func DataSourceJamfProPolicies() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"minimum_network_connection": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										Description:  "Minimum network connection required for the policy.",
-										ValidateFunc: validation.StringInSlice([]string{"No Minimum", "Ethernet"}, false),
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: "Minimum network connection required for the policy.",
 									},
 									"any_ip_address": {
 										Type:        schema.TypeBool,
@@ -306,7 +277,6 @@ func DataSourceJamfProPolicies() *schema.Resource {
 			},
 			"scope": {
 				Type:        schema.TypeList,
-				MaxItems:    1,
 				Computed:    true,
 				Description: "Scope configuration for the profile.",
 				Elem: &schema.Resource{
@@ -612,7 +582,6 @@ func DataSourceJamfProPolicies() *schema.Resource {
 													Type:        schema.TypeList,
 													Computed:    true,
 													Description: "The individual computer to exclude from the policy.",
-													MaxItems:    1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -1025,10 +994,9 @@ func DataSourceJamfProPolicies() *schema.Resource {
 													Computed:    true,
 												},
 												"action": {
-													Type:         schema.TypeString,
-													Optional:     true,
-													Description:  "Action to be performed for the package.",
-													ValidateFunc: validation.StringInSlice([]string{"Install", "Cache", "Install Cached"}, false),
+													Type:        schema.TypeString,
+													Computed:    true,
+													Description: "Action to be performed for the package.",
 												},
 												"fut": {
 													Type:        schema.TypeBool,
@@ -1077,10 +1045,9 @@ func DataSourceJamfProPolicies() *schema.Resource {
 										Description: "Name of the script.",
 									},
 									"priority": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										Description:  "Execution priority of the script.",
-										ValidateFunc: validation.StringInSlice([]string{"Before", "After"}, false),
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: "Execution priority of the script.",
 									},
 									"parameter4": {
 										Type:        schema.TypeString,
@@ -1156,10 +1123,9 @@ func DataSourceJamfProPolicies() *schema.Resource {
 										Computed:    true,
 									},
 									"action": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										Description:  "Action to be performed for the printer (e.g., install, uninstall).",
-										ValidateFunc: validation.StringInSlice([]string{"install", "uninstall"}, false),
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: "Action to be performed for the printer (e.g., install, uninstall).",
 									},
 									"make_default": {
 										Type:        schema.TypeBool,
@@ -1191,14 +1157,13 @@ func DataSourceJamfProPolicies() *schema.Resource {
 									},
 									"name": {
 										Type:        schema.TypeString,
-										Description: "Name of the policy item.",
 										Computed:    true,
+										Description: "Name of the policy item.",
 									},
 									"action": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										Description:  "Action to be performed for the policy item (e.g., Add To Beginning, Add To End, Remove).",
-										ValidateFunc: validation.StringInSlice([]string{"Add To Beginning", "Add To End", "Remove"}, false),
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: "Action to be performed for the policy item (e.g., Add To Beginning, Add To End, Remove).",
 									},
 								},
 							},
@@ -1225,10 +1190,9 @@ func DataSourceJamfProPolicies() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"action": {
-													Type:         schema.TypeString,
-													Optional:     true,
-													Description:  "Action to be performed on the account (e.g., Create, Reset, Delete, DisableFileVault).",
-													ValidateFunc: validation.StringInSlice([]string{"Create", "Reset", "Delete", "DisableFileVault"}, false),
+													Type:        schema.TypeString,
+													Computed:    true,
+													Description: "Action to be performed on the account (e.g., Create, Reset, Delete, DisableFileVault).",
 												},
 												"username": {
 													Type:        schema.TypeString,
@@ -1321,10 +1285,9 @@ func DataSourceJamfProPolicies() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"action": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										Description:  "Action to perform on the management account.Rotates management account password at next policy execution. Valid values are 'rotate' or 'doNotChange'.",
-										ValidateFunc: validation.StringInSlice([]string{"rotate", "doNotChange"}, false),
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: "Action to perform on the management account.Rotates management account password at next policy execution. Valid values are 'rotate' or 'doNotChange'.",
 									},
 									"managed_password": {
 										Type:        schema.TypeString,
@@ -1346,10 +1309,9 @@ func DataSourceJamfProPolicies() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"of_mode": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										Description:  "Mode for the open firmware/EFI password. Valid values are 'command' or 'none'.",
-										ValidateFunc: validation.StringInSlice([]string{"command", "none"}, false),
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: "Mode for the open firmware/EFI password. Valid values are 'command' or 'none'.",
 									},
 									"of_password": {
 										Type:        schema.TypeString,
@@ -1377,65 +1339,21 @@ func DataSourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "Reboot Method",
-							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-								v := val.(string)
-								validMethods := []string{"", "Standard Restart", "MDM Restart with Kernel Cache Rebuild"}
-								for _, method := range validMethods {
-									if v == method {
-										return
-									}
-								}
-								errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validMethods, v))
-								return
-							},
 						},
 						"startup_disk": {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "Disk to boot computers to",
-							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-								v := val.(string)
-								validDisks := []string{"Current Startup Disk", "Currently Selected Startup Disk (No Bless)", "macOS Installer", "Specify Local Startup Disk"}
-								for _, disk := range validDisks {
-									if v == disk {
-										return
-									}
-								}
-								errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validDisks, v))
-								return
-							},
 						},
 						"no_user_logged_in": {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "Action to take if no user is logged in to the computer",
-							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-								v := val.(string)
-								validOptions := []string{"Restart if a package or update requires it", "Restart Immediately", "Do not restart"}
-								for _, option := range validOptions {
-									if v == option {
-										return
-									}
-								}
-								errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validOptions, v))
-								return
-							},
 						},
 						"user_logged_in": {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "Action to take if a user is logged in to the computer",
-							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-								v := val.(string)
-								validOptions := []string{"Restart if a package or update requires it", "Restart Immediately", "Restart", "Do not restart"}
-								for _, option := range validOptions {
-									if v == option {
-										return
-									}
-								}
-								errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validOptions, v))
-								return
-							},
 						},
 						"minutes_until_reboot": {
 							Type:        schema.TypeInt,
@@ -1604,10 +1522,9 @@ func DataSourceJamfProPolicies() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"action": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Description:  "The action to perform for disk encryption (e.g., apply, remediate).",
-							ValidateFunc: validation.StringInSlice([]string{"none", "apply", "remediate"}, false),
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The action to perform for disk encryption (e.g., apply, remediate).",
 						},
 						"disk_encryption_configuration_id": {
 							Type:        schema.TypeInt,
@@ -1620,10 +1537,9 @@ func DataSourceJamfProPolicies() *schema.Resource {
 							Description: "Whether to allow authentication restart.",
 						},
 						"remediate_key_type": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Description:  "Type of key to use for remediation (e.g., Individual, Institutional, Individual And Institutional).",
-							ValidateFunc: validation.StringInSlice([]string{"Individual", "Institutional", "Individual And Institutional"}, false),
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Type of key to use for remediation (e.g., Individual, Institutional, Individual And Institutional).",
 						},
 						"remediate_disk_encryption_configuration_id": {
 							Type:        schema.TypeInt,

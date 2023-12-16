@@ -1,133 +1,135 @@
 // type_assertion.go
 package type_assertion
 
-import "fmt"
-
 /*
-A set of helper functions designed to handle type assertion. The funcs support scenarios where the value is null (nil in Go).
-When you check for val, ok := m[key], you're not only checking if the key exists in the map but also if the value associated with that key is nil.
+Package type_assertion provides a set of helper functions designed to handle type assertions in scenarios where the value can be null (nil in Go).
+These functions are tailored to return default values when encountering nil inputs or when type assertions fail, making them robust for use in various scenarios.
 
 For Map Functions (GetIntFromMap, GetBoolFromMap, GetStringFromMap):
+- These functions check if the specified key exists in a map and whether the value associated with the key is nil.
+- If the key doesn't exist or the value is nil, they return default values (0 for integers, false for booleans, and "" for strings).
+- If the value exists but fails the type assertion, they also return the default values.
 
-val, ok := m[key]: This checks if the key exists in the map. If the key does not exist, ok will be false.
-if !ok || val == nil: This checks both if the key is not found (!ok) and if the value is nil (val == nil). If either condition is true, the function returns a default value (0 for integers, false for booleans, "" for strings) and false for the boolean indicator.
 For Interface Functions (GetStringFromInterface, GetIntFromInterface, GetBoolFromInterface):
+- These functions perform a direct type assertion on the provided interface{} value.
+- They return a default value if the value is nil or if the type assertion fails.
 
-These functions directly perform a type assertion on the provided interface{} value.
-If val is nil, the type assertion will fail, and ok will be false. This is because a nil interface cannot be asserted to any concrete type.
 For Direct Type Assertion Functions (GetString, GetInt):
+- Similar to the interface functions, these functions directly assert the type of the provided interface{} value.
+- They return default values if the value is nil or the type assertion fails.
+- This approach simplifies handling nil values and type assertion errors in calling code, ensuring more readable and maintainable code.
 
-These functions are similar to the interface functions. They perform a type assertion and return the result along with the success indicator.
-Again, if the passed interface{} is nil, the assertion will fail, and ok will be false.
+The design of these functions makes them suitable for scenarios where nil values are acceptable and should not be treated as errors,
+such as when extracting data from a Terraform schema.
 */
 
 // GetIntFromMap safely retrieves an int value from a map, returning a default value for nil or not found.
-func GetIntFromMap(m map[string]interface{}, key string) (int, error) {
+func GetIntFromMap(m map[string]interface{}, key string) int {
 	val, ok := m[key]
 	if !ok || val == nil {
-		return 0, nil
+		return 0
 	}
 	intVal, ok := val.(int)
 	if !ok {
-		return 0, fmt.Errorf("value for key '%s' is not of type int", key)
+		return 0
 	}
-	return intVal, nil
+	return intVal
 }
 
 // GetBoolFromMap safely retrieves a bool value from a map, returning a default value for nil or not found.
-func GetBoolFromMap(m map[string]interface{}, key string) (bool, error) {
+func GetBoolFromMap(m map[string]interface{}, key string) bool {
 	val, ok := m[key]
 	if !ok || val == nil {
-		return false, nil
+		return false
 	}
 	boolVal, ok := val.(bool)
 	if !ok {
-		return false, fmt.Errorf("value for key '%s' is not of type bool", key)
+		return false
 	}
-	return boolVal, nil
+	return boolVal
 }
 
 // GetStringFromMap safely retrieves a string value from a map, returning a default value for nil or not found.
-func GetStringFromMap(m map[string]interface{}, key string) (string, error) {
+func GetStringFromMap(m map[string]interface{}, key string) string {
 	val, ok := m[key]
 	if !ok || val == nil {
-		return "", nil
+		return ""
 	}
 	strVal, ok := val.(string)
 	if !ok {
-		return "", fmt.Errorf("value for key '%s' is not of type string", key)
+		return ""
 	}
-	return strVal, nil
+	return strVal
 }
 
 // ConvertToMapFromInterface safely converts an interface{} to a map[string]interface{}, handling nil values.
-func ConvertToMapFromInterface(value interface{}) (map[string]interface{}, error) {
+func ConvertToMapFromInterface(value interface{}) map[string]interface{} {
 	if value == nil {
-		return nil, nil
+		return nil
 	}
 	val, ok := value.(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("value is not a map[string]interface{}")
+		return nil
 	}
-	return val, nil
+	return val
 }
 
 // GetStringFromInterface safely retrieves a string value from an interface{}, handling nil values.
-func GetStringFromInterface(val interface{}) (string, error) {
+func GetStringFromInterface(val interface{}) string {
 	if val == nil {
-		return "", nil
+		return ""
 	}
 	strVal, ok := val.(string)
 	if !ok {
-		return "", fmt.Errorf("value is not a string")
+		return ""
 	}
-	return strVal, nil
+	return strVal
 }
 
 // GetIntFromInterface safely retrieves an int value from an interface{}, handling nil values.
-func GetIntFromInterface(val interface{}) (int, error) {
+func GetIntFromInterface(val interface{}) int {
 	if val == nil {
-		return 0, nil
+		return 0
 	}
 	intVal, ok := val.(int)
 	if !ok {
-		return 0, fmt.Errorf("value is not an int")
+		return 0
 	}
-	return intVal, nil
+	return intVal
 }
 
 // GetBoolFromInterface safely retrieves a bool value from an interface{}, handling nil values.
-func GetBoolFromInterface(val interface{}) (bool, error) {
+func GetBoolFromInterface(val interface{}) bool {
 	if val == nil {
-		return false, nil
+		return false
 	}
 	boolVal, ok := val.(bool)
 	if !ok {
-		return false, fmt.Errorf("value is not a bool")
+		return false
 	}
-	return boolVal, nil
+	return boolVal
 }
 
 // GetString safely performs a string type assertion, handling nil values.
-func GetString(val interface{}) (string, error) {
+func GetString(val interface{}) string {
 	if val == nil {
-		return "", nil
+		return ""
 	}
 	strVal, ok := val.(string)
 	if !ok {
-		return "", fmt.Errorf("value is not a string")
+		return ""
 	}
-	return strVal, nil
+	return strVal
 }
 
 // GetInt safely performs an int type assertion, handling nil values.
-func GetInt(val interface{}) (int, error) {
+func GetInt(val interface{}) int {
 	if val == nil {
-		return 0, nil
+		return 0
 	}
 	intVal, ok := val.(int)
 	if !ok {
-		return 0, fmt.Errorf("value is not an int")
+		return 0
 	}
-	return intVal, nil
+	return intVal
 }

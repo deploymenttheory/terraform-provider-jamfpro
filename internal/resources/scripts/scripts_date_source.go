@@ -20,24 +20,24 @@ func DataSourceJamfProScripts() *schema.Resource {
 		ReadContext: DataSourceJamfProScriptsRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:        schema.TypeInt,
+				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The unique identifier of the script.",
+				Description: "The Jamf Pro unique identifier (ID) of the script.",
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The unique name of the script.",
+				Required:    true,
+				Description: "Display name for the script.",
 			},
-			"category": {
+			"category_name": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "Category of the script.",
+				Description: "Name of the category to add the script to.",
 			},
-			"filename": {
+			"category_id": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "Filename of the script.",
+				Description: "The Jamf Pro unique identifier (ID) of the category.",
 			},
 			"info": {
 				Type:        schema.TypeString,
@@ -49,66 +49,60 @@ func DataSourceJamfProScripts() *schema.Resource {
 				Computed:    true,
 				Description: "Notes to display about the script (e.g., who created it and when it was created).",
 			},
+			"os_requirements": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The script can only be run on computers with these operating system versions. Each version must be separated by a comma (e.g., 10.11, 15, 16.1).",
+			},
 			"priority": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Execution priority of the script (Before, After, At Reboot).",
 			},
-			"parameters": {
-				Type:        schema.TypeList,
-				Computed:    true,
-				Description: "Script parameters.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"parameter4": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"parameter5": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"parameter6": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"parameter7": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"parameter8": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"parameter9": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"parameter10": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"parameter11": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-			"os_requirements": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "OS requirements for the script.",
-			},
 			"script_contents": {
 				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Contents of the script.",
+				Required:    true,
+				Description: "Contents of the script. Must be non-compiled and in an accepted format.",
 			},
-			"script_contents_encoded": {
+			"parameter4": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "Encoded contents of the script.",
+				Description: "Script parameter label 4",
+			},
+			"parameter5": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Script parameter label 5",
+			},
+			"parameter6": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Script parameter label 6",
+			},
+			"parameter7": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Script parameter label 7",
+			},
+			"parameter8": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Script parameter label 8",
+			},
+			"parameter9": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Script parameter label 9",
+			},
+			"parameter10": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Script parameter label 10",
+			},
+			"parameter11": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Script parameter label 11",
 			},
 		},
 	}

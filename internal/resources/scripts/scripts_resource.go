@@ -136,35 +136,35 @@ func ResourceJamfProScripts() *schema.Resource {
 	}
 }
 
-// constructJamfProScript constructs a ResourceScript object from the provided schema data.
+// constructJamfProScript constructs a ResponsePolicy object from the provided schema data.
 func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResourceScript, error) {
 	script := &jamfpro.ResourceScript{}
 
 	// Utilize type assertion helper functions for direct field extraction
-	script.Name, _ = util.GetStringFromInterface(d.Get("name"))
-	script.CategoryName, _ = util.GetStringFromInterface(d.Get("category_name"))
-	script.CategoryId, _ = util.GetStringFromInterface(d.Get("category_id"))
-	script.Info, _ = util.GetStringFromInterface(d.Get("info"))
-	script.Notes, _ = util.GetStringFromInterface(d.Get("notes"))
-	script.OSRequirements, _ = util.GetStringFromInterface(d.Get("os_requirements"))
-	script.Priority, _ = util.GetStringFromInterface(d.Get("priority"))
+	script.Name = util.GetStringFromInterface(d.Get("name"))
+	script.CategoryName = util.GetStringFromInterface(d.Get("category_name"))
+	script.CategoryId = util.GetStringFromInterface(d.Get("category_id"))
+	script.Info = util.GetStringFromInterface(d.Get("info"))
+	script.Notes = util.GetStringFromInterface(d.Get("notes"))
+	script.OSRequirements = util.GetStringFromInterface(d.Get("os_requirements"))
+	script.Priority = util.GetStringFromInterface(d.Get("priority"))
 
 	// Extracting script parameters
-	script.Parameter4, _ = util.GetStringFromInterface(d.Get("parameter4"))
-	script.Parameter5, _ = util.GetStringFromInterface(d.Get("parameter5"))
-	script.Parameter6, _ = util.GetStringFromInterface(d.Get("parameter6"))
-	script.Parameter7, _ = util.GetStringFromInterface(d.Get("parameter7"))
-	script.Parameter8, _ = util.GetStringFromInterface(d.Get("parameter8"))
-	script.Parameter9, _ = util.GetStringFromInterface(d.Get("parameter9"))
-	script.Parameter10, _ = util.GetStringFromInterface(d.Get("parameter10"))
-	script.Parameter11, _ = util.GetStringFromInterface(d.Get("parameter11"))
+	script.Parameter4 = util.GetStringFromInterface(d.Get("parameter4"))
+	script.Parameter5 = util.GetStringFromInterface(d.Get("parameter5"))
+	script.Parameter6 = util.GetStringFromInterface(d.Get("parameter6"))
+	script.Parameter7 = util.GetStringFromInterface(d.Get("parameter7"))
+	script.Parameter8 = util.GetStringFromInterface(d.Get("parameter8"))
+	script.Parameter9 = util.GetStringFromInterface(d.Get("parameter9"))
+	script.Parameter10 = util.GetStringFromInterface(d.Get("parameter10"))
+	script.Parameter11 = util.GetStringFromInterface(d.Get("parameter11"))
 
 	// Handle script_contents
 	if scriptContent, ok := d.GetOk("script_contents"); ok {
-		script.ScriptContents, _ = util.GetStringFromInterface(scriptContent)
+		script.ScriptContents = util.GetStringFromInterface(scriptContent)
 	} else {
 		// Decode script contents from the state if not directly modified
-		encodedScriptContents, _ := util.GetStringFromInterface(d.Get("script_contents_encoded"))
+		encodedScriptContents := util.GetStringFromInterface(d.Get("script_contents_encoded"))
 		decodedBytes, err := base64.StdEncoding.DecodeString(encodedScriptContents)
 		if err != nil {
 			return nil, fmt.Errorf("error decoding script contents: %s", err)
@@ -376,7 +376,7 @@ func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, m
 		// If script_contents has not been modified, decode it from the state to ensure that base64
 		// decoded version of script payload is sent to jamf.
 		if !d.HasChange("script_contents") {
-			encodedScriptContents, _ := d.Get("script_contents_encoded").(string)
+			encodedScriptContents := d.Get("script_contents_encoded").(string)
 			decodedBytes, err := base64.StdEncoding.DecodeString(encodedScriptContents)
 			if err != nil {
 				return retry.NonRetryableError(fmt.Errorf("error decoding script contents: %s", err))
