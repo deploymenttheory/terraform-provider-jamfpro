@@ -239,27 +239,22 @@ func ResourceJamfProBuildingRead(ctx context.Context, d *schema.ResourceData, me
 		return generateTFDiagsFromHTTPError(err, d, "read")
 	}
 
-	// Safely set all attributes in the Terraform state
-	if err := d.Set("name", building.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	// Map the configuration fields from the API response to a structured map
+	buildingData := map[string]interface{}{
+		"name":            building.Name,
+		"street_address1": building.StreetAddress1,
+		"street_address2": building.StreetAddress2,
+		"city":            building.City,
+		"state_province":  building.StateProvince,
+		"zip_postal_code": building.ZipPostalCode,
+		"country":         building.Country,
 	}
-	if err := d.Set("street_address1", building.StreetAddress1); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("street_address2", building.StreetAddress2); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("city", building.City); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("state_province", building.StateProvince); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("zip_postal_code", building.ZipPostalCode); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("country", building.Country); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+
+	// Set the structured map in the Terraform state
+	for key, val := range buildingData {
+		if err := d.Set(key, val); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	return diags

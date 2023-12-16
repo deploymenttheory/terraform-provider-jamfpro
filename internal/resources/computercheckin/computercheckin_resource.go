@@ -232,45 +232,28 @@ func ResourceJamfProComputerCheckinRead(ctx context.Context, d *schema.ResourceD
 	// The constant ID "jamfpro_computer_checkin_singleton" is assigned to satisfy Terraform's requirement for an ID.
 	d.SetId("jamfpro_computer_checkin_singleton")
 
-	// Map the configuration fields from the API response to the Terraform schema with type assertion
-	if err := d.Set("check_in_frequency", checkinConfig.CheckInFrequency); err != nil {
-		return diag.FromErr(err)
+	// Map the configuration fields from the API response to a structured map
+	checkinData := map[string]interface{}{
+		"check_in_frequency":                       checkinConfig.CheckInFrequency,
+		"create_startup_script":                    checkinConfig.CreateStartupScript,
+		"log_startup_event":                        checkinConfig.LogStartupEvent,
+		"check_for_policies_at_startup":            checkinConfig.CheckForPoliciesAtStartup,
+		"apply_computer_level_managed_preferences": checkinConfig.ApplyComputerLevelManagedPrefs,
+		"ensure_ssh_is_enabled":                    checkinConfig.EnsureSSHIsEnabled,
+		"create_login_logout_hooks":                checkinConfig.CreateLoginLogoutHooks,
+		"log_username":                             checkinConfig.LogUsername,
+		"check_for_policies_at_login_logout":       checkinConfig.CheckForPoliciesAtLoginLogout,
+		"apply_user_level_managed_preferences":     checkinConfig.ApplyUserLevelManagedPreferences,
+		"hide_restore_partition":                   checkinConfig.HideRestorePartition,
+		"perform_login_actions_in_background":      checkinConfig.PerformLoginActionsInBackground,
+		"display_status_to_user":                   checkinConfig.DisplayStatusToUser,
 	}
-	if err := d.Set("create_startup_script", checkinConfig.CreateStartupScript); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("log_startup_event", checkinConfig.LogStartupEvent); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("check_for_policies_at_startup", checkinConfig.CheckForPoliciesAtStartup); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("apply_computer_level_managed_preferences", checkinConfig.ApplyComputerLevelManagedPrefs); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("ensure_ssh_is_enabled", checkinConfig.EnsureSSHIsEnabled); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("create_login_logout_hooks", checkinConfig.CreateLoginLogoutHooks); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("log_username", checkinConfig.LogUsername); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("check_for_policies_at_login_logout", checkinConfig.CheckForPoliciesAtLoginLogout); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("apply_user_level_managed_preferences", checkinConfig.ApplyUserLevelManagedPreferences); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("hide_restore_partition", checkinConfig.HideRestorePartition); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("perform_login_actions_in_background", checkinConfig.PerformLoginActionsInBackground); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("display_status_to_user", checkinConfig.DisplayStatusToUser); err != nil {
-		return diag.FromErr(err)
+
+	// Set the structured map in the Terraform state
+	for key, val := range checkinData {
+		if err := d.Set(key, val); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	return diags

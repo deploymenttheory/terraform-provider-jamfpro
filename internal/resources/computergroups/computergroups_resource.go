@@ -409,24 +409,26 @@ func ResourceJamfProComputerGroupsRead(ctx context.Context, d *schema.ResourceDa
 		return generateTFDiagsFromHTTPError(err, d, "read")
 	}
 
-	// Safely set attributes in the Terraform state
+	// Set attributes in the Terraform state
 	if err := d.Set("name", group.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("is_smart", group.IsSmart); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("site", []interface{}{map[string]interface{}{
+
+	site := map[string]interface{}{
 		"id":   group.Site.ID,
 		"name": group.Site.Name,
-	}}); err != nil {
+	}
+	if err := d.Set("site", []interface{}{site}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	// Set the criteria
 	criteriaList := make([]interface{}, len(group.Criteria))
 	for i, crit := range group.Criteria {
-		criteriaList[i] = map[string]interface{}{
+		criteriaMap := map[string]interface{}{
 			"name":          crit.Name,
 			"priority":      crit.Priority,
 			"and_or":        string(crit.AndOr),
@@ -435,6 +437,7 @@ func ResourceJamfProComputerGroupsRead(ctx context.Context, d *schema.ResourceDa
 			"opening_paren": crit.OpeningParen,
 			"closing_paren": crit.ClosingParen,
 		}
+		criteriaList[i] = criteriaMap
 	}
 	if err := d.Set("criteria", criteriaList); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
@@ -443,13 +446,14 @@ func ResourceJamfProComputerGroupsRead(ctx context.Context, d *schema.ResourceDa
 	// Set the computers
 	computersList := make([]interface{}, len(group.Computers))
 	for i, comp := range group.Computers {
-		computersList[i] = map[string]interface{}{
+		computerMap := map[string]interface{}{
 			"id":              comp.ID,
 			"name":            comp.Name,
 			"mac_address":     comp.MacAddress,
 			"alt_mac_address": comp.AltMacAddress,
 			"serial_number":   comp.SerialNumber,
 		}
+		computersList[i] = computerMap
 	}
 	if err := d.Set("computers", computersList); err != nil {
 		diags = append(diags, diag.FromErr(err)...)

@@ -210,8 +210,14 @@ func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta 
 		return generateTFDiagsFromHTTPError(err, d, "read")
 	}
 
+	// Construct the site attributes for Terraform state
+	siteAttributes := map[string]interface{}{
+		"id":   attribute.ID,
+		"name": attribute.Name,
+	}
+
 	// Safely set attributes in the Terraform state
-	if err := d.Set("name", attribute.Name); err != nil {
+	if err := d.Set("site", []interface{}{siteAttributes}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

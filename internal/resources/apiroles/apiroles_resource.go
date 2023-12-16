@@ -233,15 +233,18 @@ func ResourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, me
 		return generateTFDiagsFromHTTPError(err, d, "read")
 	}
 
-	// Update the Terraform state with the fetched data
-	if err := d.Set("id", fetchedRole.ID); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'id': %v", err))
+	// Map the configuration fields from the API response to a structured map
+	apiRoleData := map[string]interface{}{
+		"id":           fetchedRole.ID,
+		"display_name": fetchedRole.DisplayName,
+		"privileges":   fetchedRole.Privileges,
 	}
-	if err := d.Set("display_name", fetchedRole.DisplayName); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'display_name': %v", err))
-	}
-	if err := d.Set("privileges", fetchedRole.Privileges); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'privileges': %v", err))
+
+	// Set the structured map in the Terraform state
+	for key, val := range apiRoleData {
+		if err := d.Set(key, val); err != nil {
+			diags = append(diags, diag.FromErr(fmt.Errorf("failed to set '%s': %v", key, err))...)
+		}
 	}
 
 	return diags

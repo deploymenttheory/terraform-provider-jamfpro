@@ -323,43 +323,34 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 		return generateTFDiagsFromHTTPError(err, d, "read")
 	}
 
-	// Safely set attributes in the Terraform state
-	if err := d.Set("name", attribute.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("enabled", attribute.Enabled); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("description", attribute.Description); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("data_type", attribute.DataType); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("inventory_display", attribute.InventoryDisplay); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("recon_display", attribute.ReconDisplay); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	// Extract the input type details and set them in the state
-	inputType := map[string]interface{}{
-		"type":     attribute.InputType.Type,
-		"platform": attribute.InputType.Platform,
-		"script":   attribute.InputType.Script,
-		"choices":  attribute.InputType.Choices,
-	}
-	if attribute.InputType.Choices == nil || len(attribute.InputType.Choices) == 0 {
-		inputType["choices"] = []string{}
+	// Update the Terraform state with the fetched data
+	extenstionAttributeData := map[string]interface{}{
+		"name":              attribute.Name,
+		"enabled":           attribute.Enabled,
+		"description":       attribute.Description,
+		"data_type":         attribute.DataType,
+		"inventory_display": attribute.InventoryDisplay,
+		"recon_display":     attribute.ReconDisplay,
+		// Handle the input type details
+		"input_type": []interface{}{
+			map[string]interface{}{
+				"type":     attribute.InputType.Type,
+				"platform": attribute.InputType.Platform,
+				"script":   attribute.InputType.Script,
+				"choices":  attribute.InputType.Choices,
+			},
+		},
 	}
 
-	// Wrap the map in a slice and set it to the Terraform state
-	if err := d.Set("input_type", []interface{}{inputType}); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	// Set the attribute data in the Terraform state
+	for key, val := range extenstionAttributeData {
+		if err := d.Set(key, val); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	return diags
+
 }
 
 // ResourceJamfProComputerExtensionAttributesUpdate is responsible for updating an existing Jamf Pro Computer Extension Attribute on the remote system.

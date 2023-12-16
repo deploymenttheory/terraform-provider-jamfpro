@@ -285,44 +285,26 @@ func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, me
 		return generateTFDiagsFromHTTPError(err, d, "read")
 	}
 
+	// Construct the printer attributes for Terraform state
+	printerAttributes := map[string]interface{}{
+		"id":           printer.ID,
+		"name":         printer.Name,
+		"category":     printer.Category,
+		"uri":          printer.URI,
+		"cups_name":    printer.CUPSName,
+		"location":     printer.Location,
+		"model":        printer.Model,
+		"info":         printer.Info,
+		"notes":        printer.Notes,
+		"make_default": printer.MakeDefault,
+		"use_generic":  printer.UseGeneric,
+		"ppd":          printer.PPD,
+		"ppd_path":     printer.PPDPath,
+		"ppd_contents": printer.PPDContents,
+	}
+
 	// Safely set attributes in the Terraform state
-	if err := d.Set("name", printer.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("category", printer.Category); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("uri", printer.URI); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("cups_name", printer.CUPSName); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("location", printer.Location); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("model", printer.Model); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("info", printer.Info); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("notes", printer.Notes); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("make_default", printer.MakeDefault); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("use_generic", printer.UseGeneric); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("ppd", printer.PPD); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("ppd_path", printer.PPDPath); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("ppd_contents", printer.PPDContents); err != nil {
+	if err := d.Set("printer", []interface{}{printerAttributes}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

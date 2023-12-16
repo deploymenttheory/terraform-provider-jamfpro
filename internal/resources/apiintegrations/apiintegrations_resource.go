@@ -251,24 +251,21 @@ func ResourceJamfProApiIntegrationsRead(ctx context.Context, d *schema.ResourceD
 		return generateTFDiagsFromHTTPError(err, d, "read")
 	}
 
-	// Safely set attributes in the Terraform state
-	if err := d.Set("display_name", integration.DisplayName); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	// Map the configuration fields from the API response to a structured map
+	apiIntegrationData := map[string]interface{}{
+		"display_name":                  integration.DisplayName,
+		"enabled":                       integration.Enabled,
+		"access_token_lifetime_seconds": integration.AccessTokenLifetimeSeconds,
+		"app_type":                      integration.AppType,
+		"authorization_scopes":          integration.AuthorizationScopes,
+		"client_id":                     integration.ClientID,
 	}
-	if err := d.Set("enabled", integration.Enabled); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("access_token_lifetime_seconds", integration.AccessTokenLifetimeSeconds); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("app_type", integration.AppType); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("authorization_scopes", integration.AuthorizationScopes); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("client_id", integration.ClientID); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+
+	// Set the structured map in the Terraform state
+	for key, val := range apiIntegrationData {
+		if err := d.Set(key, val); err != nil {
+			diags = append(diags, diag.FromErr(fmt.Errorf("failed to set '%s': %v", key, err))...)
+		}
 	}
 
 	return diags
