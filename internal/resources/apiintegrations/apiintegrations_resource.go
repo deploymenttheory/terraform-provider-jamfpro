@@ -11,6 +11,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -77,6 +78,25 @@ func ResourceJamfProApiIntegrations() *schema.Resource {
 	}
 }
 
+func constructJamfProApiIntegration(d *schema.ResourceData) (*jamfpro.ResourceApiIntegration, error) {
+	integration := &jamfpro.ResourceApiIntegration{}
+
+	// Utilize helper functions for direct field extraction
+	integration.DisplayName = util.GetStringFromInterface(d.Get("display_name"))
+	integration.Enabled = util.GetBoolFromInterface(d.Get("enabled"))
+	integration.AccessTokenLifetimeSeconds = util.GetIntFromInterface(d.Get("access_token_lifetime_seconds"))
+
+	// Handle 'authorization_scopes' field
+	if v, ok := d.GetOk("authorization_scopes"); ok {
+		integration.AuthorizationScopes = convertToStringSlice(v.(*schema.Set))
+	}
+
+	// Log the successful construction
+	log.Printf("[INFO] Successfully constructed ApiIntegration with display name: %s", integration.DisplayName)
+
+	return integration, nil
+}
+
 // Helper function to generate diagnostics based on the error type..
 func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
 	var diags diag.Diagnostics
@@ -100,56 +120,6 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 		})
 	}
 	return diags
-}
-
-// constructJamfProApiIntegration constructs a ResponseApiIntegration object from the provided schema data and returns any errors encountered.
-func constructJamfProApiIntegration(d *schema.ResourceData) (*jamfpro.ResourceApiIntegration, error) {
-	integration := &jamfpro.ResourceApiIntegration{}
-
-	// Map for the fields which are expected to be string or bool or int
-	fields := map[string]interface{}{
-		"display_name":                  &integration.DisplayName,
-		"enabled":                       &integration.Enabled,
-		"access_token_lifetime_seconds": &integration.AccessTokenLifetimeSeconds,
-		// "app_type":                     &integration.AppType,
-	}
-
-	for key, ptr := range fields {
-		if v, ok := d.GetOk(key); ok {
-			switch val := ptr.(type) {
-			case *string:
-				strVal, ok := v.(string)
-				if !ok {
-					return nil, fmt.Errorf("failed to assert '%s' as a string", key)
-				}
-				*val = strVal
-			case *bool:
-				boolVal, ok := v.(bool)
-				if !ok {
-					return nil, fmt.Errorf("failed to assert '%s' as a bool", key)
-				}
-				*val = boolVal
-			case *int:
-				intVal, ok := v.(int)
-				if !ok {
-					return nil, fmt.Errorf("failed to assert '%s' as an int", key)
-				}
-				*val = intVal
-			default:
-				return nil, fmt.Errorf("unhandled type for field '%s'", key)
-			}
-		}
-	}
-
-	// Special handling for the 'authorization_scopes' field
-	if v, ok := d.GetOk("authorization_scopes"); ok {
-		integration.AuthorizationScopes = convertToStringSlice(v.(*schema.Set))
-	}
-
-	// Log the successful construction of the integration
-	log.Printf("[INFO] Successfully constructed ApiIntegration with display name: %s", integration.DisplayName)
-
-	return integration, nil
 }
 
 // convertToStringSlice is a helper function that converts a schema.Set to a string slice.

@@ -74,9 +74,9 @@ func ResourceJamfProScripts() *schema.Resource {
 			},
 			"priority": {
 				Type:         schema.TypeString,
-				Optional:     true,
-				Description:  "Execution priority of the script (Before, After, At Reboot).",
-				ValidateFunc: validation.StringInSlice([]string{"Before", "After", "At Reboot"}, false),
+				Required:     true,
+				Description:  "Execution priority of the script (BEFORE, AFTER, AT_REBOOT).",
+				ValidateFunc: validation.StringInSlice([]string{"BEFORE", "AFTER", "AT_REBOOT"}, false),
 			},
 			"script_contents": {
 				Type:             schema.TypeString,

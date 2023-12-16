@@ -10,6 +10,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -107,40 +108,24 @@ func ResourceJamfProComputerCheckin() *schema.Resource {
 	}
 }
 
-// constructComputerCheckin constructs a ResponseComputerCheckin object from the provided schema data and returns any errors encountered.
+// constructComputerCheckin constructs a ResponseComputerCheckin object from the provided schema data.
 func constructComputerCheckin(d *schema.ResourceData) (*jamfpro.ResponseComputerCheckin, error) {
 	checkin := &jamfpro.ResponseComputerCheckin{}
 
-	fields := map[string]interface{}{
-		"check_in_frequency":            &checkin.CheckInFrequency,
-		"create_startup_script":         &checkin.CreateStartupScript,
-		"log_startup_event":             &checkin.LogStartupEvent,
-		"check_for_policies_at_startup": &checkin.CheckForPoliciesAtStartup,
-		//"apply_computer_level_managed_preferences": &checkin.ApplyComputerLevelManagedPrefs,
-		"ensure_ssh_is_enabled":              &checkin.EnsureSSHIsEnabled,
-		"create_login_logout_hooks":          &checkin.CreateLoginLogoutHooks,
-		"log_username":                       &checkin.LogUsername,
-		"check_for_policies_at_login_logout": &checkin.CheckForPoliciesAtLoginLogout,
-		//"apply_user_level_managed_preferences":     &checkin.ApplyUserLevelManagedPreferences,
-		//"hide_restore_partition":              &checkin.HideRestorePartition,
-		"perform_login_actions_in_background": &checkin.PerformLoginActionsInBackground,
-		"display_status_to_user":              &checkin.DisplayStatusToUser,
-	}
+	// Utilize type assertion helper functions for direct field extraction
+	checkin.CheckInFrequency = util.GetIntFromInterface(d.Get("check_in_frequency"))
+	checkin.CreateStartupScript = util.GetBoolFromInterface(d.Get("create_startup_script"))
+	checkin.LogStartupEvent = util.GetBoolFromInterface(d.Get("log_startup_event"))
+	checkin.CheckForPoliciesAtStartup = util.GetBoolFromInterface(d.Get("check_for_policies_at_startup"))
+	// Note: "apply_computer_level_managed_preferences" is computed, not set directly
+	checkin.EnsureSSHIsEnabled = util.GetBoolFromInterface(d.Get("ensure_ssh_is_enabled"))
+	checkin.CreateLoginLogoutHooks = util.GetBoolFromInterface(d.Get("create_login_logout_hooks"))
+	checkin.LogUsername = util.GetBoolFromInterface(d.Get("log_username"))
+	checkin.CheckForPoliciesAtLoginLogout = util.GetBoolFromInterface(d.Get("check_for_policies_at_login_logout"))
+	// Note: "apply_user_level_managed_preferences", "hide_restore_partition", and "perform_login_actions_in_background" are computed, not set directly
+	checkin.DisplayStatusToUser = util.GetBoolFromInterface(d.Get("display_status_to_user"))
 
-	for key, ptr := range fields {
-		if v, ok := d.GetOk(key); ok {
-			switch ptr := ptr.(type) {
-			case *int:
-				*ptr = v.(int)
-			case *bool:
-				*ptr = v.(bool)
-			default:
-				return nil, fmt.Errorf("unsupported data type for key '%s'", key)
-			}
-		}
-	}
-
-	// Log the successful construction of the group
+	// Log the successful construction of the checkin configuration
 	log.Printf("[INFO] Successfully constructed ComputerCheckin")
 
 	return checkin, nil

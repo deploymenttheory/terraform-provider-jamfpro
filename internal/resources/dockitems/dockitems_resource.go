@@ -11,6 +11,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -79,27 +80,15 @@ func ResourceJamfProDockItems() *schema.Resource {
 	}
 }
 
-// constructJamfProDockItem constructs a ResponseDockItem object from the provided schema data and returns any errors encountered.
+// constructJamfProDockItem constructs a ResponseDockItem object from the provided schema data.
 func constructJamfProDockItem(d *schema.ResourceData) (*jamfpro.ResponseDockItem, error) {
 	dockItem := &jamfpro.ResponseDockItem{}
 
-	fields := map[string]interface{}{
-		"name":     &dockItem.Name,
-		"type":     &dockItem.Type,
-		"path":     &dockItem.Path,
-		"contents": &dockItem.Contents,
-	}
-
-	for key, ptr := range fields {
-		if v, ok := d.GetOk(key); ok {
-			switch ptr := ptr.(type) {
-			case *string:
-				*ptr = v.(string)
-			default:
-				return nil, fmt.Errorf("unsupported data type for key '%s'", key)
-			}
-		}
-	}
+	// Utilize type assertion helper functions for direct field extraction
+	dockItem.Name = util.GetStringFromInterface(d.Get("name"))
+	dockItem.Type = util.GetStringFromInterface(d.Get("type"))
+	dockItem.Path = util.GetStringFromInterface(d.Get("path"))
+	dockItem.Contents = util.GetStringFromInterface(d.Get("contents"))
 
 	// Log the successful construction of the dock item
 	log.Printf("[INFO] Successfully constructed DockItem with name: %s", dockItem.Name)

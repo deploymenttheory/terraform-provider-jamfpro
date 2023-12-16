@@ -10,6 +10,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -74,31 +75,20 @@ func ResourceJamfProBuilding() *schema.Resource {
 	}
 }
 
-// constructJamfProBuilding constructs a Building object from the provided schema data and returns any errors encountered.
+// constructJamfProBuilding constructs a Building object from the provided schema data.
 func constructJamfProBuilding(d *schema.ResourceData) (*jamfpro.ResourceBuilding, error) {
 	building := &jamfpro.ResourceBuilding{}
 
-	fields := map[string]*string{
-		"name":            &building.Name,
-		"street_address1": &building.StreetAddress1,
-		"street_address2": &building.StreetAddress2,
-		"city":            &building.City,
-		"state_province":  &building.StateProvince,
-		"zip_postal_code": &building.ZipPostalCode,
-		"country":         &building.Country,
-	}
+	// Utilize type assertion helper functions for direct field extraction
+	building.Name = util.GetStringFromInterface(d.Get("name"))
+	building.StreetAddress1 = util.GetStringFromInterface(d.Get("street_address1"))
+	building.StreetAddress2 = util.GetStringFromInterface(d.Get("street_address2"))
+	building.City = util.GetStringFromInterface(d.Get("city"))
+	building.StateProvince = util.GetStringFromInterface(d.Get("state_province"))
+	building.ZipPostalCode = util.GetStringFromInterface(d.Get("zip_postal_code"))
+	building.Country = util.GetStringFromInterface(d.Get("country"))
 
-	for key, ptr := range fields {
-		if v, ok := d.GetOk(key); ok {
-			strVal, ok := v.(string)
-			if !ok {
-				return nil, fmt.Errorf("failed to assert '%s' as a string", key)
-			}
-			*ptr = strVal
-		}
-	}
-
-	// After successful construction
+	// Log the successful construction of the building
 	log.Printf("[INFO] Successfully constructed Building with name: %s", building.Name)
 
 	return building, nil

@@ -11,6 +11,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -204,42 +205,23 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 	}
 }
 
-// constructJamfProComputerGroup constructs a ResponseComputerGroup object from the provided schema data and returns any errors encountered.
+// constructJamfProComputerGroup constructs a ResponseComputerGroup object from the provided schema data.
 func constructJamfProComputerGroup(d *schema.ResourceData) (*jamfpro.ResponseComputerGroup, error) {
 	group := &jamfpro.ResponseComputerGroup{}
 
-	// Handle simple fields
-	fields := map[string]interface{}{
-		"name":     &group.Name,
-		"is_smart": &group.IsSmart,
-	}
-
-	for key, ptr := range fields {
-		if v, ok := d.GetOk(key); ok {
-			switch ptr := ptr.(type) {
-			case *string:
-				*ptr = v.(string)
-			case *bool:
-				*ptr = v.(bool)
-			default:
-				return nil, fmt.Errorf("unsupported data type for key '%s'", key)
-			}
-		}
-	}
+	// Utilize type assertion helper functions for direct field extraction
+	group.Name = util.GetStringFromInterface(d.Get("name"))
+	group.IsSmart = util.GetBoolFromInterface(d.Get("is_smart"))
 
 	// Handle nested "site" field
 	if siteList, ok := d.GetOk("site"); ok {
 		siteData, ok := siteList.([]interface{})
-		if !ok || len(siteData) == 0 {
-			return nil, fmt.Errorf("invalid data for 'site'")
-		}
-		siteMap, ok := siteData[0].(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("invalid data structure for 'site'")
-		}
-		group.Site = jamfpro.ComputerGroupSite{
-			ID:   siteMap["id"].(int),
-			Name: siteMap["name"].(string),
+		if ok && len(siteData) > 0 {
+			siteMap, ok := siteData[0].(map[string]interface{})
+			if ok {
+				group.Site.ID = util.GetIntFromInterface(siteMap["id"])
+				group.Site.Name = util.GetStringFromInterface(siteMap["name"])
+			}
 		}
 	}
 
@@ -247,16 +229,15 @@ func constructJamfProComputerGroup(d *schema.ResourceData) (*jamfpro.ResponseCom
 	if criteria, ok := d.GetOk("criteria"); ok {
 		for _, crit := range criteria.([]interface{}) {
 			criterionMap := crit.(map[string]interface{})
-			var criterion jamfpro.ComputerGroupCriterion
-			criterion.Name = criterionMap["name"].(string)
-			criterion.Priority = criterionMap["priority"].(int)
-			criterion.AndOr = jamfpro.DeviceGroupAndOr(criterionMap["and_or"].(string))
-			criterion.SearchType = criterionMap["search_type"].(string)
-			criterion.SearchValue = criterionMap["value"].(string)
-			criterion.OpeningParen = criterionMap["opening_paren"].(bool)
-			criterion.ClosingParen = criterionMap["closing_paren"].(bool)
-
-			group.Criteria = append(group.Criteria, criterion)
+			group.Criteria = append(group.Criteria, jamfpro.ComputerGroupCriterion{
+				Name:         util.GetStringFromInterface(criterionMap["name"]),
+				Priority:     util.GetIntFromInterface(criterionMap["priority"]),
+				AndOr:        jamfpro.DeviceGroupAndOr(util.GetStringFromInterface(criterionMap["and_or"])),
+				SearchType:   util.GetStringFromInterface(criterionMap["search_type"]),
+				SearchValue:  util.GetStringFromInterface(criterionMap["value"]),
+				OpeningParen: util.GetBoolFromInterface(criterionMap["opening_paren"]),
+				ClosingParen: util.GetBoolFromInterface(criterionMap["closing_paren"]),
+			})
 		}
 	}
 
@@ -264,14 +245,13 @@ func constructJamfProComputerGroup(d *schema.ResourceData) (*jamfpro.ResponseCom
 	if computers, ok := d.GetOk("computers"); ok {
 		for _, comp := range computers.([]interface{}) {
 			computerMap := comp.(map[string]interface{})
-			var computer jamfpro.ComputerGroupComputerItem
-			computer.ID = computerMap["id"].(int)
-			computer.Name = computerMap["name"].(string)
-			computer.SerialNumber = computerMap["serial_number"].(string)
-			computer.MacAddress = computerMap["mac_address"].(string)
-			computer.AltMacAddress = computerMap["alt_mac_address"].(string)
-
-			group.Computers = append(group.Computers, computer)
+			group.Computers = append(group.Computers, jamfpro.ComputerGroupComputerItem{
+				ID:            util.GetIntFromInterface(computerMap["id"]),
+				Name:          util.GetStringFromInterface(computerMap["name"]),
+				SerialNumber:  util.GetStringFromInterface(computerMap["serial_number"]),
+				MacAddress:    util.GetStringFromInterface(computerMap["mac_address"]),
+				AltMacAddress: util.GetStringFromInterface(computerMap["alt_mac_address"]),
+			})
 		}
 	}
 

@@ -11,6 +11,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -49,23 +50,11 @@ func ResourceJamfProSites() *schema.Resource {
 }
 
 // constructJamfProSite constructs a ResponseSite object from the provided schema data.
-// It captures attributes from the schema and returns the constructed object.
 func constructJamfProSite(d *schema.ResourceData) (*jamfpro.ResponseSite, error) {
 	site := &jamfpro.ResponseSite{}
 
-	fields := map[string]*string{
-		"name": &site.Name,
-	}
-
-	for key, ptr := range fields {
-		if v, ok := d.GetOk(key); ok {
-			strVal, ok := v.(string)
-			if !ok {
-				return nil, fmt.Errorf("failed to assert '%s' as a string", key)
-			}
-			*ptr = strVal
-		}
-	}
+	// Utilize type assertion helper functions for direct field extraction
+	site.Name = util.GetStringFromInterface(d.Get("name"))
 
 	// After successful construction
 	log.Printf("[INFO] Successfully constructed Site with name: %s", site.Name)

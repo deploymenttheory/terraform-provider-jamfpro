@@ -11,6 +11,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -48,23 +49,12 @@ func ResourceJamfProDepartments() *schema.Resource {
 	}
 }
 
-// constructJamfProDepartment constructs a ResponseDepartment object from the provided schema data and returns any errors encountered.
+// constructJamfProDepartment constructs a ResponseDepartment object from the provided schema data.
 func constructJamfProDepartment(d *schema.ResourceData) (*jamfpro.ResponseDepartment, error) {
 	department := &jamfpro.ResponseDepartment{}
 
-	fields := map[string]*string{
-		"name": &department.Name,
-	}
-
-	for key, ptr := range fields {
-		if v, ok := d.GetOk(key); ok {
-			strVal, ok := v.(string)
-			if !ok {
-				return nil, fmt.Errorf("failed to assert '%s' as a string", key)
-			}
-			*ptr = strVal
-		}
-	}
+	// Utilize type assertion helper functions for direct field extraction
+	department.Name = util.GetStringFromInterface(d.Get("name"))
 
 	// Log the successful construction of the department
 	log.Printf("[INFO] Successfully constructed Department with name: %s", department.Name)

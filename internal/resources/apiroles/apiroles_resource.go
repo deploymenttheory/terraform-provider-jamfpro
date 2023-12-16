@@ -10,6 +10,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -55,6 +56,35 @@ func ResourceJamfProAPIRoles() *schema.Resource {
 	}
 }
 
+// constructJamfProApiRole constructs an ResourceAPIRole object from the provided schema data.
+func constructJamfProApiRole(d *schema.ResourceData) (*jamfpro.ResourceAPIRole, error) {
+	apiRole := &jamfpro.ResourceAPIRole{}
+
+	// Utilize type assertion helper functions for direct field extraction
+	apiRole.DisplayName = util.GetStringFromInterface(d.Get("display_name"))
+
+	// Special handling for the 'privileges' field
+	if v, ok := d.GetOk("privileges"); ok {
+		privilegesSet, ok := v.(*schema.Set)
+		if !ok {
+			return nil, fmt.Errorf("failed to assert 'privileges' as a *schema.Set")
+		}
+		privilegesInterface := privilegesSet.List()
+
+		// Convert privileges from []interface{} to []string
+		privileges := make([]string, len(privilegesInterface))
+		for i, priv := range privilegesInterface {
+			privileges[i] = util.GetString(priv)
+		}
+		apiRole.Privileges = privileges
+	}
+
+	// Log the successful construction of the API Role
+	log.Printf("[INFO] Successfully constructed APIRole with display name: %s", apiRole.DisplayName)
+
+	return apiRole, nil
+}
+
 // Helper function to generate diagnostics based on the error type.
 func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
 	var diags diag.Diagnostics
@@ -78,58 +108,6 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 		})
 	}
 	return diags
-}
-
-// constructJamfProApiRole constructs an ResourceAPIRole object from the provided schema data and returns any errors encountered.
-func constructJamfProApiRole(d *schema.ResourceData) (*jamfpro.ResourceAPIRole, error) {
-	apiRole := &jamfpro.ResourceAPIRole{}
-
-	// Map for the fields which are expected to be string
-	fields := map[string]interface{}{
-		"display_name": &apiRole.DisplayName,
-	}
-
-	// Handle type assertions for simple fields
-	for key, ptr := range fields {
-		if v, ok := d.GetOk(key); ok {
-			switch val := ptr.(type) {
-			case *string:
-				strVal, ok := v.(string)
-				if !ok {
-					return nil, fmt.Errorf("failed to assert '%s' as a string", key)
-				}
-				*val = strVal
-			// Add cases for other types as necessary
-			default:
-				return nil, fmt.Errorf("unhandled type for field '%s'", key)
-			}
-		}
-	}
-
-	// Special handling for the 'privileges' field
-	if v, ok := d.GetOk("privileges"); ok {
-		privilegesSet, ok := v.(*schema.Set)
-		if !ok {
-			return nil, fmt.Errorf("failed to assert 'privileges' as a *schema.Set")
-		}
-		privilegesInterface := privilegesSet.List()
-
-		// Convert privileges from []interface{} to []string
-		privileges := make([]string, len(privilegesInterface))
-		for i, priv := range privilegesInterface {
-			privStr, ok := priv.(string)
-			if !ok {
-				return nil, fmt.Errorf("failed to assert privilege as a string")
-			}
-			privileges[i] = privStr
-		}
-		apiRole.Privileges = privileges
-	}
-
-	// Log the successful construction of the API Role
-	log.Printf("[INFO] Successfully constructed APIRole with display name: %s", apiRole.DisplayName)
-
-	return apiRole, nil
 }
 
 // ResourceJamfProAPIRolesCreate handles the creation of a Jamf Pro API Role.

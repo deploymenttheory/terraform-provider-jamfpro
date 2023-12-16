@@ -11,6 +11,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -120,57 +121,41 @@ func assertString(val interface{}) (string, bool) {
 }
 
 // constructJamfProComputerExtensionAttribute constructs a ResponseComputerExtensionAttribute object from the provided schema data.
-// It captures attributes from the schema, including nested attributes under "input_type", and returns the constructed object.
 func constructJamfProComputerExtensionAttribute(d *schema.ResourceData) *jamfpro.ResponseComputerExtensionAttribute {
-	// Extract the first item from the input_type list
-	inputTypes, ok := d.Get("input_type").([]interface{})
-	if !ok || len(inputTypes) == 0 {
-		return nil
-	}
+	attribute := &jamfpro.ResponseComputerExtensionAttribute{}
 
-	inputTypeMap, ok := inputTypes[0].(map[string]interface{})
-	if !ok {
-		return nil
-	}
+	// Utilize type assertion helper functions for direct field extraction
+	attribute.Name = util.GetStringFromInterface(d.Get("name"))
+	attribute.Enabled = util.GetBoolFromInterface(d.Get("enabled"))
+	attribute.Description = util.GetStringFromInterface(d.Get("description"))
+	attribute.DataType = util.GetStringFromInterface(d.Get("data_type"))
+	attribute.InventoryDisplay = util.GetStringFromInterface(d.Get("inventory_display"))
+	attribute.ReconDisplay = util.GetStringFromInterface(d.Get("recon_display"))
 
-	var inputType jamfpro.ComputerExtensionAttributeInputType
-	var strVal string
+	// Handle nested "input_type" field
+	if inputTypes, ok := d.GetOk("input_type"); ok {
+		inputTypeData, ok := inputTypes.([]interface{})
+		if ok && len(inputTypeData) > 0 {
+			inputTypeMap := util.ConvertToMapFromInterface(inputTypeData[0])
+			if inputTypeMap != nil {
+				var inputType jamfpro.ComputerExtensionAttributeInputType
+				inputType.Type = util.GetStringFromMap(inputTypeMap, "type")
+				inputType.Platform = util.GetStringFromMap(inputTypeMap, "platform")
+				inputType.Script = util.GetStringFromMap(inputTypeMap, "script")
 
-	// Safely assert type for 'type', 'platform', and 'script'
-	if strVal, ok = assertString(inputTypeMap["type"]); ok {
-		inputType.Type = strVal
-	}
-	if strVal, ok = assertString(inputTypeMap["platform"]); ok {
-		inputType.Platform = strVal
-	}
-	if strVal, ok = assertString(inputTypeMap["script"]); ok {
-		inputType.Script = strVal
-	}
+				// Handle "choices" within "input_type"
+				if choices, exists := inputTypeMap["choices"]; exists {
+					for _, choice := range choices.([]interface{}) {
+						inputType.Choices = append(inputType.Choices, util.GetString(choice))
+					}
+				}
 
-	// Safely extract and append 'choices'
-	if choices, exists := inputTypeMap["choices"]; exists {
-		choiceSlice, ok := choices.([]interface{})
-		if !ok {
-			return nil
-		}
-		for _, choice := range choiceSlice {
-			if strVal, ok := assertString(choice); ok {
-				inputType.Choices = append(inputType.Choices, strVal)
+				attribute.InputType = inputType
 			}
 		}
 	}
 
-	// Construct the ResponseComputerExtensionAttribute object
-	attribute := &jamfpro.ResponseComputerExtensionAttribute{
-		Name:             d.Get("name").(string),
-		Enabled:          d.Get("enabled").(bool),
-		Description:      d.Get("description").(string),
-		DataType:         d.Get("data_type").(string),
-		InventoryDisplay: d.Get("inventory_display").(string),
-		ReconDisplay:     d.Get("recon_display").(string),
-		InputType:        inputType,
-	}
-
+	// Log the successful construction of the attribute
 	log.Printf("[INFO] Successfully constructed ComputerExtensionAttribute with name: %s", attribute.Name)
 
 	return attribute

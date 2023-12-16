@@ -11,6 +11,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -109,38 +110,24 @@ func ResourceJamfProPrinters() *schema.Resource {
 	}
 }
 
-// constructJamfProPrinter constructs a ResponsePrinters object from the provided schema data and returns any errors encountered.
+// constructJamfProPrinter constructs a ResponsePrinters object from the provided schema data.
 func constructJamfProPrinter(d *schema.ResourceData) (*jamfpro.ResponsePrinters, error) {
 	printer := &jamfpro.ResponsePrinters{}
 
-	fields := map[string]interface{}{
-		"name":         &printer.Name,
-		"category":     &printer.Category,
-		"uri":          &printer.URI,
-		"cups_name":    &printer.CUPSName,
-		"location":     &printer.Location,
-		"model":        &printer.Model,
-		"info":         &printer.Info,
-		"notes":        &printer.Notes,
-		"make_default": &printer.MakeDefault,
-		"use_generic":  &printer.UseGeneric,
-		"ppd":          &printer.PPD,
-		"ppd_path":     &printer.PPDPath,
-		"ppd_contents": &printer.PPDContents,
-	}
-
-	for key, ptr := range fields {
-		if v, ok := d.GetOk(key); ok {
-			switch ptr := ptr.(type) {
-			case *string:
-				*ptr = v.(string)
-			case *bool:
-				*ptr = v.(bool)
-			default:
-				return nil, fmt.Errorf("unsupported data type for key '%s'", key)
-			}
-		}
-	}
+	// Utilize type assertion helper functions for direct field extraction
+	printer.Name = util.GetStringFromInterface(d.Get("name"))
+	printer.Category = util.GetStringFromInterface(d.Get("category"))
+	printer.URI = util.GetStringFromInterface(d.Get("uri"))
+	printer.CUPSName = util.GetStringFromInterface(d.Get("cups_name"))
+	printer.Location = util.GetStringFromInterface(d.Get("location"))
+	printer.Model = util.GetStringFromInterface(d.Get("model"))
+	printer.Info = util.GetStringFromInterface(d.Get("info"))
+	printer.Notes = util.GetStringFromInterface(d.Get("notes"))
+	printer.MakeDefault = util.GetBoolFromInterface(d.Get("make_default"))
+	printer.UseGeneric = util.GetBoolFromInterface(d.Get("use_generic"))
+	printer.PPD = util.GetStringFromInterface(d.Get("ppd"))
+	printer.PPDPath = util.GetStringFromInterface(d.Get("ppd_path"))
+	printer.PPDContents = util.GetStringFromInterface(d.Get("ppd_contents"))
 
 	// Log the successful construction of the printer
 	log.Printf("[INFO] Successfully constructed Printer with name: %s", printer.Name)
