@@ -4,12 +4,13 @@ package scripts
 import (
 	"context"
 	"fmt"
-	"strconv"
 
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -19,95 +20,89 @@ func DataSourceJamfProScripts() *schema.Resource {
 		ReadContext: DataSourceJamfProScriptsRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:        schema.TypeInt,
-				Description: "The unique identifier of the script.",
+				Type:        schema.TypeString,
 				Computed:    true,
+				Description: "The Jamf Pro unique identifier (ID) of the script.",
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Description: "The unique name of the script.",
-				Computed:    true,
+				Required:    true,
+				Description: "Display name for the script.",
 			},
-			"category": {
+			"category_name": {
 				Type:        schema.TypeString,
-				Description: "Category of the script.",
 				Computed:    true,
+				Description: "Name of the category to add the script to.",
 			},
-			"filename": {
+			"category_id": {
 				Type:        schema.TypeString,
-				Description: "Filename of the script.",
 				Computed:    true,
+				Description: "The Jamf Pro unique identifier (ID) of the category.",
 			},
 			"info": {
 				Type:        schema.TypeString,
-				Description: "Information to display to the administrator when the script is run.",
 				Computed:    true,
+				Description: "Information to display to the administrator when the script is run.",
 			},
 			"notes": {
 				Type:        schema.TypeString,
+				Computed:    true,
 				Description: "Notes to display about the script (e.g., who created it and when it was created).",
-				Computed:    true,
-			},
-			"priority": {
-				Type:        schema.TypeString,
-				Description: "Execution priority of the script (Before, After, At Reboot).",
-				Computed:    true,
-			},
-			"parameters": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Script parameters.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"parameter4": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"parameter5": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"parameter6": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"parameter7": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"parameter8": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"parameter9": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"parameter10": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"parameter11": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
 			},
 			"os_requirements": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "OS requirements for the script.",
+				Description: "The script can only be run on computers with these operating system versions. Each version must be separated by a comma (e.g., 10.11, 15, 16.1).",
+			},
+			"priority": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Execution priority of the script (Before, After, At Reboot).",
 			},
 			"script_contents": {
 				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Contents of the script.",
+				Required:    true,
+				Description: "Contents of the script. Must be non-compiled and in an accepted format.",
 			},
-			"script_contents_encoded": {
+			"parameter4": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "Encoded contents of the script.",
+				Description: "Script parameter label 4",
+			},
+			"parameter5": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Script parameter label 5",
+			},
+			"parameter6": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Script parameter label 6",
+			},
+			"parameter7": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Script parameter label 7",
+			},
+			"parameter8": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Script parameter label 8",
+			},
+			"parameter9": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Script parameter label 9",
+			},
+			"parameter10": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Script parameter label 10",
+			},
+			"parameter11": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Script parameter label 11",
 			},
 		},
 	}
@@ -126,6 +121,8 @@ func DataSourceJamfProScripts() *schema.Resource {
 // Returns:
 // - diag.Diagnostics: Returns any diagnostics (errors or warnings) encountered during the function's execution.
 func DataSourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+
 	// Asserts 'meta' as '*client.APIClient'
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -133,83 +130,72 @@ func DataSourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, m
 	}
 	conn := apiclient.Conn
 
-	var script *jamfpro.ResponseScript
-	var err error
+	var attribute *jamfpro.ResourceScript
 
-	if v, ok := d.GetOk("name"); ok && v.(string) != "" {
-		scriptName := v.(string)
-		script, err = conn.GetScriptsByName(scriptName)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to fetch Jamf Pro script by name: %v", err))
+	// Use the retry function for the read operation
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		// Convert the ID from the Terraform state into an integer to be used for the API request
+		attributeID := d.Id()
+
+		// Try fetching the script using the ID
+		var apiErr error
+		attribute, apiErr = conn.GetScriptByID(attributeID)
+		if apiErr != nil {
+			// Handle the APIError
+			if apiError, ok := apiErr.(*http_client.APIError); ok {
+				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+			}
+			// If fetching by ID fails, try fetching by Name
+			attributeName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string for read function"))
+			}
+
+			attribute, apiErr = conn.GetScriptByName(attributeName)
+			if apiErr != nil {
+				// Handle the APIError
+				if apiError, ok := apiErr.(*http_client.APIError); ok {
+					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+				}
+				return retry.RetryableError(apiErr)
+			}
 		}
-	} else if v, ok := d.GetOk("id"); ok {
-		scriptID, convertErr := strconv.Atoi(v.(string))
-		if convertErr != nil {
-			return diag.FromErr(fmt.Errorf("failed to convert Jamf Pro script ID to integer: %v", convertErr))
-		}
-		script, err = conn.GetScriptsByID(scriptID)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to fetch Jamf Pro script by ID: %v", err))
-		}
-	} else {
-		return diag.Errorf("Either 'name' or 'id' must be provided")
+		return nil
+	})
+
+	// Handle error from the retry function
+	if err != nil {
+		// If there's an error while reading the resource, generate diagnostics using the helper function.
+		return generateTFDiagsFromHTTPError(err, d, "read")
 	}
 
-	// Set all script attributes to the data source state
-	var errSet error
-
-	// Set all script attributes to the data source state
-	if errSet = d.Set("name", script.Name); errSet != nil {
-		return diag.FromErr(errSet)
-	}
-	if errSet = d.Set("category", script.Category); errSet != nil {
-		return diag.FromErr(errSet)
-	}
-	if errSet = d.Set("filename", script.Filename); errSet != nil {
-		return diag.FromErr(errSet)
-	}
-	if errSet = d.Set("info", script.Info); errSet != nil {
-		return diag.FromErr(errSet)
-	}
-	if errSet = d.Set("notes", script.Notes); errSet != nil {
-		return diag.FromErr(errSet)
-	}
-	if errSet = d.Set("priority", script.Priority); errSet != nil {
-		return diag.FromErr(errSet)
-	}
-	if errSet = d.Set("os_requirements", script.OSRequirements); errSet != nil {
-		return diag.FromErr(errSet)
-	}
-	if errSet = d.Set("script_contents", script.ScriptContents); errSet != nil {
-		return diag.FromErr(errSet)
-	}
-	if errSet = d.Set("script_contents_encoded", script.ScriptContentsEncoded); errSet != nil {
-		return diag.FromErr(errSet)
+	// Construct a map of script attributes
+	scriptAttributes := map[string]interface{}{
+		"name":            attribute.Name,
+		"category_name":   attribute.CategoryName,
+		"category_id":     attribute.CategoryId,
+		"info":            attribute.Info,
+		"notes":           attribute.Notes,
+		"os_requirements": attribute.OSRequirements,
+		"priority":        attribute.Priority,
+		"script_contents": encodeScriptContent(attribute.ScriptContents),
+		"parameter4":      attribute.Parameter4,
+		"parameter5":      attribute.Parameter5,
+		"parameter6":      attribute.Parameter6,
+		"parameter7":      attribute.Parameter7,
+		"parameter8":      attribute.Parameter8,
+		"parameter9":      attribute.Parameter9,
+		"parameter10":     attribute.Parameter10,
+		"parameter11":     attribute.Parameter11,
 	}
 
-	// Set the parameters
-	parameters := make([]interface{}, 0)
-	paramFields := map[string]*string{
-		"parameter4":  &script.Parameters.Parameter4,
-		"parameter5":  &script.Parameters.Parameter5,
-		"parameter6":  &script.Parameters.Parameter6,
-		"parameter7":  &script.Parameters.Parameter7,
-		"parameter8":  &script.Parameters.Parameter8,
-		"parameter9":  &script.Parameters.Parameter9,
-		"parameter10": &script.Parameters.Parameter10,
-		"parameter11": &script.Parameters.Parameter11,
-	}
-
-	for key, value := range paramFields {
-		if *value != "" {
-			parameters = append(parameters, map[string]interface{}{key: *value})
+	// Update the Terraform state with script attributes
+	for key, value := range scriptAttributes {
+		if err := d.Set(key, value); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+			return diags
 		}
 	}
 
-	if err := d.Set("parameters", parameters); err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
-
+	return diags
 }

@@ -5,12 +5,12 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -56,6 +56,35 @@ func ResourceJamfProAPIRoles() *schema.Resource {
 	}
 }
 
+// constructJamfProApiRole constructs an ResourceAPIRole object from the provided schema data.
+func constructJamfProApiRole(d *schema.ResourceData) (*jamfpro.ResourceAPIRole, error) {
+	apiRole := &jamfpro.ResourceAPIRole{}
+
+	// Utilize type assertion helper functions for direct field extraction
+	apiRole.DisplayName = util.GetStringFromInterface(d.Get("display_name"))
+
+	// Special handling for the 'privileges' field
+	if v, ok := d.GetOk("privileges"); ok {
+		privilegesSet, ok := v.(*schema.Set)
+		if !ok {
+			return nil, fmt.Errorf("failed to assert 'privileges' as a *schema.Set")
+		}
+		privilegesInterface := privilegesSet.List()
+
+		// Convert privileges from []interface{} to []string
+		privileges := make([]string, len(privilegesInterface))
+		for i, priv := range privilegesInterface {
+			privileges[i] = util.GetString(priv)
+		}
+		apiRole.Privileges = privileges
+	}
+
+	// Log the successful construction of the API Role
+	log.Printf("[INFO] Successfully constructed APIRole with display name: %s", apiRole.DisplayName)
+
+	return apiRole, nil
+}
+
 // Helper function to generate diagnostics based on the error type.
 func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
 	var diags diag.Diagnostics
@@ -81,58 +110,6 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 	return diags
 }
 
-// constructJamfProApiRole constructs an APIRole object from the provided schema data and returns any errors encountered.
-func constructJamfProApiRole(d *schema.ResourceData) (*jamfpro.APIRole, error) {
-	apiRole := &jamfpro.APIRole{}
-
-	// Map for the fields which are expected to be string
-	fields := map[string]interface{}{
-		"display_name": &apiRole.DisplayName,
-	}
-
-	// Handle type assertions for simple fields
-	for key, ptr := range fields {
-		if v, ok := d.GetOk(key); ok {
-			switch val := ptr.(type) {
-			case *string:
-				strVal, ok := v.(string)
-				if !ok {
-					return nil, fmt.Errorf("failed to assert '%s' as a string", key)
-				}
-				*val = strVal
-			// Add cases for other types as necessary
-			default:
-				return nil, fmt.Errorf("unhandled type for field '%s'", key)
-			}
-		}
-	}
-
-	// Special handling for the 'privileges' field
-	if v, ok := d.GetOk("privileges"); ok {
-		privilegesSet, ok := v.(*schema.Set)
-		if !ok {
-			return nil, fmt.Errorf("failed to assert 'privileges' as a *schema.Set")
-		}
-		privilegesInterface := privilegesSet.List()
-
-		// Convert privileges from []interface{} to []string
-		privileges := make([]string, len(privilegesInterface))
-		for i, priv := range privilegesInterface {
-			privStr, ok := priv.(string)
-			if !ok {
-				return nil, fmt.Errorf("failed to assert privilege as a string")
-			}
-			privileges[i] = privStr
-		}
-		apiRole.Privileges = privileges
-	}
-
-	// Log the successful construction of the API Role
-	log.Printf("[INFO] Successfully constructed APIRole with display name: %s", apiRole.DisplayName)
-
-	return apiRole, nil
-}
-
 // ResourceJamfProAPIRolesCreate handles the creation of a Jamf Pro API Role.
 // The function:
 // 1. Constructs the API role data using the provided Terraform configuration.
@@ -150,7 +127,7 @@ func ResourceJamfProAPIRolesCreate(ctx context.Context, d *schema.ResourceData, 
 	conn := apiclient.Conn
 
 	// Use the retry function for the create operation
-	var createdRole *jamfpro.APIRole
+	var createdRole *jamfpro.ResourceAPIRole
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the API role
@@ -224,25 +201,20 @@ func ResourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, me
 	conn := apiclient.Conn
 
 	// Retrieve the ID and display name of the API role from the Terraform state
-	roleIDString := d.Id()
+	roleID := d.Id()
 	displayName, _ := d.GetOk("display_name")
 
-	// Convert roleIDString to an integer
-	roleID, err := strconv.Atoi(roleIDString)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to convert role ID to integer: %v", err))
-	}
-
 	// Use the retry function for the read operation
-	var fetchedRole *jamfpro.APIRole
+	var fetchedRole *jamfpro.ResourceAPIRole
+	var err error // Declare 'err' here
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		// Try to fetch the role by ID
-		fetchedRole, err = conn.GetJamfApiRolesByID(roleID)
+		fetchedRole, err = conn.GetJamfApiRoleByID(roleID)
 		if err != nil {
-			log.Printf("[WARN] Error reading APIRole with ID: %d. Error: %s. Trying by display name: %s", roleID, err, displayName)
+			log.Printf("[WARN] Error reading APIRole with ID: %s. Error: %s. Trying by display name: %s", roleID, err, displayName)
 
 			// If fetching by ID fails, try fetching by display name
-			fetchedRole, err = conn.GetJamfApiRolesNameById(displayName.(string))
+			fetchedRole, err = conn.GetJamfApiRoleByName(displayName.(string))
 			if err != nil {
 				// Log the error from the second API call
 				log.Printf("[ERROR] Error reading APIRole with display name: %s. Error: %s", displayName, err)
@@ -251,7 +223,7 @@ func ResourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, me
 		}
 
 		// Log the response from the successful API call
-		log.Printf("[INFO] Successfully read APIRole with ID: %d and display name: %s", roleID, fetchedRole.DisplayName)
+		log.Printf("[INFO] Successfully read APIRole with ID: %s and display name: %s", roleID, fetchedRole.DisplayName)
 
 		return nil
 	})
@@ -261,15 +233,18 @@ func ResourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, me
 		return generateTFDiagsFromHTTPError(err, d, "read")
 	}
 
-	// Update the Terraform state with the fetched data
-	if err := d.Set("id", fetchedRole.ID); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'id': %v", err))
+	// Map the configuration fields from the API response to a structured map
+	apiRoleData := map[string]interface{}{
+		"id":           fetchedRole.ID,
+		"display_name": fetchedRole.DisplayName,
+		"privileges":   fetchedRole.Privileges,
 	}
-	if err := d.Set("display_name", fetchedRole.DisplayName); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'display_name': %v", err))
-	}
-	if err := d.Set("privileges", fetchedRole.Privileges); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'privileges': %v", err))
+
+	// Set the structured map in the Terraform state
+	for key, val := range apiRoleData {
+		if err := d.Set(key, val); err != nil {
+			diags = append(diags, diag.FromErr(fmt.Errorf("failed to set '%s': %v", key, err))...)
+		}
 	}
 
 	return diags

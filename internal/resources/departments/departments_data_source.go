@@ -20,15 +20,13 @@ func DataSourceJamfProDepartments() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeInt,
-				Optional:    true,
-				Description: "The unique identifier of the department.",
 				Computed:    true,
+				Description: "The unique identifier of the department.",
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The unique name of the jamf pro department.",
 				Computed:    true,
+				Description: "The unique name of the jamf pro department.",
 			},
 		},
 	}

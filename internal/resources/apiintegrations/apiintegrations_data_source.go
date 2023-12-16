@@ -24,34 +24,33 @@ func DataSourceJamfProApiIntegrations() *schema.Resource {
 			},
 			"display_name": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The display name of the API integration.",
 				Computed:    true,
+				Description: "The display name of the API integration.",
 			},
 			"enabled": {
 				Type:        schema.TypeBool,
-				Description: "Indicates if the API integration is enabled.",
 				Computed:    true,
+				Description: "Indicates if the API integration is enabled.",
 			},
 			"access_token_lifetime_seconds": {
 				Type:        schema.TypeInt,
-				Description: "The access token lifetime in seconds for the API integration.",
 				Computed:    true,
+				Description: "The access token lifetime in seconds for the API integration.",
 			},
 			"app_type": {
 				Type:        schema.TypeString,
-				Description: "The app type of the API integration.",
 				Computed:    true,
+				Description: "The app type of the API integration.",
 			},
 			"client_id": {
 				Type:        schema.TypeString,
-				Description: "The client ID of the API integration.",
 				Computed:    true,
+				Description: "The client ID of the API integration.",
 			},
 			"authorization_scopes": {
 				Type:        schema.TypeSet,
-				Description: "The list of authorization scopes for the API integration.",
 				Computed:    true,
+				Description: "The list of authorization scopes for the API integration.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
 		},
@@ -78,13 +77,13 @@ func dataSourceJamfProApiIntegrationsRead(ctx context.Context, d *schema.Resourc
 	}
 	conn := apiclient.Conn
 
-	var integration *jamfpro.ApiIntegration
+	var integration *jamfpro.ResourceApiIntegration
 	var err error
 
 	// Check if DisplayName is provided in the data source configuration
 	if v, ok := d.GetOk("display_name"); ok && v.(string) != "" {
 		integrationName := v.(string)
-		integration, err = conn.GetApiIntegrationNameByID(integrationName)
+		integration, err = conn.GetApiIntegrationByName(integrationName)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to fetch API integration by display name: %v", err))
 		}

@@ -116,6 +116,7 @@ func Provider() *schema.Provider {
 			"jamfpro_sites":                         sites.DataSourceJamfProSites(),
 			"jamfpro_scripts":                       scripts.DataSourceJamfProScripts(),
 			//"jamfpro_macos_configuration_profiles":  macosconfigurationprofiles.DataSourceJamfProMacOSConfigurationProfiles(),
+			"jamfpro_policies": policies.DataSourceJamfProPolicies(),
 			"jamfpro_printers": printers.DataSourceJamfProPrinters(),
 		},
 		ResourcesMap: map[string]*schema.Resource{

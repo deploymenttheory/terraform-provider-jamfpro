@@ -83,7 +83,6 @@ func dataSourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData,
 	}
 
 	// Set the data source attributes using the fetched data
-	// Set the data source attributes using the fetched data
 	if err := d.Set("name", dockItem.Name); err != nil {
 		return diag.FromErr(fmt.Errorf("failed to set 'name': %v", err))
 	}

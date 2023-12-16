@@ -11,6 +11,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -77,6 +78,25 @@ func ResourceJamfProApiIntegrations() *schema.Resource {
 	}
 }
 
+func constructJamfProApiIntegration(d *schema.ResourceData) (*jamfpro.ResourceApiIntegration, error) {
+	integration := &jamfpro.ResourceApiIntegration{}
+
+	// Utilize helper functions for direct field extraction
+	integration.DisplayName = util.GetStringFromInterface(d.Get("display_name"))
+	integration.Enabled = util.GetBoolFromInterface(d.Get("enabled"))
+	integration.AccessTokenLifetimeSeconds = util.GetIntFromInterface(d.Get("access_token_lifetime_seconds"))
+
+	// Handle 'authorization_scopes' field
+	if v, ok := d.GetOk("authorization_scopes"); ok {
+		integration.AuthorizationScopes = convertToStringSlice(v.(*schema.Set))
+	}
+
+	// Log the successful construction
+	log.Printf("[INFO] Successfully constructed ApiIntegration with display name: %s", integration.DisplayName)
+
+	return integration, nil
+}
+
 // Helper function to generate diagnostics based on the error type..
 func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
 	var diags diag.Diagnostics
@@ -102,56 +122,6 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 	return diags
 }
 
-// constructJamfProApiIntegration constructs a ResponseApiIntegration object from the provided schema data and returns any errors encountered.
-func constructJamfProApiIntegration(d *schema.ResourceData) (*jamfpro.ApiIntegration, error) {
-	integration := &jamfpro.ApiIntegration{}
-
-	// Map for the fields which are expected to be string or bool or int
-	fields := map[string]interface{}{
-		"display_name":                  &integration.DisplayName,
-		"enabled":                       &integration.Enabled,
-		"access_token_lifetime_seconds": &integration.AccessTokenLifetimeSeconds,
-		// "app_type":                     &integration.AppType,
-	}
-
-	for key, ptr := range fields {
-		if v, ok := d.GetOk(key); ok {
-			switch val := ptr.(type) {
-			case *string:
-				strVal, ok := v.(string)
-				if !ok {
-					return nil, fmt.Errorf("failed to assert '%s' as a string", key)
-				}
-				*val = strVal
-			case *bool:
-				boolVal, ok := v.(bool)
-				if !ok {
-					return nil, fmt.Errorf("failed to assert '%s' as a bool", key)
-				}
-				*val = boolVal
-			case *int:
-				intVal, ok := v.(int)
-				if !ok {
-					return nil, fmt.Errorf("failed to assert '%s' as an int", key)
-				}
-				*val = intVal
-			default:
-				return nil, fmt.Errorf("unhandled type for field '%s'", key)
-			}
-		}
-	}
-
-	// Special handling for the 'authorization_scopes' field
-	if v, ok := d.GetOk("authorization_scopes"); ok {
-		integration.AuthorizationScopes = convertToStringSlice(v.(*schema.Set))
-	}
-
-	// Log the successful construction of the integration
-	log.Printf("[INFO] Successfully constructed ApiIntegration with display name: %s", integration.DisplayName)
-
-	return integration, nil
-}
-
 // convertToStringSlice is a helper function that converts a schema.Set to a string slice.
 func convertToStringSlice(set *schema.Set) []string {
 	interfaceSlice := set.List()
@@ -174,7 +144,7 @@ func ResourceJamfProApiIntegrationsCreate(ctx context.Context, d *schema.Resourc
 	conn := apiclient.Conn
 
 	// Use the retry function for the create operation
-	var createdIntegration *jamfpro.ApiIntegration
+	var createdIntegration *jamfpro.ResourceApiIntegration
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the API integration
@@ -243,7 +213,7 @@ func ResourceJamfProApiIntegrationsRead(ctx context.Context, d *schema.ResourceD
 	}
 	conn := apiclient.Conn
 
-	var integration *jamfpro.ApiIntegration
+	var integration *jamfpro.ResourceApiIntegration
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
@@ -263,7 +233,7 @@ func ResourceJamfProApiIntegrationsRead(ctx context.Context, d *schema.ResourceD
 			}
 			// If fetching by ID fails, try fetching by Name
 			integrationName := d.Get("display_name").(string)
-			integration, apiErr = conn.GetApiIntegrationNameByID(integrationName)
+			integration, apiErr = conn.GetApiIntegrationByName(integrationName)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -281,24 +251,21 @@ func ResourceJamfProApiIntegrationsRead(ctx context.Context, d *schema.ResourceD
 		return generateTFDiagsFromHTTPError(err, d, "read")
 	}
 
-	// Safely set attributes in the Terraform state
-	if err := d.Set("display_name", integration.DisplayName); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	// Map the configuration fields from the API response to a structured map
+	apiIntegrationData := map[string]interface{}{
+		"display_name":                  integration.DisplayName,
+		"enabled":                       integration.Enabled,
+		"access_token_lifetime_seconds": integration.AccessTokenLifetimeSeconds,
+		"app_type":                      integration.AppType,
+		"authorization_scopes":          integration.AuthorizationScopes,
+		"client_id":                     integration.ClientID,
 	}
-	if err := d.Set("enabled", integration.Enabled); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("access_token_lifetime_seconds", integration.AccessTokenLifetimeSeconds); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("app_type", integration.AppType); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("authorization_scopes", integration.AuthorizationScopes); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("client_id", integration.ClientID); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+
+	// Set the structured map in the Terraform state
+	for key, val := range apiIntegrationData {
+		if err := d.Set(key, val); err != nil {
+			diags = append(diags, diag.FromErr(fmt.Errorf("failed to set '%s': %v", key, err))...)
+		}
 	}
 
 	return diags
@@ -331,7 +298,7 @@ func ResourceJamfProApiIntegrationsUpdate(ctx context.Context, d *schema.Resourc
 		}
 
 		// Directly call the API to update the resource
-		_, apiErr := conn.UpdateApiIntegrationByID(strconv.Itoa(integrationID), integration)
+		_, apiErr := conn.UpdateApiIntegrationByID((integrationID), integration)
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -395,7 +362,7 @@ func ResourceJamfProApiIntegrationsDelete(ctx context.Context, d *schema.Resourc
 		}
 
 		// Directly call the API to delete the resource
-		apiErr := conn.DeleteApiIntegrationByID(strconv.Itoa(integrationID))
+		apiErr := conn.DeleteApiIntegrationByID(integrationID)
 		if apiErr != nil {
 			// If the delete by ID fails, try deleting by display name
 			integrationName := d.Get("display_name").(string)

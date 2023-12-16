@@ -19,15 +19,13 @@ func DataSourceJamfProBuilding() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The unique identifier of the building.",
 				Computed:    true,
+				Description: "The unique identifier of the building.",
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The name of the building.",
 				Computed:    true,
+				Description: "The name of the building.",
 			},
 			"street_address1": {
 				Type:        schema.TypeString,
@@ -72,7 +70,7 @@ func DataSourceBuildingRead(ctx context.Context, d *schema.ResourceData, meta in
 	}
 	conn := apiclient.Conn
 
-	var building *jamfpro.ResponseBuilding
+	var building *jamfpro.ResourceBuilding
 	var err error
 
 	// Check if Name is provided in the data source configuration
@@ -82,7 +80,7 @@ func DataSourceBuildingRead(ctx context.Context, d *schema.ResourceData, meta in
 			return diag.Errorf("expected 'name' to be a string")
 		}
 		if buildingName != "" {
-			building, err = conn.GetBuildingByNameByID(buildingName)
+			building, err = conn.GetBuildingByName(buildingName)
 			if err != nil {
 				return diag.FromErr(fmt.Errorf("failed to fetch building by name: %v", err))
 			}

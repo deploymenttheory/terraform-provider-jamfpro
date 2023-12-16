@@ -37,20 +37,18 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 			"site": {
 				Type:        schema.TypeList,
 				Computed:    true,
-				Optional:    true, // Allow users to optionally filter by 'site'
-				Description: "The jamf pro site the configuration profile is assigned to.",
-				MaxItems:    1,
+				Description: "Jamf Pro Site-related settings of the configuration profile.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
-							Type:     schema.TypeInt,
-							Optional: true, // User can filter by 'id'
-							Computed: true, // 'id' will also be populated based on fetched data
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: "Jamf Pro Site ID.",
 						},
 						"name": {
-							Type:     schema.TypeString,
-							Optional: true, // User can filter by 'name'
-							Computed: true, // 'name' will also be populated based on fetched data
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Jamf Pro Site Name.",
 						},
 					},
 				},
@@ -58,20 +56,17 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 			"category": {
 				Type:        schema.TypeList,
 				Computed:    true,
-				Optional:    true, // Allow users to optionally filter by 'site'
 				Description: "The jamf pro category the configuration profile is assigned to.",
 				MaxItems:    1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:     schema.TypeInt,
-							Optional: true, // User can filter by 'id'
-							Computed: true, // 'id' will also be populated based on fetched data
+							Computed: true,
 						},
 						"name": {
 							Type:     schema.TypeString,
-							Optional: true, // User can filter by 'name'
-							Computed: true, // 'name' will also be populated based on fetched data
+							Computed: true,
 						},
 					},
 				},
@@ -637,8 +632,6 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 					},
 				},
 			},
-
-			// SelfServiceConfig fields
 			"self_service": {
 				Type:        schema.TypeList,
 				MaxItems:    1,

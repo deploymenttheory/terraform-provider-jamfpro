@@ -19,19 +19,18 @@ func DataSourceJamfProAPIRoles() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeInt,
-				Optional:    true,
+				Computed:    true,
 				Description: "The unique identifier of the API role.",
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The unique name of the Jamf Pro API role.",
 				Computed:    true,
+				Description: "The unique name of the Jamf Pro API role.",
 			},
 			"privileges": {
 				Type:        schema.TypeSet,
-				Description: "List of privileges associated with the API role.",
 				Computed:    true,
+				Description: "List of privileges associated with the API role.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -51,19 +50,19 @@ func dataSourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, 
 	}
 	conn := apiclient.Conn
 
-	var role *jamfpro.APIRole
+	var role *jamfpro.ResourceAPIRole
 	var err error
 
 	// Check if Name is provided in the data source configuration
 	if v, ok := d.GetOk("name"); ok && v.(string) != "" {
 		roleName := v.(string)
-		role, err = conn.GetJamfApiRolesNameById(roleName)
+		role, err = conn.GetJamfApiRoleByName(roleName)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to fetch API role by name: %v", err))
 		}
 	} else if v, ok := d.GetOk("id"); ok {
-		roleID := v.(int) // Correctly cast to int
-		role, err = conn.GetJamfApiRolesByID(roleID)
+		roleID := v.(string)
+		role, err = conn.GetJamfApiRoleByID(roleID)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to fetch API role by ID: %v", err))
 		}

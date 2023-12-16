@@ -10,6 +10,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -74,31 +75,20 @@ func ResourceJamfProBuilding() *schema.Resource {
 	}
 }
 
-// constructJamfProBuilding constructs a Building object from the provided schema data and returns any errors encountered.
-func constructJamfProBuilding(d *schema.ResourceData) (*jamfpro.ResponseBuilding, error) {
-	building := &jamfpro.ResponseBuilding{}
+// constructJamfProBuilding constructs a Building object from the provided schema data.
+func constructJamfProBuilding(d *schema.ResourceData) (*jamfpro.ResourceBuilding, error) {
+	building := &jamfpro.ResourceBuilding{}
 
-	fields := map[string]*string{
-		"name":            &building.Name,
-		"street_address1": &building.StreetAddress1,
-		"street_address2": &building.StreetAddress2,
-		"city":            &building.City,
-		"state_province":  &building.StateProvince,
-		"zip_postal_code": &building.ZipPostalCode,
-		"country":         &building.Country,
-	}
+	// Utilize type assertion helper functions for direct field extraction
+	building.Name = util.GetStringFromInterface(d.Get("name"))
+	building.StreetAddress1 = util.GetStringFromInterface(d.Get("street_address1"))
+	building.StreetAddress2 = util.GetStringFromInterface(d.Get("street_address2"))
+	building.City = util.GetStringFromInterface(d.Get("city"))
+	building.StateProvince = util.GetStringFromInterface(d.Get("state_province"))
+	building.ZipPostalCode = util.GetStringFromInterface(d.Get("zip_postal_code"))
+	building.Country = util.GetStringFromInterface(d.Get("country"))
 
-	for key, ptr := range fields {
-		if v, ok := d.GetOk(key); ok {
-			strVal, ok := v.(string)
-			if !ok {
-				return nil, fmt.Errorf("failed to assert '%s' as a string", key)
-			}
-			*ptr = strVal
-		}
-	}
-
-	// After successful construction
+	// Log the successful construction of the building
 	log.Printf("[INFO] Successfully constructed Building with name: %s", building.Name)
 
 	return building, nil
@@ -210,7 +200,7 @@ func ResourceJamfProBuildingRead(ctx context.Context, d *schema.ResourceData, me
 	}
 	conn := apiclient.Conn
 
-	var building *jamfpro.ResponseBuilding
+	var building *jamfpro.ResourceBuilding
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
@@ -231,7 +221,7 @@ func ResourceJamfProBuildingRead(ctx context.Context, d *schema.ResourceData, me
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
 
-			building, apiErr = conn.GetBuildingByNameByID(buildingName)
+			building, apiErr = conn.GetBuildingByName(buildingName)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -249,27 +239,22 @@ func ResourceJamfProBuildingRead(ctx context.Context, d *schema.ResourceData, me
 		return generateTFDiagsFromHTTPError(err, d, "read")
 	}
 
-	// Safely set all attributes in the Terraform state
-	if err := d.Set("name", building.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	// Map the configuration fields from the API response to a structured map
+	buildingData := map[string]interface{}{
+		"name":            building.Name,
+		"street_address1": building.StreetAddress1,
+		"street_address2": building.StreetAddress2,
+		"city":            building.City,
+		"state_province":  building.StateProvince,
+		"zip_postal_code": building.ZipPostalCode,
+		"country":         building.Country,
 	}
-	if err := d.Set("street_address1", building.StreetAddress1); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("street_address2", building.StreetAddress2); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("city", building.City); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("state_province", building.StateProvince); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("zip_postal_code", building.ZipPostalCode); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("country", building.Country); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+
+	// Set the structured map in the Terraform state
+	for key, val := range buildingData {
+		if err := d.Set(key, val); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	return diags
@@ -311,7 +296,7 @@ func ResourceJamfProBuildingUpdate(ctx context.Context, d *schema.ResourceData, 
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
 
-			_, apiErr = conn.UpdateBuildingByNameByID(buildingName, building)
+			_, apiErr = conn.UpdateBuildingByName(buildingName, building)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -372,7 +357,7 @@ func ResourceJamfProBuildingDelete(ctx context.Context, d *schema.ResourceData, 
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
 
-			apiErr = conn.DeleteBuildingByNameByID(buildingName)
+			apiErr = conn.DeleteBuildingByName(buildingName)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
