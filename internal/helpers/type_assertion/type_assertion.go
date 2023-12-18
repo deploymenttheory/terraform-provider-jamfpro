@@ -133,3 +133,23 @@ func GetInt(val interface{}) int {
 	}
 	return intVal
 }
+
+// GetStringBoolMapFromInterface safely retrieves a map[string]bool value from an interface{}, handling nil values and various keys.
+func GetStringBoolMapFromInterface(val interface{}) map[string]bool {
+	if val == nil {
+		return nil
+	}
+
+	resultMap := make(map[string]bool)
+	mapVal, ok := val.(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	for key, v := range mapVal {
+		// Assuming that non-existent or non-boolean values should default to false
+		boolVal, _ := v.(bool)
+		resultMap[key] = boolVal
+	}
+	return resultMap
+}

@@ -210,14 +210,8 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 		return generateTFDiagsFromHTTPError(err, d, "read")
 	}
 
-	// Construct the department attributes for Terraform state
-	departmentAttributes := map[string]interface{}{
-		"id":   attribute.ID,
-		"name": attribute.Name,
-	}
-
 	// Safely set attributes in the Terraform state
-	if err := d.Set("department", []interface{}{departmentAttributes}); err != nil {
+	if err := d.Set("name", attribute.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

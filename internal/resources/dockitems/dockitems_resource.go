@@ -244,18 +244,27 @@ func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, m
 		return generateTFDiagsFromHTTPError(err, d, "read")
 	}
 
-	// Construct the dock item attributes for Terraform state
-	dockItemAttributes := map[string]interface{}{
-		"id":       dockItem.ID,
-		"name":     dockItem.Name,
-		"type":     dockItem.Type,
-		"path":     dockItem.Path,
-		"contents": dockItem.Contents,
-	}
-
-	// Safely set attributes in the Terraform state
-	if err := d.Set("dock_item", []interface{}{dockItemAttributes}); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	// Check if dockItem data exists
+	if dockItem != nil {
+		// Set the fields directly in the Terraform state
+		if err := d.Set("id", strconv.Itoa(dockItem.ID)); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+		if err := d.Set("name", dockItem.Name); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+		if err := d.Set("type", dockItem.Type); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+		if err := d.Set("path", dockItem.Path); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+		if err := d.Set("contents", dockItem.Contents); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	} else {
+		// If the dockItem is not found, clear the ID from the state
+		d.SetId("")
 	}
 
 	return diags
