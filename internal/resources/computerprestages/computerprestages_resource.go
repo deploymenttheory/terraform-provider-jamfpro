@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -22,6 +23,12 @@ func ResourceJamfProComputerPrestage() *schema.Resource {
 		ReadContext:   ResourceJamfProComputerPrestageRead,
 		UpdateContext: ResourceJamfProComputerPrestageUpdate,
 		DeleteContext: ResourceJamfProComputerPrestageDelete,
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(1 * time.Minute),
+			Read:   schema.DefaultTimeout(1 * time.Minute),
+			Update: schema.DefaultTimeout(1 * time.Minute),
+			Delete: schema.DefaultTimeout(1 * time.Minute),
+		},
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
@@ -108,7 +115,7 @@ func ResourceJamfProComputerPrestage() *schema.Resource {
 				Optional:    true,
 				Description: "Items to skip during macOS device setup within Apple Device Enrollment (ADE).",
 			},
-			"location_information": &schema.Schema{
+			"location_information": {
 				Type:        schema.TypeList,
 				Required:    true,
 				Description: "Location information associated with the Jamf Pro computer prestage.",
@@ -148,11 +155,13 @@ func ResourceJamfProComputerPrestage() *schema.Resource {
 							Type:        schema.TypeString,
 							Required:    true,
 							Description: "The department ID associated with this location.",
+							Default:     "-1",
 						},
 						"building_id": {
 							Type:        schema.TypeString,
 							Required:    true,
 							Description: "The building ID associated with this location.",
+							Default:     "-1",
 						},
 						"id": {
 							Type:        schema.TypeString,
@@ -167,7 +176,7 @@ func ResourceJamfProComputerPrestage() *schema.Resource {
 					},
 				},
 			},
-			"purchasing_information": &schema.Schema{
+			"purchasing_information": {
 				Type:        schema.TypeList,
 				Required:    true,
 				Description: "Purchasing information associated with the computer prestage.",
@@ -256,6 +265,7 @@ func ResourceJamfProComputerPrestage() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The enrollment customization ID.",
+				Default:     "0",
 			},
 			"language": {
 				Type:        schema.TypeString,
@@ -282,6 +292,7 @@ func ResourceJamfProComputerPrestage() *schema.Resource {
 				Required:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "IDs of profiles installed during prestage.",
+				Default:     "-1",
 			},
 			"custom_package_ids": {
 				Type:        schema.TypeList,
@@ -334,13 +345,14 @@ func ResourceJamfProComputerPrestage() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The site ID.",
+				Default:     "-1",
 			},
 			"version_lock": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Description: "The version lock.",
 			},
-			"account_settings": &schema.Schema{
+			"account_settings": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
@@ -732,98 +744,107 @@ func ResourceJamfProComputerPrestageRead(ctx context.Context, d *schema.Resource
 
 	// Check if prestage data exists
 	if computerPrestage != nil {
-		// Map the configuration fields from the API response to the Terraform state
-		d.Set("display_name", computerPrestage.DisplayName)
-		d.Set("mandatory", computerPrestage.Mandatory)
-		d.Set("mdm_removable", computerPrestage.MDMRemovable)
-		d.Set("support_phone_number", computerPrestage.SupportPhoneNumber)
-		d.Set("support_email_address", computerPrestage.SupportEmailAddress)
-		d.Set("department", computerPrestage.Department)
-		d.Set("default_prestage", computerPrestage.DefaultPrestage)
-		d.Set("enrollment_site_id", computerPrestage.EnrollmentSiteId)
-		d.Set("keep_existing_site_membership", computerPrestage.KeepExistingSiteMembership)
-		d.Set("keep_existing_location_information", computerPrestage.KeepExistingLocationInformation)
-		if err := d.Set("require_authentication", computerPrestage.RequireAuthentication); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+		// Construct a map of computer prestage attributes
+		prestageAttributes := map[string]interface{}{
+			"display_name":                          computerPrestage.DisplayName,
+			"mandatory":                             computerPrestage.Mandatory,
+			"mdm_removable":                         computerPrestage.MDMRemovable,
+			"support_phone_number":                  computerPrestage.SupportPhoneNumber,
+			"support_email_address":                 computerPrestage.SupportEmailAddress,
+			"department":                            computerPrestage.Department,
+			"default_prestage":                      computerPrestage.DefaultPrestage,
+			"enrollment_site_id":                    computerPrestage.EnrollmentSiteId,
+			"keep_existing_site_membership":         computerPrestage.KeepExistingSiteMembership,
+			"keep_existing_location_information":    computerPrestage.KeepExistingLocationInformation,
+			"authentication_prompt":                 computerPrestage.AuthenticationPrompt,
+			"prevent_activation_lock":               computerPrestage.PreventActivationLock,
+			"enable_device_based_activation_lock":   computerPrestage.EnableDeviceBasedActivationLock,
+			"device_enrollment_program_instance_id": computerPrestage.DeviceEnrollmentProgramInstanceId,
+			"skip_setup_items":                      computerPrestage.SkipSetupItems,
 		}
-		d.Set("authentication_prompt", computerPrestage.AuthenticationPrompt)
-		d.Set("prevent_activation_lock", computerPrestage.PreventActivationLock)
-		d.Set("enable_device_based_activation_lock", computerPrestage.EnableDeviceBasedActivationLock)
-		d.Set("device_enrollment_program_instance_id", computerPrestage.DeviceEnrollmentProgramInstanceId)
-		d.Set("skip_setup_items", computerPrestage.SkipSetupItems)
-
-		// Set location_information
-		if locInfo := computerPrestage.LocationInformation; locInfo != (jamfpro.ComputerPrestageSubsetLocationInformation{}) {
-			locationInfoMap := map[string]interface{}{
-				"username":      locInfo.Username,
-				"realname":      locInfo.Realname,
-				"phone":         locInfo.Phone,
-				"email":         locInfo.Email,
-				"room":          locInfo.Room,
-				"position":      locInfo.Position,
-				"department_id": locInfo.DepartmentId,
-				"building_id":   locInfo.BuildingId,
-				"id":            locInfo.ID,
-				"version_lock":  locInfo.VersionLock,
+		// Handle nested location_information
+		if locationInformation := computerPrestage.LocationInformation; locationInformation != (jamfpro.ComputerPrestageSubsetLocationInformation{}) {
+			prestageAttributes["location_information"] = []interface{}{
+				map[string]interface{}{
+					"username":      locationInformation.Username,
+					"realname":      locationInformation.Realname,
+					"phone":         locationInformation.Phone,
+					"email":         locationInformation.Email,
+					"room":          locationInformation.Room,
+					"position":      locationInformation.Position,
+					"department_id": locationInformation.DepartmentId,
+					"building_id":   locationInformation.BuildingId,
+					"id":            locationInformation.ID,
+					"version_lock":  locationInformation.VersionLock,
+				},
 			}
-			d.Set("location_information", []interface{}{locationInfoMap})
 		}
-
-		// Set purchasing_information
-		purInfo := computerPrestage.PurchasingInformation
-		purchasingInfoMap := map[string]interface{}{
-			"id":                 purInfo.ID,
-			"leased":             purInfo.Leased,
-			"purchased":          purInfo.Purchased,
-			"apple_care_id":      purInfo.AppleCareId,
-			"po_number":          purInfo.PONumber,
-			"vendor":             purInfo.Vendor,
-			"purchase_price":     purInfo.PurchasePrice,
-			"life_expectancy":    purInfo.LifeExpectancy,
-			"purchasing_account": purInfo.PurchasingAccount,
-			"purchasing_contact": purInfo.PurchasingContact,
-			"lease_date":         purInfo.LeaseDate,
-			"po_date":            purInfo.PODate,
-			"warranty_date":      purInfo.WarrantyDate,
-			"version_lock":       purInfo.VersionLock,
+		// Handle nested purchasing_information
+		if purchasingInformation := computerPrestage.PurchasingInformation; purchasingInformation != (jamfpro.ComputerPrestageSubsetPurchasingInformation{}) {
+			prestageAttributes["purchasing_information"] = []interface{}{
+				map[string]interface{}{
+					"id":                 purchasingInformation.ID,
+					"leased":             purchasingInformation.Leased,
+					"purchased":          purchasingInformation.Purchased,
+					"apple_care_id":      purchasingInformation.AppleCareId,
+					"po_number":          purchasingInformation.PONumber,
+					"vendor":             purchasingInformation.Vendor,
+					"purchase_price":     purchasingInformation.PurchasePrice,
+					"life_expectancy":    purchasingInformation.LifeExpectancy,
+					"purchasing_account": purchasingInformation.PurchasingAccount,
+					"purchasing_contact": purchasingInformation.PurchasingContact,
+					"lease_date":         purchasingInformation.LeaseDate,
+					"po_date":            purchasingInformation.PODate,
+					"warranty_date":      purchasingInformation.WarrantyDate,
+					"version_lock":       purchasingInformation.VersionLock,
+				},
+			}
 		}
-		d.Set("purchasing_information", []interface{}{purchasingInfoMap})
-		d.Set("anchor_certificates", computerPrestage.AnchorCertificates)
-		d.Set("enrollment_customization_id", computerPrestage.EnrollmentCustomizationId)
-		d.Set("language", computerPrestage.Language)
-		d.Set("region", computerPrestage.Region)
-		d.Set("auto_advance_setup", computerPrestage.AutoAdvanceSetup)
-		d.Set("install_profiles_during_setup", computerPrestage.InstallProfilesDuringSetup)
-		d.Set("prestage_installed_profile_ids", computerPrestage.PrestageInstalledProfileIds)
-		d.Set("custom_package_ids", computerPrestage.CustomPackageIds)
-		d.Set("custom_package_distribution_point_id", computerPrestage.CustomPackageDistributionPointId)
-		d.Set("enable_recovery_lock", computerPrestage.EnableRecoveryLock)
-		d.Set("recovery_lock_password_type", computerPrestage.RecoveryLockPasswordType)
-		d.Set("recovery_lock_password", computerPrestage.RecoveryLockPassword)
-		d.Set("rotate_recovery_lock_password", computerPrestage.RotateRecoveryLockPassword)
-		d.Set("profile_uuid", computerPrestage.ProfileUuid)
-		d.Set("site_id", computerPrestage.SiteId)
-		d.Set("version_lock", computerPrestage.VersionLock)
-		// Set account_settings
-		accSettings := computerPrestage.AccountSettings
-		accountSettingsMap := map[string]interface{}{
-			"id":                          accSettings.ID,
-			"payload_configured":          accSettings.PayloadConfigured,
-			"local_admin_account_enabled": accSettings.LocalAdminAccountEnabled,
-			"admin_username":              accSettings.AdminUsername,
-			"admin_password":              accSettings.AdminPassword,
-			"hidden_admin_account":        accSettings.HiddenAdminAccount,
-			"local_user_managed":          accSettings.LocalUserManaged,
-			"user_account_type":           accSettings.UserAccountType,
-			"version_lock":                accSettings.VersionLock,
-			"prefill_primary_account_info_feature_enabled": accSettings.PrefillPrimaryAccountInfoFeatureEnabled,
-			"prefill_type":                           accSettings.PrefillType,
-			"prefill_account_full_name":              accSettings.PrefillAccountFullName,
-			"prefill_account_user_name":              accSettings.PrefillAccountUserName,
-			"prevent_prefill_info_from_modification": accSettings.PreventPrefillInfoFromModification,
+		// Add other single-level attributes
+		prestageAttributes["anchor_certificates"] = computerPrestage.AnchorCertificates
+		prestageAttributes["enrollment_customization_id"] = computerPrestage.EnrollmentCustomizationId
+		prestageAttributes["language"] = computerPrestage.Language
+		prestageAttributes["region"] = computerPrestage.Region
+		prestageAttributes["auto_advance_setup"] = computerPrestage.AutoAdvanceSetup
+		prestageAttributes["install_profiles_during_setup"] = computerPrestage.InstallProfilesDuringSetup
+		prestageAttributes["prestage_installed_profile_ids"] = computerPrestage.PrestageInstalledProfileIds
+		prestageAttributes["custom_package_ids"] = computerPrestage.CustomPackageIds
+		prestageAttributes["custom_package_distribution_point_id"] = computerPrestage.CustomPackageDistributionPointId
+		prestageAttributes["enable_recovery_lock"] = computerPrestage.EnableRecoveryLock
+		prestageAttributes["recovery_lock_password_type"] = computerPrestage.RecoveryLockPasswordType
+		prestageAttributes["recovery_lock_password"] = computerPrestage.RecoveryLockPassword
+		prestageAttributes["rotate_recovery_lock_password"] = computerPrestage.RotateRecoveryLockPassword
+		prestageAttributes["profile_uuid"] = computerPrestage.ProfileUuid
+		prestageAttributes["site_id"] = computerPrestage.SiteId
+		prestageAttributes["version_lock"] = computerPrestage.VersionLock
+		// Handle nested account_settings
+		if accountSettings := computerPrestage.AccountSettings; accountSettings != (jamfpro.ComputerPrestageSubsetAccountSettings{}) {
+			prestageAttributes["account_settings"] = []interface{}{
+				map[string]interface{}{
+					"id":                          accountSettings.ID,
+					"payload_configured":          accountSettings.PayloadConfigured,
+					"local_admin_account_enabled": accountSettings.LocalAdminAccountEnabled,
+					"admin_username":              accountSettings.AdminUsername,
+					"admin_password":              accountSettings.AdminPassword,
+					"hidden_admin_account":        accountSettings.HiddenAdminAccount,
+					"local_user_managed":          accountSettings.LocalUserManaged,
+					"user_account_type":           accountSettings.UserAccountType,
+					"version_lock":                accountSettings.VersionLock,
+					"prefill_primary_account_info_feature_enabled": accountSettings.PrefillPrimaryAccountInfoFeatureEnabled,
+					"prefill_type":                           accountSettings.PrefillType,
+					"prefill_account_full_name":              accountSettings.PrefillAccountFullName,
+					"prefill_account_user_name":              accountSettings.PrefillAccountUserName,
+					"prevent_prefill_info_from_modification": accountSettings.PreventPrefillInfoFromModification,
+				},
+			}
 		}
-		d.Set("account_settings", []interface{}{accountSettingsMap})
-
+		// Update the Terraform state with prestage attributes
+		for key, value := range prestageAttributes {
+			if err := d.Set(key, value); err != nil {
+				diags = append(diags, diag.FromErr(err)...)
+				return diags
+			}
+		}
 	} else {
 		// If the prestage is not found, clear the ID from the state
 		d.SetId("")
