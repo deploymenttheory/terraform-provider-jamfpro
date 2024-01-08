@@ -1,5 +1,5 @@
 // accountgroups_resource.go
-package account_groups
+package accountgroups
 
 import (
 	"context"
@@ -19,7 +19,7 @@ import (
 )
 
 // ResourceJamfProAccountGroup defines the schema and CRUD operations for managing buildings in Terraform.
-func ResourceJamfProAccountGroup() *schema.Resource {
+func ResourceJamfProAccountGroups() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: ResourceJamfProAccountGroupCreate,
 		ReadContext:   ResourceJamfProAccountGroupRead,
@@ -285,7 +285,20 @@ func ResourceJamfProAccountGroupRead(ctx context.Context, d *schema.ResourceData
 			if apiError, ok := err.(*http_client.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
-			return retry.RetryableError(err)
+			// If fetching by ID fails, try fetching by Name
+			groupName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
+			accountGroup, err = conn.GetAccountGroupByName(groupName)
+			if err != nil {
+				// Handle the APIError
+				if apiError, ok := err.(*http_client.APIError); ok {
+					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+				}
+				return retry.RetryableError(err)
+			}
 		}
 		return nil
 	})
@@ -344,8 +357,7 @@ func ResourceJamfProAccountGroupUpdate(ctx context.Context, d *schema.ResourceDa
 	conn := apiclient.Conn
 
 	// Use the retry function for the update operation
-	var err error
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		// Construct the updated account group
 		accountGroup, err := constructJamfProAccountGroup(d)
 		if err != nil {
@@ -365,7 +377,20 @@ func ResourceJamfProAccountGroupUpdate(ctx context.Context, d *schema.ResourceDa
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
-			return retry.RetryableError(apiErr)
+			// If the update by ID fails, try updating by name
+			groupName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string in update"))
+			}
+
+			_, apiErr = conn.UpdateAccountGroupByName(groupName, accountGroup)
+			if apiErr != nil {
+				// Handle the APIError
+				if apiError, ok := apiErr.(*http_client.APIError); ok {
+					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+				}
+				return retry.RetryableError(apiErr)
+			}
 		}
 		return nil
 	})

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/accountgroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiintegrations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiroles"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/buildings"
@@ -106,9 +107,10 @@ func Provider() *schema.Provider {
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
+			"jamfpro_account_groups":                accountgroups.DataSourceJamfProAccountGroups(),
 			"jamfpro_api_integrations":              apiintegrations.DataSourceJamfProApiIntegrations(),
 			"jamfpro_api_roles":                     apiroles.DataSourceJamfProAPIRoles(),
-			"jamfpro_buildings":                     buildings.DataSourceJamfProBuilding(),
+			"jamfpro_buildings":                     buildings.DataSourceJamfProBuildings(),
 			"jamfpro_computer_extension_attributes": computerextensionattributes.DataSourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_groups":               computergroups.DataSourceJamfProComputerGroups(),
 			"jamfpro_computer_inventory":            computerinventory.DataSourceJamfProComputerInventory(),
@@ -122,9 +124,10 @@ func Provider() *schema.Provider {
 			"jamfpro_printers": printers.DataSourceJamfProPrinters(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
+			"jamfpro_account_groups":                accountgroups.ResourceJamfProAccountGroups(),
 			"jamfpro_api_integrations":              apiintegrations.ResourceJamfProApiIntegrations(),
 			"jamfpro_api_roles":                     apiroles.ResourceJamfProAPIRoles(),
-			"jamfpro_buildings":                     buildings.ResourceJamfProBuilding(),
+			"jamfpro_buildings":                     buildings.ResourceJamfProBuildings(),
 			"jamfpro_computer_checkin":              computercheckin.ResourceJamfProComputerCheckin(),
 			"jamfpro_computer_extension_attributes": computerextensionattributes.ResourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_groups":               computergroups.ResourceJamfProComputerGroups(),

@@ -1,5 +1,5 @@
 // accountgroups_resource.go
-package account_groups
+package accountgroups
 
 import (
 	"context"
@@ -16,7 +16,7 @@ import (
 )
 
 // DataSourceJamfProAccountGroup provides information about specific Jamf Pro Dock Items by their ID or Name.
-func DataSourceJamfProAccountGroup() *schema.Resource {
+func DataSourceJamfProAccountGroups() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceJamfProAccountGroupsRead,
 		Schema: map[string]*schema.Schema{
