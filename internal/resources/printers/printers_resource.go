@@ -110,9 +110,9 @@ func ResourceJamfProPrinters() *schema.Resource {
 	}
 }
 
-// constructJamfProPrinter constructs a ResponsePrinters object from the provided schema data.
-func constructJamfProPrinter(d *schema.ResourceData) (*jamfpro.ResponsePrinters, error) {
-	printer := &jamfpro.ResponsePrinters{}
+// constructJamfProPrinter constructs a ResourcePrinter object from the provided schema data.
+func constructJamfProPrinter(d *schema.ResourceData) (*jamfpro.ResourcePrinter, error) {
+	printer := &jamfpro.ResourcePrinter{}
 
 	// Utilize type assertion helper functions for direct field extraction
 	printer.Name = util.GetStringFromInterface(d.Get("name"))
@@ -179,7 +179,7 @@ func ResourceJamfProPrintersCreate(ctx context.Context, d *schema.ResourceData, 
 	conn := apiclient.Conn
 
 	// Use the retry function for the create operation.
-	var createdPrinter *jamfpro.ResponsePrinters
+	var createdPrinter *jamfpro.ResourcePrinter
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the printer.
@@ -189,7 +189,7 @@ func ResourceJamfProPrintersCreate(ctx context.Context, d *schema.ResourceData, 
 		}
 
 		// Directly call the API to create the resource.
-		createdPrinter, err = conn.CreatePrinters(printer)
+		createdPrinter, err = conn.CreatePrinter(printer)
 		if err != nil {
 			// Check if the error is an APIError.
 			if apiErr, ok := err.(*http_client.APIError); ok {
@@ -243,7 +243,7 @@ func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, me
 	}
 	conn := apiclient.Conn
 
-	var printer *jamfpro.ResponsePrinters
+	var printer *jamfpro.ResourcePrinter
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {

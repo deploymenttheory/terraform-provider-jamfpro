@@ -1730,29 +1730,29 @@ func ResourceJamfProPolicies() *schema.Resource {
 	}
 }
 
-// constructJamfProPolicy constructs a ResponsePolicy object from the provided schema data.
-func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, error) {
-	// Initialize a new ResponsePolicy struct with all its sub-components.
-	policy := &jamfpro.ResponsePolicy{
-		General:              jamfpro.PolicyGeneral{},
-		Scope:                jamfpro.PolicyScope{},
-		SelfService:          jamfpro.PolicySelfService{},
-		PackageConfiguration: jamfpro.PolicyPackageConfiguration{},
-		Scripts:              jamfpro.PolicyScripts{},
-		Printers:             jamfpro.PolicyPrinters{},
-		DockItems:            jamfpro.PolicyDockItems{},
-		AccountMaintenance:   jamfpro.PolicyAccountMaintenance{},
-		Maintenance:          jamfpro.PolicyMaintenance{},
-		FilesProcesses:       jamfpro.PolicyFilesProcesses{},
-		UserInteraction:      jamfpro.PolicyUserInteraction{},
-		DiskEncryption:       jamfpro.PolicyDiskEncryption{},
-		Reboot:               jamfpro.PolicyReboot{},
+// constructJamfProPolicy constructs a ResourcePolicy object from the provided schema data.
+func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
+	// Initialize a new ResourcePolicy struct with all its sub-components.
+	policy := &jamfpro.ResourcePolicy{
+		General:              jamfpro.PolicySubsetGeneral{},
+		Scope:                jamfpro.PolicySubsetScope{},
+		SelfService:          jamfpro.PolicySubsetSelfService{},
+		PackageConfiguration: jamfpro.PolicySubsetPackageConfiguration{},
+		Scripts:              jamfpro.PolicySubsetScripts{},
+		Printers:             jamfpro.PolicySubsetPrinters{},
+		DockItems:            jamfpro.PolicySubsetDockItems{},
+		AccountMaintenance:   jamfpro.PolicySubsetAccountMaintenance{},
+		Maintenance:          jamfpro.PolicySubsetMaintenance{},
+		FilesProcesses:       jamfpro.PolicySubsetFilesProcesses{},
+		UserInteraction:      jamfpro.PolicySubsetUserInteraction{},
+		DiskEncryption:       jamfpro.PolicySubsetDiskEncryption{},
+		Reboot:               jamfpro.PolicySubsetReboot{},
 	}
 
 	// Construct the General section
 	if v, ok := d.GetOk("general"); ok {
 		generalData := v.([]interface{})[0].(map[string]interface{})
-		policy.General = jamfpro.PolicyGeneral{
+		policy.General = jamfpro.PolicySubsetGeneral{
 			Name:                       util.GetStringFromMap(generalData, "name"),
 			Enabled:                    util.GetBoolFromMap(generalData, "enabled"),
 			Trigger:                    util.GetStringFromMap(generalData, "trigger"),
@@ -1782,10 +1782,10 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 				return category
 			}(),
 			// DateTimeLimitations field
-			DateTimeLimitations: func() jamfpro.PolicyDateTimeLimitations {
+			DateTimeLimitations: func() jamfpro.PolicySubsetGeneralDateTimeLimitations {
 				if dtData, ok := generalData["date_time_limitations"].([]interface{}); ok && len(dtData) > 0 {
 					dateTimeMap := dtData[0].(map[string]interface{})
-					dateTimeLimitations := jamfpro.PolicyDateTimeLimitations{
+					dateTimeLimitations := jamfpro.PolicySubsetGeneralDateTimeLimitations{
 						ActivationDate:      util.GetStringFromMap(dateTimeMap, "activation_date"),
 						ActivationDateEpoch: util.GetIntFromMap(dateTimeMap, "activation_date_epoch"),
 						ActivationDateUTC:   util.GetStringFromMap(dateTimeMap, "activation_date_utc"),
@@ -1796,10 +1796,10 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 
 					// Handling NoExecuteOn field
 					if noExecOnData, ok := dateTimeMap["no_execute_on"].([]interface{}); ok {
-						var noExecOnDays []jamfpro.PolicyNoExecuteOn
+						var noExecOnDays []jamfpro.PolicySubsetGeneralDateTimeLimitationsNoExecuteOn
 						for _, day := range noExecOnData {
 							if dayMap, ok := day.(map[string]interface{}); ok {
-								noExecOnDays = append(noExecOnDays, jamfpro.PolicyNoExecuteOn{
+								noExecOnDays = append(noExecOnDays, jamfpro.PolicySubsetGeneralDateTimeLimitationsNoExecuteOn{
 									Day: util.GetStringFromMap(dayMap, "day"),
 								})
 							}
@@ -1813,11 +1813,11 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 
 					return dateTimeLimitations
 				}
-				return jamfpro.PolicyDateTimeLimitations{}
+				return jamfpro.PolicySubsetGeneralDateTimeLimitations{}
 			}(),
 			// NetworkLimitations field
-			NetworkLimitations: func() jamfpro.PolicyNetworkLimitations {
-				var networkLimitations jamfpro.PolicyNetworkLimitations
+			NetworkLimitations: func() jamfpro.PolicySubsetGeneralNetworkLimitations {
+				var networkLimitations jamfpro.PolicySubsetGeneralNetworkLimitations
 
 				if networkLimitationsData, ok := generalData["network_limitations"].([]interface{}); ok && len(networkLimitationsData) > 0 {
 					netMap := networkLimitationsData[0].(map[string]interface{})
@@ -1830,10 +1830,10 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 				return networkLimitations
 			}(),
 			// OverrideDefaultSettings field
-			OverrideDefaultSettings: func() jamfpro.PolicyOverrideSettings {
+			OverrideDefaultSettings: func() jamfpro.PolicySubsetGeneralOverrideDefaultSettings {
 				if overrideData, ok := generalData["override_default_settings"].([]interface{}); ok && len(overrideData) > 0 {
 					overrideMap := overrideData[0].(map[string]interface{})
-					return jamfpro.PolicyOverrideSettings{
+					return jamfpro.PolicySubsetGeneralOverrideDefaultSettings{
 						TargetDrive:       util.GetStringFromMap(overrideMap, "target_drive"),
 						DistributionPoint: util.GetStringFromMap(overrideMap, "distribution_point"),
 						ForceAfpSmb:       util.GetBoolFromMap(overrideMap, "force_afp_smb"),
@@ -1841,15 +1841,15 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 						NetbootServer:     util.GetStringFromMap(overrideMap, "netboot_server"),
 					}
 				}
-				return jamfpro.PolicyOverrideSettings{}
+				return jamfpro.PolicySubsetGeneralOverrideDefaultSettings{}
 			}(),
 			// NetworkRequirements field
 			NetworkRequirements: func() string {
 				return util.GetStringFromMap(generalData, "network_requirements")
 			}(),
 			// Construct the Site fields
-			Site: func() jamfpro.PolicySite {
-				var site jamfpro.PolicySite
+			Site: func() jamfpro.SharedResourceSite {
+				var site jamfpro.SharedResourceSite
 
 				// Check if values are provided in Terraform
 				if siteData, ok := generalData["site"].([]interface{}); ok && len(siteData) > 0 {
@@ -1956,7 +1956,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 		}
 
 		// Construct Limitations field
-		var limitations jamfpro.PolicyLimitations
+		var limitations jamfpro.PolicySubsetScopeLimitations
 		if limitationsData, ok := scopeData["limitations"].([]interface{}); ok && len(limitationsData) > 0 {
 			limitationsMap := limitationsData[0].(map[string]interface{})
 
@@ -2010,7 +2010,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			}
 
 			// Assign constructed slices to limitations struct
-			limitations = jamfpro.PolicyLimitations{
+			limitations = jamfpro.PolicySubsetScopeLimitations{
 				Users:           users,
 				UserGroups:      userGroups,
 				NetworkSegments: networkSegments,
@@ -2022,7 +2022,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 		policy.Scope.Limitations = limitations
 
 		// Construct Exclusions field
-		var exclusions jamfpro.PolicyExclusions
+		var exclusions jamfpro.PolicySubsetScopeExclusions
 		if exclusionsData, ok := scopeData["exclusions"].([]interface{}); ok && len(exclusionsData) > 0 {
 			exclusionsMap := exclusionsData[0].(map[string]interface{})
 
@@ -2149,7 +2149,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			}
 
 			// Assign constructed slices to exclusions struct
-			exclusions = jamfpro.PolicyExclusions{
+			exclusions = jamfpro.PolicySubsetScopeExclusions{
 				Computers:       exclusionComputers,
 				ComputerGroups:  exclusionComputerGroups,
 				Users:           exclusionUsers,
@@ -2168,7 +2168,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 		policy.Scope.Exclusions = exclusions
 
 		// Assign constructed fields to the policy's Scope
-		policy.Scope = jamfpro.PolicyScope{
+		policy.Scope = jamfpro.PolicySubsetScope{
 			AllComputers:   util.GetBoolFromMap(scopeData, "all_computers"),
 			Computers:      computers,
 			ComputerGroups: computerGroups,
@@ -2185,7 +2185,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	// Construct the SelfService section
 	if v, ok := d.GetOk("self_service"); ok {
 		selfServiceData := v.([]interface{})[0].(map[string]interface{})
-		policy.SelfService = jamfpro.PolicySelfService{
+		policy.SelfService = jamfpro.PolicySubsetSelfService{
 			UseForSelfService:           util.GetBoolFromMap(selfServiceData, "use_for_self_service"),
 			SelfServiceDisplayName:      util.GetStringFromMap(selfServiceData, "self_service_display_name"),
 			InstallButtonText:           util.GetStringFromMap(selfServiceData, "install_button_text"),
@@ -2193,25 +2193,25 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			SelfServiceDescription:      util.GetStringFromMap(selfServiceData, "self_service_description"),
 			ForceUsersToViewDescription: util.GetBoolFromMap(selfServiceData, "force_users_to_view_description"),
 			FeatureOnMainPage:           util.GetBoolFromMap(selfServiceData, "feature_on_main_page"),
-			SelfServiceIcon: func() jamfpro.PolicySelfServiceIcon {
+			SelfServiceIcon: func() jamfpro.SharedResourceSelfServiceIcon {
 				if iconData, ok := selfServiceData["self_service_icon"].([]interface{}); ok && len(iconData) > 0 {
 					iconMap := iconData[0].(map[string]interface{})
-					return jamfpro.PolicySelfServiceIcon{
+					return jamfpro.SharedResourceSelfServiceIcon{
 						ID:       util.GetIntFromMap(iconMap, "id"),
 						Filename: util.GetStringFromMap(iconMap, "filename"),
 						URI:      util.GetStringFromMap(iconMap, "uri"),
 					}
 				}
-				return jamfpro.PolicySelfServiceIcon{}
+				return jamfpro.SharedResourceSelfServiceIcon{}
 			}(),
-			SelfServiceCategories: func() []jamfpro.PolicySelfServiceCategory {
-				var categories []jamfpro.PolicySelfServiceCategory
+			SelfServiceCategories: func() []jamfpro.PolicySubsetSelfServiceCategories {
+				var categories []jamfpro.PolicySubsetSelfServiceCategories
 				if catData, ok := selfServiceData["self_service_categories"].([]interface{}); ok {
 					for _, cat := range catData {
 						catMap := cat.(map[string]interface{})
 						if catDetails, ok := catMap["category"].([]interface{}); ok && len(catDetails) > 0 {
 							details := catDetails[0].(map[string]interface{})
-							category := jamfpro.PolicySelfServiceCategory{
+							category := jamfpro.PolicySubsetSelfServiceCategories{
 								Category: jamfpro.PolicyCategory{
 									ID:        util.GetIntFromMap(details, "id"),
 									Name:      util.GetStringFromMap(details, "name"),
@@ -2231,8 +2231,8 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	if v, ok := d.GetOk("package_configuration"); ok {
 		packageConfigData := v.([]interface{})[0].(map[string]interface{})
 
-		packageItems := func() []jamfpro.PolicyPackage {
-			var items []jamfpro.PolicyPackage
+		packageItems := func() []jamfpro.PolicySubsetPackageConfigurationPackage {
+			var items []jamfpro.PolicySubsetPackageConfigurationPackage
 			if pkgs, ok := packageConfigData["packages"].([]interface{}); ok {
 				for _, pkg := range pkgs {
 					pkgMap := util.ConvertToMapFromInterface(pkg)
@@ -2240,7 +2240,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 						continue // Skip if package is nil
 					}
 
-					items = append(items, jamfpro.PolicyPackage{
+					items = append(items, jamfpro.PolicySubsetPackageConfigurationPackage{
 						ID:                util.GetIntFromMap(pkgMap, "id"),
 						Name:              util.GetStringFromMap(pkgMap, "name"),
 						Action:            util.GetStringFromMap(pkgMap, "action"),
@@ -2253,7 +2253,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			return items
 		}()
 		// Assign the constructed package items to the policy's package configuration
-		policy.PackageConfiguration = jamfpro.PolicyPackageConfiguration{
+		policy.PackageConfiguration = jamfpro.PolicySubsetPackageConfiguration{
 			Packages: packageItems,
 		}
 	}
@@ -2261,8 +2261,8 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	if v, ok := d.GetOk("scripts"); ok {
 		scriptsData := v.([]interface{})[0].(map[string]interface{})
 
-		scriptItems := func() []jamfpro.PolicyScriptItem {
-			var items []jamfpro.PolicyScriptItem
+		scriptItems := func() []jamfpro.PolicySubsetScript {
+			var items []jamfpro.PolicySubsetScript
 			if scripts, ok := scriptsData["script"].([]interface{}); ok {
 				for _, script := range scripts {
 					scriptMap := util.ConvertToMapFromInterface(script)
@@ -2270,7 +2270,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 						continue // Skip if script is nil or not a map
 					}
 
-					items = append(items, jamfpro.PolicyScriptItem{
+					items = append(items, jamfpro.PolicySubsetScript{
 						ID:          util.GetStringFromMap(scriptMap, "id"),
 						Name:        util.GetStringFromMap(scriptMap, "name"),
 						Priority:    util.GetStringFromMap(scriptMap, "priority"),
@@ -2289,7 +2289,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 		}()
 
 		// Assign the constructed script items to the policy's scripts
-		policy.Scripts = jamfpro.PolicyScripts{
+		policy.Scripts = jamfpro.PolicySubsetScripts{
 			Script: scriptItems,
 		}
 	}
@@ -2297,11 +2297,11 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	if v, ok := d.GetOk("printers"); ok {
 		printersData := v.([]interface{})[0].(map[string]interface{})
 
-		var printerItems []jamfpro.PolicyPrinterItem
+		var printerItems []jamfpro.PolicySubsetPrinter
 		if printers, ok := printersData["printer"].([]interface{}); ok {
 			for _, printer := range printers {
 				printerMap := printer.(map[string]interface{})
-				printerItems = append(printerItems, jamfpro.PolicyPrinterItem{
+				printerItems = append(printerItems, jamfpro.PolicySubsetPrinter{
 					ID:          util.GetIntFromMap(printerMap, "id"),
 					Name:        util.GetStringFromMap(printerMap, "name"),
 					Action:      util.GetStringFromMap(printerMap, "action"),
@@ -2315,7 +2315,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			leaveExistingDefault = val
 		}
 
-		policy.Printers = jamfpro.PolicyPrinters{
+		policy.Printers = jamfpro.PolicySubsetPrinters{
 			LeaveExistingDefault: leaveExistingDefault,
 			Printer:              printerItems,
 		}
@@ -2325,13 +2325,13 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	if v, ok := d.GetOk("dock_items"); ok {
 		dockItemsData := v.([]interface{})[0].(map[string]interface{})
 
-		dockItems := func() []jamfpro.PolicyDockItem {
-			var items []jamfpro.PolicyDockItem
+		dockItems := func() []jamfpro.PolicySubsetDockItem {
+			var items []jamfpro.PolicySubsetDockItem
 			if docks, ok := dockItemsData["dock_item"].([]interface{}); ok {
 				for _, dock := range docks {
 					dockMap := dock.(map[string]interface{})
 
-					items = append(items, jamfpro.PolicyDockItem{
+					items = append(items, jamfpro.PolicySubsetDockItem{
 						ID:     util.GetIntFromMap(dockMap, "id"),
 						Name:   util.GetStringFromMap(dockMap, "name"),
 						Action: util.GetStringFromMap(dockMap, "action"),
@@ -2341,7 +2341,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			return items
 		}()
 
-		policy.DockItems = jamfpro.PolicyDockItems{
+		policy.DockItems = jamfpro.PolicySubsetDockItems{
 			DockItem: dockItems,
 		}
 	}
@@ -2351,8 +2351,8 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 		accountMaintenanceData := v.([]interface{})[0].(map[string]interface{})
 
 		// Construct user accounts
-		accounts := func() []jamfpro.PolicyAccount {
-			var policyAccountItems []jamfpro.PolicyAccount
+		accounts := func() []jamfpro.PolicySubsetAccountMaintenanceAccount {
+			var policyAccountItems []jamfpro.PolicySubsetAccountMaintenanceAccount
 			if accs, ok := accountMaintenanceData["accounts"].([]interface{}); ok {
 				for _, acc := range accs {
 					accMap, ok := acc.(map[string]interface{})
@@ -2360,7 +2360,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 						continue // Skip if not a map or if nil
 					}
 
-					var account jamfpro.PolicyAccount
+					var account jamfpro.PolicySubsetAccountMaintenanceAccount
 					account.Action = util.GetStringFromMap(accMap, "action")
 					account.Username = util.GetStringFromMap(accMap, "username")
 					account.Realname = util.GetStringFromMap(accMap, "realname")
@@ -2379,8 +2379,8 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			return policyAccountItems
 		}()
 
-		directoryBindings := func() []jamfpro.PolicyDirectoryBinding {
-			var directoryBindings []jamfpro.PolicyDirectoryBinding
+		directoryBindings := func() []jamfpro.PolicySubsetAccountMaintenanceDirectoryBindings {
+			var directoryBindings []jamfpro.PolicySubsetAccountMaintenanceDirectoryBindings
 			if bindingsList, ok := accountMaintenanceData["directory_bindings"].([]interface{}); ok && len(bindingsList) > 0 {
 				for _, bindingEntry := range bindingsList {
 					bindingData := util.ConvertToMapFromInterface(bindingEntry)
@@ -2393,7 +2393,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 							if bindingMap == nil {
 								continue // Skip if the binding map is nil
 							}
-							directoryBindings = append(directoryBindings, jamfpro.PolicyDirectoryBinding{
+							directoryBindings = append(directoryBindings, jamfpro.PolicySubsetAccountMaintenanceDirectoryBindings{
 								ID:   util.GetIntFromMap(bindingMap, "id"),
 								Name: util.GetStringFromMap(bindingMap, "name"),
 							})
@@ -2406,9 +2406,9 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 
 		// TODO refactor this section to use default values from schema. recent attempts cause 400 request errors.
 		// Action: "doNotChange", is not being correctly passed from the schema despite it's correct config.
-		managementAccount := func() jamfpro.PolicyManagementAccount {
+		managementAccount := func() jamfpro.PolicySubsetAccountMaintenanceManagementAccount {
 			// Initialize with default values
-			defaultManagementAccount := jamfpro.PolicyManagementAccount{
+			defaultManagementAccount := jamfpro.PolicySubsetAccountMaintenanceManagementAccount{
 				Action:                "doNotChange",
 				ManagedPassword:       "",
 				ManagedPasswordLength: 0,
@@ -2424,8 +2424,8 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 			return defaultManagementAccount
 		}()
 
-		openFirmwareEfiPassword := func() jamfpro.PolicyOpenFirmwareEfiPassword {
-			var openFirmwareEfiPassword jamfpro.PolicyOpenFirmwareEfiPassword
+		openFirmwareEfiPassword := func() jamfpro.PolicySubsetAccountMaintenanceOpenFirmwareEfiPassword {
+			var openFirmwareEfiPassword jamfpro.PolicySubsetAccountMaintenanceOpenFirmwareEfiPassword
 
 			// Check if open firmware EFI password data is provided in Terraform
 			if openFirmwareEfiPasswordData, ok := accountMaintenanceData["open_firmware_efi_password"].(map[string]interface{}); ok {
@@ -2445,7 +2445,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 		}()
 
 		// Assign all constructed components to AccountMaintenance
-		policy.AccountMaintenance = jamfpro.PolicyAccountMaintenance{
+		policy.AccountMaintenance = jamfpro.PolicySubsetAccountMaintenance{
 			Accounts:                accounts,
 			DirectoryBindings:       directoryBindings,
 			ManagementAccount:       managementAccount,
@@ -2454,8 +2454,8 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	}
 
 	// Construct the Reboot section
-	policy.Reboot = func() jamfpro.PolicyReboot {
-		var reboot jamfpro.PolicyReboot
+	policy.Reboot = func() jamfpro.PolicySubsetReboot {
+		var reboot jamfpro.PolicySubsetReboot
 
 		// Check if values are provided in Terraform
 		if v, ok := d.GetOk("reboot"); ok {
@@ -2478,7 +2478,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	// Construct the Maintenance section
 	if v, ok := d.GetOk("maintenance"); ok {
 		maintenanceData := v.([]interface{})[0].(map[string]interface{})
-		policy.Maintenance = jamfpro.PolicyMaintenance{
+		policy.Maintenance = jamfpro.PolicySubsetMaintenance{
 			Recon:                    util.GetBoolFromMap(maintenanceData, "recon"),
 			ResetName:                util.GetBoolFromMap(maintenanceData, "reset_name"),
 			InstallAllCachedPackages: util.GetBoolFromMap(maintenanceData, "install_all_cached_packages"),
@@ -2495,7 +2495,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	// Construct the FilesProcesses section
 	if v, ok := d.GetOk("files_processes"); ok {
 		filesProcessesData := v.([]interface{})[0].(map[string]interface{})
-		policy.FilesProcesses = jamfpro.PolicyFilesProcesses{
+		policy.FilesProcesses = jamfpro.PolicySubsetFilesProcesses{
 			SearchByPath:         util.GetStringFromMap(filesProcessesData, "search_by_path"),
 			DeleteFile:           util.GetBoolFromMap(filesProcessesData, "delete_file"),
 			LocateFile:           util.GetStringFromMap(filesProcessesData, "locate_file"),
@@ -2510,7 +2510,7 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	// Construct the UserInteraction section
 	if v, ok := d.GetOk("user_interaction"); ok {
 		userInteractionData := v.([]interface{})[0].(map[string]interface{})
-		policy.UserInteraction = jamfpro.PolicyUserInteraction{
+		policy.UserInteraction = jamfpro.PolicySubsetUserInteraction{
 			MessageStart:          util.GetStringFromMap(userInteractionData, "message_start"),
 			AllowUserToDefer:      util.GetBoolFromMap(userInteractionData, "allow_user_to_defer"),
 			AllowDeferralUntilUtc: util.GetStringFromMap(userInteractionData, "allow_deferral_until_utc"),
@@ -2520,8 +2520,8 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResponsePolicy, er
 	}
 
 	// Construct the DiskEncryption section
-	policy.DiskEncryption = func() jamfpro.PolicyDiskEncryption {
-		var diskEncryption jamfpro.PolicyDiskEncryption
+	policy.DiskEncryption = func() jamfpro.PolicySubsetDiskEncryption {
+		var diskEncryption jamfpro.PolicySubsetDiskEncryption
 
 		// Check if values are provided in Terraform
 		if v, ok := d.GetOk("disk_encryption"); ok && len(v.([]interface{})) > 0 {
@@ -2646,7 +2646,7 @@ func ResourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, 
 		log.Printf("[INFO] Attempting to create Jamf Pro Policy with name: %s", policy.General.Name)
 
 		// Call the API to create the policy and get its ID
-		createdPolicy, err := conn.CreatePolicyByID(policy)
+		createdPolicy, err := conn.CreatePolicy(policy)
 		if err != nil {
 			log.Printf("[ERROR] Error creating Jamf Pro Policy with name: %s. Error: %s", policy.General.Name, err)
 			if apiErr, ok := err.(*http_client.APIError); ok {
@@ -2702,7 +2702,7 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 	}
 	conn := apiclient.Conn
 
-	var policy *jamfpro.ResponsePolicy
+	var policy *jamfpro.ResourcePolicy
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {

@@ -108,7 +108,7 @@ func dataSourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sc
 	}
 	conn := apiclient.Conn
 
-	var attribute *jamfpro.ResponseComputerExtensionAttribute
+	var attribute *jamfpro.ResourceComputerExtensionAttribute
 	var err error
 
 	// Check if Name is provided in the data source configuration

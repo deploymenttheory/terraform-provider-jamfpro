@@ -49,9 +49,9 @@ func ResourceJamfProDepartments() *schema.Resource {
 	}
 }
 
-// constructJamfProDepartment constructs a ResponseDepartment object from the provided schema data.
-func constructJamfProDepartment(d *schema.ResourceData) (*jamfpro.ResponseDepartment, error) {
-	department := &jamfpro.ResponseDepartment{}
+// constructJamfProDepartment constructs a ResourceDepartment object from the provided schema data.
+func constructJamfProDepartment(d *schema.ResourceData) (*jamfpro.ResourceDepartment, error) {
+	department := &jamfpro.ResourceDepartment{}
 
 	// Utilize type assertion helper functions for direct field extraction
 	department.Name = util.GetStringFromInterface(d.Get("name"))
@@ -104,7 +104,7 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 	conn := apiclient.Conn
 
 	// Use the retry function for the create operation
-	var createdAttribute *jamfpro.ResponseDepartment
+	var createdAttribute *jamfpro.ResourceDepartment
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the computer extension attribute
@@ -168,7 +168,7 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 	}
 	conn := apiclient.Conn
 
-	var attribute *jamfpro.ResponseDepartment
+	var attribute *jamfpro.ResourceDepartment
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {

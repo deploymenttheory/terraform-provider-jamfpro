@@ -41,7 +41,7 @@ func DataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceDat
 	}
 	conn := apiclient.Conn
 
-	var department *jamfpro.ResponseDepartment
+	var department *jamfpro.ResourceDepartment
 	var err error
 
 	// Check if Name is provided in the data source configuration

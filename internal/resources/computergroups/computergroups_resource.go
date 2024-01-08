@@ -205,9 +205,9 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 	}
 }
 
-// constructJamfProComputerGroup constructs a ResponseComputerGroup object from the provided schema data.
-func constructJamfProComputerGroup(d *schema.ResourceData) (*jamfpro.ResponseComputerGroup, error) {
-	group := &jamfpro.ResponseComputerGroup{}
+// constructJamfProComputerGroup constructs a ResourceComputerGroup object from the provided schema data.
+func constructJamfProComputerGroup(d *schema.ResourceData) (*jamfpro.ResourceComputerGroup, error) {
+	group := &jamfpro.ResourceComputerGroup{}
 
 	// Utilize type assertion helper functions for direct field extraction
 	group.Name = util.GetStringFromInterface(d.Get("name"))
@@ -229,15 +229,16 @@ func constructJamfProComputerGroup(d *schema.ResourceData) (*jamfpro.ResponseCom
 	if criteria, ok := d.GetOk("criteria"); ok {
 		for _, crit := range criteria.([]interface{}) {
 			criterionMap := crit.(map[string]interface{})
-			group.Criteria = append(group.Criteria, jamfpro.ComputerGroupCriterion{
+			newCriterion := jamfpro.SharedSubsetCriteria{
 				Name:         util.GetStringFromInterface(criterionMap["name"]),
 				Priority:     util.GetIntFromInterface(criterionMap["priority"]),
-				AndOr:        jamfpro.DeviceGroupAndOr(util.GetStringFromInterface(criterionMap["and_or"])),
+				AndOr:        util.GetStringFromInterface(criterionMap["and_or"]),
 				SearchType:   util.GetStringFromInterface(criterionMap["search_type"]),
-				SearchValue:  util.GetStringFromInterface(criterionMap["value"]),
+				Value:        util.GetStringFromInterface(criterionMap["value"]),
 				OpeningParen: util.GetBoolFromInterface(criterionMap["opening_paren"]),
 				ClosingParen: util.GetBoolFromInterface(criterionMap["closing_paren"]),
-			})
+			}
+			group.Criteria.Criterion = append(group.Criteria.Criterion, newCriterion)
 		}
 	}
 
@@ -245,7 +246,7 @@ func constructJamfProComputerGroup(d *schema.ResourceData) (*jamfpro.ResponseCom
 	if computers, ok := d.GetOk("computers"); ok {
 		for _, comp := range computers.([]interface{}) {
 			computerMap := comp.(map[string]interface{})
-			group.Computers = append(group.Computers, jamfpro.ComputerGroupComputerItem{
+			group.Computers = append(group.Computers, jamfpro.ComputerGroupSubsetComputer{
 				ID:            util.GetIntFromInterface(computerMap["id"]),
 				Name:          util.GetStringFromInterface(computerMap["name"]),
 				SerialNumber:  util.GetStringFromInterface(computerMap["serial_number"]),
@@ -298,7 +299,7 @@ func ResourceJamfProComputerGroupsCreate(ctx context.Context, d *schema.Resource
 	conn := apiclient.Conn
 
 	// Use the retry function for the create operation
-	var createdGroup *jamfpro.ResponseComputerGroup
+	var createdGroup *jamfpro.ResourceComputerGroup
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the computer group
@@ -367,7 +368,7 @@ func ResourceJamfProComputerGroupsRead(ctx context.Context, d *schema.ResourceDa
 	}
 	conn := apiclient.Conn
 
-	var group *jamfpro.ResponseComputerGroup
+	var group *jamfpro.ResourceComputerGroup
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
@@ -426,14 +427,14 @@ func ResourceJamfProComputerGroupsRead(ctx context.Context, d *schema.ResourceDa
 	}
 
 	// Set the criteria
-	criteriaList := make([]interface{}, len(group.Criteria))
-	for i, crit := range group.Criteria {
+	criteriaList := make([]interface{}, len(group.Criteria.Criterion))
+	for i, crit := range group.Criteria.Criterion {
 		criteriaMap := map[string]interface{}{
 			"name":          crit.Name,
 			"priority":      crit.Priority,
-			"and_or":        string(crit.AndOr),
+			"and_or":        crit.AndOr,
 			"search_type":   crit.SearchType,
-			"value":         crit.SearchValue,
+			"value":         crit.Value,
 			"opening_paren": crit.OpeningParen,
 			"closing_paren": crit.ClosingParen,
 		}

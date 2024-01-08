@@ -55,13 +55,13 @@ func dataSourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData,
 	}
 	conn := apiclient.Conn
 
-	var dockItem *jamfpro.ResponseDockItem
+	var dockItem *jamfpro.ResourceDockItem
 	var err error
 
 	// Check if Name is provided in the data source configuration
 	if v, ok := d.GetOk("name"); ok && v.(string) != "" {
 		dockItemName := v.(string)
-		dockItem, err = conn.GetDockItemsByName(dockItemName)
+		dockItem, err = conn.GetDockItemByName(dockItemName)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to fetch dock item by name: %v", err))
 		}
@@ -70,7 +70,7 @@ func dataSourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData,
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to parse dock item ID: %v", err))
 		}
-		dockItem, err = conn.GetDockItemsByID(dockItemID)
+		dockItem, err = conn.GetDockItemByID(dockItemID)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to fetch dock item by ID: %v", err))
 		}

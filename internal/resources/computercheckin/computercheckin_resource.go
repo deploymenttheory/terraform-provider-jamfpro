@@ -108,9 +108,9 @@ func ResourceJamfProComputerCheckin() *schema.Resource {
 	}
 }
 
-// constructComputerCheckin constructs a ResponseComputerCheckin object from the provided schema data.
-func constructComputerCheckin(d *schema.ResourceData) (*jamfpro.ResponseComputerCheckin, error) {
-	checkin := &jamfpro.ResponseComputerCheckin{}
+// constructComputerCheckin constructs a ResourceComputerCheckin object from the provided schema data.
+func constructComputerCheckin(d *schema.ResourceData) (*jamfpro.ResourceComputerCheckin, error) {
+	checkin := &jamfpro.ResourceComputerCheckin{}
 
 	// Utilize type assertion helper functions for direct field extraction
 	checkin.CheckInFrequency = util.GetIntFromInterface(d.Get("check_in_frequency"))
@@ -209,7 +209,7 @@ func ResourceJamfProComputerCheckinRead(ctx context.Context, d *schema.ResourceD
 	conn := apiclient.Conn
 
 	// Fetch the computer check-in configuration using the API client
-	var checkinConfig *jamfpro.ResponseComputerCheckin
+	var checkinConfig *jamfpro.ResourceComputerCheckin
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		checkinConfig, err = conn.GetComputerCheckinInformation()

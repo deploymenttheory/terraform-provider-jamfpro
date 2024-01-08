@@ -52,7 +52,7 @@ func dataSourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, met
 	}
 	conn := apiclient.Conn
 
-	var site *jamfpro.ResponseSite
+	var site *jamfpro.SharedResourceSite
 	var err error
 
 	// Check if Name is provided in the data source configuration

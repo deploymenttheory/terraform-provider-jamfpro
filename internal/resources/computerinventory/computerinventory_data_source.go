@@ -1508,7 +1508,7 @@ func setGeneralSection(d *schema.ResourceData, general jamfpro.ComputerInventory
 	gen["remote_management"] = []interface{}{remoteManagement}
 
 	// Handle nested object 'site'.
-	if general.Site.ID != "" || general.Site.Name != "" {
+	if general.Site.ID != 0 || general.Site.Name != "" {
 		site := make(map[string]interface{})
 		site["id"] = general.Site.ID
 		site["name"] = general.Site.Name
@@ -1918,7 +1918,7 @@ func setLicensedSoftwareSection(d *schema.ResourceData, licensedSoftware []jamfp
 }
 
 // setIBeaconsSection maps the 'IBeacons' section of the computer inventory response to the Terraform resource data and updates the state.
-func setIBeaconsSection(d *schema.ResourceData, ibeacons []jamfpro.ComputerInventorySubsetIbeacon) error {
+func setIBeaconsSection(d *schema.ResourceData, ibeacons []jamfpro.ComputerInventorySubsetIBeacon) error {
 	ibeaconList := make([]interface{}, len(ibeacons))
 	for i, ibeacon := range ibeacons {
 		ibeaconMap := make(map[string]interface{})
