@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 // ResourceJamfProAccountGroup defines the schema and CRUD operations for managing buildings in Terraform.
@@ -25,6 +26,7 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 		ReadContext:   ResourceJamfProAccountGroupRead,
 		UpdateContext: ResourceJamfProAccountGroupUpdate,
 		DeleteContext: ResourceJamfProAccountGroupDelete,
+		CustomizeDiff: customDiffAccountGroups,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(1 * time.Minute),
 			Read:   schema.DefaultTimeout(1 * time.Minute),
@@ -43,20 +45,22 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 				Description: "The name of the account group.",
 			},
 			"access_level": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The access level of the account group.",
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "The access level of the account. This can be either Full Access, or scoped to a jamf pro site with Site Access",
+				ValidateFunc: validation.StringInSlice([]string{"Full Access", "Site Access"}, false),
 			},
 			"privilege_set": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The privilege set assigned to the account group.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "The privilege set assigned to the account group.",
+				ValidateFunc: validation.StringInSlice([]string{"Administrator", "Auditor", "Enrollment Only", "Custom"}, false),
 			},
 			"site": {
 				Type:        schema.TypeList,
 				Optional:    true,
 				MaxItems:    1,
-				Description: "The site information associated with the account group.",
+				Description: "The site information associated with the account group if access_level is set to Site Access.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {

@@ -44,7 +44,7 @@ func DataSourceJamfProAccountGroups() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				MaxItems:    1,
-				Description: "The site information associated with the account group.",
+				Description: "The site information associated with the account group if access_level is set to Site Access.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {

@@ -172,11 +172,8 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		attributeID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse attribute ID: %v", convertErr))
-		}
+		// Get the ID from the Terraform state into an integer to be used for the API request
+		attributeID := d.Id()
 
 		// Try fetching the site using the ID
 		var apiErr error
