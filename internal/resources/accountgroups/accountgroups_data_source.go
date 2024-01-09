@@ -1,4 +1,4 @@
-// accountgroups_resource.go
+// accountgroups_data_source.go
 package accountgroups
 
 import (

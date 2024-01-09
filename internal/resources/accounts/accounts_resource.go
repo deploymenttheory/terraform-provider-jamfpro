@@ -35,12 +35,12 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 			"id": {
 				Type:        schema.TypeInt,
 				Computed:    true,
-				Description: "The unique identifier of the account.",
+				Description: "The unique identifier of the jamf pro account.",
 			},
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The name of the account.",
+				Description: "The name of the jamf pro account.",
 			},
 			"directory_user": {
 				Type:        schema.TypeBool,
@@ -413,7 +413,6 @@ func ResourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, met
 	d.Set("site", []interface{}{site})
 
 	// Update privileges
-	// Update privileges based on the new struct format
 	if err := d.Set("jss_objects_privileges", account.Privileges.JSSObjects); err != nil {
 		return diag.FromErr(err)
 	}
