@@ -442,12 +442,12 @@ func ResourceJamfProAccountGroupDelete(ctx context.Context, d *schema.ResourceDa
 		apiErr := conn.DeleteAccountGroupByID(accountGroupID)
 		if apiErr != nil {
 			// If the delete by ID fails, try deleting by name
-			scriptName, ok := d.Get("name").(string)
+			accountGroupName, ok := d.Get("name").(string)
 			if !ok {
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
 
-			apiErr = conn.DeleteAccountGroupByName(scriptName)
+			apiErr = conn.DeleteAccountGroupByName(accountGroupName)
 			if apiErr != nil {
 				return retry.RetryableError(apiErr)
 			}
