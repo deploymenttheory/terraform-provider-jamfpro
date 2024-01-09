@@ -78,7 +78,45 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "The privileges associated with the account group.",
-				Elem:        &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"jss_objects": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"jss_settings": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"jss_actions": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"recon": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"casper_admin": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"casper_remote": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"casper_imaging": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+					},
+				},
 			},
 			"members": {
 				Type:        schema.TypeList,
@@ -103,62 +141,61 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 
 // constructJamfProAccountGroup constructs an AccountGroup object from the provided schema data.
 func constructJamfProAccountGroup(d *schema.ResourceData) (*jamfpro.ResourceAccountGroup, error) {
-	accountGroup := &jamfpro.ResourceAccountGroup{}
-
-	// Utilize type assertion helper functions for direct field extraction
-	accountGroup.Name = util.GetStringFromInterface(d.Get("name"))
-	accountGroup.AccessLevel = util.GetStringFromInterface(d.Get("access_level"))
-	accountGroup.PrivilegeSet = util.GetStringFromInterface(d.Get("privilege_set"))
+	accountGroup := &jamfpro.ResourceAccountGroup{
+		Name:         util.GetStringFromInterface(d.Get("name")),
+		AccessLevel:  util.GetStringFromInterface(d.Get("access_level")),
+		PrivilegeSet: util.GetStringFromInterface(d.Get("privilege_set")),
+	}
 
 	// Construct Site
-	if v, ok := d.GetOk("site"); ok {
-		siteList := v.([]interface{})
-		if len(siteList) > 0 && siteList[0] != nil {
-			siteMap := siteList[0].(map[string]interface{})
-			accountGroup.Site = jamfpro.SharedResourceSite{
-				ID:   util.GetIntFromInterface(siteMap["id"]),
-				Name: util.GetStringFromInterface(siteMap["name"]),
-			}
+	if v, ok := d.GetOk("site"); ok && len(v.([]interface{})) > 0 {
+		siteMap := v.([]interface{})[0].(map[string]interface{})
+		accountGroup.Site = jamfpro.SharedResourceSite{
+			ID:   util.GetIntFromInterface(siteMap["id"]),
+			Name: util.GetStringFromInterface(siteMap["name"]),
 		}
 	}
 
 	// Construct Privileges
 	if v, ok := d.GetOk("privileges"); ok {
-		privilegesMap := v.(map[string]interface{})
-		accountGroup.Privileges = jamfpro.AccountSubsetPrivileges{
-			JSSObjects:    util.ConvertInterfaceSliceToStringSlice(privilegesMap["jss_objects"]),
-			JSSSettings:   util.ConvertInterfaceSliceToStringSlice(privilegesMap["jss_settings"]),
-			JSSActions:    util.ConvertInterfaceSliceToStringSlice(privilegesMap["jss_actions"]),
-			Recon:         util.ConvertInterfaceSliceToStringSlice(privilegesMap["recon"]),
-			CasperAdmin:   util.ConvertInterfaceSliceToStringSlice(privilegesMap["casper_admin"]),
-			CasperRemote:  util.ConvertInterfaceSliceToStringSlice(privilegesMap["casper_remote"]),
-			CasperImaging: util.ConvertInterfaceSliceToStringSlice(privilegesMap["casper_imaging"]),
+		privilegesList := v.([]interface{})
+		if len(privilegesList) > 0 {
+			privilegesMap := util.ConvertInterfaceSliceToStringMap(privilegesList[0])
+			accountGroup.Privileges = jamfpro.AccountSubsetPrivileges{
+				JSSObjects:    convertStringsToAccountSubsetPrivileges(privilegesMap["jss_objects"]),
+				JSSSettings:   convertStringsToAccountSubsetPrivileges(privilegesMap["jss_settings"]),
+				JSSActions:    convertStringsToAccountSubsetPrivileges(privilegesMap["jss_actions"]),
+				Recon:         convertStringsToAccountSubsetPrivileges(privilegesMap["recon"]),
+				CasperAdmin:   convertStringsToAccountSubsetPrivileges(privilegesMap["casper_admin"]),
+				CasperRemote:  convertStringsToAccountSubsetPrivileges(privilegesMap["casper_remote"]),
+				CasperImaging: convertStringsToAccountSubsetPrivileges(privilegesMap["casper_imaging"]),
+			}
 		}
 	}
 
 	// Construct Members
 	if v, ok := d.GetOk("members"); ok {
-		membersList := v.([]interface{})
-		for _, member := range membersList {
-			if memberMap, ok := member.(map[string]interface{}); ok {
-				// Creating an instance of the struct that matches the type in jamfpro.AccountGroupSubsetMembers
-				memberStruct := struct {
-					ID   int    `json:"id,omitempty" xml:"id,omitempty"`
-					Name string `json:"name,omitempty" xml:"name,omitempty"`
-				}{
-					ID:   util.GetIntFromInterface(memberMap["id"]),
-					Name: util.GetStringFromInterface(memberMap["name"]),
-				}
-				// Now append the struct to the slice
-				accountGroup.Members = append(accountGroup.Members, memberStruct)
+		for _, member := range v.([]interface{}) {
+			memberMap := member.(map[string]interface{})
+			memberUser := jamfpro.MemberUser{
+				ID:   util.GetIntFromInterface(memberMap["id"]),
+				Name: util.GetStringFromInterface(memberMap["name"]),
 			}
+			accountGroup.Members = append(accountGroup.Members, memberUser)
 		}
 	}
 
-	// Log the successful construction of the account group
 	log.Printf("[INFO] Successfully constructed Account Group with name: %s", accountGroup.Name)
-
 	return accountGroup, nil
+}
+
+// convertStringsToAccountSubsetPrivileges converts a slice of strings to a slice of AccountSubsetPrivilege
+func convertStringsToAccountSubsetPrivileges(strings []string) []jamfpro.AccountSubsetPrivilege {
+	var privileges []jamfpro.AccountSubsetPrivilege
+	for _, str := range strings {
+		privileges = append(privileges, jamfpro.AccountSubsetPrivilege{Privilege: str})
+	}
+	return privileges
 }
 
 // Helper function to generate diagnostics based on the error type.

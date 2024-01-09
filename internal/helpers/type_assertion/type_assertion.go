@@ -167,3 +167,25 @@ func ConvertInterfaceSliceToStringSlice(input interface{}) []string {
 	}
 	return result
 }
+
+// ConvertInterfaceSliceToStringMap safely converts an interface slice to a map of string slices.
+func ConvertInterfaceSliceToStringMap(input interface{}) map[string][]string {
+	result := make(map[string][]string)
+	if inputSlice, ok := input.([]interface{}); ok {
+		for _, item := range inputSlice {
+			if itemMap, ok := item.(map[string]interface{}); ok {
+				for key, val := range itemMap {
+					if valSlice, ok := val.([]interface{}); ok {
+						for _, valItem := range valSlice {
+							strVal := GetStringFromInterface(valItem)
+							if strVal != "" {
+								result[key] = append(result[key], strVal)
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return result
+}
