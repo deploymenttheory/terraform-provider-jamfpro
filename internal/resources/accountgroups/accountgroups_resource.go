@@ -74,48 +74,60 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 					},
 				},
 			},
-			"privileges": {
+			"jss_objects_privileges": {
 				Type:        schema.TypeList,
 				Optional:    true,
-				Description: "The privileges associated with the account group.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"jss_objects": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"jss_settings": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"jss_actions": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"recon": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"casper_admin": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"casper_remote": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"casper_imaging": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-					},
+				Description: "Privileges related to JSS Objects.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"jss_settings_privileges": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Privileges related to JSS Settings.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"jss_actions_privileges": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Privileges related to JSS Actions.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"casper_admin_privileges": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Privileges related to Casper Admin.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"casper_remote_privileges": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Privileges related to Casper Remote.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"casper_imaging_privileges": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Privileges related to Casper Imaging.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"recon_privileges": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Privileges related to Recon.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 			"members": {
@@ -157,45 +169,35 @@ func constructJamfProAccountGroup(d *schema.ResourceData) (*jamfpro.ResourceAcco
 	}
 
 	// Construct Privileges
-	if v, ok := d.GetOk("privileges"); ok {
-		privilegesList := v.([]interface{})
-		if len(privilegesList) > 0 {
-			privilegesMap := util.ConvertInterfaceSliceToStringMap(privilegesList[0])
-			accountGroup.Privileges = jamfpro.AccountSubsetPrivileges{
-				JSSObjects:    convertStringsToAccountSubsetPrivileges(privilegesMap["jss_objects"]),
-				JSSSettings:   convertStringsToAccountSubsetPrivileges(privilegesMap["jss_settings"]),
-				JSSActions:    convertStringsToAccountSubsetPrivileges(privilegesMap["jss_actions"]),
-				Recon:         convertStringsToAccountSubsetPrivileges(privilegesMap["recon"]),
-				CasperAdmin:   convertStringsToAccountSubsetPrivileges(privilegesMap["casper_admin"]),
-				CasperRemote:  convertStringsToAccountSubsetPrivileges(privilegesMap["casper_remote"]),
-				CasperImaging: convertStringsToAccountSubsetPrivileges(privilegesMap["casper_imaging"]),
-			}
-		}
+	accountGroup.Privileges = jamfpro.AccountSubsetPrivileges{
+		JSSObjects:    util.GetStringSliceFromInterface(d.Get("jss_objects_privileges")),
+		JSSSettings:   util.GetStringSliceFromInterface(d.Get("jss_settings_privileges")),
+		JSSActions:    util.GetStringSliceFromInterface(d.Get("jss_actions_privileges")),
+		CasperAdmin:   util.GetStringSliceFromInterface(d.Get("casper_admin_privileges")),
+		CasperRemote:  util.GetStringSliceFromInterface(d.Get("casper_remote_privileges")),
+		CasperImaging: util.GetStringSliceFromInterface(d.Get("casper_imaging_privileges")),
+		Recon:         util.GetStringSliceFromInterface(d.Get("recon_privileges")),
 	}
 
 	// Construct Members
 	if v, ok := d.GetOk("members"); ok {
+		var members jamfpro.AccountGroupSubsetMembers
 		for _, member := range v.([]interface{}) {
 			memberMap := member.(map[string]interface{})
-			memberUser := jamfpro.MemberUser{
+			memberStruct := struct {
+				ID   int    `json:"id,omitempty" xml:"id,omitempty"`
+				Name string `json:"name,omitempty" xml:"name,omitempty"`
+			}{
 				ID:   util.GetIntFromInterface(memberMap["id"]),
 				Name: util.GetStringFromInterface(memberMap["name"]),
 			}
-			accountGroup.Members = append(accountGroup.Members, memberUser)
+			members = append(members, memberStruct)
 		}
+		accountGroup.Members = members
 	}
 
 	log.Printf("[INFO] Successfully constructed Account Group with name: %s", accountGroup.Name)
 	return accountGroup, nil
-}
-
-// convertStringsToAccountSubsetPrivileges converts a slice of strings to a slice of AccountSubsetPrivilege
-func convertStringsToAccountSubsetPrivileges(strings []string) []jamfpro.AccountSubsetPrivilege {
-	var privileges []jamfpro.AccountSubsetPrivilege
-	for _, str := range strings {
-		privileges = append(privileges, jamfpro.AccountSubsetPrivilege{Privilege: str})
-	}
-	return privileges
 }
 
 // Helper function to generate diagnostics based on the error type.
