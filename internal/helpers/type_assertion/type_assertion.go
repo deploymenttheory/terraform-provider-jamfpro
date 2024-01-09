@@ -154,8 +154,8 @@ func GetStringBoolMapFromInterface(val interface{}) map[string]bool {
 	return resultMap
 }
 
-// ConvertInterfaceSliceToStringSlice safely converts an interface slice to a string slice.
-func ConvertInterfaceSliceToStringSlice(input interface{}) []string {
+// GetStringSliceFromInterface safely converts an interface slice to a string slice.
+func GetStringSliceFromInterface(input interface{}) []string {
 	var result []string
 	if inputSlice, ok := input.([]interface{}); ok {
 		for _, item := range inputSlice {

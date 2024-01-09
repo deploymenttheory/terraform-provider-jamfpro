@@ -125,18 +125,60 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 					},
 				},
 			},
-			"privileges": {
+			"jss_objects_privileges": {
 				Type:        schema.TypeList,
 				Optional:    true,
-				Description: "The privileges associated with the account.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"privilege": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "A specific privilege assigned to the account.",
-						},
-					},
+				Description: "Privileges related to JSS Objects.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"jss_settings_privileges": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Privileges related to JSS Settings.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"jss_actions_privileges": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Privileges related to JSS Actions.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"casper_admin_privileges": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Privileges related to Casper Admin.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"casper_remote_privileges": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Privileges related to Casper Remote.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"casper_imaging_privileges": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Privileges related to Casper Imaging.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"recon_privileges": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Privileges related to Recon.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 		},
@@ -183,26 +225,14 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 	}
 
 	// Construct Privileges
-	if v, ok := d.GetOk("privileges"); ok {
-		privilegesList := v.([]interface{})
-		var privileges []jamfpro.AccountSubsetPrivilege
-		for _, p := range privilegesList {
-			if privMap, ok := p.(map[string]interface{}); ok {
-				privilege := jamfpro.AccountSubsetPrivilege{
-					Privilege: util.GetStringFromInterface(privMap["privilege"]),
-				}
-				privileges = append(privileges, privilege)
-			}
-		}
-		account.Privileges = jamfpro.AccountSubsetPrivileges{
-			JSSObjects:    privileges,
-			JSSSettings:   privileges,
-			JSSActions:    privileges,
-			Recon:         privileges,
-			CasperAdmin:   privileges,
-			CasperRemote:  privileges,
-			CasperImaging: privileges,
-		}
+	account.Privileges = jamfpro.AccountSubsetPrivileges{
+		JSSObjects:    util.GetStringSliceFromInterface(d.Get("jss_objects_privileges")),
+		JSSSettings:   util.GetStringSliceFromInterface(d.Get("jss_settings_privileges")),
+		JSSActions:    util.GetStringSliceFromInterface(d.Get("jss_actions_privileges")),
+		CasperAdmin:   util.GetStringSliceFromInterface(d.Get("casper_admin_privileges")),
+		CasperRemote:  util.GetStringSliceFromInterface(d.Get("casper_remote_privileges")),
+		CasperImaging: util.GetStringSliceFromInterface(d.Get("casper_imaging_privileges")),
+		Recon:         util.GetStringSliceFromInterface(d.Get("recon_privileges")),
 	}
 
 	// Log the successful construction of the account
@@ -383,30 +413,26 @@ func ResourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, met
 	d.Set("site", []interface{}{site})
 
 	// Update privileges
-	privileges := make(map[string][]interface{})
-	for _, category := range []struct {
-		key string
-		set []jamfpro.AccountSubsetPrivilege
-	}{
-		{"jss_objects", account.Privileges.JSSObjects},
-		{"jss_settings", account.Privileges.JSSSettings},
-		{"jss_actions", account.Privileges.JSSActions},
-		{"recon", account.Privileges.Recon},
-		{"casper_admin", account.Privileges.CasperAdmin},
-		{"casper_remote", account.Privileges.CasperRemote},
-		{"casper_imaging", account.Privileges.CasperImaging},
-	} {
-		var privList []interface{}
-		for _, priv := range category.set {
-			privMap := map[string]interface{}{
-				"privilege": priv.Privilege,
-			}
-			privList = append(privList, privMap)
-		}
-		privileges[category.key] = privList
+	// Update privileges based on the new struct format
+	if err := d.Set("jss_objects_privileges", account.Privileges.JSSObjects); err != nil {
+		return diag.FromErr(err)
 	}
-
-	if err := d.Set("privileges", privileges); err != nil {
+	if err := d.Set("jss_settings_privileges", account.Privileges.JSSSettings); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("jss_actions_privileges", account.Privileges.JSSActions); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("casper_admin_privileges", account.Privileges.CasperAdmin); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("casper_remote_privileges", account.Privileges.CasperRemote); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("casper_imaging_privileges", account.Privileges.CasperImaging); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("recon_privileges", account.Privileges.Recon); err != nil {
 		return diag.FromErr(err)
 	}
 
