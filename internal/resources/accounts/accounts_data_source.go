@@ -21,7 +21,7 @@ func DataSourceJamfProAccounts() *schema.Resource {
 		ReadContext: dataSourceJamfProAccountRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:        schema.TypeInt,
+				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The unique identifier of the jamf pro account.",
 			},

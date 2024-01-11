@@ -21,7 +21,7 @@ func DataSourceJamfProAccountGroups() *schema.Resource {
 		ReadContext: dataSourceJamfProAccountGroupsRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:        schema.TypeInt,
+				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The unique identifier of the account group.",
 			},

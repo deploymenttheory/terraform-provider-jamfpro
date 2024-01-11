@@ -153,13 +153,13 @@ func ResourceJamfProComputerPrestage() *schema.Resource {
 						},
 						"department_id": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Description: "The department ID associated with this location.",
 							Default:     "-1",
 						},
 						"building_id": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Description: "The building ID associated with this location.",
 							Default:     "-1",
 						},
