@@ -109,8 +109,8 @@ func DataSourceJamfProScripts() *schema.Resource {
 }
 
 // dataSourceJamfProScriptsRead fetches the details of a specific Jamf Pro script
-// from Jamf Pro using either its unique Name or its Id. The function prioritizes the 'name' attribute over the 'id'
-// attribute for fetching details. If neither 'name' nor 'id' is provided, it returns an error.
+// from Jamf Pro using either its unique Name or its Id. The function prioritizes the 'name' scriptAttribute over the 'id'
+// scriptAttribute for fetching details. If neither 'name' nor 'id' is provided, it returns an error.
 // Once the details are fetched, they are set in the data source's state.
 //
 // Parameters:
@@ -130,28 +130,28 @@ func DataSourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, m
 	}
 	conn := apiclient.Conn
 
-	var attribute *jamfpro.ResourceScript
+	var scriptAttribute *jamfpro.ResourceScript
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		// Convert the ID from the Terraform state into an integer to be used for the API request
-		attributeID := d.Id()
+		scriptID := d.Id()
 
 		// Try fetching the script using the ID
 		var apiErr error
-		attribute, apiErr = conn.GetScriptByID(attributeID)
+		scriptAttribute, apiErr = conn.GetScriptByID(scriptID)
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If fetching by ID fails, try fetching by Name
-			attributeName, ok := d.Get("name").(string)
+			scriptName, ok := d.Get("name").(string)
 			if !ok {
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string for read function"))
 			}
 
-			attribute, apiErr = conn.GetScriptByName(attributeName)
+			scriptAttribute, apiErr = conn.GetScriptByName(scriptName)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -169,27 +169,27 @@ func DataSourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, m
 		return generateTFDiagsFromHTTPError(err, d, "read")
 	}
 
-	// Construct a map of script attributes
+	// Construct a map of script scriptAttributes
 	scriptAttributes := map[string]interface{}{
-		"name":            attribute.Name,
-		"category_name":   attribute.CategoryName,
-		"category_id":     attribute.CategoryId,
-		"info":            attribute.Info,
-		"notes":           attribute.Notes,
-		"os_requirements": attribute.OSRequirements,
-		"priority":        attribute.Priority,
-		"script_contents": encodeScriptContent(attribute.ScriptContents),
-		"parameter4":      attribute.Parameter4,
-		"parameter5":      attribute.Parameter5,
-		"parameter6":      attribute.Parameter6,
-		"parameter7":      attribute.Parameter7,
-		"parameter8":      attribute.Parameter8,
-		"parameter9":      attribute.Parameter9,
-		"parameter10":     attribute.Parameter10,
-		"parameter11":     attribute.Parameter11,
+		"name":            scriptAttribute.Name,
+		"category_name":   scriptAttribute.CategoryName,
+		"category_id":     scriptAttribute.CategoryId,
+		"info":            scriptAttribute.Info,
+		"notes":           scriptAttribute.Notes,
+		"os_requirements": scriptAttribute.OSRequirements,
+		"priority":        scriptAttribute.Priority,
+		"script_contents": encodeScriptContent(scriptAttribute.ScriptContents),
+		"parameter4":      scriptAttribute.Parameter4,
+		"parameter5":      scriptAttribute.Parameter5,
+		"parameter6":      scriptAttribute.Parameter6,
+		"parameter7":      scriptAttribute.Parameter7,
+		"parameter8":      scriptAttribute.Parameter8,
+		"parameter9":      scriptAttribute.Parameter9,
+		"parameter10":     scriptAttribute.Parameter10,
+		"parameter11":     scriptAttribute.Parameter11,
 	}
 
-	// Update the Terraform state with script attributes
+	// Update the Terraform state with script scriptAttributes
 	for key, value := range scriptAttributes {
 		if err := d.Set(key, value); err != nil {
 			diags = append(diags, diag.FromErr(err)...)

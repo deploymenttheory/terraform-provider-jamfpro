@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
@@ -104,10 +103,10 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 	conn := apiclient.Conn
 
 	// Use the retry function for the create operation
-	var createdAttribute *jamfpro.ResourceDepartment
+	var createdAttribute *jamfpro.ResponseDepartmentCreate
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		// Construct the computer extension attribute
+		// Construct the department
 		department, err := constructJamfProDepartment(d)
 		if err != nil {
 			return retry.NonRetryableError(fmt.Errorf("failed to construct the department for terraform create: %w", err))
@@ -133,7 +132,7 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 	}
 
 	// Set the ID of the created resource in the Terraform state
-	d.SetId(strconv.Itoa(createdAttribute.ID))
+	d.SetId(createdAttribute.ID)
 
 	// Use the retry function for the read operation to update the Terraform state with the resource attributes
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
@@ -236,13 +235,10 @@ func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 		}
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request
-		departmentID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse department ID: %v", convertErr))
-		}
+		departmentID := d.Id()
 
 		// Directly call the API to update the resource by ID
-		_, apiErr := conn.UpdateDepartmentByID(departmentID, department.Name)
+		_, apiErr := conn.UpdateDepartmentByID(departmentID, department)
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -250,7 +246,7 @@ func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 			}
 			// If the update by ID fails, try updating by name
 			departmentName := d.Get("name").(string)
-			_, apiErr = conn.UpdateDepartmentByName(departmentName, department.Name)
+			_, apiErr = conn.UpdateDepartmentByName(departmentName, department)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -300,13 +296,10 @@ func ResourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceDat
 	// Use the retry function for the delete operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Convert the ID from the Terraform state into an integer to be used for the API request
-		siteID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse department ID: %v", convertErr))
-		}
+		departmentID := d.Id()
 
 		// Directly call the API to delete the resource
-		apiErr := conn.DeleteDepartmentByID(siteID)
+		apiErr := conn.DeleteDepartmentByID(departmentID)
 		if apiErr != nil {
 			// If the delete by ID fails, try deleting by name
 			siteName := d.Get("name").(string)
