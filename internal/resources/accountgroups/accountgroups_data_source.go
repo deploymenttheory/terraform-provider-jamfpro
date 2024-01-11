@@ -152,7 +152,8 @@ func dataSourceJamfProAccountGroupsRead(ctx context.Context, d *schema.ResourceD
 
 	// Update members
 	members := make([]interface{}, 0)
-	for _, member := range accountGroup.Members {
+	for _, memberStruct := range accountGroup.Members {
+		member := memberStruct.User // Access the User field
 		memberMap := map[string]interface{}{
 			"id":   member.ID,
 			"name": member.Name,

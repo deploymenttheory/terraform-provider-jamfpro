@@ -188,14 +188,15 @@ func constructJamfProAccountGroup(d *schema.ResourceData) (*jamfpro.ResourceAcco
 		var members jamfpro.AccountGroupSubsetMembers
 		for _, member := range v.([]interface{}) {
 			memberMap := member.(map[string]interface{})
-			memberStruct := struct {
-				ID   int    `json:"id,omitempty" xml:"id,omitempty"`
-				Name string `json:"name,omitempty" xml:"name,omitempty"`
-			}{
+			memberUser := jamfpro.MemberUser{
 				ID:   util.GetIntFromInterface(memberMap["id"]),
 				Name: util.GetStringFromInterface(memberMap["name"]),
 			}
-			members = append(members, memberStruct)
+			members = append(members, struct {
+				User jamfpro.MemberUser `json:"user" xml:"user"`
+			}{
+				User: memberUser,
+			})
 		}
 		accountGroup.Members = members
 	}
@@ -376,7 +377,8 @@ func ResourceJamfProAccountGroupRead(ctx context.Context, d *schema.ResourceData
 
 	// Update members
 	members := make([]interface{}, 0)
-	for _, member := range accountGroup.Members {
+	for _, memberStruct := range accountGroup.Members {
+		member := memberStruct.User // Access the User field
 		memberMap := map[string]interface{}{
 			"id":   member.ID,
 			"name": member.Name,
