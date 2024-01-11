@@ -289,7 +289,7 @@ func ResourceJamfProComputerPrestage() *schema.Resource {
 			},
 			"prestage_installed_profile_ids": {
 				Type:        schema.TypeList,
-				Required:    true,
+				Optional:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "IDs of profiles installed during prestage.",
 				Default:     "-1",
