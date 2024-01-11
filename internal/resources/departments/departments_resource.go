@@ -114,7 +114,7 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 		}
 
 		// Directly call the API to create the resource
-		createdAttribute, err = conn.CreateDepartment(department.Name)
+		createdAttribute, err = conn.CreateDepartment(department)
 		if err != nil {
 			// Check if the error is an APIError
 			if apiErr, ok := err.(*http_client.APIError); ok {
