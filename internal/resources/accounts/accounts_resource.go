@@ -134,7 +134,8 @@ func ResourceJamfProAccounts() *schema.Resource {
 				Optional:    true,
 				Description: "Privileges related to JSS Objects.",
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validateJSSObjectsPrivileges,
 				},
 			},
 			"jss_settings_privileges": {
@@ -142,7 +143,8 @@ func ResourceJamfProAccounts() *schema.Resource {
 				Optional:    true,
 				Description: "Privileges related to JSS Settings.",
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validateJSSSettingsPrivileges,
 				},
 			},
 			"jss_actions_privileges": {
@@ -150,7 +152,8 @@ func ResourceJamfProAccounts() *schema.Resource {
 				Optional:    true,
 				Description: "Privileges related to JSS Actions.",
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validateJSSActionsPrivileges,
 				},
 			},
 			"casper_admin_privileges": {
@@ -158,7 +161,8 @@ func ResourceJamfProAccounts() *schema.Resource {
 				Optional:    true,
 				Description: "Privileges related to Casper Admin.",
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validateCasperAdminPrivileges,
 				},
 			},
 			"casper_remote_privileges": {
