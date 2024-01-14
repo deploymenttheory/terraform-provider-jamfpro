@@ -1564,7 +1564,7 @@ func dataSourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, 
 	}
 	conn := apiclient.Conn
 
-	var policy *jamfpro.ResponsePolicy
+	var policy *jamfpro.ResourcePolicy
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {

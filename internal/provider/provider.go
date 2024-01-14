@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/accountgroups"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/accounts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiintegrations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiroles"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/buildings"
@@ -18,6 +20,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerextensionattributes"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerinventory"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerprestages"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/departments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/dockitems"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/policies"
@@ -105,27 +108,33 @@ func Provider() *schema.Provider {
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
+			"jamfpro_accounts":                      accounts.DataSourceJamfProAccounts(),
+			"jamfpro_account_groups":                accountgroups.DataSourceJamfProAccountGroups(),
 			"jamfpro_api_integrations":              apiintegrations.DataSourceJamfProApiIntegrations(),
 			"jamfpro_api_roles":                     apiroles.DataSourceJamfProAPIRoles(),
-			"jamfpro_buildings":                     buildings.DataSourceJamfProBuilding(),
+			"jamfpro_buildings":                     buildings.DataSourceJamfProBuildings(),
 			"jamfpro_computer_extension_attributes": computerextensionattributes.DataSourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_groups":               computergroups.DataSourceJamfProComputerGroups(),
 			"jamfpro_computer_inventory":            computerinventory.DataSourceJamfProComputerInventory(),
-			"jamfpro_departments":                   departments.DataSourceJamfProDepartments(),
-			"jamfpro_dock_items":                    dockitems.DataSourceJamfProDockItems(),
-			"jamfpro_sites":                         sites.DataSourceJamfProSites(),
-			"jamfpro_scripts":                       scripts.DataSourceJamfProScripts(),
+			//"jamfpro_computer_prestages":            computerprestages.DataSourceJamfProComputerInventory(),
+			"jamfpro_departments": departments.DataSourceJamfProDepartments(),
+			"jamfpro_dock_items":  dockitems.DataSourceJamfProDockItems(),
+			"jamfpro_sites":       sites.DataSourceJamfProSites(),
+			"jamfpro_scripts":     scripts.DataSourceJamfProScripts(),
 			//"jamfpro_macos_configuration_profiles":  macosconfigurationprofiles.DataSourceJamfProMacOSConfigurationProfiles(),
 			"jamfpro_policies": policies.DataSourceJamfProPolicies(),
 			"jamfpro_printers": printers.DataSourceJamfProPrinters(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
+			"jamfpro_accounts":                      accounts.ResourceJamfProAccounts(),
+			"jamfpro_account_groups":                accountgroups.ResourceJamfProAccountGroups(),
 			"jamfpro_api_integrations":              apiintegrations.ResourceJamfProApiIntegrations(),
 			"jamfpro_api_roles":                     apiroles.ResourceJamfProAPIRoles(),
-			"jamfpro_buildings":                     buildings.ResourceJamfProBuilding(),
+			"jamfpro_buildings":                     buildings.ResourceJamfProBuildings(),
 			"jamfpro_computer_checkin":              computercheckin.ResourceJamfProComputerCheckin(),
 			"jamfpro_computer_extension_attributes": computerextensionattributes.ResourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_groups":               computergroups.ResourceJamfProComputerGroups(),
+			"jamfpro_computer_prestages":            computerprestages.ResourceJamfProComputerPrestage(),
 			"jamfpro_departments":                   departments.ResourceJamfProDepartments(),
 			"jamfpro_dock_items":                    dockitems.ResourceJamfProDockItems(),
 			"jamfpro_sites":                         sites.ResourceJamfProSites(),

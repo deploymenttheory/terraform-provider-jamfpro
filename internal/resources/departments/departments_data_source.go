@@ -4,12 +4,13 @@ package departments
 import (
 	"context"
 	"fmt"
-	"strconv"
 
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -34,6 +35,8 @@ func DataSourceJamfProDepartments() *schema.Resource {
 
 // DataSourceJamfProDepartmentsRead fetches the details of a specific department from Jamf Pro using either its unique Name or its Id.
 func DataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+
 	// Asserts 'meta' as '*client.APIClient'
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -41,49 +44,49 @@ func DataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceDat
 	}
 	conn := apiclient.Conn
 
-	var department *jamfpro.ResponseDepartment
-	var err error
+	var attribute *jamfpro.ResourceDepartment
 
-	// Check if Name is provided in the data source configuration
-	if v, ok := d.GetOk("name"); ok {
-		departmentName, ok := v.(string)
-		if !ok {
-			return diag.Errorf("error asserting 'name' as string")
-		}
-		if departmentName != "" {
-			department, err = conn.GetDepartmentByName(departmentName)
-			if err != nil {
-				return diag.FromErr(fmt.Errorf("failed to fetch department by name: %v", err))
+	// Use the retry function for the read operation
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		// Get the ID from the Terraform state into an integer to be used for the API request
+		attributeID := d.Id()
+
+		// Try fetching the site using the ID
+		var apiErr error
+		attribute, apiErr = conn.GetDepartmentByID(attributeID)
+		if apiErr != nil {
+			// Handle the APIError
+			if apiError, ok := apiErr.(*http_client.APIError); ok {
+				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+			}
+			// If fetching by ID fails, try fetching by Name
+			attributeName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
+			attribute, apiErr = conn.GetDepartmentByName(attributeName)
+			if apiErr != nil {
+				// Handle the APIError
+				if apiError, ok := apiErr.(*http_client.APIError); ok {
+					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+				}
+				return retry.RetryableError(apiErr)
 			}
 		}
-	} else if v, ok := d.GetOk("id"); ok {
-		departmentIDStr, ok := v.(string)
-		if !ok {
-			return diag.Errorf("error asserting 'id' as string")
-		}
-		departmentID, convertErr := strconv.Atoi(departmentIDStr)
-		if convertErr != nil {
-			return diag.FromErr(fmt.Errorf("failed to convert department ID to integer: %v", convertErr))
-		}
-		department, err = conn.GetDepartmentByID(departmentID)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to fetch department by ID: %v", err))
-		}
-	} else {
-		return diag.Errorf("Either 'name' or 'id' must be provided")
+		return nil
+	})
+
+	// Handle error from the retry function
+	if err != nil {
+		// If there's an error while reading the resource, generate diagnostics using the helper function.
+		return generateTFDiagsFromHTTPError(err, d, "read")
 	}
 
-	if department == nil {
-		return diag.FromErr(fmt.Errorf("department not found"))
+	// Safely set attributes in the Terraform state
+	if err := d.Set("name", attribute.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Set the data source attributes using the fetched data
-	if err := d.Set("id", department.ID); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting 'id': %v", err))
-	}
-	if err := d.Set("name", department.Name); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting 'name': %v", err))
-	}
-
-	return nil
+	return diags
 }

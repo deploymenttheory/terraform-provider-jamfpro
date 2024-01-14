@@ -49,9 +49,9 @@ func ResourceJamfProSites() *schema.Resource {
 	}
 }
 
-// constructJamfProSite constructs a ResponseSite object from the provided schema data.
-func constructJamfProSite(d *schema.ResourceData) (*jamfpro.ResponseSite, error) {
-	site := &jamfpro.ResponseSite{}
+// constructJamfProSite constructs a SharedResourceSite object from the provided schema data.
+func constructJamfProSite(d *schema.ResourceData) (*jamfpro.SharedResourceSite, error) {
+	site := &jamfpro.SharedResourceSite{}
 
 	// Utilize type assertion helper functions for direct field extraction
 	site.Name = util.GetStringFromInterface(d.Get("name"))
@@ -104,7 +104,7 @@ func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, met
 	conn := apiclient.Conn
 
 	// Use the retry function for the create operation
-	var createdAttribute *jamfpro.ResponseSite
+	var createdAttribute *jamfpro.SharedResourceSite
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the site
@@ -168,7 +168,7 @@ func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta 
 	}
 	conn := apiclient.Conn
 
-	var attribute *jamfpro.ResponseSite
+	var attribute *jamfpro.SharedResourceSite
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {

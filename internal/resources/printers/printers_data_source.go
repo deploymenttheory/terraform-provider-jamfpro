@@ -100,7 +100,7 @@ func dataSourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, 
 	}
 	conn := apiclient.Conn
 
-	var printer *jamfpro.ResponsePrinters
+	var printer *jamfpro.ResourcePrinter
 	var err error
 
 	// Check if Name is provided in the data source configuration

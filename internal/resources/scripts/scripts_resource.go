@@ -219,7 +219,7 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 	conn := apiclient.Conn
 
 	// Use the retry function for the create operation
-	var createdAttribute *jamfpro.ResponseScriptCreate
+	var createdScript *jamfpro.ResponseScriptCreate
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the script
@@ -229,7 +229,7 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 		}
 
 		// Directly call the API to create the resource
-		createdAttribute, err = conn.CreateScript(attribute)
+		createdScript, err = conn.CreateScript(attribute)
 		if err != nil {
 			// Check if the error is an APIError
 			if apiErr, ok := err.(*http_client.APIError); ok {
@@ -248,7 +248,7 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	// Set the ID of the created resource in the Terraform state
-	d.SetId(createdAttribute.ID)
+	d.SetId(createdScript.ID)
 
 	// Use the retry function for the read operation to update the Terraform state with the resource attributes
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {

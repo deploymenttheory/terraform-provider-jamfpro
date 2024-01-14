@@ -133,3 +133,59 @@ func GetInt(val interface{}) int {
 	}
 	return intVal
 }
+
+// GetStringBoolMapFromInterface safely retrieves a map[string]bool value from an interface{}, handling nil values and various keys.
+func GetStringBoolMapFromInterface(val interface{}) map[string]bool {
+	if val == nil {
+		return nil
+	}
+
+	resultMap := make(map[string]bool)
+	mapVal, ok := val.(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	for key, v := range mapVal {
+		// Assuming that non-existent or non-boolean values should default to false
+		boolVal, _ := v.(bool)
+		resultMap[key] = boolVal
+	}
+	return resultMap
+}
+
+// GetStringSliceFromInterface safely converts an interface slice to a string slice.
+func GetStringSliceFromInterface(input interface{}) []string {
+	var result []string
+	if inputSlice, ok := input.([]interface{}); ok {
+		for _, item := range inputSlice {
+			strVal := GetStringFromInterface(item) // Utilizing existing function
+			if strVal != "" {                      // Append only if the value is non-empty
+				result = append(result, strVal)
+			}
+		}
+	}
+	return result
+}
+
+// ConvertInterfaceSliceToStringMap safely converts an interface slice to a map of string slices.
+func ConvertInterfaceSliceToStringMap(input interface{}) map[string][]string {
+	result := make(map[string][]string)
+	if inputSlice, ok := input.([]interface{}); ok {
+		for _, item := range inputSlice {
+			if itemMap, ok := item.(map[string]interface{}); ok {
+				for key, val := range itemMap {
+					if valSlice, ok := val.([]interface{}); ok {
+						for _, valItem := range valSlice {
+							strVal := GetStringFromInterface(valItem)
+							if strVal != "" {
+								result[key] = append(result[key], strVal)
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return result
+}

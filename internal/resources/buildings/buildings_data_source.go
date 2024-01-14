@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProBuilding provides information about a specific building in Jamf Pro.
-func DataSourceJamfProBuilding() *schema.Resource {
+// DataSourceJamfProBuildings provides information about a specific building in Jamf Pro.
+func DataSourceJamfProBuildings() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: DataSourceBuildingRead,
 		Schema: map[string]*schema.Schema{

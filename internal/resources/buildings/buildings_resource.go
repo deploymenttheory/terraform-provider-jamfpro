@@ -17,8 +17,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProBuilding defines the schema and CRUD operations for managing buildings in Terraform.
-func ResourceJamfProBuilding() *schema.Resource {
+// ResourceJamfProBuildings defines the schema and CRUD operations for managing buildings in Terraform.
+func ResourceJamfProBuildings() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: ResourceJamfProBuildingCreate,
 		ReadContext:   ResourceJamfProBuildingRead,

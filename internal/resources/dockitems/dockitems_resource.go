@@ -80,9 +80,9 @@ func ResourceJamfProDockItems() *schema.Resource {
 	}
 }
 
-// constructJamfProDockItem constructs a ResponseDockItem object from the provided schema data.
-func constructJamfProDockItem(d *schema.ResourceData) (*jamfpro.ResponseDockItem, error) {
-	dockItem := &jamfpro.ResponseDockItem{}
+// constructJamfProDockItem constructs a ResourceDockItem object from the provided schema data.
+func constructJamfProDockItem(d *schema.ResourceData) (*jamfpro.ResourceDockItem, error) {
+	dockItem := &jamfpro.ResourceDockItem{}
 
 	// Utilize type assertion helper functions for direct field extraction
 	dockItem.Name = util.GetStringFromInterface(d.Get("name"))
@@ -138,7 +138,7 @@ func ResourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData,
 	conn := apiclient.Conn
 
 	// Use the retry function for the create operation.
-	var createdDockItem *jamfpro.ResponseDockItem
+	var createdDockItem *jamfpro.ResourceDockItem
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the dock item.
@@ -148,7 +148,7 @@ func ResourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData,
 		}
 
 		// Directly call the API to create the resource.
-		createdDockItem, err = conn.CreateDockItems(dockItem)
+		createdDockItem, err = conn.CreateDockItem(dockItem)
 		if err != nil {
 			// Check if the error is an APIError.
 			if apiErr, ok := err.(*http_client.APIError); ok {
@@ -202,7 +202,7 @@ func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, m
 	}
 	conn := apiclient.Conn
 
-	var dockItem *jamfpro.ResponseDockItem
+	var dockItem *jamfpro.ResourceDockItem
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
@@ -214,7 +214,7 @@ func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, m
 
 		// Try fetching the dock item using the ID
 		var apiErr error
-		dockItem, apiErr = conn.GetDockItemsByID(dockItemID)
+		dockItem, apiErr = conn.GetDockItemByID(dockItemID)
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -226,7 +226,7 @@ func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, m
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
 
-			dockItem, apiErr = conn.GetDockItemsByName(dockItemName)
+			dockItem, apiErr = conn.GetDockItemByName(dockItemName)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -244,18 +244,27 @@ func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, m
 		return generateTFDiagsFromHTTPError(err, d, "read")
 	}
 
-	// Construct the dock item attributes for Terraform state
-	dockItemAttributes := map[string]interface{}{
-		"id":       dockItem.ID,
-		"name":     dockItem.Name,
-		"type":     dockItem.Type,
-		"path":     dockItem.Path,
-		"contents": dockItem.Contents,
-	}
-
-	// Safely set attributes in the Terraform state
-	if err := d.Set("dock_item", []interface{}{dockItemAttributes}); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	// Check if dockItem data exists
+	if dockItem != nil {
+		// Set the fields directly in the Terraform state
+		if err := d.Set("id", strconv.Itoa(dockItem.ID)); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+		if err := d.Set("name", dockItem.Name); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+		if err := d.Set("type", dockItem.Type); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+		if err := d.Set("path", dockItem.Path); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+		if err := d.Set("contents", dockItem.Contents); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	} else {
+		// If the dockItem is not found, clear the ID from the state
+		d.SetId("")
 	}
 
 	return diags
@@ -288,7 +297,7 @@ func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData,
 		}
 
 		// Directly call the API to update the resource by ID
-		_, apiErr := conn.UpdateDockItemsByID(dockItemID, dockItem)
+		_, apiErr := conn.UpdateDockItemByID(dockItemID, dockItem)
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -300,7 +309,7 @@ func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData,
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
 
-			_, apiErr = conn.UpdateDockItemsByName(dockItemName, dockItem)
+			_, apiErr = conn.UpdateDockItemByName(dockItemName, dockItem)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -356,7 +365,7 @@ func ResourceJamfProDockItemsDelete(ctx context.Context, d *schema.ResourceData,
 		}
 
 		// Directly call the API to DELETE the resource
-		apiErr := conn.DeleteDockItemsByID(dockItemID)
+		apiErr := conn.DeleteDockItemByID(dockItemID)
 		if apiErr != nil {
 			// If the DELETE by ID fails, try deleting by name
 			dockItemName, ok := d.Get("name").(string)
@@ -364,7 +373,7 @@ func ResourceJamfProDockItemsDelete(ctx context.Context, d *schema.ResourceData,
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
 
-			apiErr = conn.DeleteDockItemsByName(dockItemName)
+			apiErr = conn.DeleteDockItemByName(dockItemName)
 			if apiErr != nil {
 				return retry.RetryableError(apiErr)
 			}

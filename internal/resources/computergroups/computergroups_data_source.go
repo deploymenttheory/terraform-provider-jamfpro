@@ -152,7 +152,7 @@ func DataSourceJamfProComputerGroupsRead(ctx context.Context, d *schema.Resource
 	}
 	conn := apiclient.Conn
 
-	var group *jamfpro.ResponseComputerGroup
+	var group *jamfpro.ResourceComputerGroup
 	var err error
 
 	// Check if Name is provided in the data source configuration
@@ -201,17 +201,18 @@ func DataSourceJamfProComputerGroupsRead(ctx context.Context, d *schema.Resource
 	}
 
 	// Set the criteria
-	criteriaList := make([]interface{}, len(group.Criteria))
-	for i, criteria := range group.Criteria {
-		criteriaList[i] = map[string]interface{}{
-			"name":          criteria.Name,
-			"priority":      criteria.Priority,
-			"and_or":        string(criteria.AndOr),
-			"search_type":   criteria.SearchType,
-			"value":         criteria.SearchValue,
-			"opening_paren": criteria.OpeningParen,
-			"closing_paren": criteria.ClosingParen,
+	criteriaList := make([]interface{}, len(group.Criteria.Criterion))
+	for i, crit := range group.Criteria.Criterion {
+		criteriaMap := map[string]interface{}{
+			"name":          crit.Name,
+			"priority":      crit.Priority,
+			"and_or":        crit.AndOr,
+			"search_type":   crit.SearchType,
+			"value":         crit.Value,
+			"opening_paren": crit.OpeningParen,
+			"closing_paren": crit.ClosingParen,
 		}
+		criteriaList[i] = criteriaMap
 	}
 
 	if err := d.Set("criteria", criteriaList); err != nil {
