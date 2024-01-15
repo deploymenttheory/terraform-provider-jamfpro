@@ -566,6 +566,50 @@ func ResourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, met
 		d.Set("site", []interface{}{}) // Clear the site data if not present
 	}
 
+	// Update groups information
+	var groups []map[string]interface{}
+	for _, group := range account.Groups {
+		groupMap := make(map[string]interface{})
+		groupMap["id"] = group.ID
+		groupMap["name"] = group.Name
+
+		// Construct Site for the group
+		if group.Site.ID != 0 || group.Site.Name != "" {
+			siteMap := make(map[string]interface{})
+			siteMap["id"] = group.Site.ID
+			siteMap["name"] = group.Site.Name
+			groupMap["site"] = []interface{}{siteMap}
+		} else {
+			groupMap["site"] = []interface{}{} // Clear the site data if not present
+		}
+
+		// Construct Privileges for the group
+		privilegesMap := make(map[string]interface{})
+		if len(group.Privileges.JSSObjects) > 0 {
+			privilegesMap["jss_objects"] = group.Privileges.JSSObjects
+		}
+		if len(group.Privileges.JSSSettings) > 0 {
+			privilegesMap["jss_settings"] = group.Privileges.JSSSettings
+		}
+		if len(group.Privileges.JSSActions) > 0 {
+			privilegesMap["jss_actions"] = group.Privileges.JSSActions
+		}
+		// ... Include checks for other privilege types ...
+
+		// If any privileges were set, add them to the groupMap
+		if len(privilegesMap) > 0 {
+			groupMap["privileges"] = []interface{}{privilegesMap}
+		} else {
+			groupMap["privileges"] = []interface{}{} // Clear the privileges data if not present
+		}
+
+		groups = append(groups, groupMap)
+	}
+
+	if err := d.Set("groups", groups); err != nil {
+		return diag.FromErr(err)
+	}
+
 	// Update privileges
 	if err := d.Set("jss_objects_privileges", account.Privileges.JSSObjects); err != nil {
 		return diag.FromErr(err)
