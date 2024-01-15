@@ -6,7 +6,7 @@ toolchain go1.21.0
 
 require (
 	github.com/bflad/tfproviderlint v0.29.0
-	github.com/deploymenttheory/go-api-sdk-jamfpro v1.0.3
+	github.com/deploymenttheory/go-api-sdk-jamfpro v1.0.5
 	github.com/hashicorp/terraform-plugin-docs v0.16.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.31.0
 	github.com/stretchr/testify v1.8.4
