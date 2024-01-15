@@ -60,8 +60,8 @@ func ResourceJamfProAccounts() *schema.Resource {
 			},
 			"enabled": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The enabled status of the account.",
+				Required:    true,
+				Description: "Access status of the account (“enabled” or “disabled”).",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := util.GetString(val)
 					if v == "Enabled" || v == "Disabled" {
@@ -82,7 +82,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 							Type:        schema.TypeInt,
 							Optional:    true,
 							Description: "The ID of the LDAP server.",
-							Default:     "0",
+							Default:     "",
 						},
 						"name": {
 							Type:        schema.TypeString,
@@ -144,7 +144,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 							Type:        schema.TypeInt,
 							Optional:    true,
 							Description: "Jamf Pro Site ID. Value defaults to '0' aka not used.",
-							Default:     "0",
+							Default:     "",
 						},
 						"name": {
 							Type:        schema.TypeString,
@@ -430,21 +430,32 @@ func ResourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, met
 	d.Set("enabled", account.Enabled)
 
 	// Update LDAP server information
-	ldapServer := make(map[string]interface{})
-	ldapServer["id"] = account.LdapServer.ID
-	ldapServer["name"] = account.LdapServer.Name
-	d.Set("ldap_server", []interface{}{ldapServer})
+	if account.LdapServer.ID != 0 || account.LdapServer.Name != "" {
+		ldapServer := make(map[string]interface{})
+		ldapServer["id"] = account.LdapServer.ID
+		ldapServer["name"] = account.LdapServer.Name
+		d.Set("ldap_server", []interface{}{ldapServer})
+	} else {
+		d.Set("ldap_server", []interface{}{}) // Clear the LDAP server data if not present
+	}
 
 	d.Set("force_password_change", account.ForcePasswordChange)
 	d.Set("access_level", account.AccessLevel)
-	d.Set("password", account.Password)
+	// Set password only if it's provided in the configuration
+	if _, ok := d.GetOk("password"); ok {
+		d.Set("password", account.Password)
+	}
 	d.Set("privilege_set", account.PrivilegeSet)
 
 	// Update site information
-	site := make(map[string]interface{})
-	site["id"] = account.Site.ID
-	site["name"] = account.Site.Name
-	d.Set("site", []interface{}{site})
+	if account.Site.ID != 0 || account.Site.Name != "" {
+		site := make(map[string]interface{})
+		site["id"] = account.Site.ID
+		site["name"] = account.Site.Name
+		d.Set("site", []interface{}{site})
+	} else {
+		d.Set("site", []interface{}{}) // Clear the site data if not present
+	}
 
 	// Update privileges
 	if err := d.Set("jss_objects_privileges", account.Privileges.JSSObjects); err != nil {
