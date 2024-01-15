@@ -27,44 +27,44 @@ func DataSourceJamfProAccounts() *schema.Resource {
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Computed:    true,
 				Description: "The name of the jamf pro account.",
 			},
 			"directory_user": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Computed:    true,
 				Description: "Indicates if the user is a directory user.",
 			},
 			"full_name": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "The full name of the account user.",
 			},
 			"email": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "The email of the account user.",
 			},
 			"enabled": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The enabled status of the account.",
+				Computed:    true,
+				Description: "Access status of the account (“enabled” or “disabled”).",
 			},
 			"ldap_server": {
 				Type:        schema.TypeList,
-				Optional:    true,
+				Computed:    true,
 				MaxItems:    1,
 				Description: "LDAP server information associated with the account.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:        schema.TypeInt,
-							Optional:    true,
+							Computed:    true,
 							Description: "The ID of the LDAP server.",
 						},
 						"name": {
 							Type:        schema.TypeString,
-							Optional:    true,
+							Computed:    true,
 							Description: "The name of the LDAP server.",
 						},
 					},
@@ -72,99 +72,169 @@ func DataSourceJamfProAccounts() *schema.Resource {
 			},
 			"force_password_change": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Computed:    true,
 				Description: "Indicates if the user is forced to change password on next login.",
 			},
 			"access_level": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The access level of the account.",
+				Computed:    true,
+				Description: "The access level of the account. This can be either Full Access, scoped to a jamf pro site with Site Access, or scoped to a jamf pro account group with Group Access",
 			},
 			"password": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "The password for the account.",
-				Sensitive:   true,
 			},
 			"privilege_set": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "The privilege set assigned to the account.",
 			},
 			"site": {
 				Type:        schema.TypeList,
-				Optional:    true,
+				Computed:    true,
 				MaxItems:    1,
-				Description: "The site information associated with the account group.",
+				Description: "The site information associated with the account group if access_level is set to Site Access.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "Jamf Pro Site ID. Value defaults to -1 aka not used.",
-							Default:     -1,
+							Computed:    true,
+							Description: "Jamf Pro Site ID. Value defaults to '0' aka not used.",
 						},
 						"name": {
 							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Jamf Pro Site Name. Value defaults to 'None' aka not used",
 							Computed:    true,
+							Description: "Jamf Pro Site Name",
+						},
+					},
+				},
+			},
+			"groups": {
+				Type:        schema.TypeList,
+				Computed:    true,
+				Description: "A list of group information associated with the account.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: "The ID of the group.",
+						},
+						"name": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The name of the group.",
+						},
+						"site": {
+							Type:        schema.TypeList,
+							Computed:    true,
+							MaxItems:    1,
+							Description: "The site information associated with the group.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"id": {
+										Type:        schema.TypeInt,
+										Computed:    true,
+										Description: "Jamf Pro Site ID.",
+									},
+									"name": {
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: "Jamf Pro Site Name.",
+									},
+								},
+							},
+						},
+						"privileges": {
+							Type:        schema.TypeList,
+							Computed:    true,
+							Description: "The privileges assigned to the group.",
+							MaxItems:    1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"jss_objects": {
+										Type:        schema.TypeList,
+										Computed:    true,
+										Description: "Privileges related to JSS Objects.",
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+									"jss_settings": {
+										Type:        schema.TypeList,
+										Computed:    true,
+										Description: "Privileges related to JSS Settings.",
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+									"jss_actions": {
+										Type:        schema.TypeList,
+										Computed:    true,
+										Description: "Privileges related to JSS Actions.",
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
 						},
 					},
 				},
 			},
 			"jss_objects_privileges": {
 				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Jamf Pro account privileges related to JSS Objects.",
+				Computed:    true,
+				Description: "Privileges related to JSS Objects.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
 			"jss_settings_privileges": {
 				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Jamf Pro account privileges related to JSS Settings.",
+				Computed:    true,
+				Description: "Privileges related to JSS Settings.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
 			"jss_actions_privileges": {
 				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Jamf Pro account privileges related to JSS Actions.",
+				Computed:    true,
+				Description: "Privileges related to JSS Actions.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
 			"casper_admin_privileges": {
 				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Jamf Pro account privileges related to Casper Admin.",
+				Computed:    true,
+				Description: "Privileges related to Casper Admin.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
 			"casper_remote_privileges": {
 				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Jamf Pro account privileges related to Casper Remote.",
+				Computed:    true,
+				Description: "Privileges related to Casper Remote.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
 			"casper_imaging_privileges": {
 				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Jamf Pro account privileges related to Casper Imaging.",
+				Computed:    true,
+				Description: "Privileges related to Casper Imaging.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
 			"recon_privileges": {
 				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Jamf Pro account privileges related to Recon.",
+				Computed:    true,
+				Description: "Privileges related to Recon.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},

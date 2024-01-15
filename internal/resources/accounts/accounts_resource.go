@@ -101,13 +101,13 @@ func ResourceJamfProAccounts() *schema.Resource {
 			"access_level": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The access level of the account. This can be either Full Access, or scoped to a jamf pro site with Site Access",
+				Description: "The access level of the account. This can be either Full Access, scoped to a jamf pro site with Site Access, or scoped to a jamf pro account group with Group Access",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := util.GetString(val)
-					if v == "Full Access" || v == "Site Access" {
+					if v == "Full Access" || v == "Site Access" || v == "Group Access" {
 						return
 					}
-					errs = append(errs, fmt.Errorf("%q must be either 'Full Access' or 'Site Access', got: %s", key, v))
+					errs = append(errs, fmt.Errorf("%q must be either 'Full Access' or 'Site Access' or 'Group Access', got: %s", key, v))
 					return warns, errs
 				},
 			},
@@ -151,6 +151,79 @@ func ResourceJamfProAccounts() *schema.Resource {
 							Optional:    true,
 							Description: "Jamf Pro Site Name",
 							Computed:    true,
+						},
+					},
+				},
+			},
+			"groups": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "A list of group information associated with the account.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:        schema.TypeInt,
+							Optional:    true,
+							Description: "The ID of the group.",
+						},
+						"name": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "The name of the group.",
+						},
+						"site": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: "The site information associated with the group.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"id": {
+										Type:        schema.TypeInt,
+										Optional:    true,
+										Description: "Jamf Pro Site ID.",
+									},
+									"name": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "Jamf Pro Site Name.",
+									},
+								},
+							},
+						},
+						"privileges": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							Description: "The privileges assigned to the group.",
+							MaxItems:    1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"jss_objects": {
+										Type:        schema.TypeList,
+										Optional:    true,
+										Description: "Privileges related to JSS Objects.",
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+									"jss_settings": {
+										Type:        schema.TypeList,
+										Optional:    true,
+										Description: "Privileges related to JSS Settings.",
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+									"jss_actions": {
+										Type:        schema.TypeList,
+										Optional:    true,
+										Description: "Privileges related to JSS Actions.",
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -255,6 +328,42 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 				ID:   util.GetIntFromInterface(siteMap["id"]),
 				Name: util.GetStringFromInterface(siteMap["name"]),
 			}
+		}
+	}
+
+	// Construct Groups
+	if v, ok := d.GetOk("groups"); ok {
+		groupsList := v.([]interface{})
+		for _, groupItem := range groupsList {
+			groupMap := groupItem.(map[string]interface{})
+			group := jamfpro.AccountsListSubsetGroups{
+				ID:   util.GetIntFromInterface(groupMap["id"]),
+				Name: util.GetStringFromInterface(groupMap["name"]),
+			}
+
+			// Construct Site for the group
+			if site, siteOk := groupMap["site"].([]interface{}); siteOk && len(site) > 0 {
+				siteMap := site[0].(map[string]interface{})
+				group.Site = jamfpro.SharedResourceSite{
+					ID:   util.GetIntFromInterface(siteMap["id"]),
+					Name: util.GetStringFromInterface(siteMap["name"]),
+				}
+			}
+
+			// Construct Privileges for the group
+			if privileges, privOk := groupMap["privileges"].([]interface{}); privOk && len(privileges) > 0 {
+				privilegesMap := privileges[0].(map[string]interface{})
+				groupPrivileges := jamfpro.AccountSubsetPrivileges{}
+
+				groupPrivileges.JSSObjects = util.GetStringSliceFromInterface(privilegesMap["jss_objects"])
+				groupPrivileges.JSSSettings = util.GetStringSliceFromInterface(privilegesMap["jss_settings"])
+				groupPrivileges.JSSActions = util.GetStringSliceFromInterface(privilegesMap["jss_actions"])
+				// ... Include other privilege types ...
+
+				group.Privileges = groupPrivileges
+			}
+
+			account.Groups = append(account.Groups, group)
 		}
 	}
 
