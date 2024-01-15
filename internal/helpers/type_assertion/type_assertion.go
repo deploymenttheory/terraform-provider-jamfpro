@@ -189,3 +189,13 @@ func ConvertInterfaceSliceToStringMap(input interface{}) map[string][]string {
 	}
 	return result
 }
+
+// GetStringFromSlice checks if a string is present in a slice of strings.
+func GetStringFromSlice(slice []interface{}, str string) bool {
+	for _, v := range slice {
+		if val, ok := v.(string); ok && val == str {
+			return true
+		}
+	}
+	return false
+}

@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 // ResourceJamfProAccount defines the schema and CRUD operations for managing buildings in Terraform.
@@ -63,6 +62,14 @@ func ResourceJamfProAccounts() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The enabled status of the account.",
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := util.GetString(val)
+					if v == "Enabled" || v == "Disabled" {
+						return
+					}
+					errs = append(errs, fmt.Errorf("%q must be either 'Enabled' or 'Disabled', got: %s", key, v))
+					return warns, errs
+				},
 			},
 			"ldap_server": {
 				Type:        schema.TypeList,
@@ -75,11 +82,13 @@ func ResourceJamfProAccounts() *schema.Resource {
 							Type:        schema.TypeInt,
 							Optional:    true,
 							Description: "The ID of the LDAP server.",
+							Default:     "0",
 						},
 						"name": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "The name of the LDAP server.",
+							Computed:    true,
 						},
 					},
 				},
@@ -90,10 +99,17 @@ func ResourceJamfProAccounts() *schema.Resource {
 				Description: "Indicates if the user is forced to change password on next login.",
 			},
 			"access_level": {
-				Type:         schema.TypeString,
-				Required:     true,
-				Description:  "The access level of the account. This can be either Full Access, or scoped to a jamf pro site with Site Access",
-				ValidateFunc: validation.StringInSlice([]string{"Full Access", "Site Access"}, false),
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The access level of the account. This can be either Full Access, or scoped to a jamf pro site with Site Access",
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := util.GetString(val)
+					if v == "Full Access" || v == "Site Access" {
+						return
+					}
+					errs = append(errs, fmt.Errorf("%q must be either 'Full Access' or 'Site Access', got: %s", key, v))
+					return warns, errs
+				},
 			},
 			"password": {
 				Type:        schema.TypeString,
@@ -102,10 +118,20 @@ func ResourceJamfProAccounts() *schema.Resource {
 				Sensitive:   true,
 			},
 			"privilege_set": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Description:  "The privilege set assigned to the account.",
-				ValidateFunc: validation.StringInSlice([]string{"Administrator", "Auditor", "Enrollment Only", "Custom"}, false),
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The privilege set assigned to the account.",
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := util.GetString(val)
+					validPrivileges := []string{"Administrator", "Auditor", "Enrollment Only", "Custom"}
+					for _, validPriv := range validPrivileges {
+						if v == validPriv {
+							return // Valid value found, return without error
+						}
+					}
+					errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validPrivileges, v))
+					return warns, errs
+				},
 			},
 			"site": {
 				Type:        schema.TypeList,
@@ -117,13 +143,13 @@ func ResourceJamfProAccounts() *schema.Resource {
 						"id": {
 							Type:        schema.TypeInt,
 							Optional:    true,
-							Description: "Jamf Pro Site ID. Value defaults to -1 aka not used.",
-							Default:     -1,
+							Description: "Jamf Pro Site ID. Value defaults to '0' aka not used.",
+							Default:     "0",
 						},
 						"name": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "Jamf Pro Site Name. Value defaults to 'None' aka not used",
+							Description: "Jamf Pro Site Name",
 							Computed:    true,
 						},
 					},
