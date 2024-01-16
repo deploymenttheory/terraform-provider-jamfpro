@@ -193,7 +193,7 @@ func constructJamfProAccountGroup(d *schema.ResourceData) (*jamfpro.ResourceAcco
 				Name: util.GetStringFromInterface(memberMap["name"]),
 			}
 			members = append(members, struct {
-				User jamfpro.MemberUser `json:"user" xml:"user"`
+				User jamfpro.MemberUser `json:"user,omitempty" xml:"user,omitempty"`
 			}{
 				User: memberUser,
 			})

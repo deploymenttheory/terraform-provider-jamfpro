@@ -53,7 +53,6 @@ func DataSourceJamfProAccounts() *schema.Resource {
 			"ldap_server": {
 				Type:        schema.TypeList,
 				Computed:    true,
-				MaxItems:    1,
 				Description: "LDAP server information associated with the account.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -93,7 +92,6 @@ func DataSourceJamfProAccounts() *schema.Resource {
 			"site": {
 				Type:        schema.TypeList,
 				Computed:    true,
-				MaxItems:    1,
 				Description: "The site information associated with the account group if access_level is set to Site Access.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -129,7 +127,6 @@ func DataSourceJamfProAccounts() *schema.Resource {
 						"site": {
 							Type:        schema.TypeList,
 							Computed:    true,
-							MaxItems:    1,
 							Description: "The site information associated with the group.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -150,7 +147,6 @@ func DataSourceJamfProAccounts() *schema.Resource {
 							Type:        schema.TypeList,
 							Computed:    true,
 							Description: "The privileges assigned to the group.",
-							MaxItems:    1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"jss_objects": {
@@ -245,6 +241,7 @@ func DataSourceJamfProAccounts() *schema.Resource {
 
 // dataSourceJamfProAccountRead fetches the details of specific account from Jamf Pro using either their unique Name or Id.
 func dataSourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+
 	var diags diag.Diagnostics
 
 	// Asserts 'meta' as '*client.APIClient'
@@ -303,21 +300,76 @@ func dataSourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, m
 	d.Set("enabled", account.Enabled)
 
 	// Update LDAP server information
-	ldapServer := make(map[string]interface{})
-	ldapServer["id"] = account.LdapServer.ID
-	ldapServer["name"] = account.LdapServer.Name
-	d.Set("ldap_server", []interface{}{ldapServer})
+	if account.LdapServer.ID != 0 || account.LdapServer.Name != "" {
+		ldapServer := make(map[string]interface{})
+		ldapServer["id"] = account.LdapServer.ID
+		ldapServer["name"] = account.LdapServer.Name
+		d.Set("ldap_server", []interface{}{ldapServer})
+	} else {
+		d.Set("ldap_server", []interface{}{}) // Clear the LDAP server data if not present
+	}
 
 	d.Set("force_password_change", account.ForcePasswordChange)
 	d.Set("access_level", account.AccessLevel)
-	d.Set("password", account.Password)
+	// Set password only if it's provided in the configuration
+	if _, ok := d.GetOk("password"); ok {
+		d.Set("password", account.Password)
+	}
 	d.Set("privilege_set", account.PrivilegeSet)
 
 	// Update site information
-	site := make(map[string]interface{})
-	site["id"] = account.Site.ID
-	site["name"] = account.Site.Name
-	d.Set("site", []interface{}{site})
+	if account.Site.ID != 0 || account.Site.Name != "" {
+		site := make(map[string]interface{})
+		site["id"] = account.Site.ID
+		site["name"] = account.Site.Name
+		d.Set("site", []interface{}{site})
+	} else {
+		d.Set("site", []interface{}{}) // Clear the site data if not present
+	}
+
+	// Update groups information
+	var groups []map[string]interface{}
+	for _, group := range account.Groups {
+		groupMap := make(map[string]interface{})
+		groupMap["id"] = group.ID
+		groupMap["name"] = group.Name
+
+		// Construct Site for the group
+		if group.Site.ID != 0 || group.Site.Name != "" {
+			siteMap := make(map[string]interface{})
+			siteMap["id"] = group.Site.ID
+			siteMap["name"] = group.Site.Name
+			groupMap["site"] = []interface{}{siteMap}
+		} else {
+			groupMap["site"] = []interface{}{} // Clear the site data if not present
+		}
+
+		// Construct Privileges for the group
+		privilegesMap := make(map[string]interface{})
+		if len(group.Privileges.JSSObjects) > 0 {
+			privilegesMap["jss_objects"] = group.Privileges.JSSObjects
+		}
+		if len(group.Privileges.JSSSettings) > 0 {
+			privilegesMap["jss_settings"] = group.Privileges.JSSSettings
+		}
+		if len(group.Privileges.JSSActions) > 0 {
+			privilegesMap["jss_actions"] = group.Privileges.JSSActions
+		}
+		// ... Include checks for other privilege types ...
+
+		// If any privileges were set, add them to the groupMap
+		if len(privilegesMap) > 0 {
+			groupMap["privileges"] = []interface{}{privilegesMap}
+		} else {
+			groupMap["privileges"] = []interface{}{} // Clear the privileges data if not present
+		}
+
+		groups = append(groups, groupMap)
+	}
+
+	if err := d.Set("groups", groups); err != nil {
+		return diag.FromErr(err)
+	}
 
 	// Update privileges
 	if err := d.Set("jss_objects_privileges", account.Privileges.JSSObjects); err != nil {

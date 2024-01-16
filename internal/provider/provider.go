@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/accountgroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/accounts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiintegrations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiroles"
@@ -107,8 +108,8 @@ func Provider() *schema.Provider {
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"jamfpro_accounts": accounts.DataSourceJamfProAccounts(),
-			//"jamfpro_account_groups":                accountgroups.DataSourceJamfProAccountGroups(),
+			"jamfpro_accounts":                      accounts.DataSourceJamfProAccounts(),
+			"jamfpro_account_groups":                accountgroups.DataSourceJamfProAccountGroups(),
 			"jamfpro_api_integrations":              apiintegrations.DataSourceJamfProApiIntegrations(),
 			"jamfpro_api_roles":                     apiroles.DataSourceJamfProAPIRoles(),
 			"jamfpro_buildings":                     buildings.DataSourceJamfProBuildings(),
@@ -125,8 +126,8 @@ func Provider() *schema.Provider {
 			"jamfpro_printers": printers.DataSourceJamfProPrinters(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"jamfpro_accounts": accounts.ResourceJamfProAccounts(),
-			//"jamfpro_account_groups":                accountgroups.ResourceJamfProAccountGroups(),
+			"jamfpro_accounts":                      accounts.ResourceJamfProAccounts(),
+			"jamfpro_account_groups":                accountgroups.ResourceJamfProAccountGroups(),
 			"jamfpro_api_integrations":              apiintegrations.ResourceJamfProApiIntegrations(),
 			"jamfpro_api_roles":                     apiroles.ResourceJamfProAPIRoles(),
 			"jamfpro_buildings":                     buildings.ResourceJamfProBuildings(),
