@@ -12,6 +12,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -234,7 +235,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 				Description: "Privileges related to JSS Objects.",
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validateJSSObjectsPrivileges,
+					ValidateFunc: common.ValidateJSSObjectsPrivileges,
 				},
 			},
 			"jss_settings_privileges": {
@@ -243,7 +244,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 				Description: "Privileges related to JSS Settings.",
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validateJSSSettingsPrivileges,
+					ValidateFunc: common.ValidateJSSSettingsPrivileges,
 				},
 			},
 			"jss_actions_privileges": {
@@ -252,7 +253,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 				Description: "Privileges related to JSS Actions.",
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validateJSSActionsPrivileges,
+					ValidateFunc: common.ValidateJSSActionsPrivileges,
 				},
 			},
 			"casper_admin_privileges": {
@@ -261,7 +262,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 				Description: "Privileges related to Casper Admin.",
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validateCasperAdminPrivileges,
+					ValidateFunc: common.ValidateCasperAdminPrivileges,
 				},
 			},
 			"casper_remote_privileges": {
