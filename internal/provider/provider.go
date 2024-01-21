@@ -13,6 +13,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/accountgroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/accounts"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/allowedfileextensions"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiintegrations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiroles"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/buildings"
@@ -128,6 +129,7 @@ func Provider() *schema.Provider {
 		ResourcesMap: map[string]*schema.Resource{
 			"jamfpro_accounts":                      accounts.ResourceJamfProAccounts(),
 			"jamfpro_account_groups":                accountgroups.ResourceJamfProAccountGroups(),
+			"jamfpro_allowed_file_extension":        allowedfileextensions.ResourceJamfProAllowedFileExtensions(),
 			"jamfpro_api_integrations":              apiintegrations.ResourceJamfProApiIntegrations(),
 			"jamfpro_api_roles":                     apiroles.ResourceJamfProAPIRoles(),
 			"jamfpro_buildings":                     buildings.ResourceJamfProBuildings(),

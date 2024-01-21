@@ -444,6 +444,7 @@ var ValidJSSActionsPrivileges = []string{
 	"Flush MDM Commands",
 	"Flush Policy Logs",
 	"Jamf Packages Action",
+	"Remove Jamf Parent management capabilities",
 	"Remove restrictions set by Jamf Parent",
 	"CLEAR_TEACHER_PROFILE_PRIVILEGE",
 	"Renewal of the Built-in Certificate Authority",

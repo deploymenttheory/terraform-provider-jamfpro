@@ -59,6 +59,11 @@ func ResourceJamfProAccounts() *schema.Resource {
 				Optional:    true,
 				Description: "The email of the account user.",
 			},
+			"email_address": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The email address of the account user.",
+			},
 			"enabled": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -157,73 +162,95 @@ func ResourceJamfProAccounts() *schema.Resource {
 				},
 			},
 			"groups": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
-				Description: "A list of group information associated with the account.",
+				Description: "A set of group names and IDs associated with the account.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "The ID of the group.",
-						},
 						"name": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The name of the group.",
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"id": {
+							Type:     schema.TypeInt,
+							Computed: true,
 						},
 						"site": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							MaxItems:    1,
-							Description: "The site information associated with the group.",
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "Jamf Pro Site ID.",
+										Type:     schema.TypeInt,
+										Optional: true,
 									},
 									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "Jamf Pro Site Name.",
+										Type:     schema.TypeString,
+										Optional: true,
+										Computed: true,
 									},
 								},
 							},
 						},
-						"privileges": {
+						"jss_objects_privileges": {
 							Type:        schema.TypeList,
 							Optional:    true,
-							Description: "The privileges assigned to the group.",
-							MaxItems:    1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"jss_objects": {
-										Type:        schema.TypeList,
-										Optional:    true,
-										Description: "Privileges related to JSS Objects.",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-									"jss_settings": {
-										Type:        schema.TypeList,
-										Optional:    true,
-										Description: "Privileges related to JSS Settings.",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-									"jss_actions": {
-										Type:        schema.TypeList,
-										Optional:    true,
-										Description: "Privileges related to JSS Actions.",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
+							Description: "Privileges related to JSS Objects.",
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: common.ValidateJSSObjectsPrivileges,
+							},
+						},
+						"jss_settings_privileges": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							Description: "Privileges related to JSS Settings.",
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: common.ValidateJSSSettingsPrivileges,
+							},
+						},
+						"jss_actions_privileges": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							Description: "Privileges related to JSS Actions.",
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: common.ValidateJSSActionsPrivileges,
+							},
+						},
+						"casper_admin_privileges": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							Description: "Privileges related to Casper Admin.",
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: common.ValidateCasperAdminPrivileges,
+							},
+						},
+						"casper_remote_privileges": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							Description: "Privileges related to Casper Remote.",
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"casper_imaging_privileges": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							Description: "Privileges related to Casper Imaging.",
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"recon_privileges": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							Description: "Privileges related to Recon.",
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
 							},
 						},
 					},
@@ -294,7 +321,8 @@ func ResourceJamfProAccounts() *schema.Resource {
 }
 
 // constructJamfProAccount constructs an Account object from the provided schema data.
-func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, error) {
+func constructJamfProAccount(d *schema.ResourceData, client *jamfpro.Client) (*jamfpro.ResourceAccount, error) {
+	//func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, error) {
 	account := &jamfpro.ResourceAccount{}
 
 	// Utilize type assertion helper functions for direct field extraction
@@ -332,38 +360,32 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 		}
 	}
 
-	// Construct Groups
+	// Get all accounts to map group names to IDs
+	allAccounts, err := client.GetAccounts()
+	if err != nil {
+		return nil, err
+	}
+
+	groupNameToID := make(map[string]int)
+	for _, group := range allAccounts.Groups {
+		groupNameToID[group.Name] = group.ID
+	}
+
+	// Construct Groups with inferred IDs
 	if v, ok := d.GetOk("groups"); ok {
-		groupsList := v.([]interface{})
-		for _, groupItem := range groupsList {
+		groupsSet := v.(*schema.Set)
+		for _, groupItem := range groupsSet.List() {
 			groupMap := groupItem.(map[string]interface{})
+			groupName := groupMap["name"].(string)
+			groupID, exists := groupNameToID[groupName]
+			if !exists {
+				return nil, fmt.Errorf("group name %s does not exist", groupName)
+			}
 			group := jamfpro.AccountsListSubsetGroups{
-				ID:   util.GetIntFromInterface(groupMap["id"]),
-				Name: util.GetStringFromInterface(groupMap["name"]),
+				ID:   groupID,
+				Name: groupName,
 			}
-
-			// Construct Site for the group
-			if site, siteOk := groupMap["site"].([]interface{}); siteOk && len(site) > 0 {
-				siteMap := site[0].(map[string]interface{})
-				group.Site = jamfpro.SharedResourceSite{
-					ID:   util.GetIntFromInterface(siteMap["id"]),
-					Name: util.GetStringFromInterface(siteMap["name"]),
-				}
-			}
-
-			// Construct Privileges for the group
-			if privileges, privOk := groupMap["privileges"].([]interface{}); privOk && len(privileges) > 0 {
-				privilegesMap := privileges[0].(map[string]interface{})
-				groupPrivileges := jamfpro.AccountSubsetPrivileges{}
-
-				groupPrivileges.JSSObjects = util.GetStringSliceFromInterface(privilegesMap["jss_objects"])
-				groupPrivileges.JSSSettings = util.GetStringSliceFromInterface(privilegesMap["jss_settings"])
-				groupPrivileges.JSSActions = util.GetStringSliceFromInterface(privilegesMap["jss_actions"])
-				// ... Include other privilege types ...
-
-				group.Privileges = groupPrivileges
-			}
-
+			// ... Process other fields like 'site' and 'privileges' similarly
 			account.Groups = append(account.Groups, group)
 		}
 	}
@@ -424,20 +446,25 @@ func ResourceJamfProAccountCreate(ctx context.Context, d *schema.ResourceData, m
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
-	conn := apiclient.Conn
+
+	// The apiclient, which is of type *client.APIClient, holds a reference to the Jamf Pro client in its Conn field.
+	// By assigning apiclient.Conn to jamfProClient, we are obtaining the actual Jamf Pro client (*jamfpro.Client)
+	// that will be used for making API calls to the Jamf Pro server.
+	// This Jamf Pro client is then passed to other functions that require it, like constructJamfProAccount.
+	jamfProClient := apiclient.Conn
 
 	// Use the retry function for the create operation
 	var createdAccount *jamfpro.ResponseAccountCreatedAndUpdated
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the account
-		account, err := constructJamfProAccount(d)
+		account, err := constructJamfProAccount(d, jamfProClient)
 		if err != nil {
 			return retry.NonRetryableError(fmt.Errorf("failed to construct the account for terraform create: %w", err))
 		}
 
 		// Directly call the API to create the resource
-		createdAccount, err = conn.CreateAccount(account)
+		createdAccount, err = jamfProClient.CreateAccount(account)
 		if err != nil {
 			// Check if the error is an APIError
 			if apiErr, ok := err.(*http_client.APIError); ok {
@@ -567,44 +594,33 @@ func ResourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, met
 		d.Set("site", []interface{}{}) // Clear the site data if not present
 	}
 
-	// Update groups information
-	var groups []map[string]interface{}
-	for _, group := range account.Groups {
+	// Construct and set the groups attribute
+	groups := make([]interface{}, len(account.Groups))
+	for i, group := range account.Groups {
 		groupMap := make(map[string]interface{})
-		groupMap["id"] = group.ID
 		groupMap["name"] = group.Name
+		groupMap["id"] = group.ID
 
-		// Construct Site for the group
+		// Construct Site subfield
 		if group.Site.ID != 0 || group.Site.Name != "" {
-			siteMap := make(map[string]interface{})
-			siteMap["id"] = group.Site.ID
-			siteMap["name"] = group.Site.Name
-			groupMap["site"] = []interface{}{siteMap}
+			site := make(map[string]interface{})
+			site["id"] = group.Site.ID
+			site["name"] = group.Site.Name
+			groupMap["site"] = []interface{}{site}
 		} else {
-			groupMap["site"] = []interface{}{} // Clear the site data if not present
+			groupMap["site"] = []interface{}{} // Clear the Site data if not present
 		}
 
-		// Construct Privileges for the group
-		privilegesMap := make(map[string]interface{})
-		if len(group.Privileges.JSSObjects) > 0 {
-			privilegesMap["jss_objects"] = group.Privileges.JSSObjects
-		}
-		if len(group.Privileges.JSSSettings) > 0 {
-			privilegesMap["jss_settings"] = group.Privileges.JSSSettings
-		}
-		if len(group.Privileges.JSSActions) > 0 {
-			privilegesMap["jss_actions"] = group.Privileges.JSSActions
-		}
-		// ... Include checks for other privilege types ...
+		// Map privileges from the AccountSubsetPrivileges struct to the Terraform schema
+		groupMap["jss_objects_privileges"] = group.Privileges.JSSObjects
+		groupMap["jss_settings_privileges"] = group.Privileges.JSSSettings
+		groupMap["jss_actions_privileges"] = group.Privileges.JSSActions
+		groupMap["casper_admin_privileges"] = group.Privileges.CasperAdmin
+		groupMap["casper_remote_privileges"] = group.Privileges.CasperRemote
+		groupMap["casper_imaging_privileges"] = group.Privileges.CasperImaging
+		groupMap["recon_privileges"] = group.Privileges.Recon
 
-		// If any privileges were set, add them to the groupMap
-		if len(privilegesMap) > 0 {
-			groupMap["privileges"] = []interface{}{privilegesMap}
-		} else {
-			groupMap["privileges"] = []interface{}{} // Clear the privileges data if not present
-		}
-
-		groups = append(groups, groupMap)
+		groups[i] = groupMap
 	}
 
 	if err := d.Set("groups", groups); err != nil {
@@ -646,12 +662,17 @@ func ResourceJamfProAccountUpdate(ctx context.Context, d *schema.ResourceData, m
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
-	conn := apiclient.Conn
+
+	// The apiclient, which is of type *client.APIClient, holds a reference to the Jamf Pro client in its Conn field.
+	// By assigning apiclient.Conn to jamfProClient, we are obtaining the actual Jamf Pro client (*jamfpro.Client)
+	// that will be used for making API calls to the Jamf Pro server.
+	// This Jamf Pro client is then passed to other functions that require it, like constructJamfProAccount.
+	jamfProClient := apiclient.Conn
 
 	// Use the retry function for the update operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		// Construct the updated account
-		account, err := constructJamfProAccount(d)
+		account, err := constructJamfProAccount(d, jamfProClient)
 		if err != nil {
 			return retry.NonRetryableError(fmt.Errorf("failed to construct the account for terraform update: %w", err))
 		}
@@ -663,7 +684,7 @@ func ResourceJamfProAccountUpdate(ctx context.Context, d *schema.ResourceData, m
 		}
 
 		// Directly call the API to update the resource
-		_, apiErr := conn.UpdateAccountByID(accountID, account)
+		_, apiErr := jamfProClient.UpdateAccountByID(accountID, account)
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -675,7 +696,7 @@ func ResourceJamfProAccountUpdate(ctx context.Context, d *schema.ResourceData, m
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string in update"))
 			}
 
-			_, apiErr = conn.UpdateAccountByName(groupName, account)
+			_, apiErr = jamfProClient.UpdateAccountByName(groupName, account)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
