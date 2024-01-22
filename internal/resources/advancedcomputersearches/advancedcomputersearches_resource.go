@@ -13,6 +13,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -168,7 +169,7 @@ func ResourceJamfProAdvancedComputerSearches() *schema.Resource {
 }
 
 // constructJamfProAdvancedComputerSearch constructs a ResourceAdvancedComputerSearch object from the provided schema data.
-func constructJamfProAdvancedComputerSearch(d *schema.ResourceData) (*jamfpro.ResourceAdvancedComputerSearch, error) {
+func constructJamfProAdvancedComputerSearch(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceAdvancedComputerSearch, error) {
 	search := &jamfpro.ResourceAdvancedComputerSearch{}
 
 	// Utilize type assertion helper functions for direct field extraction
@@ -222,6 +223,9 @@ func constructJamfProAdvancedComputerSearch(d *schema.ResourceData) (*jamfpro.Re
 		}
 	}
 
+	// Logging the constructed object in debug mode
+	tflog.Debug(ctx, fmt.Sprintf("Constructed AdvancedComputerSearch Object: %+v", search))
+
 	// Log the successful construction of the Jamf Pro AdvancedComputerSearch
 	log.Printf("[INFO] Successfully constructed AdvancedComputerSearch with name: %s", search.Name)
 
@@ -267,7 +271,7 @@ func ResourceJamfProAdvancedComputerSearchCreate(ctx context.Context, d *schema.
 	// Use the retry function for the create operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the advanced computer search
-		search, err := constructJamfProAdvancedComputerSearch(d)
+		search, err := constructJamfProAdvancedComputerSearch(ctx, d)
 		if err != nil {
 			return retry.NonRetryableError(fmt.Errorf("failed to construct the advanced computer search for terraform create: %w", err))
 		}
@@ -448,7 +452,7 @@ func ResourceJamfProAdvancedComputerSearchUpdate(ctx context.Context, d *schema.
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		// Construct the updated advanced computer search
-		search, err := constructJamfProAdvancedComputerSearch(d)
+		search, err := constructJamfProAdvancedComputerSearch(ctx, d)
 		if err != nil {
 			return retry.NonRetryableError(fmt.Errorf("failed to construct the advanced computer search for terraform update: %w", err))
 		}
