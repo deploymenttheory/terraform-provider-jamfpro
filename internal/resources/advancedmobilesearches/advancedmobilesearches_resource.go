@@ -1,5 +1,5 @@
-// advancedcomputersearches_resource.go
-package advancedcomputersearches
+// advancedMobileDeviceSearches_resource.go
+package advancedMobileDeviceSearches
 
 import (
 	"context"
@@ -20,13 +20,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProAdvancedComputerSearches defines the schema for managing Advanced Computer Searches in Terraform.
-func ResourceJamfProAdvancedComputerSearches() *schema.Resource {
+// ResourceJamfProadvancedMobileDeviceSearches defines the schema for managing Advanced Computer Searches in Terraform.
+func ResourceJamfProadvancedMobileDeviceSearches() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProAdvancedComputerSearchCreate,
-		ReadContext:   ResourceJamfProAdvancedComputerSearchRead,
-		UpdateContext: ResourceJamfProAdvancedComputerSearchUpdate,
-		DeleteContext: ResourceJamfProAdvancedComputerSearchDelete,
+		CreateContext: ResourceJamfProAdvancedMobileDeviceSearchCreate,
+		ReadContext:   ResourceJamfProAdvancedMobileDeviceSearchRead,
+		UpdateContext: ResourceJamfProAdvancedMobileDeviceSearchUpdate,
+		DeleteContext: ResourceJamfProAdvancedMobileDeviceSearchDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(1 * time.Minute),
 			Read:   schema.DefaultTimeout(1 * time.Minute),
@@ -138,9 +138,9 @@ func ResourceJamfProAdvancedComputerSearches() *schema.Resource {
 	}
 }
 
-// constructJamfProAdvancedComputerSearch constructs an advanced computer search object for create and update oeprations
-func constructJamfProAdvancedComputerSearch(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceAdvancedComputerSearch, error) {
-	search := &jamfpro.ResourceAdvancedComputerSearch{
+// constructJamfProAdvancedMobileDeviceSearch constructs an advanced computer search object for create and update oeprations
+func constructJamfProAdvancedMobileDeviceSearch(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceAdvancedMobileDeviceSearch, error) {
+	search := &jamfpro.ResourceAdvancedMobileDeviceSearch{
 		Name:   util.GetStringFromInterface(d.Get("name")),
 		ViewAs: util.GetStringFromInterface(d.Get("view_as")),
 		Sort1:  util.GetStringFromInterface(d.Get("sort1")),
@@ -209,14 +209,14 @@ func constructJamfProAdvancedComputerSearch(ctx context.Context, d *schema.Resou
 	xmlData, err := xml.MarshalIndent(search, "", "  ")
 	if err != nil {
 		// Handle the error if XML marshaling fails
-		log.Printf("[ERROR] Error marshaling AdvancedComputerSearch object to XML: %s", err)
-		return nil, fmt.Errorf("error marshaling AdvancedComputerSearch object to XML: %v", err)
+		log.Printf("[ERROR] Error marshaling AdvancedMobileDeviceSearch object to XML: %s", err)
+		return nil, fmt.Errorf("error marshaling AdvancedMobileDeviceSearch object to XML: %v", err)
 	}
 
 	// Log the XML formatted search object
-	tflog.Debug(ctx, fmt.Sprintf("Constructed AdvancedComputerSearch Object:\n%s", string(xmlData)))
+	tflog.Debug(ctx, fmt.Sprintf("Constructed AdvancedMobileDeviceSearch Object:\n%s", string(xmlData)))
 
-	log.Printf("[INFO] Successfully constructed AdvancedComputerSearch with name: %s", search.Name)
+	log.Printf("[INFO] Successfully constructed AdvancedMobileDeviceSearch with name: %s", search.Name)
 
 	return search, nil
 }
@@ -246,8 +246,8 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 	return diags
 }
 
-// ResourceJamfProAdvancedComputerSearchCreate is responsible for creating a new Jamf Pro Advanced Computer Search in the remote system.
-func ResourceJamfProAdvancedComputerSearchCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// ResourceJamfProAdvancedMobileDeviceSearchCreate is responsible for creating a new Jamf Pro Advanced Computer Search in the remote system.
+func ResourceJamfProAdvancedMobileDeviceSearchCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Asserts 'meta' as '*client.APIClient'
@@ -260,19 +260,19 @@ func ResourceJamfProAdvancedComputerSearchCreate(ctx context.Context, d *schema.
 	// Use the retry function for the create operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the advanced computer search
-		search, err := constructJamfProAdvancedComputerSearch(ctx, d)
+		search, err := constructJamfProAdvancedMobileDeviceSearch(ctx, d)
 		if err != nil {
 			return retry.NonRetryableError(fmt.Errorf("failed to construct the advanced computer search for terraform create: %w", err))
 		}
 
 		// Log the details of the search that is about to be created
-		log.Printf("[INFO] Attempting to create AdvancedComputerSearch with name: %s", search.Name)
+		log.Printf("[INFO] Attempting to create AdvancedMobileDeviceSearch with name: %s", search.Name)
 
 		// Directly call the API to create the resource
-		response, err := conn.CreateAdvancedComputerSearch(search)
+		response, err := conn.CreateAdvancedMobileDeviceSearch(search)
 		if err != nil {
 			// Log the error from the API call
-			log.Printf("[ERROR] Error creating AdvancedComputerSearch with name: %s. Error: %s", search.Name, err)
+			log.Printf("[ERROR] Error creating AdvancedMobileDeviceSearch with name: %s. Error: %s", search.Name, err)
 
 			// Check if the error is an APIError
 			if apiErr, ok := err.(*http_client.APIError); ok {
@@ -283,7 +283,7 @@ func ResourceJamfProAdvancedComputerSearchCreate(ctx context.Context, d *schema.
 		}
 
 		// Log the response from the API call
-		log.Printf("[INFO] Successfully created AdvancedComputerSearch with ID: %d and name: %s", response.ID, search.Name)
+		log.Printf("[INFO] Successfully created AdvancedMobileDeviceSearch with ID: %d and name: %s", response.ID, search.Name)
 
 		// Set the ID of the created resource in the Terraform state
 		d.SetId(strconv.Itoa(response.ID))
@@ -298,7 +298,7 @@ func ResourceJamfProAdvancedComputerSearchCreate(ctx context.Context, d *schema.
 
 	// Use the retry function for the read operation to update the Terraform state with the resource attributes
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProAdvancedComputerSearchRead(ctx, d, meta)
+		readDiags := ResourceJamfProAdvancedMobileDeviceSearchRead(ctx, d, meta)
 		if len(readDiags) > 0 {
 			// If readDiags is not empty, it means there's an error, so we retry
 			return retry.RetryableError(fmt.Errorf("failed to read the created resource"))
@@ -314,8 +314,8 @@ func ResourceJamfProAdvancedComputerSearchCreate(ctx context.Context, d *schema.
 	return diags
 }
 
-// ResourceJamfProAdvancedComputerSearchRead is responsible for reading the current state of a Jamf Pro Advanced Computer Search from the remote system.
-func ResourceJamfProAdvancedComputerSearchRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// ResourceJamfProAdvancedMobileDeviceSearchRead is responsible for reading the current state of a Jamf Pro Advanced Computer Search from the remote system.
+func ResourceJamfProAdvancedMobileDeviceSearchRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Asserts 'meta' as '*client.APIClient'
@@ -325,7 +325,7 @@ func ResourceJamfProAdvancedComputerSearchRead(ctx context.Context, d *schema.Re
 	}
 	conn := apiclient.Conn
 
-	var search *jamfpro.ResourceAdvancedComputerSearch
+	var search *jamfpro.ResourceAdvancedMobileDeviceSearch
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
@@ -337,7 +337,7 @@ func ResourceJamfProAdvancedComputerSearchRead(ctx context.Context, d *schema.Re
 
 		// Try fetching the advanced computer search using the ID
 		var apiErr error
-		search, apiErr = conn.GetAdvancedComputerSearchByID(searchID)
+		search, apiErr = conn.GetAdvancedMobileDeviceSearchByID(searchID)
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -349,7 +349,7 @@ func ResourceJamfProAdvancedComputerSearchRead(ctx context.Context, d *schema.Re
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
 
-			search, apiErr = conn.GetAdvancedComputerSearchByName(searchName)
+			search, apiErr = conn.GetAdvancedMobileDeviceSearchByName(searchName)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -432,8 +432,8 @@ func ResourceJamfProAdvancedComputerSearchRead(ctx context.Context, d *schema.Re
 	return diags
 }
 
-// ResourceJamfProAdvancedComputerSearchUpdate is responsible for updating an existing Jamf Pro Advanced Computer Search on the remote system.
-func ResourceJamfProAdvancedComputerSearchUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// ResourceJamfProAdvancedMobileDeviceSearchUpdate is responsible for updating an existing Jamf Pro Advanced Computer Search on the remote system.
+func ResourceJamfProAdvancedMobileDeviceSearchUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Asserts 'meta' as '*client.APIClient'
@@ -447,7 +447,7 @@ func ResourceJamfProAdvancedComputerSearchUpdate(ctx context.Context, d *schema.
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		// Construct the updated advanced computer search
-		search, err := constructJamfProAdvancedComputerSearch(ctx, d)
+		search, err := constructJamfProAdvancedMobileDeviceSearch(ctx, d)
 		if err != nil {
 			return retry.NonRetryableError(fmt.Errorf("failed to construct the advanced computer search for terraform update: %w", err))
 		}
@@ -459,7 +459,7 @@ func ResourceJamfProAdvancedComputerSearchUpdate(ctx context.Context, d *schema.
 		}
 
 		// Directly call the API to update the resource
-		_, apiErr := conn.UpdateAdvancedComputerSearchByID(searchID, search)
+		_, apiErr := conn.UpdateAdvancedMobileDeviceSearchByID(searchID, search)
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -470,7 +470,7 @@ func ResourceJamfProAdvancedComputerSearchUpdate(ctx context.Context, d *schema.
 			if !ok {
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
-			_, apiErr = conn.UpdateAdvancedComputerSearchByName(searchName, search)
+			_, apiErr = conn.UpdateAdvancedMobileDeviceSearchByName(searchName, search)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -490,7 +490,7 @@ func ResourceJamfProAdvancedComputerSearchUpdate(ctx context.Context, d *schema.
 
 	// Use the retry function for the read operation to update the Terraform state
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProAdvancedComputerSearchRead(ctx, d, meta)
+		readDiags := ResourceJamfProAdvancedMobileDeviceSearchRead(ctx, d, meta)
 		if len(readDiags) > 0 {
 			return retry.RetryableError(fmt.Errorf("failed to update the Terraform state for the updated resource"))
 		}
@@ -506,8 +506,8 @@ func ResourceJamfProAdvancedComputerSearchUpdate(ctx context.Context, d *schema.
 	return diags
 }
 
-// ResourceJamfProAdvancedComputerSearchDelete is responsible for deleting a Jamf Pro AdvancedComputerSearch.
-func ResourceJamfProAdvancedComputerSearchDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// ResourceJamfProAdvancedMobileDeviceSearchDelete is responsible for deleting a Jamf Pro AdvancedMobileDeviceSearch.
+func ResourceJamfProAdvancedMobileDeviceSearchDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Asserts 'meta' as '*client.APIClient'
@@ -526,14 +526,14 @@ func ResourceJamfProAdvancedComputerSearchDelete(ctx context.Context, d *schema.
 		}
 
 		// Directly call the API to delete the resource
-		apiErr := conn.DeleteAdvancedComputerSearchByID(groupID)
+		apiErr := conn.DeleteAdvancedMobileDeviceSearchByID(groupID)
 		if apiErr != nil {
 			// If the delete by ID fails, try deleting by name
 			groupName, ok := d.Get("name").(string)
 			if !ok {
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
-			apiErr = conn.DeleteAdvancedComputerSearchByName(groupName)
+			apiErr = conn.DeleteAdvancedMobileDeviceSearchByName(groupName)
 			if apiErr != nil {
 				return retry.RetryableError(apiErr)
 			}
