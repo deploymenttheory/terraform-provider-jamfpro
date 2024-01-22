@@ -180,7 +180,7 @@ func constructJamfProAdvancedComputerSearch(ctx context.Context, d *schema.Resou
 				Name: util.GetStringFromMap(displayFieldMap, "name"),
 			})
 		}
-		search.DisplayFields = displayFields
+		search.DisplayFields = []jamfpro.SharedAdvancedSearchContainerDisplayField{{DisplayField: displayFields}}
 	}
 
 	if v, ok := d.GetOk("site"); ok && len(v.([]interface{})) > 0 {
@@ -393,8 +393,8 @@ func ResourceJamfProAdvancedComputerSearchRead(ctx context.Context, d *schema.Re
 	}
 
 	// Handle "display_fields" field
-	displayFieldsList := make([]interface{}, len(search.DisplayFields))
-	for i, displayField := range search.DisplayFields {
+	displayFieldsList := make([]map[string]interface{}, len(search.DisplayFields[0].DisplayField))
+	for i, displayField := range search.DisplayFields[0].DisplayField {
 		displayFieldMap := map[string]interface{}{
 			"name": displayField.Name,
 		}
