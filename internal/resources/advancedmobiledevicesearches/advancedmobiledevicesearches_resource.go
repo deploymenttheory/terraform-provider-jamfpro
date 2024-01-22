@@ -1,5 +1,5 @@
-// advancedMobileDeviceSearches_resource.go
-package advancedMobileDeviceSearches
+// advancedmobiledevicesearches_resource.go
+package advancedmobiledevicesearches
 
 import (
 	"context"
@@ -20,8 +20,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProadvancedMobileDeviceSearches defines the schema for managing Advanced Computer Searches in Terraform.
-func ResourceJamfProadvancedMobileDeviceSearches() *schema.Resource {
+// ResourceJamfProAdvancedMobileDeviceSearches defines the schema for managing Advanced Computer Searches in Terraform.
+func ResourceJamfProAdvancedMobileDeviceSearches() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: ResourceJamfProAdvancedMobileDeviceSearchCreate,
 		ReadContext:   ResourceJamfProAdvancedMobileDeviceSearchRead,
