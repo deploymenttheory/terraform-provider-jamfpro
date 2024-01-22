@@ -6,8 +6,9 @@ toolchain go1.21.0
 
 require (
 	github.com/bflad/tfproviderlint v0.29.0
-	github.com/deploymenttheory/go-api-sdk-jamfpro v1.0.6
+	github.com/deploymenttheory/go-api-sdk-jamfpro v1.0.7
 	github.com/hashicorp/terraform-plugin-docs v0.16.0
+	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.30.0
 	github.com/stretchr/testify v1.8.4
 )
@@ -47,7 +48,6 @@ require (
 	github.com/hashicorp/terraform-exec v0.19.0 // indirect
 	github.com/hashicorp/terraform-json v0.17.1 // indirect
 	github.com/hashicorp/terraform-plugin-go v0.19.0 // indirect
-	github.com/hashicorp/terraform-plugin-log v0.9.0 // indirect
 	github.com/hashicorp/terraform-registry-address v0.2.2 // indirect
 	github.com/hashicorp/terraform-svchost v0.1.1 // indirect
 	github.com/hashicorp/yamux v0.0.0-20181012175058-2f1d1f20f75d // indirect

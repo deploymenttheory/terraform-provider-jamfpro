@@ -3,6 +3,7 @@ package advancedcomputersearches
 
 import (
 	"context"
+	"encoding/xml"
 	"fmt"
 	"log"
 	"strconv"
@@ -68,53 +69,33 @@ func ResourceJamfProAdvancedComputerSearches() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"size": {
-							Type:        schema.TypeInt,
-							Computed:    true,
-							Description: "Size of the criteria list",
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
 						},
-						"criterion": {
-							Type:     schema.TypeList,
+						"priority": {
+							Type:     schema.TypeInt,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "Name of the criteria",
-									},
-									"priority": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "Priority of the criteria",
-									},
-									"and_or": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "Logical operator (AND or OR)",
-									},
-									"search_type": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "Search operator",
-									},
-									"value": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "Value for the criteria",
-									},
-									"opening_paren": {
-										Type:        schema.TypeBool,
-										Optional:    true,
-										Description: "Indicates if an opening parenthesis is used",
-									},
-									"closing_paren": {
-										Type:        schema.TypeBool,
-										Optional:    true,
-										Description: "Indicates if a closing parenthesis is used",
-									},
-								},
-							},
+						},
+						"and_or": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"search_type": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"value": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"opening_paren": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"closing_paren": {
+							Type:     schema.TypeBool,
+							Optional: true,
 						},
 					},
 				},
@@ -168,22 +149,25 @@ func ResourceJamfProAdvancedComputerSearches() *schema.Resource {
 	}
 }
 
-// constructJamfProAdvancedComputerSearch constructs a ResourceAdvancedComputerSearch object from the provided schema data.
+// constructJamfProAdvancedComputerSearch constructs an advanced computer search object for create and update oeprations
 func constructJamfProAdvancedComputerSearch(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceAdvancedComputerSearch, error) {
-	search := &jamfpro.ResourceAdvancedComputerSearch{}
+	search := &jamfpro.ResourceAdvancedComputerSearch{
+		Name:   util.GetStringFromInterface(d.Get("name")),
+		ViewAs: util.GetStringFromInterface(d.Get("view_as")),
+		Sort1:  util.GetStringFromInterface(d.Get("sort1")),
+		Sort2:  util.GetStringFromInterface(d.Get("sort2")),
+		Sort3:  util.GetStringFromInterface(d.Get("sort3")),
+	}
 
-	// Utilize type assertion helper functions for direct field extraction
-	search.Name = util.GetStringFromInterface(d.Get("name"))
-	search.ViewAs = util.GetStringFromInterface(d.Get("view_as"))
-	search.Sort1 = util.GetStringFromInterface(d.Get("sort1"))
-	search.Sort2 = util.GetStringFromInterface(d.Get("sort2"))
-	search.Sort3 = util.GetStringFromInterface(d.Get("sort3"))
-
-	// Handle nested "criteria" field
-	if criteriaList, ok := d.GetOk("criteria"); ok {
+	if v, ok := d.GetOk("criteria"); ok {
+		criteriaList := v.([]interface{})
 		var criteria []jamfpro.SharedSubsetCriteria
-		for _, crit := range criteriaList.([]interface{}) {
-			criterionMap := util.ConvertToMapFromInterface(crit)
+		for _, crit := range criteriaList {
+			criterionMap, ok := crit.(map[string]interface{})
+			if !ok {
+				return nil, fmt.Errorf("failed to parse criterion: %+v", crit)
+			}
+
 			newCriterion := jamfpro.SharedSubsetCriteria{
 				Name:         util.GetStringFromMap(criterionMap, "name"),
 				Priority:     util.GetIntFromMap(criterionMap, "priority"),
@@ -193,40 +177,52 @@ func constructJamfProAdvancedComputerSearch(ctx context.Context, d *schema.Resou
 				OpeningParen: util.GetBoolFromMap(criterionMap, "opening_paren"),
 				ClosingParen: util.GetBoolFromMap(criterionMap, "closing_paren"),
 			}
+			tflog.Debug(ctx, fmt.Sprintf("Processing criterion: %+v", newCriterion))
 			criteria = append(criteria, newCriterion)
 		}
-		search.Criteria = jamfpro.SharedContainerCriteria{
-			Size:      len(criteria),
-			Criterion: criteria,
-		}
+		search.Criteria.Criterion = criteria
 	}
 
-	// Handle nested "display_fields" field
-	if displayFieldsList, ok := d.GetOk("display_fields"); ok {
+	if v, ok := d.GetOk("display_fields"); ok {
+		displayFieldsList := v.([]interface{})
+		// Removed Size as it might not be required
 		var displayFields []jamfpro.SharedAdvancedSearchSubsetDisplayField
-		for _, field := range displayFieldsList.([]interface{}) {
-			displayFieldMap := util.ConvertToMapFromInterface(field)
-			newDisplayField := jamfpro.SharedAdvancedSearchSubsetDisplayField{
-				Name: util.GetStringFromMap(displayFieldMap, "name"),
+		for _, field := range displayFieldsList {
+			displayFieldMap, ok := field.(map[string]interface{})
+			if !ok {
+				return nil, fmt.Errorf("failed to parse display field: %+v", field)
 			}
-			displayFields = append(displayFields, newDisplayField)
+
+			displayFields = append(displayFields, jamfpro.SharedAdvancedSearchSubsetDisplayField{
+				Name: util.GetStringFromMap(displayFieldMap, "name"),
+			})
 		}
 		search.DisplayFields = displayFields
 	}
 
-	// Handle nested "site" field
-	if siteList, ok := d.GetOk("site"); ok && len(siteList.([]interface{})) > 0 {
-		siteData := util.ConvertToMapFromInterface(siteList.([]interface{})[0])
+	if v, ok := d.GetOk("site"); ok && len(v.([]interface{})) > 0 {
+		siteData, ok := v.([]interface{})[0].(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("failed to parse site data")
+		}
+
 		search.Site = jamfpro.SharedResourceSite{
 			ID:   util.GetIntFromMap(siteData, "id"),
 			Name: util.GetStringFromMap(siteData, "name"),
 		}
 	}
 
-	// Logging the constructed object in debug mode
-	tflog.Debug(ctx, fmt.Sprintf("Constructed AdvancedComputerSearch Object: %+v", search))
+	// Marshal the search object into XML for logging
+	xmlData, err := xml.MarshalIndent(search, "", "  ")
+	if err != nil {
+		// Handle the error if XML marshaling fails
+		log.Printf("[ERROR] Error marshaling AdvancedComputerSearch object to XML: %s", err)
+		return nil, fmt.Errorf("error marshaling AdvancedComputerSearch object to XML: %v", err)
+	}
 
-	// Log the successful construction of the Jamf Pro AdvancedComputerSearch
+	// Log the XML formatted search object
+	tflog.Debug(ctx, fmt.Sprintf("Constructed AdvancedComputerSearch Object:\n%s", string(xmlData)))
+
 	log.Printf("[INFO] Successfully constructed AdvancedComputerSearch with name: %s", search.Name)
 
 	return search, nil
