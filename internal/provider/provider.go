@@ -16,6 +16,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/advancedcomputersearches"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/advancedmobiledevicesearches"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/advancedusersearches"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/allowedfileextensions"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiintegrations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiroles"
@@ -134,6 +135,7 @@ func Provider() *schema.Provider {
 			"jamfpro_account_groups":                  accountgroups.ResourceJamfProAccountGroups(),
 			"jamfpro_advanced_computer_searches":      advancedcomputersearches.ResourceJamfProAdvancedComputerSearches(),
 			"jamfpro_advanced_mobile_device_searches": advancedmobiledevicesearches.ResourceJamfProAdvancedMobileDeviceSearches(),
+			"jamfpro_advanced_user_searches":          advancedusersearches.ResourceJamfProAdvancedUserSearches(),
 			"jamfpro_allowed_file_extension":          allowedfileextensions.ResourceJamfProAllowedFileExtensions(),
 			"jamfpro_api_integrations":                apiintegrations.ResourceJamfProApiIntegrations(),
 			"jamfpro_api_roles":                       apiroles.ResourceJamfProAPIRoles(),
