@@ -103,10 +103,14 @@ func ResourceJamfProAdvancedComputerSearches() *schema.Resource {
 			"display_fields": {
 				Type:        schema.TypeList,
 				Optional:    true,
-				Description: "ID of the site",
+				Description: "display field in the advanced computer search",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"name": {Type: schema.TypeString, Required: true},
+						"name": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "display field item in the advanced computer search",
+						},
 					},
 				},
 			},
@@ -167,21 +171,26 @@ func constructJamfProAdvancedComputerSearch(ctx context.Context, d *schema.Resou
 		search.Criteria.Criterion = criteria
 	}
 
+	// Initialize displayFields as an empty slice
+	displayFields := []jamfpro.SharedAdvancedSearchSubsetDisplayField{}
+
+	// Check if display_fields are provided in the configuration
 	if v, ok := d.GetOk("display_fields"); ok {
 		displayFieldsList := v.([]interface{})
-		var displayFields []jamfpro.SharedAdvancedSearchSubsetDisplayField
 		for _, field := range displayFieldsList {
 			displayFieldMap, ok := field.(map[string]interface{})
 			if !ok {
 				return nil, fmt.Errorf("failed to parse display field: %+v", field)
 			}
 
-			displayFields = append(displayFields, jamfpro.SharedAdvancedSearchSubsetDisplayField{
+			displayField := jamfpro.SharedAdvancedSearchSubsetDisplayField{
 				Name: util.GetStringFromMap(displayFieldMap, "name"),
-			})
+			}
+			displayFields = append(displayFields, displayField)
 		}
-		search.DisplayFields = []jamfpro.SharedAdvancedSearchContainerDisplayField{{DisplayField: displayFields}}
 	}
+
+	search.DisplayFields = []jamfpro.SharedAdvancedSearchContainerDisplayField{{DisplayField: displayFields}}
 
 	if v, ok := d.GetOk("site"); ok && len(v.([]interface{})) > 0 {
 		siteData, ok := v.([]interface{})[0].(map[string]interface{})
