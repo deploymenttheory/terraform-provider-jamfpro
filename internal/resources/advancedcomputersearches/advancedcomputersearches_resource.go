@@ -101,9 +101,10 @@ func ResourceJamfProAdvancedComputerSearches() *schema.Resource {
 				},
 			},
 			"display_fields": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "display field in the advanced computer search",
+				//DiffSuppressFunc: suppressDisplayFieldsDiff,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -171,13 +172,34 @@ func constructJamfProAdvancedComputerSearch(ctx context.Context, d *schema.Resou
 		search.Criteria.Criterion = criteria
 	}
 
+	// // Initialize displayFields as an empty slice
+	// displayFields := []jamfpro.SharedAdvancedSearchSubsetDisplayField{}
+
+	// // Check if display_fields are provided in the configuration
+	// if v, ok := d.GetOk("display_fields"); ok {
+	// 	displayFieldsList := v.([]interface{})
+	// 	for _, field := range displayFieldsList {
+	// 		displayFieldMap, ok := field.(map[string]interface{})
+	// 		if !ok {
+	// 			return nil, fmt.Errorf("failed to parse display field: %+v", field)
+	// 		}
+
+	// 		displayField := jamfpro.SharedAdvancedSearchSubsetDisplayField{
+	// 			Name: util.GetStringFromMap(displayFieldMap, "name"),
+	// 		}
+	// 		displayFields = append(displayFields, displayField)
+	// 	}
+	// }
+
+	// search.DisplayFields = []jamfpro.SharedAdvancedSearchContainerDisplayField{{DisplayField: displayFields}}
+
 	// Initialize displayFields as an empty slice
 	displayFields := []jamfpro.SharedAdvancedSearchSubsetDisplayField{}
 
 	// Check if display_fields are provided in the configuration
 	if v, ok := d.GetOk("display_fields"); ok {
-		displayFieldsList := v.([]interface{})
-		for _, field := range displayFieldsList {
+		// Since display_fields is now a TypeSet, use the *schema.Set methods to access the data
+		for _, field := range v.(*schema.Set).List() {
 			displayFieldMap, ok := field.(map[string]interface{})
 			if !ok {
 				return nil, fmt.Errorf("failed to parse display field: %+v", field)
@@ -402,15 +424,21 @@ func ResourceJamfProAdvancedComputerSearchRead(ctx context.Context, d *schema.Re
 	}
 
 	// Handle "display_fields" field
-	displayFieldsList := make([]map[string]interface{}, len(search.DisplayFields[0].DisplayField))
-	for i, displayField := range search.DisplayFields[0].DisplayField {
-		displayFieldMap := map[string]interface{}{
-			"name": displayField.Name,
+	if len(search.DisplayFields) == 0 || len(search.DisplayFields[0].DisplayField) == 0 {
+		if err := d.Set("display_fields", []interface{}{}); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
 		}
-		displayFieldsList[i] = displayFieldMap
-	}
-	if err := d.Set("display_fields", displayFieldsList); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	} else {
+		displayFieldsList := make([]map[string]interface{}, len(search.DisplayFields[0].DisplayField))
+		for i, displayField := range search.DisplayFields[0].DisplayField {
+			displayFieldMap := map[string]interface{}{
+				"name": displayField.Name,
+			}
+			displayFieldsList[i] = displayFieldMap
+		}
+		if err := d.Set("display_fields", displayFieldsList); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	// Handle "site" field
