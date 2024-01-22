@@ -101,28 +101,12 @@ func ResourceJamfProAdvancedComputerSearches() *schema.Resource {
 				},
 			},
 			"display_fields": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "ID of the site",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"size": {
-							Type:        schema.TypeInt,
-							Computed:    true,
-							Description: "Size of the display fields list",
-						},
-						"display_field": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "Name of the display field",
-									},
-								},
-							},
-						},
+						"name": {Type: schema.TypeString, Required: true},
 					},
 				},
 			},
@@ -185,7 +169,6 @@ func constructJamfProAdvancedComputerSearch(ctx context.Context, d *schema.Resou
 
 	if v, ok := d.GetOk("display_fields"); ok {
 		displayFieldsList := v.([]interface{})
-		// Removed Size as it might not be required
 		var displayFields []jamfpro.SharedAdvancedSearchSubsetDisplayField
 		for _, field := range displayFieldsList {
 			displayFieldMap, ok := field.(map[string]interface{})
