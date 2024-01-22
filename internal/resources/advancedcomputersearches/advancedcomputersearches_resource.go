@@ -104,7 +104,6 @@ func ResourceJamfProAdvancedComputerSearches() *schema.Resource {
 				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "display field in the advanced computer search",
-				//DiffSuppressFunc: suppressDisplayFieldsDiff,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
