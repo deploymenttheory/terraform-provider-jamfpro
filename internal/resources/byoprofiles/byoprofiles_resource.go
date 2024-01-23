@@ -267,12 +267,23 @@ func ResourceJamfProBYOProfileRead(ctx context.Context, d *schema.ResourceData, 
 	if err := d.Set("name", profile.General.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("site", profile.General.Site.ID); err != nil {
+
+	site := make([]interface{}, 0)
+	if profile.General.Site.ID != 0 || profile.General.Site.Name != "" {
+		siteData := map[string]interface{}{
+			"id":   profile.General.Site.ID,
+			"name": profile.General.Site.Name,
+		}
+		site = append(site, siteData)
+	}
+	if err := d.Set("site", site); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+
 	if err := d.Set("enabled", profile.General.Enabled); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+
 	if err := d.Set("description", profile.General.Description); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
