@@ -721,25 +721,37 @@ func constructSelfService(data *schema.ResourceData) jamfpro.PolicySubsetSelfSer
 	selfServiceDescription := util.GetStringFromInterface(data.Get("self_service_description"))
 	forceUsersToViewDescription := util.GetBoolFromInterface(data.Get("force_users_to_view_description"))
 
+	// Initialize selfServiceIcon as an empty struct
+	var selfServiceIcon jamfpro.SharedResourceSelfServiceIcon
+
 	// Construct SelfServiceIcon
-	selfServiceIconData := data.Get("self_service_icon").([]interface{})[0].(map[string]interface{})
-	selfServiceIcon := jamfpro.SharedResourceSelfServiceIcon{
-		ID:       util.GetIntFromInterface(selfServiceIconData["id"]),
-		URI:      util.GetStringFromInterface(selfServiceIconData["uri"]),
-		Data:     util.GetStringFromInterface(selfServiceIconData["data"]),
-		Filename: util.GetStringFromInterface(selfServiceIconData["filename"]),
+	if selfServiceIconInterface, ok := data.Get("self_service_icon").([]interface{}); ok && len(selfServiceIconInterface) > 0 {
+		if selfServiceIconData, ok := selfServiceIconInterface[0].(map[string]interface{}); ok {
+			selfServiceIcon = jamfpro.SharedResourceSelfServiceIcon{
+				ID:       util.GetIntFromInterface(selfServiceIconData["id"]),
+				URI:      util.GetStringFromInterface(selfServiceIconData["uri"]),
+				Data:     util.GetStringFromInterface(selfServiceIconData["data"]),
+				Filename: util.GetStringFromInterface(selfServiceIconData["filename"]),
+			}
+		}
 	}
 
 	featureOnMainPage := util.GetBoolFromInterface(data.Get("feature_on_main_page"))
 
-	// Construct SelfServiceCategories
-	selfServiceCategoriesData := data.Get("self_service_categories").([]interface{})
+	// Initialize selfServiceCategories as an empty slice
 	var selfServiceCategories []jamfpro.PolicySubsetSelfServiceCategories
-	for _, categoryData := range selfServiceCategoriesData {
-		category := jamfpro.PolicyCategory{
-			Name: util.GetStringFromInterface(categoryData.(map[string]interface{})["name"]),
+
+	// Construct SelfServiceCategories
+	if selfServiceCategoriesData, ok := data.Get("self_service_categories").([]interface{}); ok {
+		for _, categoryDataInterface := range selfServiceCategoriesData {
+			// Safely assert type of each category data
+			if categoryData, ok := categoryDataInterface.(map[string]interface{}); ok {
+				category := jamfpro.PolicyCategory{
+					Name: util.GetStringFromInterface(categoryData["name"]),
+				}
+				selfServiceCategories = append(selfServiceCategories, jamfpro.PolicySubsetSelfServiceCategories{Category: category})
+			}
 		}
-		selfServiceCategories = append(selfServiceCategories, jamfpro.PolicySubsetSelfServiceCategories{Category: category})
 	}
 
 	// Construct PolicySubsetSelfService
@@ -762,19 +774,25 @@ func constructSelfService(data *schema.ResourceData) jamfpro.PolicySubsetSelfSer
 
 // constructPackageConfiguration creates a PolicySubsetPackageConfiguration instance from the provided data.
 func constructPackageConfiguration(data *schema.ResourceData) jamfpro.PolicySubsetPackageConfiguration {
-	packagesData := data.Get("packages").([]interface{})
+	// Initialize packages as an empty slice
 	var packages []jamfpro.PolicySubsetPackageConfigurationPackage
-	for _, packageData := range packagesData {
-		packageItem := packageData.(map[string]interface{})
-		pkg := jamfpro.PolicySubsetPackageConfigurationPackage{
-			ID:                util.GetIntFromInterface(packageItem["id"]),
-			Name:              util.GetStringFromInterface(packageItem["name"]),
-			Action:            util.GetStringFromInterface(packageItem["action"]),
-			FillUserTemplate:  util.GetBoolFromInterface(packageItem["fut"]),
-			FillExistingUsers: util.GetBoolFromInterface(packageItem["feu"]),
-			UpdateAutorun:     util.GetBoolFromInterface(packageItem["update_autorun"]),
+
+	// Check if packages data exists and is of the correct type
+	if packagesData, ok := data.Get("packages").([]interface{}); ok {
+		for _, packageDataInterface := range packagesData {
+			// Safely assert type of each package data
+			if packageItem, ok := packageDataInterface.(map[string]interface{}); ok {
+				pkg := jamfpro.PolicySubsetPackageConfigurationPackage{
+					ID:                util.GetIntFromInterface(packageItem["id"]),
+					Name:              util.GetStringFromInterface(packageItem["name"]),
+					Action:            util.GetStringFromInterface(packageItem["action"]),
+					FillUserTemplate:  util.GetBoolFromInterface(packageItem["fut"]),
+					FillExistingUsers: util.GetBoolFromInterface(packageItem["feu"]),
+					UpdateAutorun:     util.GetBoolFromInterface(packageItem["update_autorun"]),
+				}
+				packages = append(packages, pkg)
+			}
 		}
-		packages = append(packages, pkg)
 	}
 
 	distributionPoint := util.GetStringFromInterface(data.Get("distribution_point"))
@@ -793,25 +811,31 @@ func constructPackageConfiguration(data *schema.ResourceData) jamfpro.PolicySubs
 // constructScripts creates a PolicySubsetScripts instance from the provided data.
 func constructScripts(data *schema.ResourceData) jamfpro.PolicySubsetScripts {
 	size := util.GetIntFromInterface(data.Get("size"))
-	scriptData := data.Get("script").([]interface{})
+
+	// Initialize scripts as an empty slice
 	var scripts []jamfpro.PolicySubsetScript
 
-	for _, scriptItem := range scriptData {
-		script := scriptItem.(map[string]interface{})
-		scriptObj := jamfpro.PolicySubsetScript{
-			ID:          util.GetStringFromInterface(script["id"]),
-			Name:        util.GetStringFromInterface(script["name"]),
-			Priority:    util.GetStringFromInterface(script["priority"]),
-			Parameter4:  util.GetStringFromInterface(script["parameter4"]),
-			Parameter5:  util.GetStringFromInterface(script["parameter5"]),
-			Parameter6:  util.GetStringFromInterface(script["parameter6"]),
-			Parameter7:  util.GetStringFromInterface(script["parameter7"]),
-			Parameter8:  util.GetStringFromInterface(script["parameter8"]),
-			Parameter9:  util.GetStringFromInterface(script["parameter9"]),
-			Parameter10: util.GetStringFromInterface(script["parameter10"]),
-			Parameter11: util.GetStringFromInterface(script["parameter11"]),
+	// Check if script data exists and is of the correct type
+	if scriptData, ok := data.Get("script").([]interface{}); ok {
+		for _, scriptItemInterface := range scriptData {
+			// Safely assert type of each script data
+			if scriptItem, ok := scriptItemInterface.(map[string]interface{}); ok {
+				scriptObj := jamfpro.PolicySubsetScript{
+					ID:          util.GetStringFromInterface(scriptItem["id"]),
+					Name:        util.GetStringFromInterface(scriptItem["name"]),
+					Priority:    util.GetStringFromInterface(scriptItem["priority"]),
+					Parameter4:  util.GetStringFromInterface(scriptItem["parameter4"]),
+					Parameter5:  util.GetStringFromInterface(scriptItem["parameter5"]),
+					Parameter6:  util.GetStringFromInterface(scriptItem["parameter6"]),
+					Parameter7:  util.GetStringFromInterface(scriptItem["parameter7"]),
+					Parameter8:  util.GetStringFromInterface(scriptItem["parameter8"]),
+					Parameter9:  util.GetStringFromInterface(scriptItem["parameter9"]),
+					Parameter10: util.GetStringFromInterface(scriptItem["parameter10"]),
+					Parameter11: util.GetStringFromInterface(scriptItem["parameter11"]),
+				}
+				scripts = append(scripts, scriptObj)
+			}
 		}
-		scripts = append(scripts, scriptObj)
 	}
 
 	// Construct PolicySubsetScripts
@@ -828,17 +852,23 @@ func constructScripts(data *schema.ResourceData) jamfpro.PolicySubsetScripts {
 // constructDockItems creates a PolicySubsetDockItems instance from the provided data.
 func constructDockItems(data *schema.ResourceData) jamfpro.PolicySubsetDockItems {
 	size := util.GetIntFromInterface(data.Get("size"))
-	dockItemData := data.Get("dock_item").([]interface{})
+
+	// Initialize dockItems as an empty slice
 	var dockItems []jamfpro.PolicySubsetDockItem
 
-	for _, dockItemItem := range dockItemData {
-		dockItem := dockItemItem.(map[string]interface{})
-		dockItemObj := jamfpro.PolicySubsetDockItem{
-			ID:     util.GetIntFromInterface(dockItem["id"]),
-			Name:   util.GetStringFromInterface(dockItem["name"]),
-			Action: util.GetStringFromInterface(dockItem["action"]),
+	// Check if dockItemData exists and is of the correct type
+	if dockItemData, ok := data.Get("dock_item").([]interface{}); ok {
+		for _, dockItemInterface := range dockItemData {
+			// Safely assert type of each dock item data
+			if dockItem, ok := dockItemInterface.(map[string]interface{}); ok {
+				dockItemObj := jamfpro.PolicySubsetDockItem{
+					ID:     util.GetIntFromInterface(dockItem["id"]),
+					Name:   util.GetStringFromInterface(dockItem["name"]),
+					Action: util.GetStringFromInterface(dockItem["action"]),
+				}
+				dockItems = append(dockItems, dockItemObj)
+			}
 		}
-		dockItems = append(dockItems, dockItemObj)
 	}
 
 	// Construct PolicySubsetDockItems
@@ -855,18 +885,24 @@ func constructDockItems(data *schema.ResourceData) jamfpro.PolicySubsetDockItems
 // constructPrinters creates a PolicySubsetPrinters instance from the provided data.
 func constructPrinters(data *schema.ResourceData) jamfpro.PolicySubsetPrinters {
 	size := util.GetIntFromInterface(data.Get("size"))
-	printerData := data.Get("printer").([]interface{})
+
+	// Initialize printers as an empty slice
 	var printers []jamfpro.PolicySubsetPrinter
 
-	for _, printerItem := range printerData {
-		printer := printerItem.(map[string]interface{})
-		printerObj := jamfpro.PolicySubsetPrinter{
-			ID:          util.GetIntFromInterface(printer["id"]),
-			Name:        util.GetStringFromInterface(printer["name"]),
-			Action:      util.GetStringFromInterface(printer["action"]),
-			MakeDefault: util.GetBoolFromInterface(printer["make_default"]),
+	// Check if printerData exists and is of the correct type
+	if printerData, ok := data.Get("printer").([]interface{}); ok {
+		for _, printerInterface := range printerData {
+			// Safely assert type of each printer item
+			if printer, ok := printerInterface.(map[string]interface{}); ok {
+				printerObj := jamfpro.PolicySubsetPrinter{
+					ID:          util.GetIntFromInterface(printer["id"]),
+					Name:        util.GetStringFromInterface(printer["name"]),
+					Action:      util.GetStringFromInterface(printer["action"]),
+					MakeDefault: util.GetBoolFromInterface(printer["make_default"]),
+				}
+				printers = append(printers, printerObj)
+			}
 		}
-		printers = append(printers, printerObj)
 	}
 
 	// Construct PolicySubsetPrinters
@@ -883,52 +919,57 @@ func constructPrinters(data *schema.ResourceData) jamfpro.PolicySubsetPrinters {
 
 // constructAccountMaintenance creates a PolicySubsetAccountMaintenance instance from the provided data.
 func constructAccountMaintenance(data *schema.ResourceData) jamfpro.PolicySubsetAccountMaintenance {
-	accountData := data.Get("accounts").([]interface{})
+	// Initialize accounts and directory bindings as an empty slice
 	var accounts []jamfpro.PolicySubsetAccountMaintenanceAccount
-
-	for _, accountItem := range accountData {
-		account := accountItem.(map[string]interface{})
-		accountObj := jamfpro.PolicySubsetAccountMaintenanceAccount{
-			Action:                 util.GetStringFromInterface(account["action"]),
-			Username:               util.GetStringFromInterface(account["username"]),
-			Realname:               util.GetStringFromInterface(account["realname"]),
-			Password:               util.GetStringFromInterface(account["password"]),
-			ArchiveHomeDirectory:   util.GetBoolFromInterface(account["archive_home_directory"]),
-			ArchiveHomeDirectoryTo: util.GetStringFromInterface(account["archive_home_directory_to"]),
-			Home:                   util.GetStringFromInterface(account["home"]),
-			Hint:                   util.GetStringFromInterface(account["hint"]),
-			Picture:                util.GetStringFromInterface(account["picture"]),
-			Admin:                  util.GetBoolFromInterface(account["admin"]),
-			FilevaultEnabled:       util.GetBoolFromInterface(account["filevault_enabled"]),
-			PasswordSha256:         util.GetStringFromInterface(account["password_sha256"]),
-		}
-		accounts = append(accounts, accountObj)
-	}
-
-	directoryBindingsData := data.Get("directory_bindings").([]interface{})
 	var directoryBindings []jamfpro.PolicySubsetAccountMaintenanceDirectoryBindings
 
-	for _, bindingItem := range directoryBindingsData {
-		binding := bindingItem.(map[string]interface{})
-		bindingObj := jamfpro.PolicySubsetAccountMaintenanceDirectoryBindings{
-			ID:   util.GetIntFromInterface(binding["id"]),
-			Name: util.GetStringFromInterface(binding["name"]),
+	if accountData, ok := data.Get("accounts").([]interface{}); ok {
+		for _, accountInterface := range accountData {
+			// Safely assert type of each account item
+			if account, ok := accountInterface.(map[string]interface{}); ok {
+				accountObj := jamfpro.PolicySubsetAccountMaintenanceAccount{
+					Action:                 util.GetStringFromInterface(account["action"]),
+					Username:               util.GetStringFromInterface(account["username"]),
+					Realname:               util.GetStringFromInterface(account["realname"]),
+					Password:               util.GetStringFromInterface(account["password"]),
+					ArchiveHomeDirectory:   util.GetBoolFromInterface(account["archive_home_directory"]),
+					ArchiveHomeDirectoryTo: util.GetStringFromInterface(account["archive_home_directory_to"]),
+					Home:                   util.GetStringFromInterface(account["home"]),
+					Hint:                   util.GetStringFromInterface(account["hint"]),
+					Picture:                util.GetStringFromInterface(account["picture"]),
+					Admin:                  util.GetBoolFromInterface(account["admin"]),
+					FilevaultEnabled:       util.GetBoolFromInterface(account["filevault_enabled"]),
+					PasswordSha256:         util.GetStringFromInterface(account["password_sha256"]),
+				}
+				accounts = append(accounts, accountObj)
+			}
 		}
-		directoryBindings = append(directoryBindings, bindingObj)
+	}
+	// Safely assert type of each directory binding item
+	if directoryBindingsData, ok := data.Get("directory_bindings").([]interface{}); ok {
+		for _, bindingInterface := range directoryBindingsData {
+			if binding, ok := bindingInterface.(map[string]interface{}); ok {
+				bindingObj := jamfpro.PolicySubsetAccountMaintenanceDirectoryBindings{
+					ID:   util.GetIntFromInterface(binding["id"]),
+					Name: util.GetStringFromInterface(binding["name"]),
+				}
+				directoryBindings = append(directoryBindings, bindingObj)
+			}
+		}
 	}
 
-	managementAccount := data.Get("management_account").(map[string]interface{})
+	managementAccountData := util.ConvertToMapFromInterface(data.Get("management_account"))
 	managementAccountObj := jamfpro.PolicySubsetAccountMaintenanceManagementAccount{
-		Action:                util.GetStringFromInterface(managementAccount["action"]),
-		ManagedPassword:       util.GetStringFromInterface(managementAccount["managed_password"]),
-		ManagedPasswordLength: util.GetIntFromInterface(managementAccount["managed_password_length"]),
+		Action:                util.GetStringFromInterface(managementAccountData["action"]),
+		ManagedPassword:       util.GetStringFromInterface(managementAccountData["managed_password"]),
+		ManagedPasswordLength: util.GetIntFromInterface(managementAccountData["managed_password_length"]),
 	}
 
-	openFirmwareEfiPassword := data.Get("open_firmware_efi_password").(map[string]interface{})
+	openFirmwareEfiPasswordData := util.ConvertToMapFromInterface(data.Get("open_firmware_efi_password"))
 	openFirmwareEfiPasswordObj := jamfpro.PolicySubsetAccountMaintenanceOpenFirmwareEfiPassword{
-		OfMode:           util.GetStringFromInterface(openFirmwareEfiPassword["of_mode"]),
-		OfPassword:       util.GetStringFromInterface(openFirmwareEfiPassword["of_password"]),
-		OfPasswordSHA256: util.GetStringFromInterface(openFirmwareEfiPassword["of_password_sha256"]),
+		OfMode:           util.GetStringFromInterface(openFirmwareEfiPasswordData["of_mode"]),
+		OfPassword:       util.GetStringFromInterface(openFirmwareEfiPasswordData["of_password"]),
+		OfPasswordSHA256: util.GetStringFromInterface(openFirmwareEfiPasswordData["of_password_sha256"]),
 	}
 
 	// Construct PolicySubsetAccountMaintenance

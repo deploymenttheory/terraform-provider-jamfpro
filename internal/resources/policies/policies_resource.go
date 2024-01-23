@@ -28,10 +28,10 @@ func ResourceJamfProPolicies() *schema.Resource {
 		DeleteContext: ResourceJamfProPoliciesDelete,
 		//CustomizeDiff: validateJamfProResourcePolicyDataFields,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(1 * time.Second),
-			Read:   schema.DefaultTimeout(1 * time.Second),
-			Update: schema.DefaultTimeout(1 * time.Second),
-			Delete: schema.DefaultTimeout(1 * time.Second),
+			Create: schema.DefaultTimeout(60 * time.Second),
+			Read:   schema.DefaultTimeout(60 * time.Second),
+			Update: schema.DefaultTimeout(60 * time.Second),
+			Delete: schema.DefaultTimeout(60 * time.Second),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -953,6 +953,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Display name of the policy in self-service.",
+							Default:     "",
 						},
 						"install_button_text": {
 							Type:        schema.TypeString,
@@ -970,6 +971,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Description of the policy displayed in self-service.",
+							Default:     "",
 						},
 						"force_users_to_view_description": {
 							Type:        schema.TypeBool,
@@ -1024,7 +1026,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"id": {
 													Type:        schema.TypeInt,
-													Required:    true,
+													Optional:    true,
 													Description: "Category ID for the policy in self-service.",
 												},
 												"name": {
@@ -1036,13 +1038,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 													Type:        schema.TypeBool,
 													Optional:    true,
 													Description: "Whether to display the category in self-service.",
-													Default:     true,
+													Default:     false,
 												},
 												"feature_in": {
 													Type:        schema.TypeBool,
 													Optional:    true,
 													Description: "Whether to feature the category in self-service.",
-													Default:     true,
+													Default:     false,
 												},
 											},
 										},
@@ -1392,7 +1394,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 										Optional:    true,
 										Description: "Managed password for the account. Management account passwords will be automatically randomized with 29 characters by jamf pro.",
 										//Default:     "",
-										Computed: true,
+										//Computed: true,
 									},
 									"managed_password_length": {
 										Type:        schema.TypeInt,
@@ -1613,7 +1615,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to delete the file found at the specified path.",
-							Computed:    true,
+							Default:     false,
 						},
 						"locate_file": {
 							Type:        schema.TypeString,
@@ -1624,7 +1626,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to update the locate database. Update the locate database before searching for the file",
-							Computed:    true,
+							Default:     false,
 						},
 						"spotlight_search": {
 							Type:        schema.TypeString,
@@ -1640,6 +1642,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to kill the process if found. This works with exact matches only",
+							Default:     false,
 						},
 						"run_command": {
 							Type:        schema.TypeString,
