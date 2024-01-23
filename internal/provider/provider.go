@@ -21,6 +21,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiintegrations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiroles"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/buildings"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/byoprofiles"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computercheckin"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerextensionattributes"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computergroups"
@@ -140,6 +141,7 @@ func Provider() *schema.Provider {
 			"jamfpro_api_integrations":                apiintegrations.ResourceJamfProApiIntegrations(),
 			"jamfpro_api_roles":                       apiroles.ResourceJamfProAPIRoles(),
 			"jamfpro_buildings":                       buildings.ResourceJamfProBuildings(),
+			"jamfpro_byoprofiles":                     byoprofiles.ResourceJamfProBYOProfiles(),
 			"jamfpro_computer_checkin":                computercheckin.ResourceJamfProComputerCheckin(),
 			"jamfpro_computer_extension_attributes":   computerextensionattributes.ResourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_groups":                 computergroups.ResourceJamfProComputerGroups(),

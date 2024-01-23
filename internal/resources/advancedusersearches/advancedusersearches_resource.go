@@ -44,26 +44,6 @@ func ResourceJamfProAdvancedUserSearches() *schema.Resource {
 				Required:    true,
 				Description: "Name of the advanced computer search",
 			},
-			"view_as": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "View type of the advanced computer search",
-			},
-			"sort1": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "First sorting criteria for the advanced computer search",
-			},
-			"sort2": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Second sorting criteria for the advanced computer search",
-			},
-			"sort3": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Third sorting criteria for the advanced computer search",
-			},
 			"criteria": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -138,13 +118,9 @@ func ResourceJamfProAdvancedUserSearches() *schema.Resource {
 }
 
 // constructJamfProAdvancedUserSearch constructs an advanced computer search object for create and update oeprations
-func constructJamfProAdvancedUserSearch(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceAdvancedMobileDeviceSearch, error) {
-	search := &jamfpro.ResourceAdvancedMobileDeviceSearch{
-		Name:   util.GetStringFromInterface(d.Get("name")),
-		ViewAs: util.GetStringFromInterface(d.Get("view_as")),
-		Sort1:  util.GetStringFromInterface(d.Get("sort1")),
-		Sort2:  util.GetStringFromInterface(d.Get("sort2")),
-		Sort3:  util.GetStringFromInterface(d.Get("sort3")),
+func constructJamfProAdvancedUserSearch(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceAdvancedUserSearch, error) {
+	search := &jamfpro.ResourceAdvancedUserSearch{
+		Name: util.GetStringFromInterface(d.Get("name")),
 	}
 
 	if v, ok := d.GetOk("criteria"); ok {
@@ -208,14 +184,14 @@ func constructJamfProAdvancedUserSearch(ctx context.Context, d *schema.ResourceD
 	xmlData, err := xml.MarshalIndent(search, "", "  ")
 	if err != nil {
 		// Handle the error if XML marshaling fails
-		log.Printf("[ERROR] Error marshaling AdvancedMobileDeviceSearch object to XML: %s", err)
-		return nil, fmt.Errorf("error marshaling AdvancedMobileDeviceSearch object to XML: %v", err)
+		log.Printf("[ERROR] Error marshaling AdvancedUserSearch object to XML: %s", err)
+		return nil, fmt.Errorf("error marshaling AdvancedUserSearch object to XML: %v", err)
 	}
 
 	// Log the XML formatted search object
-	tflog.Debug(ctx, fmt.Sprintf("Constructed AdvancedMobileDeviceSearch Object:\n%s", string(xmlData)))
+	tflog.Debug(ctx, fmt.Sprintf("[DEBUG] Constructed AdvancedUserSearch Object:\n%s", string(xmlData)))
 
-	log.Printf("[INFO] Successfully constructed AdvancedMobileDeviceSearch with name: %s", search.Name)
+	tflog.Debug(ctx, fmt.Sprintf("[DEBUG] Successfully constructed AdvancedUserSearch with name: %s", search.Name))
 
 	return search, nil
 }
@@ -265,13 +241,13 @@ func ResourceJamfProAdvancedUserSearchCreate(ctx context.Context, d *schema.Reso
 		}
 
 		// Log the details of the search that is about to be created
-		log.Printf("[INFO] Attempting to create AdvancedMobileDeviceSearch with name: %s", search.Name)
+		log.Printf("[INFO] Attempting to create AdvancedUserSearch with name: %s", search.Name)
 
 		// Directly call the API to create the resource
-		response, err := conn.CreateAdvancedMobileDeviceSearch(search)
+		response, err := conn.CreateAdvancedUserSearch(search)
 		if err != nil {
 			// Log the error from the API call
-			log.Printf("[ERROR] Error creating AdvancedMobileDeviceSearch with name: %s. Error: %s", search.Name, err)
+			log.Printf("[ERROR] Error creating AdvancedUserSearch with name: %s. Error: %s", search.Name, err)
 
 			// Check if the error is an APIError
 			if apiErr, ok := err.(*http_client.APIError); ok {
@@ -282,7 +258,7 @@ func ResourceJamfProAdvancedUserSearchCreate(ctx context.Context, d *schema.Reso
 		}
 
 		// Log the response from the API call
-		log.Printf("[INFO] Successfully created AdvancedMobileDeviceSearch with ID: %d and name: %s", response.ID, search.Name)
+		log.Printf("[INFO] Successfully created AdvancedUserSearch with ID: %d and name: %s", response.ID, search.Name)
 
 		// Set the ID of the created resource in the Terraform state
 		d.SetId(strconv.Itoa(response.ID))
@@ -324,7 +300,7 @@ func ResourceJamfProAdvancedUserSearchRead(ctx context.Context, d *schema.Resour
 	}
 	conn := apiclient.Conn
 
-	var search *jamfpro.ResourceAdvancedMobileDeviceSearch
+	var search *jamfpro.ResourceAdvancedUserSearch
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
@@ -334,9 +310,9 @@ func ResourceJamfProAdvancedUserSearchRead(ctx context.Context, d *schema.Resour
 			return retry.NonRetryableError(fmt.Errorf("failed to parse search ID: %v", convertErr))
 		}
 
-		// Try fetching the advanced computer search using the ID
+		// Try fetching the advanced user search using the ID
 		var apiErr error
-		search, apiErr = conn.GetAdvancedMobileDeviceSearchByID(searchID)
+		search, apiErr = conn.GetAdvancedUserSearchByID(searchID)
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -348,7 +324,7 @@ func ResourceJamfProAdvancedUserSearchRead(ctx context.Context, d *schema.Resour
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
 
-			search, apiErr = conn.GetAdvancedMobileDeviceSearchByName(searchName)
+			search, apiErr = conn.GetAdvancedUserSearchByName(searchName)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -368,18 +344,6 @@ func ResourceJamfProAdvancedUserSearchRead(ctx context.Context, d *schema.Resour
 
 	// Set attributes in the Terraform state
 	if err := d.Set("name", search.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("view_as", search.ViewAs); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("sort1", search.Sort1); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("sort2", search.Sort2); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("sort3", search.Sort3); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -458,7 +422,7 @@ func ResourceJamfProAdvancedUserSearchUpdate(ctx context.Context, d *schema.Reso
 		}
 
 		// Directly call the API to update the resource
-		_, apiErr := conn.UpdateAdvancedMobileDeviceSearchByID(searchID, search)
+		_, apiErr := conn.UpdateAdvancedUserSearchByID(searchID, search)
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -469,7 +433,7 @@ func ResourceJamfProAdvancedUserSearchUpdate(ctx context.Context, d *schema.Reso
 			if !ok {
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
-			_, apiErr = conn.UpdateAdvancedMobileDeviceSearchByName(searchName, search)
+			_, apiErr = conn.UpdateAdvancedUserSearchByName(searchName, search)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -505,7 +469,7 @@ func ResourceJamfProAdvancedUserSearchUpdate(ctx context.Context, d *schema.Reso
 	return diags
 }
 
-// ResourceJamfProAdvancedUserSearchDelete is responsible for deleting a Jamf Pro AdvancedMobileDeviceSearch.
+// ResourceJamfProAdvancedUserSearchDelete is responsible for deleting a Jamf Pro AdvancedUserSearch.
 func ResourceJamfProAdvancedUserSearchDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -525,14 +489,14 @@ func ResourceJamfProAdvancedUserSearchDelete(ctx context.Context, d *schema.Reso
 		}
 
 		// Directly call the API to delete the resource
-		apiErr := conn.DeleteAdvancedMobileDeviceSearchByID(groupID)
+		apiErr := conn.DeleteAdvancedUserSearchByID(groupID)
 		if apiErr != nil {
 			// If the delete by ID fails, try deleting by name
 			groupName, ok := d.Get("name").(string)
 			if !ok {
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
-			apiErr = conn.DeleteAdvancedMobileDeviceSearchByName(groupName)
+			apiErr = conn.DeleteAdvancedUserSearchByName(groupName)
 			if apiErr != nil {
 				return retry.RetryableError(apiErr)
 			}

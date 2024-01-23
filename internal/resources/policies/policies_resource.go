@@ -340,7 +340,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 										Type:        schema.TypeString,
 										Optional:    true,
 										Description: "Jamf Pro Site Name. Value defaults to 'None' aka not used",
-										Computed:    true,
+										Default:     "None",
 									},
 								},
 							},
