@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProAdvancedMobileDeviceSearches defines the schema for managing Advanced Computer Searches in Terraform.
+// ResourceJamfProAdvancedMobileDeviceSearches defines the schema for managing mobile device Searches in Terraform.
 func ResourceJamfProAdvancedMobileDeviceSearches() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: ResourceJamfProAdvancedMobileDeviceSearchCreate,
@@ -37,32 +37,32 @@ func ResourceJamfProAdvancedMobileDeviceSearches() *schema.Resource {
 			"id": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "ID of the advanced computer search",
+				Description: "The unique identifier of the advanced mobile device search",
 			},
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Name of the advanced computer search",
+				Description: "The unique name of the advanced mobile device search",
 			},
 			"view_as": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "View type of the advanced computer search",
+				Description: "View type of the mobile device search",
 			},
 			"sort1": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "First sorting criteria for the advanced computer search",
+				Description: "First sorting criteria for the mobile device search",
 			},
 			"sort2": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Second sorting criteria for the advanced computer search",
+				Description: "Second sorting criteria for the mobile device search",
 			},
 			"sort3": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Third sorting criteria for the advanced computer search",
+				Description: "Third sorting criteria for the mobile device search",
 			},
 			"criteria": {
 				Type:     schema.TypeList,
@@ -103,13 +103,13 @@ func ResourceJamfProAdvancedMobileDeviceSearches() *schema.Resource {
 			"display_fields": {
 				Type:        schema.TypeSet,
 				Optional:    true,
-				Description: "display field in the advanced computer search",
+				Description: "display field in the mobile device search",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "display field item in the advanced computer search",
+							Description: "display field item in the mobile device search",
 						},
 					},
 				},
@@ -137,7 +137,7 @@ func ResourceJamfProAdvancedMobileDeviceSearches() *schema.Resource {
 	}
 }
 
-// constructJamfProAdvancedMobileDeviceSearch constructs an advanced computer search object for create and update oeprations
+// constructJamfProAdvancedMobileDeviceSearch constructs an mobile device search object for create and update oeprations
 func constructJamfProAdvancedMobileDeviceSearch(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceAdvancedMobileDeviceSearch, error) {
 	search := &jamfpro.ResourceAdvancedMobileDeviceSearch{
 		Name:   util.GetStringFromInterface(d.Get("name")),
@@ -245,7 +245,7 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 	return diags
 }
 
-// ResourceJamfProAdvancedMobileDeviceSearchCreate is responsible for creating a new Jamf Pro Advanced Computer Search in the remote system.
+// ResourceJamfProAdvancedMobileDeviceSearchCreate is responsible for creating a new Jamf Pro mobile device Search in the remote system.
 func ResourceJamfProAdvancedMobileDeviceSearchCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -258,10 +258,10 @@ func ResourceJamfProAdvancedMobileDeviceSearchCreate(ctx context.Context, d *sch
 
 	// Use the retry function for the create operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		// Construct the advanced computer search
+		// Construct the mobile device search
 		search, err := constructJamfProAdvancedMobileDeviceSearch(ctx, d)
 		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the advanced computer search for terraform create: %w", err))
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the mobile device search for terraform create: %w", err))
 		}
 
 		// Log the details of the search that is about to be created
@@ -313,7 +313,7 @@ func ResourceJamfProAdvancedMobileDeviceSearchCreate(ctx context.Context, d *sch
 	return diags
 }
 
-// ResourceJamfProAdvancedMobileDeviceSearchRead is responsible for reading the current state of a Jamf Pro Advanced Computer Search from the remote system.
+// ResourceJamfProAdvancedMobileDeviceSearchRead is responsible for reading the current state of a Jamf Pro mobile device Search from the remote system.
 func ResourceJamfProAdvancedMobileDeviceSearchRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -334,7 +334,7 @@ func ResourceJamfProAdvancedMobileDeviceSearchRead(ctx context.Context, d *schem
 			return retry.NonRetryableError(fmt.Errorf("failed to parse search ID: %v", convertErr))
 		}
 
-		// Try fetching the advanced computer search using the ID
+		// Try fetching the mobile device search using the ID
 		var apiErr error
 		search, apiErr = conn.GetAdvancedMobileDeviceSearchByID(searchID)
 		if apiErr != nil {
@@ -431,7 +431,7 @@ func ResourceJamfProAdvancedMobileDeviceSearchRead(ctx context.Context, d *schem
 	return diags
 }
 
-// ResourceJamfProAdvancedMobileDeviceSearchUpdate is responsible for updating an existing Jamf Pro Advanced Computer Search on the remote system.
+// ResourceJamfProAdvancedMobileDeviceSearchUpdate is responsible for updating an existing Jamf Pro mobile device Search on the remote system.
 func ResourceJamfProAdvancedMobileDeviceSearchUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -445,10 +445,10 @@ func ResourceJamfProAdvancedMobileDeviceSearchUpdate(ctx context.Context, d *sch
 	// Use the retry function for the update operation
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		// Construct the updated advanced computer search
+		// Construct the updated mobile device search
 		search, err := constructJamfProAdvancedMobileDeviceSearch(ctx, d)
 		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the advanced computer search for terraform update: %w", err))
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the mobile device search for terraform update: %w", err))
 		}
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request

@@ -37,12 +37,12 @@ func ResourceJamfProAdvancedComputerSearches() *schema.Resource {
 			"id": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "ID of the advanced computer search",
+				Description: "The unique identifier of the advanced computer search",
 			},
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Name of the advanced computer search",
+				Description: "The unique name of the advanced computer search",
 			},
 			"view_as": {
 				Type:        schema.TypeString,

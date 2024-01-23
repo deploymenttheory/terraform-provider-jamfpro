@@ -35,7 +35,7 @@ func ResourceJamfProBYOProfiles() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:        schema.TypeInt,
+				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "ID of the BYO profile",
 			},
