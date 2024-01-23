@@ -12,11 +12,11 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 // ResourceJamfProAccountGroup defines the schema and CRUD operations for managing buildings in Terraform.
@@ -45,16 +45,33 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 				Description: "The name of the account group.",
 			},
 			"access_level": {
-				Type:         schema.TypeString,
-				Required:     true,
-				Description:  "The access level of the account. This can be either Full Access, or scoped to a jamf pro site with Site Access",
-				ValidateFunc: validation.StringInSlice([]string{"Full Access", "Site Access"}, false),
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The access level of the account. This can be either Full Access, scoped to a jamf pro site with Site Access, or scoped to a jamf pro account group with Group Access",
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := util.GetString(val)
+					if v == "Full Access" || v == "Site Access" || v == "Group Access" {
+						return
+					}
+					errs = append(errs, fmt.Errorf("%q must be either 'Full Access' or 'Site Access' or 'Group Access', got: %s", key, v))
+					return warns, errs
+				},
 			},
 			"privilege_set": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Description:  "The privilege set assigned to the account group.",
-				ValidateFunc: validation.StringInSlice([]string{"Administrator", "Auditor", "Enrollment Only", "Custom"}, false),
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The privilege set assigned to the account.",
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := util.GetString(val)
+					validPrivileges := []string{"Administrator", "Auditor", "Enrollment Only", "Custom"}
+					for _, validPriv := range validPrivileges {
+						if v == validPriv {
+							return // Valid value found, return without error
+						}
+					}
+					errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validPrivileges, v))
+					return warns, errs
+				},
 			},
 			"site": {
 				Type:        schema.TypeList,
@@ -83,7 +100,8 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 				Optional:    true,
 				Description: "Privileges related to JSS Objects.",
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: common.ValidateJSSObjectsPrivileges,
 				},
 			},
 			"jss_settings_privileges": {
@@ -91,7 +109,8 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 				Optional:    true,
 				Description: "Privileges related to JSS Settings.",
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: common.ValidateJSSSettingsPrivileges,
 				},
 			},
 			"jss_actions_privileges": {
@@ -99,7 +118,8 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 				Optional:    true,
 				Description: "Privileges related to JSS Actions.",
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: common.ValidateJSSActionsPrivileges,
 				},
 			},
 			"casper_admin_privileges": {
@@ -107,7 +127,8 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 				Optional:    true,
 				Description: "Privileges related to Casper Admin.",
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: common.ValidateCasperAdminPrivileges,
 				},
 			},
 			"casper_remote_privileges": {
@@ -193,7 +214,7 @@ func constructJamfProAccountGroup(d *schema.ResourceData) (*jamfpro.ResourceAcco
 				Name: util.GetStringFromInterface(memberMap["name"]),
 			}
 			members = append(members, struct {
-				User jamfpro.MemberUser `json:"user" xml:"user"`
+				User jamfpro.MemberUser `json:"user,omitempty" xml:"user,omitempty"`
 			}{
 				User: memberUser,
 			})

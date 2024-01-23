@@ -1,0 +1,413 @@
+// byoprofiles_resource.go
+package byoprofiles
+
+import (
+	"context"
+	"encoding/xml"
+	"fmt"
+	"log"
+	"strconv"
+	"time"
+
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
+
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+// ResourceJamfProBYOProfiles defines the schema for managing BYO Profiles in Terraform.
+func ResourceJamfProBYOProfiles() *schema.Resource {
+	return &schema.Resource{
+		CreateContext: ResourceJamfProBYOProfileCreate,
+		ReadContext:   ResourceJamfProBYOProfileRead,
+		UpdateContext: ResourceJamfProBYOProfileUpdate,
+		DeleteContext: ResourceJamfProBYOProfileDelete,
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(1 * time.Minute),
+			Read:   schema.DefaultTimeout(1 * time.Minute),
+			Update: schema.DefaultTimeout(1 * time.Minute),
+			Delete: schema.DefaultTimeout(1 * time.Minute),
+		},
+		Schema: map[string]*schema.Schema{
+			"id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "ID of the BYO profile",
+			},
+			"name": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Name of the BYO profile",
+			},
+			"site": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:        schema.TypeInt,
+							Optional:    true,
+							Description: "ID of the site assigned to the byoprofile",
+							Default:     -1,
+						},
+						"name": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "ID of the site assigned to the byoprofile",
+							Default:     "None",
+						},
+					},
+				},
+			},
+			"enabled": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Whether the BYO profile is enabled",
+			},
+			"description": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Description of the BYO profile",
+			},
+		},
+	}
+}
+
+// constructJamfProBYOProfile constructs a BYO profile object for create and update operations.
+func constructJamfProBYOProfile(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceBYOProfile, error) {
+	profile := &jamfpro.ResourceBYOProfile{
+		General: jamfpro.BYOProfileSubsetGeneral{
+			Name:        util.GetStringFromInterface(d.Get("name")),
+			Enabled:     util.GetBoolFromInterface(d.Get("enabled")),
+			Description: util.GetStringFromInterface(d.Get("description")),
+		},
+	}
+
+	if v, ok := d.GetOk("site"); ok && len(v.([]interface{})) > 0 {
+		siteData, ok := v.([]interface{})[0].(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("failed to parse site data")
+		}
+
+		profile.General.Site = jamfpro.SharedResourceSite{
+			ID:   util.GetIntFromMap(siteData, "id"),
+			Name: util.GetStringFromMap(siteData, "name"),
+		}
+	}
+
+	// Marshal the byo profile object into XML for logging
+	xmlData, err := xml.MarshalIndent(profile, "", "  ")
+	if err != nil {
+		// Handle the error if XML marshaling fails
+		log.Printf("[ERROR] Error marshaling BYO profile object to XML: %s", err)
+		return nil, fmt.Errorf("error marshaling BYO profile object to XML: %v", err)
+	}
+
+	// Log the XML formatted search object
+	tflog.Debug(ctx, fmt.Sprintf("[DEBUG] Constructed BYO profile Object:\n%s", string(xmlData)))
+
+	tflog.Debug(ctx, fmt.Sprintf("[DEBUG] Successfully constructed BYO profile with name: %s", profile.General.Name))
+
+	return profile, nil
+}
+
+// Helper function to generate diagnostics based on the error type.
+func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
+	var diags diag.Diagnostics
+	resourceName, exists := d.GetOk("name")
+	if !exists {
+		resourceName = "unknown"
+	}
+
+	// Handle the APIError in the diagnostic
+	if apiErr, ok := err.(*http_client.APIError); ok {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
+			Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
+		})
+	} else {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
+			Detail:   err.Error(),
+		})
+	}
+	return diags
+}
+
+// ResourceJamfProBYOProfileCreate is responsible for creating a new Jamf Pro Bring Your Own (BYO) Profile in the remote system.
+func ResourceJamfProBYOProfileCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
+
+	// Use the retry function for the create operation
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		// Construct the advanced computer byoprofile
+		byoprofile, err := constructJamfProBYOProfile(ctx, d)
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the BYO profile for terraform create: %w", err))
+		}
+
+		// Log the details of the byoprofile that is about to be created
+		log.Printf("[INFO] Attempting to create BYO profile with name: %s", byoprofile.General.Name)
+
+		// Directly call the API to create the resource
+		response, err := conn.CreateBYOProfile(byoprofile)
+		if err != nil {
+			// Log the error from the API call
+			log.Printf("[ERROR] Error creating BYO profile with name: %s. Error: %s", byoprofile.General.Name, err)
+
+			// Check if the error is an APIError
+			if apiErr, ok := err.(*http_client.APIError); ok {
+				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message))
+			}
+			// For simplicity, we're considering all other errors as retryable
+			return retry.RetryableError(err)
+		}
+
+		// Log the response from the API call
+		log.Printf("[INFO] Successfully created BYO profile with ID: %d and name: %s", response.ID, byoprofile.General.Name)
+
+		// Set the ID of the created resource in the Terraform state
+		d.SetId(strconv.Itoa(response.ID))
+
+		return nil
+	})
+
+	if err != nil {
+		// If there's an error while creating the resource, generate diagnostics using the helper function.
+		return generateTFDiagsFromHTTPError(err, d, "create")
+	}
+
+	// Use the retry function for the read operation to update the Terraform state with the resource attributes
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		readDiags := ResourceJamfProBYOProfileRead(ctx, d, meta)
+		if len(readDiags) > 0 {
+			// If readDiags is not empty, it means there's an error, so we retry
+			return retry.RetryableError(fmt.Errorf("failed to read the created resource"))
+		}
+		return nil
+	})
+
+	if err != nil {
+		// If there's an error while updating the state for the resource, generate diagnostics using the helper function.
+		return generateTFDiagsFromHTTPError(err, d, "update state for")
+	}
+
+	return diags
+}
+
+// ResourceJamfProBYOProfileRead is responsible for reading the current state of a Jamf Pro BYO Profile from the remote system.
+func ResourceJamfProBYOProfileRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
+
+	var profile *jamfpro.ResourceBYOProfile
+
+	// Use the retry function for the read operation
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		// Convert the ID from the Terraform state into an integer to be used for the API request
+		profileID, convertErr := strconv.Atoi(d.Id())
+		if convertErr != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to parse profile ID: %v", convertErr))
+		}
+
+		// Try fetching the BYO profile using the ID
+		var apiErr error
+		profile, apiErr = conn.GetBYOProfileByID(profileID)
+		if apiErr != nil {
+			// Handle the APIError
+			if apiError, ok := apiErr.(*http_client.APIError); ok {
+				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+			}
+			// If fetching by ID fails, try fetching by Name
+			profileName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
+			profile, apiErr = conn.GetBYOProfileByName(profileName)
+			if apiErr != nil {
+				// Handle the APIError
+				if apiError, ok := apiErr.(*http_client.APIError); ok {
+					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+				}
+				return retry.RetryableError(apiErr)
+			}
+		}
+		return nil
+	})
+
+	// Handle error from the retry function
+	if err != nil {
+		// If there's an error while reading the resource, generate diagnostics using the helper function.
+		return generateTFDiagsFromHTTPError(err, d, "read")
+	}
+
+	// Set attributes in the Terraform state
+	if err := d.Set("name", profile.General.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	site := make([]interface{}, 0)
+	if profile.General.Site.ID != 0 || profile.General.Site.Name != "" {
+		siteData := map[string]interface{}{
+			"id":   profile.General.Site.ID,
+			"name": profile.General.Site.Name,
+		}
+		site = append(site, siteData)
+	}
+	if err := d.Set("site", site); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("enabled", profile.General.Enabled); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("description", profile.General.Description); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	return diags
+}
+
+// ResourceJamfProBYOProfileUpdate is responsible for updating an existing Jamf Pro BYO Profile on the remote system.
+func ResourceJamfProBYOProfileUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
+
+	// Use the retry function for the update operation
+	var err error
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+		// Construct the updated BYO profile
+		byoprofile, err := constructJamfProBYOProfile(ctx, d)
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the BYO profile for terraform update: %w", err))
+		}
+
+		// Convert the ID from the Terraform state into an integer to be used for the API request
+		profileID, convertErr := strconv.Atoi(d.Id())
+		if convertErr != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to parse profile ID: %v", convertErr))
+		}
+
+		// Directly call the API to update the resource
+		_, apiErr := conn.UpdateBYOProfileByID(profileID, byoprofile)
+		if apiErr != nil {
+			// Handle the APIError
+			if apiError, ok := apiErr.(*http_client.APIError); ok {
+				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+			}
+			// If the update by ID fails, try updating by name
+			profileName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+			_, apiErr = conn.UpdateBYOProfileByName(profileName, byoprofile)
+			if apiErr != nil {
+				// Handle the APIError
+				if apiError, ok := apiErr.(*http_client.APIError); ok {
+					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+				}
+				return retry.RetryableError(apiErr)
+			}
+		}
+		return nil
+	})
+
+	// Handle error from the retry function
+	if err != nil {
+		// If there's an error while updating the resource, generate diagnostics using the helper function.
+		return generateTFDiagsFromHTTPError(err, d, "update")
+	}
+
+	// Use the retry function for the read operation to update the Terraform state
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		readDiags := ResourceJamfProBYOProfileRead(ctx, d, meta)
+		if len(readDiags) > 0 {
+			return retry.RetryableError(fmt.Errorf("failed to update the Terraform state for the updated resource"))
+		}
+		return nil
+	})
+
+	// Handle error from the retry function
+	if err != nil {
+		// If there's an error while updating the resource, generate diagnostics using the helper function.
+		return generateTFDiagsFromHTTPError(err, d, "update")
+	}
+
+	return diags
+}
+
+// ResourceJamfProBYOProfileDelete is responsible for deleting a Jamf Pro BYO Profile.
+func ResourceJamfProBYOProfileDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
+
+	// Use the retry function for the delete operation
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
+		// Convert the ID from the Terraform state into an integer to be used for the API request
+		byoprofileID, convertErr := strconv.Atoi(d.Id())
+		if convertErr != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to parse group ID: %v", convertErr))
+		}
+
+		// Directly call the API to delete the resource
+		apiErr := conn.DeleteBYOProfileByID(byoprofileID)
+		if apiErr != nil {
+			// If the delete by ID fails, try deleting by name
+			byoprofileName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+			apiErr = conn.DeleteBYOProfileByName(byoprofileName)
+			if apiErr != nil {
+				return retry.RetryableError(apiErr)
+			}
+		}
+		return nil
+	})
+
+	// Handle error from the retry function
+	if err != nil {
+		// If there's an error while deleting the resource, generate diagnostics using the helper function.
+		return generateTFDiagsFromHTTPError(err, d, "delete")
+	}
+
+	// Clear the ID from the Terraform state as the resource has been deleted
+	d.SetId("")
+
+	return diags
+}
