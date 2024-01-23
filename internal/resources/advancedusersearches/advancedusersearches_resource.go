@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProAdvancedUserSearches defines the schema for managing Advanced Computer Searches in Terraform.
+// ResourceJamfProAdvancedUserSearches defines the schema for managing advanced user Searches in Terraform.
 func ResourceJamfProAdvancedUserSearches() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: ResourceJamfProAdvancedUserSearchCreate,
@@ -37,12 +37,12 @@ func ResourceJamfProAdvancedUserSearches() *schema.Resource {
 			"id": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "ID of the advanced computer search",
+				Description: "The unique identifier of the advanced user search",
 			},
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Name of the advanced computer search",
+				Description: "The name of the advanced mobile device search",
 			},
 			"criteria": {
 				Type:     schema.TypeList,
@@ -83,13 +83,13 @@ func ResourceJamfProAdvancedUserSearches() *schema.Resource {
 			"display_fields": {
 				Type:        schema.TypeSet,
 				Optional:    true,
-				Description: "display field in the advanced computer search",
+				Description: "display field in the advanced user search",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "display field item in the advanced computer search",
+							Description: "display field item in the advanced user search",
 						},
 					},
 				},
@@ -117,7 +117,7 @@ func ResourceJamfProAdvancedUserSearches() *schema.Resource {
 	}
 }
 
-// constructJamfProAdvancedUserSearch constructs an advanced computer search object for create and update oeprations
+// constructJamfProAdvancedUserSearch constructs an advanced user search object for create and update oeprations
 func constructJamfProAdvancedUserSearch(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceAdvancedUserSearch, error) {
 	search := &jamfpro.ResourceAdvancedUserSearch{
 		Name: util.GetStringFromInterface(d.Get("name")),
@@ -221,7 +221,7 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 	return diags
 }
 
-// ResourceJamfProAdvancedUserSearchCreate is responsible for creating a new Jamf Pro Advanced Computer Search in the remote system.
+// ResourceJamfProAdvancedUserSearchCreate is responsible for creating a new Jamf Pro advanced user Search in the remote system.
 func ResourceJamfProAdvancedUserSearchCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -234,10 +234,10 @@ func ResourceJamfProAdvancedUserSearchCreate(ctx context.Context, d *schema.Reso
 
 	// Use the retry function for the create operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		// Construct the advanced computer search
+		// Construct the advanced user search
 		search, err := constructJamfProAdvancedUserSearch(ctx, d)
 		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the advanced computer search for terraform create: %w", err))
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the advanced user search for terraform create: %w", err))
 		}
 
 		// Log the details of the search that is about to be created
@@ -289,7 +289,7 @@ func ResourceJamfProAdvancedUserSearchCreate(ctx context.Context, d *schema.Reso
 	return diags
 }
 
-// ResourceJamfProAdvancedUserSearchRead is responsible for reading the current state of a Jamf Pro Advanced Computer Search from the remote system.
+// ResourceJamfProAdvancedUserSearchRead is responsible for reading the current state of a Jamf Pro advanced user Search from the remote system.
 func ResourceJamfProAdvancedUserSearchRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -395,7 +395,7 @@ func ResourceJamfProAdvancedUserSearchRead(ctx context.Context, d *schema.Resour
 	return diags
 }
 
-// ResourceJamfProAdvancedUserSearchUpdate is responsible for updating an existing Jamf Pro Advanced Computer Search on the remote system.
+// ResourceJamfProAdvancedUserSearchUpdate is responsible for updating an existing Jamf Pro advanced user Search on the remote system.
 func ResourceJamfProAdvancedUserSearchUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -409,10 +409,10 @@ func ResourceJamfProAdvancedUserSearchUpdate(ctx context.Context, d *schema.Reso
 	// Use the retry function for the update operation
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		// Construct the updated advanced computer search
+		// Construct the updated advanced user search
 		search, err := constructJamfProAdvancedUserSearch(ctx, d)
 		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the advanced computer search for terraform update: %w", err))
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the advanced user search for terraform update: %w", err))
 		}
 
 		// Convert the ID from the Terraform state into an integer to be used for the API request
