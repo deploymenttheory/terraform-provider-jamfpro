@@ -746,10 +746,13 @@ func constructSelfService(data *schema.ResourceData) jamfpro.PolicySubsetSelfSer
 		for _, categoryDataInterface := range selfServiceCategoriesData {
 			// Safely assert type of each category data
 			if categoryData, ok := categoryDataInterface.(map[string]interface{}); ok {
-				category := jamfpro.PolicyCategory{
-					Name: util.GetStringFromInterface(categoryData["name"]),
+				category := jamfpro.PolicySubsetSelfServiceCategories{
+					ID:        util.GetIntFromInterface(categoryData["id"]),
+					Name:      util.GetStringFromInterface(categoryData["name"]),
+					DisplayIn: util.GetBoolFromInterface(categoryData["display_in"]),
+					FeatureIn: util.GetBoolFromInterface(categoryData["feature_in"]),
 				}
-				selfServiceCategories = append(selfServiceCategories, jamfpro.PolicySubsetSelfServiceCategories{Category: category})
+				selfServiceCategories = append(selfServiceCategories, category)
 			}
 		}
 	}
@@ -939,7 +942,7 @@ func constructAccountMaintenance(data *schema.ResourceData) jamfpro.PolicySubset
 					Picture:                util.GetStringFromInterface(account["picture"]),
 					Admin:                  util.GetBoolFromInterface(account["admin"]),
 					FilevaultEnabled:       util.GetBoolFromInterface(account["filevault_enabled"]),
-					PasswordSha256:         util.GetStringFromInterface(account["password_sha256"]),
+					PasswordSHA256:         util.GetStringFromInterface(account["password_sha256"]),
 				}
 				accounts = append(accounts, accountObj)
 			}

@@ -1917,14 +1917,11 @@ func dataSourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, 
 		"self_service_categories": func() []interface{} {
 			categories := make([]interface{}, len(policy.SelfService.SelfServiceCategories))
 			for i, cat := range policy.SelfService.SelfServiceCategories {
-				categoryMap := map[string]interface{}{
-					"id":         cat.Category.ID,
-					"name":       cat.Category.Name,
-					"display_in": cat.Category.DisplayIn,
-					"feature_in": cat.Category.FeatureIn,
-				}
 				categories[i] = map[string]interface{}{
-					"category": []interface{}{categoryMap},
+					"id":         cat.ID,
+					"name":       cat.Name,
+					"display_in": cat.DisplayIn,
+					"feature_in": cat.FeatureIn,
 				}
 			}
 			return categories
