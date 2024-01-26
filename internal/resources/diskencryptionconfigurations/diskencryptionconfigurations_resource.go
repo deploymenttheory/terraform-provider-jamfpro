@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
@@ -52,11 +53,47 @@ func ResourceJamfProDiskEncryptionConfigurations() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The type of the key used in the disk encryption which can be either 'Institutional' or 'Individual and Institutional'.",
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					value := val.(string)
+					validValues := []string{"Institutional", "Individual and Institutional"}
+
+					found := false
+					for _, v := range validValues {
+						if value == v {
+							found = true
+							break
+						}
+					}
+
+					if !found {
+						errs = append(errs, fmt.Errorf("%q must be one of [%s], got '%s'", key, strings.Join(validValues, ", "), value))
+					}
+
+					return
+				},
 			},
 			"file_vault_enabled_users": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Defines which user to enable for FileVault 2. Value can be either 'Management Account' or 'Current or Next User'",
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					value := val.(string)
+					validValues := []string{"Management Account", "Current or Next User"}
+
+					found := false
+					for _, v := range validValues {
+						if value == v {
+							found = true
+							break
+						}
+					}
+
+					if !found {
+						errs = append(errs, fmt.Errorf("%q must be one of [%s], got '%s'", key, strings.Join(validValues, ", "), value))
+					}
+
+					return
+				},
 			},
 			"institutional_recovery_key": {
 				Type:        schema.TypeList,
@@ -179,7 +216,7 @@ func ResourceJamfProDiskEncryptionConfigurationsCreate(ctx context.Context, d *s
 	conn := apiclient.Conn
 
 	// Use the retry function for the create operation.
-	var createdConfigResponse *jamfpro.ResponseDiskEncryptionConfiguration
+	var createdConfigResponse *jamfpro.ResponseDiskEncryptionConfigurationCreatedAndUpdated
 	var err error
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		// Construct the disk encryption configuration.
@@ -230,70 +267,10 @@ func ResourceJamfProDiskEncryptionConfigurationsCreate(ctx context.Context, d *s
 
 // ResourceJamfProDiskEncryptionConfigurationsRead is responsible for reading the current state of a Jamf Pro Disk Encryption Configuration Resource from the remote system.
 // The function:
-// 1. Fetches the disk encryption configuration's current state using its ID.
+// 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
-// 3. Handles any discrepancies, such as the disk encryption configuration being deleted outside of Terraform, to keep the Terraform state synchronized.
-// ResourceJamfProDiskEncryptionConfigurationsRead is responsible for reading the current state of a Jamf Pro Disk Encryption Configuration Resource from the remote system.
+// 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProDiskEncryptionConfigurationsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	apiclient, ok := meta.(*client.APIClient)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
-	}
-	conn := apiclient.Conn
-
-	var responseConfig *jamfpro.ResponseDiskEncryptionConfiguration
-
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		configID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse disk encryption configuration ID: %v", convertErr))
-		}
-
-		var apiErr error
-		responseConfig, apiErr = conn.GetDiskEncryptionConfigurationByID(configID)
-		if apiErr != nil {
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				if apiError.StatusCode == 404 {
-					d.SetId("")
-					return nil
-				}
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-			}
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	if err != nil {
-		return generateTFDiagsFromHTTPError(err, d, "read")
-	}
-
-	if responseConfig != nil {
-		d.Set("id", strconv.Itoa(responseConfig.ID))
-		d.Set("name", responseConfig.Name)
-		d.Set("key_type", responseConfig.KeyType)
-		d.Set("file_vault_enabled_users", responseConfig.FileVaultEnabledUsers)
-
-		if responseConfig.InstitutionalRecoveryKey != nil {
-			irk := map[string]interface{}{
-				"key":              responseConfig.InstitutionalRecoveryKey.Key,
-				"certificate_type": responseConfig.InstitutionalRecoveryKey.CertificateType,
-				"password":         responseConfig.InstitutionalRecoveryKey.Password,
-				"data":             responseConfig.InstitutionalRecoveryKey.Data,
-			}
-			d.Set("institutional_recovery_key", []interface{}{irk})
-		}
-	} else {
-		d.SetId("")
-	}
-
-	return diags
-}
-
-// ResourceJamfProDockItemsUpdate is responsible for updating an existing Jamf Pro Dock Item on the remote system.
-func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Asserts 'meta' as '*client.APIClient'
@@ -303,35 +280,111 @@ func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData,
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the update operation
-	var err error
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		// Construct the dock item
-		dockItem, err := constructDiskEncryptionConfiguration(d)
-		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the department for terraform update: %w", err))
-		}
+	var diskEncryptionConfig *jamfpro.ResourceDiskEncryptionConfiguration
 
+	// Use the retry function for the read operation
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		// Convert the ID from the Terraform state into an integer to be used for the API request
-		dockItemID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse dock item ID: %v", convertErr))
+		configID, err := strconv.Atoi(d.Id())
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("error converting id (%s) to integer: %s", d.Id(), err))
 		}
 
-		// Directly call the API to update the resource by ID
-		_, apiErr := conn.UpdateDockItemByID(dockItemID, dockItem)
+		// Try fetching the disk encryption configuration using the ID
+		diskEncryptionConfig, err = conn.GetDiskEncryptionConfigurationByID(configID)
+		if err != nil {
+			// Handle the APIError
+			if apiError, ok := err.(*http_client.APIError); ok {
+				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+			}
+			// If fetching by ID fails, try fetching by Name
+			configName, ok := d.Get("name").(string)
+			if !ok {
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			}
+
+			diskEncryptionConfig, err = conn.GetDiskEncryptionConfigurationByName(configName)
+			if err != nil {
+				// Handle the APIError
+				if apiError, ok := err.(*http_client.APIError); ok {
+					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+				}
+				return retry.RetryableError(err)
+			}
+		}
+		return nil
+	})
+
+	// Handle error from the retry function
+	if err != nil {
+		// If there's an error while reading the resource, generate diagnostics using the helper function.
+		return generateTFDiagsFromHTTPError(err, d, "read")
+	}
+
+	// Update the Terraform state with disk encryption configuration attributes
+	d.Set("name", diskEncryptionConfig.Name)
+	d.Set("key_type", diskEncryptionConfig.KeyType)
+	d.Set("file_vault_enabled_users", diskEncryptionConfig.FileVaultEnabledUsers)
+
+	// Update institutional recovery key information
+	if diskEncryptionConfig.InstitutionalRecoveryKey != nil {
+		irk := make(map[string]interface{})
+		irk["key"] = diskEncryptionConfig.InstitutionalRecoveryKey.Key
+		irk["certificate_type"] = diskEncryptionConfig.InstitutionalRecoveryKey.CertificateType
+		irk["password"] = diskEncryptionConfig.InstitutionalRecoveryKey.Password
+		irk["data"] = diskEncryptionConfig.InstitutionalRecoveryKey.Data
+
+		d.Set("institutional_recovery_key", []interface{}{irk})
+	} else {
+		d.Set("institutional_recovery_key", []interface{}{}) // Clear the institutional recovery key data if not present
+	}
+
+	return diags
+}
+
+// ResourceJamfProDiskEncryptionConfigurationsUpdate is responsible for updating an existing Jamf Pro Disk Encryption Configuration on the remote system.
+func ResourceJamfProDiskEncryptionConfigurationsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	// Asserts 'meta' as '*client.APIClient'
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+
+	// The apiclient, which is of type *client.APIClient, holds a reference to the Jamf Pro client in its Conn field.
+	// By assigning apiclient.Conn to jamfProClient, we are obtaining the actual Jamf Pro client (*jamfpro.Client)
+	// that will be used for making API calls to the Jamf Pro server.
+	jamfProClient := apiclient.Conn
+
+	// Use the retry function for the update operation
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+		// Construct the updated disk encryption configuration
+		diskEncryptionConfig, err := constructDiskEncryptionConfiguration(ctx, d)
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to construct the disk encryption configuration for terraform update: %w", err))
+		}
+
+		// Obtain the ID from the Terraform state to be used for the API request
+		configID, err := strconv.Atoi(d.Id())
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("error converting id (%s) to integer: %s", d.Id(), err))
+		}
+
+		// Directly call the API to update the resource
+		_, apiErr := jamfProClient.UpdateDiskEncryptionConfigurationByID(configID, diskEncryptionConfig)
 		if apiErr != nil {
 			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If the update by ID fails, try updating by name
-			dockItemName, ok := d.Get("name").(string)
+			configName, ok := d.Get("name").(string)
 			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string in update"))
 			}
 
-			_, apiErr = conn.UpdateDockItemByName(dockItemName, dockItem)
+			_, apiErr = jamfProClient.UpdateDiskEncryptionConfigurationByName(configName, diskEncryptionConfig)
 			if apiErr != nil {
 				// Handle the APIError
 				if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -351,7 +404,7 @@ func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData,
 
 	// Use the retry function for the read operation to update the Terraform state
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProDockItemsRead(ctx, d, meta)
+		readDiags := ResourceJamfProDiskEncryptionConfigurationsRead(ctx, d, meta)
 		if len(readDiags) > 0 {
 			return retry.RetryableError(fmt.Errorf("failed to update the Terraform state for the updated resource"))
 		}
@@ -367,8 +420,8 @@ func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData,
 	return diags
 }
 
-// ResourceJamfProDockItemsDelete is responsible for deleting a Jamf Pro Dock Item.
-func ResourceJamfProDockItemsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// ResourceJamfProDiskEncryptionConfigurationsDelete is responsible for deleting a Jamf Pro Disk Encryption Configuration.
+func ResourceJamfProDiskEncryptionConfigurationsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Asserts 'meta' as '*client.APIClient'
@@ -381,21 +434,21 @@ func ResourceJamfProDockItemsDelete(ctx context.Context, d *schema.ResourceData,
 	// Use the retry function for the DELETE operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Convert the ID from the Terraform state into an integer to be used for the API request
-		dockItemID, convertErr := strconv.Atoi(d.Id())
+		diskEncryptionConfigurationID, convertErr := strconv.Atoi(d.Id())
 		if convertErr != nil {
 			return retry.NonRetryableError(fmt.Errorf("failed to parse dock item ID: %v", convertErr))
 		}
 
 		// Directly call the API to DELETE the resource
-		apiErr := conn.DeleteDockItemByID(dockItemID)
+		apiErr := conn.DeleteDiskEncryptionConfigurationByID(diskEncryptionConfigurationID)
 		if apiErr != nil {
 			// If the DELETE by ID fails, try deleting by name
-			dockItemName, ok := d.Get("name").(string)
+			diskEncryptionConfigurationName, ok := d.Get("name").(string)
 			if !ok {
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
 
-			apiErr = conn.DeleteDockItemByName(dockItemName)
+			apiErr = conn.DeleteDiskEncryptionConfigurationByName(diskEncryptionConfigurationName)
 			if apiErr != nil {
 				return retry.RetryableError(apiErr)
 			}

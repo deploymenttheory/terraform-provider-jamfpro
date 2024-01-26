@@ -28,6 +28,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerinventory"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerprestages"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/departments"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/diskencryptionconfigurations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/dockitems"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/policies"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/printers"
@@ -147,6 +148,7 @@ func Provider() *schema.Provider {
 			"jamfpro_computer_groups":                 computergroups.ResourceJamfProComputerGroups(),
 			"jamfpro_computer_prestages":              computerprestages.ResourceJamfProComputerPrestage(),
 			"jamfpro_departments":                     departments.ResourceJamfProDepartments(),
+			"jamfpro_disk_encryption_configurations":  diskencryptionconfigurations.ResourceJamfProDiskEncryptionConfigurations(),
 			"jamfpro_dock_items":                      dockitems.ResourceJamfProDockItems(),
 			"jamfpro_sites":                           sites.ResourceJamfProSites(),
 			"jamfpro_scripts":                         scripts.ResourceJamfProScripts(),

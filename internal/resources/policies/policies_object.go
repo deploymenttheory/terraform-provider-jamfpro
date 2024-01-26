@@ -160,16 +160,16 @@ func constructNoExecuteOn(val interface{}) []jamfpro.PolicySubsetGeneralDateTime
 	return noExecuteOn
 }
 
-// constructOverrideDefaultSettings creates a PolicySubsetGeneralOverrideDefaultSettings struct
+// constructOverrideDefaultSettings creates a PolicySubsetGeneralOverrideSettings struct
 // from an interface value. This function extracts override settings, including target drive
 // and distribution point, and handles nil values and type assertions.
-func constructOverrideDefaultSettings(val interface{}) jamfpro.PolicySubsetGeneralOverrideDefaultSettings {
+func constructOverrideDefaultSettings(val interface{}) jamfpro.PolicySubsetGeneralOverrideSettings {
 	overrideData := util.ConvertToMapFromInterface(val)
 	if overrideData == nil {
-		return jamfpro.PolicySubsetGeneralOverrideDefaultSettings{}
+		return jamfpro.PolicySubsetGeneralOverrideSettings{}
 	}
 
-	return jamfpro.PolicySubsetGeneralOverrideDefaultSettings{
+	return jamfpro.PolicySubsetGeneralOverrideSettings{
 		TargetDrive:       util.GetStringFromInterface(overrideData["target_drive"]),
 		DistributionPoint: util.GetStringFromInterface(overrideData["distribution_point"]),
 		ForceAfpSmb:       util.GetBoolFromInterface(overrideData["force_afp_smb"]),
@@ -945,7 +945,6 @@ func constructAccountMaintenance(data *schema.ResourceData) jamfpro.PolicySubset
 					Picture:                util.GetStringFromInterface(account["picture"]),
 					Admin:                  util.GetBoolFromInterface(account["admin"]),
 					FilevaultEnabled:       util.GetBoolFromInterface(account["filevault_enabled"]),
-					PasswordSHA256:         util.GetStringFromInterface(account["password_sha256"]),
 				}
 				accounts = append(accounts, accountObj)
 			}
