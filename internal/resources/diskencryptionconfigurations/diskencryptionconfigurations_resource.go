@@ -14,7 +14,6 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
-	utils "github.com/deploymenttheory/terraform-provider-jamfpro/internal/utilities"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -55,7 +54,7 @@ func ResourceJamfProDiskEncryptionConfigurations() *schema.Resource {
 				Description: "The type of the key used in the disk encryption which can be either 'Institutional' or 'Individual and Institutional'.",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					value := val.(string)
-					validValues := []string{"Institutional", "Individual and Institutional"}
+					validValues := []string{"Individual", "Institutional", "Individual and Institutional"}
 
 					found := false
 					for _, v := range validValues {
@@ -114,6 +113,7 @@ func ResourceJamfProDiskEncryptionConfigurations() *schema.Resource {
 							Type:        schema.TypeString,
 							Description: "The password for the institutional recovery key certificate.",
 							Optional:    true,
+							Sensitive:   true,
 						},
 						"data": {
 							Type:        schema.TypeString,
@@ -138,24 +138,19 @@ func constructDiskEncryptionConfiguration(ctx context.Context, d *schema.Resourc
 
 	// Handling the institutional_recovery_key which is a list of maps
 	if irk, ok := d.Get("institutional_recovery_key").([]interface{}); ok && len(irk) > 0 {
-		// Assuming the first element of the list is used for configuration
 		institutionalRecoveryKeyMap := irk[0].(map[string]interface{})
-		data := util.GetStringFromMap(institutionalRecoveryKeyMap, "data")
-
-		// Base64 encode the 'data' value using Base64EncodeCertificate utility function
-		encodedBase64CertData, err := utils.Base64EncodeCertificate(data)
-		if err != nil {
-			// Handle the error if base64 encoding fails
-			log.Printf("[ERROR] Error encoding Data to Base64: %s", err)
-			return nil, fmt.Errorf("error encoding Data to Base64: %v", err)
-		}
+		// Do not need to base64 as within tf you use the filebase64 method when referencing the certificate.
+		certificatePayloadData := util.GetStringFromMap(institutionalRecoveryKeyMap, "data")
 
 		diskEncryptionConfig.InstitutionalRecoveryKey = &jamfpro.DiskEncryptionConfigurationInstitutionalRecoveryKey{
 			Key:             util.GetStringFromMap(institutionalRecoveryKeyMap, "key"),
 			CertificateType: util.GetStringFromMap(institutionalRecoveryKeyMap, "certificate_type"),
 			Password:        util.GetStringFromMap(institutionalRecoveryKeyMap, "password"),
-			Data:            encodedBase64CertData,
+			Data:            certificatePayloadData,
 		}
+	} else {
+		// Set InstitutionalRecoveryKey to nil or a default value if it's not provided
+		diskEncryptionConfig.InstitutionalRecoveryKey = nil
 	}
 
 	// Marshal the search object into XML for logging
@@ -322,21 +317,25 @@ func ResourceJamfProDiskEncryptionConfigurationsRead(ctx context.Context, d *sch
 	}
 
 	// Update the Terraform state with disk encryption configuration attributes
-	d.Set("name", diskEncryptionConfig.Name)
-	d.Set("key_type", diskEncryptionConfig.KeyType)
-	d.Set("file_vault_enabled_users", diskEncryptionConfig.FileVaultEnabledUsers)
+	// Check if the InstitutionalRecoveryKey is nil or empty
+	if diskEncryptionConfig.InstitutionalRecoveryKey == nil ||
+		(diskEncryptionConfig.InstitutionalRecoveryKey.Key == "" &&
+			diskEncryptionConfig.InstitutionalRecoveryKey.CertificateType == "" &&
+			diskEncryptionConfig.InstitutionalRecoveryKey.Password == "" &&
+			diskEncryptionConfig.InstitutionalRecoveryKey.Data == "") {
 
-	// Update institutional recovery key information
-	if diskEncryptionConfig.InstitutionalRecoveryKey != nil {
+		// If InstitutionalRecoveryKey is nil or empty, ensure it is not set in the Terraform state
+		d.Set("institutional_recovery_key", []interface{}{})
+	} else {
+		// If InstitutionalRecoveryKey has data, set it in the Terraform state
 		irk := make(map[string]interface{})
-		irk["key"] = diskEncryptionConfig.InstitutionalRecoveryKey.Key
+		// Removing as this causes state management false positives.
+		//irk["key"] = diskEncryptionConfig.InstitutionalRecoveryKey.Key
 		irk["certificate_type"] = diskEncryptionConfig.InstitutionalRecoveryKey.CertificateType
 		irk["password"] = diskEncryptionConfig.InstitutionalRecoveryKey.Password
 		irk["data"] = diskEncryptionConfig.InstitutionalRecoveryKey.Data
 
 		d.Set("institutional_recovery_key", []interface{}{irk})
-	} else {
-		d.Set("institutional_recovery_key", []interface{}{}) // Clear the institutional recovery key data if not present
 	}
 
 	return diags
