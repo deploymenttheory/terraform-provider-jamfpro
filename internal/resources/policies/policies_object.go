@@ -181,15 +181,20 @@ func constructOverrideDefaultSettings(val interface{}) jamfpro.PolicySubsetGener
 // This function is used to extract data for a shared resource site, handling nil values
 // and type assertions safely.
 func constructSharedResourceSite(val interface{}) jamfpro.SharedResourceSite {
-	siteData := util.ConvertToMapFromInterface(val)
-	if siteData == nil {
-		return jamfpro.SharedResourceSite{}
+	// Set default values
+	site := jamfpro.SharedResourceSite{
+		ID:   -1,     // Default ID
+		Name: "None", // Default name
 	}
 
-	return jamfpro.SharedResourceSite{
-		ID:   util.GetIntFromInterface(siteData["id"]),
-		Name: util.GetStringFromInterface(siteData["name"]),
+	// Check if val is not nil and is a map
+	if valMap, ok := val.(map[string]interface{}); ok {
+		// Extract ID and Name from the map if they exist
+		site.ID = util.GetIntFromInterface(valMap["id"])
+		site.Name = util.GetStringFromInterface(valMap["name"])
 	}
+
+	return site
 }
 
 // constructScope creates a PolicySubsetScope struct from the provided data.
@@ -754,13 +759,16 @@ func constructSelfService(data *schema.ResourceData) jamfpro.PolicySubsetSelfSer
 	if selfServiceCategoriesData, ok := data.Get("self_service_categories").([]interface{}); ok {
 		for _, categoryDataInterface := range selfServiceCategoriesData {
 			if categoryData, ok := categoryDataInterface.(map[string]interface{}); ok {
-				category := jamfpro.PolicySubsetSelfServiceCategories{
+				category := jamfpro.PolicyCategory{
 					ID:        util.GetIntFromInterface(categoryData["id"]),
 					Name:      util.GetStringFromInterface(categoryData["name"]),
 					DisplayIn: util.GetBoolFromInterface(categoryData["display_in"]),
 					FeatureIn: util.GetBoolFromInterface(categoryData["feature_in"]),
 				}
-				selfService.SelfServiceCategories = append(selfService.SelfServiceCategories, category)
+				selfServiceCategory := jamfpro.PolicySubsetSelfServiceCategory{
+					Category: category,
+				}
+				selfService.SelfServiceCategories = append(selfService.SelfServiceCategories, selfServiceCategory)
 			}
 		}
 	}
