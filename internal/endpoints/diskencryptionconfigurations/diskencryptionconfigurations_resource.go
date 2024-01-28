@@ -260,64 +260,93 @@ func ResourceJamfProDiskEncryptionConfigurationsCreate(ctx context.Context, d *s
 	return diags
 }
 
-// ResourceJamfProDiskEncryptionConfigurationsRead is responsible for reading the current state of a Jamf Pro Disk Encryption Configuration Resource from the remote system.
-// The function:
-// 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
-// 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
-// 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
+// ResourceJamfProDiskEncryptionConfigurationsRead is responsible for reading the current state of a Jamf Pro Disk Encryption Configuration resource from Jamf Pro and updating the Terraform state with the retrieved data.
+// The function operates as follows:
+// 1. Attempts to fetch the resource's current state using its ID stored in the Terraform state.
+//    - If the retrieval by ID fails with a 404 error, it attempts to fetch the resource using its name as a fallback.
+//    - Non-404 errors encountered during retrieval by ID or name immediately terminate the retry loop as non-retryable.
+// 2. If the resource cannot be found by either ID or name after all retry attempts, and the last error is a 404, the resource is considered deleted outside of Terraform. In this case, the resource ID is cleared from the Terraform state, effectively removing the resource from Terraform management.
+//    - For errors other than 404, diagnostics are returned with the last error encountered.
+// 3. Upon successful retrieval, the function updates the Terraform state with the resource's attributes, such as 'name', 'key_type', 'file_vault_enabled_users', and 'institutional_recovery_key'.
+//    - The 'institutional_recovery_key' attribute is handled carefully to account for its optional nature and complex structure.
+
 func ResourceJamfProDiskEncryptionConfigurationsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// Asserts 'meta' as '*client.APIClient'
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
+	var lastError error // Track the last error encountered
 	var diskEncryptionConfig *jamfpro.ResourceDiskEncryptionConfiguration
 
-	// Use the retry function for the read operation
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		configID, err := strconv.Atoi(d.Id())
-		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("error converting id (%s) to integer: %s", d.Id(), err))
-		}
+	// Get ID of resource from terraform state
+	configID, err := strconv.Atoi(d.Id())
+	if err != nil {
+		return diag.Errorf("error converting id (%s) to integer: %s", d.Id(), err)
+	}
 
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		// Try fetching the disk encryption configuration using the ID
 		diskEncryptionConfig, err = conn.GetDiskEncryptionConfigurationByID(configID)
 		if err != nil {
-			// Handle the APIError
-			if apiError, ok := err.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+			if apiError, ok := err.(*http_client.APIError); !ok || apiError.StatusCode != 404 {
+				lastError = err // Non-404 errors are immediately non-retryable
+				return retry.NonRetryableError(err)
 			}
-			// If fetching by ID fails, try fetching by Name
+
+			// If fetching by ID fails with 404, try fetching by Name
 			configName, ok := d.Get("name").(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			if !ok || configName == "" {
+				lastError = fmt.Errorf("resource not found by ID and no name provided to retry")
+				return retry.NonRetryableError(lastError)
 			}
 
 			diskEncryptionConfig, err = conn.GetDiskEncryptionConfigurationByName(configName)
 			if err != nil {
-				// Handle the APIError
-				if apiError, ok := err.(*http_client.APIError); ok {
-					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+				lastError = err // Record the last error encountered
+				if apiError, ok := err.(*http_client.APIError); !ok || apiError.StatusCode != 404 {
+					return retry.NonRetryableError(err) // Non-404 errors are immediately non-retryable
 				}
-				return retry.RetryableError(err)
+				// If also 404 by name, allow retry
+			} else {
+				return nil // Success, exit retry loop
 			}
+		} else {
+			return nil // Success, exit retry loop
 		}
-		return nil
+
+		return retry.RetryableError(fmt.Errorf("both 'get by ID' and 'get by name' failed, last error: %v", lastError))
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while reading the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "read")
+		if apiError, ok := lastError.(*http_client.APIError); ok && apiError.StatusCode == 404 {
+			// Detailed logging before clearing the ID
+			tflog.Debug(ctx, fmt.Sprintf("Resource not found by ID or Name, preparing to remove from Terraform state: ID=%s, Last Error=%s", d.Id(), apiError.Error()))
+
+			// Clear the ID to remove the resource from the state
+			d.SetId("")
+
+			// Detailed logging after clearing the ID
+			tflog.Info(ctx, fmt.Sprintf("Successfully removed resource from Terraform state: %s", d.Id()), map[string]interface{}{"resource_id": d.Id()})
+
+			return diags
+		} else {
+			// Log the last error if it's not a 404
+			tflog.Warn(ctx, fmt.Sprintf("Failed to find resource, but error is not a 404: %s", lastError.Error()), map[string]interface{}{"resource_id": d.Id(), "error": lastError.Error()})
+			return diag.FromErr(lastError)
+		}
 	}
 
-	// Update the Terraform state with disk encryption configuration attributes
-	// Check if the InstitutionalRecoveryKey is nil or empty
+	// Assuming successful retrieval, proceed to set the resource attributes in Terraform state
+	d.SetId(strconv.Itoa(configID)) // Update the ID in the state
+	d.Set("name", diskEncryptionConfig.Name)
+	d.Set("key_type", diskEncryptionConfig.KeyType)
+	d.Set("file_vault_enabled_users", diskEncryptionConfig.FileVaultEnabledUsers)
+
+	// Institutional Recovery Key
 	if diskEncryptionConfig.InstitutionalRecoveryKey == nil ||
 		(diskEncryptionConfig.InstitutionalRecoveryKey.Key == "" &&
 			diskEncryptionConfig.InstitutionalRecoveryKey.CertificateType == "" &&
@@ -329,8 +358,6 @@ func ResourceJamfProDiskEncryptionConfigurationsRead(ctx context.Context, d *sch
 	} else {
 		// If InstitutionalRecoveryKey has data, set it in the Terraform state
 		irk := make(map[string]interface{})
-		// Removing as this causes state management false positives.
-		//irk["key"] = diskEncryptionConfig.InstitutionalRecoveryKey.Key
 		irk["certificate_type"] = diskEncryptionConfig.InstitutionalRecoveryKey.CertificateType
 		irk["password"] = diskEncryptionConfig.InstitutionalRecoveryKey.Password
 		irk["data"] = diskEncryptionConfig.InstitutionalRecoveryKey.Data
