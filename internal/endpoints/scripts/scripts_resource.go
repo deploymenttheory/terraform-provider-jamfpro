@@ -324,6 +324,7 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 
 	// Construct a map of script attributes
 	scriptAttributes := map[string]interface{}{
+		"id":              attribute.ID,
 		"name":            attribute.Name,
 		"category_name":   attribute.CategoryName,
 		"category_id":     attribute.CategoryId,
@@ -375,8 +376,8 @@ func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, m
 
 		// If script_contents has not been modified, decode it from the state to ensure that base64
 		// decoded version of script payload is sent to jamf.
-		if !d.HasChange("script_contents") {
-			encodedScriptContents := d.Get("script_contents_encoded").(string)
+		if d.HasChange("script_contents") {
+			encodedScriptContents := d.Get("script_contents").(string)
 			decodedBytes, err := base64.StdEncoding.DecodeString(encodedScriptContents)
 			if err != nil {
 				return retry.NonRetryableError(fmt.Errorf("error decoding script contents: %s", err))
@@ -391,6 +392,7 @@ func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, m
 		_, apiErr := conn.UpdateScriptByID(scriptID, script)
 		if apiErr != nil {
 			// Handle the APIError
+
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
