@@ -184,17 +184,6 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 				apiErrorCode = apiError.StatusCode
 			}
 
-			// Check if the error is a 404 and remove the resource from state if it is
-			if apiErrorCode == 404 {
-				logging.Warn(subCtx, logging.SubsystemRead, "Department not found, removing from Terraform state", map[string]interface{}{
-					"id":    attributeID,
-					"error": apiErr.Error(),
-				})
-
-				d.SetId("") // This removes the resource from the Terraform state
-				return retry.NonRetryableError(fmt.Errorf("department with ID '%s' not found, removing from Terraform state: %s", attributeID, apiErr))
-			}
-
 			logging.Error(subCtx, logging.SubsystemRead, "Error fetching department by ID, trying by name", map[string]interface{}{
 				"id":         attributeID,
 				"name":       attributeName,
