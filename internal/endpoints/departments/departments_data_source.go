@@ -8,6 +8,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/sdkv2"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -35,58 +36,56 @@ func DataSourceJamfProDepartments() *schema.Resource {
 
 // DataSourceJamfProDepartmentsRead fetches the details of a specific department from Jamf Pro using either its unique Name or its Id.
 func DataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
+	// Initialize the centralized logger
+	logger := sdkv2.ConsoleLogger{}
+
 	var attribute *jamfpro.ResourceDepartment
 
-	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		// Get the ID from the Terraform state into an integer to be used for the API request
+
 		attributeID := d.Id()
 
-		// Try fetching the site using the ID
 		var apiErr error
+
 		attribute, apiErr = conn.GetDepartmentByID(attributeID)
 		if apiErr != nil {
-			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+				logger.Errorf("API Error (Code: %d): %s while fetching by ID", apiError.StatusCode, apiError.Message, "id", attributeID)
+				return retry.NonRetryableError(apiErr)
 			}
-			// If fetching by ID fails, try fetching by Name
+
 			attributeName, ok := d.Get("name").(string)
 			if !ok {
+				logger.Error("Unable to assert 'name' as a string for fetching department", "", "id", attributeID)
 				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
 			}
 
 			attribute, apiErr = conn.GetDepartmentByName(attributeName)
 			if apiErr != nil {
-				// Handle the APIError
-				if apiError, ok := apiErr.(*http_client.APIError); ok {
-					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-				}
+				logger.Errorf("Error fetching department by name: %s", apiErr.Error(), "name", attributeName)
 				return retry.RetryableError(apiErr)
 			}
 		}
+
+		logger.Infof("Successfully fetched department: %s", attribute.Name)
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while reading the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "read")
+		logger.Errorf("Failed to read department: %s", err.Error(), "id", d.Id())
+		return logger.Diagnostics
 	}
 
-	// Safely set attributes in the Terraform state
 	if err := d.Set("name", attribute.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+		logger.Errorf("Failed to set 'name' attribute in Terraform state: %s", err.Error(), "name", attribute.Name)
+		return logger.Diagnostics
 	}
 
-	return diags
+	return nil
 }
