@@ -3,12 +3,9 @@ package departments
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/sdkv2"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -42,49 +39,55 @@ func DataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceDat
 	}
 	conn := apiclient.Conn
 
-	// Initialize the centralized logger
-	logger := sdkv2.ConsoleLogger{}
-
-	var attribute *jamfpro.ResourceDepartment
+	attributeID := d.Id()
+	attributeName := d.Get("name").(string)
 
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-
-		attributeID := d.Id()
-
 		var apiErr error
-
-		attribute, apiErr = conn.GetDepartmentByID(attributeID)
+		attribute, apiErr := conn.GetDepartmentByID(attributeID)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				logger.Errorf("API Error (Code: %d): %s while fetching by ID", apiError.StatusCode, apiError.Message, "id", attributeID)
-				return retry.NonRetryableError(apiErr)
-			}
-
-			attributeName, ok := d.Get("name").(string)
-			if !ok {
-				logger.Error("Unable to assert 'name' as a string for fetching department", "", "id", attributeID)
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
-			}
-
 			attribute, apiErr = conn.GetDepartmentByName(attributeName)
 			if apiErr != nil {
-				logger.Errorf("Error fetching department by name: %s", apiErr.Error(), "name", attributeName)
+				// Log the error using tflog for internal logging
+				logging.Error(ctx, logging.SubsystemRead, "Error fetching department", map[string]interface{}{
+					"id":    attributeID,
+					"name":  attributeName,
+					"error": apiErr.Error(),
+				})
+
 				return retry.RetryableError(apiErr)
 			}
 		}
 
-		logger.Infof("Successfully fetched department: %s", attribute.Name)
+		// Log the successful fetch using tflog
+		logging.Info(ctx, logging.SubsystemRead, "Successfully fetched department", map[string]interface{}{
+			"id":   attributeID,
+			"name": attribute.Name,
+		})
+
+		// Check if attribute is not nil
+		if attribute != nil {
+			// Set the fields directly in the Terraform state
+			if err := d.Set("id", attribute.ID); err != nil {
+				return retry.RetryableError(err)
+			}
+			if err := d.Set("name", attribute.Name); err != nil {
+				return retry.RetryableError(err)
+			}
+			// Add more attributes here as needed
+		}
+
 		return nil
 	})
 
 	if err != nil {
-		logger.Errorf("Failed to read department: %s", err.Error(), "id", d.Id())
-		return logger.Diagnostics
-	}
+		// Log the final error using tflog
+		logging.Error(ctx, logging.SubsystemRead, "Failed to read department", map[string]interface{}{
+			"id":    attributeID,
+			"error": err.Error(),
+		})
 
-	if err := d.Set("name", attribute.Name); err != nil {
-		logger.Errorf("Failed to set 'name' attribute in Terraform state: %s", err.Error(), "name", attribute.Name)
-		return logger.Diagnostics
+		return diag.FromErr(err)
 	}
 
 	return nil

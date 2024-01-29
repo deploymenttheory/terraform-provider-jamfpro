@@ -4,15 +4,15 @@ package departments
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/sdkv2"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -50,14 +50,14 @@ func ResourceJamfProDepartments() *schema.Resource {
 }
 
 // constructJamfProDepartment constructs a ResourceDepartment object from the provided schema data.
-func constructJamfProDepartment(d *schema.ResourceData) (*jamfpro.ResourceDepartment, error) {
+func constructJamfProDepartment(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceDepartment, error) {
 	department := &jamfpro.ResourceDepartment{}
 
 	// Utilize type assertion helper functions for direct field extraction
 	department.Name = util.GetStringFromInterface(d.Get("name"))
 
-	// Log the successful construction of the department
-	log.Printf("[INFO] Successfully constructed Department with name: %s", department.Name)
+	// Log the successful construction of the department using tflogger
+	logging.Info(ctx, logging.SubsystemCreate, "Successfully constructed Department with name", map[string]interface{}{"name": department.Name})
 
 	return department, nil
 }
@@ -75,54 +75,71 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 	}
 	conn := apiclient.Conn
 
-	// Instantiate the centralized logger
-	logger := sdkv2.ConsoleLogger{}
+	// Initialize diagnostics for collecting any issues to report back to Terraform
+	var diags diag.Diagnostics
+
+	// Use tflogging subsystem
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemCreate, hclog.Info)
 
 	var createdAttribute *jamfpro.ResponseDepartmentCreate
 
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		department, err := constructJamfProDepartment(d)
+	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		department, err := constructJamfProDepartment(subCtx, d)
 		if err != nil {
-			logger.Error("Failed to construct department", err.Error(), "name", d.Get("name"))
+			logging.Error(subCtx, logging.SubsystemCreate, "Failed to construct department", map[string]interface{}{
+				"name":  d.Get("name"),
+				"error": err.Error(),
+			})
 			return retry.NonRetryableError(err)
 		}
 
 		createdAttribute, err = conn.CreateDepartment(department)
 		if err != nil {
 			if apiErr, ok := err.(*http_client.APIError); ok {
-				logger.Errorf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message, "name", department.Name)
+				logging.Error(subCtx, logging.SubsystemAPI, fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message), map[string]interface{}{
+					"name": department.Name,
+				})
 				return retry.NonRetryableError(err)
 			}
-			logger.Errorf("Failed to create department: %s", err.Error(), "name", department.Name)
+			logging.Error(subCtx, logging.SubsystemCreate, "Failed to create department", map[string]interface{}{
+				"name":  department.Name,
+				"error": err.Error(),
+			})
 			return retry.RetryableError(err)
 		}
 		return nil
 	})
 
+	// Log any errors to tf diagnostics
 	if err != nil {
-		// Log and return the error using the centralized logger
-		logger.Errorf("Failed to create department: %s", err.Error(), "name", d.Get("name"))
-		return logger.Diagnostics
+		diags = append(diags, diag.FromErr(err)...)
+		return diags
 	}
 
 	// Set the ID of the created resource in the Terraform state
 	d.SetId(createdAttribute.ID)
 
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProDepartmentsRead(ctx, d, meta)
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		readDiags := ResourceJamfProDepartmentsRead(subCtx, d, meta)
 		if len(readDiags) > 0 {
-			logger.Errorf("Failed to read the created department: %s", readDiags[0].Summary, "name", d.Get("name"))
+			logging.Error(subCtx, logging.SubsystemRead, "Failed to read the created department", map[string]interface{}{
+				"name":    d.Get("name"),
+				"summary": readDiags[0].Summary,
+			})
 			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
 		}
 		return nil
 	})
 
 	if err != nil {
-		logger.Errorf("Failed to update the Terraform state for the created department: %s", err.Error(), "name", d.Get("name"))
-		return logger.Diagnostics
+		logging.Error(subCtx, logging.SubsystemCreate, "Failed to update the Terraform state for the created department", map[string]interface{}{
+			"name":  d.Get("name"),
+			"error": err.Error(),
+		})
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diags
 }
 
 // ResourceJamfProDepartmentsRead is responsible for reading the current state of a Jamf Pro Department Resource from the remote system.
@@ -137,55 +154,61 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 	}
 	conn := apiclient.Conn
 
-	// Initialize the centralized logger
-	logger := sdkv2.ConsoleLogger{}
-
-	var attribute *jamfpro.ResourceDepartment
+	attributeID := d.Id()
+	attributeName := d.Get("name").(string)
 
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-
-		attributeID := d.Id()
-
 		var apiErr error
-
-		attribute, apiErr = conn.GetDepartmentByID(attributeID)
+		attribute, apiErr := conn.GetDepartmentByID(attributeID)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				logger.Errorf("API Error (Code: %d): %s while fetching by ID", apiError.StatusCode, apiError.Message, "id", attributeID)
-				return retry.NonRetryableError(apiErr)
-			}
-
-			attributeName, ok := d.Get("name").(string)
-			if !ok {
-				logger.Error("Unable to assert 'name' as a string for fetching department", "", "id", attributeID)
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
-			}
-
 			attribute, apiErr = conn.GetDepartmentByName(attributeName)
 			if apiErr != nil {
-				logger.Errorf("Error fetching department by name: %s", apiErr.Error(), "name", attributeName)
+				// Log the error using tflog for internal logging
+				logging.Error(ctx, logging.SubsystemRead, "Error fetching department", map[string]interface{}{
+					"id":    attributeID,
+					"name":  attributeName,
+					"error": apiErr.Error(),
+				})
+
 				return retry.RetryableError(apiErr)
 			}
 		}
 
-		logger.Infof("Successfully fetched department: %s", attribute.Name)
+		// Log the successful fetch using tflog
+		logging.Info(ctx, logging.SubsystemRead, "Successfully fetched department", map[string]interface{}{
+			"id":   attributeID,
+			"name": attribute.Name,
+		})
+
+		// Check if attribute is not nil
+		if attribute != nil {
+			// Set the fields directly in the Terraform state
+			if err := d.Set("id", attribute.ID); err != nil {
+				return retry.RetryableError(err)
+			}
+			if err := d.Set("name", attribute.Name); err != nil {
+				return retry.RetryableError(err)
+			}
+			// Add more attributes here as needed
+		}
+
 		return nil
 	})
 
 	if err != nil {
-		logger.Errorf("Failed to read department: %s", err.Error(), "id", d.Id())
-		return logger.Diagnostics
-	}
+		// Log the final error using tflog
+		logging.Error(ctx, logging.SubsystemRead, "Failed to read department", map[string]interface{}{
+			"id":    attributeID,
+			"error": err.Error(),
+		})
 
-	if err := d.Set("name", attribute.Name); err != nil {
-		logger.Errorf("Failed to set 'name' attribute in Terraform state: %s", err.Error(), "name", attribute.Name)
-		return logger.Diagnostics
+		return diag.FromErr(err)
 	}
 
 	return nil
 }
 
-// ResourceJamfProDepartmentsUpdate is responsible for updating an existing Jamf Pro Site on the remote system.
+// ResourceJamfProDepartmentsUpdate is responsible for updating an existing Jamf Pro Department on the remote system.
 func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -193,53 +216,67 @@ func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 	}
 	conn := apiclient.Conn
 
-	// Initialize the centralized logger
-	logger := sdkv2.ConsoleLogger{}
+	departmentID := d.Id()
 
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		department, err := constructJamfProDepartment(d)
+		department, err := constructJamfProDepartment(ctx, d)
 		if err != nil {
-			logger.Error("Failed to construct department for update", err.Error(), "id", d.Id())
+			// Log the construction error using tflog and the update subsystem
+			logging.Error(ctx, logging.SubsystemUpdate, "Failed to construct department for update", map[string]interface{}{
+				"error": err.Error(),
+				"id":    departmentID,
+			})
 			return retry.NonRetryableError(err)
 		}
 
-		departmentID := d.Id()
 		_, apiErr := conn.UpdateDepartmentByID(departmentID, department)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				logger.Errorf("API Error (Code: %d): %s during update by ID", apiError.StatusCode, apiError.Message, "id", departmentID)
-				return retry.NonRetryableError(apiErr)
-			}
-
-			departmentName := d.Get("name").(string)
-			_, apiErr = conn.UpdateDepartmentByName(departmentName, department)
-			if apiErr != nil {
-				logger.Errorf("Error updating department by name: %s", apiErr.Error(), "name", departmentName)
-				return retry.RetryableError(apiErr)
-			}
+			// Log the API error using tflog and the update subsystem
+			logging.Error(ctx, logging.SubsystemUpdate, "API error during department update", map[string]interface{}{
+				"error": apiErr.Error(),
+				"id":    departmentID,
+			})
+			return retry.RetryableError(apiErr)
 		}
 
-		logger.Infof("Successfully updated department: %s", department.Name)
+		// Log the successful update using tflog and the update subsystem
+		logging.Info(ctx, logging.SubsystemUpdate, "Successfully updated department", map[string]interface{}{
+			"name": department.Name,
+			"id":   departmentID,
+		})
 		return nil
 	})
 
 	if err != nil {
-		logger.Errorf("Failed to update department: %s", err.Error(), "id", d.Id())
-		return logger.Diagnostics
+		// Log the final error using tflog and the update subsystem
+		logging.Error(ctx, logging.SubsystemUpdate, "Failed to update department", map[string]interface{}{
+			"error": err.Error(),
+			"id":    departmentID,
+		})
+		return diag.FromErr(err)
 	}
 
+	// Retry reading the department to synchronize the Terraform state
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		readDiags := ResourceJamfProDepartmentsRead(ctx, d, meta)
 		if len(readDiags) > 0 {
-			logger.Errorf("Failed to read department after update: %s", readDiags[0].Summary, "id", d.Id())
+			// Log the read error using tflog and the update subsystem
+			logging.Error(ctx, logging.SubsystemUpdate, "Failed to read department after update", map[string]interface{}{
+				"summary": readDiags[0].Summary,
+				"id":      departmentID,
+			})
 			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
 		}
 		return nil
 	})
 
 	if err != nil {
-		logger.Errorf("Failed to synchronize Terraform state after department update: %s", err.Error(), "id", d.Id())
-		return logger.Diagnostics
+		// Log the synchronization error using tflog and the update subsystem
+		logging.Error(ctx, logging.SubsystemUpdate, "Failed to synchronize Terraform state after department update", map[string]interface{}{
+			"error": err.Error(),
+			"id":    departmentID,
+		})
+		return diag.FromErr(err)
 	}
 
 	return nil
@@ -253,10 +290,8 @@ func ResourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceDat
 	}
 	conn := apiclient.Conn
 
-	// Initialize the centralized logger
-	logger := sdkv2.ConsoleLogger{}
-
 	departmentID := d.Id()
+	departmentName := d.Get("name").(string)
 
 	// Extract the retry timeout from the schema
 	retryTimeout := d.Timeout(schema.TimeoutDelete)
@@ -264,15 +299,16 @@ func ResourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceDat
 	err := retry.RetryContext(ctx, retryTimeout, func() *retry.RetryError {
 		apiErr := conn.DeleteDepartmentByID(departmentID)
 		if apiErr != nil {
-			departmentName := d.Get("name").(string)
 			apiErr = conn.DeleteDepartmentByName(departmentName)
 			if apiErr != nil {
-				// Log the error and continue retrying within the retry time window
-				logger.Error(
-					"Failed to delete department. Retrying...",
-					apiErr.Error(),
-					"id", departmentID, "name", departmentName,
+				// Log the error using helper function for internal logging
+				logging.Error(ctx, logging.SubsystemDelete, "Failed to delete department, retrying...",
+					map[string]interface{}{
+						"id":   departmentID,
+						"name": departmentName,
+					},
 				)
+
 				return retry.RetryableError(apiErr)
 			}
 		}
@@ -280,13 +316,15 @@ func ResourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceDat
 	})
 
 	if err != nil {
-		// Log the error with the retry time window information
-		logger.Error(
-			fmt.Sprintf("Failed to delete department within the retry time window of %s.", formatDuration(retryTimeout)),
-			err.Error(),
-			"id", departmentID,
+		// Log the final error using helper function
+		logging.Error(ctx, logging.SubsystemDelete, fmt.Sprintf("Failed to delete department within the retry time window of %s.", formatDuration(retryTimeout)),
+			map[string]interface{}{
+				"id":    departmentID,
+				"error": err.Error(),
+			},
 		)
-		return logger.Diagnostics
+
+		return diag.FromErr(err)
 	}
 
 	d.SetId("") // Clear the ID from the Terraform state
