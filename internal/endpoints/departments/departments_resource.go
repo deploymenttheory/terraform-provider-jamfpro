@@ -3,15 +3,17 @@ package departments
 
 import (
 	"context"
+	"encoding/xml"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -49,41 +51,26 @@ func ResourceJamfProDepartments() *schema.Resource {
 }
 
 // constructJamfProDepartment constructs a ResourceDepartment object from the provided schema data.
-func constructJamfProDepartment(d *schema.ResourceData) (*jamfpro.ResourceDepartment, error) {
-	department := &jamfpro.ResourceDepartment{}
+func constructJamfProDepartment(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceDepartment, error) {
+	department := &jamfpro.ResourceDepartment{
+		// Assuming your ResourceDepartment struct has a Name field
+		Name: util.GetStringFromInterface(d.Get("name")),
+	}
 
-	// Utilize type assertion helper functions for direct field extraction
-	department.Name = util.GetStringFromInterface(d.Get("name"))
+	// Initialize the logging subsystem for the construction operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemConstruct, hclog.Debug)
 
-	// Log the successful construction of the department
-	log.Printf("[INFO] Successfully constructed Department with name: %s", department.Name)
+	// Serialize and pretty-print the department object as XML
+	deptXML, err := xml.MarshalIndent(department, "", "  ")
+	if err != nil {
+		logging.Error(subCtx, logging.SubsystemConstruct, "Failed to marshal department to XML", map[string]interface{}{"error": err.Error()})
+		return nil, err
+	}
+
+	// Log the pretty-printed XML
+	logging.Debug(subCtx, logging.SubsystemConstruct, "Constructed Department XML", map[string]interface{}{"xml": string(deptXML)})
 
 	return department, nil
-}
-
-// Helper function to generate diagnostics based on the error type..
-func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
-	var diags diag.Diagnostics
-	resourceName, exists := d.GetOk("name")
-	if !exists {
-		resourceName = "unknown"
-	}
-
-	// Handle the APIError in the diagnostic
-	if apiErr, ok := err.(*http_client.APIError); ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
-		})
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   err.Error(),
-		})
-	}
-	return diags
 }
 
 // ResourceJamfProDepartmentsCreate is responsible for creating a new Jamf Pro Site in the remote system.
@@ -93,60 +80,76 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the create operation
+	// Initialize diagnostics for collecting any issues to report back to Terraform
+	var diags diag.Diagnostics
+
+	// Initialize tflog
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemCreate, hclog.Info)
+
+	// Initialize variables
 	var createdAttribute *jamfpro.ResponseDepartmentCreate
-	var err error
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		// Construct the department
-		department, err := constructJamfProDepartment(d)
+
+	// construct the resource object
+	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		department, err := constructJamfProDepartment(subCtx, d)
 		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the department for terraform create: %w", err))
+			logging.Error(subCtx, logging.SubsystemCreate, "Failed to construct department", map[string]interface{}{
+				"name":  d.Get("name"),
+				"error": err.Error(),
+			})
+			return retry.NonRetryableError(err)
 		}
 
-		// Directly call the API to create the resource
 		createdAttribute, err = conn.CreateDepartment(department)
 		if err != nil {
-			// Check if the error is an APIError
-			if apiErr, ok := err.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message))
+			var apiErrorCode int
+			if apiError, ok := err.(*http_client.APIError); ok {
+				apiErrorCode = apiError.StatusCode
 			}
-			// For simplicity, we're considering all other errors as retryable
-			return retry.RetryableError(err)
-		}
 
+			logging.Error(subCtx, logging.SubsystemAPI, "API Error during department creation", map[string]interface{}{
+				"name":       department.Name,
+				"error":      err.Error(),
+				"error_code": apiErrorCode,
+			})
+			return retry.NonRetryableError(err)
+		}
 		return nil
 	})
 
 	if err != nil {
-		// If there's an error while creating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "create")
+		logging.Error(subCtx, logging.SubsystemCreate, "Failed to create department", map[string]interface{}{
+			"error": err.Error(),
+		})
+		diags = append(diags, diag.FromErr(err)...)
+		return diags
 	}
 
-	// Set the ID of the created resource in the Terraform state
 	d.SetId(createdAttribute.ID)
 
-	// Use the retry function for the read operation to update the Terraform state with the resource attributes
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProDepartmentsRead(ctx, d, meta)
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		readDiags := ResourceJamfProDepartmentsRead(subCtx, d, meta)
 		if len(readDiags) > 0 {
-			// If readDiags is not empty, it means there's an error, so we retry
-			return retry.RetryableError(fmt.Errorf("failed to read the created resource"))
+			logging.Error(subCtx, logging.SubsystemRead, "Failed to read the created department", map[string]interface{}{
+				"name":    d.Get("name"),
+				"summary": readDiags[0].Summary,
+			})
+			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
 		}
 		return nil
 	})
 
 	if err != nil {
-		// If there's an error while updating the state for the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update state for")
+		logging.Error(subCtx, logging.SubsystemCreate, "Failed to update the Terraform state for the created department", map[string]interface{}{
+			"error": err.Error(),
+		})
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	return diags
@@ -158,167 +161,245 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	var attribute *jamfpro.ResourceDepartment
+	// Initialize the logging subsystem for the read operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemRead, hclog.Info)
 
-	// Use the retry function for the read operation
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		// Get the ID from the Terraform state into an integer to be used for the API request
-		attributeID := d.Id()
+	// Initialize variables
+	attributeID := d.Id()
+	attributeName := d.Get("name").(string)
 
-		// Try fetching the site using the ID
+	// Use the retry function for the read operation with appropriate timeout
+	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		attribute, apiErr = conn.GetDepartmentByID(attributeID)
+		attribute, apiErr := conn.GetDepartmentByID(attributeID)
 		if apiErr != nil {
-			// Handle the APIError
+			var apiErrorCode int
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+				apiErrorCode = apiError.StatusCode
 			}
-			// If fetching by ID fails, try fetching by Name
-			attributeName, ok := d.Get("name").(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
-			}
+
+			logging.Error(subCtx, logging.SubsystemRead, "Error fetching department by ID, trying by name", map[string]interface{}{
+				"id":         attributeID,
+				"name":       attributeName,
+				"error":      apiErr.Error(),
+				"error_code": apiErrorCode,
+			})
 
 			attribute, apiErr = conn.GetDepartmentByName(attributeName)
 			if apiErr != nil {
-				// Handle the APIError
-				if apiError, ok := apiErr.(*http_client.APIError); ok {
-					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+				var apiErrByNameCode int
+				if apiErrorByName, ok := apiErr.(*http_client.APIError); ok {
+					apiErrByNameCode = apiErrorByName.StatusCode
 				}
+
+				logging.Error(subCtx, logging.SubsystemRead, "Error fetching department by name", map[string]interface{}{
+					"name":       attributeName,
+					"error":      apiErr.Error(),
+					"error_code": apiErrByNameCode,
+				})
 				return retry.RetryableError(apiErr)
 			}
 		}
+
+		if attribute != nil {
+			logging.Info(subCtx, logging.SubsystemRead, "Successfully fetched department", map[string]interface{}{
+				"id":   attributeID,
+				"name": attribute.Name,
+			})
+
+			// Set resource values into Terraform state
+			if err := d.Set("id", attribute.ID); err != nil {
+				return retry.RetryableError(err)
+			}
+			if err := d.Set("name", attribute.Name); err != nil {
+				return retry.RetryableError(err)
+			}
+		}
+
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while reading the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "read")
+		logging.Error(subCtx, logging.SubsystemRead, "Failed to read department", map[string]interface{}{
+			"id":    attributeID,
+			"error": err.Error(),
+		})
+		return diag.FromErr(err)
 	}
 
-	// Safely set attributes in the Terraform state
-	if err := d.Set("name", attribute.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	return diags
+	return nil
 }
 
-// ResourceJamfProDepartmentsUpdate is responsible for updating an existing Jamf Pro Site on the remote system.
+// ResourceJamfProDepartmentsUpdate is responsible for updating an existing Jamf Pro Department on the remote system.
 func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the update operation
-	var err error
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		// Construct the department
-		department, err := constructJamfProDepartment(d)
-		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the department for terraform update: %w", err))
-		}
+	// Initialize the logging subsystem for the update operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemUpdate, hclog.Info)
 
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		departmentID := d.Id()
+	// Initialize variables
+	departmentID := d.Id()
+	departmentName := d.Get("name").(string)
 
-		// Directly call the API to update the resource by ID
+	// construct the resource object
+	department, err := constructJamfProDepartment(subCtx, d)
+	if err != nil {
+		logging.Error(subCtx, logging.SubsystemUpdate, "Failed to construct department for update", map[string]interface{}{
+			"error": err.Error(),
+			"id":    departmentID,
+		})
+		return diag.FromErr(fmt.Errorf("failed to construct department for update: %w", err))
+	}
+
+	// Update operations with retries
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		_, apiErr := conn.UpdateDepartmentByID(departmentID, department)
 		if apiErr != nil {
-			// Handle the APIError
+			var apiErrorCode int
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+				apiErrorCode = apiError.StatusCode
 			}
-			// If the update by ID fails, try updating by name
-			departmentName := d.Get("name").(string)
-			_, apiErr = conn.UpdateDepartmentByName(departmentName, department)
-			if apiErr != nil {
-				// Handle the APIError
-				if apiError, ok := apiErr.(*http_client.APIError); ok {
-					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+
+			logging.Error(subCtx, logging.SubsystemUpdate, "Failed to update department by ID, trying by name", map[string]interface{}{
+				"error":      apiErr.Error(),
+				"error_code": apiErrorCode,
+				"id":         departmentID,
+				"name":       departmentName,
+			})
+
+			_, apiErrByName := conn.UpdateDepartmentByName(departmentName, department)
+			if apiErrByName != nil {
+				var apiErrByNameCode int
+				if apiErrorByName, ok := apiErrByName.(*http_client.APIError); ok {
+					apiErrByNameCode = apiErrorByName.StatusCode
 				}
-				return retry.RetryableError(apiErr)
+
+				logging.Error(subCtx, logging.SubsystemUpdate, "API error during department update by name", map[string]interface{}{
+					"error":      apiErrByName.Error(),
+					"error_code": apiErrByNameCode,
+					"name":       departmentName,
+				})
+				return retry.RetryableError(apiErrByName)
 			}
 		}
+
+		logging.Info(subCtx, logging.SubsystemUpdate, "Successfully updated department", map[string]interface{}{
+			"name": department.Name,
+			"id":   departmentID,
+		})
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while updating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update")
+		logging.Error(subCtx, logging.SubsystemUpdate, "Failed to update department", map[string]interface{}{
+			"error": err.Error(),
+			"id":    departmentID,
+			"name":  departmentName,
+		})
+		return diag.FromErr(err)
 	}
 
-	// Use the retry function for the read operation to update the Terraform state
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProDepartmentsRead(ctx, d, meta)
+	// Retry reading the department to synchronize the Terraform state
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		readDiags := ResourceJamfProDepartmentsRead(subCtx, d, meta)
 		if len(readDiags) > 0 {
-			return retry.RetryableError(fmt.Errorf("failed to update the Terraform state for the updated resource"))
+			logging.Error(subCtx, logging.SubsystemUpdate, "Failed to read department after update", map[string]interface{}{
+				"summary": readDiags[0].Summary,
+				"id":      departmentID,
+			})
+			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
 		}
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while updating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update")
+		logging.Error(subCtx, logging.SubsystemUpdate, "Failed to synchronize Terraform state after department update", map[string]interface{}{
+			"error": err.Error(),
+			"id":    departmentID,
+		})
+		return diag.FromErr(err)
 	}
 
-	return diags
+	return nil
 }
 
 // ResourceJamfProDepartmentsDelete is responsible for deleting a Jamf Pro Department.
 func ResourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the delete operation
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		departmentID := d.Id()
+	// Initialize the logging subsystem for the delete operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemDelete, hclog.Info)
 
-		// Directly call the API to delete the resource
+	// Initialize resource variables
+	departmentID := d.Id()
+	departmentName := d.Get("name").(string)
+
+	// Use the retry function for the delete operation with appropriate timeout
+	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		apiErr := conn.DeleteDepartmentByID(departmentID)
 		if apiErr != nil {
-			// If the delete by ID fails, try deleting by name
-			siteName := d.Get("name").(string)
-			apiErr = conn.DeleteDepartmentByName(siteName)
+			var apiErrorCode int
+			if apiError, ok := apiErr.(*http_client.APIError); ok {
+				apiErrorCode = apiError.StatusCode
+			}
+
+			logging.Error(subCtx, logging.SubsystemDelete, "Failed to delete department by ID, trying by name", map[string]interface{}{
+				"error":      apiErr.Error(),
+				"error_code": apiErrorCode,
+				"id":         departmentID,
+				"name":       departmentName,
+			})
+
+			apiErr = conn.DeleteDepartmentByName(departmentName)
 			if apiErr != nil {
+				var apiErrByNameCode int
+				if apiErrorByName, ok := apiErr.(*http_client.APIError); ok {
+					apiErrByNameCode = apiErrorByName.StatusCode
+				}
+
+				logging.Error(subCtx, logging.SubsystemDelete, "API error during department deletion by name", map[string]interface{}{
+					"error":      apiErr.Error(),
+					"error_code": apiErrByNameCode,
+					"name":       departmentName,
+				})
 				return retry.RetryableError(apiErr)
 			}
 		}
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while deleting the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "delete")
+		// Log the final error using the initialized subsystem logger
+		logging.Error(subCtx, logging.SubsystemDelete, "Failed to delete site", map[string]interface{}{
+			"id":    departmentID,
+			"name":  departmentName,
+			"error": err.Error(),
+		})
+		return diag.FromErr(err)
 	}
+
+	// Log the successful removal of the site from the Terraform state
+	logging.Info(subCtx, logging.SubsystemDelete, "Successfully removed site from Terraform state", map[string]interface{}{
+		"id":   departmentID,
+		"name": departmentName,
+	})
 
 	// Clear the ID from the Terraform state as the resource has been deleted
 	d.SetId("")
 
-	return diags
+	return nil
 }
