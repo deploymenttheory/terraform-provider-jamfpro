@@ -1508,7 +1508,7 @@ func setGeneralSection(d *schema.ResourceData, general jamfpro.ComputerInventory
 	gen["remote_management"] = []interface{}{remoteManagement}
 
 	// Handle nested object 'site'.
-	if general.Site.ID != 0 || general.Site.Name != "" {
+	if general.Site.ID != "" || general.Site.Name != "" {
 		site := make(map[string]interface{})
 		site["id"] = general.Site.ID
 		site["name"] = general.Site.Name

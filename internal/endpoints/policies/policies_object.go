@@ -86,17 +86,24 @@ func constructGeneral(data *schema.ResourceData) jamfpro.PolicySubsetGeneral {
 // This function safely extracts data for PolicyCategory fields from a map
 // contained within the interface. It handles nil values and type assertions.
 func constructPolicyCategory(val interface{}) jamfpro.PolicyCategory {
-	categoryData := util.ConvertToMapFromInterface(val)
-	if categoryData == nil {
-		return jamfpro.PolicyCategory{}
+	// Initialize with default values
+	category := jamfpro.PolicyCategory{
+		ID:        -1,                     // Default ID
+		Name:      "No category assigned", // Default name
+		DisplayIn: false,                  // Default display_in
+		FeatureIn: false,                  // Default feature_in
 	}
 
-	return jamfpro.PolicyCategory{
-		ID:        util.GetIntFromInterface(categoryData["id"]),
-		Name:      util.GetStringFromInterface(categoryData["name"]),
-		DisplayIn: util.GetBoolFromInterface(categoryData["display_in"]),
-		FeatureIn: util.GetBoolFromInterface(categoryData["feature_in"]),
+	// Convert to map and check for valid data to override defaults
+	categoryData := util.ConvertToMapFromInterface(val)
+	if categoryData != nil {
+		category.ID = util.GetIntFromInterface(categoryData["id"])
+		category.Name = util.GetStringFromInterface(categoryData["name"])
+		category.DisplayIn = util.GetBoolFromInterface(categoryData["display_in"])
+		category.FeatureIn = util.GetBoolFromInterface(categoryData["feature_in"])
 	}
+
+	return category
 }
 
 // constructDateTimeLimitations creates a PolicySubsetGeneralDateTimeLimitations struct
@@ -153,16 +160,16 @@ func constructNoExecuteOn(val interface{}) []jamfpro.PolicySubsetGeneralDateTime
 	return noExecuteOn
 }
 
-// constructOverrideDefaultSettings creates a PolicySubsetGeneralOverrideDefaultSettings struct
+// constructOverrideDefaultSettings creates a PolicySubsetGeneralOverrideSettings struct
 // from an interface value. This function extracts override settings, including target drive
 // and distribution point, and handles nil values and type assertions.
-func constructOverrideDefaultSettings(val interface{}) jamfpro.PolicySubsetGeneralOverrideDefaultSettings {
+func constructOverrideDefaultSettings(val interface{}) jamfpro.PolicySubsetGeneralOverrideSettings {
 	overrideData := util.ConvertToMapFromInterface(val)
 	if overrideData == nil {
-		return jamfpro.PolicySubsetGeneralOverrideDefaultSettings{}
+		return jamfpro.PolicySubsetGeneralOverrideSettings{}
 	}
 
-	return jamfpro.PolicySubsetGeneralOverrideDefaultSettings{
+	return jamfpro.PolicySubsetGeneralOverrideSettings{
 		TargetDrive:       util.GetStringFromInterface(overrideData["target_drive"]),
 		DistributionPoint: util.GetStringFromInterface(overrideData["distribution_point"]),
 		ForceAfpSmb:       util.GetBoolFromInterface(overrideData["force_afp_smb"]),
@@ -174,15 +181,20 @@ func constructOverrideDefaultSettings(val interface{}) jamfpro.PolicySubsetGener
 // This function is used to extract data for a shared resource site, handling nil values
 // and type assertions safely.
 func constructSharedResourceSite(val interface{}) jamfpro.SharedResourceSite {
-	siteData := util.ConvertToMapFromInterface(val)
-	if siteData == nil {
-		return jamfpro.SharedResourceSite{}
+	// Set default values
+	site := jamfpro.SharedResourceSite{
+		ID:   -1,     // Default ID
+		Name: "None", // Default name
 	}
 
-	return jamfpro.SharedResourceSite{
-		ID:   util.GetIntFromInterface(siteData["id"]),
-		Name: util.GetStringFromInterface(siteData["name"]),
+	// Check if val is not nil and is a map
+	if valMap, ok := val.(map[string]interface{}); ok {
+		// Extract ID and Name from the map if they exist
+		site.ID = util.GetIntFromInterface(valMap["id"])
+		site.Name = util.GetStringFromInterface(valMap["name"])
 	}
+
+	return site
 }
 
 // constructScope creates a PolicySubsetScope struct from the provided data.
@@ -714,20 +726,25 @@ func constructPolicySubsetScopeExclusions(val interface{}) jamfpro.PolicySubsetS
 
 // constructSelfService creates a PolicySubsetSelfService instance from the provided data.
 func constructSelfService(data *schema.ResourceData) jamfpro.PolicySubsetSelfService {
-	useForSelfService := util.GetBoolFromInterface(data.Get("use_for_self_service"))
-	selfServiceDisplayName := util.GetStringFromInterface(data.Get("self_service_display_name"))
-	installButtonText := util.GetStringFromInterface(data.Get("install_button_text"))
-	reinstallButtonText := util.GetStringFromInterface(data.Get("re_install_button_text"))
-	selfServiceDescription := util.GetStringFromInterface(data.Get("self_service_description"))
-	forceUsersToViewDescription := util.GetBoolFromInterface(data.Get("force_users_to_view_description"))
+	// Initialize selfService with default values
+	selfService := jamfpro.PolicySubsetSelfService{
+		InstallButtonText: "Install", // Default value
+	}
 
-	// Initialize selfServiceIcon as an empty struct
-	var selfServiceIcon jamfpro.SharedResourceSelfServiceIcon
+	// Override defaults with data from Terraform configuration if available
+	selfService.UseForSelfService = util.GetBoolFromInterface(data.Get("use_for_self_service"))
+	selfService.SelfServiceDisplayName = util.GetStringFromInterface(data.Get("self_service_display_name"))
+	if v, exists := data.GetOk("install_button_text"); exists {
+		selfService.InstallButtonText = util.GetStringFromInterface(v)
+	}
+	selfService.ReinstallButtonText = util.GetStringFromInterface(data.Get("re_install_button_text"))
+	selfService.SelfServiceDescription = util.GetStringFromInterface(data.Get("self_service_description"))
+	selfService.ForceUsersToViewDescription = util.GetBoolFromInterface(data.Get("force_users_to_view_description"))
 
-	// Construct SelfServiceIcon
+	// SelfServiceIcon
 	if selfServiceIconInterface, ok := data.Get("self_service_icon").([]interface{}); ok && len(selfServiceIconInterface) > 0 {
 		if selfServiceIconData, ok := selfServiceIconInterface[0].(map[string]interface{}); ok {
-			selfServiceIcon = jamfpro.SharedResourceSelfServiceIcon{
+			selfService.SelfServiceIcon = jamfpro.SharedResourceSelfServiceIcon{
 				ID:       util.GetIntFromInterface(selfServiceIconData["id"]),
 				URI:      util.GetStringFromInterface(selfServiceIconData["uri"]),
 				Data:     util.GetStringFromInterface(selfServiceIconData["data"]),
@@ -736,35 +753,24 @@ func constructSelfService(data *schema.ResourceData) jamfpro.PolicySubsetSelfSer
 		}
 	}
 
-	featureOnMainPage := util.GetBoolFromInterface(data.Get("feature_on_main_page"))
+	selfService.FeatureOnMainPage = util.GetBoolFromInterface(data.Get("feature_on_main_page"))
 
-	// Initialize selfServiceCategories as an empty slice
-	var selfServiceCategories []jamfpro.PolicySubsetSelfServiceCategories
-
-	// Construct SelfServiceCategories
+	// SelfServiceCategories
 	if selfServiceCategoriesData, ok := data.Get("self_service_categories").([]interface{}); ok {
 		for _, categoryDataInterface := range selfServiceCategoriesData {
-			// Safely assert type of each category data
 			if categoryData, ok := categoryDataInterface.(map[string]interface{}); ok {
 				category := jamfpro.PolicyCategory{
-					Name: util.GetStringFromInterface(categoryData["name"]),
+					ID:        util.GetIntFromInterface(categoryData["id"]),
+					Name:      util.GetStringFromInterface(categoryData["name"]),
+					DisplayIn: util.GetBoolFromInterface(categoryData["display_in"]),
+					FeatureIn: util.GetBoolFromInterface(categoryData["feature_in"]),
 				}
-				selfServiceCategories = append(selfServiceCategories, jamfpro.PolicySubsetSelfServiceCategories{Category: category})
+				selfServiceCategory := jamfpro.PolicySubsetSelfServiceCategory{
+					Category: category,
+				}
+				selfService.SelfServiceCategories = append(selfService.SelfServiceCategories, selfServiceCategory)
 			}
 		}
-	}
-
-	// Construct PolicySubsetSelfService
-	selfService := jamfpro.PolicySubsetSelfService{
-		UseForSelfService:           useForSelfService,
-		SelfServiceDisplayName:      selfServiceDisplayName,
-		InstallButtonText:           installButtonText,
-		ReinstallButtonText:         reinstallButtonText,
-		SelfServiceDescription:      selfServiceDescription,
-		ForceUsersToViewDescription: forceUsersToViewDescription,
-		SelfServiceIcon:             selfServiceIcon,
-		FeatureOnMainPage:           featureOnMainPage,
-		SelfServiceCategories:       selfServiceCategories,
 	}
 
 	return selfService
@@ -939,7 +945,6 @@ func constructAccountMaintenance(data *schema.ResourceData) jamfpro.PolicySubset
 					Picture:                util.GetStringFromInterface(account["picture"]),
 					Admin:                  util.GetBoolFromInterface(account["admin"]),
 					FilevaultEnabled:       util.GetBoolFromInterface(account["filevault_enabled"]),
-					PasswordSha256:         util.GetStringFromInterface(account["password_sha256"]),
 				}
 				accounts = append(accounts, accountObj)
 			}
@@ -958,26 +963,42 @@ func constructAccountMaintenance(data *schema.ResourceData) jamfpro.PolicySubset
 		}
 	}
 
-	managementAccountData := util.ConvertToMapFromInterface(data.Get("management_account"))
-	managementAccountObj := jamfpro.PolicySubsetAccountMaintenanceManagementAccount{
-		Action:                util.GetStringFromInterface(managementAccountData["action"]),
-		ManagedPassword:       util.GetStringFromInterface(managementAccountData["managed_password"]),
-		ManagedPasswordLength: util.GetIntFromInterface(managementAccountData["managed_password_length"]),
+	// Default ManagementAccount settings
+	managementAccount := jamfpro.PolicySubsetAccountMaintenanceManagementAccount{
+		Action:                "doNotChange",
+		ManagedPassword:       "",
+		ManagedPasswordLength: 0,
 	}
 
-	openFirmwareEfiPasswordData := util.ConvertToMapFromInterface(data.Get("open_firmware_efi_password"))
-	openFirmwareEfiPasswordObj := jamfpro.PolicySubsetAccountMaintenanceOpenFirmwareEfiPassword{
-		OfMode:           util.GetStringFromInterface(openFirmwareEfiPasswordData["of_mode"]),
-		OfPassword:       util.GetStringFromInterface(openFirmwareEfiPasswordData["of_password"]),
-		OfPasswordSHA256: util.GetStringFromInterface(openFirmwareEfiPasswordData["of_password_sha256"]),
+	// If management_account data exists, override defaults
+	if ma, exists := data.GetOk("management_account"); exists {
+		maMap := ma.(map[string]interface{})
+		managementAccount.Action = util.GetStringFromInterface(maMap["action"])
+		managementAccount.ManagedPassword = util.GetStringFromInterface(maMap["managed_password"])
+		managementAccount.ManagedPasswordLength = util.GetIntFromInterface(maMap["managed_password_length"])
+	}
+
+	// Default OpenFirmwareEfiPassword
+	openFirmwareEfiPassword := jamfpro.PolicySubsetAccountMaintenanceOpenFirmwareEfiPassword{
+		OfMode:           "none",
+		OfPassword:       "",
+		OfPasswordSHA256: "",
+	}
+
+	// If open_firmware_efi_password data exists, override defaults
+	if ofep, exists := data.GetOk("open_firmware_efi_password"); exists {
+		ofepMap := ofep.(map[string]interface{})
+		openFirmwareEfiPassword.OfMode = util.GetStringFromInterface(ofepMap["of_mode"])
+		openFirmwareEfiPassword.OfPassword = util.GetStringFromInterface(ofepMap["of_password"])
+		openFirmwareEfiPassword.OfPasswordSHA256 = util.GetStringFromInterface(ofepMap["of_password_sha256"])
 	}
 
 	// Construct PolicySubsetAccountMaintenance
 	accountMaintenanceConfig := jamfpro.PolicySubsetAccountMaintenance{
 		Accounts:                accounts,
 		DirectoryBindings:       directoryBindings,
-		ManagementAccount:       managementAccountObj,
-		OpenFirmwareEfiPassword: openFirmwareEfiPasswordObj,
+		ManagementAccount:       managementAccount,
+		OpenFirmwareEfiPassword: openFirmwareEfiPassword,
 	}
 
 	return accountMaintenanceConfig
@@ -1022,14 +1043,35 @@ func constructFilesProcesses(data *schema.ResourceData) jamfpro.PolicySubsetFile
 // User Interaction
 
 // constructUserInteraction creates a PolicySubsetUserInteraction instance from the provided data.
+// Default values are provided when no configuration is defined in terraform. It is the default settings
+// required for a valid creation or update request.
 func constructUserInteraction(data *schema.ResourceData) jamfpro.PolicySubsetUserInteraction {
+	// Default UserInteraction settings
 	userInteractionConfig := jamfpro.PolicySubsetUserInteraction{
-		MessageStart:          util.GetStringFromInterface(data.Get("message_start")),
-		AllowUserToDefer:      util.GetBoolFromInterface(data.Get("allow_user_to_defer")),
-		AllowDeferralUntilUtc: util.GetStringFromInterface(data.Get("allow_deferral_until_utc")),
-		AllowDeferralMinutes:  util.GetIntFromInterface(data.Get("allow_deferral_minutes")),
-		MessageFinish:         util.GetStringFromInterface(data.Get("message_finish")),
+		MessageStart:          "",
+		AllowUserToDefer:      false,
+		AllowDeferralUntilUtc: "",
+		AllowDeferralMinutes:  0,
+		MessageFinish:         "",
 	}
+
+	// Override defaults with data from Terraform configuration if available
+	if v, exists := data.GetOk("message_start"); exists {
+		userInteractionConfig.MessageStart = util.GetStringFromInterface(v)
+	}
+	if v, exists := data.GetOk("allow_user_to_defer"); exists {
+		userInteractionConfig.AllowUserToDefer = util.GetBoolFromInterface(v)
+	}
+	if v, exists := data.GetOk("allow_deferral_until_utc"); exists {
+		userInteractionConfig.AllowDeferralUntilUtc = util.GetStringFromInterface(v)
+	}
+	if v, exists := data.GetOk("allow_deferral_minutes"); exists {
+		userInteractionConfig.AllowDeferralMinutes = util.GetIntFromInterface(v)
+	}
+	if v, exists := data.GetOk("message_finish"); exists {
+		userInteractionConfig.MessageFinish = util.GetStringFromInterface(v)
+	}
+
 	return userInteractionConfig
 }
 
@@ -1050,17 +1092,47 @@ func constructDiskEncryption(data *schema.ResourceData) jamfpro.PolicySubsetDisk
 // Reboot
 
 // constructReboot creates a PolicySubsetReboot instance from the provided data.
+// Default values are provided when no configuration is defined in terraform. It is the default settings
+// required for a valid creation or update request.
 func constructReboot(data *schema.ResourceData) jamfpro.PolicySubsetReboot {
+	// Set default values for Reboot configuration
 	rebootConfig := jamfpro.PolicySubsetReboot{
-		Message:                     util.GetStringFromInterface(data.Get("message")),
-		StartupDisk:                 util.GetStringFromInterface(data.Get("startup_disk")),
-		SpecifyStartup:              util.GetStringFromInterface(data.Get("specify_startup")),
-		NoUserLoggedIn:              util.GetStringFromInterface(data.Get("no_user_logged_in")),
-		UserLoggedIn:                util.GetStringFromInterface(data.Get("user_logged_in")),
-		MinutesUntilReboot:          util.GetIntFromInterface(data.Get("minutes_until_reboot")),
-		StartRebootTimerImmediately: util.GetBoolFromInterface(data.Get("start_reboot_timer_immediately")),
-		FileVault2Reboot:            util.GetBoolFromInterface(data.Get("file_vault_2_reboot")),
+		Message:                     "This computer will restart in 5 minutes. Please save anything you are working on and log out by choosing Log Out from the bottom of the Apple menu.",
+		StartupDisk:                 "Current Startup Disk",
+		SpecifyStartup:              "",
+		NoUserLoggedIn:              "Do not restart",
+		UserLoggedIn:                "Do not restart",
+		MinutesUntilReboot:          5,
+		StartRebootTimerImmediately: false,
+		FileVault2Reboot:            false,
 	}
+
+	// Override default values with data provided in Terraform configuration, if present
+	if v, exists := data.GetOk("message"); exists {
+		rebootConfig.Message = util.GetStringFromInterface(v)
+	}
+	if v, exists := data.GetOk("startup_disk"); exists {
+		rebootConfig.StartupDisk = util.GetStringFromInterface(v)
+	}
+	if v, exists := data.GetOk("specify_startup"); exists {
+		rebootConfig.SpecifyStartup = util.GetStringFromInterface(v)
+	}
+	if v, exists := data.GetOk("no_user_logged_in"); exists {
+		rebootConfig.NoUserLoggedIn = util.GetStringFromInterface(v)
+	}
+	if v, exists := data.GetOk("user_logged_in"); exists {
+		rebootConfig.UserLoggedIn = util.GetStringFromInterface(v)
+	}
+	if v, exists := data.GetOk("minutes_until_reboot"); exists {
+		rebootConfig.MinutesUntilReboot = util.GetIntFromInterface(v)
+	}
+	if v, exists := data.GetOk("start_reboot_timer_immediately"); exists {
+		rebootConfig.StartRebootTimerImmediately = util.GetBoolFromInterface(v)
+	}
+	if v, exists := data.GetOk("file_vault_2_reboot"); exists {
+		rebootConfig.FileVault2Reboot = util.GetBoolFromInterface(v)
+	}
+
 	return rebootConfig
 }
 
