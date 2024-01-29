@@ -168,9 +168,11 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 	// Initialize the logging subsystem for the read operation
 	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemRead, hclog.Info)
 
+	// Initialize variables
 	attributeID := d.Id()
 	attributeName := d.Get("name").(string)
 
+	// Get resource with timeout context
 	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
 		attribute, apiErr := conn.GetDepartmentByID(attributeID)
@@ -187,12 +189,13 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 			}
 		}
 
-		logging.Info(subCtx, logging.SubsystemRead, "Successfully fetched department", map[string]interface{}{
-			"id":   attributeID,
-			"name": attribute.Name,
-		})
-
 		if attribute != nil {
+			logging.Info(subCtx, logging.SubsystemRead, "Successfully fetched department", map[string]interface{}{
+				"id":   attributeID,
+				"name": attribute.Name,
+			})
+
+			// Set resource values into terraform state
 			if err := d.Set("id", attribute.ID); err != nil {
 				return retry.RetryableError(err)
 			}

@@ -7,6 +7,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -39,17 +40,21 @@ func DataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceDat
 	}
 	conn := apiclient.Conn
 
+	// Initialize the logging subsystem for the read operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemRead, hclog.Info)
+
+	// Initialize variables
 	attributeID := d.Id()
 	attributeName := d.Get("name").(string)
 
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	// Get resource with timeout context
+	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
 		attribute, apiErr := conn.GetDepartmentByID(attributeID)
 		if apiErr != nil {
 			attribute, apiErr = conn.GetDepartmentByName(attributeName)
 			if apiErr != nil {
-				// Log the error using tflog for internal logging
-				logging.Error(ctx, logging.SubsystemRead, "Error fetching department", map[string]interface{}{
+				logging.Error(subCtx, logging.SubsystemRead, "Error fetching department", map[string]interface{}{
 					"id":    attributeID,
 					"name":  attributeName,
 					"error": apiErr.Error(),
@@ -59,30 +64,26 @@ func DataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceDat
 			}
 		}
 
-		// Log the successful fetch using tflog
-		logging.Info(ctx, logging.SubsystemRead, "Successfully fetched department", map[string]interface{}{
-			"id":   attributeID,
-			"name": attribute.Name,
-		})
-
-		// Check if attribute is not nil
 		if attribute != nil {
-			// Set the fields directly in the Terraform state
+			logging.Info(subCtx, logging.SubsystemRead, "Successfully fetched department", map[string]interface{}{
+				"id":   attributeID,
+				"name": attribute.Name,
+			})
+
+			// Set resource values into terraform state
 			if err := d.Set("id", attribute.ID); err != nil {
 				return retry.RetryableError(err)
 			}
 			if err := d.Set("name", attribute.Name); err != nil {
 				return retry.RetryableError(err)
 			}
-			// Add more attributes here as needed
 		}
 
 		return nil
 	})
 
 	if err != nil {
-		// Log the final error using tflog
-		logging.Error(ctx, logging.SubsystemRead, "Failed to read department", map[string]interface{}{
+		logging.Error(subCtx, logging.SubsystemRead, "Failed to read department", map[string]interface{}{
 			"id":    attributeID,
 			"error": err.Error(),
 		})
