@@ -108,28 +108,29 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 
 		createdAttribute, err = conn.CreateDepartment(department)
 		if err != nil {
-			if apiErr, ok := err.(*http_client.APIError); ok {
-				logging.Error(subCtx, logging.SubsystemAPI, fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message), map[string]interface{}{
-					"name": department.Name,
-				})
-				return retry.NonRetryableError(err)
+			var apiErrorCode int
+			if apiError, ok := err.(*http_client.APIError); ok {
+				apiErrorCode = apiError.StatusCode
 			}
-			logging.Error(subCtx, logging.SubsystemCreate, "Failed to create department", map[string]interface{}{
-				"name":  department.Name,
-				"error": err.Error(),
+
+			logging.Error(subCtx, logging.SubsystemAPI, "API Error during department creation", map[string]interface{}{
+				"name":       department.Name,
+				"error":      err.Error(),
+				"error_code": apiErrorCode,
 			})
-			return retry.RetryableError(err)
+			return retry.NonRetryableError(err)
 		}
 		return nil
 	})
 
-	// Log any errors to tf diagnostics
 	if err != nil {
+		logging.Error(subCtx, logging.SubsystemCreate, "Failed to create department", map[string]interface{}{
+			"error": err.Error(),
+		})
 		diags = append(diags, diag.FromErr(err)...)
 		return diags
 	}
 
-	// Set the ID of the created resource in the Terraform state
 	d.SetId(createdAttribute.ID)
 
 	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
@@ -146,7 +147,6 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 
 	if err != nil {
 		logging.Error(subCtx, logging.SubsystemCreate, "Failed to update the Terraform state for the created department", map[string]interface{}{
-			"name":  d.Get("name"),
 			"error": err.Error(),
 		})
 		diags = append(diags, diag.FromErr(err)...)
