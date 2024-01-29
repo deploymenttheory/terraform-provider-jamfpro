@@ -92,8 +92,10 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 	// Initialize tflog
 	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemCreate, hclog.Info)
 
+	// Initialize variables
 	var createdAttribute *jamfpro.ResponseDepartmentCreate
 
+	// construct the resource object
 	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		department, err := constructJamfProDepartment(subCtx, d)
 		if err != nil {
@@ -172,19 +174,35 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 	attributeID := d.Id()
 	attributeName := d.Get("name").(string)
 
-	// Get resource with timeout context
+	// Use the retry function for the read operation with appropriate timeout
 	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
 		attribute, apiErr := conn.GetDepartmentByID(attributeID)
 		if apiErr != nil {
+			var apiErrorCode int
+			if apiError, ok := apiErr.(*http_client.APIError); ok {
+				apiErrorCode = apiError.StatusCode
+			}
+
+			logging.Error(subCtx, logging.SubsystemRead, "Error fetching department by ID, trying by name", map[string]interface{}{
+				"id":         attributeID,
+				"name":       attributeName,
+				"error":      apiErr.Error(),
+				"error_code": apiErrorCode,
+			})
+
 			attribute, apiErr = conn.GetDepartmentByName(attributeName)
 			if apiErr != nil {
-				logging.Error(subCtx, logging.SubsystemRead, "Error fetching department", map[string]interface{}{
-					"id":    attributeID,
-					"name":  attributeName,
-					"error": apiErr.Error(),
-				})
+				var apiErrByNameCode int
+				if apiErrorByName, ok := apiErr.(*http_client.APIError); ok {
+					apiErrByNameCode = apiErrorByName.StatusCode
+				}
 
+				logging.Error(subCtx, logging.SubsystemRead, "Error fetching department by name", map[string]interface{}{
+					"name":       attributeName,
+					"error":      apiErr.Error(),
+					"error_code": apiErrByNameCode,
+				})
 				return retry.RetryableError(apiErr)
 			}
 		}
@@ -195,7 +213,7 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 				"name": attribute.Name,
 			})
 
-			// Set resource values into terraform state
+			// Set resource values into Terraform state
 			if err := d.Set("id", attribute.ID); err != nil {
 				return retry.RetryableError(err)
 			}
@@ -212,7 +230,6 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 			"id":    attributeID,
 			"error": err.Error(),
 		})
-
 		return diag.FromErr(err)
 	}
 
@@ -230,32 +247,47 @@ func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 	// Initialize the logging subsystem for the update operation
 	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemUpdate, hclog.Info)
 
+	// Initialize variables
 	departmentID := d.Id()
 	departmentName := d.Get("name").(string)
 
-	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		department, err := constructJamfProDepartment(subCtx, d)
-		if err != nil {
-			logging.Error(subCtx, logging.SubsystemUpdate, "Failed to construct department for update", map[string]interface{}{
-				"error": err.Error(),
-				"id":    departmentID,
-			})
-			return retry.NonRetryableError(err)
-		}
+	// construct the resource object
+	department, err := constructJamfProDepartment(subCtx, d)
+	if err != nil {
+		logging.Error(subCtx, logging.SubsystemUpdate, "Failed to construct department for update", map[string]interface{}{
+			"error": err.Error(),
+			"id":    departmentID,
+		})
+		return diag.FromErr(fmt.Errorf("failed to construct department for update: %w", err))
+	}
 
+	// Update operations with retries
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		_, apiErr := conn.UpdateDepartmentByID(departmentID, department)
 		if apiErr != nil {
+			var apiErrorCode int
+			if apiError, ok := apiErr.(*http_client.APIError); ok {
+				apiErrorCode = apiError.StatusCode
+			}
+
 			logging.Error(subCtx, logging.SubsystemUpdate, "Failed to update department by ID, trying by name", map[string]interface{}{
-				"error": apiErr.Error(),
-				"id":    departmentID,
-				"name":  departmentName,
+				"error":      apiErr.Error(),
+				"error_code": apiErrorCode,
+				"id":         departmentID,
+				"name":       departmentName,
 			})
 
 			_, apiErrByName := conn.UpdateDepartmentByName(departmentName, department)
 			if apiErrByName != nil {
+				var apiErrByNameCode int
+				if apiErrorByName, ok := apiErrByName.(*http_client.APIError); ok {
+					apiErrByNameCode = apiErrorByName.StatusCode
+				}
+
 				logging.Error(subCtx, logging.SubsystemUpdate, "API error during department update by name", map[string]interface{}{
-					"error": apiErrByName.Error(),
-					"name":  departmentName,
+					"error":      apiErrByName.Error(),
+					"error_code": apiErrByNameCode,
+					"name":       departmentName,
 				})
 				return retry.RetryableError(apiErrByName)
 			}
@@ -316,23 +348,34 @@ func ResourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceDat
 	departmentID := d.Id()
 	departmentName := d.Get("name").(string)
 
-	// Extract the retry timeout from the schema
-	retryTimeout := d.Timeout(schema.TimeoutDelete)
-
-	err := retry.RetryContext(subCtx, retryTimeout, func() *retry.RetryError {
+	// Use the retry function for the delete operation with appropriate timeout
+	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		apiErr := conn.DeleteDepartmentByID(departmentID)
 		if apiErr != nil {
+			var apiErrorCode int
+			if apiError, ok := apiErr.(*http_client.APIError); ok {
+				apiErrorCode = apiError.StatusCode
+			}
+
+			logging.Error(subCtx, logging.SubsystemDelete, "Failed to delete department by ID, trying by name", map[string]interface{}{
+				"error":      apiErr.Error(),
+				"error_code": apiErrorCode,
+				"id":         departmentID,
+				"name":       departmentName,
+			})
+
 			apiErr = conn.DeleteDepartmentByName(departmentName)
 			if apiErr != nil {
-				// Log the error using the initialized subsystem logger
-				logging.Error(subCtx, logging.SubsystemDelete, "Failed to delete department, retrying...",
-					map[string]interface{}{
-						"id":    departmentID,
-						"name":  departmentName,
-						"error": apiErr.Error(),
-					},
-				)
+				var apiErrByNameCode int
+				if apiErrorByName, ok := apiErr.(*http_client.APIError); ok {
+					apiErrByNameCode = apiErrorByName.StatusCode
+				}
 
+				logging.Error(subCtx, logging.SubsystemDelete, "API error during department deletion by name", map[string]interface{}{
+					"error":      apiErr.Error(),
+					"error_code": apiErrByNameCode,
+					"name":       departmentName,
+				})
 				return retry.RetryableError(apiErr)
 			}
 		}
@@ -340,29 +383,23 @@ func ResourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceDat
 	})
 
 	if err != nil {
-		// Inline the formatDuration functionality
-		formattedRetryTimeout := retryTimeout.Round(time.Second).String()
-
 		// Log the final error using the initialized subsystem logger
-		logging.Error(subCtx, logging.SubsystemDelete, fmt.Sprintf("Failed to delete department within the retry time window of %s.", formattedRetryTimeout),
-			map[string]interface{}{
-				"id":    departmentID,
-				"error": err.Error(),
-			},
-		)
-
+		logging.Error(subCtx, logging.SubsystemDelete, "Failed to delete site", map[string]interface{}{
+			"id":    departmentID,
+			"name":  departmentName,
+			"error": err.Error(),
+		})
 		return diag.FromErr(err)
 	}
 
-	// Assuming the delete operation succeeded, clear the ID from the Terraform state
-	d.SetId("")
+	// Log the successful removal of the site from the Terraform state
+	logging.Info(subCtx, logging.SubsystemDelete, "Successfully removed site from Terraform state", map[string]interface{}{
+		"id":   departmentID,
+		"name": departmentName,
+	})
 
-	// Optionally, you can log the successful removal of the resource from state
-	logging.Info(subCtx, logging.SubsystemDelete, "Successfully removed department from Terraform state",
-		map[string]interface{}{
-			"id": departmentID,
-		},
-	)
+	// Clear the ID from the Terraform state as the resource has been deleted
+	d.SetId("")
 
 	return nil
 }
