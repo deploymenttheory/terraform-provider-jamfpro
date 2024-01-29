@@ -27,10 +27,10 @@ func ResourceJamfProDepartments() *schema.Resource {
 		UpdateContext: ResourceJamfProDepartmentsUpdate,
 		DeleteContext: ResourceJamfProDepartmentsDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(1 * time.Minute),
-			Read:   schema.DefaultTimeout(1 * time.Minute),
-			Update: schema.DefaultTimeout(1 * time.Minute),
-			Delete: schema.DefaultTimeout(1 * time.Minute),
+			Create: schema.DefaultTimeout(10 * time.Second),
+			Read:   schema.DefaultTimeout(10 * time.Second),
+			Update: schema.DefaultTimeout(10 * time.Second),
+			Delete: schema.DefaultTimeout(10 * time.Second),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -160,6 +160,7 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 // 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
+// ResourceJamfProDepartmentsRead is responsible for reading the current state of a Jamf Pro Department Resource from the remote system.
 func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -176,57 +177,46 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 
 	// Use the retry function for the read operation with appropriate timeout
 	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
 		attribute, apiErr := conn.GetDepartmentByID(attributeID)
 		if apiErr != nil {
-			var apiErrorCode int
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				apiErrorCode = apiError.StatusCode
-			}
-
-			logging.Error(subCtx, logging.SubsystemRead, "Error fetching department by ID, trying by name", map[string]interface{}{
-				"id":         attributeID,
-				"name":       attributeName,
-				"error":      apiErr.Error(),
-				"error_code": apiErrorCode,
-			})
-
-			attribute, apiErr = conn.GetDepartmentByName(attributeName)
-			if apiErr != nil {
-				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErr.(*http_client.APIError); ok {
-					apiErrByNameCode = apiErrorByName.StatusCode
-				}
-
-				logging.Error(subCtx, logging.SubsystemRead, "Error fetching department by name", map[string]interface{}{
-					"name":       attributeName,
-					"error":      apiErr.Error(),
-					"error_code": apiErrByNameCode,
+				logging.Error(subCtx, logging.SubsystemRead, "API error encountered", map[string]interface{}{
+					"id":          attributeID,
+					"api_error":   apiError.Error(),
+					"status_code": apiError.StatusCode,
 				})
-				return retry.RetryableError(apiErr)
+
+				if apiError.StatusCode == 404 {
+					// Department not found, remove from Terraform state
+					d.SetId("")
+					logging.Info(subCtx, logging.SubsystemRead, "Department not found, removed from Terraform state", map[string]interface{}{
+						"id":   attributeID,
+						"name": attributeName,
+					})
+					return nil // Exit retry loop
+				}
+			} else {
+				logging.Error(subCtx, logging.SubsystemRead, "Unknown error encountered", map[string]interface{}{
+					"id":    attributeID,
+					"error": apiErr.Error(),
+				})
 			}
+			return retry.RetryableError(apiErr) // Retry for other API errors
 		}
 
-		if attribute != nil {
-			logging.Info(subCtx, logging.SubsystemRead, "Successfully fetched department", map[string]interface{}{
-				"id":   attributeID,
-				"name": attribute.Name,
-			})
+		// Successfully found the department, update Terraform state
+		d.Set("id", attribute.ID)
+		d.Set("name", attribute.Name)
+		logging.Info(subCtx, logging.SubsystemRead, "Successfully read department", map[string]interface{}{
+			"id":   attribute.ID,
+			"name": attribute.Name,
+		})
 
-			// Set resource values into Terraform state
-			if err := d.Set("id", attribute.ID); err != nil {
-				return retry.RetryableError(err)
-			}
-			if err := d.Set("name", attribute.Name); err != nil {
-				return retry.RetryableError(err)
-			}
-		}
-
-		return nil
+		return nil // Success, exit retry loop
 	})
 
 	if err != nil {
-		logging.Error(subCtx, logging.SubsystemRead, "Failed to read department", map[string]interface{}{
+		logging.Error(subCtx, logging.SubsystemRead, "Failed to read department after retries", map[string]interface{}{
 			"id":    attributeID,
 			"error": err.Error(),
 		})
@@ -335,8 +325,8 @@ func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 
 // ResourceJamfProDepartmentsDelete is responsible for deleting a Jamf Pro Department.
 func ResourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	apiclient, ok := meta.(*client.APIClient)
-	if !ok {
+	apiclient, assertionOk := meta.(*client.APIClient)
+	if !assertionOk {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
@@ -352,39 +342,38 @@ func ResourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceDat
 	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		apiErr := conn.DeleteDepartmentByID(departmentID)
 		if apiErr != nil {
-			var apiErrorCode int
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				apiErrorCode = apiError.StatusCode
-			}
-
-			logging.Error(subCtx, logging.SubsystemDelete, "Failed to delete department by ID, trying by name", map[string]interface{}{
-				"error":      apiErr.Error(),
-				"error_code": apiErrorCode,
-				"id":         departmentID,
-				"name":       departmentName,
-			})
-
-			apiErr = conn.DeleteDepartmentByName(departmentName)
-			if apiErr != nil {
-				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErr.(*http_client.APIError); ok {
-					apiErrByNameCode = apiErrorByName.StatusCode
+			apiError, apiErrorOk := apiErr.(*http_client.APIError)
+			if apiErrorOk && apiError.StatusCode == 404 {
+				// Department not found by ID, try by name
+				apiErrByName := conn.DeleteDepartmentByName(departmentName)
+				if apiErrByName != nil {
+					apiErrorByName, apiErrorByNameOk := apiErrByName.(*http_client.APIError)
+					if apiErrorByNameOk && apiErrorByName.StatusCode == 404 {
+						// Department not found by name, safe to remove from Terraform state
+						d.SetId("")
+						return nil // No need to retry
+					}
+					// Log error if deletion by name fails for reasons other than not found
+					logging.Error(subCtx, logging.SubsystemDelete, "API error during department deletion by name", map[string]interface{}{
+						"error": apiErrByName.Error(),
+						"name":  departmentName,
+					})
+					return retry.RetryableError(apiErrByName)
 				}
-
-				logging.Error(subCtx, logging.SubsystemDelete, "API error during department deletion by name", map[string]interface{}{
-					"error":      apiErr.Error(),
-					"error_code": apiErrByNameCode,
-					"name":       departmentName,
+			} else {
+				// Log error if deletion by ID fails for reasons other than not found
+				logging.Error(subCtx, logging.SubsystemDelete, "Failed to delete department by ID", map[string]interface{}{
+					"error": apiErr.Error(),
+					"id":    departmentID,
 				})
 				return retry.RetryableError(apiErr)
 			}
 		}
-		return nil
+		return nil // Department deleted successfully
 	})
 
 	if err != nil {
-		// Log the final error using the initialized subsystem logger
-		logging.Error(subCtx, logging.SubsystemDelete, "Failed to delete site", map[string]interface{}{
+		logging.Error(subCtx, logging.SubsystemDelete, "Failed to delete department", map[string]interface{}{
 			"id":    departmentID,
 			"name":  departmentName,
 			"error": err.Error(),
@@ -392,8 +381,8 @@ func ResourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(err)
 	}
 
-	// Log the successful removal of the site from the Terraform state
-	logging.Info(subCtx, logging.SubsystemDelete, "Successfully removed site from Terraform state", map[string]interface{}{
+	// Log the successful removal of the department from the Terraform state
+	logging.Info(subCtx, logging.SubsystemDelete, "Successfully removed department from Terraform state", map[string]interface{}{
 		"id":   departmentID,
 		"name": departmentName,
 	})

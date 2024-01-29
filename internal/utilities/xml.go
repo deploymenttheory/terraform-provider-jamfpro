@@ -1,6 +1,6 @@
 // utilities.go
 // For utility/helper functions to support the jamf pro tf provider
-package utils
+package utilities
 
 import (
 	"encoding/xml"
