@@ -19,8 +19,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// TODO - handling for duplicate names
-
 const (
 	JamfProResourceDepartment = "Department"
 )
