@@ -60,8 +60,8 @@ func LogTFConstructResourceSuccess(ctx context.Context, resourceType string) {
 	})
 }
 
-// LogTFConstructResourceXML provides structured logging for successful construction and serialization of the resource object to XML
-func LogTFConstructedXMLResourceXML(ctx context.Context, resourceType, xmlData string) {
+// LogTFConstructResource provides structured logging for successful construction and serialization of the resource object to XML
+func LogTFConstructedXMLResource(ctx context.Context, resourceType, xmlData string) {
 	logMessage := fmt.Sprintf("%s resource constructed and serialized to XML successfully", resourceType)
 
 	Debug(ctx, SubsystemConstruct, logMessage, map[string]interface{}{
@@ -89,8 +89,8 @@ func LogTFConstructedResource(ctx context.Context, resourceType string) {
 	})
 }
 
-// LogTFConstructedResourceJSON provides structured logging for successful construction and serialization of the resource object to JSON
-func LogTFConstructedResourceJSON(ctx context.Context, resourceType, jsonData string) {
+// LogTFConstructedJSONResource provides structured logging for successful construction and serialization of the resource object to JSON
+func LogTFConstructedJSONResource(ctx context.Context, resourceType, jsonData string) {
 	logMessage := fmt.Sprintf("%s resource constructed and serialized to JSON successfully", resourceType)
 
 	Debug(ctx, SubsystemConstruct, logMessage, map[string]interface{}{

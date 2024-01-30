@@ -72,7 +72,7 @@ func constructJamfProDepartment(ctx context.Context, d *schema.ResourceData) (*j
 	}
 
 	// Log the successful construction and serialization to XML
-	logging.LogTFConstructedXMLResourceXML(subCtx, JamfProResourceDepartment, string(deptXML))
+	logging.LogTFConstructedXMLResource(subCtx, JamfProResourceDepartment, string(deptXML))
 
 	return department, nil
 }
