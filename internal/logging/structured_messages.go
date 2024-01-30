@@ -18,17 +18,17 @@ const (
 	// Create
 	MsgAPICreateFailure          = "API error occurred during %s creation"
 	MsgAPICreateFailedAfterRetry = "Final attempt to create %s failed"
-	MsgAPICreateSuccess          = "%s created successfully"
+	MsgAPICreateSuccess          = "%s created successfully though the API"
 
 	// Read
 	MsgAPIReadFailureByID      = "API error occurred while reading %s with ID: %s"
-	MsgAPIReadFailureByName    = "API error occurred while updating %s by name"
+	MsgAPIReadFailureByName    = "API error occurred while reading %s with Name: %s"
 	MsgAPIReadFailedAfterRetry = "Final attempt to read  %s failed"
-	MsgAPIReadSuccess          = "%s with ID: %s read successfully"
+	MsgAPIReadSuccess          = "%s with ID: %s successfully read from API"
 
 	// Update
-	MsgAPIUpdateFailureByID      = "API error occurred while updating %s by ID"
-	MsgAPIUpdateFailureByName    = "API error occurred while updating %s by name"
+	MsgAPIUpdateFailureByID      = "API error occurred while updating %s with ID: %s"
+	MsgAPIUpdateFailureByName    = "API error occurred while updating %s with Name: %s"
 	MsgAPIUpdateFailedAfterRetry = "Final attempt to update %s failed"
 	MsgAPIUpdateSuccess          = "%s successfully updated in Terraform state"
 
@@ -177,7 +177,7 @@ func LogAPICreateSuccess(ctx context.Context, resourceType, resourceID string) {
 
 // LogAPICreateFailedAfterRetryprovides structured logging for scenarios where update operation fails after retries
 func LogAPICreateFailedAfterRetry(ctx context.Context, resourceType, resourceID, resourceName, errorMsg string) {
-	logMessage := fmt.Sprintf("retry attempt to create %s with Name: %q failed", resourceType, resourceID, resourceName)
+	logMessage := fmt.Sprintf("retry attempt to create %s with ID: %s, Name: %q failed", resourceType, resourceID, resourceName)
 
 	Error(ctx, SubsystemCreate, logMessage, map[string]interface{}{
 		"resource_type": resourceType,
@@ -189,24 +189,26 @@ func LogAPICreateFailedAfterRetry(ctx context.Context, resourceType, resourceID,
 // Read
 
 // LogFailedReadByID provides structured logging for errors when failing to read by ID
-func LogFailedReadByID(ctx context.Context, resourceType, resourceID, errorMsg string) {
+func LogFailedReadByID(ctx context.Context, resourceType, resourceID, errorMsg string, errorCode int) {
 	logMessage := fmt.Sprintf(MsgAPIReadFailureByID, resourceType, resourceID)
 
 	Error(ctx, SubsystemRead, logMessage, map[string]interface{}{
 		"resource_type": resourceType,
 		"id":            resourceID,
 		"error":         errorMsg,
+		"error_code":    errorCode,
 	})
 }
 
 // LogFailedReadByName provides structured logging for errors when failing to read by ID
-func LogFailedReadByName(ctx context.Context, resourceType, resourceID, errorMsg string) {
+func LogFailedReadByName(ctx context.Context, resourceType, resourceID, errorMsg string, errorCode int) {
 	logMessage := fmt.Sprintf(MsgAPIReadFailureByName, resourceType, resourceID)
 
 	Error(ctx, SubsystemRead, logMessage, map[string]interface{}{
 		"resource_type": resourceType,
 		"id":            resourceID,
 		"error":         errorMsg,
+		"error_code":    errorCode,
 	})
 }
 
@@ -221,7 +223,7 @@ func LogAPIReadSuccess(ctx context.Context, resourceType, resourceID string) {
 }
 
 // LogAPIReadFailedAfterRetry provides structured logging for scenarios where update operation fails after retries
-func LogAPIReadFailedAfterRetry(ctx context.Context, resourceType, resourceID, resourceName, errorMsg string) {
+func LogAPIReadFailedAfterRetry(ctx context.Context, resourceType, resourceID, resourceName, errorMsg string, errorCode int) {
 	logMessage := fmt.Sprintf("Retry attempt to read %s with ID: %s, Name: %q failed", resourceType, resourceID, resourceName)
 
 	Error(ctx, SubsystemRead, logMessage, map[string]interface{}{
@@ -229,6 +231,7 @@ func LogAPIReadFailedAfterRetry(ctx context.Context, resourceType, resourceID, r
 		"id":            resourceID,
 		"name":          resourceName,
 		"error":         errorMsg,
+		"error_code":    errorCode,
 	})
 }
 
@@ -236,7 +239,7 @@ func LogAPIReadFailedAfterRetry(ctx context.Context, resourceType, resourceID, r
 
 // LogAPIUpdateFailureByID provides structured logging for errors when failing to update by ID
 func LogAPIUpdateFailureByID(ctx context.Context, resourceType, resourceID, resourceName, errorMsg string, errorCode int) {
-	logMessage := fmt.Sprintf("Failed to update %s with ID: %s, Name: %q", resourceType, resourceID, resourceName)
+	logMessage := fmt.Sprintf(MsgAPIUpdateFailureByID, resourceType, resourceID)
 
 	Error(ctx, SubsystemUpdate, logMessage, map[string]interface{}{
 		"resource_type": resourceType,
@@ -249,7 +252,7 @@ func LogAPIUpdateFailureByID(ctx context.Context, resourceType, resourceID, reso
 
 // LogAPIUpdateFailureByName provides structured logging for errors when failing to update by Name
 func LogAPIUpdateFailureByName(ctx context.Context, resourceType, resourceName, errorMsg string, errorCode int) {
-	logMessage := fmt.Sprintf("API error occurred while updating %s with Name: %q", resourceType, resourceName)
+	logMessage := fmt.Sprintf(MsgAPIUpdateFailureByName, resourceType, resourceName)
 
 	Error(ctx, SubsystemUpdate, logMessage, map[string]interface{}{
 		"resource_type": resourceType,
@@ -260,7 +263,7 @@ func LogAPIUpdateFailureByName(ctx context.Context, resourceType, resourceName, 
 }
 
 // LogAPIUpdateFailedAfterRetry provides structured logging for scenarios where update operation fails after retries
-func LogAPIUpdateFailedAfterRetry(ctx context.Context, resourceType, resourceID, resourceName, errorMsg string) {
+func LogAPIUpdateFailedAfterRetry(ctx context.Context, resourceType, resourceID, resourceName, errorMsg string, errorCode int) {
 	logMessage := fmt.Sprintf("Final attempt to update %s with ID: %s, Name: %q failed", resourceType, resourceID, resourceName)
 
 	Error(ctx, SubsystemUpdate, logMessage, map[string]interface{}{
@@ -268,6 +271,7 @@ func LogAPIUpdateFailedAfterRetry(ctx context.Context, resourceType, resourceID,
 		"id":            resourceID,
 		"name":          resourceName,
 		"error":         errorMsg,
+		"error_code":    errorCode,
 	})
 }
 
@@ -290,10 +294,10 @@ func LogAPIDeleteFailureByID(ctx context.Context, resourceType, resourceID, reso
 
 	Error(ctx, SubsystemDelete, logMessage, map[string]interface{}{
 		"resource_type": resourceType,
-		"error":         errorMsg,
-		"error_code":    errorCode,
 		"id":            resourceID,
 		"name":          resourceName,
+		"error":         errorMsg,
+		"error_code":    errorCode,
 	})
 }
 
@@ -303,14 +307,14 @@ func LogAPIDeleteFailureByName(ctx context.Context, resourceType, resourceName, 
 
 	Error(ctx, SubsystemDelete, logMessage, map[string]interface{}{
 		"resource_type": resourceType,
+		"name":          resourceName,
 		"error":         errorMsg,
 		"error_code":    errorCode,
-		"name":          resourceName,
 	})
 }
 
 // LogAPIDeleteFailedAfterRetry provides structured logging for scenarios where delete operation fails after retries
-func LogAPIDeleteFailedAfterRetry(ctx context.Context, resourceType, resourceID, resourceName, errorMsg string) {
+func LogAPIDeleteFailedAfterRetry(ctx context.Context, resourceType, resourceID, resourceName, errorMsg string, errorCode int) {
 	logMessage := fmt.Sprintf("Final attempt to delete %s with ID: %s, Name: %q failed", resourceType, resourceID, resourceName)
 
 	Error(ctx, SubsystemDelete, logMessage, map[string]interface{}{
@@ -318,6 +322,7 @@ func LogAPIDeleteFailedAfterRetry(ctx context.Context, resourceType, resourceID,
 		"id":            resourceID,
 		"name":          resourceName,
 		"error":         errorMsg,
+		"error_code":    errorCode,
 	})
 }
 
