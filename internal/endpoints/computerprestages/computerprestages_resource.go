@@ -58,57 +58,57 @@ func ResourceJamfProComputerPrestage() *schema.Resource {
 			},
 			"support_phone_number": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The support phone number.",
+				Optional:    true,
+				Description: "The Support phone number for the organization.",
 			},
 			"support_email_address": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The support email address.",
+				Optional:    true,
+				Description: "The Support email address for the organization.",
 			},
-			"computerPrestage": {
+			"department": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The computerPrestage.",
+				Optional:    true,
+				Description: "The department the computer prestage is assigned to.",
 			},
 			"default_prestage": {
 				Type:        schema.TypeBool,
-				Required:    true,
-				Description: "Indicates if this is the default prestage.",
+				Optional:    true,
+				Description: "Indicates if this is the default computer prestage enrollment configuration. If yes then new devices will be automatically assigned to this PreStage enrollment",
 			},
 			"enrollment_site_id": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The ID of the enrollment site.",
+				Optional:    true,
+				Description: "The jamf pro Site ID that computers will be added to during enrollment. Default is -1, aka not used.",
 			},
 			"keep_existing_site_membership": {
 				Type:        schema.TypeBool,
-				Required:    true,
-				Description: "Indicates if existing site membership should be retained.",
+				Optional:    true,
+				Description: "Indicates if existing device site membership should be retained.",
 			},
 			"keep_existing_location_information": {
 				Type:        schema.TypeBool,
-				Required:    true,
-				Description: "Indicates if existing location information should be retained.",
+				Optional:    true,
+				Description: "Indicates if existing device location information should be retained.",
 			},
 			"require_authentication": {
 				Type:        schema.TypeBool,
-				Required:    true,
-				Description: "Indicates if authentication is required.",
+				Optional:    true,
+				Description: "Indicates if the user is required to provide username and password on computers with macOS 10.10 or later.",
 			},
 			"authentication_prompt": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The authentication prompt text.",
+				Optional:    true,
+				Description: "The authentication prompt message displayed to the user during enrollment.",
 			},
 			"prevent_activation_lock": {
 				Type:        schema.TypeBool,
-				Required:    true,
+				Optional:    true,
 				Description: "Indicates if activation lock should be prevented.",
 			},
 			"enable_device_based_activation_lock": {
 				Type:        schema.TypeBool,
-				Required:    true,
+				Optional:    true,
 				Description: "Indicates if device-based activation lock should be enabled.",
 			},
 			"device_enrollment_program_instance_id": {
@@ -117,9 +117,104 @@ func ResourceJamfProComputerPrestage() *schema.Resource {
 				Description: "The device enrollment program instance ID.",
 			},
 			"skip_setup_items": {
-				Type:        schema.TypeMap,
+				Type:        schema.TypeList,
 				Optional:    true,
-				Description: "Items to skip during macOS device setup within Apple Device Enrollment (ADE).",
+				Description: "Selected items are not displayed in the Setup Assistant during macOS device setup within Apple Device Enrollment (ADE).",
+				MaxItems:    1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"biometric": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip biometric setup.",
+						},
+						"terms_of_address": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip terms of address setup.",
+						},
+						"file_vault": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip FileVault setup.",
+						},
+						"icloud_diagnostics": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip iCloud diagnostics setup.",
+						},
+						"diagnostics": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip diagnostics setup.",
+						},
+						"accessibility": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip accessibility setup.",
+						},
+						"apple_id": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip Apple ID setup.",
+						},
+						"screen_time": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip Screen Time setup.",
+						},
+						"siri": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip Siri setup.",
+						},
+						"display_tone": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip Display Tone setup.",
+						},
+						"restore": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip Restore setup.",
+						},
+						"appearance": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip Appearance setup.",
+						},
+						"privacy": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip Privacy setup.",
+						},
+						"payment": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip Payment setup.",
+						},
+						"registration": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip Registration setup.",
+						},
+						"tos": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip Terms of Service setup.",
+						},
+						"icloud_storage": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip iCloud Storage setup.",
+						},
+						"location": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip Location setup.",
+						},
+					},
+				},
 			},
 			"location_information": {
 				Type:        schema.TypeList,
@@ -466,13 +561,13 @@ func ResourceJamfProComputerPrestage() *schema.Resource {
 func constructJamfProComputerPrestage(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceComputerPrestage, error) {
 	prestage := &jamfpro.ResourceComputerPrestage{}
 
-	// Utilize type assertion helper functions for direct field extraction
+	// Extract the items from the Terraform resource data
 	prestage.DisplayName = util.GetStringFromInterface(d.Get("display_name"))
 	prestage.Mandatory = util.GetBoolFromInterface(d.Get("mandatory"))
 	prestage.MDMRemovable = util.GetBoolFromInterface(d.Get("mdm_removable"))
 	prestage.SupportPhoneNumber = util.GetStringFromInterface(d.Get("support_phone_number"))
 	prestage.SupportEmailAddress = util.GetStringFromInterface(d.Get("support_email_address"))
-	prestage.Department = util.GetStringFromInterface(d.Get("computerPrestage"))
+	prestage.Department = util.GetStringFromInterface(d.Get("department"))
 	prestage.DefaultPrestage = util.GetBoolFromInterface(d.Get("default_prestage"))
 	prestage.EnrollmentSiteId = util.GetStringFromInterface(d.Get("enrollment_site_id"))
 	prestage.KeepExistingSiteMembership = util.GetBoolFromInterface(d.Get("keep_existing_site_membership"))
@@ -482,7 +577,36 @@ func constructJamfProComputerPrestage(ctx context.Context, d *schema.ResourceDat
 	prestage.PreventActivationLock = util.GetBoolFromInterface(d.Get("prevent_activation_lock"))
 	prestage.EnableDeviceBasedActivationLock = util.GetBoolFromInterface(d.Get("enable_device_based_activation_lock"))
 	prestage.DeviceEnrollmentProgramInstanceId = util.GetStringFromInterface(d.Get("device_enrollment_program_instance_id"))
-	prestage.SkipSetupItems = util.GetStringBoolMapFromInterface(d.Get("skip_setup_items"))
+
+	// Extract the 'skip_setup_items' list from the Terraform resource data
+	if v, ok := d.GetOk("skip_setup_items"); ok {
+		skipSetupItemsList := v.([]interface{})
+		if len(skipSetupItemsList) > 0 {
+			skipSetupItemsMap := skipSetupItemsList[0].(map[string]interface{})
+
+			// Construct the ComputerPrestageSubsetSkipSetupItems struct
+			prestage.SkipSetupItems = jamfpro.ComputerPrestageSubsetSkipSetupItems{
+				Biometric:         util.GetBoolFromMap(skipSetupItemsMap, "biometric"),
+				TermsOfAddress:    util.GetBoolFromMap(skipSetupItemsMap, "terms_of_address"),
+				FileVault:         util.GetBoolFromMap(skipSetupItemsMap, "file_vault"),
+				ICloudDiagnostics: util.GetBoolFromMap(skipSetupItemsMap, "icloud_diagnostics"),
+				Diagnostics:       util.GetBoolFromMap(skipSetupItemsMap, "diagnostics"),
+				Accessibility:     util.GetBoolFromMap(skipSetupItemsMap, "accessibility"),
+				AppleID:           util.GetBoolFromMap(skipSetupItemsMap, "apple_id"),
+				ScreenTime:        util.GetBoolFromMap(skipSetupItemsMap, "screen_time"),
+				Siri:              util.GetBoolFromMap(skipSetupItemsMap, "siri"),
+				DisplayTone:       util.GetBoolFromMap(skipSetupItemsMap, "display_tone"),
+				Restore:           util.GetBoolFromMap(skipSetupItemsMap, "restore"),
+				Appearance:        util.GetBoolFromMap(skipSetupItemsMap, "appearance"),
+				Privacy:           util.GetBoolFromMap(skipSetupItemsMap, "privacy"),
+				Payment:           util.GetBoolFromMap(skipSetupItemsMap, "payment"),
+				Registration:      util.GetBoolFromMap(skipSetupItemsMap, "registration"),
+				TOS:               util.GetBoolFromMap(skipSetupItemsMap, "tos"),
+				ICloudStorage:     util.GetBoolFromMap(skipSetupItemsMap, "icloud_storage"),
+				Location:          util.GetBoolFromMap(skipSetupItemsMap, "location"),
+			}
+		}
+	}
 
 	// Extract location_information
 	if v, ok := d.GetOk("location_information"); ok {
@@ -740,7 +864,7 @@ func ResourceJamfProComputerPrestageRead(ctx context.Context, d *schema.Resource
 			"mdm_removable":                         computerPrestage.MDMRemovable,
 			"support_phone_number":                  computerPrestage.SupportPhoneNumber,
 			"support_email_address":                 computerPrestage.SupportEmailAddress,
-			"computerPrestage":                      computerPrestage.Department,
+			"department":                            computerPrestage.Department,
 			"default_prestage":                      computerPrestage.DefaultPrestage,
 			"enrollment_site_id":                    computerPrestage.EnrollmentSiteId,
 			"keep_existing_site_membership":         computerPrestage.KeepExistingSiteMembership,
@@ -750,7 +874,27 @@ func ResourceJamfProComputerPrestageRead(ctx context.Context, d *schema.Resource
 			"enable_device_based_activation_lock":   computerPrestage.EnableDeviceBasedActivationLock,
 			"device_enrollment_program_instance_id": computerPrestage.DeviceEnrollmentProgramInstanceId,
 			"skip_setup_items":                      computerPrestage.SkipSetupItems,
+			"location_information":                  computerPrestage.LocationInformation,
+			"purchasing_information":                computerPrestage.PurchasingInformation,
+			"anchor_certificates":                   computerPrestage.AnchorCertificates,
+			"enrollment_customization_id":           computerPrestage.EnrollmentCustomizationId,
+			"language":                              computerPrestage.Language,
+			"region":                                computerPrestage.Region,
+			"auto_advance_setup":                    computerPrestage.AutoAdvanceSetup,
+			"install_profiles_during_setup":         computerPrestage.InstallProfilesDuringSetup,
+			"prestage_installed_profile_ids":        computerPrestage.PrestageInstalledProfileIds,
+			"custom_package_ids":                    computerPrestage.CustomPackageIds,
+			"custom_package_distribution_point_id":  computerPrestage.CustomPackageDistributionPointId,
+			"enable_recovery_lock":                  computerPrestage.EnableRecoveryLock,
+			"recovery_lock_password_type":           computerPrestage.RecoveryLockPasswordType,
+			"recovery_lock_password":                computerPrestage.RecoveryLockPassword,
+			"rotate_recovery_lock_password":         computerPrestage.RotateRecoveryLockPassword,
+			"profile_uuid":                          computerPrestage.ProfileUuid,
+			"site_id":                               computerPrestage.SiteId,
+			"version_lock":                          computerPrestage.VersionLock,
+			"account_settings":                      computerPrestage.AccountSettings,
 		}
+
 		// Handle nested location_information
 		if locationInformation := computerPrestage.LocationInformation; locationInformation != (jamfpro.ComputerPrestageSubsetLocationInformation{}) {
 			prestageAttributes["location_information"] = []interface{}{
