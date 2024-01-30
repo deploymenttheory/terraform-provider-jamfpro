@@ -3,17 +3,23 @@ package computerprestages
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+const (
+	JamfProResourceComputerPrestage = "Computer Prestage"
 )
 
 // ResourceJamfProComputerPrestage defines the schema for managing Jamf Pro Computer Prestages in Terraform.
@@ -52,57 +58,57 @@ func ResourceJamfProComputerPrestage() *schema.Resource {
 			},
 			"support_phone_number": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The support phone number.",
+				Optional:    true,
+				Description: "The Support phone number for the organization.",
 			},
 			"support_email_address": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The support email address.",
+				Optional:    true,
+				Description: "The Support email address for the organization.",
 			},
 			"department": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The department.",
+				Optional:    true,
+				Description: "The department the computer prestage is assigned to.",
 			},
 			"default_prestage": {
 				Type:        schema.TypeBool,
-				Required:    true,
-				Description: "Indicates if this is the default prestage.",
+				Optional:    true,
+				Description: "Indicates if this is the default computer prestage enrollment configuration. If yes then new devices will be automatically assigned to this PreStage enrollment",
 			},
 			"enrollment_site_id": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The ID of the enrollment site.",
+				Optional:    true,
+				Description: "The jamf pro Site ID that computers will be added to during enrollment. Default is -1, aka not used.",
 			},
 			"keep_existing_site_membership": {
 				Type:        schema.TypeBool,
-				Required:    true,
-				Description: "Indicates if existing site membership should be retained.",
+				Optional:    true,
+				Description: "Indicates if existing device site membership should be retained.",
 			},
 			"keep_existing_location_information": {
 				Type:        schema.TypeBool,
-				Required:    true,
-				Description: "Indicates if existing location information should be retained.",
+				Optional:    true,
+				Description: "Indicates if existing device location information should be retained.",
 			},
 			"require_authentication": {
 				Type:        schema.TypeBool,
-				Required:    true,
-				Description: "Indicates if authentication is required.",
+				Optional:    true,
+				Description: "Indicates if the user is required to provide username and password on computers with macOS 10.10 or later.",
 			},
 			"authentication_prompt": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The authentication prompt text.",
+				Optional:    true,
+				Description: "The authentication prompt message displayed to the user during enrollment.",
 			},
 			"prevent_activation_lock": {
 				Type:        schema.TypeBool,
-				Required:    true,
+				Optional:    true,
 				Description: "Indicates if activation lock should be prevented.",
 			},
 			"enable_device_based_activation_lock": {
 				Type:        schema.TypeBool,
-				Required:    true,
+				Optional:    true,
 				Description: "Indicates if device-based activation lock should be enabled.",
 			},
 			"device_enrollment_program_instance_id": {
@@ -111,9 +117,104 @@ func ResourceJamfProComputerPrestage() *schema.Resource {
 				Description: "The device enrollment program instance ID.",
 			},
 			"skip_setup_items": {
-				Type:        schema.TypeMap,
+				Type:        schema.TypeList,
 				Optional:    true,
-				Description: "Items to skip during macOS device setup within Apple Device Enrollment (ADE).",
+				Description: "Selected items are not displayed in the Setup Assistant during macOS device setup within Apple Device Enrollment (ADE).",
+				MaxItems:    1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"biometric": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip biometric setup.",
+						},
+						"terms_of_address": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip terms of address setup.",
+						},
+						"file_vault": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip FileVault setup.",
+						},
+						"icloud_diagnostics": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip iCloud diagnostics setup.",
+						},
+						"diagnostics": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip diagnostics setup.",
+						},
+						"accessibility": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip accessibility setup.",
+						},
+						"apple_id": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip Apple ID setup.",
+						},
+						"screen_time": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip Screen Time setup.",
+						},
+						"siri": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip Siri setup.",
+						},
+						"display_tone": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip Display Tone setup.",
+						},
+						"restore": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip Restore setup.",
+						},
+						"appearance": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip Appearance setup.",
+						},
+						"privacy": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip Privacy setup.",
+						},
+						"payment": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip Payment setup.",
+						},
+						"registration": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip Registration setup.",
+						},
+						"tos": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip Terms of Service setup.",
+						},
+						"icloud_storage": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip iCloud Storage setup.",
+						},
+						"location": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Skip Location setup.",
+						},
+					},
+				},
 			},
 			"location_information": {
 				Type:        schema.TypeList,
@@ -154,7 +255,7 @@ func ResourceJamfProComputerPrestage() *schema.Resource {
 						"department_id": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "The department ID associated with this location.",
+							Description: "The computerPrestage ID associated with this location.",
 							Default:     "-1",
 						},
 						"building_id": {
@@ -457,10 +558,10 @@ func ResourceJamfProComputerPrestage() *schema.Resource {
 }
 
 // constructJamfProComputerPrestage constructs a ResourceComputerPrestage object from the provided schema data.
-func constructJamfProComputerPrestage(d *schema.ResourceData) (*jamfpro.ResourceComputerPrestage, error) {
+func constructJamfProComputerPrestage(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceComputerPrestage, error) {
 	prestage := &jamfpro.ResourceComputerPrestage{}
 
-	// Utilize type assertion helper functions for direct field extraction
+	// Extract the items from the Terraform resource data
 	prestage.DisplayName = util.GetStringFromInterface(d.Get("display_name"))
 	prestage.Mandatory = util.GetBoolFromInterface(d.Get("mandatory"))
 	prestage.MDMRemovable = util.GetBoolFromInterface(d.Get("mdm_removable"))
@@ -476,7 +577,36 @@ func constructJamfProComputerPrestage(d *schema.ResourceData) (*jamfpro.Resource
 	prestage.PreventActivationLock = util.GetBoolFromInterface(d.Get("prevent_activation_lock"))
 	prestage.EnableDeviceBasedActivationLock = util.GetBoolFromInterface(d.Get("enable_device_based_activation_lock"))
 	prestage.DeviceEnrollmentProgramInstanceId = util.GetStringFromInterface(d.Get("device_enrollment_program_instance_id"))
-	prestage.SkipSetupItems = util.GetStringBoolMapFromInterface(d.Get("skip_setup_items"))
+
+	// Extract the 'skip_setup_items' list from the Terraform resource data
+	if v, ok := d.GetOk("skip_setup_items"); ok {
+		skipSetupItemsList := v.([]interface{})
+		if len(skipSetupItemsList) > 0 {
+			skipSetupItemsMap := skipSetupItemsList[0].(map[string]interface{})
+
+			// Construct the ComputerPrestageSubsetSkipSetupItems struct
+			prestage.SkipSetupItems = jamfpro.ComputerPrestageSubsetSkipSetupItems{
+				Biometric:         util.GetBoolFromMap(skipSetupItemsMap, "biometric"),
+				TermsOfAddress:    util.GetBoolFromMap(skipSetupItemsMap, "terms_of_address"),
+				FileVault:         util.GetBoolFromMap(skipSetupItemsMap, "file_vault"),
+				ICloudDiagnostics: util.GetBoolFromMap(skipSetupItemsMap, "icloud_diagnostics"),
+				Diagnostics:       util.GetBoolFromMap(skipSetupItemsMap, "diagnostics"),
+				Accessibility:     util.GetBoolFromMap(skipSetupItemsMap, "accessibility"),
+				AppleID:           util.GetBoolFromMap(skipSetupItemsMap, "apple_id"),
+				ScreenTime:        util.GetBoolFromMap(skipSetupItemsMap, "screen_time"),
+				Siri:              util.GetBoolFromMap(skipSetupItemsMap, "siri"),
+				DisplayTone:       util.GetBoolFromMap(skipSetupItemsMap, "display_tone"),
+				Restore:           util.GetBoolFromMap(skipSetupItemsMap, "restore"),
+				Appearance:        util.GetBoolFromMap(skipSetupItemsMap, "appearance"),
+				Privacy:           util.GetBoolFromMap(skipSetupItemsMap, "privacy"),
+				Payment:           util.GetBoolFromMap(skipSetupItemsMap, "payment"),
+				Registration:      util.GetBoolFromMap(skipSetupItemsMap, "registration"),
+				TOS:               util.GetBoolFromMap(skipSetupItemsMap, "tos"),
+				ICloudStorage:     util.GetBoolFromMap(skipSetupItemsMap, "icloud_storage"),
+				Location:          util.GetBoolFromMap(skipSetupItemsMap, "location"),
+			}
+		}
+	}
 
 	// Extract location_information
 	if v, ok := d.GetOk("location_information"); ok {
@@ -588,37 +718,19 @@ func constructJamfProComputerPrestage(d *schema.ResourceData) (*jamfpro.Resource
 		}
 	}
 
-	// Log the constructed ComputerPrestage object for debugging purposes
-	log.Printf("[DEBUG] Successfully constructed Jamf Pro ComputerPrestage with display name: %s", prestage.DisplayName)
-	log.Printf("[DEBUG] The constructed Jamf Pro ComputerPrestage Object:\n")
-	log.Printf("\tDisplayName: %s\n", prestage.DisplayName)
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemConstruct, hclog.Debug)
+
+	// Serialize and pretty-print the department object as JSON
+	computerPrestageJSON, err := json.MarshalIndent(prestage, "", "  ")
+	if err != nil {
+		logging.LogTFConstructResourceJSONMarshalFailure(subCtx, JamfProResourceComputerPrestage, err.Error())
+		return nil, err
+	}
+
+	// Log the successful construction and serialization to JSON
+	logging.LogTFConstructedJSONResource(subCtx, JamfProResourceComputerPrestage, string(computerPrestageJSON))
 
 	return prestage, nil
-}
-
-// Helper function to generate diagnostics based on the error type.
-func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
-	var diags diag.Diagnostics
-	resourceName, exists := d.GetOk("name")
-	if !exists {
-		resourceName = "unknown"
-	}
-
-	// Handle the APIError in the diagnostic
-	if apiErr, ok := err.(*http_client.APIError); ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
-		})
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   err.Error(),
-		})
-	}
-	return diags
 }
 
 // ResourceJamfProComputerPrestageCreate is responsible for creating a new computer prestage in Jamf Pro with terraform.
@@ -628,60 +740,77 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 // 3. Updates the Terraform state with the ID of the newly created computer prestage.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProComputerPrestageCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Assert the meta interface to the expected APIClient type
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the create operation
-	var createdComputerPrestage *jamfpro.ResponseComputerPrestageCreate
-	var err error
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		// Construct the computer prestage
-		computerPrestage, err := constructJamfProComputerPrestage(d)
-		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the computerPrestage for terraform create: %w", err))
-		}
+	// Initialize variables
+	var diags diag.Diagnostics
+	var createdAttribute *jamfpro.ResponseComputerPrestageCreate
+	var apiErrorCode int
 
-		// Directly call the API to create the resource
-		createdComputerPrestage, err = conn.CreateComputerPrestage(computerPrestage)
-		if err != nil {
-			// Check if the error is an APIError
-			if apiErr, ok := err.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message))
+	// Initialize the logging subsystem with the create operation context
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemCreate, hclog.Info)
+	subSyncCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemSync, hclog.Info)
+
+	// Construct the computerPrestage object outside the retry loop to avoid reconstructing it on each retry
+	computerPrestage, err := constructJamfProComputerPrestage(subCtx, d)
+	if err != nil {
+		logging.LogTFConstructResourceFailure(subCtx, JamfProResourceComputerPrestage, err.Error())
+		return diag.FromErr(err)
+	}
+	logging.LogTFConstructResourceSuccess(subCtx, JamfProResourceComputerPrestage)
+
+	// Retry the API call to create the computerPrestage in Jamf Pro
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		var apiErr error
+		createdAttribute, apiErr = conn.CreateComputerPrestage(computerPrestage)
+		if apiErr != nil {
+			// Extract and log the API error code if available
+			if apiError, ok := apiErr.(*http_client.APIError); ok {
+				apiErrorCode = apiError.StatusCode
 			}
-			// For simplicity, we're considering all other errors as retryable
-			return retry.RetryableError(err)
+			logging.LogAPICreateFailure(subCtx, JamfProResourceComputerPrestage, apiErr.Error(), apiErrorCode)
+			// Return a non-retryable error to break out of the retry loop
+			return retry.NonRetryableError(apiErr)
 		}
-
+		// No error, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		// If there's an error while creating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "create")
+		// Log the final error and append it to the diagnostics
+		logging.LogAPICreateFailure(subCtx, JamfProResourceComputerPrestage, err.Error(), apiErrorCode)
+		diags = append(diags, diag.FromErr(err)...)
+		return diags
 	}
 
-	// Set the ID of the created resource in the Terraform state
-	d.SetId(createdComputerPrestage.ID)
+	// Log successful creation of the computerPrestage and set the resource ID in Terraform state
+	logging.LogAPICreateSuccess(subCtx, JamfProResourceComputerPrestage, createdAttribute.ID)
+	d.SetId(createdAttribute.ID)
 
-	// Use the retry function for the read operation to update the Terraform state with the resource attributes
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProComputerPrestageRead(ctx, d, meta)
+	// Retry reading the computerPrestage to ensure the Terraform state is up to date
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		readDiags := ResourceJamfProComputerPrestageRead(subCtx, d, meta)
 		if len(readDiags) > 0 {
-			// If readDiags is not empty, it means there's an error, so we retry
-			return retry.RetryableError(fmt.Errorf("failed to read the created resource"))
+			// Log any read errors and return a retryable error to retry the read operation
+			logging.LogTFStateSyncFailedAfterRetry(subSyncCtx, JamfProResourceComputerPrestage, d.Id(), readDiags[0].Summary)
+			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
 		}
+		// Successfully read the computerPrestage, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		// If there's an error while updating the state for the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update state for")
+		// Log the final state sync failure and append it to the diagnostics
+		logging.LogTFStateSyncFailure(subSyncCtx, JamfProResourceComputerPrestage, err.Error())
+		diags = append(diags, diag.FromErr(err)...)
+	} else {
+		// Log successful state synchronization
+		logging.LogTFStateSyncSuccess(subSyncCtx, JamfProResourceComputerPrestage, d.Id())
 	}
 
 	return diags
@@ -702,44 +831,29 @@ func ResourceJamfProComputerPrestageRead(ctx context.Context, d *schema.Resource
 	}
 	conn := apiclient.Conn
 
+	// Initialize the logging subsystem for the read operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemRead, hclog.Info)
+
+	// Initialize variables
 	var computerPrestage *jamfpro.ResourceComputerPrestage
+	var apiErrorCode int // Variable to capture the API error code
+	resourceID := d.Id()
 
-	// Use the retry function for the read operation
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		// The ID in Terraform state is already a string, so we use it directly for the API request
-		computerPrestageID := d.Id()
-
-		// Try fetching the computerPrestage using the ID
-		var apiErr error
-		computerPrestage, apiErr = conn.GetComputerPrestageByID(computerPrestageID)
-		if apiErr != nil {
-			// Handle the APIError
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-			}
-			// If fetching by ID fails, try fetching by Name
-			computerPrestageName, ok := d.Get("name").(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
-			}
-
-			computerPrestage, apiErr = conn.GetComputerPrestageByName(computerPrestageName)
-			if apiErr != nil {
-				// Handle the APIError
-				if apiError, ok := apiErr.(*http_client.APIError); ok {
-					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-				}
-				return retry.RetryableError(apiErr)
-			}
-		}
-		return nil
-	})
-
-	// Handle error from the retry function
+	// Try fetching the computerPrestage using the ID
+	computerPrestage, err := conn.GetComputerPrestageByID(resourceID)
 	if err != nil {
-		// If there's an error while reading the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "read")
+		// Extract and log the API error code if available
+		if apiError, ok := err.(*http_client.APIError); ok {
+			apiErrorCode = apiError.StatusCode
+		}
+		logging.LogFailedReadByID(subCtx, JamfProResourceComputerPrestage, resourceID, err.Error(), apiErrorCode)
+		d.SetId("") // Remove from Terraform state
+		logging.LogTFStateRemovalWarning(subCtx, JamfProResourceComputerPrestage, resourceID)
+		return diags
 	}
+
+	// Assuming successful read if no error
+	logging.LogAPIReadSuccess(subCtx, JamfProResourceComputerPrestage, resourceID)
 
 	// Check if prestage data exists
 	if computerPrestage != nil {
@@ -760,7 +874,27 @@ func ResourceJamfProComputerPrestageRead(ctx context.Context, d *schema.Resource
 			"enable_device_based_activation_lock":   computerPrestage.EnableDeviceBasedActivationLock,
 			"device_enrollment_program_instance_id": computerPrestage.DeviceEnrollmentProgramInstanceId,
 			"skip_setup_items":                      computerPrestage.SkipSetupItems,
+			"location_information":                  computerPrestage.LocationInformation,
+			"purchasing_information":                computerPrestage.PurchasingInformation,
+			"anchor_certificates":                   computerPrestage.AnchorCertificates,
+			"enrollment_customization_id":           computerPrestage.EnrollmentCustomizationId,
+			"language":                              computerPrestage.Language,
+			"region":                                computerPrestage.Region,
+			"auto_advance_setup":                    computerPrestage.AutoAdvanceSetup,
+			"install_profiles_during_setup":         computerPrestage.InstallProfilesDuringSetup,
+			"prestage_installed_profile_ids":        computerPrestage.PrestageInstalledProfileIds,
+			"custom_package_ids":                    computerPrestage.CustomPackageIds,
+			"custom_package_distribution_point_id":  computerPrestage.CustomPackageDistributionPointId,
+			"enable_recovery_lock":                  computerPrestage.EnableRecoveryLock,
+			"recovery_lock_password_type":           computerPrestage.RecoveryLockPasswordType,
+			"recovery_lock_password":                computerPrestage.RecoveryLockPassword,
+			"rotate_recovery_lock_password":         computerPrestage.RotateRecoveryLockPassword,
+			"profile_uuid":                          computerPrestage.ProfileUuid,
+			"site_id":                               computerPrestage.SiteId,
+			"version_lock":                          computerPrestage.VersionLock,
+			"account_settings":                      computerPrestage.AccountSettings,
 		}
+
 		// Handle nested location_information
 		if locationInformation := computerPrestage.LocationInformation; locationInformation != (jamfpro.ComputerPrestageSubsetLocationInformation{}) {
 			prestageAttributes["location_information"] = []interface{}{
@@ -852,123 +986,140 @@ func ResourceJamfProComputerPrestageRead(ctx context.Context, d *schema.Resource
 	return diags
 }
 
-// ResourceJamfProComputerPrestageUpdate is responsible for updating an existing Building on the remote system.
+// ResourceJamfProComputerPrestageUpdate is responsible for updating an existing Jamf Pro Department on the remote system.
 func ResourceJamfProComputerPrestageUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the update operation
-	var err error
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		// Construct the computer Prestage
-		computerPrestage, err := constructJamfProComputerPrestage(d)
-		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the computer Prestage for terraform update: %w", err))
-		}
+	// Initialize the logging subsystem for the update operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemUpdate, hclog.Info)
+	subSyncCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemSync, hclog.Info)
 
-		// The ID in Terraform state is already a string, so we use it directly for the API request
-		computerPrestageID := d.Id()
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
+	resourceName := d.Get("name").(string)
+	var apiErrorCode int
 
-		// Directly call the API to update the resource by ID
-		_, apiErr := conn.UpdateComputerPrestageByID(computerPrestageID, computerPrestage)
+	// Construct the resource object
+	computerPrestage, err := constructJamfProComputerPrestage(subCtx, d)
+	if err != nil {
+		logging.LogTFConstructResourceFailure(subCtx, JamfProResourceComputerPrestage, err.Error())
+		return diag.FromErr(err)
+	}
+	logging.LogTFConstructResourceSuccess(subCtx, JamfProResourceComputerPrestage)
+
+	// Update operations with retries
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+		_, apiErr := conn.UpdateComputerPrestageByID(resourceID, computerPrestage)
 		if apiErr != nil {
-			// Handle the APIError
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-			}
-			// If the update by ID fails, try updating by name
-			computerPrestageName, ok := d.Get("name").(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string during update operation"))
+				apiErrorCode = apiError.StatusCode
 			}
 
-			_, apiErr = conn.UpdateComputerPrestageByName(computerPrestageName, computerPrestage)
-			if apiErr != nil {
-				// Handle the APIError
-				if apiError, ok := apiErr.(*http_client.APIError); ok {
-					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+			logging.LogAPIUpdateFailureByID(subCtx, JamfProResourceComputerPrestage, resourceID, resourceName, apiErr.Error(), apiErrorCode)
+
+			_, apiErrByName := conn.UpdateComputerPrestageByName(resourceName, computerPrestage)
+			if apiErrByName != nil {
+				var apiErrByNameCode int
+				if apiErrorByName, ok := apiErrByName.(*http_client.APIError); ok {
+					apiErrByNameCode = apiErrorByName.StatusCode
 				}
-				return retry.RetryableError(apiErr)
+
+				logging.LogAPIUpdateFailureByName(subCtx, JamfProResourceComputerPrestage, resourceName, apiErrByName.Error(), apiErrByNameCode)
+				return retry.RetryableError(apiErrByName)
 			}
+		} else {
+			logging.LogAPIUpdateSuccess(subCtx, JamfProResourceComputerPrestage, resourceID, resourceName)
 		}
 		return nil
 	})
 
-	// Handle error from the retry function
+	// Send error to diag.diags
 	if err != nil {
-		// If there's an error while updating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update")
+		logging.LogAPIDeleteFailedAfterRetry(subCtx, JamfProResourceComputerPrestage, resourceID, resourceName, err.Error(), apiErrorCode)
+		diags = append(diags, diag.FromErr(err)...)
+		return diags
 	}
 
-	// Use the retry function for the read operation to update the Terraform state
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProComputerPrestageRead(ctx, d, meta)
+	// Retry reading the computerPrestage to synchronize the Terraform state
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		readDiags := ResourceJamfProComputerPrestageRead(subCtx, d, meta)
 		if len(readDiags) > 0 {
-			return retry.RetryableError(fmt.Errorf("failed to update the Terraform state for the updated resource"))
+			logging.LogTFStateSyncFailedAfterRetry(subSyncCtx, JamfProResourceComputerPrestage, resourceID, readDiags[0].Summary)
+			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
 		}
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while updating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update")
+		logging.LogTFStateSyncFailure(subSyncCtx, JamfProResourceComputerPrestage, err.Error())
+		return diag.FromErr(err)
+	} else {
+		logging.LogTFStateSyncSuccess(subSyncCtx, JamfProResourceComputerPrestage, resourceID)
 	}
 
-	return diags
+	return nil
 }
 
-// ResourceJamfProComputerPrestageDelete is responsible for deleting a computer prestage.
+// ResourceJamfProComputerPrestageDelete is responsible for deleting a Jamf Pro Department.
 func ResourceJamfProComputerPrestageDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the DELETE operation
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// The ID in Terraform state is already a string, so we use it directly for the API request
-		computerPrestageID := d.Id()
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
+	resourceName := d.Get("name").(string)
+	var apiErrorCode int
 
-		// Directly call the API to DELETE the resource by ID
-		apiErr := conn.DeleteComputerPrestageByID(computerPrestageID)
+	// Initialize the logging subsystem for the delete operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemDelete, hclog.Info)
+
+	// Use the retry function for the delete operation with appropriate timeout
+	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
+		// Delete By ID
+		apiErr := conn.DeleteComputerPrestageByID(resourceID)
 		if apiErr != nil {
-			// If the DELETE by ID fails, try deleting by name
-			buildingName, ok := d.Get("name").(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string during delete operation"))
+			if apiError, ok := apiErr.(*http_client.APIError); ok {
+				apiErrorCode = apiError.StatusCode
 			}
+			logging.LogAPIDeleteFailureByID(subCtx, JamfProResourceComputerPrestage, resourceID, resourceName, apiErr.Error(), apiErrorCode)
 
-			apiErr = conn.DeleteComputerPrestageByName(buildingName)
+			// If Delete by ID fails then try Delete by Name
+			apiErr = conn.DeleteComputerPrestageByName(resourceName)
 			if apiErr != nil {
-				// Handle the APIError
-				if apiError, ok := apiErr.(*http_client.APIError); ok {
-					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
+				var apiErrByNameCode int
+				if apiErrorByName, ok := apiErr.(*http_client.APIError); ok {
+					apiErrByNameCode = apiErrorByName.StatusCode
 				}
+
+				logging.LogAPIDeleteFailureByName(subCtx, JamfProResourceComputerPrestage, resourceName, apiErr.Error(), apiErrByNameCode)
 				return retry.RetryableError(apiErr)
 			}
 		}
 		return nil
 	})
 
-	// Handle error from the retry function
+	// Send error to diag.diags
 	if err != nil {
-		// If there's an error while deleting the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "delete")
+		logging.LogAPIDeleteFailedAfterRetry(subCtx, JamfProResourceComputerPrestage, resourceID, resourceName, err.Error(), apiErrorCode)
+		diags = append(diags, diag.FromErr(err)...)
+		return diags
 	}
+
+	logging.LogAPIDeleteSuccess(subCtx, JamfProResourceComputerPrestage, resourceID, resourceName)
 
 	// Clear the ID from the Terraform state as the resource has been deleted
 	d.SetId("")
 
-	return diags
+	return nil
 }
