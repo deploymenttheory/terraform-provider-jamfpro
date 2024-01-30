@@ -38,7 +38,7 @@ func NewSubsystemLogger(ctx context.Context, subsystem LogSubsystem, level hclog
 }
 
 // mergeFields merges subsystem info with additional fields.
-func mergeFields(subsystem LogSubsystem, additionalFields map[string]interface{}) map[string]interface{} {
+func MergeFields(subsystem LogSubsystem, additionalFields map[string]interface{}) map[string]interface{} {
 	fields := map[string]interface{}{
 		"subsystem": string(subsystem),
 	}
