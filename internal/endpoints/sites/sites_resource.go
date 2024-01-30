@@ -161,7 +161,7 @@ func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, met
 	return diags
 }
 
-// ResourceJamfProSitesRead is responsible for reading the current state of a Jamf Pro Department Resource from the remote system.
+// ResourceJamfProSitesRead is responsible for reading the current state of a Jamf Pro Site Resource from the remote system.
 // The function:
 // 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
@@ -284,7 +284,7 @@ func ResourceJamfProSitesUpdate(ctx context.Context, d *schema.ResourceData, met
 		return diags
 	}
 
-	// Retry reading the department to synchronize the Terraform state
+	// Retry reading the Site to synchronize the Terraform state
 	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		readDiags := ResourceJamfProSitesRead(subCtx, d, meta)
 		if len(readDiags) > 0 {
@@ -304,7 +304,7 @@ func ResourceJamfProSitesUpdate(ctx context.Context, d *schema.ResourceData, met
 	return nil
 }
 
-// ResourceJamfProSitesDelete is responsible for deleting a Jamf Pro Department.
+// ResourceJamfProSitesDelete is responsible for deleting a Jamf Pro Site.
 func ResourceJamfProSitesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
