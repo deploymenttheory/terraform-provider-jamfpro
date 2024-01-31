@@ -81,3 +81,8 @@ Deployment of jamf pro departments (Simplement resource type in jamf pro)
 | 10000          | Departments   | Read (TF Plan)        | 2m49s        |
 | 10000          | Departments   | Update (TF Plan+Apply)| 8ms          |
 | 10000          | Departments   | delete                | 8ms          |
+
+## AUTOMATED
+This is sample readme for terraform module
+<!-- BEGIN_AUTOMATED_TF_DOCS_BLOCK -->
+<!-- END_AUTOMATED_TF_DOCS_BLOCK -->
