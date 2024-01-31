@@ -15,6 +15,9 @@ const (
 	MsgTFStateSyncSuccess    = "Terraform state synchronized successfully for %s"
 	MsgTFStateRemovalWarning = "Removing %s with ID: %s from Terraform state"
 
+	// Jamf Pro
+	MsgTFResourceDuplicateName = "A %s with the name '%s' already exists. %s names must be unique."
+
 	// Create
 	MsgAPICreateFailure          = "API error occurred during %s creation"
 	MsgAPICreateFailedAfterRetry = "Final attempt to create %s failed"
@@ -152,6 +155,18 @@ func LogTFStateSyncFailedAfterRetry(ctx context.Context, resourceType, resourceI
 	})
 }
 
+// Jamf Pro
+
+// LogTFResourceDuplicateName provides structured logging for duplicate resource names
+func LogTFResourceDuplicateName(ctx context.Context, resourceType, resourceName string) {
+	logMessage := fmt.Sprintf(MsgTFResourceDuplicateName, resourceType, resourceName, resourceType)
+
+	Error(ctx, SubsystemCreate, logMessage, map[string]interface{}{
+		"resource_type": resourceType,
+		"name":          resourceName,
+	})
+}
+
 // Create
 
 // LogAPICreateFailure provides structured logging for API errors during creation
@@ -200,13 +215,13 @@ func LogFailedReadByID(ctx context.Context, resourceType, resourceID, errorMsg s
 	})
 }
 
-// LogFailedReadByName provides structured logging for errors when failing to read by ID
-func LogFailedReadByName(ctx context.Context, resourceType, resourceID, errorMsg string, errorCode int) {
-	logMessage := fmt.Sprintf(MsgAPIReadFailureByName, resourceType, resourceID)
+// LogFailedReadByName provides structured logging for errors when failing to read by Name
+func LogFailedReadByName(ctx context.Context, resourceType, resourceName, errorMsg string, errorCode int) {
+	logMessage := fmt.Sprintf(MsgAPIReadFailureByName, resourceType, resourceName)
 
 	Error(ctx, SubsystemRead, logMessage, map[string]interface{}{
 		"resource_type": resourceType,
-		"id":            resourceID,
+		"name":          resourceName,
 		"error":         errorMsg,
 		"error_code":    errorCode,
 	})
