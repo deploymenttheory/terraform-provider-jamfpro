@@ -19,8 +19,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// TODO - handling for duplicate names
-
 const (
 	JamfProResourceDepartment = "Department"
 )
@@ -33,10 +31,10 @@ func ResourceJamfProDepartments() *schema.Resource {
 		UpdateContext: ResourceJamfProDepartmentsUpdate,
 		DeleteContext: ResourceJamfProDepartmentsDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(1 * time.Minute),
-			Read:   schema.DefaultTimeout(1 * time.Minute),
-			Update: schema.DefaultTimeout(1 * time.Minute),
-			Delete: schema.DefaultTimeout(1 * time.Minute),
+			Create: schema.DefaultTimeout(30 * time.Second),
+			Read:   schema.DefaultTimeout(30 * time.Second),
+			Update: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(30 * time.Second),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -65,19 +63,19 @@ func constructJamfProDepartment(ctx context.Context, d *schema.ResourceData) (*j
 	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemConstruct, hclog.Debug)
 
 	// Serialize and pretty-print the department object as XML
-	deptXML, err := xml.MarshalIndent(department, "", "  ")
+	resourceXML, err := xml.MarshalIndent(department, "", "  ")
 	if err != nil {
 		logging.LogTFConstructResourceXMLMarshalFailure(subCtx, JamfProResourceDepartment, err.Error())
 		return nil, err
 	}
 
 	// Log the successful construction and serialization to XML
-	logging.LogTFConstructedXMLResource(subCtx, JamfProResourceDepartment, string(deptXML))
+	logging.LogTFConstructedXMLResource(subCtx, JamfProResourceDepartment, string(resourceXML))
 
 	return department, nil
 }
 
-// ResourceJamfProDepartmentsCreate is responsible for creating a new Jamf Pro Site in the remote system.
+// ResourceJamfProDepartmentsCreate is responsible for creating a new Jamf Pro Department in the remote system.
 // The function:
 // 1. Constructs the attribute data using the provided Terraform configuration.
 // 2. Calls the API to create the attribute in Jamf Pro.
@@ -93,7 +91,7 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 
 	// Initialize variables
 	var diags diag.Diagnostics
-	var createdAttribute *jamfpro.ResponseDepartmentCreate
+	var creationResponse *jamfpro.ResponseDepartmentCreate
 	var apiErrorCode int
 
 	// Initialize the logging subsystem with the create operation context
@@ -111,7 +109,7 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 	// Retry the API call to create the department in Jamf Pro
 	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		createdAttribute, apiErr = conn.CreateDepartment(department)
+		creationResponse, apiErr = conn.CreateDepartment(department)
 		if apiErr != nil {
 			// Extract and log the API error code if available
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -133,8 +131,8 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 	}
 
 	// Log successful creation of the department and set the resource ID in Terraform state
-	logging.LogAPICreateSuccess(subCtx, JamfProResourceDepartment, createdAttribute.ID)
-	d.SetId(createdAttribute.ID)
+	logging.LogAPICreateSuccess(subCtx, JamfProResourceDepartment, creationResponse.ID)
+	d.SetId(creationResponse.ID)
 
 	// Retry reading the department to ensure the Terraform state is up to date
 	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
@@ -165,7 +163,6 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 // 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
-// ResourceJamfProDepartmentsRead reads a Jamf Pro Department resource from the remote system.
 func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)

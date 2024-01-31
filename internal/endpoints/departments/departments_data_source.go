@@ -57,7 +57,6 @@ func DataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceDat
 			apiErrorCode = apiError.StatusCode
 		}
 		logging.LogFailedReadByID(subCtx, JamfProResourceDepartment, resourceID, err.Error(), apiErrorCode)
-		logging.LogTFStateRemovalWarning(subCtx, JamfProResourceDepartment, resourceID)
 		return diags
 	}
 
