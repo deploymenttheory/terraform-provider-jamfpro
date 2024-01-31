@@ -27,6 +27,7 @@ func ResourceJamfProPrinters() *schema.Resource {
 		ReadContext:   ResourceJamfProPrintersRead,
 		UpdateContext: ResourceJamfProPrintersUpdate,
 		DeleteContext: ResourceJamfProPrintersDelete,
+		CustomizeDiff: validateJamfProResourcePrinterDataFields,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
@@ -102,6 +103,7 @@ func ResourceJamfProPrinters() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The path to the PPD file of the printer.",
+				Default:     "/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/PrintCore.framework/Resources/Generic.ppd",
 			},
 			"ppd_contents": {
 				Type:        schema.TypeString,
