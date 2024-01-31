@@ -3,12 +3,13 @@ package sites
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -45,43 +46,49 @@ func DataSourceJamfProSites() *schema.Resource {
 // Returns:
 // - diag.Diagnostics: Returns any diagnostics (errors or warnings) encountered during the function's execution.
 func dataSourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	var site *jamfpro.SharedResourceSite
-	var err error
+	// Initialize the logging subsystem for the read operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemRead, hclog.Info)
 
-	// Check if Name is provided in the data source configuration
-	if v, ok := d.GetOk("name"); ok && v.(string) != "" {
-		siteName := v.(string)
-		site, err = conn.GetSiteByName(siteName)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to fetch Jamf Pro site by name: %v", err))
-		}
-	} else if v, ok := d.GetOk("id"); ok {
-		siteID, convertErr := strconv.Atoi(v.(string))
-		if convertErr != nil {
-			return diag.FromErr(fmt.Errorf("failed to convert Jamf Pro site ID to integer: %v", convertErr))
-		}
-		site, err = conn.GetSiteByID(siteID)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to fetch Jamf Pro site by ID: %v", err))
-		}
-	} else {
-		return diag.Errorf("Either 'name' or 'id' must be provided")
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
+	var apiErrorCode int
+
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		// Handle conversion error
+		logging.LogFailedReadByID(subCtx, JamfProResourceSite, resourceID, "Invalid resource ID format", 0)
+		return diag.FromErr(err)
 	}
 
-	// Set the data source attributes using the fetched data
-	if err := d.Set("id", site.ID); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting 'id': %v", err))
+	// read operation
+
+	site, err := conn.GetSiteByID(resourceIDInt)
+	if err != nil {
+		if apiError, ok := err.(*http_client.APIError); ok {
+			apiErrorCode = apiError.StatusCode
+		}
+		logging.LogFailedReadByID(subCtx, JamfProResourceSite, resourceID, err.Error(), apiErrorCode)
+		return diags
+	}
+
+	// Assuming successful read if no error
+	logging.LogAPIReadSuccess(subCtx, JamfProResourceSite, resourceID)
+
+	if err := d.Set("id", resourceID); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("name", site.Name); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting 'name': %v", err))
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diags
 }

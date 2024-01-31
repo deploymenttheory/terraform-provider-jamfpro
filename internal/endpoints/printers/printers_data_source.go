@@ -3,12 +3,14 @@ package printers
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -94,82 +96,88 @@ func DataSourceJamfProPrinters() *schema.Resource {
 
 // dataSourceJamfProPrintersRead fetches the details of a specific printer from Jamf Pro using either its unique Name or its Id.
 func dataSourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
+	// Initialize the logging subsystem for the read operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemRead, hclog.Info)
+
+	// Initialize variables
+	var diags diag.Diagnostics
+	var apiErrorCode int
 	var printer *jamfpro.ResourcePrinter
-	var err error
+	resourceID := d.Id()
 
-	// Check if Name is provided in the data source configuration
-	if v, ok := d.GetOk("name"); ok && v.(string) != "" {
-		printerName := v.(string)
-		printer, err = conn.GetPrinterByName(printerName)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to fetch printer by name: %v", err))
-		}
-	} else if v, ok := d.GetOk("id"); ok {
-		printerID, err := strconv.Atoi(v.(string))
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to parse printer ID: %v", err))
-		}
-		printer, err = conn.GetPrinterByID(printerID)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to fetch printer by ID: %v", err))
-		}
-	} else {
-		return diag.Errorf("Either 'name' or 'id' must be provided")
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		// Handle conversion error
+		logging.LogFailedReadByID(subCtx, JamfProResourcePrinter, resourceID, "Invalid resource ID format", 0)
+		return diag.FromErr(err)
 	}
 
-	if printer == nil {
-		return diag.FromErr(fmt.Errorf("printer not found"))
+	// read operation
+
+	printer, err = conn.GetPrinterByID(resourceIDInt)
+	if err != nil {
+		if apiError, ok := err.(*http_client.APIError); ok {
+			apiErrorCode = apiError.StatusCode
+		}
+		logging.LogFailedReadByID(subCtx, JamfProResourcePrinter, resourceID, err.Error(), apiErrorCode)
+		return diags
 	}
 
-	// Set the data source attributes using the fetched data
+	// Assuming successful read if no error
+	logging.LogAPIReadSuccess(subCtx, JamfProResourcePrinter, resourceID)
+
+	// Set individual attributes in the Terraform state with error handling
+	if err := d.Set("id", strconv.Itoa(printer.ID)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 	if err := d.Set("name", printer.Name); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'name': %v", err))
+		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("category", printer.Category); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'category': %v", err))
+		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("uri", printer.URI); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'uri': %v", err))
+		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("cups_name", printer.CUPSName); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'cups_name': %v", err))
+		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("location", printer.Location); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'location': %v", err))
+		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("model", printer.Model); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'model': %v", err))
+		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("info", printer.Info); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'info': %v", err))
+		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("notes", printer.Notes); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'notes': %v", err))
+		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("make_default", printer.MakeDefault); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'make_default': %v", err))
+		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("use_generic", printer.UseGeneric); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'use_generic': %v", err))
+		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("ppd", printer.PPD); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'ppd': %v", err))
+		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("ppd_path", printer.PPDPath); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'ppd_path': %v", err))
+		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("ppd_contents", printer.PPDContents); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'ppd_contents': %v", err))
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	d.SetId(fmt.Sprintf("%d", printer.ID))
-
-	return nil
+	return diags
 
 }

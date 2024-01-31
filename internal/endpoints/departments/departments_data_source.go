@@ -4,12 +4,12 @@ package departments
 import (
 	"context"
 
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -34,6 +34,7 @@ func DataSourceJamfProDepartments() *schema.Resource {
 
 // DataSourceJamfProDepartmentsRead fetches the details of a specific department from Jamf Pro using either its unique Name or its Id.
 func DataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
@@ -44,52 +45,29 @@ func DataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceDat
 	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemRead, hclog.Info)
 
 	// Initialize variables
-	attributeID := d.Id()
-	attributeName := d.Get("name").(string)
+	var diags diag.Diagnostics
+	resourceID := d.Id()
+	var apiErrorCode int
 
-	// Get resource with timeout context
-	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
-		attribute, apiErr := conn.GetDepartmentByID(attributeID)
-		if apiErr != nil {
-			attribute, apiErr = conn.GetDepartmentByName(attributeName)
-			if apiErr != nil {
-				logging.Error(subCtx, logging.SubsystemRead, "Error fetching department", map[string]interface{}{
-					"id":    attributeID,
-					"name":  attributeName,
-					"error": apiErr.Error(),
-				})
+	// read operation
 
-				return retry.RetryableError(apiErr)
-			}
-		}
-
-		if attribute != nil {
-			logging.Info(subCtx, logging.SubsystemRead, "Successfully fetched department", map[string]interface{}{
-				"id":   attributeID,
-				"name": attribute.Name,
-			})
-
-			// Set resource values into terraform state
-			if err := d.Set("id", attribute.ID); err != nil {
-				return retry.RetryableError(err)
-			}
-			if err := d.Set("name", attribute.Name); err != nil {
-				return retry.RetryableError(err)
-			}
-		}
-
-		return nil
-	})
-
+	department, err := conn.GetDepartmentByID(resourceID)
 	if err != nil {
-		logging.Error(subCtx, logging.SubsystemRead, "Failed to read department", map[string]interface{}{
-			"id":    attributeID,
-			"error": err.Error(),
-		})
-
-		return diag.FromErr(err)
+		if apiError, ok := err.(*http_client.APIError); ok {
+			apiErrorCode = apiError.StatusCode
+		}
+		logging.LogFailedReadByID(subCtx, JamfProResourceDepartment, resourceID, err.Error(), apiErrorCode)
+		return diags
 	}
 
-	return nil
+	logging.LogAPIReadSuccess(subCtx, JamfProResourceDepartment, resourceID)
+
+	if err := d.Set("id", resourceID); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("name", department.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	return diags
 }

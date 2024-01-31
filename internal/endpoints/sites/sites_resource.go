@@ -28,10 +28,10 @@ func ResourceJamfProSites() *schema.Resource {
 		UpdateContext: ResourceJamfProSitesUpdate,
 		DeleteContext: ResourceJamfProSitesDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(1 * time.Minute),
-			Read:   schema.DefaultTimeout(1 * time.Minute),
-			Update: schema.DefaultTimeout(1 * time.Minute),
-			Delete: schema.DefaultTimeout(1 * time.Minute),
+			Create: schema.DefaultTimeout(30 * time.Second),
+			Read:   schema.DefaultTimeout(30 * time.Second),
+			Update: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(30 * time.Second),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -51,6 +51,10 @@ func ResourceJamfProSites() *schema.Resource {
 	}
 }
 
+const (
+	JamfProResourceSite = "Site"
+)
+
 // constructJamfProSite constructs a SharedResourceSite object from the provided schema data.
 func constructJamfProSite(ctx context.Context, d *schema.ResourceData) (*jamfpro.SharedResourceSite, error) {
 	site := &jamfpro.SharedResourceSite{
@@ -60,100 +64,98 @@ func constructJamfProSite(ctx context.Context, d *schema.ResourceData) (*jamfpro
 	// Initialize the logging subsystem for the construction operation
 	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemConstruct, hclog.Debug)
 
-	// Serialize and pretty-print the site object as XML for logging
-	siteXML, err := xml.MarshalIndent(site, "", "  ")
+	// Serialize and pretty-print the site object as XML
+	resourceXML, err := xml.MarshalIndent(site, "", "  ")
 	if err != nil {
-		logging.Error(subCtx, logging.SubsystemConstruct, "Failed to marshal site to XML", map[string]interface{}{"error": err.Error()})
+		logging.LogTFConstructResourceXMLMarshalFailure(subCtx, JamfProResourceSite, err.Error())
 		return nil, err
 	}
 
-	// Log the pretty-printed XML of the constructed site
-	logging.Debug(subCtx, logging.SubsystemConstruct, "Constructed Site XML", map[string]interface{}{"xml": string(siteXML)})
+	// Log the successful construction and serialization to XML
+	logging.LogTFConstructedXMLResource(subCtx, JamfProResourceSite, string(resourceXML))
 
 	return site, nil
 }
 
-// ResourceJamfProSitesCreate is responsible for creating a new Jamf Pro Site in the remote system.
+// ResourceJamfPrositesCreate is responsible for creating a new Jamf Pro Site in the remote system.
 // The function:
 // 1. Constructs the attribute data using the provided Terraform configuration.
 // 2. Calls the API to create the attribute in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	// Assert the meta interface to the expected APIClient type
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Initialize diagnostics for collecting any issues to report back to Terraform
-	var diags diag.Diagnostics
-
-	// Initialize tflog
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemCreate, hclog.Info)
-
 	// Initialize variables
-	var createdSite *jamfpro.SharedResourceSite
+	var diags diag.Diagnostics
+	var creationResponse *jamfpro.SharedResourceSite
+	var apiErrorCode int
 
-	// construct the resource object
-	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		site, err := constructJamfProSite(subCtx, d)
-		if err != nil {
-			logging.Error(subCtx, logging.SubsystemCreate, "Failed to construct site", map[string]interface{}{
-				"name":  d.Get("name"),
-				"error": err.Error(),
-			})
-			return retry.NonRetryableError(err)
-		}
+	// Initialize the logging subsystem with the create operation context
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemCreate, hclog.Info)
+	subSyncCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemSync, hclog.Info)
 
-		createdSite, err = conn.CreateSite(site)
-		if err != nil {
-			if apiErr, ok := err.(*http_client.APIError); ok {
-				logging.Error(subCtx, logging.SubsystemAPI, "API Error during site creation", map[string]interface{}{
-					"name":       site.Name,
-					"error":      err.Error(),
-					"error_code": apiErr.StatusCode,
-				})
-				return retry.NonRetryableError(err)
+	// Construct the site object outside the retry loop to avoid reconstructing it on each retry
+	site, err := constructJamfProSite(subCtx, d)
+	if err != nil {
+		logging.LogTFConstructResourceFailure(subCtx, JamfProResourceSite, err.Error())
+		return diag.FromErr(err)
+	}
+	logging.LogTFConstructResourceSuccess(subCtx, JamfProResourceSite)
+
+	// Retry the API call to create the site in Jamf Pro
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		var apiErr error
+		creationResponse, apiErr = conn.CreateSite(site)
+		if apiErr != nil {
+			// Extract and log the API error code if available
+			if apiError, ok := apiErr.(*http_client.APIError); ok {
+				apiErrorCode = apiError.StatusCode
 			}
-			logging.Error(subCtx, logging.SubsystemCreate, "Failed to create site", map[string]interface{}{
-				"name":  site.Name,
-				"error": err.Error(),
-			})
-			return retry.RetryableError(err)
+			logging.LogAPICreateFailure(subCtx, JamfProResourceSite, apiErr.Error(), apiErrorCode)
+			// Return a non-retryable error to break out of the retry loop
+			return retry.NonRetryableError(apiErr)
 		}
+		// No error, exit the retry loop
 		return nil
 	})
 
-	// Log any errors to tf diagnostics
 	if err != nil {
-		logging.Error(subCtx, logging.SubsystemCreate, "Failed to create site", map[string]interface{}{
-			"error": err.Error(),
-		})
+		// Log the final error and append it to the diagnostics
+		logging.LogAPICreateFailure(subCtx, JamfProResourceSite, err.Error(), apiErrorCode)
 		diags = append(diags, diag.FromErr(err)...)
 		return diags
 	}
 
-	// Set the ID of the created resource in the Terraform state
-	d.SetId(strconv.Itoa(createdSite.ID))
+	// Log successful creation of the site and set the resource ID in Terraform state
+	logging.LogAPICreateSuccess(subCtx, JamfProResourceSite, strconv.Itoa(creationResponse.ID))
 
+	d.SetId(strconv.Itoa(creationResponse.ID))
+
+	// Retry reading the site to ensure the Terraform state is up to date
 	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		readDiags := ResourceJamfProSitesRead(subCtx, d, meta)
 		if len(readDiags) > 0 {
-			logging.Error(subCtx, logging.SubsystemRead, "Failed to read the created site", map[string]interface{}{
-				"name":    d.Get("name"),
-				"summary": readDiags[0].Summary,
-			})
+			// Log any read errors and return a retryable error to retry the read operation
+			logging.LogTFStateSyncFailedAfterRetry(subSyncCtx, JamfProResourceSite, d.Id(), readDiags[0].Summary)
 			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
 		}
+		// Successfully read the site, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		logging.Error(subCtx, logging.SubsystemCreate, "Failed to update the Terraform state for the created site", map[string]interface{}{
-			"error": err.Error(),
-		})
+		// Log the final state sync failure and append it to the diagnostics
+		logging.LogTFStateSyncFailure(subSyncCtx, JamfProResourceSite, err.Error())
 		diags = append(diags, diag.FromErr(err)...)
+	} else {
+		// Log successful state synchronization
+		logging.LogTFStateSyncSuccess(subSyncCtx, JamfProResourceSite, d.Id())
 	}
 
 	return diags
@@ -165,6 +167,7 @@ func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, met
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
@@ -175,84 +178,47 @@ func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta 
 	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemRead, hclog.Info)
 
 	// Initialize variables
-	siteIDStr := d.Id()
-	siteName := d.Get("name").(string)
-	var site *jamfpro.SharedResourceSite
+	var diags diag.Diagnostics
+	resourceID := d.Id()
+	var apiErrorCode int
 
-	// Use the retry function for the read operation with appropriate timeout
-	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		siteID, convertErr := strconv.Atoi(siteIDStr)
-		if convertErr != nil {
-			logging.Error(subCtx, logging.SubsystemRead, "Failed to parse site ID", map[string]interface{}{
-				"id":    siteIDStr,
-				"error": convertErr.Error(),
-			})
-			return retry.NonRetryableError(fmt.Errorf("failed to parse site ID: %v", convertErr))
-		}
-
-		var apiErr error
-		site, apiErr = conn.GetSiteByID(siteID)
-		if apiErr != nil {
-			var apiErrorCode int
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				apiErrorCode = apiError.StatusCode
-			}
-
-			logging.Error(subCtx, logging.SubsystemRead, "Error fetching site by ID, trying by name", map[string]interface{}{
-				"id":         siteIDStr,
-				"name":       siteName,
-				"error":      apiErr.Error(),
-				"error_code": apiErrorCode,
-			})
-
-			site, apiErr = conn.GetSiteByName(siteName)
-			if apiErr != nil {
-				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErr.(*http_client.APIError); ok {
-					apiErrByNameCode = apiErrorByName.StatusCode
-				}
-
-				logging.Error(subCtx, logging.SubsystemRead, "Error fetching site by name", map[string]interface{}{
-					"name":       siteName,
-					"error":      apiErr.Error(),
-					"error_code": apiErrByNameCode,
-				})
-				return retry.RetryableError(apiErr)
-			}
-		}
-
-		if site != nil {
-			logging.Info(subCtx, logging.SubsystemRead, "Successfully fetched site", map[string]interface{}{
-				"id":   siteIDStr,
-				"name": site.Name,
-			})
-
-			// Set resource values into Terraform state
-			if err := d.Set("id", strconv.Itoa(site.ID)); err != nil {
-				return retry.RetryableError(err)
-			}
-			if err := d.Set("name", site.Name); err != nil {
-				return retry.RetryableError(err)
-			}
-		}
-
-		return nil
-	})
-
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		logging.Error(subCtx, logging.SubsystemRead, "Failed to read site", map[string]interface{}{
-			"id":    siteIDStr,
-			"name":  siteName,
-			"error": err.Error(),
-		})
+		// Handle conversion error
+		logging.LogFailedReadByID(subCtx, JamfProResourceSite, resourceID, "Invalid resource ID format", 0)
 		return diag.FromErr(err)
 	}
 
-	return nil
+	// read operation
+
+	site, err := conn.GetSiteByID(resourceIDInt)
+	if err != nil {
+		if apiError, ok := err.(*http_client.APIError); ok {
+			apiErrorCode = apiError.StatusCode
+		}
+		logging.LogFailedReadByID(subCtx, JamfProResourceSite, resourceID, err.Error(), apiErrorCode)
+		d.SetId("") // Remove from Terraform state
+		logging.LogTFStateRemovalWarning(subCtx, JamfProResourceSite, resourceID)
+		return diags
+	}
+
+	// Assuming successful read if no error
+	logging.LogAPIReadSuccess(subCtx, JamfProResourceSite, resourceID)
+
+	if err := d.Set("id", resourceID); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("name", site.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	return diags
 }
 
 // ResourceJamfProSitesUpdate is responsible for updating an existing Jamf Pro Site on the remote system.
 func ResourceJamfProSitesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
@@ -261,95 +227,78 @@ func ResourceJamfProSitesUpdate(ctx context.Context, d *schema.ResourceData, met
 
 	// Initialize the logging subsystem for the update operation
 	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemUpdate, hclog.Info)
+	subSyncCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemSync, hclog.Info)
 
 	// Initialize variables
-	siteID, err := strconv.Atoi(d.Id())
+	var diags diag.Diagnostics
+	resourceID := d.Id()
+	resourceName := d.Get("name").(string)
+	var apiErrorCode int
+
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		logging.Error(subCtx, logging.SubsystemUpdate, "Failed to parse site ID for update", map[string]interface{}{
-			"error": err.Error(),
-			"id":    d.Id(),
-		})
-		return diag.FromErr(fmt.Errorf("failed to parse site ID: %v", err))
+		// Handle conversion error
+		logging.LogFailedReadByID(subCtx, JamfProResourceSite, resourceID, "Invalid resource ID format", 0)
+		return diag.FromErr(err)
 	}
 
-	siteName := d.Get("name").(string)
-
-	// construct the resource object
-	site, err := constructJamfProSite(ctx, d)
+	// Construct the resource object
+	site, err := constructJamfProSite(subCtx, d)
 	if err != nil {
-		logging.Error(subCtx, logging.SubsystemUpdate, "Failed to construct the site for Terraform update", map[string]interface{}{
-			"error": err.Error(),
-		})
-		return diag.FromErr(fmt.Errorf("failed to construct the site for Terraform update: %w", err))
+		logging.LogTFConstructResourceFailure(subCtx, JamfProResourceSite, err.Error())
+		return diag.FromErr(err)
 	}
+	logging.LogTFConstructResourceSuccess(subCtx, JamfProResourceSite)
 
-	// update operations with retries
+	// Update operations with retries
 	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateSiteByID(siteID, site)
+		_, apiErr := conn.UpdateSiteByID(resourceIDInt, site)
 		if apiErr != nil {
-			var apiErrorCode int
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 
-			logging.Error(subCtx, logging.SubsystemUpdate, "Failed to update site by ID, trying by name", map[string]interface{}{
-				"error":      apiErr.Error(),
-				"error_code": apiErrorCode,
-				"id":         siteID,
-				"name":       siteName,
-			})
+			logging.LogAPIUpdateFailureByID(subCtx, JamfProResourceSite, resourceID, resourceName, apiErr.Error(), apiErrorCode)
 
-			_, apiErrByName := conn.UpdateSiteByName(siteName, site)
+			_, apiErrByName := conn.UpdateSiteByName(resourceName, site)
 			if apiErrByName != nil {
 				var apiErrByNameCode int
 				if apiErrorByName, ok := apiErrByName.(*http_client.APIError); ok {
 					apiErrByNameCode = apiErrorByName.StatusCode
 				}
 
-				logging.Error(subCtx, logging.SubsystemUpdate, "API error during site update by name", map[string]interface{}{
-					"error":      apiErrByName.Error(),
-					"error_code": apiErrByNameCode,
-					"name":       siteName,
-				})
+				logging.LogAPIUpdateFailureByName(subCtx, JamfProResourceSite, resourceName, apiErrByName.Error(), apiErrByNameCode)
 				return retry.RetryableError(apiErrByName)
 			}
+		} else {
+			logging.LogAPIUpdateSuccess(subCtx, JamfProResourceSite, resourceID, resourceName)
 		}
-
-		logging.Info(subCtx, logging.SubsystemUpdate, "Successfully updated site", map[string]interface{}{
-			"name": site.Name,
-			"id":   siteID,
-		})
 		return nil
 	})
 
+	// Send error to diag.diags
 	if err != nil {
-		logging.Error(subCtx, logging.SubsystemUpdate, "Failed to update site", map[string]interface{}{
-			"error": err.Error(),
-			"id":    siteID,
-			"name":  siteName,
-		})
-		return diag.FromErr(err)
+		logging.LogAPIDeleteFailedAfterRetry(subCtx, JamfProResourceSite, resourceID, resourceName, err.Error(), apiErrorCode)
+		diags = append(diags, diag.FromErr(err)...)
+		return diags
 	}
 
-	// Retry reading the site to synchronize the Terraform state
+	// Retry reading the Site to synchronize the Terraform state
 	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		readDiags := ResourceJamfProSitesRead(subCtx, d, meta)
 		if len(readDiags) > 0 {
-			logging.Error(subCtx, logging.SubsystemUpdate, "Failed to read site after update", map[string]interface{}{
-				"summary": readDiags[0].Summary,
-				"id":      siteID,
-			})
+			logging.LogTFStateSyncFailedAfterRetry(subSyncCtx, JamfProResourceSite, resourceID, readDiags[0].Summary)
 			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
 		}
 		return nil
 	})
 
 	if err != nil {
-		logging.Error(subCtx, logging.SubsystemUpdate, "Failed to synchronize Terraform state after site update", map[string]interface{}{
-			"error": err.Error(),
-			"id":    siteID,
-		})
+		logging.LogTFStateSyncFailure(subSyncCtx, JamfProResourceSite, err.Error())
 		return diag.FromErr(err)
+	} else {
+		logging.LogTFStateSyncSuccess(subSyncCtx, JamfProResourceSite, resourceID)
 	}
 
 	return nil
@@ -357,6 +306,7 @@ func ResourceJamfProSitesUpdate(ctx context.Context, d *schema.ResourceData, met
 
 // ResourceJamfProSitesDelete is responsible for deleting a Jamf Pro Site.
 func ResourceJamfProSitesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
@@ -367,69 +317,52 @@ func ResourceJamfProSitesDelete(ctx context.Context, d *schema.ResourceData, met
 	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemDelete, hclog.Info)
 
 	// Initialize variables
-	siteIDStr := d.Id()
-	siteName := d.Get("name").(string)
+	var diags diag.Diagnostics
+	resourceID := d.Id()
+	resourceName := d.Get("name").(string)
+	var apiErrorCode int
+
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		// Handle conversion error
+		logging.LogFailedReadByID(subCtx, JamfProResourceSite, resourceID, "Invalid resource ID format", 0)
+		return diag.FromErr(err)
+	}
 
 	// Use the retry function for the delete operation with appropriate timeout
-	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		siteID, err := strconv.Atoi(siteIDStr)
-		if err != nil {
-			logging.Error(subCtx, logging.SubsystemDelete, "Failed to parse site ID for deletion", map[string]interface{}{
-				"error": err.Error(),
-				"id":    siteIDStr,
-			})
-			return retry.NonRetryableError(fmt.Errorf("failed to parse site ID: %v", err))
-		}
-
-		// Attempt to delete the site by ID first
-		apiErr := conn.DeleteSiteByID(siteID)
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
+		// Delete By ID
+		apiErr := conn.DeleteSiteByID(resourceIDInt)
 		if apiErr != nil {
-			var apiErrorCode int
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
+			logging.LogAPIDeleteFailureByID(subCtx, JamfProResourceSite, resourceID, resourceName, apiErr.Error(), apiErrorCode)
 
-			logging.Error(subCtx, logging.SubsystemDelete, "Failed to delete site by ID, trying by name", map[string]interface{}{
-				"error":      apiErr.Error(),
-				"error_code": apiErrorCode,
-				"id":         siteIDStr,
-				"name":       siteName,
-			})
-
-			// If the delete by ID fails, try deleting by name
-			apiErr = conn.DeleteSiteByName(siteName)
+			// If Delete by ID fails then try Delete by Name
+			apiErr = conn.DeleteSiteByName(resourceName)
 			if apiErr != nil {
 				var apiErrByNameCode int
 				if apiErrorByName, ok := apiErr.(*http_client.APIError); ok {
-					apiErrByNameCode = apiErrorByName.StatusCode // Extract the HTTP status code for name-based error
+					apiErrByNameCode = apiErrorByName.StatusCode
 				}
 
-				logging.Error(subCtx, logging.SubsystemDelete, "API error during site deletion by name", map[string]interface{}{
-					"error":      apiErr.Error(),
-					"error_code": apiErrByNameCode,
-					"name":       siteName,
-				})
+				logging.LogAPIDeleteFailureByName(subCtx, JamfProResourceSite, resourceName, apiErr.Error(), apiErrByNameCode)
 				return retry.RetryableError(apiErr)
 			}
 		}
 		return nil
 	})
 
+	// Send error to diag.diags
 	if err != nil {
-		// Log the final error using the initialized subsystem logger
-		logging.Error(subCtx, logging.SubsystemDelete, "Failed to delete site", map[string]interface{}{
-			"id":    siteIDStr,
-			"name":  siteName,
-			"error": err.Error(),
-		})
-		return diag.FromErr(err)
+		logging.LogAPIDeleteFailedAfterRetry(subCtx, JamfProResourceSite, resourceID, resourceName, err.Error(), apiErrorCode)
+		diags = append(diags, diag.FromErr(err)...)
+		return diags
 	}
 
-	// Log the successful removal of the site from the Terraform state
-	logging.Info(subCtx, logging.SubsystemDelete, "Successfully removed site from Terraform state", map[string]interface{}{
-		"id":   siteIDStr,
-		"name": siteName,
-	})
+	logging.LogAPIDeleteSuccess(subCtx, JamfProResourceSite, resourceID, resourceName)
 
 	// Clear the ID from the Terraform state as the resource has been deleted
 	d.SetId("")
