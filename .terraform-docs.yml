@@ -1,0 +1,10 @@
+formatter: markdown table
+sections:
+  hide-all: true
+  show:
+    - inputs
+sort:
+  enabled: true
+  by: required
+settings:
+  indent: 3

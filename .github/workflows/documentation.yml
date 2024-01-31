@@ -14,10 +14,10 @@ jobs:
       uses: terraform-docs/gh-actions@main
       with:
         working-dir: examples/
-        recursive: true
         git-push: "true"
         output-format: markdown document
         output-file: USAGE.md
         output-method: replace
         args: --sensitive=false --hide requirements --required=false
         indention: 3
+        config-file: .terraform-docs.yml
