@@ -3,8 +3,8 @@ package printers
 
 import (
 	"context"
+	"encoding/xml"
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 
@@ -28,10 +28,10 @@ func ResourceJamfProPrinters() *schema.Resource {
 		UpdateContext: ResourceJamfProPrintersUpdate,
 		DeleteContext: ResourceJamfProPrintersDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(1 * time.Minute),
-			Read:   schema.DefaultTimeout(1 * time.Minute),
-			Update: schema.DefaultTimeout(1 * time.Minute),
-			Delete: schema.DefaultTimeout(1 * time.Minute),
+			Create: schema.DefaultTimeout(30 * time.Second),
+			Read:   schema.DefaultTimeout(30 * time.Second),
+			Update: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(30 * time.Second),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -117,7 +117,7 @@ const (
 )
 
 // constructJamfProPrinter constructs a ResourcePrinter object from the provided schema data.
-func constructJamfProPrinter(d *schema.ResourceData) (*jamfpro.ResourcePrinter, error) {
+func constructJamfProPrinter(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourcePrinter, error) {
 	printer := &jamfpro.ResourcePrinter{}
 
 	// Utilize type assertion helper functions for direct field extraction
@@ -135,35 +135,20 @@ func constructJamfProPrinter(d *schema.ResourceData) (*jamfpro.ResourcePrinter, 
 	printer.PPDPath = util.GetStringFromInterface(d.Get("ppd_path"))
 	printer.PPDContents = util.GetStringFromInterface(d.Get("ppd_contents"))
 
-	// Log the successful construction of the printer
-	log.Printf("[INFO] Successfully constructed Printer with name: %s", printer.Name)
+	// Initialize the logging subsystem for the construction operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemConstruct, hclog.Debug)
+
+	// Serialize and pretty-print the site object as XML
+	resourceXML, err := xml.MarshalIndent(printer, "", "  ")
+	if err != nil {
+		logging.LogTFConstructResourceXMLMarshalFailure(subCtx, JamfProResourcePrinter, err.Error())
+		return nil, err
+	}
+
+	// Log the successful construction and serialization to XML
+	logging.LogTFConstructedXMLResource(subCtx, JamfProResourcePrinter, string(resourceXML))
 
 	return printer, nil
-}
-
-// Helper function to generate diagnostics based on the error type.
-func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
-	var diags diag.Diagnostics
-	resourceName, exists := d.GetOk("name")
-	if !exists {
-		resourceName = "unknown"
-	}
-
-	// Handle the APIError in the diagnostic
-	if apiErr, ok := err.(*http_client.APIError); ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
-		})
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   err.Error(),
-		})
-	}
-	return diags
 }
 
 // Further CRUD function definitions would go here...
@@ -174,7 +159,7 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 // 2. Calls the API to create the printer in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created printer.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func ResourceJamfProprintersCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ResourceJamfProPrintersCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Assert the meta interface to the expected APIClient type
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -184,7 +169,7 @@ func ResourceJamfProprintersCreate(ctx context.Context, d *schema.ResourceData, 
 
 	// Initialize variables
 	var diags diag.Diagnostics
-	var creationResponse *jamfpro.ResponsePr
+	var creationResponse *jamfpro.ResponsePrinterCreateAndUpdate
 	var apiErrorCode int
 
 	// Initialize the logging subsystem with the create operation context
@@ -202,7 +187,7 @@ func ResourceJamfProprintersCreate(ctx context.Context, d *schema.ResourceData, 
 	// Retry the API call to create the printer in Jamf Pro
 	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.Createprinter(printer)
+		creationResponse, apiErr = conn.CreatePrinter(printer)
 		if apiErr != nil {
 			// Extract and log the API error code if available
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
@@ -247,66 +232,6 @@ func ResourceJamfProprintersCreate(ctx context.Context, d *schema.ResourceData, 
 	} else {
 		// Log successful state synchronization
 		logging.LogTFStateSyncSuccess(subSyncCtx, JamfProResourcePrinter, d.Id())
-	}
-
-	return diags
-}
-
-func ResourceJamfProPrintersCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
-	apiclient, ok := meta.(*client.APIClient)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
-	}
-	conn := apiclient.Conn
-
-	// Use the retry function for the create operation.
-	var createdPrinter *jamfpro.ResourcePrinter
-	var err error
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		// Construct the printer.
-		printer, err := constructJamfProPrinter(d)
-		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the printer for terraform create: %w", err))
-		}
-
-		// Directly call the API to create the resource.
-		createdPrinter, err = conn.CreatePrinter(printer)
-		if err != nil {
-			// Check if the error is an APIError.
-			if apiErr, ok := err.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message))
-			}
-			// For simplicity, we're considering all other errors as retryable.
-			return retry.RetryableError(err)
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		// If there's an error while creating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "create")
-	}
-
-	// Set the ID of the created resource in the Terraform state
-	d.SetId(strconv.Itoa(createdPrinter.ID))
-
-	// Use the retry function for the read operation to update the Terraform state with the resource attributes
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProPrintersRead(ctx, d, meta)
-		if len(readDiags) > 0 {
-			// If readDiags is not empty, it means there's an error, so we retry
-			return retry.RetryableError(fmt.Errorf("failed to read the created resource"))
-		}
-		return nil
-	})
-
-	if err != nil {
-		// If there's an error while updating the state for the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update state for")
 	}
 
 	return diags
@@ -358,30 +283,52 @@ func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, me
 	// Assuming successful read if no error
 	logging.LogAPIReadSuccess(subCtx, JamfProResourcePrinter, resourceID)
 
-	// Construct the printer attributes for Terraform state
-	printerAttributes := map[string]interface{}{
-		"id":           printer.ID,
-		"name":         printer.Name,
-		"category":     printer.Category,
-		"uri":          printer.URI,
-		"cups_name":    printer.CUPSName,
-		"location":     printer.Location,
-		"model":        printer.Model,
-		"info":         printer.Info,
-		"notes":        printer.Notes,
-		"make_default": printer.MakeDefault,
-		"use_generic":  printer.UseGeneric,
-		"ppd":          printer.PPD,
-		"ppd_path":     printer.PPDPath,
-		"ppd_contents": printer.PPDContents,
+	// Set individual attributes in the Terraform state with error handling
+	if err := d.Set("id", strconv.Itoa(printer.ID)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
-
-	// Safely set attributes in the Terraform state
-	if err := d.Set("printer", []interface{}{printerAttributes}); err != nil {
+	if err := d.Set("name", printer.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("category", printer.Category); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("uri", printer.URI); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("cups_name", printer.CUPSName); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("location", printer.Location); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("model", printer.Model); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("info", printer.Info); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("notes", printer.Notes); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("make_default", printer.MakeDefault); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("use_generic", printer.UseGeneric); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("ppd", printer.PPD); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("ppd_path", printer.PPDPath); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("ppd_contents", printer.PPDContents); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	return diags
+
 }
 
 // ResourceJamfProPrintersUpdate is responsible for updating an existing Jamf Pro Printer on the remote system.
