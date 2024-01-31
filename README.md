@@ -86,3 +86,28 @@ Deployment of jamf pro departments (Simplement resource type in jamf pro)
 This is sample readme for terraform module
 <!-- BEGIN_AUTOMATED_TF_DOCS_BLOCK -->
 <!-- END_AUTOMATED_TF_DOCS_BLOCK -->
+<!-- BEGIN_TF_DOCS -->
+## Requirements
+
+No requirements.
+
+## Providers
+
+No providers.
+
+## Modules
+
+No modules.
+
+## Resources
+
+No resources.
+
+## Inputs
+
+No inputs.
+
+## Outputs
+
+No outputs.
+<!-- END_TF_DOCS -->
