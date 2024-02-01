@@ -265,8 +265,8 @@ func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, me
 	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		// Handle conversion error
-		logging.LogFailedReadByID(subCtx, JamfProResourcePrinter, resourceID, "Invalid resource ID format", 0)
+		// Handle conversion error with structured logging
+		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourcePrinter, resourceID, err.Error())
 		return diag.FromErr(err)
 	}
 
@@ -356,8 +356,8 @@ func ResourceJamfProPrintersUpdate(ctx context.Context, d *schema.ResourceData, 
 	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		// Handle conversion error
-		logging.LogFailedReadByID(subCtx, JamfProResourcePrinter, resourceID, "Invalid resource ID format", 0)
+		// Handle conversion error with structured logging
+		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourcePrinter, resourceID, err.Error())
 		return diag.FromErr(err)
 	}
 
@@ -443,8 +443,8 @@ func ResourceJamfProPrintersDelete(ctx context.Context, d *schema.ResourceData, 
 	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		// Handle conversion error
-		logging.LogFailedReadByID(subCtx, JamfProResourcePrinter, resourceID, "Invalid resource ID format", 0)
+		// Handle conversion error with structured logging
+		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourcePrinter, resourceID, err.Error())
 		return diag.FromErr(err)
 	}
 

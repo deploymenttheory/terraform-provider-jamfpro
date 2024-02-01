@@ -40,6 +40,9 @@ const (
 	MsgAPIDeleteFailureByName    = "API error occurred while deleting %s by name"
 	MsgAPIDeleteFailedAfterRetry = "Final attempt to delete %s failed"
 	MsgAPIDeleteSuccess          = "%s successfully removed from Terraform state"
+
+	// Others
+	MsgTypeConversionFailure = "Failed to convert %s to %s for %s"
 )
 
 // TF Resource Construction
@@ -351,5 +354,18 @@ func LogAPIDeleteSuccess(ctx context.Context, resourceType, resourceID, resource
 		"resource_type": resourceType,
 		"id":            resourceID,
 		"name":          resourceName,
+	})
+}
+
+// LogTypeConversionFailure provides structured logging for errors during type conversion
+func LogTypeConversionFailure(ctx context.Context, fromType, toType, resourceType, resourceID, errorMsg string) {
+	logMessage := fmt.Sprintf(MsgTypeConversionFailure, fromType, toType, resourceType)
+
+	Error(ctx, SubsystemGeneral, logMessage, map[string]interface{}{
+		"resource_type": resourceType,
+		"resource_id":   resourceID,
+		"from_type":     fromType,
+		"to_type":       toType,
+		"error":         errorMsg,
 	})
 }

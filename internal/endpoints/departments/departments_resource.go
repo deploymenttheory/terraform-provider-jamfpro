@@ -225,21 +225,6 @@ func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 	resourceName := d.Get("name").(string)
 	var apiErrorCode int
 
-	// // Handle duplicates
-	// departmentsList, err := conn.GetDepartments("")
-	// if err != nil {
-	// 	return diag.FromErr(fmt.Errorf("failed to retrieve departments list: %s", err))
-	// }
-
-	// departmentName := util.GetStringFromInterface(d.Get("name"))
-	// for _, department := range departmentsList.Results {
-	// 	if department.Name == departmentName {
-	// 		errMsg := fmt.Sprintf("A department with the name '%s' already exists. Department names must be unique.", departmentName)
-	// 		logging.LogTFResourceDuplicateName(subCtx, JamfProResourceDepartment, departmentName)
-	// 		return diag.Errorf(errMsg)
-	// 	}
-	// }
-
 	// Construct the resource object
 	department, err := constructJamfProDepartment(subCtx, d)
 	if err != nil {

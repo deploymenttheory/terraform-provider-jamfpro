@@ -12,7 +12,9 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -79,6 +81,10 @@ func ResourceJamfProDockItems() *schema.Resource {
 		},
 	}
 }
+
+const (
+	JamfProResourceDockItem = "Dock Item"
+)
 
 // constructJamfProDockItem constructs a ResourceDockItem object from the provided schema data.
 func constructJamfProDockItem(d *schema.ResourceData) (*jamfpro.ResourceDockItem, error) {
@@ -345,50 +351,68 @@ func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData,
 	return diags
 }
 
-// ResourceJamfProDockItemsDelete is responsible for deleting a Jamf Pro Dock Item.
+// ResourceJamfProDockItemsDelete is responsible for deleting a Jamf Pro Site.
 func ResourceJamfProDockItemsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the DELETE operation
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		dockItemID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse dock item ID: %v", convertErr))
-		}
+	// Initialize the logging subsystem for the delete operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemDelete, hclog.Info)
 
-		// Directly call the API to DELETE the resource
-		apiErr := conn.DeleteDockItemByID(dockItemID)
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
+	resourceName := d.Get("name").(string)
+	var apiErrorCode int
+
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		// Handle conversion error with structured logging
+		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceDockItem, resourceID, err.Error())
+		return diag.FromErr(err)
+	}
+
+	// Use the retry function for the delete operation with appropriate timeout
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
+		// Delete By ID
+		apiErr := conn.DeleteDockItemByID(resourceIDInt)
 		if apiErr != nil {
-			// If the DELETE by ID fails, try deleting by name
-			dockItemName, ok := d.Get("name").(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			if apiError, ok := apiErr.(*http_client.APIError); ok {
+				apiErrorCode = apiError.StatusCode
 			}
+			logging.LogAPIDeleteFailureByID(subCtx, JamfProResourceDockItem, resourceID, resourceName, apiErr.Error(), apiErrorCode)
 
-			apiErr = conn.DeleteDockItemByName(dockItemName)
+			// If Delete by ID fails then try Delete by Name
+			apiErr = conn.DeleteDockItemByName(resourceName)
 			if apiErr != nil {
+				var apiErrByNameCode int
+				if apiErrorByName, ok := apiErr.(*http_client.APIError); ok {
+					apiErrByNameCode = apiErrorByName.StatusCode
+				}
+
+				logging.LogAPIDeleteFailureByName(subCtx, JamfProResourceDockItem, resourceName, apiErr.Error(), apiErrByNameCode)
 				return retry.RetryableError(apiErr)
 			}
 		}
 		return nil
 	})
 
-	// Handle error from the retry function
+	// Send error to diag.diags
 	if err != nil {
-		// If there's an error while deleting the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "delete")
+		logging.LogAPIDeleteFailedAfterRetry(subCtx, JamfProResourceDockItem, resourceID, resourceName, err.Error(), apiErrorCode)
+		diags = append(diags, diag.FromErr(err)...)
+		return diags
 	}
+
+	logging.LogAPIDeleteSuccess(subCtx, JamfProResourceDockItem, resourceID, resourceName)
 
 	// Clear the ID from the Terraform state as the resource has been deleted
 	d.SetId("")
 
-	return diags
+	return nil
 }
