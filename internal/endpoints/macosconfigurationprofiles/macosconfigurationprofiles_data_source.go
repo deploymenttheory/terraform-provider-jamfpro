@@ -745,7 +745,7 @@ func dataSourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *sch
 	}
 	conn := apiclient.Conn
 
-	var profile *jamfpro.ResourceMacOSConfigurationProfiles
+	var profile *jamfpro.ResourceMacOSConfigurationProfile
 	var err error
 
 	// Fetch profile by 'name' or 'id'
