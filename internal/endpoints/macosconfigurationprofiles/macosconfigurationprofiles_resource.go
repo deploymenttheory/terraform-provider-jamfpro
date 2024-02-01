@@ -846,8 +846,8 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro.ResourceMacOSConfigurationProfile, error) {
 	profile := &jamfpro.ResourceMacOSConfigurationProfile{
 		General:     jamfpro.MacOSConfigurationProfileSubsetGeneral{},
-		Scope:       jamfpro.MacOSConfigurationProfilesDataSubsetScope{},
-		SelfService: jamfpro.MacOSConfigurationProfilesDataSubsetSelfService{},
+		Scope:       jamfpro.MacOSConfigurationProfileSubsetScope{},
+		SelfService: jamfpro.MacOSConfigurationProfileSubsetSelfService{},
 	}
 
 }
