@@ -27,6 +27,7 @@ func ResourceJamfProSites() *schema.Resource {
 		ReadContext:   ResourceJamfProSitesRead,
 		UpdateContext: ResourceJamfProSitesUpdate,
 		DeleteContext: ResourceJamfProSitesDelete,
+		CustomizeDiff: validateJamfProResourceSiteDataFields,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),

@@ -5,11 +5,10 @@ go 1.21
 toolchain go1.21.0
 
 require (
-	github.com/bflad/tfproviderlint v0.29.0
 	github.com/deploymenttheory/go-api-sdk-jamfpro v1.1.5
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/go-hclog v1.6.2
-	github.com/hashicorp/terraform-plugin-docs v0.17.0
+	github.com/hashicorp/terraform-plugin-docs v0.18.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.32.0
 	github.com/stretchr/testify v1.8.4
@@ -27,7 +26,6 @@ require (
 	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
-	github.com/bflad/gopaniccheck v0.1.0 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

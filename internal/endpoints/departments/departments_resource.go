@@ -98,21 +98,21 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemCreate, hclog.Info)
 	subSyncCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemSync, hclog.Info)
 
-	// Handle duplicates
-	departmentsList, err := conn.GetDepartments("")
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to retrieve departments list: %s", err))
-	}
+	// // Handle duplicates
+	// departmentsList, err := conn.GetDepartments("")
+	// if err != nil {
+	// 	return diag.FromErr(fmt.Errorf("failed to retrieve departments list: %s", err))
+	// }
 
-	departmentName := util.GetStringFromInterface(d.Get("name"))
-	for _, department := range departmentsList.Results {
-		if department.Name == departmentName {
+	// departmentName := util.GetStringFromInterface(d.Get("name"))
+	// for _, department := range departmentsList.Results {
+	// 	if department.Name == departmentName {
 
-			errMsg := fmt.Sprintf("A department with the name '%s' already exists. Department names must be unique.", departmentName)
-			logging.LogTFResourceDuplicateName(subCtx, JamfProResourceDepartment, departmentName)
-			return diag.Errorf(errMsg)
-		}
-	}
+	// 		errMsg := fmt.Sprintf("A department with the name '%s' already exists. Department names must be unique.", departmentName)
+	// 		logging.LogTFResourceDuplicateName(subCtx, JamfProResourceDepartment, departmentName)
+	// 		return diag.Errorf(errMsg)
+	// 	}
+	// }
 
 	// Construct the department object outside the retry loop to avoid reconstructing it on each retry
 	department, err := constructJamfProDepartment(subCtx, d)
@@ -239,6 +239,21 @@ func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 	resourceID := d.Id()
 	resourceName := d.Get("name").(string)
 	var apiErrorCode int
+
+	// // Handle duplicates
+	// departmentsList, err := conn.GetDepartments("")
+	// if err != nil {
+	// 	return diag.FromErr(fmt.Errorf("failed to retrieve departments list: %s", err))
+	// }
+
+	// departmentName := util.GetStringFromInterface(d.Get("name"))
+	// for _, department := range departmentsList.Results {
+	// 	if department.Name == departmentName {
+	// 		errMsg := fmt.Sprintf("A department with the name '%s' already exists. Department names must be unique.", departmentName)
+	// 		logging.LogTFResourceDuplicateName(subCtx, JamfProResourceDepartment, departmentName)
+	// 		return diag.Errorf(errMsg)
+	// 	}
+	// }
 
 	// Construct the resource object
 	department, err := constructJamfProDepartment(subCtx, d)

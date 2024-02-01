@@ -1,4 +1,4 @@
-// sites_date_source.go
+// sites_data_source.go
 package sites
 
 import (
