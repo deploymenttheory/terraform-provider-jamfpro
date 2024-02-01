@@ -95,6 +95,7 @@ func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, met
 	var diags diag.Diagnostics
 	var creationResponse *jamfpro.SharedResourceSite
 	var apiErrorCode int
+	resourceName := d.Get("name").(string)
 
 	// Initialize the logging subsystem with the create operation context
 	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemCreate, hclog.Info)
@@ -117,7 +118,7 @@ func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, met
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
-			logging.LogAPICreateFailure(subCtx, JamfProResourceSite, apiErr.Error(), apiErrorCode)
+			logging.LogAPICreateFailedAfterRetry(subCtx, JamfProResourceSite, resourceName, apiErr.Error(), apiErrorCode)
 			// Return a non-retryable error to break out of the retry loop
 			return retry.NonRetryableError(apiErr)
 		}

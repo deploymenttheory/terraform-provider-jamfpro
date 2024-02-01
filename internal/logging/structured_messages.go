@@ -191,13 +191,14 @@ func LogAPICreateSuccess(ctx context.Context, resourceType, resourceID string) {
 }
 
 // LogAPICreateFailedAfterRetryprovides structured logging for scenarios where update operation fails after retries
-func LogAPICreateFailedAfterRetry(ctx context.Context, resourceType, resourceID, resourceName, errorMsg string) {
-	logMessage := fmt.Sprintf("retry attempt to create %s with ID: %s, Name: %q failed", resourceType, resourceID, resourceName)
+func LogAPICreateFailedAfterRetry(ctx context.Context, resourceType, resourceName, errorMsg string, errorCode int) {
+	logMessage := fmt.Sprintf("retry attempt to create %s with Name: %q failed", resourceType, resourceName)
 
 	Error(ctx, SubsystemCreate, logMessage, map[string]interface{}{
 		"resource_type": resourceType,
 		"name":          resourceName,
 		"error":         errorMsg,
+		"error_code":    errorCode,
 	})
 }
 

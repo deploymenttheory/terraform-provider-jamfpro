@@ -93,26 +93,11 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 	var diags diag.Diagnostics
 	var creationResponse *jamfpro.ResponseDepartmentCreate
 	var apiErrorCode int
+	resourceName := d.Get("name").(string)
 
 	// Initialize the logging subsystem with the create operation context
 	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemCreate, hclog.Info)
 	subSyncCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemSync, hclog.Info)
-
-	// // Handle duplicates
-	// departmentsList, err := conn.GetDepartments("")
-	// if err != nil {
-	// 	return diag.FromErr(fmt.Errorf("failed to retrieve departments list: %s", err))
-	// }
-
-	// departmentName := util.GetStringFromInterface(d.Get("name"))
-	// for _, department := range departmentsList.Results {
-	// 	if department.Name == departmentName {
-
-	// 		errMsg := fmt.Sprintf("A department with the name '%s' already exists. Department names must be unique.", departmentName)
-	// 		logging.LogTFResourceDuplicateName(subCtx, JamfProResourceDepartment, departmentName)
-	// 		return diag.Errorf(errMsg)
-	// 	}
-	// }
 
 	// Construct the department object outside the retry loop to avoid reconstructing it on each retry
 	department, err := constructJamfProDepartment(subCtx, d)
@@ -131,7 +116,7 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
-			logging.LogAPICreateFailure(subCtx, JamfProResourceDepartment, apiErr.Error(), apiErrorCode)
+			logging.LogAPICreateFailedAfterRetry(subCtx, JamfProResourceDepartment, resourceName, apiErr.Error(), apiErrorCode)
 			// Return a non-retryable error to break out of the retry loop
 			return retry.NonRetryableError(apiErr)
 		}

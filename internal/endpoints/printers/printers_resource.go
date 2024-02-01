@@ -173,6 +173,7 @@ func ResourceJamfProPrintersCreate(ctx context.Context, d *schema.ResourceData, 
 	var diags diag.Diagnostics
 	var creationResponse *jamfpro.ResponsePrinterCreateAndUpdate
 	var apiErrorCode int
+	resourceName := d.Get("name").(string)
 
 	// Initialize the logging subsystem with the create operation context
 	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemCreate, hclog.Info)
@@ -195,7 +196,7 @@ func ResourceJamfProPrintersCreate(ctx context.Context, d *schema.ResourceData, 
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
-			logging.LogAPICreateFailure(subCtx, JamfProResourcePrinter, apiErr.Error(), apiErrorCode)
+			logging.LogAPICreateFailedAfterRetry(subCtx, JamfProResourcePrinter, resourceName, apiErr.Error(), apiErrorCode)
 			// Return a non-retryable error to break out of the retry loop
 			return retry.NonRetryableError(apiErr)
 		}
