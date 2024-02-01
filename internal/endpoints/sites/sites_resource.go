@@ -57,12 +57,12 @@ const (
 
 // constructJamfProSite constructs a SharedResourceSite object from the provided schema data.
 func constructJamfProSite(ctx context.Context, d *schema.ResourceData) (*jamfpro.SharedResourceSite, error) {
+	// Initialize the logging subsystem for the construction operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemConstruct, hclog.Debug)
+
 	site := &jamfpro.SharedResourceSite{
 		Name: util.GetStringFromInterface(d.Get("name")),
 	}
-
-	// Initialize the logging subsystem for the construction operation
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemConstruct, hclog.Debug)
 
 	// Serialize and pretty-print the site object as XML
 	resourceXML, err := xml.MarshalIndent(site, "", "  ")
