@@ -13,8 +13,6 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/utilities"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -53,13 +51,15 @@ func ResourceJamfProBYOProfiles() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:        schema.TypeInt,
-							Required:    true,
+							Optional:    true,
 							Description: "ID of the site assigned to the byoprofile",
+							Default:     -1,
 						},
 						"name": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Description: "ID of the site assigned to the byoprofile",
+							Default:     "None",
 						},
 					},
 				},
@@ -88,19 +88,10 @@ func constructJamfProBYOProfile(ctx context.Context, d *schema.ResourceData) (*j
 		},
 	}
 
-	if v, ok := d.GetOk("site"); ok {
-		info := v.(*schema.Set).List()
-		site, err := utilities.SetParserJamfProSite(info)
-		if err != nil {
-			return nil, fmt.Errorf(logging.MsgTFConstructResourceFailure, err)
-		}
-
-		profile.General.Site = *site[0]
-	} else {
-		profile.General.Site = jamfpro.SharedResourceSite{
-			ID:   -1,
-			Name: "None",
-		}
+	siteData := d.Get("site").(map[string]interface{})
+	profile.General.Site = jamfpro.SharedResourceSite{
+		ID:   siteData["id"].(int),
+		Name: siteData["name"].(string),
 	}
 
 	// Marshal the byo profile object into XML for logging

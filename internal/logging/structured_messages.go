@@ -7,8 +7,9 @@ import (
 
 const (
 	// TF Resource Construction
-	MsgTFConstructResourceFailure = "Failed to construct %s resource"
+	MsgTFConstructResourceFailure = "failed to construct %s resource"
 	MsgTFConstructResourceSuccess = "%s resource constructed successfully"
+	MsgTooManyResourcesProvided   = "too many resources provided, only 1 allowed, %v"
 
 	// TF State
 	MsgTFStateSyncFailure    = "Failed to synchronize Terraform state for %s"
