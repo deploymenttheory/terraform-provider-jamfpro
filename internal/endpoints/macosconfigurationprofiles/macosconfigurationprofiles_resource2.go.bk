@@ -52,8 +52,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Description: "Description of the configuration profile.",
 			},
 			"site": {
-				Type:        schema.TypeList,
-				MaxItems:    1,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Jamf Pro Site information for the assigned configuration profile.",
 				Elem: &schema.Resource{
@@ -74,8 +73,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				},
 			},
 			"category": {
-				Type:        schema.TypeList,
-				MaxItems:    1,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Configuration Profile Category information.",
 				Elem: &schema.Resource{
@@ -152,8 +150,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 			},
 			// ScopeConfig fields
 			"scope": {
-				Type:        schema.TypeList,
-				MaxItems:    1,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Scope configuration for the profile.",
 				Elem: &schema.Resource{
@@ -169,14 +166,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 							Description: "If true, applies the profile to all JSS users.",
 						},
 						"computers": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"computer": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
-										MaxItems: 1,
+
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"id": {
@@ -201,14 +198,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 							},
 						},
 						"buildings": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"building": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
-										MaxItems: 1,
+
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"id": {
@@ -228,14 +225,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 							},
 						},
 						"departments": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"department": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
-										MaxItems: 1,
+
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"id": {
@@ -255,14 +252,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 							},
 						},
 						"computer_groups": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"computer_group": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
-										MaxItems: 1,
+
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"id": {
@@ -282,14 +279,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 							},
 						},
 						"jss_users": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"jss_user": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
-										MaxItems: 1,
+
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"id": {
@@ -309,7 +306,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 							},
 						},
 						"jss_user_groups": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -327,19 +324,19 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 							},
 						},
 						"limitations": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"users": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"user": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
-													MaxItems: 1,
+
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -359,14 +356,13 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 										},
 									},
 									"user_groups": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"user_group": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
-													MaxItems: 1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -386,14 +382,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 										},
 									},
 									"network_segments": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"network_segment": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
-													MaxItems: 1,
+
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -418,14 +414,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 										},
 									},
 									"ibeacons": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"ibeacon": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
-													MaxItems: 1,
+
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -448,19 +444,19 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 							},
 						},
 						"exclusions": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"computers": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"computer": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
-													MaxItems: 1,
+
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -485,14 +481,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 										},
 									},
 									"buildings": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"building": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
-													MaxItems: 1,
+
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -512,14 +508,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 										},
 									},
 									"departments": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"department": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
-													MaxItems: 1,
+
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -539,14 +535,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 										},
 									},
 									"computer_groups": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"computer_group": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
-													MaxItems: 1,
+
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -566,14 +562,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 										},
 									},
 									"users": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"user": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
-													MaxItems: 1,
+
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -593,14 +589,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 										},
 									},
 									"user_groups": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"user_group": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
-													MaxItems: 1,
+
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -620,14 +616,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 										},
 									},
 									"network_segments": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"network_segment": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
-													MaxItems: 1,
+
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -652,14 +648,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 										},
 									},
 									"ibeacons": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"ibeacon": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
-													MaxItems: 1,
+
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -679,14 +675,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 										},
 									},
 									"jss_users": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"jss_user": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
-													MaxItems: 1,
+
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -706,14 +702,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 										},
 									},
 									"jss_user_groups": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"jss_user_group": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
-													MaxItems: 1,
+
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"id": {
@@ -741,7 +737,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 
 			// SelfServiceConfig fields
 			"self_service": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				MaxItems:    1,
 				Optional:    true,
 				Description: "Self Service configuration for the profile.",
@@ -760,8 +756,8 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 							Optional: true,
 						},
 						"self_service_icon": {
-							Type:     schema.TypeList,
-							MaxItems: 1,
+							Type: schema.TypeSet,
+
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -785,13 +781,13 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 							Optional: true,
 						},
 						"self_service_categories": {
-							Type:        schema.TypeList,
+							Type:        schema.TypeSet,
 							Optional:    true,
 							Description: "List of categories under self service.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"category": {
-										Type:        schema.TypeList,
+										Type:        schema.TypeSet,
 										MaxItems:    1,
 										Optional:    true,
 										Description: "The category information for the self service.",
@@ -850,6 +846,83 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 		SelfService: jamfpro.MacOSConfigurationProfileSubsetSelfService{},
 	}
 
+	// GeneralConfig fields
+	profile.General.Name = d.Get("name").(string)
+	profile.General.Description = d.Get("description").(string)
+
+	profile.General.Site.ID = d.Get("site.0.id").(int)
+	profile.General.Site.Name = d.Get("site.0.name").(string)
+
+	profile.General.Category.ID = d.Get("category.0.id").(int)
+	profile.General.Category.Name = d.Get("category.0.name").(string)
+
+	profile.General.DistributionMethod = d.Get("distribution_method").(string)
+	profile.General.UserRemovable = d.Get("user_removable").(bool)
+	profile.General.Level = d.Get("level").(string)
+	profile.General.UUID = d.Get("uuid").(string)
+	profile.General.RedeployOnUpdate = d.Get("redeploy_on_update").(string)
+	profile.General.Payloads = d.Get("payloads").(string)
+
+	// ScopeConfig fields
+
+	profile.Scope.AllComputers = d.Get("scope.0.all_computers").(bool)
+	profile.Scope.AllJSSUsers = d.Get("scope.0.all_jss_users").(bool)
+
+	computers := d.Get("scope.0.computers").([]interface{})
+	profile.Scope.Computers = make([]jamfpro.MacOSConfigurationProfileSubsetComputer, len(computers))
+	for i, c := range computers {
+		profile.Scope.Computers[i] = c.(jamfpro.MacOSConfigurationProfileSubsetComputer)
+	}
+	computerGroups := d.Get("scope.0.computer_groups").([]interface{})
+	profile.Scope.ComputerGroups = make([]jamfpro.MacOSConfigurationProfileSubsetComputerGroup, len(computerGroups))
+	for i, cg := range computerGroups {
+		profile.Scope.ComputerGroups[i] = cg.(jamfpro.MacOSConfigurationProfileSubsetComputerGroup)
+	}
+
+	jssUsers := d.Get("scope.0.jss_users").([]interface{})
+	profile.Scope.JSSUsers = make([]jamfpro.MacOSConfigurationProfileSubsetJSSUser, len(jssUsers))
+	for i, ju := range jssUsers {
+		profile.Scope.JSSUsers[i] = ju.(jamfpro.MacOSConfigurationProfileSubsetJSSUser)
+	}
+
+	jssUserGroups := d.Get("scope.0.jss_user_groups").([]interface{})
+	profile.Scope.JSSUserGroups = make([]jamfpro.MacOSConfigurationProfileSubsetJSSUserGroup, len(jssUserGroups))
+	for i, jug := range jssUserGroups {
+		profile.Scope.JSSUserGroups[i] = jug.(jamfpro.MacOSConfigurationProfileSubsetJSSUserGroup)
+	}
+
+	departments := d.Get("scope.0.departments").([]interface{})
+	profile.Scope.Departments = make([]jamfpro.MacOSConfigurationProfileSubsetDepartment, len(departments))
+	for i, d := range departments {
+		profile.Scope.Departments[i] = d.(jamfpro.MacOSConfigurationProfileSubsetDepartment)
+	}
+
+	buildings := d.Get("scope.0.buildings").([]interface{})
+	profile.Scope.Buildings = make([]jamfpro.MacOSConfigurationProfileSubsetBuilding, len(buildings))
+	for i, b := range buildings {
+		profile.Scope.Buildings[i] = b.(jamfpro.MacOSConfigurationProfileSubsetBuilding)
+	}
+
+	limitations := d.Get("scope.0.limitations").(jamfpro.MacOSConfigurationProfileSubsetLimitations)
+	profile.Scope.Limitations = limitations
+
+	exclusions := d.Get("scope.0.exclusions").(jamfpro.MacOSConfigurationProfileSubsetExclusions)
+	profile.Scope.Exclusions = exclusions
+
+	// SelfServiceConfig fields
+
+	selfService := d.Get("self_service").([]interface{})
+	profile.SelfService.InstallButtonText = selfService[0].(map[string]interface{})["install_button_text"].(string)
+	profile.SelfService.SelfServiceDescription = selfService[0].(map[string]interface{})["self_service_description"].(string)
+	profile.SelfService.ForceUsersToViewDescription = selfService[0].(map[string]interface{})["force_users_to_view_description"].(bool)
+	profile.SelfService.SelfServiceIcon = selfService[0].(map[string]interface{})["self_service_icon"].(jamfpro.SharedResourceSelfServiceIcon)
+	profile.SelfService.SelfServiceCategories = selfService[0].(map[string]interface{})["self_service_categories"].(jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategories)
+	profile.SelfService.FeatureOnMainPage = selfService[0].(map[string]interface{})["feature_on_main_page"].(bool)
+	profile.SelfService.Notification = selfService[0].(map[string]interface{})["notification"].(string)
+	profile.SelfService.NotificationSubject = selfService[0].(map[string]interface{})["notification_subject"].(string)
+	profile.SelfService.NotificationMessage = selfService[0].(map[string]interface{})["notification_message"].(string)
+
+	return profile, nil
 }
 
 // Helper function to generate diagnostics based on the error type.
@@ -960,7 +1033,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	}
 	conn := apiclient.Conn
 
-	var profile *jamfpro.ResponseMacOSConfigurationProfiles
+	var profile *jamfpro.ResourceMacOSConfigurationProfile
 
 	// Use the retry function for the read operation
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
@@ -1084,11 +1157,11 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Safely construct and set Computers within scopeAttr if value not empty.
 	var computersList []interface{}
 	for _, compItem := range profile.Scope.Computers {
-		if compItem.Computer.ID != 0 {
+		if compItem.ID != 0 {
 			computerMap := map[string]interface{}{
-				"id":   compItem.Computer.ID,
-				"name": compItem.Computer.Name,
-				"udid": compItem.Computer.UDID,
+				"id":   compItem.ID,
+				"name": compItem.Name,
+				"udid": compItem.UDID,
 			}
 			// Wrap the computerMap in another map with key 'computer'
 			computersList = append(computersList, map[string]interface{}{"computer": []interface{}{computerMap}})
@@ -1099,10 +1172,10 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Safely construct and set Computer Groups
 	var computerGroupsList []interface{}
 	for _, cgItem := range profile.Scope.ComputerGroups {
-		if cgItem.ComputerGroup.ID != 0 {
+		if cgItem.ID != 0 {
 			computerGroupMap := map[string]interface{}{
-				"id":   cgItem.ComputerGroup.ID,
-				"name": cgItem.ComputerGroup.Name,
+				"id":   cgItem.ID,
+				"name": cgItem.Name,
 			}
 			computerGroupsList = append(computerGroupsList, map[string]interface{}{"computer_group": []interface{}{computerGroupMap}})
 		}
@@ -1112,10 +1185,10 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Safely construct and set jss_users within scope
 	var jssUsersList []interface{}
 	for _, jssUserItem := range profile.Scope.JSSUsers {
-		if jssUserItem.JSSUser.ID != 0 { // Check if ID is not 0
+		if jssUserItem.ID != 0 { // Check if ID is not 0
 			jssUserMap := map[string]interface{}{
-				"id":   jssUserItem.JSSUser.ID,
-				"name": jssUserItem.JSSUser.Name,
+				"id":   jssUserItem.ID,
+				"name": jssUserItem.Name,
 			}
 			jssUsersList = append(jssUsersList, map[string]interface{}{"jss_user": []interface{}{jssUserMap}})
 		}
@@ -1125,13 +1198,13 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Safely construct and set jss_user_groups within scope
 	var jssUserGroupsList []interface{}
 	for _, jssUGItem := range profile.Scope.JSSUserGroups {
-		if jssUGItem.JSSUserGroup.ID != 0 {
+		if jssUGItem.ID != 0 {
 			jssUserGroupMap := map[string]interface{}{
-				"id":   jssUGItem.JSSUserGroup.ID,
-				"name": jssUGItem.JSSUserGroup.Name,
+				"id":   jssUGItem.ID,
+				"name": jssUGItem.Name,
 			}
 			// Wrap the jssUserGroupMap in another map with key 'jss_user_group'
-			jssUserGroupsList = append(jssUserGroupsList, jssUserGroupMap)
+			jssUserGroupsList = append(jssUserGroupsList, map[string]interface{}{"jss_user_group": []interface{}{jssUserGroupMap}})
 		}
 	}
 	scopeAttr["jss_user_groups"] = jssUserGroupsList
@@ -1140,10 +1213,10 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	var buildingsList []interface{}
 	for _, bldgItem := range profile.Scope.Buildings {
 		// Only add the building to the list if its ID is not the default (0 in this case)
-		if bldgItem.Building.ID != 0 {
+		if bldgItem.ID != 0 {
 			buildingMap := map[string]interface{}{
-				"id":   bldgItem.Building.ID,
-				"name": bldgItem.Building.Name,
+				"id":   bldgItem.ID,
+				"name": bldgItem.Name,
 			}
 			// Wrap the buildingMap in another map with key 'building'
 			buildingsList = append(buildingsList, map[string]interface{}{"building": []interface{}{buildingMap}})
@@ -1154,10 +1227,10 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Safely construct and set Departments if values are not null
 	var departmentsList []interface{}
 	for _, deptItem := range profile.Scope.Departments {
-		if deptItem.Department.ID != 0 {
+		if deptItem.ID != 0 {
 			departmentMap := map[string]interface{}{
-				"id":   deptItem.Department.ID,
-				"name": deptItem.Department.Name,
+				"id":   deptItem.ID,
+				"name": deptItem.Name,
 			}
 			departmentsList = append(departmentsList, map[string]interface{}{"department": []interface{}{departmentMap}})
 		}
@@ -1170,11 +1243,11 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Safely construct and set network_segments limitations
 	var networkSegmentsList []interface{}
 	for _, networkSegmentItem := range profile.Scope.Limitations.NetworkSegments {
-		if networkSegmentItem.NetworkSegment.ID != 0 { // Check if ID is not 0
+		if networkSegmentItem.ID != 0 { // Check if ID is not 0
 			networkSegmentMap := map[string]interface{}{
-				"id":   networkSegmentItem.NetworkSegment.ID,
-				"name": networkSegmentItem.NetworkSegment.Name,
-				"uid":  networkSegmentItem.NetworkSegment.UID,
+				"id":   networkSegmentItem.ID,
+				"name": networkSegmentItem.Name,
+				"uid":  networkSegmentItem.UID,
 			}
 			// Wrap the networkSegmentMap in another map with key 'network_segment'
 			networkSegmentsList = append(networkSegmentsList, map[string]interface{}{"network_segment": []interface{}{networkSegmentMap}})
@@ -1185,10 +1258,10 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Safely construct and set limitations users list
 	var usersList []interface{}
 	for _, userItem := range profile.Scope.Limitations.Users {
-		if userItem.User.ID != 0 {
+		if userItem.ID != 0 {
 			userMap := map[string]interface{}{
-				"id":   userItem.User.ID,
-				"name": userItem.User.Name,
+				"id":   userItem.ID,
+				"name": userItem.Name,
 			}
 			// Wrap the userMap in another map with key 'user'
 			usersList = append(usersList, map[string]interface{}{"user": []interface{}{userMap}})
@@ -1199,10 +1272,10 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Safely construct and set limitations user groups list
 	var userGroupsList []interface{}
 	for _, userGroupItem := range profile.Scope.Limitations.UserGroups {
-		if userGroupItem.UserGroup.ID != 0 {
+		if userGroupItem.ID != 0 {
 			userGroupMap := map[string]interface{}{
-				"id":   userGroupItem.UserGroup.ID,
-				"name": userGroupItem.UserGroup.Name,
+				"id":   userGroupItem.ID,
+				"name": userGroupItem.Name,
 			}
 			// Wrap the userGroupMap in another map with key 'user_group'
 			userGroupsList = append(userGroupsList, map[string]interface{}{"user_group": []interface{}{userGroupMap}})
@@ -1213,10 +1286,10 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Safely construct and set limitations ibeacons list
 	var ibeaconsList []interface{}
 	for _, ibeaconItem := range profile.Scope.Limitations.IBeacons {
-		if ibeaconItem.IBeacon.ID != 0 {
+		if ibeaconItem.ID != 0 {
 			ibeaconMap := map[string]interface{}{
-				"id":   ibeaconItem.IBeacon.ID,
-				"name": ibeaconItem.IBeacon.Name,
+				"id":   ibeaconItem.ID,
+				"name": ibeaconItem.Name,
 			}
 			// Wrap the ibeaconMap in another map with key 'ibeacon'
 			ibeaconsList = append(ibeaconsList, map[string]interface{}{"ibeacon": []interface{}{ibeaconMap}})
@@ -1238,11 +1311,11 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Safely construct and set computers list in exclusions
 	var excludedComputersList []interface{}
 	for _, computerItem := range profile.Scope.Exclusions.Computers {
-		if computerItem.Computer.ID != 0 {
+		if computerItem.ID != 0 {
 			computerMap := map[string]interface{}{
-				"id":   computerItem.Computer.ID,
-				"name": computerItem.Computer.Name,
-				"udid": computerItem.Computer.UDID,
+				"id":   computerItem.ID,
+				"name": computerItem.Name,
+				"udid": computerItem.UDID,
 			}
 			// Wrap the computerMap in another map with key 'computer'
 			excludedComputersList = append(excludedComputersList, map[string]interface{}{"computer": []interface{}{computerMap}})
@@ -1253,10 +1326,10 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Safely construct and set exclusions computer groups list
 	var excludedComputerGroupsList []interface{}
 	for _, cgItem := range profile.Scope.Exclusions.ComputerGroups {
-		if cgItem.ComputerGroup.ID != 0 {
+		if cgItem.ID != 0 {
 			computerGroupMap := map[string]interface{}{
-				"id":   cgItem.ComputerGroup.ID,
-				"name": cgItem.ComputerGroup.Name,
+				"id":   cgItem.ID,
+				"name": cgItem.Name,
 			}
 			excludedComputerGroupsList = append(excludedComputerGroupsList, map[string]interface{}{"computer_group": []interface{}{computerGroupMap}})
 		}
@@ -1266,10 +1339,10 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Safely construct and set exclusions jss_users list
 	var excludedJSSUsersList []interface{}
 	for _, jssUserItem := range profile.Scope.Exclusions.JSSUsers {
-		if jssUserItem.JSSUser.ID != 0 { // Check if ID is not 0
+		if jssUserItem.ID != 0 { // Check if ID is not 0
 			jssUserMap := map[string]interface{}{
-				"id":   jssUserItem.JSSUser.ID,
-				"name": jssUserItem.JSSUser.Name,
+				"id":   jssUserItem.ID,
+				"name": jssUserItem.Name,
 			}
 			// Wrap the jssUserMap in another map with key 'jss_user'
 			excludedJSSUsersList = append(excludedJSSUsersList, map[string]interface{}{"jss_user": []interface{}{jssUserMap}})
@@ -1280,10 +1353,10 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Safely construct and set exclusions jss_user_groups list
 	var excludedJSSUserGroupsList []interface{}
 	for _, jssUGItem := range profile.Scope.Exclusions.JSSUserGroups {
-		if jssUGItem.JSSUserGroup.ID != 0 {
+		if jssUGItem.ID != 0 {
 			jssUserGroupMap := map[string]interface{}{
-				"id":   jssUGItem.JSSUserGroup.ID,
-				"name": jssUGItem.JSSUserGroup.Name,
+				"id":   jssUGItem.ID,
+				"name": jssUGItem.Name,
 			}
 			// Wrap the jssUserGroupMap in another map with key 'jss_user_group'
 			excludedJSSUserGroupsList = append(excludedJSSUserGroupsList, map[string]interface{}{"jss_user_group": []interface{}{jssUserGroupMap}})
@@ -1295,10 +1368,10 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	var excludedBuildingsList []interface{}
 	for _, bldgItem := range profile.Scope.Exclusions.Buildings {
 		// Only add the building to the list if its ID is not the default (0 in this case)
-		if bldgItem.Building.ID != 0 {
+		if bldgItem.ID != 0 {
 			buildingMap := map[string]interface{}{
-				"id":   bldgItem.Building.ID,
-				"name": bldgItem.Building.Name,
+				"id":   bldgItem.ID,
+				"name": bldgItem.Name,
 			}
 			excludedBuildingsList = append(excludedBuildingsList, map[string]interface{}{"building": []interface{}{buildingMap}})
 		}
@@ -1308,10 +1381,10 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Safely construct and set exclusions departments list
 	var excludedDepartmentsList []interface{}
 	for _, deptItem := range profile.Scope.Exclusions.Departments {
-		if deptItem.Department.ID != 0 {
+		if deptItem.ID != 0 {
 			departmentMap := map[string]interface{}{
-				"id":   deptItem.Department.ID,
-				"name": deptItem.Department.Name,
+				"id":   deptItem.ID,
+				"name": deptItem.Name,
 			}
 			// Wrap the departmentMap in another map with key 'department'
 			excludedDepartmentsList = append(excludedDepartmentsList, map[string]interface{}{"department": []interface{}{departmentMap}})
@@ -1322,11 +1395,11 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Safely construct and set exclusions network_segments list
 	var excludedNetworkSegmentsList []interface{}
 	for _, netSegItem := range profile.Scope.Exclusions.NetworkSegments {
-		if netSegItem.NetworkSegment.ID != 0 {
+		if netSegItem.ID != 0 {
 			networkSegmentMap := map[string]interface{}{
-				"id":   netSegItem.NetworkSegment.ID,
-				"name": netSegItem.NetworkSegment.Name,
-				"uid":  netSegItem.NetworkSegment.UID,
+				"id":   netSegItem.ID,
+				"name": netSegItem.Name,
+				"uid":  netSegItem.UID,
 			}
 			// Wrap the networkSegmentMap in another map with key 'network_segment'
 			excludedNetworkSegmentsList = append(excludedNetworkSegmentsList, map[string]interface{}{"network_segment": []interface{}{networkSegmentMap}})
@@ -1337,10 +1410,10 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Safely construct and set exclusions user list
 	var excludedUsersList []interface{}
 	for _, userItem := range profile.Scope.Exclusions.Users {
-		if userItem.User.ID != 0 {
+		if userItem.ID != 0 {
 			userMap := map[string]interface{}{
-				"id":   userItem.User.ID,
-				"name": userItem.User.Name,
+				"id":   userItem.ID,
+				"name": userItem.Name,
 			}
 			// Wrap the userMap in another map with key 'user'
 			excludedUsersList = append(excludedUsersList, map[string]interface{}{"user": []interface{}{userMap}})
@@ -1351,10 +1424,10 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Safely construct and set exclusions user groups list
 	var excludedUserGroupsList []interface{}
 	for _, userGroupItem := range profile.Scope.Exclusions.UserGroups {
-		if userGroupItem.UserGroup.ID != 0 {
+		if userGroupItem.ID != 0 {
 			userGroupMap := map[string]interface{}{
-				"id":   userGroupItem.UserGroup.ID,
-				"name": userGroupItem.UserGroup.Name,
+				"id":   userGroupItem.ID,
+				"name": userGroupItem.Name,
 			}
 			// Wrap the userGroupMap in another map with key 'user_group'
 			excludedUserGroupsList = append(excludedUserGroupsList, map[string]interface{}{"user_group": []interface{}{userGroupMap}})
@@ -1365,10 +1438,10 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Safely construct and set ibeacons list in Exclusions
 	var excludedIBeaconsList []interface{}
 	for _, ibeaconItem := range profile.Scope.Exclusions.IBeacons {
-		if ibeaconItem.IBeacon.ID != 0 {
+		if ibeaconItem.ID != 0 {
 			ibeaconMap := map[string]interface{}{
-				"id":   ibeaconItem.IBeacon.ID,
-				"name": ibeaconItem.IBeacon.Name,
+				"id":   ibeaconItem.ID,
+				"name": ibeaconItem.Name,
 			}
 			// Wrap the ibeaconMap in another map with key 'ibeacon'
 			excludedIBeaconsList = append(excludedIBeaconsList, map[string]interface{}{"ibeacon": []interface{}{ibeaconMap}})

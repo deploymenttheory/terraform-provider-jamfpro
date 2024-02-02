@@ -45,9 +45,8 @@ func ResourceJamfProBYOProfiles() *schema.Resource {
 				Description: "Name of the BYO profile",
 			},
 			"site": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -89,16 +88,10 @@ func constructJamfProBYOProfile(ctx context.Context, d *schema.ResourceData) (*j
 		},
 	}
 
-	if v, ok := d.GetOk("site"); ok && len(v.([]interface{})) > 0 {
-		siteData, ok := v.([]interface{})[0].(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("failed to parse site data")
-		}
-
-		profile.General.Site = jamfpro.SharedResourceSite{
-			ID:   util.GetIntFromMap(siteData, "id"),
-			Name: util.GetStringFromMap(siteData, "name"),
-		}
+	siteData := d.Get("site").(map[string]interface{})
+	profile.General.Site = jamfpro.SharedResourceSite{
+		ID:   siteData["id"].(int),
+		Name: siteData["name"].(string),
 	}
 
 	// Marshal the byo profile object into XML for logging
