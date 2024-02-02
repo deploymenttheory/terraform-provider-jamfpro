@@ -252,7 +252,7 @@ func ResourceJamfProAllowedFileExtensionDelete(ctx context.Context, d *schema.Re
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
-	resourceName := d.Get("name").(string)
+	resourceName := d.Get("extension").(string)
 	var apiErrorCode int
 
 	// Convert resourceID from string to int
