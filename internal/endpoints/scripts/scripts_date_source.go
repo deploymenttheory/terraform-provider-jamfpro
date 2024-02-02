@@ -3,12 +3,12 @@ package scripts
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -121,75 +121,60 @@ func DataSourceJamfProScripts() *schema.Resource {
 // Returns:
 // - diag.Diagnostics: Returns any diagnostics (errors or warnings) encountered during the function's execution.
 func DataSourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	var scriptAttribute *jamfpro.ResourceScript
+	// Initialize the logging subsystem for the read operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemRead, hclog.Info)
 
-	// Use the retry function for the read operation
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		scriptID := d.Id()
+	// Initialize variables
+	var diags diag.Diagnostics
+	var apiErrorCode int
+	var script *jamfpro.ResourceScript
+	resourceID := d.Id()
 
-		// Try fetching the script using the ID
+	// Read operation with retry
+	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		scriptAttribute, apiErr = conn.GetScriptByID(scriptID)
+		script, apiErr = conn.GetScriptByID(resourceID)
 		if apiErr != nil {
-			// Handle the APIError
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-			}
-			// If fetching by ID fails, try fetching by Name
-			scriptName, ok := d.Get("name").(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string for read function"))
-			}
-
-			scriptAttribute, apiErr = conn.GetScriptByName(scriptName)
-			if apiErr != nil {
-				// Handle the APIError
-				if apiError, ok := apiErr.(*http_client.APIError); ok {
-					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-				}
-				return retry.RetryableError(apiErr)
-			}
+			logging.LogFailedReadByID(subCtx, JamfProResourceScript, resourceID, apiErr.Error(), apiErrorCode)
+			// Convert any API error into a retryable error to continue retrying
+			return retry.RetryableError(apiErr)
 		}
+		// Successfully read the script, exit the retry loop
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while reading the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "read")
+		return diag.FromErr(err)
 	}
 
-	// Construct a map of script scriptAttributes
+	// Construct a map of script attributes
 	scriptAttributes := map[string]interface{}{
-		"name":            scriptAttribute.Name,
-		"category_name":   scriptAttribute.CategoryName,
-		"category_id":     scriptAttribute.CategoryId,
-		"info":            scriptAttribute.Info,
-		"notes":           scriptAttribute.Notes,
-		"os_requirements": scriptAttribute.OSRequirements,
-		"priority":        scriptAttribute.Priority,
-		"script_contents": encodeScriptContent(scriptAttribute.ScriptContents),
-		"parameter4":      scriptAttribute.Parameter4,
-		"parameter5":      scriptAttribute.Parameter5,
-		"parameter6":      scriptAttribute.Parameter6,
-		"parameter7":      scriptAttribute.Parameter7,
-		"parameter8":      scriptAttribute.Parameter8,
-		"parameter9":      scriptAttribute.Parameter9,
-		"parameter10":     scriptAttribute.Parameter10,
-		"parameter11":     scriptAttribute.Parameter11,
+		"name":            script.Name,
+		"category_name":   script.CategoryName,
+		"category_id":     script.CategoryId,
+		"info":            script.Info,
+		"notes":           script.Notes,
+		"os_requirements": script.OSRequirements,
+		"priority":        script.Priority,
+		"script_contents": encodeScriptContent(script.ScriptContents),
+		"parameter4":      script.Parameter4,
+		"parameter5":      script.Parameter5,
+		"parameter6":      script.Parameter6,
+		"parameter7":      script.Parameter7,
+		"parameter8":      script.Parameter8,
+		"parameter9":      script.Parameter9,
+		"parameter10":     script.Parameter10,
+		"parameter11":     script.Parameter11,
 	}
 
-	// Update the Terraform state with script scriptAttributes
+	// Update the Terraform state with script scripts
 	for key, value := range scriptAttributes {
 		if err := d.Set(key, value); err != nil {
 			diags = append(diags, diag.FromErr(err)...)

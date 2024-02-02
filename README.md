@@ -8,9 +8,6 @@ The provider contains:
 - Examples (`examples/`) and generated documentation (`docs/`),
 - Miscellaneous meta files.
 
-These files contain the actual code and configurations for the Terraform provider. Tutorials for creating Terraform providers can be found on the [HashiCorp Developer](https://developer.hashicorp.com/terraform/tutorials/providers-plugin-framework) platform. 
-
-Please see the [GitHub template repository documentation](https://help.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-from-a-template) for guidance on creating a new repository.
 
 Once the provider is finalized, you may want to [publish it on the Terraform Registry](https://developer.hashicorp.com/terraform/registry/providers/publishing) so that others can use it.
 
@@ -82,14 +79,6 @@ Deployment of jamf pro departments (Simplement resource type in jamf pro)
 | 10000          | Departments   | Update (TF Plan+Apply)| 8ms          |
 | 10000          | Departments   | delete                | 8ms          |
 
-## AUTOMATED
-This is sample readme for terraform module
-<!-- BEGIN_AUTOMATED_TF_DOCS_BLOCK -->
-<!-- END_AUTOMATED_TF_DOCS_BLOCK -->
-<!-- BEGIN_TF_DOCS -->
-## Requirements
-
-No requirements.
 
 ## Providers
 
@@ -101,7 +90,13 @@ No modules.
 
 ## Resources
 
-No resources.
+The provider currently has working coverage of the following jamf pro resource types
+
+- account groups
+- departments
+- printers
+- scripts
+- sites
 
 ## Inputs
 
