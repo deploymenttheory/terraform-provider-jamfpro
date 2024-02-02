@@ -14,6 +14,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/utilities"
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -30,10 +31,10 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 		DeleteContext: ResourceJamfProAccountGroupDelete,
 		CustomizeDiff: customDiffAccountGroups,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(1 * time.Minute),
-			Read:   schema.DefaultTimeout(1 * time.Minute),
-			Update: schema.DefaultTimeout(1 * time.Minute),
-			Delete: schema.DefaultTimeout(1 * time.Minute),
+			Create: schema.DefaultTimeout(30 * time.Second),
+			Read:   schema.DefaultTimeout(30 * time.Second),
+			Update: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(30 * time.Second),
 		},
 		Schema: map[string]*schema.Schema{
 			"id": {
@@ -98,63 +99,43 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 				},
 			},
 			"jss_objects_privileges": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Privileges related to JSS Objects.",
+				Computed:    true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: common.ValidateJSSObjectsPrivileges,
 				},
 			},
 			"jss_settings_privileges": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Privileges related to JSS Settings.",
+				Computed:    true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: common.ValidateJSSSettingsPrivileges,
 				},
 			},
 			"jss_actions_privileges": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Privileges related to JSS Actions.",
+				Computed:    true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: common.ValidateJSSActionsPrivileges,
 				},
 			},
 			"casper_admin_privileges": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Privileges related to Casper Admin.",
+				Computed:    true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: common.ValidateCasperAdminPrivileges,
-				},
-			},
-			"casper_remote_privileges": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Privileges related to Casper Remote.",
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-			"casper_imaging_privileges": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Privileges related to Casper Imaging.",
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-			"recon_privileges": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Privileges related to Recon.",
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
 				},
 			},
 			"members": {
@@ -202,15 +183,12 @@ func constructJamfProAccountGroup(ctx context.Context, d *schema.ResourceData) (
 		}
 	}
 
-	// Construct Privileges
+	// Construct Privileges using TypeSet
 	accountGroup.Privileges = jamfpro.AccountSubsetPrivileges{
-		JSSObjects:    util.GetStringSliceFromInterface(d.Get("jss_objects_privileges")),
-		JSSSettings:   util.GetStringSliceFromInterface(d.Get("jss_settings_privileges")),
-		JSSActions:    util.GetStringSliceFromInterface(d.Get("jss_actions_privileges")),
-		CasperAdmin:   util.GetStringSliceFromInterface(d.Get("casper_admin_privileges")),
-		CasperRemote:  util.GetStringSliceFromInterface(d.Get("casper_remote_privileges")),
-		CasperImaging: util.GetStringSliceFromInterface(d.Get("casper_imaging_privileges")),
-		Recon:         util.GetStringSliceFromInterface(d.Get("recon_privileges")),
+		JSSObjects:  utilities.ExtractSetToStringSlice(d.Get("jss_objects_privileges").(*schema.Set)),
+		JSSSettings: utilities.ExtractSetToStringSlice(d.Get("jss_settings_privileges").(*schema.Set)),
+		JSSActions:  utilities.ExtractSetToStringSlice(d.Get("jss_actions_privileges").(*schema.Set)),
+		CasperAdmin: utilities.ExtractSetToStringSlice(d.Get("casper_admin_privileges").(*schema.Set)),
 	}
 
 	// Construct Members
@@ -345,66 +323,49 @@ func ResourceJamfProAccountGroupRead(ctx context.Context, d *schema.ResourceData
 
 	// Initialize the logging subsystem for the read operation
 	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemRead, hclog.Info)
+	subGeneralCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemGeneral, hclog.Info)
 
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 	var apiErrorCode int
+	var accountGroup *jamfpro.ResourceAccountGroup
 
 	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		// Handle conversion error with structured logging
-		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceAccountGroup, resourceID, err.Error())
+		logging.LogTypeConversionFailure(subGeneralCtx, "string", "int", JamfProResourceAccountGroup, resourceID, err.Error())
 		return diag.FromErr(err)
 	}
 
-	// read operation
-	accountGroup, err := conn.GetAccountGroupByID(resourceIDInt)
+	// Read operation with retry
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		accountGroup, apiErr = conn.GetAccountGroupByID(resourceIDInt)
+		if apiErr != nil {
+			logging.LogFailedReadByID(subCtx, JamfProResourceAccountGroup, resourceID, apiErr.Error(), apiErrorCode)
+			// Convert any API error into a retryable error to continue retrying
+			return retry.RetryableError(apiErr)
+		}
+		// Successfully read the account group, exit the retry loop
+		return nil
+	})
+
 	if err != nil {
-		if apiError, ok := err.(*http_client.APIError); ok {
-			apiErrorCode = apiError.StatusCode
-		}
-		logging.LogFailedReadByID(subCtx, JamfProResourceAccountGroup, resourceID, err.Error(), apiErrorCode)
-		d.SetId("") // Remove from Terraform state
+		// Handle the final error after all retries have been exhausted
+		d.SetId("") // Remove from Terraform state if unable to read after retries
 		logging.LogTFStateRemovalWarning(subCtx, JamfProResourceAccountGroup, resourceID)
-		return diags
+		return diag.FromErr(err)
 	}
-	/*
-		// Update the Terraform state with account group attributes
-		d.Set("name", accountGroup.Name)
-		d.Set("access_level", accountGroup.AccessLevel)
-		d.Set("privilege_set", accountGroup.PrivilegeSet)
 
-		// Update site information
-		site := make(map[string]interface{})
-		site["id"] = accountGroup.Site.ID
-		site["name"] = accountGroup.Site.Name
-		d.Set("site", []interface{}{site})
+	// Assuming successful read if no error
+	logging.LogAPIReadSuccess(subCtx, JamfProResourceAccountGroup, resourceID)
 
-		// Update privileges
-		privileges := make(map[string]interface{})
-		privileges["jss_objects"] = accountGroup.Privileges.JSSObjects
-		privileges["jss_settings"] = accountGroup.Privileges.JSSSettings
-		privileges["jss_actions"] = accountGroup.Privileges.JSSActions
-		privileges["recon"] = accountGroup.Privileges.Recon
-		privileges["casper_admin"] = accountGroup.Privileges.CasperAdmin
-		privileges["casper_remote"] = accountGroup.Privileges.CasperRemote
-		privileges["casper_imaging"] = accountGroup.Privileges.CasperImaging
-		d.Set("privileges", []interface{}{privileges})
+	if err := d.Set("id", resourceID); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
-		// Update members
-		members := make([]interface{}, 0)
-		for _, memberStruct := range accountGroup.Members {
-			member := memberStruct.User // Access the User field
-			memberMap := map[string]interface{}{
-				"id":   member.ID,
-				"name": member.Name,
-			}
-			members = append(members, memberMap)
-		}
-		d.Set("members", members)
-	*/
 	if err := d.Set("name", accountGroup.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -423,17 +384,18 @@ func ResourceJamfProAccountGroupRead(ctx context.Context, d *schema.ResourceData
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Update privileges
-	privileges := make(map[string]interface{})
-	privileges["jss_objects"] = accountGroup.Privileges.JSSObjects
-	privileges["jss_settings"] = accountGroup.Privileges.JSSSettings
-	privileges["jss_actions"] = accountGroup.Privileges.JSSActions
-	privileges["recon"] = accountGroup.Privileges.Recon
-	privileges["casper_admin"] = accountGroup.Privileges.CasperAdmin
-	privileges["casper_remote"] = accountGroup.Privileges.CasperRemote
-	privileges["casper_imaging"] = accountGroup.Privileges.CasperImaging
-	if err := d.Set("privileges", []interface{}{privileges}); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	// Set privileges
+	privilegeAttributes := map[string][]string{
+		"jss_objects_privileges":  accountGroup.Privileges.JSSObjects,
+		"jss_settings_privileges": accountGroup.Privileges.JSSSettings,
+		"jss_actions_privileges":  accountGroup.Privileges.JSSActions,
+		"casper_admin_privileges": accountGroup.Privileges.CasperAdmin,
+	}
+
+	for attrName, privileges := range privilegeAttributes {
+		if err := d.Set(attrName, schema.NewSet(schema.HashString, utilities.ConvertToStringInterface(privileges))); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	// Update members
