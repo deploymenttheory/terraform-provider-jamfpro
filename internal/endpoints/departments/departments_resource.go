@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/xml"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
@@ -49,6 +50,12 @@ func ResourceJamfProDepartments() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The unique name of the Jamf Pro department.",
+				ValidateFunc: func(v interface{}, k string) (warns []string, errs []error) {
+					if reflect.TypeOf(v) != reflect.TypeOf("") {
+						errs = append(errs, fmt.Errorf("name must be a string: %v, %v", k, v))
+					}
+					return
+				},
 			},
 		},
 	}
