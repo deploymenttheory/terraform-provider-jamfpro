@@ -94,6 +94,8 @@ The provider currently has working coverage of the following jamf pro resource t
 
 - account groups
 - departments
+- disk encryption configurations
+- dock items
 - printers
 - scripts
 - sites

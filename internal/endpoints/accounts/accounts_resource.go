@@ -28,10 +28,10 @@ func ResourceJamfProAccounts() *schema.Resource {
 		DeleteContext: ResourceJamfProAccountDelete,
 		CustomizeDiff: customDiffAccounts,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(1 * time.Minute),
-			Read:   schema.DefaultTimeout(1 * time.Minute),
-			Update: schema.DefaultTimeout(1 * time.Minute),
-			Delete: schema.DefaultTimeout(1 * time.Minute),
+			Create: schema.DefaultTimeout(30 * time.Second),
+			Read:   schema.DefaultTimeout(30 * time.Second),
+			Update: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(30 * time.Second),
 		},
 		Schema: map[string]*schema.Schema{
 			"id": {

@@ -14,7 +14,9 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -29,10 +31,10 @@ func ResourceJamfProDiskEncryptionConfigurations() *schema.Resource {
 		UpdateContext: ResourceJamfProDiskEncryptionConfigurationsUpdate,
 		DeleteContext: ResourceJamfProDiskEncryptionConfigurationsDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(1 * time.Minute),
-			Read:   schema.DefaultTimeout(1 * time.Minute),
-			Update: schema.DefaultTimeout(1 * time.Minute),
-			Delete: schema.DefaultTimeout(1 * time.Minute),
+			Create: schema.DefaultTimeout(30 * time.Second),
+			Read:   schema.DefaultTimeout(30 * time.Second),
+			Update: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(30 * time.Second),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -127,6 +129,10 @@ func ResourceJamfProDiskEncryptionConfigurations() *schema.Resource {
 	}
 }
 
+const (
+	JamfProResourceDiskEncryptionConfiguration = "Disk Encryption Configuration"
+)
+
 // constructDiskEncryptionConfiguration constructs a ResourceDiskEncryptionConfiguration object from the provided schema data.
 func constructDiskEncryptionConfiguration(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceDiskEncryptionConfiguration, error) {
 	diskEncryptionConfig := &jamfpro.ResourceDiskEncryptionConfiguration{}
@@ -169,31 +175,6 @@ func constructDiskEncryptionConfiguration(ctx context.Context, d *schema.Resourc
 	return diskEncryptionConfig, nil
 }
 
-// Helper function to generate diagnostics based on the error type.
-func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
-	var diags diag.Diagnostics
-	resourceName, exists := d.GetOk("name")
-	if !exists {
-		resourceName = "unknown"
-	}
-
-	// Handle the APIError in the diagnostic
-	if apiErr, ok := err.(*http_client.APIError); ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
-		})
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   err.Error(),
-		})
-	}
-	return diags
-}
-
 // ResourceJamfProDiskEncryptionConfigurationsCreate is responsible for creating a new Jamf Pro Disk Encryption Configuration in the remote system.
 // The function:
 // 1. Constructs the disk encryption configuration data using the provided Terraform configuration.
@@ -201,60 +182,79 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 // 3. Updates the Terraform state with the ID of the newly created disk encryption configuration.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProDiskEncryptionConfigurationsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Assert the meta interface to the expected APIClient type
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the create operation.
-	var createdConfigResponse *jamfpro.ResponseDiskEncryptionConfigurationCreatedAndUpdated
-	var err error
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		// Construct the disk encryption configuration.
-		diskEncryptionConfig, err := constructDiskEncryptionConfiguration(ctx, d)
-		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the disk encryption configuration for terraform create: %w", err))
-		}
+	// Initialize variables
+	var diags diag.Diagnostics
+	var creationResponse *jamfpro.ResponseDiskEncryptionConfigurationCreatedAndUpdated
+	var apiErrorCode int
+	resourceName := d.Get("name").(string)
 
-		// Directly call the API to create the resource.
-		createdConfigResponse, err = conn.CreateDiskEncryptionConfiguration(diskEncryptionConfig)
-		if err != nil {
-			// Check if the error is an APIError.
-			if apiErr, ok := err.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message))
+	// Initialize the logging subsystem with the create operation context
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemCreate, hclog.Info)
+	subSyncCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemSync, hclog.Info)
+
+	// Construct the object outside the retry loop to avoid reconstructing it on each retry
+	diskEncryptionConfig, err := constructDiskEncryptionConfiguration(subCtx, d)
+	if err != nil {
+		logging.LogTFConstructResourceFailure(subCtx, JamfProResourceDiskEncryptionConfiguration, err.Error())
+		return diag.FromErr(err)
+	}
+	logging.LogTFConstructResourceSuccess(subCtx, JamfProResourceDiskEncryptionConfiguration)
+
+	// Retry the API call to create the resource in Jamf Pro
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		var apiErr error
+		creationResponse, apiErr = conn.CreateDiskEncryptionConfiguration(diskEncryptionConfig)
+		if apiErr != nil {
+			// Extract and log the API error code if available
+			if apiError, ok := apiErr.(*http_client.APIError); ok {
+				apiErrorCode = apiError.StatusCode
 			}
-			// For simplicity, we're considering all other errors as retryable.
-			return retry.RetryableError(err)
+			logging.LogAPICreateFailedAfterRetry(subCtx, JamfProResourceDiskEncryptionConfiguration, resourceName, apiErr.Error(), apiErrorCode)
+			// Return a non-retryable error to break out of the retry loop
+			return retry.NonRetryableError(apiErr)
 		}
-
+		// No error, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		// If there's an error while creating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "create")
+		// Log the final error and append it to the diagnostics
+		logging.LogAPICreateFailure(subCtx, JamfProResourceDiskEncryptionConfiguration, err.Error(), apiErrorCode)
+		diags = append(diags, diag.FromErr(err)...)
+		return diags
 	}
 
-	// Set the ID of the created resource in the Terraform state
-	d.SetId(strconv.Itoa(createdConfigResponse.ID))
+	// Log successful creation of the site and set the resource ID in Terraform state
+	logging.LogAPICreateSuccess(subCtx, JamfProResourceDiskEncryptionConfiguration, strconv.Itoa(creationResponse.ID))
 
-	// Use the retry function for the read operation to update the Terraform state with the resource attributes
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProDiskEncryptionConfigurationsRead(ctx, d, meta)
+	d.SetId(strconv.Itoa(creationResponse.ID))
+
+	// Retry reading the site to ensure the Terraform state is up to date
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		readDiags := ResourceJamfProDiskEncryptionConfigurationsRead(subCtx, d, meta)
 		if len(readDiags) > 0 {
-			// If readDiags is not empty, it means there's an error, so we retry
-			return retry.RetryableError(fmt.Errorf("failed to read the created resource"))
+			// Log any read errors and return a retryable error to retry the read operation
+			logging.LogTFStateSyncFailedAfterRetry(subSyncCtx, JamfProResourceDiskEncryptionConfiguration, d.Id(), readDiags[0].Summary)
+			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
 		}
+		// Successfully read the site, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		// If there's an error while updating the state for the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update state for")
+		// Log the final state sync failure and append it to the diagnostics
+		logging.LogTFStateSyncFailure(subSyncCtx, JamfProResourceDiskEncryptionConfiguration, err.Error())
+		diags = append(diags, diag.FromErr(err)...)
+	} else {
+		// Log successful state synchronization
+		logging.LogTFStateSyncSuccess(subSyncCtx, JamfProResourceDiskEncryptionConfiguration, d.Id())
 	}
 
 	return diags
@@ -263,85 +263,61 @@ func ResourceJamfProDiskEncryptionConfigurationsCreate(ctx context.Context, d *s
 // ResourceJamfProDiskEncryptionConfigurationsRead is responsible for reading the current state of a Jamf Pro Disk Encryption Configuration resource from Jamf Pro and updating the Terraform state with the retrieved data.
 // The function operates as follows:
 // 1. Attempts to fetch the resource's current state using its ID stored in the Terraform state.
-//    - If the retrieval by ID fails with a 404 error, it attempts to fetch the resource using its name as a fallback.
-//    - Non-404 errors encountered during retrieval by ID or name immediately terminate the retry loop as non-retryable.
+//   - If the retrieval by ID fails with a 404 error, it attempts to fetch the resource using its name as a fallback.
+//   - Non-404 errors encountered during retrieval by ID or name immediately terminate the retry loop as non-retryable.
+//
 // 2. If the resource cannot be found by either ID or name after all retry attempts, and the last error is a 404, the resource is considered deleted outside of Terraform. In this case, the resource ID is cleared from the Terraform state, effectively removing the resource from Terraform management.
-//    - For errors other than 404, diagnostics are returned with the last error encountered.
+//   - For errors other than 404, diagnostics are returned with the last error encountered.
+//
 // 3. Upon successful retrieval, the function updates the Terraform state with the resource's attributes, such as 'name', 'key_type', 'file_vault_enabled_users', and 'institutional_recovery_key'.
-//    - The 'institutional_recovery_key' attribute is handled carefully to account for its optional nature and complex structure.
-
+//   - The 'institutional_recovery_key' attribute is handled carefully to account for its optional nature and complex structure.
 func ResourceJamfProDiskEncryptionConfigurationsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
+	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	var lastError error // Track the last error encountered
+	// Initialize the logging subsystem for the read operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemRead, hclog.Info)
+
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
+	var apiErrorCode int
 	var diskEncryptionConfig *jamfpro.ResourceDiskEncryptionConfiguration
 
-	// Get ID of resource from terraform state
-	configID, err := strconv.Atoi(d.Id())
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		return diag.Errorf("error converting id (%s) to integer: %s", d.Id(), err)
+		// Handle conversion error with structured logging
+		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceDiskEncryptionConfiguration, resourceID, err.Error())
+		return diag.FromErr(err)
 	}
 
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		// Try fetching the disk encryption configuration using the ID
-		diskEncryptionConfig, err = conn.GetDiskEncryptionConfigurationByID(configID)
-		if err != nil {
-			if apiError, ok := err.(*http_client.APIError); !ok || apiError.StatusCode != 404 {
-				lastError = err // Non-404 errors are immediately non-retryable
-				return retry.NonRetryableError(err)
-			}
-
-			// If fetching by ID fails with 404, try fetching by Name
-			configName, ok := d.Get("name").(string)
-			if !ok || configName == "" {
-				lastError = fmt.Errorf("resource not found by ID and no name provided to retry")
-				return retry.NonRetryableError(lastError)
-			}
-
-			diskEncryptionConfig, err = conn.GetDiskEncryptionConfigurationByName(configName)
-			if err != nil {
-				lastError = err // Record the last error encountered
-				if apiError, ok := err.(*http_client.APIError); !ok || apiError.StatusCode != 404 {
-					return retry.NonRetryableError(err) // Non-404 errors are immediately non-retryable
-				}
-				// If also 404 by name, allow retry
-			} else {
-				return nil // Success, exit retry loop
-			}
-		} else {
-			return nil // Success, exit retry loop
+	// Read operation with retry
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		diskEncryptionConfig, apiErr = conn.GetDiskEncryptionConfigurationByID(resourceIDInt)
+		if apiErr != nil {
+			logging.LogFailedReadByID(subCtx, JamfProResourceDiskEncryptionConfiguration, resourceID, apiErr.Error(), apiErrorCode)
+			// Convert any API error into a retryable error to continue retrying
+			return retry.RetryableError(apiErr)
 		}
-
-		return retry.RetryableError(fmt.Errorf("both 'get by ID' and 'get by name' failed, last error: %v", lastError))
+		// Successfully read the account group, exit the retry loop
+		return nil
 	})
 
 	if err != nil {
-		if apiError, ok := lastError.(*http_client.APIError); ok && apiError.StatusCode == 404 {
-			// Detailed logging before clearing the ID
-			tflog.Debug(ctx, fmt.Sprintf("Resource not found by ID or Name, preparing to remove from Terraform state: ID=%s, Last Error=%s", d.Id(), apiError.Error()))
-
-			// Clear the ID to remove the resource from the state
-			d.SetId("")
-
-			// Detailed logging after clearing the ID
-			tflog.Info(ctx, fmt.Sprintf("Successfully removed resource from Terraform state: %s", d.Id()), map[string]interface{}{"resource_id": d.Id()})
-
-			return diags
-		} else {
-			// Log the last error if it's not a 404
-			tflog.Warn(ctx, fmt.Sprintf("Failed to find resource, but error is not a 404: %s", lastError.Error()), map[string]interface{}{"resource_id": d.Id(), "error": lastError.Error()})
-			return diag.FromErr(lastError)
-		}
+		// Handle the final error after all retries have been exhausted
+		d.SetId("") // Remove from Terraform state if unable to read after retries
+		logging.LogTFStateRemovalWarning(subCtx, JamfProResourceDiskEncryptionConfiguration, resourceID)
+		return diag.FromErr(err)
 	}
 
 	// Assuming successful retrieval, proceed to set the resource attributes in Terraform state
-	d.SetId(strconv.Itoa(configID)) // Update the ID in the state
+	d.SetId(strconv.Itoa(resourceIDInt)) // Update the ID in the state
 	d.Set("name", diskEncryptionConfig.Name)
 	d.Set("key_type", diskEncryptionConfig.KeyType)
 	d.Set("file_vault_enabled_users", diskEncryptionConfig.FileVaultEnabledUsers)
@@ -370,126 +346,154 @@ func ResourceJamfProDiskEncryptionConfigurationsRead(ctx context.Context, d *sch
 
 // ResourceJamfProDiskEncryptionConfigurationsUpdate is responsible for updating an existing Jamf Pro Disk Encryption Configuration on the remote system.
 func ResourceJamfProDiskEncryptionConfigurationsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
-	apiclient, ok := meta.(*client.APIClient)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
-	}
-
-	// The apiclient, which is of type *client.APIClient, holds a reference to the Jamf Pro client in its Conn field.
-	// By assigning apiclient.Conn to jamfProClient, we are obtaining the actual Jamf Pro client (*jamfpro.Client)
-	// that will be used for making API calls to the Jamf Pro server.
-	jamfProClient := apiclient.Conn
-
-	// Use the retry function for the update operation
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		// Construct the updated disk encryption configuration
-		diskEncryptionConfig, err := constructDiskEncryptionConfiguration(ctx, d)
-		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the disk encryption configuration for terraform update: %w", err))
-		}
-
-		// Obtain the ID from the Terraform state to be used for the API request
-		configID, err := strconv.Atoi(d.Id())
-		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("error converting id (%s) to integer: %s", d.Id(), err))
-		}
-
-		// Directly call the API to update the resource
-		_, apiErr := jamfProClient.UpdateDiskEncryptionConfigurationByID(configID, diskEncryptionConfig)
-		if apiErr != nil {
-			// Handle the APIError
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-			}
-			// If the update by ID fails, try updating by name
-			configName, ok := d.Get("name").(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string in update"))
-			}
-
-			_, apiErr = jamfProClient.UpdateDiskEncryptionConfigurationByName(configName, diskEncryptionConfig)
-			if apiErr != nil {
-				// Handle the APIError
-				if apiError, ok := apiErr.(*http_client.APIError); ok {
-					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-				}
-				return retry.RetryableError(apiErr)
-			}
-		}
-		return nil
-	})
-
-	// Handle error from the retry function
-	if err != nil {
-		// If there's an error while updating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update")
-	}
-
-	// Use the retry function for the read operation to update the Terraform state
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProDiskEncryptionConfigurationsRead(ctx, d, meta)
-		if len(readDiags) > 0 {
-			return retry.RetryableError(fmt.Errorf("failed to update the Terraform state for the updated resource"))
-		}
-		return nil
-	})
-
-	// Handle error from the retry function
-	if err != nil {
-		// If there's an error while updating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update")
-	}
-
-	return diags
-}
-
-// ResourceJamfProDiskEncryptionConfigurationsDelete is responsible for deleting a Jamf Pro Disk Encryption Configuration.
-func ResourceJamfProDiskEncryptionConfigurationsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the DELETE operation
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		diskEncryptionConfigurationID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse dock item ID: %v", convertErr))
-		}
+	// Initialize the logging subsystem for the update operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemUpdate, hclog.Info)
+	subSyncCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemSync, hclog.Info)
 
-		// Directly call the API to DELETE the resource
-		apiErr := conn.DeleteDiskEncryptionConfigurationByID(diskEncryptionConfigurationID)
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
+	resourceName := d.Get("name").(string)
+	var apiErrorCode int
+
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		// Handle conversion error with structured logging
+		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceDiskEncryptionConfiguration, resourceID, err.Error())
+		return diag.FromErr(err)
+	}
+
+	// Construct the resource object
+	diskEncryptionConfig, err := constructDiskEncryptionConfiguration(subCtx, d)
+	if err != nil {
+		logging.LogTFConstructResourceFailure(subCtx, JamfProResourceDiskEncryptionConfiguration, err.Error())
+		return diag.FromErr(err)
+	}
+	logging.LogTFConstructResourceSuccess(subCtx, JamfProResourceDiskEncryptionConfiguration)
+
+	// Update operations with retries
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+		_, apiErr := conn.UpdateDiskEncryptionConfigurationByID(resourceIDInt, diskEncryptionConfig)
 		if apiErr != nil {
-			// If the DELETE by ID fails, try deleting by name
-			diskEncryptionConfigurationName, ok := d.Get("name").(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
+			if apiError, ok := apiErr.(*http_client.APIError); ok {
+				apiErrorCode = apiError.StatusCode
 			}
 
-			apiErr = conn.DeleteDiskEncryptionConfigurationByName(diskEncryptionConfigurationName)
+			logging.LogAPIUpdateFailureByID(subCtx, JamfProResourceDiskEncryptionConfiguration, resourceID, resourceName, apiErr.Error(), apiErrorCode)
+
+			_, apiErrByName := conn.UpdateDiskEncryptionConfigurationByName(resourceName, diskEncryptionConfig)
+			if apiErrByName != nil {
+				var apiErrByNameCode int
+				if apiErrorByName, ok := apiErrByName.(*http_client.APIError); ok {
+					apiErrByNameCode = apiErrorByName.StatusCode
+				}
+
+				logging.LogAPIUpdateFailureByName(subCtx, JamfProResourceDiskEncryptionConfiguration, resourceName, apiErrByName.Error(), apiErrByNameCode)
+				return retry.RetryableError(apiErrByName)
+			}
+		} else {
+			logging.LogAPIUpdateSuccess(subCtx, JamfProResourceDiskEncryptionConfiguration, resourceID, resourceName)
+		}
+		return nil
+	})
+
+	// Send error to diag.diags
+	if err != nil {
+		logging.LogAPIDeleteFailedAfterRetry(subCtx, JamfProResourceDiskEncryptionConfiguration, resourceID, resourceName, err.Error(), apiErrorCode)
+		diags = append(diags, diag.FromErr(err)...)
+		return diags
+	}
+
+	// Retry reading the Site to synchronize the Terraform state
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		readDiags := ResourceJamfProDiskEncryptionConfigurationsRead(subCtx, d, meta)
+		if len(readDiags) > 0 {
+			logging.LogTFStateSyncFailedAfterRetry(subSyncCtx, JamfProResourceDiskEncryptionConfiguration, resourceID, readDiags[0].Summary)
+			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
+		}
+		return nil
+	})
+
+	if err != nil {
+		logging.LogTFStateSyncFailure(subSyncCtx, JamfProResourceDiskEncryptionConfiguration, err.Error())
+		return diag.FromErr(err)
+	} else {
+		logging.LogTFStateSyncSuccess(subSyncCtx, JamfProResourceDiskEncryptionConfiguration, resourceID)
+	}
+
+	return nil
+}
+
+// ResourceJamfProDiskEncryptionConfigurationsDelete is responsible for deleting a Jamf Pro Disk Encryption Configuration.
+func ResourceJamfProDiskEncryptionConfigurationsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	// Initialize api client
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
+
+	// Initialize the logging subsystem for the delete operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemDelete, hclog.Info)
+
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
+	resourceName := d.Get("name").(string)
+	var apiErrorCode int
+
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		// Handle conversion error with structured logging
+		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceDiskEncryptionConfiguration, resourceID, err.Error())
+		return diag.FromErr(err)
+	}
+
+	// Use the retry function for the delete operation with appropriate timeout
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
+		// Delete By ID
+		apiErr := conn.DeleteDiskEncryptionConfigurationByID(resourceIDInt)
+		if apiErr != nil {
+			if apiError, ok := apiErr.(*http_client.APIError); ok {
+				apiErrorCode = apiError.StatusCode
+			}
+			logging.LogAPIDeleteFailureByID(subCtx, JamfProResourceDiskEncryptionConfiguration, resourceID, resourceName, apiErr.Error(), apiErrorCode)
+
+			// If Delete by ID fails then try Delete by Name
+			apiErr = conn.DeleteDiskEncryptionConfigurationByName(resourceName)
 			if apiErr != nil {
+				var apiErrByNameCode int
+				if apiErrorByName, ok := apiErr.(*http_client.APIError); ok {
+					apiErrByNameCode = apiErrorByName.StatusCode
+				}
+
+				logging.LogAPIDeleteFailureByName(subCtx, JamfProResourceDiskEncryptionConfiguration, resourceName, apiErr.Error(), apiErrByNameCode)
 				return retry.RetryableError(apiErr)
 			}
 		}
 		return nil
 	})
 
-	// Handle error from the retry function
+	// Send error to diag.diags
 	if err != nil {
-		// If there's an error while deleting the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "delete")
+		logging.LogAPIDeleteFailedAfterRetry(subCtx, JamfProResourceDiskEncryptionConfiguration, resourceID, resourceName, err.Error(), apiErrorCode)
+		diags = append(diags, diag.FromErr(err)...)
+		return diags
 	}
+
+	logging.LogAPIDeleteSuccess(subCtx, JamfProResourceDiskEncryptionConfiguration, resourceID, resourceName)
 
 	// Clear the ID from the Terraform state as the resource has been deleted
 	d.SetId("")
 
-	return diags
+	return nil
 }

@@ -28,10 +28,10 @@ func ResourceJamfProPolicies() *schema.Resource {
 		DeleteContext: ResourceJamfProPoliciesDelete,
 		//CustomizeDiff: validateJamfProResourcePolicyDataFields,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Second),
-			Read:   schema.DefaultTimeout(60 * time.Second),
-			Update: schema.DefaultTimeout(60 * time.Second),
-			Delete: schema.DefaultTimeout(60 * time.Second),
+			Create: schema.DefaultTimeout(30 * time.Second),
+			Read:   schema.DefaultTimeout(30 * time.Second),
+			Update: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(30 * time.Second),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,

@@ -28,10 +28,10 @@ func ResourceJamfProDockItems() *schema.Resource {
 		UpdateContext: ResourceJamfProDockItemsUpdate,
 		DeleteContext: ResourceJamfProDockItemsDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(1 * time.Minute),
-			Read:   schema.DefaultTimeout(1 * time.Minute),
-			Update: schema.DefaultTimeout(1 * time.Minute),
-			Delete: schema.DefaultTimeout(1 * time.Minute),
+			Create: schema.DefaultTimeout(30 * time.Second),
+			Read:   schema.DefaultTimeout(30 * time.Second),
+			Update: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(30 * time.Second),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -214,8 +214,9 @@ func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, m
 
 	// Initialize variables
 	var diags diag.Diagnostics
-	resourceID := d.Id()
 	var apiErrorCode int
+	var dockItem *jamfpro.ResourceDockItem
+	resourceID := d.Id()
 
 	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
@@ -225,16 +226,24 @@ func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
-	// read operation
-	dockItem, err := conn.GetDockItemByID(resourceIDInt)
-	if err != nil {
-		if apiError, ok := err.(*http_client.APIError); ok {
-			apiErrorCode = apiError.StatusCode
+	// Read operation with retry
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		dockItem, apiErr = conn.GetDockItemByID(resourceIDInt)
+		if apiErr != nil {
+			logging.LogFailedReadByID(subCtx, JamfProResourceDockItem, resourceID, apiErr.Error(), apiErrorCode)
+			// Convert any API error into a retryable error to continue retrying
+			return retry.RetryableError(apiErr)
 		}
-		logging.LogFailedReadByID(subCtx, JamfProResourceDockItem, resourceID, err.Error(), apiErrorCode)
-		d.SetId("") // Remove from Terraform state
+		// Successfully read the script, exit the retry loop
+		return nil
+	})
+
+	if err != nil {
+		// Handle the final error after all retries have been exhausted
+		d.SetId("") // Remove from Terraform state if unable to read after retries
 		logging.LogTFStateRemovalWarning(subCtx, JamfProResourceDockItem, resourceID)
-		return diags
+		return diag.FromErr(err)
 	}
 
 	// Check if dockItem data exists
