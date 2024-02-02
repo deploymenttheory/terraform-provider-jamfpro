@@ -3,15 +3,17 @@ package computercheckin
 
 import (
 	"context"
+	"encoding/xml"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -108,8 +110,15 @@ func ResourceJamfProComputerCheckin() *schema.Resource {
 	}
 }
 
+const (
+	JamfProResourceComputerCheckin = "Computer Checkin"
+)
+
 // constructComputerCheckin constructs a ResourceComputerCheckin object from the provided schema data.
-func constructComputerCheckin(d *schema.ResourceData) (*jamfpro.ResourceComputerCheckin, error) {
+func constructComputerCheckin(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceComputerCheckin, error) {
+	// Initialize the logging subsystem for the construction operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemConstruct, hclog.Debug)
+
 	checkin := &jamfpro.ResourceComputerCheckin{}
 
 	// Utilize type assertion helper functions for direct field extraction
@@ -125,8 +134,15 @@ func constructComputerCheckin(d *schema.ResourceData) (*jamfpro.ResourceComputer
 	// Note: "apply_user_level_managed_preferences", "hide_restore_partition", and "perform_login_actions_in_background" are computed, not set directly
 	checkin.DisplayStatusToUser = util.GetBoolFromInterface(d.Get("display_status_to_user"))
 
-	// Log the successful construction of the checkin configuration
-	log.Printf("[INFO] Successfully constructed ComputerCheckin")
+	// Serialize and pretty-print the site object as XML
+	resourceXML, err := xml.MarshalIndent(checkin, "", "  ")
+	if err != nil {
+		logging.LogTFConstructResourceXMLMarshalFailure(subCtx, JamfProResourceComputerCheckin, err.Error())
+		return nil, err
+	}
+
+	// Log the successful construction and serialization to XML
+	logging.LogTFConstructedXMLResource(subCtx, JamfProResourceComputerCheckin, string(resourceXML))
 
 	return checkin, nil
 }
@@ -161,37 +177,67 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 // this function will simply set the initial state in Terraform.
 // ResourceJamfProComputerCheckinCreate is responsible for initializing the Jamf Pro computer check-in configuration in Terraform.
 func ResourceJamfProComputerCheckinCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Construct the computer check-in configuration
-	checkinConfig, err := constructComputerCheckin(d)
+	// Initialize the logging subsystem for the update operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemUpdate, hclog.Info)
+	subSyncCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemSync, hclog.Info)
+
+	// Initialize variables
+	var diags diag.Diagnostics
+	var apiErrorCode int
+	resourceID := d.Id()
+	resourceName := "jamfpro_computer_checkin_singleton"
+
+	// Construct the resource object
+	checkinConfig, err := constructComputerCheckin(subCtx, d)
 	if err != nil {
+		logging.LogTFConstructResourceFailure(subCtx, JamfProResourceComputerCheckin, err.Error())
 		return diag.FromErr(err)
 	}
+	logging.LogTFConstructResourceSuccess(subCtx, JamfProResourceComputerCheckin)
 
-	// Log the attempt to initialize the configuration
-	log.Printf("[INFO] Initializing Jamf Pro Computer Checkin Configuration")
+	// Update operations with retries
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+		apiErr := conn.UpdateComputerCheckinInformation(checkinConfig)
+		if apiErr != nil {
+			if apiError, ok := apiErr.(*http_client.APIError); ok {
+				apiErrorCode = apiError.StatusCode
+			}
+			logging.LogAPIUpdateFailureByID(subCtx, JamfProResourceComputerCheckin, resourceID, resourceName, apiErr.Error(), apiErrorCode)
+			return retry.RetryableError(apiErr)
+		}
+		logging.LogAPIUpdateSuccess(subCtx, JamfProResourceComputerCheckin, resourceID, resourceName)
+		return nil
+	})
 
-	// Call the API to set the initial state (using update func as the only api option available)
-	apiErr := conn.UpdateComputerCheckinInformation(checkinConfig)
-	if apiErr != nil {
-		return diag.FromErr(fmt.Errorf("failed to initialize Computer Checkin Configuration in Jamf Pro: %w", apiErr))
+	// Send error to diag.diags
+	if err != nil {
+		logging.LogAPIDeleteFailedAfterRetry(subCtx, JamfProResourceComputerCheckin, resourceID, resourceName, err.Error(), apiErrorCode)
+		diags = append(diags, diag.FromErr(err)...)
+		return diags
 	}
 
-	// Set a constant ID to satisfy Terraform's requirement for a resource ID
-	d.SetId("jamfpro_computer_checkin_singleton")
+	// Retry reading the resource to synchronize the Terraform state
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		readDiags := ResourceJamfProComputerCheckinRead(subCtx, d, meta)
+		if len(readDiags) > 0 {
+			logging.LogTFStateSyncFailedAfterRetry(subSyncCtx, JamfProResourceComputerCheckin, resourceID, readDiags[0].Summary)
+			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
+		}
+		return nil
+	})
 
-	// Perform a read operation to sync the current state from Jamf Pro
-	readDiags := ResourceJamfProComputerCheckinRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		return readDiags
+	if err != nil {
+		logging.LogTFStateSyncFailure(subSyncCtx, JamfProResourceComputerCheckin, err.Error())
+		return diag.FromErr(err)
+	} else {
+		logging.LogTFStateSyncSuccess(subSyncCtx, JamfProResourceComputerCheckin, resourceID)
 	}
 
 	return diags
@@ -261,53 +307,67 @@ func ResourceJamfProComputerCheckinRead(ctx context.Context, d *schema.ResourceD
 
 // ResourceJamfProComputerCheckinUpdate is responsible for updating the Jamf Pro computer check-in configuration.
 func ResourceJamfProComputerCheckinUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the update operation
-	var err error
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		// Construct the updated computer check-in configuration
-		checkinConfig, err := constructComputerCheckin(d)
-		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the computer check-in configuration for terraform update: %w", err))
-		}
+	// Initialize the logging subsystem for the update operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemUpdate, hclog.Info)
+	subSyncCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemSync, hclog.Info)
 
-		// Directly call the SDK API to update the configuration
+	// Initialize variables
+	var diags diag.Diagnostics
+	var apiErrorCode int
+	resourceID := d.Id()
+	resourceName := "jamfpro_computer_checkin_singleton"
+
+	// Construct the resource object
+	checkinConfig, err := constructComputerCheckin(subCtx, d)
+	if err != nil {
+		logging.LogTFConstructResourceFailure(subCtx, JamfProResourceComputerCheckin, err.Error())
+		return diag.FromErr(err)
+	}
+	logging.LogTFConstructResourceSuccess(subCtx, JamfProResourceComputerCheckin)
+
+	// Update operations with retries
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		apiErr := conn.UpdateComputerCheckinInformation(checkinConfig)
 		if apiErr != nil {
-			// Wrap the error with additional context for clarity
-			return retry.NonRetryableError(fmt.Errorf("failed to update Computer Checkin settings in Jamf Pro: %w", apiErr))
+			if apiError, ok := apiErr.(*http_client.APIError); ok {
+				apiErrorCode = apiError.StatusCode
+			}
+			logging.LogAPIUpdateFailureByID(subCtx, JamfProResourceComputerCheckin, resourceID, resourceName, apiErr.Error(), apiErrorCode)
+			return retry.RetryableError(apiErr)
 		}
-
+		logging.LogAPIUpdateSuccess(subCtx, JamfProResourceComputerCheckin, resourceID, resourceName)
 		return nil
 	})
 
-	// Handle error from the retry function
+	// Send error to diag.diags
 	if err != nil {
-		// If there's an error while updating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update")
+		logging.LogAPIDeleteFailedAfterRetry(subCtx, JamfProResourceComputerCheckin, resourceID, resourceName, err.Error(), apiErrorCode)
+		diags = append(diags, diag.FromErr(err)...)
+		return diags
 	}
 
-	// Use the retry function for the read operation to update the Terraform state
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProComputerCheckinRead(ctx, d, meta)
+	// Retry reading the resource to synchronize the Terraform state
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		readDiags := ResourceJamfProComputerCheckinRead(subCtx, d, meta)
 		if len(readDiags) > 0 {
-			return retry.RetryableError(fmt.Errorf("failed to update the Terraform state for the updated resource"))
+			logging.LogTFStateSyncFailedAfterRetry(subSyncCtx, JamfProResourceComputerCheckin, resourceID, readDiags[0].Summary)
+			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
 		}
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while updating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update")
+		logging.LogTFStateSyncFailure(subSyncCtx, JamfProResourceComputerCheckin, err.Error())
+		return diag.FromErr(err)
+	} else {
+		logging.LogTFStateSyncSuccess(subSyncCtx, JamfProResourceComputerCheckin, resourceID)
 	}
 
 	return diags
