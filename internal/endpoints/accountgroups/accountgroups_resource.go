@@ -327,9 +327,9 @@ func ResourceJamfProAccountGroupRead(ctx context.Context, d *schema.ResourceData
 
 	// Initialize variables
 	var diags diag.Diagnostics
-	resourceID := d.Id()
 	var apiErrorCode int
 	var accountGroup *jamfpro.ResourceAccountGroup
+	resourceID := d.Id()
 
 	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)

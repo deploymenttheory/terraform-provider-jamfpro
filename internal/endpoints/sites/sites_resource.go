@@ -182,6 +182,7 @@ func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta 
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 	var apiErrorCode int
+	var site *jamfpro.SharedResourceSite
 
 	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
@@ -191,17 +192,24 @@ func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.FromErr(err)
 	}
 
-	// read operation
-
-	site, err := conn.GetSiteByID(resourceIDInt)
-	if err != nil {
-		if apiError, ok := err.(*http_client.APIError); ok {
-			apiErrorCode = apiError.StatusCode
+	// Read operation with retry
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		site, apiErr = conn.GetSiteByID(resourceIDInt)
+		if apiErr != nil {
+			logging.LogFailedReadByID(subCtx, JamfProResourceSite, resourceID, apiErr.Error(), apiErrorCode)
+			// Convert any API error into a retryable error to continue retrying
+			return retry.RetryableError(apiErr)
 		}
-		logging.LogFailedReadByID(subCtx, JamfProResourceSite, resourceID, err.Error(), apiErrorCode)
-		d.SetId("") // Remove from Terraform state
+		// Successfully read the account group, exit the retry loop
+		return nil
+	})
+
+	if err != nil {
+		// Handle the final error after all retries have been exhausted
+		d.SetId("") // Remove from Terraform state if unable to read after retries
 		logging.LogTFStateRemovalWarning(subCtx, JamfProResourceSite, resourceID)
-		return diags
+		return diag.FromErr(err)
 	}
 
 	// Assuming successful read if no error
