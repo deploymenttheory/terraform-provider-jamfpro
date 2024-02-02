@@ -3,16 +3,18 @@ package allowedfileextensions
 
 import (
 	"context"
+	"encoding/xml"
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -44,42 +46,30 @@ func ResourceJamfProAllowedFileExtensions() *schema.Resource {
 	}
 }
 
+const (
+	JamfProResourceAllowedFileExtension = "Allowed File Extension"
+)
+
 // constructAllowedFileExtension creates a new ResourceAllowedFileExtension instance from Terraform data.
-func constructAllowedFileExtension(d *schema.ResourceData) (*jamfpro.ResourceAllowedFileExtension, error) {
-	extension := &jamfpro.ResourceAllowedFileExtension{}
+func constructAllowedFileExtension(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceAllowedFileExtension, error) {
+	// Initialize the logging subsystem for the construction operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemConstruct, hclog.Debug)
 
-	// Utilize type assertion helper functions for direct field extraction
-	extension.Extension = util.GetStringFromInterface(d.Get("extension"))
-
-	// Log the successful construction of the file extension
-	log.Printf("[INFO] Successfully constructed Allowed File Extension: %s", extension.Extension)
-
-	return extension, nil
-}
-
-// Helper function to generate diagnostics based on the error type.
-func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
-	var diags diag.Diagnostics
-	resourceName, exists := d.GetOk("name")
-	if !exists {
-		resourceName = "unknown"
+	allowedFileExtension := &jamfpro.ResourceAllowedFileExtension{
+		Extension: util.GetStringFromInterface(d.Get("extension")),
 	}
 
-	// Handle the APIError in the diagnostic
-	if apiErr, ok := err.(*http_client.APIError); ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
-		})
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   err.Error(),
-		})
+	// Serialize and pretty-print the site object as XML
+	resourceXML, err := xml.MarshalIndent(allowedFileExtension, "", "  ")
+	if err != nil {
+		logging.LogTFConstructResourceXMLMarshalFailure(subCtx, JamfProResourceAllowedFileExtension, err.Error())
+		return nil, err
 	}
-	return diags
+
+	// Log the successful construction and serialization to XML
+	logging.LogTFConstructedXMLResource(subCtx, JamfProResourceAllowedFileExtension, string(resourceXML))
+
+	return allowedFileExtension, nil
 }
 
 // ResourceJamfProAllowedFileExtensionCreate is responsible for creating a new AllowedFileExtension in the remote system.
@@ -89,60 +79,79 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 // 3. Updates the Terraform state with the ID of the newly created AllowedFileExtension.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProAllowedFileExtensionCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Assert the meta interface to the expected APIClient type
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the create operation
-	var createdAllowedFileExtension *jamfpro.ResourceAllowedFileExtension
-	var err error
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		// Construct the AllowedFileExtension
-		AllowedFileExtension, err := constructAllowedFileExtension(d)
-		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the Allowed File Extension for terraform create: %w", err))
-		}
+	// Initialize variables
+	var diags diag.Diagnostics
+	var creationResponse *jamfpro.ResourceAllowedFileExtension
+	var apiErrorCode int
+	resourceName := d.Get("extension").(string)
 
-		// Directly call the API to create the resource
-		createdAllowedFileExtension, err = conn.CreateAllowedFileExtension(AllowedFileExtension)
-		if err != nil {
-			// Check if the error is an APIError
-			if apiErr, ok := err.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message))
+	// Initialize the logging subsystem with the create operation context
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemCreate, hclog.Info)
+	subSyncCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemSync, hclog.Info)
+
+	// Construct the allowedFileExtension object outside the retry loop to avoid reconstructing it on each retry
+	allowedFileExtension, err := constructAllowedFileExtension(subCtx, d)
+	if err != nil {
+		logging.LogTFConstructResourceFailure(subCtx, JamfProResourceAllowedFileExtension, err.Error())
+		return diag.FromErr(err)
+	}
+	logging.LogTFConstructResourceSuccess(subCtx, JamfProResourceAllowedFileExtension)
+
+	// Retry the API call to create the allowedFileExtension in Jamf Pro
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		var apiErr error
+		creationResponse, apiErr = conn.CreateAllowedFileExtension(allowedFileExtension)
+		if apiErr != nil {
+			// Extract and log the API error code if available
+			if apiError, ok := apiErr.(*http_client.APIError); ok {
+				apiErrorCode = apiError.StatusCode
 			}
-			// For simplicity, we're considering all other errors as retryable
-			return retry.RetryableError(err)
+			logging.LogAPICreateFailedAfterRetry(subCtx, JamfProResourceAllowedFileExtension, resourceName, apiErr.Error(), apiErrorCode)
+			// Return a non-retryable error to break out of the retry loop
+			return retry.NonRetryableError(apiErr)
 		}
-
+		// No error, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		// If there's an error while creating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "create")
+		// Log the final error and append it to the diagnostics
+		logging.LogAPICreateFailure(subCtx, JamfProResourceAllowedFileExtension, err.Error(), apiErrorCode)
+		diags = append(diags, diag.FromErr(err)...)
+		return diags
 	}
 
-	// Set the ID of the created resource in the Terraform state
-	d.SetId(strconv.Itoa(createdAllowedFileExtension.ID))
+	// Log successful creation of the allowedFileExtension and set the resource ID in Terraform state
+	logging.LogAPICreateSuccess(subCtx, JamfProResourceAllowedFileExtension, strconv.Itoa(creationResponse.ID))
 
-	// Use the retry function for the read operation to update the Terraform state with the resource attributes
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProAllowedFileExtensionRead(ctx, d, meta)
+	d.SetId(strconv.Itoa(creationResponse.ID))
+
+	// Retry reading the allowedFileExtension to ensure the Terraform state is up to date
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		readDiags := ResourceJamfProAllowedFileExtensionRead(subCtx, d, meta)
 		if len(readDiags) > 0 {
-			// If readDiags is not empty, it means there's an error, so we retry
-			return retry.RetryableError(fmt.Errorf("failed to read the created resource"))
+			// Log any read errors and return a retryable error to retry the read operation
+			logging.LogTFStateSyncFailedAfterRetry(subSyncCtx, JamfProResourceAllowedFileExtension, d.Id(), readDiags[0].Summary)
+			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
 		}
+		// Successfully read the allowedFileExtension, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		// If there's an error while updating the state for the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update state for")
+		// Log the final state sync failure and append it to the diagnostics
+		logging.LogTFStateSyncFailure(subSyncCtx, JamfProResourceAllowedFileExtension, err.Error())
+		diags = append(diags, diag.FromErr(err)...)
+	} else {
+		// Log successful state synchronization
+		logging.LogTFStateSyncSuccess(subSyncCtx, JamfProResourceAllowedFileExtension, d.Id())
 	}
 
 	return diags
@@ -154,59 +163,56 @@ func ResourceJamfProAllowedFileExtensionCreate(ctx context.Context, d *schema.Re
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the Allowed File Extension being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProAllowedFileExtensionRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
+	// Initialize the logging subsystem for the read operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemRead, hclog.Info)
+
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
+	var apiErrorCode int
 	var allowedFileExtension *jamfpro.ResourceAllowedFileExtension
 
-	// Use the retry function for the read operation
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		// Handle conversion error with structured logging
+		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceAllowedFileExtension, resourceID, err.Error())
+		return diag.FromErr(err)
+	}
 
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		allowedFileExtensionID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse allowed file extension ID: %v", convertErr))
-		}
-
-		// Try fetching the AllowedFileExtension using the ID
+	// Read operation with retry
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		allowedFileExtension, apiErr = conn.GetAllowedFileExtensionByID(allowedFileExtensionID)
+		allowedFileExtension, apiErr = conn.GetAllowedFileExtensionByID(resourceIDInt)
 		if apiErr != nil {
-			// Handle the APIError
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-			}
-			// If fetching by ID fails, try fetching by Name
-			allowedFileExtensionName, ok := d.Get("name").(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
-			}
-
-			allowedFileExtension, apiErr = conn.GetAllowedFileExtensionByName(allowedFileExtensionName)
-			if apiErr != nil {
-				// Handle the APIError
-				if apiError, ok := apiErr.(*http_client.APIError); ok {
-					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-				}
-				return retry.RetryableError(apiErr)
-			}
+			logging.LogFailedReadByID(subCtx, JamfProResourceAllowedFileExtension, resourceID, apiErr.Error(), apiErrorCode)
+			// Convert any API error into a retryable error to continue retrying
+			return retry.RetryableError(apiErr)
 		}
+		// Successfully read the account group, exit the retry loop
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while reading the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "read")
+		// Handle the final error after all retries have been exhausted
+		d.SetId("") // Remove from Terraform state if unable to read after retries
+		logging.LogTFStateRemovalWarning(subCtx, JamfProResourceAllowedFileExtension, resourceID)
+		return diag.FromErr(err)
 	}
 
-	// Update the Terraform state with the fetched data
+	// Assuming successful read if no error
+	logging.LogAPIReadSuccess(subCtx, JamfProResourceAllowedFileExtension, resourceID)
+
+	if err := d.Set("id", resourceID); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 	if err := d.Set("extension", allowedFileExtension.Extension); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -229,99 +235,70 @@ func ResourceJamfProAllowedFileExtensionUpdate(ctx context.Context, d *schema.Re
 	return createDiags
 }
 
-func ResourceJamfProAccountDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
-	apiclient, ok := meta.(*client.APIClient)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
-	}
-	conn := apiclient.Conn
-
-	// Use the retry function for the delete operation
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// Obtain the ID from the Terraform state to be used for the API request
-		accountID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse dock item ID: %v", convertErr))
-		}
-
-		// Directly call the API to delete the resource
-		apiErr := conn.DeleteAccountByID(accountID)
-		if apiErr != nil {
-			// If the delete by ID fails, try deleting by name
-			accountName, ok := d.Get("name").(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
-			}
-
-			apiErr = conn.DeleteAccountByName(accountName)
-			if apiErr != nil {
-				return retry.RetryableError(apiErr)
-			}
-		}
-		return nil
-	})
-
-	// Handle error from the retry function
-	if err != nil {
-		// If there's an error while deleting the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "delete")
-	}
-
-	// Clear the ID from the Terraform state as the resource has been deleted
-	d.SetId("")
-
-	return diags
-}
-
 // ResourceJamfProAllowedFileExtensionDelete is responsible for deleting an Allowed File Extension in Jamf Pro.
 // This function will delete the resource based on its ID from the Terraform state.
 // If the resource cannot be found by ID, it will attempt to delete by the 'extension' attribute.
 func ResourceJamfProAllowedFileExtensionDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the delete operation
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// Obtain the ID from the Terraform state to be used for the API request
-		allowedFileExtensionID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse allowed file extension ID: %v", convertErr))
-		}
+	// Initialize the logging subsystem for the delete operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemDelete, hclog.Info)
 
-		// Directly call the API to delete the resource
-		apiErr := conn.DeleteAllowedFileExtensionByID(allowedFileExtensionID)
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
+	resourceName := d.Get("extension").(string)
+	var apiErrorCode int
+
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		// Handle conversion error with structured logging
+		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceAllowedFileExtension, resourceID, err.Error())
+		return diag.FromErr(err)
+	}
+
+	// Use the retry function for the delete operation with appropriate timeout
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
+		// Delete By ID
+		apiErr := conn.DeleteAllowedFileExtensionByID(resourceIDInt)
 		if apiErr != nil {
-			// If the delete by ID fails, try deleting by extension name
-			allowedFileExtensionName, ok := d.Get("extension").(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'extension' as a string"))
+			if apiError, ok := apiErr.(*http_client.APIError); ok {
+				apiErrorCode = apiError.StatusCode
 			}
+			logging.LogAPIDeleteFailureByID(subCtx, JamfProResourceAllowedFileExtension, resourceID, resourceName, apiErr.Error(), apiErrorCode)
 
-			apiErr = conn.DeleteAllowedFileExtensionByName(allowedFileExtensionName)
+			// If Delete by ID fails then try Delete by Name
+			apiErr = conn.DeleteAllowedFileExtensionByName(resourceName)
 			if apiErr != nil {
+				var apiErrByNameCode int
+				if apiErrorByName, ok := apiErr.(*http_client.APIError); ok {
+					apiErrByNameCode = apiErrorByName.StatusCode
+				}
+
+				logging.LogAPIDeleteFailureByName(subCtx, JamfProResourceAllowedFileExtension, resourceName, apiErr.Error(), apiErrByNameCode)
 				return retry.RetryableError(apiErr)
 			}
 		}
 		return nil
 	})
 
-	// Handle error from the retry function
+	// Send error to diag.diags
 	if err != nil {
-		// If there's an error while deleting the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "delete")
+		logging.LogAPIDeleteFailedAfterRetry(subCtx, JamfProResourceAllowedFileExtension, resourceID, resourceName, err.Error(), apiErrorCode)
+		diags = append(diags, diag.FromErr(err)...)
+		return diags
 	}
+
+	logging.LogAPIDeleteSuccess(subCtx, JamfProResourceAllowedFileExtension, resourceID, resourceName)
 
 	// Clear the ID from the Terraform state as the resource has been deleted
 	d.SetId("")
 
-	return diags
+	return nil
 }
