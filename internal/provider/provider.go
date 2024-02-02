@@ -153,7 +153,7 @@ func Provider() *schema.Provider {
 			"jamfpro_dock_items":                      dockitems.ResourceJamfProDockItems(),
 			"jamfpro_sites":                           sites.ResourceJamfProSites(),
 			"jamfpro_scripts":                         scripts.ResourceJamfProScripts(),
-			//"jamfpro_macos_configuration_profiles":  macosconfigurationprofiles.ResourceJamfProMacOSConfigurationProfiles(),
+			//"jamfpro_macos_configuration_profiles":    macosconfigurationprofiles.ResourceJamfProMacOSConfigurationProfiles(),
 			"jamfpro_policies": policies.ResourceJamfProPolicies(),
 			"jamfpro_printers": printers.ResourceJamfProPrinters(),
 		},
