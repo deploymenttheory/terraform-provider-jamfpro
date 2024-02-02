@@ -293,7 +293,7 @@ func ResourceJamfProSitesUpdate(ctx context.Context, d *schema.ResourceData, met
 		return diags
 	}
 
-	// Retry reading the Site to synchronize the Terraform state
+	// Retry reading the resource to synchronize the Terraform state
 	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		readDiags := ResourceJamfProSitesRead(subCtx, d, meta)
 		if len(readDiags) > 0 {
