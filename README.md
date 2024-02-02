@@ -93,6 +93,7 @@ No modules.
 The provider currently has working coverage of the following jamf pro resource types
 
 - account groups
+- allowed file extensions
 - departments
 - disk encryption configurations
 - dock items
