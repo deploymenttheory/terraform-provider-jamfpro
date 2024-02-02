@@ -65,9 +65,9 @@ type Change struct {
 	Actions         []string               `json:"actions"`
 	Before          map[string]interface{} `json:"before"`
 	After           map[string]interface{} `json:"after"`
-	AfterUnknown    map[string]bool        `json:"after_unknown"`
+	AfterUnknown    map[string]interface{} `json:"after_unknown"`
 	BeforeSensitive bool                   `json:"before_sensitive"`
-	AfterSensitive  map[string]bool        `json:"after_sensitive"`
+	AfterSensitive  map[string]interface{} `json:"after_sensitive"`
 }
 
 // Configuration
@@ -148,12 +148,20 @@ func main() {
 		return
 	}
 
+	// Specify the resource types to validate duplicates for
+	interestedResourceTypes := map[string]bool{
+		"jamfpro_sites":           true,
+		"jamfpro_computer_groups": true,
+		"jamfpro_dock_items":      true,
+		// Add more resource types as needed
+	}
+
 	// Store resource names and their occurrences
 	resourceNames := make(map[string]int)
 
 	// Iterate over resources in the plan
 	for _, resource := range plan.PlannedValues.RootModule.Resources {
-		if resource.Type == "jamfpro_sites" {
+		if _, ok := interestedResourceTypes[resource.Type]; ok {
 			resourceNames[resource.Values.Name]++
 		}
 	}

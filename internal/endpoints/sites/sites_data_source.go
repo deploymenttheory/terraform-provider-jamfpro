@@ -20,12 +20,14 @@ func DataSourceJamfProSites() *schema.Resource {
 		ReadContext: dataSourceJamfProSitesRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:        schema.TypeInt,
+				Type:        schema.TypeString,
+				Optional:    true,
 				Computed:    true,
 				Description: "The unique identifier of the Jamf Pro site.",
 			},
 			"name": {
 				Type:        schema.TypeString,
+				Optional:    true,
 				Computed:    true,
 				Description: "The unique name of the Jamf Pro site.",
 			},
@@ -64,8 +66,8 @@ func dataSourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, met
 	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		// Handle conversion error
-		logging.LogFailedReadByID(subCtx, JamfProResourceSite, resourceID, "Invalid resource ID format", 0)
+		// Handle conversion error with structured logging
+		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceSite, resourceID, err.Error())
 		return diag.FromErr(err)
 	}
 

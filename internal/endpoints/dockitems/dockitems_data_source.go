@@ -3,12 +3,13 @@ package dockitems
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -49,56 +50,58 @@ func DataSourceJamfProDockItems() *schema.Resource {
 
 // dataSourceJamfProDockItemsRead fetches the details of specific dock items from Jamf Pro using either their unique Name or Id.
 func dataSourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	var dockItem *jamfpro.ResourceDockItem
-	var err error
+	// Initialize the logging subsystem for the read operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemRead, hclog.Info)
 
-	// Check if Name is provided in the data source configuration
-	if v, ok := d.GetOk("name"); ok && v.(string) != "" {
-		dockItemName := v.(string)
-		dockItem, err = conn.GetDockItemByName(dockItemName)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to fetch dock item by name: %v", err))
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
+	var apiErrorCode int
+
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		// Handle conversion error with structured logging
+		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceDockItem, resourceID, err.Error())
+		return diag.FromErr(err)
+	}
+
+	// read operation
+	dockItem, err := conn.GetDockItemByID(resourceIDInt)
+	if err != nil {
+		if apiError, ok := err.(*http_client.APIError); ok {
+			apiErrorCode = apiError.StatusCode
 		}
-	} else if v, ok := d.GetOk("id"); ok {
-		dockItemID, err := strconv.Atoi(v.(string))
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to parse dock item ID: %v", err))
+		logging.LogFailedReadByID(subCtx, JamfProResourceDockItem, resourceID, err.Error(), apiErrorCode)
+		return diags
+	}
+
+	// Check if dockItem data exists
+	if dockItem != nil {
+		// Set the fields directly in the Terraform state
+		if err := d.Set("id", strconv.Itoa(dockItem.ID)); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
 		}
-		dockItem, err = conn.GetDockItemByID(dockItemID)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to fetch dock item by ID: %v", err))
+		if err := d.Set("name", dockItem.Name); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
 		}
-	} else {
-		return diag.Errorf("Either 'name' or 'id' must be provided")
+		if err := d.Set("type", dockItem.Type); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+		if err := d.Set("path", dockItem.Path); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+		if err := d.Set("contents", dockItem.Contents); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
-	if dockItem == nil {
-		return diag.FromErr(fmt.Errorf("dock item not found"))
-	}
-
-	// Set the data source attributes using the fetched data
-	if err := d.Set("name", dockItem.Name); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'name': %v", err))
-	}
-	if err := d.Set("type", dockItem.Type); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'type': %v", err))
-	}
-	if err := d.Set("path", dockItem.Path); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'path': %v", err))
-	}
-	if err := d.Set("contents", dockItem.Contents); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'contents': %v", err))
-	}
-
-	// Set the Terraform state ID for the dock item
-	d.SetId(fmt.Sprintf("%d", dockItem.ID))
-
-	return nil
-
+	return diags
 }

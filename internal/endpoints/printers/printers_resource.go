@@ -173,6 +173,7 @@ func ResourceJamfProPrintersCreate(ctx context.Context, d *schema.ResourceData, 
 	var diags diag.Diagnostics
 	var creationResponse *jamfpro.ResponsePrinterCreateAndUpdate
 	var apiErrorCode int
+	resourceName := d.Get("name").(string)
 
 	// Initialize the logging subsystem with the create operation context
 	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemCreate, hclog.Info)
@@ -195,7 +196,7 @@ func ResourceJamfProPrintersCreate(ctx context.Context, d *schema.ResourceData, 
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
-			logging.LogAPICreateFailure(subCtx, JamfProResourcePrinter, apiErr.Error(), apiErrorCode)
+			logging.LogAPICreateFailedAfterRetry(subCtx, JamfProResourcePrinter, resourceName, apiErr.Error(), apiErrorCode)
 			// Return a non-retryable error to break out of the retry loop
 			return retry.NonRetryableError(apiErr)
 		}
@@ -264,22 +265,29 @@ func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, me
 	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		// Handle conversion error
-		logging.LogFailedReadByID(subCtx, JamfProResourcePrinter, resourceID, "Invalid resource ID format", 0)
+		// Handle conversion error with structured logging
+		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourcePrinter, resourceID, err.Error())
 		return diag.FromErr(err)
 	}
 
-	// read operation
-
-	printer, err = conn.GetPrinterByID(resourceIDInt)
-	if err != nil {
-		if apiError, ok := err.(*http_client.APIError); ok {
-			apiErrorCode = apiError.StatusCode
+	// Read operation with retry
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		printer, apiErr = conn.GetPrinterByID(resourceIDInt)
+		if apiErr != nil {
+			logging.LogFailedReadByID(subCtx, JamfProResourcePrinter, resourceID, apiErr.Error(), apiErrorCode)
+			// Convert any API error into a retryable error to continue retrying
+			return retry.RetryableError(apiErr)
 		}
-		logging.LogFailedReadByID(subCtx, JamfProResourcePrinter, resourceID, err.Error(), apiErrorCode)
-		d.SetId("") // Remove from Terraform state
+		// Successfully read the printer, exit the retry loop
+		return nil
+	})
+
+	if err != nil {
+		// Handle the final error after all retries have been exhausted
+		d.SetId("") // Remove from Terraform state if unable to read after retries
 		logging.LogTFStateRemovalWarning(subCtx, JamfProResourcePrinter, resourceID)
-		return diags
+		return diag.FromErr(err)
 	}
 
 	// Assuming successful read if no error
@@ -355,8 +363,8 @@ func ResourceJamfProPrintersUpdate(ctx context.Context, d *schema.ResourceData, 
 	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		// Handle conversion error
-		logging.LogFailedReadByID(subCtx, JamfProResourcePrinter, resourceID, "Invalid resource ID format", 0)
+		// Handle conversion error with structured logging
+		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourcePrinter, resourceID, err.Error())
 		return diag.FromErr(err)
 	}
 
@@ -442,8 +450,8 @@ func ResourceJamfProPrintersDelete(ctx context.Context, d *schema.ResourceData, 
 	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		// Handle conversion error
-		logging.LogFailedReadByID(subCtx, JamfProResourcePrinter, resourceID, "Invalid resource ID format", 0)
+		// Handle conversion error with structured logging
+		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourcePrinter, resourceID, err.Error())
 		return diag.FromErr(err)
 	}
 

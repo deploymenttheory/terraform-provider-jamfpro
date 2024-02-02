@@ -24,6 +24,7 @@ const (
 	SubsystemInit       LogSubsystem = "init"       // For provider initialization
 	SubsystemCleanup    LogSubsystem = "cleanup"    // For cleanup operations
 	SubsystemConstruct  LogSubsystem = "construct"  // For resource construction operations
+	SubsystemGeneral    LogSubsystem = "general"
 	// Add more subsystems as needed
 )
 

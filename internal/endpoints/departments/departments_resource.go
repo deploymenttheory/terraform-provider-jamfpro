@@ -93,26 +93,11 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 	var diags diag.Diagnostics
 	var creationResponse *jamfpro.ResponseDepartmentCreate
 	var apiErrorCode int
+	resourceName := d.Get("name").(string)
 
 	// Initialize the logging subsystem with the create operation context
 	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemCreate, hclog.Info)
 	subSyncCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemSync, hclog.Info)
-
-	// // Handle duplicates
-	// departmentsList, err := conn.GetDepartments("")
-	// if err != nil {
-	// 	return diag.FromErr(fmt.Errorf("failed to retrieve departments list: %s", err))
-	// }
-
-	// departmentName := util.GetStringFromInterface(d.Get("name"))
-	// for _, department := range departmentsList.Results {
-	// 	if department.Name == departmentName {
-
-	// 		errMsg := fmt.Sprintf("A department with the name '%s' already exists. Department names must be unique.", departmentName)
-	// 		logging.LogTFResourceDuplicateName(subCtx, JamfProResourceDepartment, departmentName)
-	// 		return diag.Errorf(errMsg)
-	// 	}
-	// }
 
 	// Construct the department object outside the retry loop to avoid reconstructing it on each retry
 	department, err := constructJamfProDepartment(subCtx, d)
@@ -131,7 +116,7 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
-			logging.LogAPICreateFailure(subCtx, JamfProResourceDepartment, apiErr.Error(), apiErrorCode)
+			logging.LogAPICreateFailedAfterRetry(subCtx, JamfProResourceDepartment, resourceName, apiErr.Error(), apiErrorCode)
 			// Return a non-retryable error to break out of the retry loop
 			return retry.NonRetryableError(apiErr)
 		}
@@ -192,20 +177,28 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 
 	// Initialize variables
 	var diags diag.Diagnostics
-	resourceID := d.Id()
 	var apiErrorCode int
+	var department *jamfpro.ResourceDepartment
+	resourceID := d.Id()
 
-	// read operation
-
-	department, err := conn.GetDepartmentByID(resourceID)
-	if err != nil {
-		if apiError, ok := err.(*http_client.APIError); ok {
-			apiErrorCode = apiError.StatusCode
+	// Read operation with retry
+	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		department, apiErr = conn.GetDepartmentByID(resourceID)
+		if apiErr != nil {
+			logging.LogFailedReadByID(subCtx, JamfProResourceDepartment, resourceID, apiErr.Error(), apiErrorCode)
+			// Convert any API error into a retryable error to continue retrying
+			return retry.RetryableError(apiErr)
 		}
-		logging.LogFailedReadByID(subCtx, JamfProResourceDepartment, resourceID, err.Error(), apiErrorCode)
-		d.SetId("") // Remove from Terraform state
+		// Successfully read the department, exit the retry loop
+		return nil
+	})
+
+	if err != nil {
+		// Handle the final error after all retries have been exhausted
+		d.SetId("") // Remove from Terraform state if unable to read after retries
 		logging.LogTFStateRemovalWarning(subCtx, JamfProResourceDepartment, resourceID)
-		return diags
+		return diag.FromErr(err)
 	}
 
 	// Assuming successful read if no error
@@ -239,21 +232,6 @@ func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 	resourceID := d.Id()
 	resourceName := d.Get("name").(string)
 	var apiErrorCode int
-
-	// // Handle duplicates
-	// departmentsList, err := conn.GetDepartments("")
-	// if err != nil {
-	// 	return diag.FromErr(fmt.Errorf("failed to retrieve departments list: %s", err))
-	// }
-
-	// departmentName := util.GetStringFromInterface(d.Get("name"))
-	// for _, department := range departmentsList.Results {
-	// 	if department.Name == departmentName {
-	// 		errMsg := fmt.Sprintf("A department with the name '%s' already exists. Department names must be unique.", departmentName)
-	// 		logging.LogTFResourceDuplicateName(subCtx, JamfProResourceDepartment, departmentName)
-	// 		return diag.Errorf(errMsg)
-	// 	}
-	// }
 
 	// Construct the resource object
 	department, err := constructJamfProDepartment(subCtx, d)

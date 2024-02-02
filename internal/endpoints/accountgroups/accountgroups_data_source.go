@@ -3,15 +3,14 @@ package accountgroups
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -91,53 +90,91 @@ func DataSourceJamfProAccountGroups() *schema.Resource {
 
 // dataSourceJamfProDockItemsRead fetches the details of specific account group from Jamf Pro using either their unique Name or Id.
 func dataSourceJamfProAccountGroupsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	var accountGroup *jamfpro.ResourceAccountGroup
+	// Initialize the logging subsystem for the read operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemRead, hclog.Info)
 
-	// Use the retry function for the read operation
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		accountGroupID, err := strconv.Atoi(d.Id())
-		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("error converting id (%s) to integer: %s", d.Id(), err))
-		}
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
+	var apiErrorCode int
 
-		// Try fetching the account group using the ID
-		accountGroup, err = conn.GetAccountGroupByID(accountGroupID)
-		if err != nil {
-			// Handle the APIError
-			if apiError, ok := err.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-			}
-			return retry.RetryableError(err)
-		}
-		return nil
-	})
-
-	// Handle error from the retry function
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		// If there's an error while reading the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "read")
+		// Handle conversion error with structured logging
+		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceAccountGroup, resourceID, err.Error())
+		return diag.FromErr(err)
 	}
 
-	// Update the Terraform state with account group attributes
-	d.Set("name", accountGroup.Name)
-	d.Set("access_level", accountGroup.AccessLevel)
-	d.Set("privilege_set", accountGroup.PrivilegeSet)
+	// read operation
+	accountGroup, err := conn.GetAccountGroupByID(resourceIDInt)
+	if err != nil {
+		if apiError, ok := err.(*http_client.APIError); ok {
+			apiErrorCode = apiError.StatusCode
+		}
+		logging.LogFailedReadByID(subCtx, JamfProResourceAccountGroup, resourceID, err.Error(), apiErrorCode)
+
+		return diags
+	}
+	/*
+		// Update the Terraform state with account group attributes
+		d.Set("name", accountGroup.Name)
+		d.Set("access_level", accountGroup.AccessLevel)
+		d.Set("privilege_set", accountGroup.PrivilegeSet)
+
+		// Update site information
+		site := make(map[string]interface{})
+		site["id"] = accountGroup.Site.ID
+		site["name"] = accountGroup.Site.Name
+		d.Set("site", []interface{}{site})
+
+		// Update privileges
+		privileges := make(map[string]interface{})
+		privileges["jss_objects"] = accountGroup.Privileges.JSSObjects
+		privileges["jss_settings"] = accountGroup.Privileges.JSSSettings
+		privileges["jss_actions"] = accountGroup.Privileges.JSSActions
+		privileges["recon"] = accountGroup.Privileges.Recon
+		privileges["casper_admin"] = accountGroup.Privileges.CasperAdmin
+		privileges["casper_remote"] = accountGroup.Privileges.CasperRemote
+		privileges["casper_imaging"] = accountGroup.Privileges.CasperImaging
+		d.Set("privileges", []interface{}{privileges})
+
+		// Update members
+		members := make([]interface{}, 0)
+		for _, memberStruct := range accountGroup.Members {
+			member := memberStruct.User // Access the User field
+			memberMap := map[string]interface{}{
+				"id":   member.ID,
+				"name": member.Name,
+			}
+			members = append(members, memberMap)
+		}
+		d.Set("members", members)
+	*/
+	if err := d.Set("name", accountGroup.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("access_level", accountGroup.AccessLevel); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("privilege_set", accountGroup.PrivilegeSet); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	// Update site information
 	site := make(map[string]interface{})
 	site["id"] = accountGroup.Site.ID
 	site["name"] = accountGroup.Site.Name
-	d.Set("site", []interface{}{site})
+	if err := d.Set("site", []interface{}{site}); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	// Update privileges
 	privileges := make(map[string]interface{})
@@ -148,7 +185,9 @@ func dataSourceJamfProAccountGroupsRead(ctx context.Context, d *schema.ResourceD
 	privileges["casper_admin"] = accountGroup.Privileges.CasperAdmin
 	privileges["casper_remote"] = accountGroup.Privileges.CasperRemote
 	privileges["casper_imaging"] = accountGroup.Privileges.CasperImaging
-	d.Set("privileges", []interface{}{privileges})
+	if err := d.Set("privileges", []interface{}{privileges}); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	// Update members
 	members := make([]interface{}, 0)
@@ -160,7 +199,13 @@ func dataSourceJamfProAccountGroupsRead(ctx context.Context, d *schema.ResourceD
 		}
 		members = append(members, memberMap)
 	}
-	d.Set("members", members)
+	if err := d.Set("members", members); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
-	return diags
+	// Check if there were any errors and return the diagnostics
+	if len(diags) > 0 {
+		return diags
+	}
+	return nil
 }
