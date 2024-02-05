@@ -47,6 +47,11 @@ func ResourceJamfProFileShareDistributionPoints() *schema.Resource {
 				Required:    true,
 				Description: "The name of the distribution point.",
 			},
+			"ip_address": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Hostname or IP address of the distribution point server.",
+			},
 			"is_master": {
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -77,11 +82,6 @@ func ResourceJamfProFileShareDistributionPoints() *schema.Resource {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Description: "The port number used for the fileshare distribution point.",
-			},
-			"ip_address": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The IP address of the distribution point.",
 			},
 			"enable_load_balancing": {
 				Type:        schema.TypeBool,
