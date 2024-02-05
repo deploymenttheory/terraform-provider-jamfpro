@@ -58,11 +58,13 @@ func ConvertToLogLevel(logLevelString string) (http_client.LogLevel, error) {
 func (c *ProviderConfig) Client() (*APIClient, diag.Diagnostics) {
 	var client APIClient
 
-	jamfProConfig := jamfpro.Config{
+	jamfProConfig := http_client.Config{
 		InstanceName: c.InstanceName,
-		ClientID:     c.ClientID,
-		ClientSecret: c.ClientSecret,
-		LogLevel:     c.LogLevel, // Directly use the LogLevel from ProviderConfig
+		Auth: http_client.AuthConfig{
+			ClientID:     c.ClientID,
+			ClientSecret: c.ClientSecret,
+		},
+		LogLevel: c.LogLevel,
 	}
 
 	jamfProClient, err := BuildClient(jamfProConfig)
