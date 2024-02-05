@@ -15,12 +15,6 @@ func HashValue(plaintext string) string {
 	return hex.EncodeToString(hash[:])
 }
 
-// CompareHash takes a plaintext string and a hex-encoded hash, hashes the plaintext,
-// and compares it to the provided hash, returning true if they match.
-func CompareHash(plaintext, hashedValue string) bool {
-	return HashValue(plaintext) == hashedValue
-}
-
 // HashAndUpdateSensitiveField hashes the given sensitive value and updates the Terraform state if the hash is different.
 func HashAndUpdateSensitiveField(d *schema.ResourceData, fieldKey string, configValue string) error {
 	// Hash the sensitive value from the configuration
