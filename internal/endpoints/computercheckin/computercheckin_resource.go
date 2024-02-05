@@ -48,42 +48,42 @@ func ResourceJamfProComputerCheckin() *schema.Resource {
 			},
 			"create_startup_script": {
 				Type:        schema.TypeBool,
-				Required:    true,
+				Optional:    true,
 				Description: "Determines if a startup script should be created.",
 			},
 			"log_startup_event": {
 				Type:        schema.TypeBool,
-				Required:    true,
+				Optional:    true,
 				Description: "Determines if startup events should be logged.",
 			},
 			"check_for_policies_at_startup": {
 				Type:        schema.TypeBool,
-				Required:    true,
+				Optional:    true,
 				Description: "If set to true, ensure that computers check for policies triggered by startup",
 			},
 			"apply_computer_level_managed_preferences": {
 				Type:        schema.TypeBool,
-				Computed:    true,
+				Optional:    true,
 				Description: "Applies computer level managed preferences. Setting appears to be hard coded to false and cannot be changed. Thus field is set to computed.",
 			},
 			"ensure_ssh_is_enabled": {
 				Type:        schema.TypeBool,
-				Required:    true,
+				Optional:    true,
 				Description: "Enable SSH (Remote Login) on computers that have it disabled.",
 			},
 			"create_login_logout_hooks": {
 				Type:        schema.TypeBool,
-				Required:    true,
+				Optional:    true,
 				Description: "Determines if login/logout hooks should be created. Create events that trigger each time a user logs in",
 			},
 			"log_username": {
 				Type:        schema.TypeBool,
-				Required:    true,
+				Optional:    true,
 				Description: "Log Computer Usage information at login. Log the username and date/time at login.",
 			},
 			"check_for_policies_at_login_logout": {
 				Type:        schema.TypeBool,
-				Required:    true,
+				Optional:    true,
 				Description: "Checks for policies at login and logout.",
 			},
 			"apply_user_level_managed_preferences": {
@@ -100,11 +100,6 @@ func ResourceJamfProComputerCheckin() *schema.Resource {
 				Type:        schema.TypeBool,
 				Computed:    true,
 				Description: "Performs login actions in the background. Setting appears to be hard coded to false and cannot be changed. Thus field is set to computed.",
-			},
-			"display_status_to_user": {
-				Type:        schema.TypeBool,
-				Required:    true,
-				Description: "Displays status to the user.",
 			},
 		},
 	}
@@ -132,7 +127,6 @@ func constructComputerCheckin(ctx context.Context, d *schema.ResourceData) (*jam
 	checkin.LogUsername = util.GetBoolFromInterface(d.Get("log_username"))
 	checkin.CheckForPoliciesAtLoginLogout = util.GetBoolFromInterface(d.Get("check_for_policies_at_login_logout"))
 	// Note: "apply_user_level_managed_preferences", "hide_restore_partition", and "perform_login_actions_in_background" are computed, not set directly
-	checkin.DisplayStatusToUser = util.GetBoolFromInterface(d.Get("display_status_to_user"))
 
 	// Serialize and pretty-print the site object as XML
 	resourceXML, err := xml.MarshalIndent(checkin, "", "  ")
@@ -145,31 +139,6 @@ func constructComputerCheckin(ctx context.Context, d *schema.ResourceData) (*jam
 	logging.LogTFConstructedXMLResource(subCtx, JamfProResourceComputerCheckin, string(resourceXML))
 
 	return checkin, nil
-}
-
-// Helper function to generate diagnostics based on the error type.
-func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
-	var diags diag.Diagnostics
-	resourceName, exists := d.GetOk("name")
-	if !exists {
-		resourceName = "unknown"
-	}
-
-	// Handle the APIError in the diagnostic
-	if apiErr, ok := err.(*http_client.APIError); ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
-		})
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   err.Error(),
-		})
-	}
-	return diags
 }
 
 // ResourceJamfProComputerCheckinCreate is responsible for initializing the Jamf Pro computer check-in configuration in Terraform.
@@ -297,7 +266,6 @@ func ResourceJamfProComputerCheckinRead(ctx context.Context, d *schema.ResourceD
 		"apply_user_level_managed_preferences":     checkinConfig.ApplyUserLevelManagedPreferences,
 		"hide_restore_partition":                   checkinConfig.HideRestorePartition,
 		"perform_login_actions_in_background":      checkinConfig.PerformLoginActionsInBackground,
-		"display_status_to_user":                   checkinConfig.DisplayStatusToUser,
 	}
 
 	// Set the structured map in the Terraform state
