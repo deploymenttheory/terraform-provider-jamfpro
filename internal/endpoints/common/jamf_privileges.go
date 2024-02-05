@@ -1,4 +1,4 @@
-// functions.go
+// jamf_privileges.go
 // This package contains shared / common resource functions
 package common
 
