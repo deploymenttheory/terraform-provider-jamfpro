@@ -11,6 +11,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/hash"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
@@ -47,6 +48,11 @@ func ResourceJamfProFileShareDistributionPoints() *schema.Resource {
 				Required:    true,
 				Description: "The name of the distribution point.",
 			},
+			"ip_address": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Hostname or IP address of the distribution point server.",
+			},
 			"is_master": {
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -55,11 +61,16 @@ func ResourceJamfProFileShareDistributionPoints() *schema.Resource {
 			"failover_point": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The failover point for the distribution point.",
+				Description: "The failover point for the distribution point.Can be ",
+			},
+			"ipaddress": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Hostname or IP address of the distribution point server.",
 			},
 			"failover_point_url": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "The URL of the failover point.",
 			},
 			// Page 2
@@ -67,21 +78,28 @@ func ResourceJamfProFileShareDistributionPoints() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The type of connection protocol to the distribution point. Can be either 'AFP', or 'SMB'.",
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := util.GetString(val)
+					validTypes := map[string]bool{
+						"SMB": true,
+						"AFP": true,
+					}
+					if _, valid := validTypes[v]; !valid {
+						errs = append(errs, fmt.Errorf("%q must be one of 'SMB', or 'AFP', got: %s", key, v))
+					}
+					return warns, errs
+				},
 			},
 			"share_name": {
-				Type:        schema.TypeString,
-				Optional:    true,
+				Type:     schema.TypeString,
+				Optional: true,
+
 				Description: "The name of the network share.",
 			},
 			"share_port": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Description: "The port number used for the fileshare distribution point.",
-			},
-			"ip_address": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The IP address of the distribution point.",
 			},
 			"enable_load_balancing": {
 				Type:        schema.TypeBool,
@@ -90,18 +108,18 @@ func ResourceJamfProFileShareDistributionPoints() *schema.Resource {
 			},
 			"local_path": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "The local path to the distribution point.",
 			},
+
 			"ssh_username": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "The SSH username for the distribution point.",
 			},
 			"password": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Sensitive:   true,
+				Computed:    true,
 				Description: "The password for the distribution point. This field is marked as sensitive and will not be displayed in logs or console output.",
 			},
 
@@ -132,51 +150,52 @@ func ResourceJamfProFileShareDistributionPoints() *schema.Resource {
 				Sensitive:   true,
 				Description: "The password for read-write access. This field is marked as sensitive.",
 			},
-			"http_downloads_enabled": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Description: "Indicates if HTTP downloads are enabled.",
-			},
-			"http_url": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The URL for HTTP downloads.",
-			},
-			"context": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The context path for the distribution point.",
-			},
-			"protocol": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The protocol used for the distribution point. Typically 'HTTP' or 'HTTPS'.",
-			},
-			"port": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Description: "The port number for the protocol used.",
-			},
 			"no_authentication_required": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Description: "Indicates if no authentication is required for accessing the distribution point.",
 			},
-			"username_password_required": {
+			// Page 3
+			"https_downloads_enabled": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Indicates if HTTP downloads are enabled.",
+			},
+			"https_port": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: "The port number for the https share.",
+			},
+			"https_share_path": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Path to the https share (e.g. if the share is accessible at http://192.168.10.10/JamfShare, the context is 'JamfShare').",
+			},
+			"https_username_password_required": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Description: "Indicates if username/password authentication is required for accessing the distribution point.",
 			},
-			"http_username": {
+			"https_username": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The username for HTTP access, if username/password authentication is required.",
 			},
-			"http_password": {
+			"https_password": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
 				Description: "The password for HTTP access, if username/password authentication is required. This field is marked as sensitive.",
+			},
+			"protocol": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The protocol used if HTTPS is enabled for the  distribution point. Result will always be 'https' if enabled.",
+			},
+			"http_url": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The URL for HTTP downloads.Constructed from the protocol, IP address, and port.",
 			},
 		},
 	}
@@ -192,14 +211,16 @@ func constructJamfProFileShareDistributionPoint(ctx context.Context, d *schema.R
 	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemConstruct, hclog.Debug)
 
 	fileShareDistributionPoint := &jamfpro.ResourceFileShareDistributionPoint{
-		Name:                     util.GetStringFromInterface(d.Get("name")),
-		IsMaster:                 util.GetBoolFromInterface(d.Get("is_master")),
-		FailoverPoint:            util.GetStringFromInterface(d.Get("failover_point")),
-		FailoverPointURL:         util.GetStringFromInterface(d.Get("failover_point_url")),
-		ConnectionType:           util.GetStringFromInterface(d.Get("connection_type")),
-		ShareName:                util.GetStringFromInterface(d.Get("share_name")),
-		SharePort:                util.GetIntFromInterface(d.Get("share_port")),
-		IPAddress:                util.GetStringFromInterface(d.Get("ip_address")),
+		Name:             util.GetStringFromInterface(d.Get("name")),
+		IsMaster:         util.GetBoolFromInterface(d.Get("is_master")),
+		IP_Address:       util.GetStringFromInterface(d.Get("ip_address")),
+		IPAddress:        util.GetStringFromInterface(d.Get("ipaddress")),
+		FailoverPoint:    util.GetStringFromInterface(d.Get("failover_point")),
+		FailoverPointURL: util.GetStringFromInterface(d.Get("failover_point_url")),
+		ConnectionType:   util.GetStringFromInterface(d.Get("connection_type")),
+		ShareName:        util.GetStringFromInterface(d.Get("share_name")),
+		SharePort:        util.GetIntFromInterface(d.Get("share_port")),
+
 		EnableLoadBalancing:      util.GetBoolFromInterface(d.Get("enable_load_balancing")),
 		LocalPath:                util.GetStringFromInterface(d.Get("local_path")),
 		SSHUsername:              util.GetStringFromInterface(d.Get("ssh_username")),
@@ -209,15 +230,15 @@ func constructJamfProFileShareDistributionPoint(ctx context.Context, d *schema.R
 		ReadOnlyPassword:         util.GetStringFromInterface(d.Get("read_only_password")),
 		ReadWriteUsername:        util.GetStringFromInterface(d.Get("read_write_username")),
 		ReadWritePassword:        util.GetStringFromInterface(d.Get("read_write_password")),
-		HTTPDownloadsEnabled:     util.GetBoolFromInterface(d.Get("http_downloads_enabled")),
+		HTTPDownloadsEnabled:     util.GetBoolFromInterface(d.Get("https_downloads_enabled")),
 		HTTPURL:                  util.GetStringFromInterface(d.Get("http_url")),
-		Context:                  util.GetStringFromInterface(d.Get("context")),
+		Context:                  util.GetStringFromInterface(d.Get("https_share_path")),
 		Protocol:                 util.GetStringFromInterface(d.Get("protocol")),
-		Port:                     util.GetIntFromInterface(d.Get("port")),
+		Port:                     util.GetIntFromInterface(d.Get("https_port")),
 		NoAuthenticationRequired: util.GetBoolFromInterface(d.Get("no_authentication_required")),
-		UsernamePasswordRequired: util.GetBoolFromInterface(d.Get("username_password_required")),
-		HTTPUsername:             util.GetStringFromInterface(d.Get("http_username")),
-		HTTPPassword:             util.GetStringFromInterface(d.Get("http_password")),
+		UsernamePasswordRequired: util.GetBoolFromInterface(d.Get("https_username_password_required")),
+		HTTPUsername:             util.GetStringFromInterface(d.Get("https_username")),
+		HTTPPassword:             util.GetStringFromInterface(d.Get("https_password")),
 	}
 
 	// Serialize and pretty-print the dockitem object as XML
@@ -252,6 +273,8 @@ func ResourceJamfProFileShareDistributionPointsCreate(ctx context.Context, d *sc
 	var diags diag.Diagnostics
 	var creationResponse *jamfpro.ResourceFileShareDistributionPoint
 	var apiErrorCode int
+
+	// Extract values from the Terraform configuration for func useage
 	resourceName := d.Get("name").(string)
 
 	// Initialize the logging subsystem with the create operation context
@@ -293,6 +316,7 @@ func ResourceJamfProFileShareDistributionPointsCreate(ctx context.Context, d *sc
 	// Log successful creation of the dockitem and set the resource ID in Terraform state
 	logging.LogAPICreateSuccess(subCtx, JamfProResourceDistributionPoint, strconv.Itoa(creationResponse.ID))
 
+	// set resource ID in the state
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
 	// Retry reading the dockitem to ensure the Terraform state is up to date
@@ -340,6 +364,7 @@ func ResourceJamfProFileShareDistributionPointsRead(ctx context.Context, d *sche
 	var diags diag.Diagnostics
 	var apiErrorCode int
 	var fileShareDistributionPoint *jamfpro.ResourceFileShareDistributionPoint
+
 	resourceID := d.Id()
 
 	// Convert resourceID from string to int
@@ -379,6 +404,15 @@ func ResourceJamfProFileShareDistributionPointsRead(ctx context.Context, d *sche
 		if err := d.Set("name", fileShareDistributionPoint.Name); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
+		if err := d.Set("ip_address", fileShareDistributionPoint.IP_Address); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+		if err := d.Set("ipaddress", fileShareDistributionPoint.IPAddress); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+		if err := d.Set("is_master", fileShareDistributionPoint.IsMaster); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 		if err := d.Set("is_master", fileShareDistributionPoint.IsMaster); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
@@ -415,40 +449,47 @@ func ResourceJamfProFileShareDistributionPointsRead(ctx context.Context, d *sche
 		if err := d.Set("read_only_username", fileShareDistributionPoint.ReadOnlyUsername); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("read_only_password", fileShareDistributionPoint.ReadOnlyPassword); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("read_write_username", fileShareDistributionPoint.ReadWriteUsername); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("read_write_password", fileShareDistributionPoint.ReadWritePassword); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("http_downloads_enabled", fileShareDistributionPoint.HTTPDownloadsEnabled); err != nil {
+		if err := d.Set("https_downloads_enabled", fileShareDistributionPoint.HTTPDownloadsEnabled); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 		if err := d.Set("http_url", fileShareDistributionPoint.HTTPURL); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("context", fileShareDistributionPoint.Context); err != nil {
+		if err := d.Set("https_share_path", fileShareDistributionPoint.Context); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 		if err := d.Set("protocol", fileShareDistributionPoint.Protocol); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("port", fileShareDistributionPoint.Port); err != nil {
+		if err := d.Set("https_port", fileShareDistributionPoint.Port); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 		if err := d.Set("no_authentication_required", fileShareDistributionPoint.NoAuthenticationRequired); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("username_password_required", fileShareDistributionPoint.UsernamePasswordRequired); err != nil {
+		if err := d.Set("https_username_password_required", fileShareDistributionPoint.UsernamePasswordRequired); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("http_username", fileShareDistributionPoint.HTTPUsername); err != nil {
+		if err := d.Set("https_username", fileShareDistributionPoint.HTTPUsername); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("http_password", fileShareDistributionPoint.HTTPPassword); err != nil {
+
+		// Update sensitive fields in the Terraform state
+
+		readOnlyPasswordConfig := d.Get("read_only_password").(string)
+		readWritePasswordConfig := d.Get("read_write_password").(string)
+		httpsPasswordConfig := d.Get("https_password").(string)
+
+		// Use the helper function to hash and update the state for sensitive fields
+		if err := hash.HashAndUpdateSensitiveField(d, "read_only_password", readOnlyPasswordConfig); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+
+		if err := hash.HashAndUpdateSensitiveField(d, "read_write_password", readWritePasswordConfig); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+
+		if err := hash.HashAndUpdateSensitiveField(d, "https_password", httpsPasswordConfig); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
