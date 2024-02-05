@@ -38,8 +38,13 @@ github.com/cyphar/filepath-securejoin v0.2.4/go.mod h1:aPGpWjXOXUn2NCNjFvBE6aRxG
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+<<<<<<< HEAD
 github.com/deploymenttheory/go-api-sdk-jamfpro v1.1.11 h1:lY0iALF+f74kQf63nuFWCC3bAsrNvGmCwVeD2Kgw6tc=
 github.com/deploymenttheory/go-api-sdk-jamfpro v1.1.11/go.mod h1:Py9GtnqS4VO4eLKBeZmH56vbUs0DLQGkkj6iokCumW0=
+=======
+github.com/deploymenttheory/go-api-sdk-jamfpro v1.2.1 h1:Ux4q1K+P5VaYtJX1BrH5UEWocnb4RAK4Sr1qVwB0avU=
+github.com/deploymenttheory/go-api-sdk-jamfpro v1.2.1/go.mod h1:FmxvT56rSOKMiEb0yM6W54KZMGZX7i4C5eDQu0OUWPM=
+>>>>>>> f1d6fe2a06047ca5601a2ab980075ce8a9e26326
 github.com/emirpasic/gods v1.18.1 h1:FXtiHYKDGKCW2KzwZKx0iC0PQmdlorYgdFG9jPXJ1Bc=
 github.com/emirpasic/gods v1.18.1/go.mod h1:8tpGGwCnJ5H4r6BWwaV6OrWmMoPhUl5jm/FMNAnJvWQ=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=
