@@ -21,12 +21,12 @@ func DataSourceJamfProScripts() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Computed:    true,
+				Required:    true,
 				Description: "The Jamf Pro unique identifier (ID) of the script.",
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Computed:    true,
 				Description: "Display name for the script.",
 			},
 		},

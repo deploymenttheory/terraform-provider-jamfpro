@@ -1,11 +1,11 @@
-data "jamfpro_script" "example_printer" {
-  id = resource.jamfpro_printers.example_printer.id
+data "jamfpro_scripts" "example_script" {
+  id = resource.jamfpro_scripts.example_script.id
 }
 
 output "jamfpro_printer_id" {
-  value = data.jamfpro_printers.example_printer.id
+  value = data.jamfpro_scripts.example_script.id
 }
 
-output "jamfpro_printer_name" {
-  value = data.jamfpro_printers.example_printer.name
+output "jamfpro_script_name" {
+  value = data.jamfpro_scripts.example_script.name
 }
