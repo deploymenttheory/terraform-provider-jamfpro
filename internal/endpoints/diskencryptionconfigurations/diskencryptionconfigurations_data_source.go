@@ -4,6 +4,7 @@ package diskencryptionconfigurations
 import (
 	"context"
 	"strconv"
+	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
@@ -19,6 +20,9 @@ import (
 func DataSourceJamfProDiskEncryptionConfigurations() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: DataSourceJamfProDiskEncryptionConfigurationsRead,
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(30 * time.Second),
+		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},

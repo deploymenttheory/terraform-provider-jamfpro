@@ -4,6 +4,7 @@ package printers
 import (
 	"context"
 	"strconv"
+	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
@@ -19,6 +20,9 @@ import (
 func DataSourceJamfProPrinters() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: DataSourceJamfProPrintersRead,
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(30 * time.Second),
+		},
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,

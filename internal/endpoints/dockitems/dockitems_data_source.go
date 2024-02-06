@@ -4,6 +4,7 @@ package dockitems
 import (
 	"context"
 	"strconv"
+	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
@@ -19,6 +20,9 @@ import (
 func DataSourceJamfProDockItems() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceJamfProDockItemsRead,
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(30 * time.Second),
+		},
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
