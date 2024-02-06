@@ -1,6 +1,6 @@
 
 data "jamfpro_sites" "example_site" {
-  id = resource.jamfpro_sites.example_site.id
+  id = jamfpro_sites.example_site.id
 }
 
 output "jamfpro_file_share_distribution_point_id" {

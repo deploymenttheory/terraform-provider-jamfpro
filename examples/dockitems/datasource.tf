@@ -1,5 +1,5 @@
 data "jamfpro_dock_item" "example_dock_item" {
-  id = resource.jamfpro_dock_item.example_dock_item.id
+  id = jamfpro_dock_item.example_dock_item.id
 }
 
 output "jamfpro_dock_item_id" {

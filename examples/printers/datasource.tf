@@ -1,5 +1,5 @@
 data "jamfpro_printers" "example_printer" {
-  id = resource.jamfpro_printers.example_printer.id
+  id = jamfpro_printers.example_printer.id
 }
 
 output "jamfpro_printer_id" {

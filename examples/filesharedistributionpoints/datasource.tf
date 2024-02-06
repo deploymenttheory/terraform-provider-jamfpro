@@ -1,5 +1,5 @@
 data "jamfpro_file_share_distribution_points" "dp_example" {
-  id = resource.jamfpro_file_share_distribution_points.dp_example.id
+  id = jamfpro_file_share_distribution_points.dp_example.id
 }
 
 output "jamfpro_file_share_distribution_point_id" {
