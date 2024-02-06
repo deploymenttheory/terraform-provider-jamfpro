@@ -238,13 +238,13 @@ func Provider() *schema.Provider {
 		MaxConcurrentRequests := d.Get("max_concurrent_requests").(int)
 
 		TokenRefreshBufferPeriod := d.Get("token_refresh_buffer_period").(int)
-		TokenRefreshBufferPeriodSeconds := time.Duration(TokenRefreshBufferPeriod) * time.Second
+		TokenRefreshBufferPeriodTyped := time.Duration(TokenRefreshBufferPeriod) * time.Minute
 
 		TotalRetryDuration := d.Get("total_retry_duration").(int)
-		TotalRetryDurationSeconds := time.Duration(TotalRetryDuration) * time.Second
+		TotalRetryDurationTyped := time.Duration(TotalRetryDuration) * time.Second
 
 		CustomTimeout := d.Get("custom_timeout").(int)
-		CustomTimeoutSeconds := time.Duration(CustomTimeout) * time.Second
+		CustomTimeoutTyped := time.Duration(CustomTimeout) * time.Second
 
 		// Convert the log level from string to the LogLevel type.
 		// (Assuming there's a function in your client package that does this)
@@ -258,19 +258,19 @@ func Provider() *schema.Provider {
 			return nil, diags
 		}
 
-		newConfig := http_client.Config{
+		httpClientConfig := http_client.Config{
 			InstanceName:              instanceName,
 			Auth:                      http_client.AuthConfig{ClientID: clientID, ClientSecret: clientSecret},
 			LogLevel:                  parsedLogLevel,
 			MaxRetryAttempts:          MaxRetryAttempts,
 			EnableDynamicRateLimiting: EnableDynamicRateLimiting,
 			MaxConcurrentRequests:     MaxConcurrentRequests,
-			TokenRefreshBufferPeriod:  TokenRefreshBufferPeriodSeconds,
-			TotalRetryDuration:        TotalRetryDurationSeconds,
-			CustomTimeout:             CustomTimeoutSeconds,
+			TokenRefreshBufferPeriod:  TokenRefreshBufferPeriodTyped,
+			TotalRetryDuration:        TotalRetryDurationTyped,
+			CustomTimeout:             CustomTimeoutTyped,
 		}
 
-		httpclient, err := jamfpro.NewClient(newConfig)
+		httpclient, err := jamfpro.NewClient(httpClientConfig)
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}
