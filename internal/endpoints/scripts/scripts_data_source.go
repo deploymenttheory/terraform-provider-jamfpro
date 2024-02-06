@@ -1,9 +1,8 @@
-// dockitems_data_source.go
-package dockitems
+// scripts_date_source.go
+package scripts
 
 import (
 	"context"
-	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
@@ -15,27 +14,28 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProDockItems provides information about specific Jamf Pro Dock Items by their ID or Name.
-func DataSourceJamfProDockItems() *schema.Resource {
+// DataSourceJamfProScripts provides information about a specific Jamf Pro script by its ID or Name.
+func DataSourceJamfProScripts() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceJamfProDockItemsRead,
+		ReadContext: DataSourceJamfProScriptsRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The unique identifier of the dock item.",
+				Description: "The Jamf Pro unique identifier (ID) of the script.",
 			},
 			"name": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The name of the dock item.",
+				Description: "Display name for the script.",
 			},
 		},
 	}
 }
 
-// dataSourceJamfProDockItemsRead fetches the details of specific dock items from Jamf Pro using either their unique Name or Id.
-func dataSourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// dataSourceJamfProScriptsRead fetches the details of a specific Jamf Pro script
+// from Jamf Pro using either its unique Name or its Id.
+func DataSourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -49,24 +49,17 @@ func dataSourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData,
 	// Initialize variables
 	var diags diag.Diagnostics
 	var apiErrorCode int
-	var dockItem *jamfpro.ResourceDockItem
+	var script *jamfpro.ResourceScript
 
 	// Get the distribution point ID from the data source's arguments
 	resourceID := d.Get("id").(string)
 
-	// Convert resourceID from string to int
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		// Handle conversion error with structured logging
-		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceDockItem, resourceID, err.Error())
-		return diag.FromErr(err)
-	}
 	// Read operation with retry
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		dockItem, apiErr = conn.GetDockItemByID(resourceIDInt)
+		script, apiErr = conn.GetScriptByID(resourceID)
 		if apiErr != nil {
-			logging.LogFailedReadByID(subCtx, JamfProResourceDockItem, resourceID, apiErr.Error(), apiErrorCode)
+			logging.LogFailedReadByID(subCtx, JamfProResourceScript, resourceID, apiErr.Error(), apiErrorCode)
 			// Convert any API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)
 		}
@@ -79,10 +72,10 @@ func dataSourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
-	// Check if fileShareDistributionPoint data exists and set the Terraform state
-	if dockItem != nil {
+	// Check if resource data exists and set the Terraform state
+	if script != nil {
 		d.SetId(resourceID) // Set the id in the Terraform state
-		if err := d.Set("name", dockItem.Name); err != nil {
+		if err := d.Set("name", script.Name); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	} else {

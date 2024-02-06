@@ -1,9 +1,10 @@
-// sites_data_source.go
-package sites
+// filesharedistributionpoints_data_source.go
+package filesharedistributionpoints
 
 import (
 	"context"
 	"strconv"
+	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
@@ -15,38 +16,38 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProSites provides information about a specific Jamf Pro site by its ID or Name.
-func DataSourceJamfProSites() *schema.Resource {
+// DataSourceJamfProFileShareDistributionPoints defines the schema and CRUD operations for managing Jamf Pro Distribution Point in Terraform.
+func DataSourceJamfProFileShareDistributionPoints() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceJamfProSitesRead,
+		ReadContext: DataSourceJamfProFileShareDistributionPointsRead,
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(30 * time.Second),
+		},
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The unique identifier of the Jamf Pro site.",
+				Description: "The unique identifier of the distribution point.",
 			},
 			"name": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The unique name of the Jamf Pro site.",
+				Description: "The name of the distribution point.",
 			},
 		},
 	}
 }
 
-// DataSourceJamfProSitesRead fetches the details of a specific Jamf Pro site
-// from Jamf Pro using either its unique Name or its Id. The function prioritizes the 'name' attribute over the 'id'
-// attribute for fetching details. If neither 'name' nor 'id' is provided, it returns an error.
-// Once the details are fetched, they are set in the data source's state.
-//
-// Parameters:
-// - ctx: The context within which the function is called. It's used for timeouts and cancellation.
-// - d: The current state of the data source.
-// - meta: The meta object that can be used to retrieve the API client connection.
-//
-// Returns:
-// - diag.Diagnostics: Returns any diagnostics (errors or warnings) encountered during the function's execution.
-func DataSourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// DataSourceJamfProFileShareDistributionPointsRead is responsible for reading the current state of a
+// Jamf Pro File Share Distribution Point Resource from the remote system.
+// The function:
+// 1. Fetches the dock item's current state using its ID. If it fails then obtain dock item's current state using its Name.
+// 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
+// 3. Handles any discrepancies, such as the dock item being deleted outside of Terraform, to keep the Terraform state synchronized.
+func DataSourceJamfProFileShareDistributionPointsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -60,7 +61,7 @@ func DataSourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, met
 	// Initialize variables
 	var diags diag.Diagnostics
 	var apiErrorCode int
-	var site *jamfpro.SharedResourceSite
+	var fileShareDistributionPoint *jamfpro.ResourceFileShareDistributionPoint
 
 	// Get the distribution point ID from the data source's arguments
 	resourceID := d.Get("id").(string)
@@ -69,15 +70,16 @@ func DataSourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, met
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		// Handle conversion error with structured logging
-		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceSite, resourceID, err.Error())
+		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceDistributionPoint, resourceID, err.Error())
 		return diag.FromErr(err)
 	}
+
 	// Read operation with retry
 	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		site, apiErr = conn.GetSiteByID(resourceIDInt)
+		fileShareDistributionPoint, apiErr = conn.GetDistributionPointByID(resourceIDInt)
 		if apiErr != nil {
-			logging.LogFailedReadByID(subCtx, JamfProResourceSite, resourceID, apiErr.Error(), apiErrorCode)
+			logging.LogFailedReadByID(subCtx, JamfProResourceDistributionPoint, resourceID, apiErr.Error(), apiErrorCode)
 			// Convert any API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)
 		}
@@ -91,9 +93,9 @@ func DataSourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, met
 	}
 
 	// Check if fileShareDistributionPoint data exists and set the Terraform state
-	if site != nil {
+	if fileShareDistributionPoint != nil {
 		d.SetId(resourceID) // Set the id in the Terraform state
-		if err := d.Set("name", site.Name); err != nil {
+		if err := d.Set("name", fileShareDistributionPoint.Name); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	} else {

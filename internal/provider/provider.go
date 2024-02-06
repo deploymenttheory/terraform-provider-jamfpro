@@ -165,6 +165,7 @@ func Provider() *schema.Provider {
 			"jamfpro_departments":                    departments.DataSourceJamfProDepartments(),
 			"jamfpro_disk_encryption_configurations": diskencryptionconfigurations.DataSourceJamfProDiskEncryptionConfigurations(),
 			"jamfpro_dock_items":                     dockitems.DataSourceJamfProDockItems(),
+			"jamfpro_file_share_distribution_points": filesharedistributionpoints.DataSourceJamfProFileShareDistributionPoints(),
 			"jamfpro_sites":                          sites.DataSourceJamfProSites(),
 			"jamfpro_scripts":                        scripts.DataSourceJamfProScripts(),
 			//"jamfpro_macos_configuration_profiles":  macosconfigurationprofiles.DataSourceJamfProMacOSConfigurationProfiles(),

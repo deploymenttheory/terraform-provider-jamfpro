@@ -1,11 +1,12 @@
+
 data "jamfpro_sites" "example_site" {
-  name = "tf-example-site-01"  # Replace this with the actual name of the site you want to retrieve
+  id = resource.jamfpro_sites.example_site.id
 }
 
-output "site_id" {
+output "jamfpro_file_share_distribution_point_id" {
   value = data.jamfpro_sites.example_site.id
 }
 
-output "site_name" {
+output "jamfpro_file_share_distribution_point_name" {
   value = data.jamfpro_sites.example_site.name
 }
