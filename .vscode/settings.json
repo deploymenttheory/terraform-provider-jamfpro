@@ -1,7 +1,0 @@
-{
-    "gopls": {
-        "build.directoryFilters": [
-            "-/internal/provider/provider_test.go"
-        ]
-    }
-}
