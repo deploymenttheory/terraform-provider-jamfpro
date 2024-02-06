@@ -33,7 +33,7 @@ func DataSourceJamfProScripts() *schema.Resource {
 	}
 }
 
-// dataSourceJamfProScriptsRead fetches the details of a specific Jamf Pro script
+// DataSourceJamfProScriptsRead fetches the details of a specific Jamf Pro script
 // from Jamf Pro using either its unique Name or its Id.
 func DataSourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize api client
