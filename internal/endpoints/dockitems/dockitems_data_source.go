@@ -79,7 +79,7 @@ func dataSourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
-	// Check if fileShareDistributionPoint data exists and set the Terraform state
+	// Check if resource data exists and set the Terraform state
 	if dockItem != nil {
 		d.SetId(resourceID) // Set the id in the Terraform state
 		if err := d.Set("name", dockItem.Name); err != nil {

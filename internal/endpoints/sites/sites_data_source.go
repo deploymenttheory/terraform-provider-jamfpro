@@ -90,7 +90,7 @@ func DataSourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(err)
 	}
 
-	// Check if fileShareDistributionPoint data exists and set the Terraform state
+	// Check if resource data exists and set the Terraform state
 	if site != nil {
 		d.SetId(resourceID) // Set the id in the Terraform state
 		if err := d.Set("name", site.Name); err != nil {

@@ -3,13 +3,15 @@ package departments
 
 import (
 	"context"
+	"strconv"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -46,27 +48,45 @@ func DataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceDat
 
 	// Initialize variables
 	var diags diag.Diagnostics
-	resourceID := d.Id()
 	var apiErrorCode int
+	var department *jamfpro.ResourceDepartment
 
-	// read operation
+	// Get the distribution point ID from the data source's arguments
+	resourceID := d.Get("id").(string)
 
-	department, err := conn.GetDepartmentByID(resourceID)
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		if apiError, ok := err.(*http_client.APIError); ok {
-			apiErrorCode = apiError.StatusCode
+		// Handle conversion error with structured logging
+		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceDepartment, resourceID, err.Error())
+		return diag.FromErr(err)
+	}
+	// Read operation with retry
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		department, apiErr = conn.GetDepartmentByID(resourceIDInt)
+		if apiErr != nil {
+			logging.LogFailedReadByID(subCtx, JamfProResourceDepartment, resourceID, apiErr.Error(), apiErrorCode)
+			// Convert any API error into a retryable error to continue retrying
+			return retry.RetryableError(apiErr)
 		}
-		logging.LogFailedReadByID(subCtx, JamfProResourceDepartment, resourceID, err.Error(), apiErrorCode)
-		return diags
+		// Successfully read the data, exit the retry loop
+		return nil
+	})
+
+	if err != nil {
+		// Handle the final error after all retries have been exhausted
+		return diag.FromErr(err)
 	}
 
-	logging.LogAPIReadSuccess(subCtx, JamfProResourceDepartment, resourceID)
-
-	if err := d.Set("id", resourceID); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("name", department.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	// Check if resource data exists and set the Terraform state
+	if department != nil {
+		d.SetId(resourceID) // Set the id in the Terraform state
+		if err := d.Set("name", department.Name); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	} else {
+		d.SetId("") // Data not found, unset the id in the Terraform state
 	}
 
 	return diags
