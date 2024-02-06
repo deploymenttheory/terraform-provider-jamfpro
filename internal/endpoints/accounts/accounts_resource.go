@@ -327,7 +327,7 @@ const (
 )
 
 // constructJamfProAccount constructs an Account object from the provided schema data.
-func constructJamfProAccount(ctx context.Context, d *schema.ResourceData, client *jamfpro.Client) (*jamfpro.ResourceAccount, error) {
+func constructJamfProAccount(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceAccount, error) {
 	// Initialize the logging subsystem for the construction operation
 	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemConstruct, hclog.Debug)
 

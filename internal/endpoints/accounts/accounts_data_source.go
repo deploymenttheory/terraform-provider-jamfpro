@@ -19,7 +19,7 @@ import (
 // DataSourceJamfProAccounts provides information about specific Jamf Pro Dock Items by their ID or Name.
 func DataSourceJamfProAccounts() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceJamfProAccountRead,
+		ReadContext: DataSourceJamfProAccountRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(30 * time.Second),
 		},
@@ -53,7 +53,7 @@ func DataSourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, m
 	// Initialize variables
 	var diags diag.Diagnostics
 	var apiErrorCode int
-	var script *jamfpro.ResourceAccountGroup
+	var script *jamfpro.ResourceAccount
 
 	// Get the distribution point ID from the data source's arguments
 	resourceID := d.Get("id").(string)
@@ -62,15 +62,15 @@ func DataSourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, m
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		// Handle conversion error with structured logging
-		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceAccountGroup, resourceID, err.Error())
+		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceAccount, resourceID, err.Error())
 		return diag.FromErr(err)
 	}
 	// Read operation with retry
 	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		script, apiErr = conn.GetAccountGroupByID(resourceIDInt)
+		script, apiErr = conn.GetAccountByID(resourceIDInt)
 		if apiErr != nil {
-			logging.LogFailedReadByID(subCtx, JamfProResourceAccountGroup, resourceID, apiErr.Error(), apiErrorCode)
+			logging.LogFailedReadByID(subCtx, JamfProResourceAccount, resourceID, apiErr.Error(), apiErrorCode)
 			// Convert any API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)
 		}
