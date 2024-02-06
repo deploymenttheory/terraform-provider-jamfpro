@@ -334,16 +334,16 @@ func constructJamfProAccount(ctx context.Context, d *schema.ResourceData) (*jamf
 	//func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, error) {
 	account := &jamfpro.ResourceAccount{}
 
-	// Utilize type assertion helper functions for direct field extraction
-	account.Name = util.GetStringFromInterface(d.Get("name"))
+	// field extraction
+	account.Name = d.Get("name").(string)
 	account.DirectoryUser = d.Get("directory_user").(bool)
-	account.FullName = util.GetStringFromInterface(d.Get("full_name"))
-	account.Email = util.GetStringFromInterface(d.Get("email"))
-	account.Enabled = util.GetStringFromInterface(d.Get("enabled"))
+	account.FullName = d.Get("full_name").(string)
+	account.Email = d.Get("email").(string)
+	account.Enabled = d.Get("enabled").(string)
 	account.ForcePasswordChange = d.Get("force_password_change").(bool)
-	account.AccessLevel = util.GetStringFromInterface(d.Get("access_level"))
-	account.Password = util.GetStringFromInterface(d.Get("password"))
-	account.PrivilegeSet = util.GetStringFromInterface(d.Get("privilege_set"))
+	account.AccessLevel = d.Get("access_level").(string)
+	account.Password = d.Get("password").(string)
+	account.PrivilegeSet = d.Get("privilege_set").(string)
 
 	// Construct LDAP Server
 	if v, ok := d.GetOk("ldap_server"); ok {
