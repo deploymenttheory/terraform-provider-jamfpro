@@ -261,16 +261,6 @@ func ResourceJamfProDiskEncryptionConfigurationsCreate(ctx context.Context, d *s
 }
 
 // ResourceJamfProDiskEncryptionConfigurationsRead is responsible for reading the current state of a Jamf Pro Disk Encryption Configuration resource from Jamf Pro and updating the Terraform state with the retrieved data.
-// The function operates as follows:
-// 1. Attempts to fetch the resource's current state using its ID stored in the Terraform state.
-//   - If the retrieval by ID fails with a 404 error, it attempts to fetch the resource using its name as a fallback.
-//   - Non-404 errors encountered during retrieval by ID or name immediately terminate the retry loop as non-retryable.
-//
-// 2. If the resource cannot be found by either ID or name after all retry attempts, and the last error is a 404, the resource is considered deleted outside of Terraform. In this case, the resource ID is cleared from the Terraform state, effectively removing the resource from Terraform management.
-//   - For errors other than 404, diagnostics are returned with the last error encountered.
-//
-// 3. Upon successful retrieval, the function updates the Terraform state with the resource's attributes, such as 'name', 'key_type', 'file_vault_enabled_users', and 'institutional_recovery_key'.
-//   - The 'institutional_recovery_key' attribute is handled carefully to account for its optional nature and complex structure.
 func ResourceJamfProDiskEncryptionConfigurationsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
@@ -326,7 +316,7 @@ func ResourceJamfProDiskEncryptionConfigurationsRead(ctx context.Context, d *sch
 	if diskEncryptionConfig.InstitutionalRecoveryKey == nil ||
 		(diskEncryptionConfig.InstitutionalRecoveryKey.Key == "" &&
 			diskEncryptionConfig.InstitutionalRecoveryKey.CertificateType == "" &&
-			diskEncryptionConfig.InstitutionalRecoveryKey.Password == "" &&
+			//diskEncryptionConfig.InstitutionalRecoveryKey.Password == "" &&
 			diskEncryptionConfig.InstitutionalRecoveryKey.Data == "") {
 
 		// If InstitutionalRecoveryKey is nil or empty, ensure it is not set in the Terraform state
