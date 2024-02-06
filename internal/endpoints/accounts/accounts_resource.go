@@ -369,45 +369,39 @@ func constructJamfProAccount(ctx context.Context, d *schema.ResourceData) (*jamf
 		}
 	}
 
-	// Get all accounts to map group names to IDs
-	allAccounts, err := client.GetAccounts()
-	if err != nil {
-		return nil, err
-	}
-
-	groupNameToID := make(map[string]int)
-	for _, group := range allAccounts.Groups {
-		groupNameToID[group.Name] = group.ID
-	}
-
-	// Construct Groups with inferred IDs
+	// Construct Groups directly from schema data
 	if v, ok := d.GetOk("groups"); ok {
 		groupsSet := v.(*schema.Set)
 		for _, groupItem := range groupsSet.List() {
 			groupMap := groupItem.(map[string]interface{})
 			groupName := groupMap["name"].(string)
-			groupID, exists := groupNameToID[groupName]
-			if !exists {
-				return nil, fmt.Errorf("group name %s does not exist", groupName)
-			}
+
 			group := jamfpro.AccountsListSubsetGroups{
-				ID:   groupID,
 				Name: groupName,
 			}
-			// ... Process other fields like 'site' and 'privileges' similarly
+
+			// Construct Site for each group if provided
+			if site, ok := groupMap["site"].([]interface{}); ok && len(site) > 0 {
+				siteMap := site[0].(map[string]interface{})
+				group.Site = jamfpro.SharedResourceSite{
+					ID:   util.GetIntFromInterface(siteMap["id"]),
+					Name: util.GetStringFromInterface(siteMap["name"]),
+				}
+			}
+
+			// Construct Privileges for each group
+			group.Privileges = jamfpro.AccountSubsetPrivileges{
+				JSSObjects:    util.GetStringSliceFromInterface(groupMap["jss_objects_privileges"]),
+				JSSSettings:   util.GetStringSliceFromInterface(groupMap["jss_settings_privileges"]),
+				JSSActions:    util.GetStringSliceFromInterface(groupMap["jss_actions_privileges"]),
+				CasperAdmin:   util.GetStringSliceFromInterface(groupMap["casper_admin_privileges"]),
+				CasperRemote:  util.GetStringSliceFromInterface(groupMap["casper_remote_privileges"]),
+				CasperImaging: util.GetStringSliceFromInterface(groupMap["casper_imaging_privileges"]),
+				Recon:         util.GetStringSliceFromInterface(groupMap["recon_privileges"]),
+			}
+
 			account.Groups = append(account.Groups, group)
 		}
-	}
-
-	// Construct Privileges
-	account.Privileges = jamfpro.AccountSubsetPrivileges{
-		JSSObjects:    util.GetStringSliceFromInterface(d.Get("jss_objects_privileges")),
-		JSSSettings:   util.GetStringSliceFromInterface(d.Get("jss_settings_privileges")),
-		JSSActions:    util.GetStringSliceFromInterface(d.Get("jss_actions_privileges")),
-		CasperAdmin:   util.GetStringSliceFromInterface(d.Get("casper_admin_privileges")),
-		CasperRemote:  util.GetStringSliceFromInterface(d.Get("casper_remote_privileges")),
-		CasperImaging: util.GetStringSliceFromInterface(d.Get("casper_imaging_privileges")),
-		Recon:         util.GetStringSliceFromInterface(d.Get("recon_privileges")),
 	}
 
 	// Optional: Serialize and pretty-print the accountGroup object for logging
