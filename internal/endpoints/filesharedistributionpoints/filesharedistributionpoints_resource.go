@@ -11,7 +11,6 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/hash"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
@@ -474,24 +473,10 @@ func ResourceJamfProFileShareDistributionPointsRead(ctx context.Context, d *sche
 			diags = append(diags, diag.FromErr(err)...)
 		}
 
-		// Update sensitive fields in the Terraform state
+		// sensitive field handling
+		// "read_only_password" , "read_write_password" and "https_password" are not stored in state
+		// as they are sensitive fields and are not returned by the API.
 
-		readOnlyPasswordConfig := d.Get("read_only_password").(string)
-		readWritePasswordConfig := d.Get("read_write_password").(string)
-		httpsPasswordConfig := d.Get("https_password").(string)
-
-		// Use the helper function to hash and update the state for sensitive fields
-		if err := hash.HashAndUpdateSensitiveField(d, "read_only_password", readOnlyPasswordConfig); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-
-		if err := hash.HashAndUpdateSensitiveField(d, "read_write_password", readWritePasswordConfig); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-
-		if err := hash.HashAndUpdateSensitiveField(d, "https_password", httpsPasswordConfig); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
 	}
 
 	return diags
