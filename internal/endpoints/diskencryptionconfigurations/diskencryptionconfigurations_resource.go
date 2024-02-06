@@ -335,7 +335,7 @@ func ResourceJamfProDiskEncryptionConfigurationsRead(ctx context.Context, d *sch
 		// If InstitutionalRecoveryKey has data, set it in the Terraform state
 		irk := make(map[string]interface{})
 		irk["certificate_type"] = diskEncryptionConfig.InstitutionalRecoveryKey.CertificateType
-		irk["password"] = diskEncryptionConfig.InstitutionalRecoveryKey.Password
+		//irk["password"] = diskEncryptionConfig.InstitutionalRecoveryKey.Password
 		irk["data"] = diskEncryptionConfig.InstitutionalRecoveryKey.Data
 
 		d.Set("institutional_recovery_key", []interface{}{irk})
