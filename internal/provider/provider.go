@@ -5,11 +5,14 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accountgroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accounts"
@@ -35,8 +38,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/printers"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/scripts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/sites"
-
-	"github.com/deploymenttheory/terraform-provider-jamfpro/version"
 )
 
 // TerraformProviderProductUserAgent is included in the User-Agent header for
@@ -113,6 +114,42 @@ func Provider() *schema.Provider {
 					"debug", "info", "warning", "none",
 				}, false),
 				Description: "The logging level: debug, info, warning, or none",
+			},
+			"max_retry_attempts": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     3,
+				Description: "The maximum number of retry request attempts for retryable HTTP methods.",
+			},
+			"enable_dynamic_rate_limiting": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Enable dynamic rate limiting.",
+			},
+			"max_concurrent_requests": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     10,
+				Description: "The maximum number of concurrent requests allowed in the semaphore.",
+			},
+			"token_refresh_buffer_period": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     5,
+				Description: "The buffer period for token refresh.",
+			},
+			"total_retry_duration": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     60,
+				Description: "The total retry duration.",
+			},
+			"custom_timeout": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     60,
+				Description: "The custom timeout.",
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
@@ -194,8 +231,20 @@ func Provider() *schema.Provider {
 			return nil, diags
 		}
 
-		// Retrieve the log level from the configuration.
 		logLevel := d.Get("log_level").(string)
+
+		MaxRetryAttempts := d.Get("max_retry_attempts").(int)
+		EnableDynamicRateLimiting := d.Get("enable_dynamic_rate_limiting").(bool)
+		MaxConcurrentRequests := d.Get("max_concurrent_requests").(int)
+
+		TokenRefreshBufferPeriod := d.Get("token_refresh_buffer_period").(int)
+		TokenRefreshBufferPeriodTyped := time.Duration(TokenRefreshBufferPeriod) * time.Minute
+
+		TotalRetryDuration := d.Get("total_retry_duration").(int)
+		TotalRetryDurationTyped := time.Duration(TotalRetryDuration) * time.Second
+
+		CustomTimeout := d.Get("custom_timeout").(int)
+		CustomTimeoutTyped := time.Duration(CustomTimeout) * time.Second
 
 		// Convert the log level from string to the LogLevel type.
 		// (Assuming there's a function in your client package that does this)
@@ -209,14 +258,26 @@ func Provider() *schema.Provider {
 			return nil, diags
 		}
 
-		config := client.ProviderConfig{
-			InstanceName: instanceName,
-			ClientID:     clientID,
-			ClientSecret: clientSecret,
-			LogLevel:     parsedLogLevel,
-			UserAgent:    provider.UserAgent(TerraformProviderProductUserAgent, version.ProviderVersion),
+		httpClientConfig := http_client.Config{
+			InstanceName:              instanceName,
+			Auth:                      http_client.AuthConfig{ClientID: clientID, ClientSecret: clientSecret},
+			LogLevel:                  parsedLogLevel,
+			MaxRetryAttempts:          MaxRetryAttempts,
+			EnableDynamicRateLimiting: EnableDynamicRateLimiting,
+			MaxConcurrentRequests:     MaxConcurrentRequests,
+			TokenRefreshBufferPeriod:  TokenRefreshBufferPeriodTyped,
+			TotalRetryDuration:        TotalRetryDurationTyped,
+			CustomTimeout:             CustomTimeoutTyped,
 		}
-		return config.Client()
+
+		httpclient, err := jamfpro.NewClient(httpClientConfig)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
+		var wrapper client.APIClient
+		wrapper.Conn = httpclient
+		return &wrapper, nil
 	}
 	return provider
 }

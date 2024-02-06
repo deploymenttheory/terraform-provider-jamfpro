@@ -888,7 +888,7 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 	if categoryList, ok := d.GetOk("category"); ok && len(categoryList.([]interface{})) > 0 {
 		categoryMap := categoryList.([]interface{})[0].(map[string]interface{})
 		categoryID, _ := strconv.Atoi(categoryMap["id"].(string))
-		profile.General.Category = jamfpro.MacOSConfigurationProfilesDataSubsetCategory{
+		profile.General.Category = jamfpro.MacOSConfigurationProfilesSubsetCategory{
 			ID:   categoryID,
 			Name: categoryMap["name"].(string),
 		}
