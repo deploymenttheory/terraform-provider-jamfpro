@@ -1,11 +1,11 @@
-data "jamfpro_printers" "example_printer" {
-  id = jamfpro_printers.example_printer.id
+data "jamfpro_printers" "jamfpro_printers_001_data" {
+  id = jamfpro_printers.jamfpro_printers_001.id
 }
 
-output "jamfpro_printer_id" {
-  value = data.jamfpro_printers.example_printer.id
+output "jamfpro_jamfpro_printers_001_id" {
+  value = data.jamfpro_printers.jamfpro_printers_001_data.id
 }
 
-output "jamfpro_script_name" {
-  value = data.jamfpro_printers.example_printer.name
+output "jamfpro_jamfpro_printers_001_name" {
+  value = data.jamfpro_printers.jamfpro_printers_001_data.name
 }
