@@ -3,7 +3,6 @@ package departments
 
 import (
 	"context"
-	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
@@ -54,17 +53,10 @@ func DataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceDat
 	// Get the distribution point ID from the data source's arguments
 	resourceID := d.Get("id").(string)
 
-	// Convert resourceID from string to int
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		// Handle conversion error with structured logging
-		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceDepartment, resourceID, err.Error())
-		return diag.FromErr(err)
-	}
 	// Read operation with retry
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		department, apiErr = conn.GetDepartmentByID(resourceIDInt)
+		department, apiErr = conn.GetDepartmentByID(resourceID)
 		if apiErr != nil {
 			logging.LogFailedReadByID(subCtx, JamfProResourceDepartment, resourceID, apiErr.Error(), apiErrorCode)
 			// Convert any API error into a retryable error to continue retrying
