@@ -4,6 +4,7 @@ package dockitems
 import (
 	"context"
 	"strconv"
+	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
@@ -19,6 +20,9 @@ import (
 func DataSourceJamfProDockItems() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceJamfProDockItemsRead,
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(30 * time.Second),
+		},
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
@@ -79,7 +83,7 @@ func dataSourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
-	// Check if fileShareDistributionPoint data exists and set the Terraform state
+	// Check if resource data exists and set the Terraform state
 	if dockItem != nil {
 		d.SetId(resourceID) // Set the id in the Terraform state
 		if err := d.Set("name", dockItem.Name); err != nil {
