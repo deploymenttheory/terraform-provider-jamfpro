@@ -18,7 +18,7 @@ import (
 // DataSourceJamfProSites provides information about a specific Jamf Pro site by its ID or Name.
 func DataSourceJamfProSites() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceJamfProSitesRead,
+		ReadContext: DataSourceJamfProSitesRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
@@ -34,7 +34,7 @@ func DataSourceJamfProSites() *schema.Resource {
 	}
 }
 
-// dataSourceJamfProSitesRead fetches the details of a specific Jamf Pro site
+// DataSourceJamfProSitesRead fetches the details of a specific Jamf Pro site
 // from Jamf Pro using either its unique Name or its Id. The function prioritizes the 'name' attribute over the 'id'
 // attribute for fetching details. If neither 'name' nor 'id' is provided, it returns an error.
 // Once the details are fetched, they are set in the data source's state.
@@ -46,7 +46,7 @@ func DataSourceJamfProSites() *schema.Resource {
 //
 // Returns:
 // - diag.Diagnostics: Returns any diagnostics (errors or warnings) encountered during the function's execution.
-func dataSourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func DataSourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
