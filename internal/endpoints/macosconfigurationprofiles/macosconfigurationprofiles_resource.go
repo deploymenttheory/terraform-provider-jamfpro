@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 const JamfProResourceMacOSConfigurationProfile = "macos_configuration_profile"
@@ -46,6 +47,81 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Required:    true,
 				Description: "Name of the configuration profile.",
 			},
+			"description": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Description of the configuration profile.",
+			},
+			"site": {
+				Type:        schema.TypeList,
+				MaxItems:    1,
+				Description: "The site to which the configuration profile is scoped.",
+				Optional:    true,
+				Default:     nil,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:        schema.TypeInt,
+							Required:    true,
+							Description: "The unique identifier of the site to which the configuration profile is scoped.",
+						},
+						"name": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The name of the site to which the configuration profile is scoped.",
+						},
+					},
+				},
+			},
+			"category": {
+				Type:        schema.TypeList,
+				MaxItems:    1,
+				Description: "The category to which the configuration profile is scoped.",
+				Optional:    true,
+				Default:     nil,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:        schema.TypeInt,
+							Required:    true,
+							Description: "The unique identifier of the category to which the configuration profile is scoped.",
+						},
+						"name": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The name of the category to which the configuration profile is scoped.",
+						},
+					},
+				},
+			},
+			"distributionMethod": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "The distribution method for the configuration profile. Available options are: 'push', 'install_enterprise', 'install_user_initiated', 'install_system', 'install_self_service'.",
+				ValidateFunc: validation.StringInSlice([]string{"push", "install_enterprise", "install_user_initiated", "install_system", "install_self_service"}, false),
+			},
+			"userRemoveable": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Whether the configuration profile is user removeable.",
+			},
+			"level": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "The level of the configuration profile. Available options are: 'computer', 'user'.",
+				ValidateFunc: validation.StringInSlice([]string{"computer", "user"}, false),
+			},
+			"uuid": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The UUID of the configuration profile.",
+			},
+			"redeployOnUpdate": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Whether the configuration profile is redeployed on update.",
+			},
+			"payloads": {},
 		},
 	}
 }
@@ -54,8 +130,35 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 
 	out := jamfpro.ResourceMacOSConfigurationProfile{
 		General: jamfpro.MacOSConfigurationProfileSubsetGeneral{
-			Name: d.Get("name").(string),
+			Name:        d.Get("name").(string),
+			Description: d.Get("description").(string),
 		},
+		Scope:       jamfpro.MacOSConfigurationProfileSubsetScope{},
+		SelfService: jamfpro.MacOSConfigurationProfileSubsetSelfService{},
+	}
+
+	if d.Get("site") == nil {
+		out.General.Site = jamfpro.SharedResourceSite{
+			ID:   0,
+			Name: "",
+		}
+	} else {
+		out.General.Site = jamfpro.SharedResourceSite{
+			ID:   d.Get("site.0.id").(int),
+			Name: d.Get("site.0.name").(string),
+		}
+	}
+
+	if d.Get("category") == nil {
+		out.General.Category = jamfpro.SharedResourceCategory{
+			ID:   5,
+			Name: "Applications",
+		}
+	} else {
+		out.General.Category = jamfpro.SharedResourceCategory{
+			ID:   d.Get("category.0.id").(int),
+			Name: d.Get("category.0.name").(string),
+		}
 	}
 
 	return &out, nil
@@ -178,6 +281,32 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	}
 
 	if err := d.Set("name", resp.General.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("description", resp.General.Description); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	out_site := []map[string]interface{}{
+		{
+			"id":   resp.General.Site.ID,
+			"name": resp.General.Site.Name,
+		},
+	}
+
+	if err := d.Set("site", out_site); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	out_cat := []map[string]interface{}{
+		{
+			"id":   resp.General.Category.ID,
+			"name": resp.General.Category.Name,
+		},
+	}
+
+	if err := d.Set("category", out_cat); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
