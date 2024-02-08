@@ -94,49 +94,134 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 					},
 				},
 			},
-			"distributionMethod": {
+			"distribution_method": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Default:      "Install Automatically",
 				Description:  "The distribution method for the configuration profile. Available options are: 'push', 'install_enterprise', 'install_user_initiated', 'install_system', 'install_self_service'.",
-				ValidateFunc: validation.StringInSlice([]string{"push", "install_enterprise", "install_user_initiated", "install_system", "install_self_service"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"Make Available in Self Service", "Install Automatically"}, false),
 			},
-			"userRemoveable": {
+			"user_removeable": {
 				Type:        schema.TypeBool,
 				Optional:    true,
+				Default:     false,
 				Description: "Whether the configuration profile is user removeable.",
 			},
 			"level": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Default:      "System",
 				Description:  "The level of the configuration profile. Available options are: 'computer', 'user'.",
-				ValidateFunc: validation.StringInSlice([]string{"computer", "user"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"Computer", "User", "System"}, false),
 			},
 			"uuid": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Computed:    true,
+				Default:     nil,
 				Description: "The UUID of the configuration profile.",
 			},
-			"redeployOnUpdate": {
-				Type:        schema.TypeString,
+			// "redeploy_on_update": {
+			// 	Type:        schema.TypeString,
+			// 	Optional:    true,
+			// 	Default:     "true",
+			// 	Description: "Whether the configuration profile is redeployed on update.",
+			// },
+			// "payloads": {},
+			"scope": {
+				Type:        schema.TypeList,
+				MaxItems:    1,
+				Description: "The scope of the configuration profile.",
 				Optional:    true,
-				Description: "Whether the configuration profile is redeployed on update.",
+				Default:     nil,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"all_computers": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Whether the configuration profile is scoped to all computers.",
+						},
+						"all_jss_users": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Whether the configuration profile is scoped to all JSS users.",
+						},
+						"computers": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							Description: "The computers to which the configuration profile is scoped.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"id": {
+										Type:        schema.TypeInt,
+										Required:    true,
+										Description: "The unique identifier of the computer to which the configuration profile is scoped.",
+									},
+									"name": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "The name of the computer to which the configuration profile is scoped.",
+									},
+									"udid": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "The UDID of the computer to which the configuration profile is scoped.",
+									},
+								},
+							},
+						},
+						"computer_groups": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							Description: "The computer groups to which the configuration profile is scoped.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"id": {
+										Type:        schema.TypeInt,
+										Required:    true,
+										Description: "The unique identifier of the computer group to which the configuration profile is scoped.",
+									},
+									"name": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "The name of the computer group to which the configuration profile is scoped.",
+									},
+								},
+							},
+							// "jss_users":       {},
+							// "jss_user_groups": {},
+							// "buildings":       {},
+							// "departments":     {},
+							// "limitations":     {},
+							// "exclusions":      {},
+						},
+					},
+				},
 			},
-			"payloads": {},
 		},
 	}
 }
 
 func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceMacOSConfigurationProfile, error) {
 
+	// Main obj with fields which do not require processing
 	out := jamfpro.ResourceMacOSConfigurationProfile{
 		General: jamfpro.MacOSConfigurationProfileSubsetGeneral{
-			Name:        d.Get("name").(string),
-			Description: d.Get("description").(string),
+			Name:               d.Get("name").(string),
+			Description:        d.Get("description").(string),
+			DistributionMethod: d.Get("distribution_method").(string),
+			UserRemovable:      d.Get("user_removeable").(bool),
+			Level:              d.Get("level").(string),
+			UUID:               d.Get("uuid").(string),
+			// RedeployOnUpdate:   d.Get("redeploy_on_update").(string),
 		},
 		Scope:       jamfpro.MacOSConfigurationProfileSubsetScope{},
 		SelfService: jamfpro.MacOSConfigurationProfileSubsetSelfService{},
 	}
 
+	// Fields with processing
+
+	// Site
 	if d.Get("site") == nil {
 		out.General.Site = jamfpro.SharedResourceSite{
 			ID:   0,
@@ -149,16 +234,50 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 		}
 	}
 
+	// Category
 	if d.Get("category") == nil {
 		out.General.Category = jamfpro.SharedResourceCategory{
-			ID:   5,
-			Name: "Applications",
+			ID:   0,
+			Name: "None",
 		}
 	} else {
 		out.General.Category = jamfpro.SharedResourceCategory{
 			ID:   d.Get("category.0.id").(int),
 			Name: d.Get("category.0.name").(string),
 		}
+	}
+
+	// Scope
+
+	if d.Get("scope") != nil {
+		// All Computers & Users
+		out.Scope.AllComputers = d.Get("scope.0.all_computers").(bool)
+		out.Scope.AllJSSUsers = d.Get("scope.0.all_jss_users").(bool)
+
+		// Computers
+		if d.Get("scope.0.computers") != nil {
+			computers := d.Get("scope.0.computers").([]interface{})
+			for _, computer := range computers {
+				computerMap := computer.(map[string]interface{})
+				out.Scope.Computers = append(out.Scope.Computers, jamfpro.MacOSConfigurationProfileSubsetComputer{
+					ID:   computerMap["id"].(int),
+					Name: computerMap["name"].(string),
+					UDID: computerMap["udid"].(string),
+				})
+			}
+		}
+
+		if d.Get("scope.0.computer_groups") != nil {
+			computer_groups := d.Get("scope.0.computer_groups").([]interface{})
+			for _, computer_group := range computer_groups {
+				computerGroupMap := computer_group.(map[string]interface{})
+				out.Scope.ComputerGroups = append(out.Scope.ComputerGroups, jamfpro.MacOSConfigurationProfileSubsetComputerGroup{
+					ID:   computerGroupMap["id"].(int),
+					Name: computerGroupMap["name"].(string),
+				})
+			}
+		}
+
 	}
 
 	return &out, nil
@@ -238,6 +357,7 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 
 func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 
+	// API Stuff
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
@@ -276,18 +396,24 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 
 	logging.LogAPIReadSuccess(subCtx, JamfProResourceMacOSConfigurationProfile, resourceID)
 
+	// Stating
+
+	// ID
 	if err := d.Set("id", resourceID); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	// Name
 	if err := d.Set("name", resp.General.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	// Description
 	if err := d.Set("description", resp.General.Description); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	// Site
 	out_site := []map[string]interface{}{
 		{
 			"id":   resp.General.Site.ID,
@@ -299,14 +425,72 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	out_cat := []map[string]interface{}{
+	// Category
+	out_category := []map[string]interface{}{
 		{
 			"id":   resp.General.Category.ID,
 			"name": resp.General.Category.Name,
 		},
 	}
 
-	if err := d.Set("category", out_cat); err != nil {
+	if err := d.Set("category", out_category); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	// Distribution Method
+	if err := d.Set("distribution_method", resp.General.DistributionMethod); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	// User Removeable
+	if err := d.Set("user_removeable", resp.General.UserRemovable); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	// Level
+	if err := d.Set("level", resp.General.Level); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	// UUID
+	if err := d.Set("uuid", resp.General.UUID); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	// Redeploy On Update
+	// if err := d.Set("redeploy_on_update", resp.General.RedeployOnUpdate); err != nil {
+	// 	diags = append(diags, diag.FromErr(err)...)
+	// }
+
+	// Scope
+	var out_computers []map[string]interface{}
+	for _, v := range resp.Scope.Computers {
+		out_computers = append(out_computers, map[string]interface{}{
+			"id":   v.ID,
+			"name": v.Name,
+			"udid": v.UDID,
+		})
+	}
+
+	var out_computer_groups []map[string]interface{}
+	for _, v := range resp.Scope.ComputerGroups {
+		out_computer_groups = append(out_computer_groups, map[string]interface{}{
+			"id":   v.ID,
+			"name": v.Name,
+		})
+
+	}
+
+	out_scope := []map[string]interface{}{
+		{
+			"all_computers":   resp.Scope.AllComputers,
+			"all_jss_users":   resp.Scope.AllJSSUsers,
+			"computers":       out_computers,
+			"computer_groups": out_computer_groups,
+		},
+	}
+
+	if err := d.Set("scope", out_scope); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
