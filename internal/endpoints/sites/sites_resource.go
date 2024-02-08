@@ -209,7 +209,7 @@ func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta 
 		// Handle the final error after all retries have been exhausted
 		d.SetId("") // Remove from Terraform state if unable to read after retries
 		logging.LogTFStateRemovalWarning(subCtx, JamfProResourceSite, resourceID)
-		return diag.FromErr(err)
+		//return diag.FromErr(err)
 	}
 
 	// Assuming successful read if no error
