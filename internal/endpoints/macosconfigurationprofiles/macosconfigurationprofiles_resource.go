@@ -146,7 +146,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 							Optional:    true,
 							Description: "Whether the configuration profile is scoped to all JSS users.",
 						},
-						"computers": {
+						"computer": {
 							Type:        schema.TypeList,
 							Optional:    true,
 							Description: "The computers to which the configuration profile is scoped.",
@@ -188,13 +188,85 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 									},
 								},
 							},
-							// "jss_users":       {},
-							// "jss_user_groups": {},
-							// "buildings":       {},
-							// "departments":     {},
-							// "limitations":     {},
-							// "exclusions":      {},
 						},
+						"jss_users": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							Description: "The JSS users to which the configuration profile is scoped.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"id": {
+										Type:        schema.TypeInt,
+										Required:    true,
+										Description: "The unique identifier of the JSS user to which the configuration profile is scoped.",
+									},
+									"name": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "The name of the JSS user to which the configuration profile is scoped.",
+									},
+								},
+							},
+						},
+						"jss_user_groups": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							Description: "The JSS user groups to which the configuration profile is scoped.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"id": {
+										Type:        schema.TypeInt,
+										Required:    true,
+										Description: "The unique identifier of the JSS user group to which the configuration profile is scoped.",
+									},
+									"name": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "The name of the JSS user group to which the configuration profile is scoped.",
+									},
+								},
+							},
+						},
+						"buildings": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							Description: "The buildings to which the configuration profile is scoped.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"id": {
+										Type:        schema.TypeInt,
+										Required:    true,
+										Description: "The unique identifier of the building to which the configuration profile is scoped.",
+									},
+									"name": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "The name of the building to which the configuration profile is scoped.",
+									},
+								},
+							},
+						},
+						"departments": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							Description: "The departments to which the configuration profile is scoped.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"id": {
+										Type:        schema.TypeInt,
+										Required:    true,
+										Description: "The unique identifier of the department to which the configuration profile is scoped.",
+									},
+									"name": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "The name of the department to which the configuration profile is scoped.",
+									},
+								},
+							},
+						},
+						// "limitations": {},
+						// "exclusions":  {},
 					},
 				},
 			},
@@ -237,7 +309,7 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 	// Category
 	if d.Get("category") == nil {
 		out.General.Category = jamfpro.SharedResourceCategory{
-			ID:   0,
+			ID:   -1,
 			Name: "None",
 		}
 	} else {
@@ -255,8 +327,8 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 		out.Scope.AllJSSUsers = d.Get("scope.0.all_jss_users").(bool)
 
 		// Computers
-		if d.Get("scope.0.computers") != nil {
-			computers := d.Get("scope.0.computers").([]interface{})
+		if d.Get("scope.0.computer") != nil {
+			computers := d.Get("scope.0.computer").([]interface{})
 			for _, computer := range computers {
 				computerMap := computer.(map[string]interface{})
 				out.Scope.Computers = append(out.Scope.Computers, jamfpro.MacOSConfigurationProfileSubsetComputer{
@@ -267,6 +339,7 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 			}
 		}
 
+		// Computer Groups
 		if d.Get("scope.0.computer_groups") != nil {
 			computer_groups := d.Get("scope.0.computer_groups").([]interface{})
 			for _, computer_group := range computer_groups {
@@ -277,6 +350,58 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 				})
 			}
 		}
+
+		// JSS Users
+		if d.Get("scope.0.jss_users") != nil {
+			jss_users := d.Get("scope.0.jss_users").([]interface{})
+			for _, jss_user := range jss_users {
+				jssUserMap := jss_user.(map[string]interface{})
+				out.Scope.JSSUsers = append(out.Scope.JSSUsers, jamfpro.MacOSConfigurationProfileSubsetJSSUser{
+					ID:   jssUserMap["id"].(int),
+					Name: jssUserMap["name"].(string),
+				})
+			}
+		}
+
+		// JSS User Groups
+		if d.Get("scope.0.jss_user_groups") != nil {
+			jss_user_groups := d.Get("scope.0.jss_user_groups").([]interface{})
+			for _, jss_user_group := range jss_user_groups {
+				jssUserGroupMap := jss_user_group.(map[string]interface{})
+				out.Scope.JSSUserGroups = append(out.Scope.JSSUserGroups, jamfpro.MacOSConfigurationProfileSubsetJSSUserGroup{
+					ID:   jssUserGroupMap["id"].(int),
+					Name: jssUserGroupMap["name"].(string),
+				})
+			}
+		}
+
+		// Buildings
+		if d.Get("scope.0.buildings") != nil {
+			buildings := d.Get("scope.0.buildings").([]interface{})
+			for _, building := range buildings {
+				buildingMap := building.(map[string]interface{})
+				out.Scope.Buildings = append(out.Scope.Buildings, jamfpro.MacOSConfigurationProfileSubsetBuilding{
+					ID:   buildingMap["id"].(int),
+					Name: buildingMap["name"].(string),
+				})
+			}
+		}
+
+		// Departments
+		if d.Get("scope.0.departments") != nil {
+			departments := d.Get("scope.0.departments").([]interface{})
+			for _, department := range departments {
+				departmentMap := department.(map[string]interface{})
+				out.Scope.Departments = append(out.Scope.Departments, jamfpro.MacOSConfigurationProfileSubsetDepartment{
+					ID:   departmentMap["id"].(int),
+					Name: departmentMap["name"].(string),
+				})
+			}
+		}
+
+		// Limitations
+
+		// Exclusions
 
 	}
 
@@ -463,6 +588,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// }
 
 	// Scope
+	// Computers
 	var out_computers []map[string]interface{}
 	for _, v := range resp.Scope.Computers {
 		out_computers = append(out_computers, map[string]interface{}{
@@ -472,21 +598,64 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		})
 	}
 
+	// Computer Groups
 	var out_computer_groups []map[string]interface{}
 	for _, v := range resp.Scope.ComputerGroups {
 		out_computer_groups = append(out_computer_groups, map[string]interface{}{
 			"id":   v.ID,
 			"name": v.Name,
 		})
+	}
+
+	// JSS Users
+	var out_jss_users []map[string]interface{}
+	for _, v := range resp.Scope.JSSUsers {
+		out_jss_users = append(out_jss_users, map[string]interface{}{
+			"id":   v.ID,
+			"name": v.Name,
+		})
 
 	}
 
+	// JSS User Groups
+	var out_jss_user_groups []map[string]interface{}
+	for _, v := range resp.Scope.JSSUserGroups {
+		out_jss_user_groups = append(out_jss_user_groups, map[string]interface{}{
+			"id":   v.ID,
+			"name": v.Name,
+		})
+	}
+
+	// Buildings
+	var out_buildings []map[string]interface{}
+	for _, v := range resp.Scope.Buildings {
+		out_buildings = append(out_buildings, map[string]interface{}{
+			"id":   v.ID,
+			"name": v.Name,
+		})
+
+	}
+
+	// Departments
+	var out_departments []map[string]interface{}
+	for _, v := range resp.Scope.Departments {
+		out_departments = append(out_departments, map[string]interface{}{
+			"id":   v.ID,
+			"name": v.Name,
+		})
+	}
+
+	// Write scope to state
 	out_scope := []map[string]interface{}{
 		{
 			"all_computers":   resp.Scope.AllComputers,
 			"all_jss_users":   resp.Scope.AllJSSUsers,
-			"computers":       out_computers,
+			"computer":        out_computers,
 			"computer_groups": out_computer_groups,
+			"jss_users":       out_jss_users,
+			"jss_user_groups": out_jss_user_groups,
+			"buildings":       out_buildings,
+			"departments":     out_departments,
 		},
 	}
 

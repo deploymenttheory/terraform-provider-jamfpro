@@ -193,7 +193,7 @@ func Provider() *schema.Provider {
 			"jamfpro_file_share_distribution_points":  filesharedistributionpoints.ResourceJamfProFileShareDistributionPoints(),
 			"jamfpro_sites":                           sites.ResourceJamfProSites(),
 			"jamfpro_scripts":                         scripts.ResourceJamfProScripts(),
-			"jamfpro_macos_configuration_profiles":    macosconfigurationprofiles.ResourceJamfProMacOSConfigurationProfiles(),
+			"jamfpro_macos_configuration_profile":     macosconfigurationprofiles.ResourceJamfProMacOSConfigurationProfiles(),
 			"jamfpro_policies":                        policies.ResourceJamfProPolicies(),
 			"jamfpro_printers":                        printers.ResourceJamfProPrinters(),
 		},
