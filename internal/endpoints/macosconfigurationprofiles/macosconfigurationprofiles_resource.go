@@ -3,7 +3,10 @@ package macosconfigurationprofiles
 import (
 	"context"
 	"fmt"
+	"log"
+	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
@@ -130,7 +133,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 			// "payloads": {},
 			"scope": {
 				Type:        schema.TypeList,
-				MaxItems:    1,
+				MaxItems:    100,
 				Description: "The scope of the configuration profile.",
 				Optional:    true,
 				Default:     nil,
@@ -146,27 +149,30 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 							Optional:    true,
 							Description: "Whether the configuration profile is scoped to all JSS users.",
 						},
-						"computer": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							Description: "The computers to which the configuration profile is scoped.",
+						"computers": {
+							Type:             schema.TypeList,
+							Optional:         true,
+							MaxItems:         1,
+							DiffSuppressFunc: suppressOrderDiff,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
-										Type:        schema.TypeInt,
-										Required:    true,
-										Description: "The unique identifier of the computer to which the configuration profile is scoped.",
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeInt,
+										},
 									},
-									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "The name of the computer to which the configuration profile is scoped.",
-									},
-									"udid": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "The UDID of the computer to which the configuration profile is scoped.",
-									},
+									// "name": {
+									// 	Type:        schema.TypeString,
+									// 	Optional:    true,
+									// 	Description: "The name of the computer to which the configuration profile is scoped.",
+									// },
+									// "udid": {
+									// 	Type:        schema.TypeString,
+									// 	Optional:    true,
+									// 	Description: "The UDID of the computer to which the configuration profile is scoped.",
+									// },
 								},
 							},
 						},
@@ -327,17 +333,18 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 		out.Scope.AllJSSUsers = d.Get("scope.0.all_jss_users").(bool)
 
 		// Computers
-		if d.Get("scope.0.computer") != nil {
-			computers := d.Get("scope.0.computer").([]interface{})
-			for _, computer := range computers {
-				computerMap := computer.(map[string]interface{})
+		if d.Get("scope.0.computers") != nil {
+			computers := d.Get("scope.0.computers").([]interface{})
+
+			computerIds := computers[0].(map[string]interface{})["id"]
+			for _, c := range computerIds.([]interface{}) {
 				out.Scope.Computers = append(out.Scope.Computers, jamfpro.MacOSConfigurationProfileSubsetComputer{
-					ID:   computerMap["id"].(int),
-					Name: computerMap["name"].(string),
-					UDID: computerMap["udid"].(string),
+					ID: c.(int),
 				})
 			}
 		}
+
+		fmt.Printf("%+v\n", out.Scope.Computers)
 
 		// Computer Groups
 		if d.Get("scope.0.computer_groups") != nil {
@@ -589,13 +596,9 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 
 	// Scope
 	// Computers
-	var out_computers []map[string]interface{}
+	var inComputers []int
 	for _, v := range resp.Scope.Computers {
-		out_computers = append(out_computers, map[string]interface{}{
-			"id":   v.ID,
-			"name": v.Name,
-			"udid": v.UDID,
-		})
+		inComputers = append(inComputers, v.ID)
 	}
 
 	// Computer Groups
@@ -650,7 +653,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		{
 			"all_computers":   resp.Scope.AllComputers,
 			"all_jss_users":   resp.Scope.AllJSSUsers,
-			"computer":        out_computers,
+			"computers":       []map[string]interface{}{{"id": inComputers}},
 			"computer_groups": out_computer_groups,
 			"jss_users":       out_jss_users,
 			"jss_user_groups": out_jss_user_groups,
@@ -793,4 +796,24 @@ func ResourceJamfProMacOSConfigurationProfilesDelete(ctx context.Context, d *sch
 	d.SetId("")
 
 	return nil
+}
+
+func suppressOrderDiff(k, old, new string, d *schema.ResourceData) bool {
+	// Split the old and new values by comma (or the appropriate delimiter for your list)
+	log.Println("LOGHERE")
+	oldList := strings.Split(old, ",")
+	newList := strings.Split(new, ",")
+	log.Println(oldList)
+	log.Println(newList)
+
+	// Sort both lists
+	sort.Strings(oldList)
+	sort.Strings(newList)
+
+	// Join the sorted lists back into strings
+	sortedOld := strings.Join(oldList, ",")
+	sortedNew := strings.Join(newList, ",")
+
+	// Compare the sorted strings to determine if the difference is only in order
+	return sortedOld == sortedNew
 }
