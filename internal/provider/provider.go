@@ -17,6 +17,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accountgroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accounts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/filesharedistributionpoints"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/macosconfigurationprofiles"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/advancedcomputersearches"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/advancedmobiledevicesearches"
@@ -193,9 +194,9 @@ func Provider() *schema.Provider {
 			"jamfpro_file_share_distribution_points":  filesharedistributionpoints.ResourceJamfProFileShareDistributionPoints(),
 			"jamfpro_sites":                           sites.ResourceJamfProSites(),
 			"jamfpro_scripts":                         scripts.ResourceJamfProScripts(),
-			//"jamfpro_macos_configuration_profiles":    macosconfigurationprofiles.ResourceJamfProMacOSConfigurationProfiles(),
-			"jamfpro_policies": policies.ResourceJamfProPolicies(),
-			"jamfpro_printers": printers.ResourceJamfProPrinters(),
+			"jamfpro_macos_configuration_profile":     macosconfigurationprofiles.ResourceJamfProMacOSConfigurationProfiles(),
+			"jamfpro_policies":                        policies.ResourceJamfProPolicies(),
+			"jamfpro_printers":                        printers.ResourceJamfProPrinters(),
 		},
 	}
 
@@ -232,8 +233,6 @@ func Provider() *schema.Provider {
 			return nil, diags
 		}
 
-		logLevel := d.Get("log_level").(string)
-
 		MaxRetryAttempts := d.Get("max_retry_attempts").(int)
 		EnableDynamicRateLimiting := d.Get("enable_dynamic_rate_limiting").(bool)
 		MaxConcurrentRequests := d.Get("max_concurrent_requests").(int)
@@ -249,6 +248,7 @@ func Provider() *schema.Provider {
 
 		// Convert the log level from string to the LogLevel type.
 		// (Assuming there's a function in your client package that does this)
+		logLevel := d.Get("log_level").(string)
 		parsedLogLevel, err := client.ConvertToLogLevel(logLevel)
 		if err != nil {
 			diags = append(diags, diag.Diagnostic{
