@@ -4,9 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"sort"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
@@ -30,10 +28,10 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 		UpdateContext: ResourceJamfProMacOSConfigurationProfilesUpdate,
 		DeleteContext: ResourceJamfProMacOSConfigurationProfilesDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Second),
-			Read:   schema.DefaultTimeout(30 * time.Second),
-			Update: schema.DefaultTimeout(30 * time.Second),
-			Delete: schema.DefaultTimeout(30 * time.Second),
+			Create: schema.DefaultTimeout(5 * time.Second),
+			Read:   schema.DefaultTimeout(5 * time.Second),
+			Update: schema.DefaultTimeout(5 * time.Second),
+			Delete: schema.DefaultTimeout(5 * time.Second),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -150,15 +148,36 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 							Description: "Whether the configuration profile is scoped to all JSS users.",
 						},
 						"computers": {
-							Type:             schema.TypeList,
-							Optional:         true,
-							MaxItems:         1,
-							DiffSuppressFunc: suppressOrderDiff,
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
 										Type:     schema.TypeList,
 										Optional: true,
+										DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+											listFromHCL := d.Get("scope.0.computers").([]interface{})[0].(map[string]interface{})["id"]
+											var listFromHCLAsInt []int
+
+											for _, v := range listFromHCL.([]interface{}) {
+												listFromHCLAsInt = append(listFromHCLAsInt, v.(int))
+											}
+
+											for _, i := range listFromHCLAsInt {
+												OldAsInt, err := strconv.Atoi(old)
+
+												if err != nil {
+													log.Println("ERROR ERROR ERROR")
+												}
+
+												if OldAsInt == i {
+													return true
+												}
+											}
+
+											return false
+										},
 										Elem: &schema.Schema{
 											Type: schema.TypeInt,
 										},
@@ -315,9 +334,10 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 	// Category
 	if d.Get("category") == nil {
 		out.General.Category = jamfpro.SharedResourceCategory{
-			ID:   -1,
+			ID:   0,
 			Name: "None",
 		}
+		log.Println("placeholder")
 	} else {
 		out.General.Category = jamfpro.SharedResourceCategory{
 			ID:   d.Get("category.0.id").(int),
@@ -335,7 +355,6 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 		// Computers
 		if d.Get("scope.0.computers") != nil {
 			computers := d.Get("scope.0.computers").([]interface{})
-
 			computerIds := computers[0].(map[string]interface{})["id"]
 			for _, c := range computerIds.([]interface{}) {
 				out.Scope.Computers = append(out.Scope.Computers, jamfpro.MacOSConfigurationProfileSubsetComputer{
@@ -343,8 +362,6 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 				})
 			}
 		}
-
-		fmt.Printf("%+v\n", out.Scope.Computers)
 
 		// Computer Groups
 		if d.Get("scope.0.computer_groups") != nil {
@@ -546,15 +563,18 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	}
 
 	// Site
-	out_site := []map[string]interface{}{
-		{
-			"id":   resp.General.Site.ID,
-			"name": resp.General.Site.Name,
-		},
-	}
 
-	if err := d.Set("site", out_site); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	if resp.General.Site.ID != -1 && resp.General.Site.Name != "None" {
+		out_site := []map[string]interface{}{
+			{
+				"id":   resp.General.Site.ID,
+				"name": resp.General.Site.Name,
+			},
+		}
+
+		if err := d.Set("site", out_site); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	// Category
@@ -756,7 +776,13 @@ func ResourceJamfProMacOSConfigurationProfilesDelete(ctx context.Context, d *sch
 	conn := apiclient.Conn
 
 	var diags diag.Diagnostics
+	var resourceIDInt int
 	resourceID := d.Id()
+	resourceIDInt, convErr := strconv.Atoi(resourceID)
+	if convErr != nil {
+		return diag.FromErr(convErr)
+	}
+
 	resourceName := d.Get("name").(string)
 	var apiErrorCode int
 
@@ -764,14 +790,14 @@ func ResourceJamfProMacOSConfigurationProfilesDelete(ctx context.Context, d *sch
 
 	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 
-		apiErr := conn.DeleteDepartmentByID(resourceID)
+		apiErr := conn.DeleteMacOSConfigurationProfileByID(resourceIDInt)
 		if apiErr != nil {
 			if apiError, ok := apiErr.(*http_client.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 			logging.LogAPIDeleteFailureByID(subCtx, JamfProResourceMacOSConfigurationProfile, resourceID, resourceName, apiErr.Error(), apiErrorCode)
 
-			apiErr = conn.DeleteDepartmentByName(resourceName)
+			apiErr = conn.DeleteMacOSConfigurationProfileByName(resourceName)
 			if apiErr != nil {
 				var apiErrByNameCode int
 				if apiErrorByName, ok := apiErr.(*http_client.APIError); ok {
@@ -796,24 +822,4 @@ func ResourceJamfProMacOSConfigurationProfilesDelete(ctx context.Context, d *sch
 	d.SetId("")
 
 	return nil
-}
-
-func suppressOrderDiff(k, old, new string, d *schema.ResourceData) bool {
-	// Split the old and new values by comma (or the appropriate delimiter for your list)
-	log.Println("LOGHERE")
-	oldList := strings.Split(old, ",")
-	newList := strings.Split(new, ",")
-	log.Println(oldList)
-	log.Println(newList)
-
-	// Sort both lists
-	sort.Strings(oldList)
-	sort.Strings(newList)
-
-	// Join the sorted lists back into strings
-	sortedOld := strings.Join(oldList, ",")
-	sortedNew := strings.Join(newList, ",")
-
-	// Compare the sorted strings to determine if the difference is only in order
-	return sortedOld == sortedNew
 }
