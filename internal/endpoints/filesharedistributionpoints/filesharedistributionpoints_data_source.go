@@ -1,5 +1,5 @@
-// accounts_data_source.go
-package accounts
+// filesharedistributionpoints_data_source.go
+package filesharedistributionpoints
 
 import (
 	"context"
@@ -16,30 +16,38 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProAccounts provides information about specific Jamf Pro Dock Items by their ID or Name.
-func DataSourceJamfProAccounts() *schema.Resource {
+// DataSourceJamfProFileShareDistributionPoints defines the schema and CRUD operations for managing Jamf Pro Distribution Point in Terraform.
+func DataSourceJamfProFileShareDistributionPoints() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceJamfProAccountRead,
+		ReadContext: DataSourceJamfProFileShareDistributionPointsRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(30 * time.Second),
+		},
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The unique identifier of the jamf pro account.",
+				Required:    true,
+				Description: "The unique identifier of the distribution point.",
 			},
 			"name": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The name of the jamf pro account.",
+				Description: "The name of the distribution point.",
 			},
 		},
 	}
 }
 
-// DataSourceJamfProAccountRead fetches the details of specific account from Jamf Pro using either their unique Name or Id.
-func DataSourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// DataSourceJamfProFileShareDistributionPointsRead is responsible for reading the current state of a
+// Jamf Pro File Share Distribution Point Resource from the remote system.
+// The function:
+// 1. Fetches the dock item's current state using its ID. If it fails then obtain dock item's current state using its Name.
+// 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
+// 3. Handles any discrepancies, such as the dock item being deleted outside of Terraform, to keep the Terraform state synchronized.
+func DataSourceJamfProFileShareDistributionPointsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -53,7 +61,7 @@ func DataSourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, m
 	// Initialize variables
 	var diags diag.Diagnostics
 	var apiErrorCode int
-	var script *jamfpro.ResourceAccount
+	var fileShareDistributionPoint *jamfpro.ResourceFileShareDistributionPoint
 
 	// Get the distribution point ID from the data source's arguments
 	resourceID := d.Get("id").(string)
@@ -62,15 +70,16 @@ func DataSourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, m
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		// Handle conversion error with structured logging
-		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceAccount, resourceID, err.Error())
+		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceDistributionPoint, resourceID, err.Error())
 		return diag.FromErr(err)
 	}
+
 	// Read operation with retry
 	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		script, apiErr = conn.GetAccountByID(resourceIDInt)
+		fileShareDistributionPoint, apiErr = conn.GetDistributionPointByID(resourceIDInt)
 		if apiErr != nil {
-			logging.LogFailedReadByID(subCtx, JamfProResourceAccount, resourceID, apiErr.Error(), apiErrorCode)
+			logging.LogFailedReadByID(subCtx, JamfProResourceDistributionPoint, resourceID, apiErr.Error(), apiErrorCode)
 			// Convert any API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)
 		}
@@ -84,9 +93,9 @@ func DataSourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	// Check if resource data exists and set the Terraform state
-	if script != nil {
+	if fileShareDistributionPoint != nil {
 		d.SetId(resourceID) // Set the id in the Terraform state
-		if err := d.Set("name", script.Name); err != nil {
+		if err := d.Set("name", fileShareDistributionPoint.Name); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	} else {

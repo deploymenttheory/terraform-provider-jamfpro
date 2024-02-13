@@ -4,30 +4,33 @@ package sites
 import (
 	"context"
 	"strconv"
+	"time"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // DataSourceJamfProSites provides information about a specific Jamf Pro site by its ID or Name.
 func DataSourceJamfProSites() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceJamfProSitesRead,
+		ReadContext: DataSourceJamfProSitesRead,
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(30 * time.Second),
+		},
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Computed:    true,
+				Required:    true,
 				Description: "The unique identifier of the Jamf Pro site.",
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Optional:    true,
 				Computed:    true,
 				Description: "The unique name of the Jamf Pro site.",
 			},
@@ -35,7 +38,7 @@ func DataSourceJamfProSites() *schema.Resource {
 	}
 }
 
-// dataSourceJamfProSitesRead fetches the details of a specific Jamf Pro site
+// DataSourceJamfProSitesRead fetches the details of a specific Jamf Pro site
 // from Jamf Pro using either its unique Name or its Id. The function prioritizes the 'name' attribute over the 'id'
 // attribute for fetching details. If neither 'name' nor 'id' is provided, it returns an error.
 // Once the details are fetched, they are set in the data source's state.
@@ -47,7 +50,7 @@ func DataSourceJamfProSites() *schema.Resource {
 //
 // Returns:
 // - diag.Diagnostics: Returns any diagnostics (errors or warnings) encountered during the function's execution.
-func dataSourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func DataSourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -60,8 +63,11 @@ func dataSourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, met
 
 	// Initialize variables
 	var diags diag.Diagnostics
-	resourceID := d.Id()
 	var apiErrorCode int
+	var site *jamfpro.SharedResourceSite
+
+	// Get the distribution point ID from the data source's arguments
+	resourceID := d.Get("id").(string)
 
 	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
@@ -70,26 +76,32 @@ func dataSourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, met
 		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceSite, resourceID, err.Error())
 		return diag.FromErr(err)
 	}
-
-	// read operation
-
-	site, err := conn.GetSiteByID(resourceIDInt)
-	if err != nil {
-		if apiError, ok := err.(*http_client.APIError); ok {
-			apiErrorCode = apiError.StatusCode
+	// Read operation with retry
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		site, apiErr = conn.GetSiteByID(resourceIDInt)
+		if apiErr != nil {
+			logging.LogFailedReadByID(subCtx, JamfProResourceSite, resourceID, apiErr.Error(), apiErrorCode)
+			// Convert any API error into a retryable error to continue retrying
+			return retry.RetryableError(apiErr)
 		}
-		logging.LogFailedReadByID(subCtx, JamfProResourceSite, resourceID, err.Error(), apiErrorCode)
-		return diags
+		// Successfully read the data, exit the retry loop
+		return nil
+	})
+
+	if err != nil {
+		// Handle the final error after all retries have been exhausted
+		return diag.FromErr(err)
 	}
 
-	// Assuming successful read if no error
-	logging.LogAPIReadSuccess(subCtx, JamfProResourceSite, resourceID)
-
-	if err := d.Set("id", resourceID); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("name", site.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	// Check if resource data exists and set the Terraform state
+	if site != nil {
+		d.SetId(resourceID) // Set the id in the Terraform state
+		if err := d.Set("name", site.Name); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	} else {
+		d.SetId("") // Data not found, unset the id in the Terraform state
 	}
 
 	return diags

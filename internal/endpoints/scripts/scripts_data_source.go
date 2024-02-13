@@ -1,9 +1,8 @@
-// accounts_data_source.go
-package accounts
+// scripts_date_source.go
+package scripts
 
 import (
 	"context"
-	"strconv"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -16,30 +15,31 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProAccounts provides information about specific Jamf Pro Dock Items by their ID or Name.
-func DataSourceJamfProAccounts() *schema.Resource {
+// DataSourceJamfProScripts provides information about a specific Jamf Pro script by its ID or Name.
+func DataSourceJamfProScripts() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceJamfProAccountRead,
+		ReadContext: DataSourceJamfProScriptsRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(30 * time.Second),
 		},
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The unique identifier of the jamf pro account.",
+				Required:    true,
+				Description: "The Jamf Pro unique identifier (ID) of the script.",
 			},
 			"name": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The name of the jamf pro account.",
+				Description: "Display name for the script.",
 			},
 		},
 	}
 }
 
-// DataSourceJamfProAccountRead fetches the details of specific account from Jamf Pro using either their unique Name or Id.
-func DataSourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// DataSourceJamfProScriptsRead fetches the details of a specific Jamf Pro script
+// from Jamf Pro using either its unique Name or its Id.
+func DataSourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -53,24 +53,17 @@ func DataSourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, m
 	// Initialize variables
 	var diags diag.Diagnostics
 	var apiErrorCode int
-	var script *jamfpro.ResourceAccount
+	var script *jamfpro.ResourceScript
 
 	// Get the distribution point ID from the data source's arguments
 	resourceID := d.Get("id").(string)
 
-	// Convert resourceID from string to int
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		// Handle conversion error with structured logging
-		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceAccount, resourceID, err.Error())
-		return diag.FromErr(err)
-	}
 	// Read operation with retry
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		script, apiErr = conn.GetAccountByID(resourceIDInt)
+		script, apiErr = conn.GetScriptByID(resourceID)
 		if apiErr != nil {
-			logging.LogFailedReadByID(subCtx, JamfProResourceAccount, resourceID, apiErr.Error(), apiErrorCode)
+			logging.LogFailedReadByID(subCtx, JamfProResourceScript, resourceID, apiErr.Error(), apiErrorCode)
 			// Convert any API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)
 		}

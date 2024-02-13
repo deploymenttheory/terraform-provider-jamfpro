@@ -1,23 +1,23 @@
-data "jamfpro_dock_item" "example_dock_item" {
-  id = "12345"  # Replace this with the actual ID of the dock item you want to retrieve
+data "jamfpro_dock_items" "dock_item_001_data" {
+  id = jamfpro_dock_items.dock_item_001.id
 }
 
-output "dock_item_id" {
-  value = data.jamfpro_dock_item.example_dock_item.id
+output "jamfpro_dock_item_001_id" {
+  value = data.jamfpro_dock_items.dock_item_001_data.id
 }
 
-output "dock_item_name" {
-  value = data.jamfpro_dock_item.example_dock_item.name
+output "jamfpro_dock_item_001_name" {
+  value = data.jamfpro_dock_items.dock_item_001_data.name
 }
 
-output "dock_item_type" {
-  value = data.jamfpro_dock_item.example_dock_item.type
+data "jamfpro_dock_items" "dock_item_002_data" {
+  id = jamfpro_dock_items.dock_item_002.id
 }
 
-output "dock_item_path" {
-  value = data.jamfpro_dock_item.example_dock_item.path
+output "jamfpro_dock_item_002_id" {
+  value = data.jamfpro_dock_items.dock_item_002_data.id
 }
 
-output "dock_item_contents" {
-  value = data.jamfpro_dock_item.example_dock_item.contents
+output "jamfpro_dock_item_002_name" {
+  value = data.jamfpro_dock_items.dock_item_002_data.name
 }
