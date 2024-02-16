@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"reflect"
 	"strconv"
 	"time"
 
@@ -131,7 +132,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 			// "payloads": {},
 			"scope": {
 				Type:        schema.TypeList,
-				MaxItems:    100,
+				MaxItems:    1,
 				Description: "The scope of the configuration profile.",
 				Optional:    true,
 				Default:     nil,
@@ -168,7 +169,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 												OldAsInt, err := strconv.Atoi(old)
 
 												if err != nil {
-													log.Println("ERROR ERROR ERROR")
+													log.Printf("ERROR ERROR ERROR, %v", err)
 												}
 
 												if OldAsInt == i {
@@ -319,35 +320,49 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 	// Fields with processing
 
 	// Site
-	if d.Get("site") == nil {
-		out.General.Site = jamfpro.SharedResourceSite{
-			ID:   0,
-			Name: "",
-		}
+	log.Println("LOGHERE")
+	log.Println(d.Get("site"))
+	log.Println(reflect.TypeOf(d.Get("site")))
+	if len(d.Get("site").([]interface{})) == 0 {
+		log.Println("S Block 1")
+
 	} else {
+		log.Println("S Block 2")
 		out.General.Site = jamfpro.SharedResourceSite{
 			ID:   d.Get("site.0.id").(int),
 			Name: d.Get("site.0.name").(string),
 		}
 	}
+	log.Println("S Block 3")
 
+	log.Println(d.Get("category"))
+	log.Println(reflect.TypeOf(d.Get("category")))
 	// Category
 	if d.Get("category") == nil {
+		log.Println("C Block 1")
 		out.General.Category = jamfpro.SharedResourceCategory{
-			ID:   0,
-			Name: "None",
+			ID:   -1,
+			Name: "No category assigned",
 		}
-		log.Println("placeholder")
 	} else {
+		log.Println("C Block 2")
 		out.General.Category = jamfpro.SharedResourceCategory{
 			ID:   d.Get("category.0.id").(int),
 			Name: d.Get("category.0.name").(string),
 		}
 	}
+	log.Println("C Block 3")
 
 	// Scope
+	log.Println("PRE SCOPE BLOCK")
+	log.Println(d.Get("scope"))
+	log.Println(reflect.TypeOf(d.Get("scope")))
 
-	if d.Get("scope") != nil {
+	if d.Get("scope") == nil {
+		log.Println("SCOPE IS NIL CONFIRMED")
+	}
+	if len(d.Get("scope").([]interface{})) == 0 {
+		log.Println("SCOPE BLOCK 1")
 		// All Computers & Users
 		out.Scope.AllComputers = d.Get("scope.0.all_computers").(bool)
 		out.Scope.AllJSSUsers = d.Get("scope.0.all_jss_users").(bool)
