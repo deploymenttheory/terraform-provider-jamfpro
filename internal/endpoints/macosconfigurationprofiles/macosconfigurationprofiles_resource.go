@@ -2,7 +2,7 @@ package macosconfigurationprofiles
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"log"
 	"reflect"
@@ -159,27 +159,74 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 										Type:     schema.TypeList,
 										Optional: true,
 										DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-											listFromHCL := d.Get("scope.0.computers").([]interface{})[0].(map[string]interface{})["id"]
-											var listFromHCLAsInt []int
-
-											for _, v := range listFromHCL.([]interface{}) {
-												listFromHCLAsInt = append(listFromHCLAsInt, v.(int))
+											var old_list []int
+											oldAsInt, err := strconv.Atoi(old)
+											if err != nil {
+												log.Printf("ERROR: %v", err)
 											}
+											old_list = append(old_list, strconv.Atoi(old))
+											// if K is not the counter
+											if k != "scope.0.computers.0.id.#" {
 
-											for _, i := range listFromHCLAsInt {
-												OldAsInt, err := strconv.Atoi(old)
-
-												if err != nil {
-													log.Printf("ERROR ERROR ERROR, %v", err)
-												}
-
-												if OldAsInt == i {
+												// If the old and new values are the same, no changes, true
+												if old == new {
 													return true
 												}
+
+											} else {
+												// if K is the counter, false
+												return true
 											}
 
-											return false
+											// Failover
+											return true
 										},
+
+										// 	log.Println("----- DIFFLOG START -----")
+										// 	log.Printf("k: %v | typeof k: %v", k, reflect.TypeOf(k))
+										// 	if k != "scope.0.computers.0.id.#" {
+										// 		log.Println("----- VALS -----")
+										// 		log.Printf("old: %v | typeof old: %v", old, reflect.TypeOf(old))
+										// 		log.Printf("new: %v | typeof new: %v", new, reflect.TypeOf(new))
+
+										// 		log.Println("----- GET FROM HCL -----")
+										// 		listFromHCL := d.Get("scope.0.computers").([]interface{})[0].(map[string]interface{})["id"]
+										// 		log.Printf("ListFromHCL: %v", listFromHCL)
+
+										// 		var listFromHCLAsInt []int
+										// 		for _, v := range listFromHCL.([]interface{}) {
+										// 			listFromHCLAsInt = append(listFromHCLAsInt, v.(int))
+										// 		}
+										// 		log.Printf("ListFromHCLAsInt: %v", listFromHCLAsInt)
+
+										// 		log.Println("----- CHECK LOOP START -----")
+										// 		for _, i := range listFromHCLAsInt {
+										// 			log.Printf("i: %v", i)
+
+										// 			if i == 0 {
+										// 				log.Println("----- DIFFLOG END TRUE -----")
+										// 				return true
+										// 			}
+
+										// 			OldAsInt, convErr := strconv.Atoi(old)
+										// 			log.Printf("OldAsInt: %v", OldAsInt)
+
+										// 			if convErr != nil {
+										// 				log.Printf("ERROR ERROR ERROR, %v", convErr)
+										// 			}
+
+										// 			if OldAsInt == i {
+										// 				log.Println("----- DIFFLOG END TRUE -----")
+										// 				return true
+										// 			}
+										// 		}
+
+										// 		log.Println("----- DIFFLOG END FALSE -----")
+										// 		return true
+										// 	}
+										// 	log.Println("----- DIFFLOG SKIPPED -----")
+										// 	return false
+										// },
 										Elem: &schema.Schema{
 											Type: schema.TypeInt,
 										},
@@ -341,15 +388,15 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 	log.Println(d.Get("category"))
 	log.Println(reflect.TypeOf(d.Get("category")))
 	// Category
-	if d.Get("category") == nil {
+	if len(d.Get("category").([]interface{})) == 0 {
 		log.Println("C Block 1")
-		out.General.Category = jamfpro.SharedResourceCategory{
-			ID:   -1,
-			Name: "No category assigned",
-		}
+		// out.General.Category = jamfpro.SharedResourceCategory{
+		// 	ID:   -1,
+		// 	Name: "No category assigned",
+		// }
 	} else {
 		log.Println("C Block 2")
-		out.General.Category = jamfpro.SharedResourceCategory{
+		out.General.Category = &jamfpro.SharedResourceCategory{
 			ID:   d.Get("category.0.id").(int),
 			Name: d.Get("category.0.name").(string),
 		}
@@ -364,7 +411,7 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 	if d.Get("scope") == nil {
 		log.Println("SCOPE IS NIL CONFIRMED")
 	}
-	if len(d.Get("scope").([]interface{})) == 0 {
+	if len(d.Get("scope").([]interface{})) > 0 {
 		log.Println("SCOPE BLOCK 1")
 		// All Computers & Users
 		out.Scope.AllComputers = d.Get("scope.0.all_computers").(bool)
@@ -448,7 +495,8 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 	}
 
 	log.Println("THE OUT STRUCT")
-	marshalled, _ := json.MarshalIndent(out, "", "  ")
+	marshalled, _ := xml.MarshalIndent(out, "", "  ")
+	log.Printf("%+v\n", out)
 	log.Println(string(marshalled))
 
 	return &out, nil
@@ -527,7 +575,7 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 }
 
 func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-
+	log.Println("READING")
 	// API Stuff
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -569,6 +617,10 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 
 	// Stating
 
+	log.Println("RESPLOG")
+	unmarshalledResp, _ := xml.MarshalIndent(resp, "", "  ")
+	log.Println(string(unmarshalledResp))
+
 	// ID
 	if err := d.Set("id", resourceID); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
@@ -600,15 +652,17 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	}
 
 	// Category
-	out_category := []map[string]interface{}{
-		{
-			"id":   resp.General.Category.ID,
-			"name": resp.General.Category.Name,
-		},
-	}
 
-	if err := d.Set("category", out_category); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	if resp.General.Category.ID != -1 && resp.General.Category.Name != "No category assigned" {
+		out_category := []map[string]interface{}{
+			{
+				"id":   resp.General.Category.ID,
+				"name": resp.General.Category.Name,
+			},
+		}
+		if err := d.Set("category", out_category); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	// Distribution Method
@@ -638,10 +692,15 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 
 	// Scope
 	// Computers
+	log.Println("COMPUTERREAD")
+	log.Printf("%+v\n", resp.Scope.Computers)
 	var inComputers []int
 	for _, v := range resp.Scope.Computers {
+		log.Printf("ID: %v", v.ID)
 		inComputers = append(inComputers, v.ID)
 	}
+	log.Printf("INCOMPUTERS: %v", inComputers)
+	log.Printf("INCOMPUTERS TYPE: %v", reflect.TypeOf(inComputers))
 
 	// Computer Groups
 	var out_computer_groups []map[string]interface{}
