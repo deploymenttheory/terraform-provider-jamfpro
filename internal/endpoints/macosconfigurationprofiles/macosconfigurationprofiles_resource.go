@@ -2,6 +2,7 @@ package macosconfigurationprofiles
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"reflect"
@@ -335,6 +336,8 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 	}
 	log.Println("S Block 3")
 
+	log.Println()
+
 	log.Println(d.Get("category"))
 	log.Println(reflect.TypeOf(d.Get("category")))
 	// Category
@@ -443,6 +446,10 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 		// Exclusions
 
 	}
+
+	log.Println("THE OUT STRUCT")
+	marshalled, _ := json.MarshalIndent(out, "", "  ")
+	log.Println(string(marshalled))
 
 	return &out, nil
 }
