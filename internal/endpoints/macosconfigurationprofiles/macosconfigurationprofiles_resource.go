@@ -119,9 +119,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 			},
 			"uuid": {
 				Type:        schema.TypeString,
-				Optional:    true,
 				Computed:    true,
-				Default:     nil,
 				Description: "The UUID of the configuration profile.",
 			},
 			// "redeploy_on_update": {
@@ -142,11 +140,13 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 						"all_computers": {
 							Type:        schema.TypeBool,
 							Optional:    true,
+							Default:     false,
 							Description: "Whether the configuration profile is scoped to all computers.",
 						},
 						"all_jss_users": {
 							Type:        schema.TypeBool,
 							Optional:    true,
+							Default:     false,
 							Description: "Whether the configuration profile is scoped to all JSS users.",
 						},
 						"computers": {
@@ -158,75 +158,6 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 									"id": {
 										Type:     schema.TypeList,
 										Optional: true,
-										DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-											var old_list []int
-											oldAsInt, err := strconv.Atoi(old)
-											if err != nil {
-												log.Printf("ERROR: %v", err)
-											}
-											old_list = append(old_list, strconv.Atoi(old))
-											// if K is not the counter
-											if k != "scope.0.computers.0.id.#" {
-
-												// If the old and new values are the same, no changes, true
-												if old == new {
-													return true
-												}
-
-											} else {
-												// if K is the counter, false
-												return true
-											}
-
-											// Failover
-											return true
-										},
-
-										// 	log.Println("----- DIFFLOG START -----")
-										// 	log.Printf("k: %v | typeof k: %v", k, reflect.TypeOf(k))
-										// 	if k != "scope.0.computers.0.id.#" {
-										// 		log.Println("----- VALS -----")
-										// 		log.Printf("old: %v | typeof old: %v", old, reflect.TypeOf(old))
-										// 		log.Printf("new: %v | typeof new: %v", new, reflect.TypeOf(new))
-
-										// 		log.Println("----- GET FROM HCL -----")
-										// 		listFromHCL := d.Get("scope.0.computers").([]interface{})[0].(map[string]interface{})["id"]
-										// 		log.Printf("ListFromHCL: %v", listFromHCL)
-
-										// 		var listFromHCLAsInt []int
-										// 		for _, v := range listFromHCL.([]interface{}) {
-										// 			listFromHCLAsInt = append(listFromHCLAsInt, v.(int))
-										// 		}
-										// 		log.Printf("ListFromHCLAsInt: %v", listFromHCLAsInt)
-
-										// 		log.Println("----- CHECK LOOP START -----")
-										// 		for _, i := range listFromHCLAsInt {
-										// 			log.Printf("i: %v", i)
-
-										// 			if i == 0 {
-										// 				log.Println("----- DIFFLOG END TRUE -----")
-										// 				return true
-										// 			}
-
-										// 			OldAsInt, convErr := strconv.Atoi(old)
-										// 			log.Printf("OldAsInt: %v", OldAsInt)
-
-										// 			if convErr != nil {
-										// 				log.Printf("ERROR ERROR ERROR, %v", convErr)
-										// 			}
-
-										// 			if OldAsInt == i {
-										// 				log.Println("----- DIFFLOG END TRUE -----")
-										// 				return true
-										// 			}
-										// 		}
-
-										// 		log.Println("----- DIFFLOG END FALSE -----")
-										// 		return true
-										// 	}
-										// 	log.Println("----- DIFFLOG SKIPPED -----")
-										// 	return false
-										// },
 										Elem: &schema.Schema{
 											Type: schema.TypeInt,
 										},
@@ -404,24 +335,21 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 	log.Println("C Block 3")
 
 	// Scope
-	log.Println("PRE SCOPE BLOCK")
-	log.Println(d.Get("scope"))
-	log.Println(reflect.TypeOf(d.Get("scope")))
 
-	if d.Get("scope") == nil {
-		log.Println("SCOPE IS NIL CONFIRMED")
-	}
 	if len(d.Get("scope").([]interface{})) > 0 {
-		log.Println("SCOPE BLOCK 1")
 		// All Computers & Users
 		out.Scope.AllComputers = d.Get("scope.0.all_computers").(bool)
 		out.Scope.AllJSSUsers = d.Get("scope.0.all_jss_users").(bool)
 
 		// Computers
 		if d.Get("scope.0.computers") != nil {
-			computers := d.Get("scope.0.computers").([]interface{})
-			computerIds := computers[0].(map[string]interface{})["id"]
-			for _, c := range computerIds.([]interface{}) {
+			computersGet, ok := d.GetOk("scope.0.computers")
+			if !ok {
+				log.Println("ERROR")
+			}
+			computers := computersGet.([]interface{})[0].(map[string]interface{})["id"].([]interface{})
+
+			for _, c := range computers {
 				out.Scope.Computers = append(out.Scope.Computers, jamfpro.MacOSConfigurationProfileSubsetComputer{
 					ID: c.(int),
 				})
@@ -692,15 +620,10 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 
 	// Scope
 	// Computers
-	log.Println("COMPUTERREAD")
-	log.Printf("%+v\n", resp.Scope.Computers)
 	var inComputers []int
 	for _, v := range resp.Scope.Computers {
-		log.Printf("ID: %v", v.ID)
 		inComputers = append(inComputers, v.ID)
 	}
-	log.Printf("INCOMPUTERS: %v", inComputers)
-	log.Printf("INCOMPUTERS TYPE: %v", reflect.TypeOf(inComputers))
 
 	// Computer Groups
 	var out_computer_groups []map[string]interface{}
@@ -752,8 +675,6 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Write scope to state
 	out_scope := []map[string]interface{}{
 		{
-			"all_computers":   resp.Scope.AllComputers,
-			"all_jss_users":   resp.Scope.AllJSSUsers,
 			"computers":       []map[string]interface{}{{"id": inComputers}},
 			"computer_groups": out_computer_groups,
 			"jss_users":       out_jss_users,
@@ -762,6 +683,20 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 			"departments":     out_departments,
 		},
 	}
+
+	log.Println("LOGHERE")
+	log.Println(resp.Scope.AllComputers)
+	log.Println(resp.Scope.AllJSSUsers)
+
+	if resp.Scope.AllComputers {
+		out_scope[0]["all_computers"] = true
+	}
+
+	if resp.Scope.AllJSSUsers {
+		out_scope[0]["all_jss_users"] = true
+	}
+
+	log.Println(out_scope)
 
 	if err := d.Set("scope", out_scope); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
