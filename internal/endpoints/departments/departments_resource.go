@@ -126,21 +126,34 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
+	var department *jamfpro.ResourceDepartment
 
-	// Attempt to fetch the department's current state using its ID
-	department, err := conn.GetDepartmentByID(resourceID)
+	// Read operation with retry
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		department, apiErr = conn.GetDepartmentByID(resourceID)
+		if apiErr != nil {
+			// Convert any API error into a retryable error to continue retrying
+			return retry.RetryableError(apiErr)
+		}
+		// Successfully read the department, exit the retry loop
+		return nil
+	})
+
 	if err != nil {
-		// If the department cannot be found by ID, clear the ID from the Terraform state
-		d.SetId("")
-		return diag.FromErr(fmt.Errorf("unable to find department with ID '%s': %v", resourceID, err))
+		// Handle the final error after all retries have been exhausted
+		d.SetId("") // Clear the ID from the Terraform state if the department cannot be found after retries
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Department with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	// Update the Terraform state with the fetched data
-	if err := d.Set("id", resourceID); err != nil {
-		diags = append(diags, diag.FromErr(fmt.Errorf("error setting department ID: %v", err))...)
-	}
-	if err := d.Set("name", department.Name); err != nil {
-		diags = append(diags, diag.FromErr(fmt.Errorf("error setting department name: %v", err))...)
+	if department != nil {
+		d.SetId(resourceID) // Confirm the ID in the Terraform state
+		if err := d.Set("name", department.Name); err != nil {
+			diags = append(diags, diag.FromErr(fmt.Errorf("error setting department name for ID '%s': %v", resourceID, err))...)
+		}
+	} else {
+		d.SetId("") // Data not found, unset the ID in the Terraform state
 	}
 
 	return diags

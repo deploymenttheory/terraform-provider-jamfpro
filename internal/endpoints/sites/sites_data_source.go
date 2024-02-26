@@ -3,14 +3,13 @@ package sites
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
-	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -51,37 +50,33 @@ func DataSourceJamfProSites() *schema.Resource {
 // Returns:
 // - diag.Diagnostics: Returns any diagnostics (errors or warnings) encountered during the function's execution.
 func DataSourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize api client
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Initialize the logging subsystem for the read operation
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemRead, hclog.Info)
-
 	// Initialize variables
 	var diags diag.Diagnostics
-	var apiErrorCode int
+
+	// Get the site ID from the data source's arguments
+	resourceID, ok := d.GetOk("id")
+	if !ok {
+		return diag.Errorf("'id' must be provided")
+	}
+	resourceIDInt, err := strconv.Atoi(resourceID.(string))
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error converting 'id' to int: %v", err))
+	}
+
 	var site *jamfpro.SharedResourceSite
 
-	// Get the distribution point ID from the data source's arguments
-	resourceID := d.Get("id").(string)
-
-	// Convert resourceID from string to int
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		// Handle conversion error with structured logging
-		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceSite, resourceID, err.Error())
-		return diag.FromErr(err)
-	}
 	// Read operation with retry
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
 		site, apiErr = conn.GetSiteByID(resourceIDInt)
 		if apiErr != nil {
-			logging.LogFailedReadByID(subCtx, JamfProResourceSite, resourceID, apiErr.Error(), apiErrorCode)
 			// Convert any API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)
 		}
@@ -91,14 +86,14 @@ func DataSourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, met
 
 	if err != nil {
 		// Handle the final error after all retries have been exhausted
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Site with ID '%d' after retries: %v", resourceIDInt, err))
 	}
 
 	// Check if resource data exists and set the Terraform state
 	if site != nil {
-		d.SetId(resourceID) // Set the id in the Terraform state
+		d.SetId(fmt.Sprintf("%d", resourceIDInt)) // Set the id in the Terraform state
 		if err := d.Set("name", site.Name); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Site with ID '%d': %v", resourceIDInt, err))...)
 		}
 	} else {
 		d.SetId("") // Data not found, unset the id in the Terraform state
