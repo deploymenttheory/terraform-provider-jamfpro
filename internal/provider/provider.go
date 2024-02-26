@@ -288,7 +288,7 @@ func Provider() *schema.Provider {
 
 		// Initialize your provider's APIClient struct with the Jamf Pro HTTP client.
 		jamfProAPIClient := client.APIClient{
-			Conn: jamfProClient.HTTP,
+			Conn: jamfProClient,
 		}
 
 		return &jamfProAPIClient, diags

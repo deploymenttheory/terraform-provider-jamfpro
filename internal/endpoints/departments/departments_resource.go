@@ -8,7 +8,6 @@ import (
 	"reflect"
 	"time"
 
-	
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
@@ -120,7 +119,7 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 		creationResponse, apiErr = jamfpro.CreateDepartment(department)
 		if apiErr != nil {
 			// Extract and log the API error code if available
-			if apiError, ok := apiErr.(*.APIError); ok {
+			if apiError, ok := apiErr.(*jamfpro.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 			logging.LogAPICreateFailedAfterRetry(subCtx, JamfProResourceDepartment, resourceName, apiErr.Error(), apiErrorCode)
@@ -252,7 +251,7 @@ func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		_, apiErr := conn.UpdateDepartmentByID(resourceID, department)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*.APIError); ok {
+			if apiError, ok := apiErr.(*jamfpro.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 
@@ -261,7 +260,7 @@ func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 			_, apiErrByName := conn.UpdateDepartmentByName(resourceName, department)
 			if apiErrByName != nil {
 				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErrByName.(*.APIError); ok {
+				if apiErrorByName, ok := apiErrByName.(*jamfpro.APIError); ok {
 					apiErrByNameCode = apiErrorByName.StatusCode
 				}
 
@@ -324,7 +323,7 @@ func ResourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceDat
 		// Delete By ID
 		apiErr := conn.DeleteDepartmentByID(resourceID)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*.APIError); ok {
+			if apiError, ok := apiErr.(*jamfpro.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 			logging.LogAPIDeleteFailureByID(subCtx, JamfProResourceDepartment, resourceID, resourceName, apiErr.Error(), apiErrorCode)
@@ -333,7 +332,7 @@ func ResourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceDat
 			apiErr = conn.DeleteDepartmentByName(resourceName)
 			if apiErr != nil {
 				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErr.(*.APIError); ok {
+				if apiErrorByName, ok := apiErr.(*jamfpro.APIError); ok {
 					apiErrByNameCode = apiErrorByName.StatusCode
 				}
 
