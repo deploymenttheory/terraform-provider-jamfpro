@@ -429,58 +429,41 @@ func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, m
 
 // ResourceJamfProScriptsDelete is responsible for deleting a Jamf Pro Department.
 func ResourceJamfProScriptsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize api client
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+			return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
-	resourceName := d.Get("name").(string)
-	var apiErrorCode int
-
-	// Initialize the logging subsystem for the delete operation
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemDelete, hclog.Info)
 
 	// Use the retry function for the delete operation with appropriate timeout
-	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// Delete By ID
-		apiErr := conn.DeleteScriptByID(resourceID)
-		if apiErr != nil {
-			if apiError, ok := apiErr.(*.APIError); ok {
-				apiErrorCode = apiError.StatusCode
-			}
-			logging.LogAPIDeleteFailureByID(subCtx, JamfProResourceScript, resourceID, resourceName, apiErr.Error(), apiErrorCode)
-
-			// If Delete by ID fails then try Delete by Name
-			apiErr = conn.DeleteScriptByName(resourceName)
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
+			// Attempt to delete the script by ID
+			apiErr := conn.DeleteScriptByID(resourceID)
 			if apiErr != nil {
-				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErr.(*.APIError); ok {
-					apiErrByNameCode = apiErrorByName.StatusCode
-				}
-
-				logging.LogAPIDeleteFailureByName(subCtx, JamfProResourceScript, resourceName, apiErr.Error(), apiErrByNameCode)
-				return retry.RetryableError(apiErr)
+					// If deleting by ID fails, attempt to delete by Name
+					resourceName := d.Get("name").(string)
+					apiErrByName := conn.DeleteScriptByName(resourceName)
+					if apiErrByName != nil {
+							// If deletion by name also fails, return a retryable error
+							return retry.RetryableError(apiErrByName)
+					}
 			}
-		}
-		return nil
+			// Successfully deleted the script, exit the retry loop
+			return nil
 	})
 
-	// Send error to diag.diags
 	if err != nil {
-		logging.LogAPIDeleteFailedAfterRetry(subCtx, JamfProResourceScript, resourceID, resourceName, err.Error(), apiErrorCode)
-		diags = append(diags, diag.FromErr(err)...)
-		return diags
+			return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Script '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
 	}
-
-	logging.LogAPIDeleteSuccess(subCtx, JamfProResourceScript, resourceID, resourceName)
 
 	// Clear the ID from the Terraform state as the resource has been deleted
 	d.SetId("")
 
-	return nil
+	return diags
 }
+
