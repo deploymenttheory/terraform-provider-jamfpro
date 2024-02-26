@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
@@ -206,56 +205,36 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 
 	// Initialize variables
 	var diags diag.Diagnostics
-	var creationResponse *jamfpro.ResponseScriptCreate
-	var apiErrorCode int
-	resourceName := d.Get("name").(string)
 
-	// Initialize the logging subsystem with the create operation context
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemCreate, hclog.Info)
-	subSyncCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemSync, hclog.Info)
-
-	// Construct the script object outside the retry loop to avoid reconstructing it on each retry
-	script, err := constructJamfProScript(subCtx, d)
+	// Construct the script object
+	script, err := constructJamfProScript(ctx, d)
 	if err != nil {
-		logging.LogTFConstructResourceFailure(subCtx, JamfProResourceScript, err.Error())
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Script: %v", err))
 	}
-	logging.LogTFConstructResourceSuccess(subCtx, JamfProResourceScript)
 
 	// Retry the API call to create the script in Jamf Pro
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+	var creationResponse *jamfpro.ResponseScriptCreate
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
 		creationResponse, apiErr = conn.CreateScript(script)
 		if apiErr != nil {
-			// Extract and log the API error code if available
-			if apiError, ok := apiErr.(*.APIError); ok {
-				apiErrorCode = apiError.StatusCode
-			}
-			logging.LogAPICreateFailedAfterRetry(subCtx, JamfProResourceScript, resourceName, apiErr.Error(), apiErrorCode)
-			// Return a non-retryable error to break out of the retry loop
-			return retry.NonRetryableError(apiErr)
+			return retry.RetryableError(apiErr)
 		}
 		// No error, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		// Log the final error and append it to the diagnostics
-		logging.LogAPICreateFailure(subCtx, JamfProResourceScript, err.Error(), apiErrorCode)
-		diags = append(diags, diag.FromErr(err)...)
-		return diags
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Script '%s' after retries: %v", script.Name, err))
 	}
 
-	// Log successful creation of the script and set the resource ID in Terraform state
-	logging.LogAPICreateSuccess(subCtx, JamfProResourceScript, creationResponse.ID)
+	// Set the resource ID in Terraform state
 	d.SetId(creationResponse.ID)
 
 	// Retry reading the script to ensure the Terraform state is up to date
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProScriptsRead(subCtx, d, meta)
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		readDiags := ResourceJamfProScriptsRead(ctx, d, meta)
 		if len(readDiags) > 0 {
-			// Log any read errors and return a retryable error to retry the read operation
-			logging.LogTFStateSyncFailedAfterRetry(subSyncCtx, JamfProResourceScript, d.Id(), readDiags[0].Summary)
 			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
 		}
 		// Successfully read the script, exit the retry loop
@@ -263,12 +242,7 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 	})
 
 	if err != nil {
-		// Log the final state sync failure and append it to the diagnostics
-		logging.LogTFStateSyncFailure(subSyncCtx, JamfProResourceScript, err.Error())
-		diags = append(diags, diag.FromErr(err)...)
-	} else {
-		// Log successful state synchronization
-		logging.LogTFStateSyncSuccess(subSyncCtx, JamfProResourceScript, d.Id())
+		return diag.FromErr(fmt.Errorf("failed to synchronize Terraform state for Jamf Pro Script '%s' after creation: %v", script.Name, err))
 	}
 
 	return diags
@@ -280,28 +254,23 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the script being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize api client
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Initialize the logging subsystem for the read operation
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemRead, hclog.Info)
-
 	// Initialize variables
 	var diags diag.Diagnostics
-	var apiErrorCode int
-	var script *jamfpro.ResourceScript
 	resourceID := d.Id()
 
 	// Read operation with retry
-	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	var script *jamfpro.ResourceScript
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
 		script, apiErr = conn.GetScriptByID(resourceID)
 		if apiErr != nil {
-			logging.LogFailedReadByID(subCtx, JamfProResourceScript, resourceID, apiErr.Error(), apiErrorCode)
 			// Convert any API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)
 		}
@@ -312,8 +281,7 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 	if err != nil {
 		// Handle the final error after all retries have been exhausted
 		d.SetId("") // Remove from Terraform state if unable to read after retries
-		logging.LogTFStateRemovalWarning(subCtx, JamfProResourceScript, resourceID)
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Script with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	// Construct a map of script attributes
@@ -339,8 +307,7 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 	// Update the Terraform state with script scripts
 	for key, value := range scriptAttributes {
 		if err := d.Set(key, value); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-			return diags
+			diags = append(diags, diag.FromErr(fmt.Errorf("error setting '%s' for Jamf Pro Script with ID '%s': %v", key, resourceID, err))...)
 		}
 	}
 
@@ -349,82 +316,50 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 
 // ResourceJamfProScriptsUpdate is responsible for updating an existing Jamf Pro Department on the remote system.
 func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize api client
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Initialize the logging subsystem for the update operation
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemUpdate, hclog.Info)
-	subSyncCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemSync, hclog.Info)
-
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
-	resourceName := d.Get("name").(string)
-	var apiErrorCode int
 
 	// Construct the resource object
-	script, err := constructJamfProScript(subCtx, d)
+	script, err := constructJamfProScript(ctx, d)
 	if err != nil {
-		logging.LogTFConstructResourceFailure(subCtx, JamfProResourceScript, err.Error())
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Script for update: %v", err))
 	}
-	logging.LogTFConstructResourceSuccess(subCtx, JamfProResourceScript)
 
 	// Update operations with retries
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		_, apiErr := conn.UpdateScriptByID(resourceID, script)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*.APIError); ok {
-				apiErrorCode = apiError.StatusCode
-			}
-
-			logging.LogAPIUpdateFailureByID(subCtx, JamfProResourceScript, resourceID, resourceName, apiErr.Error(), apiErrorCode)
-
+			// If updating by ID fails, attempt to update by Name
+			resourceName := d.Get("name").(string)
 			_, apiErrByName := conn.UpdateScriptByName(resourceName, script)
 			if apiErrByName != nil {
-				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErrByName.(*.APIError); ok {
-					apiErrByNameCode = apiErrorByName.StatusCode
-				}
-
-				logging.LogAPIUpdateFailureByName(subCtx, JamfProResourceScript, resourceName, apiErrByName.Error(), apiErrByNameCode)
+				// If updating by name also fails, return a retryable error
 				return retry.RetryableError(apiErrByName)
 			}
-		} else {
-			logging.LogAPIUpdateSuccess(subCtx, JamfProResourceScript, resourceID, resourceName)
 		}
-		return nil
-	})
-
-	// Send error to diag.diags
-	if err != nil {
-		logging.LogAPIDeleteFailedAfterRetry(subCtx, JamfProResourceScript, resourceID, resourceName, err.Error(), apiErrorCode)
-		diags = append(diags, diag.FromErr(err)...)
-		return diags
-	}
-
-	// Retry reading the script to synchronize the Terraform state
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProScriptsRead(subCtx, d, meta)
-		if len(readDiags) > 0 {
-			logging.LogTFStateSyncFailedAfterRetry(subSyncCtx, JamfProResourceScript, resourceID, readDiags[0].Summary)
-			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
-		}
+		// Successfully updated the script, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		logging.LogTFStateSyncFailure(subSyncCtx, JamfProResourceScript, err.Error())
-		return diag.FromErr(err)
-	} else {
-		logging.LogTFStateSyncSuccess(subSyncCtx, JamfProResourceScript, resourceID)
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Script '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
 	}
 
-	return nil
+	// Read the script to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProScriptsRead(ctx, d, meta)
+	if len(readDiags) > 0 {
+		diags = append(diags, readDiags...)
+	}
+
+	return diags
 }
 
 // ResourceJamfProScriptsDelete is responsible for deleting a Jamf Pro Department.
@@ -432,7 +367,7 @@ func ResourceJamfProScriptsDelete(ctx context.Context, d *schema.ResourceData, m
 	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
-			return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
@@ -442,23 +377,23 @@ func ResourceJamfProScriptsDelete(ctx context.Context, d *schema.ResourceData, m
 
 	// Use the retry function for the delete operation with appropriate timeout
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-			// Attempt to delete the script by ID
-			apiErr := conn.DeleteScriptByID(resourceID)
-			if apiErr != nil {
-					// If deleting by ID fails, attempt to delete by Name
-					resourceName := d.Get("name").(string)
-					apiErrByName := conn.DeleteScriptByName(resourceName)
-					if apiErrByName != nil {
-							// If deletion by name also fails, return a retryable error
-							return retry.RetryableError(apiErrByName)
-					}
+		// Attempt to delete the script by ID
+		apiErr := conn.DeleteScriptByID(resourceID)
+		if apiErr != nil {
+			// If deleting by ID fails, attempt to delete by Name
+			resourceName := d.Get("name").(string)
+			apiErrByName := conn.DeleteScriptByName(resourceName)
+			if apiErrByName != nil {
+				// If deletion by name also fails, return a retryable error
+				return retry.RetryableError(apiErrByName)
 			}
-			// Successfully deleted the script, exit the retry loop
-			return nil
+		}
+		// Successfully deleted the script, exit the retry loop
+		return nil
 	})
 
 	if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Script '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Script '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
 	}
 
 	// Clear the ID from the Terraform state as the resource has been deleted
@@ -466,4 +401,3 @@ func ResourceJamfProScriptsDelete(ctx context.Context, d *schema.ResourceData, m
 
 	return diags
 }
-
