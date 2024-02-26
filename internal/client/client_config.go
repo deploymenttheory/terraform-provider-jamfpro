@@ -4,39 +4,39 @@ package client
 import (
 	"fmt"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/stretchr/testify/mock"
 )
-
-// APIClient is a HTTP API Client.
-type APIClient struct {
-	Conn *jamfpro.Client
-}
 
 // MockAPIClient is a mock version of APIClient for testing.
 type MockAPIClient struct {
 	mock.Mock
 }
 
-// This function maps the string values received from Terraform configuration
-// to the LogLevel constants defined in the http_client package.
-func convertToJamfProLogLevel(logLevelString string) (http_client.LogLevel, error) {
+// APIClient wraps the Jamf Pro SDK Client.
+type APIClient struct {
+	Conn *jamfpro.Client // Use the SDK client
+}
+
+// This function maps the string log level from the Terraform configuration
+// to the appropriate log level in the httpclient package.
+func convertToJamfProLogLevel(logLevelString string) (jamfpro.LogLevel, error) {
 	switch logLevelString {
 	case "debug":
-		return http_client.LogLevelDebug, nil
+		return jamfpro.LogLevelDebug, nil
 	case "info":
-		return http_client.LogLevelInfo, nil
+		return jamfpro.LogLevelInfo, nil
 	case "warning":
-		return http_client.LogLevelWarning, nil
+		return jamfpro.LogLevelWarning, nil
 	case "none":
-		return http_client.LogLevelNone, nil
+		return jamfpro.LogLevelNone, nil
 	default:
-		return http_client.LogLevelNone, fmt.Errorf("invalid log level: %s", logLevelString)
+		return jamfpro.LogLevelNone, fmt.Errorf("invalid log level: %s", logLevelString)
 	}
 }
 
-// ConvertToLogLevel wraps the convertToJamfProLogLevel function to match the expected function signature.
-func ConvertToLogLevel(logLevelString string) (http_client.LogLevel, error) {
+// ConvertToLogLevel is a helper function to convert log level strings
+// from the Terraform configuration to the SDK's log level type.
+func ConvertToLogLevel(logLevelString string) (jamfpro.LogLevel, error) {
 	return convertToJamfProLogLevel(logLevelString)
 }

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
+	
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
@@ -228,7 +228,7 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 		creationResponse, apiErr = conn.CreateScript(script)
 		if apiErr != nil {
 			// Extract and log the API error code if available
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 			logging.LogAPICreateFailedAfterRetry(subCtx, JamfProResourceScript, resourceName, apiErr.Error(), apiErrorCode)
@@ -378,7 +378,7 @@ func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, m
 	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		_, apiErr := conn.UpdateScriptByID(resourceID, script)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 
@@ -387,7 +387,7 @@ func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, m
 			_, apiErrByName := conn.UpdateScriptByName(resourceName, script)
 			if apiErrByName != nil {
 				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErrByName.(*http_client.APIError); ok {
+				if apiErrorByName, ok := apiErrByName.(*.APIError); ok {
 					apiErrByNameCode = apiErrorByName.StatusCode
 				}
 
@@ -450,7 +450,7 @@ func ResourceJamfProScriptsDelete(ctx context.Context, d *schema.ResourceData, m
 		// Delete By ID
 		apiErr := conn.DeleteScriptByID(resourceID)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 			logging.LogAPIDeleteFailureByID(subCtx, JamfProResourceScript, resourceID, resourceName, apiErr.Error(), apiErrorCode)
@@ -459,7 +459,7 @@ func ResourceJamfProScriptsDelete(ctx context.Context, d *schema.ResourceData, m
 			apiErr = conn.DeleteScriptByName(resourceName)
 			if apiErr != nil {
 				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErr.(*http_client.APIError); ok {
+				if apiErrorByName, ok := apiErr.(*.APIError); ok {
 					apiErrByNameCode = apiErrorByName.StatusCode
 				}
 

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
+	
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -1592,7 +1592,7 @@ func dataSourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, 
 			policy, apiErr = conn.GetPolicyByName(policyName)
 			if apiErr != nil {
 				// Handle the APIError
-				if apiError, ok := apiErr.(*http_client.APIError); ok {
+				if apiError, ok := apiErr.(*.APIError); ok {
 					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 				}
 				return retry.RetryableError(apiErr)

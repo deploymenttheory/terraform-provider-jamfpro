@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
+	
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
@@ -175,7 +175,7 @@ func ResourceJamfProComputerCheckinCreate(ctx context.Context, d *schema.Resourc
 	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		apiErr := conn.UpdateComputerCheckinInformation(checkinConfig)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 			logging.LogAPIUpdateFailureByID(subCtx, JamfProResourceComputerCheckin, resourceID, resourceName, apiErr.Error(), apiErrorCode)
@@ -309,7 +309,7 @@ func ResourceJamfProComputerCheckinUpdate(ctx context.Context, d *schema.Resourc
 	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		apiErr := conn.UpdateComputerCheckinInformation(checkinConfig)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 			logging.LogAPIUpdateFailureByID(subCtx, JamfProResourceComputerCheckin, resourceID, resourceName, apiErr.Error(), apiErrorCode)

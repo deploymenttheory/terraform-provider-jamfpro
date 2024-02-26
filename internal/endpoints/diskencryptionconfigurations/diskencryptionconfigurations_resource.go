@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
+	
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
@@ -213,7 +213,7 @@ func ResourceJamfProDiskEncryptionConfigurationsCreate(ctx context.Context, d *s
 		creationResponse, apiErr = conn.CreateDiskEncryptionConfiguration(diskEncryptionConfig)
 		if apiErr != nil {
 			// Extract and log the API error code if available
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 			logging.LogAPICreateFailedAfterRetry(subCtx, JamfProResourceDiskEncryptionConfiguration, resourceName, apiErr.Error(), apiErrorCode)
@@ -373,7 +373,7 @@ func ResourceJamfProDiskEncryptionConfigurationsUpdate(ctx context.Context, d *s
 	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		_, apiErr := conn.UpdateDiskEncryptionConfigurationByID(resourceIDInt, diskEncryptionConfig)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 
@@ -382,7 +382,7 @@ func ResourceJamfProDiskEncryptionConfigurationsUpdate(ctx context.Context, d *s
 			_, apiErrByName := conn.UpdateDiskEncryptionConfigurationByName(resourceName, diskEncryptionConfig)
 			if apiErrByName != nil {
 				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErrByName.(*http_client.APIError); ok {
+				if apiErrorByName, ok := apiErrByName.(*.APIError); ok {
 					apiErrByNameCode = apiErrorByName.StatusCode
 				}
 
@@ -453,7 +453,7 @@ func ResourceJamfProDiskEncryptionConfigurationsDelete(ctx context.Context, d *s
 		// Delete By ID
 		apiErr := conn.DeleteDiskEncryptionConfigurationByID(resourceIDInt)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 			logging.LogAPIDeleteFailureByID(subCtx, JamfProResourceDiskEncryptionConfiguration, resourceID, resourceName, apiErr.Error(), apiErrorCode)
@@ -462,7 +462,7 @@ func ResourceJamfProDiskEncryptionConfigurationsDelete(ctx context.Context, d *s
 			apiErr = conn.DeleteDiskEncryptionConfigurationByName(resourceName)
 			if apiErr != nil {
 				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErr.(*http_client.APIError); ok {
+				if apiErrorByName, ok := apiErr.(*.APIError); ok {
 					apiErrByNameCode = apiErrorByName.StatusCode
 				}
 

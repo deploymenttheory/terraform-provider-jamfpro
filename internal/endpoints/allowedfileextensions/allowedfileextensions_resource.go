@@ -12,7 +12,7 @@ import (
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
+	
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -110,7 +110,7 @@ func ResourceJamfProAllowedFileExtensionCreate(ctx context.Context, d *schema.Re
 		creationResponse, apiErr = conn.CreateAllowedFileExtension(allowedFileExtension)
 		if apiErr != nil {
 			// Extract and log the API error code if available
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 			logging.LogAPICreateFailedAfterRetry(subCtx, JamfProResourceAllowedFileExtension, resourceName, apiErr.Error(), apiErrorCode)
@@ -268,7 +268,7 @@ func ResourceJamfProAllowedFileExtensionDelete(ctx context.Context, d *schema.Re
 		// Delete By ID
 		apiErr := conn.DeleteAllowedFileExtensionByID(resourceIDInt)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 			logging.LogAPIDeleteFailureByID(subCtx, JamfProResourceAllowedFileExtension, resourceID, resourceName, apiErr.Error(), apiErrorCode)
@@ -277,7 +277,7 @@ func ResourceJamfProAllowedFileExtensionDelete(ctx context.Context, d *schema.Re
 			apiErr = conn.DeleteAllowedFileExtensionByName(resourceName)
 			if apiErr != nil {
 				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErr.(*http_client.APIError); ok {
+				if apiErrorByName, ok := apiErr.(*.APIError); ok {
 					apiErrByNameCode = apiErrorByName.StatusCode
 				}
 

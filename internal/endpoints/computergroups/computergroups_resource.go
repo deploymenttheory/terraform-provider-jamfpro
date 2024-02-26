@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
+	
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
@@ -271,7 +271,7 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 	}
 
 	// Handle the APIError in the diagnostic
-	if apiErr, ok := err.(*http_client.APIError); ok {
+	if apiErr, ok := err.(*.APIError); ok {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
@@ -318,7 +318,7 @@ func ResourceJamfProComputerGroupsCreate(ctx context.Context, d *schema.Resource
 			log.Printf("[ERROR] Error creating ComputerGroup with name: %s. Error: %s", group.Name, err)
 
 			// Check if the error is an APIError
-			if apiErr, ok := err.(*http_client.APIError); ok {
+			if apiErr, ok := err.(*.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message))
 			}
 			// For simplicity, we're considering all other errors as retryable
@@ -383,7 +383,7 @@ func ResourceJamfProComputerGroupsRead(ctx context.Context, d *schema.ResourceDa
 		group, apiErr = conn.GetComputerGroupByID(groupID)
 		if apiErr != nil {
 			// Handle the APIError
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If fetching by ID fails, try fetching by Name
@@ -395,7 +395,7 @@ func ResourceJamfProComputerGroupsRead(ctx context.Context, d *schema.ResourceDa
 			group, apiErr = conn.GetComputerGroupByName(groupName)
 			if apiErr != nil {
 				// Handle the APIError
-				if apiError, ok := apiErr.(*http_client.APIError); ok {
+				if apiError, ok := apiErr.(*.APIError); ok {
 					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 				}
 				return retry.RetryableError(apiErr)
@@ -493,7 +493,7 @@ func ResourceJamfProComputerGroupsUpdate(ctx context.Context, d *schema.Resource
 		_, apiErr := conn.UpdateComputerGroupByID(groupID, group)
 		if apiErr != nil {
 			// Handle the APIError
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If the update by ID fails, try updating by name
@@ -504,7 +504,7 @@ func ResourceJamfProComputerGroupsUpdate(ctx context.Context, d *schema.Resource
 			_, apiErr = conn.UpdateComputerGroupByName(groupName, group)
 			if apiErr != nil {
 				// Handle the APIError
-				if apiError, ok := apiErr.(*http_client.APIError); ok {
+				if apiError, ok := apiErr.(*.APIError); ok {
 					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 				}
 				return retry.RetryableError(apiErr)

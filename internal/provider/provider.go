@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
+	"github.com/deploymenttheory/go-api-http-client/httpclient"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accountgroups"
@@ -84,7 +84,7 @@ func GetClientSecret(d *schema.ResourceData) (string, error) {
 	return clientSecret, nil
 }
 
-// Schema defines the configuration attributes for the http_client within the JamfPro provider.
+// Schema defines the configuration attributes for the  within the JamfPro provider.
 func Provider() *schema.Provider {
 	provider := &schema.Provider{
 		Schema: map[string]*schema.Schema{
@@ -92,7 +92,7 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_INSTANCE_NAME", ""),
-				Description: "The Jamf Pro instance name. For mycompany.jamfcloud.com, define mycompany in this field.",
+				Description: "The Jamf Pro instance name. For https://mycompany.jamfcloud.com, define 'mycompany' in this field.",
 			},
 			"client_id": {
 				Type:        schema.TypeString,
@@ -110,11 +110,23 @@ func Provider() *schema.Provider {
 			"log_level": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "warning", // Set default log level as warning to align with http_client package
+				Default:  "warning", // Align with the default log level in the  package
 				ValidateFunc: validation.StringInSlice([]string{
 					"debug", "info", "warning", "none",
 				}, false),
 				Description: "The logging level: debug, info, warning, or none",
+			},
+			"log_output_format": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "console", // Default to console for human-readable format
+				Description: "The output format of the logs. Use 'JSON' for JSON format, 'console' for human-readable format.",
+			},
+			"hide_sensitive_data": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false, // Default to not hiding sensitive data in logs
+				Description: "Define whether sensitive fields should be hidden in logs.",
 			},
 			"max_retry_attempts": {
 				Type:        schema.TypeInt,
@@ -137,20 +149,31 @@ func Provider() *schema.Provider {
 			"token_refresh_buffer_period": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Default:     5,
-				Description: "The buffer period for token refresh.",
+				Default:     5, // Convert minutes to time.Duration in code
+				Description: "The buffer period in minutes for token refresh.",
 			},
 			"total_retry_duration": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Default:     60,
-				Description: "The total retry duration.",
+				Default:     60, // Convert seconds to time.Duration in code
+				Description: "The total retry duration in seconds.",
 			},
 			"custom_timeout": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Default:     60,
-				Description: "The custom timeout.",
+				Default:     60, // Convert seconds to time.Duration in code
+				Description: "The custom timeout in seconds for the HTTP client.",
+			},
+			"override_base_domain": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Base domain override used when the default in the API handler isn't suitable.",
+			},
+			"api_type": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Specifies the API type or handler to use for the client.",
+				Default:     "jamfpro",
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
@@ -233,52 +256,42 @@ func Provider() *schema.Provider {
 			return nil, diags
 		}
 
-		MaxRetryAttempts := d.Get("max_retry_attempts").(int)
-		EnableDynamicRateLimiting := d.Get("enable_dynamic_rate_limiting").(bool)
-		MaxConcurrentRequests := d.Get("max_concurrent_requests").(int)
-
-		TokenRefreshBufferPeriod := d.Get("token_refresh_buffer_period").(int)
-		TokenRefreshBufferPeriodTyped := time.Duration(TokenRefreshBufferPeriod) * time.Minute
-
-		TotalRetryDuration := d.Get("total_retry_duration").(int)
-		TotalRetryDurationTyped := time.Duration(TotalRetryDuration) * time.Second
-
-		CustomTimeout := d.Get("custom_timeout").(int)
-		CustomTimeoutTyped := time.Duration(CustomTimeout) * time.Second
-
-		// Convert the log level from string to the LogLevel type.
-		// (Assuming there's a function in your client package that does this)
-		logLevel := d.Get("log_level").(string)
-		parsedLogLevel, err := client.ConvertToLogLevel(logLevel)
-		if err != nil {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Invalid log level",
-				Detail:   err.Error(),
-			})
-			return nil, diags
+		// Construct the httpclient.ClientConfig from the extracted configuration.
+		httpClientConfig := httpclient.ClientConfig{
+			Auth: httpclient.AuthConfig{
+				ClientID:     clientID,
+				ClientSecret: clientSecret,
+			},
+			Environment: httpclient.EnvironmentConfig{
+				InstanceName:       instanceName,
+				OverrideBaseDomain: d.Get("override_base_domain").(string),
+				APIType:            d.Get("api_type").(string),
+			},
+			ClientOptions: httpclient.ClientOptions{
+				LogLevel:                  d.Get("log_level").(string),
+				LogOutputFormat:           d.Get("log_output_format").(string),
+				HideSensitiveData:         d.Get("hide_sensitive_data").(bool),
+				MaxRetryAttempts:          d.Get("max_retry_attempts").(int),
+				EnableDynamicRateLimiting: d.Get("enable_dynamic_rate_limiting").(bool),
+				MaxConcurrentRequests:     d.Get("max_concurrent_requests").(int),
+				TokenRefreshBufferPeriod:  time.Duration(d.Get("token_refresh_buffer_period").(int)) * time.Minute,
+				TotalRetryDuration:        time.Duration(d.Get("total_retry_duration").(int)) * time.Second,
+				CustomTimeout:             time.Duration(d.Get("custom_timeout").(int)) * time.Second,
+			},
 		}
 
-		httpClientConfig := http_client.Config{
-			InstanceName:              instanceName,
-			Auth:                      http_client.AuthConfig{ClientID: clientID, ClientSecret: clientSecret},
-			LogLevel:                  parsedLogLevel,
-			MaxRetryAttempts:          MaxRetryAttempts,
-			EnableDynamicRateLimiting: EnableDynamicRateLimiting,
-			MaxConcurrentRequests:     MaxConcurrentRequests,
-			TokenRefreshBufferPeriod:  TokenRefreshBufferPeriodTyped,
-			TotalRetryDuration:        TotalRetryDurationTyped,
-			CustomTimeout:             CustomTimeoutTyped,
-		}
-
-		httpclient, err := jamfpro.NewClient(httpClientConfig)
+		// Use the BuildClient function from the jamfpro package to initialize the SDK client.
+		jamfProClient, err := jamfpro.BuildClient(httpClientConfig)
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}
 
-		var wrapper client.APIClient
-		wrapper.Conn = httpclient
-		return &wrapper, nil
+		// Initialize your provider's APIClient struct with the Jamf Pro HTTP client.
+		jamfProAPIClient := client.APIClient{
+			Conn: jamfProClient.HTTP,
+		}
+
+		return &jamfProAPIClient, diags
 	}
 	return provider
 }

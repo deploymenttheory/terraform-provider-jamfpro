@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
+	
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
@@ -770,7 +770,7 @@ func ResourceJamfProComputerPrestageCreate(ctx context.Context, d *schema.Resour
 		createdAttribute, apiErr = conn.CreateComputerPrestage(computerPrestage)
 		if apiErr != nil {
 			// Extract and log the API error code if available
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 			logging.LogAPICreateFailure(subCtx, JamfProResourceComputerPrestage, apiErr.Error(), apiErrorCode)
@@ -843,7 +843,7 @@ func ResourceJamfProComputerPrestageRead(ctx context.Context, d *schema.Resource
 	computerPrestage, err := conn.GetComputerPrestageByID(resourceID)
 	if err != nil {
 		// Extract and log the API error code if available
-		if apiError, ok := err.(*http_client.APIError); ok {
+		if apiError, ok := err.(*.APIError); ok {
 			apiErrorCode = apiError.StatusCode
 		}
 		logging.LogFailedReadByID(subCtx, JamfProResourceComputerPrestage, resourceID, err.Error(), apiErrorCode)
@@ -1017,7 +1017,7 @@ func ResourceJamfProComputerPrestageUpdate(ctx context.Context, d *schema.Resour
 	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		_, apiErr := conn.UpdateComputerPrestageByID(resourceID, computerPrestage)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 
@@ -1026,7 +1026,7 @@ func ResourceJamfProComputerPrestageUpdate(ctx context.Context, d *schema.Resour
 			_, apiErrByName := conn.UpdateComputerPrestageByName(resourceName, computerPrestage)
 			if apiErrByName != nil {
 				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErrByName.(*http_client.APIError); ok {
+				if apiErrorByName, ok := apiErrByName.(*.APIError); ok {
 					apiErrByNameCode = apiErrorByName.StatusCode
 				}
 
@@ -1089,7 +1089,7 @@ func ResourceJamfProComputerPrestageDelete(ctx context.Context, d *schema.Resour
 		// Delete By ID
 		apiErr := conn.DeleteComputerPrestageByID(resourceID)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 			logging.LogAPIDeleteFailureByID(subCtx, JamfProResourceComputerPrestage, resourceID, resourceName, apiErr.Error(), apiErrorCode)
@@ -1098,7 +1098,7 @@ func ResourceJamfProComputerPrestageDelete(ctx context.Context, d *schema.Resour
 			apiErr = conn.DeleteComputerPrestageByName(resourceName)
 			if apiErr != nil {
 				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErr.(*http_client.APIError); ok {
+				if apiErrorByName, ok := apiErr.(*.APIError); ok {
 					apiErrByNameCode = apiErrorByName.StatusCode
 				}
 

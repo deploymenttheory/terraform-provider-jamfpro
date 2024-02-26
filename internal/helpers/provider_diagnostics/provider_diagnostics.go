@@ -4,7 +4,7 @@ package provider_diagnostics
 import (
 	"fmt"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
+	
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -18,7 +18,7 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 	}
 
 	// Handle the APIError in the diagnostic
-	if apiErr, ok := err.(*http_client.APIError); ok {
+	if apiErr, ok := err.(*.APIError); ok {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),

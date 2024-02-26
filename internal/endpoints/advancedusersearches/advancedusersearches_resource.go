@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
+	
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
@@ -205,7 +205,7 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 	}
 
 	// Handle the APIError in the diagnostic
-	if apiErr, ok := err.(*http_client.APIError); ok {
+	if apiErr, ok := err.(*.APIError); ok {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
@@ -250,7 +250,7 @@ func ResourceJamfProAdvancedUserSearchCreate(ctx context.Context, d *schema.Reso
 			log.Printf("[ERROR] Error creating AdvancedUserSearch with name: %s. Error: %s", search.Name, err)
 
 			// Check if the error is an APIError
-			if apiErr, ok := err.(*http_client.APIError); ok {
+			if apiErr, ok := err.(*.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message))
 			}
 			// For simplicity, we're considering all other errors as retryable
@@ -315,7 +315,7 @@ func ResourceJamfProAdvancedUserSearchRead(ctx context.Context, d *schema.Resour
 		search, apiErr = conn.GetAdvancedUserSearchByID(searchID)
 		if apiErr != nil {
 			// Handle the APIError
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If fetching by ID fails, try fetching by Name
@@ -327,7 +327,7 @@ func ResourceJamfProAdvancedUserSearchRead(ctx context.Context, d *schema.Resour
 			search, apiErr = conn.GetAdvancedUserSearchByName(searchName)
 			if apiErr != nil {
 				// Handle the APIError
-				if apiError, ok := apiErr.(*http_client.APIError); ok {
+				if apiError, ok := apiErr.(*.APIError); ok {
 					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 				}
 				return retry.RetryableError(apiErr)
@@ -425,7 +425,7 @@ func ResourceJamfProAdvancedUserSearchUpdate(ctx context.Context, d *schema.Reso
 		_, apiErr := conn.UpdateAdvancedUserSearchByID(searchID, search)
 		if apiErr != nil {
 			// Handle the APIError
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If the update by ID fails, try updating by name
@@ -436,7 +436,7 @@ func ResourceJamfProAdvancedUserSearchUpdate(ctx context.Context, d *schema.Reso
 			_, apiErr = conn.UpdateAdvancedUserSearchByName(searchName, search)
 			if apiErr != nil {
 				// Handle the APIError
-				if apiError, ok := apiErr.(*http_client.APIError); ok {
+				if apiError, ok := apiErr.(*.APIError); ok {
 					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 				}
 				return retry.RetryableError(apiErr)
