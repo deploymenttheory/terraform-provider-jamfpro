@@ -4,16 +4,12 @@ package scripts
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
-	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -144,47 +140,35 @@ func ResourceJamfProScripts() *schema.Resource {
 // constructJamfProScript constructs a ResourceScript object from the provided schema data.
 func constructJamfProScript(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceScript, error) {
 	script := &jamfpro.ResourceScript{
-		Name:           util.GetStringFromInterface(d.Get("name")),
-		CategoryName:   util.GetStringFromInterface(d.Get("category_name")),
-		CategoryId:     util.GetStringFromInterface(d.Get("category_id")),
-		Info:           util.GetStringFromInterface(d.Get("info")),
-		Notes:          util.GetStringFromInterface(d.Get("notes")),
-		OSRequirements: util.GetStringFromInterface(d.Get("os_requirements")),
-		Priority:       util.GetStringFromInterface(d.Get("priority")),
-		Parameter4:     util.GetStringFromInterface(d.Get("parameter4")),
-		Parameter5:     util.GetStringFromInterface(d.Get("parameter5")),
-		Parameter6:     util.GetStringFromInterface(d.Get("parameter6")),
-		Parameter7:     util.GetStringFromInterface(d.Get("parameter7")),
-		Parameter8:     util.GetStringFromInterface(d.Get("parameter8")),
-		Parameter9:     util.GetStringFromInterface(d.Get("parameter9")),
-		Parameter10:    util.GetStringFromInterface(d.Get("parameter10")),
-		Parameter11:    util.GetStringFromInterface(d.Get("parameter11")),
+		Name:           d.Get("name").(string),
+		CategoryName:   d.Get("category_name").(string),
+		CategoryId:     d.Get("category_id").(string),
+		Info:           d.Get("info").(string),
+		Notes:          d.Get("notes").(string),
+		OSRequirements: d.Get("os_requirements").(string),
+		Priority:       d.Get("priority").(string),
+		Parameter4:     d.Get("parameter4").(string),
+		Parameter5:     d.Get("parameter5").(string),
+		Parameter6:     d.Get("parameter6").(string),
+		Parameter7:     d.Get("parameter7").(string),
+		Parameter8:     d.Get("parameter8").(string),
+		Parameter9:     d.Get("parameter9").(string),
+		Parameter10:    d.Get("parameter10").(string),
+		Parameter11:    d.Get("parameter11").(string),
 	}
 
 	// Handle script_contents
-	if scriptContent, ok := d.GetOk("script_contents"); ok {
-		script.ScriptContents = util.GetStringFromInterface(scriptContent)
+	if scriptContent, ok := d.GetOk("script_contents"); ok && scriptContent.(string) != "" {
+		script.ScriptContents = scriptContent.(string)
 	} else {
 		// Decode script contents from the state if not directly modified
-		encodedScriptContents := util.GetStringFromInterface(d.Get("script_contents_encoded"))
+		encodedScriptContents := d.Get("script_contents_encoded").(string)
 		decodedBytes, err := base64.StdEncoding.DecodeString(encodedScriptContents)
 		if err != nil {
 			return nil, fmt.Errorf("error decoding script contents: %s", err)
 		}
 		script.ScriptContents = string(decodedBytes)
 	}
-
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemConstruct, hclog.Debug)
-
-	// Serialize and pretty-print the script object as JSON for logging
-	resourceJSON, err := json.MarshalIndent(script, "", "  ")
-	if err != nil {
-		logging.LogTFConstructResourceJSONMarshalFailure(subCtx, JamfProResourceScript, err.Error())
-		return nil, err
-	}
-
-	// Log the successful construction and serialization to JSON
-	logging.LogTFConstructedJSONResource(subCtx, JamfProResourceScript, string(resourceJSON))
 
 	return script, nil
 }
