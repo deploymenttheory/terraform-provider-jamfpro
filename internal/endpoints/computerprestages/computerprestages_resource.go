@@ -5,9 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
-	
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
@@ -749,68 +749,36 @@ func ResourceJamfProComputerPrestageCreate(ctx context.Context, d *schema.Resour
 
 	// Initialize variables
 	var diags diag.Diagnostics
-	var createdAttribute *jamfpro.ResponseComputerPrestageCreate
-	var apiErrorCode int
 
-	// Initialize the logging subsystem with the create operation context
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemCreate, hclog.Info)
-	subSyncCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemSync, hclog.Info)
-
-	// Construct the computerPrestage object outside the retry loop to avoid reconstructing it on each retry
-	computerPrestage, err := constructJamfProComputerPrestage(subCtx, d)
+	// Construct the resource object
+	resource, err := constructJamfProComputerPrestage(ctx, d)
 	if err != nil {
-		logging.LogTFConstructResourceFailure(subCtx, JamfProResourceComputerPrestage, err.Error())
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Prestage: %v", err))
 	}
-	logging.LogTFConstructResourceSuccess(subCtx, JamfProResourceComputerPrestage)
 
-	// Retry the API call to create the computerPrestage in Jamf Pro
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+	// Retry the API call to create the resource  in Jamf Pro
+	var creationResponse *jamfpro.ResponseComputerPrestageCreate
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		createdAttribute, apiErr = conn.CreateComputerPrestage(computerPrestage)
+		creationResponse, apiErr = conn.CreateComputerPrestage(resource)
 		if apiErr != nil {
-			// Extract and log the API error code if available
-			if apiError, ok := apiErr.(*.APIError); ok {
-				apiErrorCode = apiError.StatusCode
-			}
-			logging.LogAPICreateFailure(subCtx, JamfProResourceComputerPrestage, apiErr.Error(), apiErrorCode)
-			// Return a non-retryable error to break out of the retry loop
-			return retry.NonRetryableError(apiErr)
+			return retry.RetryableError(apiErr)
 		}
 		// No error, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		// Log the final error and append it to the diagnostics
-		logging.LogAPICreateFailure(subCtx, JamfProResourceComputerPrestage, err.Error(), apiErrorCode)
-		diags = append(diags, diag.FromErr(err)...)
-		return diags
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Disk Encryption Configuration '%s' after retries: %v", resource.Name, err))
 	}
 
-	// Log successful creation of the computerPrestage and set the resource ID in Terraform state
-	logging.LogAPICreateSuccess(subCtx, JamfProResourceComputerPrestage, createdAttribute.ID)
-	d.SetId(createdAttribute.ID)
+	// Set the resource ID in Terraform state
+	d.SetId(creationResponse.ID)
 
-	// Retry reading the computerPrestage to ensure the Terraform state is up to date
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProComputerPrestageRead(subCtx, d, meta)
-		if len(readDiags) > 0 {
-			// Log any read errors and return a retryable error to retry the read operation
-			logging.LogTFStateSyncFailedAfterRetry(subSyncCtx, JamfProResourceComputerPrestage, d.Id(), readDiags[0].Summary)
-			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
-		}
-		// Successfully read the computerPrestage, exit the retry loop
-		return nil
-	})
-
-	if err != nil {
-		// Log the final state sync failure and append it to the diagnostics
-		logging.LogTFStateSyncFailure(subSyncCtx, JamfProResourceComputerPrestage, err.Error())
-		diags = append(diags, diag.FromErr(err)...)
-	} else {
-		// Log successful state synchronization
-		logging.LogTFStateSyncSuccess(subSyncCtx, JamfProResourceComputerPrestage, d.Id())
+	// Read the resource to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProComputerPrestageRead(ctx, d, meta)
+	if len(readDiags) > 0 {
+		diags = append(diags, readDiags...)
 	}
 
 	return diags
@@ -822,81 +790,78 @@ func ResourceJamfProComputerPrestageCreate(ctx context.Context, d *schema.Resour
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the building being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProComputerPrestageRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Initialize the logging subsystem for the read operation
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemRead, hclog.Info)
-
 	// Initialize variables
-	var computerPrestage *jamfpro.ResourceComputerPrestage
-	var apiErrorCode int // Variable to capture the API error code
+	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	// Try fetching the computerPrestage using the ID
-	computerPrestage, err := conn.GetComputerPrestageByID(resourceID)
-	if err != nil {
-		// Extract and log the API error code if available
-		if apiError, ok := err.(*.APIError); ok {
-			apiErrorCode = apiError.StatusCode
+	var resource *jamfpro.ResourceComputerPrestage
+
+	// Read operation with retry
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		resource, apiErr = conn.GetComputerPrestageByID(resourceID)
+		if apiErr != nil {
+			// Convert any API error into a retryable error to continue retrying
+			return retry.RetryableError(apiErr)
 		}
-		logging.LogFailedReadByID(subCtx, JamfProResourceComputerPrestage, resourceID, err.Error(), apiErrorCode)
-		d.SetId("") // Remove from Terraform state
-		logging.LogTFStateRemovalWarning(subCtx, JamfProResourceComputerPrestage, resourceID)
-		return diags
+		// Successfully read the resource, exit the retry loop
+		return nil
+	})
+
+	if err != nil {
+		// Handle the final error after all retries have been exhausted
+		d.SetId("") // Remove from Terraform state if unable to read after retries
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Disk Encryption Configuration with ID '%d' after retries: %v", resourceIDInt, err))
 	}
-
-	// Assuming successful read if no error
-	logging.LogAPIReadSuccess(subCtx, JamfProResourceComputerPrestage, resourceID)
-
 	// Check if prestage data exists
-	if computerPrestage != nil {
+	if resource != nil {
 		// Construct a map of computer prestage attributes
 		prestageAttributes := map[string]interface{}{
-			"display_name":                          computerPrestage.DisplayName,
-			"mandatory":                             computerPrestage.Mandatory,
-			"mdm_removable":                         computerPrestage.MDMRemovable,
-			"support_phone_number":                  computerPrestage.SupportPhoneNumber,
-			"support_email_address":                 computerPrestage.SupportEmailAddress,
-			"department":                            computerPrestage.Department,
-			"default_prestage":                      computerPrestage.DefaultPrestage,
-			"enrollment_site_id":                    computerPrestage.EnrollmentSiteId,
-			"keep_existing_site_membership":         computerPrestage.KeepExistingSiteMembership,
-			"keep_existing_location_information":    computerPrestage.KeepExistingLocationInformation,
-			"authentication_prompt":                 computerPrestage.AuthenticationPrompt,
-			"prevent_activation_lock":               computerPrestage.PreventActivationLock,
-			"enable_device_based_activation_lock":   computerPrestage.EnableDeviceBasedActivationLock,
-			"device_enrollment_program_instance_id": computerPrestage.DeviceEnrollmentProgramInstanceId,
-			"skip_setup_items":                      computerPrestage.SkipSetupItems,
-			"location_information":                  computerPrestage.LocationInformation,
-			"purchasing_information":                computerPrestage.PurchasingInformation,
-			"anchor_certificates":                   computerPrestage.AnchorCertificates,
-			"enrollment_customization_id":           computerPrestage.EnrollmentCustomizationId,
-			"language":                              computerPrestage.Language,
-			"region":                                computerPrestage.Region,
-			"auto_advance_setup":                    computerPrestage.AutoAdvanceSetup,
-			"install_profiles_during_setup":         computerPrestage.InstallProfilesDuringSetup,
-			"prestage_installed_profile_ids":        computerPrestage.PrestageInstalledProfileIds,
-			"custom_package_ids":                    computerPrestage.CustomPackageIds,
-			"custom_package_distribution_point_id":  computerPrestage.CustomPackageDistributionPointId,
-			"enable_recovery_lock":                  computerPrestage.EnableRecoveryLock,
-			"recovery_lock_password_type":           computerPrestage.RecoveryLockPasswordType,
-			"recovery_lock_password":                computerPrestage.RecoveryLockPassword,
-			"rotate_recovery_lock_password":         computerPrestage.RotateRecoveryLockPassword,
-			"profile_uuid":                          computerPrestage.ProfileUuid,
-			"site_id":                               computerPrestage.SiteId,
-			"version_lock":                          computerPrestage.VersionLock,
-			"account_settings":                      computerPrestage.AccountSettings,
+			"display_name":                          resource.DisplayName,
+			"mandatory":                             resource.Mandatory,
+			"mdm_removable":                         resource.MDMRemovable,
+			"support_phone_number":                  resource.SupportPhoneNumber,
+			"support_email_address":                 resource.SupportEmailAddress,
+			"department":                            resource.Department,
+			"default_prestage":                      resource.DefaultPrestage,
+			"enrollment_site_id":                    resource.EnrollmentSiteId,
+			"keep_existing_site_membership":         resource.KeepExistingSiteMembership,
+			"keep_existing_location_information":    resource.KeepExistingLocationInformation,
+			"authentication_prompt":                 resource.AuthenticationPrompt,
+			"prevent_activation_lock":               resource.PreventActivationLock,
+			"enable_device_based_activation_lock":   resource.EnableDeviceBasedActivationLock,
+			"device_enrollment_program_instance_id": resource.DeviceEnrollmentProgramInstanceId,
+			"skip_setup_items":                      resource.SkipSetupItems,
+			"location_information":                  resource.LocationInformation,
+			"purchasing_information":                resource.PurchasingInformation,
+			"anchor_certificates":                   resource.AnchorCertificates,
+			"enrollment_customization_id":           resource.EnrollmentCustomizationId,
+			"language":                              resource.Language,
+			"region":                                resource.Region,
+			"auto_advance_setup":                    resource.AutoAdvanceSetup,
+			"install_profiles_during_setup":         resource.InstallProfilesDuringSetup,
+			"prestage_installed_profile_ids":        resource.PrestageInstalledProfileIds,
+			"custom_package_ids":                    resource.CustomPackageIds,
+			"custom_package_distribution_point_id":  resource.CustomPackageDistributionPointId,
+			"enable_recovery_lock":                  resource.EnableRecoveryLock,
+			"recovery_lock_password_type":           resource.RecoveryLockPasswordType,
+			"recovery_lock_password":                resource.RecoveryLockPassword,
+			"rotate_recovery_lock_password":         resource.RotateRecoveryLockPassword,
+			"profile_uuid":                          resource.ProfileUuid,
+			"site_id":                               resource.SiteId,
+			"version_lock":                          resource.VersionLock,
+			"account_settings":                      resource.AccountSettings,
 		}
 
 		// Handle nested location_information
-		if locationInformation := computerPrestage.LocationInformation; locationInformation != (jamfpro.ComputerPrestageSubsetLocationInformation{}) {
+		if locationInformation := resource.LocationInformation; locationInformation != (jamfpro.ComputerPrestageSubsetLocationInformation{}) {
 			prestageAttributes["location_information"] = []interface{}{
 				map[string]interface{}{
 					"username":      locationInformation.Username,
@@ -913,7 +878,7 @@ func ResourceJamfProComputerPrestageRead(ctx context.Context, d *schema.Resource
 			}
 		}
 		// Handle nested purchasing_information
-		if purchasingInformation := computerPrestage.PurchasingInformation; purchasingInformation != (jamfpro.ComputerPrestageSubsetPurchasingInformation{}) {
+		if purchasingInformation := resource.PurchasingInformation; purchasingInformation != (jamfpro.ComputerPrestageSubsetPurchasingInformation{}) {
 			prestageAttributes["purchasing_information"] = []interface{}{
 				map[string]interface{}{
 					"id":                 purchasingInformation.ID,
@@ -934,24 +899,24 @@ func ResourceJamfProComputerPrestageRead(ctx context.Context, d *schema.Resource
 			}
 		}
 		// Add other single-level attributes
-		prestageAttributes["anchor_certificates"] = computerPrestage.AnchorCertificates
-		prestageAttributes["enrollment_customization_id"] = computerPrestage.EnrollmentCustomizationId
-		prestageAttributes["language"] = computerPrestage.Language
-		prestageAttributes["region"] = computerPrestage.Region
-		prestageAttributes["auto_advance_setup"] = computerPrestage.AutoAdvanceSetup
-		prestageAttributes["install_profiles_during_setup"] = computerPrestage.InstallProfilesDuringSetup
-		prestageAttributes["prestage_installed_profile_ids"] = computerPrestage.PrestageInstalledProfileIds
-		prestageAttributes["custom_package_ids"] = computerPrestage.CustomPackageIds
-		prestageAttributes["custom_package_distribution_point_id"] = computerPrestage.CustomPackageDistributionPointId
-		prestageAttributes["enable_recovery_lock"] = computerPrestage.EnableRecoveryLock
-		prestageAttributes["recovery_lock_password_type"] = computerPrestage.RecoveryLockPasswordType
-		prestageAttributes["recovery_lock_password"] = computerPrestage.RecoveryLockPassword
-		prestageAttributes["rotate_recovery_lock_password"] = computerPrestage.RotateRecoveryLockPassword
-		prestageAttributes["profile_uuid"] = computerPrestage.ProfileUuid
-		prestageAttributes["site_id"] = computerPrestage.SiteId
-		prestageAttributes["version_lock"] = computerPrestage.VersionLock
+		prestageAttributes["anchor_certificates"] = resource.AnchorCertificates
+		prestageAttributes["enrollment_customization_id"] = resource.EnrollmentCustomizationId
+		prestageAttributes["language"] = resource.Language
+		prestageAttributes["region"] = resource.Region
+		prestageAttributes["auto_advance_setup"] = resource.AutoAdvanceSetup
+		prestageAttributes["install_profiles_during_setup"] = resource.InstallProfilesDuringSetup
+		prestageAttributes["prestage_installed_profile_ids"] = resource.PrestageInstalledProfileIds
+		prestageAttributes["custom_package_ids"] = resource.CustomPackageIds
+		prestageAttributes["custom_package_distribution_point_id"] = resource.CustomPackageDistributionPointId
+		prestageAttributes["enable_recovery_lock"] = resource.EnableRecoveryLock
+		prestageAttributes["recovery_lock_password_type"] = resource.RecoveryLockPasswordType
+		prestageAttributes["recovery_lock_password"] = resource.RecoveryLockPassword
+		prestageAttributes["rotate_recovery_lock_password"] = resource.RotateRecoveryLockPassword
+		prestageAttributes["profile_uuid"] = resource.ProfileUuid
+		prestageAttributes["site_id"] = resource.SiteId
+		prestageAttributes["version_lock"] = resource.VersionLock
 		// Handle nested account_settings
-		if accountSettings := computerPrestage.AccountSettings; accountSettings != (jamfpro.ComputerPrestageSubsetAccountSettings{}) {
+		if accountSettings := resource.AccountSettings; accountSettings != (jamfpro.ComputerPrestageSubsetAccountSettings{}) {
 			prestageAttributes["account_settings"] = []interface{}{
 				map[string]interface{}{
 					"id":                          accountSettings.ID,
@@ -988,82 +953,51 @@ func ResourceJamfProComputerPrestageRead(ctx context.Context, d *schema.Resource
 
 // ResourceJamfProComputerPrestageUpdate is responsible for updating an existing Jamf Pro Department on the remote system.
 func ResourceJamfProComputerPrestageUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize api client
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Initialize the logging subsystem for the update operation
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemUpdate, hclog.Info)
-	subSyncCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemSync, hclog.Info)
-
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
-	resourceName := d.Get("name").(string)
-	var apiErrorCode int
+
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
+	}
 
 	// Construct the resource object
-	computerPrestage, err := constructJamfProComputerPrestage(subCtx, d)
+	resource, err := constructJamfProComputerPrestage(ctx, d)
 	if err != nil {
-		logging.LogTFConstructResourceFailure(subCtx, JamfProResourceComputerPrestage, err.Error())
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Disk Computer Prestage for update: %v", err))
 	}
-	logging.LogTFConstructResourceSuccess(subCtx, JamfProResourceComputerPrestage)
 
 	// Update operations with retries
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateComputerPrestageByID(resourceID, computerPrestage)
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+		_, apiErr := conn.UpdateComputerPrestageByID(resourceIDInt, resource)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*.APIError); ok {
-				apiErrorCode = apiError.StatusCode
-			}
-
-			logging.LogAPIUpdateFailureByID(subCtx, JamfProResourceComputerPrestage, resourceID, resourceName, apiErr.Error(), apiErrorCode)
-
-			_, apiErrByName := conn.UpdateComputerPrestageByName(resourceName, computerPrestage)
-			if apiErrByName != nil {
-				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErrByName.(*.APIError); ok {
-					apiErrByNameCode = apiErrorByName.StatusCode
-				}
-
-				logging.LogAPIUpdateFailureByName(subCtx, JamfProResourceComputerPrestage, resourceName, apiErrByName.Error(), apiErrByNameCode)
-				return retry.RetryableError(apiErrByName)
-			}
-		} else {
-			logging.LogAPIUpdateSuccess(subCtx, JamfProResourceComputerPrestage, resourceID, resourceName)
+			// If updating by ID fails, attempt to update by Name
+			return retry.RetryableError(apiErr)
 		}
-		return nil
-	})
-
-	// Send error to diag.diags
-	if err != nil {
-		logging.LogAPIDeleteFailedAfterRetry(subCtx, JamfProResourceComputerPrestage, resourceID, resourceName, err.Error(), apiErrorCode)
-		diags = append(diags, diag.FromErr(err)...)
-		return diags
-	}
-
-	// Retry reading the computerPrestage to synchronize the Terraform state
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProComputerPrestageRead(subCtx, d, meta)
-		if len(readDiags) > 0 {
-			logging.LogTFStateSyncFailedAfterRetry(subSyncCtx, JamfProResourceComputerPrestage, resourceID, readDiags[0].Summary)
-			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
-		}
+		// Successfully updated the resource, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		logging.LogTFStateSyncFailure(subSyncCtx, JamfProResourceComputerPrestage, err.Error())
-		return diag.FromErr(err)
-	} else {
-		logging.LogTFStateSyncSuccess(subSyncCtx, JamfProResourceComputerPrestage, resourceID)
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Computer Prestage '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
 	}
 
-	return nil
+	// Read the resource to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProComputerPrestageRead(ctx, d, meta)
+	if len(readDiags) > 0 {
+		diags = append(diags, readDiags...)
+	}
+
+	return diags
 }
 
 // ResourceJamfProComputerPrestageDelete is responsible for deleting a Jamf Pro Department.
