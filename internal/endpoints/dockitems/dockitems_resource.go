@@ -359,66 +359,95 @@ func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData,
 
 // ResourceJamfProDockItemsDelete is responsible for deleting a Jamf Pro Site.
 func ResourceJamfProDockItemsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize api client
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Initialize the logging subsystem for the delete operation
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemDelete, hclog.Info)
-
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
-	resourceName := d.Get("name").(string)
-	var apiErrorCode int
 
 	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		// Handle conversion error with structured logging
-		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceDockItem, resourceID, err.Error())
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	// Use the retry function for the delete operation with appropriate timeout
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// Delete By ID
-		apiErr := conn.DeleteDockItemByID(resourceIDInt)
+	// Construct the resource object
+	resource, err := constructJamfProDockItem(ctx, d)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Dock Item for update: %v", err))
+	}
+
+	// Update operations with retries
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+		_, apiErr := conn.UpdateDockItemByID(resourceIDInt, resource)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*.APIError); ok {
-				apiErrorCode = apiError.StatusCode
-			}
-			logging.LogAPIDeleteFailureByID(subCtx, JamfProResourceDockItem, resourceID, resourceName, apiErr.Error(), apiErrorCode)
-
-			// If Delete by ID fails then try Delete by Name
-			apiErr = conn.DeleteDockItemByName(resourceName)
-			if apiErr != nil {
-				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErr.(*.APIError); ok {
-					apiErrByNameCode = apiErrorByName.StatusCode
-				}
-
-				logging.LogAPIDeleteFailureByName(subCtx, JamfProResourceDockItem, resourceName, apiErr.Error(), apiErrByNameCode)
-				return retry.RetryableError(apiErr)
-			}
+			// If updating by ID fails, attempt to update by Name
+			return retry.RetryableError(apiErr)
 		}
+		// Successfully updated the resource, exit the retry loop
 		return nil
 	})
 
-	// Send error to diag.diags
 	if err != nil {
-		logging.LogAPIDeleteFailedAfterRetry(subCtx, JamfProResourceDockItem, resourceID, resourceName, err.Error(), apiErrorCode)
-		diags = append(diags, diag.FromErr(err)...)
-		return diags
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Dock Item '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
 	}
 
-	logging.LogAPIDeleteSuccess(subCtx, JamfProResourceDockItem, resourceID, resourceName)
+	// Read the resource to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProDiskEncryptionConfigurationsRead(ctx, d, meta)
+	if len(readDiags) > 0 {
+		diags = append(diags, readDiags...)
+	}
+
+	return diags
+}
+
+// ResourceJamfProDiskEncryptionConfigurationsDelete is responsible for deleting a Jamf Pro Disk Encryption Configuration.
+func ResourceJamfProDiskEncryptionConfigurationsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	// Initialize API client
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
+
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
+
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
+	}
+
+	// Use the retry function for the delete operation with appropriate timeout
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
+		// Attempt to delete by ID
+		apiErr := conn.DeleteDockItemByID(resourceIDInt)
+		if apiErr != nil {
+			// If deleting by ID fails, attempt to delete by Name
+			resourceName := d.Get("name").(string)
+			apiErrByName := conn.DeleteDockItemByName(resourceName)
+			if apiErrByName != nil {
+				// If deletion by name also fails, return a retryable error
+				return retry.RetryableError(apiErrByName)
+			}
+		}
+		// Successfully deleted the resource, exit the retry loop
+		return nil
+	})
+
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Dock Item '%s' (ID: %d) after retries: %v", d.Get("name").(string), resourceIDInt, err))
+	}
 
 	// Clear the ID from the Terraform state as the resource has been deleted
 	d.SetId("")
 
-	return nil
+	return diags
 }
