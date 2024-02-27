@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"reflect"
 	"strconv"
 	"time"
 
@@ -595,24 +596,41 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 
 	// Scope
 
+	log.Println("SCOPEHERE")
+
 	var out_scope []map[string]interface{}
+	log.Println("FLAG 1")
 	out_scope = append(out_scope, map[string]interface{}{})
+	log.Println("FLAG 2")
 	// All computers
 	if resp.Scope.AllComputers {
 		out_scope[0]["all_computers"] = true
 	}
 
+	log.Println("FLAG 3")
+
 	if resp.Scope.AllJSSUsers {
 		out_scope[0]["all_jss_users"] = true
 	}
 
+	log.Println("FLAG 4")
+
 	// Computers
+	log.Println("FLAG 5")
 	if len(resp.Scope.Computers) > 0 {
+		log.Println("FLAG 6")
 		var inComputers []int
 		for _, v := range resp.Scope.Computers {
 			inComputers = append(inComputers, v.ID)
 		}
-		out_scope[0]["computers"] = inComputers
+		log.Println("FLAG 7")
+		if out_scope[0] == nil {
+			out_scope[0] = make(map[string]interface{})
+		}
+		out_scope[0]["computers"] = make([]map[string]interface{}, 1)
+		out_scope[0]["computers"].([]map[string]interface{})[0]["id"] = inComputers
+		log.Println("FLAG 8")
+		log.Println(out_scope[0])
 	}
 
 	// Computer Groups
@@ -674,6 +692,10 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		}
 		out_scope[0]["departments"] = out_departments
 	}
+
+	log.Println("OUTSCOPE")
+	log.Println(out_scope)
+	log.Println(reflect.TypeOf(out_scope))
 
 	// Write scope to state
 	if err := d.Set("scope", out_scope); err != nil {
