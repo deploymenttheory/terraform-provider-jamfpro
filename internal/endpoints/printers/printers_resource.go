@@ -120,32 +120,28 @@ const (
 
 // constructJamfProPrinter constructs a ResourcePrinter object from the provided schema data.
 func constructJamfProPrinter(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourcePrinter, error) {
-	printer := &jamfpro.ResourcePrinter{}
-
-	// Utilize type assertion helper functions for direct field extraction
-	printer.Name = util.GetStringFromInterface(d.Get("name"))
-	printer.Category = util.GetStringFromInterface(d.Get("category"))
-	printer.URI = util.GetStringFromInterface(d.Get("uri"))
-	printer.CUPSName = util.GetStringFromInterface(d.Get("cups_name"))
-	printer.Location = util.GetStringFromInterface(d.Get("location"))
-	printer.Model = util.GetStringFromInterface(d.Get("model"))
-	printer.Info = util.GetStringFromInterface(d.Get("info"))
-	printer.Notes = util.GetStringFromInterface(d.Get("notes"))
-	printer.MakeDefault = util.GetBoolFromInterface(d.Get("make_default"))
-	printer.UseGeneric = util.GetBoolFromInterface(d.Get("use_generic"))
-	printer.PPD = util.GetStringFromInterface(d.Get("ppd"))
-	printer.PPDPath = util.GetStringFromInterface(d.Get("ppd_path"))
-	printer.PPDContents = util.GetStringFromInterface(d.Get("ppd_contents"))
-
-	// Initialize the logging subsystem for the construction operation
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemConstruct, hclog.Debug)
-
+	printer := &jamfpro.ResourcePrinter{
+		Name:         d.Get("name").(string),
+		Category:     d.Get("category").(string),
+		URI:          d.Get("uri").(string),
+		CUPSName:     d.Get("cups_name").(string),
+		Location:     d.Get("location").(string),
+		Model:        d.Get("model").(string),
+		Info:         d.Get("info").(string),
+		Notes:        d.Get("notes").(string),
+		MakeDefault:  d.Get("make_default").(bool),
+		UseGeneric:   d.Get("use_generic").(bool),
+		PPD:          d.Get("ppd").(string),
+		PPDPath:      d.Get("ppd_path").(string),
+		PPDContents:  d.Get("ppd_contents").(string),
+	}
 	// Serialize and pretty-print the site object as XML
 	resourceXML, err := xml.MarshalIndent(printer, "", "  ")
 	if err != nil {
-		logging.LogTFConstructResourceXMLMarshalFailure(subCtx, JamfProResourcePrinter, err.Error())
-		return nil, err
+		return nil, fmt.Errorf("failed to marshal Jamf Pro printer '%s' to XML: %v", printer.Name, err)
 	}
+	fmt.Printf("Constructed Jamf Pro Printer XML:\n%s\n", string(resourceXML))
+
 
 	// Log the successful construction and serialization to XML
 	logging.LogTFConstructedXMLResource(subCtx, JamfProResourcePrinter, string(resourceXML))
