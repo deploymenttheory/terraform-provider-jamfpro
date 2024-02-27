@@ -1068,7 +1068,7 @@ func ResourceJamfProComputerPrestageUpdate(ctx context.Context, d *schema.Resour
 
 // ResourceJamfProComputerPrestageDelete is responsible for deleting a Jamf Pro Department.
 func ResourceJamfProComputerPrestageDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize api client
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
@@ -1078,48 +1078,36 @@ func ResourceJamfProComputerPrestageDelete(ctx context.Context, d *schema.Resour
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
-	resourceName := d.Get("name").(string)
-	var apiErrorCode int
 
-	// Initialize the logging subsystem for the delete operation
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemDelete, hclog.Info)
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
+	}
 
 	// Use the retry function for the delete operation with appropriate timeout
-	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// Delete By ID
-		apiErr := conn.DeleteComputerPrestageByID(resourceID)
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
+		// Attempt to delete by ID
+		apiErr := conn.DeleteComputerPrestageByID(resourceIDInt)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*.APIError); ok {
-				apiErrorCode = apiError.StatusCode
-			}
-			logging.LogAPIDeleteFailureByID(subCtx, JamfProResourceComputerPrestage, resourceID, resourceName, apiErr.Error(), apiErrorCode)
-
-			// If Delete by ID fails then try Delete by Name
-			apiErr = conn.DeleteComputerPrestageByName(resourceName)
-			if apiErr != nil {
-				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErr.(*.APIError); ok {
-					apiErrByNameCode = apiErrorByName.StatusCode
-				}
-
-				logging.LogAPIDeleteFailureByName(subCtx, JamfProResourceComputerPrestage, resourceName, apiErr.Error(), apiErrByNameCode)
-				return retry.RetryableError(apiErr)
+			// If deleting by ID fails, attempt to delete by Name
+			resourceName := d.Get("name").(string)
+			apiErrByName := conn.DeleteComputerPrestageByName(resourceName)
+			if apiErrByName != nil {
+				// If deletion by name also fails, return a retryable error
+				return retry.RetryableError(apiErrByName)
 			}
 		}
+		// Successfully deleted the resource, exit the retry loop
 		return nil
 	})
 
-	// Send error to diag.diags
 	if err != nil {
-		logging.LogAPIDeleteFailedAfterRetry(subCtx, JamfProResourceComputerPrestage, resourceID, resourceName, err.Error(), apiErrorCode)
-		diags = append(diags, diag.FromErr(err)...)
-		return diags
+		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Disk Encryption Configuration '%s' (ID: %d) after retries: %v", d.Get("name").(string), resourceIDInt, err))
 	}
-
-	logging.LogAPIDeleteSuccess(subCtx, JamfProResourceComputerPrestage, resourceID, resourceName)
 
 	// Clear the ID from the Terraform state as the resource has been deleted
 	d.SetId("")
 
-	return nil
+	return diags
 }
