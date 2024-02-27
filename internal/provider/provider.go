@@ -256,39 +256,35 @@ func Provider() *schema.Provider {
 			return nil, diags
 		}
 
-		// Construct the httpclient.ClientConfig from the extracted configuration.
 		httpClientConfig := httpclient.ClientConfig{
+			Environment: httpclient.EnvironmentConfig{
+				InstanceName:       instanceName,
+				OverrideBaseDomain: d.Get("override_base_domain").(string),
+				APIType:            "jamfpro",
+			},
 			Auth: httpclient.AuthConfig{
 				ClientID:     clientID,
 				ClientSecret: clientSecret,
 			},
-			Environment: httpclient.EnvironmentConfig{
-				InstanceName:       instanceName,
-				OverrideBaseDomain: d.Get("override_base_domain").(string),
-				APIType:            d.Get("api_type").(string),
-			},
 			ClientOptions: httpclient.ClientOptions{
 				LogLevel:                  d.Get("log_level").(string),
-				LogOutputFormat:           d.Get("log_output_format").(string),
-				HideSensitiveData:         d.Get("hide_sensitive_data").(bool),
 				MaxRetryAttempts:          d.Get("max_retry_attempts").(int),
 				EnableDynamicRateLimiting: d.Get("enable_dynamic_rate_limiting").(bool),
 				MaxConcurrentRequests:     d.Get("max_concurrent_requests").(int),
-				TokenRefreshBufferPeriod:  time.Duration(d.Get("token_refresh_buffer_period").(int)) * time.Minute,
+				TokenRefreshBufferPeriod:  time.Duration(d.Get("token_refresh_buffer_period").(int)) * time.Second,
 				TotalRetryDuration:        time.Duration(d.Get("total_retry_duration").(int)) * time.Second,
 				CustomTimeout:             time.Duration(d.Get("custom_timeout").(int)) * time.Second,
 			},
 		}
 
-		// Use the BuildClient function from the jamfpro package to initialize the SDK client.
-		jamfProClient, err := jamfpro.BuildClient(httpClientConfig)
+		httpclient, err := jamfpro.BuildClient(httpClientConfig)
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}
 
 		// Initialize your provider's APIClient struct with the Jamf Pro HTTP client.
 		jamfProAPIClient := client.APIClient{
-			Conn: jamfProClient,
+			Conn: httpclient,
 		}
 
 		return &jamfProAPIClient, diags
