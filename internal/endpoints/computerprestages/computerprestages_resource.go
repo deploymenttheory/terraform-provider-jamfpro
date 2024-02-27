@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -769,7 +768,7 @@ func ResourceJamfProComputerPrestageCreate(ctx context.Context, d *schema.Resour
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Disk Encryption Configuration '%s' after retries: %v", resource.Name, err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Disk Encryption Configuration '%s' after retries: %v", resource.DisplayName, err))
 	}
 
 	// Set the resource ID in Terraform state
@@ -800,6 +799,7 @@ func ResourceJamfProComputerPrestageRead(ctx context.Context, d *schema.Resource
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
+	var err error
 
 	var resource *jamfpro.ResourceComputerPrestage
 
@@ -818,8 +818,9 @@ func ResourceJamfProComputerPrestageRead(ctx context.Context, d *schema.Resource
 	if err != nil {
 		// Handle the final error after all retries have been exhausted
 		d.SetId("") // Remove from Terraform state if unable to read after retries
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Disk Encryption Configuration with ID '%d' after retries: %v", resourceIDInt, err))
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Disk Encryption Configuration with ID '%d' after retries: %v", resourceID, err))
 	}
+
 	// Check if prestage data exists
 	if resource != nil {
 		// Construct a map of computer prestage attributes
@@ -964,12 +965,6 @@ func ResourceJamfProComputerPrestageUpdate(ctx context.Context, d *schema.Resour
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	// Convert resourceID from string to int
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
-
 	// Construct the resource object
 	resource, err := constructJamfProComputerPrestage(ctx, d)
 	if err != nil {
@@ -978,7 +973,7 @@ func ResourceJamfProComputerPrestageUpdate(ctx context.Context, d *schema.Resour
 
 	// Update operations with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateComputerPrestageByID(resourceIDInt, resource)
+		_, apiErr := conn.UpdateComputerPrestageByID(resourceID, resource)
 		if apiErr != nil {
 			// If updating by ID fails, attempt to update by Name
 			return retry.RetryableError(apiErr)
@@ -988,7 +983,7 @@ func ResourceJamfProComputerPrestageUpdate(ctx context.Context, d *schema.Resour
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Computer Prestage '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Computer Prestage '%s' (ID: %d) after retries: %v", resource.DisplayName, resourceID, err))
 	}
 
 	// Read the resource to ensure the Terraform state is up to date
@@ -1012,17 +1007,12 @@ func ResourceJamfProComputerPrestageDelete(ctx context.Context, d *schema.Resour
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
-
-	// Convert resourceID from string to int
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
+	var err error
 
 	// Use the retry function for the delete operation with appropriate timeout
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Attempt to delete by ID
-		apiErr := conn.DeleteComputerPrestageByID(resourceIDInt)
+		apiErr := conn.DeleteComputerPrestageByID(resourceID)
 		if apiErr != nil {
 			// If deleting by ID fails, attempt to delete by Name
 			resourceName := d.Get("name").(string)
@@ -1037,7 +1027,7 @@ func ResourceJamfProComputerPrestageDelete(ctx context.Context, d *schema.Resour
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Disk Encryption Configuration '%s' (ID: %d) after retries: %v", d.Get("name").(string), resourceIDInt, err))
+		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Disk Encryption Configuration '%s' (ID: %d) after retries: %v", d.Get("name").(string), resourceID, err))
 	}
 
 	// Clear the ID from the Terraform state as the resource has been deleted
