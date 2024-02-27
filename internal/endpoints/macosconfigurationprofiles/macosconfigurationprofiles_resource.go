@@ -2,10 +2,8 @@ package macosconfigurationprofiles
 
 import (
 	"context"
-	"encoding/xml"
 	"fmt"
 	"log"
-	"reflect"
 	"strconv"
 	"time"
 
@@ -107,7 +105,6 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 			"user_removeable": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Default:     false,
 				Description: "Whether the configuration profile is user removeable.",
 			},
 			"level": {
@@ -299,43 +296,26 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 	// Fields with processing
 
 	// Site
-	log.Println("LOGHERE")
-	log.Println(d.Get("site"))
-	log.Println(reflect.TypeOf(d.Get("site")))
-	if len(d.Get("site").([]interface{})) == 0 {
-		log.Println("S Block 1")
-
-	} else {
-		log.Println("S Block 2")
+	if len(d.Get("site").([]interface{})) != 0 {
 		out.General.Site = jamfpro.SharedResourceSite{
 			ID:   d.Get("site.0.id").(int),
 			Name: d.Get("site.0.name").(string),
 		}
-	}
-	log.Println("S Block 3")
-
-	log.Println()
-
-	log.Println(d.Get("category"))
-	log.Println(reflect.TypeOf(d.Get("category")))
-	// Category
-	if len(d.Get("category").([]interface{})) == 0 {
-		log.Println("C Block 1")
-		// out.General.Category = jamfpro.SharedResourceCategory{
-		// 	ID:   -1,
-		// 	Name: "No category assigned",
-		// }
 	} else {
-		log.Println("C Block 2")
+		log.Println("NO SITE") // TODO probably put some logging here
+	}
+
+	// Category
+	if len(d.Get("category").([]interface{})) != 0 {
 		out.General.Category = &jamfpro.SharedResourceCategory{
 			ID:   d.Get("category.0.id").(int),
 			Name: d.Get("category.0.name").(string),
 		}
+	} else {
+		log.Println("NO CATEGORY") // TODO probably put some logging here
 	}
-	log.Println("C Block 3")
 
 	// Scope
-
 	if len(d.Get("scope").([]interface{})) > 0 {
 		// All Computers & Users
 		out.Scope.AllComputers = d.Get("scope.0.all_computers").(bool)
@@ -422,11 +402,6 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 
 	}
 
-	log.Println("THE OUT STRUCT")
-	marshalled, _ := xml.MarshalIndent(out, "", "  ")
-	log.Printf("%+v\n", out)
-	log.Println(string(marshalled))
-
 	return &out, nil
 }
 
@@ -503,7 +478,7 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 }
 
 func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	log.Println("READING")
+	log.Println("LOGHERE")
 	// API Stuff
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -536,7 +511,6 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	})
 
 	if err != nil {
-
 		logging.LogTFStateRemovalWarning(subCtx, JamfProResourceMacOSConfigurationProfile, resourceID)
 		return diag.FromErr(err)
 	}
@@ -544,10 +518,6 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	logging.LogAPIReadSuccess(subCtx, JamfProResourceMacOSConfigurationProfile, resourceID)
 
 	// Stating
-
-	log.Println("RESPLOG")
-	unmarshalledResp, _ := xml.MarshalIndent(resp, "", "  ")
-	log.Println(string(unmarshalledResp))
 
 	// ID
 	if err := d.Set("id", resourceID); err != nil {
@@ -577,6 +547,9 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		if err := d.Set("site", out_site); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
+
+	} else {
+		log.Println("Not stating default site response") // TODO probably put some logging here
 	}
 
 	// Category
@@ -591,6 +564,8 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		if err := d.Set("category", out_category); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
+	} else {
+		log.Printf("Not stating default category response") // TODO probably put some logging here
 	}
 
 	// Distribution Method
@@ -613,81 +588,16 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Redeploy On Update
+	// Redeploy On Update - not in ui
 	// if err := d.Set("redeploy_on_update", resp.General.RedeployOnUpdate); err != nil {
 	// 	diags = append(diags, diag.FromErr(err)...)
 	// }
 
 	// Scope
-	// Computers
-	var inComputers []int
-	for _, v := range resp.Scope.Computers {
-		inComputers = append(inComputers, v.ID)
-	}
 
-	// Computer Groups
-	var out_computer_groups []map[string]interface{}
-	for _, v := range resp.Scope.ComputerGroups {
-		out_computer_groups = append(out_computer_groups, map[string]interface{}{
-			"id":   v.ID,
-			"name": v.Name,
-		})
-	}
-
-	// JSS Users
-	var out_jss_users []map[string]interface{}
-	for _, v := range resp.Scope.JSSUsers {
-		out_jss_users = append(out_jss_users, map[string]interface{}{
-			"id":   v.ID,
-			"name": v.Name,
-		})
-
-	}
-
-	// JSS User Groups
-	var out_jss_user_groups []map[string]interface{}
-	for _, v := range resp.Scope.JSSUserGroups {
-		out_jss_user_groups = append(out_jss_user_groups, map[string]interface{}{
-			"id":   v.ID,
-			"name": v.Name,
-		})
-	}
-
-	// Buildings
-	var out_buildings []map[string]interface{}
-	for _, v := range resp.Scope.Buildings {
-		out_buildings = append(out_buildings, map[string]interface{}{
-			"id":   v.ID,
-			"name": v.Name,
-		})
-
-	}
-
-	// Departments
-	var out_departments []map[string]interface{}
-	for _, v := range resp.Scope.Departments {
-		out_departments = append(out_departments, map[string]interface{}{
-			"id":   v.ID,
-			"name": v.Name,
-		})
-	}
-
-	// Write scope to state
-	out_scope := []map[string]interface{}{
-		{
-			"computers":       []map[string]interface{}{{"id": inComputers}},
-			"computer_groups": out_computer_groups,
-			"jss_users":       out_jss_users,
-			"jss_user_groups": out_jss_user_groups,
-			"buildings":       out_buildings,
-			"departments":     out_departments,
-		},
-	}
-
-	log.Println("LOGHERE")
-	log.Println(resp.Scope.AllComputers)
-	log.Println(resp.Scope.AllJSSUsers)
-
+	var out_scope []map[string]interface{}
+	out_scope = append(out_scope, map[string]interface{}{})
+	// All computers
 	if resp.Scope.AllComputers {
 		out_scope[0]["all_computers"] = true
 	}
@@ -696,8 +606,76 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		out_scope[0]["all_jss_users"] = true
 	}
 
-	log.Println(out_scope)
+	// Computers
+	if len(resp.Scope.Computers) > 0 {
+		var inComputers []int
+		for _, v := range resp.Scope.Computers {
+			inComputers = append(inComputers, v.ID)
+		}
+		out_scope[0]["computers"] = inComputers
+	}
 
+	// Computer Groups
+	if len(resp.Scope.ComputerGroups) > 0 {
+		var out_computer_groups []map[string]interface{}
+		for _, v := range resp.Scope.ComputerGroups {
+			out_computer_groups = append(out_computer_groups, map[string]interface{}{
+				"id":   v.ID,
+				"name": v.Name,
+			})
+		}
+		out_scope[0]["computer_groups"] = out_computer_groups
+	}
+
+	// JSS Users
+	if len(resp.Scope.JSSUsers) > 0 {
+		var out_jss_users []map[string]interface{}
+		for _, v := range resp.Scope.JSSUsers {
+			out_jss_users = append(out_jss_users, map[string]interface{}{
+				"id":   v.ID,
+				"name": v.Name,
+			})
+		}
+		out_scope[0]["jss_users"] = out_jss_users
+	}
+
+	// JSS User Groups
+	if len(resp.Scope.JSSUserGroups) > 0 {
+		var out_jss_user_groups []map[string]interface{}
+		for _, v := range resp.Scope.JSSUserGroups {
+			out_jss_user_groups = append(out_jss_user_groups, map[string]interface{}{
+				"id":   v.ID,
+				"name": v.Name,
+			})
+		}
+		out_scope[0]["jss_user_groups"] = out_jss_user_groups
+	}
+
+	// Buildings
+	if len(resp.Scope.Buildings) > 0 {
+		var out_buildings []map[string]interface{}
+		for _, v := range resp.Scope.Buildings {
+			out_buildings = append(out_buildings, map[string]interface{}{
+				"id":   v.ID,
+				"name": v.Name,
+			})
+		}
+		out_scope[0]["buildings"] = out_buildings
+	}
+
+	// Departments
+	if len(resp.Scope.Departments) > 0 {
+		var out_departments []map[string]interface{}
+		for _, v := range resp.Scope.Departments {
+			out_departments = append(out_departments, map[string]interface{}{
+				"id":   v.ID,
+				"name": v.Name,
+			})
+		}
+		out_scope[0]["departments"] = out_departments
+	}
+
+	// Write scope to state
 	if err := d.Set("scope", out_scope); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
