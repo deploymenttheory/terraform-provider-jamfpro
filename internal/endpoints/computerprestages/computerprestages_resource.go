@@ -558,98 +558,93 @@ func ResourceJamfProComputerPrestage() *schema.Resource {
 
 // constructJamfProComputerPrestage constructs a ResourceComputerPrestage object from the provided schema data.
 func constructJamfProComputerPrestage(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceComputerPrestage, error) {
-	prestage := &jamfpro.ResourceComputerPrestage{}
+	prestage := &jamfpro.ResourceComputerPrestage{
+		DisplayName: d.Get("display_name").(string),
+		Mandatory:   d.Get("mandatory").(bool),
+		MDMRemovable: d.Get("mdm_removable").(bool),
+		SupportPhoneNumber: d.Get("support_phone_number").(string),
+		SupportEmailAddress: d.Get("support_email_address").(string),
+		Department: d.Get("department").(string),
+		DefaultPrestage: d.Get("default_prestage").(bool),
+		EnrollmentSiteId: d.Get("enrollment_site_id").(string),
+		KeepExistingSiteMembership: d.Get("keep_existing_site_membership").(bool),
+		KeepExistingLocationInformation: d.Get("keep_existing_location_information").(bool),
+		RequireAuthentication: d.Get("require_authentication").(bool),
+		AuthenticationPrompt: d.Get("authentication_prompt").(string),
+		PreventActivationLock: d.Get("prevent_activation_lock").(bool),
+		EnableDeviceBasedActivationLock: d.Get("enable_device_based_activation_lock").(bool),
+		DeviceEnrollmentProgramInstanceId: d.Get("device_enrollment_program_instance_id").(string),
 
-	// Extract the items from the Terraform resource data
-	prestage.DisplayName = util.GetStringFromInterface(d.Get("display_name"))
-	prestage.Mandatory = util.GetBoolFromInterface(d.Get("mandatory"))
-	prestage.MDMRemovable = util.GetBoolFromInterface(d.Get("mdm_removable"))
-	prestage.SupportPhoneNumber = util.GetStringFromInterface(d.Get("support_phone_number"))
-	prestage.SupportEmailAddress = util.GetStringFromInterface(d.Get("support_email_address"))
-	prestage.Department = util.GetStringFromInterface(d.Get("department"))
-	prestage.DefaultPrestage = util.GetBoolFromInterface(d.Get("default_prestage"))
-	prestage.EnrollmentSiteId = util.GetStringFromInterface(d.Get("enrollment_site_id"))
-	prestage.KeepExistingSiteMembership = util.GetBoolFromInterface(d.Get("keep_existing_site_membership"))
-	prestage.KeepExistingLocationInformation = util.GetBoolFromInterface(d.Get("keep_existing_location_information"))
-	prestage.RequireAuthentication = util.GetBoolFromInterface(d.Get("require_authentication"))
-	prestage.AuthenticationPrompt = util.GetStringFromInterface(d.Get("authentication_prompt"))
-	prestage.PreventActivationLock = util.GetBoolFromInterface(d.Get("prevent_activation_lock"))
-	prestage.EnableDeviceBasedActivationLock = util.GetBoolFromInterface(d.Get("enable_device_based_activation_lock"))
-	prestage.DeviceEnrollmentProgramInstanceId = util.GetStringFromInterface(d.Get("device_enrollment_program_instance_id"))
-
-	// Extract the 'skip_setup_items' list from the Terraform resource data
-	if v, ok := d.GetOk("skip_setup_items"); ok {
-		skipSetupItemsList := v.([]interface{})
-		if len(skipSetupItemsList) > 0 {
-			skipSetupItemsMap := skipSetupItemsList[0].(map[string]interface{})
-
-			// Construct the ComputerPrestageSubsetSkipSetupItems struct
-			prestage.SkipSetupItems = jamfpro.ComputerPrestageSubsetSkipSetupItems{
-				Biometric:         util.GetBoolFromMap(skipSetupItemsMap, "biometric"),
-				TermsOfAddress:    util.GetBoolFromMap(skipSetupItemsMap, "terms_of_address"),
-				FileVault:         util.GetBoolFromMap(skipSetupItemsMap, "file_vault"),
-				ICloudDiagnostics: util.GetBoolFromMap(skipSetupItemsMap, "icloud_diagnostics"),
-				Diagnostics:       util.GetBoolFromMap(skipSetupItemsMap, "diagnostics"),
-				Accessibility:     util.GetBoolFromMap(skipSetupItemsMap, "accessibility"),
-				AppleID:           util.GetBoolFromMap(skipSetupItemsMap, "apple_id"),
-				ScreenTime:        util.GetBoolFromMap(skipSetupItemsMap, "screen_time"),
-				Siri:              util.GetBoolFromMap(skipSetupItemsMap, "siri"),
-				DisplayTone:       util.GetBoolFromMap(skipSetupItemsMap, "display_tone"),
-				Restore:           util.GetBoolFromMap(skipSetupItemsMap, "restore"),
-				Appearance:        util.GetBoolFromMap(skipSetupItemsMap, "appearance"),
-				Privacy:           util.GetBoolFromMap(skipSetupItemsMap, "privacy"),
-				Payment:           util.GetBoolFromMap(skipSetupItemsMap, "payment"),
-				Registration:      util.GetBoolFromMap(skipSetupItemsMap, "registration"),
-				TOS:               util.GetBoolFromMap(skipSetupItemsMap, "tos"),
-				ICloudStorage:     util.GetBoolFromMap(skipSetupItemsMap, "icloud_storage"),
-				Location:          util.GetBoolFromMap(skipSetupItemsMap, "location"),
-			}
-		}
 	}
 
+	// Extract the 'skip_setup_items' list from the Terraform resource data
+	if v, ok := d.GetOk("skip_setup_items"); ok && len(v.([]interface{})) > 0 {
+		skipSetupItemsMap := v.([]interface{})[0].(map[string]interface{})
+		prestage.SkipSetupItems = jamfpro.ComputerPrestageSubsetSkipSetupItems{
+			Biometric:         skipSetupItemsMap["biometric"].(bool),
+			TermsOfAddress:    skipSetupItemsMap["terms_of_address"].(bool),
+			FileVault:         skipSetupItemsMap["file_vault"].(bool),
+			ICloudDiagnostics: skipSetupItemsMap["icloud_diagnostics"].(bool),
+			Diagnostics:       skipSetupItemsMap["diagnostics"].(bool),
+			Accessibility:     skipSetupItemsMap["accessibility"].(bool),
+			AppleID:           skipSetupItemsMap["apple_id"].(bool),
+			ScreenTime:        skipSetupItemsMap["screen_time"].(bool),
+			Siri:              skipSetupItemsMap["siri"].(bool),
+			DisplayTone:       skipSetupItemsMap["display_tone"].(bool),
+			Restore:           skipSetupItemsMap["restore"].(bool),
+			Appearance:        skipSetupItemsMap["appearance"].(bool),
+			Privacy:           skipSetupItemsMap["privacy"].(bool),
+			Payment:           skipSetupItemsMap["payment"].(bool),
+			Registration:      skipSetupItemsMap["registration"].(bool),
+			TOS:               skipSetupItemsMap["tos"].(bool),
+			ICloudStorage:     skipSetupItemsMap["icloud_storage"].(bool),
+			Location:          skipSetupItemsMap["location"].(bool),
+		}
+
+
 	// Extract location_information
-	if v, ok := d.GetOk("location_information"); ok {
-		locationList := v.([]interface{})
-		if len(locationList) > 0 {
+if v, ok := d.GetOk("location_information"); ok {
+	locationList := v.([]interface{})
+	if len(locationList) > 0 {
 			locationData := locationList[0].(map[string]interface{})
 			prestage.LocationInformation = jamfpro.ComputerPrestageSubsetLocationInformation{
-				Username:     util.GetStringFromMap(locationData, "username"),
-				Realname:     util.GetStringFromMap(locationData, "realname"),
-				Phone:        util.GetStringFromMap(locationData, "phone"),
-				Email:        util.GetStringFromMap(locationData, "email"),
-				Room:         util.GetStringFromMap(locationData, "room"),
-				Position:     util.GetStringFromMap(locationData, "position"),
-				DepartmentId: util.GetStringFromMap(locationData, "department_id"),
-				BuildingId:   util.GetStringFromMap(locationData, "building_id"),
-				ID:           util.GetStringFromMap(locationData, "id"),
-				VersionLock:  util.GetIntFromMap(locationData, "version_lock"),
+					Username:     locationData["username"].(string),
+					Realname:     locationData["realname"].(string),
+					Phone:        locationData["phone"].(string),
+					Email:        locationData["email"].(string),
+					Room:         locationData["room"].(string),
+					Position:     locationData["position"].(string),
+					DepartmentId: locationData["department_id"].(string),
+					BuildingId:   locationData["building_id"].(string),
+					ID:           locationData["id"].(string),
+					VersionLock:  int(locationData["version_lock"].(int64)), // Assuming version_lock is an int64 and needs to be converted to int
 			}
-		}
 	}
 
 	// Extract purchasing_information
-	if v, ok := d.GetOk("purchasing_information"); ok {
-		purchasingList := v.([]interface{})
-		if len(purchasingList) > 0 {
+if v, ok := d.GetOk("purchasing_information"); ok {
+	purchasingList := v.([]interface{})
+	if len(purchasingList) > 0 {
 			purchasingData := purchasingList[0].(map[string]interface{})
 			prestage.PurchasingInformation = jamfpro.ComputerPrestageSubsetPurchasingInformation{
-				ID:                util.GetStringFromMap(purchasingData, "id"),
-				Leased:            util.GetBoolFromMap(purchasingData, "leased"),
-				Purchased:         util.GetBoolFromMap(purchasingData, "purchased"),
-				AppleCareId:       util.GetStringFromMap(purchasingData, "apple_care_id"),
-				PONumber:          util.GetStringFromMap(purchasingData, "po_number"),
-				Vendor:            util.GetStringFromMap(purchasingData, "vendor"),
-				PurchasePrice:     util.GetStringFromMap(purchasingData, "purchase_price"),
-				LifeExpectancy:    util.GetIntFromMap(purchasingData, "life_expectancy"),
-				PurchasingAccount: util.GetStringFromMap(purchasingData, "purchasing_account"),
-				PurchasingContact: util.GetStringFromMap(purchasingData, "purchasing_contact"),
-				LeaseDate:         util.GetStringFromMap(purchasingData, "lease_date"),
-				PODate:            util.GetStringFromMap(purchasingData, "po_date"),
-				WarrantyDate:      util.GetStringFromMap(purchasingData, "warranty_date"),
-				VersionLock:       util.GetIntFromMap(purchasingData, "version_lock"),
+					ID:                purchasingData["id"].(string),
+					Leased:            purchasingData["leased"].(bool),
+					Purchased:         purchasingData["purchased"].(bool),
+					AppleCareId:       purchasingData["apple_care_id"].(string),
+					PONumber:          purchasingData["po_number"].(string),
+					Vendor:            purchasingData["vendor"].(string),
+					PurchasePrice:     purchasingData["purchase_price"].(string),
+					LifeExpectancy:    int(purchasingData["life_expectancy"].(int64)), // Assuming life_expectancy is int64
+					PurchasingAccount: purchasingData["purchasing_account"].(string),
+					PurchasingContact: purchasingData["purchasing_contact"].(string),
+					LeaseDate:         purchasingData["lease_date"].(string),
+					PODate:            purchasingData["po_date"].(string),
+					WarrantyDate:      purchasingData["warranty_date"].(string),
+					VersionLock:       int(purchasingData["version_lock"].(int64)), // Assuming version_lock is int64
 			}
-		}
 	}
+}
+
 
 	// Extract anchor_certificates
 	if v, ok := d.GetOk("anchor_certificates"); ok {
@@ -694,30 +689,29 @@ func constructJamfProComputerPrestage(ctx context.Context, d *schema.ResourceDat
 	prestage.VersionLock = util.GetIntFromInterface(d.Get("version_lock"))
 
 	// Extract account_settings
-	if v, ok := d.GetOk("account_settings"); ok {
-		accountSettingsList := v.([]interface{})
-		if len(accountSettingsList) > 0 {
+if v, ok := d.GetOk("account_settings"); ok {
+	accountSettingsList := v.([]interface{})
+	if len(accountSettingsList) > 0 {
 			accountData := accountSettingsList[0].(map[string]interface{})
 			prestage.AccountSettings = jamfpro.ComputerPrestageSubsetAccountSettings{
-				ID:                                      util.GetStringFromMap(accountData, "id"),
-				PayloadConfigured:                       util.GetBoolFromMap(accountData, "payload_configured"),
-				LocalAdminAccountEnabled:                util.GetBoolFromMap(accountData, "local_admin_account_enabled"),
-				AdminUsername:                           util.GetStringFromMap(accountData, "admin_username"),
-				AdminPassword:                           util.GetStringFromMap(accountData, "admin_password"),
-				HiddenAdminAccount:                      util.GetBoolFromMap(accountData, "hidden_admin_account"),
-				LocalUserManaged:                        util.GetBoolFromMap(accountData, "local_user_managed"),
-				UserAccountType:                         util.GetStringFromMap(accountData, "user_account_type"),
-				VersionLock:                             util.GetIntFromMap(accountData, "version_lock"),
-				PrefillPrimaryAccountInfoFeatureEnabled: util.GetBoolFromMap(accountData, "prefill_primary_account_info_feature_enabled"),
-				PrefillType:                             util.GetStringFromMap(accountData, "prefill_type"),
-				PrefillAccountFullName:                  util.GetStringFromMap(accountData, "prefill_account_full_name"),
-				PrefillAccountUserName:                  util.GetStringFromMap(accountData, "prefill_account_user_name"),
-				PreventPrefillInfoFromModification:      util.GetBoolFromMap(accountData, "prevent_prefill_info_from_modification"),
+					ID:                                      accountData["id"].(string),
+					PayloadConfigured:                       accountData["payload_configured"].(bool),
+					LocalAdminAccountEnabled:                accountData["local_admin_account_enabled"].(bool),
+					AdminUsername:                           accountData["admin_username"].(string),
+					AdminPassword:                           accountData["admin_password"].(string),
+					HiddenAdminAccount:                      accountData["hidden_admin_account"].(bool),
+					LocalUserManaged:                        accountData["local_user_managed"].(bool),
+					UserAccountType:                         accountData["user_account_type"].(string),
+					VersionLock:                             int(accountData["version_lock"].(int64)), // Assuming version_lock is int64
+					PrefillPrimaryAccountInfoFeatureEnabled: accountData["prefill_primary_account_info_feature_enabled"].(bool),
+					PrefillType:                             accountData["prefill_type"].(string),
+					PrefillAccountFullName:                  accountData["prefill_account_full_name"].(string),
+					PrefillAccountUserName:                  accountData["prefill_account_user_name"].(string),
+					PreventPrefillInfoFromModification:      accountData["prevent_prefill_info_from_modification"].(bool),
 			}
-		}
 	}
+}
 
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemConstruct, hclog.Debug)
 
 	// Serialize and pretty-print the department object as JSON
 	computerPrestageJSON, err := json.MarshalIndent(prestage, "", "  ")
