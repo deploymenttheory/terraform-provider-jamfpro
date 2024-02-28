@@ -4,6 +4,7 @@ package apiintegrations
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
@@ -56,12 +57,18 @@ func dataSourceJamfProApiIntegrationsRead(ctx context.Context, d *schema.Resourc
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
+	}
+
 	var resource *jamfpro.ResourceApiIntegration
 
 	// Read operation with retry
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		resource, apiErr = conn.GetApiIntegrationByID(resourceID)
+		resource, apiErr = conn.GetApiIntegrationByID(resourceIDInt)
 		if apiErr != nil {
 			// Convert any API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)
