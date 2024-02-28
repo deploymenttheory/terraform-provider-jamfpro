@@ -599,6 +599,9 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 
 	// All computers
 	if resp.Scope.AllComputers {
+		if len(resp.Scope.Computers) > 0 {
+			log.Println("ERROR HERE!") // TODO throw an error here please DW
+		}
 		out_scope[0]["all_computers"] = true
 	}
 
@@ -610,15 +613,12 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Computers
 
 	if len(resp.Scope.Computers) > 0 {
-		log.Println("LOGHERE")
 
 		// Define computers list
 		var out_computers []map[string]interface{}
-		log.Println(out_computers)
 
 		// Add empty item to that list
 		out_computers = append(out_computers, make(map[string]interface{}))
-		log.Println(out_computers)
 
 		// Get Ids from HCL
 		var hclComputerIds []int
@@ -628,7 +628,6 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 
 		// Put IDs in empty item in computers list
 		out_computers[0]["id"] = hclComputerIds
-		log.Println(out_computers)
 
 		// Add list to parent scope
 		out_scope[0]["computers"] = out_computers
