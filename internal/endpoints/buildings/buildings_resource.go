@@ -133,13 +133,13 @@ func ResourceJamfProBuildingCreate(ctx context.Context, d *schema.ResourceData, 
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Site '%s' after retries: %v", resource.Name, err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Building '%s' after retries: %v", resource.Name, err))
 	}
 
 	// Set the resource ID in Terraform state
 	d.SetId(creationResponse.ID)
 
-	// Read the site to ensure the Terraform state is up to date
+	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProBuildingRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)

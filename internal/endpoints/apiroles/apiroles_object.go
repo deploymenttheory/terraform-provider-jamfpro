@@ -1,6 +1,7 @@
 package apiroles
 
 import (
+	"context"
 	"encoding/xml"
 	"fmt"
 
@@ -9,7 +10,7 @@ import (
 )
 
 // constructJamfProApiRole constructs an ResourceAPIRole object from the provided schema data.
-func constructJamfProApiRole(d *schema.ResourceData) (*jamfpro.ResourceAPIRole, error) {
+func constructJamfProApiRole(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceAPIRole, error) {
 	apiRole := &jamfpro.ResourceAPIRole{
 		DisplayName: d.Get("display_name").(string),
 	}
