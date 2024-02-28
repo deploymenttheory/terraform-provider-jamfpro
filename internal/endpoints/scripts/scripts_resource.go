@@ -209,7 +209,7 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Script '%s' after retries: %v", script.Name, err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Script '%s' after retries: %v", resource.Name, err))
 	}
 
 	// Set the resource ID in Terraform state
@@ -226,7 +226,7 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to synchronize Terraform state for Jamf Pro Script '%s' after creation: %v", script.Name, err))
+		return diag.FromErr(fmt.Errorf("failed to synchronize Terraform state for Jamf Pro Script '%s' after creation: %v", resource.Name, err))
 	}
 
 	return diags
