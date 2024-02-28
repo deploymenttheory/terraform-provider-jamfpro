@@ -190,17 +190,17 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 	// Initialize variables
 	var diags diag.Diagnostics
 
-	// Construct the script object
-	script, err := constructJamfProScript(ctx, d)
+	// Construct the resource object
+	resource, err := constructJamfProScript(ctx, d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Script: %v", err))
 	}
 
-	// Retry the API call to create the script in Jamf Pro
+	// Retry the API call to create the resource in Jamf Pro
 	var creationResponse *jamfpro.ResponseScriptCreate
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreateScript(script)
+		creationResponse, apiErr = conn.CreateScript(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -215,13 +215,13 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 	// Set the resource ID in Terraform state
 	d.SetId(creationResponse.ID)
 
-	// Retry reading the script to ensure the Terraform state is up to date
+	// Retry reading the resource to ensure the Terraform state is up to date
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		readDiags := ResourceJamfProScriptsRead(ctx, d, meta)
 		if len(readDiags) > 0 {
 			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
 		}
-		// Successfully read the script, exit the retry loop
+		// Successfully read the resource, exit the retry loop
 		return nil
 	})
 
@@ -258,7 +258,7 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 			// Convert any API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)
 		}
-		// Successfully read the script, exit the retry loop
+		// Successfully read the resource, exit the retry loop
 		return nil
 	})
 
@@ -312,24 +312,24 @@ func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, m
 	resourceID := d.Id()
 
 	// Construct the resource object
-	script, err := constructJamfProScript(ctx, d)
+	resource, err := constructJamfProScript(ctx, d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Script for update: %v", err))
 	}
 
-	// Update operations with retries
+	// Update operation with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateScriptByID(resourceID, script)
+		_, apiErr := conn.UpdateScriptByID(resourceID, resource)
 		if apiErr != nil {
 			// If updating by ID fails, attempt to update by Name
 			resourceName := d.Get("name").(string)
-			_, apiErrByName := conn.UpdateScriptByName(resourceName, script)
+			_, apiErrByName := conn.UpdateScriptByName(resourceName, resource)
 			if apiErrByName != nil {
 				// If updating by name also fails, return a retryable error
 				return retry.RetryableError(apiErrByName)
 			}
 		}
-		// Successfully updated the script, exit the retry loop
+		// Successfully updated the resource, exit the retry loop
 		return nil
 	})
 
@@ -337,7 +337,7 @@ func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Script '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
 	}
 
-	// Read the script to ensure the Terraform state is up to date
+	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProScriptsRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
@@ -361,7 +361,7 @@ func ResourceJamfProScriptsDelete(ctx context.Context, d *schema.ResourceData, m
 
 	// Use the retry function for the delete operation with appropriate timeout
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// Attempt to delete the script by ID
+		// Attempt to delete the resource by ID
 		apiErr := conn.DeleteScriptByID(resourceID)
 		if apiErr != nil {
 			// If deleting by ID fails, attempt to delete by Name
@@ -372,7 +372,7 @@ func ResourceJamfProScriptsDelete(ctx context.Context, d *schema.ResourceData, m
 				return retry.RetryableError(apiErrByName)
 			}
 		}
-		// Successfully deleted the script, exit the retry loop
+		// Successfully deleted the resource, exit the retry loop
 		return nil
 	})
 

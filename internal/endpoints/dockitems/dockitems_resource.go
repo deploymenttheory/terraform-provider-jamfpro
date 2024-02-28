@@ -269,96 +269,8 @@ func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, m
 	return diags
 }
 
-// ResourceJamfProDockItemsUpdate is responsible for updating an existing Jamf Pro Site on the remote system.
+// ResourceJamfProDockItemsUpdate is responsible for updating a Jamf Pro dock item.
 func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize api client
-	apiclient, ok := meta.(*client.APIClient)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
-	}
-	conn := apiclient.Conn
-
-	// Initialize the logging subsystem for the update operation
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemUpdate, hclog.Info)
-	subSyncCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemSync, hclog.Info)
-
-	// Initialize variables
-	var diags diag.Diagnostics
-	resourceID := d.Id()
-	resourceName := d.Get("name").(string)
-	var apiErrorCode int
-
-	// Convert resourceID from string to int
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		// Handle conversion error with structured logging
-		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceDockItem, resourceID, err.Error())
-		return diag.FromErr(err)
-	}
-
-	// Construct the resource object
-	dockItem, err := constructJamfProDockItem(subCtx, d)
-	if err != nil {
-		logging.LogTFConstructResourceFailure(subCtx, JamfProResourceDockItem, err.Error())
-		return diag.FromErr(err)
-	}
-	logging.LogTFConstructResourceSuccess(subCtx, JamfProResourceDockItem)
-
-	// Update operations with retries
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateDockItemByID(resourceIDInt, dockItem)
-		if apiErr != nil {
-			if apiError, ok := apiErr.(*.APIError); ok {
-				apiErrorCode = apiError.StatusCode
-			}
-
-			logging.LogAPIUpdateFailureByID(subCtx, JamfProResourceDockItem, resourceID, resourceName, apiErr.Error(), apiErrorCode)
-
-			_, apiErrByName := conn.UpdateDockItemByName(resourceName, dockItem)
-			if apiErrByName != nil {
-				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErrByName.(*.APIError); ok {
-					apiErrByNameCode = apiErrorByName.StatusCode
-				}
-
-				logging.LogAPIUpdateFailureByName(subCtx, JamfProResourceDockItem, resourceName, apiErrByName.Error(), apiErrByNameCode)
-				return retry.RetryableError(apiErrByName)
-			}
-		} else {
-			logging.LogAPIUpdateSuccess(subCtx, JamfProResourceDockItem, resourceID, resourceName)
-		}
-		return nil
-	})
-
-	// Send error to diag.diags
-	if err != nil {
-		logging.LogAPIDeleteFailedAfterRetry(subCtx, JamfProResourceDockItem, resourceID, resourceName, err.Error(), apiErrorCode)
-		diags = append(diags, diag.FromErr(err)...)
-		return diags
-	}
-
-	// Retry reading the Site to synchronize the Terraform state
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProDockItemsRead(subCtx, d, meta)
-		if len(readDiags) > 0 {
-			logging.LogTFStateSyncFailedAfterRetry(subSyncCtx, JamfProResourceDockItem, resourceID, readDiags[0].Summary)
-			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
-		}
-		return nil
-	})
-
-	if err != nil {
-		logging.LogTFStateSyncFailure(subSyncCtx, JamfProResourceDockItem, err.Error())
-		return diag.FromErr(err)
-	} else {
-		logging.LogTFStateSyncSuccess(subSyncCtx, JamfProResourceDockItem, resourceID)
-	}
-
-	return nil
-}
-
-// ResourceJamfProDockItemsDelete is responsible for deleting a Jamf Pro Site.
-func ResourceJamfProDockItemsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -398,7 +310,7 @@ func ResourceJamfProDockItemsDelete(ctx context.Context, d *schema.ResourceData,
 	}
 
 	// Read the resource to ensure the Terraform state is up to date
-	readDiags := ResourceJamfProDiskEncryptionConfigurationsRead(ctx, d, meta)
+	readDiags := ResourceJamfProDockItemsRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
 	}
@@ -407,7 +319,7 @@ func ResourceJamfProDockItemsDelete(ctx context.Context, d *schema.ResourceData,
 }
 
 // ResourceJamfProDiskEncryptionConfigurationsDelete is responsible for deleting a Jamf Pro Disk Encryption Configuration.
-func ResourceJamfProDiskEncryptionConfigurationsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ResourceJamfProDockItemsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
