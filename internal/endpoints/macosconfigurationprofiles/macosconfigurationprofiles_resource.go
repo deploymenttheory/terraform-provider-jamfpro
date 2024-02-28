@@ -621,13 +621,13 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		log.Println(out_computers)
 
 		// Get Ids from HCL
-		var inComputers []int
+		var hclComputerIds []int
 		for _, v := range resp.Scope.Computers {
-			inComputers = append(inComputers, v.ID)
+			hclComputerIds = append(hclComputerIds, v.ID)
 		}
 
 		// Put IDs in empty item in computers list
-		out_computers[0]["id"] = inComputers
+		out_computers[0]["id"] = hclComputerIds
 		log.Println(out_computers)
 
 		// Add list to parent scope
