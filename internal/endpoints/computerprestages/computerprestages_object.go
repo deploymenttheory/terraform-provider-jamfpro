@@ -11,20 +11,21 @@ import (
 // constructJamfProComputerPrestage constructs a ResourceComputerPrestage object from the provided schema data.
 func constructJamfProComputerPrestage(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceComputerPrestage, error) {
 	prestage := &jamfpro.ResourceComputerPrestage{
-		DisplayName:                       d.Get("display_name").(string),
-		Mandatory:                         d.Get("mandatory").(bool),
-		MDMRemovable:                      d.Get("mdm_removable").(bool),
-		SupportPhoneNumber:                d.Get("support_phone_number").(string),
-		SupportEmailAddress:               d.Get("support_email_address").(string),
-		Department:                        d.Get("department").(string),
-		DefaultPrestage:                   d.Get("default_prestage").(bool),
-		EnrollmentSiteId:                  d.Get("enrollment_site_id").(string),
-		KeepExistingSiteMembership:        d.Get("keep_existing_site_membership").(bool),
-		KeepExistingLocationInformation:   d.Get("keep_existing_location_information").(bool),
-		RequireAuthentication:             d.Get("require_authentication").(bool),
-		AuthenticationPrompt:              d.Get("authentication_prompt").(string),
-		PreventActivationLock:             d.Get("prevent_activation_lock").(bool),
-		EnableDeviceBasedActivationLock:   d.Get("enable_device_based_activation_lock").(bool),
+		DisplayName:                     d.Get("display_name").(string),
+		Mandatory:                       d.Get("mandatory").(bool),
+		MDMRemovable:                    d.Get("mdm_removable").(bool),
+		SupportPhoneNumber:              d.Get("support_phone_number").(string),
+		SupportEmailAddress:             d.Get("support_email_address").(string),
+		Department:                      d.Get("department").(string),
+		DefaultPrestage:                 d.Get("default_prestage").(bool),
+		EnrollmentSiteId:                d.Get("enrollment_site_id").(string),
+		KeepExistingSiteMembership:      d.Get("keep_existing_site_membership").(bool),
+		KeepExistingLocationInformation: d.Get("keep_existing_location_information").(bool),
+		RequireAuthentication:           d.Get("require_authentication").(bool),
+		AuthenticationPrompt:            d.Get("authentication_prompt").(string),
+		PreventActivationLock:           d.Get("prevent_activation_lock").(bool),
+		EnableDeviceBasedActivationLock: d.Get("enable_device_based_activation_lock").(bool),
+		//
 		DeviceEnrollmentProgramInstanceId: d.Get("device_enrollment_program_instance_id").(string),
 		EnableRecoveryLock:                d.Get("enable_recovery_lock").(bool),
 		RecoveryLockPasswordType:          d.Get("recovery_lock_password_type").(string),
@@ -46,6 +47,12 @@ func constructJamfProComputerPrestage(ctx context.Context, d *schema.ResourceDat
 		prestage.LocationInformation = constructLocationInformation(locationData)
 	}
 
+	// Handling for purchasing_information
+	if v, ok := d.GetOk("purchasing_information"); ok && len(v.([]interface{})) > 0 {
+		purchasingData := v.([]interface{})[0].(map[string]interface{})
+		prestage.PurchasingInformation = constructPurchasingInformation(purchasingData)
+	}
+
 	prestage.EnrollmentCustomizationId = d.Get("enrollment_customization_id").(string)
 	prestage.Language = d.Get("language").(string)
 	prestage.Region = d.Get("region").(string)
@@ -63,12 +70,6 @@ func constructJamfProComputerPrestage(ctx context.Context, d *schema.ResourceDat
 	if v, ok := d.GetOk("account_settings"); ok && len(v.([]interface{})) > 0 {
 		accountData := v.([]interface{})[0].(map[string]interface{})
 		prestage.AccountSettings = constructAccountSettings(accountData)
-	}
-
-	// Handling for purchasing_information
-	if v, ok := d.GetOk("purchasing_information"); ok && len(v.([]interface{})) > 0 {
-		purchasingData := v.([]interface{})[0].(map[string]interface{})
-		prestage.PurchasingInformation = constructPurchasingInformation(purchasingData)
 	}
 
 	// Handling for anchor_certificates
@@ -129,8 +130,8 @@ func constructLocationInformation(data map[string]interface{}) jamfpro.ComputerP
 	return jamfpro.ComputerPrestageSubsetLocationInformation{
 		Username:     data["username"].(string),
 		Realname:     data["realname"].(string),
-		Email:        data["email"].(string),
 		Phone:        data["phone"].(string),
+		Email:        data["email"].(string),
 		Room:         data["room"].(string),
 		Position:     data["position"].(string),
 		DepartmentId: data["department_id"].(string),

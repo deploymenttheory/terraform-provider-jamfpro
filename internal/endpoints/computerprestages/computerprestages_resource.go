@@ -4,7 +4,6 @@ package computerprestages
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -572,16 +571,16 @@ func ResourceJamfProComputerPrestageCreate(ctx context.Context, d *schema.Resour
 	var diags diag.Diagnostics
 
 	// Construct the resource object
-	resource, err := constructJamfProPrinter(ctx, d)
+	resource, err := constructJamfProComputerPrestage(ctx, d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Printer: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Prestage: %v", err))
 	}
 
 	// Retry the API call to create the resource in Jamf Pro
-	var creationResponse *jamfpro.ResponsePrinterCreateAndUpdate
+	var creationResponse *jamfpro.ResponseComputerPrestageCreate
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreatePrinter(resource)
+		creationResponse, apiErr = conn.CreateComputerPrestage(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -590,14 +589,14 @@ func ResourceJamfProComputerPrestageCreate(ctx context.Context, d *schema.Resour
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Printer '%s' after retries: %v", resource.Name, err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Computer Prestage '%s' after retries: %v", resource.DisplayName, err))
 	}
 
 	// Set the resource ID in Terraform state
-	d.SetId(strconv.Itoa(creationResponse.ID))
+	d.SetId(creationResponse.ID)
 
 	// Read the site to ensure the Terraform state is up to date
-	readDiags := ResourceJamfProPrintersRead(ctx, d, meta)
+	readDiags := ResourceJamfProComputerPrestageRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
 	}
@@ -640,7 +639,7 @@ func ResourceJamfProComputerPrestageRead(ctx context.Context, d *schema.Resource
 	if err != nil {
 		// Handle the final error after all retries have been exhausted
 		d.SetId("") // Remove from Terraform state if unable to read after retries
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Disk Encryption Configuration with ID '%d' after retries: %v", resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Disk Encryption Configuration with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	// Check if prestage data exists
@@ -805,7 +804,7 @@ func ResourceJamfProComputerPrestageUpdate(ctx context.Context, d *schema.Resour
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Computer Prestage '%s' (ID: %d) after retries: %v", resource.DisplayName, resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Computer Prestage '%s' (ID: %s) after retries: %v", resource.DisplayName, resourceID, err))
 	}
 
 	// Read the resource to ensure the Terraform state is up to date
@@ -817,7 +816,7 @@ func ResourceJamfProComputerPrestageUpdate(ctx context.Context, d *schema.Resour
 	return diags
 }
 
-// ResourceJamfProComputerPrestageDelete is responsible for deleting a Jamf Pro Department.
+// ResourceJamfProComputerPrestageDelete is responsible for deleting a Jamf Pro Computer Prestage.
 func ResourceJamfProComputerPrestageDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
@@ -829,19 +828,18 @@ func ResourceJamfProComputerPrestageDelete(ctx context.Context, d *schema.Resour
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
-	var err error
 
 	// Use the retry function for the delete operation with appropriate timeout
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Attempt to delete by ID
 		apiErr := conn.DeleteComputerPrestageByID(resourceID)
 		if apiErr != nil {
-			// If deleting by ID fails, attempt to delete by Name
-			resourceName := d.Get("name").(string)
-			apiErrByName := conn.DeleteComputerPrestageByName(resourceName)
-			if apiErrByName != nil {
-				// If deletion by name also fails, return a retryable error
-				return retry.RetryableError(apiErrByName)
+			// If deleting by ID fails, attempt to delete by Display Name
+			resourceDisplayName := d.Get("display_name").(string)
+			apiErrByDisplayName := conn.DeleteComputerPrestageByName(resourceDisplayName)
+			if apiErrByDisplayName != nil {
+				// If deletion by display name also fails, return a retryable error
+				return retry.RetryableError(apiErrByDisplayName)
 			}
 		}
 		// Successfully deleted the resource, exit the retry loop
@@ -849,7 +847,7 @@ func ResourceJamfProComputerPrestageDelete(ctx context.Context, d *schema.Resour
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Disk Encryption Configuration '%s' (ID: %d) after retries: %v", d.Get("name").(string), resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Computer Prestage '%s' (ID: %s) after retries: %v", d.Get("display_name").(string), resourceID, err))
 	}
 
 	// Clear the ID from the Terraform state as the resource has been deleted
