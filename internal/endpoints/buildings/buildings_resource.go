@@ -7,7 +7,6 @@ import (
 	"log"
 	"time"
 
-	
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
@@ -76,7 +75,7 @@ func ResourceJamfProBuildings() *schema.Resource {
 }
 
 // constructJamfProBuilding constructs a Building object from the provided schema data.
-func constructJamfProBuilding(d *schema.ResourceData) (*jamfpro.ResourceBuilding, error) {
+func constructJamfProBuilding(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceBuilding, error) {
 	building := &jamfpro.ResourceBuilding{}
 
 	// Utilize type assertion helper functions for direct field extraction
@@ -94,31 +93,6 @@ func constructJamfProBuilding(d *schema.ResourceData) (*jamfpro.ResourceBuilding
 	return building, nil
 }
 
-// Helper function to generate diagnostics based on the error type.
-func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
-	var diags diag.Diagnostics
-	resourceName, exists := d.GetOk("name")
-	if !exists {
-		resourceName = "unknown"
-	}
-
-	// Handle the APIError in the diagnostic
-	if apiErr, ok := err.(*.APIError); ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
-		})
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   err.Error(),
-		})
-	}
-	return diags
-}
-
 // ResourceJamfProBuildingCreate is responsible for creating a new Building in the remote system.
 // The function:
 // 1. Constructs the building data using the provided Terraform configuration.
@@ -126,60 +100,45 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 // 3. Updates the Terraform state with the ID of the newly created building.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProBuildingCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Assert the meta interface to the expected APIClient type
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the create operation
-	var createdBuilding *jamfpro.ResponseBuildingCreate
-	var err error
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		// Construct the building
-		building, err := constructJamfProBuilding(d)
-		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the building for terraform create: %w", err))
-		}
+	// Initialize variables
+	var diags diag.Diagnostics
 
-		// Directly call the API to create the resource
-		createdBuilding, err = conn.CreateBuilding(building)
-		if err != nil {
-			// Check if the error is an APIError
-			if apiErr, ok := err.(*.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message))
-			}
-			// For simplicity, we're considering all other errors as retryable
-			return retry.RetryableError(err)
-		}
-
-		return nil
-	})
-
+	// Construct the resource object
+	resource, err := constructJamfProBuilding(ctx, d)
 	if err != nil {
-		// If there's an error while creating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "create")
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Site: %v", err))
 	}
 
-	// Set the ID of the created resource in the Terraform state
-	d.SetId(createdBuilding.ID)
-
-	// Use the retry function for the read operation to update the Terraform state with the resource attributes
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProBuildingRead(ctx, d, meta)
-		if len(readDiags) > 0 {
-			// If readDiags is not empty, it means there's an error, so we retry
-			return retry.RetryableError(fmt.Errorf("failed to read the created resource"))
+	// Retry the API call to create the site in Jamf Pro
+	var creationResponse *jamfpro.ResponseBuildingCreate
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		var apiErr error
+		creationResponse, apiErr = conn.CreateBuilding(resource)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
 		}
+		// No error, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		// If there's an error while updating the state for the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update state for")
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Site '%s' after retries: %v", resource.Name, err))
+	}
+
+	// Set the resource ID in Terraform state
+	d.SetId(creationResponse.ID)
+
+	// Read the site to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProBuildingRead(ctx, d, meta)
+	if len(readDiags) > 0 {
+		diags = append(diags, readDiags...)
 	}
 
 	return diags
@@ -191,63 +150,46 @@ func ResourceJamfProBuildingCreate(ctx context.Context, d *schema.ResourceData, 
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the building being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProBuildingRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	var building *jamfpro.ResourceBuilding
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
 
-	// Use the retry function for the read operation
+	var resource *jamfpro.ResourceBuilding
+
+	// Read operation with retry
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		// The ID in Terraform state is already a string, so we use it directly for the API request
-		buildingID := d.Id()
-
-		// Try fetching the building using the ID
 		var apiErr error
-		building, apiErr = conn.GetBuildingByID(buildingID)
+		resource, apiErr = conn.GetBuildingByID(resourceID)
 		if apiErr != nil {
-			// Handle the APIError
-			if apiError, ok := apiErr.(*.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-			}
-			// If fetching by ID fails, try fetching by Name
-			buildingName, ok := d.Get("name").(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
-			}
-
-			building, apiErr = conn.GetBuildingByName(buildingName)
-			if apiErr != nil {
-				// Handle the APIError
-				if apiError, ok := apiErr.(*.APIError); ok {
-					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-				}
-				return retry.RetryableError(apiErr)
-			}
+			// Convert any API error into a retryable error to continue retrying
+			return retry.RetryableError(apiErr)
 		}
+		// Successfully read the resource, exit the retry loop
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while reading the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "read")
+		// Handle the final error after all retries have been exhausted
+		d.SetId("") // Remove from Terraform state if unable to read after retries
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Building with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	// Map the configuration fields from the API response to a structured map
 	buildingData := map[string]interface{}{
-		"name":            building.Name,
-		"street_address1": building.StreetAddress1,
-		"street_address2": building.StreetAddress2,
-		"city":            building.City,
-		"state_province":  building.StateProvince,
-		"zip_postal_code": building.ZipPostalCode,
-		"country":         building.Country,
+		"name":            resource.Name,
+		"street_address1": resource.StreetAddress1,
+		"street_address2": resource.StreetAddress2,
+		"city":            resource.City,
+		"state_province":  resource.StateProvince,
+		"zip_postal_code": resource.ZipPostalCode,
+		"country":         resource.Country,
 	}
 
 	// Set the structured map in the Terraform state
@@ -262,71 +204,42 @@ func ResourceJamfProBuildingRead(ctx context.Context, d *schema.ResourceData, me
 
 // ResourceJamfProBuildingUpdate is responsible for updating an existing Building on the remote system.
 func ResourceJamfProBuildingUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the update operation
-	var err error
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		// Construct the building
-		building, err := constructJamfProBuilding(d)
-		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the building for terraform update: %w", err))
-		}
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
 
-		// The ID in Terraform state is already a string, so we use it directly for the API request
-		buildingID := d.Id()
-
-		// Directly call the API to update the resource by ID
-		_, apiErr := conn.UpdateBuildingByID(buildingID, building)
-		if apiErr != nil {
-			// Handle the APIError
-			if apiError, ok := apiErr.(*.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-			}
-			// If the update by ID fails, try updating by name
-			buildingName, ok := d.Get("name").(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
-			}
-
-			_, apiErr = conn.UpdateBuildingByName(buildingName, building)
-			if apiErr != nil {
-				// Handle the APIError
-				if apiError, ok := apiErr.(*.APIError); ok {
-					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-				}
-				return retry.RetryableError(apiErr)
-			}
-		}
-		return nil
-	})
-
-	// Handle error from the retry function
+	// Construct the resource object
+	resource, err := constructJamfProBuilding(ctx, d)
 	if err != nil {
-		// If there's an error while updating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update")
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Building for update: %v", err))
 	}
 
-	// Use the retry function for the read operation to update the Terraform state
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProBuildingRead(ctx, d, meta)
-		if len(readDiags) > 0 {
-			return retry.RetryableError(fmt.Errorf("failed to update the Terraform state for the updated resource"))
+	// Update operations with retries
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+		_, apiErr := conn.UpdateBuildingByID(resourceID, resource)
+		if apiErr != nil {
+			// If updating by ID fails, attempt to update by Name
+			return retry.RetryableError(apiErr)
 		}
+		// Successfully updated the resource, exit the retry loop
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while updating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update")
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Building '%s' (ID: %s) after retries: %v", resource.Name, resourceID, err))
+	}
+
+	// Read the resource to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProBuildingRead(ctx, d, meta)
+	if len(readDiags) > 0 {
+		diags = append(diags, readDiags...)
 	}
 
 	return diags
@@ -334,45 +247,36 @@ func ResourceJamfProBuildingUpdate(ctx context.Context, d *schema.ResourceData, 
 
 // ResourceJamfProBuildingDelete is responsible for deleting a Building.
 func ResourceJamfProBuildingDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the DELETE operation
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
+
+	// Use the retry function for the delete operation with appropriate timeout
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// The ID in Terraform state is already a string, so we use it directly for the API request
-		buildingID := d.Id()
-
-		// Directly call the API to DELETE the resource by ID
-		apiErr := conn.DeleteBuildingByID(buildingID)
+		// Attempt to delete by ID
+		apiErr := conn.DeleteBuildingByID(resourceID)
 		if apiErr != nil {
-			// If the DELETE by ID fails, try deleting by name
-			buildingName, ok := d.Get("name").(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
-			}
-
-			apiErr = conn.DeleteBuildingByName(buildingName)
-			if apiErr != nil {
-				// Handle the APIError
-				if apiError, ok := apiErr.(*.APIError); ok {
-					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-				}
-				return retry.RetryableError(apiErr)
+			// If deleting by ID fails, attempt to delete by Name
+			resourceName := d.Get("name").(string)
+			apiErrByName := conn.DeleteBuildingByName(resourceName)
+			if apiErrByName != nil {
+				// If deletion by name also fails, return a retryable error
+				return retry.RetryableError(apiErrByName)
 			}
 		}
+		// Successfully deleted the resource, exit the retry loop
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while deleting the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "delete")
+		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Building '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
 	}
 
 	// Clear the ID from the Terraform state as the resource has been deleted

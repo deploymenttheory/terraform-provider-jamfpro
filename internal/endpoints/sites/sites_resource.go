@@ -140,17 +140,17 @@ func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	var site *jamfpro.SharedResourceSite
+	var resource *jamfpro.SharedResourceSite
 
 	// Read operation with retry
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		site, apiErr = conn.GetSiteByID(resourceIDInt)
+		resource, apiErr = conn.GetSiteByID(resourceIDInt)
 		if apiErr != nil {
 			// Convert any API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)
 		}
-		// Successfully read the site, exit the retry loop
+		// Successfully read the resource, exit the retry loop
 		return nil
 	})
 
@@ -161,9 +161,9 @@ func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta 
 	}
 
 	// Assuming successful read if no error
-	if site != nil {
+	if resource != nil {
 		d.SetId(fmt.Sprintf("%d", resourceIDInt)) // Confirm the ID in the Terraform state
-		if err := d.Set("name", site.Name); err != nil {
+		if err := d.Set("name", resource.Name); err != nil {
 			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Site with ID '%d': %v", resourceIDInt, err))...)
 		}
 	} else {
@@ -254,7 +254,7 @@ func ResourceJamfProSitesDelete(ctx context.Context, d *schema.ResourceData, met
 				return retry.RetryableError(apiErrByName)
 			}
 		}
-		// Successfully deleted the site, exit the retry loop
+		// Successfully deleted the resource, exit the retry loop
 		return nil
 	})
 
