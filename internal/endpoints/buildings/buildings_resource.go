@@ -3,8 +3,8 @@ package buildings
 
 import (
 	"context"
+	"encoding/xml"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -87,8 +87,12 @@ func constructJamfProBuilding(ctx context.Context, d *schema.ResourceData) (*jam
 	building.ZipPostalCode = util.GetStringFromInterface(d.Get("zip_postal_code"))
 	building.Country = util.GetStringFromInterface(d.Get("country"))
 
-	// Log the successful construction of the building
-	log.Printf("[INFO] Successfully constructed Building with name: %s", building.Name)
+	// Serialize and pretty-print the site object as XML
+	resourceXML, err := xml.MarshalIndent(building, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Dock Item '%s' to XML: %v", building.Name, err)
+	}
+	fmt.Printf("Constructed Jamf Pro Dock Item XML:\n%s\n", string(resourceXML))
 
 	return building, nil
 }
