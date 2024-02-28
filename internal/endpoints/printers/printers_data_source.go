@@ -56,12 +56,12 @@ func DataSourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	var printer *jamfpro.ResourcePrinter
+	var resource *jamfpro.ResourcePrinter
 
 	// Read operation with retry
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		printer, apiErr = conn.GetPrinterByID(resourceIDInt)
+		resource, apiErr = conn.GetPrinterByID(resourceIDInt)
 		if apiErr != nil {
 			// Convert any API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)
@@ -76,9 +76,9 @@ func DataSourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	// Check if resource data exists and set the Terraform state
-	if printer != nil {
+	if resource != nil {
 		d.SetId(resourceID) // Confirm the ID in the Terraform state
-		if err := d.Set("name", printer.Name); err != nil {
+		if err := d.Set("name", resource.Name); err != nil {
 			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Printer with ID '%s': %v", resourceID, err))...)
 		}
 	} else {

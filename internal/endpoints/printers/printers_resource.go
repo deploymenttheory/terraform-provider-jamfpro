@@ -160,17 +160,17 @@ func ResourceJamfProPrintersCreate(ctx context.Context, d *schema.ResourceData, 
 	// Initialize variables
 	var diags diag.Diagnostics
 
-	// Construct the site object
-	printer, err := constructJamfProPrinter(ctx, d)
+	// Construct the resource object
+	resource, err := constructJamfProPrinter(ctx, d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Printer: %v", err))
 	}
 
-	// Retry the API call to create the site in Jamf Pro
+	// Retry the API call to create the resource in Jamf Pro
 	var creationResponse *jamfpro.ResponsePrinterCreateAndUpdate
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreatePrinter(printer)
+		creationResponse, apiErr = conn.CreatePrinter(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -179,7 +179,7 @@ func ResourceJamfProPrintersCreate(ctx context.Context, d *schema.ResourceData, 
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Printer '%s' after retries: %v", printer.Name, err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Printer '%s' after retries: %v", resource.Name, err))
 	}
 
 	// Set the resource ID in Terraform state
@@ -217,12 +217,12 @@ func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	var printer *jamfpro.ResourcePrinter
+	var resource *jamfpro.ResourcePrinter
 
 	// Read operation with retry
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		printer, apiErr = conn.GetPrinterByID(resourceIDInt)
+		resource, apiErr = conn.GetPrinterByID(resourceIDInt)
 		if apiErr != nil {
 			// Convert any API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)
@@ -238,46 +238,46 @@ func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	// Set individual attributes in the Terraform state with error handling
-	if err := d.Set("id", strconv.Itoa(printer.ID)); err != nil {
+	if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("name", printer.Name); err != nil {
+	if err := d.Set("name", resource.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("category", printer.Category); err != nil {
+	if err := d.Set("category", resource.Category); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("uri", printer.URI); err != nil {
+	if err := d.Set("uri", resource.URI); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("cups_name", printer.CUPSName); err != nil {
+	if err := d.Set("cups_name", resource.CUPSName); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("location", printer.Location); err != nil {
+	if err := d.Set("location", resource.Location); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("model", printer.Model); err != nil {
+	if err := d.Set("model", resource.Model); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("info", printer.Info); err != nil {
+	if err := d.Set("info", resource.Info); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("notes", printer.Notes); err != nil {
+	if err := d.Set("notes", resource.Notes); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("make_default", printer.MakeDefault); err != nil {
+	if err := d.Set("make_default", resource.MakeDefault); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("use_generic", printer.UseGeneric); err != nil {
+	if err := d.Set("use_generic", resource.UseGeneric); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("ppd", printer.PPD); err != nil {
+	if err := d.Set("ppd", resource.PPD); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("ppd_path", printer.PPDPath); err != nil {
+	if err := d.Set("ppd_path", resource.PPDPath); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("ppd_contents", printer.PPDContents); err != nil {
+	if err := d.Set("ppd_contents", resource.PPDContents); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -366,7 +366,7 @@ func ResourceJamfProPrintersDelete(ctx context.Context, d *schema.ResourceData, 
 				return retry.RetryableError(apiErrByName)
 			}
 		}
-		// Successfully deleted the site, exit the retry loop
+		// Successfully deleted the resource, exit the retry loop
 		return nil
 	})
 
