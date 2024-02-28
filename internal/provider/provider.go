@@ -26,8 +26,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/apiintegrations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/apiroles"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/buildings"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/byoprofiles"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computercheckin"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computerextensionattributes"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computerinventory"
@@ -177,24 +175,23 @@ func Provider() *schema.Provider {
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"jamfpro_account":                      accounts.DataSourceJamfProAccounts(),
-			"jamfpro_account_group":                accountgroups.DataSourceJamfProAccountGroups(),
-			"jamfpro_api_integration":              apiintegrations.DataSourceJamfProApiIntegrations(),
-			"jamfpro_api_role":                     apiroles.DataSourceJamfProAPIRoles(),
-			"jamfpro_building":                     buildings.DataSourceJamfProBuildings(),
-			"jamfpro_computer_extension_attribute": computerextensionattributes.DataSourceJamfProComputerExtensionAttributes(),
-			"jamfpro_computer_group":               computergroups.DataSourceJamfProComputerGroups(),
-			"jamfpro_computer_inventory":           computerinventory.DataSourceJamfProComputerInventory(),
-			//"jamfpro_computer_prestage":            computerprestages.DataSourceJamfProComputerInventory(),
+			"jamfpro_account":                       accounts.DataSourceJamfProAccounts(),
+			"jamfpro_account_group":                 accountgroups.DataSourceJamfProAccountGroups(),
+			"jamfpro_api_integration":               apiintegrations.DataSourceJamfProApiIntegrations(),
+			"jamfpro_api_role":                      apiroles.DataSourceJamfProAPIRoles(),
+			"jamfpro_building":                      buildings.DataSourceJamfProBuildings(),
+			"jamfpro_computer_extension_attribute":  computerextensionattributes.DataSourceJamfProComputerExtensionAttributes(),
+			"jamfpro_computer_group":                computergroups.DataSourceJamfProComputerGroups(),
+			"jamfpro_computer_inventory":            computerinventory.DataSourceJamfProComputerInventory(),
+			"jamfpro_computer_prestage":             computerprestages.DataSourceJamfProComputerPrestage(),
 			"jamfpro_department":                    departments.DataSourceJamfProDepartments(),
 			"jamfpro_disk_encryption_configuration": diskencryptionconfigurations.DataSourceJamfProDiskEncryptionConfigurations(),
 			"jamfpro_dock_item":                     dockitems.DataSourceJamfProDockItems(),
 			"jamfpro_file_share_distribution_point": filesharedistributionpoints.DataSourceJamfProFileShareDistributionPoints(),
 			"jamfpro_site":                          sites.DataSourceJamfProSites(),
 			"jamfpro_script":                        scripts.DataSourceJamfProScripts(),
-			//"jamfpro_macos_configuration_profile":  macosconfigurationprofiles.DataSourceJamfProMacOSConfigurationProfiles(),
-			"jamfpro_policy":  policies.DataSourceJamfProPolicies(),
-			"jamfpro_printer": printers.DataSourceJamfProPrinters(),
+			"jamfpro_policy":                        policies.DataSourceJamfProPolicies(),
+			"jamfpro_printer":                       printers.DataSourceJamfProPrinters(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"jamfpro_account":                       accounts.ResourceJamfProAccounts(),
@@ -206,8 +203,6 @@ func Provider() *schema.Provider {
 			"jamfpro_api_integration":               apiintegrations.ResourceJamfProApiIntegrations(),
 			"jamfpro_api_role":                      apiroles.ResourceJamfProAPIRoles(),
 			"jamfpro_building":                      buildings.ResourceJamfProBuildings(),
-			"jamfpro_byoprofile":                    byoprofiles.ResourceJamfProBYOProfiles(),
-			"jamfpro_computer_checkin":              computercheckin.ResourceJamfProComputerCheckin(),
 			"jamfpro_computer_extension_attribute":  computerextensionattributes.ResourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_group":                computergroups.ResourceJamfProComputerGroups(),
 			"jamfpro_computer_prestage":             computerprestages.ResourceJamfProComputerPrestage(),
