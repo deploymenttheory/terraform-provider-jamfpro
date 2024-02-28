@@ -131,6 +131,7 @@ func constructJamfProPrinter(ctx context.Context, d *schema.ResourceData) (*jamf
 		PPDPath:     d.Get("ppd_path").(string),
 		PPDContents: d.Get("ppd_contents").(string),
 	}
+
 	// Serialize and pretty-print the site object as XML
 	resourceXML, err := xml.MarshalIndent(printer, "", "  ")
 	if err != nil {
