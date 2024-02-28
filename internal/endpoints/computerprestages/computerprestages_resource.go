@@ -3,15 +3,13 @@ package computerprestages
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
-	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -556,176 +554,6 @@ func ResourceJamfProComputerPrestage() *schema.Resource {
 	}
 }
 
-// constructJamfProComputerPrestage constructs a ResourceComputerPrestage object from the provided schema data.
-func constructJamfProComputerPrestage(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceComputerPrestage, error) {
-	prestage := &jamfpro.ResourceComputerPrestage{
-		DisplayName: d.Get("display_name").(string),
-		Mandatory:   d.Get("mandatory").(bool),
-		MDMRemovable: d.Get("mdm_removable").(bool),
-		SupportPhoneNumber: d.Get("support_phone_number").(string),
-		SupportEmailAddress: d.Get("support_email_address").(string),
-		Department: d.Get("department").(string),
-		DefaultPrestage: d.Get("default_prestage").(bool),
-		EnrollmentSiteId: d.Get("enrollment_site_id").(string),
-		KeepExistingSiteMembership: d.Get("keep_existing_site_membership").(bool),
-		KeepExistingLocationInformation: d.Get("keep_existing_location_information").(bool),
-		RequireAuthentication: d.Get("require_authentication").(bool),
-		AuthenticationPrompt: d.Get("authentication_prompt").(string),
-		PreventActivationLock: d.Get("prevent_activation_lock").(bool),
-		EnableDeviceBasedActivationLock: d.Get("enable_device_based_activation_lock").(bool),
-		DeviceEnrollmentProgramInstanceId: d.Get("device_enrollment_program_instance_id").(string),
-
-	}
-
-	// Extract the 'skip_setup_items' list from the Terraform resource data
-	if v, ok := d.GetOk("skip_setup_items"); ok && len(v.([]interface{})) > 0 {
-		skipSetupItemsMap := v.([]interface{})[0].(map[string]interface{})
-		prestage.SkipSetupItems = jamfpro.ComputerPrestageSubsetSkipSetupItems{
-			Biometric:         skipSetupItemsMap["biometric"].(bool),
-			TermsOfAddress:    skipSetupItemsMap["terms_of_address"].(bool),
-			FileVault:         skipSetupItemsMap["file_vault"].(bool),
-			ICloudDiagnostics: skipSetupItemsMap["icloud_diagnostics"].(bool),
-			Diagnostics:       skipSetupItemsMap["diagnostics"].(bool),
-			Accessibility:     skipSetupItemsMap["accessibility"].(bool),
-			AppleID:           skipSetupItemsMap["apple_id"].(bool),
-			ScreenTime:        skipSetupItemsMap["screen_time"].(bool),
-			Siri:              skipSetupItemsMap["siri"].(bool),
-			DisplayTone:       skipSetupItemsMap["display_tone"].(bool),
-			Restore:           skipSetupItemsMap["restore"].(bool),
-			Appearance:        skipSetupItemsMap["appearance"].(bool),
-			Privacy:           skipSetupItemsMap["privacy"].(bool),
-			Payment:           skipSetupItemsMap["payment"].(bool),
-			Registration:      skipSetupItemsMap["registration"].(bool),
-			TOS:               skipSetupItemsMap["tos"].(bool),
-			ICloudStorage:     skipSetupItemsMap["icloud_storage"].(bool),
-			Location:          skipSetupItemsMap["location"].(bool),
-		}
-
-
-	// Extract location_information
-if v, ok := d.GetOk("location_information"); ok {
-	locationList := v.([]interface{})
-	if len(locationList) > 0 {
-			locationData := locationList[0].(map[string]interface{})
-			prestage.LocationInformation = jamfpro.ComputerPrestageSubsetLocationInformation{
-					Username:     locationData["username"].(string),
-					Realname:     locationData["realname"].(string),
-					Phone:        locationData["phone"].(string),
-					Email:        locationData["email"].(string),
-					Room:         locationData["room"].(string),
-					Position:     locationData["position"].(string),
-					DepartmentId: locationData["department_id"].(string),
-					BuildingId:   locationData["building_id"].(string),
-					ID:           locationData["id"].(string),
-					VersionLock:  int(locationData["version_lock"].(int64)), // Assuming version_lock is an int64 and needs to be converted to int
-			}
-	}
-
-	// Extract purchasing_information
-if v, ok := d.GetOk("purchasing_information"); ok {
-	purchasingList := v.([]interface{})
-	if len(purchasingList) > 0 {
-			purchasingData := purchasingList[0].(map[string]interface{})
-			prestage.PurchasingInformation = jamfpro.ComputerPrestageSubsetPurchasingInformation{
-					ID:                purchasingData["id"].(string),
-					Leased:            purchasingData["leased"].(bool),
-					Purchased:         purchasingData["purchased"].(bool),
-					AppleCareId:       purchasingData["apple_care_id"].(string),
-					PONumber:          purchasingData["po_number"].(string),
-					Vendor:            purchasingData["vendor"].(string),
-					PurchasePrice:     purchasingData["purchase_price"].(string),
-					LifeExpectancy:    int(purchasingData["life_expectancy"].(int64)), // Assuming life_expectancy is int64
-					PurchasingAccount: purchasingData["purchasing_account"].(string),
-					PurchasingContact: purchasingData["purchasing_contact"].(string),
-					LeaseDate:         purchasingData["lease_date"].(string),
-					PODate:            purchasingData["po_date"].(string),
-					WarrantyDate:      purchasingData["warranty_date"].(string),
-					VersionLock:       int(purchasingData["version_lock"].(int64)), // Assuming version_lock is int64
-			}
-	}
-}
-
-
-	// Extract anchor_certificates
-	if v, ok := d.GetOk("anchor_certificates"); ok {
-		anchorCertificates := make([]string, len(v.([]interface{})))
-		for i, cert := range v.([]interface{}) {
-			anchorCertificates[i] = cert.(string)
-		}
-		prestage.AnchorCertificates = anchorCertificates
-	}
-
-	prestage.EnrollmentCustomizationId = util.GetStringFromInterface(d.Get("enrollment_customization_id"))
-	prestage.Language = util.GetStringFromInterface(d.Get("language"))
-	prestage.Region = util.GetStringFromInterface(d.Get("region"))
-	prestage.AutoAdvanceSetup = util.GetBoolFromInterface(d.Get("auto_advance_setup"))
-	prestage.InstallProfilesDuringSetup = util.GetBoolFromInterface(d.Get("install_profiles_during_setup"))
-
-	// Extract prestage_installed_profile_ids
-	if v, ok := d.GetOk("prestage_installed_profile_ids"); ok {
-		profileIDs := make([]string, len(v.([]interface{})))
-		for i, id := range v.([]interface{}) {
-			profileIDs[i] = id.(string)
-		}
-		prestage.PrestageInstalledProfileIds = profileIDs
-	}
-
-	// Extract custom_package_ids
-	if v, ok := d.GetOk("custom_package_ids"); ok {
-		packageIDs := make([]string, len(v.([]interface{})))
-		for i, id := range v.([]interface{}) {
-			packageIDs[i] = id.(string)
-		}
-		prestage.CustomPackageIds = packageIDs
-	}
-
-	prestage.CustomPackageDistributionPointId = util.GetStringFromInterface(d.Get("custom_package_distribution_point_id"))
-	prestage.EnableRecoveryLock = util.GetBoolFromInterface(d.Get("enable_recovery_lock"))
-	prestage.RecoveryLockPasswordType = util.GetStringFromInterface(d.Get("recovery_lock_password_type"))
-	prestage.RecoveryLockPassword = util.GetStringFromInterface(d.Get("recovery_lock_password"))
-	prestage.RotateRecoveryLockPassword = util.GetBoolFromInterface(d.Get("rotate_recovery_lock_password"))
-	prestage.ProfileUuid = util.GetStringFromInterface(d.Get("profile_uuid"))
-	prestage.SiteId = util.GetStringFromInterface(d.Get("site_id"))
-	prestage.VersionLock = util.GetIntFromInterface(d.Get("version_lock"))
-
-	// Extract account_settings
-if v, ok := d.GetOk("account_settings"); ok {
-	accountSettingsList := v.([]interface{})
-	if len(accountSettingsList) > 0 {
-			accountData := accountSettingsList[0].(map[string]interface{})
-			prestage.AccountSettings = jamfpro.ComputerPrestageSubsetAccountSettings{
-					ID:                                      accountData["id"].(string),
-					PayloadConfigured:                       accountData["payload_configured"].(bool),
-					LocalAdminAccountEnabled:                accountData["local_admin_account_enabled"].(bool),
-					AdminUsername:                           accountData["admin_username"].(string),
-					AdminPassword:                           accountData["admin_password"].(string),
-					HiddenAdminAccount:                      accountData["hidden_admin_account"].(bool),
-					LocalUserManaged:                        accountData["local_user_managed"].(bool),
-					UserAccountType:                         accountData["user_account_type"].(string),
-					VersionLock:                             int(accountData["version_lock"].(int64)), // Assuming version_lock is int64
-					PrefillPrimaryAccountInfoFeatureEnabled: accountData["prefill_primary_account_info_feature_enabled"].(bool),
-					PrefillType:                             accountData["prefill_type"].(string),
-					PrefillAccountFullName:                  accountData["prefill_account_full_name"].(string),
-					PrefillAccountUserName:                  accountData["prefill_account_user_name"].(string),
-					PreventPrefillInfoFromModification:      accountData["prevent_prefill_info_from_modification"].(bool),
-			}
-	}
-}
-
-
-	// Serialize and pretty-print the department object as JSON
-	computerPrestageJSON, err := json.MarshalIndent(prestage, "", "  ")
-	if err != nil {
-		logging.LogTFConstructResourceJSONMarshalFailure(subCtx, JamfProResourceComputerPrestage, err.Error())
-		return nil, err
-	}
-
-	// Log the successful construction and serialization to JSON
-	logging.LogTFConstructedJSONResource(subCtx, JamfProResourceComputerPrestage, string(computerPrestageJSON))
-
-	return prestage, nil
-}
-
 // ResourceJamfProComputerPrestageCreate is responsible for creating a new computer prestage in Jamf Pro with terraform.
 // The function:
 // 1. Constructs the computer prestage data using the provided Terraform configuration.
@@ -744,16 +572,16 @@ func ResourceJamfProComputerPrestageCreate(ctx context.Context, d *schema.Resour
 	var diags diag.Diagnostics
 
 	// Construct the resource object
-	resource, err := constructJamfProComputerPrestage(ctx, d)
+	resource, err := constructJamfProPrinter(ctx, d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Prestage: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Printer: %v", err))
 	}
 
-	// Retry the API call to create the resource  in Jamf Pro
-	var creationResponse *jamfpro.ResponseComputerPrestageCreate
+	// Retry the API call to create the resource in Jamf Pro
+	var creationResponse *jamfpro.ResponsePrinterCreateAndUpdate
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreateComputerPrestage(resource)
+		creationResponse, apiErr = conn.CreatePrinter(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -762,14 +590,14 @@ func ResourceJamfProComputerPrestageCreate(ctx context.Context, d *schema.Resour
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Disk Encryption Configuration '%s' after retries: %v", resource.DisplayName, err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Printer '%s' after retries: %v", resource.Name, err))
 	}
 
 	// Set the resource ID in Terraform state
-	d.SetId(creationResponse.ID)
+	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	// Read the resource to ensure the Terraform state is up to date
-	readDiags := ResourceJamfProComputerPrestageRead(ctx, d, meta)
+	// Read the site to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProPrintersRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
 	}
