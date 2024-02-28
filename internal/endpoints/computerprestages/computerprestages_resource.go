@@ -14,10 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-const (
-	JamfProResourceComputerPrestage = "Computer Prestage"
-)
-
 // ResourceJamfProComputerPrestage defines the schema for managing Jamf Pro Computer Prestages in Terraform.
 func ResourceJamfProComputerPrestage() *schema.Resource {
 	return &schema.Resource{
