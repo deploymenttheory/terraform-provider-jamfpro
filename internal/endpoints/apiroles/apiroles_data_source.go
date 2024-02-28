@@ -63,14 +63,14 @@ func DataSourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, 
 
 	if err != nil {
 		// Handle the final error after all retries have been exhausted
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Api Role with ID '%s' after retries: %v", resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro API Role with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	// Check if resource data exists and set the Terraform state
 	if resource != nil {
 		d.SetId(resourceID) // Confirm the ID in the Terraform state
-		if err := d.Set("name", resource.DisplayName); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Api Role with ID '%s': %v", resourceID, err))...)
+		if err := d.Set("display_name", resource.DisplayName); err != nil {
+			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'display_name' for Jamf Pro API Role with ID '%s': %v", resourceID, err))...)
 		}
 	} else {
 		d.SetId("") // Data not found, unset the ID in the Terraform state

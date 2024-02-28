@@ -56,60 +56,6 @@ func ResourceJamfProAPIRoles() *schema.Resource {
 	}
 }
 
-// constructJamfProApiRole constructs an ResourceAPIRole object from the provided schema data.
-func constructJamfProApiRole(d *schema.ResourceData) (*jamfpro.ResourceAPIRole, error) {
-	apiRole := &jamfpro.ResourceAPIRole{}
-
-	// Utilize type assertion helper functions for direct field extraction
-	apiRole.DisplayName = util.GetStringFromInterface(d.Get("display_name"))
-
-	// Special handling for the 'privileges' field
-	if v, ok := d.GetOk("privileges"); ok {
-		privilegesSet, ok := v.(*schema.Set)
-		if !ok {
-			return nil, fmt.Errorf("failed to assert 'privileges' as a *schema.Set")
-		}
-		privilegesInterface := privilegesSet.List()
-
-		// Convert privileges from []interface{} to []string
-		privileges := make([]string, len(privilegesInterface))
-		for i, priv := range privilegesInterface {
-			privileges[i] = util.GetString(priv)
-		}
-		apiRole.Privileges = privileges
-	}
-
-	// Log the successful construction of the API Role
-	log.Printf("[INFO] Successfully constructed APIRole with display name: %s", apiRole.DisplayName)
-
-	return apiRole, nil
-}
-
-// Helper function to generate diagnostics based on the error type.
-func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
-	var diags diag.Diagnostics
-	resourceName, exists := d.GetOk("name")
-	if !exists {
-		resourceName = "unknown"
-	}
-
-	// Handle the APIError in the diagnostic
-	if apiErr, ok := err.(*.APIError); ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
-		})
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   err.Error(),
-		})
-	}
-	return diags
-}
-
 // ResourceJamfProAPIRolesCreate handles the creation of a Jamf Pro API Role.
 // The function:
 // 1. Constructs the API role data using the provided Terraform configuration.

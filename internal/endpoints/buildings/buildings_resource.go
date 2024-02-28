@@ -90,9 +90,9 @@ func constructJamfProBuilding(ctx context.Context, d *schema.ResourceData) (*jam
 	// Serialize and pretty-print the site object as XML
 	resourceXML, err := xml.MarshalIndent(building, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Dock Item '%s' to XML: %v", building.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Building '%s' to XML: %v", building.Name, err)
 	}
-	fmt.Printf("Constructed Jamf Pro Dock Item XML:\n%s\n", string(resourceXML))
+	fmt.Printf("Constructed Jamf Pro Building XML:\n%s\n", string(resourceXML))
 
 	return building, nil
 }
