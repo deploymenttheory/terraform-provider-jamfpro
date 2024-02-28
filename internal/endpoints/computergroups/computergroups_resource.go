@@ -4,14 +4,11 @@ package computergroups
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 
-	
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -205,153 +202,47 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 	}
 }
 
-// constructJamfProComputerGroup constructs a ResourceComputerGroup object from the provided schema data.
-func constructJamfProComputerGroup(d *schema.ResourceData) (*jamfpro.ResourceComputerGroup, error) {
-	group := &jamfpro.ResourceComputerGroup{}
-
-	// Utilize type assertion helper functions for direct field extraction
-	group.Name = util.GetStringFromInterface(d.Get("name"))
-	group.IsSmart = util.GetBoolFromInterface(d.Get("is_smart"))
-
-	// Handle nested "site" field
-	if siteList, ok := d.GetOk("site"); ok {
-		siteData, ok := siteList.([]interface{})
-		if ok && len(siteData) > 0 {
-			siteMap, ok := siteData[0].(map[string]interface{})
-			if ok {
-				group.Site.ID = util.GetIntFromInterface(siteMap["id"])
-				group.Site.Name = util.GetStringFromInterface(siteMap["name"])
-			}
-		}
-	}
-
-	// Handle "criteria" field
-	if criteria, ok := d.GetOk("criteria"); ok {
-		for _, crit := range criteria.([]interface{}) {
-			criterionMap := crit.(map[string]interface{})
-			newCriterion := jamfpro.SharedSubsetCriteria{
-				Name:         util.GetStringFromInterface(criterionMap["name"]),
-				Priority:     util.GetIntFromInterface(criterionMap["priority"]),
-				AndOr:        util.GetStringFromInterface(criterionMap["and_or"]),
-				SearchType:   util.GetStringFromInterface(criterionMap["search_type"]),
-				Value:        util.GetStringFromInterface(criterionMap["value"]),
-				OpeningParen: util.GetBoolFromInterface(criterionMap["opening_paren"]),
-				ClosingParen: util.GetBoolFromInterface(criterionMap["closing_paren"]),
-			}
-			group.Criteria.Criterion = append(group.Criteria.Criterion, newCriterion)
-		}
-	}
-
-	// Handle "computers" field
-	if computers, ok := d.GetOk("computers"); ok {
-		for _, comp := range computers.([]interface{}) {
-			computerMap := comp.(map[string]interface{})
-			group.Computers = append(group.Computers, jamfpro.ComputerGroupSubsetComputer{
-				ID:            util.GetIntFromInterface(computerMap["id"]),
-				Name:          util.GetStringFromInterface(computerMap["name"]),
-				SerialNumber:  util.GetStringFromInterface(computerMap["serial_number"]),
-				MacAddress:    util.GetStringFromInterface(computerMap["mac_address"]),
-				AltMacAddress: util.GetStringFromInterface(computerMap["alt_mac_address"]),
-			})
-		}
-	}
-
-	// Log the successful construction of the group
-	log.Printf("[INFO] Successfully constructed ComputerGroup with name: %s", group.Name)
-
-	return group, nil
-}
-
-// Helper function to generate diagnostics based on the error type.
-func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
-	var diags diag.Diagnostics
-	resourceName, exists := d.GetOk("name")
-	if !exists {
-		resourceName = "unknown"
-	}
-
-	// Handle the APIError in the diagnostic
-	if apiErr, ok := err.(*.APIError); ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
-		})
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   err.Error(),
-		})
-	}
-	return diags
-}
-
 // ResourceJamfProComputerGroupsCreate is responsible for creating a new Jamf Pro Computer Group in the remote system.
 func ResourceJamfProComputerGroupsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Assert the meta interface to the expected APIClient type
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the create operation
-	var createdGroup *jamfpro.ResourceComputerGroup
-	var err error
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		// Construct the computer group
-		group, err := constructJamfProComputerGroup(d)
-		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the computer group for terraform create: %w", err))
-		}
+	// Initialize variables
+	var diags diag.Diagnostics
 
-		// Log the details of the group that is about to be created
-		log.Printf("[INFO] Attempting to create ComputerGroup with name: %s", group.Name)
-
-		// Directly call the API to create the resource
-		createdGroup, err = conn.CreateComputerGroup(group)
-		if err != nil {
-			// Log the error from the API call
-			log.Printf("[ERROR] Error creating ComputerGroup with name: %s. Error: %s", group.Name, err)
-
-			// Check if the error is an APIError
-			if apiErr, ok := err.(*.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message))
-			}
-			// For simplicity, we're considering all other errors as retryable
-			return retry.RetryableError(err)
-		}
-
-		// Log the response from the API call
-		log.Printf("[INFO] Successfully created ComputerGroup with ID: %d and name: %s", createdGroup.ID, createdGroup.Name)
-
-		return nil
-	})
-
+	// Construct the resource object
+	resource, err := constructJamfProComputerGroup(ctx, d)
 	if err != nil {
-		// If there's an error while creating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "create")
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Group: %v", err))
 	}
 
-	// Set the ID of the created resource in the Terraform state
-	d.SetId(strconv.Itoa(createdGroup.ID))
-
-	// Use the retry function for the read operation to update the Terraform state with the resource attributes
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProComputerGroupsRead(ctx, d, meta)
-		if len(readDiags) > 0 {
-			// If readDiags is not empty, it means there's an error, so we retry
-			return retry.RetryableError(fmt.Errorf("failed to read the created resource"))
+	// Retry the API call to create the resource in Jamf Pro
+	var creationResponse *jamfpro.ResponseComputerG
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		var apiErr error
+		creationResponse, apiErr = conn.CreateComputerGroup(resource)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
 		}
+		// No error, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		// If there's an error while updating the state for the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update state for")
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Computer Group '%s' after retries: %v", resource.Name, err))
+	}
+
+	// Set the resource ID in Terraform state
+	d.SetId(strconv.Itoa(creationResponse.ID))
+
+	// Read the site to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProComputerGroupsRead(ctx, d, meta)
+	if len(readDiags) > 0 {
+		diags = append(diags, readDiags...)
 	}
 
 	return diags
@@ -359,55 +250,41 @@ func ResourceJamfProComputerGroupsCreate(ctx context.Context, d *schema.Resource
 
 // ResourceJamfProComputerGroupsRead is responsible for reading the current state of a Jamf Pro Computer Group from the remote system.
 func ResourceJamfProComputerGroupsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	var group *jamfpro.ResourceComputerGroup
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
 
-	// Use the retry function for the read operation
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		groupID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse group ID: %v", convertErr))
-		}
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
+	}
 
-		// Try fetching the computer group using the ID
+	var resource *jamfpro.ResourceComputerGroup
+
+	// Read operation with retry
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		group, apiErr = conn.GetComputerGroupByID(groupID)
+		resource, apiErr = conn.GetComputerGroupByID(resourceIDInt)
 		if apiErr != nil {
-			// Handle the APIError
-			if apiError, ok := apiErr.(*.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-			}
-			// If fetching by ID fails, try fetching by Name
-			groupName, ok := d.Get("name").(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
-			}
-
-			group, apiErr = conn.GetComputerGroupByName(groupName)
-			if apiErr != nil {
-				// Handle the APIError
-				if apiError, ok := apiErr.(*.APIError); ok {
-					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-				}
-				return retry.RetryableError(apiErr)
-			}
+			// Convert any API error into a retryable error to continue retrying
+			return retry.RetryableError(apiErr)
 		}
+		// Successfully read the resource, exit the retry loop
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while reading the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "read")
+		// Handle the final error after all retries have been exhausted
+		d.SetId("") // Remove from Terraform state if unable to read after retries
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Computer Group with ID '%d' after retries: %v", resourceIDInt, err))
 	}
 
 	// Set attributes in the Terraform state
@@ -465,73 +342,47 @@ func ResourceJamfProComputerGroupsRead(ctx context.Context, d *schema.ResourceDa
 
 // ResourceJamfProComputerGroupsUpdate is responsible for updating an existing Jamf Pro Computer Group on the remote system.
 func ResourceJamfProComputerGroupsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the update operation
-	var err error
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		// Construct the updated computer group
-		group, err := constructJamfProComputerGroup(d)
-		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the computer group for terraform update: %w", err))
-		}
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
 
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		groupID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse group ID: %v", convertErr))
-		}
-
-		// Directly call the API to update the resource
-		_, apiErr := conn.UpdateComputerGroupByID(groupID, group)
-		if apiErr != nil {
-			// Handle the APIError
-			if apiError, ok := apiErr.(*.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-			}
-			// If the update by ID fails, try updating by name
-			groupName, ok := d.Get("name").(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
-			}
-			_, apiErr = conn.UpdateComputerGroupByName(groupName, group)
-			if apiErr != nil {
-				// Handle the APIError
-				if apiError, ok := apiErr.(*.APIError); ok {
-					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-				}
-				return retry.RetryableError(apiErr)
-			}
-		}
-		return nil
-	})
-
-	// Handle error from the retry function
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		// If there's an error while updating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update")
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	// Use the retry function for the read operation to update the Terraform state
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProComputerGroupsRead(ctx, d, meta)
-		if len(readDiags) > 0 {
-			return retry.RetryableError(fmt.Errorf("failed to update the Terraform state for the updated resource"))
+	// Construct the resource object
+	resource, err := constructJamfProComputerGroup(ctx, d)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Group for update: %v", err))
+	}
+
+	// Update operations with retries
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+		_, apiErr := conn.UpdateComputerGroupByID(resourceIDInt, resource)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
 		}
+		// Successfully updated the resource, exit the retry loop
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while updating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update")
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Computer Group '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
+	}
+
+	// Read the resource to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProComputerGroupsRead(ctx, d, meta)
+	if len(readDiags) > 0 {
+		diags = append(diags, readDiags...)
 	}
 
 	return diags
@@ -539,43 +390,42 @@ func ResourceJamfProComputerGroupsUpdate(ctx context.Context, d *schema.Resource
 
 // ResourceJamfProComputerGroupsDelete is responsible for deleting a Jamf Pro Computer Group.
 func ResourceJamfProComputerGroupsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the delete operation
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		groupID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse group ID: %v", convertErr))
-		}
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
 
-		// Directly call the API to delete the resource
-		apiErr := conn.DeleteComputerGroupByID(groupID)
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
+	}
+
+	// Use the retry function for the delete operation with appropriate timeout
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
+		// Attempt to delete by ID
+		apiErr := conn.DeleteComputerGroupByID(resourceIDInt)
 		if apiErr != nil {
-			// If the delete by ID fails, try deleting by name
-			groupName, ok := d.Get("name").(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
-			}
-			apiErr = conn.DeleteComputerGroupByName(groupName)
-			if apiErr != nil {
-				return retry.RetryableError(apiErr)
+			// If deleting by ID fails, attempt to delete by Name
+			resourceName := d.Get("name").(string)
+			apiErrByName := conn.DeleteComputerGroupByName(resourceName)
+			if apiErrByName != nil {
+				// If deletion by name also fails, return a retryable error
+				return retry.RetryableError(apiErrByName)
 			}
 		}
+		// Successfully deleted the resource, exit the retry loop
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while deleting the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "delete")
+		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Computer Group '%s' (ID: %d) after retries: %v", d.Get("name").(string), resourceIDInt, err))
 	}
 
 	// Clear the ID from the Terraform state as the resource has been deleted

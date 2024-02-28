@@ -227,7 +227,7 @@ func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, me
 			// Convert any API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)
 		}
-		// Successfully read the site, exit the retry loop
+		// Successfully read the resource, exit the retry loop
 		return nil
 	})
 
