@@ -83,8 +83,8 @@ func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, met
 	// Initialize variables
 	var diags diag.Diagnostics
 
-	// Construct the site object
-	site, err := constructJamfProSite(ctx, d)
+	// Construct the resource object
+	resource, err := constructJamfProSite(ctx, d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Site: %v", err))
 	}
@@ -93,7 +93,7 @@ func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, met
 	var creationResponse *jamfpro.SharedResourceSite
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreateSite(site)
+		creationResponse, apiErr = conn.CreateSite(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -102,7 +102,7 @@ func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, met
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Site '%s' after retries: %v", site.Name, err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Site '%s' after retries: %v", resource.Name, err))
 	}
 
 	// Set the resource ID in Terraform state
@@ -193,27 +193,27 @@ func ResourceJamfProSitesUpdate(ctx context.Context, d *schema.ResourceData, met
 	}
 
 	// Construct the resource object
-	site, err := constructJamfProSite(ctx, d)
+	resource, err := constructJamfProSite(ctx, d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Site for update: %v", err))
 	}
 
 	// Update operations with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateSiteByID(resourceIDInt, site)
+		_, apiErr := conn.UpdateSiteByID(resourceIDInt, resource)
 		if apiErr != nil {
 			// If updating by ID fails, attempt to update by Name
 			return retry.RetryableError(apiErr)
 		}
-		// Successfully updated the site, exit the retry loop
+		// Successfully updated the resource, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Site '%s' (ID: %d) after retries: %v", site.Name, resourceIDInt, err))
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Site '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
 	}
 
-	// Read the site to ensure the Terraform state is up to date
+	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProSitesRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
