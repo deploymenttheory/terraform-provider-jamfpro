@@ -479,7 +479,7 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 }
 
 func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	log.Println("LOGHERE")
+
 	// API Stuff
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -536,7 +536,6 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	}
 
 	// Site
-
 	if resp.General.Site.ID != -1 && resp.General.Site.Name != "None" {
 		out_site := []map[string]interface{}{
 			{
@@ -554,7 +553,6 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	}
 
 	// Category
-
 	if resp.General.Category.ID != -1 && resp.General.Category.Name != "No category assigned" {
 		out_category := []map[string]interface{}{
 			{
@@ -596,42 +594,47 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 
 	// Scope
 
-	log.Println("SCOPEHERE")
+	out_scope := make([]map[string]interface{}, 0)
+	out_scope = append(out_scope, make(map[string]interface{}, 1))
 
-	var out_scope []map[string]interface{}
-	log.Println("FLAG 1")
-	out_scope = append(out_scope, map[string]interface{}{})
-	log.Println("FLAG 2")
 	// All computers
 	if resp.Scope.AllComputers {
 		out_scope[0]["all_computers"] = true
 	}
 
-	log.Println("FLAG 3")
-
 	if resp.Scope.AllJSSUsers {
 		out_scope[0]["all_jss_users"] = true
 	}
 
-	log.Println("FLAG 4")
-
+	//////////////////////////////////////////////////
 	// Computers
-	log.Println("FLAG 5")
+
 	if len(resp.Scope.Computers) > 0 {
-		log.Println("FLAG 6")
+		log.Println("LOGHERE")
+
+		// Define computers list
+		var out_computers []map[string]interface{}
+		log.Println(out_computers)
+
+		// Add empty item to that list
+		out_computers = append(out_computers, make(map[string]interface{}))
+		log.Println(out_computers)
+
+		// Get Ids from HCL
 		var inComputers []int
 		for _, v := range resp.Scope.Computers {
 			inComputers = append(inComputers, v.ID)
 		}
-		log.Println("FLAG 7")
-		if out_scope[0] == nil {
-			out_scope[0] = make(map[string]interface{})
-		}
-		out_scope[0]["computers"] = make([]map[string]interface{}, 1)
-		out_scope[0]["computers"].([]map[string]interface{})[0]["id"] = inComputers
-		log.Println("FLAG 8")
-		log.Println(out_scope[0])
+
+		// Put IDs in empty item in computers list
+		out_computers[0]["id"] = inComputers
+		log.Println(out_computers)
+
+		// Add list to parent scope
+		out_scope[0]["computers"] = out_computers
 	}
+
+	//////////////////////////////////////////////////
 
 	// Computer Groups
 	if len(resp.Scope.ComputerGroups) > 0 {
