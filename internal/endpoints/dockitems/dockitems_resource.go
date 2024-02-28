@@ -8,13 +8,9 @@ import (
 	"strconv"
 	"time"
 
-	
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
-	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -88,25 +84,19 @@ const (
 
 // constructJamfProDockItem constructs a ResourceDockItem object from the provided schema data.
 func constructJamfProDockItem(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceDockItem, error) {
-	// Initialize the logging subsystem for the construction operation
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemConstruct, hclog.Debug)
-
 	dockItem := &jamfpro.ResourceDockItem{
-		Name:     util.GetStringFromInterface(d.Get("name")),
-		Type:     util.GetStringFromInterface(d.Get("type")),
-		Path:     util.GetStringFromInterface(d.Get("path")),
-		Contents: util.GetStringFromInterface(d.Get("contents")),
+		Name:     d.Get("name").(string),
+		Type:     d.Get("type").(string),
+		Path:     d.Get("path").(string),
+		Contents: (d.Get("contents").(string)),
 	}
 
-	// Serialize and pretty-print the dockitem object as XML
+	// Serialize and pretty-print the site object as XML
 	resourceXML, err := xml.MarshalIndent(dockItem, "", "  ")
 	if err != nil {
-		logging.LogTFConstructResourceXMLMarshalFailure(subCtx, JamfProResourceDockItem, err.Error())
-		return nil, err
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Dock Item '%s' to XML: %v", dockItem.Name, err)
 	}
-
-	// Log the successful construction and serialization to XML
-	logging.LogTFConstructedXMLResource(subCtx, JamfProResourceDockItem, string(resourceXML))
+	fmt.Printf("Constructed Jamf Pro Dock Item XML:\n%s\n", string(resourceXML))
 
 	return dockItem, nil
 }
@@ -127,70 +117,36 @@ func ResourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData,
 
 	// Initialize variables
 	var diags diag.Diagnostics
-	var creationResponse *jamfpro.ResourceDockItem
-	var apiErrorCode int
-	resourceName := d.Get("name").(string)
 
-	// Initialize the logging subsystem with the create operation context
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemCreate, hclog.Info)
-	subSyncCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemSync, hclog.Info)
-
-	// Construct the dockitem object outside the retry loop to avoid reconstructing it on each retry
-	dockItem, err := constructJamfProDockItem(subCtx, d)
+	// Construct the resource object
+	resource, err := constructJamfProDockItem(ctx, d)
 	if err != nil {
-		logging.LogTFConstructResourceFailure(subCtx, JamfProResourceDockItem, err.Error())
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Dock Item: %v", err))
 	}
-	logging.LogTFConstructResourceSuccess(subCtx, JamfProResourceDockItem)
 
-	// Retry the API call to create the dockitem in Jamf Pro
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+	// Retry the API call to create the resource in Jamf Pro
+	var creationResponse *jamfpro.ResourceDockItem
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreateDockItem(dockItem)
+		creationResponse, apiErr = conn.CreateDockItem(resource)
 		if apiErr != nil {
-			// Extract and log the API error code if available
-			if apiError, ok := apiErr.(*.APIError); ok {
-				apiErrorCode = apiError.StatusCode
-			}
-			logging.LogAPICreateFailedAfterRetry(subCtx, JamfProResourceDockItem, resourceName, apiErr.Error(), apiErrorCode)
-			// Return a non-retryable error to break out of the retry loop
-			return retry.NonRetryableError(apiErr)
+			return retry.RetryableError(apiErr)
 		}
 		// No error, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		// Log the final error and append it to the diagnostics
-		logging.LogAPICreateFailure(subCtx, JamfProResourceDockItem, err.Error(), apiErrorCode)
-		diags = append(diags, diag.FromErr(err)...)
-		return diags
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Dock Item '%s' after retries: %v", resource.Name, err))
 	}
 
-	// Log successful creation of the dockitem and set the resource ID in Terraform state
-	logging.LogAPICreateSuccess(subCtx, JamfProResourceDockItem, strconv.Itoa(creationResponse.ID))
-
+	// Set the resource ID in Terraform state
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	// Retry reading the dockitem to ensure the Terraform state is up to date
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProDockItemsRead(subCtx, d, meta)
-		if len(readDiags) > 0 {
-			// Log any read errors and return a retryable error to retry the read operation
-			logging.LogTFStateSyncFailedAfterRetry(subSyncCtx, JamfProResourceDockItem, d.Id(), readDiags[0].Summary)
-			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
-		}
-		// Successfully read the dockitem, exit the retry loop
-		return nil
-	})
-
-	if err != nil {
-		// Log the final state sync failure and append it to the diagnostics
-		logging.LogTFStateSyncFailure(subSyncCtx, JamfProResourceDockItem, err.Error())
-		diags = append(diags, diag.FromErr(err)...)
-	} else {
-		// Log successful state synchronization
-		logging.LogTFStateSyncSuccess(subSyncCtx, JamfProResourceDockItem, d.Id())
+	// Read the site to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProDockItemsRead(ctx, d, meta)
+	if len(readDiags) > 0 {
+		diags = append(diags, readDiags...)
 	}
 
 	return diags
@@ -202,66 +158,59 @@ func ResourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData,
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the dock item being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize api client
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Initialize the logging subsystem for the read operation
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemRead, hclog.Info)
-
 	// Initialize variables
 	var diags diag.Diagnostics
-	var apiErrorCode int
-	var dockItem *jamfpro.ResourceDockItem
 	resourceID := d.Id()
 
 	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		// Handle conversion error with structured logging
-		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceDockItem, resourceID, err.Error())
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
+	var resource *jamfpro.ResourceDockItem
+
 	// Read operation with retry
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		dockItem, apiErr = conn.GetDockItemByID(resourceIDInt)
+		resource, apiErr = conn.GetDockItemByID(resourceIDInt)
 		if apiErr != nil {
-			logging.LogFailedReadByID(subCtx, JamfProResourceDockItem, resourceID, apiErr.Error(), apiErrorCode)
 			// Convert any API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)
 		}
-		// Successfully read the script, exit the retry loop
+		// Successfully read the site, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
 		// Handle the final error after all retries have been exhausted
 		d.SetId("") // Remove from Terraform state if unable to read after retries
-		logging.LogTFStateRemovalWarning(subCtx, JamfProResourceDockItem, resourceID)
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Printer with ID '%d' after retries: %v", resourceIDInt, err))
 	}
 
 	// Check if dockItem data exists
-	if dockItem != nil {
+	if resource != nil {
 		// Set the fields directly in the Terraform state
-		if err := d.Set("id", strconv.Itoa(dockItem.ID)); err != nil {
+		if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("name", dockItem.Name); err != nil {
+		if err := d.Set("name", resource.Name); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("type", dockItem.Type); err != nil {
+		if err := d.Set("type", resource.Type); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("path", dockItem.Path); err != nil {
+		if err := d.Set("path", resource.Path); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("contents", dockItem.Contents); err != nil {
+		if err := d.Set("contents", resource.Contents); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
