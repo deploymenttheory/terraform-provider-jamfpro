@@ -221,7 +221,7 @@ func ResourceJamfProComputerGroupsCreate(ctx context.Context, d *schema.Resource
 	}
 
 	// Retry the API call to create the resource in Jamf Pro
-	var creationResponse *jamfpro.ResponseComputerG
+	var creationResponse *jamfpro.ResourceComputerGroup
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
 		creationResponse, apiErr = conn.CreateComputerGroup(resource)
@@ -288,24 +288,24 @@ func ResourceJamfProComputerGroupsRead(ctx context.Context, d *schema.ResourceDa
 	}
 
 	// Set attributes in the Terraform state
-	if err := d.Set("name", group.Name); err != nil {
+	if err := d.Set("name", resource.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("is_smart", group.IsSmart); err != nil {
+	if err := d.Set("is_smart", resource.IsSmart); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	site := map[string]interface{}{
-		"id":   group.Site.ID,
-		"name": group.Site.Name,
+		"id":   resource.Site.ID,
+		"name": resource.Site.Name,
 	}
 	if err := d.Set("site", []interface{}{site}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	// Set the criteria
-	criteriaList := make([]interface{}, len(group.Criteria.Criterion))
-	for i, crit := range group.Criteria.Criterion {
+	criteriaList := make([]interface{}, len(resource.Criteria.Criterion))
+	for i, crit := range resource.Criteria.Criterion {
 		criteriaMap := map[string]interface{}{
 			"name":          crit.Name,
 			"priority":      crit.Priority,
@@ -322,8 +322,8 @@ func ResourceJamfProComputerGroupsRead(ctx context.Context, d *schema.ResourceDa
 	}
 
 	// Set the computers
-	computersList := make([]interface{}, len(group.Computers))
-	for i, comp := range group.Computers {
+	computersList := make([]interface{}, len(resource.Computers))
+	for i, comp := range resource.Computers {
 		computerMap := map[string]interface{}{
 			"id":              comp.ID,
 			"name":            comp.Name,
