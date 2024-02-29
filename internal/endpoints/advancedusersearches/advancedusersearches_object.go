@@ -2,7 +2,6 @@
 package advancedusersearches
 
 import (
-	"context"
 	"encoding/xml"
 	"fmt"
 
@@ -11,7 +10,7 @@ import (
 )
 
 // constructJamfProAdvancedUserSearch constructs an advanced user search object for create and update operations.
-func constructJamfProAdvancedUserSearch(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceAdvancedUserSearch, error) {
+func constructJamfProAdvancedUserSearch(d *schema.ResourceData) (*jamfpro.ResourceAdvancedUserSearch, error) {
 	search := &jamfpro.ResourceAdvancedUserSearch{
 		Name: d.Get("name").(string),
 	}

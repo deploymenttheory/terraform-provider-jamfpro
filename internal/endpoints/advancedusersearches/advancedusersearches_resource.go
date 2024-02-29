@@ -125,7 +125,7 @@ func ResourceJamfProAdvancedUserSearchCreate(ctx context.Context, d *schema.Reso
 	var diags diag.Diagnostics
 
 	// Construct the resource object
-	resource, err := constructJamfProAdvancedUserSearch(ctx, d)
+	resource, err := constructJamfProAdvancedUserSearch(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Advanced User Search: %v", err))
 	}
@@ -270,7 +270,7 @@ func ResourceJamfProAdvancedUserSearchUpdate(ctx context.Context, d *schema.Reso
 	}
 
 	// Construct the resource object
-	resource, err := constructJamfProAdvancedUserSearch(ctx, d)
+	resource, err := constructJamfProAdvancedUserSearch(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Advanced User Search for update: %v", err))
 	}

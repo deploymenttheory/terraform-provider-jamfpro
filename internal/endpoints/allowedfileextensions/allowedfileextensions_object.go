@@ -2,7 +2,6 @@
 package allowedfileextensions
 
 import (
-	"context"
 	"encoding/xml"
 	"fmt"
 
@@ -11,7 +10,7 @@ import (
 )
 
 // constructJamfProAllowedFileExtension creates a new ResourceAllowedFileExtension instance from Terraform data and serializes it to XML.
-func constructJamfProAllowedFileExtension(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceAllowedFileExtension, error) {
+func constructJamfProAllowedFileExtension(d *schema.ResourceData) (*jamfpro.ResourceAllowedFileExtension, error) {
 	allowedFileExtension := &jamfpro.ResourceAllowedFileExtension{
 		Extension: d.Get("extension").(string),
 	}
