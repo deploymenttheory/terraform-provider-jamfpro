@@ -159,69 +159,6 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 	}
 }
 
-const (
-	JamfProResourceAccountGroup = "Account Group"
-)
-
-// constructJamfProAccountGroup constructs an AccountGroup object from the provided schema data.
-func constructJamfProAccountGroup(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceAccountGroup, error) {
-	// Initialize the logging subsystem for the construction operation
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemConstruct, hclog.Debug)
-
-	accountGroup := &jamfpro.ResourceAccountGroup{
-		Name:         util.GetStringFromInterface(d.Get("name")),
-		AccessLevel:  util.GetStringFromInterface(d.Get("access_level")),
-		PrivilegeSet: util.GetStringFromInterface(d.Get("privilege_set")),
-	}
-
-	// Construct Site
-	if v, ok := d.GetOk("site"); ok && len(v.([]interface{})) > 0 {
-		siteMap := v.([]interface{})[0].(map[string]interface{})
-		accountGroup.Site = jamfpro.SharedResourceSite{
-			ID:   util.GetIntFromInterface(siteMap["id"]),
-			Name: util.GetStringFromInterface(siteMap["name"]),
-		}
-	}
-
-	// Construct Privileges using TypeSet
-	accountGroup.Privileges = jamfpro.AccountSubsetPrivileges{
-		JSSObjects:  utilities.ExtractSetToStringSlice(d.Get("jss_objects_privileges").(*schema.Set)),
-		JSSSettings: utilities.ExtractSetToStringSlice(d.Get("jss_settings_privileges").(*schema.Set)),
-		JSSActions:  utilities.ExtractSetToStringSlice(d.Get("jss_actions_privileges").(*schema.Set)),
-		CasperAdmin: utilities.ExtractSetToStringSlice(d.Get("casper_admin_privileges").(*schema.Set)),
-	}
-
-	// Construct Members
-	if v, ok := d.GetOk("members"); ok {
-		members := make(jamfpro.AccountGroupSubsetMembers, 0)
-		for _, member := range v.([]interface{}) {
-			memberMap := member.(map[string]interface{})
-			memberUser := jamfpro.MemberUser{
-				ID:   util.GetIntFromInterface(memberMap["id"]),
-				Name: util.GetStringFromInterface(memberMap["name"]),
-			}
-			members = append(members, struct {
-				User jamfpro.MemberUser `json:"user,omitempty" xml:"user,omitempty"`
-			}{
-				User: memberUser,
-			})
-		}
-		accountGroup.Members = members
-	}
-
-	// Optional: Serialize and pretty-print the accountGroup object for logging
-	resourceXML, err := xml.MarshalIndent(accountGroup, "", "  ")
-	if err != nil {
-		logging.LogTFConstructResourceXMLMarshalFailure(subCtx, JamfProResourceAccountGroup, err.Error())
-		return nil, err
-	}
-
-	// Log the successful construction and serialization to XML
-	logging.LogTFConstructedXMLResource(subCtx, JamfProResourceAccountGroup, string(resourceXML))
-
-	return accountGroup, nil
-}
-
 // ResourceJamfProAccountGroupCreate is responsible for creating a new Jamf Pro Script in the remote system.
 // The function:
 // 1. Constructs the attribute data using the provided Terraform configuration.
