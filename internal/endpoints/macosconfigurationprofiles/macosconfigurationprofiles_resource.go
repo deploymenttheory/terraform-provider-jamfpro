@@ -278,7 +278,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 }
 
 func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceMacOSConfigurationProfile, error) {
-
+	log.Println("LOGHERE-CONSTRUCT")
 	// Main obj with fields which do not require processing
 	out := jamfpro.ResourceMacOSConfigurationProfile{
 		General: jamfpro.MacOSConfigurationProfileSubsetGeneral{
@@ -318,12 +318,20 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 
 	// Scope
 	if len(d.Get("scope").([]interface{})) > 0 {
+		log.Println("FLAG 1")
 		// All Computers & Users
 		out.Scope.AllComputers = d.Get("scope.0.all_computers").(bool)
+		log.Println(d.Get("scope.0.all_computers").(bool))
+		log.Println(out.Scope.AllComputers)
+
+		log.Println("FLAG 2")
 		out.Scope.AllJSSUsers = d.Get("scope.0.all_jss_users").(bool)
+		log.Println(d.Get("scope.0.all_jss_users").(bool))
+		log.Println(out.Scope.AllJSSUsers)
+		log.Println("FLAG 3")
 
 		// Computers
-		if d.Get("scope.0.computers") != nil {
+		if len(d.Get("scope.0.computers").([]interface{})) > 0 {
 			computersGet, ok := d.GetOk("scope.0.computers")
 			if !ok {
 				log.Println("ERROR")
@@ -337,6 +345,7 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 			}
 		}
 
+		log.Println("FLAG 5")
 		// Computer Groups
 		if d.Get("scope.0.computer_groups") != nil {
 			computer_groups := d.Get("scope.0.computer_groups").([]interface{})
@@ -400,6 +409,8 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 		// Limitations
 
 		// Exclusions
+		log.Println("LOGHERE-OUT")
+		log.Printf("%+v", out)
 
 	}
 
@@ -479,6 +490,7 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 }
 
 func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	log.Println("LOGHERE-READ")
 
 	// API Stuff
 	apiclient, ok := meta.(*client.APIClient)
@@ -599,14 +611,21 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 
 	// All computers
 	if resp.Scope.AllComputers {
+		log.Println("LOGHERE")
+		log.Printf("%+v\n", resp.Scope)
 		if len(resp.Scope.Computers) > 0 {
 			log.Println("ERROR HERE!") // TODO throw an error here please DW
 		}
 		out_scope[0]["all_computers"] = true
+	} else {
+		out_scope[0]["all_computers"] = false
 	}
 
 	if resp.Scope.AllJSSUsers {
 		out_scope[0]["all_jss_users"] = true
+	} else {
+		out_scope[0]["all_jss_users"] = false
+
 	}
 
 	//////////////////////////////////////////////////
