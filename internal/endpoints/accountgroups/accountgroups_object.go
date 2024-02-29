@@ -27,24 +27,13 @@ func constructJamfProAccountGroup(ctx context.Context, d *schema.ResourceData) (
 		}
 	}
 
-	// Handle Privileges using direct access to TypeSet
-	if v, ok := d.GetOk("jss_objects_privileges"); ok {
-		accountGroup.Privileges.JSSObjects = getStringSliceFromSet(v.(*schema.Set))
-	}
-	if v, ok := d.GetOk("jss_settings_privileges"); ok {
-		accountGroup.Privileges.JSSSettings = getStringSliceFromSet(v.(*schema.Set))
-	}
-	if v, ok := d.GetOk("jss_actions_privileges"); ok {
-		accountGroup.Privileges.JSSActions = getStringSliceFromSet(v.(*schema.Set))
-	}
-	if v, ok := d.GetOk("casper_admin_privileges"); ok {
-		accountGroup.Privileges.CasperAdmin = getStringSliceFromSet(v.(*schema.Set))
-	}
+	// Handle Privileges
+	accountGroup.Privileges = constructAccountSubsetPrivileges(d)
 
 	// Handle Members
 	if v, ok := d.GetOk("members"); ok {
 		memberList := v.([]interface{})
-		accountGroup.Members = make([]jamfpro.AccountGroupSubsetMembers, len(memberList))
+		accountGroup.Members = make(jamfpro.AccountGroupSubsetMembers, len(memberList))
 		for i, member := range memberList {
 			memberData := member.(map[string]interface{})
 			accountGroup.Members[i].User = jamfpro.MemberUser{
@@ -62,6 +51,19 @@ func constructJamfProAccountGroup(ctx context.Context, d *schema.ResourceData) (
 	fmt.Printf("Constructed Jamf Pro Account Group XML:\n%s\n", string(resourceXML))
 
 	return accountGroup, nil
+}
+
+// constructAccountSubsetPrivileges constructs AccountSubsetPrivileges from schema data.
+func constructAccountSubsetPrivileges(d *schema.ResourceData) jamfpro.AccountSubsetPrivileges {
+	return jamfpro.AccountSubsetPrivileges{
+		JSSObjects:    getStringSliceFromSet(d.Get("jss_objects_privileges").(*schema.Set)),
+		JSSSettings:   getStringSliceFromSet(d.Get("jss_settings_privileges").(*schema.Set)),
+		JSSActions:    getStringSliceFromSet(d.Get("jss_actions_privileges").(*schema.Set)),
+		CasperAdmin:   getStringSliceFromSet(d.Get("casper_admin_privileges").(*schema.Set)),
+		CasperRemote:  getStringSliceFromSet(d.Get("casper_remote_privileges").(*schema.Set)),
+		CasperImaging: getStringSliceFromSet(d.Get("casper_imaging_privileges").(*schema.Set)),
+		Recon:         getStringSliceFromSet(d.Get("recon_privileges").(*schema.Set)),
+	}
 }
 
 // getStringSliceFromSet converts a *schema.Set to a slice of strings.
