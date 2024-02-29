@@ -3,13 +3,11 @@ package buildings
 
 import (
 	"context"
-	"encoding/xml"
 	"fmt"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -74,29 +72,6 @@ func ResourceJamfProBuildings() *schema.Resource {
 	}
 }
 
-// constructJamfProBuilding constructs a Building object from the provided schema data.
-func constructJamfProBuilding(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceBuilding, error) {
-	building := &jamfpro.ResourceBuilding{}
-
-	// Utilize type assertion helper functions for direct field extraction
-	building.Name = util.GetStringFromInterface(d.Get("name"))
-	building.StreetAddress1 = util.GetStringFromInterface(d.Get("street_address1"))
-	building.StreetAddress2 = util.GetStringFromInterface(d.Get("street_address2"))
-	building.City = util.GetStringFromInterface(d.Get("city"))
-	building.StateProvince = util.GetStringFromInterface(d.Get("state_province"))
-	building.ZipPostalCode = util.GetStringFromInterface(d.Get("zip_postal_code"))
-	building.Country = util.GetStringFromInterface(d.Get("country"))
-
-	// Serialize and pretty-print the site object as XML
-	resourceXML, err := xml.MarshalIndent(building, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Building '%s' to XML: %v", building.Name, err)
-	}
-	fmt.Printf("Constructed Jamf Pro Building XML:\n%s\n", string(resourceXML))
-
-	return building, nil
-}
-
 // ResourceJamfProBuildingCreate is responsible for creating a new Building in the remote system.
 // The function:
 // 1. Constructs the building data using the provided Terraform configuration.
@@ -115,7 +90,7 @@ func ResourceJamfProBuildingCreate(ctx context.Context, d *schema.ResourceData, 
 	var diags diag.Diagnostics
 
 	// Construct the resource object
-	resource, err := constructJamfProBuilding(ctx, d)
+	resource, err := constructJamfProBuilding(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Site: %v", err))
 	}
@@ -220,7 +195,7 @@ func ResourceJamfProBuildingUpdate(ctx context.Context, d *schema.ResourceData, 
 	resourceID := d.Id()
 
 	// Construct the resource object
-	resource, err := constructJamfProBuilding(ctx, d)
+	resource, err := constructJamfProBuilding(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Building for update: %v", err))
 	}

@@ -2,7 +2,6 @@
 package accountgroups
 
 import (
-	"context"
 	"encoding/xml"
 	"fmt"
 
@@ -11,7 +10,7 @@ import (
 )
 
 // constructJamfProAccountGroup constructs an AccountGroup object from the provided schema data.
-func constructJamfProAccountGroup(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceAccountGroup, error) {
+func constructJamfProAccountGroup(d *schema.ResourceData) (*jamfpro.ResourceAccountGroup, error) {
 	accountGroup := &jamfpro.ResourceAccountGroup{
 		Name:         d.Get("name").(string),
 		AccessLevel:  d.Get("access_level").(string),

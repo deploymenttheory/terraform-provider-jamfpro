@@ -340,7 +340,7 @@ func ResourceJamfProAccountCreate(ctx context.Context, d *schema.ResourceData, m
 	var diags diag.Diagnostics
 
 	// Construct the resource object
-	resource, err := constructJamfProAccount(ctx, d)
+	resource, err := constructJamfProAccount(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account: %v", err))
 	}
@@ -530,7 +530,7 @@ func ResourceJamfProAccountUpdate(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	// Construct the resource object
-	resource, err := constructJamfProAccount(ctx, d)
+	resource, err := constructJamfProAccount(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account for update: %v", err))
 	}

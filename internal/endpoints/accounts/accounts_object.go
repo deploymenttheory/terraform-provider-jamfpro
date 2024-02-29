@@ -2,7 +2,6 @@
 package accounts
 
 import (
-	"context"
 	"encoding/xml"
 	"fmt"
 
@@ -12,7 +11,7 @@ import (
 )
 
 // constructJamfProAccount constructs an Account object from the provided schema data.
-func constructJamfProAccount(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceAccount, error) {
+func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, error) {
 	account := &jamfpro.ResourceAccount{
 		Name:                d.Get("name").(string),
 		DirectoryUser:       d.Get("directory_user").(bool),
