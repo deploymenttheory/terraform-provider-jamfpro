@@ -131,8 +131,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Type:        schema.TypeList,
 				MaxItems:    1,
 				Description: "The scope of the configuration profile.",
-				Optional:    true,
-				Default:     nil,
+				Required:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"all_computers": {
@@ -147,127 +146,127 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 							Default:     false,
 							Description: "Whether the configuration profile is scoped to all JSS users.",
 						},
-						"computers": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeInt,
-										},
-									},
-									// "name": {
-									// 	Type:        schema.TypeString,
-									// 	Optional:    true,
-									// 	Description: "The name of the computer to which the configuration profile is scoped.",
-									// },
-									// "udid": {
-									// 	Type:        schema.TypeString,
-									// 	Optional:    true,
-									// 	Description: "The UDID of the computer to which the configuration profile is scoped.",
-									// },
-								},
-							},
-						},
-						"computer_groups": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							Description: "The computer groups to which the configuration profile is scoped.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Required:    true,
-										Description: "The unique identifier of the computer group to which the configuration profile is scoped.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "The name of the computer group to which the configuration profile is scoped.",
-									},
-								},
-							},
-						},
-						"jss_users": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							Description: "The JSS users to which the configuration profile is scoped.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Required:    true,
-										Description: "The unique identifier of the JSS user to which the configuration profile is scoped.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "The name of the JSS user to which the configuration profile is scoped.",
-									},
-								},
-							},
-						},
-						"jss_user_groups": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							Description: "The JSS user groups to which the configuration profile is scoped.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Required:    true,
-										Description: "The unique identifier of the JSS user group to which the configuration profile is scoped.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "The name of the JSS user group to which the configuration profile is scoped.",
-									},
-								},
-							},
-						},
-						"buildings": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							Description: "The buildings to which the configuration profile is scoped.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Required:    true,
-										Description: "The unique identifier of the building to which the configuration profile is scoped.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "The name of the building to which the configuration profile is scoped.",
-									},
-								},
-							},
-						},
-						"departments": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							Description: "The departments to which the configuration profile is scoped.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Required:    true,
-										Description: "The unique identifier of the department to which the configuration profile is scoped.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "The name of the department to which the configuration profile is scoped.",
-									},
-								},
-							},
-						},
+						// "computers": {
+						// 	Type:     schema.TypeList,
+						// 	Optional: true,
+						// 	MaxItems: 1,
+						// 	Elem: &schema.Resource{
+						// 		Schema: map[string]*schema.Schema{
+						// 			"id": {
+						// 				Type:     schema.TypeList,
+						// 				Optional: true,
+						// 				Elem: &schema.Schema{
+						// 					Type: schema.TypeInt,
+						// 				},
+						// 			},
+						// 			// "name": {
+						// 			// 	Type:        schema.TypeString,
+						// 			// 	Optional:    true,
+						// 			// 	Description: "The name of the computer to which the configuration profile is scoped.",
+						// 			// },
+						// 			// "udid": {
+						// 			// 	Type:        schema.TypeString,
+						// 			// 	Optional:    true,
+						// 			// 	Description: "The UDID of the computer to which the configuration profile is scoped.",
+						// 			// },
+						// 		},
+						// 	},
+						// },
+						// "computer_groups": {
+						// 	Type:        schema.TypeList,
+						// 	Optional:    true,
+						// 	Description: "The computer groups to which the configuration profile is scoped.",
+						// 	Elem: &schema.Resource{
+						// 		Schema: map[string]*schema.Schema{
+						// 			"id": {
+						// 				Type:        schema.TypeInt,
+						// 				Required:    true,
+						// 				Description: "The unique identifier of the computer group to which the configuration profile is scoped.",
+						// 			},
+						// 			"name": {
+						// 				Type:        schema.TypeString,
+						// 				Optional:    true,
+						// 				Description: "The name of the computer group to which the configuration profile is scoped.",
+						// 			},
+						// 		},
+						// 	},
+						// },
+						// "jss_users": {
+						// 	Type:        schema.TypeList,
+						// 	Optional:    true,
+						// 	Description: "The JSS users to which the configuration profile is scoped.",
+						// 	Elem: &schema.Resource{
+						// 		Schema: map[string]*schema.Schema{
+						// 			"id": {
+						// 				Type:        schema.TypeInt,
+						// 				Required:    true,
+						// 				Description: "The unique identifier of the JSS user to which the configuration profile is scoped.",
+						// 			},
+						// 			"name": {
+						// 				Type:        schema.TypeString,
+						// 				Optional:    true,
+						// 				Description: "The name of the JSS user to which the configuration profile is scoped.",
+						// 			},
+						// 		},
+						// 	},
+						// },
+						// "jss_user_groups": {
+						// 	Type:        schema.TypeList,
+						// 	Optional:    true,
+						// 	Description: "The JSS user groups to which the configuration profile is scoped.",
+						// 	Elem: &schema.Resource{
+						// 		Schema: map[string]*schema.Schema{
+						// 			"id": {
+						// 				Type:        schema.TypeInt,
+						// 				Required:    true,
+						// 				Description: "The unique identifier of the JSS user group to which the configuration profile is scoped.",
+						// 			},
+						// 			"name": {
+						// 				Type:        schema.TypeString,
+						// 				Optional:    true,
+						// 				Description: "The name of the JSS user group to which the configuration profile is scoped.",
+						// 			},
+						// 		},
+						// 	},
+						// },
+						// "buildings": {
+						// 	Type:        schema.TypeList,
+						// 	Optional:    true,
+						// 	Description: "The buildings to which the configuration profile is scoped.",
+						// 	Elem: &schema.Resource{
+						// 		Schema: map[string]*schema.Schema{
+						// 			"id": {
+						// 				Type:        schema.TypeInt,
+						// 				Required:    true,
+						// 				Description: "The unique identifier of the building to which the configuration profile is scoped.",
+						// 			},
+						// 			"name": {
+						// 				Type:        schema.TypeString,
+						// 				Optional:    true,
+						// 				Description: "The name of the building to which the configuration profile is scoped.",
+						// 			},
+						// 		},
+						// 	},
+						// },
+						// "departments": {
+						// 	Type:        schema.TypeList,
+						// 	Optional:    true,
+						// 	Description: "The departments to which the configuration profile is scoped.",
+						// 	Elem: &schema.Resource{
+						// 		Schema: map[string]*schema.Schema{
+						// 			"id": {
+						// 				Type:        schema.TypeInt,
+						// 				Required:    true,
+						// 				Description: "The unique identifier of the department to which the configuration profile is scoped.",
+						// 			},
+						// 			"name": {
+						// 				Type:        schema.TypeString,
+						// 				Optional:    true,
+						// 				Description: "The name of the department to which the configuration profile is scoped.",
+						// 			},
+						// 		},
+						// 	},
+						// },
 						// "limitations": {},
 						// "exclusions":  {},
 					},
@@ -318,20 +317,13 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 
 	// Scope
 	if len(d.Get("scope").([]interface{})) > 0 {
-		log.Println("FLAG 1")
 		// All Computers & Users
 		out.Scope.AllComputers = d.Get("scope.0.all_computers").(bool)
-		log.Println(d.Get("scope.0.all_computers").(bool))
-		log.Println(out.Scope.AllComputers)
-
-		log.Println("FLAG 2")
 		out.Scope.AllJSSUsers = d.Get("scope.0.all_jss_users").(bool)
-		log.Println(d.Get("scope.0.all_jss_users").(bool))
-		log.Println(out.Scope.AllJSSUsers)
-		log.Println("FLAG 3")
 
 		// Computers
 		if len(d.Get("scope.0.computers").([]interface{})) > 0 {
+
 			computersGet, ok := d.GetOk("scope.0.computers")
 			if !ok {
 				log.Println("ERROR")
@@ -345,7 +337,6 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 			}
 		}
 
-		log.Println("FLAG 5")
 		// Computer Groups
 		if d.Get("scope.0.computer_groups") != nil {
 			computer_groups := d.Get("scope.0.computer_groups").([]interface{})
@@ -409,9 +400,10 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 		// Limitations
 
 		// Exclusions
-		log.Println("LOGHERE-OUT")
-		log.Printf("%+v", out)
 
+	} else {
+		out.Scope.AllComputers = false
+		out.Scope.AllJSSUsers = false
 	}
 
 	return &out, nil
@@ -490,7 +482,6 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 }
 
 func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	log.Println("LOGHERE-READ")
 
 	// API Stuff
 	apiclient, ok := meta.(*client.APIClient)
@@ -611,8 +602,6 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 
 	// All computers
 	if resp.Scope.AllComputers {
-		log.Println("LOGHERE")
-		log.Printf("%+v\n", resp.Scope)
 		if len(resp.Scope.Computers) > 0 {
 			log.Println("ERROR HERE!") // TODO throw an error here please DW
 		}
