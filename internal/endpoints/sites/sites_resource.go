@@ -4,9 +4,11 @@ package sites
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/deploymenttheory/go-api-http-client/errors"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 
@@ -125,23 +127,43 @@ func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta 
 	}
 
 	var resource *jamfpro.SharedResourceSite
+	var resourceNotFound bool
 
 	// Read operation with retry
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
 		resource, apiErr = conn.GetSiteByID(resourceIDInt)
+		fmt.Printf("Attempting to read Jamf Pro Site with ID: %d\n", resourceIDInt) // Print the attempt
+
 		if apiErr != nil {
-			// Convert any API error into a retryable error to continue retrying
-			return retry.RetryableError(apiErr)
+			fmt.Printf("API error encountered: %v\n", apiErr) // Print the encountered API error
+
+			if apiErr, ok := apiErr.(*errors.APIError); ok {
+				fmt.Printf("APIError detected with StatusCode: %d\n", apiErr.StatusCode) // Print the status code of the APIError
+
+				if apiErr.StatusCode == http.StatusNotFound {
+					fmt.Println("Resource not found, marking for removal from state.")
+					resourceNotFound = true // Mark the resource as not found
+					return nil              // No need to retry, exit the loop
+				}
+			}
+			fmt.Println("Encountered a retryable error, will attempt to retry.")
+			return retry.RetryableError(apiErr) // For other errors, consider them retryable
 		}
-		// Successfully read the resource, exit the retry loop
-		return nil
+
+		fmt.Println("Successfully read the resource, exiting retry loop.")
+		return nil // Successfully read the resource, exit the retry loop
 	})
 
+	// Check if resource was marked as not found
+	if resourceNotFound {
+		d.SetId("") // Remove from Terraform state
+		return nil  // No error to return
+	}
+
 	if err != nil {
-		// Handle the final error after all retries have been exhausted
-		d.SetId("") // Remove from Terraform state if unable to read after retries
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Site with ID '%d' after retries: %v", resourceIDInt, err))
+		fmt.Printf("Final error after retries: %v\n", err) // Print the final error after retries, if any
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Site with ID '%d': %v", resourceIDInt, err))
 	}
 
 	// Assuming successful read if no error
