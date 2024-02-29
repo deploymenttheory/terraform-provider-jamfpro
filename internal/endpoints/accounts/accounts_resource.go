@@ -3,19 +3,15 @@ package accounts
 
 import (
 	"context"
-	"encoding/xml"
 	"fmt"
 	"strconv"
 	"time"
 
-	
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
-	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -326,97 +322,6 @@ const (
 	JamfProResourceAccount = "Account"
 )
 
-// constructJamfProAccount constructs an Account object from the provided schema data.
-func constructJamfProAccount(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceAccount, error) {
-	// Initialize the logging subsystem for the construction operation
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemConstruct, hclog.Debug)
-
-	//func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, error) {
-	account := &jamfpro.ResourceAccount{}
-
-	// field extraction
-	account.Name = d.Get("name").(string)
-	account.DirectoryUser = d.Get("directory_user").(bool)
-	account.FullName = d.Get("full_name").(string)
-	account.Email = d.Get("email").(string)
-	account.Enabled = d.Get("enabled").(string)
-	account.ForcePasswordChange = d.Get("force_password_change").(bool)
-	account.AccessLevel = d.Get("access_level").(string)
-	account.Password = d.Get("password").(string)
-	account.PrivilegeSet = d.Get("privilege_set").(string)
-
-	// Construct LDAP Server
-	if v, ok := d.GetOk("ldap_server"); ok {
-		ldapServerList := v.([]interface{})
-		if len(ldapServerList) > 0 && ldapServerList[0] != nil {
-			ldapServerMap := ldapServerList[0].(map[string]interface{})
-			account.LdapServer = jamfpro.AccountSubsetLdapServer{
-				ID:   util.GetIntFromInterface(ldapServerMap["id"]),
-				Name: util.GetStringFromInterface(ldapServerMap["name"]),
-			}
-		}
-	}
-
-	// Construct Site
-	if v, ok := d.GetOk("site"); ok {
-		siteList := v.([]interface{})
-		if len(siteList) > 0 && siteList[0] != nil {
-			siteMap := siteList[0].(map[string]interface{})
-			account.Site = jamfpro.SharedResourceSite{
-				ID:   util.GetIntFromInterface(siteMap["id"]),
-				Name: util.GetStringFromInterface(siteMap["name"]),
-			}
-		}
-	}
-
-	// Construct Groups directly from schema data
-	if v, ok := d.GetOk("groups"); ok {
-		groupsSet := v.(*schema.Set)
-		for _, groupItem := range groupsSet.List() {
-			groupMap := groupItem.(map[string]interface{})
-			groupName := groupMap["name"].(string)
-
-			group := jamfpro.AccountsListSubsetGroups{
-				Name: groupName,
-			}
-
-			// Construct Site for each group if provided
-			if site, ok := groupMap["site"].([]interface{}); ok && len(site) > 0 {
-				siteMap := site[0].(map[string]interface{})
-				group.Site = jamfpro.SharedResourceSite{
-					ID:   util.GetIntFromInterface(siteMap["id"]),
-					Name: util.GetStringFromInterface(siteMap["name"]),
-				}
-			}
-
-			// Construct Privileges for each group
-			group.Privileges = jamfpro.AccountSubsetPrivileges{
-				JSSObjects:    util.GetStringSliceFromInterface(groupMap["jss_objects_privileges"]),
-				JSSSettings:   util.GetStringSliceFromInterface(groupMap["jss_settings_privileges"]),
-				JSSActions:    util.GetStringSliceFromInterface(groupMap["jss_actions_privileges"]),
-				CasperAdmin:   util.GetStringSliceFromInterface(groupMap["casper_admin_privileges"]),
-				CasperRemote:  util.GetStringSliceFromInterface(groupMap["casper_remote_privileges"]),
-				CasperImaging: util.GetStringSliceFromInterface(groupMap["casper_imaging_privileges"]),
-				Recon:         util.GetStringSliceFromInterface(groupMap["recon_privileges"]),
-			}
-
-			account.Groups = append(account.Groups, group)
-		}
-	}
-
-	// Optional: Serialize and pretty-print the accountGroup object for logging
-	resourceXML, err := xml.MarshalIndent(account, "", "  ")
-	if err != nil {
-		logging.LogTFConstructResourceXMLMarshalFailure(subCtx, JamfProResourceAccount, err.Error())
-		return nil, err
-	}
-
-	// Log the successful construction and serialization to XML
-	logging.LogTFConstructedXMLResource(subCtx, JamfProResourceAccount, string(resourceXML))
-
-	return account, nil
-}
-
 // ResourceJamfProAccountCreate is responsible for creating a new Jamf Pro Script in the remote system.
 // The function:
 // 1. Constructs the attribute data using the provided Terraform configuration.
@@ -433,70 +338,36 @@ func ResourceJamfProAccountCreate(ctx context.Context, d *schema.ResourceData, m
 
 	// Initialize variables
 	var diags diag.Diagnostics
-	var creationResponse *jamfpro.ResponseAccountCreatedAndUpdated
-	var apiErrorCode int
-	resourceName := d.Get("name").(string)
 
-	// Initialize the logging subsystem with the create operation context
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemCreate, hclog.Info)
-	subSyncCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemSync, hclog.Info)
-
-	// Construct the account object outside the retry loop to avoid reconstructing it on each retry
-	account, err := constructJamfProAccount(subCtx, d)
+	// Construct the resource object
+	resource, err := constructJamfProAccount(ctx, d)
 	if err != nil {
-		logging.LogTFConstructResourceFailure(subCtx, JamfProResourceAccount, err.Error())
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account: %v", err))
 	}
-	logging.LogTFConstructResourceSuccess(subCtx, JamfProResourceAccount)
 
-	// Retry the API call to create the account in Jamf Pro
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+	// Retry the API call to create the site in Jamf Pro
+	var creationResponse *jamfpro.ResponseAccountCreatedAndUpdated
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreateAccount(account)
+		creationResponse, apiErr = conn.CreateAccount(resource)
 		if apiErr != nil {
-			// Extract and log the API error code if available
-			if apiError, ok := apiErr.(*.APIError); ok {
-				apiErrorCode = apiError.StatusCode
-			}
-			logging.LogAPICreateFailedAfterRetry(subCtx, JamfProResourceAccount, resourceName, apiErr.Error(), apiErrorCode)
-			// Return a non-retryable error to break out of the retry loop
-			return retry.NonRetryableError(apiErr)
+			return retry.RetryableError(apiErr)
 		}
 		// No error, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		// Log the final error and append it to the diagnostics
-		logging.LogAPICreateFailure(subCtx, JamfProResourceAccount, err.Error(), apiErrorCode)
-		diags = append(diags, diag.FromErr(err)...)
-		return diags
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Account '%s' after retries: %v", resource.Name, err))
 	}
 
-	// Log successful creation of the accountgroup and set the resource ID in Terraform state
-	logging.LogAPICreateSuccess(subCtx, JamfProResourceAccount, strconv.Itoa(creationResponse.ID))
-
+	// Set the resource ID in Terraform state
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	// Retry reading the accountgroup to ensure the Terraform state is up to date
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProAccountRead(subCtx, d, meta)
-		if len(readDiags) > 0 {
-			// Log any read errors and return a retryable error to retry the read operation
-			logging.LogTFStateSyncFailedAfterRetry(subSyncCtx, JamfProResourceAccount, d.Id(), readDiags[0].Summary)
-			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
-		}
-		// Successfully read the accountgroup, exit the retry loop
-		return nil
-	})
-
-	if err != nil {
-		// Log the final state sync failure and append it to the diagnostics
-		logging.LogTFStateSyncFailure(subSyncCtx, JamfProResourceAccount, err.Error())
-		diags = append(diags, diag.FromErr(err)...)
-	} else {
-		// Log successful state synchronization
-		logging.LogTFStateSyncSuccess(subSyncCtx, JamfProResourceAccount, d.Id())
+	// Read the resource to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProAccountRead(ctx, d, meta)
+	if len(readDiags) > 0 {
+		diags = append(diags, readDiags...)
 	}
 
 	return diags
@@ -508,89 +379,81 @@ func ResourceJamfProAccountCreate(ctx context.Context, d *schema.ResourceData, m
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize api client
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Initialize the logging subsystem for the read operation
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemRead, hclog.Info)
-	subGeneralCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemGeneral, hclog.Info)
-
 	// Initialize variables
 	var diags diag.Diagnostics
-	var apiErrorCode int
-	var account *jamfpro.ResourceAccount
 	resourceID := d.Id()
 
 	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		// Handle conversion error with structured logging
-		logging.LogTypeConversionFailure(subGeneralCtx, "string", "int", JamfProResourceAccount, resourceID, err.Error())
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
+	var resource *jamfpro.ResourceAccount
+
 	// Read operation with retry
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		account, apiErr = conn.GetAccountByID(resourceIDInt)
+		resource, apiErr = conn.GetAccountByID(resourceIDInt)
 		if apiErr != nil {
-			logging.LogFailedReadByID(subCtx, JamfProResourceAccount, resourceID, apiErr.Error(), apiErrorCode)
 			// Convert any API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)
 		}
-		// Successfully read the account group, exit the retry loop
+		// Successfully read the resource, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
 		// Handle the final error after all retries have been exhausted
 		d.SetId("") // Remove from Terraform state if unable to read after retries
-		logging.LogTFStateRemovalWarning(subCtx, JamfProResourceAccount, resourceID)
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Account with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	// Update the Terraform state with account attributes
-	d.Set("name", account.Name)
-	d.Set("directory_user", account.DirectoryUser)
-	d.Set("full_name", account.FullName)
-	d.Set("email", account.Email)
-	d.Set("enabled", account.Enabled)
+	d.Set("name", resource.Name)
+	d.Set("directory_user", resource.DirectoryUser)
+	d.Set("full_name", resource.FullName)
+	d.Set("email", resource.Email)
+	d.Set("enabled", resource.Enabled)
 
 	// Update LDAP server information
-	if account.LdapServer.ID != 0 || account.LdapServer.Name != "" {
+	if resource.LdapServer.ID != 0 || resource.LdapServer.Name != "" {
 		ldapServer := make(map[string]interface{})
-		ldapServer["id"] = account.LdapServer.ID
-		ldapServer["name"] = account.LdapServer.Name
+		ldapServer["id"] = resource.LdapServer.ID
+		ldapServer["name"] = resource.LdapServer.Name
 		d.Set("ldap_server", []interface{}{ldapServer})
 	} else {
 		d.Set("ldap_server", []interface{}{}) // Clear the LDAP server data if not present
 	}
 
-	d.Set("force_password_change", account.ForcePasswordChange)
-	d.Set("access_level", account.AccessLevel)
+	d.Set("force_password_change", resource.ForcePasswordChange)
+	d.Set("access_level", resource.AccessLevel)
 	// Set password only if it's provided in the configuration
 	if _, ok := d.GetOk("password"); ok {
-		d.Set("password", account.Password)
+		d.Set("password", resource.Password)
 	}
-	d.Set("privilege_set", account.PrivilegeSet)
+	d.Set("privilege_set", resource.PrivilegeSet)
 
 	// Update site information
-	if account.Site.ID != 0 || account.Site.Name != "" {
+	if resource.Site.ID != 0 || resource.Site.Name != "" {
 		site := make(map[string]interface{})
-		site["id"] = account.Site.ID
-		site["name"] = account.Site.Name
+		site["id"] = resource.Site.ID
+		site["name"] = resource.Site.Name
 		d.Set("site", []interface{}{site})
 	} else {
 		d.Set("site", []interface{}{}) // Clear the site data if not present
 	}
 
 	// Construct and set the groups attribute
-	groups := make([]interface{}, len(account.Groups))
-	for i, group := range account.Groups {
+	groups := make([]interface{}, len(resource.Groups))
+	for i, group := range resource.Groups {
 		groupMap := make(map[string]interface{})
 		groupMap["name"] = group.Name
 		groupMap["id"] = group.ID
@@ -622,25 +485,25 @@ func ResourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, met
 	}
 
 	// Update privileges
-	if err := d.Set("jss_objects_privileges", account.Privileges.JSSObjects); err != nil {
+	if err := d.Set("jss_objects_privileges", resource.Privileges.JSSObjects); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("jss_settings_privileges", account.Privileges.JSSSettings); err != nil {
+	if err := d.Set("jss_settings_privileges", resource.Privileges.JSSSettings); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("jss_actions_privileges", account.Privileges.JSSActions); err != nil {
+	if err := d.Set("jss_actions_privileges", resource.Privileges.JSSActions); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("casper_admin_privileges", account.Privileges.CasperAdmin); err != nil {
+	if err := d.Set("casper_admin_privileges", resource.Privileges.CasperAdmin); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("casper_remote_privileges", account.Privileges.CasperRemote); err != nil {
+	if err := d.Set("casper_remote_privileges", resource.Privileges.CasperRemote); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("casper_imaging_privileges", account.Privileges.CasperImaging); err != nil {
+	if err := d.Set("casper_imaging_privileges", resource.Privileges.CasperImaging); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("recon_privileges", account.Privileges.Recon); err != nil {
+	if err := d.Set("recon_privileges", resource.Privileges.Recon); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -649,154 +512,95 @@ func ResourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, met
 
 // ResourceJamfProAccountUpdate is responsible for updating an existing Jamf Pro Account Group on the remote system.
 func ResourceJamfProAccountUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize api client
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Initialize the logging subsystem for the update operation
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemUpdate, hclog.Info)
-	subSyncCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemSync, hclog.Info)
-
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
-	resourceName := d.Get("name").(string)
-	var apiErrorCode int
 
 	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		// Handle conversion error with structured logging
-		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceAccount, resourceID, err.Error())
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
 	// Construct the resource object
-	account, err := constructJamfProAccount(subCtx, d)
+	resource, err := constructJamfProAccount(ctx, d)
 	if err != nil {
-		logging.LogTFConstructResourceFailure(subCtx, JamfProResourceAccount, err.Error())
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account for update: %v", err))
 	}
-	logging.LogTFConstructResourceSuccess(subCtx, JamfProResourceAccount)
 
 	// Update operations with retries
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateAccountByID(resourceIDInt, account)
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+		_, apiErr := conn.UpdateAccountByID(resourceIDInt, resource)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*.APIError); ok {
-				apiErrorCode = apiError.StatusCode
-			}
-
-			logging.LogAPIUpdateFailureByID(subCtx, JamfProResourceAccount, resourceID, resourceName, apiErr.Error(), apiErrorCode)
-
-			_, apiErrByName := conn.UpdateAccountByName(resourceName, account)
-			if apiErrByName != nil {
-				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErrByName.(*.APIError); ok {
-					apiErrByNameCode = apiErrorByName.StatusCode
-				}
-
-				logging.LogAPIUpdateFailureByName(subCtx, JamfProResourceAccount, resourceName, apiErrByName.Error(), apiErrByNameCode)
-				return retry.RetryableError(apiErrByName)
-			}
-		} else {
-			logging.LogAPIUpdateSuccess(subCtx, JamfProResourceAccount, resourceID, resourceName)
+			// If updating by ID fails, attempt to update by Name
+			return retry.RetryableError(apiErr)
 		}
-		return nil
-	})
-
-	// Send error to diag.diags
-	if err != nil {
-		logging.LogAPIDeleteFailedAfterRetry(subCtx, JamfProResourceAccount, resourceID, resourceName, err.Error(), apiErrorCode)
-		diags = append(diags, diag.FromErr(err)...)
-		return diags
-	}
-
-	// Retry reading the Site to synchronize the Terraform state
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProAccountRead(subCtx, d, meta)
-		if len(readDiags) > 0 {
-			logging.LogTFStateSyncFailedAfterRetry(subSyncCtx, JamfProResourceAccount, resourceID, readDiags[0].Summary)
-			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
-		}
+		// Successfully updated the resource, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		logging.LogTFStateSyncFailure(subSyncCtx, JamfProResourceAccount, err.Error())
-		return diag.FromErr(err)
-	} else {
-		logging.LogTFStateSyncSuccess(subSyncCtx, JamfProResourceAccount, resourceID)
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Account '%s' (ID: %s) after retries: %v", resource.Name, resourceID, err))
 	}
 
-	return nil
+	// Read the resource to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProAccountRead(ctx, d, meta)
+	if len(readDiags) > 0 {
+		diags = append(diags, readDiags...)
+	}
+
+	return diags
 }
 
 // ResourceJamfProAccountDelete is responsible for deleting a Jamf Pro account .
 func ResourceJamfProAccountDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize api client
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Initialize the logging subsystem for the delete operation
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemDelete, hclog.Info)
-
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
-	resourceName := d.Get("name").(string)
-	var apiErrorCode int
 
 	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		// Handle conversion error with structured logging
-		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceAccount, resourceID, err.Error())
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
 	// Use the retry function for the delete operation with appropriate timeout
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// Delete By ID
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
+		// Attempt to delete by ID
 		apiErr := conn.DeleteAccountByID(resourceIDInt)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*.APIError); ok {
-				apiErrorCode = apiError.StatusCode
-			}
-			logging.LogAPIDeleteFailureByID(subCtx, JamfProResourceAccount, resourceID, resourceName, apiErr.Error(), apiErrorCode)
-
-			// If Delete by ID fails then try Delete by Name
-			apiErr = conn.DeleteAccountByName(resourceName)
-			if apiErr != nil {
-				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErr.(*.APIError); ok {
-					apiErrByNameCode = apiErrorByName.StatusCode
-				}
-
-				logging.LogAPIDeleteFailureByName(subCtx, JamfProResourceAccount, resourceName, apiErr.Error(), apiErrByNameCode)
-				return retry.RetryableError(apiErr)
+			// If deleting by ID fails, attempt to delete by Name
+			resourceName := d.Get("name").(string)
+			apiErrByName := conn.DeleteAccountByName(resourceName)
+			if apiErrByName != nil {
+				// If deletion by name also fails, return a retryable error
+				return retry.RetryableError(apiErrByName)
 			}
 		}
+		// Successfully deleted the resource, exit the retry loop
 		return nil
 	})
 
-	// Send error to diag.diags
 	if err != nil {
-		logging.LogAPIDeleteFailedAfterRetry(subCtx, JamfProResourceAccount, resourceID, resourceName, err.Error(), apiErrorCode)
-		diags = append(diags, diag.FromErr(err)...)
-		return diags
+		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Account '%s' (ID: %s) after retries: %v", d.Get("extension").(string), resourceID, err))
 	}
-
-	logging.LogAPIDeleteSuccess(subCtx, JamfProResourceAccount, resourceID, resourceName)
 
 	// Clear the ID from the Terraform state as the resource has been deleted
 	d.SetId("")
 
-	return nil
+	return diags
 }
