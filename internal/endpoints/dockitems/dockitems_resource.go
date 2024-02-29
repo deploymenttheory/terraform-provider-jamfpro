@@ -3,7 +3,6 @@ package dockitems
 
 import (
 	"context"
-	"encoding/xml"
 	"fmt"
 	"strconv"
 	"time"
@@ -78,29 +77,6 @@ func ResourceJamfProDockItems() *schema.Resource {
 	}
 }
 
-const (
-	JamfProResourceDockItem = "Dock Item"
-)
-
-// constructJamfProDockItem constructs a ResourceDockItem object from the provided schema data.
-func constructJamfProDockItem(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceDockItem, error) {
-	dockItem := &jamfpro.ResourceDockItem{
-		Name:     d.Get("name").(string),
-		Type:     d.Get("type").(string),
-		Path:     d.Get("path").(string),
-		Contents: (d.Get("contents").(string)),
-	}
-
-	// Serialize and pretty-print the site object as XML
-	resourceXML, err := xml.MarshalIndent(dockItem, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Dock Item '%s' to XML: %v", dockItem.Name, err)
-	}
-	fmt.Printf("Constructed Jamf Pro Dock Item XML:\n%s\n", string(resourceXML))
-
-	return dockItem, nil
-}
-
 // ResourceJamfProDockItemsCreate is responsible for creating a new Jamf Pro Dock Item in the remote system.
 // The function:
 // 1. Constructs the dock item data using the provided Terraform configuration.
@@ -119,7 +95,7 @@ func ResourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData,
 	var diags diag.Diagnostics
 
 	// Construct the resource object
-	resource, err := constructJamfProDockItem(ctx, d)
+	resource, err := constructJamfProDockItem(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Dock Item: %v", err))
 	}
@@ -238,7 +214,7 @@ func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData,
 	}
 
 	// Construct the resource object
-	resource, err := constructJamfProDockItem(ctx, d)
+	resource, err := constructJamfProDockItem(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Dock Item for update: %v", err))
 	}
