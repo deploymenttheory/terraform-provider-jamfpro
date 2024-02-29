@@ -2,7 +2,6 @@
 package advancedcomputersearches
 
 import (
-	"context"
 	"encoding/xml"
 	"fmt"
 
@@ -11,7 +10,7 @@ import (
 )
 
 // constructJamfProAdvancedComputerSearch constructs an advanced computer search object for create and update operations.
-func constructJamfProAdvancedComputerSearch(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceAdvancedComputerSearch, error) {
+func constructJamfProAdvancedComputerSearch(d *schema.ResourceData) (*jamfpro.ResourceAdvancedComputerSearch, error) {
 	search := &jamfpro.ResourceAdvancedComputerSearch{
 		Name:   d.Get("name").(string),
 		ViewAs: d.Get("view_as").(string),

@@ -145,7 +145,7 @@ func ResourceJamfProAdvancedMobileDeviceSearchCreate(ctx context.Context, d *sch
 	var diags diag.Diagnostics
 
 	// Construct the resource object
-	resource, err := constructJamfProAdvancedMobileDeviceSearch(ctx, d)
+	resource, err := constructJamfProAdvancedMobileDeviceSearch(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Advanced Mobile Device Search: %v", err))
 	}
@@ -302,7 +302,7 @@ func ResourceJamfProAdvancedMobileDeviceSearchUpdate(ctx context.Context, d *sch
 	}
 
 	// Construct the resource object
-	resource, err := constructJamfProAdvancedMobileDeviceSearch(ctx, d)
+	resource, err := constructJamfProAdvancedMobileDeviceSearch(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Advanced Mobile Device Search for update: %v", err))
 	}

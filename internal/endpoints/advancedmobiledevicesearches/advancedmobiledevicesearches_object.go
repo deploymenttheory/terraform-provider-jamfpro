@@ -2,7 +2,6 @@
 package advancedmobiledevicesearches
 
 import (
-	"context"
 	"encoding/xml"
 	"fmt"
 
@@ -11,7 +10,7 @@ import (
 )
 
 // constructJamfProAdvancedMobileDeviceSearch constructs a mobile device search object for create and update operations.
-func constructJamfProAdvancedMobileDeviceSearch(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceAdvancedMobileDeviceSearch, error) {
+func constructJamfProAdvancedMobileDeviceSearch(d *schema.ResourceData) (*jamfpro.ResourceAdvancedMobileDeviceSearch, error) {
 	search := &jamfpro.ResourceAdvancedMobileDeviceSearch{
 		Name:   d.Get("name").(string),
 		ViewAs: d.Get("view_as").(string),
