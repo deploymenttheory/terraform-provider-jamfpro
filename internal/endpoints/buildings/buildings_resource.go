@@ -120,7 +120,7 @@ func ResourceJamfProBuildingCreate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Site: %v", err))
 	}
 
-	// Retry the API call to create the site in Jamf Pro
+	// Retry the API call to create the resource in Jamf Pro
 	var creationResponse *jamfpro.ResponseBuildingCreate
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
