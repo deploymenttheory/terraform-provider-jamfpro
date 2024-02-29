@@ -2,7 +2,6 @@
 package computergroups
 
 import (
-	"context"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -10,7 +9,7 @@ import (
 )
 
 // constructJamfProComputerGroup constructs a ResourceComputerGroup object from the provided schema data.
-func constructJamfProComputerGroup(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceComputerGroup, error) {
+func constructJamfProComputerGroup(d *schema.ResourceData) (*jamfpro.ResourceComputerGroup, error) {
 	group := &jamfpro.ResourceComputerGroup{
 		Name:    d.Get("name").(string),
 		IsSmart: d.Get("is_smart").(bool),
