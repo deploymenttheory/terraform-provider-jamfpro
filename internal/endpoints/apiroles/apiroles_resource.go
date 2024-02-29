@@ -71,7 +71,7 @@ func ResourceJamfProAPIRolesCreate(ctx context.Context, d *schema.ResourceData, 
 	var diags diag.Diagnostics
 
 	// Construct the resource object
-	resource, err := constructJamfProApiRole(ctx, d)
+	resource, err := constructJamfProApiRole(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Site: %v", err))
 	}
@@ -176,7 +176,7 @@ func ResourceJamfProAPIRolesUpdate(ctx context.Context, d *schema.ResourceData, 
 	resourceID := d.Id()
 
 	// Construct the resource object
-	resource, err := constructJamfProApiRole(ctx, d)
+	resource, err := constructJamfProApiRole(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro API Role for update: %v", err))
 	}

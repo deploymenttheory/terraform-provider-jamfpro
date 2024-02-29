@@ -2,19 +2,13 @@
 package policies
 
 import (
-	"context"
-	"encoding/xml"
-	"fmt"
-	"log"
-
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // constructJamfProPolicy creates a new ResourcePolicy struct from the given data.
-func constructJamfProPolicy(ctx context.Context, data *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
+func constructJamfProPolicy(data *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	// Initialize a new ResourcePolicy struct.
 	policy := &jamfpro.ResourcePolicy{
 		General:              constructGeneral(data),
@@ -31,19 +25,6 @@ func constructJamfProPolicy(ctx context.Context, data *schema.ResourceData) (*ja
 		DiskEncryption:       constructDiskEncryption(data),
 		Reboot:               constructReboot(data),
 	}
-
-	// Marshal the jamf pro policy object into XML for logging
-	xmlData, err := xml.MarshalIndent(policy, "", "  ")
-	if err != nil {
-		// Handle the error if XML marshaling fails
-		log.Printf("[ERROR] Error marshaling jamf pro policy object to XML: %s", err)
-		return nil, fmt.Errorf("error marshaling jamf pro policy object to XML: %v", err)
-	}
-
-	// Log the XML formatted search object
-	tflog.Debug(ctx, fmt.Sprintf("[DEBUG] Constructed jamf pro policy Object:\n%s", string(xmlData)))
-
-	tflog.Debug(ctx, fmt.Sprintf("[DEBUG] Successfully constructed jamf pro policy with name: %s", policy.General.Name))
 
 	return policy, nil // Return the policy object and no error
 }

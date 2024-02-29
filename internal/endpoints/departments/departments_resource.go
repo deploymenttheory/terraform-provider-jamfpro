@@ -3,7 +3,6 @@ package departments
 
 import (
 	"context"
-	"encoding/xml"
 	"fmt"
 	"time"
 
@@ -51,21 +50,6 @@ func ResourceJamfProDepartments() *schema.Resource {
 	}
 }
 
-// constructJamfProDepartment constructs a Jamf Pro Department struct from Terraform resource data.
-func constructJamfProDepartment(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceDepartment, error) {
-	department := &jamfpro.ResourceDepartment{
-		Name: d.Get("name").(string),
-	}
-
-	resourceXML, err := xml.MarshalIndent(department, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Department '%s' to XML: %v", department.Name, err)
-	}
-	fmt.Printf("Constructed Jamf Pro Department XML:\n%s\n", string(resourceXML))
-
-	return department, nil
-}
-
 // ResourceJamfProDepartmentsCreate is responsible for creating a new Jamf Pro Department in the remote system.
 // The function:
 // 1. Constructs the attribute data using the provided Terraform configuration.
@@ -86,7 +70,7 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 	resourceName := d.Get("name").(string)
 
 	// Construct the department object
-	department, err := constructJamfProDepartment(ctx, d)
+	department, err := constructJamfProDepartment(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Department '%s': %v", resourceName, err))
 	}
@@ -174,7 +158,7 @@ func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 	resourceName := d.Get("name").(string)
 
 	// Construct the resource object
-	department, err := constructJamfProDepartment(ctx, d)
+	department, err := constructJamfProDepartment(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error constructing Jamf Pro Department '%s': %v", resourceName, err))
 	}

@@ -567,7 +567,7 @@ func ResourceJamfProComputerPrestageCreate(ctx context.Context, d *schema.Resour
 	var diags diag.Diagnostics
 
 	// Construct the resource object
-	resource, err := constructJamfProComputerPrestage(ctx, d)
+	resource, err := constructJamfProComputerPrestage(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Prestage: %v", err))
 	}
@@ -783,7 +783,7 @@ func ResourceJamfProComputerPrestageUpdate(ctx context.Context, d *schema.Resour
 	resourceID := d.Id()
 
 	// Construct the resource object
-	resource, err := constructJamfProComputerPrestage(ctx, d)
+	resource, err := constructJamfProComputerPrestage(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Disk Computer Prestage for update: %v", err))
 	}

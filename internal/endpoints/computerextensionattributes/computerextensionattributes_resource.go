@@ -129,7 +129,7 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 	var diags diag.Diagnostics
 
 	// Construct the resource object
-	resource, err := constructJamfProComputerExtensionAttribute(ctx, d)
+	resource, err := constructJamfProComputerExtensionAttribute(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Printer: %v", err))
 	}
@@ -255,7 +255,7 @@ func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 	}
 
 	// Construct the resource object
-	resource, err := constructJamfProComputerExtensionAttribute(ctx, d)
+	resource, err := constructJamfProComputerExtensionAttribute(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Extension Attribute for update: %v", err))
 	}

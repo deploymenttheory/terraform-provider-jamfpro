@@ -2,7 +2,6 @@
 package apiintegrations
 
 import (
-	"context"
 	"encoding/xml"
 	"fmt"
 
@@ -11,7 +10,7 @@ import (
 )
 
 // constructJamfProApiIntegration constructs a ResourceApiIntegration object from the provided schema data and serializes it to XML.
-func constructJamfProApiIntegration(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceApiIntegration, error) {
+func constructJamfProApiIntegration(d *schema.ResourceData) (*jamfpro.ResourceApiIntegration, error) {
 	integration := &jamfpro.ResourceApiIntegration{
 		DisplayName:                d.Get("display_name").(string),
 		Enabled:                    d.Get("enabled").(bool),

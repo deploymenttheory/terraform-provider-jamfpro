@@ -1,5 +1,5 @@
-// advancedusersearches_data_source.go
-package advancedusersearches
+// advancedcomputersearches_data_source.go
+package advancedcomputersearches
 
 import (
 	"context"
@@ -13,10 +13,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProAdvancedUserSearches provides information about a specific API integration by its ID or Name.
-func DataSourceJamfProAdvancedUserSearches() *schema.Resource {
+// DataSourceJamfProAdvancedComputerSearches provides information about a specific API integration by its ID or Name.
+func DataSourceJamfProAdvancedComputerSearches() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceJamfProAdvancedUserSearchesRead,
+		ReadContext: DataSourceJamfProAdvancedComputerSearchesRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
@@ -26,13 +26,13 @@ func DataSourceJamfProAdvancedUserSearches() *schema.Resource {
 			"name": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The unique name of the advanced mobile user search.",
+				Description: "The unique name of the advanced computer search.",
 			},
 		},
 	}
 }
 
-// DataSourceJamfProAdvancedUserSearchesRead fetches the details of a specific API integration
+// DataSourceJamfProAdvancedComputerSearchesRead fetches the details of a specific API integration
 // from Jamf Pro using either its unique Name or its Id. The function prioritizes the 'display_name' attribute over the 'id'
 // attribute for fetching details. If neither 'display_name' nor 'id' is provided, it returns an error.
 // Once the details are fetched, they are set in the data source's state.
@@ -44,7 +44,7 @@ func DataSourceJamfProAdvancedUserSearches() *schema.Resource {
 //
 // Returns:
 // - diag.Diagnostics: Returns any diagnostics (errors or warnings) encountered during the function's execution.
-func DataSourceJamfProAdvancedUserSearchesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func DataSourceJamfProAdvancedComputerSearchesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -62,12 +62,12 @@ func DataSourceJamfProAdvancedUserSearchesRead(ctx context.Context, d *schema.Re
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	var resource *jamfpro.ResourceAdvancedUserSearch
+	var resource *jamfpro.ResourceAdvancedComputerSearch
 
 	// Read operation with retry
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		resource, apiErr = conn.GetAdvancedUserSearchByID(resourceIDInt)
+		resource, apiErr = conn.GetAdvancedComputerSearchByID(resourceIDInt)
 		if apiErr != nil {
 			// Convert any API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)
@@ -78,14 +78,14 @@ func DataSourceJamfProAdvancedUserSearchesRead(ctx context.Context, d *schema.Re
 
 	if err != nil {
 		// Handle the final error after all retries have been exhausted
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Advanced User Search with ID '%s' after retries: %v", resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Advanced Computer Search with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	// Check if resource data exists and set the Terraform state
 	if resource != nil {
 		d.SetId(resourceID) // Confirm the ID in the Terraform state
 		if err := d.Set("name", resource.Name); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Advanced User Search with ID '%s': %v", resourceID, err))...)
+			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Advanced Computer Search with ID '%s': %v", resourceID, err))...)
 		}
 	} else {
 		d.SetId("") // Data not found, unset the ID in the Terraform state

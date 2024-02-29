@@ -215,7 +215,7 @@ func ResourceJamfProComputerGroupsCreate(ctx context.Context, d *schema.Resource
 	var diags diag.Diagnostics
 
 	// Construct the resource object
-	resource, err := constructJamfProComputerGroup(ctx, d)
+	resource, err := constructJamfProComputerGroup(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Group: %v", err))
 	}
@@ -360,7 +360,7 @@ func ResourceJamfProComputerGroupsUpdate(ctx context.Context, d *schema.Resource
 	}
 
 	// Construct the resource object
-	resource, err := constructJamfProComputerGroup(ctx, d)
+	resource, err := constructJamfProComputerGroup(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Group for update: %v", err))
 	}

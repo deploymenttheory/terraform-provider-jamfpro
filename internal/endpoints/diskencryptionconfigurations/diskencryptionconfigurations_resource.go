@@ -3,18 +3,14 @@ package diskencryptionconfigurations
 
 import (
 	"context"
-	"encoding/xml"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -130,48 +126,6 @@ const (
 	JamfProResourceDiskEncryptionConfiguration = "Disk Encryption Configuration"
 )
 
-// constructDiskEncryptionConfiguration constructs a ResourceDiskEncryptionConfiguration object from the provided schema data.
-func constructDiskEncryptionConfiguration(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceDiskEncryptionConfiguration, error) {
-	diskEncryptionConfig := &jamfpro.ResourceDiskEncryptionConfiguration{}
-
-	// Utilize type assertion helper functions for direct field extraction
-	diskEncryptionConfig.Name = util.GetStringFromInterface(d.Get("name"))
-	diskEncryptionConfig.KeyType = util.GetStringFromInterface(d.Get("key_type"))
-	diskEncryptionConfig.FileVaultEnabledUsers = util.GetStringFromInterface(d.Get("file_vault_enabled_users"))
-
-	// Handling the institutional_recovery_key which is a list of maps
-	if irk, ok := d.Get("institutional_recovery_key").([]interface{}); ok && len(irk) > 0 {
-		institutionalRecoveryKeyMap := irk[0].(map[string]interface{})
-		// Do not need to base64 as within tf you use the filebase64 method when referencing the certificate.
-		certificatePayloadData := util.GetStringFromMap(institutionalRecoveryKeyMap, "data")
-
-		diskEncryptionConfig.InstitutionalRecoveryKey = &jamfpro.DiskEncryptionConfigurationInstitutionalRecoveryKey{
-			Key:             util.GetStringFromMap(institutionalRecoveryKeyMap, "key"),
-			CertificateType: util.GetStringFromMap(institutionalRecoveryKeyMap, "certificate_type"),
-			Password:        util.GetStringFromMap(institutionalRecoveryKeyMap, "password"),
-			Data:            certificatePayloadData,
-		}
-	} else {
-		// Set InstitutionalRecoveryKey to nil or a default value if it's not provided
-		diskEncryptionConfig.InstitutionalRecoveryKey = nil
-	}
-
-	// Marshal the search object into XML for logging
-	xmlData, err := xml.MarshalIndent(diskEncryptionConfig, "", "  ")
-	if err != nil {
-		// Handle the error if XML marshaling fails
-		log.Printf("[ERROR] Error marshaling DiskEncryptionConfiguration object to XML: %s", err)
-		return nil, fmt.Errorf("error marshaling DiskEncryptionConfiguration object to XML: %v", err)
-	}
-
-	// Log the XML formatted search object
-	tflog.Debug(ctx, fmt.Sprintf("Constructed DiskEncryptionConfiguration Object:\n%s", string(xmlData)))
-
-	log.Printf("[INFO] Successfully constructed DiskEncryptionConfiguration with name: %s", diskEncryptionConfig.Name)
-
-	return diskEncryptionConfig, nil
-}
-
 // ResourceJamfProDiskEncryptionConfigurationsCreate is responsible for creating a new Jamf Pro Disk Encryption Configuration in the remote system.
 // The function:
 // 1. Constructs the disk encryption configuration data using the provided Terraform configuration.
@@ -190,7 +144,7 @@ func ResourceJamfProDiskEncryptionConfigurationsCreate(ctx context.Context, d *s
 	var diags diag.Diagnostics
 
 	// Construct the resource object
-	resource, err := constructDiskEncryptionConfiguration(ctx, d)
+	resource, err := constructDiskEncryptionConfiguration(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Disk Encryption Configuration: %v", err))
 	}
@@ -310,7 +264,7 @@ func ResourceJamfProDiskEncryptionConfigurationsUpdate(ctx context.Context, d *s
 	}
 
 	// Construct the resource object
-	resource, err := constructDiskEncryptionConfiguration(ctx, d)
+	resource, err := constructDiskEncryptionConfiguration(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Disk Encryption Configuration for update: %v", err))
 	}

@@ -2,7 +2,6 @@
 package computerextensionattributes
 
 import (
-	"context"
 	"encoding/xml"
 	"fmt"
 	"log"
@@ -12,7 +11,7 @@ import (
 )
 
 // constructJamfProComputerExtensionAttribute constructs a ResourceComputerExtensionAttribute object from the provided schema data.
-func constructJamfProComputerExtensionAttribute(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceComputerExtensionAttribute, error) {
+func constructJamfProComputerExtensionAttribute(d *schema.ResourceData) (*jamfpro.ResourceComputerExtensionAttribute, error) {
 	attribute := &jamfpro.ResourceComputerExtensionAttribute{
 		Name:             d.Get("name").(string),
 		Enabled:          d.Get("enabled").(bool),

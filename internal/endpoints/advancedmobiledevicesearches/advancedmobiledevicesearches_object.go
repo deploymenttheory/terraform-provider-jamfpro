@@ -1,5 +1,5 @@
-// advancedusersearches_object.go
-package advancedusersearches
+// advancedmobiledevicesearches_object.go
+package advancedmobiledevicesearches
 
 import (
 	"encoding/xml"
@@ -9,10 +9,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// constructJamfProAdvancedUserSearch constructs an advanced user search object for create and update operations.
-func constructJamfProAdvancedUserSearch(d *schema.ResourceData) (*jamfpro.ResourceAdvancedUserSearch, error) {
-	search := &jamfpro.ResourceAdvancedUserSearch{
-		Name: d.Get("name").(string),
+// constructJamfProAdvancedMobileDeviceSearch constructs a mobile device search object for create and update operations.
+func constructJamfProAdvancedMobileDeviceSearch(d *schema.ResourceData) (*jamfpro.ResourceAdvancedMobileDeviceSearch, error) {
+	search := &jamfpro.ResourceAdvancedMobileDeviceSearch{
+		Name:   d.Get("name").(string),
+		ViewAs: d.Get("view_as").(string),
+		Sort1:  d.Get("sort1").(string),
+		Sort2:  d.Get("sort2").(string),
+		Sort3:  d.Get("sort3").(string),
 	}
 
 	// Handle 'criteria' field
@@ -59,9 +63,9 @@ func constructJamfProAdvancedUserSearch(d *schema.ResourceData) (*jamfpro.Resour
 	// Serialize and pretty-print the search object as XML for logging
 	xmlData, err := xml.MarshalIndent(search, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Advanced User Search '%s' to XML: %v", search.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Advanced Mobile Device Search '%s' to XML: %v", search.Name, err)
 	}
-	fmt.Printf("[DEBUG] Constructed Advanced User Search Object:\n%s\n", string(xmlData))
+	fmt.Printf("Constructed Advanced Mobile Device Search XML:\n%s\n", string(xmlData))
 
 	return search, nil
 }

@@ -3,7 +3,6 @@ package sites
 
 import (
 	"context"
-	"encoding/xml"
 	"fmt"
 	"strconv"
 	"time"
@@ -24,10 +23,10 @@ func ResourceJamfProSites() *schema.Resource {
 		UpdateContext: ResourceJamfProSitesUpdate,
 		DeleteContext: ResourceJamfProSitesDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Second),
-			Read:   schema.DefaultTimeout(30 * time.Second),
-			Update: schema.DefaultTimeout(30 * time.Second),
-			Delete: schema.DefaultTimeout(30 * time.Second),
+			Create: schema.DefaultTimeout(15 * time.Second),
+			Read:   schema.DefaultTimeout(15 * time.Second),
+			Update: schema.DefaultTimeout(15 * time.Second),
+			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -51,21 +50,6 @@ const (
 	JamfProResourceSite = "Site"
 )
 
-// constructJamfProSite constructs a SharedResourceSite object from the provided schema data.
-func constructJamfProSite(ctx context.Context, d *schema.ResourceData) (*jamfpro.SharedResourceSite, error) {
-	site := &jamfpro.SharedResourceSite{
-		Name: d.Get("name").(string),
-	}
-
-	resourceXML, err := xml.MarshalIndent(site, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Site '%s' to XML: %v", site.Name, err)
-	}
-	fmt.Printf("Constructed Jamf Pro Site XML:\n%s\n", string(resourceXML))
-
-	return site, nil
-}
-
 // ResourceJamfPrositesCreate is responsible for creating a new Jamf Pro Site in the remote system.
 // The function:
 // 1. Constructs the attribute data using the provided Terraform configuration.
@@ -84,7 +68,7 @@ func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, met
 	var diags diag.Diagnostics
 
 	// Construct the resource object
-	resource, err := constructJamfProSite(ctx, d)
+	resource, err := constructJamfProSite(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Site: %v", err))
 	}
@@ -193,7 +177,7 @@ func ResourceJamfProSitesUpdate(ctx context.Context, d *schema.ResourceData, met
 	}
 
 	// Construct the resource object
-	resource, err := constructJamfProSite(ctx, d)
+	resource, err := constructJamfProSite(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Site for update: %v", err))
 	}

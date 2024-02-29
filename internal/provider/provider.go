@@ -17,7 +17,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accountgroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accounts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/filesharedistributionpoints"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/macosconfigurationprofiles"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/advancedcomputersearches"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/advancedmobiledevicesearches"
@@ -120,11 +119,17 @@ func Provider() *schema.Provider {
 				Default:     "console", // Default to console for human-readable format
 				Description: "The output format of the logs. Use 'JSON' for JSON format, 'console' for human-readable format.",
 			},
+			"log_console_separator": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     " ", // Set a default value for the separator
+				Description: "The separator character used in console log output.",
+			},
 			"hide_sensitive_data": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Default:     false, // Default to not hiding sensitive data in logs
-				Description: "Define whether sensitive fields should be hidden in logs.",
+				Default:     true,
+				Description: "Define whether sensitive fields should be hidden in logs. Default to hiding sensitive data in logs",
 			},
 			"max_retry_attempts": {
 				Type:        schema.TypeInt,
@@ -212,7 +217,6 @@ func Provider() *schema.Provider {
 			"jamfpro_file_share_distribution_point": filesharedistributionpoints.ResourceJamfProFileShareDistributionPoints(),
 			"jamfpro_site":                          sites.ResourceJamfProSites(),
 			"jamfpro_script":                        scripts.ResourceJamfProScripts(),
-			"jamfpro_macos_configuration_profile":   macosconfigurationprofiles.ResourceJamfProMacOSConfigurationProfiles(),
 			"jamfpro_policy":                        policies.ResourceJamfProPolicies(),
 			"jamfpro_printer":                       printers.ResourceJamfProPrinters(),
 		},
@@ -263,14 +267,20 @@ func Provider() *schema.Provider {
 			},
 			ClientOptions: httpclient.ClientOptions{
 				LogLevel:                  d.Get("log_level").(string),
+				LogOutputFormat:           d.Get("log_output_format").(string),
+				LogConsoleSeparator:       d.Get("log_console_separator").(string),
+				HideSensitiveData:         d.Get("hide_sensitive_data").(bool),
 				MaxRetryAttempts:          d.Get("max_retry_attempts").(int),
 				EnableDynamicRateLimiting: d.Get("enable_dynamic_rate_limiting").(bool),
 				MaxConcurrentRequests:     d.Get("max_concurrent_requests").(int),
-				TokenRefreshBufferPeriod:  time.Duration(d.Get("token_refresh_buffer_period").(int)) * time.Second,
+				TokenRefreshBufferPeriod:  time.Duration(d.Get("token_refresh_buffer_period").(int)) * time.Minute, // Note the change to time.Minute
 				TotalRetryDuration:        time.Duration(d.Get("total_retry_duration").(int)) * time.Second,
 				CustomTimeout:             time.Duration(d.Get("custom_timeout").(int)) * time.Second,
 			},
 		}
+
+		// Debug print before building the client
+		fmt.Printf("Debug: Building HTTP client with config: %+v\n", httpClientConfig)
 
 		httpclient, err := jamfpro.BuildClient(httpClientConfig)
 		if err != nil {
