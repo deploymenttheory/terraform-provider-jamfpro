@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
+	
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
@@ -455,7 +455,7 @@ func ResourceJamfProAccountCreate(ctx context.Context, d *schema.ResourceData, m
 		creationResponse, apiErr = conn.CreateAccount(account)
 		if apiErr != nil {
 			// Extract and log the API error code if available
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 			logging.LogAPICreateFailedAfterRetry(subCtx, JamfProResourceAccount, resourceName, apiErr.Error(), apiErrorCode)
@@ -686,7 +686,7 @@ func ResourceJamfProAccountUpdate(ctx context.Context, d *schema.ResourceData, m
 	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		_, apiErr := conn.UpdateAccountByID(resourceIDInt, account)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 
@@ -695,7 +695,7 @@ func ResourceJamfProAccountUpdate(ctx context.Context, d *schema.ResourceData, m
 			_, apiErrByName := conn.UpdateAccountByName(resourceName, account)
 			if apiErrByName != nil {
 				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErrByName.(*http_client.APIError); ok {
+				if apiErrorByName, ok := apiErrByName.(*.APIError); ok {
 					apiErrByNameCode = apiErrorByName.StatusCode
 				}
 
@@ -766,7 +766,7 @@ func ResourceJamfProAccountDelete(ctx context.Context, d *schema.ResourceData, m
 		// Delete By ID
 		apiErr := conn.DeleteAccountByID(resourceIDInt)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 			logging.LogAPIDeleteFailureByID(subCtx, JamfProResourceAccount, resourceID, resourceName, apiErr.Error(), apiErrorCode)
@@ -775,7 +775,7 @@ func ResourceJamfProAccountDelete(ctx context.Context, d *schema.ResourceData, m
 			apiErr = conn.DeleteAccountByName(resourceName)
 			if apiErr != nil {
 				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErr.(*http_client.APIError); ok {
+				if apiErrorByName, ok := apiErr.(*.APIError); ok {
 					apiErrByNameCode = apiErrorByName.StatusCode
 				}
 

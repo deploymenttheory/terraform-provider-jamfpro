@@ -1,6 +1,6 @@
 
 // Script example an uploaded script taken from a file path with parameters
-resource "jamfpro_scripts" "scripts_0001" {
+resource "jamfpro_script" "scripts_0001" {
   name            = "tf-example-script-fileupload"
   script_contents = file("support_files/scripts/Add or Remove Group Membership.zsh")
   os_requirements = "13"
@@ -14,7 +14,7 @@ resource "jamfpro_scripts" "scripts_0001" {
 }
 
 // Script example with an inline script
-resource "jamfpro_scripts" "scripts_0002" {
+resource "jamfpro_script" "scripts_0002" {
   name            = "tf-example-script-inline"
   script_contents = "hello world"
   os_requirements = "13.1"

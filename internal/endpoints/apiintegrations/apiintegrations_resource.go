@@ -4,14 +4,11 @@ package apiintegrations
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -78,125 +75,47 @@ func ResourceJamfProApiIntegrations() *schema.Resource {
 	}
 }
 
-func constructJamfProApiIntegration(d *schema.ResourceData) (*jamfpro.ResourceApiIntegration, error) {
-	integration := &jamfpro.ResourceApiIntegration{}
-
-	// Utilize helper functions for direct field extraction
-	integration.DisplayName = util.GetStringFromInterface(d.Get("display_name"))
-	integration.Enabled = util.GetBoolFromInterface(d.Get("enabled"))
-	integration.AccessTokenLifetimeSeconds = util.GetIntFromInterface(d.Get("access_token_lifetime_seconds"))
-
-	// Handle 'authorization_scopes' field
-	if v, ok := d.GetOk("authorization_scopes"); ok {
-		integration.AuthorizationScopes = convertToStringSlice(v.(*schema.Set))
-	}
-
-	// Log the successful construction
-	log.Printf("[INFO] Successfully constructed ApiIntegration with display name: %s", integration.DisplayName)
-
-	return integration, nil
-}
-
-// Helper function to generate diagnostics based on the error type..
-func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
-	var diags diag.Diagnostics
-	resourceName, exists := d.GetOk("name")
-	if !exists {
-		resourceName = "unknown"
-	}
-
-	// Handle the APIError in the diagnostic.
-	if apiErr, ok := err.(*http_client.APIError); ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
-		})
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   err.Error(),
-		})
-	}
-	return diags
-}
-
-// convertToStringSlice is a helper function that converts a schema.Set to a string slice.
-func convertToStringSlice(set *schema.Set) []string {
-	interfaceSlice := set.List()
-	stringSlice := make([]string, len(interfaceSlice))
-	for i, v := range interfaceSlice {
-		stringSlice[i] = v.(string)
-	}
-	return stringSlice
-}
-
 // ResourceJamfProApiIntegrationsCreate is responsible for creating a new Jamf Pro API Integration in the remote system.
 func ResourceJamfProApiIntegrationsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Assert the meta interface to the expected APIClient type
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the create operation
-	var createdIntegration *jamfpro.ResourceApiIntegration
-	var err error
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		// Construct the API integration
-		integration, err := constructJamfProApiIntegration(d)
-		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the api integration for terraform create: %w", err))
-		}
+	// Initialize variables
+	var diags diag.Diagnostics
 
-		// Log the details of the integration that is about to be created
-		log.Printf("[INFO] Attempting to create ApiIntegration with display name: %s", integration.DisplayName)
-
-		// Directly call the API to create the resource
-		createdIntegration, err = conn.CreateApiIntegration(integration)
-		if err != nil {
-			// Log the error from the API call
-			log.Printf("[ERROR] Error creating ApiIntegration with display name: %s. Error: %s", integration.DisplayName, err)
-
-			// Check if the error is an APIError
-			if apiErr, ok := err.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message))
-			}
-			// For simplicity, we're considering all other errors as retryable
-			return retry.RetryableError(err)
-		}
-
-		// Log the response from the API call
-		log.Printf("[INFO] Successfully created ApiIntegration with ID: %d and display name: %s", createdIntegration.ID, createdIntegration.DisplayName)
-
-		return nil
-	})
-
+	// Construct the resource object
+	resource, err := constructJamfProApiIntegration(ctx, d)
 	if err != nil {
-		// If there's an error while creating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "create")
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Site: %v", err))
 	}
 
-	// Set the ID of the created resource in the Terraform state
-	d.SetId(strconv.Itoa(createdIntegration.ID))
-
-	// Use the retry function for the read operation to update the Terraform state with the resource attributes
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProApiIntegrationsRead(ctx, d, meta)
-		if len(readDiags) > 0 {
-			// If readDiags is not empty, it means there's an error, so we retry
-			return retry.RetryableError(fmt.Errorf("failed to read the created resource"))
+	// Retry the API call to create the resource in Jamf Pro
+	var creationResponse *jamfpro.ResourceApiIntegration
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		var apiErr error
+		creationResponse, apiErr = conn.CreateApiIntegration(resource)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
 		}
+		// No error, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		// If there's an error while updating the state for the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update state for")
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro API Integration '%s' after retries: %v", resource.DisplayName, err))
+	}
+
+	// Set the resource ID in Terraform state
+	d.SetId(strconv.Itoa(creationResponse.ID))
+
+	// Read the resource to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProApiIntegrationsRead(ctx, d, meta)
+	if len(readDiags) > 0 {
+		diags = append(diags, readDiags...)
 	}
 
 	return diags
@@ -204,61 +123,51 @@ func ResourceJamfProApiIntegrationsCreate(ctx context.Context, d *schema.Resourc
 
 // ResourceJamfProApiIntegrationsRead is responsible for reading the current state of a Jamf Pro API Integration from the remote system.
 func ResourceJamfProApiIntegrationsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	var integration *jamfpro.ResourceApiIntegration
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
 
-	// Use the retry function for the read operation
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		integrationID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse integration ID: %v", convertErr))
-		}
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
+	}
 
-		// Try fetching the API integration using the ID
+	var resource *jamfpro.ResourceApiIntegration
+
+	// Read operation with retry
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		integration, apiErr = conn.GetApiIntegrationByID(integrationID)
+		resource, apiErr = conn.GetApiIntegrationByID(resourceIDInt)
 		if apiErr != nil {
-			// Handle the APIError
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-			}
-			// If fetching by ID fails, try fetching by Name
-			integrationName := d.Get("display_name").(string)
-			integration, apiErr = conn.GetApiIntegrationByName(integrationName)
-			if apiErr != nil {
-				// Handle the APIError
-				if apiError, ok := apiErr.(*http_client.APIError); ok {
-					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-				}
-				return retry.RetryableError(apiErr)
-			}
+			// Convert any API error into a retryable error to continue retrying
+			return retry.RetryableError(apiErr)
 		}
+		// Successfully read the resource, exit the retry loop
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while reading the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "read")
+		// Handle the final error after all retries have been exhausted
+		d.SetId("") // Remove from Terraform state if unable to read after retries
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro API Integration with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	// Map the configuration fields from the API response to a structured map
 	apiIntegrationData := map[string]interface{}{
-		"display_name":                  integration.DisplayName,
-		"enabled":                       integration.Enabled,
-		"access_token_lifetime_seconds": integration.AccessTokenLifetimeSeconds,
-		"app_type":                      integration.AppType,
-		"authorization_scopes":          integration.AuthorizationScopes,
-		"client_id":                     integration.ClientID,
+		"display_name":                  resource.DisplayName,
+		"enabled":                       resource.Enabled,
+		"access_token_lifetime_seconds": resource.AccessTokenLifetimeSeconds,
+		"app_type":                      resource.AppType,
+		"authorization_scopes":          resource.AuthorizationScopes,
+		"client_id":                     resource.ClientID,
 	}
 
 	// Set the structured map in the Terraform state
@@ -273,70 +182,48 @@ func ResourceJamfProApiIntegrationsRead(ctx context.Context, d *schema.ResourceD
 
 // ResourceJamfProApiIntegrationsUpdate is responsible for updating an existing Jamf Pro API Integration on the remote system.
 func ResourceJamfProApiIntegrationsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the update operation
-	var err error
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		// Construct the API integration
-		integration, err := constructJamfProApiIntegration(d)
-		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the api integration for terraform update: %w", err))
-		}
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
 
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		integrationID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse integration ID: %v", convertErr))
-		}
-
-		// Directly call the API to update the resource
-		_, apiErr := conn.UpdateApiIntegrationByID((integrationID), integration)
-		if apiErr != nil {
-			// Handle the APIError
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-			}
-			// If the update by ID fails, try updating by display name
-			integrationName := d.Get("display_name").(string)
-			_, apiErr = conn.UpdateApiIntegrationByName(integrationName, integration)
-			if apiErr != nil {
-				// Handle the APIError
-				if apiError, ok := apiErr.(*http_client.APIError); ok {
-					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-				}
-				return retry.RetryableError(apiErr)
-			}
-		}
-		return nil
-	})
-
-	// Handle error from the retry function
+	// Construct the resource object
+	resource, err := constructJamfProApiIntegration(ctx, d)
 	if err != nil {
-		// If there's an error while updating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update")
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro API Integration for update: %v", err))
 	}
 
-	// Use the retry function for the read operation to update the Terraform state
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProApiIntegrationsRead(ctx, d, meta)
-		if len(readDiags) > 0 {
-			return retry.RetryableError(fmt.Errorf("failed to update the Terraform state for the updated resource"))
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
+	}
+
+	// Update operations with retries
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+		_, apiErr := conn.UpdateApiIntegrationByID(resourceIDInt, resource)
+		if apiErr != nil {
+			// If updating by ID fails, attempt to update by Name
+			return retry.RetryableError(apiErr)
 		}
+		// Successfully updated the resource, exit the retry loop
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while updating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update")
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro API Integration '%s' (ID: %s) after retries: %v", resource.DisplayName, resourceID, err))
+	}
+
+	// Read the resource to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProApiIntegrationsRead(ctx, d, meta)
+	if len(readDiags) > 0 {
+		diags = append(diags, readDiags...)
 	}
 
 	return diags
@@ -344,40 +231,42 @@ func ResourceJamfProApiIntegrationsUpdate(ctx context.Context, d *schema.Resourc
 
 // ResourceJamfProApiIntegrationsDelete is responsible for deleting a Jamf Pro API Integration.
 func ResourceJamfProApiIntegrationsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the delete operation
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		integrationID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse integration ID: %v", convertErr))
-		}
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
 
-		// Directly call the API to delete the resource
-		apiErr := conn.DeleteApiIntegrationByID(integrationID)
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
+	}
+
+	// Use the retry function for the delete operation with appropriate timeout
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
+		// Attempt to delete by ID
+		apiErr := conn.DeleteApiIntegrationByID(resourceIDInt)
 		if apiErr != nil {
-			// If the delete by ID fails, try deleting by display name
-			integrationName := d.Get("display_name").(string)
-			apiErr = conn.DeleteApiIntegrationByName(integrationName)
-			if apiErr != nil {
-				return retry.RetryableError(apiErr)
+			// If deleting by ID fails, attempt to delete by Name
+			resourceName := d.Get("display_name").(string)
+			apiErrByName := conn.DeleteApiIntegrationByName(resourceName)
+			if apiErrByName != nil {
+				// If deletion by name also fails, return a retryable error
+				return retry.RetryableError(apiErrByName)
 			}
 		}
+		// Successfully deleted the resource, exit the retry loop
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while deleting the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "delete")
+		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro API Integration '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
 	}
 
 	// Clear the ID from the Terraform state as the resource has been deleted

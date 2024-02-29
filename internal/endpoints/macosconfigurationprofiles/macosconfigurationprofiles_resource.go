@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
+	
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
@@ -459,7 +459,7 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 		creationResponse, apiErr = conn.CreateMacOSConfigurationProfile(out)
 		if apiErr != nil {
 
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 			logging.LogAPICreateFailedAfterRetry(subCtx, JamfProResourceMacOSConfigurationProfile, resourceName, apiErr.Error(), apiErrorCode)
@@ -720,7 +720,7 @@ func ResourceJamfProMacOSConfigurationProfilesUpdate(ctx context.Context, d *sch
 	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		_, apiErr := conn.UpdateMacOSConfigurationProfileByID(resourceIDString, constructedPayload)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 
@@ -729,7 +729,7 @@ func ResourceJamfProMacOSConfigurationProfilesUpdate(ctx context.Context, d *sch
 			_, apiErrByName := conn.UpdateMacOSConfigurationProfileByName(resourceName, constructedPayload)
 			if apiErrByName != nil {
 				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErrByName.(*http_client.APIError); ok {
+				if apiErrorByName, ok := apiErrByName.(*.APIError); ok {
 					apiErrByNameCode = apiErrorByName.StatusCode
 				}
 
@@ -792,7 +792,7 @@ func ResourceJamfProMacOSConfigurationProfilesDelete(ctx context.Context, d *sch
 
 		apiErr := conn.DeleteMacOSConfigurationProfileByID(resourceIDInt)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				apiErrorCode = apiError.StatusCode
 			}
 			logging.LogAPIDeleteFailureByID(subCtx, JamfProResourceMacOSConfigurationProfile, resourceID, resourceName, apiErr.Error(), apiErrorCode)
@@ -800,7 +800,7 @@ func ResourceJamfProMacOSConfigurationProfilesDelete(ctx context.Context, d *sch
 			apiErr = conn.DeleteMacOSConfigurationProfileByName(resourceName)
 			if apiErr != nil {
 				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErr.(*http_client.APIError); ok {
+				if apiErrorByName, ok := apiErr.(*.APIError); ok {
 					apiErrByNameCode = apiErrorByName.StatusCode
 				}
 

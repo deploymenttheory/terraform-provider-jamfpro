@@ -1,0 +1,224 @@
+// networksegments_resource.go
+package networksegments
+
+import (
+	"context"
+	"encoding/xml"
+	"fmt"
+	"strconv"
+	"time"
+
+	
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
+
+	"github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+// ResourceJamfProNetworkSegments defines the schema and CRUD operations for managing Jamf Pro NetworkSegments in Terraform.
+func ResourceJamfProNetworkSegments() *schema.Resource {
+	return &schema.Resource{
+		CreateContext: ResourceJamfProNetworkSegmentsCreate,
+		ReadContext:   ResourceJamfProNetworkSegmentsRead,
+		UpdateContext: ResourceJamfProNetworkSegmentsUpdate,
+		DeleteContext: ResourceJamfProNetworkSegmentsDelete,
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Second),
+			Read:   schema.DefaultTimeout(30 * time.Second),
+			Update: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(30 * time.Second),
+		},
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
+		Schema: map[string]*schema.Schema{
+			"id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The unique identifier of the network segment.",
+			},
+			"name": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The name of the network segment.",
+			},
+			"starting_address": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The starting IP address of the network segment.",
+			},
+			"ending_address": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The ending IP address of the network segment.",
+			},
+			"distribution_server": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The distribution server associated with the network segment.",
+			},
+			"distribution_point": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The distribution point associated with the network segment.",
+			},
+			"url": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The URL associated with the network segment.",
+			},
+			"swu_server": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The software update server associated with the network segment.",
+			},
+			"building": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The building associated with the network segment.",
+			},
+			"department": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The department associated with the network segment.",
+			},
+			"override_buildings": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Indicates if building assignments are overridden for this network segment.",
+			},
+			"override_departments": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Indicates if department assignments are overridden for this network segment.",
+			},
+		},
+	}
+}
+
+const (
+	JamfProResourceNetworkSegments = "Network Segments"
+)
+
+// constructJamfProNetworkSegment constructs a ResourceNetworkSegment object from the provided schema data.
+func constructJamfProNetworkSegment(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceNetworkSegment, error) {
+	// Create a new ResourceNetworkSegment object
+	networkSegment := &jamfpro.ResourceNetworkSegment{}
+
+	// Extract data from the schema and assign it to the corresponding fields in the ResourceNetworkSegment object
+	networkSegment.Name = d.Get("name").(string)
+	networkSegment.StartingAddress = d.Get("starting_address").(string)
+	networkSegment.EndingAddress = d.Get("ending_address").(string)
+	networkSegment.DistributionServer = d.Get("distribution_server").(string)
+	networkSegment.DistributionPoint = d.Get("distribution_point").(string)
+	networkSegment.URL = d.Get("url").(string)
+	networkSegment.SWUServer = d.Get("swu_server").(string)
+	networkSegment.Building = d.Get("building").(string)
+	networkSegment.Department = d.Get("department").(string)
+	networkSegment.OverrideBuildings = d.Get("override_buildings").(bool)
+	networkSegment.OverrideDepartments = d.Get("override_departments").(bool)
+
+	// Initialize the logging subsystem for the construction operation
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemConstruct, hclog.Debug)
+
+	// Optional: Serialize and pretty-print the network segment object for logging
+	resourceXML, err := xml.MarshalIndent(networkSegment, "", "  ")
+	if err != nil {
+		logging.LogTFConstructResourceXMLMarshalFailure(subCtx, "NetworkSegment", err.Error())
+		return nil, err
+	}
+
+	// Log the successful construction and serialization to XML
+	logging.LogTFConstructedXMLResource(subCtx, "NetworkSegment", string(resourceXML))
+
+	return networkSegment, nil
+}
+
+// ResourceJamfProNetworkSegmentsCreate is responsible for creating a new Jamf Network segment in the remote system.
+// The function:
+// 1. Constructs the printer data using the provided Terraform configuration.
+// 2. Calls the API to create the printer in Jamf Pro.
+// 3. Updates the Terraform state with the ID of the newly created printer.
+// 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
+func ResourceJamfProNetworkSegmentsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	// Assert the meta interface to the expected APIClient type
+	apiclient, ok := meta.(*client.APIClient)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.APIClient")
+	}
+	conn := apiclient.Conn
+
+	// Initialize variables
+	var diags diag.Diagnostics
+	var creationResponse *jamfpro.ResponseNetworkSegmentCreatedAndUpdated
+	var apiErrorCode int
+	resourceName := d.Get("name").(string)
+
+	// Initialize the logging subsystem with the create operation context
+	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemCreate, hclog.Info)
+	subSyncCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemSync, hclog.Info)
+
+	// Construct the object outside the retry loop to avoid reconstructing it on each retry
+	networkSegment, err := constructJamfProNetworkSegment(subCtx, d)
+	if err != nil {
+		logging.LogTFConstructResourceFailure(subCtx, JamfProResourceNetworkSegments, err.Error())
+		return diag.FromErr(err)
+	}
+	logging.LogTFConstructResourceSuccess(subCtx, JamfProResourceNetworkSegments)
+
+	// Retry the API call to create the printer in Jamf Pro
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		var apiErr error
+		creationResponse, apiErr = conn.CreatePrinter(networkSegment)
+		if apiErr != nil {
+			// Extract and log the API error code if available
+			if apiError, ok := apiErr.(*.APIError); ok {
+				apiErrorCode = apiError.StatusCode
+			}
+			logging.LogAPICreateFailedAfterRetry(subCtx, JamfProResourceNetworkSegments, resourceName, apiErr.Error(), apiErrorCode)
+			// Return a non-retryable error to break out of the retry loop
+			return retry.NonRetryableError(apiErr)
+		}
+		// No error, exit the retry loop
+		return nil
+	})
+
+	if err != nil {
+		// Log the final error and append it to the diagnostics
+		logging.LogAPICreateFailure(subCtx, JamfProResourceNetworkSegments, err.Error(), apiErrorCode)
+		diags = append(diags, diag.FromErr(err)...)
+		return diags
+	}
+
+	// Log successful creation of the printer and set the resource ID in Terraform state
+	logging.LogAPICreateSuccess(subCtx, JamfProResourceNetworkSegments, strconv.Itoa(creationResponse.ID))
+
+	d.SetId(strconv.Itoa(creationResponse.ID))
+
+	// Retry reading the printer to ensure the Terraform state is up to date
+	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		readDiags := ResourceJamfProNetworkSegmentsRead(subCtx, d, meta)
+		if len(readDiags) > 0 {
+			// Log any read errors and return a retryable error to retry the read operation
+			logging.LogTFStateSyncFailedAfterRetry(subSyncCtx, JamfProResourceNetworkSegments, d.Id(), readDiags[0].Summary)
+			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
+		}
+		// Successfully read the printer, exit the retry loop
+		return nil
+	})
+
+	if err != nil {
+		// Log the final state sync failure and append it to the diagnostics
+		logging.LogTFStateSyncFailure(subSyncCtx, JamfProResourceNetworkSegments, err.Error())
+		diags = append(diags, diag.FromErr(err)...)
+	} else {
+		// Log successful state synchronization
+		logging.LogTFStateSyncSuccess(subSyncCtx, JamfProResourceNetworkSegments, d.Id())
+	}
+
+	return diags
+}

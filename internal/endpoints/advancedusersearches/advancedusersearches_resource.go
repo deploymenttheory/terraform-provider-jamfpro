@@ -3,18 +3,13 @@ package advancedusersearches
 
 import (
 	"context"
-	"encoding/xml"
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -117,173 +112,47 @@ func ResourceJamfProAdvancedUserSearches() *schema.Resource {
 	}
 }
 
-// constructJamfProAdvancedUserSearch constructs an advanced user search object for create and update oeprations
-func constructJamfProAdvancedUserSearch(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceAdvancedUserSearch, error) {
-	search := &jamfpro.ResourceAdvancedUserSearch{
-		Name: util.GetStringFromInterface(d.Get("name")),
-	}
-
-	if v, ok := d.GetOk("criteria"); ok {
-		criteriaList := v.([]interface{})
-		var criteria []jamfpro.SharedSubsetCriteria
-		for _, crit := range criteriaList {
-			criterionMap, ok := crit.(map[string]interface{})
-			if !ok {
-				return nil, fmt.Errorf("failed to parse criterion: %+v", crit)
-			}
-
-			newCriterion := jamfpro.SharedSubsetCriteria{
-				Name:         util.GetStringFromMap(criterionMap, "name"),
-				Priority:     util.GetIntFromMap(criterionMap, "priority"),
-				AndOr:        util.GetStringFromMap(criterionMap, "and_or"),
-				SearchType:   util.GetStringFromMap(criterionMap, "search_type"),
-				Value:        util.GetStringFromMap(criterionMap, "value"),
-				OpeningParen: util.GetBoolFromMap(criterionMap, "opening_paren"),
-				ClosingParen: util.GetBoolFromMap(criterionMap, "closing_paren"),
-			}
-			tflog.Debug(ctx, fmt.Sprintf("Processing criterion: %+v", newCriterion))
-			criteria = append(criteria, newCriterion)
-		}
-		search.Criteria.Criterion = criteria
-	}
-
-	// Initialize displayFields as an empty slice
-	displayFields := []jamfpro.SharedAdvancedSearchSubsetDisplayField{}
-
-	// Check if display_fields are provided in the configuration
-	if v, ok := d.GetOk("display_fields"); ok {
-		// Since display_fields is now a TypeSet, use the *schema.Set methods to access the data
-		for _, field := range v.(*schema.Set).List() {
-			displayFieldMap, ok := field.(map[string]interface{})
-			if !ok {
-				return nil, fmt.Errorf("failed to parse display field: %+v", field)
-			}
-
-			displayField := jamfpro.SharedAdvancedSearchSubsetDisplayField{
-				Name: util.GetStringFromMap(displayFieldMap, "name"),
-			}
-			displayFields = append(displayFields, displayField)
-		}
-	}
-
-	search.DisplayFields = []jamfpro.SharedAdvancedSearchContainerDisplayField{{DisplayField: displayFields}}
-
-	if v, ok := d.GetOk("site"); ok && len(v.([]interface{})) > 0 {
-		siteData, ok := v.([]interface{})[0].(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("failed to parse site data")
-		}
-
-		search.Site = jamfpro.SharedResourceSite{
-			ID:   util.GetIntFromMap(siteData, "id"),
-			Name: util.GetStringFromMap(siteData, "name"),
-		}
-	}
-
-	// Marshal the search object into XML for logging
-	xmlData, err := xml.MarshalIndent(search, "", "  ")
-	if err != nil {
-		// Handle the error if XML marshaling fails
-		log.Printf("[ERROR] Error marshaling AdvancedUserSearch object to XML: %s", err)
-		return nil, fmt.Errorf("error marshaling AdvancedUserSearch object to XML: %v", err)
-	}
-
-	// Log the XML formatted search object
-	tflog.Debug(ctx, fmt.Sprintf("[DEBUG] Constructed AdvancedUserSearch Object:\n%s", string(xmlData)))
-
-	tflog.Debug(ctx, fmt.Sprintf("[DEBUG] Successfully constructed AdvancedUserSearch with name: %s", search.Name))
-
-	return search, nil
-}
-
-// Helper function to generate diagnostics based on the error type.
-func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
-	var diags diag.Diagnostics
-	resourceName, exists := d.GetOk("name")
-	if !exists {
-		resourceName = "unknown"
-	}
-
-	// Handle the APIError in the diagnostic
-	if apiErr, ok := err.(*http_client.APIError); ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
-		})
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   err.Error(),
-		})
-	}
-	return diags
-}
-
 // ResourceJamfProAdvancedUserSearchCreate is responsible for creating a new Jamf Pro advanced user Search in the remote system.
 func ResourceJamfProAdvancedUserSearchCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Assert the meta interface to the expected APIClient type
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the create operation
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		// Construct the advanced user search
-		search, err := constructJamfProAdvancedUserSearch(ctx, d)
-		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the advanced user search for terraform create: %w", err))
-		}
+	// Initialize variables
+	var diags diag.Diagnostics
 
-		// Log the details of the search that is about to be created
-		log.Printf("[INFO] Attempting to create AdvancedUserSearch with name: %s", search.Name)
-
-		// Directly call the API to create the resource
-		response, err := conn.CreateAdvancedUserSearch(search)
-		if err != nil {
-			// Log the error from the API call
-			log.Printf("[ERROR] Error creating AdvancedUserSearch with name: %s. Error: %s", search.Name, err)
-
-			// Check if the error is an APIError
-			if apiErr, ok := err.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message))
-			}
-			// For simplicity, we're considering all other errors as retryable
-			return retry.RetryableError(err)
-		}
-
-		// Log the response from the API call
-		log.Printf("[INFO] Successfully created AdvancedUserSearch with ID: %d and name: %s", response.ID, search.Name)
-
-		// Set the ID of the created resource in the Terraform state
-		d.SetId(strconv.Itoa(response.ID))
-
-		return nil
-	})
-
+	// Construct the resource object
+	resource, err := constructJamfProAdvancedUserSearch(ctx, d)
 	if err != nil {
-		// If there's an error while creating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "create")
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Advanced User Search: %v", err))
 	}
 
-	// Use the retry function for the read operation to update the Terraform state with the resource attributes
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProAdvancedUserSearchRead(ctx, d, meta)
-		if len(readDiags) > 0 {
-			// If readDiags is not empty, it means there's an error, so we retry
-			return retry.RetryableError(fmt.Errorf("failed to read the created resource"))
+	// Retry the API call to create the site in Jamf Pro
+	var creationResponse *jamfpro.ResourceAdvancedUserSearchCreatedAndUpdated
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		var apiErr error
+		creationResponse, apiErr = conn.CreateAdvancedUserSearch(resource)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
 		}
+		// No error, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		// If there's an error while updating the state for the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update state for")
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Advanced User Search '%s' after retries: %v", resource.Name, err))
+	}
+
+	// Set the resource ID in Terraform state
+	d.SetId(strconv.Itoa(creationResponse.ID))
+
+	// Read the resource to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProAdvancedUserSearchRead(ctx, d, meta)
+	if len(readDiags) > 0 {
+		diags = append(diags, readDiags...)
 	}
 
 	return diags
@@ -291,65 +160,51 @@ func ResourceJamfProAdvancedUserSearchCreate(ctx context.Context, d *schema.Reso
 
 // ResourceJamfProAdvancedUserSearchRead is responsible for reading the current state of a Jamf Pro advanced user Search from the remote system.
 func ResourceJamfProAdvancedUserSearchRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	var search *jamfpro.ResourceAdvancedUserSearch
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
 
-	// Use the retry function for the read operation
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		searchID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse search ID: %v", convertErr))
-		}
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
+	}
 
-		// Try fetching the advanced user search using the ID
+	var resource *jamfpro.ResourceAdvancedUserSearch
+
+	// Read operation with retry
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		search, apiErr = conn.GetAdvancedUserSearchByID(searchID)
+		resource, apiErr = conn.GetAdvancedUserSearchByID(resourceIDInt)
 		if apiErr != nil {
-			// Handle the APIError
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-			}
-			// If fetching by ID fails, try fetching by Name
-			searchName, ok := d.Get("name").(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
-			}
-
-			search, apiErr = conn.GetAdvancedUserSearchByName(searchName)
-			if apiErr != nil {
-				// Handle the APIError
-				if apiError, ok := apiErr.(*http_client.APIError); ok {
-					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-				}
-				return retry.RetryableError(apiErr)
-			}
+			// Convert any API error into a retryable error to continue retrying
+			return retry.RetryableError(apiErr)
 		}
+		// Successfully read the resource, exit the retry loop
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while reading the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "read")
+		// Handle the final error after all retries have been exhausted
+		d.SetId("") // Remove from Terraform state if unable to read after retries
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Advanced User Search with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	// Set attributes in the Terraform state
-	if err := d.Set("name", search.Name); err != nil {
+	if err := d.Set("name", resource.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	// Handle "criteria" field
-	criteriaList := make([]interface{}, len(search.Criteria.Criterion))
-	for i, crit := range search.Criteria.Criterion {
+	criteriaList := make([]interface{}, len(resource.Criteria.Criterion))
+	for i, crit := range resource.Criteria.Criterion {
 		criteriaMap := map[string]interface{}{
 			"name":          crit.Name,
 			"priority":      crit.Priority,
@@ -366,13 +221,13 @@ func ResourceJamfProAdvancedUserSearchRead(ctx context.Context, d *schema.Resour
 	}
 
 	// Handle "display_fields" field
-	if len(search.DisplayFields) == 0 || len(search.DisplayFields[0].DisplayField) == 0 {
+	if len(resource.DisplayFields) == 0 || len(resource.DisplayFields[0].DisplayField) == 0 {
 		if err := d.Set("display_fields", []interface{}{}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	} else {
-		displayFieldsList := make([]map[string]interface{}, len(search.DisplayFields[0].DisplayField))
-		for i, displayField := range search.DisplayFields[0].DisplayField {
+		displayFieldsList := make([]map[string]interface{}, len(resource.DisplayFields[0].DisplayField))
+		for i, displayField := range resource.DisplayFields[0].DisplayField {
 			displayFieldMap := map[string]interface{}{
 				"name": displayField.Name,
 			}
@@ -385,8 +240,8 @@ func ResourceJamfProAdvancedUserSearchRead(ctx context.Context, d *schema.Resour
 
 	// Handle "site" field
 	site := map[string]interface{}{
-		"id":   search.Site.ID,
-		"name": search.Site.Name,
+		"id":   resource.Site.ID,
+		"name": resource.Site.Name,
 	}
 	if err := d.Set("site", []interface{}{site}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
@@ -397,73 +252,48 @@ func ResourceJamfProAdvancedUserSearchRead(ctx context.Context, d *schema.Resour
 
 // ResourceJamfProAdvancedUserSearchUpdate is responsible for updating an existing Jamf Pro advanced user Search on the remote system.
 func ResourceJamfProAdvancedUserSearchUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the update operation
-	var err error
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		// Construct the updated advanced user search
-		search, err := constructJamfProAdvancedUserSearch(ctx, d)
-		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the advanced user search for terraform update: %w", err))
-		}
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
 
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		searchID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse search ID: %v", convertErr))
-		}
-
-		// Directly call the API to update the resource
-		_, apiErr := conn.UpdateAdvancedUserSearchByID(searchID, search)
-		if apiErr != nil {
-			// Handle the APIError
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-			}
-			// If the update by ID fails, try updating by name
-			searchName, ok := d.Get("name").(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
-			}
-			_, apiErr = conn.UpdateAdvancedUserSearchByName(searchName, search)
-			if apiErr != nil {
-				// Handle the APIError
-				if apiError, ok := apiErr.(*http_client.APIError); ok {
-					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-				}
-				return retry.RetryableError(apiErr)
-			}
-		}
-		return nil
-	})
-
-	// Handle error from the retry function
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		// If there's an error while updating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update")
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	// Use the retry function for the read operation to update the Terraform state
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProAdvancedUserSearchRead(ctx, d, meta)
-		if len(readDiags) > 0 {
-			return retry.RetryableError(fmt.Errorf("failed to update the Terraform state for the updated resource"))
+	// Construct the resource object
+	resource, err := constructJamfProAdvancedUserSearch(ctx, d)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Advanced User Search for update: %v", err))
+	}
+
+	// Update operations with retries
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+		_, apiErr := conn.UpdateAdvancedUserSearchByID(resourceIDInt, resource)
+		if apiErr != nil {
+			// If updating by ID fails, attempt to update by Name
+			return retry.RetryableError(apiErr)
 		}
+		// Successfully updated the resource, exit the retry loop
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while updating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update")
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Advanced User Search '%s' (ID: %s) after retries: %v", resource.Name, resourceID, err))
+	}
+
+	// Read the resource to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProAdvancedUserSearchRead(ctx, d, meta)
+	if len(readDiags) > 0 {
+		diags = append(diags, readDiags...)
 	}
 
 	return diags
@@ -471,43 +301,42 @@ func ResourceJamfProAdvancedUserSearchUpdate(ctx context.Context, d *schema.Reso
 
 // ResourceJamfProAdvancedUserSearchDelete is responsible for deleting a Jamf Pro AdvancedUserSearch.
 func ResourceJamfProAdvancedUserSearchDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the delete operation
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		groupID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse group ID: %v", convertErr))
-		}
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
 
-		// Directly call the API to delete the resource
-		apiErr := conn.DeleteAdvancedUserSearchByID(groupID)
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
+	}
+
+	// Use the retry function for the delete operation with appropriate timeout
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
+		// Attempt to delete by ID
+		apiErr := conn.DeleteAdvancedUserSearchByID(resourceIDInt)
 		if apiErr != nil {
-			// If the delete by ID fails, try deleting by name
-			groupName, ok := d.Get("name").(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' as a string"))
-			}
-			apiErr = conn.DeleteAdvancedUserSearchByName(groupName)
-			if apiErr != nil {
-				return retry.RetryableError(apiErr)
+			// If deleting by ID fails, attempt to delete by Name
+			resourceName := d.Get("name").(string)
+			apiErrByName := conn.DeleteAdvancedUserSearchByName(resourceName)
+			if apiErrByName != nil {
+				// If deletion by name also fails, return a retryable error
+				return retry.RetryableError(apiErrByName)
 			}
 		}
+		// Successfully deleted the resource, exit the retry loop
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while deleting the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "delete")
+		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Advanced User Search '%s' (ID: %s) after retries: %v", d.Get("extension").(string), resourceID, err))
 	}
 
 	// Clear the ID from the Terraform state as the resource has been deleted

@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
+	
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
@@ -229,7 +229,7 @@ func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action stri
 	}
 
 	// Handle the APIError in the diagnostic
-	if apiErr, ok := err.(*http_client.APIError); ok {
+	if apiErr, ok := err.(*.APIError); ok {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
@@ -274,7 +274,7 @@ func ResourceJamfProAdvancedMobileDeviceSearchCreate(ctx context.Context, d *sch
 			log.Printf("[ERROR] Error creating AdvancedMobileDeviceSearch with name: %s. Error: %s", search.Name, err)
 
 			// Check if the error is an APIError
-			if apiErr, ok := err.(*http_client.APIError); ok {
+			if apiErr, ok := err.(*.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message))
 			}
 			// For simplicity, we're considering all other errors as retryable
@@ -339,7 +339,7 @@ func ResourceJamfProAdvancedMobileDeviceSearchRead(ctx context.Context, d *schem
 		search, apiErr = conn.GetAdvancedMobileDeviceSearchByID(searchID)
 		if apiErr != nil {
 			// Handle the APIError
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If fetching by ID fails, try fetching by Name
@@ -351,7 +351,7 @@ func ResourceJamfProAdvancedMobileDeviceSearchRead(ctx context.Context, d *schem
 			search, apiErr = conn.GetAdvancedMobileDeviceSearchByName(searchName)
 			if apiErr != nil {
 				// Handle the APIError
-				if apiError, ok := apiErr.(*http_client.APIError); ok {
+				if apiError, ok := apiErr.(*.APIError); ok {
 					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 				}
 				return retry.RetryableError(apiErr)
@@ -461,7 +461,7 @@ func ResourceJamfProAdvancedMobileDeviceSearchUpdate(ctx context.Context, d *sch
 		_, apiErr := conn.UpdateAdvancedMobileDeviceSearchByID(searchID, search)
 		if apiErr != nil {
 			// Handle the APIError
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
+			if apiError, ok := apiErr.(*.APIError); ok {
 				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 			}
 			// If the update by ID fails, try updating by name
@@ -472,7 +472,7 @@ func ResourceJamfProAdvancedMobileDeviceSearchUpdate(ctx context.Context, d *sch
 			_, apiErr = conn.UpdateAdvancedMobileDeviceSearchByName(searchName, search)
 			if apiErr != nil {
 				// Handle the APIError
-				if apiError, ok := apiErr.(*http_client.APIError); ok {
+				if apiError, ok := apiErr.(*.APIError); ok {
 					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
 				}
 				return retry.RetryableError(apiErr)

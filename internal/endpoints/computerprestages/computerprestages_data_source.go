@@ -1,37 +1,36 @@
-// department_data_source.go
-package departments
+// computerprestages_data_source.go
+package computerprestages
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProDepartments provides information about a specific department in Jamf Pro.
-func DataSourceJamfProDepartments() *schema.Resource {
+// DataSourceJamfProComputerPrestage provides information about a specific department in Jamf Pro.
+func DataSourceJamfProComputerPrestage() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceJamfProDepartmentsRead,
+		ReadContext: DataSourceJamfProComputerPrestageRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Description: "The unique identifier of the department.",
-			},
-			"name": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The unique name of the jamf pro department.",
+				Description: "The unique identifier of the computer prestage.",
+			},
+			"display_name": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The display name of the computer prestage.",
 			},
 		},
 	}
 }
 
-// DataSourceJamfProDepartmentsRead fetches the details of a specific department from Jamf Pro using its unique ID.
-func DataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// DataSourceJamfProComputerPrestageRead fetches the details of a specific department from Jamf Pro using its unique ID.
+func DataSourceJamfProComputerPrestageRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -46,7 +45,7 @@ func DataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceDat
 	resourceID := d.Get("id").(string)
 
 	// Attempt to fetch the department's details using its ID
-	department, err := conn.GetDepartmentByID(resourceID)
+	department, err := conn.GetJamfApiRoleByID(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Department with ID '%s': %v", resourceID, err))
 	}
@@ -54,8 +53,8 @@ func DataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceDat
 	// Check if resource data exists and set the Terraform state
 	if department != nil {
 		d.SetId(resourceID) // Set the id in the Terraform state
-		if err := d.Set("name", department.Name); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Department with ID '%s': %v", resourceID, err))...)
+		if err := d.Set("display_name", department.DisplayName); err != nil {
+			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'display_name' for Jamf Pro Computer Prestage with ID '%s': %v", resourceID, err))...)
 		}
 
 	} else {

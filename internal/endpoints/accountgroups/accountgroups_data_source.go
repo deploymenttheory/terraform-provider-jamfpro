@@ -65,6 +65,7 @@ func DataSourceJamfProAccountGroupsRead(ctx context.Context, d *schema.ResourceD
 		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceAccountGroup, resourceID, err.Error())
 		return diag.FromErr(err)
 	}
+
 	// Read operation with retry
 	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error

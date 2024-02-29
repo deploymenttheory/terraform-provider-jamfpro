@@ -1,5 +1,5 @@
 // Specific printer ppd
-resource "jamfpro_printers" "jamfpro_printers_001" {
+resource "jamfpro_printer" "jamfpro_printers_001" {
   name         = "tf-example-printer-specific_ppd-01"
   category     = "No category assigned"
   uri          = "lpd://10.1.20.204/"
@@ -16,7 +16,7 @@ resource "jamfpro_printers" "jamfpro_printers_001" {
 }
 
 // Generic printer ppd
-resource "jamfpro_printers" "jamfpro_printers_002" {
+resource "jamfpro_printer" "jamfpro_printers_002" {
   name         = "tf-example-printer-generic_ppd-01"
   category     = "No category assigned"
   uri          = "lpd://10.1.20.204/"

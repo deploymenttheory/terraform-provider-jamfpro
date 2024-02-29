@@ -4,11 +4,9 @@ package policies
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
@@ -1733,92 +1731,58 @@ func ResourceJamfProPolicies() *schema.Resource {
 	}
 }
 
-// Helper function to generate diagnostics based on the error type.
-func generateTFDiagsFromHTTPError(err error, d *schema.ResourceData, action string) diag.Diagnostics {
-	var diags diag.Diagnostics
-	resourceName, exists := d.GetOk("name")
-	if !exists {
-		resourceName = "unknown"
-	}
-
-	// Handle the APIError in the diagnostic
-	if apiErr, ok := err.(*http_client.APIError); ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   fmt.Sprintf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message),
-		})
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Failed to %s the resource with name: %s", action, resourceName),
-			Detail:   err.Error(),
-		})
-	}
-	return diags
-}
-
 // ResourceJamfProPoliciesCreate is responsible for reading the current state of a Jamf Pro policy from the remote system.
 // The function:
 // 1. Fetches the policies current state using its ID. If it fails then obtain profile's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the profile being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
+	// Assert the meta interface to the expected APIClient type
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		// Construct the Policy
-		policy, err := constructJamfProPolicy(ctx, d)
-		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the policy for terraform create: %w", err))
-		}
+	// Initialize variables
+	var diags diag.Diagnostics
 
-		// Log the details of the policy that is about to be created
-		log.Printf("[INFO] Attempting to create Jamf Pro Policy with name: %s", policy.General.Name)
-
-		// Call the API to create the policy and get its ID
-		createdPolicy, err := conn.CreatePolicy(policy)
-		if err != nil {
-			log.Printf("[ERROR] Error creating Jamf Pro Policy with name: %s. Error: %s", policy.General.Name, err)
-			if apiErr, ok := err.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiErr.StatusCode, apiErr.Message))
-			}
-			return retry.RetryableError(err)
-		}
-
-		// Log the successfully resource creation
-		log.Printf("[INFO] Successfully created Jamf Pro Policy with ID: %d", createdPolicy.ID)
-
-		// Set the ID in the Terraform state
-		d.SetId(strconv.Itoa(createdPolicy.ID))
-
-		return nil
-	})
-
+	// Construct the policy object
+	resource, err := constructJamfProPolicy(ctx, d)
 	if err != nil {
-		return generateTFDiagsFromHTTPError(err, d, "create")
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Policy: %v", err))
 	}
 
-	// Log the ID that was set in the Terraform state
-	log.Printf("[INFO] Terraform state was successfully updated with new Jamf Pro Policy with ID: %s", d.Id())
+	// Extract policy name from schema
+	var policyName string
+	if generalSettings, ok := d.GetOk("general"); ok && len(generalSettings.([]interface{})) > 0 {
+		generalMap := generalSettings.([]interface{})[0].(map[string]interface{})
+		policyName = generalMap["name"].(string)
+	}
 
-	// Perform a read operation to update the Terraform state
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProPoliciesRead(ctx, d, meta)
-		if len(readDiags) > 0 {
-			return retry.RetryableError(fmt.Errorf("failed to read the created resource"))
+	// Retry the API call to create the policy in Jamf Pro
+	var creationResponse *jamfpro.ResourcePolicyCreateAndUpdate
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		var apiErr error
+		creationResponse, apiErr = conn.CreatePolicy(resource)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
 		}
+		// No error, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		return generateTFDiagsFromHTTPError(err, d, "update state for")
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Policy '%s' after retries: %v", policyName, err))
+	}
+
+	// Set the resource ID in Terraform state
+	d.SetId(strconv.Itoa(creationResponse.ID))
+
+	// Read the policy to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProPoliciesRead(ctx, d, meta)
+	if len(readDiags) > 0 {
+		diags = append(diags, readDiags...)
 	}
 
 	return diags
@@ -1830,56 +1794,53 @@ func ResourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, 
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
+
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
+	}
+
 	var policy *jamfpro.ResourcePolicy
 
+	// Extract policy name from schema
+	var policyName string
+	if generalSettings, ok := d.GetOk("general"); ok && len(generalSettings.([]interface{})) > 0 {
+		generalMap := generalSettings.([]interface{})[0].(map[string]interface{})
+		policyName = generalMap["name"].(string)
+	}
+
 	// Use the retry function for the read operation
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		policyID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse policy ID: %v", convertErr))
-		}
-
-		// Try fetching the policy using the ID
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		policy, apiErr = conn.GetPolicyByID(policyID)
+		policy, apiErr = conn.GetPolicyByID(resourceIDInt)
 		if apiErr != nil {
-			// If fetching by ID fails, try fetching by Name from the 'general' section
-			generalSettings, ok := d.GetOk("general")
-			if !ok || len(generalSettings.([]interface{})) == 0 {
-				return retry.NonRetryableError(fmt.Errorf("unable to find 'general' block for terraform read operation"))
+			// If fetching by ID fails and policyName is available, try fetching by Name
+			if policyName != "" {
+				policy, apiErr = conn.GetPolicyByName(policyName)
 			}
-			generalMap := generalSettings.([]interface{})[0].(map[string]interface{})
-			policyName, ok := generalMap["name"].(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' within 'general' as a string for terraform read operation"))
-			}
-
-			policy, apiErr = conn.GetPolicyByName(policyName)
 			if apiErr != nil {
-				// Handle the APIError
-				if apiError, ok := apiErr.(*http_client.APIError); ok {
-					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-				}
+				// Consider retrying only if it's a retryable error
 				return retry.RetryableError(apiErr)
 			}
 		}
+		// Successfully fetched the policy, exit the retry loop
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while reading the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "read")
+		d.SetId("") // Remove from Terraform state if unable to read after retries
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Policy '%s' (ID: %d) after retries: %v", policyName, resourceIDInt, err))
 	}
 
 	// Update the Terraform state with the fetched data
@@ -2427,79 +2388,55 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 
 // ResourceJamfProPoliciesUpdate is responsible for updating an existing Jamf Pro policy on the remote system.
 func ResourceJamfProPoliciesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the update operation
-	var err error
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		// Construct the updated jamf pro policy
-		policy, err := constructJamfProPolicy(ctx, d)
-		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to construct the configuration policy for terraform update: %w", err))
-		}
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
 
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		policyID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse policy ID: %v", convertErr))
-		}
-
-		// Directly call the API to update the policy
-		_, apiErr := conn.UpdatePolicyByID(policyID, policy)
-		if apiErr != nil {
-			// Handle the APIError
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-			}
-			// If the update by ID fails, try updating by name
-			generalSettings, ok := d.GetOk("general")
-			if !ok || len(generalSettings.([]interface{})) == 0 {
-				return retry.NonRetryableError(fmt.Errorf("unable to find 'general' block for terraform update operation"))
-			}
-			generalMap := generalSettings.([]interface{})[0].(map[string]interface{})
-			policyName, ok := generalMap["name"].(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' within 'general' as a string for terraform update operation"))
-			}
-
-			_, apiErr = conn.UpdatePolicyByName(policyName, policy)
-			if apiErr != nil {
-				// Handle the APIError
-				if apiError, ok := apiErr.(*http_client.APIError); ok {
-					return retry.NonRetryableError(fmt.Errorf("API Error (Code: %d): %s", apiError.StatusCode, apiError.Message))
-				}
-				return retry.RetryableError(apiErr)
-			}
-		}
-		return nil
-	})
-
-	// Handle error from the retry function
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		// If there's an error while updating the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update")
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	// Use the retry function for the read operation to update the Terraform state
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProPoliciesRead(ctx, d, meta)
-		if len(readDiags) > 0 {
-			return retry.RetryableError(fmt.Errorf("failed to update the Terraform state for the updated resource"))
+	// Extract policy name from schema
+	var policyName string
+	if generalSettings, ok := d.GetOk("general"); ok && len(generalSettings.([]interface{})) > 0 {
+		generalMap := generalSettings.([]interface{})[0].(map[string]interface{})
+		policyName = generalMap["name"].(string)
+	}
+
+	// Construct the resource object
+	resource, err := constructJamfProPolicy(ctx, d)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Policy for update: %v", err))
+	}
+
+	// Update operations with retries
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+		_, apiErr := conn.UpdatePolicyByID(resourceIDInt, resource)
+		if apiErr != nil {
+			// If updating by ID fails, attempt to update by Name
+			return retry.RetryableError(apiErr)
 		}
+		// Successfully updated the resource, exit the retry loop
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while updating the Terraform state, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "update")
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Policy '%s' (ID: %d) after retries: %v", policyName, resourceIDInt, err))
+	}
+
+	// Read the resource to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProPoliciesRead(ctx, d, meta)
+	if len(readDiags) > 0 {
+		diags = append(diags, readDiags...)
 	}
 
 	return diags
@@ -2507,49 +2444,47 @@ func ResourceJamfProPoliciesUpdate(ctx context.Context, d *schema.ResourceData, 
 
 // ResourceJamfProPoliciesDelete is responsible for deleting a Jamf Pro policy.
 func ResourceJamfProPoliciesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Use the retry function for the DELETE operation
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// Convert the ID from the Terraform state into an integer to be used for the API request
-		policyID, convertErr := strconv.Atoi(d.Id())
-		if convertErr != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to parse policy ID: %v", convertErr))
-		}
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
 
-		// Directly call the API to DELETE the resource
-		apiErr := conn.DeletePolicyByID(policyID)
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
+	}
+
+	// Extract policy name for error reporting
+	generalSettings := d.Get("general").([]interface{})
+	generalMap := generalSettings[0].(map[string]interface{})
+	resourceName := generalMap["name"].(string)
+
+	// Use the retry function for the delete operation with appropriate timeout
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
+		// Attempt to delete by ID
+		apiErr := conn.DeletePolicyByID(resourceIDInt)
 		if apiErr != nil {
 			// If the DELETE by ID fails, try deleting by name
-			generalSettings, ok := d.GetOk("general")
-			if !ok || len(generalSettings.([]interface{})) == 0 {
-				return retry.NonRetryableError(fmt.Errorf("unable to find 'general' block for terraform delete operation"))
-			}
-			generalMap := generalSettings.([]interface{})[0].(map[string]interface{})
-			policyName, ok := generalMap["name"].(string)
-			if !ok {
-				return retry.NonRetryableError(fmt.Errorf("unable to assert 'name' within 'general' as a string for terraform delete operation"))
-			}
-
-			apiErr = conn.DeletePolicyByName(policyName)
-			if apiErr != nil {
-				return retry.RetryableError(apiErr)
+			apiErrByName := conn.DeletePolicyByName(resourceName)
+			if apiErrByName != nil {
+				// If deletion by name also fails, return a retryable error
+				return retry.RetryableError(apiErrByName)
 			}
 		}
+		// Successfully deleted the site, exit the retry loop
 		return nil
 	})
 
 	// Handle error from the retry function
 	if err != nil {
-		// If there's an error while deleting the resource, generate diagnostics using the helper function.
-		return generateTFDiagsFromHTTPError(err, d, "delete")
+		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro policy '%s' (ID: %s) after retries: %v", resourceName, d.Id(), err))
 	}
 
 	// Clear the ID from the Terraform state as the resource has been deleted
