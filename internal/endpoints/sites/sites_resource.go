@@ -23,10 +23,10 @@ func ResourceJamfProSites() *schema.Resource {
 		UpdateContext: ResourceJamfProSitesUpdate,
 		DeleteContext: ResourceJamfProSitesDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Second),
-			Read:   schema.DefaultTimeout(30 * time.Second),
-			Update: schema.DefaultTimeout(30 * time.Second),
-			Delete: schema.DefaultTimeout(30 * time.Second),
+			Create: schema.DefaultTimeout(15 * time.Second),
+			Read:   schema.DefaultTimeout(15 * time.Second),
+			Update: schema.DefaultTimeout(15 * time.Second),
+			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
