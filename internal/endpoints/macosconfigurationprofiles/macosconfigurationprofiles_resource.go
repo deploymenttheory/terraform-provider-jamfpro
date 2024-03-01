@@ -1,5 +1,4 @@
 package macosconfigurationprofiles
-package macosconfigurationprofiles
 
 import (
 	"context"
