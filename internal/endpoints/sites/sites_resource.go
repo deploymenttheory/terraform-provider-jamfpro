@@ -147,12 +147,12 @@ func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta 
 
 	// Assuming successful read if no error
 	if resource != nil {
-		d.SetId(fmt.Sprintf("%d", resourceIDInt)) // Confirm the ID in the Terraform state
-		if err := d.Set("name", resource.Name); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Site with ID '%d': %v", resourceIDInt, err))...)
+		if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
 		}
-	} else {
-		d.SetId("") // Data not found, unset the ID in the Terraform state
+		if err := d.Set("name", resource.Name); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	return diags
