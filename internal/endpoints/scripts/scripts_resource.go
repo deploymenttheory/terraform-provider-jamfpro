@@ -210,15 +210,15 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 	resourceID := d.Id()
 
 	// Read operation with retry
-	var script *jamfpro.ResourceScript
+	var resource *jamfpro.ResourceScript
 
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		script, apiErr = conn.GetScriptByID(resourceID)
+		resource, apiErr = conn.GetScriptByID(resourceID)
 		if apiErr != nil {
 			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
 				// Resource not found or gone, remove from Terraform state
-				return retry.NonRetryableError(fmt.Errorf("resource with ID '%s' not found or gone, removing from state", resourceID))
+				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
 			}
 			// Convert any other API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)
@@ -228,7 +228,7 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 	})
 
 	if err != nil {
-		if strings.Contains(err.Error(), "removing from state") {
+		if strings.Contains(err.Error(), "resource not found, marked for deletion") {
 			d.SetId("") // Remove from Terraform state
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Warning,
@@ -242,25 +242,25 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 	}
 
 	// Assuming the resource is successfully read if no error
-	if script != nil {
+	if resource != nil {
 		// Construct a map of script attributes and update the Terraform state
 		scriptAttributes := map[string]interface{}{
-			"name":            script.Name,
-			"category_name":   script.CategoryName,
-			"category_id":     script.CategoryId,
-			"info":            script.Info,
-			"notes":           script.Notes,
-			"os_requirements": script.OSRequirements,
-			"priority":        script.Priority,
-			"script_contents": encodeScriptContent(script.ScriptContents),
-			"parameter4":      script.Parameter4,
-			"parameter5":      script.Parameter5,
-			"parameter6":      script.Parameter6,
-			"parameter7":      script.Parameter7,
-			"parameter8":      script.Parameter8,
-			"parameter9":      script.Parameter9,
-			"parameter10":     script.Parameter10,
-			"parameter11":     script.Parameter11,
+			"name":            resource.Name,
+			"category_name":   resource.CategoryName,
+			"category_id":     resource.CategoryId,
+			"info":            resource.Info,
+			"notes":           resource.Notes,
+			"os_requirements": resource.OSRequirements,
+			"priority":        resource.Priority,
+			"script_contents": encodeScriptContent(resource.ScriptContents),
+			"parameter4":      resource.Parameter4,
+			"parameter5":      resource.Parameter5,
+			"parameter6":      resource.Parameter6,
+			"parameter7":      resource.Parameter7,
+			"parameter8":      resource.Parameter8,
+			"parameter9":      resource.Parameter9,
+			"parameter10":     resource.Parameter10,
+			"parameter11":     resource.Parameter11,
 		}
 
 		for key, value := range scriptAttributes {

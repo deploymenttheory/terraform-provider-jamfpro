@@ -132,7 +132,7 @@ func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta 
 		var apiErr error
 		resource, apiErr = conn.GetSiteByID(resourceIDInt)
 		if apiErr != nil {
-			if strings.Contains(apiErr.Error(), "404") {
+			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
 				// Return non-retryable error with a message to avoid SDK issues
 				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
 			}
