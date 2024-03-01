@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"reflect"
 	"strconv"
 	"time"
 
@@ -136,42 +135,41 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"all_computers": {
 							Type:        schema.TypeBool,
-							Optional:    true,
-							Default:     false,
+							Required:    true,
 							Description: "Whether the configuration profile is scoped to all computers.",
 						},
-						"all_jss_users": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Default:     false,
-							Description: "Whether the configuration profile is scoped to all JSS users.",
-						},
-						// "computers": {
-						// 	Type:     schema.TypeList,
-						// 	Optional: true,
-						// 	MaxItems: 1,
-						// 	Elem: &schema.Resource{
-						// 		Schema: map[string]*schema.Schema{
-						// 			"id": {
-						// 				Type:     schema.TypeList,
-						// 				Optional: true,
-						// 				Elem: &schema.Schema{
-						// 					Type: schema.TypeInt,
-						// 				},
-						// 			},
-						// 			// "name": {
-						// 			// 	Type:        schema.TypeString,
-						// 			// 	Optional:    true,
-						// 			// 	Description: "The name of the computer to which the configuration profile is scoped.",
-						// 			// },
-						// 			// "udid": {
-						// 			// 	Type:        schema.TypeString,
-						// 			// 	Optional:    true,
-						// 			// 	Description: "The UDID of the computer to which the configuration profile is scoped.",
-						// 			// },
-						// 		},
-						// 	},
+						// "all_jss_users": {
+						// 	Type:        schema.TypeBool,
+						// 	Optional:    true,
+						// 	Default:     false,
+						// 	Description: "Whether the configuration profile is scoped to all JSS users.",
 						// },
+						"computers": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"id": {
+										Type:     schema.TypeList,
+										Required: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeInt,
+										},
+									},
+									// "name": {
+									// 	Type:        schema.TypeString,
+									// 	Optional:    true,
+									// 	Description: "The name of the computer to which the configuration profile is scoped.",
+									// },
+									// "udid": {
+									// 	Type:        schema.TypeString,
+									// 	Optional:    true,
+									// 	Description: "The UDID of the computer to which the configuration profile is scoped.",
+									// },
+								},
+							},
+						},
 						// "computer_groups": {
 						// 	Type:        schema.TypeList,
 						// 	Optional:    true,
@@ -277,7 +275,6 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 }
 
 func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceMacOSConfigurationProfile, error) {
-	log.Println("LOGHERE-CONSTRUCT")
 	// Main obj with fields which do not require processing
 	out := jamfpro.ResourceMacOSConfigurationProfile{
 		General: jamfpro.MacOSConfigurationProfileSubsetGeneral{
@@ -316,95 +313,11 @@ func constructJamfProMacOSConfigurationProfile(ctx context.Context, d *schema.Re
 	}
 
 	// Scope
-	if len(d.Get("scope").([]interface{})) > 0 {
-		// All Computers & Users
-		out.Scope.AllComputers = d.Get("scope.0.all_computers").(bool)
-		out.Scope.AllJSSUsers = d.Get("scope.0.all_jss_users").(bool)
 
-		// Computers
-		if len(d.Get("scope.0.computers").([]interface{})) > 0 {
+	out.Scope.AllComputers = d.Get("scope.0.all_computers").(bool)
 
-			computersGet, ok := d.GetOk("scope.0.computers")
-			if !ok {
-				log.Println("ERROR")
-			}
-			computers := computersGet.([]interface{})[0].(map[string]interface{})["id"].([]interface{})
-
-			for _, c := range computers {
-				out.Scope.Computers = append(out.Scope.Computers, jamfpro.MacOSConfigurationProfileSubsetComputer{
-					ID: c.(int),
-				})
-			}
-		}
-
-		// Computer Groups
-		if d.Get("scope.0.computer_groups") != nil {
-			computer_groups := d.Get("scope.0.computer_groups").([]interface{})
-			for _, computer_group := range computer_groups {
-				computerGroupMap := computer_group.(map[string]interface{})
-				out.Scope.ComputerGroups = append(out.Scope.ComputerGroups, jamfpro.MacOSConfigurationProfileSubsetComputerGroup{
-					ID:   computerGroupMap["id"].(int),
-					Name: computerGroupMap["name"].(string),
-				})
-			}
-		}
-
-		// JSS Users
-		if d.Get("scope.0.jss_users") != nil {
-			jss_users := d.Get("scope.0.jss_users").([]interface{})
-			for _, jss_user := range jss_users {
-				jssUserMap := jss_user.(map[string]interface{})
-				out.Scope.JSSUsers = append(out.Scope.JSSUsers, jamfpro.MacOSConfigurationProfileSubsetJSSUser{
-					ID:   jssUserMap["id"].(int),
-					Name: jssUserMap["name"].(string),
-				})
-			}
-		}
-
-		// JSS User Groups
-		if d.Get("scope.0.jss_user_groups") != nil {
-			jss_user_groups := d.Get("scope.0.jss_user_groups").([]interface{})
-			for _, jss_user_group := range jss_user_groups {
-				jssUserGroupMap := jss_user_group.(map[string]interface{})
-				out.Scope.JSSUserGroups = append(out.Scope.JSSUserGroups, jamfpro.MacOSConfigurationProfileSubsetJSSUserGroup{
-					ID:   jssUserGroupMap["id"].(int),
-					Name: jssUserGroupMap["name"].(string),
-				})
-			}
-		}
-
-		// Buildings
-		if d.Get("scope.0.buildings") != nil {
-			buildings := d.Get("scope.0.buildings").([]interface{})
-			for _, building := range buildings {
-				buildingMap := building.(map[string]interface{})
-				out.Scope.Buildings = append(out.Scope.Buildings, jamfpro.MacOSConfigurationProfileSubsetBuilding{
-					ID:   buildingMap["id"].(int),
-					Name: buildingMap["name"].(string),
-				})
-			}
-		}
-
-		// Departments
-		if d.Get("scope.0.departments") != nil {
-			departments := d.Get("scope.0.departments").([]interface{})
-			for _, department := range departments {
-				departmentMap := department.(map[string]interface{})
-				out.Scope.Departments = append(out.Scope.Departments, jamfpro.MacOSConfigurationProfileSubsetDepartment{
-					ID:   departmentMap["id"].(int),
-					Name: departmentMap["name"].(string),
-				})
-			}
-		}
-
-		// Limitations
-
-		// Exclusions
-
-	} else {
-		out.Scope.AllComputers = false
-		out.Scope.AllJSSUsers = false
-	}
+	log.Println("LOGHERE-OUT")
+	log.Printf("%+v\n", out)
 
 	return &out, nil
 }
@@ -482,7 +395,7 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 }
 
 func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-
+	log.Println("LOGHERE-READSTART")
 	// API Stuff
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -550,7 +463,6 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		if err := d.Set("site", out_site); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-
 	} else {
 		log.Println("Not stating default site response") // TODO probably put some logging here
 	}
@@ -601,21 +513,10 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	out_scope = append(out_scope, make(map[string]interface{}, 1))
 
 	// All computers
-	if resp.Scope.AllComputers {
-		if len(resp.Scope.Computers) > 0 {
-			log.Println("ERROR HERE!") // TODO throw an error here please DW
-		}
-		out_scope[0]["all_computers"] = true
-	} else {
-		out_scope[0]["all_computers"] = false
-	}
-
-	if resp.Scope.AllJSSUsers {
-		out_scope[0]["all_jss_users"] = true
-	} else {
-		out_scope[0]["all_jss_users"] = false
-
-	}
+	out_scope[0]["all_computers"] = resp.Scope.AllComputers
+	log.Println("FLAG 1")
+	log.Println(resp.Scope.AllComputers)
+	log.Println(out_scope)
 
 	//////////////////////////////////////////////////
 	// Computers
@@ -643,74 +544,13 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 
 	//////////////////////////////////////////////////
 
-	// Computer Groups
-	if len(resp.Scope.ComputerGroups) > 0 {
-		var out_computer_groups []map[string]interface{}
-		for _, v := range resp.Scope.ComputerGroups {
-			out_computer_groups = append(out_computer_groups, map[string]interface{}{
-				"id":   v.ID,
-				"name": v.Name,
-			})
-		}
-		out_scope[0]["computer_groups"] = out_computer_groups
-	}
-
-	// JSS Users
-	if len(resp.Scope.JSSUsers) > 0 {
-		var out_jss_users []map[string]interface{}
-		for _, v := range resp.Scope.JSSUsers {
-			out_jss_users = append(out_jss_users, map[string]interface{}{
-				"id":   v.ID,
-				"name": v.Name,
-			})
-		}
-		out_scope[0]["jss_users"] = out_jss_users
-	}
-
-	// JSS User Groups
-	if len(resp.Scope.JSSUserGroups) > 0 {
-		var out_jss_user_groups []map[string]interface{}
-		for _, v := range resp.Scope.JSSUserGroups {
-			out_jss_user_groups = append(out_jss_user_groups, map[string]interface{}{
-				"id":   v.ID,
-				"name": v.Name,
-			})
-		}
-		out_scope[0]["jss_user_groups"] = out_jss_user_groups
-	}
-
-	// Buildings
-	if len(resp.Scope.Buildings) > 0 {
-		var out_buildings []map[string]interface{}
-		for _, v := range resp.Scope.Buildings {
-			out_buildings = append(out_buildings, map[string]interface{}{
-				"id":   v.ID,
-				"name": v.Name,
-			})
-		}
-		out_scope[0]["buildings"] = out_buildings
-	}
-
-	// Departments
-	if len(resp.Scope.Departments) > 0 {
-		var out_departments []map[string]interface{}
-		for _, v := range resp.Scope.Departments {
-			out_departments = append(out_departments, map[string]interface{}{
-				"id":   v.ID,
-				"name": v.Name,
-			})
-		}
-		out_scope[0]["departments"] = out_departments
-	}
-
-	log.Println("OUTSCOPE")
-	log.Println(out_scope)
-	log.Println(reflect.TypeOf(out_scope))
-
 	// Write scope to state
-	if err := d.Set("scope", out_scope); err != nil {
+	err = d.Set("scope", out_scope)
+	if err != nil {
+		log.Println("FLAG 2")
 		diags = append(diags, diag.FromErr(err)...)
 	}
+	log.Println("LOGHERE-READEND")
 
 	return diags
 }
