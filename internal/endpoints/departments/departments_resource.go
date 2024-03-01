@@ -4,6 +4,7 @@ package departments
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -110,34 +111,50 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
-	var department *jamfpro.ResourceDepartment
+	var resource *jamfpro.ResourceDepartment
 
 	// Read operation with retry
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		department, apiErr = conn.GetDepartmentByID(resourceID)
+		resource, apiErr = conn.GetDepartmentByID(resourceID)
 		if apiErr != nil {
-			// Convert any API error into a retryable error to continue retrying
+			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
+				// Return non-retryable error with a message to avoid SDK issues
+				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
+			}
+			// Retry for other types of errors
 			return retry.RetryableError(apiErr)
 		}
-		// Successfully read the department, exit the retry loop
 		return nil
 	})
 
+	// If err is not nil, check if it's due to the resource being not found
 	if err != nil {
-		// Handle the final error after all retries have been exhausted
-		d.SetId("") // Clear the ID from the Terraform state if the department cannot be found after retries
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Department with ID '%s' after retries: %v", resourceID, err))
+		if err.Error() == "resource not found, marked for deletion" {
+			// Resource not found, remove from Terraform state
+			d.SetId("")
+			// Append a warning diagnostic and return
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Resource not found",
+				Detail:   fmt.Sprintf("Jamf Pro Distribution Point with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
+			})
+			return diags
+		}
+
+		// For other errors, return an error diagnostic
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Distribution Point with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	// Update the Terraform state with the fetched data
-	if department != nil {
-		d.SetId(resourceID) // Confirm the ID in the Terraform state
-		if err := d.Set("name", department.Name); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("error setting department name for ID '%s': %v", resourceID, err))...)
+	if resource != nil {
+		// Set the fields directly in the Terraform state
+		if err := d.Set("id", resourceID); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
 		}
-	} else {
-		d.SetId("") // Data not found, unset the ID in the Terraform state
+		if err := d.Set("name", resource.Name); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	return diags

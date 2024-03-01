@@ -17,6 +17,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accountgroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accounts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/filesharedistributionpoints"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/networksegments"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/advancedcomputersearches"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/advancedmobiledevicesearches"
@@ -195,6 +196,7 @@ func Provider() *schema.Provider {
 			"jamfpro_file_share_distribution_point": filesharedistributionpoints.DataSourceJamfProFileShareDistributionPoints(),
 			"jamfpro_site":                          sites.DataSourceJamfProSites(),
 			"jamfpro_script":                        scripts.DataSourceJamfProScripts(),
+			"jamfpro_network_segment":               networksegments.DataSourceJamfProNetworkSegments(),
 			"jamfpro_policy":                        policies.DataSourceJamfProPolicies(),
 			"jamfpro_printer":                       printers.DataSourceJamfProPrinters(),
 		},
@@ -217,6 +219,7 @@ func Provider() *schema.Provider {
 			"jamfpro_file_share_distribution_point": filesharedistributionpoints.ResourceJamfProFileShareDistributionPoints(),
 			"jamfpro_site":                          sites.ResourceJamfProSites(),
 			"jamfpro_script":                        scripts.ResourceJamfProScripts(),
+			"jamfpro_network_segment":               networksegments.ResourceJamfProNetworkSegments(),
 			"jamfpro_policy":                        policies.ResourceJamfProPolicies(),
 			"jamfpro_printer":                       printers.ResourceJamfProPrinters(),
 		},
