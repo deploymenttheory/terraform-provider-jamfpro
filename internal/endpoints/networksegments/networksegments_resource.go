@@ -117,7 +117,7 @@ func ResourceJamfProNetworkSegmentsCreate(ctx context.Context, d *schema.Resourc
 	// Construct the resource object
 	resource, err := constructJamfProNetworkSegment(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Site: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Network Segment: %v", err))
 	}
 
 	// Retry the API call to create the site in Jamf Pro
