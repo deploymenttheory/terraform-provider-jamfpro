@@ -15,8 +15,8 @@ type TerraformPlan struct {
 	PlannedValues    PlannedValues       `json:"planned_values"`
 	ResourceChanges  []ResourceChange    `json:"resource_changes"`
 	Configuration    Configuration       `json:"configuration"`
-	Timestamp        string              `json:"timestamp"`
-	Errored          bool                `json:"errored"`
+	// Timestamp        string              `json:"timestamp"`
+	Errored bool `json:"errored"`
 }
 
 // Variables
