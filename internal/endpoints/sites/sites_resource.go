@@ -47,10 +47,6 @@ func ResourceJamfProSites() *schema.Resource {
 	}
 }
 
-const (
-	JamfProResourceSite = "Site"
-)
-
 // ResourceJamfPrositesCreate is responsible for creating a new Jamf Pro Site in the remote system.
 // The function:
 // 1. Constructs the attribute data using the provided Terraform configuration.
