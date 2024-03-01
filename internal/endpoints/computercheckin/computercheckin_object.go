@@ -2,7 +2,6 @@
 package computercheckin
 
 import (
-	"context"
 	"encoding/xml"
 	"fmt"
 
@@ -11,7 +10,7 @@ import (
 )
 
 // constructJamfProComputerCheckin constructs a ResourceComputerCheckin object from the provided schema data and logs its XML representation.
-func constructJamfProComputerCheckin(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceComputerCheckin, error) {
+func constructJamfProComputerCheckin(d *schema.ResourceData) (*jamfpro.ResourceComputerCheckin, error) {
 
 	checkin := &jamfpro.ResourceComputerCheckin{
 		CheckInFrequency:          d.Get("check_in_frequency").(int),

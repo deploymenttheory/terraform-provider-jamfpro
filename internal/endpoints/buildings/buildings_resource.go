@@ -4,6 +4,7 @@ package buildings
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -147,17 +148,32 @@ func ResourceJamfProBuildingRead(ctx context.Context, d *schema.ResourceData, me
 		var apiErr error
 		resource, apiErr = conn.GetBuildingByID(resourceID)
 		if apiErr != nil {
-			// Convert any API error into a retryable error to continue retrying
+			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
+				// Return non-retryable error with a message to avoid SDK issues
+				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
+			}
+			// Retry for other types of errors
 			return retry.RetryableError(apiErr)
 		}
-		// Successfully read the resource, exit the retry loop
 		return nil
 	})
 
+	// If err is not nil, check if it's due to the resource being not found
 	if err != nil {
-		// Handle the final error after all retries have been exhausted
-		d.SetId("") // Remove from Terraform state if unable to read after retries
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Building with ID '%s' after retries: %v", resourceID, err))
+		if err.Error() == "resource not found, marked for deletion" {
+			// Resource not found, remove from Terraform state
+			d.SetId("")
+			// Append a warning diagnostic and return
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Resource not found",
+				Detail:   fmt.Sprintf("Jamf Pro Site with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
+			})
+			return diags
+		}
+
+		// For other errors, return an error diagnostic
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Site with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	// Map the configuration fields from the API response to a structured map

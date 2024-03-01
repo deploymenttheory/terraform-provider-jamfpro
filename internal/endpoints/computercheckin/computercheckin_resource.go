@@ -4,7 +4,6 @@ package computercheckin
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -115,33 +114,28 @@ func ResourceJamfProComputerCheckinCreate(ctx context.Context, d *schema.Resourc
 
 	// Initialize variables
 	var diags diag.Diagnostics
-	var apiErrorCode int
-	resourceID := d.Id()
-	resourceName := "jamfpro_computer_checkin_singleton"
 
 	// Construct the resource object
-	resource, err := constructJamfProComputerCheckin(ctx, d)
+	checkinConfig, err := constructJamfProComputerCheckin(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Check-In: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Check-In for update: %v", err))
 	}
 
-	// Update operations with retries
+	// Update (or effectively create) the check-in configuration with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		var apiErr error
-		creationResponse, apiErr = conn.Create(resource)
+		apiErr := conn.UpdateComputerCheckinInformation(checkinConfig)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
-		// No error, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Computer Check-In '%s' after retries: %v", resource.Name, err))
+		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Computer Check-In configuration after retries: %v", err))
 	}
 
-	// Set the resource ID in Terraform state
-	d.SetId(strconv.Itoa(creationResponse.ID))
+	// Since this resource is a singleton, use a fixed ID to represent it in the Terraform state
+	d.SetId("jamfpro_computer_checkin_singleton")
 
 	// Read the site to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProComputerCheckinRead(ctx, d, meta)
@@ -165,18 +159,12 @@ func ResourceJamfProComputerCheckinRead(ctx context.Context, d *schema.ResourceD
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	// Convert resourceID from string to int
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
-
 	var resource *jamfpro.ResourceComputerCheckin
 
 	// Read operation with retry
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		resource, apiErr = conn.GetComputerCheckinInformation(resourceIDInt)
+		resource, apiErr = conn.GetComputerCheckinInformation()
 		if apiErr != nil {
 			// Convert any API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)
@@ -188,7 +176,7 @@ func ResourceJamfProComputerCheckinRead(ctx context.Context, d *schema.ResourceD
 	if err != nil {
 		// Handle the final error after all retries have been exhausted
 		d.SetId("") // Remove from Terraform state if unable to read after retries
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Computer Check-In with ID '%d' after retries: %v", resourceIDInt, err))
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Computer Check-In with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	// The constant ID "jamfpro_computer_checkin_singleton" is assigned to satisfy Terraform's requirement for an ID.
@@ -222,7 +210,7 @@ func ResourceJamfProComputerCheckinRead(ctx context.Context, d *schema.ResourceD
 
 // ResourceJamfProComputerCheckinUpdate is responsible for updating the Jamf Pro computer check-in configuration.
 func ResourceJamfProComputerCheckinUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize API client
+	// Initialize api client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
@@ -231,34 +219,28 @@ func ResourceJamfProComputerCheckinUpdate(ctx context.Context, d *schema.Resourc
 
 	// Initialize variables
 	var diags diag.Diagnostics
-	resourceID := d.Id()
-
-	// Convert resourceID from string to int
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
 
 	// Construct the resource object
-	resource, err := constructJamfProComputerCheckin(ctx, d)
+	checkinConfig, err := constructJamfProComputerCheckin(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Check-In for update: %v", err))
 	}
 
-	// Update operations with retries
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateComputerCheckinInformation(resourceIDInt, resource)
+	// Update (or effectively create) the check-in configuration with retries
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		apiErr := conn.UpdateComputerCheckinInformation(checkinConfig)
 		if apiErr != nil {
-			// If updating by ID fails, attempt to update by Name
 			return retry.RetryableError(apiErr)
 		}
-		// Successfully updated the resource, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Computer Check-In '%s' (ID: %d) after retries: %v", site.Name, resourceIDInt, err))
+		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Computer Check-In configuration after retries: %v", err))
 	}
+
+	// Since this resource is a singleton, use a fixed ID to represent it in the Terraform state
+	d.SetId("jamfpro_computer_checkin_singleton")
 
 	// Read the site to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProComputerCheckinRead(ctx, d, meta)
