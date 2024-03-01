@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -204,20 +205,38 @@ func ResourceJamfProAdvancedMobileDeviceSearchRead(ctx context.Context, d *schem
 		var apiErr error
 		resource, apiErr = conn.GetAdvancedMobileDeviceSearchByID(resourceIDInt)
 		if apiErr != nil {
-			// Convert any API error into a retryable error to continue retrying
+			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
+				// Return non-retryable error with a message to avoid SDK issues
+				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
+			}
+			// Retry for other types of errors
 			return retry.RetryableError(apiErr)
 		}
-		// Successfully read the resource, exit the retry loop
 		return nil
 	})
 
+	// If err is not nil, check if it's due to the resource being not found
 	if err != nil {
-		// Handle the final error after all retries have been exhausted
-		d.SetId("") // Remove from Terraform state if unable to read after retries
+		if err.Error() == "resource not found, marked for deletion" {
+			// Resource not found, remove from Terraform state
+			d.SetId("")
+			// Append a warning diagnostic and return
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Resource not found",
+				Detail:   fmt.Sprintf("Jamf Pro Advanced Mobile Device Search with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
+			})
+			return diags
+		}
+
+		// For other errors, return an error diagnostic
 		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Advanced Mobile Device Search with ID '%s' after retries: %v", resourceID, err))
 	}
 
-	// Set attributes in the Terraform state
+	// Update the Terraform state with the fetched data
+	if err := d.Set("id", resourceID); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 	if err := d.Set("name", resource.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}

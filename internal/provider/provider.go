@@ -34,6 +34,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/departments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/diskencryptionconfigurations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/dockitems"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/packages"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/policies"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/printers"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/scripts"
@@ -198,6 +199,7 @@ func Provider() *schema.Provider {
 			"jamfpro_site":                          sites.DataSourceJamfProSites(),
 			"jamfpro_script":                        scripts.DataSourceJamfProScripts(),
 			"jamfpro_network_segment":               networksegments.DataSourceJamfProNetworkSegments(),
+			"jamfpro_package":                       packages.DataSourceJamfProPackages(),
 			"jamfpro_policy":                        policies.DataSourceJamfProPolicies(),
 			"jamfpro_printer":                       printers.DataSourceJamfProPrinters(),
 		},
@@ -222,6 +224,7 @@ func Provider() *schema.Provider {
 			"jamfpro_site":                          sites.ResourceJamfProSites(),
 			"jamfpro_script":                        scripts.ResourceJamfProScripts(),
 			"jamfpro_network_segment":               networksegments.ResourceJamfProNetworkSegments(),
+			"jamfpro_package":                       packages.ResourceJamfProPackages(),
 			"jamfpro_policy":                        policies.ResourceJamfProPolicies(),
 			"jamfpro_printer":                       printers.ResourceJamfProPrinters(),
 		},
