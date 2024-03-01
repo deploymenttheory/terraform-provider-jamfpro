@@ -645,13 +645,13 @@ func ResourceJamfProComputerPrestageRead(ctx context.Context, d *schema.Resource
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Warning,
 				Summary:  "Resource not found",
-				Detail:   fmt.Sprintf("Jamf Pro Distribution Point with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
+				Detail:   fmt.Sprintf("Jamf Pro Computer Prestage with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
 			})
 			return diags
 		}
 
 		// For other errors, return an error diagnostic
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Distribution Point with ID '%s' after retries: %v", resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Computer Prestage with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	// Check if prestage data exists
