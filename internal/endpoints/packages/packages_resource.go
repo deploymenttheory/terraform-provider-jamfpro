@@ -24,7 +24,7 @@ func ResourceJamfProPackages() *schema.Resource {
 		DeleteContext: ResourceJamfProPackagesDelete,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:        schema.TypeInt,
+				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The unique identifier of the package.",
 			},
