@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
@@ -22,6 +23,12 @@ func ResourceJamfProPackages() *schema.Resource {
 		ReadContext:   ResourceJamfProPackagesRead,
 		UpdateContext: ResourceJamfProPackagesUpdate,
 		DeleteContext: ResourceJamfProPackagesDelete,
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(10 * time.Minute),
+			Read:   schema.DefaultTimeout(10 * time.Minute),
+			Update: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(10 * time.Minute),
+		},
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
@@ -322,9 +329,9 @@ func ResourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, 
 	// Extract the file path for the package
 	filePath := d.Get("package_file_path").(string)
 
-	// Retry the API call to create the package in JCDS 2.0
+	// Retry the API call to update the package in JCDS 2.0
 	var creationResponse *jamfpro.ResponseJCDS2File
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		var apiErr error
 		creationResponse, apiErr = conn.DoPackageUpload(filePath, packageData)
 		if apiErr != nil {
@@ -335,7 +342,7 @@ func ResourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, 
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Package with file path '%s' after retries: %v", filePath, err))
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Package with file path '%s' after retries: %v", filePath, err))
 	}
 
 	// Assuming the URI is a suitable unique identifier for the Terraform resource
