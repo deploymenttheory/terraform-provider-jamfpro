@@ -4,6 +4,7 @@ package scripts
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -210,11 +211,16 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 
 	// Read operation with retry
 	var script *jamfpro.ResourceScript
+
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
 		script, apiErr = conn.GetScriptByID(resourceID)
 		if apiErr != nil {
-			// Convert any API error into a retryable error to continue retrying
+			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
+				// Resource not found or gone, remove from Terraform state
+				return retry.NonRetryableError(fmt.Errorf("resource with ID '%s' not found or gone, removing from state", resourceID))
+			}
+			// Convert any other API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)
 		}
 		// Successfully read the resource, exit the retry loop
@@ -222,35 +228,45 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 	})
 
 	if err != nil {
+		if strings.Contains(err.Error(), "removing from state") {
+			d.SetId("") // Remove from Terraform state
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Resource not found or gone",
+				Detail:   fmt.Sprintf("Jamf Pro Script with ID '%s' was not found or is gone, and has been removed from Terraform state.", resourceID),
+			})
+			return diags
+		}
 		// Handle the final error after all retries have been exhausted
-		d.SetId("") // Remove from Terraform state if unable to read after retries
 		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Script with ID '%s' after retries: %v", resourceID, err))
 	}
 
-	// Construct a map of script attributes
-	scriptAttributes := map[string]interface{}{
-		"name":            script.Name,
-		"category_name":   script.CategoryName,
-		"category_id":     script.CategoryId,
-		"info":            script.Info,
-		"notes":           script.Notes,
-		"os_requirements": script.OSRequirements,
-		"priority":        script.Priority,
-		"script_contents": encodeScriptContent(script.ScriptContents),
-		"parameter4":      script.Parameter4,
-		"parameter5":      script.Parameter5,
-		"parameter6":      script.Parameter6,
-		"parameter7":      script.Parameter7,
-		"parameter8":      script.Parameter8,
-		"parameter9":      script.Parameter9,
-		"parameter10":     script.Parameter10,
-		"parameter11":     script.Parameter11,
-	}
+	// Assuming the resource is successfully read if no error
+	if script != nil {
+		// Construct a map of script attributes and update the Terraform state
+		scriptAttributes := map[string]interface{}{
+			"name":            script.Name,
+			"category_name":   script.CategoryName,
+			"category_id":     script.CategoryId,
+			"info":            script.Info,
+			"notes":           script.Notes,
+			"os_requirements": script.OSRequirements,
+			"priority":        script.Priority,
+			"script_contents": encodeScriptContent(script.ScriptContents),
+			"parameter4":      script.Parameter4,
+			"parameter5":      script.Parameter5,
+			"parameter6":      script.Parameter6,
+			"parameter7":      script.Parameter7,
+			"parameter8":      script.Parameter8,
+			"parameter9":      script.Parameter9,
+			"parameter10":     script.Parameter10,
+			"parameter11":     script.Parameter11,
+		}
 
-	// Update the Terraform state with script scripts
-	for key, value := range scriptAttributes {
-		if err := d.Set(key, value); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("error setting '%s' for Jamf Pro Script with ID '%s': %v", key, resourceID, err))...)
+		for key, value := range scriptAttributes {
+			if err := d.Set(key, value); err != nil {
+				diags = append(diags, diag.FromErr(fmt.Errorf("error setting '%s' for Jamf Pro Script with ID '%s': %v", key, resourceID, err))...)
+			}
 		}
 	}
 
