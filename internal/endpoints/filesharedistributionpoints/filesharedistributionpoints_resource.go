@@ -3,9 +3,9 @@ package filesharedistributionpoints
 
 import (
 	"context"
-	"encoding/xml"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -201,42 +201,6 @@ const (
 	JamfProResourceDistributionPoint = "Distribution Point"
 )
 
-// cconstructJamfProFileShareDistributionPoint constructs a ResourceDockItem object from the provided schema data.
-func constructJamfProFileShareDistributionPoint(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceFileShareDistributionPoint, error) {
-	fileShareDistributionPoint := &jamfpro.ResourceFileShareDistributionPoint{
-		Name:                     d.Get("name").(string),
-		IP_Address:               d.Get("ip_address").(string),
-		IsMaster:                 d.Get("is_master").(bool),
-		FailoverPoint:            d.Get("failover_point").(string),
-		ConnectionType:           d.Get("connection_type").(string),
-		ShareName:                d.Get("share_name").(string),
-		SharePort:                d.Get("share_port").(int),
-		EnableLoadBalancing:      d.Get("enable_load_balancing").(bool),
-		WorkgroupOrDomain:        d.Get("workgroup_or_domain").(string),
-		ReadOnlyUsername:         d.Get("read_only_username").(string),
-		ReadOnlyPassword:         d.Get("read_only_password").(string),
-		ReadWriteUsername:        d.Get("read_write_username").(string),
-		ReadWritePassword:        d.Get("read_write_password").(string),
-		NoAuthenticationRequired: d.Get("no_authentication_required").(bool),
-		HTTPDownloadsEnabled:     d.Get("https_downloads_enabled").(bool),
-		Port:                     d.Get("https_port").(int),
-		Context:                  d.Get("https_share_path").(string),
-		HTTPUsername:             d.Get("https_username").(string),
-		HTTPPassword:             d.Get("https_password").(string),
-		Protocol:                 d.Get("protocol").(string),
-		HTTPURL:                  d.Get("http_url").(string),
-	}
-
-	// Serialize and pretty-print the file share distribution point object as XML
-	resourceXML, err := xml.MarshalIndent(fileShareDistributionPoint, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro File Share Distribution Point '%s' to XML: %v", fileShareDistributionPoint.Name, err)
-	}
-	fmt.Printf("Constructed Jamf Pro File Share Distribution Point XML:\n%s\n", string(resourceXML))
-
-	return fileShareDistributionPoint, nil
-}
-
 // ResourceJamfProFileShareDistributionPointsCreate is responsible for creating a new file share
 // distribution point object in the remote system.
 // The function:
@@ -256,7 +220,7 @@ func ResourceJamfProFileShareDistributionPointsCreate(ctx context.Context, d *sc
 	var diags diag.Diagnostics
 
 	// Construct the resource object
-	resource, err := constructJamfProFileShareDistributionPoint(ctx, d)
+	resource, err := constructJamfProFileShareDistributionPoint(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro file share distribution point: %v", err))
 	}
@@ -313,102 +277,117 @@ func ResourceJamfProFileShareDistributionPointsRead(ctx context.Context, d *sche
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	var fileShareDistributionPoint *jamfpro.ResourceFileShareDistributionPoint
+	var resource *jamfpro.ResourceFileShareDistributionPoint
 
 	// Read operation with retry
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		fileShareDistributionPoint, apiErr = conn.GetDistributionPointByID(resourceIDInt)
+		resource, apiErr = conn.GetDistributionPointByID(resourceIDInt)
 		if apiErr != nil {
-			// Convert any API error into a retryable error to continue retrying
+			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
+				// Return non-retryable error with a message to avoid SDK issues
+				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
+			}
+			// Retry for other types of errors
 			return retry.RetryableError(apiErr)
 		}
-		// Successfully read the site, exit the retry loop
 		return nil
 	})
 
+	// If err is not nil, check if it's due to the resource being not found
 	if err != nil {
-		// Handle the final error after all retries have been exhausted
-		d.SetId("") // Remove from Terraform state if unable to read after retries
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Printer with ID '%d' after retries: %v", resourceIDInt, err))
+		if err.Error() == "resource not found, marked for deletion" {
+			// Resource not found, remove from Terraform state
+			d.SetId("")
+			// Append a warning diagnostic and return
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Resource not found",
+				Detail:   fmt.Sprintf("Jamf Pro Distribution Point with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
+			})
+			return diags
+		}
+
+		// For other errors, return an error diagnostic
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Distribution Point with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	// Check if fileShareDistributionPoint data exists
-	if fileShareDistributionPoint != nil {
+	if resource != nil {
 		// Set the fields directly in the Terraform state
-		if err := d.Set("id", strconv.Itoa(fileShareDistributionPoint.ID)); err != nil {
+		if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("name", fileShareDistributionPoint.Name); err != nil {
+		if err := d.Set("name", resource.Name); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("ip_address", fileShareDistributionPoint.IP_Address); err != nil {
+		if err := d.Set("ip_address", resource.IP_Address); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("ipaddress", fileShareDistributionPoint.IPAddress); err != nil {
+		if err := d.Set("ipaddress", resource.IPAddress); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("is_master", fileShareDistributionPoint.IsMaster); err != nil {
+		if err := d.Set("is_master", resource.IsMaster); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("is_master", fileShareDistributionPoint.IsMaster); err != nil {
+		if err := d.Set("is_master", resource.IsMaster); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("failover_point", fileShareDistributionPoint.FailoverPoint); err != nil {
+		if err := d.Set("failover_point", resource.FailoverPoint); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("failover_point_url", fileShareDistributionPoint.FailoverPointURL); err != nil {
+		if err := d.Set("failover_point_url", resource.FailoverPointURL); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("enable_load_balancing", fileShareDistributionPoint.EnableLoadBalancing); err != nil {
+		if err := d.Set("enable_load_balancing", resource.EnableLoadBalancing); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("local_path", fileShareDistributionPoint.LocalPath); err != nil {
+		if err := d.Set("local_path", resource.LocalPath); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("ssh_username", fileShareDistributionPoint.SSHUsername); err != nil {
+		if err := d.Set("ssh_username", resource.SSHUsername); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("password", fileShareDistributionPoint.Password); err != nil {
+		if err := d.Set("password", resource.Password); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("connection_type", fileShareDistributionPoint.ConnectionType); err != nil {
+		if err := d.Set("connection_type", resource.ConnectionType); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("share_name", fileShareDistributionPoint.ShareName); err != nil {
+		if err := d.Set("share_name", resource.ShareName); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("workgroup_or_domain", fileShareDistributionPoint.WorkgroupOrDomain); err != nil {
+		if err := d.Set("workgroup_or_domain", resource.WorkgroupOrDomain); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("share_port", fileShareDistributionPoint.SharePort); err != nil {
+		if err := d.Set("share_port", resource.SharePort); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("read_only_username", fileShareDistributionPoint.ReadOnlyUsername); err != nil {
+		if err := d.Set("read_only_username", resource.ReadOnlyUsername); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("https_downloads_enabled", fileShareDistributionPoint.HTTPDownloadsEnabled); err != nil {
+		if err := d.Set("https_downloads_enabled", resource.HTTPDownloadsEnabled); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("http_url", fileShareDistributionPoint.HTTPURL); err != nil {
+		if err := d.Set("http_url", resource.HTTPURL); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("https_share_path", fileShareDistributionPoint.Context); err != nil {
+		if err := d.Set("https_share_path", resource.Context); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("protocol", fileShareDistributionPoint.Protocol); err != nil {
+		if err := d.Set("protocol", resource.Protocol); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("https_port", fileShareDistributionPoint.Port); err != nil {
+		if err := d.Set("https_port", resource.Port); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("no_authentication_required", fileShareDistributionPoint.NoAuthenticationRequired); err != nil {
+		if err := d.Set("no_authentication_required", resource.NoAuthenticationRequired); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("https_username_password_required", fileShareDistributionPoint.UsernamePasswordRequired); err != nil {
+		if err := d.Set("https_username_password_required", resource.UsernamePasswordRequired); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("https_username", fileShareDistributionPoint.HTTPUsername); err != nil {
+		if err := d.Set("https_username", resource.HTTPUsername); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 
@@ -441,7 +420,7 @@ func ResourceJamfProFileShareDistributionPointsUpdate(ctx context.Context, d *sc
 	}
 
 	// Construct the resource object
-	resource, err := constructJamfProFileShareDistributionPoint(ctx, d)
+	resource, err := constructJamfProFileShareDistributionPoint(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro file share distribution point for update: %v", err))
 	}
