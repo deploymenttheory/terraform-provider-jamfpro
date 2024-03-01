@@ -2,6 +2,9 @@
 package scripts
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -30,6 +33,13 @@ func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResourceScript, er
 	if scriptContent, ok := d.GetOk("script_contents"); ok {
 		script.ScriptContents = scriptContent.(string)
 	}
+
+	// Serialize and pretty-print the site object as XML
+	resourceJSON, err := json.MarshalIndent(script, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Script '%s' to XML: %v", script.Name, err)
+	}
+	fmt.Printf("Constructed Jamf Pro Dock Item JSON:\n%s\n", string(resourceJSON))
 
 	return script, nil
 }

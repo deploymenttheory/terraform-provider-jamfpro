@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -190,7 +191,11 @@ func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, me
 		var apiErr error
 		resource, apiErr = conn.GetPrinterByID(resourceIDInt)
 		if apiErr != nil {
-			// Convert any API error into a retryable error to continue retrying
+			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
+				// Resource not found or gone, remove from Terraform state
+				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
+			}
+			// Convert any other API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)
 		}
 		// Successfully read the resource, exit the retry loop
@@ -198,9 +203,17 @@ func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, me
 	})
 
 	if err != nil {
+		if strings.Contains(err.Error(), "resource not found, marked for deletion") {
+			d.SetId("") // Remove from Terraform state
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Resource not found or gone",
+				Detail:   fmt.Sprintf("Jamf Pro Script with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
+			})
+			return diags
+		}
 		// Handle the final error after all retries have been exhausted
-		d.SetId("") // Remove from Terraform state if unable to read after retries
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Printer with ID '%d' after retries: %v", resourceIDInt, err))
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Printer with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	// Set individual attributes in the Terraform state with error handling
