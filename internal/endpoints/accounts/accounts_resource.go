@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -403,25 +404,54 @@ func ResourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, met
 		var apiErr error
 		resource, apiErr = conn.GetAccountByID(resourceIDInt)
 		if apiErr != nil {
-			// Convert any API error into a retryable error to continue retrying
+			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
+				// Return non-retryable error with a message to avoid SDK issues
+				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
+			}
+			// Retry for other types of errors
 			return retry.RetryableError(apiErr)
 		}
-		// Successfully read the resource, exit the retry loop
 		return nil
 	})
 
+	// If err is not nil, check if it's due to the resource being not found
 	if err != nil {
-		// Handle the final error after all retries have been exhausted
-		d.SetId("") // Remove from Terraform state if unable to read after retries
+		if err.Error() == "resource not found, marked for deletion" {
+			// Resource not found, remove from Terraform state
+			d.SetId("")
+			// Append a warning diagnostic and return
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Resource not found",
+				Detail:   fmt.Sprintf("Jamf Pro Account with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
+			})
+			return diags
+		}
+
+		// For other errors, return an error diagnostic
 		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Account with ID '%s' after retries: %v", resourceID, err))
 	}
 
-	// Update the Terraform state with account attributes
-	d.Set("name", resource.Name)
-	d.Set("directory_user", resource.DirectoryUser)
-	d.Set("full_name", resource.FullName)
-	d.Set("email", resource.Email)
-	d.Set("enabled", resource.Enabled)
+	// Update Terraform state with the resource information
+	if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("name", resource.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("directory_user", resource.DirectoryUser); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("full_name", resource.FullName); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+
+	}
+	if err := d.Set("email", resource.Email); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("enabled", resource.Enabled); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	// Update LDAP server information
 	if resource.LdapServer.ID != 0 || resource.LdapServer.Name != "" {
