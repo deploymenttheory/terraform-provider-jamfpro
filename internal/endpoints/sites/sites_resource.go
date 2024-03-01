@@ -93,7 +93,7 @@ func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, met
 	// Set the resource ID in Terraform state
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	// Read the site to ensure the Terraform state is up to date
+	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProSitesRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)

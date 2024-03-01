@@ -104,7 +104,7 @@ func ResourceJamfProNetworkSegments() *schema.Resource {
 // 3. Updates the Terraform state with the ID of the newly created printer.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProNetworkSegmentsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize API client
+	// Assert the meta interface to the expected APIClient type
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
@@ -113,37 +113,37 @@ func ResourceJamfProNetworkSegmentsCreate(ctx context.Context, d *schema.Resourc
 
 	// Initialize variables
 	var diags diag.Diagnostics
-	resourceID := d.Id()
 
-	// Convert resourceID from string to int
-	resourceIDInt, err := strconv.Atoi(resourceID)
+	// Construct the resource object
+	resource, err := constructJamfProNetworkSegment(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Site: %v", err))
 	}
 
-	// Use the retry function for the delete operation with appropriate timeout
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// Attempt to delete by ID
-		apiErr := conn.DeleteNetworkSegmentByID(resourceIDInt)
+	// Retry the API call to create the site in Jamf Pro
+	var creationResponse *jamfpro.ResponseNetworkSegmentCreatedAndUpdated
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		var apiErr error
+		creationResponse, apiErr = conn.CreateNetworkSegment(resource)
 		if apiErr != nil {
-			// If deleting by ID fails, attempt to delete by Name
-			resourceName := d.Get("name").(string)
-			apiErrByName := conn.DeleteNetworkSegmentByName(resourceName)
-			if apiErrByName != nil {
-				// If deletion by name also fails, return a retryable error
-				return retry.RetryableError(apiErrByName)
-			}
+			return retry.RetryableError(apiErr)
 		}
-		// Successfully deleted the resource, exit the retry loop
+		// No error, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Network Segment '%s' (ID: %d) after retries: %v", d.Get("name").(string), resourceIDInt, err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Network Segment '%s' after retries: %v", resource.Name, err))
 	}
 
-	// Clear the ID from the Terraform state as the resource has been deleted
-	d.SetId("")
+	// Set the resource ID in Terraform state
+	d.SetId(strconv.Itoa(creationResponse.ID))
+
+	// Read the resource to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProNetworkSegmentsRead(ctx, d, meta)
+	if len(readDiags) > 0 {
+		diags = append(diags, readDiags...)
+	}
 
 	return diags
 }
