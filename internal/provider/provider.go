@@ -16,6 +16,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accountgroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accounts"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computercheckin"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/filesharedistributionpoints"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/networksegments"
 
@@ -210,6 +211,7 @@ func Provider() *schema.Provider {
 			"jamfpro_api_integration":               apiintegrations.ResourceJamfProApiIntegrations(),
 			"jamfpro_api_role":                      apiroles.ResourceJamfProAPIRoles(),
 			"jamfpro_building":                      buildings.ResourceJamfProBuildings(),
+			"jamfpro_computer_checkin":              computercheckin.ResourceJamfProComputerCheckin(),
 			"jamfpro_computer_extension_attribute":  computerextensionattributes.ResourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_group":                computergroups.ResourceJamfProComputerGroups(),
 			"jamfpro_computer_prestage":             computerprestages.ResourceJamfProComputerPrestage(),
