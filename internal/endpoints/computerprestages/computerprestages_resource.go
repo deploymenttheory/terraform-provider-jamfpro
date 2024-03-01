@@ -654,7 +654,7 @@ func ResourceJamfProComputerPrestageRead(ctx context.Context, d *schema.Resource
 		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Computer Prestage with ID '%s' after retries: %v", resourceID, err))
 	}
 
-	// Check if prestage data exists
+	// Update the Terraform state with the fetched data
 	if resource != nil {
 		// Construct a map of computer prestage attributes
 		prestageAttributes := map[string]interface{}{

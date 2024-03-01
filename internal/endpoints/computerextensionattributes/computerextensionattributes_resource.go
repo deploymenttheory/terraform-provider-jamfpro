@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -192,42 +193,59 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 		var apiErr error
 		resource, apiErr = conn.GetComputerExtensionAttributeByID(resourceIDInt)
 		if apiErr != nil {
-			// Convert any API error into a retryable error to continue retrying
+			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
+				// Return non-retryable error with a message to avoid SDK issues
+				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
+			}
+			// Retry for other types of errors
 			return retry.RetryableError(apiErr)
 		}
-		// Successfully read the resource, exit the retry loop
 		return nil
 	})
 
+	// If err is not nil, check if it's due to the resource being not found
 	if err != nil {
-		// Handle the final error after all retries have been exhausted
-		d.SetId("") // Remove from Terraform state if unable to read after retries
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Computer Extension Attribute with ID '%d' after retries: %v", resourceIDInt, err))
+		if err.Error() == "resource not found, marked for deletion" {
+			// Resource not found, remove from Terraform state
+			d.SetId("")
+			// Append a warning diagnostic and return
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Resource not found",
+				Detail:   fmt.Sprintf("Jamf Pro Computer Group with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
+			})
+			return diags
+		}
+
+		// For other errors, return an error diagnostic
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Computer Group with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	// Update the Terraform state with the fetched data
-	extenstionAttributeData := map[string]interface{}{
-		"name":              resource.Name,
-		"enabled":           resource.Enabled,
-		"description":       resource.Description,
-		"data_type":         resource.DataType,
-		"inventory_display": resource.InventoryDisplay,
-		"recon_display":     resource.ReconDisplay,
-		// Handle the input type details
-		"input_type": []interface{}{
-			map[string]interface{}{
-				"type":     resource.InputType.Type,
-				"platform": resource.InputType.Platform,
-				"script":   resource.InputType.Script,
-				"choices":  resource.InputType.Choices,
+	if resource != nil {
+		extenstionAttributeData := map[string]interface{}{
+			"name":              resource.Name,
+			"enabled":           resource.Enabled,
+			"description":       resource.Description,
+			"data_type":         resource.DataType,
+			"inventory_display": resource.InventoryDisplay,
+			"recon_display":     resource.ReconDisplay,
+			// Handle the input type details
+			"input_type": []interface{}{
+				map[string]interface{}{
+					"type":     resource.InputType.Type,
+					"platform": resource.InputType.Platform,
+					"script":   resource.InputType.Script,
+					"choices":  resource.InputType.Choices,
+				},
 			},
-		},
-	}
+		}
 
-	// Set the attribute data in the Terraform state
-	for key, val := range extenstionAttributeData {
-		if err := d.Set(key, val); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+		// Set the attribute data in the Terraform state
+		for key, val := range extenstionAttributeData {
+			if err := d.Set(key, val); err != nil {
+				diags = append(diags, diag.FromErr(err)...)
+			}
 		}
 	}
 
