@@ -2,23 +2,11 @@
 package packages
 
 import (
-	"fmt"
-
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func constructJamfProJCDS2Package(d *schema.ResourceData) (string, error) {
-	// Extract the 'package_file_path' attribute from the Terraform resource data
-	filePath, ok := d.Get("package_file_path").(string)
-	if !ok || filePath == "" {
-		// Return an error if the file path is not provided or is empty
-		return "", fmt.Errorf("file path for the Jamf Pro package is required and cannot be empty")
-	}
-
-	return filePath, nil
-}
-
+// constructJamfProPackage constructs a ResourcePackage object from the provided schema data.
 func constructJamfProPackage(d *schema.ResourceData) (*jamfpro.ResourcePackage, error) {
 
 	packageResource := &jamfpro.ResourcePackage{

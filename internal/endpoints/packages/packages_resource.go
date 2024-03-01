@@ -246,53 +246,104 @@ func ResourceJamfProPackagesRead(ctx context.Context, d *schema.ResourceData, me
 	if err := d.Set("name", resource.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+	if err := d.Set("category", resource.Category); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("filename", resource.Filename); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("info", resource.Info); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("notes", resource.Notes); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("priority", resource.Priority); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("reboot_required", resource.RebootRequired); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("fill_user_template", resource.FillUserTemplate); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("fill_existing_users", resource.FillExistingUsers); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("boot_volume_required", resource.BootVolumeRequired); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("allow_uninstalled", resource.AllowUninstalled); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("os_requirements", resource.OSRequirements); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("required_processor", resource.RequiredProcessor); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("switch_with_package", resource.SwitchWithPackage); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("install_if_reported_available", resource.InstallIfReportedAvailable); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("reinstall_option", resource.ReinstallOption); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("triggering_files", resource.TriggeringFiles); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("send_notification", resource.SendNotification); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	return diags
 }
 
 // ResourceJamfProPackagesUpdate is responsible for updating an existing Jamf Pro Site on the remote system.
 func ResourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize API client
+	// Assert the meta interface to the expected APIClient type
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Initialize variables
+	// Initialize diagnostics
 	var diags diag.Diagnostics
-	resourceID := d.Id()
 
-	// Convert resourceID from string to int
-	resourceIDInt, err := strconv.Atoi(resourceID)
+	// Construct the package resource object
+	packageData, err := constructJamfProPackage(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package file path: %v", err))
 	}
 
-	// Construct the resource object
-	resource, err := constructJamfProPackages(d)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package for update: %v", err))
-	}
+	// Extract the file path for the package
+	filePath := d.Get("package_file_path").(string)
 
-	// Update operations with retries
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdatePackageByID(resourceIDInt, resource)
+	// Retry the API call to create the package in JCDS 2.0
+	var creationResponse *jamfpro.ResponseJCDS2File
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		var apiErr error
+		creationResponse, apiErr = conn.DoPackageUpload(filePath, packageData)
 		if apiErr != nil {
-			// If updating by ID fails, attempt to update by Name
 			return retry.RetryableError(apiErr)
 		}
-		// Successfully updated the resource, exit the retry loop
+		// No error, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Package '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Package with file path '%s' after retries: %v", filePath, err))
 	}
+
+	// Assuming the URI is a suitable unique identifier for the Terraform resource
+	d.SetId(creationResponse.URI)
 
 	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProPackagesRead(ctx, d, meta)
-	if len(readDiags) > 0 {
+	if readDiags.HasError() {
 		diags = append(diags, readDiags...)
 	}
 
