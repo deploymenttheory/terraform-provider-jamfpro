@@ -11,13 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
+	"github.com/deploymenttheory/go-api-http-client/httpclient"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accountgroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accounts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/filesharedistributionpoints"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/macosconfigurationprofiles"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/advancedcomputersearches"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/advancedmobiledevicesearches"
@@ -26,8 +25,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/apiintegrations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/apiroles"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/buildings"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/byoprofiles"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computercheckin"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computerextensionattributes"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computerinventory"
@@ -84,7 +81,7 @@ func GetClientSecret(d *schema.ResourceData) (string, error) {
 	return clientSecret, nil
 }
 
-// Schema defines the configuration attributes for the http_client within the JamfPro provider.
+// Schema defines the configuration attributes for the  within the JamfPro provider.
 func Provider() *schema.Provider {
 	provider := &schema.Provider{
 		Schema: map[string]*schema.Schema{
@@ -92,7 +89,7 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_INSTANCE_NAME", ""),
-				Description: "The Jamf Pro instance name. For mycompany.jamfcloud.com, define mycompany in this field.",
+				Description: "The Jamf Pro instance name. For https://mycompany.jamfcloud.com, define 'mycompany' in this field.",
 			},
 			"client_id": {
 				Type:        schema.TypeString,
@@ -110,11 +107,29 @@ func Provider() *schema.Provider {
 			"log_level": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "warning", // Set default log level as warning to align with http_client package
+				Default:  "warning", // Align with the default log level in the  package
 				ValidateFunc: validation.StringInSlice([]string{
 					"debug", "info", "warning", "none",
 				}, false),
 				Description: "The logging level: debug, info, warning, or none",
+			},
+			"log_output_format": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "console", // Default to console for human-readable format
+				Description: "The output format of the logs. Use 'JSON' for JSON format, 'console' for human-readable format.",
+			},
+			"log_console_separator": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     " ", // Set a default value for the separator
+				Description: "The separator character used in console log output.",
+			},
+			"hide_sensitive_data": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     true,
+				Description: "Define whether sensitive fields should be hidden in logs. Default to hiding sensitive data in logs",
 			},
 			"max_retry_attempts": {
 				Type:        schema.TypeInt,
@@ -137,66 +152,73 @@ func Provider() *schema.Provider {
 			"token_refresh_buffer_period": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Default:     5,
-				Description: "The buffer period for token refresh.",
+				Default:     5, // Convert minutes to time.Duration in code
+				Description: "The buffer period in minutes for token refresh.",
 			},
 			"total_retry_duration": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Default:     60,
-				Description: "The total retry duration.",
+				Default:     60, // Convert seconds to time.Duration in code
+				Description: "The total retry duration in seconds.",
 			},
 			"custom_timeout": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Default:     60,
-				Description: "The custom timeout.",
+				Default:     60, // Convert seconds to time.Duration in code
+				Description: "The custom timeout in seconds for the HTTP client.",
+			},
+			"override_base_domain": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Base domain override used when the default in the API handler isn't suitable.",
+			},
+			"api_type": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Specifies the API type or handler to use for the client.",
+				Default:     "jamfpro",
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"jamfpro_accounts":                      accounts.DataSourceJamfProAccounts(),
-			"jamfpro_account_groups":                accountgroups.DataSourceJamfProAccountGroups(),
-			"jamfpro_api_integrations":              apiintegrations.DataSourceJamfProApiIntegrations(),
-			"jamfpro_api_roles":                     apiroles.DataSourceJamfProAPIRoles(),
-			"jamfpro_buildings":                     buildings.DataSourceJamfProBuildings(),
-			"jamfpro_computer_extension_attributes": computerextensionattributes.DataSourceJamfProComputerExtensionAttributes(),
-			"jamfpro_computer_groups":               computergroups.DataSourceJamfProComputerGroups(),
+			"jamfpro_account":                       accounts.DataSourceJamfProAccounts(),
+			"jamfpro_account_group":                 accountgroups.DataSourceJamfProAccountGroups(),
+			"jamfpro_api_integration":               apiintegrations.DataSourceJamfProApiIntegrations(),
+			"jamfpro_api_role":                      apiroles.DataSourceJamfProAPIRoles(),
+			"jamfpro_building":                      buildings.DataSourceJamfProBuildings(),
+			"jamfpro_computer_extension_attribute":  computerextensionattributes.DataSourceJamfProComputerExtensionAttributes(),
+			"jamfpro_computer_group":                computergroups.DataSourceJamfProComputerGroups(),
 			"jamfpro_computer_inventory":            computerinventory.DataSourceJamfProComputerInventory(),
-			//"jamfpro_computer_prestages":            computerprestages.DataSourceJamfProComputerInventory(),
-			"jamfpro_departments":                    departments.DataSourceJamfProDepartments(),
-			"jamfpro_disk_encryption_configurations": diskencryptionconfigurations.DataSourceJamfProDiskEncryptionConfigurations(),
-			"jamfpro_dock_items":                     dockitems.DataSourceJamfProDockItems(),
-			"jamfpro_file_share_distribution_points": filesharedistributionpoints.DataSourceJamfProFileShareDistributionPoints(),
-			"jamfpro_sites":                          sites.DataSourceJamfProSites(),
-			"jamfpro_scripts":                        scripts.DataSourceJamfProScripts(),
-			//"jamfpro_macos_configuration_profiles":  macosconfigurationprofiles.DataSourceJamfProMacOSConfigurationProfiles(),
-			"jamfpro_policies": policies.DataSourceJamfProPolicies(),
-			"jamfpro_printers": printers.DataSourceJamfProPrinters(),
+			"jamfpro_computer_prestage":             computerprestages.DataSourceJamfProComputerPrestage(),
+			"jamfpro_department":                    departments.DataSourceJamfProDepartments(),
+			"jamfpro_disk_encryption_configuration": diskencryptionconfigurations.DataSourceJamfProDiskEncryptionConfigurations(),
+			"jamfpro_dock_item":                     dockitems.DataSourceJamfProDockItems(),
+			"jamfpro_file_share_distribution_point": filesharedistributionpoints.DataSourceJamfProFileShareDistributionPoints(),
+			"jamfpro_site":                          sites.DataSourceJamfProSites(),
+			"jamfpro_script":                        scripts.DataSourceJamfProScripts(),
+			"jamfpro_policy":                        policies.DataSourceJamfProPolicies(),
+			"jamfpro_printer":                       printers.DataSourceJamfProPrinters(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"jamfpro_accounts":                        accounts.ResourceJamfProAccounts(),
-			"jamfpro_account_groups":                  accountgroups.ResourceJamfProAccountGroups(),
-			"jamfpro_advanced_computer_searches":      advancedcomputersearches.ResourceJamfProAdvancedComputerSearches(),
-			"jamfpro_advanced_mobile_device_searches": advancedmobiledevicesearches.ResourceJamfProAdvancedMobileDeviceSearches(),
-			"jamfpro_advanced_user_searches":          advancedusersearches.ResourceJamfProAdvancedUserSearches(),
-			"jamfpro_allowed_file_extension":          allowedfileextensions.ResourceJamfProAllowedFileExtensions(),
-			"jamfpro_api_integrations":                apiintegrations.ResourceJamfProApiIntegrations(),
-			"jamfpro_api_roles":                       apiroles.ResourceJamfProAPIRoles(),
-			"jamfpro_buildings":                       buildings.ResourceJamfProBuildings(),
-			"jamfpro_byoprofiles":                     byoprofiles.ResourceJamfProBYOProfiles(),
-			"jamfpro_computer_checkin":                computercheckin.ResourceJamfProComputerCheckin(),
-			"jamfpro_computer_extension_attributes":   computerextensionattributes.ResourceJamfProComputerExtensionAttributes(),
-			"jamfpro_computer_groups":                 computergroups.ResourceJamfProComputerGroups(),
-			"jamfpro_computer_prestages":              computerprestages.ResourceJamfProComputerPrestage(),
-			"jamfpro_departments":                     departments.ResourceJamfProDepartments(),
-			"jamfpro_disk_encryption_configurations":  diskencryptionconfigurations.ResourceJamfProDiskEncryptionConfigurations(),
-			"jamfpro_dock_items":                      dockitems.ResourceJamfProDockItems(),
-			"jamfpro_file_share_distribution_points":  filesharedistributionpoints.ResourceJamfProFileShareDistributionPoints(),
-			"jamfpro_sites":                           sites.ResourceJamfProSites(),
-			"jamfpro_scripts":                         scripts.ResourceJamfProScripts(),
-			"jamfpro_macos_configuration_profile":     macosconfigurationprofiles.ResourceJamfProMacOSConfigurationProfiles(),
-			"jamfpro_policies":                        policies.ResourceJamfProPolicies(),
-			"jamfpro_printers":                        printers.ResourceJamfProPrinters(),
+			"jamfpro_account":                       accounts.ResourceJamfProAccounts(),
+			"jamfpro_account_group":                 accountgroups.ResourceJamfProAccountGroups(),
+			"jamfpro_advanced_computer_search":      advancedcomputersearches.ResourceJamfProAdvancedComputerSearches(),
+			"jamfpro_advanced_mobile_device_search": advancedmobiledevicesearches.ResourceJamfProAdvancedMobileDeviceSearches(),
+			"jamfpro_advanced_user_search":          advancedusersearches.ResourceJamfProAdvancedUserSearches(),
+			"jamfpro_allowed_file_extension":        allowedfileextensions.ResourceJamfProAllowedFileExtensions(),
+			"jamfpro_api_integration":               apiintegrations.ResourceJamfProApiIntegrations(),
+			"jamfpro_api_role":                      apiroles.ResourceJamfProAPIRoles(),
+			"jamfpro_building":                      buildings.ResourceJamfProBuildings(),
+			"jamfpro_computer_extension_attribute":  computerextensionattributes.ResourceJamfProComputerExtensionAttributes(),
+			"jamfpro_computer_group":                computergroups.ResourceJamfProComputerGroups(),
+			"jamfpro_computer_prestage":             computerprestages.ResourceJamfProComputerPrestage(),
+			"jamfpro_department":                    departments.ResourceJamfProDepartments(),
+			"jamfpro_disk_encryption_configuration": diskencryptionconfigurations.ResourceJamfProDiskEncryptionConfigurations(),
+			"jamfpro_dock_item":                     dockitems.ResourceJamfProDockItems(),
+			"jamfpro_file_share_distribution_point": filesharedistributionpoints.ResourceJamfProFileShareDistributionPoints(),
+			"jamfpro_site":                          sites.ResourceJamfProSites(),
+			"jamfpro_script":                        scripts.ResourceJamfProScripts(),
+			"jamfpro_policy":                        policies.ResourceJamfProPolicies(),
+			"jamfpro_printer":                       printers.ResourceJamfProPrinters(),
 		},
 	}
 
@@ -233,52 +255,44 @@ func Provider() *schema.Provider {
 			return nil, diags
 		}
 
-		MaxRetryAttempts := d.Get("max_retry_attempts").(int)
-		EnableDynamicRateLimiting := d.Get("enable_dynamic_rate_limiting").(bool)
-		MaxConcurrentRequests := d.Get("max_concurrent_requests").(int)
-
-		TokenRefreshBufferPeriod := d.Get("token_refresh_buffer_period").(int)
-		TokenRefreshBufferPeriodTyped := time.Duration(TokenRefreshBufferPeriod) * time.Minute
-
-		TotalRetryDuration := d.Get("total_retry_duration").(int)
-		TotalRetryDurationTyped := time.Duration(TotalRetryDuration) * time.Second
-
-		CustomTimeout := d.Get("custom_timeout").(int)
-		CustomTimeoutTyped := time.Duration(CustomTimeout) * time.Second
-
-		// Convert the log level from string to the LogLevel type.
-		// (Assuming there's a function in your client package that does this)
-		logLevel := d.Get("log_level").(string)
-		parsedLogLevel, err := client.ConvertToLogLevel(logLevel)
-		if err != nil {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Invalid log level",
-				Detail:   err.Error(),
-			})
-			return nil, diags
+		httpClientConfig := httpclient.ClientConfig{
+			Environment: httpclient.EnvironmentConfig{
+				InstanceName:       instanceName,
+				OverrideBaseDomain: d.Get("override_base_domain").(string),
+				APIType:            "jamfpro",
+			},
+			Auth: httpclient.AuthConfig{
+				ClientID:     clientID,
+				ClientSecret: clientSecret,
+			},
+			ClientOptions: httpclient.ClientOptions{
+				LogLevel:                  d.Get("log_level").(string),
+				LogOutputFormat:           d.Get("log_output_format").(string),
+				LogConsoleSeparator:       d.Get("log_console_separator").(string),
+				HideSensitiveData:         d.Get("hide_sensitive_data").(bool),
+				MaxRetryAttempts:          d.Get("max_retry_attempts").(int),
+				EnableDynamicRateLimiting: d.Get("enable_dynamic_rate_limiting").(bool),
+				MaxConcurrentRequests:     d.Get("max_concurrent_requests").(int),
+				TokenRefreshBufferPeriod:  time.Duration(d.Get("token_refresh_buffer_period").(int)) * time.Minute, // Note the change to time.Minute
+				TotalRetryDuration:        time.Duration(d.Get("total_retry_duration").(int)) * time.Second,
+				CustomTimeout:             time.Duration(d.Get("custom_timeout").(int)) * time.Second,
+			},
 		}
 
-		httpClientConfig := http_client.Config{
-			InstanceName:              instanceName,
-			Auth:                      http_client.AuthConfig{ClientID: clientID, ClientSecret: clientSecret},
-			LogLevel:                  parsedLogLevel,
-			MaxRetryAttempts:          MaxRetryAttempts,
-			EnableDynamicRateLimiting: EnableDynamicRateLimiting,
-			MaxConcurrentRequests:     MaxConcurrentRequests,
-			TokenRefreshBufferPeriod:  TokenRefreshBufferPeriodTyped,
-			TotalRetryDuration:        TotalRetryDurationTyped,
-			CustomTimeout:             CustomTimeoutTyped,
-		}
+		// Debug print before building the client
+		fmt.Printf("Debug: Building HTTP client with config: %+v\n", httpClientConfig)
 
-		httpclient, err := jamfpro.NewClient(httpClientConfig)
+		httpclient, err := jamfpro.BuildClient(httpClientConfig)
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}
 
-		var wrapper client.APIClient
-		wrapper.Conn = httpclient
-		return &wrapper, nil
+		// Initialize your provider's APIClient struct with the Jamf Pro HTTP client.
+		jamfProAPIClient := client.APIClient{
+			Conn: httpclient,
+		}
+
+		return &jamfProAPIClient, diags
 	}
 	return provider
 }

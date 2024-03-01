@@ -4,11 +4,13 @@ package computerextensionattributes
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -27,63 +29,6 @@ func DataSourceJamfProComputerExtensionAttributes() *schema.Resource {
 				Computed:    true,
 				Description: "The unique name of the Jamf Pro computer extension attribute.",
 			},
-			"enabled": {
-				Type:        schema.TypeBool,
-				Computed:    true,
-				Description: "Indicates if the computer extension attribute is enabled.",
-			},
-			"description": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Description of the computer extension attribute.",
-			},
-			"data_type": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Data type of the computer extension attribute. Can be String / Integer / Date (YYYY-MM-DD hh:mm:ss)",
-			},
-			"input_type": {
-				Type:        schema.TypeList,
-				Computed:    true,
-				Description: "Input type details of the computer extension attribute.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Type of the input for the computer extension attribute.",
-						},
-						"platform": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Platform type for the computer extension attribute.",
-						},
-						"script": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Script associated with the computer extension attribute.",
-						},
-						"choices": {
-							Type:        schema.TypeList,
-							Computed:    true,
-							Description: "Choices associated with the computer extension attribute if it is a pop-up menu type.",
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-					},
-				},
-			},
-			"inventory_display": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Display details for inventory for the computer extension attribute.",
-			},
-			"recon_display": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Display details for recon for the computer extension attribute.",
-			},
 		},
 	}
 }
@@ -101,69 +46,51 @@ func DataSourceJamfProComputerExtensionAttributes() *schema.Resource {
 // Returns:
 // - diag.Diagnostics: Returns any diagnostics (errors or warnings) encountered during the function's execution.
 func dataSourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Asserts 'meta' as '*client.APIClient'
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	var attribute *jamfpro.ResourceComputerExtensionAttribute
-	var err error
+	// Initialize variables
+	var diags diag.Diagnostics
+	resourceID := d.Id()
 
-	// Check if Name is provided in the data source configuration
-	if v, ok := d.GetOk("name"); ok && v.(string) != "" {
-		attributeName := v.(string)
-		attribute, err = conn.GetComputerExtensionAttributeByName(attributeName)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to fetch computer extension attribute by name: %v", err))
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
+	}
+
+	var resource *jamfpro.ResourceComputerExtensionAttribute
+
+	// Read operation with retry
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		resource, apiErr = conn.GetComputerExtensionAttributeByID(resourceIDInt)
+		if apiErr != nil {
+			// Convert any API error into a retryable error to continue retrying
+			return retry.RetryableError(apiErr)
 		}
-	} else if v, ok := d.GetOk("id"); ok {
-		attributeID := v.(int) // Correctly cast to int
-		attribute, err = conn.GetComputerExtensionAttributeByID(attributeID)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to fetch computer extension attribute by ID: %v", err))
+		// Successfully read the resource, exit the retry loop
+		return nil
+	})
+
+	if err != nil {
+		// Handle the final error after all retries have been exhausted
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Computer Extension Attribute with ID '%s' after retries: %v", resourceID, err))
+	}
+
+	// Check if resource data exists and set the Terraform state
+	if resource != nil {
+		d.SetId(resourceID) // Confirm the ID in the Terraform state
+		if err := d.Set("name", resource.Name); err != nil {
+			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Computer Extension Attribute with ID '%s': %v", resourceID, err))...)
 		}
 	} else {
-		return diag.Errorf("Either 'name' or 'id' must be provided")
+		d.SetId("") // Data not found, unset the ID in the Terraform state
 	}
 
-	// Set the data source attributes using the fetched data
-	if attribute == nil {
-		return diag.FromErr(fmt.Errorf("computer extension attribute not found"))
-	}
-
-	// Set the data source attributes using the fetched data
-	if err := d.Set("name", attribute.Name); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'name': %v", err))
-	}
-	if err := d.Set("enabled", attribute.Enabled); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'enabled': %v", err))
-	}
-	if err := d.Set("description", attribute.Description); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'description': %v", err))
-	}
-	if err := d.Set("data_type", attribute.DataType); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'data_type': %v", err))
-	}
-	if err := d.Set("inventory_display", attribute.InventoryDisplay); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'inventory_display': %v", err))
-	}
-	if err := d.Set("recon_display", attribute.ReconDisplay); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'recon_display': %v", err))
-	}
-
-	// Extract the input type details and set them in the data source
-	inputType := make(map[string]interface{})
-	inputType["type"] = attribute.InputType.Type
-	inputType["platform"] = attribute.InputType.Platform
-	inputType["script"] = attribute.InputType.Script
-	inputType["choices"] = attribute.InputType.Choices
-	if err := d.Set("input_type", []interface{}{inputType}); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to set 'input_type': %v", err))
-	}
-
-	d.SetId(fmt.Sprintf("%d", attribute.ID))
-
-	return nil
+	return diags
 }

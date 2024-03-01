@@ -1,6 +1,6 @@
 
 // account group - custom example
-resource "jamfpro_account_groups"  "jamf_pro_account_group_001" {
+resource "jamfpro_account_group"  "jamf_pro_account_group_001" {
   name         = "tf-example-account_group-custom"
   access_level = "Full Access" // Full Access / Site Access / Group Access
   privilege_set = "Custom" 

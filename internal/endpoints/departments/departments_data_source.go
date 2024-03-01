@@ -3,14 +3,11 @@ package departments
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
-	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -33,50 +30,34 @@ func DataSourceJamfProDepartments() *schema.Resource {
 	}
 }
 
-// DataSourceJamfProDepartmentsRead fetches the details of a specific department from Jamf Pro using either its unique Name or its Id.
+// DataSourceJamfProDepartmentsRead fetches the details of a specific department from Jamf Pro using its unique ID.
 func DataSourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize api client
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Initialize the logging subsystem for the read operation
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemRead, hclog.Info)
-
 	// Initialize variables
 	var diags diag.Diagnostics
-	var apiErrorCode int
-	var department *jamfpro.ResourceDepartment
 
-	// Get the distribution point ID from the data source's arguments
+	// Get the department ID from the data source's arguments
 	resourceID := d.Get("id").(string)
 
-	// Read operation with retry
-	err := retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
-		department, apiErr = conn.GetDepartmentByID(resourceID)
-		if apiErr != nil {
-			logging.LogFailedReadByID(subCtx, JamfProResourceDepartment, resourceID, apiErr.Error(), apiErrorCode)
-			// Convert any API error into a retryable error to continue retrying
-			return retry.RetryableError(apiErr)
-		}
-		// Successfully read the data, exit the retry loop
-		return nil
-	})
-
+	// Attempt to fetch the department's details using its ID
+	department, err := conn.GetDepartmentByID(resourceID)
 	if err != nil {
-		// Handle the final error after all retries have been exhausted
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Department with ID '%s': %v", resourceID, err))
 	}
 
 	// Check if resource data exists and set the Terraform state
 	if department != nil {
 		d.SetId(resourceID) // Set the id in the Terraform state
 		if err := d.Set("name", department.Name); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Department with ID '%s': %v", resourceID, err))...)
 		}
+
 	} else {
 		d.SetId("") // Data not found, unset the id in the Terraform state
 	}

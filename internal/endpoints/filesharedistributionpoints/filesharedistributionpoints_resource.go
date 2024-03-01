@@ -8,13 +8,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/http_client"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
-	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -206,49 +203,36 @@ const (
 
 // cconstructJamfProFileShareDistributionPoint constructs a ResourceDockItem object from the provided schema data.
 func constructJamfProFileShareDistributionPoint(ctx context.Context, d *schema.ResourceData) (*jamfpro.ResourceFileShareDistributionPoint, error) {
-	// Initialize the logging subsystem for the construction operation
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemConstruct, hclog.Debug)
-
 	fileShareDistributionPoint := &jamfpro.ResourceFileShareDistributionPoint{
-		Name:             util.GetStringFromInterface(d.Get("name")),
-		IsMaster:         util.GetBoolFromInterface(d.Get("is_master")),
-		IP_Address:       util.GetStringFromInterface(d.Get("ip_address")),
-		IPAddress:        util.GetStringFromInterface(d.Get("ipaddress")),
-		FailoverPoint:    util.GetStringFromInterface(d.Get("failover_point")),
-		FailoverPointURL: util.GetStringFromInterface(d.Get("failover_point_url")),
-		ConnectionType:   util.GetStringFromInterface(d.Get("connection_type")),
-		ShareName:        util.GetStringFromInterface(d.Get("share_name")),
-		SharePort:        util.GetIntFromInterface(d.Get("share_port")),
-
-		EnableLoadBalancing:      util.GetBoolFromInterface(d.Get("enable_load_balancing")),
-		LocalPath:                util.GetStringFromInterface(d.Get("local_path")),
-		SSHUsername:              util.GetStringFromInterface(d.Get("ssh_username")),
-		Password:                 util.GetStringFromInterface(d.Get("password")),
-		WorkgroupOrDomain:        util.GetStringFromInterface(d.Get("workgroup_or_domain")),
-		ReadOnlyUsername:         util.GetStringFromInterface(d.Get("read_only_username")),
-		ReadOnlyPassword:         util.GetStringFromInterface(d.Get("read_only_password")),
-		ReadWriteUsername:        util.GetStringFromInterface(d.Get("read_write_username")),
-		ReadWritePassword:        util.GetStringFromInterface(d.Get("read_write_password")),
-		HTTPDownloadsEnabled:     util.GetBoolFromInterface(d.Get("https_downloads_enabled")),
-		HTTPURL:                  util.GetStringFromInterface(d.Get("http_url")),
-		Context:                  util.GetStringFromInterface(d.Get("https_share_path")),
-		Protocol:                 util.GetStringFromInterface(d.Get("protocol")),
-		Port:                     util.GetIntFromInterface(d.Get("https_port")),
-		NoAuthenticationRequired: util.GetBoolFromInterface(d.Get("no_authentication_required")),
-		UsernamePasswordRequired: util.GetBoolFromInterface(d.Get("https_username_password_required")),
-		HTTPUsername:             util.GetStringFromInterface(d.Get("https_username")),
-		HTTPPassword:             util.GetStringFromInterface(d.Get("https_password")),
+		Name:                     d.Get("name").(string),
+		IP_Address:               d.Get("ip_address").(string),
+		IsMaster:                 d.Get("is_master").(bool),
+		FailoverPoint:            d.Get("failover_point").(string),
+		ConnectionType:           d.Get("connection_type").(string),
+		ShareName:                d.Get("share_name").(string),
+		SharePort:                d.Get("share_port").(int),
+		EnableLoadBalancing:      d.Get("enable_load_balancing").(bool),
+		WorkgroupOrDomain:        d.Get("workgroup_or_domain").(string),
+		ReadOnlyUsername:         d.Get("read_only_username").(string),
+		ReadOnlyPassword:         d.Get("read_only_password").(string),
+		ReadWriteUsername:        d.Get("read_write_username").(string),
+		ReadWritePassword:        d.Get("read_write_password").(string),
+		NoAuthenticationRequired: d.Get("no_authentication_required").(bool),
+		HTTPDownloadsEnabled:     d.Get("https_downloads_enabled").(bool),
+		Port:                     d.Get("https_port").(int),
+		Context:                  d.Get("https_share_path").(string),
+		HTTPUsername:             d.Get("https_username").(string),
+		HTTPPassword:             d.Get("https_password").(string),
+		Protocol:                 d.Get("protocol").(string),
+		HTTPURL:                  d.Get("http_url").(string),
 	}
 
-	// Serialize and pretty-print the dockitem object as XML
+	// Serialize and pretty-print the file share distribution point object as XML
 	resourceXML, err := xml.MarshalIndent(fileShareDistributionPoint, "", "  ")
 	if err != nil {
-		logging.LogTFConstructResourceXMLMarshalFailure(subCtx, JamfProResourceDistributionPoint, err.Error())
-		return nil, err
+		return nil, fmt.Errorf("failed to marshal Jamf Pro File Share Distribution Point '%s' to XML: %v", fileShareDistributionPoint.Name, err)
 	}
-
-	// Log the successful construction and serialization to XML
-	logging.LogTFConstructedXMLResource(subCtx, JamfProResourceDistributionPoint, string(resourceXML))
+	fmt.Printf("Constructed Jamf Pro File Share Distribution Point XML:\n%s\n", string(resourceXML))
 
 	return fileShareDistributionPoint, nil
 }
@@ -270,73 +254,36 @@ func ResourceJamfProFileShareDistributionPointsCreate(ctx context.Context, d *sc
 
 	// Initialize variables
 	var diags diag.Diagnostics
-	var creationResponse *jamfpro.ResourceFileShareDistributionPoint
-	var apiErrorCode int
 
-	// Extract values from the Terraform configuration for func useage
-	resourceName := d.Get("name").(string)
-
-	// Initialize the logging subsystem with the create operation context
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemCreate, hclog.Info)
-	subSyncCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemSync, hclog.Info)
-
-	// Construct the dockitem object outside the retry loop to avoid reconstructing it on each retry
-	fileShareDistributionPoint, err := constructJamfProFileShareDistributionPoint(subCtx, d)
+	// Construct the resource object
+	resource, err := constructJamfProFileShareDistributionPoint(ctx, d)
 	if err != nil {
-		logging.LogTFConstructResourceFailure(subCtx, JamfProResourceDistributionPoint, err.Error())
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro file share distribution point: %v", err))
 	}
-	logging.LogTFConstructResourceSuccess(subCtx, JamfProResourceDistributionPoint)
 
-	// Retry the API call to create the dockitem in Jamf Pro
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+	// Retry the API call to create the resource in Jamf Pro
+	var creationResponse *jamfpro.ResponseFileShareDistributionPointCreatedAndUpdated
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreateDistributionPoint(fileShareDistributionPoint)
+		creationResponse, apiErr = conn.CreateDistributionPoint(resource)
 		if apiErr != nil {
-			// Extract and log the API error code if available
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				apiErrorCode = apiError.StatusCode
-			}
-			logging.LogAPICreateFailedAfterRetry(subCtx, JamfProResourceDistributionPoint, resourceName, apiErr.Error(), apiErrorCode)
-			// Return a non-retryable error to break out of the retry loop
-			return retry.NonRetryableError(apiErr)
+			return retry.RetryableError(apiErr)
 		}
 		// No error, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		// Log the final error and append it to the diagnostics
-		logging.LogAPICreateFailure(subCtx, JamfProResourceDistributionPoint, err.Error(), apiErrorCode)
-		diags = append(diags, diag.FromErr(err)...)
-		return diags
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro file share distribution point '%s' after retries: %v", resource.Name, err))
 	}
 
-	// Log successful creation of the dockitem and set the resource ID in Terraform state
-	logging.LogAPICreateSuccess(subCtx, JamfProResourceDistributionPoint, strconv.Itoa(creationResponse.ID))
-
-	// set resource ID in the state
+	// Set the resource ID in Terraform state
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	// Retry reading the dockitem to ensure the Terraform state is up to date
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProFileShareDistributionPointsRead(subCtx, d, meta)
-		if len(readDiags) > 0 {
-			// Log any read errors and return a retryable error to retry the read operation
-			logging.LogTFStateSyncFailedAfterRetry(subSyncCtx, JamfProResourceDistributionPoint, d.Id(), readDiags[0].Summary)
-			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
-		}
-		// Successfully read the dockitem, exit the retry loop
-		return nil
-	})
-
-	if err != nil {
-		// Log the final state sync failure and append it to the diagnostics
-		logging.LogTFStateSyncFailure(subSyncCtx, JamfProResourceDistributionPoint, err.Error())
-		diags = append(diags, diag.FromErr(err)...)
-	} else {
-		// Log successful state synchronization
-		logging.LogTFStateSyncSuccess(subSyncCtx, JamfProResourceDistributionPoint, d.Id())
+	// Read the site to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProFileShareDistributionPointsRead(ctx, d, meta)
+	if len(readDiags) > 0 {
+		diags = append(diags, readDiags...)
 	}
 
 	return diags
@@ -349,49 +296,41 @@ func ResourceJamfProFileShareDistributionPointsCreate(ctx context.Context, d *sc
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the dock item being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProFileShareDistributionPointsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize api client
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Initialize the logging subsystem for the read operation
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemRead, hclog.Info)
-
 	// Initialize variables
 	var diags diag.Diagnostics
-	var apiErrorCode int
-	var fileShareDistributionPoint *jamfpro.ResourceFileShareDistributionPoint
-
 	resourceID := d.Id()
 
 	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		// Handle conversion error with structured logging
-		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceDistributionPoint, resourceID, err.Error())
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
+	var fileShareDistributionPoint *jamfpro.ResourceFileShareDistributionPoint
+
 	// Read operation with retry
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
 		fileShareDistributionPoint, apiErr = conn.GetDistributionPointByID(resourceIDInt)
 		if apiErr != nil {
-			logging.LogFailedReadByID(subCtx, JamfProResourceDistributionPoint, resourceID, apiErr.Error(), apiErrorCode)
 			// Convert any API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)
 		}
-		// Successfully read the script, exit the retry loop
+		// Successfully read the site, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
 		// Handle the final error after all retries have been exhausted
 		d.SetId("") // Remove from Terraform state if unable to read after retries
-		logging.LogTFStateRemovalWarning(subCtx, JamfProResourceDistributionPoint, resourceID)
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Printer with ID '%d' after retries: %v", resourceIDInt, err))
 	}
 
 	// Check if fileShareDistributionPoint data exists
@@ -484,154 +423,95 @@ func ResourceJamfProFileShareDistributionPointsRead(ctx context.Context, d *sche
 
 // ResourceJamfProFileShareDistributionPointsUpdate is responsible for updating an existing Jamf Pro Site on the remote system.
 func ResourceJamfProFileShareDistributionPointsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize api client
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Initialize the logging subsystem for the update operation
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemUpdate, hclog.Info)
-	subSyncCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemSync, hclog.Info)
-
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
-	resourceName := d.Get("name").(string)
-	var apiErrorCode int
 
 	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		// Handle conversion error with structured logging
-		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceDistributionPoint, resourceID, err.Error())
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
 	// Construct the resource object
-	fileShareDistributionPoint, err := constructJamfProFileShareDistributionPoint(subCtx, d)
+	resource, err := constructJamfProFileShareDistributionPoint(ctx, d)
 	if err != nil {
-		logging.LogTFConstructResourceFailure(subCtx, JamfProResourceDistributionPoint, err.Error())
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro file share distribution point for update: %v", err))
 	}
-	logging.LogTFConstructResourceSuccess(subCtx, JamfProResourceDistributionPoint)
 
 	// Update operations with retries
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateDistributionPointByID(resourceIDInt, fileShareDistributionPoint)
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+		_, apiErr := conn.UpdateDistributionPointByID(resourceIDInt, resource)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				apiErrorCode = apiError.StatusCode
-			}
-
-			logging.LogAPIUpdateFailureByID(subCtx, JamfProResourceDistributionPoint, resourceID, resourceName, apiErr.Error(), apiErrorCode)
-
-			_, apiErrByName := conn.UpdateDistributionPointByName(resourceName, fileShareDistributionPoint)
-			if apiErrByName != nil {
-				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErrByName.(*http_client.APIError); ok {
-					apiErrByNameCode = apiErrorByName.StatusCode
-				}
-
-				logging.LogAPIUpdateFailureByName(subCtx, JamfProResourceDistributionPoint, resourceName, apiErrByName.Error(), apiErrByNameCode)
-				return retry.RetryableError(apiErrByName)
-			}
-		} else {
-			logging.LogAPIUpdateSuccess(subCtx, JamfProResourceDistributionPoint, resourceID, resourceName)
+			// If updating by ID fails, attempt to update by Name
+			return retry.RetryableError(apiErr)
 		}
-		return nil
-	})
-
-	// Send error to diag.diags
-	if err != nil {
-		logging.LogAPIDeleteFailedAfterRetry(subCtx, JamfProResourceDistributionPoint, resourceID, resourceName, err.Error(), apiErrorCode)
-		diags = append(diags, diag.FromErr(err)...)
-		return diags
-	}
-
-	// Retry reading the Site to synchronize the Terraform state
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProFileShareDistributionPointsRead(subCtx, d, meta)
-		if len(readDiags) > 0 {
-			logging.LogTFStateSyncFailedAfterRetry(subSyncCtx, JamfProResourceDistributionPoint, resourceID, readDiags[0].Summary)
-			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
-		}
+		// Successfully updated the resource, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		logging.LogTFStateSyncFailure(subSyncCtx, JamfProResourceDistributionPoint, err.Error())
-		return diag.FromErr(err)
-	} else {
-		logging.LogTFStateSyncSuccess(subSyncCtx, JamfProResourceDistributionPoint, resourceID)
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro file share distribution point '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
 	}
 
-	return nil
+	// Read the resource to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProFileShareDistributionPointsRead(ctx, d, meta)
+	if len(readDiags) > 0 {
+		diags = append(diags, readDiags...)
+	}
+
+	return diags
 }
 
 // ResourceJamfProFileShareDistributionPointsDeleteis responsible for deleting a Jamf Pro file share distribution point from the remote system.
 func ResourceJamfProFileShareDistributionPointsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize api client
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Initialize the logging subsystem for the delete operation
-	subCtx := logging.NewSubsystemLogger(ctx, logging.SubsystemDelete, hclog.Info)
-
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
-	resourceName := d.Get("name").(string)
-	var apiErrorCode int
 
 	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		// Handle conversion error with structured logging
-		logging.LogTypeConversionFailure(subCtx, "string", "int", JamfProResourceDistributionPoint, resourceID, err.Error())
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
 	// Use the retry function for the delete operation with appropriate timeout
-	err = retry.RetryContext(subCtx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// Delete By ID
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
+		// Attempt to delete by ID
 		apiErr := conn.DeleteDistributionPointByID(resourceIDInt)
 		if apiErr != nil {
-			if apiError, ok := apiErr.(*http_client.APIError); ok {
-				apiErrorCode = apiError.StatusCode
-			}
-			logging.LogAPIDeleteFailureByID(subCtx, JamfProResourceDistributionPoint, resourceID, resourceName, apiErr.Error(), apiErrorCode)
-
-			// If Delete by ID fails then try Delete by Name
-			apiErr = conn.DeleteDistributionPointByName(resourceName)
-			if apiErr != nil {
-				var apiErrByNameCode int
-				if apiErrorByName, ok := apiErr.(*http_client.APIError); ok {
-					apiErrByNameCode = apiErrorByName.StatusCode
-				}
-
-				logging.LogAPIDeleteFailureByName(subCtx, JamfProResourceDistributionPoint, resourceName, apiErr.Error(), apiErrByNameCode)
-				return retry.RetryableError(apiErr)
+			// If deleting by ID fails, attempt to delete by Name
+			resourceName := d.Get("name").(string)
+			apiErrByName := conn.DeleteDistributionPointByName(resourceName)
+			if apiErrByName != nil {
+				// If deletion by name also fails, return a retryable error
+				return retry.RetryableError(apiErrByName)
 			}
 		}
+		// Successfully deleted the resource, exit the retry loop
 		return nil
 	})
 
-	// Send error to diag.diags
 	if err != nil {
-		logging.LogAPIDeleteFailedAfterRetry(subCtx, JamfProResourceDistributionPoint, resourceID, resourceName, err.Error(), apiErrorCode)
-		diags = append(diags, diag.FromErr(err)...)
-		return diags
+		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro file share distribution point '%s' (ID: %d) after retries: %v", d.Get("name").(string), resourceIDInt, err))
 	}
-
-	logging.LogAPIDeleteSuccess(subCtx, JamfProResourceDistributionPoint, resourceID, resourceName)
 
 	// Clear the ID from the Terraform state as the resource has been deleted
 	d.SetId("")
 
-	return nil
+	return diags
 }
