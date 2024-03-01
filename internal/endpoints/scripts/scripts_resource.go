@@ -76,10 +76,10 @@ func ResourceJamfProScripts() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"BEFORE", "AFTER", "AT_REBOOT"}, false),
 			},
 			"script_contents": {
-				Type:             schema.TypeString,
-				Required:         true,
-				Description:      "Contents of the script. Must be non-compiled and in an accepted format.",
-				DiffSuppressFunc: suppressBase64EncodedScriptDiff,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Contents of the script. Must be non-compiled and in an accepted format.",
+				//DiffSuppressFunc: suppressBase64EncodedScriptDiff,
 			},
 			"parameter4": {
 				Type:        schema.TypeString,
@@ -233,7 +233,7 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Warning,
 				Summary:  "Resource not found or gone",
-				Detail:   fmt.Sprintf("Jamf Pro Script with ID '%s' was not found or is gone, and has been removed from Terraform state.", resourceID),
+				Detail:   fmt.Sprintf("Jamf Pro Script with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
 			})
 			return diags
 		}
@@ -252,7 +252,7 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 			"notes":           resource.Notes,
 			"os_requirements": resource.OSRequirements,
 			"priority":        resource.Priority,
-			"script_contents": encodeScriptContent(resource.ScriptContents),
+			"script_contents": resource.ScriptContents,
 			"parameter4":      resource.Parameter4,
 			"parameter5":      resource.Parameter5,
 			"parameter6":      resource.Parameter6,

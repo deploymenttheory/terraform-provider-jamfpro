@@ -2,9 +2,6 @@
 package scripts
 
 import (
-	"encoding/base64"
-	"fmt"
-
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -29,17 +26,9 @@ func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResourceScript, er
 		Parameter11:    d.Get("parameter11").(string),
 	}
 
-	// Handle script_contents
-	if scriptContent, ok := d.GetOk("script_contents"); ok && scriptContent.(string) != "" {
+	// Directly assign script_contents as a string
+	if scriptContent, ok := d.GetOk("script_contents"); ok {
 		script.ScriptContents = scriptContent.(string)
-	} else {
-		// Decode script contents from the state if not directly modified
-		encodedScriptContents := d.Get("script_contents_encoded").(string)
-		decodedBytes, err := base64.StdEncoding.DecodeString(encodedScriptContents)
-		if err != nil {
-			return nil, fmt.Errorf("error decoding script contents: %s", err)
-		}
-		script.ScriptContents = string(decodedBytes)
 	}
 
 	return script, nil
