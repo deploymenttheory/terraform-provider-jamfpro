@@ -125,34 +125,46 @@ func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	// Read operation with retry
 	var resource *jamfpro.SharedResourceSite
+
+	// Read operation with retry
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
 		resource, apiErr = conn.GetSiteByID(resourceIDInt)
 		if apiErr != nil {
 			if strings.Contains(apiErr.Error(), "404") {
-				d.SetId("") // Remove from Terraform state
-				return retry.NonRetryableError(fmt.Errorf("jamf Pro Site with ID '%s' not found: %v", resourceID, apiErr))
+				// Resource not found, remove from Terraform state
+				d.SetId("")
+				// Return non-retryable error with a message to avoid SDK issues
+				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
 			}
-			// Convert any other API error into a retryable error to continue retrying
+			// Retry for other types of errors
 			return retry.RetryableError(apiErr)
 		}
 		return nil
 	})
 
+	// If err is not nil, check if it's due to the resource being not found
 	if err != nil {
+		if err.Error() == "resource not found, marked for deletion" {
+			// Append a warning diagnostic and return
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Resource not found",
+				Detail:   fmt.Sprintf("Jamf Pro Site with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
+			})
+			return diags
+		}
+		// For other errors, return an error diagnostic
 		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Site with ID '%s' after retries: %v", resourceID, err))
 	}
 
-	// Assuming successful read if no error
-	if resource != nil {
-		if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("name", resource.Name); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+	// Update Terraform state with the resource information
+	if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("name", resource.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	return diags
