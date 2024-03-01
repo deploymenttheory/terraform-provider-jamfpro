@@ -142,18 +142,30 @@ func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta 
 		return nil
 	})
 
-	// Use the helper function to handle errors
-	diags = state.HandleResourceNotFound(ctx, d, resourceID, err, &diags)
+	// If err is not nil, check if it's due to the resource being not found
+	if err != nil {
+		if err.Error() == "resource not found, marked for deletion" {
+			// Resource not found, remove from Terraform state
+			d.SetId("")
+			// Append a warning diagnostic and return
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Resource not found",
+				Detail:   fmt.Sprintf("Jamf Pro Site with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
+			})
+			return diags
+		}
 
-	// Proceed only if there's no error
-	if err == nil {
-		// Update Terraform state with the resource information
-		if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("name", resource.Name); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+		// For other errors, return an error diagnostic
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Site with ID '%s' after retries: %v", resourceID, err))
+	}
+
+	// Update Terraform state with the resource information
+	if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("name", resource.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	return diags
