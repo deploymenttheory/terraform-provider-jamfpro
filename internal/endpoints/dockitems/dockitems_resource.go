@@ -178,13 +178,13 @@ func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, m
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Warning,
 				Summary:  "Resource not found",
-				Detail:   fmt.Sprintf("Jamf Pro Distribution Point with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
+				Detail:   fmt.Sprintf("Jamf Pro Dock Item with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
 			})
 			return diags
 		}
 
 		// For other errors, return an error diagnostic
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Distribution Point with ID '%s' after retries: %v", resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Dock Item with ID '%s' after retries: %v", resourceID, err))
 	}
 	// Check if dockItem data exists
 	if resource != nil {
