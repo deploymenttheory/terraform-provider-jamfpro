@@ -151,31 +151,48 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 	// Initialize diagnostics
 	var diags diag.Diagnostics
 
-	// Construct the package resource object
-	packageData, err := constructJamfProPackage(d)
+	// Extract the file path for the package
+	filePath := d.Get("package_file_path").(string)
+
+	// Step 1: Call CreateJCDS2PackageV2 to upload the file to JCDS 2.0
+	fileUploadResponse, err := conn.CreateJCDS2PackageV2(filePath)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to upload file to JCDS 2.0 with file path '%s': %v", filePath, err))
+	}
+	fmt.Printf("File uploaded successfully, URI: %s\n", fileUploadResponse.URI)
+
+	// Construct the resource object
+	packageResourcePointer, err := constructJamfProPackage(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package: %v", err))
 	}
 
-	// Extract the file path for the package
-	filePath := d.Get("package_file_path").(string)
+	// Dereference the pointer to get the value
+	packageResource := *packageResourcePointer
 
-	// Call DoPackageUpload to upload the package and create its metadata
-	_, resource, err := conn.DoPackageUpload(filePath, packageData)
+	// Retry the API call to create the resource in Jamf Pro
+	var creationResponse *jamfpro.ResponsePackageCreatedAndUpdated
+
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		var apiErr error
+		creationResponse, apiErr = conn.CreatePackage(packageResource)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
+		}
+		// No error, exit the retry loop
+		return nil
+	})
+
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Package with file path '%s': %v", filePath, err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Package '%s' after retries: %v", packageResource.Name, err))
 	}
 
-	// Assuming the ID from packageCreationResponse is a suitable unique identifier for the Terraform resource
-	if resource != nil {
-		d.SetId(strconv.Itoa(resource.ID))
-	} else {
-		return diag.FromErr(fmt.Errorf("package creation response is nil"))
-	}
+	// Set the resource ID in Terraform state
+	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	// Read the resource to ensure the Terraform state is up to date
+	// Read the site to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProPackagesRead(ctx, d, meta)
-	if readDiags.HasError() {
+	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
 	}
 
