@@ -44,7 +44,7 @@ func ResourceJamfProCategories() *schema.Resource {
 				Description: "The unique name of the Jamf Pro category.",
 			},
 			"priority": {
-				Type:        schema.TypeString,
+				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     9,
 				Description: "The priority of the Jamf Pro category.",

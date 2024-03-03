@@ -110,7 +110,7 @@ func Provider() *schema.Provider {
 			},
 			"log_level": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				Default:  "warning", // Align with the default log level in the  package
 				ValidateFunc: validation.StringInSlice([]string{
 					"debug", "info", "warning", "none",
