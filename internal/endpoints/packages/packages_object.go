@@ -6,11 +6,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// constructJamfProPackage constructs a ResourcePackage object from the provided schema data and filename.
-func constructJamfProPackage(d *schema.ResourceData, filename string) (*jamfpro.ResourcePackage, error) {
+// constructJamfProPackage constructs a ResourcePackage object from the provided schema data.
+func constructJamfProPackageCreate(d *schema.ResourceData) (*jamfpro.ResourcePackage, error) {
+
 	packageResource := &jamfpro.ResourcePackage{
 		Name:                       d.Get("name").(string),
-		Filename:                   filename, // Use the provided filename here
+		Filename:                   d.Get("filename").(string),
 		Category:                   d.Get("category").(string),
 		Info:                       d.Get("info").(string),
 		Notes:                      d.Get("notes").(string),
