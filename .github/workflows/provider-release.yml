@@ -19,8 +19,6 @@ jobs:
     with:
       release-notes: true # Set to true if you have release notes to include
       setup-go-version: '1.22' # Specify the Go version needed
-      setup-go-version-file: 'go.mod' # File from which to read Go version
-      git-ref: ${{ github.ref }} # The Git ref that triggered the workflow
   release-notes:
     runs-on: ubuntu-latest
     steps:
