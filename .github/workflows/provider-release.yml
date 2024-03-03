@@ -4,11 +4,9 @@ name: Terraform Provider release
 # This GitHub action creates a release when a tag that matches the pattern
 # "v*" (e.g. v0.1.0) is created.
 on:
-  workflow_run:
-    workflows: ["Release"] 
-    types:
-      - completed
-
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   # Release for Partner and Community Providers
