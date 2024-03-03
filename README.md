@@ -5,7 +5,8 @@ This repository hosts the Jamf Pro Community Provider, built to integrate Jamf P
 The provider contains:
 
 - Resources and data sources for Jamf Pro entities (`internal/provider/`),
-- Examples (`examples/`) and generated documentation (`docs/`),
+- Examples [examples](https://github.com/deploymenttheory/terraform-provider-jamfpro/tree/main/examples) directory for sample configurations and usage scenarios of the `terraform-provider-jamfpro` provider. 
+- Documentation [docs](https://github.com/deploymenttheory/terraform-provider-jamfpro/tree/main/docs)
 
 ## Requirements
 
