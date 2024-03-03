@@ -16,6 +16,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accountgroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accounts"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/categories"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computercheckin"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/filesharedistributionpoints"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/networksegments"
@@ -109,7 +110,7 @@ func Provider() *schema.Provider {
 			},
 			"log_level": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				Default:  "warning", // Align with the default log level in the  package
 				ValidateFunc: validation.StringInSlice([]string{
 					"debug", "info", "warning", "none",
@@ -188,6 +189,7 @@ func Provider() *schema.Provider {
 			"jamfpro_api_integration":               apiintegrations.DataSourceJamfProApiIntegrations(),
 			"jamfpro_api_role":                      apiroles.DataSourceJamfProAPIRoles(),
 			"jamfpro_building":                      buildings.DataSourceJamfProBuildings(),
+			"jamfpro_category":                      categories.DataSourceJamfProCategories(),
 			"jamfpro_computer_extension_attribute":  computerextensionattributes.DataSourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_group":                computergroups.DataSourceJamfProComputerGroups(),
 			"jamfpro_computer_inventory":            computerinventory.DataSourceJamfProComputerInventory(),
@@ -213,6 +215,7 @@ func Provider() *schema.Provider {
 			"jamfpro_api_integration":               apiintegrations.ResourceJamfProApiIntegrations(),
 			"jamfpro_api_role":                      apiroles.ResourceJamfProAPIRoles(),
 			"jamfpro_building":                      buildings.ResourceJamfProBuildings(),
+			"jamfpro_category":                      categories.ResourceJamfProCategories(),
 			"jamfpro_computer_checkin":              computercheckin.ResourceJamfProComputerCheckin(),
 			"jamfpro_computer_extension_attribute":  computerextensionattributes.ResourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_group":                computergroups.ResourceJamfProComputerGroups(),
