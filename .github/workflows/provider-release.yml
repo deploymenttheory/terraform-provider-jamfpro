@@ -1,19 +1,20 @@
-# Terraform Provider release workflow.
+# Terraform Provider Registry release workflow.
 name: Terraform Provider release
 
 # This GitHub action creates a release when a tag that matches the pattern
 # "v*" (e.g. v0.1.0) is created.
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_run:
+    workflows: ["Release"] 
+    types:
+      - completed
 
 
 jobs:
   # Release for Partner and Community Providers
   terraform-provider-release:
     name: 'Terraform Provider Release'
-    uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/community.yml@v3
+    uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/community.yml@v3.0.1
     secrets:
       gpg-private-key: '${{ secrets.GPG_PRIVATE_KEY }}'
     with:
