@@ -1,5 +1,5 @@
 # Terraform Provider Registry release workflow.
-name: Terraform Provider release
+name: Terraform Provider Release
 
 # This GitHub action creates a release when a tag that matches the pattern
 # "v*" (e.g. v0.1.0) is created.
