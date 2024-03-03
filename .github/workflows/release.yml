@@ -39,29 +39,35 @@ jobs:
           # GitHub sets the GITHUB_TOKEN secret automatically.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+      - name: Set module and tag
+        id: vars
+        run: |
+            echo "github.com/deploymenttheory/terraform-provider-jamfpro" >> $GITHUB_OUTPUT
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
       - name: Ping pkg.go.dev
         run: |
-          curl --show-error --fail -w "HTTP %{http_code}\n" -o - 'https://pkg.go.dev/fetch/${{ steps.vars.outputs.module }}@${{ steps.vars.outputs.tag }}' \
-            --connect-timeout 5 \
-            --max-time 10 \
-            --retry 10 \
-            --retry-delay 30 \
-            --retry-max-time 600 \
-            -X 'POST' \
-            -H 'authority: pkg.go.dev' \
-            -H 'content-length: 0' \
-            -H 'sec-ch-ua: " Not;A Brand";v="99", "Google Chrome";v="97", "Chromium";v="97"' \
-            -H 'sec-ch-ua-mobile: ?0' \
-            -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36' \
-            -H 'sec-ch-ua-platform: "macOS"' \
-            -H 'accept: */*' \
-            -H 'origin: https://pkg.go.dev' \
-            -H 'sec-fetch-site: same-origin' \
-            -H 'sec-fetch-mode: cors' \
-            -H 'sec-fetch-dest: empty' \
-            -H 'referer: https://pkg.go.dev/${{ steps.vars.outputs.module }}@${{ steps.vars.outputs.tag }}' \
-            -H 'accept-language: en,en-GB;q=0.9,en-US;q=0.8' \
-            --compressed \
-            || true # we don't care about success
+            curl --show-error --fail -w "HTTP %{http_code}\n" -o - "https://pkg.go.dev/fetch/${{ steps.vars.outputs.module }}@${{ steps.vars.outputs.tag }}" \
+              --connect-timeout 5 \
+              --max-time 10 \
+              --retry 10 \
+              --retry-delay 30 \
+              --retry-max-time 600 \
+              -X 'POST' \
+              -H 'authority: pkg.go.dev' \
+              -H 'content-length: 0' \
+              -H 'sec-ch-ua: " Not;A Brand";v="99", "Google Chrome";v="97", "Chromium";v="97"' \
+              -H 'sec-ch-ua-mobile: ?0' \
+              -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36' \
+              -H 'sec-ch-ua-platform: "macOS"' \
+              -H 'accept: */*' \
+              -H 'origin: https://pkg.go.dev' \
+              -H 'sec-fetch-site: same-origin' \
+              -H 'sec-fetch-mode: cors' \
+              -H 'sec-fetch-dest: empty' \
+              -H "referer: https://pkg.go.dev/${{ steps.vars.outputs.module }}@${{ steps.vars.outputs.tag }}" \
+              -H 'accept-language: en,en-GB;q=0.9,en-US;q=0.8' \
+              --compressed \
+              || true # we don't care about success
+        
 
   
