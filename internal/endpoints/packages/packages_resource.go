@@ -52,7 +52,7 @@ func ResourceJamfProPackages() *schema.Resource {
 			},
 			"filename": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "The filename of the Jamf Pro package.",
 			},
 			"info": {
