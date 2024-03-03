@@ -16,9 +16,13 @@ jobs:
     name: 'Terraform Provider Release'
     uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/community.yml@v3.0.1
     secrets:
-      gpg-private-key: '${{ secrets.GPG_PRIVATE_KEY }}'
+      gpg-private-key: '${{ secrets.GPG_PRIVATE_KEY }}'  # Your GPG private key
+      gpg-private-key-passphrase: '${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}'  # Passphrase for your GPG key, if applicable
     with:
-      setup-go-version-file: 'go.mod'
+      release-notes: true # Set to true if you have release notes to include
+      setup-go-version: '1.17' # Specify the Go version needed
+      setup-go-version-file: 'go.mod' # File from which to read Go version
+      git-ref: ${{ github.ref }} # The Git ref that triggered the workflow
   release-notes:
     runs-on: ubuntu-latest
     steps:
