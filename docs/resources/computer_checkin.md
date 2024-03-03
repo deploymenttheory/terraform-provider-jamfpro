@@ -17,23 +17,22 @@ description: |-
 
 ### Required
 
-- `check_for_policies_at_login_logout` (Boolean) Checks for policies at login and logout.
-- `check_for_policies_at_startup` (Boolean) If set to true, ensure that computers check for policies triggered by startup
 - `check_in_frequency` (Number) The frequency in minutes for computer check-in.
-- `create_login_logout_hooks` (Boolean) Determines if login/logout hooks should be created. Create events that trigger each time a user logs in
-- `create_startup_script` (Boolean) Determines if a startup script should be created.
-- `display_status_to_user` (Boolean) Displays status to the user.
-- `ensure_ssh_is_enabled` (Boolean) Enable SSH (Remote Login) on computers that have it disabled.
-- `log_startup_event` (Boolean) Determines if startup events should be logged.
-- `log_username` (Boolean) Log Computer Usage information at login. Log the username and date/time at login.
 
 ### Optional
 
+- `apply_computer_level_managed_preferences` (Boolean) Applies computer level managed preferences. Setting appears to be hard coded to false and cannot be changed. Thus field is set to computed.
+- `check_for_policies_at_login_logout` (Boolean) Checks for policies at login and logout.
+- `check_for_policies_at_startup` (Boolean) If set to true, ensure that computers check for policies triggered by startup
+- `create_login_logout_hooks` (Boolean) Determines if login/logout hooks should be created. Create events that trigger each time a user logs in
+- `create_startup_script` (Boolean) Determines if a startup script should be created.
+- `ensure_ssh_is_enabled` (Boolean) Enable SSH (Remote Login) on computers that have it disabled.
+- `log_startup_event` (Boolean) Determines if startup events should be logged.
+- `log_username` (Boolean) Log Computer Usage information at login. Log the username and date/time at login.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
 
-- `apply_computer_level_managed_preferences` (Boolean) Applies computer level managed preferences. Setting appears to be hard coded to false and cannot be changed. Thus field is set to computed.
 - `apply_user_level_managed_preferences` (Boolean) Applies user level managed preferences. Setting appears to be hard coded to false and cannot be changed. Thus field is set to computed.
 - `hide_restore_partition` (Boolean) Determines if the restore partition should be hidden. Setting appears to be hard coded to false and cannot be changed. Thus field is set to computed.
 - `id` (String) The ID of this resource.

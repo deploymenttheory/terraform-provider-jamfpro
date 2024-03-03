@@ -96,20 +96,20 @@ func Provider() *schema.Provider {
 			},
 			"client_id": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_CLIENT_ID", ""),
 				Description: "The Jamf Pro Client ID for authentication.",
 			},
 			"client_secret": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Sensitive:   true,
 				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_CLIENT_SECRET", ""),
 				Description: "The Jamf Pro Client secret for authentication.",
 			},
 			"log_level": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 				Default:  "warning", // Align with the default log level in the  package
 				ValidateFunc: validation.StringInSlice([]string{
 					"debug", "info", "warning", "none",
@@ -120,7 +120,7 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "console", // Default to console for human-readable format
-				Description: "The output format of the logs. Use 'JSON' for JSON format, 'console' for human-readable format.",
+				Description: "The output format of the logs. Use 'JSON' for JSON format, 'console' for human-readable format. Defaults to console if no value is supplied.",
 			},
 			"log_console_separator": {
 				Type:        schema.TypeString,
