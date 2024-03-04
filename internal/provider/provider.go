@@ -17,6 +17,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accountgroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accounts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/filesharedistributionpoints"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/macosconfigurationprofiles"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/advancedcomputersearches"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/advancedmobiledevicesearches"
@@ -219,6 +220,7 @@ func Provider() *schema.Provider {
 			"jamfpro_script":                        scripts.ResourceJamfProScripts(),
 			"jamfpro_policy":                        policies.ResourceJamfProPolicies(),
 			"jamfpro_printer":                       printers.ResourceJamfProPrinters(),
+			"jamfpro_macos_configuration_profile":   macosconfigurationprofiles.ResourceJamfProMacOSConfigurationProfiles(),
 		},
 	}
 
