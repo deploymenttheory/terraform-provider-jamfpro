@@ -24,10 +24,10 @@ func ResourceJamfProPackages() *schema.Resource {
 		UpdateContext: ResourceJamfProPackagesUpdate,
 		DeleteContext: ResourceJamfProPackagesDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(10 * time.Minute),
-			Read:   schema.DefaultTimeout(10 * time.Minute),
-			Update: schema.DefaultTimeout(10 * time.Minute),
-			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Create: schema.DefaultTimeout(20 * time.Minute),
+			Read:   schema.DefaultTimeout(20 * time.Minute),
+			Update: schema.DefaultTimeout(20 * time.Minute),
+			Delete: schema.DefaultTimeout(20 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
 			"id": {
@@ -89,6 +89,7 @@ func ResourceJamfProPackages() *schema.Resource {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Description: "Whether a boot volume is required.",
+				Default:     false,
 			},
 			"allow_uninstalled": {
 				Type:        schema.TypeBool,
@@ -104,11 +105,13 @@ func ResourceJamfProPackages() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The required processor for the Jamf Pro package.",
+				Default:     "None",
 			},
 			"switch_with_package": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The package to switch with.",
+				Default:     "Do Not Install",
 			},
 			"install_if_reported_available": {
 				Type:        schema.TypeBool,
@@ -119,6 +122,7 @@ func ResourceJamfProPackages() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The reinstall option for the Jamf Pro package.",
+				Default:     "Do Not Reinstall",
 			},
 			"triggering_files": {
 				Type:        schema.TypeString,
@@ -151,37 +155,40 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 	// Initialize diagnostics
 	var diags diag.Diagnostics
 
-	// Construct the package resource object
-	packageData, err := constructJamfProPackage(d)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package file path: %v", err))
-	}
-
 	// Extract the file path for the package
 	filePath := d.Get("package_file_path").(string)
 
-	// Retry the API call to create the package in JCDS 2.0
-	var creationResponse *jamfpro.ResponseJCDS2File
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		var apiErr error
-		creationResponse, apiErr = conn.DoPackageUpload(filePath, packageData)
-		if apiErr != nil {
-			return retry.RetryableError(apiErr)
-		}
-		// No error, exit the retry loop
-		return nil
-	})
-
+	// Step 1: Call CreateJCDS2PackageV2 to upload the file to JCDS 2.0
+	fileUploadResponse, err := conn.CreateJCDS2PackageV2(filePath)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Package with file path '%s' after retries: %v", filePath, err))
+		return diag.FromErr(fmt.Errorf("failed to upload file to JCDS 2.0 with file path '%s': %v", filePath, err))
+	}
+	fmt.Printf("File uploaded successfully, URI: %s\n", fileUploadResponse.URI)
+
+	// Pause for 10 seconds
+	time.Sleep(10 * time.Second)
+
+	// Construct the resource object
+	packageResourcePointer, err := constructJamfProPackageCreate(d)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package: %v", err))
 	}
 
-	// Assuming the URI is a suitable unique identifier for the Terraform resource
-	d.SetId(creationResponse.URI)
+	// Dereference the pointer to get the value
+	packageResource := *packageResourcePointer
 
-	// Read the resource to ensure the Terraform state is up to date
+	// Step 2: Call CreatePackage to create the package metadata in Jamf Pro
+	creationResponse, err := conn.CreatePackage(packageResource)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Package '%s': %v", packageResource.Name, err))
+	}
+
+	// Set the resource ID in Terraform state
+	d.SetId(strconv.Itoa(creationResponse.ID))
+
+	// Read the site to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProPackagesRead(ctx, d, meta)
-	if readDiags.HasError() {
+	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
 	}
 
@@ -323,30 +330,24 @@ func ResourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, 
 	// Construct the package resource object
 	packageData, err := constructJamfProPackage(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package file path: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package: %v", err))
 	}
 
 	// Extract the file path for the package
 	filePath := d.Get("package_file_path").(string)
 
-	// Retry the API call to update the package in JCDS 2.0
-	var creationResponse *jamfpro.ResponseJCDS2File
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		var apiErr error
-		creationResponse, apiErr = conn.DoPackageUpload(filePath, packageData)
-		if apiErr != nil {
-			return retry.RetryableError(apiErr)
-		}
-		// No error, exit the retry loop
-		return nil
-	})
-
+	// Call DoPackageUpload to upload the package and create its metadata
+	_, resource, err := conn.DoPackageUpload(filePath, packageData)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Package with file path '%s' after retries: %v", filePath, err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Package with file path '%s': %v", filePath, err))
 	}
 
-	// Assuming the URI is a suitable unique identifier for the Terraform resource
-	d.SetId(creationResponse.URI)
+	// Assuming the ID from packageCreationResponse is a suitable unique identifier for the Terraform resource
+	if resource != nil {
+		d.SetId(strconv.Itoa(resource.ID))
+	} else {
+		return diag.FromErr(fmt.Errorf("package creation response is nil"))
+	}
 
 	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProPackagesRead(ctx, d, meta)
