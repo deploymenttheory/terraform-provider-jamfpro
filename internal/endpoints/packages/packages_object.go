@@ -2,6 +2,8 @@
 package packages
 
 import (
+	"path/filepath"
+
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -33,11 +35,18 @@ func constructJamfProPackage(d *schema.ResourceData) (*jamfpro.ResourcePackage, 
 	return packageResource, nil
 }
 
-// constructJamfProPackage constructs a ResourcePackage object from the provided schema data and filename.
-func constructJamfProPackageCreate(d *schema.ResourceData, filename string) (*jamfpro.ResourcePackage, error) {
+// constructJamfProPackageCreate constructs a ResourcePackage object from the provided schema data.
+// It extracts the filename from the full path provided in the schema and uses it for the Filename field.
+func constructJamfProPackageCreate(d *schema.ResourceData) (*jamfpro.ResourcePackage, error) {
+	// Extract the full file path from the schema
+	fullPath := d.Get("package_file_path").(string)
+
+	// Use filepath.Base to extract just the filename from the full path
+	filename := filepath.Base(fullPath)
+
 	packageResource := &jamfpro.ResourcePackage{
 		Name:                       d.Get("name").(string),
-		Filename:                   filename, // Use the provided filename here
+		Filename:                   filename,
 		Category:                   d.Get("category").(string),
 		Info:                       d.Get("info").(string),
 		Notes:                      d.Get("notes").(string),

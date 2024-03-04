@@ -24,10 +24,10 @@ func ResourceJamfProPackages() *schema.Resource {
 		UpdateContext: ResourceJamfProPackagesUpdate,
 		DeleteContext: ResourceJamfProPackagesDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(15 * time.Second),
-			Read:   schema.DefaultTimeout(15 * time.Second),
-			Update: schema.DefaultTimeout(15 * time.Second),
-			Delete: schema.DefaultTimeout(15 * time.Second),
+			Create: schema.DefaultTimeout(10 * time.Minute),
+			Read:   schema.DefaultTimeout(10 * time.Minute),
+			Update: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
 			"id": {
@@ -52,7 +52,7 @@ func ResourceJamfProPackages() *schema.Resource {
 			},
 			"filename": {
 				Type:        schema.TypeString,
-				Computed:    true,
+				Optional:    true,
 				Description: "The filename of the Jamf Pro package.",
 			},
 			"info": {
@@ -89,6 +89,7 @@ func ResourceJamfProPackages() *schema.Resource {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Description: "Whether a boot volume is required.",
+				Default:     false,
 			},
 			"allow_uninstalled": {
 				Type:        schema.TypeBool,
@@ -104,11 +105,13 @@ func ResourceJamfProPackages() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The required processor for the Jamf Pro package.",
+				Default:     "None",
 			},
 			"switch_with_package": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The package to switch with.",
+				Default:     "Do Not Install",
 			},
 			"install_if_reported_available": {
 				Type:        schema.TypeBool,
@@ -119,6 +122,7 @@ func ResourceJamfProPackages() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The reinstall option for the Jamf Pro package.",
+				Default:     "Do Not Reinstall",
 			},
 			"triggering_files": {
 				Type:        schema.TypeString,
@@ -161,8 +165,11 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 	}
 	fmt.Printf("File uploaded successfully, URI: %s\n", fileUploadResponse.URI)
 
+	// Pause for 10 seconds
+	time.Sleep(10 * time.Second)
+
 	// Construct the resource object
-	packageResourcePointer, err := constructJamfProPackageCreate(d, filePath)
+	packageResourcePointer, err := constructJamfProPackageCreate(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package: %v", err))
 	}
@@ -170,21 +177,10 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 	// Dereference the pointer to get the value
 	packageResource := *packageResourcePointer
 
-	// Retry the API call to create the resource in Jamf Pro
-	var creationResponse *jamfpro.ResponsePackageCreatedAndUpdated
-
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		var apiErr error
-		creationResponse, apiErr = conn.CreatePackage(packageResource)
-		if apiErr != nil {
-			return retry.RetryableError(apiErr)
-		}
-		// No error, exit the retry loop
-		return nil
-	})
-
+	// Step 2: Call CreatePackage to create the package metadata in Jamf Pro
+	creationResponse, err := conn.CreatePackage(packageResource)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Package '%s' after retries: %v", packageResource.Name, err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Package '%s': %v", packageResource.Name, err))
 	}
 
 	// Set the resource ID in Terraform state
