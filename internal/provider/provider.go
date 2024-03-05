@@ -16,11 +16,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accountgroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accounts"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/categories"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computercheckin"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/filesharedistributionpoints"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/networksegments"
-
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/advancedcomputersearches"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/advancedmobiledevicesearches"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/advancedusersearches"
@@ -28,6 +23,8 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/apiintegrations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/apiroles"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/buildings"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/categories"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computercheckin"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computerextensionattributes"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computerinventory"
@@ -35,6 +32,9 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/departments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/diskencryptionconfigurations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/dockitems"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/filesharedistributionpoints"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/macosconfigurationprofiles"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/networksegments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/packages"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/policies"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/printers"
@@ -198,12 +198,12 @@ func Provider() *schema.Provider {
 			"jamfpro_disk_encryption_configuration": diskencryptionconfigurations.DataSourceJamfProDiskEncryptionConfigurations(),
 			"jamfpro_dock_item":                     dockitems.DataSourceJamfProDockItems(),
 			"jamfpro_file_share_distribution_point": filesharedistributionpoints.DataSourceJamfProFileShareDistributionPoints(),
-			"jamfpro_site":                          sites.DataSourceJamfProSites(),
-			"jamfpro_script":                        scripts.DataSourceJamfProScripts(),
 			"jamfpro_network_segment":               networksegments.DataSourceJamfProNetworkSegments(),
 			"jamfpro_package":                       packages.DataSourceJamfProPackages(),
 			"jamfpro_policy":                        policies.DataSourceJamfProPolicies(),
 			"jamfpro_printer":                       printers.DataSourceJamfProPrinters(),
+			"jamfpro_script":                        scripts.DataSourceJamfProScripts(),
+			"jamfpro_site":                          sites.DataSourceJamfProSites(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"jamfpro_account":                       accounts.ResourceJamfProAccounts(),
@@ -224,12 +224,13 @@ func Provider() *schema.Provider {
 			"jamfpro_disk_encryption_configuration": diskencryptionconfigurations.ResourceJamfProDiskEncryptionConfigurations(),
 			"jamfpro_dock_item":                     dockitems.ResourceJamfProDockItems(),
 			"jamfpro_file_share_distribution_point": filesharedistributionpoints.ResourceJamfProFileShareDistributionPoints(),
-			"jamfpro_site":                          sites.ResourceJamfProSites(),
-			"jamfpro_script":                        scripts.ResourceJamfProScripts(),
 			"jamfpro_network_segment":               networksegments.ResourceJamfProNetworkSegments(),
+			"jamfpro_macos_configuration_profile":   macosconfigurationprofiles.ResourceJamfProMacOSConfigurationProfiles(),
 			"jamfpro_package":                       packages.ResourceJamfProPackages(),
 			"jamfpro_policy":                        policies.ResourceJamfProPolicies(),
 			"jamfpro_printer":                       printers.ResourceJamfProPrinters(),
+			"jamfpro_script":                        scripts.ResourceJamfProScripts(),
+			"jamfpro_site":                          sites.ResourceJamfProSites(),
 		},
 	}
 
