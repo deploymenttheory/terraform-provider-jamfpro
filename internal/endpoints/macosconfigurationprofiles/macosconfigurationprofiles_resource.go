@@ -2,8 +2,10 @@ package macosconfigurationprofiles
 
 import (
 	"context"
+	"encoding/xml"
 	"fmt"
 	"log"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -76,7 +78,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Type:        schema.TypeList,
 				MaxItems:    1,
 				Description: "The category to which the configuration profile is scoped.",
-				Required:    true,
+				Optional:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -117,7 +119,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Computed:    true,
 				Description: "The UUID of the configuration profile.",
 			},
-			// "redeploy_on_update": {
+			// "redeploy_on_update": { // TODO Review this, missing from the gui
 			// 	Type:        schema.TypeString,
 			// 	Optional:    true,
 			// 	Default:     "true",
@@ -142,128 +144,72 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 							Default:     false,
 							Description: "Whether the configuration profile is scoped to all JSS users.",
 						},
-						"computers": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
+						"computer_ids": {
+							Type:        schema.TypeList,
+							Description: "The computers to which the configuration profile is scoped",
+							Optional:    true,
+							Elem: &schema.Schema{
+								Type: schema.TypeInt,
+							},
+						},
+						"computer_group_ids": {
+							Type:        schema.TypeList,
+							Description: "The computer groups to which the configuration profile is scoped",
+							Optional:    true,
+							Elem: &schema.Schema{
+								Type: schema.TypeInt,
+							},
+						},
+						"jss_user_ids": {
+							Type:        schema.TypeList,
+							Description: "The jss users to which the configuration profile is scoped",
+							Optional:    true,
+							Elem: &schema.Schema{
+								Type: schema.TypeInt,
+							},
+						},
+						"jss_user_group_ids": {
+							Type:        schema.TypeList,
+							Description: "The jss user groups to which the configuration profile is scoped",
+							Optional:    true,
+							Elem: &schema.Schema{
+								Type: schema.TypeInt,
+							},
+						},
+						"building_ids": {
+							Type:        schema.TypeList,
+							Description: "The buildings to which the configuration profile is scoped",
+							Optional:    true,
+							Elem: &schema.Schema{
+								Type: schema.TypeInt,
+							},
+						},
+						"department_ids": {
+							Type:        schema.TypeList,
+							Description: "The departments to which the configuration profile is scoped",
+							Optional:    true,
+							Elem: &schema.Schema{
+								Type: schema.TypeInt,
+							},
+						},
+						"limitations": {
+							Type:        schema.TypeList,
+							MaxItems:    1,
+							Description: "The limitations within the scope",
+							Optional:    true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:     schema.TypeList,
-										Required: true,
+									"user_ids": {
+										Type:        schema.TypeList,
+										Description: "The limited users",
+										Optional:    true,
 										Elem: &schema.Schema{
 											Type: schema.TypeInt,
 										},
 									},
-									// "name": {
-									// 	Type:        schema.TypeString,
-									// 	Optional:    true,
-									// 	Description: "The name of the computer to which the configuration profile is scoped.",
-									// },
-									// "udid": {
-									// 	Type:        schema.TypeString,
-									// 	Optional:    true,
-									// 	Description: "The UDID of the computer to which the configuration profile is scoped.",
-									// },
 								},
 							},
 						},
-						// "computer_groups": {
-						// 	Type:        schema.TypeList,
-						// 	Optional:    true,
-						// 	Description: "The computer groups to which the configuration profile is scoped.",
-						// 	Elem: &schema.Resource{
-						// 		Schema: map[string]*schema.Schema{
-						// 			"id": {
-						// 				Type:        schema.TypeInt,
-						// 				Required:    true,
-						// 				Description: "The unique identifier of the computer group to which the configuration profile is scoped.",
-						// 			},
-						// 			"name": {
-						// 				Type:        schema.TypeString,
-						// 				Optional:    true,
-						// 				Description: "The name of the computer group to which the configuration profile is scoped.",
-						// 			},
-						// 		},
-						// 	},
-						// },
-						// "jss_users": {
-						// 	Type:        schema.TypeList,
-						// 	Optional:    true,
-						// 	Description: "The JSS users to which the configuration profile is scoped.",
-						// 	Elem: &schema.Resource{
-						// 		Schema: map[string]*schema.Schema{
-						// 			"id": {
-						// 				Type:        schema.TypeInt,
-						// 				Required:    true,
-						// 				Description: "The unique identifier of the JSS user to which the configuration profile is scoped.",
-						// 			},
-						// 			"name": {
-						// 				Type:        schema.TypeString,
-						// 				Optional:    true,
-						// 				Description: "The name of the JSS user to which the configuration profile is scoped.",
-						// 			},
-						// 		},
-						// 	},
-						// },
-						// "jss_user_groups": {
-						// 	Type:        schema.TypeList,
-						// 	Optional:    true,
-						// 	Description: "The JSS user groups to which the configuration profile is scoped.",
-						// 	Elem: &schema.Resource{
-						// 		Schema: map[string]*schema.Schema{
-						// 			"id": {
-						// 				Type:        schema.TypeInt,
-						// 				Required:    true,
-						// 				Description: "The unique identifier of the JSS user group to which the configuration profile is scoped.",
-						// 			},
-						// 			"name": {
-						// 				Type:        schema.TypeString,
-						// 				Optional:    true,
-						// 				Description: "The name of the JSS user group to which the configuration profile is scoped.",
-						// 			},
-						// 		},
-						// 	},
-						// },
-						// "buildings": {
-						// 	Type:        schema.TypeList,
-						// 	Optional:    true,
-						// 	Description: "The buildings to which the configuration profile is scoped.",
-						// 	Elem: &schema.Resource{
-						// 		Schema: map[string]*schema.Schema{
-						// 			"id": {
-						// 				Type:        schema.TypeInt,
-						// 				Required:    true,
-						// 				Description: "The unique identifier of the building to which the configuration profile is scoped.",
-						// 			},
-						// 			"name": {
-						// 				Type:        schema.TypeString,
-						// 				Optional:    true,
-						// 				Description: "The name of the building to which the configuration profile is scoped.",
-						// 			},
-						// 		},
-						// 	},
-						// },
-						// "departments": {
-						// 	Type:        schema.TypeList,
-						// 	Optional:    true,
-						// 	Description: "The departments to which the configuration profile is scoped.",
-						// 	Elem: &schema.Resource{
-						// 		Schema: map[string]*schema.Schema{
-						// 			"id": {
-						// 				Type:        schema.TypeInt,
-						// 				Required:    true,
-						// 				Description: "The unique identifier of the department to which the configuration profile is scoped.",
-						// 			},
-						// 			"name": {
-						// 				Type:        schema.TypeString,
-						// 				Optional:    true,
-						// 				Description: "The name of the department to which the configuration profile is scoped.",
-						// 			},
-						// 		},
-						// 	},
-						// },
-						// "limitations": {},
 						// "exclusions":  {},
 					},
 				},
@@ -291,7 +237,7 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 		SelfService: jamfpro.MacOSConfigurationProfileSubsetSelfService{},
 	}
 
-	// Fields with processing
+	// Fields which require processing
 
 	// Site
 	if len(d.Get("site").([]interface{})) != 0 {
@@ -315,19 +261,70 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 
 	// Scope
 
+	// Bools
 	out.Scope.AllComputers = d.Get("scope.0.all_computers").(bool)
-	out.Scope.AllComputers = d.Get("scope.0.all_jss_users").(bool)
+	out.Scope.AllJSSUsers = d.Get("scope.0.all_jss_users").(bool)
 
 	// Computers
-	if len(d.Get("scope.0.computers").([]interface{})) > 0 {
-		computers := d.Get("scope.0.computers").([]interface{})
-		computerIds := computers[0].(map[string]interface{})["id"]
-		for _, c := range computerIds.([]interface{}) {
-			out.Scope.Computers = append(out.Scope.Computers, jamfpro.MacOSConfigurationProfileSubsetComputer{
-				ID: c.(int),
-			})
-		}
+	listOfComputerObjs, err := GetListOfInts[jamfpro.MacOSConfigurationProfileSubsetComputer]("scope.0.computer_ids", d)
+	if err != nil {
+		log.Println("no scoped computers") // TODO log this
+	} else {
+		out.Scope.Computers = *listOfComputerObjs
 	}
+
+	// Computer Groups
+	listOfComputerGroupObjs, err := GetListOfInts[jamfpro.MacOSConfigurationProfileSubsetComputerGroup]("scope.0.computer_group_ids", d)
+	if err != nil {
+		log.Println("no scoped computer groups") // TODO log this
+	} else {
+		out.Scope.ComputerGroups = *listOfComputerGroupObjs
+	}
+
+	// JSS Users
+	listOfJssUsers, err := GetListOfInts[jamfpro.MacOSConfigurationProfileSubsetJSSUser]("scope.0.jss_user_ids", d)
+	if err != nil {
+		log.Println("no scoped jss users")
+	} else {
+		out.Scope.JSSUsers = *listOfJssUsers
+	}
+
+	// JSS User Groups
+	listOfJssUserGroups, err := GetListOfInts[jamfpro.MacOSConfigurationProfileSubsetJSSUserGroup]("scope.0.jss_user_group_ids", d)
+	if err != nil {
+		log.Println("no scoped jss user groups")
+	} else {
+		out.Scope.JSSUserGroups = *listOfJssUserGroups
+	}
+
+	// Buildings
+	listOfBuildings, err := GetListOfInts[jamfpro.MacOSConfigurationProfileSubsetBuilding]("scope.0.building_ids", d)
+	if err != nil {
+		log.Println("no scoped buildings")
+	} else {
+		out.Scope.Buildings = *listOfBuildings
+	}
+
+	// Departments
+	listOfDepartments, err := GetListOfInts[jamfpro.MacOSConfigurationProfileSubsetDepartment]("scope.0.department_ids", d)
+	if err != nil {
+		log.Println("no scoped departments")
+	} else {
+		out.Scope.Departments = *listOfDepartments
+	}
+
+	// Scope Limitations
+
+	// Users
+	listOfLimitedUsers, err := GetListOfInts[jamfpro.MacOSConfigurationProfileSubsetUser]("scope.0.limitations.0.user_ids", d)
+	if err != nil {
+		log.Println("no limited users")
+	} else {
+		out.Scope.Limitations.Users = *listOfLimitedUsers
+	}
+
+	xmlData, _ := xml.MarshalIndent(out, "", "	")
+	log.Println(string(xmlData))
 
 	return &out, nil
 }
@@ -474,7 +471,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	} else {
-		log.Printf("Not stating default category response") // TODO probably put some logging here
+		log.Println("Not stating default category response") // TODO probably put some logging here
 	}
 
 	// Distribution Method
@@ -504,39 +501,87 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 
 	// Scope
 
+	// Setup scope obj
 	out_scope := make([]map[string]interface{}, 0)
 	out_scope = append(out_scope, make(map[string]interface{}, 1))
 
-	// All computers
+	// Bools
 	out_scope[0]["all_computers"] = resp.Scope.AllComputers
+	out_scope[0]["all_jss_users"] = resp.Scope.AllJSSUsers
 
-	//////////////////////////////////////////////////
 	// Computers
-
 	if len(resp.Scope.Computers) > 0 {
-
-		// Define computers list
-		var out_computers []map[string]interface{}
-
-		// Add empty item to that list
-		out_computers = append(out_computers, make(map[string]interface{}))
-
-		// Get Ids from HCL
-		var hclComputerIds []int
+		var listOfIds []int
 		for _, v := range resp.Scope.Computers {
-			hclComputerIds = append(hclComputerIds, v.ID)
+			listOfIds = append(listOfIds, v.ID)
 		}
-
-		// Put IDs in empty item in computers list
-		out_computers[0]["id"] = hclComputerIds
-
-		// Add list to parent scope
-		out_scope[0]["computers"] = out_computers
+		out_scope[0]["computer_ids"] = listOfIds
 	}
 
-	//////////////////////////////////////////////////
+	// Computer Groups
+	if len(resp.Scope.ComputerGroups) > 0 {
+		var listOfIds []int
+		for _, v := range resp.Scope.ComputerGroups {
+			listOfIds = append(listOfIds, v.ID)
+		}
+		out_scope[0]["computer_group_ids"] = listOfIds
+	}
 
-	// Write scope to state
+	// JSS Users
+	if len(resp.Scope.JSSUsers) > 0 {
+		var listOfIds []int
+		for _, v := range resp.Scope.JSSUsers {
+			listOfIds = append(listOfIds, v.ID)
+		}
+		out_scope[0]["jss_user_ids"] = listOfIds
+	}
+
+	// JSS User Groups
+	if len(resp.Scope.JSSUserGroups) > 0 {
+		var listOfIds []int
+		for _, v := range resp.Scope.JSSUserGroups {
+			listOfIds = append(listOfIds, v.ID)
+		}
+		out_scope[0]["jss_user_group_ids"] = listOfIds
+	}
+
+	// Buildings
+	if len(resp.Scope.Buildings) > 0 {
+		var listOfIds []int
+		for _, v := range resp.Scope.Buildings {
+			listOfIds = append(listOfIds, v.ID)
+		}
+		out_scope[0]["building_ids"] = listOfIds
+	}
+
+	// Departments
+	if len(resp.Scope.Departments) > 0 {
+		var listOfIds []int
+		for _, v := range resp.Scope.Departments {
+			listOfIds = append(listOfIds, v.ID)
+		}
+		out_scope[0]["department_ids"] = listOfIds
+	}
+
+	// Scope Limitations
+
+	out_scope_limitations := make([]map[string]interface{}, 0)
+	out_scope_limitations = append(out_scope_limitations, make(map[string]interface{}))
+
+	// Users
+
+	if len(resp.Scope.Limitations.Users) > 0 {
+		var listOfIds []int
+		for _, v := range resp.Scope.Limitations.Users {
+			listOfIds = append(listOfIds, v.ID)
+		}
+		out_scope_limitations[0]["users"] = listOfIds
+	}
+
+	// Append Limitations
+	out_scope[0]["limitations"] = out_scope_limitations
+
+	// Set Scope to state
 	err = d.Set("scope", out_scope)
 	if err != nil {
 		diags = append(diags, diag.FromErr(err)...)
@@ -636,4 +681,26 @@ func ResourceJamfProMacOSConfigurationProfilesDelete(ctx context.Context, d *sch
 	d.SetId("")
 
 	return diags
+}
+
+func GetListOfInts[T any](path string, d *schema.ResourceData) (*[]T, error) {
+	getAttr, ok := d.GetOk(path)
+	if ok {
+		outList := make([]T, 0)
+		for _, v := range getAttr.([]interface{}) {
+			var newObj T
+			newObjReflect := reflect.ValueOf(&newObj).Elem()
+			idField := newObjReflect.FieldByName("ID")
+			if idField.IsValid() && idField.CanSet() {
+				idField.Set(reflect.ValueOf(v.(int)))
+			} else {
+				return nil, fmt.Errorf("Error") // TODO write this error
+			}
+
+			outList = append(outList, newObj)
+
+		}
+		return &outList, nil
+	}
+	return nil, fmt.Errorf("no path found")
 }
