@@ -683,6 +683,7 @@ func ResourceJamfProMacOSConfigurationProfilesDelete(ctx context.Context, d *sch
 	return diags
 }
 
+// TODO rename this func and put it somewhere else
 func GetListOfInts[T any](path string, d *schema.ResourceData) (*[]T, error) {
 	getAttr, ok := d.GetOk(path)
 	if ok {
