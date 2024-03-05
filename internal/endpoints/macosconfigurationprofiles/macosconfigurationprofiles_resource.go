@@ -2,7 +2,6 @@ package macosconfigurationprofiles
 
 import (
 	"context"
-	"encoding/xml"
 	"fmt"
 	"log"
 	"strconv"
@@ -77,8 +76,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Type:        schema.TypeList,
 				MaxItems:    1,
 				Description: "The category to which the configuration profile is scoped.",
-				Optional:    true,
-				Default:     nil,
+				Required:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -104,6 +102,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 			"user_removeable": {
 				Type:        schema.TypeBool,
 				Optional:    true,
+				Default:     false,
 				Description: "Whether the configuration profile is user removeable.",
 			},
 			"level": {
@@ -137,12 +136,12 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 							Required:    true,
 							Description: "Whether the configuration profile is scoped to all computers.",
 						},
-						// "all_jss_users": {
-						// 	Type:        schema.TypeBool,
-						// 	Optional:    true,
-						// 	Default:     false,
-						// 	Description: "Whether the configuration profile is scoped to all JSS users.",
-						// },
+						"all_jss_users": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Default:     false,
+							Description: "Whether the configuration profile is scoped to all JSS users.",
+						},
 						"computers": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -277,13 +276,16 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 	// Main obj with fields which do not require processing
 	out := jamfpro.ResourceMacOSConfigurationProfile{
 		General: jamfpro.MacOSConfigurationProfileSubsetGeneral{
-			Name:               d.Get("name").(string),
-			Description:        d.Get("description").(string),
+			Name:        d.Get("name").(string),
+			Description: d.Get("description").(string),
+			// Site processed
+			// Category processed
 			DistributionMethod: d.Get("distribution_method").(string),
 			UserRemovable:      d.Get("user_removeable").(bool),
 			Level:              d.Get("level").(string),
-			UUID:               d.Get("uuid").(string),
-			// RedeployOnUpdate:   d.Get("redeploy_on_update").(string),
+			UUID:               d.Get("uuid").(string), // TODO not sure if this is needed as it's computed
+			// RedeployOnUpdate:   d.Get("redeploy_on_update").(string), // TODO Review this, I don't think it's in the UI
+			// Paylods processed
 		},
 		Scope:       jamfpro.MacOSConfigurationProfileSubsetScope{},
 		SelfService: jamfpro.MacOSConfigurationProfileSubsetSelfService{},
@@ -314,11 +316,18 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 	// Scope
 
 	out.Scope.AllComputers = d.Get("scope.0.all_computers").(bool)
+	out.Scope.AllComputers = d.Get("scope.0.all_jss_users").(bool)
 
-	log.Println("LOGHERE-OUT")
-	log.Printf("%+v\n", out)
-	xmlData, _ := xml.MarshalIndent(out, "", "  ")
-	log.Println(string(xmlData))
+	// Computers
+	if len(d.Get("scope.0.computers").([]interface{})) > 0 {
+		computers := d.Get("scope.0.computers").([]interface{})
+		computerIds := computers[0].(map[string]interface{})["id"]
+		for _, c := range computerIds.([]interface{}) {
+			out.Scope.Computers = append(out.Scope.Computers, jamfpro.MacOSConfigurationProfileSubsetComputer{
+				ID: c.(int),
+			})
+		}
+	}
 
 	return &out, nil
 }
@@ -500,9 +509,6 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 
 	// All computers
 	out_scope[0]["all_computers"] = resp.Scope.AllComputers
-	log.Println("FLAG 1")
-	log.Println(resp.Scope.AllComputers)
-	log.Println(out_scope)
 
 	//////////////////////////////////////////////////
 	// Computers
@@ -533,10 +539,8 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Write scope to state
 	err = d.Set("scope", out_scope)
 	if err != nil {
-		log.Println("FLAG 2")
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	log.Println("LOGHERE-READEND")
 
 	return diags
 }
