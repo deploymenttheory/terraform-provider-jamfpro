@@ -148,12 +148,32 @@ func main() {
 		return
 	}
 
-	// Specify the resource types to validate duplicates for
+	// Specified the resource types to validate duplicates for
 	interestedResourceTypes := map[string]bool{
-		"jamfpro_sites":           true,
-		"jamfpro_computer_groups": true,
-		"jamfpro_dock_items":      true,
-		// Add more resource types as needed
+		"jamfpro_account":                       true,
+		"jamfpro_account_group":                 true,
+		"jamfpro_advanced_computer_search":      true,
+		"jamfpro_advanced_mobile_device_search": true,
+		"jamfpro_advanced_user_search":          true,
+		"jamfpro_allowed_file_extension":        true,
+		"jamfpro_api_integration":               true,
+		"jamfpro_api_role":                      true,
+		"jamfpro_building":                      true,
+		"jamfpro_category":                      true,
+		"jamfpro_computer_checkin":              true,
+		"jamfpro_computer_extension_attribute":  true,
+		"jamfpro_computer_group":                true,
+		"jamfpro_computer_prestage":             true,
+		"jamfpro_department":                    true,
+		"jamfpro_disk_encryption_configuration": true,
+		"jamfpro_dock_item":                     true,
+		"jamfpro_file_share_distribution_point": true,
+		"jamfpro_site":                          true,
+		"jamfpro_script":                        true,
+		"jamfpro_network_segment":               true,
+		"jamfpro_package":                       true,
+		"jamfpro_policy":                        true,
+		"jamfpro_printer":                       true,
 	}
 
 	// Store resource names and their occurrences
