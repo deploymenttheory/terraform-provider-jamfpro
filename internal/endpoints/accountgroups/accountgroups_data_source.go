@@ -37,7 +37,7 @@ func DataSourceJamfProAccountGroups() *schema.Resource {
 	}
 }
 
-// DataSourceJamfProDockItemsRead fetches the details of specific account group from Jamf Pro using either their unique Name or Id.
+// DataSourceJamfProAccountGroupsRead fetches the details of specific account group from Jamf Pro using either their unique Name or Id.
 func DataSourceJamfProAccountGroupsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)

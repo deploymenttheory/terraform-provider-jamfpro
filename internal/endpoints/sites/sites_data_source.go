@@ -59,23 +59,20 @@ func DataSourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, met
 
 	// Initialize variables
 	var diags diag.Diagnostics
+	resourceID := d.Get("id").(string)
 
-	// Get the site ID from the data source's arguments
-	resourceID, ok := d.GetOk("id")
-	if !ok {
-		return diag.Errorf("'id' must be provided")
-	}
-	resourceIDInt, err := strconv.Atoi(resourceID.(string))
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting 'id' to int: %v", err))
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	var site *jamfpro.SharedResourceSite
+	var resource *jamfpro.SharedResourceSite
 
 	// Read operation with retry
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		site, apiErr = conn.GetSiteByID(resourceIDInt)
+		resource, apiErr = conn.GetSiteByID(resourceIDInt)
 		if apiErr != nil {
 			// Convert any API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)
@@ -86,14 +83,14 @@ func DataSourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, met
 
 	if err != nil {
 		// Handle the final error after all retries have been exhausted
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Site with ID '%d' after retries: %v", resourceIDInt, err))
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Site with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	// Check if resource data exists and set the Terraform state
-	if site != nil {
+	if resource != nil {
 		d.SetId(fmt.Sprintf("%d", resourceIDInt)) // Set the id in the Terraform state
-		if err := d.Set("name", site.Name); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Site with ID '%d': %v", resourceIDInt, err))...)
+		if err := d.Set("name", resource.Name); err != nil {
+			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Site with ID '%s': %v", resourceID, err))...)
 		}
 	} else {
 		d.SetId("") // Data not found, unset the id in the Terraform state

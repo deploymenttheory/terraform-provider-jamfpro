@@ -21,7 +21,7 @@ func DataSourceJamfProComputerGroups() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Computed:    true,
+				Required:    true,
 				Description: "The unique identifier of the computer group.",
 			},
 			"name": {
@@ -55,7 +55,7 @@ func DataSourceJamfProComputerGroupsRead(ctx context.Context, d *schema.Resource
 
 	// Initialize variables
 	var diags diag.Diagnostics
-	resourceID := d.Id()
+	resourceID := d.Get("id").(string)
 
 	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
