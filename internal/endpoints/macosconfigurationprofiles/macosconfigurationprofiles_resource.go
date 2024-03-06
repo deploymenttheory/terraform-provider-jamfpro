@@ -424,7 +424,7 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 			// Self Service Icon
 			FeatureOnMainPage: d.Get("self_service.0.feature_on_main_page").(bool),
 			// Self Service Categories
-			// Notification:        d.Get("self_service.0.notification").(string),
+			// Notification parsed cos it's stupid
 			NotificationSubject: d.Get("self_service.0.notification_subject").(string),
 			NotificationMessage: d.Get("self_service.0.notification_message").(string),
 		},
@@ -1116,5 +1116,5 @@ func FixStupidDoubleKey(resp *jamfpro.ResourceMacOSConfigurationProfile, home *[
 			(*home)[0]["notification"] = correctNotifValue
 		}
 	}
-	return fmt.Errorf("failed to parse value")
+	return fmt.Errorf("failed to parse value %+v", resp.SelfService)
 }
