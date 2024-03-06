@@ -314,6 +314,92 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 					},
 				},
 			},
+			"self_service": {
+				Type:        schema.TypeList,
+				MaxItems:    1,
+				Description: "Self Service options",
+				Optional:    true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"install_button_text": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Text shown on Self Service install button",
+							Default:     "Install",
+						},
+						"self_service_description": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Description shown in Self Service",
+							Default:     nil,
+						},
+						"force_users_to_view_description": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Forces users to view the description",
+							Default:     false,
+						},
+						"feature_on_main_page": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Default:     false,
+							Description: "Shows Configuration Profile on Self Service main page",
+						},
+						"notification": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Default:     false,
+							Description: "Enables Notification for this profile in self service",
+						},
+						"notification_subject": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "no message subject set",
+							Description: "Message Subject",
+						},
+						"notification_message": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "",
+							Description: "Message body",
+						},
+						// "self_service_icon": {
+						// 	Type:        schema.TypeList,
+						// 	MaxItems:    1,
+						// 	Description: "Self Service icon settings",
+						// 	Optional:    true,
+						// 	Elem: &schema.Resource{
+						// 		Schema: map[string]*schema.Schema{
+						// 			"id":       {},
+						// 			"uri":      {},
+						// 			"data":     {},
+						// 			"filename": {},
+						// 		},
+						// 	},
+						// }, // TODO fix this broken crap later
+						"self_service_categories": {
+							Type:        schema.TypeList,
+							MaxItems:    1,
+							Description: "Self Service category options",
+							Optional:    true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"id": {
+										Type:        schema.TypeList,
+										Description: "Test",
+										Required:    true,
+										Elem: &schema.Schema{
+											Type: schema.TypeInt,
+										},
+									},
+									// "name":     {},
+									// "category": {},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -322,22 +408,29 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 	// Main obj with fields which do not require processing
 	out := jamfpro.ResourceMacOSConfigurationProfile{
 		General: jamfpro.MacOSConfigurationProfileSubsetGeneral{
-			Name:        d.Get("name").(string),
-			Description: d.Get("description").(string),
-			// Site processed
-			// Category processed
+			Name:               d.Get("name").(string),
+			Description:        d.Get("description").(string),
 			DistributionMethod: d.Get("distribution_method").(string),
 			UserRemovable:      d.Get("user_removeable").(bool),
 			Level:              d.Get("level").(string),
 			UUID:               d.Get("uuid").(string), // TODO not sure if this is needed as it's computed
 			// RedeployOnUpdate:   d.Get("redeploy_on_update").(string), // TODO Review this, I don't think it's in the UI
-			// Paylods processed
 		},
-		Scope:       jamfpro.MacOSConfigurationProfileSubsetScope{},
-		SelfService: jamfpro.MacOSConfigurationProfileSubsetSelfService{},
+		Scope: jamfpro.MacOSConfigurationProfileSubsetScope{},
+		SelfService: jamfpro.MacOSConfigurationProfileSubsetSelfService{
+			InstallButtonText:           d.Get("self_service.0.install_button_text").(string),
+			SelfServiceDescription:      d.Get("self_service.0.self_service_description").(string),
+			ForceUsersToViewDescription: d.Get("self_service.0.force_users_to_view_description").(bool),
+			// Self Service Icon
+			FeatureOnMainPage: d.Get("self_service.0.feature_on_main_page").(bool),
+			// Self Service Categories
+			// Notification:        d.Get("self_service.0.notification").(string),
+			NotificationSubject: d.Get("self_service.0.notification_subject").(string),
+			NotificationMessage: d.Get("self_service.0.notification_message").(string),
+		},
 	}
 
-	// Fields which require processing
+	// Processed Fields
 
 	// Site
 	if len(d.Get("site").([]interface{})) != 0 {
@@ -345,8 +438,6 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 			ID:   d.Get("site.0.id").(int),
 			Name: d.Get("site.0.name").(string),
 		}
-	} else {
-		log.Println("NO SITE") // TODO probably put some logging here
 	}
 
 	// Category
@@ -355,8 +446,6 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 			ID:   d.Get("category.0.id").(int),
 			Name: d.Get("category.0.name").(string),
 		}
-	} else {
-		log.Println("NO CATEGORY") // TODO probably put some logging here
 	}
 
 	// Scope
@@ -476,6 +565,13 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 
 	// IBeacons
 	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetIBeacon, int]("scope.0.exclusions.0.ibeacon_ids", "ID", d, &out.Scope.Exclusions.IBeacons)
+	if err != nil {
+		return nil, err
+	}
+
+	// Self Service
+
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory, int]("self_service.0.self_service_categories.0.id", "ID", d, &out.SelfService.SelfServiceCategories)
 	if err != nil {
 		return nil, err
 	}
@@ -851,6 +947,31 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	// Self Service
+
+	out_self_service := make([]map[string]interface{}, 0)
+	out_self_service = append(out_self_service, make(map[string]interface{}, 1))
+
+	// Fix the stupid broken double key issue
+
+	err = FixStupidDoubleKey(resp, &out_self_service)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if len(resp.SelfService.SelfServiceCategories) > 0 {
+		var listOfIds []int
+		for _, v := range resp.SelfService.SelfServiceCategories {
+			listOfIds = append(listOfIds, v.ID)
+		}
+		out_self_service[0]["self_service_categories"] = listOfIds
+	}
+
+	err = d.Set("self_service", out_self_service)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	return diags
 }
 
@@ -981,4 +1102,19 @@ func GetAttrsListFromHCL[NestedObjectType any, ListItemPrimitiveType any](path s
 		return nil
 	}
 	return fmt.Errorf("no path found/no scoped items at %v", path)
+}
+
+func FixStupidDoubleKey(resp *jamfpro.ResourceMacOSConfigurationProfile, home *[]map[string]interface{}) error {
+	var err error
+	var correctNotifValue bool
+	for _, k := range resp.SelfService.Notification {
+		if k == "true" || k == "false" {
+			correctNotifValue, err = strconv.ParseBool(k)
+			if err != nil {
+				return err
+			}
+			(*home)[0]["notification"] = correctNotifValue
+		}
+	}
+	return fmt.Errorf("failed to parse value")
 }
