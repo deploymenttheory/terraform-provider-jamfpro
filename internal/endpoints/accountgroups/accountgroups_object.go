@@ -54,15 +54,31 @@ func constructJamfProAccountGroup(d *schema.ResourceData) (*jamfpro.ResourceAcco
 
 // constructAccountSubsetPrivileges constructs AccountSubsetPrivileges from schema data.
 func constructAccountSubsetPrivileges(d *schema.ResourceData) jamfpro.AccountSubsetPrivileges {
-	return jamfpro.AccountSubsetPrivileges{
-		JSSObjects:    getStringSliceFromSet(d.Get("jss_objects_privileges").(*schema.Set)),
-		JSSSettings:   getStringSliceFromSet(d.Get("jss_settings_privileges").(*schema.Set)),
-		JSSActions:    getStringSliceFromSet(d.Get("jss_actions_privileges").(*schema.Set)),
-		CasperAdmin:   getStringSliceFromSet(d.Get("casper_admin_privileges").(*schema.Set)),
-		CasperRemote:  getStringSliceFromSet(d.Get("casper_remote_privileges").(*schema.Set)),
-		CasperImaging: getStringSliceFromSet(d.Get("casper_imaging_privileges").(*schema.Set)),
-		Recon:         getStringSliceFromSet(d.Get("recon_privileges").(*schema.Set)),
+	privileges := jamfpro.AccountSubsetPrivileges{}
+
+	if v, ok := d.GetOk("jss_objects_privileges"); ok {
+		privileges.JSSObjects = getStringSliceFromSet(v.(*schema.Set))
 	}
+	if v, ok := d.GetOk("jss_settings_privileges"); ok {
+		privileges.JSSSettings = getStringSliceFromSet(v.(*schema.Set))
+	}
+	if v, ok := d.GetOk("jss_actions_privileges"); ok {
+		privileges.JSSActions = getStringSliceFromSet(v.(*schema.Set))
+	}
+	if v, ok := d.GetOk("casper_admin_privileges"); ok {
+		privileges.CasperAdmin = getStringSliceFromSet(v.(*schema.Set))
+	}
+	if v, ok := d.GetOk("casper_remote_privileges"); ok {
+		privileges.CasperRemote = getStringSliceFromSet(v.(*schema.Set))
+	}
+	if v, ok := d.GetOk("casper_imaging_privileges"); ok {
+		privileges.CasperImaging = getStringSliceFromSet(v.(*schema.Set))
+	}
+	if v, ok := d.GetOk("recon_privileges"); ok {
+		privileges.Recon = getStringSliceFromSet(v.(*schema.Set))
+	}
+
+	return privileges
 }
 
 // getStringSliceFromSet converts a *schema.Set to a slice of strings.
