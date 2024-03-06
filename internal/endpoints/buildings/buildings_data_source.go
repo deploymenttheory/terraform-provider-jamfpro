@@ -43,8 +43,7 @@ func DataSourceBuildingRead(ctx context.Context, d *schema.ResourceData, meta in
 
 	// Initialize variables
 	var diags diag.Diagnostics
-	resourceID := d.Id()
-
+	resourceID := d.Get("id").(string)
 	var resource *jamfpro.ResourceBuilding
 
 	// Read operation with retry
