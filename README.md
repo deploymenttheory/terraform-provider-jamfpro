@@ -13,3 +13,11 @@ The provider contains:
 - [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.0
 - [Go](https://golang.org/doc/install) >= 1.21
 - [Jamf Pro](https://www.jamf.com/) >= 11.2.0
+
+## Support Jamf Pro Resources
+
+- [x] Account Groups
+Resource and Data Source for managing Account Groups in Jamf Pro.
+
+- [x] Scripts
+Resource and Data Source for managing Scripts in Jamf Pro.
