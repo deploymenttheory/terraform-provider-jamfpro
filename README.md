@@ -14,10 +14,18 @@ The provider contains:
 - [Go](https://golang.org/doc/install) >= 1.21
 - [Jamf Pro](https://www.jamf.com/) >= 11.2.0
 
-## Support Jamf Pro Resources
+## Supported Jamf Pro Resources
 
-- [x] Account Groups
-Resource and Data Source for managing Account Groups in Jamf Pro.
+This section outlines the resources and data sources provided by our Terraform provider for managing various aspects of Jamf Pro. Each resource comes with comprehensive support for the respective Jamf Pro entities, facilitating their management through Terraform.
 
-- [x] Scripts
-Resource and Data Source for managing Scripts in Jamf Pro.
+### Account Groups
+
+- **Resource & Data Source**: Enables the management of Account Groups within Jamf Pro, allowing for the configuration of group names, access levels, privileges, and member details.
+
+- **Availability**: Introduced in version `v0.0.31.` This update provides new functionalities for streamlined management of account groups, enhancing control over user permissions and access within your Jamf Pro environment.
+
+### Scripts
+
+- **Resource & Data Source**: Facilitates the management of Scripts in Jamf Pro. This includes the creation, update, and deletion of script entities, along with the ability to specify script contents and associated properties.
+
+- **Availability**: Available since version `v0.0.30.` The script management feature is designed to support the automation and customization of tasks in Jamf Pro, providing a versatile tool for administrators to extend functionality and automate routine operations.
