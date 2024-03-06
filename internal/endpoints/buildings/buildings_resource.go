@@ -178,6 +178,7 @@ func ResourceJamfProBuildingRead(ctx context.Context, d *schema.ResourceData, me
 
 	// Map the configuration fields from the API response to a structured map
 	buildingData := map[string]interface{}{
+		"id":              resource.ID,
 		"name":            resource.Name,
 		"street_address1": resource.StreetAddress1,
 		"street_address2": resource.StreetAddress2,
