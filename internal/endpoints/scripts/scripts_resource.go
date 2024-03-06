@@ -79,54 +79,45 @@ func ResourceJamfProScripts() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Contents of the script. Must be non-compiled and in an accepted format.",
-				//DiffSuppressFunc: suppressBase64EncodedScriptDiff,
 			},
 			"parameter4": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Computed:    true,
 				Description: "Script parameter label 4",
 			},
 			"parameter5": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Computed:    true,
 				Description: "Script parameter label 5",
 			},
 			"parameter6": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Computed:    true,
 				Description: "Script parameter label 6",
 			},
 			"parameter7": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Computed:    true,
 				Description: "Script parameter label 7",
 			},
 			"parameter8": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Computed:    true,
 				Description: "Script parameter label 8",
 			},
 			"parameter9": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Computed:    true,
 				Description: "Script parameter label 9",
 			},
 			"parameter10": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Computed:    true,
 				Description: "Script parameter label 10",
 			},
 			"parameter11": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Computed:    true,
 				Description: "Script parameter label 11",
 			},
 		},
@@ -241,33 +232,72 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Script with ID '%s' after retries: %v", resourceID, err))
 	}
 
-	// Assuming the resource is successfully read if no error
-	if resource != nil {
-		// Construct a map of script attributes and update the Terraform state
-		scriptAttributes := map[string]interface{}{
-			"name":            resource.Name,
-			"category_name":   resource.CategoryName,
-			"category_id":     resource.CategoryId,
-			"info":            resource.Info,
-			"notes":           resource.Notes,
-			"os_requirements": resource.OSRequirements,
-			"priority":        resource.Priority,
-			"script_contents": resource.ScriptContents,
-			"parameter4":      resource.Parameter4,
-			"parameter5":      resource.Parameter5,
-			"parameter6":      resource.Parameter6,
-			"parameter7":      resource.Parameter7,
-			"parameter8":      resource.Parameter8,
-			"parameter9":      resource.Parameter9,
-			"parameter10":     resource.Parameter10,
-			"parameter11":     resource.Parameter11,
-		}
+	// Update Terraform state with the resource information
+	if err := d.Set("id", resource.ID); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
-		for key, value := range scriptAttributes {
-			if err := d.Set(key, value); err != nil {
-				diags = append(diags, diag.FromErr(fmt.Errorf("error setting '%s' for Jamf Pro Script with ID '%s': %v", key, resourceID, err))...)
-			}
-		}
+	if err := d.Set("name", resource.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("category_name", resource.CategoryName); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("category_id", resource.CategoryId); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("info", resource.Info); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("notes", resource.Notes); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("os_requirements", resource.OSRequirements); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("priority", resource.Priority); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("script_contents", resource.ScriptContents); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("parameter4", resource.Parameter4); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("parameter5", resource.Parameter5); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("parameter6", resource.Parameter6); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("parameter7", resource.Parameter7); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("parameter8", resource.Parameter8); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("parameter9", resource.Parameter9); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("parameter10", resource.Parameter10); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("parameter11", resource.Parameter11); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	return diags
