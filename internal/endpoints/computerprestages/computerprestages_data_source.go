@@ -17,7 +17,7 @@ func DataSourceJamfProComputerPrestage() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Computed:    true,
+				Required:    true,
 				Description: "The unique identifier of the computer prestage.",
 			},
 			"display_name": {

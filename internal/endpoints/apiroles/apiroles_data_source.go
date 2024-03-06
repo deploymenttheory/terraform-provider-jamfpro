@@ -20,7 +20,7 @@ func DataSourceJamfProAPIRoles() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeInt,
-				Computed:    true,
+				Required:    true,
 				Description: "The unique identifier of the API role.",
 			},
 			"display_name": {
@@ -45,7 +45,7 @@ func DataSourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, 
 
 	// Initialize variables
 	var diags diag.Diagnostics
-	resourceID := d.Id()
+	resourceID := d.Get("id").(string)
 
 	var resource *jamfpro.ResourceAPIRole
 

@@ -49,6 +49,7 @@ func DataSourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, m
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)
+
 	var resource *jamfpro.ResourceScript
 
 	// Read operation with retry

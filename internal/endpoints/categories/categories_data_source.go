@@ -18,7 +18,7 @@ func DataSourceJamfProCategories() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeInt,
-				Computed:    true,
+				Required:    true,
 				Description: "The unique identifier of the Category.",
 			},
 			"name": {

@@ -20,7 +20,7 @@ func DataSourceJamfProBuildings() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Computed:    true,
+				Required:    true,
 				Description: "The unique identifier of the building.",
 			},
 			"name": {
@@ -44,6 +44,7 @@ func DataSourceBuildingRead(ctx context.Context, d *schema.ResourceData, meta in
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)
+
 	var resource *jamfpro.ResourceBuilding
 
 	// Read operation with retry

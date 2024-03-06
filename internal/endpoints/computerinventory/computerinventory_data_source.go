@@ -18,7 +18,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Required: true,
 			},
 			"udid": {
 				Type:     schema.TypeString,

@@ -59,15 +59,12 @@ func DataSourceJamfProNetworkSegmentsRead(ctx context.Context, d *schema.Resourc
 
 	// Initialize variables
 	var diags diag.Diagnostics
+	resourceID := d.Get("id").(string)
 
-	// Get the resource ID from the data source's arguments
-	resourceID, ok := d.GetOk("id")
-	if !ok {
-		return diag.Errorf("'id' must be provided")
-	}
-	resourceIDInt, err := strconv.Atoi(resourceID.(string))
+	// Convert resourceID from string to int
+	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting 'id' to int: %v", err))
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
 	var resource *jamfpro.ResourceNetworkSegment

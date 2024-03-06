@@ -54,7 +54,7 @@ func DataSourceJamfProAdvancedMobileDeviceSearchesRead(ctx context.Context, d *s
 
 	// Initialize variables
 	var diags diag.Diagnostics
-	resourceID := d.Id()
+	resourceID := d.Get("id").(string)
 
 	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)

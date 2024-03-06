@@ -25,7 +25,7 @@ func DataSourceJamfProAccounts() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Computed:    true,
+				Required:    true,
 				Description: "The unique identifier of the jamf pro account.",
 			},
 			"name": {
@@ -48,7 +48,7 @@ func DataSourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, m
 
 	// Initialize variables
 	var diags diag.Diagnostics
-	resourceID := d.Id()
+	resourceID := d.Get("id").(string)
 
 	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
