@@ -1,4 +1,4 @@
-// scripts_date_source.go
+// scripts_data_source.go
 package scripts
 
 import (
