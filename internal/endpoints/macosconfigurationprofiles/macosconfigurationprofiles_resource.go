@@ -119,6 +119,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Computed:    true,
 				Description: "The UUID of the configuration profile.",
 			},
+			// "payload": {},
 			// "redeploy_on_update": { // TODO Review this, missing from the gui
 			// 	Type:        schema.TypeString,
 			// 	Optional:    true,
@@ -199,9 +200,33 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 							Optional:    true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"user_ids": {
+									"user_names": {
 										Type:        schema.TypeList,
 										Description: "The limited users",
+										Optional:    true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+									"network_segment_ids": {
+										Type:        schema.TypeList,
+										Description: "The limited network segments",
+										Optional:    true,
+										Elem: &schema.Schema{
+											Type: schema.TypeInt,
+										},
+									},
+									"ibeacon_ids": {
+										Type:        schema.TypeList,
+										Description: "The limited ibeacons",
+										Optional:    true,
+										Elem: &schema.Schema{
+											Type: schema.TypeInt,
+										},
+									},
+									"user_group_ids": {
+										Type:        schema.TypeList,
+										Description: "The limited user groups",
 										Optional:    true,
 										Elem: &schema.Schema{
 											Type: schema.TypeInt,
@@ -210,7 +235,82 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 								},
 							},
 						},
-						// "exclusions":  {},
+						"exclusions": {
+							Type:        schema.TypeList,
+							MaxItems:    1,
+							Description: "The limitations within the scope",
+							Optional:    true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"computer_ids": {
+										Type:        schema.TypeList,
+										Description: "excluded computers",
+										Optional:    true,
+										Elem: &schema.Schema{
+											Type: schema.TypeInt,
+										},
+									},
+									"computer_group_ids": {
+										Type:        schema.TypeList,
+										Description: "excluded computer groups",
+										Optional:    true,
+										Elem: &schema.Schema{
+											Type: schema.TypeInt,
+										},
+									},
+									// "user_ids": {},
+									// "user_group_ids": {},
+									"building_ids": {
+										Type:        schema.TypeList,
+										Description: "excluded buildings",
+										Optional:    true,
+										Elem: &schema.Schema{
+											Type: schema.TypeInt,
+										},
+									},
+									"department_ids": {
+										Type:        schema.TypeList,
+										Description: "excluded departments",
+										Optional:    true,
+										Elem: &schema.Schema{
+											Type: schema.TypeInt,
+										},
+									},
+									"network_segment_ids": {
+										Type:        schema.TypeList,
+										Description: "excluded network segments",
+										Optional:    true,
+										Elem: &schema.Schema{
+											Type: schema.TypeInt,
+										},
+									},
+									"jss_user_ids": {
+										Type:        schema.TypeList,
+										Description: "excluded jss users",
+										Optional:    true,
+										Elem: &schema.Schema{
+											Type: schema.TypeInt,
+										},
+									},
+									"jss_user_group_ids": {
+										Type:        schema.TypeList,
+										Description: "excluded jss user groups",
+										Optional:    true,
+										Elem: &schema.Schema{
+											Type: schema.TypeInt,
+										},
+									},
+									"ibeacon_ids": {
+										Type:        schema.TypeList,
+										Description: "excluded ibeacons",
+										Optional:    true,
+										Elem: &schema.Schema{
+											Type: schema.TypeInt,
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -260,69 +360,127 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 	}
 
 	// Scope
+	var err error
+
+	// Scope - Targets
 
 	// Bools
 	out.Scope.AllComputers = d.Get("scope.0.all_computers").(bool)
 	out.Scope.AllJSSUsers = d.Get("scope.0.all_jss_users").(bool)
 
 	// Computers
-	listOfComputerObjs, err := GetListOfInts[jamfpro.MacOSConfigurationProfileSubsetComputer]("scope.0.computer_ids", d)
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetComputer, int]("scope.0.computer_ids", "ID", d, &out.Scope.Computers)
 	if err != nil {
-		log.Println("no scoped computers") // TODO log this
-	} else {
-		out.Scope.Computers = *listOfComputerObjs
+		return nil, err
 	}
 
 	// Computer Groups
-	listOfComputerGroupObjs, err := GetListOfInts[jamfpro.MacOSConfigurationProfileSubsetComputerGroup]("scope.0.computer_group_ids", d)
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetComputerGroup, int]("scope.0.computer_group_ids", "ID", d, &out.Scope.ComputerGroups)
 	if err != nil {
-		log.Println("no scoped computer groups") // TODO log this
-	} else {
-		out.Scope.ComputerGroups = *listOfComputerGroupObjs
+		return nil, err
 	}
 
 	// JSS Users
-	listOfJssUsers, err := GetListOfInts[jamfpro.MacOSConfigurationProfileSubsetJSSUser]("scope.0.jss_user_ids", d)
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetJSSUser, int]("scope.0.jss_user_ids", "ID", d, &out.Scope.JSSUsers)
 	if err != nil {
-		log.Println("no scoped jss users")
-	} else {
-		out.Scope.JSSUsers = *listOfJssUsers
+		return nil, err
 	}
 
 	// JSS User Groups
-	listOfJssUserGroups, err := GetListOfInts[jamfpro.MacOSConfigurationProfileSubsetJSSUserGroup]("scope.0.jss_user_group_ids", d)
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetJSSUserGroup, int]("scope.0.jss_user_group_ids", "ID", d, &out.Scope.JSSUserGroups)
 	if err != nil {
-		log.Println("no scoped jss user groups")
-	} else {
-		out.Scope.JSSUserGroups = *listOfJssUserGroups
+		return nil, err
 	}
 
 	// Buildings
-	listOfBuildings, err := GetListOfInts[jamfpro.MacOSConfigurationProfileSubsetBuilding]("scope.0.building_ids", d)
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetBuilding, int]("scope.0.building_ids", "ID", d, &out.Scope.Buildings)
 	if err != nil {
-		log.Println("no scoped buildings")
-	} else {
-		out.Scope.Buildings = *listOfBuildings
+		return nil, err
 	}
 
 	// Departments
-	listOfDepartments, err := GetListOfInts[jamfpro.MacOSConfigurationProfileSubsetDepartment]("scope.0.department_ids", d)
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetDepartment, int]("scope.0.department_ids", "ID", d, &out.Scope.Departments)
 	if err != nil {
-		log.Println("no scoped departments")
-	} else {
-		out.Scope.Departments = *listOfDepartments
+		return nil, err
 	}
 
-	// Scope Limitations
+	// Scope - Limitations
 
 	// Users
-	listOfLimitedUsers, err := GetListOfInts[jamfpro.MacOSConfigurationProfileSubsetUser]("scope.0.limitations.0.user_ids", d)
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetUser, string]("scope.0.limitations.0.user_names", "Name", d, &out.Scope.Limitations.Users)
 	if err != nil {
-		log.Println("no limited users")
-	} else {
-		out.Scope.Limitations.Users = *listOfLimitedUsers
+		return nil, err
 	}
 
+	// Network Segment
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetNetworkSegment, int]("scope.0.limitations.0.network_segment_ids", "ID", d, &out.Scope.Limitations.NetworkSegments)
+	if err != nil {
+		return nil, err
+	}
+
+	// IBeacons
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetIBeacon, int]("scope.0.limitations.0.ibeacon_ids", "ID", d, &out.Scope.Limitations.IBeacons)
+	if err != nil {
+		return nil, err
+	}
+
+	// User Groups
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetUserGroup, int]("scope.0.limitations.0.user_group_ids", "ID", d, &out.Scope.Limitations.UserGroups)
+	if err != nil {
+		return nil, err
+	}
+
+	// Scope - Limitations
+
+	// Computers
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetComputer, int]("scope.0.exclusions.0.computer_ids", "ID", d, &out.Scope.Exclusions.Computers)
+	if err != nil {
+		return nil, err
+	}
+
+	// Computer Groups
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetComputerGroup, int]("scope.0.exclusions.0.computer_group_ids", "ID", d, &out.Scope.Exclusions.ComputerGroups)
+	if err != nil {
+		return nil, err
+	}
+
+	// Buildings
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetBuilding, int]("scope.0.exclusions.0.building_ids", "ID", d, &out.Scope.Exclusions.Buildings)
+	if err != nil {
+		return nil, err
+	}
+
+	// Departments
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetDepartment, int]("scope.0.exclusions.0.department_ids", "ID", d, &out.Scope.Exclusions.Departments)
+	if err != nil {
+		return nil, err
+	}
+
+	// Network Segments
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetNetworkSegment, int]("scope.0.exclusions.0.network_segment_ids", "ID", d, &out.Scope.Exclusions.NetworkSegments)
+	if err != nil {
+		return nil, err
+	}
+
+	// JSS Users
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetJSSUser, int]("scope.0.exclusions.0.jss_user_ids", "ID", d, &out.Scope.Exclusions.JSSUsers)
+	if err != nil {
+		return nil, err
+	}
+
+	// JSS User Groups
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetJSSUserGroup, int]("scope.0.exclusions.0.jss_user_group_ids", "ID", d, &out.Scope.Exclusions.JSSUserGroups)
+	if err != nil {
+		return nil, err
+	}
+
+	// IBeacons
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetIBeacon, int]("scope.0.exclusions.0.ibeacon_ids", "ID", d, &out.Scope.Exclusions.IBeacons)
+	if err != nil {
+		return nil, err
+	}
+
+	// Debug
 	xmlData, _ := xml.MarshalIndent(out, "", "	")
 	log.Println(string(xmlData))
 
@@ -563,23 +721,129 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		out_scope[0]["department_ids"] = listOfIds
 	}
 
-	// Scope Limitations
+	// Scope Limitations ////////////////////////////////
 
 	out_scope_limitations := make([]map[string]interface{}, 0)
 	out_scope_limitations = append(out_scope_limitations, make(map[string]interface{}))
 
 	// Users
-
 	if len(resp.Scope.Limitations.Users) > 0 {
-		var listOfIds []int
+		var listOfNames []string
 		for _, v := range resp.Scope.Limitations.Users {
+			listOfNames = append(listOfNames, v.Name)
+		}
+		out_scope_limitations[0]["user_names"] = listOfNames
+	}
+
+	// Network Segments
+	if len(resp.Scope.Limitations.NetworkSegments) > 0 {
+		var listOfIds []int
+		for _, v := range resp.Scope.Limitations.NetworkSegments {
 			listOfIds = append(listOfIds, v.ID)
 		}
-		out_scope_limitations[0]["users"] = listOfIds
+		out_scope_limitations[0]["network_segment_ids"] = listOfIds
+	}
+
+	// IBeacons
+	if len(resp.Scope.Limitations.IBeacons) > 0 {
+		var listOfIds []int
+		for _, v := range resp.Scope.Limitations.IBeacons {
+			listOfIds = append(listOfIds, v.ID)
+		}
+		out_scope_limitations[0]["ibeacon_ids"] = listOfIds
+	}
+
+	// User Groups
+	if len(resp.Scope.Limitations.UserGroups) > 0 {
+		var listOfIds []int
+		for _, v := range resp.Scope.Limitations.UserGroups {
+			listOfIds = append(listOfIds, v.ID)
+		}
+		out_scope_limitations[0]["user_group_ids"] = listOfIds
 	}
 
 	// Append Limitations
 	out_scope[0]["limitations"] = out_scope_limitations
+
+	// Scope Exclusions ////////////////////////////
+
+	out_scope_exclusions := make([]map[string]interface{}, 0)
+	out_scope_exclusions = append(out_scope_exclusions, make(map[string]interface{}))
+
+	// Computers
+	if len(resp.Scope.Exclusions.Computers) > 0 {
+		var listOfIds []int
+		for _, v := range resp.Scope.Exclusions.Computers {
+			listOfIds = append(listOfIds, v.ID)
+		}
+		out_scope_exclusions[0]["computer_ids"] = listOfIds
+	}
+
+	// Computer Groups
+	if len(resp.Scope.Exclusions.ComputerGroups) > 0 {
+		var listOfIds []int
+		for _, v := range resp.Scope.Exclusions.ComputerGroups {
+			listOfIds = append(listOfIds, v.ID)
+		}
+		out_scope_exclusions[0]["computer_group_ids"] = listOfIds
+	}
+
+	// Buildings
+	if len(resp.Scope.Exclusions.Buildings) > 0 {
+		var listOfIds []int
+		for _, v := range resp.Scope.Exclusions.Buildings {
+			listOfIds = append(listOfIds, v.ID)
+		}
+		out_scope_exclusions[0]["building_ids"] = listOfIds
+	}
+
+	// Departments
+	if len(resp.Scope.Exclusions.Departments) > 0 {
+		var listOfIds []int
+		for _, v := range resp.Scope.Exclusions.Departments {
+			listOfIds = append(listOfIds, v.ID)
+		}
+		out_scope_exclusions[0]["department_ids"] = listOfIds
+	}
+
+	// Network Segments
+	if len(resp.Scope.Exclusions.NetworkSegments) > 0 {
+		var listOfIds []int
+		for _, v := range resp.Scope.Exclusions.NetworkSegments {
+			listOfIds = append(listOfIds, v.ID)
+		}
+		out_scope_exclusions[0]["network_segment_ids"] = listOfIds
+	}
+
+	// JSS Users
+	if len(resp.Scope.Exclusions.JSSUsers) > 0 {
+		var listOfIds []int
+		for _, v := range resp.Scope.Exclusions.JSSUsers {
+			listOfIds = append(listOfIds, v.ID)
+		}
+		out_scope_exclusions[0]["jss_user_ids"] = listOfIds
+	}
+
+	// JSS User Groups
+	if len(resp.Scope.Exclusions.JSSUserGroups) > 0 {
+		var listOfIds []int
+		for _, v := range resp.Scope.Exclusions.JSSUserGroups {
+			listOfIds = append(listOfIds, v.ID)
+		}
+		out_scope_exclusions[0]["jss_user_group_ids"] = listOfIds
+	}
+
+	// IBeacons
+	if len(resp.Scope.Exclusions.IBeacons) > 0 {
+		var listOfIds []int
+		for _, v := range resp.Scope.Exclusions.IBeacons {
+			listOfIds = append(listOfIds, v.ID)
+		}
+		out_scope_exclusions[0]["ibeacon_ids"] = listOfIds
+	}
+
+	// Append Exclusions
+	out_scope[0]["exclusions"] = out_scope_exclusions
 
 	// Set Scope to state
 	err = d.Set("scope", out_scope)
@@ -684,24 +948,37 @@ func ResourceJamfProMacOSConfigurationProfilesDelete(ctx context.Context, d *sch
 }
 
 // TODO rename this func and put it somewhere else
-func GetListOfInts[T any](path string, d *schema.ResourceData) (*[]T, error) {
+func GetAttrsListFromHCL[NestedObjectType any, ListItemPrimitiveType any](path string, target_field string, d *schema.ResourceData, home *[]NestedObjectType) (err error) {
 	getAttr, ok := d.GetOk(path)
+
+	if len(getAttr.([]interface{})) == 0 {
+		return nil
+	}
+
 	if ok {
-		outList := make([]T, 0)
+		outList := make([]NestedObjectType, 0)
 		for _, v := range getAttr.([]interface{}) {
-			var newObj T
+			var newObj NestedObjectType
 			newObjReflect := reflect.ValueOf(&newObj).Elem()
-			idField := newObjReflect.FieldByName("ID")
+			idField := newObjReflect.FieldByName(target_field)
+
 			if idField.IsValid() && idField.CanSet() {
-				idField.Set(reflect.ValueOf(v.(int)))
+				idField.Set(reflect.ValueOf(v.(ListItemPrimitiveType)))
 			} else {
-				return nil, fmt.Errorf("Error") // TODO write this error
+				return fmt.Errorf("error cannot set field line 695") // TODO write this error
 			}
 
 			outList = append(outList, newObj)
 
 		}
-		return &outList, nil
+
+		if len(outList) > 0 {
+			*home = outList
+		} else {
+			log.Println("list is empty")
+		}
+
+		return nil
 	}
-	return nil, fmt.Errorf("no path found")
+	return fmt.Errorf("no path found/no scoped items at %v", path)
 }
