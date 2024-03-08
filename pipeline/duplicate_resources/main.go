@@ -7,6 +7,13 @@ import (
 	"os"
 )
 
+const (
+	// Define ANSI color codes
+	colorRed   = "\033[31m"
+	colorGreen = "\033[32m"
+	colorReset = "\033[0m"
+)
+
 // TerraformPlan represents the top-level structure of a Terraform plan in JSON format.
 type TerraformPlan struct {
 	FormatVersion    string              `json:"format_version"`
@@ -221,14 +228,20 @@ func main() {
 	foundDuplicates := false
 	for name, count := range resourceNames {
 		if count > 1 {
-			fmt.Printf("Error: Duplicate Jamf Pro resource name found: %s, Count: %d\n", name, count)
+			errorMessage := fmt.Sprintf("Error: Duplicate Jamf Pro resource name found: %s, Count: %d", name, count)
+			printColor(errorMessage, colorRed)
 			foundDuplicates = true
 		}
 	}
 
 	if !foundDuplicates {
-		fmt.Println("Check completed: No duplicate Jamf Pro resource names found within the specified Terraform plan.")
+		printColor("Check completed: No duplicate Jamf Pro resource names found within the specified Terraform plan.", colorGreen)
 	}
+}
+
+// printColor prints a message with the specified color to the console.
+func printColor(message string, colorCode string) {
+	fmt.Println(colorCode, message, colorReset)
 }
 
 // UnmarshalJSON is a custom unmarshaler for SensitiveType that handles both boolean and structured sensitive values.
