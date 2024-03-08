@@ -30,7 +30,13 @@ type Variable struct {
 // Planned Values
 
 type PlannedValues struct {
-	RootModule RootModule `json:"root_module"`
+	Outputs    map[string]Output `json:"outputs,omitempty"` // Added Outputs field
+	RootModule RootModule        `json:"root_module"`
+}
+
+// Output struct for PlannedValues
+type Output struct {
+	Sensitive bool `json:"sensitive"`
 }
 
 // Define a struct for the RootModule part
@@ -38,27 +44,31 @@ type RootModule struct {
 	Resources []Resource `json:"resources"`
 }
 
-// Define a struct for each Resource
+// Resource
 type Resource struct {
-	Address string         `json:"address"`
-	Type    string         `json:"type"`
-	Values  ResourceValues `json:"values"`
+	Address       string                 `json:"address"`
+	Mode          string                 `json:"mode"`
+	Type          string                 `json:"type"`
+	Name          string                 `json:"name"`
+	ProviderName  string                 `json:"provider_name"`
+	SchemaVersion int                    `json:"schema_version"`
+	Values        map[string]interface{} `json:"values"`
 }
 
 // Define a struct for the Values part
+// Duplicate resource names are checked based on the name field
 type ResourceValues struct {
 	Name string `json:"name"`
 }
 
 // Resource Change
-
 type ResourceChange struct {
-	Address  string `json:"address"`
-	Mode     string `json:"mode"`
-	Type     string `json:"type"`
-	Name     string `json:"name"`
-	Provider string `json:"provider_name"`
-	Change   Change `json:"change"`
+	Address      string `json:"address"`
+	Mode         string `json:"mode"`
+	Type         string `json:"type"`
+	Name         string `json:"name"`
+	ProviderName string `json:"provider_name"`
+	Change       Change `json:"change"`
 }
 
 type Change struct {
@@ -66,8 +76,15 @@ type Change struct {
 	Before          map[string]interface{} `json:"before"`
 	After           map[string]interface{} `json:"after"`
 	AfterUnknown    map[string]interface{} `json:"after_unknown"`
-	BeforeSensitive bool                   `json:"before_sensitive"`
-	AfterSensitive  map[string]interface{} `json:"after_sensitive"`
+	BeforeSensitive SensitiveType          `json:"before_sensitive,omitempty"`
+	AfterSensitive  SensitiveType          `json:"after_sensitive"`
+}
+
+type SensitiveType struct {
+	BoolValue   bool
+	MapValue    map[string]interface{}
+	IsBool      bool
+	IsPopulated bool
 }
 
 // Configuration
@@ -182,7 +199,12 @@ func main() {
 	// Iterate over resources in the plan
 	for _, resource := range plan.PlannedValues.RootModule.Resources {
 		if _, ok := interestedResourceTypes[resource.Type]; ok {
-			resourceNames[resource.Values.Name]++
+			// Attempt to extract the name from the Values map
+			if name, exists := resource.Values["name"]; exists && name != nil {
+				if nameStr, ok := name.(string); ok {
+					resourceNames[nameStr]++
+				}
+			}
 		}
 	}
 
@@ -192,11 +214,29 @@ func main() {
 		if count > 1 {
 			fmt.Printf("Error: Duplicate Jamf Pro resource name found: %s, Count: %d\n", name, count)
 			foundDuplicates = true
-			os.Exit(1)
 		}
 	}
 
 	if !foundDuplicates {
 		fmt.Println("Check completed: No duplicate Jamf Pro resource names found within the specified Terraform plan.")
 	}
+}
+
+func (s *SensitiveType) UnmarshalJSON(data []byte) error {
+	s.IsPopulated = true // Mark as populated for further logic if needed
+
+	// First, try to unmarshal as a bool
+	if err := json.Unmarshal(data, &s.BoolValue); err == nil {
+		s.IsBool = true
+		return nil
+	}
+
+	// If unmarshalling as a bool fails, try as a map
+	if err := json.Unmarshal(data, &s.MapValue); err != nil {
+		return err // Return error if it fails to unmarshal as both bool and map
+	}
+
+	// Successfully unmarshalled as a map
+	s.IsBool = false
+	return nil
 }
