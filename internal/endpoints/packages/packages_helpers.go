@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -14,29 +13,29 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
-// waitForPackageAvailability repeatedly checks for the availability of a package by its ID until it is found or a timeout occurs.
-// It uses a retry mechanism to periodically make the GetPackageByID call. If the package is not found (404 error), it retries until the package becomes available.
-// Any other error will immediately stop the retry loop and return the error.
-// Console printouts are included for status updates and debugging.
-func waitForPackageAvailability(ctx context.Context, client *jamfpro.Client, packageID int, timeout time.Duration) error {
+// waitForPackageAvailability repeatedly checks for the availability of a package by its name until it is found or a timeout occurs.
+// Instead of checking for a specific package ID, it fetches the list of all packages using GetPackages and searches for the package by name.
+// The function uses a retry mechanism to periodically check the packages list. If the package with the specified name is not found, it retries until the package becomes available or a timeout is reached.
+// Any errors encountered while fetching the packages list are treated as retryable errors, except for context cancellation which stops the retry loop.
+func waitForPackageAvailability(ctx context.Context, client *jamfpro.Client, packageName string, timeout time.Duration) error {
 	return retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-		fmt.Printf("Checking availability for package ID %d...\n", packageID)
-		_, err := client.GetPackageByID(packageID)
-
+		fmt.Printf("Checking for package '%s'...\n", packageName)
+		packagesList, err := client.GetPackages()
 		if err != nil {
-			if strings.Contains(err.Error(), "404") {
-				// Package not yet available, log this event and retry
-				fmt.Printf("Package ID %d is not available yet, retrying...\n", packageID)
-				return retry.RetryableError(fmt.Errorf("package ID %d not available yet", packageID))
-			}
-			// Log the non-retryable error and return it
-			fmt.Printf("Encountered a non-retryable error while checking package ID %d: %s\n", packageID, err)
-			return retry.NonRetryableError(err)
+			// Treat errors during retrieval as retryable to keep trying
+			return retry.RetryableError(fmt.Errorf("error retrieving packages: %v", err))
 		}
 
-		// Package found, log success and return nil to stop retrying
-		fmt.Println("Package found: ID", packageID)
-		return nil
+		for _, pkg := range packagesList.Package {
+			if pkg.Name == packageName {
+				fmt.Printf("Package '%s' found with ID %d.\n", packageName, pkg.ID)
+				// Package found, no need to retry
+				return nil
+			}
+		}
+
+		// Package not found yet, log this event and retry
+		return retry.RetryableError(fmt.Errorf("package '%s' not found yet, retrying", packageName))
 	})
 }
 
