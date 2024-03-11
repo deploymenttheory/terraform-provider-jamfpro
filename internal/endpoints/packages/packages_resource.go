@@ -216,6 +216,12 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 	// Pause for 25 seconds before reading the resource to ensure it's available
 	time.Sleep(25 * time.Second)
 
+	// Wait for the package to become available
+	err = waitForPackageAvailability(ctx, conn, creationResponse.ID, d.Timeout(schema.TimeoutCreate))
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error waiting for package ID %d to become available: %v", creationResponse.ID, err))
+	}
+
 	// Read the site to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProPackagesRead(ctx, d, meta)
 	if len(readDiags) > 0 {

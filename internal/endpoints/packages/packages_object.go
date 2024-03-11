@@ -2,14 +2,10 @@
 package packages
 
 import (
-	"fmt"
-	"io"
-	"os"
 	"path/filepath"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"golang.org/x/crypto/sha3"
 )
 
 // constructJamfProPackageCreate constructs a ResourcePackage object from the provided schema data.
@@ -43,30 +39,4 @@ func constructJamfProPackageCreate(d *schema.ResourceData) (*jamfpro.ResourcePac
 	}
 
 	return packageResource, nil
-}
-
-// generateFileHash accepts a file path and returns a SHA-3-256 hash of the file's contents.
-func generateFileHash(filePath string) (string, error) {
-	// Open the file for reading
-	file, err := os.Open(filePath)
-	if err != nil {
-		return "", fmt.Errorf("failed to open file %s: %v", filePath, err)
-	}
-	defer file.Close()
-
-	// Create a new SHA3-256 hash object
-	hash := sha3.New256()
-
-	// Copy the file content into the hash object
-	if _, err := io.Copy(hash, file); err != nil {
-		return "", fmt.Errorf("failed to hash file contents of %s: %v", filePath, err)
-	}
-
-	// Compute the SHA3-256 checksum of the file
-	hashBytes := hash.Sum(nil)
-
-	// Convert the bytes to a hex string
-	hashString := fmt.Sprintf("%x", hashBytes)
-
-	return hashString, nil
 }
