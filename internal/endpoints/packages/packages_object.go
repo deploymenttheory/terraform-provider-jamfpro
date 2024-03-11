@@ -2,11 +2,6 @@
 package packages
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-	"fmt"
-	"io"
-	"os"
 	"path/filepath"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -44,30 +39,4 @@ func constructJamfProPackageCreate(d *schema.ResourceData) (*jamfpro.ResourcePac
 	}
 
 	return packageResource, nil
-}
-
-// generateFileHash accepts a file path and returns a SHA-256 hash of the file's contents.
-func generateFileHash(filePath string) (string, error) {
-	// Open the file for reading
-	file, err := os.Open(filePath)
-	if err != nil {
-		return "", fmt.Errorf("failed to open file %s: %v", filePath, err)
-	}
-	defer file.Close()
-
-	// Create a new SHA256 hash object
-	hash := sha256.New()
-
-	// Copy the file content into the hash object
-	if _, err := io.Copy(hash, file); err != nil {
-		return "", fmt.Errorf("failed to hash file contents of %s: %v", filePath, err)
-	}
-
-	// Compute the SHA256 checksum of the file
-	hashBytes := hash.Sum(nil)
-
-	// Convert the bytes to a hex string
-	hashString := hex.EncodeToString(hashBytes)
-
-	return hashString, nil
 }

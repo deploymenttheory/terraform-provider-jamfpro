@@ -14,6 +14,16 @@ The provider contains:
 - [Go](https://golang.org/doc/install) >= 1.21
 - [Jamf Pro](https://www.jamf.com/) >= 11.2.0
 
+## Resource Completion Status
+
+The follow is a summary of the resources and their completion status.
+
+Resources can have the following statuses:
+
+- **Experimental** - The resource is in the early stages of development and may not be fully functional. It is not recommended for production use.
+
+- **Finished** - The resource is fully functional and has been tested in a production environment.
+
 ## Supported Jamf Pro Resources
 
 This section outlines the resources and data sources provided by our Terraform provider for managing various aspects of Jamf Pro. Each resource comes with comprehensive support for the respective Jamf Pro entities, facilitating their management through Terraform.
@@ -22,16 +32,27 @@ This section outlines the resources and data sources provided by our Terraform p
 
 - **Resource & Data Source**: Enables the management of Account Groups within Jamf Pro, allowing for the configuration of group names, access levels, privileges, and member details.
 
+- **Status**: Finished
 - **Availability**: Introduced in version `v0.0.31.`
 
 ### Buildings
 
 - **Resource & Data Source**: Provides the ability to manage Buildings within Jamf Pro. This resource allows for the specification of building names and addresses, facilitating better organization and segmentation of devices within different physical locations.
 
-Availability: To be introduced in version `v0.0.30.`
+- **Status**: Finished
+- **Availability**: To be introduced in version `v0.0.30.`
+
+### Packages
+
+- **Resource & Data Source**: Facilitates the management of Packages in Jamf Pro. This includes the creation, update, and deletion of package entities, along with the ability to specify package payloads and associated properties. It uploads the package to the JCDS 2.0 CDN in AWS S3 and then creates the
+package metadata in Jamf Pro.
+
+- **Status**: Experimental
+- **Availability**: Available since version `v0.0.34.`
 
 ### Scripts
 
 - **Resource & Data Source**: Facilitates the management of Scripts in Jamf Pro. This includes the creation, update, and deletion of script entities, along with the ability to specify script contents and associated properties.
 
+- **Status**: Finished
 - **Availability**: Available since version `v0.0.30.`

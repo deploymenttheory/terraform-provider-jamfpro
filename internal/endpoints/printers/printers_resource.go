@@ -335,11 +335,11 @@ func ResourceJamfProPrintersDelete(ctx context.Context, d *schema.ResourceData, 
 	// Use the retry function for the delete operation with appropriate timeout
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Attempt to delete by ID
-		apiErr := conn.DeleteSiteByID(resourceIDInt)
+		apiErr := conn.DeletePrinterByID(resourceIDInt)
 		if apiErr != nil {
 			// If deleting by ID fails, attempt to delete by Name
 			resourceName := d.Get("name").(string)
-			apiErrByName := conn.DeleteSiteByName(resourceName)
+			apiErrByName := conn.DeletePrinterByName(resourceName)
 			if apiErrByName != nil {
 				// If deletion by name also fails, return a retryable error
 				return retry.RetryableError(apiErrByName)
@@ -350,7 +350,7 @@ func ResourceJamfProPrintersDelete(ctx context.Context, d *schema.ResourceData, 
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Site '%s' (ID: %d) after retries: %v", d.Get("name").(string), resourceIDInt, err))
+		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Printer '%s' (ID: %d) after retries: %v", d.Get("name").(string), resourceIDInt, err))
 	}
 
 	// Clear the ID from the Terraform state as the resource has been deleted
