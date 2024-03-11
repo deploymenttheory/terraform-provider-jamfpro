@@ -30,6 +30,7 @@ func ResourceJamfProPackages() *schema.Resource {
 			Update: schema.DefaultTimeout(20 * time.Minute),
 			Delete: schema.DefaultTimeout(20 * time.Minute),
 		},
+		CustomizeDiff: customValidateFilePath,
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
