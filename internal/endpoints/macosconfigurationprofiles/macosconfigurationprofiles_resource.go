@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/xml"
 	"fmt"
+	"html"
 	"log"
 	"reflect"
 	"strconv"
@@ -88,7 +89,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 						},
 						"name": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Description: "The name of the category to which the configuration profile is scoped.",
 						},
 					},
@@ -119,7 +120,11 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Computed:    true,
 				Description: "The UUID of the configuration profile.",
 			},
-			// "payload": {},
+			"payload": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "A MacOS configuration profile xml file as a string",
+			},
 			// "redeploy_on_update": { // TODO Review this, missing from the gui
 			// 	Type:        schema.TypeString,
 			// 	Optional:    true,
@@ -198,12 +203,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 							MaxItems:    1,
 							Description: "The limitations within the scope",
 							Optional:    true,
+							Default:     nil,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"user_names": {
 										Type:        schema.TypeList,
 										Description: "The limited users",
 										Optional:    true,
+										Default:     nil,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 										},
@@ -212,6 +219,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 										Type:        schema.TypeList,
 										Description: "The limited network segments",
 										Optional:    true,
+										Default:     nil,
 										Elem: &schema.Schema{
 											Type: schema.TypeInt,
 										},
@@ -220,6 +228,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 										Type:        schema.TypeList,
 										Description: "The limited ibeacons",
 										Optional:    true,
+										Default:     nil,
 										Elem: &schema.Schema{
 											Type: schema.TypeInt,
 										},
@@ -228,6 +237,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 										Type:        schema.TypeList,
 										Description: "The limited user groups",
 										Optional:    true,
+										Default:     nil,
 										Elem: &schema.Schema{
 											Type: schema.TypeInt,
 										},
@@ -240,6 +250,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 							MaxItems:    1,
 							Description: "The limitations within the scope",
 							Optional:    true,
+							Default:     nil,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"computer_ids": {
@@ -319,6 +330,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				MaxItems:    1,
 				Description: "Self Service options",
 				Optional:    true,
+				Default:     nil,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"install_button_text": {
@@ -337,18 +349,15 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Forces users to view the description",
-							Default:     false,
 						},
 						"feature_on_main_page": {
 							Type:        schema.TypeBool,
 							Optional:    true,
-							Default:     false,
 							Description: "Shows Configuration Profile on Self Service main page",
 						},
 						"notification": {
 							Type:        schema.TypeBool,
 							Optional:    true,
-							Default:     false,
 							Description: "Enables Notification for this profile in self service",
 						},
 						"notification_subject": {
@@ -379,21 +388,32 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 						// }, // TODO fix this broken crap later
 						"self_service_categories": {
 							Type:        schema.TypeList,
-							MaxItems:    1,
 							Description: "Self Service category options",
 							Optional:    true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
-										Type:        schema.TypeList,
-										Description: "Test",
-										Required:    true,
-										Elem: &schema.Schema{
-											Type: schema.TypeInt,
-										},
+										Type:        schema.TypeInt,
+										Description: "ID of category",
+										Optional:    true,
 									},
-									// "name":     {},
-									// "category": {},
+									"name": {
+										Type:        schema.TypeString,
+										Description: "Name of category",
+										Optional:    true,
+									},
+									"display_in": {
+										Type:        schema.TypeBool,
+										ForceNew:    true,
+										Description: "Display this profile in this category?",
+										Required:    true,
+									},
+									"feature_in": {
+										Type:        schema.TypeBool,
+										Description: "Feature this profile in this category?",
+										ForceNew:    true,
+										Required:    true,
+									},
 								},
 							},
 						},
@@ -421,10 +441,10 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 			InstallButtonText:           d.Get("self_service.0.install_button_text").(string),
 			SelfServiceDescription:      d.Get("self_service.0.self_service_description").(string),
 			ForceUsersToViewDescription: d.Get("self_service.0.force_users_to_view_description").(bool),
-			// Self Service Icon
+			// Self Service Icon - TBA at a later date because jamf is odd
 			FeatureOnMainPage: d.Get("self_service.0.feature_on_main_page").(bool),
 			// Self Service Categories
-			// Notification parsed cos it's stupid
+			// Notification parsed cos it's stupid and has dupe keys
 			NotificationSubject: d.Get("self_service.0.notification_subject").(string),
 			NotificationMessage: d.Get("self_service.0.notification_message").(string),
 		},
@@ -446,6 +466,15 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 			ID:   d.Get("category.0.id").(int),
 			Name: d.Get("category.0.name").(string),
 		}
+	}
+
+	// Payload
+	payload, ok := d.GetOk("payload")
+	if ok {
+		log.Println(payload)
+		out.General.Payloads = html.EscapeString(payload.(string))
+	} else {
+		return nil, fmt.Errorf("an error occurred setting the payload")
 	}
 
 	// Scope
@@ -569,11 +598,32 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 		return nil, err
 	}
 
-	// Self Service
+	// TODO make this better
+	if out.Scope.AllComputers && (out.Scope.Computers != nil ||
+		out.Scope.ComputerGroups != nil ||
+		out.Scope.Departments != nil ||
+		out.Scope.Buildings != nil) {
+		return nil, fmt.Errorf("invalid combination - all computers with scoped endpoints")
+	}
 
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory, int]("self_service.0.self_service_categories.0.id", "ID", d, &out.SelfService.SelfServiceCategories)
-	if err != nil {
-		return nil, err
+	// Self Service
+	// TODO move this to a helper or omit whole key. Logic bad.
+	value, ok := d.GetOk("self_service.0.self_service_categories")
+	if ok {
+		listOfVals := value.([]interface{})
+		for _, v := range listOfVals {
+			mapOfVals := v.(map[string]interface{})
+			catId := mapOfVals["id"]
+			displayIn := mapOfVals["display_in"]
+			featureIn := mapOfVals["feature_in"]
+			name := mapOfVals["name"]
+			out.SelfService.SelfServiceCategories = append(out.SelfService.SelfServiceCategories, jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory{
+				Name:      name.(string),
+				ID:        catId.(int),
+				DisplayIn: displayIn.(bool),
+				FeatureIn: featureIn.(bool),
+			})
+		}
 	}
 
 	// Debug
@@ -821,6 +871,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 
 	out_scope_limitations := make([]map[string]interface{}, 0)
 	out_scope_limitations = append(out_scope_limitations, make(map[string]interface{}))
+	var limitationsSet bool
 
 	// Users
 	if len(resp.Scope.Limitations.Users) > 0 {
@@ -829,6 +880,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 			listOfNames = append(listOfNames, v.Name)
 		}
 		out_scope_limitations[0]["user_names"] = listOfNames
+		limitationsSet = true
 	}
 
 	// Network Segments
@@ -838,6 +890,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope_limitations[0]["network_segment_ids"] = listOfIds
+		limitationsSet = true
 	}
 
 	// IBeacons
@@ -847,6 +900,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope_limitations[0]["ibeacon_ids"] = listOfIds
+		limitationsSet = true
 	}
 
 	// User Groups
@@ -856,15 +910,19 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope_limitations[0]["user_group_ids"] = listOfIds
+		limitationsSet = true
 	}
 
-	// Append Limitations
-	out_scope[0]["limitations"] = out_scope_limitations
+	// Append Limitations if they're set
+	if limitationsSet {
+		out_scope[0]["limitations"] = out_scope_limitations
+	}
 
 	// Scope Exclusions ////////////////////////////
 
 	out_scope_exclusions := make([]map[string]interface{}, 0)
 	out_scope_exclusions = append(out_scope_exclusions, make(map[string]interface{}))
+	var exclusionsSet bool
 
 	// Computers
 	if len(resp.Scope.Exclusions.Computers) > 0 {
@@ -873,6 +931,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope_exclusions[0]["computer_ids"] = listOfIds
+		exclusionsSet = true
 	}
 
 	// Computer Groups
@@ -882,6 +941,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope_exclusions[0]["computer_group_ids"] = listOfIds
+		exclusionsSet = true
 	}
 
 	// Buildings
@@ -891,6 +951,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope_exclusions[0]["building_ids"] = listOfIds
+		exclusionsSet = true
 	}
 
 	// Departments
@@ -900,6 +961,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope_exclusions[0]["department_ids"] = listOfIds
+		exclusionsSet = true
 	}
 
 	// Network Segments
@@ -909,6 +971,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope_exclusions[0]["network_segment_ids"] = listOfIds
+		exclusionsSet = true
 	}
 
 	// JSS Users
@@ -918,6 +981,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope_exclusions[0]["jss_user_ids"] = listOfIds
+		exclusionsSet = true
 	}
 
 	// JSS User Groups
@@ -927,6 +991,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope_exclusions[0]["jss_user_group_ids"] = listOfIds
+		exclusionsSet = true
 	}
 
 	// IBeacons
@@ -936,10 +1001,15 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope_exclusions[0]["ibeacon_ids"] = listOfIds
+		exclusionsSet = true
 	}
 
-	// Append Exclusions
-	out_scope[0]["exclusions"] = out_scope_exclusions
+	// Append Exclusions if they're set
+	if exclusionsSet {
+		out_scope[0]["exclusions"] = out_scope_exclusions
+	} else {
+		log.Println("No exclusions set") // TODO write this log
+	}
 
 	// Set Scope to state
 	err = d.Set("scope", out_scope)
@@ -951,6 +1021,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 
 	out_self_service := make([]map[string]interface{}, 0)
 	out_self_service = append(out_self_service, make(map[string]interface{}, 1))
+	var selfServiceSet bool
 
 	// Fix the stupid broken double key issue
 
@@ -959,17 +1030,22 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if len(resp.SelfService.SelfServiceCategories) > 0 {
-		var listOfIds []int
-		for _, v := range resp.SelfService.SelfServiceCategories {
-			listOfIds = append(listOfIds, v.ID)
-		}
-		out_self_service[0]["self_service_categories"] = listOfIds
-	}
+	// if len(resp.SelfService.SelfServiceCategories) > 0 {
+	// 	var listOfIds []int
+	// 	for _, v := range resp.SelfService.SelfServiceCategories {
+	// 		listOfIds = append(listOfIds, v.ID)
+	// 	}
+	// 	out_self_service[0]["self_service_categories"] = listOfIds
+	// 	selfServiceSet = true
+	// }
 
-	err = d.Set("self_service", out_self_service)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	if selfServiceSet {
+		err = d.Set("self_service", out_self_service)
+		if err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	} else {
+		log.Println("no self service") // TODO write this problem
 	}
 
 	return diags
@@ -1114,6 +1190,7 @@ func FixStupidDoubleKey(resp *jamfpro.ResourceMacOSConfigurationProfile, home *[
 				return err
 			}
 			(*home)[0]["notification"] = correctNotifValue
+			return nil
 		}
 	}
 	return fmt.Errorf("failed to parse value %+v", resp.SelfService)
