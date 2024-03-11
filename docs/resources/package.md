@@ -25,7 +25,6 @@ description: |-
 - `allow_uninstalled` (Boolean) Whether to allow the package to be uninstalled.
 - `boot_volume_required` (Boolean) Whether a boot volume is required.
 - `category` (String) The category of the Jamf Pro package.
-- `filename` (String) The filename of the Jamf Pro package.
 - `fill_existing_users` (Boolean) Whether to fill existing users.
 - `fill_user_template` (Boolean) Whether to fill the user template.
 - `info` (String) Information about the Jamf Pro package.
@@ -43,7 +42,10 @@ description: |-
 
 ### Read-Only
 
+- `file_hash` (String) SHA-256 hash of the package file for integrity comparison.
+- `filename` (String) The filename of the Jamf Pro package.
 - `id` (String) The unique identifier of the package.
+- `package_uri` (String) The URI of the package in the Jamf Cloud Distribution Service (JCDS).
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

@@ -18,7 +18,4 @@ description: |-
 ### Required
 
 - `display_name` (String) The display name of the computer prestage.
-
-### Read-Only
-
 - `id` (String) The unique identifier of the computer prestage.
