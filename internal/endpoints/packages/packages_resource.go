@@ -60,7 +60,7 @@ func ResourceJamfProPackages() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The category of the Jamf Pro package.",
-				Default:     "No category assigned",
+				Default:     "",
 			},
 			"filename": {
 				Type:        schema.TypeString,
