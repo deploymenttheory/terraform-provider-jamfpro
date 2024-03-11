@@ -40,6 +40,16 @@ func ResourceJamfProPackages() *schema.Resource {
 				Required:    true,
 				Description: "The unique name of the Jamf Pro package.",
 			},
+			"package_uri": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The URI of the package in the Jamf Cloud Distribution Service (JCDS).",
+			},
+			"file_hash": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "SHA-256 hash of the package file for integrity comparison.",
+			},
 			"package_file_path": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -49,10 +59,11 @@ func ResourceJamfProPackages() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The category of the Jamf Pro package.",
+				Default:     "No category assigned",
 			},
 			"filename": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "The filename of the Jamf Pro package.",
 			},
 			"info": {
@@ -165,8 +176,15 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 	}
 	fmt.Printf("File uploaded successfully, URI: %s\n", fileUploadResponse.URI)
 
-	// Pause for 10 seconds
-	time.Sleep(10 * time.Second)
+	packageURI := fileUploadResponse.URI
+
+	// After file upload generate the file hash
+	fullPath := d.Get("package_file_path").(string)
+	fileHash, err := generateFileHash(fullPath)
+	if err != nil {
+		// Handle error, return diagnostic message
+		return diag.FromErr(fmt.Errorf("failed to generate file hash for %s: %v", fullPath, err))
+	}
 
 	// Construct the resource object
 	packageResourcePointer, err := constructJamfProPackageCreate(d)
@@ -183,8 +201,19 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Package '%s': %v", packageResource.Name, err))
 	}
 
-	// Set the resource ID in Terraform state
+	// Set the resource ID, package URI and file hash in Terraform state
 	d.SetId(strconv.Itoa(creationResponse.ID))
+
+	if err := d.Set("package_uri", packageURI); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("file_hash", fileHash); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	// Pause for 25 seconds before reading the resource to ensure it's available
+	time.Sleep(25 * time.Second)
 
 	// Read the site to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProPackagesRead(ctx, d, meta)
@@ -317,39 +346,61 @@ func ResourceJamfProPackagesRead(ctx context.Context, d *schema.ResourceData, me
 
 // ResourceJamfProPackagesUpdate is responsible for updating an existing Jamf Pro Site on the remote system.
 func ResourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Assert the meta interface to the expected APIClient type
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Initialize diagnostics
 	var diags diag.Diagnostics
 
-	// Construct the package resource object
-	packageData, err := constructJamfProPackage(d)
+	// Convert d.Id() from string to integer
+	packageID, err := strconv.Atoi(d.Id())
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package: %v", err))
+		return diag.FromErr(fmt.Errorf("error converting package ID '%s' to integer: %v", d.Id(), err))
 	}
 
-	// Extract the file path for the package
-	filePath := d.Get("package_file_path").(string)
-
-	// Call DoPackageUpload to upload the package and create its metadata
-	_, resource, err := conn.DoPackageUpload(filePath, packageData)
+	// Step 1: Calculate the new file hash
+	fullPath := d.Get("package_file_path").(string)
+	newFileHash, err := generateFileHash(fullPath)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Package with file path '%s': %v", filePath, err))
+		return diag.FromErr(fmt.Errorf("failed to generate file hash for %s: %v", fullPath, err))
 	}
 
-	// Assuming the ID from packageCreationResponse is a suitable unique identifier for the Terraform resource
-	if resource != nil {
-		d.SetId(strconv.Itoa(resource.ID))
-	} else {
-		return diag.FromErr(fmt.Errorf("package creation response is nil"))
+	// Step 2: Compare the new file hash with the old one
+	oldFileHash := d.Get("file_hash").(string)
+	if newFileHash != oldFileHash {
+		// The file has changed, upload it
+		fileUploadResponse, err := conn.CreateJCDS2PackageV2(fullPath)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("failed to upload file to JCDS 2.0 with file path '%s': %v", fullPath, err))
+		}
+
+		// Update the package_uri and file_hash in Terraform state
+		if err := d.Set("package_uri", fileUploadResponse.URI); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+
+		if err := d.Set("file_hash", newFileHash); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+
+		// If needed, update the package metadata in Jamf Pro to reflect the new file URI here
 	}
 
-	// Read the resource to ensure the Terraform state is up to date
+	// Regardless of whether the file was re-uploaded, update the other package metadata fields
+	packageResource, err := constructJamfProPackageCreate(d)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to construct package for update: %v", err))
+	}
+
+	// Update package metadata in Jamf Pro using the integer package ID
+	_, err = conn.UpdatePackageByID(packageID, packageResource)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to update package with ID %d: %v", packageID, err))
+	}
+
+	// Read the updated state
 	readDiags := ResourceJamfProPackagesRead(ctx, d, meta)
 	if readDiags.HasError() {
 		diags = append(diags, readDiags...)
