@@ -1,5 +1,5 @@
 // Definition a Jamf Pro Package Resource
-resource "jamfpro_package" "jamfpro_package_01" {
+resource "jamfpro_package" "jamfpro_package_001" {
   name                          = "tf-example-package-your-package-name"
   package_file_path             = file("path/to/your.pkg")
   category                      = "" // Optional
