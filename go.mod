@@ -6,13 +6,14 @@ toolchain go1.21.0
 
 require (
 	github.com/deploymenttheory/go-api-http-client v0.0.87
-	github.com/deploymenttheory/go-api-sdk-jamfpro v1.3.16
+	github.com/deploymenttheory/go-api-sdk-jamfpro v1.3.17
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/go-hclog v1.6.2
 	github.com/hashicorp/terraform-plugin-docs v0.18.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.33.0
 	github.com/stretchr/testify v1.8.4
+	golang.org/x/crypto v0.19.0
 	howett.net/plist v1.0.1
 )
 
@@ -100,7 +101,6 @@ require (
 	github.com/zclconf/go-cty v1.14.2 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
-	golang.org/x/crypto v0.19.0 // indirect
 	golang.org/x/exp v0.0.0-20230809150735-7b3493d9a819 // indirect
 	golang.org/x/mod v0.15.0 // indirect
 	golang.org/x/net v0.21.0 // indirect
