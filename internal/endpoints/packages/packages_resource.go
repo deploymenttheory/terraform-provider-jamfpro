@@ -4,6 +4,7 @@ package packages
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -344,7 +345,6 @@ func ResourceJamfProPackagesRead(ctx context.Context, d *schema.ResourceData, me
 	return diags
 }
 
-// ResourceJamfProPackagesUpdate is responsible for updating an existing Jamf Pro Site on the remote system.
 func ResourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -360,35 +360,32 @@ func ResourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(fmt.Errorf("error converting package ID '%s' to integer: %v", d.Id(), err))
 	}
 
-	// Step 1: Calculate the new file hash
-	fullPath := d.Get("package_file_path").(string)
-	newFileHash, err := generateFileHash(fullPath)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to generate file hash for %s: %v", fullPath, err))
-	}
-
-	// Step 2: Compare the new file hash with the old one
-	oldFileHash := d.Get("file_hash").(string)
-	if newFileHash != oldFileHash {
-		// The file has changed, upload it
-		fileUploadResponse, err := conn.CreateJCDS2PackageV2(fullPath)
+	// Check if package_file_path has changed
+	if d.HasChange("package_file_path") {
+		// Step 1: Calculate the new file hash
+		fullPath := d.Get("package_file_path").(string)
+		newFileHash, err := generateFileHash(fullPath)
 		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to upload file to JCDS 2.0 with file path '%s': %v", fullPath, err))
+			return diag.FromErr(fmt.Errorf("failed to generate file hash for %s: %v", fullPath, err))
 		}
 
-		// Update the package_uri and file_hash in Terraform state
-		if err := d.Set("package_uri", fileUploadResponse.URI); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+		// Step 2: Compare the new file hash with the old one
+		oldFileHash, _ := d.GetChange("file_hash")
+		if newFileHash != oldFileHash.(string) {
+			// The file has changed, upload it
+			fileUploadResponse, err := conn.CreateJCDS2PackageV2(fullPath)
+			if err != nil {
+				return diag.FromErr(fmt.Errorf("failed to upload file to JCDS 2.0 with file path '%s': %v", fullPath, err))
+			}
 
-		if err := d.Set("file_hash", newFileHash); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+			// Update the package_uri and file_hash in Terraform state
+			d.Set("package_uri", fileUploadResponse.URI)
+			d.Set("file_hash", newFileHash)
+			d.Set("filename", filepath.Base(fullPath))
 		}
-
-		// If needed, update the package metadata in Jamf Pro to reflect the new file URI here
 	}
 
-	// Regardless of whether the file was re-uploaded, update the other package metadata fields
+	// Update other fields as necessary
 	packageResource, err := constructJamfProPackageCreate(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct package for update: %v", err))

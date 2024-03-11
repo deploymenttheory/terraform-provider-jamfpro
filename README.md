@@ -22,16 +22,19 @@ This section outlines the resources and data sources provided by our Terraform p
 
 - **Resource & Data Source**: Enables the management of Account Groups within Jamf Pro, allowing for the configuration of group names, access levels, privileges, and member details.
 
+- **Status**: Finished
 - **Availability**: Introduced in version `v0.0.31.`
 
 ### Buildings
 
 - **Resource & Data Source**: Provides the ability to manage Buildings within Jamf Pro. This resource allows for the specification of building names and addresses, facilitating better organization and segmentation of devices within different physical locations.
 
-Availability: To be introduced in version `v0.0.30.`
+- **Status**: Finished
+- **Availability**: To be introduced in version `v0.0.30.`
 
 ### Scripts
 
 - **Resource & Data Source**: Facilitates the management of Scripts in Jamf Pro. This includes the creation, update, and deletion of script entities, along with the ability to specify script contents and associated properties.
 
+- **Status**: Finished
 - **Availability**: Available since version `v0.0.30.`
