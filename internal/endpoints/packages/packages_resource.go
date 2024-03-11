@@ -214,7 +214,7 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	// Pause for 25 seconds before reading the resource to ensure it's available
-	time.Sleep(25 * time.Second)
+	//time.Sleep(25 * time.Second)
 
 	// Wait for the package to become available
 	err = waitForPackageAvailability(ctx, conn, creationResponse.ID, d.Timeout(schema.TimeoutCreate))
