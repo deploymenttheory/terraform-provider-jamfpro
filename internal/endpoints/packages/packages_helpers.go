@@ -28,8 +28,24 @@ func waitForPackageAvailability(ctx context.Context, client *jamfpro.Client, pac
 
 		for _, pkg := range packagesList.Package {
 			if pkg.Name == packageName {
-				fmt.Printf("Package '%s' found with ID %d.\n", packageName, pkg.ID)
-				// Package found, no need to retry
+				fmt.Printf("Package '%s' found with ID %d. Fetching package details...\n", packageName, pkg.ID)
+
+				// Once the package is found by name, fetch its details by ID
+				packageDetails, err := client.GetPackageByID(pkg.ID)
+				if err != nil {
+					// If there's an error fetching the package details, treat it as a retryable error
+					return retry.RetryableError(fmt.Errorf("error fetching package '%s' details by ID %d: %v", packageName, pkg.ID, err))
+				}
+
+				// Log a simple detail from the packageDetails
+				fmt.Printf("Retrieved details for package '%s' with ID %d. Filename: %s\n", packageName, pkg.ID, packageDetails.Filename)
+
+				// Pause for 10 seconds after finding the package
+				fmt.Println("Pausing for 30 seconds...")
+				time.Sleep(30 * time.Second)
+				fmt.Println("Resuming...")
+
+				// If everything is okay with the package details, return success (nil error)
 				return nil
 			}
 		}
