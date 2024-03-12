@@ -17,7 +17,7 @@ description: |-
 
 ### Required
 
-- `id` (Number) The unique identifier of the API role.
+- `id` (String) The unique identifier of the API role.
 
 ### Read-Only
 

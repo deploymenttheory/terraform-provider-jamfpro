@@ -17,18 +17,20 @@ description: |-
 
 ### Required
 
-- `name` (String) Name of the configuration profile.
+- `name` (String) Jamf UI name for configuration profile.
+- `payload` (String) A MacOS configuration profile xml file as a file
 - `scope` (Block List, Min: 1, Max: 1) The scope of the configuration profile. (see [below for nested schema](#nestedblock--scope))
 
 ### Optional
 
 - `category` (Block List, Max: 1) The category to which the configuration profile is scoped. (see [below for nested schema](#nestedblock--category))
 - `description` (String) Description of the configuration profile.
-- `distribution_method` (String) The distribution method for the configuration profile. Available options are: 'push', 'install_enterprise', 'install_user_initiated', 'install_system', 'install_self_service'.
-- `level` (String) The level of the configuration profile. Available options are: 'computer', 'user'.
+- `distribution_method` (String) The distribution method for the configuration profile. ['Make Available in Self Service','Install Automatically']
+- `level` (String) The level of the configuration profile. Available options are: 'Computer', 'User' or 'System'.
+- `self_service` (Block List, Max: 1) Self Service Configuration (see [below for nested schema](#nestedblock--self_service))
 - `site` (Block List, Max: 1) The site to which the configuration profile is scoped. (see [below for nested schema](#nestedblock--site))
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
-- `user_removeable` (Boolean) Whether the configuration profile is user removeable.
+- `user_removeable` (Boolean) Whether the configuration profile is user removeable or not.
 
 ### Read-Only
 
@@ -45,20 +47,39 @@ Required:
 Optional:
 
 - `all_jss_users` (Boolean) Whether the configuration profile is scoped to all JSS users.
-- `building_ids` (List of Number) The buildings to which the configuration profile is scoped
-- `computer_group_ids` (List of Number) The computer groups to which the configuration profile is scoped
-- `computer_ids` (List of Number) The computers to which the configuration profile is scoped
-- `department_ids` (List of Number) The departments to which the configuration profile is scoped
-- `jss_user_group_ids` (List of Number) The jss user groups to which the configuration profile is scoped
-- `jss_user_ids` (List of Number) The jss users to which the configuration profile is scoped
-- `limitations` (Block List, Max: 1) The limitations within the scope (see [below for nested schema](#nestedblock--scope--limitations))
+- `building_ids` (List of Number) The buildings to which the configuration profile is scoped by Jamf ID
+- `computer_group_ids` (List of Number) The computer groups to which the configuration profile is scoped by Jamf ID
+- `computer_ids` (List of Number) The computers to which the configuration profile is scoped by Jamf ID
+- `department_ids` (List of Number) The departments to which the configuration profile is scoped by Jamf ID
+- `exclusions` (Block List, Max: 1) The exclusions from the scope. (see [below for nested schema](#nestedblock--scope--exclusions))
+- `jss_user_group_ids` (List of Number) The jss user groups to which the configuration profile is scoped by Jamf ID
+- `jss_user_ids` (List of Number) The jss users to which the configuration profile is scoped by Jamf ID
+- `limitations` (Block List, Max: 1) The limitations within the scope. (see [below for nested schema](#nestedblock--scope--limitations))
+
+<a id="nestedblock--scope--exclusions"></a>
+### Nested Schema for `scope.exclusions`
+
+Optional:
+
+- `building_ids` (List of Number) Buildings excluded from scope by Jamf ID.
+- `computer_group_ids` (List of Number) Computer Groups excluded from scope by Jamf ID.
+- `computer_ids` (List of Number) Computers excluded from scope by Jamf ID.
+- `department_ids` (List of Number) Departments excluded from scope by Jamf ID.
+- `ibeacon_ids` (List of Number) Ibeacons excluded from scope by Jamf ID.
+- `jss_user_group_ids` (List of Number) JSS User Groups excluded from scope by Jamf ID.
+- `jss_user_ids` (List of Number) JSS Users excluded from scope by Jamf ID.
+- `network_segment_ids` (List of Number) Network segments excluded from scope by Jamf ID.
+
 
 <a id="nestedblock--scope--limitations"></a>
 ### Nested Schema for `scope.limitations`
 
 Optional:
 
-- `user_ids` (List of Number) The limited users
+- `ibeacon_ids` (List of Number) Ibeacons the scope is limited to by Jamf ID.
+- `network_segment_ids` (List of Number) Network segments the scope is limited to by Jamf ID.
+- `user_group_ids` (List of Number) Users groups the scope is limited to by Jamf ID.
+- `user_names` (List of String) Users the scope is limited to by Jamf ID.
 
 
 
@@ -68,7 +89,39 @@ Optional:
 Required:
 
 - `id` (Number) The unique identifier of the category to which the configuration profile is scoped.
+
+Optional:
+
 - `name` (String) The name of the category to which the configuration profile is scoped.
+
+
+<a id="nestedblock--self_service"></a>
+### Nested Schema for `self_service`
+
+Optional:
+
+- `feature_on_main_page` (Boolean) Shows Configuration Profile on Self Service main page
+- `force_users_to_view_description` (Boolean) Forces users to view the description
+- `install_button_text` (String) Text shown on Self Service install button
+- `notification` (Boolean) Enables Notification for this profile in self service
+- `notification_message` (String) Message body
+- `notification_subject` (String) Message Subject
+- `self_service_categories` (Block List) Self Service category options (see [below for nested schema](#nestedblock--self_service--self_service_categories))
+- `self_service_description` (String) Description shown in Self Service
+
+<a id="nestedblock--self_service--self_service_categories"></a>
+### Nested Schema for `self_service.self_service_categories`
+
+Required:
+
+- `display_in` (Boolean) Display this profile in this category?
+- `feature_in` (Boolean) Feature this profile in this category?
+
+Optional:
+
+- `id` (Number) ID of category
+- `name` (String) Name of category
+
 
 
 <a id="nestedblock--site"></a>

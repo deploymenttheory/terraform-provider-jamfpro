@@ -37,5 +37,5 @@ Optional:
 
 Read-Only:
 
-- `id` (Number)
+- `id` (String)
 - `name` (String)
