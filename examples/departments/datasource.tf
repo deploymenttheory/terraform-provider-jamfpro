@@ -1,7 +1,3 @@
-resource "jamfpro_department" "jamfpro_department_001" {
-  name     = "tf-localtest-category-01"
-}
-
 data "jamfpro_department" "jamfpro_department_001_data" {
   id = jamfpro_department.jamfpro_department_001.id
 }
