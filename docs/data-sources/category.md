@@ -17,7 +17,7 @@ description: |-
 
 ### Required
 
-- `id` (Number) The unique identifier of the Category.
+- `id` (String) The unique identifier of the Category.
 
 ### Read-Only
 

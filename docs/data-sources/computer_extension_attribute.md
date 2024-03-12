@@ -17,7 +17,7 @@ description: |-
 
 ### Required
 
-- `id` (Number) The unique identifier of the computer extension attribute.
+- `id` (String) The unique identifier of the computer extension attribute.
 
 ### Read-Only
 
