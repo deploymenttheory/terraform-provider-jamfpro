@@ -18,8 +18,9 @@ func constructJamfProPackageCreate(d *schema.ResourceData) (*jamfpro.ResourcePac
 	filename := filepath.Base(fullPath)
 
 	// Get the category from the schema, and set it to "Unknown" if it's empty
-	// Unknown is the valid default value for the category field not "No category assigned"
-	// which is returned by the API when no category is assigned. MENTAL >_<
+	// 'Unknown' is the valid default request value for the category field when none is set
+	// Jamf API returns "No category assigned" for the same field. But this is not a valid
+	// request value. Why!!!! >_<
 	category := d.Get("category").(string)
 	if category == "" {
 		category = "Unknown"
