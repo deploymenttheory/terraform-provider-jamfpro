@@ -1,11 +1,11 @@
-data "jamfpro_category" "example_category" {
-  name = "tf-example-category-01"  # Replace this with the actual name of the site you want to retrieve
+data "jamfpro_category" "jamfpro_category_001_data" {
+  id = jamfpro_category.jamfpro_category_001.id
 }
 
-output "category_id" {
-  value = data.jamfpro_category.example_category.id
+output "jamfpro_category_001_data_id" {
+  value = data.jamfpro_category.jamfpro_category_001_data.id
 }
 
-output "category_name" {
-  value = data.jamfpro_category.example_category.name
+output "jamfpro_category_001_data_name" {
+  value = data.jamfpro_category.jamfpro_category_001_data.name
 }

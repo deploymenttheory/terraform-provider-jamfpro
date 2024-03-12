@@ -1,3 +1,3 @@
-resource "jamfpro_department" "example_department_1" {
-  name = "tf-example-department-01"
+resource "jamfpro_department" "jamfpro_department_001" {
+  name = "TF: Dept Test - 001"
 }

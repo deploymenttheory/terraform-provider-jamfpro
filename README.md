@@ -42,6 +42,20 @@ This section outlines the resources and data sources provided by our Terraform p
 - **Status**: Finished
 - **Availability**: To be introduced in version `v0.0.30.`
 
+### Categories
+
+- **Resource & Data Source**: Enables the management of Categories within Jamf Pro, allowing for the configuration of category names, used across various Jamf Pro entities to categorize and organize devices, policies, and other resources.
+
+- **Status**: Finished
+- **Availability**: Introduced in version `v0.0.36.`
+
+### Departments
+
+- **Resource & Data Source**: Provides the ability to manage departments within Jamf Pro. This resource allows for the specification of department names.
+
+- **Status**: Finished
+- **Availability**: To be introduced in version `v0.0.36.`
+
 ### Packages
 
 - **Resource & Data Source**: Facilitates the management of Packages in Jamf Pro. This includes the creation, update, and deletion of package entities, along with the ability to specify package payloads and associated properties. It uploads the package to the JCDS 2.0 CDN in AWS S3 and then creates the

@@ -1,11 +1,11 @@
-data "jamfpro_department" "example_department" {
-  name = "tf-example-department-01"  # Replace this with the actual name of the site you want to retrieve
+data "jamfpro_department" "jamfpro_department_001_data" {
+  id = jamfpro_department.jamfpro_department_001.id
 }
 
-output "department_id" {
-  value = data.jamfpro_department.example_department.id
+output "jamfpro_department_001_data_id" {
+  value = data.jamfpro_department.jamfpro_department_001_data.id
 }
 
-output "department_name" {
-  value = data.jamfpro_department.example_department.name
+output "jamfpro_department_001_data_name" {
+  value = data.jamfpro_department.jamfpro_department_001_data.name
 }
