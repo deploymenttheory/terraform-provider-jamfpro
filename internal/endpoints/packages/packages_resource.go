@@ -50,7 +50,7 @@ func ResourceJamfProPackages() *schema.Resource {
 			"file_hash": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "SHA-256 hash of the package file for integrity comparison.",
+				Description: "SHA-3-256 hash of the package file for integrity comparison.",
 			},
 			"package_file_path": {
 				Type:        schema.TypeString,
@@ -59,9 +59,22 @@ func ResourceJamfProPackages() *schema.Resource {
 			},
 			"category": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "The category of the Jamf Pro package.",
-				Default:     "",
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v, ok := val.(string)
+					if !ok {
+						errs = append(errs, fmt.Errorf("%q must be a string, got: %T", key, val))
+						return warns, errs
+					}
+
+					if v == "" {
+						errs = append(errs, fmt.Errorf("%q must not be empty. Either set 'Unknown' to apply no package category or a supply a valid category name string", key))
+					} else if v != "Unknown" && len(v) == 0 {
+						errs = append(errs, fmt.Errorf("%q must be 'Unknown' or a non-empty string", key))
+					}
+					return warns, errs
+				},
 			},
 			"filename": {
 				Type:        schema.TypeString,
@@ -114,6 +127,7 @@ func ResourceJamfProPackages() *schema.Resource {
 				Optional:    true,
 				Description: "The OS requirements for the Jamf Pro package.",
 			},
+			/* Fields are in the data model but don't appear to serve a purpose in jamf 11.3 onwards
 			"required_processor": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -126,11 +140,13 @@ func ResourceJamfProPackages() *schema.Resource {
 				Description: "The package to switch with.",
 				Default:     "Do Not Install",
 			},
+			*/
 			"install_if_reported_available": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Description: "Whether to install the package if it's reported as available.",
 			},
+			/* Fields are in the data model but don't appear to serve a purpose in jamf 11.3 onwards
 			"reinstall_option": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -142,6 +158,7 @@ func ResourceJamfProPackages() *schema.Resource {
 				Optional:    true,
 				Description: "The triggering files for the Jamf Pro package.",
 			},
+			*/
 			"send_notification": {
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -295,8 +312,19 @@ func ResourceJamfProPackagesRead(ctx context.Context, d *schema.ResourceData, me
 	if err := d.Set("name", resource.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("category", resource.Category); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	// Check if the category is "No category assigned" and set it to "Unknown"
+	// This is necessary because the API returns "No category assigned" when no category is assigned
+	// but the request expects "Unknown" when no category is assigned.
+	if resource.Category == "No category assigned" {
+		// Set the category to "Unknown"
+		if err := d.Set("category", "Unknown"); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	} else {
+		// Set the category normally if it's not "No category assigned"
+		if err := d.Set("category", resource.Category); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 	if err := d.Set("filename", resource.Filename); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
@@ -328,13 +356,13 @@ func ResourceJamfProPackagesRead(ctx context.Context, d *schema.ResourceData, me
 	if err := d.Set("os_requirements", resource.OSRequirements); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+	/* Fields are in the data model but don't appear to serve a purpose in jamf 11.3 onwards
+	// these fields may only be relevant if a file is indexed by JAMF Admin. which i *think*
+	// is to be deprecated in favor of JCDS 2.0
 	if err := d.Set("required_processor", resource.RequiredProcessor); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("switch_with_package", resource.SwitchWithPackage); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("install_if_reported_available", resource.InstallIfReportedAvailable); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("reinstall_option", resource.ReinstallOption); err != nil {
@@ -343,6 +371,11 @@ func ResourceJamfProPackagesRead(ctx context.Context, d *schema.ResourceData, me
 	if err := d.Set("triggering_files", resource.TriggeringFiles); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+	*/
+	if err := d.Set("install_if_reported_available", resource.InstallIfReportedAvailable); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	if err := d.Set("send_notification", resource.SendNotification); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
