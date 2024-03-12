@@ -2,7 +2,6 @@ package macosconfigurationprofiles
 
 import (
 	"context"
-	"encoding/xml"
 	"fmt"
 	"html"
 	"log"
@@ -47,7 +46,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Name of the configuration profile.",
+				Description: "Jamf UI name for configuration profile.",
 			},
 			"description": {
 				Type:        schema.TypeString,
@@ -99,20 +98,20 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "Install Automatically",
-				Description:  "The distribution method for the configuration profile. Available options are: 'push', 'install_enterprise', 'install_user_initiated', 'install_system', 'install_self_service'.",
+				Description:  "The distribution method for the configuration profile. ['Make Available in Self Service','Install Automatically']",
 				ValidateFunc: validation.StringInSlice([]string{"Make Available in Self Service", "Install Automatically"}, false),
 			},
 			"user_removeable": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
-				Description: "Whether the configuration profile is user removeable.",
+				Description: "Whether the configuration profile is user removeable or not.",
 			},
 			"level": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "System",
-				Description:  "The level of the configuration profile. Available options are: 'computer', 'user'.",
+				Description:  "The level of the configuration profile. Available options are: 'Computer', 'User' or 'System'.",
 				ValidateFunc: validation.StringInSlice([]string{"Computer", "User", "System"}, false),
 			},
 			"uuid": {
@@ -123,7 +122,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 			"payload": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "A MacOS configuration profile xml file as a string",
+				Description: "A MacOS configuration profile xml file as a file",
 			},
 			// "redeploy_on_update": { // TODO Review this, missing from the gui
 			// 	Type:        schema.TypeString,
@@ -131,7 +130,6 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 			// 	Default:     "true",
 			// 	Description: "Whether the configuration profile is redeployed on update.",
 			// },
-			// "payloads": {},
 			"scope": {
 				Type:        schema.TypeList,
 				MaxItems:    1,
@@ -152,7 +150,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 						},
 						"computer_ids": {
 							Type:        schema.TypeList,
-							Description: "The computers to which the configuration profile is scoped",
+							Description: "The computers to which the configuration profile is scoped by Jamf ID",
 							Optional:    true,
 							Elem: &schema.Schema{
 								Type: schema.TypeInt,
@@ -160,7 +158,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 						},
 						"computer_group_ids": {
 							Type:        schema.TypeList,
-							Description: "The computer groups to which the configuration profile is scoped",
+							Description: "The computer groups to which the configuration profile is scoped by Jamf ID",
 							Optional:    true,
 							Elem: &schema.Schema{
 								Type: schema.TypeInt,
@@ -168,7 +166,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 						},
 						"jss_user_ids": {
 							Type:        schema.TypeList,
-							Description: "The jss users to which the configuration profile is scoped",
+							Description: "The jss users to which the configuration profile is scoped by Jamf ID",
 							Optional:    true,
 							Elem: &schema.Schema{
 								Type: schema.TypeInt,
@@ -176,7 +174,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 						},
 						"jss_user_group_ids": {
 							Type:        schema.TypeList,
-							Description: "The jss user groups to which the configuration profile is scoped",
+							Description: "The jss user groups to which the configuration profile is scoped by Jamf ID",
 							Optional:    true,
 							Elem: &schema.Schema{
 								Type: schema.TypeInt,
@@ -184,7 +182,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 						},
 						"building_ids": {
 							Type:        schema.TypeList,
-							Description: "The buildings to which the configuration profile is scoped",
+							Description: "The buildings to which the configuration profile is scoped by Jamf ID",
 							Optional:    true,
 							Elem: &schema.Schema{
 								Type: schema.TypeInt,
@@ -192,7 +190,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 						},
 						"department_ids": {
 							Type:        schema.TypeList,
-							Description: "The departments to which the configuration profile is scoped",
+							Description: "The departments to which the configuration profile is scoped by Jamf ID",
 							Optional:    true,
 							Elem: &schema.Schema{
 								Type: schema.TypeInt,
@@ -201,14 +199,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 						"limitations": {
 							Type:        schema.TypeList,
 							MaxItems:    1,
-							Description: "The limitations within the scope",
+							Description: "The limitations within the scope.",
 							Optional:    true,
 							Default:     nil,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"user_names": {
 										Type:        schema.TypeList,
-										Description: "The limited users",
+										Description: "Users the scope is limited to by Jamf ID.",
 										Optional:    true,
 										Default:     nil,
 										Elem: &schema.Schema{
@@ -217,7 +215,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 									},
 									"network_segment_ids": {
 										Type:        schema.TypeList,
-										Description: "The limited network segments",
+										Description: "Network segments the scope is limited to by Jamf ID.",
 										Optional:    true,
 										Default:     nil,
 										Elem: &schema.Schema{
@@ -226,7 +224,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 									},
 									"ibeacon_ids": {
 										Type:        schema.TypeList,
-										Description: "The limited ibeacons",
+										Description: "Ibeacons the scope is limited to by Jamf ID.",
 										Optional:    true,
 										Default:     nil,
 										Elem: &schema.Schema{
@@ -235,7 +233,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 									},
 									"user_group_ids": {
 										Type:        schema.TypeList,
-										Description: "The limited user groups",
+										Description: "Users groups the scope is limited to by Jamf ID.",
 										Optional:    true,
 										Default:     nil,
 										Elem: &schema.Schema{
@@ -248,14 +246,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 						"exclusions": {
 							Type:        schema.TypeList,
 							MaxItems:    1,
-							Description: "The limitations within the scope",
+							Description: "The exclusions from the scope.",
 							Optional:    true,
 							Default:     nil,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"computer_ids": {
 										Type:        schema.TypeList,
-										Description: "excluded computers",
+										Description: "Computers excluded from scope by Jamf ID.",
 										Optional:    true,
 										Elem: &schema.Schema{
 											Type: schema.TypeInt,
@@ -263,17 +261,17 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 									},
 									"computer_group_ids": {
 										Type:        schema.TypeList,
-										Description: "excluded computer groups",
+										Description: "Computer Groups excluded from scope by Jamf ID.",
 										Optional:    true,
 										Elem: &schema.Schema{
 											Type: schema.TypeInt,
 										},
 									},
-									// "user_ids": {},
+									// "user_ids": {}, // TODO need directory services to fix this
 									// "user_group_ids": {},
 									"building_ids": {
 										Type:        schema.TypeList,
-										Description: "excluded buildings",
+										Description: "Buildings excluded from scope by Jamf ID.",
 										Optional:    true,
 										Elem: &schema.Schema{
 											Type: schema.TypeInt,
@@ -281,7 +279,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 									},
 									"department_ids": {
 										Type:        schema.TypeList,
-										Description: "excluded departments",
+										Description: "Departments excluded from scope by Jamf ID.",
 										Optional:    true,
 										Elem: &schema.Schema{
 											Type: schema.TypeInt,
@@ -289,7 +287,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 									},
 									"network_segment_ids": {
 										Type:        schema.TypeList,
-										Description: "excluded network segments",
+										Description: "Network segments excluded from scope by Jamf ID.",
 										Optional:    true,
 										Elem: &schema.Schema{
 											Type: schema.TypeInt,
@@ -297,7 +295,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 									},
 									"jss_user_ids": {
 										Type:        schema.TypeList,
-										Description: "excluded jss users",
+										Description: "JSS Users excluded from scope by Jamf ID.",
 										Optional:    true,
 										Elem: &schema.Schema{
 											Type: schema.TypeInt,
@@ -305,7 +303,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 									},
 									"jss_user_group_ids": {
 										Type:        schema.TypeList,
-										Description: "excluded jss user groups",
+										Description: "JSS User Groups excluded from scope by Jamf ID.",
 										Optional:    true,
 										Elem: &schema.Schema{
 											Type: schema.TypeInt,
@@ -313,7 +311,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 									},
 									"ibeacon_ids": {
 										Type:        schema.TypeList,
-										Description: "excluded ibeacons",
+										Description: "Ibeacons excluded from scope by Jamf ID.",
 										Optional:    true,
 										Elem: &schema.Schema{
 											Type: schema.TypeInt,
@@ -328,7 +326,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 			"self_service": {
 				Type:        schema.TypeList,
 				MaxItems:    1,
-				Description: "Self Service options",
+				Description: "Self Service Configuration",
 				Optional:    true,
 				Default:     nil,
 				Elem: &schema.Resource{
@@ -471,8 +469,8 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 	// Payload
 	payload, ok := d.GetOk("payload")
 	if ok {
-		log.Println(payload)
-		out.General.Payloads = html.EscapeString(payload.(string))
+		payload = html.EscapeString(payload.(string))
+		out.General.Payloads = payload.(string)
 	} else {
 		return nil, fmt.Errorf("an error occurred setting the payload")
 	}
@@ -481,8 +479,6 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 	var err error
 
 	// Scope - Targets
-
-	// Bools
 	out.Scope.AllComputers = d.Get("scope.0.all_computers").(bool)
 	out.Scope.AllJSSUsers = d.Get("scope.0.all_jss_users").(bool)
 
@@ -598,7 +594,7 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 		return nil, err
 	}
 
-	// TODO make this better
+	// TODO make this better, it works for now
 	if out.Scope.AllComputers && (out.Scope.Computers != nil ||
 		out.Scope.ComputerGroups != nil ||
 		out.Scope.Departments != nil ||
@@ -625,10 +621,6 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 			})
 		}
 	}
-
-	// Debug
-	xmlData, _ := xml.MarshalIndent(out, "", "	")
-	log.Println(string(xmlData))
 
 	return &out, nil
 }
@@ -657,7 +649,6 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
-		// No error, exit the retry loop
 		return nil
 	})
 
@@ -665,10 +656,8 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro MacOs Configuration Profile '%s' after retries: %v", resource.General.Name, err))
 	}
 
-	// Set the resource ID in Terraform state
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	// Read the MacOs Configuration Profile to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProMacOSConfigurationProfilesRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
@@ -678,18 +667,15 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 }
 
 func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
@@ -703,10 +689,8 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		resp, apiErr = conn.GetMacOSConfigurationProfileByID(resourceIDInt)
 		if apiErr != nil {
 			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
-				// Return non-retryable error with a message to avoid SDK issues
 				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
 			}
-			// Retry for other types of errors
 			return retry.RetryableError(apiErr)
 		}
 		return nil
@@ -715,9 +699,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// If err is not nil, check if it's due to the resource being not found
 	if err != nil {
 		if err.Error() == "resource not found, marked for deletion" {
-			// Resource not found, remove from Terraform state
 			d.SetId("")
-			// Append a warning diagnostic and return
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Warning,
 				Summary:  "Resource not found",
@@ -733,14 +715,14 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// Stating
 
 	// ID
-	if err := d.Set("id", resourceID); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
+	// if err := d.Set("id", resourceID); err != nil {
+	// 	diags = append(diags, diag.FromErr(err)...)
+	// }
 
 	// Name
-	if err := d.Set("name", resp.General.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
+	// if err := d.Set("name", resp.General.Name); err != nil {
+	// 	diags = append(diags, diag.FromErr(err)...)
+	// }
 
 	// Description
 	if err := d.Set("description", resp.General.Description); err != nil {
@@ -760,7 +742,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	} else {
-		log.Println("Not stating default site response") // TODO probably put some logging here
+		log.Println("Not stating default site response") // TODO logging
 	}
 
 	// Category
@@ -775,7 +757,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	} else {
-		log.Println("Not stating default category response") // TODO probably put some logging here
+		log.Println("Not stating default category response") // TODO logging
 	}
 
 	// Distribution Method
@@ -805,11 +787,9 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 
 	// Scope
 
-	// Setup scope obj
 	out_scope := make([]map[string]interface{}, 0)
 	out_scope = append(out_scope, make(map[string]interface{}, 1))
 
-	// Bools
 	out_scope[0]["all_computers"] = resp.Scope.AllComputers
 	out_scope[0]["all_jss_users"] = resp.Scope.AllJSSUsers
 
@@ -867,7 +847,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		out_scope[0]["department_ids"] = listOfIds
 	}
 
-	// Scope Limitations ////////////////////////////////
+	// Scope Limitations
 
 	out_scope_limitations := make([]map[string]interface{}, 0)
 	out_scope_limitations = append(out_scope_limitations, make(map[string]interface{}))
@@ -913,12 +893,11 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		limitationsSet = true
 	}
 
-	// Append Limitations if they're set
 	if limitationsSet {
 		out_scope[0]["limitations"] = out_scope_limitations
 	}
 
-	// Scope Exclusions ////////////////////////////
+	// Scope Exclusions
 
 	out_scope_exclusions := make([]map[string]interface{}, 0)
 	out_scope_exclusions = append(out_scope_exclusions, make(map[string]interface{}))
@@ -1008,7 +987,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	if exclusionsSet {
 		out_scope[0]["exclusions"] = out_scope_exclusions
 	} else {
-		log.Println("No exclusions set") // TODO write this log
+		log.Println("No exclusions set") // TODO logging
 	}
 
 	// Set Scope to state
@@ -1024,12 +1003,12 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	var selfServiceSet bool
 
 	// Fix the stupid broken double key issue
-
 	err = FixStupidDoubleKey(resp, &out_self_service)
 	if err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	// TODO this is problematic and will be solved another day
 	// if len(resp.SelfService.SelfServiceCategories) > 0 {
 	// 	var listOfIds []int
 	// 	for _, v := range resp.SelfService.SelfServiceCategories {
@@ -1045,7 +1024,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	} else {
-		log.Println("no self service") // TODO write this problem
+		log.Println("no self service") // TODO logging
 	}
 
 	return diags
@@ -1059,30 +1038,24 @@ func ResourceJamfProMacOSConfigurationProfilesUpdate(ctx context.Context, d *sch
 	}
 	conn := apiclient.Conn
 
-	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	// Construct the resource object
 	resource, err := constructJamfProMacOSConfigurationProfile(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro MacOs Configuration Profile for update: %v", err))
 	}
 
-	// Update operations with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		_, apiErr := conn.UpdateMacOSConfigurationProfileByID(resourceIDInt, resource)
 		if apiErr != nil {
-			// If updating by ID fails, attempt to update by Name
 			return retry.RetryableError(apiErr)
 		}
-		// Successfully updated the resource, exit the retry loop
 		return nil
 	})
 
@@ -1090,7 +1063,6 @@ func ResourceJamfProMacOSConfigurationProfilesUpdate(ctx context.Context, d *sch
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro MacOs Configuration Profile '%s' (ID: %d) after retries: %v", resource.General.Name, resourceIDInt, err))
 	}
 
-	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProMacOSConfigurationProfilesRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
@@ -1107,11 +1079,9 @@ func ResourceJamfProMacOSConfigurationProfilesDelete(ctx context.Context, d *sch
 	}
 	conn := apiclient.Conn
 
-	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
@@ -1119,18 +1089,14 @@ func ResourceJamfProMacOSConfigurationProfilesDelete(ctx context.Context, d *sch
 
 	// Use the retry function for the delete operation with appropriate timeout
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// Attempt to delete by ID
 		apiErr := conn.DeleteMacOSConfigurationProfileByID(resourceIDInt)
 		if apiErr != nil {
-			// If deleting by ID fails, attempt to delete by Name
 			resourceName := d.Get("name").(string)
 			apiErrByName := conn.DeleteMacOSConfigurationProfileByName(resourceName)
 			if apiErrByName != nil {
-				// If deletion by name also fails, return a retryable error
 				return retry.RetryableError(apiErrByName)
 			}
 		}
-		// Successfully deleted the resource, exit the retry loop
 		return nil
 	})
 
@@ -1138,7 +1104,6 @@ func ResourceJamfProMacOSConfigurationProfilesDelete(ctx context.Context, d *sch
 		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro MacOs Configuration Profile '%s' (ID: %d) after retries: %v", d.Get("name").(string), resourceIDInt, err))
 	}
 
-	// Clear the ID from the Terraform state as the resource has been deleted
 	d.SetId("")
 
 	return diags
@@ -1180,6 +1145,7 @@ func GetAttrsListFromHCL[NestedObjectType any, ListItemPrimitiveType any](path s
 	return fmt.Errorf("no path found/no scoped items at %v", path)
 }
 
+// TODO rename this func and put it somewhere else too
 func FixStupidDoubleKey(resp *jamfpro.ResourceMacOSConfigurationProfile, home *[]map[string]interface{}) error {
 	var err error
 	var correctNotifValue bool
