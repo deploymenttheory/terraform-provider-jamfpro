@@ -712,7 +712,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Site with ID '%s' after retries: %v", resourceID, err))
 	}
 
-	// Stating
+	// Stating - commented ones appear to be done automatically.
 
 	// ID
 	// if err := d.Set("id", resourceID); err != nil {
@@ -725,9 +725,9 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// }
 
 	// Description
-	if err := d.Set("description", resp.General.Description); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
+	// if err := d.Set("description", resp.General.Description); err != nil {
+	// 	diags = append(diags, diag.FromErr(err)...)
+	// }
 
 	// Site
 	if resp.General.Site.ID != -1 && resp.General.Site.Name != "None" {
@@ -761,24 +761,24 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	}
 
 	// Distribution Method
-	if err := d.Set("distribution_method", resp.General.DistributionMethod); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
+	// if err := d.Set("distribution_method", resp.General.DistributionMethod); err != nil {
+	// 	diags = append(diags, diag.FromErr(err)...)
+	// }
 
 	// User Removeable
-	if err := d.Set("user_removeable", resp.General.UserRemovable); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
+	// if err := d.Set("user_removeable", resp.General.UserRemovable); err != nil {
+	// 	diags = append(diags, diag.FromErr(err)...)
+	// }
 
 	// Level
-	if err := d.Set("level", resp.General.Level); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
+	// if err := d.Set("level", resp.General.Level); err != nil {
+	// 	diags = append(diags, diag.FromErr(err)...)
+	// }
 
 	// UUID
-	if err := d.Set("uuid", resp.General.UUID); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
+	// if err := d.Set("uuid", resp.General.UUID); err != nil {
+	// 	diags = append(diags, diag.FromErr(err)...)
+	// }
 
 	// Redeploy On Update - not in ui
 	// if err := d.Set("redeploy_on_update", resp.General.RedeployOnUpdate); err != nil {
