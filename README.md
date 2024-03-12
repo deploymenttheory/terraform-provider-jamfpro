@@ -56,6 +56,13 @@ This section outlines the resources and data sources provided by our Terraform p
 - **Status**: Finished
 - **Availability**: To be introduced in version `v0.0.36.`
 
+### macOS Configuration Profiles
+
+- **Resource & Data Source**: Facilitates the management of macOS configuration profiles in Jamf Pro. This includes the creation, update, and deletion of configuration profiles, along with the ability to specify profile payloads and associated properties.
+
+- **Status**: Experimental
+- **Availability**: Available since version `v0.0.37.`
+
 ### Packages
 
 - **Resource & Data Source**: Facilitates the management of Packages in Jamf Pro. This includes the creation, update, and deletion of package entities, along with the ability to specify package payloads and associated properties. It uploads the package to the JCDS 2.0 CDN in AWS S3 and then creates the
