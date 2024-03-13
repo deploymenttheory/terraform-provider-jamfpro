@@ -76,4 +76,11 @@ package metadata in Jamf Pro.
 - **Resource & Data Source**: Facilitates the management of Scripts in Jamf Pro. This includes the creation, update, and deletion of script entities, along with the ability to specify script contents and associated properties.
 
 - **Status**: Finished
-- **Availability**: Available since version `v0.0.30.`
+- **Availability**: Introduced in version `v0.0.30.`
+
+### User Groups
+
+- **Resource & Data Source**: Enables the handling of User Groups in Jamf Pro. This encompasses the capabilities to create, update, and remove user group entities, as well as the functionality to detail user group attributes and memberships.
+
+- **Status**: Experimental
+- **Availability**: Introduced in version `v0.0.38`.

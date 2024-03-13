@@ -40,6 +40,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/printers"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/scripts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/sites"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/usergroups"
 )
 
 // TerraformProviderProductUserAgent is included in the User-Agent header for
@@ -204,6 +205,7 @@ func Provider() *schema.Provider {
 			"jamfpro_printer":                       printers.DataSourceJamfProPrinters(),
 			"jamfpro_script":                        scripts.DataSourceJamfProScripts(),
 			"jamfpro_site":                          sites.DataSourceJamfProSites(),
+			"jamfpro_user_group":                    usergroups.DataSourceJamfProUserGroups(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"jamfpro_account":                       accounts.ResourceJamfProAccounts(),
@@ -231,6 +233,7 @@ func Provider() *schema.Provider {
 			"jamfpro_printer":                       printers.ResourceJamfProPrinters(),
 			"jamfpro_script":                        scripts.ResourceJamfProScripts(),
 			"jamfpro_site":                          sites.ResourceJamfProSites(),
+			"jamfpro_user_group":                    usergroups.ResourceJamfProUserGroups(),
 		},
 	}
 
