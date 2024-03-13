@@ -214,7 +214,7 @@ func ResourceJamfProUserGroupCreate(ctx context.Context, d *schema.ResourceData,
 	}
 
 	// Set the resource ID in Terraform state
-	d.SetId(creationResponse.ID)
+	d.SetId(strconv.Itoa(creationResponse.ID))
 
 	// Retry reading the resource to ensure the Terraform state is up to date
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
