@@ -17,6 +17,7 @@ description: |-
 
 ### Required
 
+- `category` (String) The category of the Jamf Pro package.
 - `name` (String) The unique name of the Jamf Pro package.
 - `package_file_path` (String) The file path of the Jamf Pro package.
 
@@ -24,7 +25,6 @@ description: |-
 
 - `allow_uninstalled` (Boolean) Whether to allow the package to be uninstalled.
 - `boot_volume_required` (Boolean) Whether a boot volume is required.
-- `category` (String) The category of the Jamf Pro package.
 - `fill_existing_users` (Boolean) Whether to fill existing users.
 - `fill_user_template` (Boolean) Whether to fill the user template.
 - `info` (String) Information about the Jamf Pro package.
@@ -33,16 +33,12 @@ description: |-
 - `os_requirements` (String) The OS requirements for the Jamf Pro package.
 - `priority` (Number) The priority of the Jamf Pro package.
 - `reboot_required` (Boolean) Whether a reboot is required after installing the Jamf Pro package.
-- `reinstall_option` (String) The reinstall option for the Jamf Pro package.
-- `required_processor` (String) The required processor for the Jamf Pro package.
 - `send_notification` (Boolean) Whether to send a notification for the Jamf Pro package.
-- `switch_with_package` (String) The package to switch with.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
-- `triggering_files` (String) The triggering files for the Jamf Pro package.
 
 ### Read-Only
 
-- `file_hash` (String) SHA-256 hash of the package file for integrity comparison.
+- `file_hash` (String) SHA-3-256 hash of the package file for integrity comparison.
 - `filename` (String) The filename of the Jamf Pro package.
 - `id` (String) The unique identifier of the package.
 - `package_uri` (String) The URI of the package in the Jamf Cloud Distribution Service (JCDS).
