@@ -22,8 +22,8 @@ type APICallFuncInt func(int) (interface{}, error)
 // APICallFuncString is specifically for API calls that require a string ID.
 type APICallFuncString func(string) (interface{}, error)
 
-// RetryAPIReadCallInt is a wrapper function that facilitates retrying API Read calls which require an integer ID.
-// It adapts an API call expecting an integer ID to the generic retry mechanism provided by RetryAPIReadCallCommon.
+// ByResourceIntID is a wrapper function that facilitates retrying API Read calls which require an integer ID.
+// It adapts an API call expecting an integer ID to the generic retry mechanism provided by RetryAPIReadCall.
 //
 // Parameters:
 //   - ctx: A context.Context instance that carries deadlines, cancellation signals, and other request-scoped values across API boundaries and between processes.
@@ -36,7 +36,7 @@ type APICallFuncString func(string) (interface{}, error)
 //   - diag.Diagnostics: A collection of diagnostic information including any errors encountered during the operation or warnings related to the resource's state.
 //
 // Note: If the resource cannot be found or if an error occurs, appropriate diagnostics are returned to Terraform, potentially marking the resource for deletion from the state if not found.
-func ByIntID(ctx context.Context, d *schema.ResourceData, resourceID int, apiCall APICallFuncInt) (interface{}, diag.Diagnostics) {
+func ByResourceIntID(ctx context.Context, d *schema.ResourceData, resourceID int, apiCall APICallFuncInt) (interface{}, diag.Diagnostics) {
 	genericAPICall := func(id interface{}) (interface{}, error) {
 		intID, ok := id.(int)
 		if !ok {
@@ -44,11 +44,11 @@ func ByIntID(ctx context.Context, d *schema.ResourceData, resourceID int, apiCal
 		}
 		return apiCall(intID)
 	}
-	return RetryAPIReadCallCommon(ctx, d, resourceID, genericAPICall)
+	return RetryAPIReadCall(ctx, d, resourceID, genericAPICall)
 }
 
-// ByStringID is a wrapper function that facilitates retrying API Read calls which require a string ID.
-// It adapts an API call expecting a string ID to the generic retry mechanism provided by RetryAPIReadCallCommon.
+// ByResourceStringID is a wrapper function that facilitates retrying API Read calls which require a string ID.
+// It adapts an API call expecting a string ID to the generic retry mechanism provided by RetryAPIReadCall.
 //
 // Parameters:
 //   - ctx: A context.Context instance that carries deadlines, cancellation signals, and other request-scoped values across API boundaries and between processes.
@@ -61,7 +61,7 @@ func ByIntID(ctx context.Context, d *schema.ResourceData, resourceID int, apiCal
 //   - diag.Diagnostics: A collection of diagnostic information including any errors encountered during the operation or warnings related to the resource's state.
 //
 // Note: If the resource cannot be found or if an error occurs, appropriate diagnostics are returned to Terraform, potentially marking the resource for deletion from the state if not found.
-func ByStringID(ctx context.Context, d *schema.ResourceData, resourceID string, apiCall APICallFuncString) (interface{}, diag.Diagnostics) {
+func ByResourceStringID(ctx context.Context, d *schema.ResourceData, resourceID string, apiCall APICallFuncString) (interface{}, diag.Diagnostics) {
 	genericAPICall := func(id interface{}) (interface{}, error) {
 		strID, ok := id.(string)
 		if !ok {
@@ -69,10 +69,10 @@ func ByStringID(ctx context.Context, d *schema.ResourceData, resourceID string, 
 		}
 		return apiCall(strID)
 	}
-	return RetryAPIReadCallCommon(ctx, d, resourceID, genericAPICall)
+	return RetryAPIReadCall(ctx, d, resourceID, genericAPICall)
 }
 
-// RetryAPIReadCallCommon executes an API read call with retry logic to fetch a resource by its ID.
+// RetryAPIReadCall executes an API read call with retry logic to fetch a resource by its ID.
 // This function incorporates exponential backoff with jitter to efficiently manage retry attempts
 // in the face of transient errors or temporary server unavailability, ensuring robust error handling
 // and resource state synchronization.
@@ -105,7 +105,7 @@ func ByStringID(ctx context.Context, d *schema.ResourceData, resourceID string, 
 // Note: If the resource cannot be found (indicated by 404 or 410 HTTP status codes in the error message),
 // the function marks the resource for deletion from the Terraform state by clearing its ID. This signifies
 // to Terraform that the resource no longer exists and should be removed from the state file.
-func RetryAPIReadCallCommon(ctx context.Context, d *schema.ResourceData, resourceID interface{}, apiCall APICallFunc) (interface{}, diag.Diagnostics) {
+func RetryAPIReadCall(ctx context.Context, d *schema.ResourceData, resourceID interface{}, apiCall APICallFunc) (interface{}, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var lastError error
 	var resource interface{}

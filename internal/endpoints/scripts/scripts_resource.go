@@ -204,7 +204,7 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 	}
 
 	// Use the retryfetch helper function with context
-	retry, diags := retryfetch.ByStringID(ctx, d, resourceID, getResource)
+	retry, diags := retryfetch.ByResourceStringID(ctx, d, resourceID, getResource)
 	if diags.HasError() {
 		return diags
 	}

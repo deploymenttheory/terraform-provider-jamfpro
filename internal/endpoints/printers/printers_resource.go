@@ -186,7 +186,7 @@ func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	// Use the retryfetch helper function with context
-	retry, diags := retryfetch.ByStringID(ctx, d, resourceID, getResource)
+	retry, diags := retryfetch.ByResourceStringID(ctx, d, resourceID, getResource)
 	if diags.HasError() {
 		return diags
 	}
@@ -199,7 +199,7 @@ func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, me
 		}
 
 		// Update the Terraform state with the fetched data
-		printerData := map[string]interface{}{
+		stateData := map[string]interface{}{
 			"id":           strconv.Itoa(resource.ID),
 			"name":         resource.Name,
 			"category":     resource.Category,
@@ -217,7 +217,7 @@ func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, me
 		}
 
 		// Iterate over the map and set each key-value pair in the Terraform state
-		for key, val := range printerData {
+		for key, val := range stateData {
 			if err := d.Set(key, val); err != nil {
 				return diag.FromErr(err)
 			}

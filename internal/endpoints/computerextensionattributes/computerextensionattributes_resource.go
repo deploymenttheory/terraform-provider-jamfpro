@@ -188,7 +188,7 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 	}
 
 	// Use the retryfetch helper function with context
-	retry, diags := retryfetch.ByIntID(ctx, d, resourceIDInt, getResource)
+	retry, diags := retryfetch.ByResourceIntID(ctx, d, resourceIDInt, getResource)
 	if diags.HasError() {
 		return diags
 	}
