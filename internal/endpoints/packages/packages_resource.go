@@ -231,7 +231,7 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Read the site to ensure the Terraform state is up to date
+	// Read the Package to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProPackagesRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
@@ -240,7 +240,7 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 	return diags
 }
 
-// ResourceJamfProPackagesRead is responsible for reading the current state of a Jamf Pro Site Resource from the remote system.
+// ResourceJamfProPackagesRead is responsible for reading the current state of a Jamf Pro Package Resource from the remote system.
 // The function:
 // 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.

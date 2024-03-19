@@ -1,3 +1,4 @@
+// macosconfigurationprofiles_resource.go
 package macosconfigurationprofiles
 
 import (
@@ -17,8 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-//const JamfProResourceMacOSConfigurationProfile = "macos_configuration_profile"
-
+// ResourceJamfProMacOSConfigurationProfiles defines the schema and CRUD operations for managing Jamf Pro macOS configuration profiles in Terraform.
 func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: ResourceJamfProMacOSConfigurationProfilesCreate,
@@ -420,6 +420,12 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 	}
 }
 
+// ResourceJamfProMacOSConfigurationProfilesCreate is responsible for creating a new Jamf Pro macOS Configuration Profile in the remote system.
+// The function:
+// 1. Constructs the attribute data using the provided Terraform configuration.
+// 2. Calls the API to create the attribute in Jamf Pro.
+// 3. Updates the Terraform state with the ID of the newly created attribute.
+// 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -461,6 +467,11 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 	return diags
 }
 
+// ResourceJamfProMacOSConfigurationProfilesRead is responsible for reading the current state of a Jamf Pro config profile Resource from the remote system.
+// The function:
+// 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
+// 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
+// 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -829,6 +840,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	return diags
 }
 
+// ResourceJamfProMacOSConfigurationProfilesUpdate is responsible for updating an existing Jamf Pro config profile on the remote system.
 func ResourceJamfProMacOSConfigurationProfilesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
@@ -870,6 +882,7 @@ func ResourceJamfProMacOSConfigurationProfilesUpdate(ctx context.Context, d *sch
 	return diags
 }
 
+// ResourceJamfProMacOSConfigurationProfilesDelete is responsible for deleting a Jamf Pro config profile.
 func ResourceJamfProMacOSConfigurationProfilesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
