@@ -9,6 +9,7 @@ import (
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -171,7 +172,7 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 		return apiclient.Conn.GetScriptByID(id.(string))
 	}
 
-	_, waitDiags := WaitForResourceToBeAvailable(ctx, d, creationResponse.ID, checkResourceExists)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, creationResponse.ID, checkResourceExists)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
