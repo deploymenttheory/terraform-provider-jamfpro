@@ -25,313 +25,304 @@ func ResourceJamfProPolicies() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Second),
 		},
 		Schema: map[string]*schema.Schema{
-			"general": {
-				Type:        schema.TypeList,
+			"id": {
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: "The unique identifier of the Jamf Pro policy.",
+			},
+			"name": {
+				Type:        schema.TypeString,
 				Required:    true,
-				Description: "General settings of the policy.",
+				Description: "The name of the policy.",
+			},
+			"enabled": {
+				Type:        schema.TypeBool,
+				Required:    true,
+				Description: "Define whether the policy is enabled.",
+			},
+			"trigger": {
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "Event(s) triggers to use to initiate the policy. Values can be 'USER_INITIATED' for self self trigger and 'EVENT' for an event based trigger",
+				ValidateFunc: validation.StringInSlice([]string{"EVENT", "USER_INITIATED"}, false),
+			},
+			"trigger_checkin": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Trigger policy when device performs recurring check-in against the frequency configured in Jamf Pro",
+				Default:     false,
+			},
+			"trigger_enrollment_complete": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Trigger policy when device enrollment is complete.",
+				Default:     false,
+			},
+			"trigger_login": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Trigger policy when a user logs in to a computer. A login event that checks for policies must be configured in Jamf Pro for this to work",
+				Default:     false,
+			},
+			"trigger_logout": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Trigger policy when a user logout.",
+				Default:     false,
+			},
+			"trigger_network_state_changed": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Trigger policy when it's network state changes. When a computer's network state changes (e.g., when the network connection changes, when the computer name changes, when the IP address changes)",
+				Default:     false,
+			},
+			"trigger_startup": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Trigger policy when a computer starts up. A startup script that checks for policies must be configured in Jamf Pro for this to work",
+				Default:     false,
+			},
+			"trigger_other": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Any other trigger for the policy.",
+				Default:     "",
+			},
+			"frequency": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Frequency of policy execution.",
+				Default:     "Once per computer",
+				ValidateFunc: validation.StringInSlice([]string{
+					"Once per computer",
+					"Once per user per computer",
+					"Once per user",
+					"Once every day",
+					"Once every week",
+					"Once every month",
+					"Ongoing",
+				}, false),
+			},
+			"retry_event": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Event on which to retry policy execution.",
+				Default:     "none",
+				ValidateFunc: validation.StringInSlice([]string{
+					"none",
+					"trigger",
+					"check-in",
+				}, false),
+			},
+			"retry_attempts": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: "Number of retry attempts for the jamf pro policy. Valid values are -1 (not configured) and 1 through 10.",
+				Default:     -1,
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := util.GetInt(val)
+					if v == -1 || (v > 0 && v <= 10) {
+						return
+					}
+					errs = append(errs, fmt.Errorf("%q must be -1 if not being set or between 1 and 10 if it is being set, got: %d", key, v))
+					return warns, errs
+				},
+			},
+			"notify_on_each_failed_retry": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Send notifications for each failed policy retry attempt. ",
+				Default:     false,
+			},
+			"location_user_only": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Location-based policy for user only.",
+				Default:     false,
+			},
+			"target_drive": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The drive on which to run the policy (e.g. /Volumes/Restore/ ). The policy runs on the boot drive by default",
+				Default:     "/",
+			},
+			"offline": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Make policy available offline by caching the policy to the macOS device to ensure it runs when Jamf Pro is unavailable. Only used when execution policy is set to 'ongoing'. ",
+				Default:     false,
+			},
+			"category": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Category to add the policy to.",
+				Computed:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:        schema.TypeInt,
-							Computed:    true,
-							Description: "The unique identifier of the Jamf Pro policy.",
+							Optional:    true,
+							Description: "The category ID assigned to the jamf pro policy. Defaults to '-1' aka not used.",
+							Default:     "-1",
 						},
 						"name": {
 							Type:        schema.TypeString,
-							Required:    true,
-							Description: "The name of the policy.",
-						},
-						"enabled": {
-							Type:        schema.TypeBool,
-							Required:    true,
-							Description: "Define whether the policy is enabled.",
-						},
-						"trigger": {
-							Type:         schema.TypeString,
-							Required:     true,
-							Description:  "Event(s) triggers to use to initiate the policy. Values can be 'USER_INITIATED' for self self trigger and 'EVENT' for an event based trigger",
-							ValidateFunc: validation.StringInSlice([]string{"EVENT", "USER_INITIATED"}, false),
-						},
-						"trigger_checkin": {
-							Type:        schema.TypeBool,
 							Optional:    true,
-							Description: "Trigger policy when device performs recurring check-in against the frequency configured in Jamf Pro",
-							Default:     false,
+							Description: "Category Name for assigned jamf pro policy. Value defaults to 'No category assigned' aka not used",
+							Default:     "No category assigned",
 						},
-						"trigger_enrollment_complete": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Trigger policy when device enrollment is complete.",
-							Default:     false,
-						},
-						"trigger_login": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Trigger policy when a user logs in to a computer. A login event that checks for policies must be configured in Jamf Pro for this to work",
-							Default:     false,
-						},
-						"trigger_logout": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Trigger policy when a user logout.",
-							Default:     false,
-						},
-						"trigger_network_state_changed": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Trigger policy when it's network state changes. When a computer's network state changes (e.g., when the network connection changes, when the computer name changes, when the IP address changes)",
-							Default:     false,
-						},
-						"trigger_startup": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Trigger policy when a computer starts up. A startup script that checks for policies must be configured in Jamf Pro for this to work",
-							Default:     false,
-						},
-						"trigger_other": {
+					},
+				},
+			},
+			"date_time_limitations": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Server-side limitations use your Jamf Pro host server's time zone and settings. The Jamf Pro host service is in UTC time.",
+				Computed:    true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"activation_date": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "Any other trigger for the policy.",
-							Default:     "",
+							Description: "The activation date of the policy.",
+							Computed:    true,
 						},
-						"frequency": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Frequency of policy execution.",
-							Default:     "Once per computer",
-							ValidateFunc: validation.StringInSlice([]string{
-								"Once per computer",
-								"Once per user per computer",
-								"Once per user",
-								"Once every day",
-								"Once every week",
-								"Once every month",
-								"Ongoing",
-							}, false),
-						},
-						"retry_event": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Event on which to retry policy execution.",
-							Default:     "none",
-							ValidateFunc: validation.StringInSlice([]string{
-								"none",
-								"trigger",
-								"check-in",
-							}, false),
-						},
-						"retry_attempts": {
+						"activation_date_epoch": {
 							Type:        schema.TypeInt,
 							Optional:    true,
-							Description: "Number of retry attempts for the jamf pro policy. Valid values are -1 (not configured) and 1 through 10.",
-							Default:     -1,
-							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-								v := util.GetInt(val)
-								if v == -1 || (v > 0 && v <= 10) {
-									return
-								}
-								errs = append(errs, fmt.Errorf("%q must be -1 if not being set or between 1 and 10 if it is being set, got: %d", key, v))
-								return warns, errs
+							Description: "The epoch time of the activation date.",
+							Computed:    true,
+						},
+						"activation_date_utc": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "The UTC time of the activation date.",
+							Computed:    true,
+						},
+						"expiration_date": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "The expiration date of the policy.",
+							Computed:    true,
+						},
+						"expiration_date_epoch": {
+							Type:        schema.TypeInt,
+							Optional:    true,
+							Description: "The epoch time of the expiration date.",
+							Computed:    true,
+						},
+						"expiration_date_utc": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "The UTC time of the expiration date.",
+						},
+						"no_execute_on": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}, false),
 							},
+							Description: "Client-side limitations are enforced based on the settings on computers. This field sets specific days when the policy should not execute.",
+							Computed:    true,
 						},
-						"notify_on_each_failed_retry": {
+						"no_execute_start": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Client-side limitations are enforced based on the settings on computers. This field sets the start time when the policy should not execute.",
+						},
+						"no_execute_end": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Client-side limitations are enforced based on the settings on computers. This field sets the end time when the policy should not execute.",
+						},
+					},
+				},
+			},
+			"network_limitations": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Network limitations for the policy.",
+				Computed:    true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"minimum_network_connection": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Description:  "Minimum network connection required for the policy.",
+							Default:      "No Minimum",
+							ValidateFunc: validation.StringInSlice([]string{"No Minimum", "Ethernet"}, false),
+						},
+						"any_ip_address": {
 							Type:        schema.TypeBool,
 							Optional:    true,
-							Description: "Send notifications for each failed policy retry attempt. ",
-							Default:     false,
+							Description: "Whether the policy applies to any IP address.",
+							Default:     true,
 						},
-						"location_user_only": {
-							Type:        schema.TypeBool,
+						"network_segments": {
+							Type:        schema.TypeString,
+							Description: "Network segment limitations for the policy.",
 							Optional:    true,
-							Description: "Location-based policy for user only.",
-							Default:     false,
 						},
+					},
+				},
+			},
+			"override_default_settings": {
+				Type:        schema.TypeList,
+				Required:    true,
+				Description: "Settings to override default configurations.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"target_drive": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "The drive on which to run the policy (e.g. /Volumes/Restore/ ). The policy runs on the boot drive by default",
+							Description: "The drive on which to run the policy (e.g. '/Volumes/Restore/'). Defaults to '/' if no value is defined, which is the root of the file system.",
 							Default:     "/",
 						},
-						"offline": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Make policy available offline by caching the policy to the macOS device to ensure it runs when Jamf Pro is unavailable. Only used when execution policy is set to 'ongoing'. ",
-							Default:     false,
-						},
-						"category": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							Description: "Category to add the policy to.",
-							Computed:    true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "The category ID assigned to the jamf pro policy. Defaults to '-1' aka not used.",
-										Default:     "-1",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "Category Name for assigned jamf pro policy. Value defaults to 'No category assigned' aka not used",
-										Default:     "No category assigned",
-									},
-								},
-							},
-						},
-						"date_time_limitations": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							Description: "Server-side limitations use your Jamf Pro host server's time zone and settings. The Jamf Pro host service is in UTC time.",
-							Computed:    true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"activation_date": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "The activation date of the policy.",
-										Computed:    true,
-									},
-									"activation_date_epoch": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "The epoch time of the activation date.",
-										Computed:    true,
-									},
-									"activation_date_utc": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "The UTC time of the activation date.",
-										Computed:    true,
-									},
-									"expiration_date": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "The expiration date of the policy.",
-										Computed:    true,
-									},
-									"expiration_date_epoch": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "The epoch time of the expiration date.",
-										Computed:    true,
-									},
-									"expiration_date_utc": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "The UTC time of the expiration date.",
-									},
-									"no_execute_on": {
-										Type:     schema.TypeSet,
-										Optional: true,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}, false),
-										},
-										Description: "Client-side limitations are enforced based on the settings on computers. This field sets specific days when the policy should not execute.",
-										Computed:    true,
-									},
-									"no_execute_start": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "Client-side limitations are enforced based on the settings on computers. This field sets the start time when the policy should not execute.",
-									},
-									"no_execute_end": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "Client-side limitations are enforced based on the settings on computers. This field sets the end time when the policy should not execute.",
-									},
-								},
-							},
-						},
-						"network_limitations": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							Description: "Network limitations for the policy.",
-							Computed:    true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"minimum_network_connection": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										Description:  "Minimum network connection required for the policy.",
-										Default:      "No Minimum",
-										ValidateFunc: validation.StringInSlice([]string{"No Minimum", "Ethernet"}, false),
-									},
-									"any_ip_address": {
-										Type:        schema.TypeBool,
-										Optional:    true,
-										Description: "Whether the policy applies to any IP address.",
-										Default:     true,
-									},
-									"network_segments": {
-										Type:        schema.TypeString,
-										Description: "Network segment limitations for the policy.",
-										Optional:    true,
-									},
-								},
-							},
-						},
-						"override_default_settings": {
-							Type:        schema.TypeList,
-							Required:    true,
-							Description: "Settings to override default configurations.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"target_drive": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "The drive on which to run the policy (e.g. '/Volumes/Restore/'). Defaults to '/' if no value is defined, which is the root of the file system.",
-										Default:     "/",
-									},
-									"distribution_point": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "Distribution point for the policy.",
-										Default:     "default",
-									},
-									"force_afp_smb": {
-										Type:        schema.TypeBool,
-										Optional:    true,
-										Description: "Whether to force AFP/SMB.",
-										Default:     false,
-									},
-									"sus": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "Software Update Service for the policy.",
-										Default:     "default",
-									},
-								},
-							},
-						},
-						"network_requirements": {
+						"distribution_point": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "Network requirements for the policy.",
-							Default:     "Any",
+							Description: "Distribution point for the policy.",
+							Default:     "default",
 						},
-						"site": {
-							Type:        schema.TypeList,
-							Required:    true,
-							Description: "Jamf Pro Site-related settings of the policy.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "Jamf Pro Site ID. Value defaults to -1 aka not used.",
-										Default:     -1,
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "Jamf Pro Site Name. Value defaults to 'None' aka not used",
-										Default:     "None",
-									},
-								},
-							},
+						"force_afp_smb": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Whether to force AFP/SMB.",
+							Default:     false,
+						},
+						"sus": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Software Update Service for the policy.",
+							Default:     "default",
+						},
+					},
+				},
+			},
+			"network_requirements": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Network requirements for the policy.",
+				Default:     "Any",
+			},
+			"site": {
+				Type:        schema.TypeList,
+				Required:    true,
+				Description: "Jamf Pro Site-related settings of the policy.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:        schema.TypeInt,
+							Optional:    true,
+							Description: "Jamf Pro Site ID. Value defaults to -1 aka not used.",
+							Default:     -1,
+						},
+						"name": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Jamf Pro Site Name. Value defaults to 'None' aka not used",
+							Default:     "None",
 						},
 					},
 				},
@@ -1720,9 +1711,3 @@ func ResourceJamfProPolicies() *schema.Resource {
 		},
 	}
 }
-
-// ResourceJamfProPoliciesCreate is responsible for reading the current state of a Jamf Pro policy from the remote system.
-// The function:
-// 1. Fetches the policies current state using its ID. If it fails then obtain profile's current state using its Name.
-// 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
-// 3. Handles any discrepancies, such as the profile being deleted outside of Terraform, to keep the Terraform state synchronized.

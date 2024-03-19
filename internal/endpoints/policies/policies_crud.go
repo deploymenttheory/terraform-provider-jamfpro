@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
@@ -12,28 +13,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// Constructs, creates states
 func ResourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Assert the meta interface to the expected APIClient type
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Initialize variables
 	var diags diag.Diagnostics
 
-	// Construct the policy object
 	resource, err := constructJamfProPolicy(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Policy: %v", err))
-	}
-
-	// Extract policy name from schema
-	var policyName string
-	if generalSettings, ok := d.GetOk("general"); ok && len(generalSettings.([]interface{})) > 0 {
-		generalMap := generalSettings.([]interface{})[0].(map[string]interface{})
-		policyName = generalMap["name"].(string)
 	}
 
 	// Retry the API call to create the policy in Jamf Pro
@@ -44,18 +36,15 @@ func ResourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, 
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
-		// No error, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Policy '%s' after retries: %v", policyName, err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Policy '%s' after retries: %v", resource.General.Name, err))
 	}
 
-	// Set the resource ID in Terraform state
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	// Read the policy to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProPoliciesRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
@@ -64,30 +53,23 @@ func ResourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, 
 	return diags
 }
 
-// ResourceJamfProPoliciesRead is responsible for reading the current state of a Jamf Pro policy Resource from the remote system.
-// The function:
-// 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
-// 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
-// 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
+// Reads and states
 func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	var policy *jamfpro.ResourcePolicy
+	var resp *jamfpro.ResourcePolicy
 
 	// Extract policy name from schema
 	var policyName string
@@ -99,18 +81,13 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 	// Use the retry function for the read operation
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		policy, apiErr = conn.GetPolicyByID(resourceIDInt)
+		resp, apiErr = conn.GetPolicyByID(resourceIDInt)
 		if apiErr != nil {
-			// If fetching by ID fails and policyName is available, try fetching by Name
-			if policyName != "" {
-				policy, apiErr = conn.GetPolicyByName(policyName)
+			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
+				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
 			}
-			if apiErr != nil {
-				// Consider retrying only if it's a retryable error
-				return retry.RetryableError(apiErr)
-			}
+			return retry.RetryableError(apiErr)
 		}
-		// Successfully fetched the policy, exit the retry loop
 		return nil
 	})
 
@@ -122,62 +99,62 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 	// Update the Terraform state with the fetched data
 	// Set 'general' attributes
 	generalAttributes := map[string]interface{}{
-		"id":                            policy.General.ID,
-		"name":                          policy.General.Name,
-		"enabled":                       policy.General.Enabled,
-		"trigger":                       policy.General.Trigger,
-		"trigger_checkin":               policy.General.TriggerCheckin,
-		"trigger_enrollment_complete":   policy.General.TriggerEnrollmentComplete,
-		"trigger_login":                 policy.General.TriggerLogin,
-		"trigger_logout":                policy.General.TriggerLogout,
-		"trigger_network_state_changed": policy.General.TriggerNetworkStateChanged,
-		"trigger_startup":               policy.General.TriggerStartup,
-		"trigger_other":                 policy.General.TriggerOther,
-		"frequency":                     policy.General.Frequency,
-		"retry_event":                   policy.General.RetryEvent,
-		"retry_attempts":                policy.General.RetryAttempts,
-		"notify_on_each_failed_retry":   policy.General.NotifyOnEachFailedRetry,
-		"location_user_only":            policy.General.LocationUserOnly,
-		"target_drive":                  policy.General.TargetDrive,
-		"offline":                       policy.General.Offline,
+		"id":                            resp.General.ID,
+		"name":                          resp.General.Name,
+		"enabled":                       resp.General.Enabled,
+		"trigger":                       resp.General.Trigger,
+		"trigger_checkin":               resp.General.TriggerCheckin,
+		"trigger_enrollment_complete":   resp.General.TriggerEnrollmentComplete,
+		"trigger_login":                 resp.General.TriggerLogin,
+		"trigger_logout":                resp.General.TriggerLogout,
+		"trigger_network_state_changed": resp.General.TriggerNetworkStateChanged,
+		"trigger_startup":               resp.General.TriggerStartup,
+		"trigger_other":                 resp.General.TriggerOther,
+		"frequency":                     resp.General.Frequency,
+		"retry_event":                   resp.General.RetryEvent,
+		"retry_attempts":                resp.General.RetryAttempts,
+		"notify_on_each_failed_retry":   resp.General.NotifyOnEachFailedRetry,
+		"location_user_only":            resp.General.LocationUserOnly,
+		"target_drive":                  resp.General.TargetDrive,
+		"offline":                       resp.General.Offline,
 		"category": []interface{}{map[string]interface{}{
-			"id":   policy.General.Category.ID,
-			"name": policy.General.Category.Name,
+			"id":   resp.General.Category.ID,
+			"name": resp.General.Category.Name,
 		}},
 		"date_time_limitations": []interface{}{
 			map[string]interface{}{
-				"activation_date":       policy.General.DateTimeLimitations.ActivationDate,
-				"activation_date_epoch": policy.General.DateTimeLimitations.ActivationDateEpoch,
-				"activation_date_utc":   policy.General.DateTimeLimitations.ActivationDateUTC,
-				"expiration_date":       policy.General.DateTimeLimitations.ExpirationDate,
-				"expiration_date_epoch": policy.General.DateTimeLimitations.ExpirationDateEpoch,
-				"expiration_date_utc":   policy.General.DateTimeLimitations.ExpirationDateUTC,
+				"activation_date":       resp.General.DateTimeLimitations.ActivationDate,
+				"activation_date_epoch": resp.General.DateTimeLimitations.ActivationDateEpoch,
+				"activation_date_utc":   resp.General.DateTimeLimitations.ActivationDateUTC,
+				"expiration_date":       resp.General.DateTimeLimitations.ExpirationDate,
+				"expiration_date_epoch": resp.General.DateTimeLimitations.ExpirationDateEpoch,
+				"expiration_date_utc":   resp.General.DateTimeLimitations.ExpirationDateUTC,
 				"no_execute_on": func() []interface{} {
-					noExecOnDays := make([]interface{}, len(policy.General.DateTimeLimitations.NoExecuteOn))
-					for i, noExecOn := range policy.General.DateTimeLimitations.NoExecuteOn {
+					noExecOnDays := make([]interface{}, len(resp.General.DateTimeLimitations.NoExecuteOn))
+					for i, noExecOn := range resp.General.DateTimeLimitations.NoExecuteOn {
 						noExecOnDays[i] = map[string]interface{}{"day": noExecOn.Day}
 					}
 					return noExecOnDays
 				}(),
-				"no_execute_start": policy.General.DateTimeLimitations.NoExecuteStart,
-				"no_execute_end":   policy.General.DateTimeLimitations.NoExecuteEnd,
+				"no_execute_start": resp.General.DateTimeLimitations.NoExecuteStart,
+				"no_execute_end":   resp.General.DateTimeLimitations.NoExecuteEnd,
 			},
 		},
 		"network_limitations": []interface{}{map[string]interface{}{
-			"minimum_network_connection": policy.General.NetworkLimitations.MinimumNetworkConnection,
-			"any_ip_address":             policy.General.NetworkLimitations.AnyIPAddress,
-			"network_segments":           policy.General.NetworkLimitations.NetworkSegments,
+			"minimum_network_connection": resp.General.NetworkLimitations.MinimumNetworkConnection,
+			"any_ip_address":             resp.General.NetworkLimitations.AnyIPAddress,
+			"network_segments":           resp.General.NetworkLimitations.NetworkSegments,
 		}},
 		"override_default_settings": []interface{}{map[string]interface{}{
-			"target_drive":       policy.General.OverrideDefaultSettings.TargetDrive,
-			"distribution_point": policy.General.OverrideDefaultSettings.DistributionPoint,
-			"force_afp_smb":      policy.General.OverrideDefaultSettings.ForceAfpSmb,
-			"sus":                policy.General.OverrideDefaultSettings.SUS,
+			"target_drive":       resp.General.OverrideDefaultSettings.TargetDrive,
+			"distribution_point": resp.General.OverrideDefaultSettings.DistributionPoint,
+			"force_afp_smb":      resp.General.OverrideDefaultSettings.ForceAfpSmb,
+			"sus":                resp.General.OverrideDefaultSettings.SUS,
 		}},
-		"network_requirements": policy.General.NetworkRequirements,
+		"network_requirements": resp.General.NetworkRequirements,
 		"site": []interface{}{map[string]interface{}{
-			"id":   policy.General.Site.ID,
-			"name": policy.General.Site.Name,
+			"id":   resp.General.Site.ID,
+			"name": resp.General.Site.Name,
 		}},
 	}
 
@@ -187,10 +164,10 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 
 	// Set 'scope' attributes
 	scopeAttributes := map[string]interface{}{
-		"all_computers": policy.Scope.AllComputers,
+		"all_computers": resp.Scope.AllComputers,
 		"computers": func() []interface{} {
-			computersInterfaces := make([]interface{}, len(policy.Scope.Computers))
-			for i, computer := range policy.Scope.Computers {
+			computersInterfaces := make([]interface{}, len(resp.Scope.Computers))
+			for i, computer := range resp.Scope.Computers {
 				computersInterfaces[i] = map[string]interface{}{
 					"id":   computer.ID,
 					"name": computer.Name,
@@ -200,8 +177,8 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 			return computersInterfaces
 		}(),
 		"computer_groups": func() []interface{} {
-			groupInterfaces := make([]interface{}, len(policy.Scope.ComputerGroups))
-			for i, group := range policy.Scope.ComputerGroups {
+			groupInterfaces := make([]interface{}, len(resp.Scope.ComputerGroups))
+			for i, group := range resp.Scope.ComputerGroups {
 				groupInterfaces[i] = map[string]interface{}{
 					"id":   group.ID,
 					"name": group.Name,
@@ -210,8 +187,8 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 			return groupInterfaces
 		}(),
 		"jss_users": func() []interface{} {
-			userInterfaces := make([]interface{}, len(policy.Scope.JSSUsers))
-			for i, user := range policy.Scope.JSSUsers {
+			userInterfaces := make([]interface{}, len(resp.Scope.JSSUsers))
+			for i, user := range resp.Scope.JSSUsers {
 				userInterfaces[i] = map[string]interface{}{
 					"id":   user.ID,
 					"name": user.Name,
@@ -220,8 +197,8 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 			return userInterfaces
 		}(),
 		"jss_user_groups": func() []interface{} {
-			userGroupInterfaces := make([]interface{}, len(policy.Scope.JSSUserGroups))
-			for i, group := range policy.Scope.JSSUserGroups {
+			userGroupInterfaces := make([]interface{}, len(resp.Scope.JSSUserGroups))
+			for i, group := range resp.Scope.JSSUserGroups {
 				userGroupInterfaces[i] = map[string]interface{}{
 					"id":   group.ID,
 					"name": group.Name,
@@ -230,8 +207,8 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 			return userGroupInterfaces
 		}(),
 		"buildings": func() []interface{} {
-			buildingInterfaces := make([]interface{}, len(policy.Scope.Buildings))
-			for i, building := range policy.Scope.Buildings {
+			buildingInterfaces := make([]interface{}, len(resp.Scope.Buildings))
+			for i, building := range resp.Scope.Buildings {
 				buildingInterfaces[i] = map[string]interface{}{
 					"id":   building.ID,
 					"name": building.Name,
@@ -240,8 +217,8 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 			return buildingInterfaces
 		}(),
 		"departments": func() []interface{} {
-			departmentInterfaces := make([]interface{}, len(policy.Scope.Departments))
-			for i, department := range policy.Scope.Departments {
+			departmentInterfaces := make([]interface{}, len(resp.Scope.Departments))
+			for i, department := range resp.Scope.Departments {
 				departmentInterfaces[i] = map[string]interface{}{
 					"id":   department.ID,
 					"name": department.Name,
@@ -254,8 +231,8 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 			limitationData := map[string]interface{}{}
 
 			// Network Segments
-			networkSegmentInterfaces := make([]interface{}, len(policy.Scope.Limitations.NetworkSegments))
-			for i, segment := range policy.Scope.Limitations.NetworkSegments {
+			networkSegmentInterfaces := make([]interface{}, len(resp.Scope.Limitations.NetworkSegments))
+			for i, segment := range resp.Scope.Limitations.NetworkSegments {
 				networkSegmentInterfaces[i] = map[string]interface{}{
 					"id":   segment.ID,
 					"name": segment.Name,
@@ -265,8 +242,8 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 			limitationData["network_segments"] = networkSegmentInterfaces
 
 			// Users
-			userInterfaces := make([]interface{}, len(policy.Scope.Limitations.Users))
-			for i, user := range policy.Scope.Limitations.Users {
+			userInterfaces := make([]interface{}, len(resp.Scope.Limitations.Users))
+			for i, user := range resp.Scope.Limitations.Users {
 				userInterfaces[i] = map[string]interface{}{
 					"id":   user.ID,
 					"name": user.Name,
@@ -275,8 +252,8 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 			limitationData["users"] = userInterfaces
 
 			// User Groups
-			userGroupInterfaces := make([]interface{}, len(policy.Scope.Limitations.UserGroups))
-			for i, group := range policy.Scope.Limitations.UserGroups {
+			userGroupInterfaces := make([]interface{}, len(resp.Scope.Limitations.UserGroups))
+			for i, group := range resp.Scope.Limitations.UserGroups {
 				userGroupInterfaces[i] = map[string]interface{}{
 					"id":   group.ID,
 					"name": group.Name,
@@ -285,8 +262,8 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 			limitationData["user_groups"] = userGroupInterfaces
 
 			// iBeacons
-			iBeaconInterfaces := make([]interface{}, len(policy.Scope.Limitations.IBeacons))
-			for i, beacon := range policy.Scope.Limitations.IBeacons {
+			iBeaconInterfaces := make([]interface{}, len(resp.Scope.Limitations.IBeacons))
+			for i, beacon := range resp.Scope.Limitations.IBeacons {
 				iBeaconInterfaces[i] = map[string]interface{}{
 					"id":   beacon.ID,
 					"name": beacon.Name,
@@ -302,8 +279,8 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 			exclusionsData := map[string]interface{}{}
 
 			// Computers
-			computerInterfaces := make([]interface{}, len(policy.Scope.Exclusions.Computers))
-			for i, computer := range policy.Scope.Exclusions.Computers {
+			computerInterfaces := make([]interface{}, len(resp.Scope.Exclusions.Computers))
+			for i, computer := range resp.Scope.Exclusions.Computers {
 				computerInterfaces[i] = map[string]interface{}{
 					"id":   computer.ID,
 					"name": computer.Name,
@@ -313,8 +290,8 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 			exclusionsData["computers"] = computerInterfaces
 
 			// Computer Groups
-			computerGroupInterfaces := make([]interface{}, len(policy.Scope.Exclusions.ComputerGroups))
-			for i, group := range policy.Scope.Exclusions.ComputerGroups {
+			computerGroupInterfaces := make([]interface{}, len(resp.Scope.Exclusions.ComputerGroups))
+			for i, group := range resp.Scope.Exclusions.ComputerGroups {
 				computerGroupInterfaces[i] = map[string]interface{}{
 					"id":   group.ID,
 					"name": group.Name,
@@ -323,8 +300,8 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 			exclusionsData["computer_groups"] = computerGroupInterfaces
 
 			// Users
-			userInterfaces := make([]interface{}, len(policy.Scope.Exclusions.Users))
-			for i, user := range policy.Scope.Exclusions.Users {
+			userInterfaces := make([]interface{}, len(resp.Scope.Exclusions.Users))
+			for i, user := range resp.Scope.Exclusions.Users {
 				userInterfaces[i] = map[string]interface{}{
 					"id":   user.ID,
 					"name": user.Name,
@@ -333,8 +310,8 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 			exclusionsData["users"] = userInterfaces
 
 			// User Groups
-			userGroupInterfaces := make([]interface{}, len(policy.Scope.Exclusions.UserGroups))
-			for i, group := range policy.Scope.Exclusions.UserGroups {
+			userGroupInterfaces := make([]interface{}, len(resp.Scope.Exclusions.UserGroups))
+			for i, group := range resp.Scope.Exclusions.UserGroups {
 				userGroupInterfaces[i] = map[string]interface{}{
 					"id":   group.ID,
 					"name": group.Name,
@@ -343,8 +320,8 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 			exclusionsData["user_groups"] = userGroupInterfaces
 
 			// Buildings
-			buildingInterfaces := make([]interface{}, len(policy.Scope.Exclusions.Buildings))
-			for i, building := range policy.Scope.Exclusions.Buildings {
+			buildingInterfaces := make([]interface{}, len(resp.Scope.Exclusions.Buildings))
+			for i, building := range resp.Scope.Exclusions.Buildings {
 				buildingInterfaces[i] = map[string]interface{}{
 					"id":   building.ID,
 					"name": building.Name,
@@ -353,8 +330,8 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 			exclusionsData["buildings"] = buildingInterfaces
 
 			// Departments
-			departmentInterfaces := make([]interface{}, len(policy.Scope.Exclusions.Departments))
-			for i, department := range policy.Scope.Exclusions.Departments {
+			departmentInterfaces := make([]interface{}, len(resp.Scope.Exclusions.Departments))
+			for i, department := range resp.Scope.Exclusions.Departments {
 				departmentInterfaces[i] = map[string]interface{}{
 					"id":   department.ID,
 					"name": department.Name,
@@ -363,8 +340,8 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 			exclusionsData["departments"] = departmentInterfaces
 
 			// Network Segments
-			networkSegmentInterfaces := make([]interface{}, len(policy.Scope.Exclusions.NetworkSegments))
-			for i, segment := range policy.Scope.Exclusions.NetworkSegments {
+			networkSegmentInterfaces := make([]interface{}, len(resp.Scope.Exclusions.NetworkSegments))
+			for i, segment := range resp.Scope.Exclusions.NetworkSegments {
 				networkSegmentInterfaces[i] = map[string]interface{}{
 					"id":   segment.ID,
 					"name": segment.Name,
@@ -374,8 +351,8 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 			exclusionsData["network_segments"] = networkSegmentInterfaces
 
 			// JSS Users
-			jssUserInterfaces := make([]interface{}, len(policy.Scope.Exclusions.JSSUsers))
-			for i, user := range policy.Scope.Exclusions.JSSUsers {
+			jssUserInterfaces := make([]interface{}, len(resp.Scope.Exclusions.JSSUsers))
+			for i, user := range resp.Scope.Exclusions.JSSUsers {
 				jssUserInterfaces[i] = map[string]interface{}{
 					"id":   user.ID,
 					"name": user.Name,
@@ -384,8 +361,8 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 			exclusionsData["jss_users"] = jssUserInterfaces
 
 			// JSS User Groups
-			jssUserGroupInterfaces := make([]interface{}, len(policy.Scope.Exclusions.JSSUserGroups))
-			for i, group := range policy.Scope.Exclusions.JSSUserGroups {
+			jssUserGroupInterfaces := make([]interface{}, len(resp.Scope.Exclusions.JSSUserGroups))
+			for i, group := range resp.Scope.Exclusions.JSSUserGroups {
 				jssUserGroupInterfaces[i] = map[string]interface{}{
 					"id":   group.ID,
 					"name": group.Name,
@@ -394,8 +371,8 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 			exclusionsData["jss_user_groups"] = jssUserGroupInterfaces
 
 			// IBeacons
-			iBeaconInterfaces := make([]interface{}, len(policy.Scope.Exclusions.IBeacons))
-			for i, beacon := range policy.Scope.Exclusions.IBeacons {
+			iBeaconInterfaces := make([]interface{}, len(resp.Scope.Exclusions.IBeacons))
+			for i, beacon := range resp.Scope.Exclusions.IBeacons {
 				iBeaconInterfaces[i] = map[string]interface{}{
 					"id":   beacon.ID,
 					"name": beacon.Name,
@@ -414,21 +391,21 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 
 	// Set 'self_service' attributes
 	selfServiceAttributes := map[string]interface{}{
-		"use_for_self_service":            policy.SelfService.UseForSelfService,
-		"self_service_display_name":       policy.SelfService.SelfServiceDisplayName,
-		"install_button_text":             policy.SelfService.InstallButtonText,
-		"reinstall_button_text":           policy.SelfService.ReinstallButtonText,
-		"self_service_description":        policy.SelfService.SelfServiceDescription,
-		"force_users_to_view_description": policy.SelfService.ForceUsersToViewDescription,
+		"use_for_self_service":            resp.SelfService.UseForSelfService,
+		"self_service_display_name":       resp.SelfService.SelfServiceDisplayName,
+		"install_button_text":             resp.SelfService.InstallButtonText,
+		"reinstall_button_text":           resp.SelfService.ReinstallButtonText,
+		"self_service_description":        resp.SelfService.SelfServiceDescription,
+		"force_users_to_view_description": resp.SelfService.ForceUsersToViewDescription,
 		"self_service_icon": []interface{}{map[string]interface{}{
-			"id":       policy.SelfService.SelfServiceIcon.ID,
-			"filename": policy.SelfService.SelfServiceIcon.Filename,
-			"uri":      policy.SelfService.SelfServiceIcon.URI,
+			"id":       resp.SelfService.SelfServiceIcon.ID,
+			"filename": resp.SelfService.SelfServiceIcon.Filename,
+			"uri":      resp.SelfService.SelfServiceIcon.URI,
 		}},
-		"feature_on_main_page": policy.SelfService.FeatureOnMainPage,
+		"feature_on_main_page": resp.SelfService.FeatureOnMainPage,
 		"self_service_categories": func() []interface{} {
-			categories := make([]interface{}, len(policy.SelfService.SelfServiceCategories))
-			for i, cat := range policy.SelfService.SelfServiceCategories {
+			categories := make([]interface{}, len(resp.SelfService.SelfServiceCategories))
+			for i, cat := range resp.SelfService.SelfServiceCategories {
 				categories[i] = map[string]interface{}{
 					"id":         cat.Category.ID,
 					"name":       cat.Category.Name,
@@ -444,9 +421,9 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Fetch the package configuration from the policy and set it in Terraform state
+	// Fetch the package configuration from the resp and set it in Terraform state
 	packageConfigurations := make([]interface{}, 0)
-	for _, packageItem := range policy.PackageConfiguration.Packages {
+	for _, packageItem := range resp.PackageConfiguration.Packages {
 		pkg := make(map[string]interface{})
 		pkg["id"] = packageItem.ID
 		pkg["name"] = packageItem.Name
@@ -467,9 +444,9 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	// Fetch the scripts from the policy and set them in Terraform state
+	// Fetch the scripts from the resp and set them in Terraform state
 	scriptConfigurations := make([]interface{}, 0)
-	for _, scriptItem := range policy.Scripts.Script {
+	for _, scriptItem := range resp.Scripts.Script {
 		script := make(map[string]interface{})
 		script["id"] = scriptItem.ID
 		script["name"] = scriptItem.Name
@@ -489,9 +466,9 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	// Fetch the printers from the policy and set them in Terraform state
+	// Fetch the printers from the resp and set them in Terraform state
 	printerConfigurations := make([]interface{}, 0)
-	for _, printerItem := range policy.Printers.Printer {
+	for _, printerItem := range resp.Printers.Printer {
 		printer := make(map[string]interface{})
 		printer["id"] = printerItem.ID
 		printer["name"] = printerItem.Name
@@ -502,16 +479,16 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 
 	if err := d.Set("printers", []interface{}{
 		map[string]interface{}{
-			"leave_existing_default": policy.Printers.LeaveExistingDefault,
+			"leave_existing_default": resp.Printers.LeaveExistingDefault,
 			"printer":                printerConfigurations,
 		},
 	}); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Fetch the dock items from the policy and set them in Terraform state
+	// Fetch the dock items from the resp and set them in Terraform state
 	dockItemConfigurations := make([]interface{}, 0)
-	for _, dockItem := range policy.DockItems.DockItem {
+	for _, dockItem := range resp.DockItems.DockItem {
 		dock := make(map[string]interface{})
 		dock["id"] = dockItem.ID
 		dock["name"] = dockItem.Name
@@ -527,14 +504,14 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	// Fetch the account maintenance data from the policy and set it in Terraform state
+	// Fetch the account maintenance data from the resp and set it in Terraform state
 	accountMaintenanceState := make(map[string]interface{})
 	accountMaintenanceState["accounts"] = []interface{}{}
 
 	// Add account data if present
-	if len(policy.AccountMaintenance.Accounts) > 0 {
-		accountsState := make([]interface{}, len(policy.AccountMaintenance.Accounts))
-		for i, account := range policy.AccountMaintenance.Accounts {
+	if len(resp.AccountMaintenance.Accounts) > 0 {
+		accountsState := make([]interface{}, len(resp.AccountMaintenance.Accounts))
+		for i, account := range resp.AccountMaintenance.Accounts {
 			accountMap := map[string]interface{}{
 				"action":                    account.Action,
 				"username":                  account.Username,
@@ -554,9 +531,9 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	// Add directory bindings data if present
-	if len(policy.AccountMaintenance.DirectoryBindings) > 0 {
-		bindingsState := make([]interface{}, len(policy.AccountMaintenance.DirectoryBindings))
-		for i, binding := range policy.AccountMaintenance.DirectoryBindings {
+	if len(resp.AccountMaintenance.DirectoryBindings) > 0 {
+		bindingsState := make([]interface{}, len(resp.AccountMaintenance.DirectoryBindings))
+		for i, binding := range resp.AccountMaintenance.DirectoryBindings {
 			bindingMap := map[string]interface{}{
 				"id":   binding.ID,
 				"name": binding.Name,
@@ -569,17 +546,17 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 	// Add management account data
 	accountMaintenanceState["management_account"] = []interface{}{
 		map[string]interface{}{
-			"action":                  policy.AccountMaintenance.ManagementAccount.Action,
-			"managed_password":        policy.AccountMaintenance.ManagementAccount.ManagedPassword,
-			"managed_password_length": policy.AccountMaintenance.ManagementAccount.ManagedPasswordLength,
+			"action":                  resp.AccountMaintenance.ManagementAccount.Action,
+			"managed_password":        resp.AccountMaintenance.ManagementAccount.ManagedPassword,
+			"managed_password_length": resp.AccountMaintenance.ManagementAccount.ManagedPasswordLength,
 		},
 	}
 
 	// Add open firmware/EFI password data
 	accountMaintenanceState["open_firmware_efi_password"] = []interface{}{
 		map[string]interface{}{
-			"of_mode":     policy.AccountMaintenance.OpenFirmwareEfiPassword.OfMode,
-			"of_password": policy.AccountMaintenance.OpenFirmwareEfiPassword.OfPassword,
+			"of_mode":     resp.AccountMaintenance.OpenFirmwareEfiPassword.OfMode,
+			"of_password": resp.AccountMaintenance.OpenFirmwareEfiPassword.OfPassword,
 		},
 	}
 
@@ -588,60 +565,60 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	// Fetch the reboot data from the policy and set it in Terraform state
+	// Fetch the reboot data from the resp and set it in Terraform state
 	rebootConfig := make(map[string]interface{})
-	rebootConfig["message"] = policy.Reboot.Message
-	rebootConfig["specify_startup"] = policy.Reboot.SpecifyStartup
-	rebootConfig["startup_disk"] = policy.Reboot.StartupDisk
-	rebootConfig["no_user_logged_in"] = policy.Reboot.NoUserLoggedIn
-	rebootConfig["user_logged_in"] = policy.Reboot.UserLoggedIn
-	rebootConfig["minutes_until_reboot"] = policy.Reboot.MinutesUntilReboot
-	rebootConfig["start_reboot_timer_immediately"] = policy.Reboot.StartRebootTimerImmediately
-	rebootConfig["file_vault_2_reboot"] = policy.Reboot.FileVault2Reboot
+	rebootConfig["message"] = resp.Reboot.Message
+	rebootConfig["specify_startup"] = resp.Reboot.SpecifyStartup
+	rebootConfig["startup_disk"] = resp.Reboot.StartupDisk
+	rebootConfig["no_user_logged_in"] = resp.Reboot.NoUserLoggedIn
+	rebootConfig["user_logged_in"] = resp.Reboot.UserLoggedIn
+	rebootConfig["minutes_until_reboot"] = resp.Reboot.MinutesUntilReboot
+	rebootConfig["start_reboot_timer_immediately"] = resp.Reboot.StartRebootTimerImmediately
+	rebootConfig["file_vault_2_reboot"] = resp.Reboot.FileVault2Reboot
 
 	if err := d.Set("reboot", []interface{}{rebootConfig}); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Fetch the maintenance data from the policy and set it in Terraform state
+	// Fetch the maintenance data from the resp and set it in Terraform state
 	maintenanceConfig := make(map[string]interface{})
-	maintenanceConfig["recon"] = policy.Maintenance.Recon
-	maintenanceConfig["reset_name"] = policy.Maintenance.ResetName
-	maintenanceConfig["install_all_cached_packages"] = policy.Maintenance.InstallAllCachedPackages
-	maintenanceConfig["heal"] = policy.Maintenance.Heal
-	maintenanceConfig["prebindings"] = policy.Maintenance.Prebindings
-	maintenanceConfig["permissions"] = policy.Maintenance.Permissions
-	maintenanceConfig["byhost"] = policy.Maintenance.Byhost
-	maintenanceConfig["system_cache"] = policy.Maintenance.SystemCache
-	maintenanceConfig["user_cache"] = policy.Maintenance.UserCache
-	maintenanceConfig["verify"] = policy.Maintenance.Verify
+	maintenanceConfig["recon"] = resp.Maintenance.Recon
+	maintenanceConfig["reset_name"] = resp.Maintenance.ResetName
+	maintenanceConfig["install_all_cached_packages"] = resp.Maintenance.InstallAllCachedPackages
+	maintenanceConfig["heal"] = resp.Maintenance.Heal
+	maintenanceConfig["prebindings"] = resp.Maintenance.Prebindings
+	maintenanceConfig["permissions"] = resp.Maintenance.Permissions
+	maintenanceConfig["byhost"] = resp.Maintenance.Byhost
+	maintenanceConfig["system_cache"] = resp.Maintenance.SystemCache
+	maintenanceConfig["user_cache"] = resp.Maintenance.UserCache
+	maintenanceConfig["verify"] = resp.Maintenance.Verify
 
 	if err := d.Set("maintenance", []interface{}{maintenanceConfig}); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Fetch the files and processes data from the policy and set it in Terraform state
+	// Fetch the files and processes data from the resp and set it in Terraform state
 	filesProcessesConfig := make(map[string]interface{})
-	filesProcessesConfig["search_by_path"] = policy.FilesProcesses.SearchByPath
-	filesProcessesConfig["delete_file"] = policy.FilesProcesses.DeleteFile
-	filesProcessesConfig["locate_file"] = policy.FilesProcesses.LocateFile
-	filesProcessesConfig["update_locate_database"] = policy.FilesProcesses.UpdateLocateDatabase
-	filesProcessesConfig["spotlight_search"] = policy.FilesProcesses.SpotlightSearch
-	filesProcessesConfig["search_for_process"] = policy.FilesProcesses.SearchForProcess
-	filesProcessesConfig["kill_process"] = policy.FilesProcesses.KillProcess
-	filesProcessesConfig["run_command"] = policy.FilesProcesses.RunCommand
+	filesProcessesConfig["search_by_path"] = resp.FilesProcesses.SearchByPath
+	filesProcessesConfig["delete_file"] = resp.FilesProcesses.DeleteFile
+	filesProcessesConfig["locate_file"] = resp.FilesProcesses.LocateFile
+	filesProcessesConfig["update_locate_database"] = resp.FilesProcesses.UpdateLocateDatabase
+	filesProcessesConfig["spotlight_search"] = resp.FilesProcesses.SpotlightSearch
+	filesProcessesConfig["search_for_process"] = resp.FilesProcesses.SearchForProcess
+	filesProcessesConfig["kill_process"] = resp.FilesProcesses.KillProcess
+	filesProcessesConfig["run_command"] = resp.FilesProcesses.RunCommand
 
 	if err := d.Set("files_processes", []interface{}{filesProcessesConfig}); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Fetch the user interaction data from the policy and set it in Terraform state
+	// Fetch the user interaction data from the resp and set it in Terraform state
 	userInteractionConfig := make(map[string]interface{})
-	userInteractionConfig["message_start"] = policy.UserInteraction.MessageStart
-	userInteractionConfig["allow_user_to_defer"] = policy.UserInteraction.AllowUserToDefer
-	userInteractionConfig["allow_deferral_until_utc"] = policy.UserInteraction.AllowDeferralUntilUtc
-	userInteractionConfig["allow_deferral_minutes"] = policy.UserInteraction.AllowDeferralMinutes
-	userInteractionConfig["message_finish"] = policy.UserInteraction.MessageFinish
+	userInteractionConfig["message_start"] = resp.UserInteraction.MessageStart
+	userInteractionConfig["allow_user_to_defer"] = resp.UserInteraction.AllowUserToDefer
+	userInteractionConfig["allow_deferral_until_utc"] = resp.UserInteraction.AllowDeferralUntilUtc
+	userInteractionConfig["allow_deferral_minutes"] = resp.UserInteraction.AllowDeferralMinutes
+	userInteractionConfig["message_finish"] = resp.UserInteraction.MessageFinish
 
 	if err := d.Set("user_interaction", []interface{}{userInteractionConfig}); err != nil {
 		return diag.FromErr(err)
@@ -649,11 +626,11 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 
 	// Fetch the disk encryption data from the policy and set it in Terraform state
 	diskEncryptionConfig := make(map[string]interface{})
-	diskEncryptionConfig["action"] = policy.DiskEncryption.Action
-	diskEncryptionConfig["disk_encryption_configuration_id"] = policy.DiskEncryption.DiskEncryptionConfigurationID
-	diskEncryptionConfig["auth_restart"] = policy.DiskEncryption.AuthRestart
-	diskEncryptionConfig["remediate_key_type"] = policy.DiskEncryption.RemediateKeyType
-	diskEncryptionConfig["remediate_disk_encryption_configuration_id"] = policy.DiskEncryption.RemediateDiskEncryptionConfigurationID
+	diskEncryptionConfig["action"] = resp.DiskEncryption.Action
+	diskEncryptionConfig["disk_encryption_configuration_id"] = resp.DiskEncryption.DiskEncryptionConfigurationID
+	diskEncryptionConfig["auth_restart"] = resp.DiskEncryption.AuthRestart
+	diskEncryptionConfig["remediate_key_type"] = resp.DiskEncryption.RemediateKeyType
+	diskEncryptionConfig["remediate_disk_encryption_configuration_id"] = resp.DiskEncryption.RemediateDiskEncryptionConfigurationID
 
 	if err := d.Set("disk_encryption", []interface{}{diskEncryptionConfig}); err != nil {
 		return diag.FromErr(err)
@@ -662,43 +639,30 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 	return diags
 }
 
-// ResourceJamfProPoliciesUpdate is responsible for updating an existing Jamf Pro policy on the remote system.
+// Constructs, updates and reads
 func ResourceJamfProPoliciesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
-
-	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
+
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	// Extract policy name from schema
-	var policyName string
-	if generalSettings, ok := d.GetOk("general"); ok && len(generalSettings.([]interface{})) > 0 {
-		generalMap := generalSettings.([]interface{})[0].(map[string]interface{})
-		policyName = generalMap["name"].(string)
-	}
-
-	// Construct the resource object
 	resource, err := constructJamfProPolicy(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Policy for update: %v", err))
 	}
 
-	// Update operations with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		_, apiErr := conn.UpdatePolicyByID(resourceIDInt, resource)
 		if apiErr != nil {
-			// If updating by ID fails, attempt to update by Name
 			return retry.RetryableError(apiErr)
 		}
 		// Successfully updated the resource, exit the retry loop
@@ -706,7 +670,7 @@ func ResourceJamfProPoliciesUpdate(ctx context.Context, d *schema.ResourceData, 
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Policy '%s' (ID: %d) after retries: %v", policyName, resourceIDInt, err))
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Policy '%s' (ID: %d) after retries: %v", resource.General.Name, resourceIDInt, err))
 	}
 
 	// Read the resource to ensure the Terraform state is up to date
@@ -718,26 +682,22 @@ func ResourceJamfProPoliciesUpdate(ctx context.Context, d *schema.ResourceData, 
 	return diags
 }
 
-// ResourceJamfProPoliciesDelete is responsible for deleting a Jamf Pro policy.
+// Deletes and removes from state
 func ResourceJamfProPoliciesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 	conn := apiclient.Conn
 
-	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	// Extract policy name for error reporting
 	generalSettings := d.Get("general").([]interface{})
 	generalMap := generalSettings[0].(map[string]interface{})
 	resourceName := generalMap["name"].(string)
@@ -758,12 +718,10 @@ func ResourceJamfProPoliciesDelete(ctx context.Context, d *schema.ResourceData, 
 		return nil
 	})
 
-	// Handle error from the retry function
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro policy '%s' (ID: %s) after retries: %v", resourceName, d.Id(), err))
 	}
 
-	// Clear the ID from the Terraform state as the resource has been deleted
 	d.SetId("")
 
 	return diags
