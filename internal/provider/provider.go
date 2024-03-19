@@ -136,13 +136,6 @@ func Provider() *schema.Provider {
 				Default:     true,
 				Description: "Define whether sensitive fields should be hidden in logs. Default to hiding sensitive data in logs",
 			},
-			"read_wait_timeout": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Default:      3,
-				Description:  "This is the wait timeout in seconds to allow jamf pro resources to exist before reading the field attributes into state. Defaults to 3 seconds.",
-				ValidateFunc: validation.IntAtLeast(1),
-			},
 			"max_retry_attempts": {
 				Type:        schema.TypeInt,
 				Optional:    true,
@@ -295,7 +288,7 @@ func Provider() *schema.Provider {
 				MaxRetryAttempts:          d.Get("max_retry_attempts").(int),
 				EnableDynamicRateLimiting: d.Get("enable_dynamic_rate_limiting").(bool),
 				MaxConcurrentRequests:     d.Get("max_concurrent_requests").(int),
-				TokenRefreshBufferPeriod:  time.Duration(d.Get("token_refresh_buffer_period").(int)) * time.Minute, // Note the change to time.Minute
+				TokenRefreshBufferPeriod:  time.Duration(d.Get("token_refresh_buffer_period").(int)) * time.Minute,
 				TotalRetryDuration:        time.Duration(d.Get("total_retry_duration").(int)) * time.Second,
 				CustomTimeout:             time.Duration(d.Get("custom_timeout").(int)) * time.Second,
 			},
