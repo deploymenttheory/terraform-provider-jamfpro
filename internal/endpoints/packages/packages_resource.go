@@ -47,10 +47,10 @@ func ResourceJamfProPackages() *schema.Resource {
 				Computed:    true,
 				Description: "The URI of the package in the Jamf Cloud Distribution Service (JCDS).",
 			},
-			"file_hash": {
+			"md5_file_hash": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "SHA-3-256 hash of the package file for integrity comparison.",
+				Description: "md5 file hash of the package file for integrity comparison.",
 			},
 			"package_file_path": {
 				Type:        schema.TypeString,
@@ -199,7 +199,7 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 
 	// After file upload generate the file hash
 	fullPath := d.Get("package_file_path").(string)
-	fileHash, err := generateFileHash(fullPath)
+	fileHash, err := generateMD5FileHash(fullPath)
 	if err != nil {
 		// Handle error, return diagnostic message
 		return diag.FromErr(fmt.Errorf("failed to generate file hash for %s: %v", fullPath, err))
@@ -227,16 +227,9 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := d.Set("file_hash", fileHash); err != nil {
+	if err := d.Set("md5_file_hash", fileHash); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-
-	// // Wait for the package to become available
-	// packageName := d.Get("name").(string)
-	// // err = waitForPackageAvailability(ctx, conn, packageName, d.Timeout(schema.TimeoutCreate))
-	// // if err != nil {
-	// // 	return diag.FromErr(fmt.Errorf("error waiting for package '%s' to become available: %v", packageName, err))
-	// // }
 
 	// Read the site to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProPackagesRead(ctx, d, meta)
@@ -346,13 +339,13 @@ func ResourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, 
 	if d.HasChange("package_file_path") {
 		// Step 1: Calculate the new file hash
 		filePath := d.Get("package_file_path").(string)
-		newFileHash, err := generateFileHash(filePath)
+		newFileHash, err := generateMD5FileHash(filePath)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to generate file hash for %s: %v", filePath, err))
 		}
 
 		// Step 2: Compare the new file hash with the old one
-		oldFileHash, _ := d.GetChange("file_hash")
+		oldFileHash, _ := d.GetChange("md5_file_hash")
 		if newFileHash != oldFileHash.(string) {
 			// The file has changed, upload it
 			fileUploadResponse, err := conn.CreateJCDS2PackageV2(filePath)
@@ -360,9 +353,9 @@ func ResourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, 
 				return diag.FromErr(fmt.Errorf("failed to upload file to JCDS 2.0 with file path '%s': %v", filePath, err))
 			}
 
-			// Update the package_uri and file_hash in Terraform state
+			// Update the package_uri and md5_file_hash in Terraform state
 			d.Set("package_uri", fileUploadResponse.URI)
-			d.Set("file_hash", newFileHash)
+			d.Set("md5_file_hash", newFileHash)
 			d.Set("filename", filepath.Base(filePath))
 		}
 	}
