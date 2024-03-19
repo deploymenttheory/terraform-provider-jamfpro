@@ -217,7 +217,7 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 		}
 
 		// Update the Terraform state with the fetched data
-		scriptData := map[string]interface{}{
+		stateData := map[string]interface{}{
 			"id":              resource.ID,
 			"name":            resource.Name,
 			"category_name":   resource.CategoryName,
@@ -238,7 +238,7 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 		}
 
 		// Iterate over the map and set each key-value pair in the Terraform state
-		for key, val := range scriptData {
+		for key, val := range stateData {
 			if err := d.Set(key, val); err != nil {
 				return diag.FromErr(err)
 			}

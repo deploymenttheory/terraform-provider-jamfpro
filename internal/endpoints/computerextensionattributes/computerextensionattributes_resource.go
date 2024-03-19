@@ -195,30 +195,30 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 
 	// Proceed with setting the resource state using the resource returned from the helper, if not nil
 	if retry != nil {
-		res, ok := retry.(*jamfpro.ResourceComputerExtensionAttribute)
+		resource, ok := retry.(*jamfpro.ResourceComputerExtensionAttribute)
 		if !ok {
 			return diag.Errorf("expected resource type *jamfpro.ResourceComputerExtensionAttribute, got %T", retry)
 		}
 
 		// Update the Terraform state with the fetched data
-		extensionAttributeData := map[string]interface{}{
-			"name":              res.Name,
-			"enabled":           res.Enabled,
-			"description":       res.Description,
-			"data_type":         res.DataType,
-			"inventory_display": res.InventoryDisplay,
-			"recon_display":     res.ReconDisplay,
+		stateData := map[string]interface{}{
+			"name":              resource.Name,
+			"enabled":           resource.Enabled,
+			"description":       resource.Description,
+			"data_type":         resource.DataType,
+			"inventory_display": resource.InventoryDisplay,
+			"recon_display":     resource.ReconDisplay,
 			"input_type": []interface{}{
 				map[string]interface{}{
-					"type":     res.InputType.Type,
-					"platform": res.InputType.Platform,
-					"script":   res.InputType.Script,
-					"choices":  res.InputType.Choices,
+					"type":     resource.InputType.Type,
+					"platform": resource.InputType.Platform,
+					"script":   resource.InputType.Script,
+					"choices":  resource.InputType.Choices,
 				},
 			},
 		}
 
-		for key, val := range extensionAttributeData {
+		for key, val := range stateData {
 			if err := d.Set(key, val); err != nil {
 				return diag.FromErr(err)
 			}
