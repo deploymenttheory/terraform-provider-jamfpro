@@ -155,7 +155,15 @@ func ResourceJamfProPrintersCreate(ctx context.Context, d *schema.ResourceData, 
 
 	// Wait for the resource to be fully available before reading it
 	checkResourceExists := func(id interface{}) (interface{}, error) {
-		return apiclient.Conn.GetPrinterByID(id.(string))
+		// Convert the string ID to an integer
+		intID, err := strconv.Atoi(id.(string))
+		if err != nil {
+			// Return an error if the conversion fails
+			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
+		}
+
+		// Now you can safely pass an integer to GetPrinterByID
+		return apiclient.Conn.GetPrinterByID(intID)
 	}
 
 	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, strconv.Itoa(creationResponse.ID), checkResourceExists)
