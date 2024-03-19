@@ -136,6 +136,13 @@ func Provider() *schema.Provider {
 				Default:     true,
 				Description: "Define whether sensitive fields should be hidden in logs. Default to hiding sensitive data in logs",
 			},
+			"read_wait_timeout": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      3,
+				Description:  "This is the wait timeout in seconds to allow jamf pro resources to exist before reading the field attributes into state. Defaults to 3 seconds.",
+				ValidateFunc: validation.IntAtLeast(1),
+			},
 			"max_retry_attempts": {
 				Type:        schema.TypeInt,
 				Optional:    true,
