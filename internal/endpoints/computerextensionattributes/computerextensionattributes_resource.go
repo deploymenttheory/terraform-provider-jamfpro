@@ -9,6 +9,7 @@ import (
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/retryfetch"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -182,12 +183,12 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 	}
 
 	// Wrap the specific API call in a function that matches the APICallFunc signature
-	apiCall := func(id int) (interface{}, error) {
+	Resource := func(id int) (interface{}, error) {
 		return apiclient.Conn.GetComputerExtensionAttributeByID(id)
 	}
 
-	// Use the retryAPIReadCall helper function with context
-	resource, diags := retryAPIReadCall(ctx, d, resourceIDInt, apiCall)
+	// Use the retryfetch helper function with context
+	resource, diags := retryfetch.ByIntID(ctx, d, resourceIDInt, Resource)
 	if diags.HasError() {
 		return diags
 	}
@@ -196,7 +197,7 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 	if resource != nil {
 		res, ok := resource.(*jamfpro.ResourceComputerExtensionAttribute)
 		if !ok {
-			return diag.Errorf("error asserting resource type after retrieval")
+			return diag.Errorf("expected resource type *jamfpro.ResourceComputerExtensionAttribute, got %T", resource)
 		}
 
 		// Update the Terraform state with the fetched data
