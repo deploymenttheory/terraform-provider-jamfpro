@@ -5,11 +5,11 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/retryfetch"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -172,96 +172,59 @@ func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, me
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
-	var diags diag.Diagnostics
 	resourceID := d.Id()
-
-	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	var resource *jamfpro.ResourcePrinter
+	// Define the specific API call wrapped in a function matching the APICallFuncString signature from the retryfetch package
+	getResource := func(id string) (interface{}, error) {
+		return apiclient.Conn.GetPrinterByID(resourceIDInt)
+	}
 
-	// Read operation with retry
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
-		resource, apiErr = conn.GetPrinterByID(resourceIDInt)
-		if apiErr != nil {
-			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
-				// Resource not found or gone, remove from Terraform state
-				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
+	// Use the retryfetch helper function with context
+	retry, diags := retryfetch.ByResourceStringID(ctx, d, resourceID, getResource)
+	if diags.HasError() {
+		return diags
+	}
+
+	// Check if the returned resource from retry is not nil before proceeding
+	if retry != nil {
+		resource, ok := retry.(*jamfpro.ResourcePrinter)
+		if !ok {
+			return diag.Errorf("expected resource type *jamfpro.ResourcePrinter, got %T", retry)
+		}
+
+		// Update the Terraform state with the fetched data
+		stateData := map[string]interface{}{
+			"id":           strconv.Itoa(resource.ID),
+			"name":         resource.Name,
+			"category":     resource.Category,
+			"uri":          resource.URI,
+			"cups_name":    resource.CUPSName,
+			"location":     resource.Location,
+			"model":        resource.Model,
+			"info":         resource.Info,
+			"notes":        resource.Notes,
+			"make_default": resource.MakeDefault,
+			"use_generic":  resource.UseGeneric,
+			"ppd":          resource.PPD,
+			"ppd_path":     resource.PPDPath,
+			"ppd_contents": resource.PPDContents,
+		}
+
+		// Iterate over the map and set each key-value pair in the Terraform state
+		for key, val := range stateData {
+			if err := d.Set(key, val); err != nil {
+				return diag.FromErr(err)
 			}
-			// Convert any other API error into a retryable error to continue retrying
-			return retry.RetryableError(apiErr)
 		}
-		// Successfully read the resource, exit the retry loop
-		return nil
-	})
-
-	if err != nil {
-		if strings.Contains(err.Error(), "resource not found, marked for deletion") {
-			d.SetId("") // Remove from Terraform state
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "Resource not found or gone",
-				Detail:   fmt.Sprintf("Jamf Pro Script with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
-			})
-			return diags
-		}
-		// Handle the final error after all retries have been exhausted
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Printer with ID '%s' after retries: %v", resourceID, err))
-	}
-
-	// Set individual attributes in the Terraform state with error handling
-	if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("name", resource.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("category", resource.Category); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("uri", resource.URI); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("cups_name", resource.CUPSName); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("location", resource.Location); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("model", resource.Model); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("info", resource.Info); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("notes", resource.Notes); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("make_default", resource.MakeDefault); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("use_generic", resource.UseGeneric); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("ppd", resource.PPD); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("ppd_path", resource.PPDPath); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("ppd_contents", resource.PPDContents); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	return diags
-
 }
 
 // ResourceJamfProPrintersUpdate is responsible for updating an existing Jamf Pro Printer on the remote system.

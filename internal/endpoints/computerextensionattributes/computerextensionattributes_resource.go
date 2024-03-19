@@ -5,11 +5,11 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/retryfetch"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -174,63 +174,40 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
-	var diags diag.Diagnostics
 	resourceID := d.Id()
-
-	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	var resource *jamfpro.ResourceComputerExtensionAttribute
-
-	// Read operation with retry
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
-		resource, apiErr = conn.GetComputerExtensionAttributeByID(resourceIDInt)
-		if apiErr != nil {
-			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
-				// Return non-retryable error with a message to avoid SDK issues
-				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
-			}
-			// Retry for other types of errors
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	// If err is not nil, check if it's due to the resource being not found
-	if err != nil {
-		if err.Error() == "resource not found, marked for deletion" {
-			// Resource not found, remove from Terraform state
-			d.SetId("")
-			// Append a warning diagnostic and return
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "Resource not found",
-				Detail:   fmt.Sprintf("Jamf Pro Computer Group with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
-			})
-			return diags
-		}
-
-		// For other errors, return an error diagnostic
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Computer Group with ID '%s' after retries: %v", resourceID, err))
+	// Wrap the specific API call in a function that matches the APICallFunc signature
+	getResource := func(id int) (interface{}, error) {
+		return apiclient.Conn.GetComputerExtensionAttributeByID(id)
 	}
 
-	// Update the Terraform state with the fetched data
-	if resource != nil {
-		extenstionAttributeData := map[string]interface{}{
+	// Use the retryfetch helper function with context
+	retry, diags := retryfetch.ByResourceIntID(ctx, d, resourceIDInt, getResource)
+	if diags.HasError() {
+		return diags
+	}
+
+	// Proceed with setting the resource state using the resource returned from the helper, if not nil
+	if retry != nil {
+		resource, ok := retry.(*jamfpro.ResourceComputerExtensionAttribute)
+		if !ok {
+			return diag.Errorf("expected resource type *jamfpro.ResourceComputerExtensionAttribute, got %T", retry)
+		}
+
+		// Update the Terraform state with the fetched data
+		stateData := map[string]interface{}{
 			"name":              resource.Name,
 			"enabled":           resource.Enabled,
 			"description":       resource.Description,
 			"data_type":         resource.DataType,
 			"inventory_display": resource.InventoryDisplay,
 			"recon_display":     resource.ReconDisplay,
-			// Handle the input type details
 			"input_type": []interface{}{
 				map[string]interface{}{
 					"type":     resource.InputType.Type,
@@ -241,16 +218,14 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 			},
 		}
 
-		// Set the attribute data in the Terraform state
-		for key, val := range extenstionAttributeData {
+		for key, val := range stateData {
 			if err := d.Set(key, val); err != nil {
-				diags = append(diags, diag.FromErr(err)...)
+				return diag.FromErr(err)
 			}
 		}
 	}
 
 	return diags
-
 }
 
 // ResourceJamfProComputerExtensionAttributesUpdate is responsible for updating an existing Jamf Pro Computer Extension Attribute on the remote system.
