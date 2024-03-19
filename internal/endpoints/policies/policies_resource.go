@@ -40,17 +40,17 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Required:    true,
 				Description: "Define whether the policy is enabled.",
 			},
-			"trigger": {
-				Type:         schema.TypeString,
-				Required:     true,
-				Description:  "Event(s) triggers to use to initiate the policy. Values can be 'USER_INITIATED' for self self trigger and 'EVENT' for an event based trigger",
-				ValidateFunc: validation.StringInSlice([]string{"EVENT", "USER_INITIATED"}, false),
-			},
+			// "trigger": { // NOTE appears to be redundant when used with the below
+			// 	Type:         schema.TypeString,
+			// 	Required:     true,
+			// 	Description:  "Event(s) triggers to use to initiate the policy. Values can be 'USER_INITIATED' for self self trigger and 'EVENT' for an event based trigger",
+			// 	ValidateFunc: validation.StringInSlice([]string{"EVENT", "USER_INITIATED"}, false),
+			// },
 			"trigger_checkin": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Trigger policy when device performs recurring check-in against the frequency configured in Jamf Pro",
 				Default:     false,
+				Description: "Trigger policy when device performs recurring check-in against the frequency configured in Jamf Pro",
 			},
 			"trigger_enrollment_complete": {
 				Type:        schema.TypeBool,
@@ -64,12 +64,12 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Description: "Trigger policy when a user logs in to a computer. A login event that checks for policies must be configured in Jamf Pro for this to work",
 				Default:     false,
 			},
-			"trigger_logout": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Description: "Trigger policy when a user logout.",
-				Default:     false,
-			},
+			// "trigger_logout": { // NOTE appears to be redundant
+			// 	Type:        schema.TypeBool,
+			// 	Optional:    true,
+			// 	Description: "Trigger policy when a user logout.",
+			// 	Default:     false,
+			// },
 			"trigger_network_state_changed": {
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -134,12 +134,12 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Description: "Send notifications for each failed policy retry attempt. ",
 				Default:     false,
 			},
-			"location_user_only": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Description: "Location-based policy for user only.",
-				Default:     false,
-			},
+			// "location_user_only": { // NOTE Can't find in GUI
+			// 	Type:        schema.TypeBool,
+			// 	Optional:    true,
+			// 	Description: "Location-based policy for user only.",
+			// 	Default:     false,
+			// },
 			"target_drive": {
 				Type:        schema.TypeString,
 				Optional:    true,
