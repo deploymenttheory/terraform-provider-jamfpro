@@ -183,21 +183,21 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 	}
 
 	// Wrap the specific API call in a function that matches the APICallFunc signature
-	Resource := func(id int) (interface{}, error) {
+	getResource := func(id int) (interface{}, error) {
 		return apiclient.Conn.GetComputerExtensionAttributeByID(id)
 	}
 
 	// Use the retryfetch helper function with context
-	resource, diags := retryfetch.ByIntID(ctx, d, resourceIDInt, Resource)
+	retry, diags := retryfetch.ByIntID(ctx, d, resourceIDInt, getResource)
 	if diags.HasError() {
 		return diags
 	}
 
 	// Proceed with setting the resource state using the resource returned from the helper, if not nil
-	if resource != nil {
-		res, ok := resource.(*jamfpro.ResourceComputerExtensionAttribute)
+	if retry != nil {
+		res, ok := retry.(*jamfpro.ResourceComputerExtensionAttribute)
 		if !ok {
-			return diag.Errorf("expected resource type *jamfpro.ResourceComputerExtensionAttribute, got %T", resource)
+			return diag.Errorf("expected resource type *jamfpro.ResourceComputerExtensionAttribute, got %T", retry)
 		}
 
 		// Update the Terraform state with the fetched data

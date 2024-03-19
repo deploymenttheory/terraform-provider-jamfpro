@@ -4,11 +4,11 @@ package scripts
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/retryfetch"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -194,110 +194,55 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
-	conn := apiclient.Conn
 
-	// Initialize variables
-	var diags diag.Diagnostics
+	// Use the script ID from Terraform's data schema as the resource identifier
 	resourceID := d.Id()
 
-	// Read operation with retry
-	var resource *jamfpro.ResourceScript
+	// Define the specific API call wrapped in a function matching the APICallFuncString signature from the retryfetch package
+	getResource := func(id string) (interface{}, error) {
+		return apiclient.Conn.GetScriptByID(id)
+	}
 
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
-		resource, apiErr = conn.GetScriptByID(resourceID)
-		if apiErr != nil {
-			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
-				// Resource not found or gone, remove from Terraform state
-				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
+	// Use the retryfetch helper function with context
+	retry, diags := retryfetch.ByStringID(ctx, d, resourceID, getResource)
+	if diags.HasError() {
+		return diags
+	}
+
+	// Check if the returned resource from retry is not nil before proceeding
+	if retry != nil {
+		resource, ok := retry.(*jamfpro.ResourceScript)
+		if !ok {
+			return diag.Errorf("expected resource type *jamfpro.ResourceScript, got %T", retry)
+		}
+
+		// Update the Terraform state with the fetched data
+		scriptData := map[string]interface{}{
+			"id":              resource.ID,
+			"name":            resource.Name,
+			"category_name":   resource.CategoryName,
+			"category_id":     resource.CategoryId,
+			"info":            resource.Info,
+			"notes":           resource.Notes,
+			"os_requirements": resource.OSRequirements,
+			"priority":        resource.Priority,
+			"script_contents": resource.ScriptContents,
+			"parameter4":      resource.Parameter4,
+			"parameter5":      resource.Parameter5,
+			"parameter6":      resource.Parameter6,
+			"parameter7":      resource.Parameter7,
+			"parameter8":      resource.Parameter8,
+			"parameter9":      resource.Parameter9,
+			"parameter10":     resource.Parameter10,
+			"parameter11":     resource.Parameter11,
+		}
+
+		// Iterate over the map and set each key-value pair in the Terraform state
+		for key, val := range scriptData {
+			if err := d.Set(key, val); err != nil {
+				return diag.FromErr(err)
 			}
-			// Convert any other API error into a retryable error to continue retrying
-			return retry.RetryableError(apiErr)
 		}
-		// Successfully read the resource, exit the retry loop
-		return nil
-	})
-
-	if err != nil {
-		if strings.Contains(err.Error(), "resource not found, marked for deletion") {
-			d.SetId("") // Remove from Terraform state
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "Resource not found or gone",
-				Detail:   fmt.Sprintf("Jamf Pro Script with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
-			})
-			return diags
-		}
-		// Handle the final error after all retries have been exhausted
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Script with ID '%s' after retries: %v", resourceID, err))
-	}
-
-	// Update Terraform state with the resource information
-	if err := d.Set("id", resource.ID); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := d.Set("name", resource.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := d.Set("category_name", resource.CategoryName); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := d.Set("category_id", resource.CategoryId); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := d.Set("info", resource.Info); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := d.Set("notes", resource.Notes); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := d.Set("os_requirements", resource.OSRequirements); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := d.Set("priority", resource.Priority); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("script_contents", resource.ScriptContents); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := d.Set("parameter4", resource.Parameter4); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := d.Set("parameter5", resource.Parameter5); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := d.Set("parameter6", resource.Parameter6); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := d.Set("parameter7", resource.Parameter7); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := d.Set("parameter8", resource.Parameter8); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := d.Set("parameter9", resource.Parameter9); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := d.Set("parameter10", resource.Parameter10); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := d.Set("parameter11", resource.Parameter11); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	return diags
