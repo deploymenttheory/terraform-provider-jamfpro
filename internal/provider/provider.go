@@ -288,7 +288,7 @@ func Provider() *schema.Provider {
 				MaxRetryAttempts:          d.Get("max_retry_attempts").(int),
 				EnableDynamicRateLimiting: d.Get("enable_dynamic_rate_limiting").(bool),
 				MaxConcurrentRequests:     d.Get("max_concurrent_requests").(int),
-				TokenRefreshBufferPeriod:  time.Duration(d.Get("token_refresh_buffer_period").(int)) * time.Minute, // Note the change to time.Minute
+				TokenRefreshBufferPeriod:  time.Duration(d.Get("token_refresh_buffer_period").(int)) * time.Minute,
 				TotalRetryDuration:        time.Duration(d.Get("total_retry_duration").(int)) * time.Second,
 				CustomTimeout:             time.Duration(d.Get("custom_timeout").(int)) * time.Second,
 			},
