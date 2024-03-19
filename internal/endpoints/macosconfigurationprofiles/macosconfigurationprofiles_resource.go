@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"log"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/retryfetch"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -477,367 +477,354 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
-	conn := apiclient.Conn
 
-	var diags diag.Diagnostics
 	resourceID := d.Id()
-
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	var resp *jamfpro.ResourceMacOSConfigurationProfile
+	// Define the specific API call wrapped in a function matching the APICallFuncInt signature
+	getResource := func(id int) (interface{}, error) {
+		return apiclient.Conn.GetMacOSConfigurationProfileByID(id)
+	}
 
-	// Read operation with retry
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
-		resp, apiErr = conn.GetMacOSConfigurationProfileByID(resourceIDInt)
-		if apiErr != nil {
-			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
-				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
+	// Use the retryfetch helper function with context
+	retry, diags := retryfetch.ByResourceIntID(ctx, d, resourceIDInt, getResource)
+	if diags.HasError() {
+		return diags
+	}
+
+	// Check if the returned resource from retry is not nil before proceeding
+	if retry != nil {
+		resp, ok := retry.(*jamfpro.ResourceMacOSConfigurationProfile)
+		if !ok {
+			return diag.Errorf("expected resource type *jamfpro.ResourceMacOSConfigurationProfile, got %T", retry)
+		}
+
+		// Stating - commented ones appear to be done automatically.
+
+		// ID
+		// if err := d.Set("id", resourceID); err != nil {
+		// 	diags = append(diags, diag.FromErr(err)...)
+		// }
+
+		// Name
+		// if err := d.Set("name", resp.General.Name); err != nil {
+		// 	diags = append(diags, diag.FromErr(err)...)
+		// }
+
+		// Description
+		// if err := d.Set("description", resp.General.Description); err != nil {
+		// 	diags = append(diags, diag.FromErr(err)...)
+		// }
+
+		// Site
+		if resp.General.Site.ID != -1 && resp.General.Site.Name != "None" {
+			out_site := []map[string]interface{}{
+				{
+					"id":   resp.General.Site.ID,
+					"name": resp.General.Site.Name,
+				},
 			}
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
 
-	// If err is not nil, check if it's due to the resource being not found
-	if err != nil {
-		if err.Error() == "resource not found, marked for deletion" {
-			d.SetId("")
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "Resource not found",
-				Detail:   fmt.Sprintf("Jamf Pro Site with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
-			})
-			return diags
+			if err := d.Set("site", out_site); err != nil {
+				diags = append(diags, diag.FromErr(err)...)
+			}
+		} else {
+			log.Println("Not stating default site response") // TODO logging
 		}
 
-		// For other errors, return an error diagnostic
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Site with ID '%s' after retries: %v", resourceID, err))
-	}
-
-	// Stating - commented ones appear to be done automatically.
-
-	// ID
-	// if err := d.Set("id", resourceID); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
-
-	// Name
-	// if err := d.Set("name", resp.General.Name); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
-
-	// Description
-	// if err := d.Set("description", resp.General.Description); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
-
-	// Site
-	if resp.General.Site.ID != -1 && resp.General.Site.Name != "None" {
-		out_site := []map[string]interface{}{
-			{
-				"id":   resp.General.Site.ID,
-				"name": resp.General.Site.Name,
-			},
+		// Category
+		if resp.General.Category.ID != -1 && resp.General.Category.Name != "No category assigned" {
+			out_category := []map[string]interface{}{
+				{
+					"id":   resp.General.Category.ID,
+					"name": resp.General.Category.Name,
+				},
+			}
+			if err := d.Set("category", out_category); err != nil {
+				diags = append(diags, diag.FromErr(err)...)
+			}
+		} else {
+			log.Println("Not stating default category response") // TODO logging
 		}
 
-		if err := d.Set("site", out_site); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+		// Distribution Method
+		// if err := d.Set("distribution_method", resp.General.DistributionMethod); err != nil {
+		// 	diags = append(diags, diag.FromErr(err)...)
+		// }
+
+		// User Removeable
+		// if err := d.Set("user_removeable", resp.General.UserRemovable); err != nil {
+		// 	diags = append(diags, diag.FromErr(err)...)
+		// }
+
+		// Level
+		// if err := d.Set("level", resp.General.Level); err != nil {
+		// 	diags = append(diags, diag.FromErr(err)...)
+		// }
+
+		// UUID
+		// if err := d.Set("uuid", resp.General.UUID); err != nil {
+		// 	diags = append(diags, diag.FromErr(err)...)
+		// }
+
+		// Redeploy On Update - not in ui
+		// if err := d.Set("redeploy_on_update", resp.General.RedeployOnUpdate); err != nil {
+		// 	diags = append(diags, diag.FromErr(err)...)
+		// }
+
+		// Scope
+
+		out_scope := make([]map[string]interface{}, 0)
+		out_scope = append(out_scope, make(map[string]interface{}, 1))
+
+		out_scope[0]["all_computers"] = resp.Scope.AllComputers
+		out_scope[0]["all_jss_users"] = resp.Scope.AllJSSUsers
+
+		// Computers
+		if len(resp.Scope.Computers) > 0 {
+			var listOfIds []int
+			for _, v := range resp.Scope.Computers {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope[0]["computer_ids"] = listOfIds
 		}
-	} else {
-		log.Println("Not stating default site response") // TODO logging
-	}
 
-	// Category
-	if resp.General.Category.ID != -1 && resp.General.Category.Name != "No category assigned" {
-		out_category := []map[string]interface{}{
-			{
-				"id":   resp.General.Category.ID,
-				"name": resp.General.Category.Name,
-			},
+		// TODO make this work later. It's a replacement for the log above.
+		// comps, err := GetListOfIdsFromResp[jamfpro.MacOSConfigurationProfileSubsetComputer](resp.Scope.Computers, "id")
+		// out_scope[0]["computer_ids"] = comps
+
+		// Computer Groups
+		if len(resp.Scope.ComputerGroups) > 0 {
+			var listOfIds []int
+			for _, v := range resp.Scope.ComputerGroups {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope[0]["computer_group_ids"] = listOfIds
 		}
-		if err := d.Set("category", out_category); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+
+		// JSS Users
+		if len(resp.Scope.JSSUsers) > 0 {
+			var listOfIds []int
+			for _, v := range resp.Scope.JSSUsers {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope[0]["jss_user_ids"] = listOfIds
 		}
-	} else {
-		log.Println("Not stating default category response") // TODO logging
-	}
 
-	// Distribution Method
-	// if err := d.Set("distribution_method", resp.General.DistributionMethod); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
-
-	// User Removeable
-	// if err := d.Set("user_removeable", resp.General.UserRemovable); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
-
-	// Level
-	// if err := d.Set("level", resp.General.Level); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
-
-	// UUID
-	// if err := d.Set("uuid", resp.General.UUID); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
-
-	// Redeploy On Update - not in ui
-	// if err := d.Set("redeploy_on_update", resp.General.RedeployOnUpdate); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
-
-	// Scope
-
-	out_scope := make([]map[string]interface{}, 0)
-	out_scope = append(out_scope, make(map[string]interface{}, 1))
-
-	out_scope[0]["all_computers"] = resp.Scope.AllComputers
-	out_scope[0]["all_jss_users"] = resp.Scope.AllJSSUsers
-
-	// Computers
-	if len(resp.Scope.Computers) > 0 {
-		var listOfIds []int
-		for _, v := range resp.Scope.Computers {
-			listOfIds = append(listOfIds, v.ID)
+		// JSS User Groups
+		if len(resp.Scope.JSSUserGroups) > 0 {
+			var listOfIds []int
+			for _, v := range resp.Scope.JSSUserGroups {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope[0]["jss_user_group_ids"] = listOfIds
 		}
-		out_scope[0]["computer_ids"] = listOfIds
-	}
 
-	// TODO make this work later. It's a replacement for the log above.
-	// comps, err := GetListOfIdsFromResp[jamfpro.MacOSConfigurationProfileSubsetComputer](resp.Scope.Computers, "id")
-	// out_scope[0]["computer_ids"] = comps
-
-	// Computer Groups
-	if len(resp.Scope.ComputerGroups) > 0 {
-		var listOfIds []int
-		for _, v := range resp.Scope.ComputerGroups {
-			listOfIds = append(listOfIds, v.ID)
+		// Buildings
+		if len(resp.Scope.Buildings) > 0 {
+			var listOfIds []int
+			for _, v := range resp.Scope.Buildings {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope[0]["building_ids"] = listOfIds
 		}
-		out_scope[0]["computer_group_ids"] = listOfIds
-	}
 
-	// JSS Users
-	if len(resp.Scope.JSSUsers) > 0 {
-		var listOfIds []int
-		for _, v := range resp.Scope.JSSUsers {
-			listOfIds = append(listOfIds, v.ID)
+		// Departments
+		if len(resp.Scope.Departments) > 0 {
+			var listOfIds []int
+			for _, v := range resp.Scope.Departments {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope[0]["department_ids"] = listOfIds
 		}
-		out_scope[0]["jss_user_ids"] = listOfIds
-	}
 
-	// JSS User Groups
-	if len(resp.Scope.JSSUserGroups) > 0 {
-		var listOfIds []int
-		for _, v := range resp.Scope.JSSUserGroups {
-			listOfIds = append(listOfIds, v.ID)
+		// Scope Limitations
+
+		out_scope_limitations := make([]map[string]interface{}, 0)
+		out_scope_limitations = append(out_scope_limitations, make(map[string]interface{}))
+		var limitationsSet bool
+
+		// Users
+		if len(resp.Scope.Limitations.Users) > 0 {
+			var listOfNames []string
+			for _, v := range resp.Scope.Limitations.Users {
+				listOfNames = append(listOfNames, v.Name)
+			}
+			out_scope_limitations[0]["user_names"] = listOfNames
+			limitationsSet = true
 		}
-		out_scope[0]["jss_user_group_ids"] = listOfIds
-	}
 
-	// Buildings
-	if len(resp.Scope.Buildings) > 0 {
-		var listOfIds []int
-		for _, v := range resp.Scope.Buildings {
-			listOfIds = append(listOfIds, v.ID)
+		// Network Segments
+		if len(resp.Scope.Limitations.NetworkSegments) > 0 {
+			var listOfIds []int
+			for _, v := range resp.Scope.Limitations.NetworkSegments {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope_limitations[0]["network_segment_ids"] = listOfIds
+			limitationsSet = true
 		}
-		out_scope[0]["building_ids"] = listOfIds
-	}
 
-	// Departments
-	if len(resp.Scope.Departments) > 0 {
-		var listOfIds []int
-		for _, v := range resp.Scope.Departments {
-			listOfIds = append(listOfIds, v.ID)
+		// IBeacons
+		if len(resp.Scope.Limitations.IBeacons) > 0 {
+			var listOfIds []int
+			for _, v := range resp.Scope.Limitations.IBeacons {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope_limitations[0]["ibeacon_ids"] = listOfIds
+			limitationsSet = true
 		}
-		out_scope[0]["department_ids"] = listOfIds
-	}
 
-	// Scope Limitations
-
-	out_scope_limitations := make([]map[string]interface{}, 0)
-	out_scope_limitations = append(out_scope_limitations, make(map[string]interface{}))
-	var limitationsSet bool
-
-	// Users
-	if len(resp.Scope.Limitations.Users) > 0 {
-		var listOfNames []string
-		for _, v := range resp.Scope.Limitations.Users {
-			listOfNames = append(listOfNames, v.Name)
+		// User Groups
+		if len(resp.Scope.Limitations.UserGroups) > 0 {
+			var listOfIds []int
+			for _, v := range resp.Scope.Limitations.UserGroups {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope_limitations[0]["user_group_ids"] = listOfIds
+			limitationsSet = true
 		}
-		out_scope_limitations[0]["user_names"] = listOfNames
-		limitationsSet = true
-	}
 
-	// Network Segments
-	if len(resp.Scope.Limitations.NetworkSegments) > 0 {
-		var listOfIds []int
-		for _, v := range resp.Scope.Limitations.NetworkSegments {
-			listOfIds = append(listOfIds, v.ID)
+		if limitationsSet {
+			out_scope[0]["limitations"] = out_scope_limitations
 		}
-		out_scope_limitations[0]["network_segment_ids"] = listOfIds
-		limitationsSet = true
-	}
 
-	// IBeacons
-	if len(resp.Scope.Limitations.IBeacons) > 0 {
-		var listOfIds []int
-		for _, v := range resp.Scope.Limitations.IBeacons {
-			listOfIds = append(listOfIds, v.ID)
+		// Scope Exclusions
+
+		out_scope_exclusions := make([]map[string]interface{}, 0)
+		out_scope_exclusions = append(out_scope_exclusions, make(map[string]interface{}))
+		var exclusionsSet bool
+
+		// Computers
+		if len(resp.Scope.Exclusions.Computers) > 0 {
+			var listOfIds []int
+			for _, v := range resp.Scope.Exclusions.Computers {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope_exclusions[0]["computer_ids"] = listOfIds
+			exclusionsSet = true
 		}
-		out_scope_limitations[0]["ibeacon_ids"] = listOfIds
-		limitationsSet = true
-	}
 
-	// User Groups
-	if len(resp.Scope.Limitations.UserGroups) > 0 {
-		var listOfIds []int
-		for _, v := range resp.Scope.Limitations.UserGroups {
-			listOfIds = append(listOfIds, v.ID)
+		// Computer Groups
+		if len(resp.Scope.Exclusions.ComputerGroups) > 0 {
+			var listOfIds []int
+			for _, v := range resp.Scope.Exclusions.ComputerGroups {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope_exclusions[0]["computer_group_ids"] = listOfIds
+			exclusionsSet = true
 		}
-		out_scope_limitations[0]["user_group_ids"] = listOfIds
-		limitationsSet = true
-	}
 
-	if limitationsSet {
-		out_scope[0]["limitations"] = out_scope_limitations
-	}
-
-	// Scope Exclusions
-
-	out_scope_exclusions := make([]map[string]interface{}, 0)
-	out_scope_exclusions = append(out_scope_exclusions, make(map[string]interface{}))
-	var exclusionsSet bool
-
-	// Computers
-	if len(resp.Scope.Exclusions.Computers) > 0 {
-		var listOfIds []int
-		for _, v := range resp.Scope.Exclusions.Computers {
-			listOfIds = append(listOfIds, v.ID)
+		// Buildings
+		if len(resp.Scope.Exclusions.Buildings) > 0 {
+			var listOfIds []int
+			for _, v := range resp.Scope.Exclusions.Buildings {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope_exclusions[0]["building_ids"] = listOfIds
+			exclusionsSet = true
 		}
-		out_scope_exclusions[0]["computer_ids"] = listOfIds
-		exclusionsSet = true
-	}
 
-	// Computer Groups
-	if len(resp.Scope.Exclusions.ComputerGroups) > 0 {
-		var listOfIds []int
-		for _, v := range resp.Scope.Exclusions.ComputerGroups {
-			listOfIds = append(listOfIds, v.ID)
+		// Departments
+		if len(resp.Scope.Exclusions.Departments) > 0 {
+			var listOfIds []int
+			for _, v := range resp.Scope.Exclusions.Departments {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope_exclusions[0]["department_ids"] = listOfIds
+			exclusionsSet = true
 		}
-		out_scope_exclusions[0]["computer_group_ids"] = listOfIds
-		exclusionsSet = true
-	}
 
-	// Buildings
-	if len(resp.Scope.Exclusions.Buildings) > 0 {
-		var listOfIds []int
-		for _, v := range resp.Scope.Exclusions.Buildings {
-			listOfIds = append(listOfIds, v.ID)
+		// Network Segments
+		if len(resp.Scope.Exclusions.NetworkSegments) > 0 {
+			var listOfIds []int
+			for _, v := range resp.Scope.Exclusions.NetworkSegments {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope_exclusions[0]["network_segment_ids"] = listOfIds
+			exclusionsSet = true
 		}
-		out_scope_exclusions[0]["building_ids"] = listOfIds
-		exclusionsSet = true
-	}
 
-	// Departments
-	if len(resp.Scope.Exclusions.Departments) > 0 {
-		var listOfIds []int
-		for _, v := range resp.Scope.Exclusions.Departments {
-			listOfIds = append(listOfIds, v.ID)
+		// JSS Users
+		if len(resp.Scope.Exclusions.JSSUsers) > 0 {
+			var listOfIds []int
+			for _, v := range resp.Scope.Exclusions.JSSUsers {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope_exclusions[0]["jss_user_ids"] = listOfIds
+			exclusionsSet = true
 		}
-		out_scope_exclusions[0]["department_ids"] = listOfIds
-		exclusionsSet = true
-	}
 
-	// Network Segments
-	if len(resp.Scope.Exclusions.NetworkSegments) > 0 {
-		var listOfIds []int
-		for _, v := range resp.Scope.Exclusions.NetworkSegments {
-			listOfIds = append(listOfIds, v.ID)
+		// JSS User Groups
+		if len(resp.Scope.Exclusions.JSSUserGroups) > 0 {
+			var listOfIds []int
+			for _, v := range resp.Scope.Exclusions.JSSUserGroups {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope_exclusions[0]["jss_user_group_ids"] = listOfIds
+			exclusionsSet = true
 		}
-		out_scope_exclusions[0]["network_segment_ids"] = listOfIds
-		exclusionsSet = true
-	}
 
-	// JSS Users
-	if len(resp.Scope.Exclusions.JSSUsers) > 0 {
-		var listOfIds []int
-		for _, v := range resp.Scope.Exclusions.JSSUsers {
-			listOfIds = append(listOfIds, v.ID)
+		// IBeacons
+		if len(resp.Scope.Exclusions.IBeacons) > 0 {
+			var listOfIds []int
+			for _, v := range resp.Scope.Exclusions.IBeacons {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope_exclusions[0]["ibeacon_ids"] = listOfIds
+			exclusionsSet = true
 		}
-		out_scope_exclusions[0]["jss_user_ids"] = listOfIds
-		exclusionsSet = true
-	}
 
-	// JSS User Groups
-	if len(resp.Scope.Exclusions.JSSUserGroups) > 0 {
-		var listOfIds []int
-		for _, v := range resp.Scope.Exclusions.JSSUserGroups {
-			listOfIds = append(listOfIds, v.ID)
+		// Append Exclusions if they're set
+		if exclusionsSet {
+			out_scope[0]["exclusions"] = out_scope_exclusions
+		} else {
+			log.Println("No exclusions set") // TODO logging
 		}
-		out_scope_exclusions[0]["jss_user_group_ids"] = listOfIds
-		exclusionsSet = true
-	}
 
-	// IBeacons
-	if len(resp.Scope.Exclusions.IBeacons) > 0 {
-		var listOfIds []int
-		for _, v := range resp.Scope.Exclusions.IBeacons {
-			listOfIds = append(listOfIds, v.ID)
-		}
-		out_scope_exclusions[0]["ibeacon_ids"] = listOfIds
-		exclusionsSet = true
-	}
-
-	// Append Exclusions if they're set
-	if exclusionsSet {
-		out_scope[0]["exclusions"] = out_scope_exclusions
-	} else {
-		log.Println("No exclusions set") // TODO logging
-	}
-
-	// Set Scope to state
-	err = d.Set("scope", out_scope)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	// Self Service
-
-	out_self_service := make([]map[string]interface{}, 0)
-	out_self_service = append(out_self_service, make(map[string]interface{}, 1))
-	var selfServiceSet bool
-
-	// Fix the stupid broken double key issue
-	err = FixStupidDoubleKey(resp, &out_self_service)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	// TODO this is problematic and will be solved another day
-	// if len(resp.SelfService.SelfServiceCategories) > 0 {
-	// 	var listOfIds []int
-	// 	for _, v := range resp.SelfService.SelfServiceCategories {
-	// 		listOfIds = append(listOfIds, v.ID)
-	// 	}
-	// 	out_self_service[0]["self_service_categories"] = listOfIds
-	// 	selfServiceSet = true
-	// }
-
-	if selfServiceSet {
-		err = d.Set("self_service", out_self_service)
+		// Set Scope to state
+		err = d.Set("scope", out_scope)
 		if err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-	} else {
-		log.Println("no self service") // TODO logging
+
+		// Self Service
+
+		out_self_service := make([]map[string]interface{}, 0)
+		out_self_service = append(out_self_service, make(map[string]interface{}, 1))
+		var selfServiceSet bool
+
+		// Fix the stupid broken double key issue
+		err = FixStupidDoubleKey(resp, &out_self_service)
+		if err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+
+		// TODO this is problematic and will be solved another day
+		// if len(resp.SelfService.SelfServiceCategories) > 0 {
+		// 	var listOfIds []int
+		// 	for _, v := range resp.SelfService.SelfServiceCategories {
+		// 		listOfIds = append(listOfIds, v.ID)
+		// 	}
+		// 	out_self_service[0]["self_service_categories"] = listOfIds
+		// 	selfServiceSet = true
+		// }
+
+		if selfServiceSet {
+			err = d.Set("self_service", out_self_service)
+			if err != nil {
+				diags = append(diags, diag.FromErr(err)...)
+			}
+		} else {
+			log.Println("no self service") // TODO logging
+		}
+
+		return diags
 	}
 
-	return diags
+	return diag.Errorf("No resource was returned for Jamf Pro macOS Configuration Profile with ID '%s'", resourceID)
 }
 
 // ResourceJamfProMacOSConfigurationProfilesUpdate is responsible for updating an existing Jamf Pro config profile on the remote system.

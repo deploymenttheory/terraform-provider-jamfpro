@@ -130,28 +130,32 @@ func RetryAPIReadCall(ctx context.Context, d *schema.ResourceData, resourceID in
 				currentBackoff = maxBackoff
 			}
 
-			return retry.RetryableError(apiErr)
+			// Check specifically for "resource not found" errors
+			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
+				return retry.NonRetryableError(apiErr) // Stop retrying for these specific errors
+			}
+
+			return retry.RetryableError(apiErr) // Continue retrying for other types of errors
 		}
 		lastError = nil
 		return nil
 	})
 
+	// If a "resource not found" error was the last error, handle it specifically
+	if lastError != nil && (strings.Contains(lastError.Error(), "404") || strings.Contains(lastError.Error(), "410")) {
+		d.SetId("") // Mark the resource for deletion from Terraform state
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "Resource not found",
+			Detail:   fmt.Sprintf("Resource with ID '%v' was not found on the server after all retries and is marked for deletion from Terraform state.", resourceID),
+		})
+		return nil, diags // Return nil for the resource since it does not exist
+	}
+
+	// For other types of errors, return them in diagnostics
 	if retryErr != nil {
-		diags = append(diags, diag.FromErr(fmt.Errorf("retry logic failed: %v", retryErr))...)
+		diags = append(diags, diag.FromErr(fmt.Errorf("failed to read resource with ID '%v' after all retries: %v", resourceID, lastError))...)
 	}
 
-	if lastError != nil {
-		if strings.Contains(lastError.Error(), "404") || strings.Contains(lastError.Error(), "410") {
-			d.SetId("")
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "Resource not found",
-				Detail:   fmt.Sprintf("Resource with ID '%v' was not found on the server after all retries and is marked for deletion from Terraform state.", resourceID),
-			})
-		} else {
-			diags = append(diags, diag.FromErr(fmt.Errorf("failed to read resource with ID '%v' after all retries: %v", resourceID, lastError))...)
-		}
-	}
-
-	return resource, diags
+	return resource, diags // Return the fetched resource and any diagnostics
 }

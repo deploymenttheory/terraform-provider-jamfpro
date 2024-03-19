@@ -25,7 +25,7 @@ func ResourceJamfProScripts() *schema.Resource {
 		DeleteContext: ResourceJamfProScriptsDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Second),
-			Read:   schema.DefaultTimeout(30 * time.Second),
+			Read:   schema.DefaultTimeout(10 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
 			Delete: schema.DefaultTimeout(30 * time.Second),
 		},
