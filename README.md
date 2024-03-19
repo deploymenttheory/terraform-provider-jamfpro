@@ -40,7 +40,7 @@ This section outlines the resources and data sources provided by our Terraform p
 - **Resource & Data Source**: Provides the ability to manage Buildings within Jamf Pro. This resource allows for the specification of building names and addresses, facilitating better organization and segmentation of devices within different physical locations.
 
 - **Status**: Finished
-- **Availability**: To be introduced in version `v0.0.30.`
+- **Availability**: Introduced in version  `v0.0.30.`
 
 ### Categories
 
@@ -54,14 +54,14 @@ This section outlines the resources and data sources provided by our Terraform p
 - **Resource & Data Source**: Provides the ability to manage departments within Jamf Pro. This resource allows for the specification of department names.
 
 - **Status**: Finished
-- **Availability**: To be introduced in version `v0.0.36.`
+- **Availability**: Introduced in version `v0.0.36.`
 
 ### macOS Configuration Profiles
 
 - **Resource & Data Source**: Facilitates the management of macOS configuration profiles in Jamf Pro. This includes the creation, update, and deletion of configuration profiles, along with the ability to specify profile payloads and associated properties.
 
 - **Status**: Experimental
-- **Availability**: Available since version `v0.0.37.`
+- **Availability**: Introduced in version `v0.0.37.`
 
 ### Packages
 
@@ -69,11 +69,18 @@ This section outlines the resources and data sources provided by our Terraform p
 package metadata in Jamf Pro.
 
 - **Status**: Experimental
-- **Availability**: Available since version `v0.0.34.`
+- **Availability**: Introduced in version  `v0.0.34.`
 
 ### Scripts
 
 - **Resource & Data Source**: Facilitates the management of Scripts in Jamf Pro. This includes the creation, update, and deletion of script entities, along with the ability to specify script contents and associated properties.
 
 - **Status**: Finished
-- **Availability**: Available since version `v0.0.30.`
+- **Availability**: Introduced in version `v0.0.30.`
+
+### User Groups
+
+- **Resource & Data Source**: Enables the handling of User Groups in Jamf Pro. This encompasses the capabilities to create, update, and remove user group entities, as well as the functionality to detail user group attributes and memberships.
+
+- **Status**: Experimental
+- **Availability**: Introduced in version `v0.0.38`.

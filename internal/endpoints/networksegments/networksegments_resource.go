@@ -5,11 +5,11 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/retryfetch"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -159,90 +159,53 @@ func ResourceJamfProNetworkSegmentsRead(ctx context.Context, d *schema.ResourceD
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
-	var diags diag.Diagnostics
 	resourceID := d.Id()
-
-	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	var resource *jamfpro.ResourceNetworkSegment
-
-	// Read operation with retry
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
-		resource, apiErr = conn.GetNetworkSegmentByID(resourceIDInt)
-		if apiErr != nil {
-			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
-				// Return non-retryable error with a message to avoid SDK issues
-				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
-			}
-			// Retry for other types of errors
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	// If err is not nil, check if it's due to the resource being not found
-	if err != nil {
-		if err.Error() == "resource not found, marked for deletion" {
-			// Resource not found, remove from Terraform state
-			d.SetId("")
-			// Append a warning diagnostic and return
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "Resource not found",
-				Detail:   fmt.Sprintf("Jamf Pro Site with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
-			})
-			return diags
-		}
-
-		// For other errors, return an error diagnostic
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Site with ID '%s' after retries: %v", resourceID, err))
+	// Define the specific API call wrapped in a function matching the APICallFuncString signature from the retryfetch package
+	getResource := func(id string) (interface{}, error) {
+		return apiclient.Conn.GetNetworkSegmentByID(resourceIDInt)
 	}
 
-	// Update Terraform state with the resource information
-	if resource != nil {
-		if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+	// Use the retryfetch helper function with context
+	retry, diags := retryfetch.ByResourceStringID(ctx, d, resourceID, getResource)
+	if diags.HasError() {
+		return diags
+	}
+
+	// Check if the returned resource from retry is not nil before proceeding
+	if retry != nil {
+		resource, ok := retry.(*jamfpro.ResourceNetworkSegment)
+		if !ok {
+			return diag.Errorf("expected resource type *jamfpro.ResourceNetworkSegment, got %T", retry)
 		}
-		if err := d.Set("name", resource.Name); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+
+		// Update the Terraform state with the fetched data
+		networkSegmentData := map[string]interface{}{
+			"id":                   strconv.Itoa(resource.ID),
+			"name":                 resource.Name,
+			"starting_address":     resource.StartingAddress,
+			"ending_address":       resource.EndingAddress,
+			"distribution_server":  resource.DistributionServer,
+			"distribution_point":   resource.DistributionPoint,
+			"url":                  resource.URL,
+			"swu_server":           resource.SWUServer,
+			"building":             resource.Building,
+			"department":           resource.Department,
+			"override_buildings":   resource.OverrideBuildings,
+			"override_departments": resource.OverrideDepartments,
 		}
-		if err := d.Set("starting_address", resource.StartingAddress); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("ending_address", resource.EndingAddress); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("distribution_server", resource.DistributionServer); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("distribution_point", resource.DistributionPoint); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("url", resource.URL); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("swu_server", resource.SWUServer); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("building", resource.Building); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("department", resource.Department); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("override_buildings", resource.OverrideBuildings); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("override_departments", resource.OverrideDepartments); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+
+		// Iterate over the map and set each key-value pair in the Terraform state
+		for key, val := range networkSegmentData {
+			if err := d.Set(key, val); err != nil {
+				return diag.FromErr(err)
+			}
 		}
 	}
 

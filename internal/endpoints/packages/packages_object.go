@@ -17,24 +17,35 @@ func constructJamfProPackageCreate(d *schema.ResourceData) (*jamfpro.ResourcePac
 	// Use filepath.Base to extract just the filename from the full path
 	filename := filepath.Base(fullPath)
 
+	// Get the category from the schema, and set it to "Unknown" if it's empty
+	// 'Unknown' is the valid default request value for the category field when none is set
+	// Jamf API returns "No category assigned" for the same field. But this is not a valid
+	// request value. Why!!!! >_<
+	category := d.Get("category").(string)
+	if category == "" {
+		category = "Unknown"
+	}
+
 	packageResource := &jamfpro.ResourcePackage{
-		Name:                       d.Get("name").(string),
-		Filename:                   filename,
-		Category:                   d.Get("category").(string),
-		Info:                       d.Get("info").(string),
-		Notes:                      d.Get("notes").(string),
-		Priority:                   d.Get("priority").(int),
-		RebootRequired:             d.Get("reboot_required").(bool),
-		FillUserTemplate:           d.Get("fill_user_template").(bool),
-		FillExistingUsers:          d.Get("fill_existing_users").(bool),
-		BootVolumeRequired:         d.Get("boot_volume_required").(bool),
-		AllowUninstalled:           d.Get("allow_uninstalled").(bool),
-		OSRequirements:             d.Get("os_requirements").(string),
-		RequiredProcessor:          d.Get("required_processor").(string),
-		SwitchWithPackage:          d.Get("switch_with_package").(string),
+		Name:               d.Get("name").(string),
+		Filename:           filename,
+		Category:           category,
+		Info:               d.Get("info").(string),
+		Notes:              d.Get("notes").(string),
+		Priority:           d.Get("priority").(int),
+		RebootRequired:     d.Get("reboot_required").(bool),
+		FillUserTemplate:   d.Get("fill_user_template").(bool),
+		FillExistingUsers:  d.Get("fill_existing_users").(bool),
+		BootVolumeRequired: d.Get("boot_volume_required").(bool),
+		AllowUninstalled:   d.Get("allow_uninstalled").(bool),
+		OSRequirements:     d.Get("os_requirements").(string),
+		// fields appear to only be relevant for jamf admin indexed packages
+		// which i believe is to be deprecated.
+		//RequiredProcessor:          d.Get("required_processor").(string),
+		//SwitchWithPackage:          d.Get("switch_with_package").(string),
+		//ReinstallOption:            d.Get("reinstall_option").(string),
+		//TriggeringFiles:            d.Get("triggering_files").(string),
 		InstallIfReportedAvailable: d.Get("install_if_reported_available").(bool),
-		ReinstallOption:            d.Get("reinstall_option").(string),
-		TriggeringFiles:            d.Get("triggering_files").(string),
 		SendNotification:           d.Get("send_notification").(bool),
 	}
 
