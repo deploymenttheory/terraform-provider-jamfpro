@@ -186,8 +186,8 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 		return apiclient.Conn.GetComputerExtensionAttributeByID(id)
 	}
 
-	// Use the retryAPICall helper function
-	resource, diags := retryAPICall(ctx, d, resourceIDInt, apiCall)
+	// Use the retryAPIReadCall helper function with context
+	resource, diags := retryAPIReadCall(ctx, d, resourceIDInt, apiCall)
 	if diags.HasError() {
 		return diags
 	}

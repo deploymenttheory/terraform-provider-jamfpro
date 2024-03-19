@@ -14,8 +14,8 @@ import (
 // APICallFunc is a function type that represents an API call to fetch a resource by its ID.
 type APICallFunc func(int) (interface{}, error)
 
-// retryAPICall executes an API call with retry logic and handles errors and resource state.
-func retryAPICall(ctx context.Context, d *schema.ResourceData, resourceID int, apiCall APICallFunc) (interface{}, diag.Diagnostics) {
+// retryAPIReadCall executes an API read call with retry logic and handles errors and resource state.
+func retryAPIReadCall(ctx context.Context, d *schema.ResourceData, resourceID int, apiCall APICallFunc) (interface{}, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var lastError error
 	var resource interface{}
