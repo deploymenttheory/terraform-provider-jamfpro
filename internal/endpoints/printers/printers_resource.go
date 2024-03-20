@@ -155,14 +155,10 @@ func ResourceJamfProPrintersCreate(ctx context.Context, d *schema.ResourceData, 
 
 	// Wait for the resource to be fully available before reading it
 	checkResourceExists := func(id interface{}) (interface{}, error) {
-		// Convert the string ID to an integer
 		intID, err := strconv.Atoi(id.(string))
 		if err != nil {
-			// Return an error if the conversion fails
 			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
 		}
-
-		// Now you can safely pass an integer to GetPrinterByID
 		return apiclient.Conn.GetPrinterByID(intID)
 	}
 
@@ -194,7 +190,6 @@ func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, me
 
 	// Initialize variables
 	resourceID := d.Id()
-	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
@@ -219,7 +214,7 @@ func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	// Update the Terraform state with the fetched data
-	stateData := map[string]interface{}{
+	resourceData := map[string]interface{}{
 		"id":           resourceID,
 		"name":         resource.Name,
 		"category":     resource.Category,
@@ -237,7 +232,7 @@ func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	// Iterate over the map and set each key-value pair in the Terraform state
-	for key, val := range stateData {
+	for key, val := range resourceData {
 		if err := d.Set(key, val); err != nil {
 			return diag.FromErr(err)
 		}

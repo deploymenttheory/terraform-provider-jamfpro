@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/retryfetch"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -231,7 +231,21 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Read the Package to ensure the Terraform state is up to date
+	// Wait for the resource to be fully available before reading it
+	checkResourceExists := func(id interface{}) (interface{}, error) {
+		intID, err := strconv.Atoi(id.(string))
+		if err != nil {
+			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
+		}
+		return apiclient.Conn.GetPackageByID(intID)
+	}
+
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, strconv.Itoa(creationResponse.ID), checkResourceExists)
+	if waitDiags.HasError() {
+		return waitDiags
+	}
+
+	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProPackagesRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
@@ -259,64 +273,63 @@ func ResourceJamfProPackagesRead(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	// Define the specific API call wrapped in a function matching the APICallFuncInt signature from the retryfetch package
-	getResource := func(id int) (interface{}, error) {
-		return apiclient.Conn.GetPackageByID(resourceIDInt)
-	}
-
-	// Use the retryfetch helper function with context
-	retry, diags := retryfetch.ByResourceIntID(ctx, d, resourceIDInt, getResource)
-	if diags.HasError() {
-		return diags
-	}
-
-	// Check if the returned resource from retry is not nil before proceeding
-	if retry != nil {
-		resource, ok := retry.(*jamfpro.ResourcePackage)
-		if !ok {
-			return diag.Errorf("expected resource type *jamfpro.ResourcePackage, got %T", retry)
-		}
-
-		// Initialize the category value with Specific substitution
-		// This is necessary because the API returns "No category assigned" when no category is assigned
-		// but the request expects "Unknown" when no category is assigned.
-		categoryValue := resource.Category
-		if resource.Category == "No category assigned" {
-			categoryValue = "Unknown" // Specific substitution
-		}
-
-		// Update the Terraform state with the fetched data, including specific field substitutions and commented-out fields
-		packageData := map[string]interface{}{
-			"id":                            strconv.Itoa(resource.ID),
-			"name":                          resource.Name,
-			"category":                      categoryValue,
-			"filename":                      resource.Filename,
-			"info":                          resource.Info,
-			"notes":                         resource.Notes,
-			"priority":                      resource.Priority,
-			"reboot_required":               resource.RebootRequired,
-			"fill_user_template":            resource.FillUserTemplate,
-			"fill_existing_users":           resource.FillExistingUsers,
-			"boot_volume_required":          resource.BootVolumeRequired,
-			"allow_uninstalled":             resource.AllowUninstalled,
-			"os_requirements":               resource.OSRequirements,
-			"install_if_reported_available": resource.InstallIfReportedAvailable,
-			"send_notification":             resource.SendNotification,
-			// "required_processor":             resource.RequiredProcessor, // Commented out, for future use
-			// "switch_with_package":            resource.SwitchWithPackage, // Commented out, for future use
-			// "reinstall_option":               resource.ReinstallOption, // Commented out, for future use
-			// "triggering_files":               resource.TriggeringFiles, // Commented out, for future use
-		}
-
-		// Iterate over the map and set each key-value pair in the Terraform state
-		for key, val := range packageData {
-			if err := d.Set(key, val); err != nil {
-				return diag.FromErr(err)
+	// Attempt to fetch the resource by ID
+	resource, err := apiclient.Conn.GetPackageByID(resourceIDInt)
+	if err != nil {
+		// If the error is a "not found" error, remove the resource from the state
+		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
+			d.SetId("") // Remove the resource from Terraform state
+			return diag.Diagnostics{
+				{
+					Severity: diag.Warning,
+					Summary:  "Resource not found",
+					Detail:   fmt.Sprintf("Printer with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
+				},
 			}
 		}
+		// For other errors, return a diagnostic error
+		return diag.FromErr(err)
 	}
 
-	return diags
+	// Initialize the category value with Specific substitution
+	// This is necessary because the API returns "No category assigned" when no category is assigned
+	// but the request expects "Unknown" when no category is assigned.
+	categoryValue := resource.Category
+	if resource.Category == "No category assigned" {
+		categoryValue = "Unknown" // Specific substitution
+	}
+
+	// Update the Terraform state with the fetched data, including specific field substitutions and commented-out fields
+	resourceData := map[string]interface{}{
+		"id":                            strconv.Itoa(resource.ID),
+		"name":                          resource.Name,
+		"category":                      categoryValue,
+		"filename":                      resource.Filename,
+		"info":                          resource.Info,
+		"notes":                         resource.Notes,
+		"priority":                      resource.Priority,
+		"reboot_required":               resource.RebootRequired,
+		"fill_user_template":            resource.FillUserTemplate,
+		"fill_existing_users":           resource.FillExistingUsers,
+		"boot_volume_required":          resource.BootVolumeRequired,
+		"allow_uninstalled":             resource.AllowUninstalled,
+		"os_requirements":               resource.OSRequirements,
+		"install_if_reported_available": resource.InstallIfReportedAvailable,
+		"send_notification":             resource.SendNotification,
+		// "required_processor":             resource.RequiredProcessor, // Commented out, for future use
+		// "switch_with_package":            resource.SwitchWithPackage, // Commented out, for future use
+		// "reinstall_option":               resource.ReinstallOption, // Commented out, for future use
+		// "triggering_files":               resource.TriggeringFiles, // Commented out, for future use
+	}
+
+	// Iterate over the map and set each key-value pair in the Terraform state
+	for key, val := range resourceData {
+		if err := d.Set(key, val); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	return nil
 }
 
 // ResourceJamfProPackagesUpdate is responsible for updating an existing Jamf Pro Package on the remote system.
