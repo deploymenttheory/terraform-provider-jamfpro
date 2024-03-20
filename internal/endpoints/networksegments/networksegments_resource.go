@@ -100,9 +100,9 @@ func ResourceJamfProNetworkSegments() *schema.Resource {
 
 // ResourceJamfProNetworkSegmentsCreate is responsible for creating a new Jamf Network segment in the remote system.
 // The function:
-// 1. Constructs the printer data using the provided Terraform configuration.
-// 2. Calls the API to create the printer in Jamf Pro.
-// 3. Updates the Terraform state with the ID of the newly created printer.
+// 1. Constructs the Network Segment data using the provided Terraform configuration.
+// 2. Calls the API to create the Network Segment in Jamf Pro.
+// 3. Updates the Terraform state with the ID of the newly created Network Segment.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProNetworkSegmentsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Assert the meta interface to the expected APIClient type
@@ -146,7 +146,7 @@ func ResourceJamfProNetworkSegmentsCreate(ctx context.Context, d *schema.Resourc
 		if err != nil {
 			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
 		}
-		return apiclient.Conn.GetPrinterByID(intID)
+		return apiclient.Conn.GetNetworkSegmentByID(intID)
 	}
 
 	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, strconv.Itoa(creationResponse.ID), checkResourceExists)
@@ -192,7 +192,7 @@ func ResourceJamfProNetworkSegmentsRead(ctx context.Context, d *schema.ResourceD
 				{
 					Severity: diag.Warning,
 					Summary:  "Resource not found",
-					Detail:   fmt.Sprintf("Printer with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
+					Detail:   fmt.Sprintf("Network Segment with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
 				},
 			}
 		}
@@ -201,7 +201,7 @@ func ResourceJamfProNetworkSegmentsRead(ctx context.Context, d *schema.ResourceD
 	}
 
 	// Update the Terraform state with the fetched data
-	stateData := map[string]interface{}{
+	resourceData := map[string]interface{}{
 		"id":                   strconv.Itoa(resource.ID),
 		"name":                 resource.Name,
 		"starting_address":     resource.StartingAddress,
@@ -217,7 +217,7 @@ func ResourceJamfProNetworkSegmentsRead(ctx context.Context, d *schema.ResourceD
 	}
 
 	// Iterate over the map and set each key-value pair in the Terraform state
-	for key, val := range stateData {
+	for key, val := range resourceData {
 		if err := d.Set(key, val); err != nil {
 			return diag.FromErr(err)
 		}

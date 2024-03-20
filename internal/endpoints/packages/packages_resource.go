@@ -283,7 +283,7 @@ func ResourceJamfProPackagesRead(ctx context.Context, d *schema.ResourceData, me
 				{
 					Severity: diag.Warning,
 					Summary:  "Resource not found",
-					Detail:   fmt.Sprintf("Printer with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
+					Detail:   fmt.Sprintf("Jamf Pro Package with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
 				},
 			}
 		}

@@ -133,7 +133,7 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 	// Construct the resource object
 	resource, err := constructJamfProComputerExtensionAttribute(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Printer: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Extension Attribute: %v", err))
 	}
 
 	// Retry the API call to create the resource in Jamf Pro
@@ -207,7 +207,7 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 				{
 					Severity: diag.Warning,
 					Summary:  "Resource not found",
-					Detail:   fmt.Sprintf("Printer with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
+					Detail:   fmt.Sprintf("Computer Extension Attribute with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
 				},
 			}
 		}
