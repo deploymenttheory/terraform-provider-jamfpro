@@ -526,13 +526,13 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Warning,
 				Summary:  "Resource not found",
-				Detail:   fmt.Sprintf("Jamf Pro Site with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
+				Detail:   fmt.Sprintf("Jamf Pro macOS Configuration Profiles with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
 			})
 			return diags
 		}
 
 		// For other errors, return an error diagnostic
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Site with ID '%s' after retries: %v", resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro macOS Configuration Profiles with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	// Stating - commented ones appear to be done automatically.
