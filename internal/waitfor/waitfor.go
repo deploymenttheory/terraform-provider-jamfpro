@@ -77,7 +77,9 @@ func ResourceIsAvailable(ctx context.Context, d *schema.ResourceData, resourceID
 			return retry.NonRetryableError(apiErr)
 		}
 
-		// If no error, the resource exists, stop retrying
+		// If no error, the resource exists, stop retrying and wait for an additional 5 seconds before concluding the wait process
+		// This can be helpful in scenarios where the resource might need a few extra moments to stabilize or propagate
+		time.Sleep(5 * time.Second)
 		lastError = nil
 		return nil
 	})
@@ -88,10 +90,6 @@ func ResourceIsAvailable(ctx context.Context, d *schema.ResourceData, resourceID
 		diags = append(diags, diag.FromErr(fmt.Errorf("error waiting for resource with ID '%v' to become available: %v", resourceID, lastError))...)
 		return nil, diags // Return nil as the resource and the diagnostics
 	}
-
-	// Wait for an additional 5 seconds before concluding the wait process
-	// This can be helpful in scenarios where the resource might need a few extra moments to stabilize or propagate
-	time.Sleep(5 * time.Second)
 
 	// Return the successfully fetched resource and any diagnostics
 	return resource, diags
