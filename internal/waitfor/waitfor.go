@@ -89,6 +89,10 @@ func ResourceIsAvailable(ctx context.Context, d *schema.ResourceData, resourceID
 		return nil, diags // Return nil as the resource and the diagnostics
 	}
 
+	// Wait for an additional 5 seconds before concluding the wait process
+	// This can be helpful in scenarios where the resource might need a few extra moments to stabilize or propagate
+	time.Sleep(5 * time.Second)
+
 	// Return the successfully fetched resource and any diagnostics
 	return resource, diags
 }
