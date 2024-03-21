@@ -4,6 +4,7 @@ package waitfor
 import (
 	"context"
 	"fmt"
+	"log"
 	"math/rand"
 	"strings"
 	"time"
@@ -44,10 +45,11 @@ type APICallFunc func(interface{}) (interface{}, error)
 // Returns:
 //   - interface{}: The successfully fetched resource if available, needing type assertion to the expected resource type by the caller.
 //   - diag.Diagnostics: Diagnostic information including any errors encountered during the wait operation, or warnings related to the resource's availability state.
-func ResourceIsAvailable(ctx context.Context, d *schema.ResourceData, resourceID interface{}, checkResourceExists APICallFunc) (interface{}, diag.Diagnostics) {
+func ResourceIsAvailable(ctx context.Context, d *schema.ResourceData, resourceID interface{}, checkResourceExists APICallFunc, stabilizationTime time.Duration) (interface{}, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var lastError error
 	var resource interface{}
+	var retryCount int
 
 	initialBackoff := 1 * time.Second
 	maxBackoff := 30 * time.Second
@@ -56,41 +58,45 @@ func ResourceIsAvailable(ctx context.Context, d *schema.ResourceData, resourceID
 
 	currentBackoff := initialBackoff
 
+	log.Printf("Starting to wait for resource with ID '%v'", resourceID)
+
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		retryCount++
+		log.Printf("Attempting to fetch resource with ID '%v' (Retry #%d)", resourceID, retryCount)
 		var apiErr error
 		resource, apiErr = checkResourceExists(resourceID)
 		if apiErr != nil {
 			lastError = apiErr
+			log.Printf("Error fetching resource with ID '%v': %v (Retry #%d)", resourceID, apiErr, retryCount)
 
-			// Check specifically for "resource not found" errors to retry
 			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
-				// Apply exponential backoff with jitter
+				log.Printf("Resource with ID '%v' not found, retrying with backoff of %v (Retry #%d)", resourceID, currentBackoff, retryCount) // Include the retry count in the log
 				time.Sleep(currentBackoff + time.Duration(rand.Float64()*jitterFactor*float64(currentBackoff)))
-				currentBackoff = time.Duration(float64(currentBackoff) * backoffFactor) // Corrected line
+				currentBackoff = time.Duration(float64(currentBackoff) * backoffFactor)
 				if currentBackoff > maxBackoff {
 					currentBackoff = maxBackoff
 				}
+				log.Printf("Adjusted backoff for resource with ID '%v' to %v (Retry #%d)", resourceID, currentBackoff, retryCount) // Include the retry count in the log
 				return retry.RetryableError(apiErr)
 			}
 
-			// For other types of errors, do not retry and return the error
 			return retry.NonRetryableError(apiErr)
 		}
 
-		// If no error, the resource exists, stop retrying and wait for an additional 5 seconds before concluding the wait process
-		// This can be helpful in scenarios where the resource might need a few extra moments to stabilize or propagate
-		time.Sleep(5 * time.Second)
+		log.Printf("Resource with ID '%v' found after %d retries. Initiating a stabilization period of %v.", resourceID, retryCount, stabilizationTime) // Include the stabilization time in the log
+		time.Sleep(stabilizationTime)
+		log.Printf("Concluding wait process for resource with ID '%v' after a stabilization period of %v.", resourceID, stabilizationTime) // Include the stabilization time in the concluding log message
 		lastError = nil
 		return nil
 	})
 
-	// If an error occurred during retries (other than the resource not found),
-	// add it to diagnostics
 	if err != nil {
-		diags = append(diags, diag.FromErr(fmt.Errorf("error waiting for resource with ID '%v' to become available: %v", resourceID, lastError))...)
-		return nil, diags // Return nil as the resource and the diagnostics
+		errorDiags := diag.FromErr(fmt.Errorf("error waiting for resource with ID '%v' to become available after %d retries: %v", resourceID, retryCount, lastError))
+		diags = append(diags, errorDiags...)
+		log.Printf("Error encountered while waiting for resource with ID '%v' after %d retries: %v", resourceID, retryCount, lastError)
+		return nil, diags
 	}
 
-	// Return the successfully fetched resource and any diagnostics
+	log.Printf("Successfully waited for resource with ID '%v' after %d retries", resourceID, retryCount) // Include the final retry count in the log
 	return resource, diags
 }

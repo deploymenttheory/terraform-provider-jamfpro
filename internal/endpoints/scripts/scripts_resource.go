@@ -172,7 +172,7 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 		return apiclient.Conn.GetScriptByID(id.(string))
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, creationResponse.ID, checkResourceExists)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, creationResponse.ID, checkResourceExists, 10*time.Second)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
@@ -204,18 +204,21 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 	// Attempt to fetch the resource by ID
 	resource, err := apiclient.Conn.GetScriptByID(resourceID)
 	if err != nil {
-		// If the error is a "not found" error, remove the resource from the state
-		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
-			d.SetId("") // Remove the resource from Terraform state
-			return diag.Diagnostics{
-				{
-					Severity: diag.Warning,
-					Summary:  "Resource not found",
-					Detail:   fmt.Sprintf("Script with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
-				},
+		// Skip resource state removal if this is a create operation
+		if !d.IsNewResource() {
+			// If the error is a "not found" error, remove the resource from the state
+			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
+				d.SetId("") // Remove the resource from Terraform state
+				return diag.Diagnostics{
+					{
+						Severity: diag.Warning,
+						Summary:  "Resource not found",
+						Detail:   fmt.Sprintf("Computer Extension Attribute with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
+					},
+				}
 			}
 		}
-		// For other errors, return a diagnostic error
+		// For other errors, or if this is a create operation, return a diagnostic error
 		return diag.FromErr(err)
 	}
 
