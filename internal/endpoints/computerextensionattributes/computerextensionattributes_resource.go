@@ -28,7 +28,7 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 		DeleteContext: ResourceJamfProComputerExtensionAttributesDelete,
 		CustomizeDiff: validateJamfProRResourceComputerExtensionAttributesDataFields,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Second),
+			Create: schema.DefaultTimeout(120 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
 			Delete: schema.DefaultTimeout(15 * time.Second),
@@ -164,7 +164,7 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 		return apiclient.Conn.GetComputerExtensionAttributeByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, strconv.Itoa(creationResponse.ID), checkResourceExists, 30*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, strconv.Itoa(creationResponse.ID), checkResourceExists, 45*time.Second)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
