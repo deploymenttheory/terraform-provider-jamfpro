@@ -162,7 +162,7 @@ func ResourceJamfProPrintersCreate(ctx context.Context, d *schema.ResourceData, 
 		return apiclient.Conn.GetPrinterByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, strconv.Itoa(creationResponse.ID), checkResourceExists, 5*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, strconv.Itoa(creationResponse.ID), checkResourceExists, 20*time.Second)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
