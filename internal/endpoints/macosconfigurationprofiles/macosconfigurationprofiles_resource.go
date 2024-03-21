@@ -519,20 +519,23 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		return nil
 	})
 
-	// If err is not nil, check if it's due to the resource being not found
 	if err != nil {
-		if err.Error() == "resource not found, marked for deletion" {
-			d.SetId("")
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "Resource not found",
-				Detail:   fmt.Sprintf("Jamf Pro macOS Configuration Profiles with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
-			})
-			return diags
+		// Skip resource state removal if this is a create operation
+		if !d.IsNewResource() {
+			// If the error is a "not found" error, remove the resource from the state
+			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
+				d.SetId("") // Remove the resource from Terraform state
+				return diag.Diagnostics{
+					{
+						Severity: diag.Warning,
+						Summary:  "Resource not found",
+						Detail:   fmt.Sprintf("Jamf Pro macOS Configuration Profile resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
+					},
+				}
+			}
 		}
-
-		// For other errors, return an error diagnostic
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro macOS Configuration Profiles with ID '%s' after retries: %v", resourceID, err))
+		// For other errors, or if this is a create operation, return a diagnostic error
+		return diag.FromErr(err)
 	}
 
 	// Stating - commented ones appear to be done automatically.

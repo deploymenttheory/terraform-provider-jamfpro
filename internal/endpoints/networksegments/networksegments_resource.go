@@ -195,7 +195,7 @@ func ResourceJamfProNetworkSegmentsRead(ctx context.Context, d *schema.ResourceD
 					{
 						Severity: diag.Warning,
 						Summary:  "Resource not found",
-						Detail:   fmt.Sprintf("Computer Extension Attribute with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
+						Detail:   fmt.Sprintf("Jamf Pro Network Segment resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
 					},
 				}
 			}

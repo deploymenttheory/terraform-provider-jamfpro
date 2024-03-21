@@ -203,6 +203,7 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 
 	// Attempt to fetch the resource by ID
 	resource, err := apiclient.Conn.GetScriptByID(resourceID)
+
 	if err != nil {
 		// Skip resource state removal if this is a create operation
 		if !d.IsNewResource() {
@@ -213,7 +214,7 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 					{
 						Severity: diag.Warning,
 						Summary:  "Resource not found",
-						Detail:   fmt.Sprintf("Computer Extension Attribute with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
+						Detail:   fmt.Sprintf("Jamf Pro Script resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
 					},
 				}
 			}
@@ -223,7 +224,7 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 	}
 
 	// Update the Terraform state with the fetched data
-	stateData := map[string]interface{}{
+	resourceData := map[string]interface{}{
 		"id":              resource.ID,
 		"name":            resource.Name,
 		"category_name":   resource.CategoryName,
@@ -244,7 +245,7 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 	}
 
 	// Iterate over the map and set each key-value pair in the Terraform state
-	for key, val := range stateData {
+	for key, val := range resourceData {
 		if err := d.Set(key, val); err != nil {
 			return diag.FromErr(err)
 		}
