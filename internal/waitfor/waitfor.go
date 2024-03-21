@@ -18,9 +18,8 @@ import (
 type APICallFunc func(interface{}) (interface{}, error)
 
 // ResourceIsAvailable employs a retry mechanism with exponential backoff and jitter to wait
-// for a resource to become available. This function is particularly useful in scenarios
-// where a resource creation is asynchronous and may not be immediately available after a
-// create API call.
+// for a resource to become available. This function is useful in scenarios where resource
+// creation is asynchronous and may not be immediately available after a create API call.
 //
 // The function uses an APICallFunc to repeatedly check for the existence of the resource,
 // retrying in the face of "resource not found" errors, which are common immediately after
@@ -30,6 +29,11 @@ type APICallFunc func(interface{}) (interface{}, error)
 // server and minimize the chance of failures due to rate limiting or server overload. Jitter
 // is added to the backoff duration to prevent retry storms in scenarios with many concurrent
 // operations.
+//
+// After successfully locating the resource, the function initiates a customizable stabilization
+// period, allowing time for the resource to reach a steady state. The duration of this period
+// is specified by the stabilizationTime parameter. Both the number of retries and the duration
+// of the stabilization period are included in the logging to provide insight into the wait process.
 //
 // The retry process respects the provided context's deadline, ensuring that the function does
 // not exceed the overall timeout specified for the resource creation operation in Terraform.
@@ -41,6 +45,7 @@ type APICallFunc func(interface{}) (interface{}, error)
 //   - d: The Terraform resource data schema instance, providing access to the resource's operational timeout settings.
 //   - resourceID: The unique identifier of the resource being waited on.
 //   - checkResourceExists: A function conforming to the APICallFunc type that attempts to fetch the resource by its ID, returning the resource or an error.
+//   - stabilizationTime: The duration of the stabilization period to wait after the resource is found before concluding the wait process.
 //
 // Returns:
 //   - interface{}: The successfully fetched resource if available, needing type assertion to the expected resource type by the caller.
