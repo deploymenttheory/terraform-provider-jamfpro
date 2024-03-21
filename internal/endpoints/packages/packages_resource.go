@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/retryfetch"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -25,10 +26,10 @@ func ResourceJamfProPackages() *schema.Resource {
 		UpdateContext: ResourceJamfProPackagesUpdate,
 		DeleteContext: ResourceJamfProPackagesDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(45 * time.Minute),
-			Read:   schema.DefaultTimeout(60 * time.Second),
-			Update: schema.DefaultTimeout(45 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Second),
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(15 * time.Second),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
 		CustomizeDiff: customValidateFilePath,
 		Schema: map[string]*schema.Schema{
@@ -50,7 +51,7 @@ func ResourceJamfProPackages() *schema.Resource {
 			"md5_file_hash": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "md5 file hash of the package file for integrity comparison.",
+				Description: "md5 hash of the package file for integrity comparison.",
 			},
 			"package_file_path": {
 				Type:        schema.TypeString,
@@ -231,6 +232,20 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	// Wait for the resource to be fully available before reading it
+	checkResourceExists := func(id interface{}) (interface{}, error) {
+		intID, err := strconv.Atoi(id.(string))
+		if err != nil {
+			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
+		}
+		return apiclient.Conn.GetPackageByID(intID)
+	}
+
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, strconv.Itoa(creationResponse.ID), checkResourceExists, 30*time.Second)
+	if waitDiags.HasError() {
+		return waitDiags
+	}
+
 	// Read the site to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProPackagesRead(ctx, d, meta)
 	if len(readDiags) > 0 {
@@ -251,69 +266,126 @@ func ResourceJamfProPackagesRead(ctx context.Context, d *schema.ResourceData, me
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
+	conn := apiclient.Conn
 
 	// Initialize variables
+	var diags diag.Diagnostics
 	resourceID := d.Id()
+
+	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	// Define the specific API call wrapped in a function matching the APICallFuncInt signature from the retryfetch package
-	getResource := func(id int) (interface{}, error) {
-		return apiclient.Conn.GetPackageByID(resourceIDInt)
-	}
+	var resource *jamfpro.ResourcePackage
 
-	// Use the retryfetch helper function with context
-	retry, diags := retryfetch.ByResourceIntID(ctx, d, resourceIDInt, getResource)
-	if diags.HasError() {
-		return diags
-	}
-
-	// Check if the returned resource from retry is not nil before proceeding
-	if retry != nil {
-		resource, ok := retry.(*jamfpro.ResourcePackage)
-		if !ok {
-			return diag.Errorf("expected resource type *jamfpro.ResourcePackage, got %T", retry)
-		}
-
-		// Initialize the category value with Specific substitution
-		// This is necessary because the API returns "No category assigned" when no category is assigned
-		// but the request expects "Unknown" when no category is assigned.
-		categoryValue := resource.Category
-		if resource.Category == "No category assigned" {
-			categoryValue = "Unknown" // Specific substitution
-		}
-
-		// Update the Terraform state with the fetched data, including specific field substitutions and commented-out fields
-		packageData := map[string]interface{}{
-			"id":                            strconv.Itoa(resource.ID),
-			"name":                          resource.Name,
-			"category":                      categoryValue,
-			"filename":                      resource.Filename,
-			"info":                          resource.Info,
-			"notes":                         resource.Notes,
-			"priority":                      resource.Priority,
-			"reboot_required":               resource.RebootRequired,
-			"fill_user_template":            resource.FillUserTemplate,
-			"fill_existing_users":           resource.FillExistingUsers,
-			"boot_volume_required":          resource.BootVolumeRequired,
-			"allow_uninstalled":             resource.AllowUninstalled,
-			"os_requirements":               resource.OSRequirements,
-			"install_if_reported_available": resource.InstallIfReportedAvailable,
-			"send_notification":             resource.SendNotification,
-			// "required_processor":             resource.RequiredProcessor, // Commented out, for future use
-			// "switch_with_package":            resource.SwitchWithPackage, // Commented out, for future use
-			// "reinstall_option":               resource.ReinstallOption, // Commented out, for future use
-			// "triggering_files":               resource.TriggeringFiles, // Commented out, for future use
-		}
-
-		// Iterate over the map and set each key-value pair in the Terraform state
-		for key, val := range packageData {
-			if err := d.Set(key, val); err != nil {
-				return diag.FromErr(err)
+	// Read operation with retry
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		resource, apiErr = conn.GetPackageByID(resourceIDInt)
+		if apiErr != nil {
+			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
+				// Return non-retryable error with a message to avoid SDK issues
+				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
 			}
+			// Retry for other types of errors
+			return retry.RetryableError(apiErr)
 		}
+		return nil
+	})
+
+	// If err is not nil, check if it's due to the resource being not found
+	if err != nil {
+		if err.Error() == "resource not found, marked for deletion" {
+			// Resource not found, remove from Terraform state
+			d.SetId("")
+			// Append a warning diagnostic and return
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Resource not found",
+				Detail:   fmt.Sprintf("Jamf Pro Package with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
+			})
+			return diags
+		}
+
+		// For other errors, return an error diagnostic
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Package with ID '%s' after retries: %v", resourceID, err))
+	}
+
+	// Update Terraform state with the resource information
+	if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("name", resource.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	// Check if the category is "No category assigned" and set it to "Unknown"
+	// This is necessary because the API returns "No category assigned" when no category is assigned
+	// but the request expects "Unknown" when no category is assigned.
+	if resource.Category == "No category assigned" {
+		// Set the category to "Unknown"
+		if err := d.Set("category", "Unknown"); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	} else {
+		// Set the category normally if it's not "No category assigned"
+		if err := d.Set("category", resource.Category); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+	if err := d.Set("filename", resource.Filename); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("info", resource.Info); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("notes", resource.Notes); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("priority", resource.Priority); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("reboot_required", resource.RebootRequired); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("fill_user_template", resource.FillUserTemplate); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("fill_existing_users", resource.FillExistingUsers); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("boot_volume_required", resource.BootVolumeRequired); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("allow_uninstalled", resource.AllowUninstalled); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("os_requirements", resource.OSRequirements); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	/* Fields are in the data model but don't appear to serve a purpose in jamf 11.3 onwards
+	// these fields may only be relevant if a file is indexed by JAMF Admin. which i *think*
+	// is to be deprecated in favor of JCDS 2.0
+	if err := d.Set("required_processor", resource.RequiredProcessor); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("switch_with_package", resource.SwitchWithPackage); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("reinstall_option", resource.ReinstallOption); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("triggering_files", resource.TriggeringFiles); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	*/
+	if err := d.Set("install_if_reported_available", resource.InstallIfReportedAvailable); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("send_notification", resource.SendNotification); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	return diags

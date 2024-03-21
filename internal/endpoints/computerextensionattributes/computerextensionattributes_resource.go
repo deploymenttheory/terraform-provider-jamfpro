@@ -5,11 +5,12 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/retryfetch"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -27,10 +28,10 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 		DeleteContext: ResourceJamfProComputerExtensionAttributesDelete,
 		CustomizeDiff: validateJamfProRResourceComputerExtensionAttributesDataFields,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Second),
+			Create: schema.DefaultTimeout(120 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
-			Delete: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -132,7 +133,7 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 	// Construct the resource object
 	resource, err := constructJamfProComputerExtensionAttribute(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Printer: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Extension Attribute: %v", err))
 	}
 
 	// Retry the API call to create the resource in Jamf Pro
@@ -154,7 +155,21 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 	// Set the resource ID in Terraform state
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	// Read the site to ensure the Terraform state is up to date
+	// Wait for the resource to be fully available before reading it
+	checkResourceExists := func(id interface{}) (interface{}, error) {
+		intID, err := strconv.Atoi(id.(string))
+		if err != nil {
+			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
+		}
+		return apiclient.Conn.GetComputerExtensionAttributeByID(intID)
+	}
+
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, strconv.Itoa(creationResponse.ID), checkResourceExists, 45*time.Second)
+	if waitDiags.HasError() {
+		return waitDiags
+	}
+
+	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProComputerExtensionAttributesRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
@@ -182,50 +197,53 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	// Wrap the specific API call in a function that matches the APICallFunc signature
-	getResource := func(id int) (interface{}, error) {
-		return apiclient.Conn.GetComputerExtensionAttributeByID(id)
-	}
+	// Attempt to fetch the resource by ID
+	resource, err := apiclient.Conn.GetComputerExtensionAttributeByID(resourceIDInt)
 
-	// Use the retryfetch helper function with context
-	retry, diags := retryfetch.ByResourceIntID(ctx, d, resourceIDInt, getResource)
-	if diags.HasError() {
-		return diags
-	}
-
-	// Proceed with setting the resource state using the resource returned from the helper, if not nil
-	if retry != nil {
-		resource, ok := retry.(*jamfpro.ResourceComputerExtensionAttribute)
-		if !ok {
-			return diag.Errorf("expected resource type *jamfpro.ResourceComputerExtensionAttribute, got %T", retry)
-		}
-
-		// Update the Terraform state with the fetched data
-		stateData := map[string]interface{}{
-			"name":              resource.Name,
-			"enabled":           resource.Enabled,
-			"description":       resource.Description,
-			"data_type":         resource.DataType,
-			"inventory_display": resource.InventoryDisplay,
-			"recon_display":     resource.ReconDisplay,
-			"input_type": []interface{}{
-				map[string]interface{}{
-					"type":     resource.InputType.Type,
-					"platform": resource.InputType.Platform,
-					"script":   resource.InputType.Script,
-					"choices":  resource.InputType.Choices,
-				},
-			},
-		}
-
-		for key, val := range stateData {
-			if err := d.Set(key, val); err != nil {
-				return diag.FromErr(err)
+	if err != nil {
+		// Skip resource state removal if this is a create operation
+		if !d.IsNewResource() {
+			// If the error is a "not found" error, remove the resource from the state
+			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
+				d.SetId("") // Remove the resource from Terraform state
+				return diag.Diagnostics{
+					{
+						Severity: diag.Warning,
+						Summary:  "Resource not found",
+						Detail:   fmt.Sprintf("Computer Extension Attribute with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
+					},
+				}
 			}
 		}
+		// For other errors, or if this is a create operation, return a diagnostic error
+		return diag.FromErr(err)
 	}
 
-	return diags
+	// Update the Terraform state with the fetched data
+	resourceData := map[string]interface{}{
+		"name":              resource.Name,
+		"enabled":           resource.Enabled,
+		"description":       resource.Description,
+		"data_type":         resource.DataType,
+		"inventory_display": resource.InventoryDisplay,
+		"recon_display":     resource.ReconDisplay,
+		"input_type": []interface{}{
+			map[string]interface{}{
+				"type":     resource.InputType.Type,
+				"platform": resource.InputType.Platform,
+				"script":   resource.InputType.Script,
+				"choices":  resource.InputType.Choices,
+			},
+		},
+	}
+
+	for key, val := range resourceData {
+		if err := d.Set(key, val); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	return nil
 }
 
 // ResourceJamfProComputerExtensionAttributesUpdate is responsible for updating an existing Jamf Pro Computer Extension Attribute on the remote system.

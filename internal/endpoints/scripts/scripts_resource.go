@@ -4,11 +4,12 @@ package scripts
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/retryfetch"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -166,18 +167,20 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 	// Set the resource ID in Terraform state
 	d.SetId(creationResponse.ID)
 
-	// Retry reading the resource to ensure the Terraform state is up to date
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProScriptsRead(ctx, d, meta)
-		if len(readDiags) > 0 {
-			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
-		}
-		// Successfully read the resource, exit the retry loop
-		return nil
-	})
+	// Wait for the resource to be fully available before reading it
+	checkResourceExists := func(id interface{}) (interface{}, error) {
+		return apiclient.Conn.GetScriptByID(id.(string))
+	}
 
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to synchronize Terraform state for Jamf Pro Script '%s' after creation: %v", resource.Name, err))
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, creationResponse.ID, checkResourceExists, 10*time.Second)
+	if waitDiags.HasError() {
+		return waitDiags
+	}
+
+	// Read the resource to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProScriptsRead(ctx, d, meta)
+	if len(readDiags) > 0 {
+		return readDiags
 	}
 
 	return diags
@@ -198,54 +201,57 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 	// Use the script ID from Terraform's data schema as the resource identifier
 	resourceID := d.Id()
 
-	// Define the specific API call wrapped in a function matching the APICallFuncString signature from the retryfetch package
-	getResource := func(id string) (interface{}, error) {
-		return apiclient.Conn.GetScriptByID(id)
-	}
+	// Attempt to fetch the resource by ID
+	resource, err := apiclient.Conn.GetScriptByID(resourceID)
 
-	// Use the retryfetch helper function with context
-	retry, diags := retryfetch.ByResourceStringID(ctx, d, resourceID, getResource)
-	if diags.HasError() {
-		return diags
-	}
-
-	// Check if the returned resource from retry is not nil before proceeding
-	if retry != nil {
-		resource, ok := retry.(*jamfpro.ResourceScript)
-		if !ok {
-			return diag.Errorf("expected resource type *jamfpro.ResourceScript, got %T", retry)
-		}
-
-		// Update the Terraform state with the fetched data
-		stateData := map[string]interface{}{
-			"id":              resource.ID,
-			"name":            resource.Name,
-			"category_name":   resource.CategoryName,
-			"category_id":     resource.CategoryId,
-			"info":            resource.Info,
-			"notes":           resource.Notes,
-			"os_requirements": resource.OSRequirements,
-			"priority":        resource.Priority,
-			"script_contents": resource.ScriptContents,
-			"parameter4":      resource.Parameter4,
-			"parameter5":      resource.Parameter5,
-			"parameter6":      resource.Parameter6,
-			"parameter7":      resource.Parameter7,
-			"parameter8":      resource.Parameter8,
-			"parameter9":      resource.Parameter9,
-			"parameter10":     resource.Parameter10,
-			"parameter11":     resource.Parameter11,
-		}
-
-		// Iterate over the map and set each key-value pair in the Terraform state
-		for key, val := range stateData {
-			if err := d.Set(key, val); err != nil {
-				return diag.FromErr(err)
+	if err != nil {
+		// Skip resource state removal if this is a create operation
+		if !d.IsNewResource() {
+			// If the error is a "not found" error, remove the resource from the state
+			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
+				d.SetId("") // Remove the resource from Terraform state
+				return diag.Diagnostics{
+					{
+						Severity: diag.Warning,
+						Summary:  "Resource not found",
+						Detail:   fmt.Sprintf("Jamf Pro Script resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
+					},
+				}
 			}
 		}
+		// For other errors, or if this is a create operation, return a diagnostic error
+		return diag.FromErr(err)
 	}
 
-	return diags
+	// Update the Terraform state with the fetched data
+	resourceData := map[string]interface{}{
+		"id":              resource.ID,
+		"name":            resource.Name,
+		"category_name":   resource.CategoryName,
+		"category_id":     resource.CategoryId,
+		"info":            resource.Info,
+		"notes":           resource.Notes,
+		"os_requirements": resource.OSRequirements,
+		"priority":        resource.Priority,
+		"script_contents": resource.ScriptContents,
+		"parameter4":      resource.Parameter4,
+		"parameter5":      resource.Parameter5,
+		"parameter6":      resource.Parameter6,
+		"parameter7":      resource.Parameter7,
+		"parameter8":      resource.Parameter8,
+		"parameter9":      resource.Parameter9,
+		"parameter10":     resource.Parameter10,
+		"parameter11":     resource.Parameter11,
+	}
+
+	// Iterate over the map and set each key-value pair in the Terraform state
+	for key, val := range resourceData {
+		if err := d.Set(key, val); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	return nil
 }
 
 // ResourceJamfProScriptsUpdate is responsible for updating an existing Jamf Pro Department on the remote system.
