@@ -338,20 +338,22 @@ func ResourceJamfProComputerGroupsRead(ctx context.Context, d *schema.ResourceDa
 			diags = append(diags, diag.FromErr(err)...)
 		}
 
-		// Set the computers
-		computersList := make([]interface{}, len(resource.Computers))
-		for i, comp := range resource.Computers {
-			computerMap := map[string]interface{}{
-				"id":              comp.ID,
-				"name":            comp.Name,
-				"mac_address":     comp.MacAddress,
-				"alt_mac_address": comp.AltMacAddress,
-				"serial_number":   comp.SerialNumber,
+		// Set the computers only if the group is not smart
+		if !resource.IsSmart {
+			computersList := make([]interface{}, len(resource.Computers))
+			for i, comp := range resource.Computers {
+				computerMap := map[string]interface{}{
+					"id":              comp.ID,
+					"name":            comp.Name,
+					"mac_address":     comp.MacAddress,
+					"alt_mac_address": comp.AltMacAddress,
+					"serial_number":   comp.SerialNumber,
+				}
+				computersList[i] = computerMap
 			}
-			computersList[i] = computerMap
-		}
-		if err := d.Set("computers", computersList); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+			if err := d.Set("computers", computersList); err != nil {
+				diags = append(diags, diag.FromErr(err)...)
+			}
 		}
 	}
 

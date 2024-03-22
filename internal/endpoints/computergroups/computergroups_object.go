@@ -33,7 +33,7 @@ func constructJamfProComputerGroup(d *schema.ResourceData) (*jamfpro.ResourceCom
 	}
 
 	// Handle "computers" field
-	if v, ok := d.GetOk("computers"); ok {
+	if v, ok := d.GetOk("computers"); ok && !group.IsSmart {
 		group.Computers = constructGroupComputers(v.([]interface{}))
 	}
 
