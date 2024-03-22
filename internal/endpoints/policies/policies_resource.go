@@ -40,7 +40,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Required:    true,
 				Description: "Define whether the policy is enabled.",
 			},
-			// "trigger": { // NOTE appears to be redundant when used with the below
+			// "trigger": { // NOTE appears to be redundant when used with the below. Maybe this use to be a multiple choice option?
 			// 	Type:         schema.TypeString,
 			// 	Required:     true,
 			// 	Description:  "Event(s) triggers to use to initiate the policy. Values can be 'USER_INITIATED' for self self trigger and 'EVENT' for an event based trigger",
