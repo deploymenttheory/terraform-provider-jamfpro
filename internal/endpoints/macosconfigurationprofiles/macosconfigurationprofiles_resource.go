@@ -27,10 +27,10 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 		UpdateContext: ResourceJamfProMacOSConfigurationProfilesUpdate,
 		DeleteContext: ResourceJamfProMacOSConfigurationProfilesDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Second),
+			Create: schema.DefaultTimeout(120 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
-			Delete: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -205,7 +205,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"user_names": {
 										Type:        schema.TypeList,
-										Description: "Users the scope is limited to by Jamf ID.",
+										Description: "Users the macOS config profile scope is limited to by Jamf ID.",
 										Optional:    true,
 										Default:     nil,
 										Elem: &schema.Schema{
@@ -470,7 +470,7 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 		return apiclient.Conn.GetMacOSConfigurationProfileByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, strconv.Itoa(creationResponse.ID), checkResourceExists, 30*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, strconv.Itoa(creationResponse.ID), checkResourceExists, 45*time.Second)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
