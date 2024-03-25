@@ -79,7 +79,7 @@ Optional:
 - `ibeacon_ids` (List of Number) Ibeacons the scope is limited to by Jamf ID.
 - `network_segment_ids` (List of Number) Network segments the scope is limited to by Jamf ID.
 - `user_group_ids` (List of Number) Users groups the scope is limited to by Jamf ID.
-- `user_names` (List of String) Users the scope is limited to by Jamf ID.
+- `user_names` (List of String) Users the macOS config profile scope is limited to by Jamf ID.
 
 
 
