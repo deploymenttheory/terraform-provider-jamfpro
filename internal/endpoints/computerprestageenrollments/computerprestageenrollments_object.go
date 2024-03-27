@@ -1,13 +1,13 @@
-// computerprestages_object.go
-package computerprestages
+// computerprestageenrollments_object.go
+package computerprestageenrollments
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// constructJamfProComputerPrestage constructs a ResourceComputerPrestage object from the provided schema data.
-func constructJamfProComputerPrestage(d *schema.ResourceData) (*jamfpro.ResourceComputerPrestage, error) {
+// constructJamfProComputerPrestageEnrollment constructs a ResourceComputerPrestage object from the provided schema data.
+func constructJamfProComputerPrestageEnrollment(d *schema.ResourceData) (*jamfpro.ResourceComputerPrestage, error) {
 	prestage := &jamfpro.ResourceComputerPrestage{
 		DisplayName:                     d.Get("display_name").(string),
 		Mandatory:                       d.Get("mandatory").(bool),
