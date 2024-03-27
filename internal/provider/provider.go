@@ -28,7 +28,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computerextensionattributes"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computerinventory"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computerprestages"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computerprestageenrollments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/departments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/diskencryptionconfigurations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/dockitems"
@@ -194,7 +194,7 @@ func Provider() *schema.Provider {
 			"jamfpro_computer_extension_attribute":  computerextensionattributes.DataSourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_group":                computergroups.DataSourceJamfProComputerGroups(),
 			"jamfpro_computer_inventory":            computerinventory.DataSourceJamfProComputerInventory(),
-			"jamfpro_computer_prestage":             computerprestages.DataSourceJamfProComputerPrestage(),
+			"jamfpro_computer_prestage_enrollment":  computerprestageenrollments.DataSourceJamfProComputerPrestageEnrollmentEnrollment(),
 			"jamfpro_department":                    departments.DataSourceJamfProDepartments(),
 			"jamfpro_disk_encryption_configuration": diskencryptionconfigurations.DataSourceJamfProDiskEncryptionConfigurations(),
 			"jamfpro_dock_item":                     dockitems.DataSourceJamfProDockItems(),
@@ -202,10 +202,10 @@ func Provider() *schema.Provider {
 			"jamfpro_network_segment":               networksegments.DataSourceJamfProNetworkSegments(),
 			"jamfpro_package":                       packages.DataSourceJamfProPackages(),
 			// "jamfpro_policy":                        policies.DataSourceJamfProPolicies(),
-			"jamfpro_printer": printers.DataSourceJamfProPrinters(),
-			"jamfpro_script":  scripts.DataSourceJamfProScripts(),
-			"jamfpro_site":    sites.DataSourceJamfProSites(),
-      "jamfpro_user_group":                    usergroups.DataSourceJamfProUserGroups(),
+			"jamfpro_printer":    printers.DataSourceJamfProPrinters(),
+			"jamfpro_script":     scripts.DataSourceJamfProScripts(),
+			"jamfpro_site":       sites.DataSourceJamfProSites(),
+			"jamfpro_user_group": usergroups.DataSourceJamfProUserGroups(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"jamfpro_account":                       accounts.ResourceJamfProAccounts(),
@@ -221,7 +221,7 @@ func Provider() *schema.Provider {
 			"jamfpro_computer_checkin":              computercheckin.ResourceJamfProComputerCheckin(),
 			"jamfpro_computer_extension_attribute":  computerextensionattributes.ResourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_group":                computergroups.ResourceJamfProComputerGroups(),
-			"jamfpro_computer_prestage":             computerprestages.ResourceJamfProComputerPrestage(),
+			"jamfpro_computer_prestage_enrollment":  computerprestageenrollments.ResourceJamfProComputerPrestageEnrollmentEnrollment(),
 			"jamfpro_department":                    departments.ResourceJamfProDepartments(),
 			"jamfpro_disk_encryption_configuration": diskencryptionconfigurations.ResourceJamfProDiskEncryptionConfigurations(),
 			"jamfpro_dock_item":                     dockitems.ResourceJamfProDockItems(),
