@@ -118,7 +118,7 @@ func ResourceJamfProUserGroups() *schema.Resource {
 						"search_type": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Description: fmt.Sprintf("The type of smart group search operator. Allowed values are '%s', '%s', '%s', '%s', '%s', '%s'.",
+							Description: fmt.Sprintf("The type of user smart group search operator. Allowed values are '%s', '%s', '%s', '%s', '%s', '%s'.",
 								string(SearchTypeIs), string(SearchTypeIsNot), string(SearchTypeLike),
 								string(SearchTypeNotLike), string(SearchTypeMatchesRegex), string(SearchTypeDoesNotMatch)),
 							ValidateFunc: validation.StringInSlice([]string{
