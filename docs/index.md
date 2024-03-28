@@ -30,5 +30,7 @@ description: |-
 - `max_concurrent_requests` (Number) The maximum number of concurrent requests allowed in the semaphore.
 - `max_retry_attempts` (Number) The maximum number of retry request attempts for retryable HTTP methods.
 - `override_base_domain` (String) Base domain override used when the default in the API handler isn't suitable.
+- `password` (String, Sensitive) The Jamf Pro password used for authentication.
 - `token_refresh_buffer_period` (Number) The buffer period in minutes for token refresh.
 - `total_retry_duration` (Number) The total retry duration in seconds.
+- `username` (String) The Jamf Pro username used for authentication.
