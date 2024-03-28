@@ -82,5 +82,5 @@ package metadata in Jamf Pro.
 
 - **Resource & Data Source**: Enables the handling of User Groups in Jamf Pro. This encompasses the capabilities to create, update, and remove user group entities, as well as the functionality to detail user group attributes and memberships.
 
-- **Status**: Experimental
+- **Status**: Finished
 - **Availability**: Introduced in version `v0.0.38`.
