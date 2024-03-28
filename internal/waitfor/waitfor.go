@@ -50,7 +50,7 @@ type APICallFunc func(interface{}) (interface{}, error)
 // Returns:
 //   - interface{}: The successfully fetched resource if available, needing type assertion to the expected resource type by the caller.
 //   - diag.Diagnostics: Diagnostic information including any errors encountered during the wait operation, or warnings related to the resource's availability state.
-func ResourceIsAvailable(ctx context.Context, d *schema.ResourceData, resourceID interface{}, checkResourceExists APICallFunc, stabilizationTime time.Duration) (interface{}, diag.Diagnostics) {
+func ResourceIsAvailable(ctx context.Context, d *schema.ResourceData, resourceType string, resourceID interface{}, checkResourceExists APICallFunc, stabilizationTime time.Duration) (interface{}, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var lastError error
 	var resource interface{}
@@ -63,34 +63,34 @@ func ResourceIsAvailable(ctx context.Context, d *schema.ResourceData, resourceID
 
 	currentBackoff := initialBackoff
 
-	log.Printf("Starting to wait for resource with ID '%v'", resourceID)
+	log.Printf("Starting to wait for %s resource with ID '%v'", resourceType, resourceID)
 
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		retryCount++
-		log.Printf("Attempting to fetch resource with ID '%v' (Retry #%d)", resourceID, retryCount)
+		log.Printf("Attempting to fetch %s resource with ID '%v' (Retry #%d)", resourceType, resourceID, retryCount)
 		var apiErr error
 		resource, apiErr = checkResourceExists(resourceID)
 		if apiErr != nil {
 			lastError = apiErr
-			log.Printf("Error fetching resource with ID '%v': %v (Retry #%d)", resourceID, apiErr, retryCount)
+			log.Printf("Error fetching %s resource with ID '%v': %v (Retry #%d)", resourceType, resourceID, apiErr, retryCount)
 
 			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
-				log.Printf("Resource with ID '%v' not found, retrying with backoff of %v (Retry #%d)", resourceID, currentBackoff, retryCount) // Include the retry count in the log
+				log.Printf("Resource with ID '%v' not found, retrying with backoff of %v (Retry #%d)", resourceID, currentBackoff, retryCount)
 				time.Sleep(currentBackoff + time.Duration(rand.Float64()*jitterFactor*float64(currentBackoff)))
 				currentBackoff = time.Duration(float64(currentBackoff) * backoffFactor)
 				if currentBackoff > maxBackoff {
 					currentBackoff = maxBackoff
 				}
-				log.Printf("Adjusted backoff for resource with ID '%v' to %v (Retry #%d)", resourceID, currentBackoff, retryCount) // Include the retry count in the log
+				log.Printf("Adjusted backoff for resource with ID '%v' to %v (Retry #%d)", resourceID, currentBackoff, retryCount)
 				return retry.RetryableError(apiErr)
 			}
 
 			return retry.NonRetryableError(apiErr)
 		}
 
-		log.Printf("Resource with ID '%v' found after %d retries. Initiating a stabilization period of %v.", resourceID, retryCount, stabilizationTime) // Include the stabilization time in the log
+		log.Printf("%s resource with ID '%v' found after %d retries. Initiating a stabilization period of %v.", resourceType, resourceID, retryCount, stabilizationTime)
 		time.Sleep(stabilizationTime)
-		log.Printf("Concluding wait process for resource with ID '%v' after a stabilization period of %v.", resourceID, stabilizationTime) // Include the stabilization time in the concluding log message
+		log.Printf("Concluding wait process for %s resource with ID '%v' after a stabilization period of %v.", resourceType, resourceID, stabilizationTime)
 		lastError = nil
 		return nil
 	})
@@ -102,6 +102,6 @@ func ResourceIsAvailable(ctx context.Context, d *schema.ResourceData, resourceID
 		return nil, diags
 	}
 
-	log.Printf("Successfully waited for resource with ID '%v' after %d retries", resourceID, retryCount) // Include the final retry count in the log
+	log.Printf("Successfully waited for %s resource with ID '%v' after %d retries", resourceType, resourceID, retryCount)
 	return resource, diags
 }

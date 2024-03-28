@@ -29,6 +29,7 @@ func constructJamfProFileShareDistributionPoint(d *schema.ResourceData) (*jamfpr
 		HTTPDownloadsEnabled:     d.Get("https_downloads_enabled").(bool),
 		Port:                     d.Get("https_port").(int),
 		Context:                  d.Get("https_share_path").(string),
+		UsernamePasswordRequired: d.Get("https_username_password_required").(bool),
 		HTTPUsername:             d.Get("https_username").(string),
 		HTTPPassword:             d.Get("https_password").(string),
 		Protocol:                 d.Get("protocol").(string),

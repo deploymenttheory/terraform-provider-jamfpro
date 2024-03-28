@@ -241,7 +241,7 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 		return apiclient.Conn.GetPackageByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, strconv.Itoa(creationResponse.ID), checkResourceExists, 30*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Package", strconv.Itoa(creationResponse.ID), checkResourceExists, 30*time.Second)
 	if waitDiags.HasError() {
 		return waitDiags
 	}

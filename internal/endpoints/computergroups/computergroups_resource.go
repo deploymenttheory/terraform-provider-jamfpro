@@ -18,29 +18,26 @@ import (
 )
 
 const (
-	And DeviceGroupAndOr = "and"
-	Or  DeviceGroupAndOr = "or"
-)
-
-const (
-	SearchTypeIs                 = "is"
-	SearchTypeIsNot              = "is not"
-	SearchTypeHas                = "has"
-	SearchTypeDoesNotHave        = "does not have"
-	SearchTypeMemberOf           = "member of"
-	SearchTypeNotMemberOf        = "not member of"
-	SearchTypeBeforeYYYYMMDD     = "before (yyyy-mm-dd)"
-	SearchTypeAfterYYYYMMDD      = "after (yyyy-mm-dd)"
-	SearchTypeMoreThanXDaysAgo   = "more than x days ago"
-	SearchTypeLessThanXDaysAgo   = "less than x days ago"
-	SearchTypeLike               = "like"
-	SearchTypeNotLike            = "not like"
-	SearchTypeGreaterThan        = "greater than"
-	SearchTypeLessThan           = "less than"
-	SearchTypeGreaterThanOrEqual = "greater than or equal"
-	SearchTypeLessThanOrEqual    = "less than or equal"
-	SearchTypeMatchesRegex       = "matches regex"
-	SearchTypeDoesNotMatch       = "does not match regex"
+	And                          DeviceGroupAndOr = "and"
+	Or                           DeviceGroupAndOr = "or"
+	SearchTypeIs                                  = "is"
+	SearchTypeIsNot                               = "is not"
+	SearchTypeHas                                 = "has"
+	SearchTypeDoesNotHave                         = "does not have"
+	SearchTypeMemberOf                            = "member of"
+	SearchTypeNotMemberOf                         = "not member of"
+	SearchTypeBeforeYYYYMMDD                      = "before (yyyy-mm-dd)"
+	SearchTypeAfterYYYYMMDD                       = "after (yyyy-mm-dd)"
+	SearchTypeMoreThanXDaysAgo                    = "more than x days ago"
+	SearchTypeLessThanXDaysAgo                    = "less than x days ago"
+	SearchTypeLike                                = "like"
+	SearchTypeNotLike                             = "not like"
+	SearchTypeGreaterThan                         = "greater than"
+	SearchTypeLessThan                            = "less than"
+	SearchTypeGreaterThanOrEqual                  = "greater than or equal"
+	SearchTypeLessThanOrEqual                     = "less than or equal"
+	SearchTypeMatchesRegex                        = "matches regex"
+	SearchTypeDoesNotMatch                        = "does not match regex"
 )
 
 type DeviceGroupAndOr string

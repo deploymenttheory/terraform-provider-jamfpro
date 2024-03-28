@@ -470,7 +470,7 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 		return apiclient.Conn.GetMacOSConfigurationProfileByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, strconv.Itoa(creationResponse.ID), checkResourceExists, 45*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro macOS Configuration Profile", strconv.Itoa(creationResponse.ID), checkResourceExists, 45*time.Second)
 	if waitDiags.HasError() {
 		return waitDiags
 	}

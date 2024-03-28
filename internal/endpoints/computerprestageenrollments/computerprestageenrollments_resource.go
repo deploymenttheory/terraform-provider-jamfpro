@@ -1,5 +1,5 @@
 // computerprestages_resource.go
-package computerprestages
+package computerprestageenrollments
 
 import (
 	"context"
@@ -9,19 +9,21 @@ import (
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
+
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProComputerPrestage defines the schema for managing Jamf Pro Computer Prestages in Terraform.
-func ResourceJamfProComputerPrestage() *schema.Resource {
+// ResourceJamfProComputerPrestageEnrollmentEnrollment defines the schema for managing Jamf Pro Computer Prestages in Terraform.
+func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProComputerPrestageCreate,
-		ReadContext:   ResourceJamfProComputerPrestageRead,
-		UpdateContext: ResourceJamfProComputerPrestageUpdate,
-		DeleteContext: ResourceJamfProComputerPrestageDelete,
+		CreateContext: ResourceJamfProComputerPrestageEnrollmentCreate,
+		ReadContext:   ResourceJamfProComputerPrestageEnrollmentRead,
+		UpdateContext: ResourceJamfProComputerPrestageEnrollmentUpdate,
+		DeleteContext: ResourceJamfProComputerPrestageEnrollmentDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
@@ -51,7 +53,7 @@ func ResourceJamfProComputerPrestage() *schema.Resource {
 			},
 			"support_phone_number": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "The Support phone number for the organization.",
 			},
 			"support_email_address": {
@@ -61,47 +63,47 @@ func ResourceJamfProComputerPrestage() *schema.Resource {
 			},
 			"department": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "The department the computer prestage is assigned to.",
 			},
 			"default_prestage": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Required:    true,
 				Description: "Indicates if this is the default computer prestage enrollment configuration. If yes then new devices will be automatically assigned to this PreStage enrollment",
 			},
 			"enrollment_site_id": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "The jamf pro Site ID that computers will be added to during enrollment. Default is -1, aka not used.",
 			},
 			"keep_existing_site_membership": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Required:    true,
 				Description: "Indicates if existing device site membership should be retained.",
 			},
 			"keep_existing_location_information": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Required:    true,
 				Description: "Indicates if existing device location information should be retained.",
 			},
 			"require_authentication": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Required:    true,
 				Description: "Indicates if the user is required to provide username and password on computers with macOS 10.10 or later.",
 			},
 			"authentication_prompt": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "The authentication prompt message displayed to the user during enrollment.",
 			},
 			"prevent_activation_lock": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Required:    true,
 				Description: "Indicates if activation lock should be prevented.",
 			},
 			"enable_device_based_activation_lock": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Required:    true,
 				Description: "Indicates if device-based activation lock should be enabled.",
 			},
 			"device_enrollment_program_instance_id": {
@@ -431,7 +433,7 @@ func ResourceJamfProComputerPrestage() *schema.Resource {
 			},
 			"profile_uuid": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "The profile UUID.",
 			},
 			"site_id": {
@@ -550,13 +552,13 @@ func ResourceJamfProComputerPrestage() *schema.Resource {
 	}
 }
 
-// ResourceJamfProComputerPrestageCreate is responsible for creating a new computer prestage in Jamf Pro with terraform.
+// ResourceJamfProComputerPrestageEnrollmentCreate is responsible for creating a new computer prestage in Jamf Pro with terraform.
 // The function:
 // 1. Constructs the computer prestage data using the provided Terraform configuration.
 // 2. Calls the API to create the computer prestage in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created computer prestage.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func ResourceJamfProComputerPrestageCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ResourceJamfProComputerPrestageEnrollmentCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Assert the meta interface to the expected APIClient type
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -568,9 +570,9 @@ func ResourceJamfProComputerPrestageCreate(ctx context.Context, d *schema.Resour
 	var diags diag.Diagnostics
 
 	// Construct the resource object
-	resource, err := constructJamfProComputerPrestage(d)
+	resource, err := constructJamfProComputerPrestageEnrollment(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Prestage: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro computer prestage enrollment: %v", err))
 	}
 
 	// Retry the API call to create the resource in Jamf Pro
@@ -586,72 +588,66 @@ func ResourceJamfProComputerPrestageCreate(ctx context.Context, d *schema.Resour
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Computer Prestage '%s' after retries: %v", resource.DisplayName, err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro computer prestage enrollment '%s' after retries: %v", resource.DisplayName, err))
 	}
 
 	// Set the resource ID in Terraform state
 	d.SetId(creationResponse.ID)
 
-	// Read the site to ensure the Terraform state is up to date
-	readDiags := ResourceJamfProComputerPrestageRead(ctx, d, meta)
+	// Wait for the resource to be fully available before reading it
+	checkResourceExists := func(id interface{}) (interface{}, error) {
+		return apiclient.Conn.GetComputerPrestageByID(id.(string))
+	}
+
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro computer prestage enrollment", creationResponse.ID, checkResourceExists, 10*time.Second)
+	if waitDiags.HasError() {
+		return waitDiags
+	}
+
+	// Read the resource to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProComputerPrestageEnrollmentRead(ctx, d, meta)
 	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
+		return readDiags
 	}
 
 	return diags
 }
 
-// ResourceJamfProComputerPrestageRead is responsible for reading the current state of a Building Resource from the remote system.
+// ResourceJamfProComputerPrestageEnrollmentRead is responsible for reading the current state of a Building Resource from the remote system.
 // The function:
 // 1. Fetches the building's current state using its ID. If it fails, then obtain the building's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the building being deleted outside of Terraform, to keep the Terraform state synchronized.
-func ResourceJamfProComputerPrestageRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ResourceJamfProComputerPrestageEnrollmentRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
-	conn := apiclient.Conn
 
-	// Initialize variables
-	var diags diag.Diagnostics
+	// Use the script ID from Terraform's data schema as the resource identifier
 	resourceID := d.Id()
-	var err error
 
-	var resource *jamfpro.ResourceComputerPrestage
+	// Attempt to fetch the resource by ID
+	resource, err := apiclient.Conn.GetComputerPrestageByID(resourceID)
 
-	// Read operation with retry
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
-		resource, apiErr = conn.GetComputerPrestageByID(resourceID)
-		if apiErr != nil {
-			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
-				// Return non-retryable error with a message to avoid SDK issues
-				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
-			}
-			// Retry for other types of errors
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	// If err is not nil, check if it's due to the resource being not found
 	if err != nil {
-		if err.Error() == "resource not found, marked for deletion" {
-			// Resource not found, remove from Terraform state
-			d.SetId("")
-			// Append a warning diagnostic and return
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "Resource not found",
-				Detail:   fmt.Sprintf("Jamf Pro Computer Prestage with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
-			})
-			return diags
+		// Skip resource state removal if this is a create operation
+		if !d.IsNewResource() {
+			// If the error is a "not found" error, remove the resource from the state
+			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
+				d.SetId("") // Remove the resource from Terraform state
+				return diag.Diagnostics{
+					{
+						Severity: diag.Warning,
+						Summary:  "Resource not found",
+						Detail:   fmt.Sprintf("Jamf Pro computer prestage enrollment resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
+					},
+				}
+			}
 		}
-
-		// For other errors, return an error diagnostic
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Computer Prestage with ID '%s' after retries: %v", resourceID, err))
+		// For other errors, or if this is a create operation, return a diagnostic error
+		return diag.FromErr(err)
 	}
 
 	// Update the Terraform state with the fetched data
@@ -771,22 +767,18 @@ func ResourceJamfProComputerPrestageRead(ctx context.Context, d *schema.Resource
 			}
 		}
 		// Update the Terraform state with prestage attributes
-		for key, value := range prestageAttributes {
-			if err := d.Set(key, value); err != nil {
-				diags = append(diags, diag.FromErr(err)...)
-				return diags
+		for key, val := range prestageAttributes {
+			if err := d.Set(key, val); err != nil {
+				return diag.FromErr(err)
 			}
 		}
-	} else {
-		// If the prestage is not found, clear the ID from the state
-		d.SetId("")
 	}
 
-	return diags
+	return nil
 }
 
-// ResourceJamfProComputerPrestageUpdate is responsible for updating an existing Jamf Pro Department on the remote system.
-func ResourceJamfProComputerPrestageUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// ResourceJamfProComputerPrestageEnrollmentUpdate is responsible for updating an existing Jamf Pro Department on the remote system.
+func ResourceJamfProComputerPrestageEnrollmentUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -799,7 +791,7 @@ func ResourceJamfProComputerPrestageUpdate(ctx context.Context, d *schema.Resour
 	resourceID := d.Id()
 
 	// Construct the resource object
-	resource, err := constructJamfProComputerPrestage(d)
+	resource, err := constructJamfProComputerPrestageEnrollment(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Disk Computer Prestage for update: %v", err))
 	}
@@ -820,7 +812,7 @@ func ResourceJamfProComputerPrestageUpdate(ctx context.Context, d *schema.Resour
 	}
 
 	// Read the resource to ensure the Terraform state is up to date
-	readDiags := ResourceJamfProComputerPrestageRead(ctx, d, meta)
+	readDiags := ResourceJamfProComputerPrestageEnrollmentRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
 	}
@@ -828,8 +820,8 @@ func ResourceJamfProComputerPrestageUpdate(ctx context.Context, d *schema.Resour
 	return diags
 }
 
-// ResourceJamfProComputerPrestageDelete is responsible for deleting a Jamf Pro Computer Prestage.
-func ResourceJamfProComputerPrestageDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// ResourceJamfProComputerPrestageEnrollmentDelete is responsible for deleting a Jamf Pro Computer Prestage.
+func ResourceJamfProComputerPrestageEnrollmentDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {

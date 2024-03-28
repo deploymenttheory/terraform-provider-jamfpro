@@ -10,6 +10,7 @@ import (
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -24,7 +25,7 @@ func ResourceJamfProDockItems() *schema.Resource {
 		UpdateContext: ResourceJamfProDockItemsUpdate,
 		DeleteContext: ResourceJamfProDockItemsDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Second),
+			Create: schema.DefaultTimeout(120 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
 			Delete: schema.DefaultTimeout(30 * time.Second),
@@ -114,13 +115,27 @@ func ResourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData,
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Dock Item '%s' after retries: %v", resource.Name, err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Dock Item '%s' after retries: %v", resource.Name, err))
 	}
 
 	// Set the resource ID in Terraform state
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	// Read the site to ensure the Terraform state is up to date
+	// Wait for the resource to be fully available before reading it
+	checkResourceExists := func(id interface{}) (interface{}, error) {
+		intID, err := strconv.Atoi(id.(string))
+		if err != nil {
+			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
+		}
+		return apiclient.Conn.GetDockItemByID(intID)
+	}
+
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Dock Item", strconv.Itoa(creationResponse.ID), checkResourceExists, 30*time.Second)
+	if waitDiags.HasError() {
+		return waitDiags
+	}
+
+	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProDockItemsRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
@@ -140,73 +155,57 @@ func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, m
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
-	var diags diag.Diagnostics
 	resourceID := d.Id()
-
-	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	var resource *jamfpro.ResourceDockItem
+	// Attempt to fetch the resource by ID
+	resource, err := apiclient.Conn.GetDockItemByID(resourceIDInt)
 
-	// Read operation with retry
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
-		resource, apiErr = conn.GetDockItemByID(resourceIDInt)
-		if apiErr != nil {
-			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
-				// Return non-retryable error with a message to avoid SDK issues
-				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
-			}
-			// Retry for other types of errors
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	// If err is not nil, check if it's due to the resource being not found
 	if err != nil {
-		if err.Error() == "resource not found, marked for deletion" {
-			// Resource not found, remove from Terraform state
-			d.SetId("")
-			// Append a warning diagnostic and return
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "Resource not found",
-				Detail:   fmt.Sprintf("Jamf Pro Dock Item with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
-			})
-			return diags
+		// Skip resource state removal if this is a create operation
+		if !d.IsNewResource() {
+			// If the error is a "not found" error, remove the resource from the state
+			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
+				d.SetId("") // Remove the resource from Terraform state
+				return diag.Diagnostics{
+					{
+						Severity: diag.Warning,
+						Summary:  "Resource not found",
+						Detail:   fmt.Sprintf("Dock Item with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
+					},
+				}
+			}
 		}
-
-		// For other errors, return an error diagnostic
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Dock Item with ID '%s' after retries: %v", resourceID, err))
+		// For other errors, or if this is a create operation, return a diagnostic error
+		return diag.FromErr(err)
 	}
-	// Check if dockItem data exists
+
+	// Check if dockItem data exists and update the Terraform state
 	if resource != nil {
-		// Set the fields directly in the Terraform state
-		if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+		resourceData := map[string]interface{}{
+			"id":       strconv.Itoa(resource.ID),
+			"name":     resource.Name,
+			"type":     resource.Type,
+			"path":     resource.Path,
+			"contents": resource.Contents,
 		}
-		if err := d.Set("name", resource.Name); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+
+		// Set each attribute in the Terraform state, checking for errors
+		var diags diag.Diagnostics
+		for key, val := range resourceData {
+			if err := d.Set(key, val); err != nil {
+				diags = append(diags, diag.FromErr(err)...)
+			}
 		}
-		if err := d.Set("type", resource.Type); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("path", resource.Path); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("contents", resource.Contents); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+		return diags
 	}
 
-	return diags
+	return nil
 }
 
 // ResourceJamfProDockItemsUpdate is responsible for updating a Jamf Pro dock item.

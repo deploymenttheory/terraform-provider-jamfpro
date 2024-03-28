@@ -28,23 +28,23 @@ description: |-
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 - `user_additions` (Block List) Users added to the user group. (see [below for nested schema](#nestedblock--user_additions))
 - `user_deletions` (Block List) Users removed from the user group. (see [below for nested schema](#nestedblock--user_deletions))
+- `users` (Block List, Max: 1) A block representing the users belonging to the user group. (see [below for nested schema](#nestedblock--users))
 
 ### Read-Only
 
 - `id` (String) The unique identifier of the user group.
-- `users` (List of Object) The users belonging to the user group. (see [below for nested schema](#nestedatt--users))
 
 <a id="nestedblock--criteria"></a>
 ### Nested Schema for `criteria`
 
 Optional:
 
-- `and_or` (String) Logical operator to use with the next criterion (AND/OR).
+- `and_or` (String) Either 'and', 'or', or blank.
 - `closing_paren` (Boolean) Indicates if there is a closing parenthesis after this criterion, denoting the end of a grouped expression.
 - `name` (String) The name of the criterion.
 - `opening_paren` (Boolean) Indicates if there is an opening parenthesis before this criterion, denoting the start of a grouped expression.
 - `priority` (Number) The priority of the criterion.
-- `search_type` (String) The type of search to perform (e.g., equals, contains).
+- `search_type` (String) The type of user smart group search operator. Allowed values are 'is', 'is not', 'like', 'not like', 'matches regex', 'does not match regex'.
 - `value` (String) The value to search for.
 
 
@@ -71,46 +71,36 @@ Optional:
 <a id="nestedblock--user_additions"></a>
 ### Nested Schema for `user_additions`
 
-Required:
-
-- `email_address` (String) The email address of the user.
-- `username` (String) The username of the user.
-
 Optional:
 
-- `phone_number` (String) The phone number of the user.
+- `id` (String) The unique identifier of the user.
+- `username` (String) The username of the user.
 
 Read-Only:
 
+- `email_address` (String) The email address of the user.
 - `full_name` (String) The full name of the user.
-- `id` (Number) The unique identifier of the user.
+- `phone_number` (String) The phone number of the user.
 
 
 <a id="nestedblock--user_deletions"></a>
 ### Nested Schema for `user_deletions`
 
-Required:
-
-- `email_address` (String) The email address of the user.
-- `username` (String) The username of the user.
-
 Optional:
 
+- `id` (String) The unique identifier of the user.
+- `username` (String) The username of the user.
+
+Read-Only:
+
+- `email_address` (String) The email address of the user.
+- `full_name` (String) The full name of the user.
 - `phone_number` (String) The phone number of the user.
 
-Read-Only:
 
-- `full_name` (String) The full name of the user.
-- `id` (Number) The unique identifier of the user.
-
-
-<a id="nestedatt--users"></a>
+<a id="nestedblock--users"></a>
 ### Nested Schema for `users`
 
-Read-Only:
+Required:
 
-- `email_address` (String)
-- `full_name` (String)
-- `id` (Number)
-- `phone_number` (String)
-- `username` (String)
+- `id` (List of String) A list of jamf pro user object ID's for use within a static group.

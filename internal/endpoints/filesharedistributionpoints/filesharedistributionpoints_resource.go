@@ -11,6 +11,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -24,11 +25,12 @@ func ResourceJamfProFileShareDistributionPoints() *schema.Resource {
 		ReadContext:   ResourceJamfProFileShareDistributionPointsRead,
 		UpdateContext: ResourceJamfProFileShareDistributionPointsUpdate,
 		DeleteContext: ResourceJamfProFileShareDistributionPointsDelete,
+		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Second),
+			Create: schema.DefaultTimeout(120 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
-			Delete: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -222,7 +224,7 @@ func ResourceJamfProFileShareDistributionPointsCreate(ctx context.Context, d *sc
 	// Construct the resource object
 	resource, err := constructJamfProFileShareDistributionPoint(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro file share distribution point: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Fileshare Distribution Point: %v", err))
 	}
 
 	// Retry the API call to create the resource in Jamf Pro
@@ -238,16 +240,26 @@ func ResourceJamfProFileShareDistributionPointsCreate(ctx context.Context, d *sc
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro file share distribution point '%s' after retries: %v", resource.Name, err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Fileshare Distribution Point '%s' after retries: %v", resource.Name, err))
 	}
 
 	// Set the resource ID in Terraform state
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	// Read the site to ensure the Terraform state is up to date
+	// Wait for the resource to be fully available before reading it
+	checkResourceExists := func(id interface{}) (interface{}, error) {
+		return apiclient.Conn.GetScriptByID(id.(string))
+	}
+
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Fileshare Distribution Point", creationResponse.ID, checkResourceExists, 30*time.Second)
+	if waitDiags.HasError() {
+		return waitDiags
+	}
+
+	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProFileShareDistributionPointsRead(ctx, d, meta)
 	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
+		return readDiags
 	}
 
 	return diags
@@ -268,136 +280,73 @@ func ResourceJamfProFileShareDistributionPointsRead(ctx context.Context, d *sche
 	conn := apiclient.Conn
 
 	// Initialize variables
-	var diags diag.Diagnostics
 	resourceID := d.Id()
-
-	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	var resource *jamfpro.ResourceFileShareDistributionPoint
-
-	// Read operation with retry
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
-		resource, apiErr = conn.GetDistributionPointByID(resourceIDInt)
-		if apiErr != nil {
-			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
-				// Return non-retryable error with a message to avoid SDK issues
-				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
-			}
-			// Retry for other types of errors
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	// If err is not nil, check if it's due to the resource being not found
+	// Attempt to fetch the resource by ID
+	resource, err := conn.GetDistributionPointByID(resourceIDInt)
 	if err != nil {
-		if err.Error() == "resource not found, marked for deletion" {
-			// Resource not found, remove from Terraform state
-			d.SetId("")
-			// Append a warning diagnostic and return
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "Resource not found",
-				Detail:   fmt.Sprintf("Jamf Pro Distribution Point with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
-			})
-			return diags
+		// Skip resource state removal if this is a create operation
+		if !d.IsNewResource() {
+			// If the error is a "not found" error, remove the resource from the state
+			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
+				d.SetId("") // Remove the resource from Terraform state
+				return diag.Diagnostics{
+					{
+						Severity: diag.Warning,
+						Summary:  "Resource not found",
+						Detail:   fmt.Sprintf("Jamf Pro Fileshare Distribution Point resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
+					},
+				}
+			}
 		}
-
-		// For other errors, return an error diagnostic
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Distribution Point with ID '%s' after retries: %v", resourceID, err))
+		// For other errors, or if this is a create operation, return a diagnostic error
+		return diag.FromErr(err)
 	}
 
-	// Check if fileShareDistributionPoint data exists
+	// Check if distribution point data exists
 	if resource != nil {
-		// Set the fields directly in the Terraform state
-		if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("name", resource.Name); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("ip_address", resource.IP_Address); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("ipaddress", resource.IPAddress); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("is_master", resource.IsMaster); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("is_master", resource.IsMaster); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("failover_point", resource.FailoverPoint); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("failover_point_url", resource.FailoverPointURL); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("enable_load_balancing", resource.EnableLoadBalancing); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("local_path", resource.LocalPath); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("ssh_username", resource.SSHUsername); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("password", resource.Password); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("connection_type", resource.ConnectionType); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("share_name", resource.ShareName); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("workgroup_or_domain", resource.WorkgroupOrDomain); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("share_port", resource.SharePort); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("read_only_username", resource.ReadOnlyUsername); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("https_downloads_enabled", resource.HTTPDownloadsEnabled); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("http_url", resource.HTTPURL); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("https_share_path", resource.Context); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("protocol", resource.Protocol); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("https_port", resource.Port); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("no_authentication_required", resource.NoAuthenticationRequired); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("https_username_password_required", resource.UsernamePasswordRequired); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("https_username", resource.HTTPUsername); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+		// Organize state updates into a map
+		resourceData := map[string]interface{}{
+			"id":                    resourceID,
+			"name":                  resource.Name,
+			"ip_address":            resource.IPAddress,
+			"is_master":             resource.IsMaster,
+			"failover_point":        resource.FailoverPoint,
+			"failover_point_url":    resource.FailoverPointURL,
+			"enable_load_balancing": resource.EnableLoadBalancing,
+			"local_path":            resource.LocalPath,
+			"ssh_username":          resource.SSHUsername,
+			// "password": resource.Password,  // sensitive field, not included in state
+			"connection_type":                  resource.ConnectionType,
+			"share_name":                       resource.ShareName,
+			"workgroup_or_domain":              resource.WorkgroupOrDomain,
+			"share_port":                       resource.SharePort,
+			"read_only_username":               resource.ReadOnlyUsername,
+			"https_downloads_enabled":          resource.HTTPDownloadsEnabled,
+			"http_url":                         resource.HTTPURL,
+			"https_share_path":                 resource.Context,
+			"protocol":                         resource.Protocol,
+			"https_port":                       resource.Port,
+			"no_authentication_required":       resource.NoAuthenticationRequired,
+			"https_username_password_required": resource.UsernamePasswordRequired,
+			"https_username":                   resource.HTTPUsername,
+			// other fields as needed...
 		}
 
-		// sensitive field handling
-		// "read_only_password" , "read_write_password" and "https_password" are not stored in state
-		// as they are sensitive fields and are not returned by the API.
+		// Iterate over the map and set each key-value pair in the Terraform state
+		for key, val := range resourceData {
+			if err := d.Set(key, val); err != nil {
+				return diag.FromErr(err)
+			}
+		}
 
 	}
 
-	return diags
+	return nil
 }
 
 // ResourceJamfProFileShareDistributionPointsUpdate is responsible for updating an existing Jamf Pro Site on the remote system.

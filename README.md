@@ -5,7 +5,7 @@ This repository hosts the Jamf Pro Community Provider, built to integrate Jamf P
 The provider contains:
 
 - Resources and data sources for Jamf Pro entities (`internal/provider/`),
-- Examples [examples](https://github.com/deploymenttheory/terraform-provider-jamfpro/tree/main/examples) directory for sample configurations and usage scenarios of the `terraform-provider-jamfpro` provider. 
+- Examples [examples](https://github.com/deploymenttheory/terraform-provider-jamfpro/tree/main/examples) directory for sample configurations and usage scenarios of the `terraform-provider-jamfpro` provider.
 - Documentation [docs](https://github.com/deploymenttheory/terraform-provider-jamfpro/tree/main/docs)
 
 ## Requirements
@@ -56,6 +56,13 @@ This section outlines the resources and data sources provided by our Terraform p
 - **Status**: Finished
 - **Availability**: Introduced in version `v0.0.36.`
 
+### Dock Items
+
+- **Resource & Data Source**: Facilitates the management of Dock Items in Jamf Pro. This includes the creation, update, and deletion of dock item entities, along with the ability to specify dock item properties and associated payloads.
+
+- **Status**: Finished
+- **Availability**: Introduced in version `v0.0.43.`
+
 ### macOS Configuration Profiles
 
 - **Resource & Data Source**: Facilitates the management of macOS configuration profiles in Jamf Pro. This includes the creation, update, and deletion of configuration profiles, along with the ability to specify profile payloads and associated properties.
@@ -78,9 +85,16 @@ package metadata in Jamf Pro.
 - **Status**: Finished
 - **Availability**: Introduced in version `v0.0.30.`
 
+### Sites
+
+- **Resource & Data Source**: Provides the ability to manage Sites within Jamf Pro. This resource allows for the specification of site names and details, facilitating the organization of devices and resources across different sites.
+
+- **Status**: Finished
+- **Availability**: Introduced in version `v0.0.42.`
+
 ### User Groups
 
 - **Resource & Data Source**: Enables the handling of User Groups in Jamf Pro. This encompasses the capabilities to create, update, and remove user group entities, as well as the functionality to detail user group attributes and memberships.
 
-- **Status**: Experimental
+- **Status**: Finished
 - **Availability**: Introduced in version `v0.0.38`.

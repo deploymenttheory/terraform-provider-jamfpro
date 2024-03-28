@@ -28,7 +28,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computerextensionattributes"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computerinventory"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computerprestages"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computerprestageenrollments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/departments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/diskencryptionconfigurations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/dockitems"
@@ -86,6 +86,32 @@ func GetClientSecret(d *schema.ResourceData) (string, error) {
 	return clientSecret, nil
 }
 
+// GetClientUsername retrieves the 'username' value from the Terraform configuration.
+// If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_USERNAME environment variable.
+func GetClientUsername(d *schema.ResourceData) (string, error) {
+	username := d.Get("username").(string)
+	if username == "" {
+		username = os.Getenv("JAMFPRO_USERNAME")
+		if username == "" {
+			return "", fmt.Errorf("username must be provided either as an environment variable (JAMFPRO_USERNAME) or in the Terraform configuration")
+		}
+	}
+	return username, nil
+}
+
+// GetClientPassword retrieves the 'password' value from the Terraform configuration.
+// If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_PASSWORD environment variable.
+func GetClientPassword(d *schema.ResourceData) (string, error) {
+	password := d.Get("password").(string)
+	if password == "" {
+		password = os.Getenv("JAMFPRO_PASSWORD")
+		if password == "" {
+			return "", fmt.Errorf("password must be provided either as an environment variable (JAMFPRO_PASSWORD) or in the Terraform configuration")
+		}
+	}
+	return password, nil
+}
+
 // Schema defines the configuration attributes for the  within the JamfPro provider.
 func Provider() *schema.Provider {
 	provider := &schema.Provider{
@@ -98,16 +124,29 @@ func Provider() *schema.Provider {
 			},
 			"client_id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_CLIENT_ID", ""),
 				Description: "The Jamf Pro Client ID for authentication.",
 			},
 			"client_secret": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Sensitive:   true,
 				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_CLIENT_SECRET", ""),
 				Description: "The Jamf Pro Client secret for authentication.",
+			},
+			"username": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_USERNAME", ""),
+				Description: "The Jamf Pro username used for authentication.",
+			},
+			"password": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Sensitive:   true,
+				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_PASSWORD", ""),
+				Description: "The Jamf Pro password used for authentication.",
 			},
 			"log_level": {
 				Type:     schema.TypeString,
@@ -194,7 +233,7 @@ func Provider() *schema.Provider {
 			"jamfpro_computer_extension_attribute":  computerextensionattributes.DataSourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_group":                computergroups.DataSourceJamfProComputerGroups(),
 			"jamfpro_computer_inventory":            computerinventory.DataSourceJamfProComputerInventory(),
-			"jamfpro_computer_prestage":             computerprestages.DataSourceJamfProComputerPrestage(),
+			"jamfpro_computer_prestage_enrollment":  computerprestageenrollments.DataSourceJamfProComputerPrestageEnrollmentEnrollment(),
 			"jamfpro_department":                    departments.DataSourceJamfProDepartments(),
 			"jamfpro_disk_encryption_configuration": diskencryptionconfigurations.DataSourceJamfProDiskEncryptionConfigurations(),
 			"jamfpro_dock_item":                     dockitems.DataSourceJamfProDockItems(),
@@ -202,10 +241,10 @@ func Provider() *schema.Provider {
 			"jamfpro_network_segment":               networksegments.DataSourceJamfProNetworkSegments(),
 			"jamfpro_package":                       packages.DataSourceJamfProPackages(),
 			// "jamfpro_policy":                        policies.DataSourceJamfProPolicies(),
-			"jamfpro_printer": printers.DataSourceJamfProPrinters(),
-			"jamfpro_script":  scripts.DataSourceJamfProScripts(),
-			"jamfpro_site":    sites.DataSourceJamfProSites(),
-      "jamfpro_user_group":                    usergroups.DataSourceJamfProUserGroups(),
+			"jamfpro_printer":    printers.DataSourceJamfProPrinters(),
+			"jamfpro_script":     scripts.DataSourceJamfProScripts(),
+			"jamfpro_site":       sites.DataSourceJamfProSites(),
+			"jamfpro_user_group": usergroups.DataSourceJamfProUserGroups(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"jamfpro_account":                       accounts.ResourceJamfProAccounts(),
@@ -221,7 +260,7 @@ func Provider() *schema.Provider {
 			"jamfpro_computer_checkin":              computercheckin.ResourceJamfProComputerCheckin(),
 			"jamfpro_computer_extension_attribute":  computerextensionattributes.ResourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_group":                computergroups.ResourceJamfProComputerGroups(),
-			"jamfpro_computer_prestage":             computerprestages.ResourceJamfProComputerPrestage(),
+			"jamfpro_computer_prestage_enrollment":  computerprestageenrollments.ResourceJamfProComputerPrestageEnrollmentEnrollment(),
 			"jamfpro_department":                    departments.ResourceJamfProDepartments(),
 			"jamfpro_disk_encryption_configuration": diskencryptionconfigurations.ResourceJamfProDiskEncryptionConfigurations(),
 			"jamfpro_dock_item":                     dockitems.ResourceJamfProDockItems(),
@@ -244,28 +283,31 @@ func Provider() *schema.Provider {
 		if err != nil {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
-				Summary:  err.Error(),
+				Summary:  "Error getting instance name",
 				Detail:   err.Error(),
 			})
 			return nil, diags
 		}
 
-		clientID, err := GetClientID(d)
-		if err != nil {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  err.Error(),
-				Detail:   err.Error(),
-			})
-			return nil, diags
-		}
+		// Attempt to get client credentials (Client ID and Secret) or user credentials (Username and Password)
+		clientID, errClientID := GetClientID(d)
+		clientSecret, errClientSecret := GetClientSecret(d)
+		username, errUsername := GetClientUsername(d)
+		password, errPassword := GetClientPassword(d)
 
-		clientSecret, err := GetClientSecret(d)
-		if err != nil {
+		// Check if either pair of credentials is provided, prioritizing Client ID/Secret
+		if errClientID == nil && errClientSecret == nil && clientID != "" && clientSecret != "" {
+			// Client ID and Client Secret are provided
+			// Initialize client with OAuth credentials
+		} else if errUsername == nil && errPassword == nil && username != "" && password != "" {
+			// Username and Password are provided
+			// Initialize client with Username/Password credentials
+		} else {
+			// Neither set of credentials provided or incomplete set provided
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
-				Summary:  err.Error(),
-				Detail:   err.Error(),
+				Summary:  "Invalid Authentication Configuration",
+				Detail:   "You must provide either a valid 'client_id' and 'client_secret' pair or a 'username' and 'password' pair for authentication.",
 			})
 			return nil, diags
 		}
@@ -277,6 +319,8 @@ func Provider() *schema.Provider {
 				APIType:            "jamfpro",
 			},
 			Auth: httpclient.AuthConfig{
+				Username:     username,
+				Password:     password,
 				ClientID:     clientID,
 				ClientSecret: clientSecret,
 			},
