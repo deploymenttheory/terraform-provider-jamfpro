@@ -56,6 +56,13 @@ This section outlines the resources and data sources provided by our Terraform p
 - **Status**: Finished
 - **Availability**: Introduced in version `v0.0.36.`
 
+### Dock Items
+
+- **Resource & Data Source**: Facilitates the management of Dock Items in Jamf Pro. This includes the creation, update, and deletion of dock item entities, along with the ability to specify dock item properties and associated payloads.
+
+- **Status**: Finished
+- **Availability**: Introduced in version `v0.0.43.`
+
 ### macOS Configuration Profiles
 
 - **Resource & Data Source**: Facilitates the management of macOS configuration profiles in Jamf Pro. This includes the creation, update, and deletion of configuration profiles, along with the ability to specify profile payloads and associated properties.
@@ -77,6 +84,13 @@ package metadata in Jamf Pro.
 
 - **Status**: Finished
 - **Availability**: Introduced in version `v0.0.30.`
+
+### Sites
+
+- **Resource & Data Source**: Provides the ability to manage Sites within Jamf Pro. This resource allows for the specification of site names and details, facilitating the organization of devices and resources across different sites.
+
+- **Status**: Finished
+- **Availability**: Introduced in version `v0.0.42.`
 
 ### User Groups
 
