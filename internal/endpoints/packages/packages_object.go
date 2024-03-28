@@ -2,6 +2,9 @@
 package packages
 
 import (
+	"encoding/xml"
+	"fmt"
+	"log"
 	"path/filepath"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -48,6 +51,15 @@ func constructJamfProPackageCreate(d *schema.ResourceData) (*jamfpro.ResourcePac
 		InstallIfReportedAvailable: d.Get("install_if_reported_available").(bool),
 		SendNotification:           d.Get("send_notification").(bool),
 	}
+
+	// Serialize and pretty-print the Package object as XML for logging
+	resourceXML, err := xml.MarshalIndent(packageResource, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Package '%s' to XML: %v", packageResource.Name, err)
+	}
+
+	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
+	log.Printf("[DEBUG] Constructed Jamf Pro Package XML:\n%s\n", string(resourceXML))
 
 	return packageResource, nil
 }

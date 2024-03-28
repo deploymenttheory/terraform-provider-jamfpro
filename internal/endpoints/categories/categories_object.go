@@ -4,6 +4,7 @@ package categories
 import (
 	"encoding/xml"
 	"fmt"
+	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -11,17 +12,20 @@ import (
 
 // constructJamfProCategory constructs a Jamf Pro Category struct from Terraform resource data.
 func constructJamfProCategory(d *schema.ResourceData) (*jamfpro.ResourceCategory, error) {
-	// Assuming ResourceDepartment struct now also includes a Priority field
-	department := &jamfpro.ResourceCategory{
+
+	category := &jamfpro.ResourceCategory{
 		Name:     d.Get("name").(string),
 		Priority: d.Get("priority").(int),
 	}
 
-	resourceXML, err := xml.MarshalIndent(department, "", "  ")
+	// Serialize and pretty-print the Category object as XML for logging
+	resourceXML, err := xml.MarshalIndent(category, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Department '%s' to XML: %v", department.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Category '%s' to XML: %v", category.Name, err)
 	}
-	fmt.Printf("Constructed Jamf Pro Department XML:\n%s\n", string(resourceXML))
 
-	return department, nil
+	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
+	log.Printf("[DEBUG] Constructed Jamf Pro Category XML:\n%s\n", string(resourceXML))
+
+	return category, nil
 }

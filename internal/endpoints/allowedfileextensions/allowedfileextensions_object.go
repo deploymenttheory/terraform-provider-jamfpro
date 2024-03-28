@@ -4,6 +4,7 @@ package allowedfileextensions
 import (
 	"encoding/xml"
 	"fmt"
+	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -15,12 +16,14 @@ func constructJamfProAllowedFileExtension(d *schema.ResourceData) (*jamfpro.Reso
 		Extension: d.Get("extension").(string),
 	}
 
-	// Serialize and pretty-print the allowedFileExtension object as XML
+	// Serialize and pretty-print the Allowed File Extension object as XML for logging
 	resourceXML, err := xml.MarshalIndent(allowedFileExtension, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Allowed File Extension '%s' to XML: %v", allowedFileExtension.Extension, err)
 	}
-	fmt.Printf("Constructed Jamf Pro Allowed File Extension XML:\n%s\n", string(resourceXML))
+
+	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
+	log.Printf("[DEBUG] Constructed Jamf Pro Allowed File Extension XML:\n%s\n", string(resourceXML))
 
 	return allowedFileExtension, nil
 }

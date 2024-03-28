@@ -1,8 +1,9 @@
 package apiroles
 
 import (
-	"encoding/xml"
+	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -28,12 +29,14 @@ func constructJamfProApiRole(d *schema.ResourceData) (*jamfpro.ResourceAPIRole, 
 		apiRole.Privileges = privileges
 	}
 
-	// Serialize and pretty-print the site object as XML
-	resourceXML, err := xml.MarshalIndent(apiRole, "", "  ")
+	// Serialize and pretty-print the Api Role object as JSON for logging
+	resourceJSON, err := json.MarshalIndent(apiRole, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Building '%s' to XML: %v", apiRole.DisplayName, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Api Role '%s' to JSON: %v", apiRole.DisplayName, err)
 	}
-	fmt.Printf("Constructed Jamf Pro Building XML:\n%s\n", string(resourceXML))
+
+	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
+	log.Printf("[DEBUG] Constructed Jamf Pro Api Role JSON:\n%s\n", string(resourceJSON))
 
 	return apiRole, nil
 }

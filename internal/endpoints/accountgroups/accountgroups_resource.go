@@ -210,7 +210,7 @@ func ResourceJamfProAccountGroupCreate(ctx context.Context, d *schema.ResourceDa
 		return apiclient.Conn.GetAccountGroupByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Account Group", strconv.Itoa(creationResponse.ID), checkResourceExists, 40*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Account Group", strconv.Itoa(creationResponse.ID), checkResourceExists, 45*time.Second)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
@@ -413,7 +413,7 @@ func ResourceJamfProAccountGroupDelete(ctx context.Context, d *schema.ResourceDa
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Account Group '%s' (ID: %s) after retries: %v", d.Get("extension").(string), resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Account Group '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
 	}
 
 	// Clear the ID from the Terraform state as the resource has been deleted

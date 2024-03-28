@@ -2,14 +2,15 @@
 package apiintegrations
 
 import (
-	"encoding/xml"
+	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// constructJamfProApiIntegration constructs a ResourceApiIntegration object from the provided schema data and serializes it to XML.
+// constructJamfProApiIntegration constructs a ResourceApiIntegration object from the provided schema data and serializes it to JSON.
 func constructJamfProApiIntegration(d *schema.ResourceData) (*jamfpro.ResourceApiIntegration, error) {
 	integration := &jamfpro.ResourceApiIntegration{
 		DisplayName:                d.Get("display_name").(string),
@@ -31,12 +32,14 @@ func constructJamfProApiIntegration(d *schema.ResourceData) (*jamfpro.ResourceAp
 		integration.AuthorizationScopes = authorizationScopes
 	}
 
-	// Serialize and pretty-print the integration object as XML
-	resourceXML, err := xml.MarshalIndent(integration, "", "  ")
+	// Serialize and pretty-print the Api Integration object as JSON for logging
+	resourceJSON, err := json.MarshalIndent(integration, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Api Integration '%s' to XML: %v", integration.DisplayName, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Api Integration '%s' to JSON: %v", integration.DisplayName, err)
 	}
-	fmt.Printf("Constructed Jamf Pro Api Integration XML:\n%s\n", string(resourceXML))
+
+	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
+	log.Printf("[DEBUG] Constructed Jamf Pro Api Integration JSON:\n%s\n", string(resourceJSON))
 
 	return integration, nil
 }

@@ -4,6 +4,7 @@ package usergroups
 import (
 	"encoding/xml"
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -72,12 +73,14 @@ func constructJamfProUserGroup(d *schema.ResourceData) (*jamfpro.ResourceUserGro
 	userGroup.UserAdditions = extractUsers(d.Get("user_additions").([]interface{}))
 	userGroup.UserDeletions = extractUsers(d.Get("user_deletions").([]interface{}))
 
-	// Debugging - Serialize and pretty-print the user group object
+	// Serialize and pretty-print the User Group object as XML for logging
 	resourceXML, err := xml.MarshalIndent(userGroup, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal user group '%s' to XML: %v", userGroup.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro User Group  '%s' to XML: %v", userGroup.Name, err)
 	}
-	fmt.Printf("Constructed User Group XML:\n%s\n", string(resourceXML))
+
+	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
+	log.Printf("[DEBUG] Constructed Jamf Pro User Group  XML:\n%s\n", string(resourceXML))
 
 	return userGroup, nil
 }

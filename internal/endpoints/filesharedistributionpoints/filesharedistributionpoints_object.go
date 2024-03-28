@@ -4,6 +4,7 @@ package filesharedistributionpoints
 import (
 	"encoding/xml"
 	"fmt"
+	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -36,12 +37,14 @@ func constructJamfProFileShareDistributionPoint(d *schema.ResourceData) (*jamfpr
 		HTTPURL:                  d.Get("http_url").(string),
 	}
 
-	// Serialize and pretty-print the file share distribution point object as XML
+	// Serialize and pretty-print the File Share Distribution Point object as XML for logging
 	resourceXML, err := xml.MarshalIndent(fileShareDistributionPoint, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro File Share Distribution Point '%s' to XML: %v", fileShareDistributionPoint.Name, err)
 	}
-	fmt.Printf("Constructed Jamf Pro File Share Distribution Point XML:\n%s\n", string(resourceXML))
+
+	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
+	log.Printf("[DEBUG] Constructed Jamf Pro File Share Distribution Point XML:\n%s\n", string(resourceXML))
 
 	return fileShareDistributionPoint, nil
 }
