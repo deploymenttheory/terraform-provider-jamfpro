@@ -25,10 +25,10 @@ func ResourceJamfProSites() *schema.Resource {
 		UpdateContext: ResourceJamfProSitesUpdate,
 		DeleteContext: ResourceJamfProSitesDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Second),
+			Create: schema.DefaultTimeout(120 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
-			Delete: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -71,9 +71,8 @@ func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Site: %v", err))
 	}
 
-	// Retry the API call to create the site in Jamf Pro
+	// Retry the API call to create the resource in Jamf Pro
 	var creationResponse *jamfpro.SharedResourceSite
-
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
 		creationResponse, apiErr = conn.CreateSite(resource)
@@ -92,14 +91,15 @@ func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, met
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
 	// Wait for the resource to be fully available before reading it
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, strconv.Itoa(creationResponse.ID), func(id interface{}) (interface{}, error) {
+	checkResourceExists := func(id interface{}) (interface{}, error) {
 		intID, err := strconv.Atoi(id.(string))
 		if err != nil {
 			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
 		}
 		return apiclient.Conn.GetSiteByID(intID)
-	}, 20*time.Second)
+	}
 
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, strconv.Itoa(creationResponse.ID), checkResourceExists, 10*time.Second)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
