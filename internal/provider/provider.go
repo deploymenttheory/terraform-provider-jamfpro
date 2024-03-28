@@ -86,6 +86,32 @@ func GetClientSecret(d *schema.ResourceData) (string, error) {
 	return clientSecret, nil
 }
 
+// GetClientUsername retrieves the 'username' value from the Terraform configuration.
+// If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_USERNAME environment variable.
+func GetClientUsername(d *schema.ResourceData) (string, error) {
+	username := d.Get("username").(string)
+	if username == "" {
+		username = os.Getenv("JAMFPRO_USERNAME")
+		if username == "" {
+			return "", fmt.Errorf("username must be provided either as an environment variable (JAMFPRO_USERNAME) or in the Terraform configuration")
+		}
+	}
+	return username, nil
+}
+
+// GetClientPassword retrieves the 'password' value from the Terraform configuration.
+// If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_PASSWORD environment variable.
+func GetClientPassword(d *schema.ResourceData) (string, error) {
+	password := d.Get("password").(string)
+	if password == "" {
+		password = os.Getenv("JAMFPRO_PASSWORD")
+		if password == "" {
+			return "", fmt.Errorf("password must be provided either as an environment variable (JAMFPRO_PASSWORD) or in the Terraform configuration")
+		}
+	}
+	return password, nil
+}
+
 // Schema defines the configuration attributes for the  within the JamfPro provider.
 func Provider() *schema.Provider {
 	provider := &schema.Provider{
@@ -98,16 +124,29 @@ func Provider() *schema.Provider {
 			},
 			"client_id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_CLIENT_ID", ""),
 				Description: "The Jamf Pro Client ID for authentication.",
 			},
 			"client_secret": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Sensitive:   true,
 				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_CLIENT_SECRET", ""),
 				Description: "The Jamf Pro Client secret for authentication.",
+			},
+			"username": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_USERNAME", ""),
+				Description: "The Jamf Pro username used for authentication.",
+			},
+			"password": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Sensitive:   true,
+				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_PASSWORD", ""),
+				Description: "The Jamf Pro password used for authentication.",
 			},
 			"log_level": {
 				Type:     schema.TypeString,
@@ -244,28 +283,31 @@ func Provider() *schema.Provider {
 		if err != nil {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
-				Summary:  err.Error(),
+				Summary:  "Error getting instance name",
 				Detail:   err.Error(),
 			})
 			return nil, diags
 		}
 
-		clientID, err := GetClientID(d)
-		if err != nil {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  err.Error(),
-				Detail:   err.Error(),
-			})
-			return nil, diags
-		}
+		// Attempt to get client credentials (Client ID and Secret) or user credentials (Username and Password)
+		clientID, errClientID := GetClientID(d)
+		clientSecret, errClientSecret := GetClientSecret(d)
+		username, errUsername := GetClientUsername(d)
+		password, errPassword := GetClientPassword(d)
 
-		clientSecret, err := GetClientSecret(d)
-		if err != nil {
+		// Check if either pair of credentials is provided, prioritizing Client ID/Secret
+		if errClientID == nil && errClientSecret == nil && clientID != "" && clientSecret != "" {
+			// Client ID and Client Secret are provided
+			// Initialize client with OAuth credentials
+		} else if errUsername == nil && errPassword == nil && username != "" && password != "" {
+			// Username and Password are provided
+			// Initialize client with Username/Password credentials
+		} else {
+			// Neither set of credentials provided or incomplete set provided
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
-				Summary:  err.Error(),
-				Detail:   err.Error(),
+				Summary:  "Invalid Authentication Configuration",
+				Detail:   "You must provide either a valid 'client_id' and 'client_secret' pair or a 'username' and 'password' pair for authentication.",
 			})
 			return nil, diags
 		}
@@ -277,6 +319,8 @@ func Provider() *schema.Provider {
 				APIType:            "jamfpro",
 			},
 			Auth: httpclient.AuthConfig{
+				Username:     username,
+				Password:     password,
 				ClientID:     clientID,
 				ClientSecret: clientSecret,
 			},
