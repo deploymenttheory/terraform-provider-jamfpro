@@ -4,6 +4,7 @@ package usergroups
 import (
 	"encoding/xml"
 	"fmt"
+	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -15,10 +16,6 @@ func constructJamfProUserGroup(d *schema.ResourceData) (*jamfpro.ResourceUserGro
 		Name:             d.Get("name").(string),
 		IsSmart:          d.Get("is_smart").(bool),
 		IsNotifyOnChange: d.Get("is_notify_on_change").(bool),
-	}
-
-	if v, ok := d.GetOk("id"); ok {
-		userGroup.ID = v.(int)
 	}
 
 	if v, ok := d.GetOk("site"); ok && len(v.([]interface{})) > 0 {
@@ -43,7 +40,27 @@ func constructJamfProUserGroup(d *schema.ResourceData) (*jamfpro.ResourceUserGro
 		})
 	}
 
-	userGroup.Users = extractUsers(d.Get("users").([]interface{}))
+	// Handle 'users' attribute
+	if v, ok := d.GetOk("users"); ok && len(v.([]interface{})) > 0 {
+		usersBlock := v.([]interface{})[0].(map[string]interface{})
+		userIDList := usersBlock["id"].([]interface{})
+		for _, userID := range userIDList {
+			userIDStr, ok := userID.(string) // Assume ID is stored as string
+			if !ok {
+				return nil, fmt.Errorf("user ID is not a string as expected: %v", userID)
+			}
+
+			intID, err := strconv.Atoi(userIDStr) // Convert string to int
+			if err != nil {
+				return nil, fmt.Errorf("error converting user ID '%s' to integer: %v", userIDStr, err)
+			}
+
+			userGroup.Users = append(userGroup.Users, jamfpro.UserGroupSubsetUserItem{
+				ID: intID,
+			})
+		}
+	}
+
 	userGroup.UserAdditions = extractUsers(d.Get("user_additions").([]interface{}))
 	userGroup.UserDeletions = extractUsers(d.Get("user_deletions").([]interface{}))
 

@@ -10,6 +10,8 @@ import (
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -118,12 +120,21 @@ func ResourceJamfProUserGroups() *schema.Resource {
 			},
 			"users": {
 				Type:        schema.TypeList,
-				Computed:    true,
-				Description: "The users belonging to the user group.",
+				Optional:    true,
+				Description: "A block representing the users belonging to the user group.",
+				MaxItems:    1,
 				Elem: &schema.Resource{
-					Schema: userGroupSubsetUserItemSchema(),
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:        schema.TypeList,
+							Required:    true,
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Description: "A list of jamf pro user object ID's for use within a static group.",
+						},
+					},
 				},
 			},
+
 			"user_additions": {
 				Type:        schema.TypeList,
 				Optional:    true,
@@ -147,13 +158,13 @@ func ResourceJamfProUserGroups() *schema.Resource {
 func userGroupSubsetUserItemSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"id": {
-			Type:        schema.TypeInt,
-			Computed:    true,
+			Type:        schema.TypeString,
+			Optional:    true,
 			Description: "The unique identifier of the user.",
 		},
 		"username": {
 			Type:        schema.TypeString,
-			Required:    true,
+			Optional:    true,
 			Description: "The username of the user.",
 		},
 		"full_name": {
@@ -163,12 +174,12 @@ func userGroupSubsetUserItemSchema() map[string]*schema.Schema {
 		},
 		"phone_number": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "The phone number of the user.",
 		},
 		"email_address": {
 			Type:        schema.TypeString,
-			Required:    true,
+			Computed:    true,
 			Description: "The email address of the user.",
 		},
 	}
@@ -194,7 +205,7 @@ func ResourceJamfProUserGroupCreate(ctx context.Context, d *schema.ResourceData,
 	// Construct the resource object
 	resource, err := constructJamfProUserGroup(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Script: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro User Group: %v", err))
 	}
 
 	// Retry the API call to create the resource in Jamf Pro
@@ -216,18 +227,24 @@ func ResourceJamfProUserGroupCreate(ctx context.Context, d *schema.ResourceData,
 	// Set the resource ID in Terraform state
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	// Retry reading the resource to ensure the Terraform state is up to date
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		readDiags := ResourceJamfProUserGroupRead(ctx, d, meta)
-		if len(readDiags) > 0 {
-			return retry.RetryableError(fmt.Errorf(readDiags[0].Summary))
+	// Wait for the resource to be fully available before reading it
+	checkResourceExists := func(id interface{}) (interface{}, error) {
+		intID, err := strconv.Atoi(id.(string))
+		if err != nil {
+			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
 		}
-		// Successfully read the resource, exit the retry loop
-		return nil
-	})
+		return apiclient.Conn.GetUserGroupByID(intID)
+	}
 
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to synchronize Terraform state for Jamf Pro User Group '%s' after creation: %v", resource.Name, err))
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, strconv.Itoa(creationResponse.ID), checkResourceExists, 20*time.Second)
+	if waitDiags.HasError() {
+		return waitDiags
+	}
+
+	// Read the resource to ensure the Terraform state is up to date
+	readDiags := ResourceJamfProUserGroupRead(ctx, d, meta)
+	if len(readDiags) > 0 {
+		diags = append(diags, readDiags...)
 	}
 
 	return diags
@@ -256,69 +273,57 @@ func ResourceJamfProUserGroupRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	// Read operation with retry
-	var userGroup *jamfpro.ResourceUserGroup
-
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
-		userGroup, apiErr = conn.GetUserGroupByID(resourceIDInt)
-		if apiErr != nil {
-			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
-				// User Group not found or gone, remove from Terraform state
-				return retry.NonRetryableError(fmt.Errorf("user group not found, marked for deletion"))
-			}
-			// Convert any other API error into a retryable error to continue retrying
-			return retry.RetryableError(apiErr)
-		}
-		// Successfully read the user group, exit the retry loop
-		return nil
-	})
+	// Attempt to fetch the resource by ID
+	resource, err := conn.GetUserGroupByID(resourceIDInt)
 
 	if err != nil {
-		if strings.Contains(err.Error(), "user group not found, marked for deletion") {
-			d.SetId("") // Remove from Terraform state
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "User Group not found or gone",
-				Detail:   fmt.Sprintf("Jamf Pro User Group with ID '%s' was not found on the server and is marked for deletion from Terraform state.", resourceID),
-			})
-			return diags
+		// Skip resource state removal if this is a create operation
+		if !d.IsNewResource() {
+			// If the error is a "not found" error, remove the resource from the state
+			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
+				d.SetId("") // Remove the resource from Terraform state
+				return diag.Diagnostics{
+					{
+						Severity: diag.Warning,
+						Summary:  "Resource not found",
+						Detail:   fmt.Sprintf("Jamf Pro User Group resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
+					},
+				}
+			}
 		}
-		// Handle the final error after all retries have been exhausted
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro User Group with ID '%s' after retries: %v", resourceID, err))
+		// For other errors, or if this is a create operation, return a diagnostic error
+		return diag.FromErr(err)
 	}
 
-	// Update Terraform state with the user group information
-	if err := d.Set("id", userGroup.ID); err != nil {
+	// Update the Terraform state with the fetched data
+	if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	// Set the 'name' attribute
-	if err := d.Set("name", userGroup.Name); err != nil {
+	if err := d.Set("name", resource.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-
-	// Set the 'is_smart' attribute
-	if err := d.Set("is_smart", userGroup.IsSmart); err != nil {
+	if err := d.Set("is_smart", resource.IsSmart); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-
-	// Set the 'is_notify_on_change' attribute
-	if err := d.Set("is_notify_on_change", userGroup.IsNotifyOnChange); err != nil {
+	if err := d.Set("is_notify_on_change", resource.IsNotifyOnChange); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Set the 'site' attribute, ensuring to handle it properly as it's a nested structure
-	site := []interface{}{map[string]interface{}{
-		"id":   userGroup.Site.ID,
-		"name": userGroup.Site.Name,
-	}}
+	// 'site' attribute
+	site := []interface{}{}
+	if resource.Site.ID != 0 {
+		site = append(site, map[string]interface{}{
+			"id":   resource.Site.ID,
+			"name": resource.Site.Name,
+		})
+	}
 	if err := d.Set("site", site); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Set the 'criteria' attribute, also a nested structure
-	criteria := make([]interface{}, len(userGroup.Criteria))
-	for i, criterion := range userGroup.Criteria {
+	// 'criteria' attribute
+	criteria := make([]interface{}, len(resource.Criteria))
+	for i, criterion := range resource.Criteria {
 		criteria[i] = map[string]interface{}{
 			"name":          criterion.Name,
 			"priority":      criterion.Priority,
@@ -329,19 +334,26 @@ func ResourceJamfProUserGroupRead(ctx context.Context, d *schema.ResourceData, m
 			"closing_paren": criterion.ClosingParen,
 		}
 	}
-	if err := d.Set("criteria", criteria); err != nil {
+	d.Set("criteria", criteria)
+
+	// 'users' attribute
+	var userIDStrList []string
+	for _, user := range resource.Users {
+		userIDStrList = append(userIDStrList, strconv.Itoa(user.ID)) // Convert int ID to string
+	}
+
+	if err := d.Set("users", []interface{}{
+		map[string]interface{}{
+			"id": userIDStrList, // Set the list of string IDs in the state
+		},
+	}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Set the 'users', 'user_additions', and 'user_deletions' attributes, if applicable
-	// with helper function to convert the user items
-	if err := d.Set("users", convertUserItems(userGroup.Users)); err != nil {
+	if err := d.Set("user_additions", convertUserItems(resource.UserAdditions)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("user_additions", convertUserItems(userGroup.UserAdditions)); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("user_deletions", convertUserItems(userGroup.UserDeletions)); err != nil {
+	if err := d.Set("user_deletions", convertUserItems(resource.UserDeletions)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

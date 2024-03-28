@@ -53,7 +53,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 			},
 			"support_phone_number": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "The Support phone number for the organization.",
 			},
 			"support_email_address": {
@@ -63,47 +63,47 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 			},
 			"department": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "The department the computer prestage is assigned to.",
 			},
 			"default_prestage": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Required:    true,
 				Description: "Indicates if this is the default computer prestage enrollment configuration. If yes then new devices will be automatically assigned to this PreStage enrollment",
 			},
 			"enrollment_site_id": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "The jamf pro Site ID that computers will be added to during enrollment. Default is -1, aka not used.",
 			},
 			"keep_existing_site_membership": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Required:    true,
 				Description: "Indicates if existing device site membership should be retained.",
 			},
 			"keep_existing_location_information": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Required:    true,
 				Description: "Indicates if existing device location information should be retained.",
 			},
 			"require_authentication": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Required:    true,
 				Description: "Indicates if the user is required to provide username and password on computers with macOS 10.10 or later.",
 			},
 			"authentication_prompt": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "The authentication prompt message displayed to the user during enrollment.",
 			},
 			"prevent_activation_lock": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Required:    true,
 				Description: "Indicates if activation lock should be prevented.",
 			},
 			"enable_device_based_activation_lock": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Required:    true,
 				Description: "Indicates if device-based activation lock should be enabled.",
 			},
 			"device_enrollment_program_instance_id": {
@@ -433,7 +433,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 			},
 			"profile_uuid": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "The profile UUID.",
 			},
 			"site_id": {
