@@ -15,7 +15,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
+
+const (
+	And                    UserGroupAndOr = "and"
+	Or                     UserGroupAndOr = "or"
+	SearchTypeIs                          = "is"
+	SearchTypeIsNot                       = "is not"
+	SearchTypeLike                        = "like"
+	SearchTypeNotLike                     = "not like"
+	SearchTypeMatchesRegex                = "matches regex"
+	SearchTypeDoesNotMatch                = "does not match regex"
+)
+
+type UserGroupAndOr string
 
 // ResourceJamfProUserGroups defines the schema and CRUD operations for managing Jamf Pro Scripts in Terraform.
 func ResourceJamfProUserGroups() *schema.Resource {
@@ -93,12 +107,24 @@ func ResourceJamfProUserGroups() *schema.Resource {
 						"and_or": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "Logical operator to use with the next criterion (AND/OR).",
+							Description: "Either 'and', 'or', or blank.",
+							Default:     "and",
+							ValidateFunc: validation.StringInSlice([]string{
+								"",
+								string(And),
+								string(Or),
+							}, false),
 						},
 						"search_type": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The type of search to perform (e.g., equals, contains).",
+							Type:     schema.TypeString,
+							Optional: true,
+							Description: fmt.Sprintf("The type of smart group search operator. Allowed values are '%s', '%s', '%s', '%s', '%s', '%s'.",
+								string(SearchTypeIs), string(SearchTypeIsNot), string(SearchTypeLike),
+								string(SearchTypeNotLike), string(SearchTypeMatchesRegex), string(SearchTypeDoesNotMatch)),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(SearchTypeIs), string(SearchTypeIsNot), string(SearchTypeLike),
+								string(SearchTypeNotLike), string(SearchTypeMatchesRegex), string(SearchTypeDoesNotMatch),
+							}, false),
 						},
 						"value": {
 							Type:        schema.TypeString,
@@ -134,7 +160,6 @@ func ResourceJamfProUserGroups() *schema.Resource {
 					},
 				},
 			},
-
 			"user_additions": {
 				Type:        schema.TypeList,
 				Optional:    true,

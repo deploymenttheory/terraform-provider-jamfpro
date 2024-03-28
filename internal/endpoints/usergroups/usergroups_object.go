@@ -45,7 +45,7 @@ func constructJamfProUserGroup(d *schema.ResourceData) (*jamfpro.ResourceUserGro
 		usersBlock := v.([]interface{})[0].(map[string]interface{})
 		userIDList := usersBlock["id"].([]interface{})
 		for _, userID := range userIDList {
-			userIDStr, ok := userID.(string) // Assume ID is stored as string
+			userIDStr, ok := userID.(string)
 			if !ok {
 				return nil, fmt.Errorf("user ID is not a string as expected: %v", userID)
 			}
