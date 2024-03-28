@@ -149,7 +149,7 @@ func ResourceJamfProNetworkSegmentsCreate(ctx context.Context, d *schema.Resourc
 		return apiclient.Conn.GetNetworkSegmentByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, strconv.Itoa(creationResponse.ID), checkResourceExists, 5*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Network Segment", strconv.Itoa(creationResponse.ID), checkResourceExists, 5*time.Second)
 	if waitDiags.HasError() {
 		return waitDiags
 	}

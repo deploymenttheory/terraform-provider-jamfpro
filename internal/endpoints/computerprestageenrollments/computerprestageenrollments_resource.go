@@ -599,7 +599,7 @@ func ResourceJamfProComputerPrestageEnrollmentCreate(ctx context.Context, d *sch
 		return apiclient.Conn.GetComputerPrestageByID(id.(string))
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, creationResponse.ID, checkResourceExists, 10*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro computer prestage enrollment", creationResponse.ID, checkResourceExists, 10*time.Second)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
