@@ -1,8 +1,10 @@
 package macosconfigurationprofiles
 
 import (
+	"encoding/xml"
 	"fmt"
 	"html"
+	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 
@@ -209,6 +211,15 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 			})
 		}
 	}
+
+	// Serialize and pretty-print the macOS Configuration Profile object as XML for logging
+	resourceXML, err := xml.MarshalIndent(out, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal Jamf Pro macOS Configuration Profile '%s' to XML: %v", out.General.Name, err)
+	}
+
+	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
+	log.Printf("[DEBUG] Constructed Jamf Pro macOS Configuration Profile XML:\n%s\n", string(resourceXML))
 
 	return &out, nil
 }

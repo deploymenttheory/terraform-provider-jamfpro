@@ -4,6 +4,7 @@ package accounts
 import (
 	"encoding/xml"
 	"fmt"
+	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 
@@ -71,7 +72,9 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Account '%s' to XML: %v", account.Name, err)
 	}
-	fmt.Printf("Constructed Jamf Pro Account XML:\n%s\n", string(resourceXML))
+
+	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
+	log.Printf("[DEBUG] Constructed Jamf Pro Account XML:\n%s\n", string(resourceXML))
 
 	return account, nil
 }

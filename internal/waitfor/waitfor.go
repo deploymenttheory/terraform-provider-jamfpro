@@ -52,7 +52,6 @@ type APICallFunc func(interface{}) (interface{}, error)
 //   - diag.Diagnostics: Diagnostic information including any errors encountered during the wait operation, or warnings related to the resource's availability state.
 func ResourceIsAvailable(ctx context.Context, d *schema.ResourceData, resourceType string, resourceID interface{}, checkResourceExists APICallFunc, stabilizationTime time.Duration) (interface{}, diag.Diagnostics) {
 	var diags diag.Diagnostics
-	var lastError error
 	var resource interface{}
 	var retryCount int
 
@@ -71,7 +70,6 @@ func ResourceIsAvailable(ctx context.Context, d *schema.ResourceData, resourceTy
 		var apiErr error
 		resource, apiErr = checkResourceExists(resourceID)
 		if apiErr != nil {
-			lastError = apiErr
 			log.Printf("Error fetching %s resource with ID '%v': %v (Retry #%d)", resourceType, resourceID, apiErr, retryCount)
 
 			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
@@ -85,20 +83,22 @@ func ResourceIsAvailable(ctx context.Context, d *schema.ResourceData, resourceTy
 				return retry.RetryableError(apiErr)
 			}
 
+			// Return a non-retryable error to exit the retry loop.
 			return retry.NonRetryableError(apiErr)
 		}
 
 		log.Printf("%s resource with ID '%v' found after %d retries. Initiating a stabilization period of %v.", resourceType, resourceID, retryCount, stabilizationTime)
 		time.Sleep(stabilizationTime)
 		log.Printf("Concluding wait process for %s resource with ID '%v' after a stabilization period of %v.", resourceType, resourceID, stabilizationTime)
-		lastError = nil
 		return nil
 	})
 
 	if err != nil {
-		errorDiags := diag.FromErr(fmt.Errorf("error waiting for resource with ID '%v' to become available after %d retries: %v", resourceID, retryCount, lastError))
+		// Generate a more descriptive error message based on the context of the retry operation.
+		errorMessage := fmt.Sprintf("Error waiting for %s resource with ID '%v' to become available after %d retries. Last error: %v", resourceType, resourceID, retryCount, err)
+		log.Print(errorMessage)
+		errorDiags := diag.FromErr(fmt.Errorf(errorMessage))
 		diags = append(diags, errorDiags...)
-		log.Printf("Error encountered while waiting for resource with ID '%v' after %d retries: %v", resourceID, retryCount, lastError)
 		return nil, diags
 	}
 

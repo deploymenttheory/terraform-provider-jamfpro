@@ -262,7 +262,7 @@ func ResourceJamfProUserGroupCreate(ctx context.Context, d *schema.ResourceData,
 		return apiclient.Conn.GetUserGroupByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro User Group", strconv.Itoa(creationResponse.ID), checkResourceExists, 30*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro User Group", strconv.Itoa(creationResponse.ID), checkResourceExists, 40*time.Second)
 	if waitDiags.HasError() {
 		return waitDiags
 	}

@@ -2,6 +2,8 @@
 package computergroups
 
 import (
+	"encoding/xml"
+	"fmt"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -37,8 +39,14 @@ func constructJamfProComputerGroup(d *schema.ResourceData) (*jamfpro.ResourceCom
 		group.Computers = constructGroupComputers(v.([]interface{}))
 	}
 
-	// Log the successful construction of the group
-	log.Printf("[INFO] Successfully constructed ComputerGroup with name: %s", group.Name)
+	// Serialize and pretty-print the Computer Group object as XML for logging
+	resourceXML, err := xml.MarshalIndent(group, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Group '%s' to XML: %v", group.Name, err)
+	}
+
+	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
+	log.Printf("[DEBUG] Constructed Jamf Pro Computer Group XML:\n%s\n", string(resourceXML))
 
 	return group, nil
 }
@@ -58,6 +66,7 @@ func constructGroupCriteria(criteriaData []interface{}) []jamfpro.SharedSubsetCr
 			ClosingParen: criterionMap["closing_paren"].(bool),
 		})
 	}
+
 	return criteria
 }
 
@@ -74,5 +83,6 @@ func constructGroupComputers(computersData []interface{}) []jamfpro.ComputerGrou
 			AltMacAddress: computerMap["alt_mac_address"].(string),
 		})
 	}
+
 	return computers
 }
