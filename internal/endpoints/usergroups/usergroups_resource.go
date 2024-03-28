@@ -38,6 +38,7 @@ func ResourceJamfProUserGroups() *schema.Resource {
 		ReadContext:   ResourceJamfProUserGroupRead,
 		UpdateContext: ResourceJamfProUserGroupUpdate,
 		DeleteContext: ResourceJamfProUserGroupDelete,
+		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
@@ -334,16 +335,19 @@ func ResourceJamfProUserGroupRead(ctx context.Context, d *schema.ResourceData, m
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// 'site' attribute
+	// Set the 'site' attribute in the state only if it's not empty (i.e., not default values)
 	site := []interface{}{}
-	if resource.Site.ID != 0 {
+
+	if resource.Site.ID != -1 || resource.Site.Name != "None" {
 		site = append(site, map[string]interface{}{
 			"id":   resource.Site.ID,
 			"name": resource.Site.Name,
 		})
 	}
-	if err := d.Set("site", site); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	if len(site) > 0 {
+		if err := d.Set("site", site); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	// 'criteria' attribute
@@ -361,18 +365,20 @@ func ResourceJamfProUserGroupRead(ctx context.Context, d *schema.ResourceData, m
 	}
 	d.Set("criteria", criteria)
 
-	// 'users' attribute
-	var userIDStrList []string
-	for _, user := range resource.Users {
-		userIDStrList = append(userIDStrList, strconv.Itoa(user.ID)) // Convert int ID to string
-	}
+	// Set the user id's only if the group is not smart
+	if !resource.IsSmart {
+		var userIDStrList []string
+		for _, user := range resource.Users {
+			userIDStrList = append(userIDStrList, strconv.Itoa(user.ID))
+		}
 
-	if err := d.Set("users", []interface{}{
-		map[string]interface{}{
-			"id": userIDStrList, // Set the list of string IDs in the state
-		},
-	}); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+		if err := d.Set("users", []interface{}{
+			map[string]interface{}{
+				"id": userIDStrList,
+			},
+		}); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	if err := d.Set("user_additions", convertUserItems(resource.UserAdditions)); err != nil {
