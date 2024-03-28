@@ -338,8 +338,10 @@ func Provider() *schema.Provider {
 			},
 		}
 
-		// Debug print before building the client
-		fmt.Printf("Debug: Building HTTP client with config: %+v\n", httpClientConfig)
+		// Conditionally print debug information.
+		if !d.Get("hide_sensitive_data").(bool) {
+			fmt.Printf("Debug: Building HTTP client with config: %+v\n", httpClientConfig)
+		}
 
 		httpclient, err := jamfpro.BuildClient(httpClientConfig)
 		if err != nil {
