@@ -29,10 +29,10 @@ func ResourceJamfProAccounts() *schema.Resource {
 		DeleteContext: ResourceJamfProAccountDelete,
 		CustomizeDiff: customDiffAccounts,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Second),
+			Create: schema.DefaultTimeout(120 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
-			Delete: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
 		Schema: map[string]*schema.Schema{
 			"id": {
@@ -634,7 +634,7 @@ func ResourceJamfProAccountDelete(ctx context.Context, d *schema.ResourceData, m
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Account '%s' (ID: %s) after retries: %v", d.Get("extension").(string), resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Account '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
 	}
 
 	// Clear the ID from the Terraform state as the resource has been deleted

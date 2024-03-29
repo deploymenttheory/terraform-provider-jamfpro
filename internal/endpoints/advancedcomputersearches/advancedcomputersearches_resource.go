@@ -389,7 +389,7 @@ func ResourceJamfProAdvancedComputerSearchDelete(ctx context.Context, d *schema.
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Advanced Computer Search '%s' (ID: %s) after retries: %v", d.Get("extension").(string), resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Advanced Computer Search '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
 	}
 
 	// Clear the ID from the Terraform state as the resource has been deleted
