@@ -1,4 +1,3 @@
-// accounts_resource.go
 package accounts
 
 import (
@@ -7,7 +6,6 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -18,7 +16,6 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 		DirectoryUser:       d.Get("directory_user").(bool),
 		FullName:            d.Get("full_name").(string),
 		Email:               d.Get("email").(string),
-		EmailAddress:        d.Get("email_address").(string),
 		Enabled:             d.Get("enabled").(string),
 		ForcePasswordChange: d.Get("force_password_change").(bool),
 		AccessLevel:         d.Get("access_level").(string),
@@ -26,7 +23,6 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 		PrivilegeSet:        d.Get("privilege_set").(string),
 	}
 
-	// Handle LdapServer
 	if v, ok := d.GetOk("ldap_server"); ok && len(v.([]interface{})) > 0 {
 		ldapServerData := v.([]interface{})[0].(map[string]interface{})
 		account.LdapServer = jamfpro.AccountSubsetLdapServer{
@@ -35,58 +31,48 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 		}
 	}
 
-	// Handle 'site' attribute with default values if not set
-	site, ok := d.GetOk("site")
-	if ok && len(site.([]interface{})) > 0 {
-		siteBlock := site.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("site"); ok && len(v.([]interface{})) > 0 {
+		siteData := v.([]interface{})[0].(map[string]interface{})
 		account.Site = jamfpro.SharedResourceSite{
-			ID:   siteBlock["id"].(int),
-			Name: siteBlock["name"].(string),
-		}
-	} else {
-		// Set default values if 'site' block is not specified
-		account.Site = jamfpro.SharedResourceSite{
-			ID:   -1,     // Default ID
-			Name: "None", // Default name
+			ID:   siteData["id"].(int),
+			Name: siteData["name"].(string),
 		}
 	}
 
-	// Handle Groups
+	account.Privileges = jamfpro.AccountSubsetPrivileges{
+		JSSObjects:    getStringSliceFromInterface(d.Get("jss_objects_privileges")),
+		JSSSettings:   getStringSliceFromInterface(d.Get("jss_settings_privileges")),
+		JSSActions:    getStringSliceFromInterface(d.Get("jss_actions_privileges")),
+		Recon:         getStringSliceFromInterface(d.Get("recon_privileges")),
+		CasperAdmin:   getStringSliceFromInterface(d.Get("casper_admin_privileges")),
+		CasperRemote:  getStringSliceFromInterface(d.Get("casper_remote_privileges")),
+		CasperImaging: getStringSliceFromInterface(d.Get("casper_imaging_privileges")),
+	}
+
 	if v, ok := d.GetOk("groups"); ok {
 		groupsSet := v.(*schema.Set)
 		for _, groupItem := range groupsSet.List() {
 			groupData := groupItem.(map[string]interface{})
 			group := jamfpro.AccountsListSubsetGroups{
-				Name:       groupData["name"].(string),
-				Privileges: constructGroupPrivileges(groupData),
-			}
-
-			// Handle Site for Group
-			if site, ok := groupData["site"].([]interface{}); ok && len(site) > 0 {
-				siteMap := site[0].(map[string]interface{})
-				group.Site = jamfpro.SharedResourceSite{
-					ID:   siteMap["id"].(int),
-					Name: siteMap["name"].(string),
-				}
+				ID:   groupData["id"].(int),
+				Name: groupData["name"].(string),
+				//Privileges: constructGroupPrivileges(groupData),
 			}
 
 			account.Groups = append(account.Groups, group)
 		}
 	}
 
-	// Serialize and pretty-print the account object as XML for logging
 	resourceXML, err := xml.MarshalIndent(account, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Account '%s' to XML: %v", account.Name, err)
 	}
 
-	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
 	log.Printf("[DEBUG] Constructed Jamf Pro Account XML:\n%s\n", string(resourceXML))
 
 	return account, nil
 }
 
-// constructGroupPrivileges constructs a Privileges object from group data.
 func constructGroupPrivileges(groupData map[string]interface{}) jamfpro.AccountSubsetPrivileges {
 	return jamfpro.AccountSubsetPrivileges{
 		JSSObjects:    getStringSliceFromInterface(groupData["jss_objects_privileges"]),
@@ -99,7 +85,6 @@ func constructGroupPrivileges(groupData map[string]interface{}) jamfpro.AccountS
 	}
 }
 
-// getStringSliceFromInterface helps in converting an interface{} to a slice of strings.
 func getStringSliceFromInterface(i interface{}) []string {
 	var slice []string
 	if i != nil {

@@ -133,7 +133,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 					validPrivileges := []string{"Administrator", "Auditor", "Enrollment Only", "Custom"}
 					for _, validPriv := range validPrivileges {
 						if v == validPriv {
-							return // Valid value found, return without error
+							return
 						}
 					}
 					errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validPrivileges, v))
@@ -168,32 +168,32 @@ func ResourceJamfProAccounts() *schema.Resource {
 				Description: "A set of group names and IDs associated with the account.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
 						"id": {
 							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"site": {
-							Type:     schema.TypeList,
 							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"name": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Computed: true,
-									},
-								},
-							},
 						},
+						"name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						// "site": {
+						// 	Type:     schema.TypeList,
+						// 	Optional: true,
+						// 	MaxItems: 1,
+						// 	Elem: &schema.Resource{
+						// 		Schema: map[string]*schema.Schema{
+						// 			"id": {
+						// 				Type:     schema.TypeInt,
+						// 				Optional: true,
+						// 			},
+						// 			"name": {
+						// 				Type:     schema.TypeString,
+						// 				Optional: true,
+						// 				Computed: true,
+						// 			},
+						// 		},
+						// 	},
+						// },
 						"jss_objects_privileges": {
 							Type:        schema.TypeList,
 							Optional:    true,
@@ -468,25 +468,18 @@ func ResourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, met
 
 	d.Set("force_password_change", resource.ForcePasswordChange)
 	d.Set("access_level", resource.AccessLevel)
-	// Set password only if it's provided in the configuration
-	if _, ok := d.GetOk("password"); ok {
-		d.Set("password", resource.Password)
-	}
+	// skip	d.Set("password", resource.Password)
+
 	d.Set("privilege_set", resource.PrivilegeSet)
 
-	// Set the 'site' attribute in the state only if it's not empty (i.e., not default values)
-	site := []interface{}{}
-
-	if resource.Site.ID != -1 || resource.Site.Name != "None" {
-		site = append(site, map[string]interface{}{
-			"id":   resource.Site.ID,
-			"name": resource.Site.Name,
-		})
-	}
-	if len(site) > 0 {
-		if err := d.Set("site", site); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+	// Update site information
+	if resource.Site.ID != 0 || resource.Site.Name != "" {
+		site := make(map[string]interface{})
+		site["id"] = resource.Site.ID
+		site["name"] = resource.Site.Name
+		d.Set("site", []interface{}{site})
+	} else {
+		d.Set("site", []interface{}{}) // Clear the site data if not present
 	}
 
 	// Construct and set the groups attribute
@@ -496,24 +489,24 @@ func ResourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, met
 		groupMap["name"] = group.Name
 		groupMap["id"] = group.ID
 
-		// Construct Site subfield
-		if group.Site.ID != 0 || group.Site.Name != "" {
-			site := make(map[string]interface{})
-			site["id"] = group.Site.ID
-			site["name"] = group.Site.Name
-			groupMap["site"] = []interface{}{site}
-		} else {
-			groupMap["site"] = []interface{}{} // Clear the Site data if not present
-		}
+		// // Construct Site subfield
+		// if group.Site.ID != 0 || group.Site.Name != "" {
+		// 	site := make(map[string]interface{})
+		// 	site["id"] = group.Site.ID
+		// 	site["name"] = group.Site.Name
+		// 	groupMap["site"] = []interface{}{site}
+		// } else {
+		// 	groupMap["site"] = []interface{}{} // Clear the Site data if not present
+		// }
 
 		// Map privileges from the AccountSubsetPrivileges struct to the Terraform schema
-		groupMap["jss_objects_privileges"] = group.Privileges.JSSObjects
-		groupMap["jss_settings_privileges"] = group.Privileges.JSSSettings
-		groupMap["jss_actions_privileges"] = group.Privileges.JSSActions
-		groupMap["casper_admin_privileges"] = group.Privileges.CasperAdmin
-		groupMap["casper_remote_privileges"] = group.Privileges.CasperRemote
-		groupMap["casper_imaging_privileges"] = group.Privileges.CasperImaging
-		groupMap["recon_privileges"] = group.Privileges.Recon
+		// groupMap["jss_objects_privileges"] = group.Privileges.JSSObjects
+		// groupMap["jss_settings_privileges"] = group.Privileges.JSSSettings
+		// groupMap["jss_actions_privileges"] = group.Privileges.JSSActions
+		// groupMap["casper_admin_privileges"] = group.Privileges.CasperAdmin
+		// groupMap["casper_remote_privileges"] = group.Privileges.CasperRemote
+		// groupMap["casper_imaging_privileges"] = group.Privileges.CasperImaging
+		// groupMap["recon_privileges"] = group.Privileges.Recon
 
 		groups[i] = groupMap
 	}
