@@ -56,7 +56,6 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 			group := jamfpro.AccountsListSubsetGroups{
 				ID:   groupData["id"].(int),
 				Name: groupData["name"].(string),
-				//Privileges: constructGroupPrivileges(groupData),
 			}
 
 			account.Groups = append(account.Groups, group)
@@ -71,18 +70,6 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 	log.Printf("[DEBUG] Constructed Jamf Pro Account XML:\n%s\n", string(resourceXML))
 
 	return account, nil
-}
-
-func constructGroupPrivileges(groupData map[string]interface{}) jamfpro.AccountSubsetPrivileges {
-	return jamfpro.AccountSubsetPrivileges{
-		JSSObjects:    getStringSliceFromInterface(groupData["jss_objects_privileges"]),
-		JSSSettings:   getStringSliceFromInterface(groupData["jss_settings_privileges"]),
-		JSSActions:    getStringSliceFromInterface(groupData["jss_actions_privileges"]),
-		CasperAdmin:   getStringSliceFromInterface(groupData["casper_admin_privileges"]),
-		CasperRemote:  getStringSliceFromInterface(groupData["casper_remote_privileges"]),
-		CasperImaging: getStringSliceFromInterface(groupData["casper_imaging_privileges"]),
-		Recon:         getStringSliceFromInterface(groupData["recon_privileges"]),
-	}
 }
 
 func getStringSliceFromInterface(i interface{}) []string {

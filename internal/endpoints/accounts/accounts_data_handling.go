@@ -9,30 +9,63 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// customDiffAccounts is a custom diff function for the Jamf Pro Account resource.
-// This function is used during the Terraform plan phase to apply custom validation rules
-// that are not covered by the basic schema validation.
+// customDiffAccounts is the top-level custom diff function.
 func customDiffAccounts(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-	// Declare variables outside the validation scenarios
-	var casperAdminPrivileges interface{}
-	var ok bool
+	if err := validateAccessLevelSiteRequirement(ctx, d, meta); err != nil {
+		return err
+	}
 
-	// scenario 01
+	if err := validateGroupAccessPrivilegeSetRequirement(ctx, d, meta); err != nil {
+		return err
+	}
+
+	if err := validateCasperAdminUsePrivileges(ctx, d, meta); err != nil {
+		return err
+	}
+
+	if err := validateCasperAdminSavePrivileges(ctx, d, meta); err != nil {
+		return err
+	}
+
+	if err := validateReverseDependencyChecks(ctx, d, meta); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validateAccessLevelSiteRequirement checks that the 'site' attribute is set when access_level is 'Site Access'.
+func validateAccessLevelSiteRequirement(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
 	accessLevel, ok := d.GetOk("access_level")
 	if !ok || accessLevel == nil {
 		// If access_level is not set, no further checks required
 		return nil
 	}
 
-	// Enforce that the 'site' attribute must be set if access_level is 'Site Access'
-	if accessLevel.(string) == "Site Access" {
-		if _, ok := d.GetOk("site"); !ok {
-			return fmt.Errorf("'site' must be set when 'access_level' is 'Site Access'")
+	if accessLevel.(string) == "Site Access" && !d.HasChange("site") {
+		return fmt.Errorf("'site' must be set when 'access_level' is 'Site Access'")
+	}
+
+	return nil
+}
+
+// validateGroupAccessPrivilegeSetRequirement ensures that if access_level is "Group Access", then privilege_set must be "Custom".
+func validateGroupAccessPrivilegeSetRequirement(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+	accessLevel, accessLevelOk := d.GetOk("access_level")
+	privilegeSet, privilegeSetOk := d.GetOk("privilege_set")
+
+	if accessLevelOk && accessLevel.(string) == "Group Access" {
+		if !privilegeSetOk || privilegeSet.(string) != "Custom" {
+			return fmt.Errorf("when 'access_level' is 'Group Access', 'privilege_set' must be 'Custom'")
 		}
 	}
 
-	// scenario 02 validation when "Use Casper Admin" is present in casper_admin_privileges
-	casperAdminPrivileges, ok = d.GetOk("casper_admin_privileges")
+	return nil
+}
+
+// validateCasperAdminUsePrivileges checks for required privileges when "Use Casper Admin" is selected.
+func validateCasperAdminUsePrivileges(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+	casperAdminPrivileges, ok := d.GetOk("casper_admin_privileges")
 	if ok {
 		for _, privilege := range casperAdminPrivileges.([]interface{}) {
 			if privilege.(string) == "Use Casper Admin" {
@@ -64,8 +97,12 @@ func customDiffAccounts(ctx context.Context, d *schema.ResourceDiff, meta interf
 		}
 	}
 
-	// Scenario 03: Validation when "Save With Casper Admin" is present in casper_admin_privileges
-	casperAdminPrivileges, ok = d.GetOk("casper_admin_privileges")
+	return nil
+}
+
+// validateCasperAdminSavePrivileges checks for required privileges when "Save With Casper Admin" is selected.
+func validateCasperAdminSavePrivileges(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+	casperAdminPrivileges, ok := d.GetOk("casper_admin_privileges")
 	if ok {
 		for _, privilege := range casperAdminPrivileges.([]interface{}) {
 			if privilege.(string) == "Save With Casper Admin" {
@@ -97,7 +134,11 @@ func customDiffAccounts(ctx context.Context, d *schema.ResourceDiff, meta interf
 		}
 	}
 
-	// Additional scenarios for reverse dependency checks for scenarios  3 and 4
+	return nil
+}
+
+// validateReverseDependencyChecks performs reverse dependency checks for specific privileges.
+func validateReverseDependencyChecks(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
 	jssObjectsPrivileges, ok := d.GetOk("jss_objects_privileges")
 	if ok {
 		jssPrivilegesSet := make(map[string]bool)
@@ -105,25 +146,24 @@ func customDiffAccounts(ctx context.Context, d *schema.ResourceDiff, meta interf
 			jssPrivilegesSet[priv.(string)] = true
 		}
 
-		// Reverse Dependency Check 1: If specific read privileges are set, ensure "Use Casper Admin" is present
-		allReadPrivilegesPresent := true
+		// Check for "Use Casper Admin" if specific read privileges are set
 		readPrivileges := []string{"Read Categories", "Read Directory Bindings", "Read Dock Items", "Read Packages", "Read Printers", "Read Scripts"}
+		allReadPrivilegesPresent := true
 		for _, priv := range readPrivileges {
 			if !jssPrivilegesSet[priv] {
 				allReadPrivilegesPresent = false
 				break
 			}
 		}
+
 		if allReadPrivilegesPresent {
-			casperAdminPrivileges, ok = d.GetOk("casper_admin_privileges")
+			casperAdminPrivileges, ok := d.GetOk("casper_admin_privileges")
 			if !ok || !util.GetStringFromSlice(casperAdminPrivileges.([]interface{}), "Use Casper Admin") {
 				return fmt.Errorf("when the following JSS Object Privileges are set %v, 'Use Casper Admin' must be included in 'casper_admin_privileges'", readPrivileges)
 			}
 		}
 
-		// Reverse Dependency Check 2:
-		//If specific CRUD privileges are set, ensure "Save With Casper Admin" is present
-		allCrudPrivilegesPresent := true
+		// Check for "Save With Casper Admin" if specific CRUD privileges are set
 		crudPrivileges := []string{
 			"Create Categories", "Read Categories", "Update Categories", "Delete Categories",
 			"Create Directory Bindings", "Read Directory Bindings", "Update Directory Bindings", "Delete Directory Bindings",
@@ -132,18 +172,33 @@ func customDiffAccounts(ctx context.Context, d *schema.ResourceDiff, meta interf
 			"Create Printers", "Read Printers", "Update Printers", "Delete Printers",
 			"Create Scripts", "Read Scripts", "Update Scripts", "Delete Scripts",
 		}
+		allCrudPrivilegesPresent := true
 		for _, priv := range crudPrivileges {
 			if !jssPrivilegesSet[priv] {
 				allCrudPrivilegesPresent = false
 				break
 			}
 		}
+
 		if allCrudPrivilegesPresent {
-			casperAdminPrivileges, ok = d.GetOk("casper_admin_privileges")
-			if !ok || !util.GetStringFromSlice(casperAdminPrivileges.([]interface{}), "Save With Casper Admin") {
+			casperAdminPrivileges, ok := d.GetOk("casper_admin_privileges")
+			if ok {
+				hasSaveWithCasperAdmin := false
+				for _, privilege := range casperAdminPrivileges.([]interface{}) {
+					if privilege.(string) == "Save With Casper Admin" {
+						hasSaveWithCasperAdmin = true
+						break
+					}
+				}
+				if !hasSaveWithCasperAdmin {
+					return fmt.Errorf("when the following JSS Object Privileges are set %v, 'Save With Casper Admin' must be included in 'casper_admin_privileges'", crudPrivileges)
+				}
+			} else {
+				// Handle the case where casper_admin_privileges is not set at all but all CRUD privileges are present
 				return fmt.Errorf("when the following JSS Object Privileges are set %v, 'Save With Casper Admin' must be included in 'casper_admin_privileges'", crudPrivileges)
 			}
 		}
+
 	}
 
 	return nil
