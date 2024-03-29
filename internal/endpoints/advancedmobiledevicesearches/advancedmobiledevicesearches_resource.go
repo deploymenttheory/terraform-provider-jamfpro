@@ -10,6 +10,7 @@ import (
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -148,10 +149,10 @@ func ResourceJamfProAdvancedMobileDeviceSearchCreate(ctx context.Context, d *sch
 	// Construct the resource object
 	resource, err := constructJamfProAdvancedMobileDeviceSearch(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Advanced Mobile Device Search: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account: %v", err))
 	}
 
-	// Retry the API call to create the site in Jamf Pro
+	// Retry the API call to create the resource in Jamf Pro
 	var creationResponse *jamfpro.ResponseAdvancedMobileDeviceSearchCreatedAndUpdated
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
@@ -169,6 +170,20 @@ func ResourceJamfProAdvancedMobileDeviceSearchCreate(ctx context.Context, d *sch
 
 	// Set the resource ID in Terraform state
 	d.SetId(strconv.Itoa(creationResponse.ID))
+
+	// Wait for the resource to be fully available before reading it
+	checkResourceExists := func(id interface{}) (interface{}, error) {
+		intID, err := strconv.Atoi(id.(string))
+		if err != nil {
+			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
+		}
+		return apiclient.Conn.GetAdvancedComputerSearchByID(intID)
+	}
+
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Advanced Mobile Device Search", strconv.Itoa(creationResponse.ID), checkResourceExists, 45*time.Second)
+	if waitDiags.HasError() {
+		return waitDiags
+	}
 
 	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProAdvancedMobileDeviceSearchRead(ctx, d, meta)

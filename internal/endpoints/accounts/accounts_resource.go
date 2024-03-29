@@ -474,14 +474,19 @@ func ResourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, met
 	}
 	d.Set("privilege_set", resource.PrivilegeSet)
 
-	// Update site information
-	if resource.Site.ID != 0 || resource.Site.Name != "" {
-		site := make(map[string]interface{})
-		site["id"] = resource.Site.ID
-		site["name"] = resource.Site.Name
-		d.Set("site", []interface{}{site})
-	} else {
-		d.Set("site", []interface{}{}) // Clear the site data if not present
+	// Set the 'site' attribute in the state only if it's not empty (i.e., not default values)
+	site := []interface{}{}
+
+	if resource.Site.ID != -1 || resource.Site.Name != "None" {
+		site = append(site, map[string]interface{}{
+			"id":   resource.Site.ID,
+			"name": resource.Site.Name,
+		})
+	}
+	if len(site) > 0 {
+		if err := d.Set("site", site); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	// Construct and set the groups attribute

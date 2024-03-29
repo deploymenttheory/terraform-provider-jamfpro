@@ -35,12 +35,19 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 		}
 	}
 
-	// Handle Site
-	if v, ok := d.GetOk("site"); ok && len(v.([]interface{})) > 0 {
-		siteData := v.([]interface{})[0].(map[string]interface{})
+	// Handle 'site' attribute with default values if not set
+	site, ok := d.GetOk("site")
+	if ok && len(site.([]interface{})) > 0 {
+		siteBlock := site.([]interface{})[0].(map[string]interface{})
 		account.Site = jamfpro.SharedResourceSite{
-			ID:   siteData["id"].(int),
-			Name: siteData["name"].(string),
+			ID:   siteBlock["id"].(int),
+			Name: siteBlock["name"].(string),
+		}
+	} else {
+		// Set default values if 'site' block is not specified
+		account.Site = jamfpro.SharedResourceSite{
+			ID:   -1,     // Default ID
+			Name: "None", // Default name
 		}
 	}
 
