@@ -334,7 +334,6 @@ func ResourceJamfProFileShareDistributionPointsRead(ctx context.Context, d *sche
 			"no_authentication_required":       resource.NoAuthenticationRequired,
 			"https_username_password_required": resource.UsernamePasswordRequired,
 			"https_username":                   resource.HTTPUsername,
-			// other fields as needed...
 		}
 
 		// Iterate over the map and set each key-value pair in the Terraform state

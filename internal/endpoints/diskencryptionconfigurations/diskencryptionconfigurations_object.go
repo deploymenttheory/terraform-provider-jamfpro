@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// constructDiskEncryptionConfiguration constructs a ResourceDiskEncryptionConfiguration object from the provided schema data.
-func constructDiskEncryptionConfiguration(d *schema.ResourceData) (*jamfpro.ResourceDiskEncryptionConfiguration, error) {
+// constructJamfProDiskEncryptionConfiguration constructs a ResourceDiskEncryptionConfiguration object from the provided schema data.
+func constructJamfProDiskEncryptionConfiguration(d *schema.ResourceData) (*jamfpro.ResourceDiskEncryptionConfiguration, error) {
 	diskEncryptionConfig := &jamfpro.ResourceDiskEncryptionConfiguration{
 		Name:                  d.Get("name").(string),
 		KeyType:               d.Get("key_type").(string),
