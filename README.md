@@ -28,6 +28,13 @@ Resources can have the following statuses:
 
 This section outlines the resources and data sources provided by our Terraform provider for managing various aspects of Jamf Pro. Each resource comes with comprehensive support for the respective Jamf Pro entities, facilitating their management through Terraform.
 
+### Accounts
+
+- **Resource & Data Source**: Enables the management of Account within Jamf Pro, allowing for the configuration of accounts, access levels, privileges, assignment to groups and sites and other details.
+
+- **Status**: Finished
+- **Availability**: Introduced in version `v0.0.44.`
+
 ### Account Groups
 
 - **Resource & Data Source**: Enables the management of Account Groups within Jamf Pro, allowing for the configuration of group names, access levels, privileges, and member details.

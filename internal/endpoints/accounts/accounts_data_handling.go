@@ -15,6 +15,10 @@ func customDiffAccounts(ctx context.Context, d *schema.ResourceDiff, meta interf
 		return err
 	}
 
+	if err := validatePrivilegesForSiteAccess(ctx, d, meta); err != nil {
+		return err
+	}
+
 	if err := validateGroupAccessPrivilegeSetRequirement(ctx, d, meta); err != nil {
 		return err
 	}
@@ -57,6 +61,26 @@ func validateAccessLevelSiteRequirement(_ context.Context, d *schema.ResourceDif
 		} else {
 			return fmt.Errorf("'site' block must be set when 'access_level' is 'Site Access'")
 		}
+	}
+
+	return nil
+}
+
+// validatePrivilegesForSiteAccess checks that certain privileges are not set when access_level is 'Site Access'.
+func validatePrivilegesForSiteAccess(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+	accessLevel, ok := d.GetOk("access_level")
+	if !ok || accessLevel.(string) != "Site Access" {
+		// If access_level is not 'Site Access', no further checks required
+		return nil
+	}
+
+	// Check if 'jss_settings_privileges' or 'casper_admin_privileges' are set
+	if jssSettingsPrivileges, ok := d.GetOk("jss_settings_privileges"); ok && len(jssSettingsPrivileges.([]interface{})) > 0 {
+		return fmt.Errorf("when 'access_level' is 'Site Access', 'jss_settings_privileges' are not allowed")
+	}
+
+	if casperAdminPrivileges, ok := d.GetOk("casper_admin_privileges"); ok && len(casperAdminPrivileges.([]interface{})) > 0 {
+		return fmt.Errorf("when 'access_level' is 'Site Access', 'casper_admin_privileges' are not allowed")
 	}
 
 	return nil
