@@ -49,28 +49,6 @@ description: |-
 <a id="nestedblock--groups"></a>
 ### Nested Schema for `groups`
 
-Required:
-
-- `name` (String)
-
-Optional:
-
-- `casper_admin_privileges` (List of String) Privileges related to Casper Admin.
-- `casper_imaging_privileges` (List of String) Privileges related to Casper Imaging.
-- `casper_remote_privileges` (List of String) Privileges related to Casper Remote.
-- `jss_actions_privileges` (List of String) Privileges related to JSS Actions.
-- `jss_objects_privileges` (List of String) Privileges related to JSS Objects.
-- `jss_settings_privileges` (List of String) Privileges related to JSS Settings.
-- `recon_privileges` (List of String) Privileges related to Recon.
-- `site` (Block List, Max: 1) (see [below for nested schema](#nestedblock--groups--site))
-
-Read-Only:
-
-- `id` (Number) The ID of this resource.
-
-<a id="nestedblock--groups--site"></a>
-### Nested Schema for `groups.site`
-
 Optional:
 
 - `name` (String)
@@ -78,7 +56,6 @@ Optional:
 Read-Only:
 
 - `id` (Number) The ID of this resource.
-
 
 
 <a id="nestedblock--ldap_server"></a>

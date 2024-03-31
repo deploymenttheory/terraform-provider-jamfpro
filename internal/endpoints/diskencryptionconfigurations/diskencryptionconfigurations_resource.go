@@ -10,6 +10,7 @@ import (
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -24,10 +25,10 @@ func ResourceJamfProDiskEncryptionConfigurations() *schema.Resource {
 		UpdateContext: ResourceJamfProDiskEncryptionConfigurationsUpdate,
 		DeleteContext: ResourceJamfProDiskEncryptionConfigurationsDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Second),
+			Create: schema.DefaultTimeout(120 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
-			Delete: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -144,12 +145,12 @@ func ResourceJamfProDiskEncryptionConfigurationsCreate(ctx context.Context, d *s
 	var diags diag.Diagnostics
 
 	// Construct the resource object
-	resource, err := constructDiskEncryptionConfiguration(d)
+	resource, err := constructJamfProDiskEncryptionConfiguration(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Disk Encryption Configuration: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Dock Item: %v", err))
 	}
 
-	// Retry the API call to create the resource  in Jamf Pro
+	// Retry the API call to create the resource in Jamf Pro
 	var creationResponse *jamfpro.ResponseDiskEncryptionConfigurationCreatedAndUpdated
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
@@ -168,6 +169,20 @@ func ResourceJamfProDiskEncryptionConfigurationsCreate(ctx context.Context, d *s
 	// Set the resource ID in Terraform state
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
+	// Wait for the resource to be fully available before reading it
+	checkResourceExists := func(id interface{}) (interface{}, error) {
+		intID, err := strconv.Atoi(id.(string))
+		if err != nil {
+			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
+		}
+		return apiclient.Conn.GetDiskEncryptionConfigurationByID(intID)
+	}
+
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Disk Encryption Configuration", strconv.Itoa(creationResponse.ID), checkResourceExists, 30*time.Second)
+	if waitDiags.HasError() {
+		return waitDiags
+	}
+
 	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProDiskEncryptionConfigurationsRead(ctx, d, meta)
 	if len(readDiags) > 0 {
@@ -184,51 +199,35 @@ func ResourceJamfProDiskEncryptionConfigurationsRead(ctx context.Context, d *sch
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
-
-	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	var resource *jamfpro.ResourceDiskEncryptionConfiguration
+	// Attempt to fetch the resource by ID
+	resource, err := apiclient.Conn.GetDiskEncryptionConfigurationByID(resourceIDInt)
 
-	// Read operation with retry
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
-		resource, apiErr = conn.GetDiskEncryptionConfigurationByID(resourceIDInt)
-		if apiErr != nil {
-			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
-				// Return non-retryable error with a message to avoid SDK issues
-				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
-			}
-			// Retry for other types of errors
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	// If err is not nil, check if it's due to the resource being not found
 	if err != nil {
-		if err.Error() == "resource not found, marked for deletion" {
-			// Resource not found, remove from Terraform state
-			d.SetId("")
-			// Append a warning diagnostic and return
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "Resource not found",
-				Detail:   fmt.Sprintf("Jamf Pro Disk Encryption Configuration with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
-			})
-			return diags
+		// Skip resource state removal if this is a create operation
+		if !d.IsNewResource() {
+			// If the error is a "not found" error, remove the resource from the state
+			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
+				d.SetId("") // Remove the resource from Terraform state
+				return diag.Diagnostics{
+					{
+						Severity: diag.Warning,
+						Summary:  "Resource not found",
+						Detail:   fmt.Sprintf("Jamf Pro Disk Encryption Configuration with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
+					},
+				}
+			}
 		}
-
-		// For other errors, return an error diagnostic
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Disk Encryption Configuration with ID '%s' after retries: %v", resourceID, err))
+		// For other errors, or if this is a create operation, return a diagnostic error
+		return diag.FromErr(err)
 	}
 
 	// Assuming successful retrieval, proceed to set the resource attributes in Terraform state
@@ -287,7 +286,7 @@ func ResourceJamfProDiskEncryptionConfigurationsUpdate(ctx context.Context, d *s
 	}
 
 	// Construct the resource object
-	resource, err := constructDiskEncryptionConfiguration(d)
+	resource, err := constructJamfProDiskEncryptionConfiguration(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Disk Encryption Configuration for update: %v", err))
 	}

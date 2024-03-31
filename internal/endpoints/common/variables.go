@@ -3,7 +3,7 @@
 package common
 
 // ValidJSSObjectsPrivileges contains a list of all valid values for JSS Object Priviledges field. Used by
-// accounts and account groups.
+// accounts and account groups. Privileges are reflectively of jamf pro up to version 11.3.0
 var ValidJSSObjectsPrivileges = []string{
 	"Create Advanced Computer Searches",
 	"Read Advanced Computer Searches",
@@ -346,7 +346,7 @@ var ValidJSSObjectsPrivileges = []string{
 }
 
 // ValidJSSSettingsPrivileges contains a list of all valid values for JSS Settings Priviledges field. Used by
-// accounts and account groups.
+// accounts and account groups. Privileges are reflectively of jamf pro up to version 11.3.0
 var ValidJSSSettingsPrivileges = []string{
 	"Read Activation Code",
 	"Update Activation Code",
@@ -433,14 +433,17 @@ var ValidJSSSettingsPrivileges = []string{
 }
 
 // ValidJSSSettingsPrivileges contains a list of all valid values for JSS Actions Priviledges field. Used by
-// accounts and account groups.
+// accounts and account groups. Privileges are reflectively of jamf pro up to version 11.3.0
 var ValidJSSActionsPrivileges = []string{
 	"Allow User to Enroll",
 	"Assign Users to Computers",
 	"Assign Users to Mobile Devices",
 	"Change Password",
+	"Delete Return To Service Configurations",
 	"Dismiss Notifications",
-	"Enroll Computers and Mobile Devices",
+	"Edit Return To Service Configurations",
+	"Enroll Computers",
+	"Enroll Mobile Devices",
 	"Flush MDM Commands",
 	"Flush Policy Logs",
 	"Jamf Packages Action",
@@ -452,14 +455,24 @@ var ValidJSSActionsPrivileges = []string{
 	"Jamf Protect Deployment Retry",
 	"Send Application Attributes Command",
 	"Send Blank Pushes to Mobile Devices",
+	"Send Command to Renew MDM Profile",
+	"Send Computer Bluetooth Command",
+	"Send Computer Delete User Account Command",
+	"Send Computer Remote Command to Download and Install OS X Update",
+	"Send Computer Remote Command to Install Package",
 	"Send Computer Remote Desktop Command",
+	"Send Computer Remote Lock Command",
+	"Send Computer Remote Wipe Command",
 	"Send Computer Set Activation Lock Command",
+	"Send Computer Unlock User Account Command",
+	"Send Computer Unmanage Command",
 	"Send Declarative Management Command",
 	"Send Disable Bootstrap Token Command",
 	"Send Email to End Users via JSS",
 	"Send Enable Bootstrap Token Command",
 	"Send Inventory Requests to Mobile Devices",
 	"Send Local Admin Password Command",
+	"Send MDM Check In Command",
 	"Send Messages to Self Service Mobile",
 	"Send Mobile Device Bluetooth Command",
 	"Send Mobile Device Diagnostics and Usage Reporting and App Analytics Commands",
@@ -471,28 +484,42 @@ var ValidJSSActionsPrivileges = []string{
 	"Send Mobile Device Managed Settings Command",
 	"Send Mobile Device Mirroring Command",
 	"Send Mobile Device Personal Hotspot Command",
+	"Send Mobile Device Refresh Cellular Plans Command",
 	"Send Mobile Device Remote Command to Download and Install iOS Update",
 	"Send Mobile Device Remote Lock Command",
 	"Send Mobile Device Remote Wipe Command",
 	"Send Mobile Device Remove Passcode Command",
 	"Send Mobile Device Remove Restrictions Password Command",
+	"Send Mobile Device Restart Device Command",
 	"Send Mobile Device Set Activation Lock Command",
+	"Send Mobile Device Set Device Name Command",
 	"Send Mobile Device Set Wallpaper Command",
+	"Send Mobile Device Shared Device Configuration Commands",
+	"Send Mobile Device Shared iPad Commands",
+	"Send Mobile Device Shut Down Command",
 	"Send Mobile Device Software Update Recommendation Cadence Command",
+	"Send Set Recovery Lock Command",
 	"Send Set Timezone Command",
 	"Send Software Update Settings Command",
+	"Send Update Passcode Lock Grace Period Command",
+	"Start Remote Assist Session",
 	"Unmanage Mobile Devices",
 	"Update Local Admin Password Settings",
+	"View Activation Lock Bypass Code",
+	"View Disk Encryption Recovery Key",
 	"View Event Logs",
 	"View JSS Information",
 	"View License Serial Numbers",
 	"View Local Admin Password",
 	"View Local Admin Password Audit History",
 	"View MDM command information in Jamf Pro API",
+	"View Mobile Device Lost Mode Location",
+	"View Recovery Lock",
+	"View Return To Service Configurations",
 }
 
 // ValidJSSSettingsPrivileges contains a list of all valid values for JSS Actions Priviledges field. Used by
-// accounts and account groups.
+// accounts and account groups. Privileges are reflectively of jamf pro up to version 11.3.0
 var ValidCasperAdminPrivileges = []string{
 	"Use Casper Admin",
 	"Save With Casper Admin",
