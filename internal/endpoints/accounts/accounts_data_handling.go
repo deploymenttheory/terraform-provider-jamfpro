@@ -42,8 +42,21 @@ func validateAccessLevelSiteRequirement(_ context.Context, d *schema.ResourceDif
 		return nil
 	}
 
-	if accessLevel.(string) == "Site Access" && !d.HasChange("site") {
-		return fmt.Errorf("'site' must be set when 'access_level' is 'Site Access'")
+	if accessLevel.(string) == "Site Access" {
+		// Check if 'site' block is defined and 'id' is set within it
+		if site, ok := d.GetOk("site"); ok {
+			siteList := site.([]interface{})
+			if len(siteList) == 0 || siteList[0] == nil {
+				return fmt.Errorf("'site' block must be set when 'access_level' is 'Site Access'")
+			}
+
+			siteMap := siteList[0].(map[string]interface{})
+			if id, ok := siteMap["id"]; !ok || id == 0 {
+				return fmt.Errorf("'site.id' must be set when 'access_level' is 'Site Access'")
+			}
+		} else {
+			return fmt.Errorf("'site' block must be set when 'access_level' is 'Site Access'")
+		}
 	}
 
 	return nil
