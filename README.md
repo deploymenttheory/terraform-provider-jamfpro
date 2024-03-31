@@ -42,6 +42,20 @@ This section outlines the resources and data sources provided by our Terraform p
 - **Status**: Finished
 - **Availability**: Introduced in version `v0.0.31.`
 
+### API Roles
+
+- **Resource & Data Source**: Enables the management of API roles within Jamf Pro, allowing for the configuration of role names, privileges, and other details. these can be assigned to api integrations.
+
+- **Status**: Finished
+- **Availability**: Introduced in version `v0.0.44.`
+
+### API Integrations
+
+- **Resource & Data Source**: Enables the management of API integrations within Jamf Pro, allowing for the configuration of integration names, privileges, and other details.
+
+- **Status**: Finished
+- **Availability**: Introduced in version `v0.0.44.`
+
 ### Buildings
 
 - **Resource & Data Source**: Provides the ability to manage Buildings within Jamf Pro. This resource allows for the specification of building names and addresses, facilitating better organization and segmentation of devices within different physical locations.
