@@ -411,25 +411,6 @@ func ResourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, met
 		groupMap["name"] = group.Name
 		groupMap["id"] = group.ID
 
-		// // Construct Site subfield
-		// if group.Site.ID != 0 || group.Site.Name != "" {
-		// 	site := make(map[string]interface{})
-		// 	site["id"] = group.Site.ID
-		// 	site["name"] = group.Site.Name
-		// 	groupMap["site"] = []interface{}{site}
-		// } else {
-		// 	groupMap["site"] = []interface{}{} // Clear the Site data if not present
-		// }
-
-		// Map privileges from the AccountSubsetPrivileges struct to the Terraform schema
-		// groupMap["jss_objects_privileges"] = group.Privileges.JSSObjects
-		// groupMap["jss_settings_privileges"] = group.Privileges.JSSSettings
-		// groupMap["jss_actions_privileges"] = group.Privileges.JSSActions
-		// groupMap["casper_admin_privileges"] = group.Privileges.CasperAdmin
-		// groupMap["casper_remote_privileges"] = group.Privileges.CasperRemote
-		// groupMap["casper_imaging_privileges"] = group.Privileges.CasperImaging
-		// groupMap["recon_privileges"] = group.Privileges.Recon
-
 		groups[i] = groupMap
 	}
 
