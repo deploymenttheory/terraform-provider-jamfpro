@@ -4,6 +4,7 @@ package networksegments
 import (
 	"encoding/xml"
 	"fmt"
+	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -25,12 +26,14 @@ func constructJamfProNetworkSegment(d *schema.ResourceData) (*jamfpro.ResourceNe
 		OverrideDepartments: d.Get("override_departments").(bool),
 	}
 
-	// Serialize and pretty-print the network segment object as XML for logging
+	// Serialize and pretty-print the Network Segment object as XML for logging
 	resourceXML, err := xml.MarshalIndent(networkSegment, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Network Segment '%s' to XML: %v", networkSegment.Name, err)
 	}
-	fmt.Printf("Constructed Jamf Pro Network Segment XML:\n%s\n", string(resourceXML))
+
+	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
+	log.Printf("[DEBUG] Constructed Jamf Pro Network Segment XML:\n%s\n", string(resourceXML))
 
 	return networkSegment, nil
 }

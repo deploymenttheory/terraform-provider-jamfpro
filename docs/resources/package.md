@@ -38,9 +38,9 @@ description: |-
 
 ### Read-Only
 
-- `file_hash` (String) SHA-3-256 hash of the package file for integrity comparison.
 - `filename` (String) The filename of the Jamf Pro package.
 - `id` (String) The unique identifier of the package.
+- `md5_file_hash` (String) md5 hash of the package file for integrity comparison.
 - `package_uri` (String) The URI of the package in the Jamf Cloud Distribution Service (JCDS).
 
 <a id="nestedblock--timeouts"></a>

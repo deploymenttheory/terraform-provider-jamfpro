@@ -4,6 +4,7 @@ package advancedmobiledevicesearches
 import (
 	"encoding/xml"
 	"fmt"
+	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -60,12 +61,14 @@ func constructJamfProAdvancedMobileDeviceSearch(d *schema.ResourceData) (*jamfpr
 		}
 	}
 
-	// Serialize and pretty-print the search object as XML for logging
-	xmlData, err := xml.MarshalIndent(search, "", "  ")
+	// Serialize and pretty-print the Advanced Mobile Device Search object as XML for logging
+	resourceXML, err := xml.MarshalIndent(search, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Advanced Mobile Device Search '%s' to XML: %v", search.Name, err)
 	}
-	fmt.Printf("Constructed Advanced Mobile Device Search XML:\n%s\n", string(xmlData))
+
+	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
+	log.Printf("[DEBUG] Constructed Jamf Pro Advanced Mobile Device Search XML:\n%s\n", string(resourceXML))
 
 	return search, nil
 }

@@ -1,13 +1,17 @@
-// computerprestages_object.go
-package computerprestages
+// computerprestageenrollments_object.go
+package computerprestageenrollments
 
 import (
+	"encoding/xml"
+	"fmt"
+	"log"
+
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// constructJamfProComputerPrestage constructs a ResourceComputerPrestage object from the provided schema data.
-func constructJamfProComputerPrestage(d *schema.ResourceData) (*jamfpro.ResourceComputerPrestage, error) {
+// constructJamfProComputerPrestageEnrollment constructs a ResourceComputerPrestage object from the provided schema data.
+func constructJamfProComputerPrestageEnrollment(d *schema.ResourceData) (*jamfpro.ResourceComputerPrestage, error) {
 	prestage := &jamfpro.ResourceComputerPrestage{
 		DisplayName:                     d.Get("display_name").(string),
 		Mandatory:                       d.Get("mandatory").(bool),
@@ -96,6 +100,15 @@ func constructJamfProComputerPrestage(d *schema.ResourceData) (*jamfpro.Resource
 		}
 		prestage.CustomPackageIds = packageIDs
 	}
+
+	// Serialize and pretty-print the Computer Prestage Enrollment object as XML for logging
+	resourceXML, err := xml.MarshalIndent(prestage, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Prestage Enrollment '%s' to XML: %v", prestage.DisplayName, err)
+	}
+
+	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
+	log.Printf("[DEBUG] Constructed Jamf Pro Computer Prestage Enrollment XML:\n%s\n", string(resourceXML))
 
 	return prestage, nil
 }

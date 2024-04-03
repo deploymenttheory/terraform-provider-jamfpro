@@ -5,7 +5,7 @@ This repository hosts the Jamf Pro Community Provider, built to integrate Jamf P
 The provider contains:
 
 - Resources and data sources for Jamf Pro entities (`internal/provider/`),
-- Examples [examples](https://github.com/deploymenttheory/terraform-provider-jamfpro/tree/main/examples) directory for sample configurations and usage scenarios of the `terraform-provider-jamfpro` provider. 
+- Examples [examples](https://github.com/deploymenttheory/terraform-provider-jamfpro/tree/main/examples) directory for sample configurations and usage scenarios of the `terraform-provider-jamfpro` provider.
 - Documentation [docs](https://github.com/deploymenttheory/terraform-provider-jamfpro/tree/main/docs)
 
 ## Requirements
@@ -28,12 +28,33 @@ Resources can have the following statuses:
 
 This section outlines the resources and data sources provided by our Terraform provider for managing various aspects of Jamf Pro. Each resource comes with comprehensive support for the respective Jamf Pro entities, facilitating their management through Terraform.
 
+### Accounts
+
+- **Resource & Data Source**: Enables the management of Account within Jamf Pro, allowing for the configuration of accounts, access levels, privileges, assignment to groups and sites and other details.
+
+- **Status**: Finished
+- **Availability**: Introduced in version `v0.0.44.`
+
 ### Account Groups
 
 - **Resource & Data Source**: Enables the management of Account Groups within Jamf Pro, allowing for the configuration of group names, access levels, privileges, and member details.
 
 - **Status**: Finished
 - **Availability**: Introduced in version `v0.0.31.`
+
+### API Roles
+
+- **Resource & Data Source**: Enables the management of API roles within Jamf Pro, allowing for the configuration of role names, privileges, and other details. these can be assigned to api integrations.
+
+- **Status**: Finished
+- **Availability**: Introduced in version `v0.0.44.`
+
+### API Integrations
+
+- **Resource & Data Source**: Enables the management of API integrations within Jamf Pro, allowing for the configuration of integration names, privileges, and other details.
+
+- **Status**: Finished
+- **Availability**: Introduced in version `v0.0.44.`
 
 ### Buildings
 
@@ -55,6 +76,13 @@ This section outlines the resources and data sources provided by our Terraform p
 
 - **Status**: Finished
 - **Availability**: Introduced in version `v0.0.36.`
+
+### Dock Items
+
+- **Resource & Data Source**: Facilitates the management of Dock Items in Jamf Pro. This includes the creation, update, and deletion of dock item entities, along with the ability to specify dock item properties and associated payloads.
+
+- **Status**: Finished
+- **Availability**: Introduced in version `v0.0.43.`
 
 ### macOS Configuration Profiles
 
@@ -78,9 +106,16 @@ package metadata in Jamf Pro.
 - **Status**: Finished
 - **Availability**: Introduced in version `v0.0.30.`
 
+### Sites
+
+- **Resource & Data Source**: Provides the ability to manage Sites within Jamf Pro. This resource allows for the specification of site names and details, facilitating the organization of devices and resources across different sites.
+
+- **Status**: Finished
+- **Availability**: Introduced in version `v0.0.42.`
+
 ### User Groups
 
 - **Resource & Data Source**: Enables the handling of User Groups in Jamf Pro. This encompasses the capabilities to create, update, and remove user group entities, as well as the functionality to detail user group attributes and memberships.
 
-- **Status**: Experimental
+- **Status**: Finished
 - **Availability**: Introduced in version `v0.0.38`.

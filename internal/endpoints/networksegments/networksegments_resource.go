@@ -5,11 +5,12 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/retryfetch"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -99,9 +100,9 @@ func ResourceJamfProNetworkSegments() *schema.Resource {
 
 // ResourceJamfProNetworkSegmentsCreate is responsible for creating a new Jamf Network segment in the remote system.
 // The function:
-// 1. Constructs the printer data using the provided Terraform configuration.
-// 2. Calls the API to create the printer in Jamf Pro.
-// 3. Updates the Terraform state with the ID of the newly created printer.
+// 1. Constructs the Network Segment data using the provided Terraform configuration.
+// 2. Calls the API to create the Network Segment in Jamf Pro.
+// 3. Updates the Terraform state with the ID of the newly created Network Segment.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProNetworkSegmentsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Assert the meta interface to the expected APIClient type
@@ -139,6 +140,20 @@ func ResourceJamfProNetworkSegmentsCreate(ctx context.Context, d *schema.Resourc
 	// Set the resource ID in Terraform state
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
+	// Wait for the resource to be fully available before reading it
+	checkResourceExists := func(id interface{}) (interface{}, error) {
+		intID, err := strconv.Atoi(id.(string))
+		if err != nil {
+			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
+		}
+		return apiclient.Conn.GetNetworkSegmentByID(intID)
+	}
+
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Network Segment", strconv.Itoa(creationResponse.ID), checkResourceExists, 5*time.Second)
+	if waitDiags.HasError() {
+		return waitDiags
+	}
+
 	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProNetworkSegmentsRead(ctx, d, meta)
 	if len(readDiags) > 0 {
@@ -167,49 +182,52 @@ func ResourceJamfProNetworkSegmentsRead(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	// Define the specific API call wrapped in a function matching the APICallFuncString signature from the retryfetch package
-	getResource := func(id string) (interface{}, error) {
-		return apiclient.Conn.GetNetworkSegmentByID(resourceIDInt)
-	}
+	// Attempt to fetch the resource by ID
+	resource, err := apiclient.Conn.GetNetworkSegmentByID(resourceIDInt)
 
-	// Use the retryfetch helper function with context
-	retry, diags := retryfetch.ByResourceStringID(ctx, d, resourceID, getResource)
-	if diags.HasError() {
-		return diags
-	}
-
-	// Check if the returned resource from retry is not nil before proceeding
-	if retry != nil {
-		resource, ok := retry.(*jamfpro.ResourceNetworkSegment)
-		if !ok {
-			return diag.Errorf("expected resource type *jamfpro.ResourceNetworkSegment, got %T", retry)
-		}
-
-		// Update the Terraform state with the fetched data
-		networkSegmentData := map[string]interface{}{
-			"id":                   strconv.Itoa(resource.ID),
-			"name":                 resource.Name,
-			"starting_address":     resource.StartingAddress,
-			"ending_address":       resource.EndingAddress,
-			"distribution_server":  resource.DistributionServer,
-			"distribution_point":   resource.DistributionPoint,
-			"url":                  resource.URL,
-			"swu_server":           resource.SWUServer,
-			"building":             resource.Building,
-			"department":           resource.Department,
-			"override_buildings":   resource.OverrideBuildings,
-			"override_departments": resource.OverrideDepartments,
-		}
-
-		// Iterate over the map and set each key-value pair in the Terraform state
-		for key, val := range networkSegmentData {
-			if err := d.Set(key, val); err != nil {
-				return diag.FromErr(err)
+	if err != nil {
+		// Skip resource state removal if this is a create operation
+		if !d.IsNewResource() {
+			// If the error is a "not found" error, remove the resource from the state
+			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
+				d.SetId("") // Remove the resource from Terraform state
+				return diag.Diagnostics{
+					{
+						Severity: diag.Warning,
+						Summary:  "Resource not found",
+						Detail:   fmt.Sprintf("Jamf Pro Network Segment resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
+					},
+				}
 			}
 		}
+		// For other errors, or if this is a create operation, return a diagnostic error
+		return diag.FromErr(err)
 	}
 
-	return diags
+	// Update the Terraform state with the fetched data
+	resourceData := map[string]interface{}{
+		"id":                   strconv.Itoa(resource.ID),
+		"name":                 resource.Name,
+		"starting_address":     resource.StartingAddress,
+		"ending_address":       resource.EndingAddress,
+		"distribution_server":  resource.DistributionServer,
+		"distribution_point":   resource.DistributionPoint,
+		"url":                  resource.URL,
+		"swu_server":           resource.SWUServer,
+		"building":             resource.Building,
+		"department":           resource.Department,
+		"override_buildings":   resource.OverrideBuildings,
+		"override_departments": resource.OverrideDepartments,
+	}
+
+	// Iterate over the map and set each key-value pair in the Terraform state
+	for key, val := range resourceData {
+		if err := d.Set(key, val); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	return nil
 }
 
 // ResourceJamfProNetworkSegmentsUpdate is responsible for updating an existing Jamf Pro Network Segment on the remote system.

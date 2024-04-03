@@ -2,7 +2,7 @@ terraform {
   required_providers {
     jamfpro = {
       source  = "deploymenttheory/jamfpro"
-      version = "~> 0.0.25"
+      version = "~> 0.0.43"
     }
   }
 }
@@ -38,3 +38,13 @@ variable "jamfpro_client_secret" {
   default     = ""
 }
 
+variable "jamfpro_username" {
+  description = "Jamf Pro username used for authentication."
+  default     = ""
+}
+
+variable "jamfpro_password" {
+  description = "Jamf Pro password used for authentication."
+  sensitive   = true
+  default     = ""
+}

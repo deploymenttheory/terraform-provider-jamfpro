@@ -17,52 +17,37 @@ description: |-
 
 ### Required
 
-- `general` (Block List, Min: 1) General settings of the policy. (see [below for nested schema](#nestedblock--general))
+- `enabled` (Boolean) Define whether the policy is enabled.
+- `name` (String) The name of the policy.
+- `override_default_settings` (Block List, Min: 1) Settings to override default configurations. (see [below for nested schema](#nestedblock--override_default_settings))
 - `scope` (Block List, Min: 1, Max: 1) Scope configuration for the profile. (see [below for nested schema](#nestedblock--scope))
 - `self_service` (Block List, Min: 1) Self-service settings of the policy. (see [below for nested schema](#nestedblock--self_service))
+- `site` (Block List, Min: 1) Jamf Pro Site-related settings of the policy. (see [below for nested schema](#nestedblock--site))
+- `trigger` (String) Event(s) triggers to use to initiate the policy. Values can be 'USER_INITIATED' for self self trigger and 'EVENT' for an event based trigger
 
 ### Optional
 
 - `account_maintenance` (Block List) Account maintenance settings of the policy. Use this section to create and delete local accounts, and to reset local account passwords. Also use this section to disable an existing local account for FileVault 2. (see [below for nested schema](#nestedblock--account_maintenance))
+- `category` (Block List) Category to add the policy to. (see [below for nested schema](#nestedblock--category))
+- `date_time_limitations` (Block List) Server-side limitations use your Jamf Pro host server's time zone and settings. The Jamf Pro host service is in UTC time. (see [below for nested schema](#nestedblock--date_time_limitations))
 - `disk_encryption` (Block List) Disk encryption settings of the policy. Use this section to enable FileVault 2 or to issue a new recovery key. (see [below for nested schema](#nestedblock--disk_encryption))
 - `dock_items` (Block List) Dock items settings of the policy. (see [below for nested schema](#nestedblock--dock_items))
 - `files_processes` (Block List) Files and processes settings of the policy. Use this section to search for and log specific files and processes. Also use this section to execute a command. (see [below for nested schema](#nestedblock--files_processes))
-- `maintenance` (Block List) Maintenance settings of the policy. Use this section to update inventory, reset computer names, install all cached packages, and run common maintenance tasks. (see [below for nested schema](#nestedblock--maintenance))
-- `package_configuration` (Block List) Package configuration settings of the policy. (see [below for nested schema](#nestedblock--package_configuration))
-- `printers` (Block List) Printers settings of the policy. (see [below for nested schema](#nestedblock--printers))
-- `reboot` (Block Set) Use this section to restart computers and specify the disk to boot them to (see [below for nested schema](#nestedblock--reboot))
-- `scripts` (Block List) Scripts settings of the policy. (see [below for nested schema](#nestedblock--scripts))
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
-- `user_interaction` (Block List) User interaction settings of the policy. (see [below for nested schema](#nestedblock--user_interaction))
-
-### Read-Only
-
-- `id` (String) The ID of this resource.
-
-<a id="nestedblock--general"></a>
-### Nested Schema for `general`
-
-Required:
-
-- `enabled` (Boolean) Define whether the policy is enabled.
-- `name` (String) The name of the policy.
-- `override_default_settings` (Block List, Min: 1) Settings to override default configurations. (see [below for nested schema](#nestedblock--general--override_default_settings))
-- `site` (Block List, Min: 1) Jamf Pro Site-related settings of the policy. (see [below for nested schema](#nestedblock--general--site))
-- `trigger` (String) Event(s) triggers to use to initiate the policy. Values can be 'USER_INITIATED' for self self trigger and 'EVENT' for an event based trigger
-
-Optional:
-
-- `category` (Block List) Category to add the policy to. (see [below for nested schema](#nestedblock--general--category))
-- `date_time_limitations` (Block List) Server-side limitations use your Jamf Pro host server's time zone and settings. The Jamf Pro host service is in UTC time. (see [below for nested schema](#nestedblock--general--date_time_limitations))
 - `frequency` (String) Frequency of policy execution.
 - `location_user_only` (Boolean) Location-based policy for user only.
-- `network_limitations` (Block List) Network limitations for the policy. (see [below for nested schema](#nestedblock--general--network_limitations))
+- `maintenance` (Block List) Maintenance settings of the policy. Use this section to update inventory, reset computer names, install all cached packages, and run common maintenance tasks. (see [below for nested schema](#nestedblock--maintenance))
+- `network_limitations` (Block List) Network limitations for the policy. (see [below for nested schema](#nestedblock--network_limitations))
 - `network_requirements` (String) Network requirements for the policy.
 - `notify_on_each_failed_retry` (Boolean) Send notifications for each failed policy retry attempt.
 - `offline` (Boolean) Make policy available offline by caching the policy to the macOS device to ensure it runs when Jamf Pro is unavailable. Only used when execution policy is set to 'ongoing'.
+- `package_configuration` (Block List) Package configuration settings of the policy. (see [below for nested schema](#nestedblock--package_configuration))
+- `printers` (Block List) Printers settings of the policy. (see [below for nested schema](#nestedblock--printers))
+- `reboot` (Block Set) Use this section to restart computers and specify the disk to boot them to (see [below for nested schema](#nestedblock--reboot))
 - `retry_attempts` (Number) Number of retry attempts for the jamf pro policy. Valid values are -1 (not configured) and 1 through 10.
 - `retry_event` (String) Event on which to retry policy execution.
+- `scripts` (Block List) Scripts settings of the policy. (see [below for nested schema](#nestedblock--scripts))
 - `target_drive` (String) The drive on which to run the policy (e.g. /Volumes/Restore/ ). The policy runs on the boot drive by default
+- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 - `trigger_checkin` (Boolean) Trigger policy when device performs recurring check-in against the frequency configured in Jamf Pro
 - `trigger_enrollment_complete` (Boolean) Trigger policy when device enrollment is complete.
 - `trigger_login` (Boolean) Trigger policy when a user logs in to a computer. A login event that checks for policies must be configured in Jamf Pro for this to work
@@ -70,13 +55,14 @@ Optional:
 - `trigger_network_state_changed` (Boolean) Trigger policy when it's network state changes. When a computer's network state changes (e.g., when the network connection changes, when the computer name changes, when the IP address changes)
 - `trigger_other` (String) Any other trigger for the policy.
 - `trigger_startup` (Boolean) Trigger policy when a computer starts up. A startup script that checks for policies must be configured in Jamf Pro for this to work
+- `user_interaction` (Block List) User interaction settings of the policy. (see [below for nested schema](#nestedblock--user_interaction))
 
-Read-Only:
+### Read-Only
 
-- `id` (Number) The unique identifier of the Jamf Pro policy.
+- `id` (String) The unique identifier of the Jamf Pro policy.
 
-<a id="nestedblock--general--override_default_settings"></a>
-### Nested Schema for `general.override_default_settings`
+<a id="nestedblock--override_default_settings"></a>
+### Nested Schema for `override_default_settings`
 
 Optional:
 
@@ -84,51 +70,6 @@ Optional:
 - `force_afp_smb` (Boolean) Whether to force AFP/SMB.
 - `sus` (String) Software Update Service for the policy.
 - `target_drive` (String) The drive on which to run the policy (e.g. '/Volumes/Restore/'). Defaults to '/' if no value is defined, which is the root of the file system.
-
-
-<a id="nestedblock--general--site"></a>
-### Nested Schema for `general.site`
-
-Optional:
-
-- `id` (Number) Jamf Pro Site ID. Value defaults to -1 aka not used.
-- `name` (String) Jamf Pro Site Name. Value defaults to 'None' aka not used
-
-
-<a id="nestedblock--general--category"></a>
-### Nested Schema for `general.category`
-
-Optional:
-
-- `id` (Number) The category ID assigned to the jamf pro policy. Defaults to '-1' aka not used.
-- `name` (String) Category Name for assigned jamf pro policy. Value defaults to 'No category assigned' aka not used
-
-
-<a id="nestedblock--general--date_time_limitations"></a>
-### Nested Schema for `general.date_time_limitations`
-
-Optional:
-
-- `activation_date` (String) The activation date of the policy.
-- `activation_date_epoch` (Number) The epoch time of the activation date.
-- `activation_date_utc` (String) The UTC time of the activation date.
-- `expiration_date` (String) The expiration date of the policy.
-- `expiration_date_epoch` (Number) The epoch time of the expiration date.
-- `expiration_date_utc` (String) The UTC time of the expiration date.
-- `no_execute_end` (String) Client-side limitations are enforced based on the settings on computers. This field sets the end time when the policy should not execute.
-- `no_execute_on` (Set of String) Client-side limitations are enforced based on the settings on computers. This field sets specific days when the policy should not execute.
-- `no_execute_start` (String) Client-side limitations are enforced based on the settings on computers. This field sets the start time when the policy should not execute.
-
-
-<a id="nestedblock--general--network_limitations"></a>
-### Nested Schema for `general.network_limitations`
-
-Optional:
-
-- `any_ip_address` (Boolean) Whether the policy applies to any IP address.
-- `minimum_network_connection` (String) Minimum network connection required for the policy.
-- `network_segments` (String) Network segment limitations for the policy.
-
 
 
 <a id="nestedblock--scope"></a>
@@ -625,6 +566,15 @@ Optional:
 
 
 
+<a id="nestedblock--site"></a>
+### Nested Schema for `site`
+
+Optional:
+
+- `id` (Number) Jamf Pro Site ID. Value defaults to -1 aka not used.
+- `name` (String) Jamf Pro Site Name. Value defaults to 'None' aka not used
+
+
 <a id="nestedblock--account_maintenance"></a>
 ### Nested Schema for `account_maintenance`
 
@@ -701,6 +651,31 @@ Optional:
 
 
 
+<a id="nestedblock--category"></a>
+### Nested Schema for `category`
+
+Optional:
+
+- `id` (Number) The category ID assigned to the jamf pro policy. Defaults to '-1' aka not used.
+- `name` (String) Category Name for assigned jamf pro policy. Value defaults to 'No category assigned' aka not used
+
+
+<a id="nestedblock--date_time_limitations"></a>
+### Nested Schema for `date_time_limitations`
+
+Optional:
+
+- `activation_date` (String) The activation date of the policy.
+- `activation_date_epoch` (Number) The epoch time of the activation date.
+- `activation_date_utc` (String) The UTC time of the activation date.
+- `expiration_date` (String) The expiration date of the policy.
+- `expiration_date_epoch` (Number) The epoch time of the expiration date.
+- `expiration_date_utc` (String) The UTC time of the expiration date.
+- `no_execute_end` (String) Client-side limitations are enforced based on the settings on computers. This field sets the end time when the policy should not execute.
+- `no_execute_on` (Set of String) Client-side limitations are enforced based on the settings on computers. This field sets specific days when the policy should not execute.
+- `no_execute_start` (String) Client-side limitations are enforced based on the settings on computers. This field sets the start time when the policy should not execute.
+
+
 <a id="nestedblock--disk_encryption"></a>
 ### Nested Schema for `disk_encryption`
 
@@ -767,6 +742,16 @@ Optional:
 - `system_cache` (Boolean) Whether to flush caches from /Library/Caches/ and /System/Library/Caches/, except for any com.apple.LaunchServices caches
 - `user_cache` (Boolean) Whether to flush caches from ~/Library/Caches/, ~/.jpi_cache/, and ~/Library/Preferences/Microsoft/Office version #/Office Font Cache. Enabling this may cause problems with system fonts displaying unless a restart option is configured.
 - `verify` (Boolean) Whether to verify system files and structure on the Startup Disk
+
+
+<a id="nestedblock--network_limitations"></a>
+### Nested Schema for `network_limitations`
+
+Optional:
+
+- `any_ip_address` (Boolean) Whether the policy applies to any IP address.
+- `minimum_network_connection` (String) Minimum network connection required for the policy.
+- `network_segments` (String) Network segment limitations for the policy.
 
 
 <a id="nestedblock--package_configuration"></a>

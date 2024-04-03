@@ -5,11 +5,12 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/retryfetch"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -152,7 +153,21 @@ func ResourceJamfProPrintersCreate(ctx context.Context, d *schema.ResourceData, 
 	// Set the resource ID in Terraform state
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	// Read the site to ensure the Terraform state is up to date
+	// Wait for the resource to be fully available before reading it
+	checkResourceExists := func(id interface{}) (interface{}, error) {
+		intID, err := strconv.Atoi(id.(string))
+		if err != nil {
+			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
+		}
+		return apiclient.Conn.GetPrinterByID(intID)
+	}
+
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Printer", strconv.Itoa(creationResponse.ID), checkResourceExists, 20*time.Second)
+	if waitDiags.HasError() {
+		return waitDiags
+	}
+
+	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProPrintersRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
@@ -180,51 +195,53 @@ func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	// Define the specific API call wrapped in a function matching the APICallFuncString signature from the retryfetch package
-	getResource := func(id string) (interface{}, error) {
-		return apiclient.Conn.GetPrinterByID(resourceIDInt)
-	}
-
-	// Use the retryfetch helper function with context
-	retry, diags := retryfetch.ByResourceStringID(ctx, d, resourceID, getResource)
-	if diags.HasError() {
-		return diags
-	}
-
-	// Check if the returned resource from retry is not nil before proceeding
-	if retry != nil {
-		resource, ok := retry.(*jamfpro.ResourcePrinter)
-		if !ok {
-			return diag.Errorf("expected resource type *jamfpro.ResourcePrinter, got %T", retry)
-		}
-
-		// Update the Terraform state with the fetched data
-		stateData := map[string]interface{}{
-			"id":           strconv.Itoa(resource.ID),
-			"name":         resource.Name,
-			"category":     resource.Category,
-			"uri":          resource.URI,
-			"cups_name":    resource.CUPSName,
-			"location":     resource.Location,
-			"model":        resource.Model,
-			"info":         resource.Info,
-			"notes":        resource.Notes,
-			"make_default": resource.MakeDefault,
-			"use_generic":  resource.UseGeneric,
-			"ppd":          resource.PPD,
-			"ppd_path":     resource.PPDPath,
-			"ppd_contents": resource.PPDContents,
-		}
-
-		// Iterate over the map and set each key-value pair in the Terraform state
-		for key, val := range stateData {
-			if err := d.Set(key, val); err != nil {
-				return diag.FromErr(err)
+	// Attempt to fetch the resource by ID
+	resource, err := apiclient.Conn.GetPrinterByID(resourceIDInt)
+	if err != nil {
+		// Skip resource state removal if this is a create operation
+		if !d.IsNewResource() {
+			// If the error is a "not found" error, remove the resource from the state
+			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
+				d.SetId("") // Remove the resource from Terraform state
+				return diag.Diagnostics{
+					{
+						Severity: diag.Warning,
+						Summary:  "Resource not found",
+						Detail:   fmt.Sprintf("Jamf Pro Printer resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
+					},
+				}
 			}
 		}
+		// For other errors, or if this is a create operation, return a diagnostic error
+		return diag.FromErr(err)
 	}
 
-	return diags
+	// Update the Terraform state with the fetched data
+	resourceData := map[string]interface{}{
+		"id":           resourceID,
+		"name":         resource.Name,
+		"category":     resource.Category,
+		"uri":          resource.URI,
+		"cups_name":    resource.CUPSName,
+		"location":     resource.Location,
+		"model":        resource.Model,
+		"info":         resource.Info,
+		"notes":        resource.Notes,
+		"make_default": resource.MakeDefault,
+		"use_generic":  resource.UseGeneric,
+		"ppd":          resource.PPD,
+		"ppd_path":     resource.PPDPath,
+		"ppd_contents": resource.PPDContents,
+	}
+
+	// Iterate over the map and set each key-value pair in the Terraform state
+	for key, val := range resourceData {
+		if err := d.Set(key, val); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	return nil
 }
 
 // ResourceJamfProPrintersUpdate is responsible for updating an existing Jamf Pro Printer on the remote system.

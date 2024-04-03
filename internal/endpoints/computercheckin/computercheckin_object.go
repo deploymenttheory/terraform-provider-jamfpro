@@ -4,6 +4,7 @@ package computercheckin
 import (
 	"encoding/xml"
 	"fmt"
+	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -25,12 +26,14 @@ func constructJamfProComputerCheckin(d *schema.ResourceData) (*jamfpro.ResourceC
 		// Note: "apply_user_level_managed_preferences", "hide_restore_partition", and "perform_login_actions_in_background" are computed, not set directly
 	}
 
-	// Serialize and pretty-print the checkin object as XML
+	// Serialize and pretty-print the Category object as XML for logging
 	resourceXML, err := xml.MarshalIndent(checkin, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Checkin to XML: %v", err)
 	}
-	fmt.Printf("Constructed Jamf Pro Computer Checkin XML:\n%s\n", string(resourceXML))
+
+	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
+	log.Printf("[DEBUG] Constructed Jamf Pro Computer Checkin XML:\n%s\n", string(resourceXML))
 
 	return checkin, nil
 }
