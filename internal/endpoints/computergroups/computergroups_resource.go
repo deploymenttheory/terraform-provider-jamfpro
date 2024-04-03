@@ -33,6 +33,7 @@ const (
 	SearchTypeLike                                = "like"
 	SearchTypeNotLike                             = "not like"
 	SearchTypeGreaterThan                         = "greater than"
+	SearchTypeMoreThan                            = "more than"
 	SearchTypeLessThan                            = "less than"
 	SearchTypeGreaterThanOrEqual                  = "greater than or equal"
 	SearchTypeLessThanOrEqual                     = "less than or equal"
@@ -125,15 +126,15 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 						"search_type": {
 							Type:     schema.TypeString,
 							Required: true,
-							Description: fmt.Sprintf("The type of smart group search operator. Allowed values are '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'. ",
+							Description: fmt.Sprintf("The type of smart group search operator. Allowed values are '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'. ",
 								SearchTypeIs, SearchTypeIsNot, SearchTypeHas, SearchTypeDoesNotHave, SearchTypeMemberOf, SearchTypeNotMemberOf,
 								SearchTypeBeforeYYYYMMDD, SearchTypeAfterYYYYMMDD, SearchTypeMoreThanXDaysAgo, SearchTypeLessThanXDaysAgo,
-								SearchTypeLike, SearchTypeNotLike, SearchTypeGreaterThan, SearchTypeLessThan, SearchTypeGreaterThanOrEqual,
+								SearchTypeLike, SearchTypeNotLike, SearchTypeGreaterThan, SearchTypeMoreThan, SearchTypeLessThan, SearchTypeGreaterThanOrEqual,
 								SearchTypeLessThanOrEqual, SearchTypeMatchesRegex, SearchTypeDoesNotMatch),
 							ValidateFunc: validation.StringInSlice([]string{
 								SearchTypeIs, SearchTypeIsNot, SearchTypeHas, SearchTypeDoesNotHave, SearchTypeMemberOf, SearchTypeNotMemberOf,
 								SearchTypeBeforeYYYYMMDD, SearchTypeAfterYYYYMMDD, SearchTypeMoreThanXDaysAgo, SearchTypeLessThanXDaysAgo,
-								SearchTypeLike, SearchTypeNotLike, SearchTypeGreaterThan, SearchTypeLessThan, SearchTypeGreaterThanOrEqual,
+								SearchTypeLike, SearchTypeNotLike, SearchTypeGreaterThan, SearchTypeMoreThan, SearchTypeLessThan, SearchTypeGreaterThanOrEqual,
 								SearchTypeLessThanOrEqual, SearchTypeMatchesRegex, SearchTypeDoesNotMatch,
 							}, false),
 						},
