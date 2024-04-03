@@ -326,7 +326,7 @@ func Provider() *schema.Provider {
 			},
 			ClientOptions: httpclient.ClientOptions{
 				LogLevel:                  d.Get("log_level").(string),
-				LogOutputFormat:           d.Get("log_output_format").(string),
+				LogOutputFormat:           d.Get("lo g_output_format").(string),
 				LogConsoleSeparator:       d.Get("log_console_separator").(string),
 				HideSensitiveData:         d.Get("hide_sensitive_data").(bool),
 				MaxRetryAttempts:          d.Get("max_retry_attempts").(int),

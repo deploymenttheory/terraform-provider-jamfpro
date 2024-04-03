@@ -55,8 +55,8 @@ func ResourceJamfProPolicies() *schema.Resource {
 			"trigger_enrollment_complete": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Trigger policy when device enrollment is complete.",
 				Default:     false,
+				Description: "Trigger policy when device enrollment is complete.",
 			},
 			"trigger_login": {
 				Type:        schema.TypeBool,
@@ -90,7 +90,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 			},
 			"frequency": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "Frequency of policy execution.",
 				Default:     "Once per computer",
 				ValidateFunc: validation.StringInSlice([]string{
