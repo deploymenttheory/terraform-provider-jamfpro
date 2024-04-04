@@ -5,8 +5,8 @@ go 1.21
 toolchain go1.21.0
 
 require (
-	github.com/deploymenttheory/go-api-http-client v0.0.96
-	github.com/deploymenttheory/go-api-sdk-jamfpro v1.5.2
+	github.com/deploymenttheory/go-api-http-client v0.1.12
+	github.com/deploymenttheory/go-api-sdk-jamfpro v1.5.3
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/go-hclog v1.6.2
 	github.com/hashicorp/terraform-plugin-docs v0.18.0
@@ -25,6 +25,8 @@ require (
 	github.com/PuerkitoBio/goquery v1.9.1 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/andybalholm/cascadia v1.3.2 // indirect
+	github.com/antchfx/xmlquery v1.3.18 // indirect
+	github.com/antchfx/xpath v1.2.4 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.26.0 // indirect
@@ -52,6 +54,7 @@ require (
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/frankban/quicktest v1.14.4 // indirect
 	github.com/go-test/deep v1.1.0 // indirect
+	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
