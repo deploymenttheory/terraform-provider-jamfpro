@@ -61,7 +61,7 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Description:  "Data type of the computer extension attribute. Can be String / Integer / Date (YYYY-MM-DD hh:mm:ss)",
-				ValidateFunc: validateDataType,
+				ValidateFunc: validation.StringInSlice([]string{"String", "Integer", "Date"}, false),
 			},
 			"input_type": {
 				Type:     schema.TypeList,
