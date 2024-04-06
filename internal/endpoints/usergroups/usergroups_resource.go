@@ -27,6 +27,8 @@ const (
 	SearchTypeNotLike                     = "not like"
 	SearchTypeMatchesRegex                = "matches regex"
 	SearchTypeDoesNotMatch                = "does not match regex"
+	SearchTypeMemberOf                    = "member of"
+	SearchTypeNotMemberOf                 = "not member of"
 )
 
 type UserGroupAndOr string
@@ -119,12 +121,14 @@ func ResourceJamfProUserGroups() *schema.Resource {
 						"search_type": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Description: fmt.Sprintf("The type of user smart group search operator. Allowed values are '%s', '%s', '%s', '%s', '%s', '%s'.",
+							Description: fmt.Sprintf("The type of user smart group search operator. Allowed values are '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'.",
 								string(SearchTypeIs), string(SearchTypeIsNot), string(SearchTypeLike),
-								string(SearchTypeNotLike), string(SearchTypeMatchesRegex), string(SearchTypeDoesNotMatch)),
+								string(SearchTypeNotLike), string(SearchTypeMatchesRegex), string(SearchTypeDoesNotMatch),
+								string(SearchTypeMemberOf), string(SearchTypeNotMemberOf)),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(SearchTypeIs), string(SearchTypeIsNot), string(SearchTypeLike),
 								string(SearchTypeNotLike), string(SearchTypeMatchesRegex), string(SearchTypeDoesNotMatch),
+								string(SearchTypeMemberOf), string(SearchTypeNotMemberOf),
 							}, false),
 						},
 						"value": {
