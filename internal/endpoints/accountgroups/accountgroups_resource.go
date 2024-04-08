@@ -154,6 +154,21 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 					},
 				},
 			},
+			"identity_server": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: "LDAP or IdP server associated with the account group.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:        schema.TypeInt,
+							Required:    true,
+							Description: "ID is the ID of the LDAP or IdP configuration in Jamf Pro.",
+						},
+					},
+				},
+			},
 		},
 	}
 }
