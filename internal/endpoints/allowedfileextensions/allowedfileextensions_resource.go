@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -62,7 +64,7 @@ func ResourceJamfProAllowedFileExtensionCreate(ctx context.Context, d *schema.Re
 	// Construct the resource object
 	resource, err := constructJamfProAllowedFileExtension(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Site: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Allowed File Extension: %v", err))
 	}
 
 	// Retry the API call to create the resource in Jamf Pro
@@ -83,6 +85,21 @@ func ResourceJamfProAllowedFileExtensionCreate(ctx context.Context, d *schema.Re
 
 	// Set the resource ID in Terraform state
 	d.SetId(strconv.Itoa(creationResponse.ID))
+
+	// Wait for the resource to be fully available before reading it
+	checkResourceExists := func(id interface{}) (interface{}, error) {
+		intID, err := strconv.Atoi(id.(string))
+		if err != nil {
+			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
+		}
+		return apiclient.Conn.GetAccountGroupByID(intID)
+	}
+
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Allowed File Extension", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.JamfProPropagationDelay)*time.Second)
+
+	if waitDiags.HasError() {
+		return waitDiags
+	}
 
 	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProAllowedFileExtensionRead(ctx, d, meta)
@@ -116,22 +133,27 @@ func ResourceJamfProAllowedFileExtensionRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	var resource *jamfpro.ResourceAllowedFileExtension
+	// Attempt to fetch the resource by ID
+	resource, err := conn.GetAllowedFileExtensionByID(resourceIDInt)
 
-	// Read operation with retry
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
-		resource, apiErr = conn.GetAllowedFileExtensionByID(resourceIDInt)
-		if apiErr != nil {
-			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
-				// Return non-retryable error with a message to avoid SDK issues
-				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
+	if err != nil {
+		// Skip resource state removal if this is a create operation
+		if !d.IsNewResource() {
+			// If the error is a "not found" error, remove the resource from the state
+			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
+				d.SetId("") // Remove the resource from Terraform state
+				return diag.Diagnostics{
+					{
+						Severity: diag.Warning,
+						Summary:  "Resource not found",
+						Detail:   fmt.Sprintf("Jamf Pro Allowed File Extension resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
+					},
+				}
 			}
-			// Retry for other types of errors
-			return retry.RetryableError(apiErr)
 		}
-		return nil
-	})
+		// For other errors, or if this is a create operation, return a diagnostic error
+		return diag.FromErr(err)
+	}
 
 	// If err is not nil, check if it's due to the resource being not found
 	if err != nil {
