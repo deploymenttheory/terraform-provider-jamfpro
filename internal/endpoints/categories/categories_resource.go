@@ -4,11 +4,14 @@ package categories
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -70,24 +73,48 @@ func ResourceJamfProCategoriesCreate(ctx context.Context, d *schema.ResourceData
 
 	// Initialize variables
 	var diags diag.Diagnostics
-	resourceName := d.Get("name").(string)
 
 	// Construct the resource object
 	resource, err := constructJamfProCategory(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Category '%s': %v", resourceName, err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account Group: %v", err))
 	}
 
-	// Attempt to create the Category in Jamf Pro
-	creationResponse, err := conn.CreateCategory(resource)
+	// Retry the API call to create the resource in Jamf Pro
+	var creationResponse *jamfpro.ResponseCategoryCreateAndUpdate
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		var apiErr error
+		creationResponse, apiErr = conn.CreateCategory(resource)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
+		}
+		// No error, exit the retry loop
+		return nil
+	})
+
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Category '%s': %v", resourceName, err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Category '%s' after retries: %v", resource.Name, err))
 	}
 
-	// Set the resource ID in the Terraform state
+	// Set the resource ID in Terraform state
 	d.SetId(creationResponse.ID)
 
-	// Sync the Terraform state with the remote system
+	// Wait for the resource to be fully available before reading it
+	checkResourceExists := func(id interface{}) (interface{}, error) {
+		intID, err := strconv.Atoi(id.(string))
+		if err != nil {
+			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
+		}
+		return apiclient.Conn.GetAccountGroupByID(intID)
+	}
+
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Category", creationResponse.ID, checkResourceExists, time.Duration(common.JamfProPropagationDelay)*time.Second)
+
+	if waitDiags.HasError() {
+		return waitDiags
+	}
+
+	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProCategoriesRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
@@ -113,39 +140,27 @@ func ResourceJamfProCategoriesRead(ctx context.Context, d *schema.ResourceData, 
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
-	var resource *jamfpro.ResourceCategory
 
-	// Read operation with retry
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
-		resource, apiErr = conn.GetCategoryByID(resourceID)
-		if apiErr != nil {
-			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
-				// Return non-retryable error with a message to avoid SDK issues
-				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
-			}
-			// Retry for other types of errors
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
+	// Attempt to fetch the resource by ID
+	resource, err := conn.GetCategoryByID(resourceID)
 
-	// If err is not nil, check if it's due to the resource being not found
 	if err != nil {
-		if err.Error() == "resource not found, marked for deletion" {
-			// Resource not found, remove from Terraform state
-			d.SetId("")
-			// Append a warning diagnostic and return
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "Resource not found",
-				Detail:   fmt.Sprintf("Jamf Pro Category with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
-			})
-			return diags
+		// Skip resource state removal if this is a create operation
+		if !d.IsNewResource() {
+			// If the error is a "not found" error, remove the resource from the state
+			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
+				d.SetId("") // Remove the resource from Terraform state
+				return diag.Diagnostics{
+					{
+						Severity: diag.Warning,
+						Summary:  "Resource not found",
+						Detail:   fmt.Sprintf("Jamf Pro Category resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
+					},
+				}
+			}
 		}
-
-		// For other errors, return an error diagnostic
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Category with ID '%s' after retries: %v", resourceID, err))
+		// For other errors, or if this is a create operation, return a diagnostic error
+		return diag.FromErr(err)
 	}
 
 	// Update the Terraform state with the fetched data
