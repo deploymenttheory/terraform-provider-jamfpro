@@ -10,6 +10,7 @@ import (
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
@@ -251,7 +252,7 @@ func ResourceJamfProFileShareDistributionPointsCreate(ctx context.Context, d *sc
 		return apiclient.Conn.GetScriptByID(id.(string))
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Fileshare Distribution Point", creationResponse.ID, checkResourceExists, 30*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Fileshare Distribution Point", creationResponse.ID, checkResourceExists, time.Duration(common.JamfProPropagationDelay)*time.Second)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
