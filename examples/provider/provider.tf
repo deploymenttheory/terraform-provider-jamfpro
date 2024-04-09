@@ -21,7 +21,7 @@ provider "jamfpro" {
   token_refresh_buffer_period = 5 # minutes
   total_retry_duration        = 30 # seconds
   custom_timeout              = 30 # seconds
-  enable_cookie_jar           = false 
+  enable_cookie_jar           = true
   // This setting controls the use of a cookie jar, effectively enabling sticky sessions. When enabled, resources deploy 
   // faster due to a reduced propagation wait time of 10 seconds, however this WILL lead to increased load on a single jamf 
   // pro web application (clustered or otherwise) as it handles all Terraform CRUD operations and negates any load balancing. 
