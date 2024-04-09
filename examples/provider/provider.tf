@@ -26,8 +26,9 @@ provider "jamfpro" {
   // faster due to a reduced propagation wait time of 10 seconds, however this WILL lead to increased load on a single jamf 
   // pro web application (clustered or otherwise) as it handles all Terraform CRUD operations and negates any load balancing. 
   // Conseqently, deploying resources enmass (e.g creating + 10 resources at a time) can cause unpredictable resource 
-  // deployment / stating errors. If disabled, resources adhere to Jamf Cloud's default resource propagation behavior, 
-  // incorporating a 60+1-second propagation delay.
+  // deployment / stating errors. especially on more complex resources such as config profiles. If disabled, resources 
+  // adhere to Jamf Cloud's default resource propagation behavior, incorporating a 60+1-second propagation delay before attempting
+  // to state.
 }
 variable "jamfpro_instance_name" {
   description = "Jamf Pro Instance name."
