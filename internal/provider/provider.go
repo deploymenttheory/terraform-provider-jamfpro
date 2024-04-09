@@ -169,6 +169,18 @@ func Provider() *schema.Provider {
 				Default:     " ", // Set a default value for the separator
 				Description: "The separator character used in console log output.",
 			},
+			"log_export_path": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "",
+				Description: "Specify the path to export http client logs to.",
+			},
+			"enable_cookie_jar": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Enable or disable the cookie jar for the HTTP client.",
+			},
 			"hide_sensitive_data": {
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -328,6 +340,8 @@ func Provider() *schema.Provider {
 				LogLevel:                  d.Get("log_level").(string),
 				LogOutputFormat:           d.Get("log_output_format").(string),
 				LogConsoleSeparator:       d.Get("log_console_separator").(string),
+				LogExportPath:             d.Get("log_export_path").(string),
+				EnableCookieJar:           d.Get("enable_cookie_jar").(bool),
 				HideSensitiveData:         d.Get("hide_sensitive_data").(bool),
 				MaxRetryAttempts:          d.Get("max_retry_attempts").(int),
 				EnableDynamicRateLimiting: d.Get("enable_dynamic_rate_limiting").(bool),

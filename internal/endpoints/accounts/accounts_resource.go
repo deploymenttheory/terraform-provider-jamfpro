@@ -298,7 +298,7 @@ func ResourceJamfProAccountCreate(ctx context.Context, d *schema.ResourceData, m
 		return apiclient.Conn.GetAccountByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Account", strconv.Itoa(creationResponse.ID), checkResourceExists, 45*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Account", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.JamfProPropagationDelay)*time.Second)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
