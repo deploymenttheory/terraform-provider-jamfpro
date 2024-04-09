@@ -252,7 +252,7 @@ func ResourceJamfProFileShareDistributionPointsCreate(ctx context.Context, d *sc
 		return apiclient.Conn.GetScriptByID(id.(string))
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Fileshare Distribution Point", creationResponse.ID, checkResourceExists, time.Duration(common.JamfProPropagationDelay)*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Fileshare Distribution Point", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
 	if waitDiags.HasError() {
 		return waitDiags
 	}

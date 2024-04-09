@@ -471,7 +471,7 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 		return apiclient.Conn.GetMacOSConfigurationProfileByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro macOS Configuration Profile", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.JamfProPropagationDelay)*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro macOS Configuration Profile", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
@@ -491,35 +491,21 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
-	conn := apiclient.Conn
 
-	var diags diag.Diagnostics
+	// Initialize variables
 	resourceID := d.Id()
-
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	var resp *jamfpro.ResourceMacOSConfigurationProfile
-
-	// Read operation with retry
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
-		resp, apiErr = conn.GetMacOSConfigurationProfileByID(resourceIDInt)
-		if apiErr != nil {
-			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
-				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
-			}
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
+	// Attempt to fetch the resource by ID
+	resp, err := apiclient.Conn.GetMacOSConfigurationProfileByID(resourceIDInt)
 	if err != nil {
 		// Skip resource state removal if this is a create operation
 		if !d.IsNewResource() {
@@ -538,6 +524,9 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		// For other errors, or if this is a create operation, return a diagnostic error
 		return diag.FromErr(err)
 	}
+
+	// Begin stating of specific resource attributes
+	var diags diag.Diagnostics
 
 	// Stating - commented ones appear to be done automatically.
 

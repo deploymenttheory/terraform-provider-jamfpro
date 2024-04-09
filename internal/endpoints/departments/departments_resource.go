@@ -102,7 +102,7 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 		return apiclient.Conn.GetAccountGroupByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Department", creationResponse.ID, checkResourceExists, time.Duration(common.JamfProPropagationDelay)*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Department", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
 
 	if waitDiags.HasError() {
 		return waitDiags

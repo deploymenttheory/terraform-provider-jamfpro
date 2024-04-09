@@ -307,6 +307,9 @@ func Provider() *schema.Provider {
 		username, errUsername := GetClientUsername(d)
 		password, errPassword := GetClientPassword(d)
 
+		// extract value for httpclient build and for determining resource propagation time
+		enableCookieJar := d.Get("enable_cookie_jar").(bool)
+
 		// Check if either pair of credentials is provided, prioritizing Client ID/Secret
 		if errClientID == nil && errClientSecret == nil && clientID != "" && clientSecret != "" {
 			// Client ID and Client Secret are provided
@@ -341,7 +344,7 @@ func Provider() *schema.Provider {
 				LogOutputFormat:           d.Get("log_output_format").(string),
 				LogConsoleSeparator:       d.Get("log_console_separator").(string),
 				LogExportPath:             d.Get("log_export_path").(string),
-				EnableCookieJar:           d.Get("enable_cookie_jar").(bool),
+				EnableCookieJar:           enableCookieJar,
 				HideSensitiveData:         d.Get("hide_sensitive_data").(bool),
 				MaxRetryAttempts:          d.Get("max_retry_attempts").(int),
 				EnableDynamicRateLimiting: d.Get("enable_dynamic_rate_limiting").(bool),
@@ -362,9 +365,10 @@ func Provider() *schema.Provider {
 			return nil, diag.FromErr(err)
 		}
 
-		// Initialize your provider's APIClient struct with the Jamf Pro HTTP client.
+		// Initialize the provider's APIClient struct with the Jamf Pro HTTP client and cookie jar setting
 		jamfProAPIClient := client.APIClient{
-			Conn: httpclient,
+			Conn:            httpclient,
+			EnableCookieJar: enableCookieJar, // Allows use the cookie jar value within provider outside of the client
 		}
 
 		return &jamfProAPIClient, diags

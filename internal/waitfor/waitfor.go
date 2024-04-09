@@ -50,10 +50,11 @@ type APICallFunc func(interface{}) (interface{}, error)
 // Returns:
 //   - interface{}: The successfully fetched resource if available, needing type assertion to the expected resource type by the caller.
 //   - diag.Diagnostics: Diagnostic information including any errors encountered during the wait operation, or warnings related to the resource's availability state.
-func ResourceIsAvailable(ctx context.Context, d *schema.ResourceData, resourceType string, resourceID interface{}, checkResourceExists APICallFunc, stabilizationTime time.Duration) (interface{}, diag.Diagnostics) {
+func ResourceIsAvailable(ctx context.Context, d *schema.ResourceData, resourceType string, resourceID interface{}, checkResourceExists APICallFunc, defaultPropagationTime time.Duration, enableCookieJar bool) (interface{}, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var resource interface{}
 	var retryCount int
+	var propagationTime time.Duration
 
 	initialBackoff := 1 * time.Second
 	maxBackoff := 30 * time.Second
@@ -87,9 +88,16 @@ func ResourceIsAvailable(ctx context.Context, d *schema.ResourceData, resourceTy
 			return retry.NonRetryableError(apiErr)
 		}
 
-		log.Printf("%s resource with ID '%v' found after %d retries. Initiating a stabilization period of %v.", resourceType, resourceID, retryCount, stabilizationTime)
-		time.Sleep(stabilizationTime)
-		log.Printf("Concluding wait process for %s resource with ID '%v' after a stabilization period of %v.", resourceType, resourceID, stabilizationTime)
+		if enableCookieJar {
+			propagationTime = 10 * time.Second
+			log.Printf("%s resource with ID '%v' found after %d retries. Cookie Jar is enabled, initiating a propagation wait period of %v.", resourceType, resourceID, retryCount, propagationTime)
+		} else {
+			propagationTime = defaultPropagationTime
+			log.Printf("%s resource with ID '%v' found after %d retries. Cookie Jar is disabled, initiating the Jamf Cloud default propagation wait period of %v.", resourceType, resourceID, retryCount, propagationTime)
+		}
+		time.Sleep(propagationTime)
+
+		log.Printf("Concluding wait process for %s resource with ID '%v' after a propagation period of %v.", resourceType, resourceID, propagationTime)
 		return nil
 	})
 

@@ -95,7 +95,7 @@ func ResourceJamfProAllowedFileExtensionCreate(ctx context.Context, d *schema.Re
 		return apiclient.Conn.GetAccountGroupByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Allowed File Extension", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.JamfProPropagationDelay)*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Allowed File Extension", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
 
 	if waitDiags.HasError() {
 		return waitDiags
@@ -153,24 +153,6 @@ func ResourceJamfProAllowedFileExtensionRead(ctx context.Context, d *schema.Reso
 		}
 		// For other errors, or if this is a create operation, return a diagnostic error
 		return diag.FromErr(err)
-	}
-
-	// If err is not nil, check if it's due to the resource being not found
-	if err != nil {
-		if err.Error() == "resource not found, marked for deletion" {
-			// Resource not found, remove from Terraform state
-			d.SetId("")
-			// Append a warning diagnostic and return
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "Resource not found",
-				Detail:   fmt.Sprintf("Jamf Pro Allowed File Extension with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
-			})
-			return diags
-		}
-
-		// For other errors, return an error diagnostic
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Allowed File Extension with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	// Update the Terraform state with the fetched data
