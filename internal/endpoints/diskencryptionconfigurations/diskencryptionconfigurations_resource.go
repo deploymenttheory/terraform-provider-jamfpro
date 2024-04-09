@@ -10,6 +10,7 @@ import (
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -25,7 +26,7 @@ func ResourceJamfProDiskEncryptionConfigurations() *schema.Resource {
 		UpdateContext: ResourceJamfProDiskEncryptionConfigurationsUpdate,
 		DeleteContext: ResourceJamfProDiskEncryptionConfigurationsDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(120 * time.Second),
+			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
 			Delete: schema.DefaultTimeout(15 * time.Second),
@@ -178,7 +179,7 @@ func ResourceJamfProDiskEncryptionConfigurationsCreate(ctx context.Context, d *s
 		return apiclient.Conn.GetDiskEncryptionConfigurationByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Disk Encryption Configuration", strconv.Itoa(creationResponse.ID), checkResourceExists, 30*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Disk Encryption Configuration", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
 	if waitDiags.HasError() {
 		return waitDiags
 	}

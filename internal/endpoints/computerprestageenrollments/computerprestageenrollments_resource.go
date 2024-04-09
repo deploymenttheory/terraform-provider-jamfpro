@@ -9,6 +9,7 @@ import (
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
@@ -25,7 +26,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 		UpdateContext: ResourceJamfProComputerPrestageEnrollmentUpdate,
 		DeleteContext: ResourceJamfProComputerPrestageEnrollmentDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(120 * time.Second),
+			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
 			Delete: schema.DefaultTimeout(15 * time.Second),
@@ -572,7 +573,7 @@ func ResourceJamfProComputerPrestageEnrollmentCreate(ctx context.Context, d *sch
 	// Construct the resource object
 	resource, err := constructJamfProComputerPrestageEnrollment(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro computer prestage enrollment: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Prestage Enrollment: %v", err))
 	}
 
 	// Retry the API call to create the resource in Jamf Pro
@@ -588,7 +589,7 @@ func ResourceJamfProComputerPrestageEnrollmentCreate(ctx context.Context, d *sch
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro computer prestage enrollment '%s' after retries: %v", resource.DisplayName, err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Computer Prestage Enrollment '%s' after retries: %v", resource.DisplayName, err))
 	}
 
 	// Set the resource ID in Terraform state
@@ -599,7 +600,7 @@ func ResourceJamfProComputerPrestageEnrollmentCreate(ctx context.Context, d *sch
 		return apiclient.Conn.GetComputerPrestageByID(id.(string))
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro computer prestage enrollment", creationResponse.ID, checkResourceExists, 10*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Computer Prestage Enrollment", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
@@ -641,7 +642,7 @@ func ResourceJamfProComputerPrestageEnrollmentRead(ctx context.Context, d *schem
 					{
 						Severity: diag.Warning,
 						Summary:  "Resource not found",
-						Detail:   fmt.Sprintf("Jamf Pro computer prestage enrollment resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
+						Detail:   fmt.Sprintf("Jamf Pro Computer Prestage Enrollment resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
 					},
 				}
 			}

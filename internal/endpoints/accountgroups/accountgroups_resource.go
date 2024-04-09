@@ -30,7 +30,7 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 		DeleteContext: ResourceJamfProAccountGroupDelete,
 		CustomizeDiff: customDiffAccountGroups,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(120 * time.Second),
+			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
 			Delete: schema.DefaultTimeout(15 * time.Second),
@@ -225,7 +225,7 @@ func ResourceJamfProAccountGroupCreate(ctx context.Context, d *schema.ResourceDa
 		return apiclient.Conn.GetAccountGroupByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Account Group", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.JamfProPropagationDelay)*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Account Group", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
 
 	if waitDiags.HasError() {
 		return waitDiags
