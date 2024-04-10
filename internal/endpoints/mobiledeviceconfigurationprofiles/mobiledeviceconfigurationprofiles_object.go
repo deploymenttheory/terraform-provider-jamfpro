@@ -40,6 +40,112 @@ func constructJamfProMobileDeviceConfigurationProfile(d *schema.ResourceData) (*
 	return profile, nil
 }
 
+// constructMobileDeviceConfigurationProfileSubsetScope constructs a MobileDeviceConfigurationProfileSubsetScope object from the provided schema data, using the consolidated helper function for entity construction.
+func constructMobileDeviceConfigurationProfileSubsetScope(data []interface{}) jamfpro.MobileDeviceConfigurationProfileSubsetScope {
+	if len(data) == 0 {
+		return jamfpro.MobileDeviceConfigurationProfileSubsetScope{}
+	}
+	scopeData := data[0].(map[string]interface{})
+
+	// Use constructScopeEntities for all entities except those needing special handling like NetworkSegments
+	return jamfpro.MobileDeviceConfigurationProfileSubsetScope{
+		AllMobileDevices:   scopeData["all_mobile_devices"].(bool),
+		AllJSSUsers:        scopeData["all_jss_users"].(bool),
+		MobileDevices:      constructMobileDevices(scopeData["mobile_devices"].(*schema.Set).List()),
+		MobileDeviceGroups: constructScopeEntities(scopeData["mobile_device_groups"].(*schema.Set).List()),
+		Buildings:          constructScopeEntities(scopeData["buildings"].(*schema.Set).List()),
+		Departments:        constructScopeEntities(scopeData["departments"].(*schema.Set).List()),
+		JSSUsers:           constructScopeEntities(scopeData["jss_users"].(*schema.Set).List()),
+		JSSUserGroups:      constructScopeEntities(scopeData["jss_user_groups"].(*schema.Set).List()),
+
+		Limitations: constructLimitations(scopeData["limitations"].([]interface{})),
+		Exclusions:  constructExclusions(scopeData["exclusions"].([]interface{})),
+	}
+}
+
+// constructMobileDeviceConfigurationProfileSubsetSelfService constructs a MobileDeviceConfigurationProfileSubsetSelfService object from the provided schema data.
+func constructMobileDeviceConfigurationProfileSubsetSelfService(data []interface{}) jamfpro.MobileDeviceConfigurationProfileSubsetSelfService {
+	if len(data) == 0 {
+		return jamfpro.MobileDeviceConfigurationProfileSubsetSelfService{}
+	}
+	selfServiceData := data[0].(map[string]interface{})
+
+	// Construct SecurityName
+	var securityName jamfpro.MobileDeviceConfigurationProfileSubsetSelfServiceSecurityName
+	if securityNameData, ok := selfServiceData["security_name"].(map[string]interface{}); ok {
+		securityName.RemovalDisallowed = securityNameData["removal_disallowed"].(string)
+	}
+
+	// Construct SelfServiceIcon
+	var selfServiceIcon jamfpro.SharedResourceSelfServiceIcon
+	if iconData, ok := selfServiceData["self_service_icon"].(map[string]interface{}); ok {
+		selfServiceIcon.ID = iconData["id"].(int)
+		selfServiceIcon.URI = iconData["uri"].(string)
+		selfServiceIcon.Data = iconData["data"].(string)
+		selfServiceIcon.Filename = iconData["filename"].(string)
+	}
+
+	// Construct SelfServiceCategories
+	var selfServiceCategories jamfpro.SharedResourceSelfServiceCategories
+	if categoriesData, ok := selfServiceData["self_service_categories"].([]interface{}); ok {
+		for _, category := range categoriesData {
+			catData := category.(map[string]interface{})
+			categoryStruct := jamfpro.SharedResourceSelfServiceCategory{
+				ID:       catData["id"].(int),
+				Name:     catData["name"].(string),
+				Priority: catData["priority"].(int),
+			}
+			selfServiceCategories.Category = append(selfServiceCategories.Category, categoryStruct)
+		}
+	}
+
+	return jamfpro.MobileDeviceConfigurationProfileSubsetSelfService{
+		SelfServiceDescription: selfServiceData["self_service_description"].(string),
+		SecurityName:           securityName,
+		SelfServiceIcon:        selfServiceIcon,
+		FeatureOnMainPage:      selfServiceData["feature_on_main_page"].(bool),
+		SelfServiceCategories:  []jamfpro.SharedResourceSelfServiceCategories{selfServiceCategories}, // Wrap in a slice since the struct field expects a slice
+	}
+}
+
+// constructLimitations constructs a MobileDeviceConfigurationProfileSubsetLimitation object from the provided schema data.
+func constructLimitations(data []interface{}) jamfpro.MobileDeviceConfigurationProfileSubsetLimitation {
+	if len(data) == 0 {
+		return jamfpro.MobileDeviceConfigurationProfileSubsetLimitation{}
+	}
+	limitationData := data[0].(map[string]interface{})
+
+	return jamfpro.MobileDeviceConfigurationProfileSubsetLimitation{
+		Users:           constructScopeEntities(limitationData["users"].(*schema.Set).List()),
+		UserGroups:      constructScopeEntities(limitationData["user_groups"].(*schema.Set).List()),
+		NetworkSegments: constructNetworkSegments(limitationData["network_segments"].(*schema.Set).List()),
+		Ibeacons:        constructScopeEntities(limitationData["ibeacons"].(*schema.Set).List()),
+	}
+}
+
+// constructExclusions constructs a MobileDeviceConfigurationProfileSubsetExclusion object from the provided schema data.
+func constructExclusions(data []interface{}) jamfpro.MobileDeviceConfigurationProfileSubsetExclusion {
+	if len(data) == 0 {
+		return jamfpro.MobileDeviceConfigurationProfileSubsetExclusion{}
+	}
+	exclusionData := data[0].(map[string]interface{})
+
+	return jamfpro.MobileDeviceConfigurationProfileSubsetExclusion{
+		MobileDevices:      constructMobileDevices(exclusionData["mobile_devices"].(*schema.Set).List()),
+		MobileDeviceGroups: constructScopeEntities(exclusionData["mobile_device_groups"].(*schema.Set).List()),
+		Users:              constructScopeEntities(exclusionData["users"].(*schema.Set).List()),
+		UserGroups:         constructScopeEntities(exclusionData["user_groups"].(*schema.Set).List()),
+		Buildings:          constructScopeEntities(exclusionData["buildings"].(*schema.Set).List()),
+		Departments:        constructScopeEntities(exclusionData["departments"].(*schema.Set).List()),
+		NetworkSegments:    constructNetworkSegments(exclusionData["network_segments"].(*schema.Set).List()),
+		IBeacons:           constructScopeEntities(exclusionData["ibeacons"].(*schema.Set).List()),
+		JSSUsers:           constructScopeEntities(exclusionData["jss_users"].(*schema.Set).List()),
+		JSSUserGroups:      constructScopeEntities(exclusionData["jss_user_groups"].(*schema.Set).List()),
+	}
+}
+
+// Helper functions for nested structures
+
 // constructSharedResourceSite constructs a SharedResourceSite object from the provided schema data.
 func constructSharedResourceSite(data []interface{}) jamfpro.SharedResourceSite {
 	if len(data) == 0 {
@@ -64,42 +170,7 @@ func constructSharedResourceCategory(data []interface{}) jamfpro.SharedResourceC
 	}
 }
 
-// constructMobileDeviceConfigurationProfileSubsetScope constructs a MobileDeviceConfigurationProfileSubsetScope object from the provided schema data.
-func constructMobileDeviceConfigurationProfileSubsetScope(data []interface{}) jamfpro.MobileDeviceConfigurationProfileSubsetScope {
-	if len(data) == 0 {
-		return jamfpro.MobileDeviceConfigurationProfileSubsetScope{}
-	}
-	scopeData := data[0].(map[string]interface{})
-
-	return jamfpro.MobileDeviceConfigurationProfileSubsetScope{
-		AllMobileDevices:   scopeData["all_mobile_devices"].(bool),
-		AllJSSUsers:        scopeData["all_jss_users"].(bool),
-		MobileDevices:      constructMobileDevices(scopeData["mobile_devices"].(*schema.Set).List()),
-		MobileDeviceGroups: constructMobileDeviceGroups(scopeData["mobile_device_groups"].(*schema.Set).List()),
-		Buildings:          constructBuildings(scopeData["buildings"].(*schema.Set).List()),
-		Departments:        constructDepartments(scopeData["departments"].(*schema.Set).List()),
-		JSSUsers:           constructJSSUsers(scopeData["jss_users"].(*schema.Set).List()),
-		JSSUserGroups:      constructJSSUserGroups(scopeData["jss_user_groups"].(*schema.Set).List()),
-		Limitations:        constructLimitations(scopeData["limitations"].([]interface{})),
-		Exclusions:         constructExclusions(scopeData["exclusions"].([]interface{})),
-	}
-}
-
-// constructMobileDeviceConfigurationProfileSubsetSelfService constructs a MobileDeviceConfigurationProfileSubsetSelfService object from the provided schema data.
-func constructMobileDeviceConfigurationProfileSubsetSelfService(data []interface{}) jamfpro.MobileDeviceConfigurationProfileSubsetSelfService {
-	if len(data) == 0 {
-		return jamfpro.MobileDeviceConfigurationProfileSubsetSelfService{}
-	}
-	selfServiceData := data[0].(map[string]interface{})
-
-	return jamfpro.MobileDeviceConfigurationProfileSubsetSelfService{
-		SelfServiceDescription: selfServiceData["self_service_description"].(string),
-		// Further extraction for fields like SecurityName, SelfServiceIcon, FeatureOnMainPage, etc.
-	}
-}
-
-// Helper functions for nested structures
-
+// constructMobileDevices constructs a slice of MobileDeviceConfigurationProfileSubsetMobileDevice from the provided schema data.
 func constructMobileDevices(data []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice {
 	mobileDevices := make([]jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice, len(data))
 	for i, item := range data {
@@ -114,149 +185,31 @@ func constructMobileDevices(data []interface{}) []jamfpro.MobileDeviceConfigurat
 	return mobileDevices
 }
 
-func constructMobileDeviceGroups(data []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetMobileDeviceGroup {
-	groups := make([]jamfpro.MobileDeviceConfigurationProfileSubsetMobileDeviceGroup, len(data))
+// constructScopeEntities constructs a slice of MobileDeviceConfigurationProfileSubsetEntity from the provided schema data.
+func constructScopeEntities(data []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity {
+	entities := make([]jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, len(data))
 	for i, item := range data {
-		groupData := item.(map[string]interface{})
-		groups[i] = jamfpro.MobileDeviceConfigurationProfileSubsetMobileDeviceGroup{
-			ID:   groupData["id"].(int),
-			Name: groupData["name"].(string),
+		entityData := item.(map[string]interface{})
+		entities[i] = jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity{
+			ID:   entityData["id"].(int),
+			Name: entityData["name"].(string),
 		}
 	}
-	return groups
+	return entities
 }
 
-func constructBuildings(data []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetBuilding {
-	buildings := make([]jamfpro.MobileDeviceConfigurationProfileSubsetBuilding, len(data))
-	for i, item := range data {
-		buildingData := item.(map[string]interface{})
-		buildings[i] = jamfpro.MobileDeviceConfigurationProfileSubsetBuilding{
-			ID:   buildingData["id"].(int),
-			Name: buildingData["name"].(string),
-		}
-	}
-	return buildings
-}
-
-func constructDepartments(data []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetDepartment {
-	departments := make([]jamfpro.MobileDeviceConfigurationProfileSubsetDepartment, len(data))
-	for i, item := range data {
-		departmentData := item.(map[string]interface{})
-		departments[i] = jamfpro.MobileDeviceConfigurationProfileSubsetDepartment{
-			ID:   departmentData["id"].(int),
-			Name: departmentData["name"].(string),
-		}
-	}
-	return departments
-}
-
-func constructJSSUsers(data []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetJSSUser {
-	jssUsers := make([]jamfpro.MobileDeviceConfigurationProfileSubsetJSSUser, len(data))
-	for i, item := range data {
-		userData := item.(map[string]interface{})
-		jssUsers[i] = jamfpro.MobileDeviceConfigurationProfileSubsetJSSUser{
-			User: jamfpro.MobileDeviceConfigurationProfileSubsetUser{
-				ID:   userData["id"].(int),
-				Name: userData["name"].(string),
-			},
-		}
-	}
-	return jssUsers
-}
-
-func constructJSSUserGroups(data []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetJSSUserGroup {
-	jssUserGroups := make([]jamfpro.MobileDeviceConfigurationProfileSubsetJSSUserGroup, len(data))
-	for i, item := range data {
-		groupData := item.(map[string]interface{})
-		jssUserGroups[i] = jamfpro.MobileDeviceConfigurationProfileSubsetJSSUserGroup{
-			UserGroup: jamfpro.MobileDeviceConfigurationProfileSubsetUserGroup{
-				ID:   groupData["id"].(int),
-				Name: groupData["name"].(string),
-			},
-		}
-	}
-	return jssUserGroups
-}
-
-func constructLimitations(data []interface{}) jamfpro.MobileDeviceConfigurationProfileSubsetLimitation {
-	if len(data) == 0 {
-		return jamfpro.MobileDeviceConfigurationProfileSubsetLimitation{}
-	}
-	limitationData := data[0].(map[string]interface{})
-
-	return jamfpro.MobileDeviceConfigurationProfileSubsetLimitation{
-		Users:           constructUsers(limitationData["users"].(*schema.Set).List()),
-		UserGroups:      constructUserGroups(limitationData["user_groups"].(*schema.Set).List()),
-		NetworkSegments: constructNetworkSegments(limitationData["network_segments"].(*schema.Set).List()),
-		IBeacons:        constructIBeacons(limitationData["ibeacons"].(*schema.Set).List()),
-	}
-}
-
-func constructUsers(data []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetUser {
-	users := make([]jamfpro.MobileDeviceConfigurationProfileSubsetUser, len(data))
-	for i, item := range data {
-		userData := item.(map[string]interface{})
-		users[i] = jamfpro.MobileDeviceConfigurationProfileSubsetUser{
-			ID:   userData["id"].(int),
-			Name: userData["name"].(string),
-		}
-	}
-	return users
-}
-
-func constructUserGroups(data []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetUserGroup {
-	userGroups := make([]jamfpro.MobileDeviceConfigurationProfileSubsetUserGroup, len(data))
-	for i, item := range data {
-		groupData := item.(map[string]interface{})
-		userGroups[i] = jamfpro.MobileDeviceConfigurationProfileSubsetUserGroup{
-			ID:   groupData["id"].(int),
-			Name: groupData["name"].(string),
-		}
-	}
-	return userGroups
-}
-
+// constructNetworkSegments constructs a slice of MobileDeviceConfigurationProfileSubsetNetworkSegment from the provided schema data.
 func constructNetworkSegments(data []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment {
 	networkSegments := make([]jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment, len(data))
 	for i, item := range data {
 		segmentData := item.(map[string]interface{})
 		networkSegments[i] = jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment{
-			ID:   segmentData["id"].(int),
-			UID:  segmentData["uid"].(string),
-			Name: segmentData["name"].(string),
+			MobileDeviceConfigurationProfileSubsetScopeEntity: jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity{
+				ID:   segmentData["id"].(int),
+				Name: segmentData["name"].(string),
+			},
+			UID: segmentData["uid"].(string),
 		}
 	}
 	return networkSegments
-}
-
-func constructIBeacons(data []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetIbeacon {
-	ibeacons := make([]jamfpro.MobileDeviceConfigurationProfileSubsetIbeacon, len(data))
-	for i, item := range data {
-		beaconData := item.(map[string]interface{})
-		ibeacons[i] = jamfpro.MobileDeviceConfigurationProfileSubsetIbeacon{
-			ID:   beaconData["id"].(int),
-			Name: beaconData["name"].(string),
-		}
-	}
-	return ibeacons
-}
-
-func constructExclusions(data []interface{}) jamfpro.MobileDeviceConfigurationProfileSubsetExclusion {
-	if len(data) == 0 {
-		return jamfpro.MobileDeviceConfigurationProfileSubsetExclusion{}
-	}
-	exclusionData := data[0].(map[string]interface{})
-
-	return jamfpro.MobileDeviceConfigurationProfileSubsetExclusion{
-		MobileDevices:      constructMobileDevices(exclusionData["mobile_devices"].(*schema.Set).List()),
-		MobileDeviceGroups: constructMobileDeviceGroups(exclusionData["mobile_device_groups"].(*schema.Set).List()),
-		Users:              constructUsers(exclusionData["users"].(*schema.Set).List()),
-		UserGroups:         constructUserGroups(exclusionData["user_groups"].(*schema.Set).List()),
-		Buildings:          constructBuildings(exclusionData["buildings"].(*schema.Set).List()),
-		Departments:        constructDepartments(exclusionData["departments"].(*schema.Set).List()),
-		NetworkSegments:    constructNetworkSegments(exclusionData["network_segments"].(*schema.Set).List()),
-		JSSUsers:           constructJSSUsers(exclusionData["jss_users"].(*schema.Set).List()),
-		JSSUserGroups:      constructJSSUserGroups(exclusionData["jss_user_groups"].(*schema.Set).List()),
-		IBeacons:           constructIBeacons(exclusionData["ibeacons"].(*schema.Set).List()),
-	}
 }

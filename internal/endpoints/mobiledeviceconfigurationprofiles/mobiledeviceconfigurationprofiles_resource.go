@@ -587,7 +587,7 @@ func ResourceJamfProMobileDeviceConfigurationProfileCreate(ctx context.Context, 
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Mobile Device Configuration Profile '%s' after retries: %v", resource.Name, err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Mobile Device Configuration Profile '%s' after retries: %v", resource.General.Name, err))
 	}
 
 	// Set the resource ID in Terraform state
@@ -766,7 +766,7 @@ func ResourceJamfProMobileDeviceConfigurationProfileUpdate(ctx context.Context, 
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Mobile Device Configuration Profile '%s' (ID: %s) after retries: %v", resource.Name, resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Mobile Device Configuration Profile '%s' (ID: %s) after retries: %v", resource.General.Name, resourceID, err))
 	}
 
 	// Read the resource to ensure the Terraform state is up to date
