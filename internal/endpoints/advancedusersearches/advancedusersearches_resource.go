@@ -134,7 +134,7 @@ func ResourceJamfProAdvancedUserSearchCreate(ctx context.Context, d *schema.Reso
 	}
 
 	// Retry the API call to create the resource in Jamf Pro
-	var creationResponse *jamfpro.ResourceAdvancedUserSearchCreatedAndUpdated
+	var creationResponse *jamfpro.ResponseAdvancedUserSearchCreatedAndUpdated
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
 		creationResponse, apiErr = conn.CreateAdvancedUserSearch(resource)
