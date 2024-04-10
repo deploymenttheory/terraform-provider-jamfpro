@@ -23,7 +23,7 @@ provider "jamfpro" {
   custom_timeout              = 30 # seconds
   enable_cookie_jar           = true
   // This setting controls the use of a cookie jar, effectively enabling sticky sessions. When enabled, resources deploy 
-  // faster due to a reduced propagation wait time of 10 seconds, however this WILL lead to increased load on a single jamf 
+  // faster due to a reduced propagation wait time of 3 seconds, however this WILL lead to increased load on a single jamf 
   // pro web application (clustered or otherwise) as it handles all Terraform CRUD operations and negates any load balancing. 
   // Conseqently, deploying resources enmass (e.g creating + 10 resources at a time) can cause unpredictable resource 
   // deployment / stating errors. especially on more complex resources such as config profiles. If disabled, resources 

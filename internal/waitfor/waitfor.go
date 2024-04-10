@@ -89,7 +89,7 @@ func ResourceIsAvailable(ctx context.Context, d *schema.ResourceData, resourceTy
 		}
 
 		if enableCookieJar {
-			propagationTime = 10 * time.Second
+			propagationTime = 5 * time.Second
 			log.Printf("%s resource with ID '%v' found after %d retries. Cookie Jar is enabled, initiating a propagation wait period of %v.", resourceType, resourceID, retryCount, propagationTime)
 		} else {
 			propagationTime = defaultPropagationTime
