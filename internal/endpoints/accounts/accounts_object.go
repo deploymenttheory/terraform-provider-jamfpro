@@ -23,11 +23,10 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 		PrivilegeSet:        d.Get("privilege_set").(string),
 	}
 
-	if v, ok := d.GetOk("ldap_server"); ok && len(v.([]interface{})) > 0 {
+	if v, ok := d.GetOk("identity_server"); ok && len(v.([]interface{})) > 0 {
 		ldapServerData := v.([]interface{})[0].(map[string]interface{})
 		account.LdapServer = jamfpro.AccountSubsetLdapServer{
-			ID:   ldapServerData["id"].(int),
-			Name: ldapServerData["name"].(string),
+			ID: ldapServerData["id"].(int),
 		}
 	}
 

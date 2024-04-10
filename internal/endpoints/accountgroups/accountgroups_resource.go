@@ -300,6 +300,15 @@ func ResourceJamfProAccountGroupRead(ctx context.Context, d *schema.ResourceData
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	// Update LDAP server information
+	if resource.LDAPServer.ID != 0 {
+		ldapServer := make(map[string]interface{})
+		ldapServer["id"] = resource.LDAPServer.ID
+		d.Set("identity_server", []interface{}{ldapServer})
+	} else {
+		d.Set("identity_server", []interface{}{}) // Clear the LDAP server data if not present
+	}
+
 	// Update site information
 	site := make(map[string]interface{})
 	site["id"] = resource.Site.ID
