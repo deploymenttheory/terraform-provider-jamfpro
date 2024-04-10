@@ -23,6 +23,7 @@ description: |-
 ### Optional
 
 - `casper_admin_privileges` (Set of String) Privileges related to Casper Admin.
+- `identity_server` (Block List, Max: 1) LDAP or IdP server associated with the account group. (see [below for nested schema](#nestedblock--identity_server))
 - `jss_actions_privileges` (Set of String) Privileges related to JSS Actions.
 - `jss_objects_privileges` (Set of String) Privileges related to JSS Objects.
 - `jss_settings_privileges` (Set of String) Privileges related to JSS Settings.
@@ -34,6 +35,14 @@ description: |-
 ### Read-Only
 
 - `id` (String) The unique identifier of the account group.
+
+<a id="nestedblock--identity_server"></a>
+### Nested Schema for `identity_server`
+
+Optional:
+
+- `id` (Number) ID is the ID of the LDAP or IdP configuration in Jamf Pro.
+
 
 <a id="nestedblock--members"></a>
 ### Nested Schema for `members`

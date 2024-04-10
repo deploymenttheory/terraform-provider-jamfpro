@@ -163,7 +163,7 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:        schema.TypeInt,
-							Required:    true,
+							Optional:    true,
 							Description: "ID is the ID of the LDAP or IdP configuration in Jamf Pro.",
 						},
 					},
