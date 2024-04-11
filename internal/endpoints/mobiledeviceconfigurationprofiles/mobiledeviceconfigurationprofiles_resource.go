@@ -10,8 +10,8 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
+	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -74,7 +74,15 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 			"distribution_method": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The distribution method for the mobile device configuration profile.",
+				Description: "The distribution method for the mobile device configuration profile, can be either 'Install Automatically' or 'Make Available in Self Service'.",
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := util.GetString(val)
+					if v == "Install Automatically" || v == "Make Available in Self Service" {
+						return
+					}
+					errs = append(errs, fmt.Errorf("%q must be either 'Install Automatically' or 'Make Available in Self Service', got: %s", key, v))
+					return warns, errs
+				},
 			},
 			"user_removable": {
 				Type:        schema.TypeBool,
@@ -84,7 +92,15 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 			"level": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The level at which the profile is applied, such as 'computer' or 'user'.",
+				Description: "The level at which the mobile device configuration profile is applied, can be either 'Device Level' or 'User Level'.",
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := util.GetString(val)
+					if v == "Device Level" || v == "User Level" {
+						return
+					}
+					errs = append(errs, fmt.Errorf("%q must be either 'Device Level' or 'User Level', got: %s", key, v))
+					return warns, errs
+				},
 			},
 			"uuid": {
 				Type:        schema.TypeString,

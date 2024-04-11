@@ -146,27 +146,45 @@ func constructExclusions(data []interface{}) jamfpro.MobileDeviceConfigurationPr
 
 // Helper functions for nested structures
 
-// constructSharedResourceSite constructs a SharedResourceSite object from the provided schema data.
+// constructSharedResourceSite constructs a SharedResourceSite object from the provided schema data,
+// setting default values if none are presented.
 func constructSharedResourceSite(data []interface{}) jamfpro.SharedResourceSite {
-	if len(data) == 0 {
-		return jamfpro.SharedResourceSite{}
+	// Check if 'site' data is provided and non-empty
+	if len(data) > 0 && data[0] != nil {
+		site := data[0].(map[string]interface{})
+
+		// Return the 'site' object with data from the schema
+		return jamfpro.SharedResourceSite{
+			ID:   site["id"].(int),
+			Name: site["name"].(string),
+		}
 	}
-	site := data[0].(map[string]interface{})
+
+	// Return default 'site' values if no data is provided or it is empty
 	return jamfpro.SharedResourceSite{
-		ID:   site["id"].(int),
-		Name: site["name"].(string),
+		ID:   -1,     // Default ID
+		Name: "None", // Default name
 	}
 }
 
-// constructSharedResourceCategory constructs a SharedResourceCategory object from the provided schema data.
+// constructSharedResourceCategory constructs a SharedResourceCategory object from the provided schema data,
+// setting default values if none are presented.
 func constructSharedResourceCategory(data []interface{}) jamfpro.SharedResourceCategory {
-	if len(data) == 0 {
-		return jamfpro.SharedResourceCategory{}
+	// Check if 'category' data is provided and non-empty
+	if len(data) > 0 && data[0] != nil {
+		category := data[0].(map[string]interface{})
+
+		// Return the 'category' object with data from the schema
+		return jamfpro.SharedResourceCategory{
+			ID:   category["id"].(int),
+			Name: category["name"].(string),
+		}
 	}
-	category := data[0].(map[string]interface{})
+
+	// Return default 'category' values if no data is provided or it is empty
 	return jamfpro.SharedResourceCategory{
-		ID:   category["id"].(int),
-		Name: category["name"].(string),
+		ID:   -1,                     // Default ID
+		Name: "No category assigned", // Default name
 	}
 }
 
