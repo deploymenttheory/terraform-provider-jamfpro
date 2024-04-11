@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProMobileDeviceConfigurationProfile provides information about a specific department in Jamf Pro.
-func DataSourceJamfProMobileDeviceConfigurationProfile() *schema.Resource {
+// DataSourceJamfProMobileDeviceConfigurationProfiles provides information about a specific department in Jamf Pro.
+func DataSourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: DataSourceJamfProMobileDeviceConfigurationProfileRead,
 		Timeouts: &schema.ResourceTimeout{

@@ -18,7 +18,7 @@ import (
 )
 
 // ResourceJamfProMobileDeviceConfigurationProfile defines the schema for mobile device configuration profiles in Terraform.
-func ResourceJamfProMobileDeviceConfigurationProfile() *schema.Resource {
+func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: ResourceJamfProMobileDeviceConfigurationProfileCreate,
 		ReadContext:   ResourceJamfProMobileDeviceConfigurationProfileRead,
