@@ -12,6 +12,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
+	"howett.net/plist"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -537,8 +538,26 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 		// For other errors, or if this is a create operation, return a diagnostic error
 		return diag.FromErr(err)
 	}
-
 	// Stating - commented ones appear to be done automatically.
+	// type XMLNode struct {
+	// 	Attr     []xml.Attr
+	// 	XMLName  xml.Name
+	// 	Children []XMLNode `xml:",any"`
+	// 	Text     string    `xml:",chardata"`
+	// 	Bool string `xml`
+	// }
+
+	var payloads interface{}
+	// header := `<?xml version="1.0" encoding="UTF-8"?>` + "\n" + `<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">` + "\n" + `<plist version="1.0">` + "\n"
+	// footer := "\n" + `</plist>`
+	format, err := plist.Unmarshal([]byte(resp.General.Payloads), &payloads)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	payload, _ := plist.MarshalIndent(payloads, format, "    ")
+	if err := d.Set("payload", string(payload)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	// ID
 	// if err := d.Set("id", resourceID); err != nil {
@@ -546,14 +565,14 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	// }
 
 	// Name
-	// if err := d.Set("name", resp.General.Name); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
+	if err := d.Set("name", resp.General.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	// Description
-	// if err := d.Set("description", resp.General.Description); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
+	if err := d.Set("description", resp.General.Description); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	// Site
 	if resp.General.Site.ID != -1 && resp.General.Site.Name != "None" {
@@ -587,19 +606,19 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	}
 
 	// Distribution Method
-	// if err := d.Set("distribution_method", resp.General.DistributionMethod); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
+	if err := d.Set("distribution_method", resp.General.DistributionMethod); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	// User Removeable
-	// if err := d.Set("user_removeable", resp.General.UserRemovable); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
+	if err := d.Set("user_removeable", resp.General.UserRemovable); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	// Level
-	// if err := d.Set("level", resp.General.Level); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
+	if err := d.Set("level", resp.General.Level); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	// UUID
 	// if err := d.Set("uuid", resp.General.UUID); err != nil {
