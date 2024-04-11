@@ -246,7 +246,7 @@ func ResourceJamfProComputerGroupsCreate(ctx context.Context, d *schema.Resource
 		if err != nil {
 			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
 		}
-		return apiclient.Conn.GetAccountGroupByID(intID)
+		return apiclient.Conn.GetComputerGroupByID(intID)
 	}
 
 	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Computer Group", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)

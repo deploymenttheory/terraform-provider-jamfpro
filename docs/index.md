@@ -21,10 +21,12 @@ description: |-
 - `client_id` (String) The Jamf Pro Client ID for authentication.
 - `client_secret` (String, Sensitive) The Jamf Pro Client secret for authentication.
 - `custom_timeout` (Number) The custom timeout in seconds for the HTTP client.
+- `enable_cookie_jar` (Boolean) Enable or disable the cookie jar for the HTTP client.
 - `enable_dynamic_rate_limiting` (Boolean) Enable dynamic rate limiting.
 - `hide_sensitive_data` (Boolean) Define whether sensitive fields should be hidden in logs. Default to hiding sensitive data in logs
 - `instance_name` (String) The Jamf Pro instance name. For https://mycompany.jamfcloud.com, define 'mycompany' in this field.
 - `log_console_separator` (String) The separator character used in console log output.
+- `log_export_path` (String) Specify the path to export http client logs to.
 - `log_level` (String) The logging level: debug, info, warning, or none
 - `log_output_format` (String) The output format of the logs. Use 'JSON' for JSON format, 'console' for human-readable format. Defaults to console if no value is supplied.
 - `max_concurrent_requests` (Number) The maximum number of concurrent requests allowed in the semaphore.

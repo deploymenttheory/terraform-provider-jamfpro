@@ -150,7 +150,7 @@ func ResourceJamfProAdvancedComputerSearchCreate(ctx context.Context, d *schema.
 	// Construct the resource object
 	resource, err := constructJamfProAdvancedComputerSearch(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Advanced Computer Search: %v", err))
 	}
 
 	// Retry the API call to create the resource in Jamf Pro

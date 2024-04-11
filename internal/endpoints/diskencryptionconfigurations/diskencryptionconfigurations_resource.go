@@ -148,7 +148,7 @@ func ResourceJamfProDiskEncryptionConfigurationsCreate(ctx context.Context, d *s
 	// Construct the resource object
 	resource, err := constructJamfProDiskEncryptionConfiguration(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Dock Item: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Disk Encryption Configuration: %v", err))
 	}
 
 	// Retry the API call to create the resource in Jamf Pro

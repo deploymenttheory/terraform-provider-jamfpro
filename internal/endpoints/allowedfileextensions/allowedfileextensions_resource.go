@@ -92,7 +92,7 @@ func ResourceJamfProAllowedFileExtensionCreate(ctx context.Context, d *schema.Re
 		if err != nil {
 			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
 		}
-		return apiclient.Conn.GetAccountGroupByID(intID)
+		return apiclient.Conn.GetAllowedFileExtensionByID(intID)
 	}
 
 	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Allowed File Extension", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)

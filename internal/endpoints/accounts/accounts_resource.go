@@ -78,24 +78,17 @@ func ResourceJamfProAccounts() *schema.Resource {
 					return warns, errs
 				},
 			},
-			"ldap_server": {
+			"identity_server": {
 				Type:        schema.TypeList,
 				Optional:    true,
 				MaxItems:    1,
-				Description: "LDAP server information associated with the account.",
+				Description: "LDAP or IdP server associated with the account group.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:        schema.TypeInt,
 							Optional:    true,
-							Description: "The ID of the LDAP server.",
-							Default:     "",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The name of the LDAP server.",
-							Computed:    true,
+							Description: "ID is the ID of the LDAP or IdP configuration in Jamf Pro.",
 						},
 					},
 				},
@@ -382,10 +375,9 @@ func ResourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, met
 	if resource.LdapServer.ID != 0 || resource.LdapServer.Name != "" {
 		ldapServer := make(map[string]interface{})
 		ldapServer["id"] = resource.LdapServer.ID
-		ldapServer["name"] = resource.LdapServer.Name
-		d.Set("ldap_server", []interface{}{ldapServer})
+		d.Set("identity_server", []interface{}{ldapServer})
 	} else {
-		d.Set("ldap_server", []interface{}{}) // Clear the LDAP server data if not present
+		d.Set("identity_server", []interface{}{}) // Clear the LDAP server data if not present
 	}
 
 	d.Set("force_password_change", resource.ForcePasswordChange)

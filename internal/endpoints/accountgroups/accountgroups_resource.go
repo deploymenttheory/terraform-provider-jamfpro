@@ -163,7 +163,7 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:        schema.TypeInt,
-							Required:    true,
+							Optional:    true,
 							Description: "ID is the ID of the LDAP or IdP configuration in Jamf Pro.",
 						},
 					},
@@ -298,6 +298,15 @@ func ResourceJamfProAccountGroupRead(ctx context.Context, d *schema.ResourceData
 	}
 	if err := d.Set("privilege_set", resource.PrivilegeSet); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	// Update LDAP server information
+	if resource.LDAPServer.ID != 0 {
+		ldapServer := make(map[string]interface{})
+		ldapServer["id"] = resource.LDAPServer.ID
+		d.Set("identity_server", []interface{}{ldapServer})
+	} else {
+		d.Set("identity_server", []interface{}{}) // Clear the LDAP server data if not present
 	}
 
 	// Update site information

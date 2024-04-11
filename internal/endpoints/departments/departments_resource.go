@@ -4,7 +4,6 @@ package departments
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -95,11 +94,7 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 
 	// Wait for the resource to be fully available before reading it
 	checkResourceExists := func(id interface{}) (interface{}, error) {
-		intID, err := strconv.Atoi(id.(string))
-		if err != nil {
-			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
-		}
-		return apiclient.Conn.GetAccountGroupByID(intID)
+		return apiclient.Conn.GetDepartmentByID(id.(string))
 	}
 
 	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Department", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)

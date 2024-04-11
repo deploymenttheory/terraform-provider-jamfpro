@@ -211,7 +211,7 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 					{
 						Severity: diag.Warning,
 						Summary:  "Resource not found",
-						Detail:   fmt.Sprintf("Computer Extension Attribute with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
+						Detail:   fmt.Sprintf("Jamf Pro Computer Extension Attribute with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
 					},
 				}
 			}
