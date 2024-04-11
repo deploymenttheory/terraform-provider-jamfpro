@@ -14,16 +14,22 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 
 	// Create a map to hold the resource data
 	resourceData := map[string]interface{}{
-		"name":                              resource.General.Name,
-		"description":                       resource.General.Description,
-		"level":                             resource.General.Level,
-		"uuid":                              resource.General.UUID,
-		"deployment_method":                 resource.General.DeploymentMethod,
-		"redeploy_on_update":                resource.General.RedeployOnUpdate,
-		"redeploy_days_before_cert_expires": resource.General.RedeployDaysBeforeCertExpires,
+		"name":              resource.General.Name,
+		"description":       resource.General.Description,
+		"uuid":              resource.General.UUID,
+		"deployment_method": resource.General.DeploymentMethod,
+		//"redeploy_on_update":                resource.General.RedeployOnUpdate,
+		//"redeploy_days_before_cert_expires": resource.General.RedeployDaysBeforeCertExpires,
 		// Skipping stating payloads and let terraform handle it directly
 		// "payloads": html.UnescapeString(resource.General.Payloads),
 	}
+
+	// Check if the level is "System" and set it to "Device Level", otherwise use the value from resource
+	levelValue := resource.General.Level
+	if levelValue == "System" {
+		levelValue = "Device Level"
+	}
+	resourceData["level"] = levelValue
 
 	// Set the 'site' attribute in the state only if it's not empty (i.e., not default values)
 	site := []interface{}{}
@@ -91,7 +97,6 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 	}
 
 	// Create a map to hold the limitations data
-	// Initialize a slice for limitations
 	limitations := make([]map[string]interface{}, 0)
 
 	// Add network segments to limitations
@@ -258,5 +263,28 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 		}
 	}
 
+	return diags
+}
+
+// setScopeEntities sets the scope entities in the scope data.
+func setScopeEntities(scopeData []map[string]interface{}, key string, entities []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) {
+	scopeEntityList := make([]interface{}, len(entities))
+	for i, entity := range entities {
+		scopeEntityList[i] = map[string]interface{}{
+			"id":   entity.ID,
+			"name": entity.Name,
+		}
+	}
+	scopeData[0][key] = scopeEntityList
+}
+
+// setConditionalAttribute sets the conditional attribute in the Terraform schema.
+func setConditionalAttribute(d *schema.ResourceData, attrName string, id int) diag.Diagnostics {
+	var diags diag.Diagnostics
+	if id != -1 {
+		if err := d.Set(attrName, []interface{}{map[string]interface{}{"id": id}}); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
 	return diags
 }

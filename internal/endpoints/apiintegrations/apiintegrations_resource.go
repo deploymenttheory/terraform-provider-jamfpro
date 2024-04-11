@@ -93,7 +93,7 @@ func ResourceJamfProApiIntegrationsCreate(ctx context.Context, d *schema.Resourc
 	// Construct the resource object
 	resource, err := constructJamfProApiIntegration(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account Group: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro API Integration: %v", err))
 	}
 
 	// Retry the API call to create the resource in Jamf Pro

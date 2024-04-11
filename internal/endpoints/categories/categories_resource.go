@@ -4,7 +4,6 @@ package categories
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -77,7 +76,7 @@ func ResourceJamfProCategoriesCreate(ctx context.Context, d *schema.ResourceData
 	// Construct the resource object
 	resource, err := constructJamfProCategory(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account Group: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Category Group: %v", err))
 	}
 
 	// Retry the API call to create the resource in Jamf Pro
@@ -101,11 +100,7 @@ func ResourceJamfProCategoriesCreate(ctx context.Context, d *schema.ResourceData
 
 	// Wait for the resource to be fully available before reading it
 	checkResourceExists := func(id interface{}) (interface{}, error) {
-		intID, err := strconv.Atoi(id.(string))
-		if err != nil {
-			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
-		}
-		return apiclient.Conn.GetAccountGroupByID(intID)
+		return apiclient.Conn.GetCategoryByID(id.(string))
 	}
 
 	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Category", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
