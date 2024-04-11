@@ -32,7 +32,7 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:        schema.TypeInt,
+				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The unique identifier for the mobile device configuration profile.",
 			},
@@ -45,6 +45,19 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The description of the mobile device configuration profile.",
+			},
+			"level": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The level at which the mobile device configuration profile is applied, can be either 'Device Level' or 'User Level'.",
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := util.GetString(val)
+					if v == "Device Level" || v == "User Level" {
+						return
+					}
+					errs = append(errs, fmt.Errorf("%q must be either 'Device Level' or 'User Level', got: %s", key, v))
+					return warns, errs
+				},
 			},
 			"site": {
 				Type:        schema.TypeList,
@@ -71,10 +84,15 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 					},
 				}},
 			},
-			"distribution_method": {
+			"uuid": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The universally unique identifier for the profile.",
+			},
+			"deployment_method": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The distribution method for the mobile device configuration profile, can be either 'Install Automatically' or 'Make Available in Self Service'.",
+				Description: "The deployment method for the mobile device configuration profile, can be either 'Install Automatically' or 'Make Available in Self Service'.",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := util.GetString(val)
 					if v == "Install Automatically" || v == "Make Available in Self Service" {
@@ -84,38 +102,28 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 					return warns, errs
 				},
 			},
-			"user_removable": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Description: "Indicates if the mobile device configuration profile is removable by the user.",
-			},
-			"level": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The level at which the mobile device configuration profile is applied, can be either 'Device Level' or 'User Level'.",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := util.GetString(val)
-					if v == "Device Level" || v == "User Level" {
-						return
-					}
-					errs = append(errs, fmt.Errorf("%q must be either 'Device Level' or 'User Level', got: %s", key, v))
-					return warns, errs
-				},
-			},
-			"uuid": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The universally unique identifier for the profile.",
-			},
 			"redeploy_on_update": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Defines if the profile should be redeployed when an update occurs.",
+				Description: "Defines the redeployment behaviour when a config profile update occurs.",
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := util.GetString(val)
+					if v == "All" || v == "Newly Assigned" {
+						return
+					}
+					errs = append(errs, fmt.Errorf("%q must be either 'All' or 'Newly Assigned', got: %s", key, v))
+					return warns, errs
+				},
+			},
+			"redeploy_days_before_cert_expires": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: "The number of days before certificate expiration when the profile should be redeployed.",
 			},
 			"payloads": {
 				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The payloads included in the configuration profile.",
+				Optional:    true,
+				Description: "The iOS / iPadOS / tvOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist.",
 			},
 			// Scope
 			"scope": {
@@ -208,6 +216,40 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 								Type:        schema.TypeString,
 								Computed:    true,
 								Description: "The name of the department.",
+							},
+						}},
+					},
+					"jss_users": {
+						Type:        schema.TypeSet,
+						Optional:    true,
+						Description: "The list of JSS users targetted in scope.",
+						Elem: &schema.Resource{Schema: map[string]*schema.Schema{
+							"id": {
+								Type:        schema.TypeInt,
+								Optional:    true,
+								Description: "The unique identifier of the JSS user.",
+							},
+							"name": {
+								Type:        schema.TypeString,
+								Computed:    true,
+								Description: "The name of the JSS user.",
+							},
+						}},
+					},
+					"jss_user_groups": {
+						Type:        schema.TypeSet,
+						Optional:    true,
+						Description: "The list of JSS user groups targetted in scope.",
+						Elem: &schema.Resource{Schema: map[string]*schema.Schema{
+							"id": {
+								Type:        schema.TypeInt,
+								Optional:    true,
+								Description: "The unique identifier of the JSS user group.",
+							},
+							"name": {
+								Type:        schema.TypeString,
+								Computed:    true,
+								Description: "The name of the JSS user group.",
 							},
 						}},
 					},
@@ -463,99 +505,6 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 								}},
 							},
 						}},
-					},
-				}},
-			},
-			// Self Service settings
-			"self_service": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "The self-service settings for the configuration profile.",
-				Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-					"install_button_text": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "Custom text that appears on the installation button in Self Service.",
-					},
-					"self_service_description": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "The description of the configuration profile as it appears in Self Service.",
-					},
-					"force_users_to_view_description": {
-						Type:        schema.TypeBool,
-						Optional:    true,
-						Description: "Whether to force the user to view the description in Self Service before installing the profile.",
-					},
-					"self_service_icon": {
-						Type:        schema.TypeList,
-						Optional:    true,
-						MaxItems:    1,
-						Description: "The icon displayed for the configuration profile in Self Service.",
-						Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-							"id": {
-								Type:        schema.TypeInt,
-								Optional:    true,
-								Description: "The ID of the icon resource.",
-							},
-							"filename": {
-								Type:        schema.TypeString,
-								Computed:    true,
-								Description: "The filename of the icon resource.",
-							},
-							"uri": {
-								Type:        schema.TypeString,
-								Computed:    true,
-								Description: "The URI location of the icon resource.",
-							},
-						}},
-					},
-					"feature_on_main_page": {
-						Type:        schema.TypeBool,
-						Optional:    true,
-						Description: "Whether to feature the profile on the main page of Self Service.",
-					},
-					"self_service_categories": {
-						Type:        schema.TypeList,
-						Optional:    true,
-						Description: "The categories within Self Service in which the profile is displayed.",
-						Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-							"id": {
-								Type:        schema.TypeInt,
-								Optional:    true,
-								Description: "The ID of the Self Service category.",
-							},
-							"name": {
-								Type:        schema.TypeString,
-								Computed:    true,
-								Description: "The name of the Self Service category.",
-							},
-							"display_in": {
-								Type:        schema.TypeBool,
-								Computed:    true,
-								Description: "Whether the profile is displayed in this Self Service category.",
-							},
-							"feature_in": {
-								Type:        schema.TypeBool,
-								Computed:    true,
-								Description: "Whether the profile is featured in this Self Service category.",
-							},
-						}},
-					},
-					"notification": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "The notification type for the configuration profile.",
-					},
-					"notification_subject": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "The subject of the notification sent when the configuration profile is installed.",
-					},
-					"notification_message": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "The message of the notification sent when the configuration profile is installed.",
 					},
 				}},
 			},

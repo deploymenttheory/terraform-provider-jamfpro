@@ -4,6 +4,7 @@ package mobiledeviceconfigurationprofiles
 import (
 	"encoding/xml"
 	"fmt"
+	"html"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -14,18 +15,19 @@ import (
 func constructJamfProMobileDeviceConfigurationProfile(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceConfigurationProfile, error) {
 	profile := &jamfpro.ResourceMobileDeviceConfigurationProfile{
 		General: jamfpro.MobileDeviceConfigurationProfileSubsetGeneral{
-			ID:               d.Get("id").(int),
-			Name:             d.Get("name").(string),
-			Description:      d.Get("description").(string),
-			Site:             constructSharedResourceSite(d.Get("site").([]interface{})),
-			Category:         constructSharedResourceCategory(d.Get("category").([]interface{})),
-			UUID:             d.Get("uuid").(string),
-			DeploymentMethod: d.Get("deployment_method").(string),
-			RedeployOnUpdate: d.Get("redeploy_on_update").(string),
-			Payloads:         d.Get("payloads").(string),
+			Name:                          d.Get("name").(string),
+			Description:                   d.Get("description").(string),
+			Level:                         d.Get("level").(string),
+			Site:                          constructSharedResourceSite(d.Get("site").([]interface{})),
+			Category:                      constructSharedResourceCategory(d.Get("category").([]interface{})),
+			UUID:                          d.Get("uuid").(string),
+			DeploymentMethod:              d.Get("deployment_method").(string),
+			RedeployOnUpdate:              d.Get("redeploy_on_update").(string),
+			RedeployDaysBeforeCertExpires: d.Get("redeploy_days_before_cert_expires").(int),
+			// Use html.EscapeString to escape the payloads content
+			Payloads: html.EscapeString(d.Get("payloads").(string)),
 		},
-		Scope:       constructMobileDeviceConfigurationProfileSubsetScope(d.Get("scope").([]interface{})),
-		SelfService: constructMobileDeviceConfigurationProfileSubsetSelfService(d.Get("self_service").([]interface{})),
+		Scope: constructMobileDeviceConfigurationProfileSubsetScope(d.Get("scope").([]interface{})),
 	}
 
 	// Serialize and pretty-print the Mobile Device Configuration Profile object as XML for logging
@@ -60,51 +62,6 @@ func constructMobileDeviceConfigurationProfileSubsetScope(data []interface{}) ja
 
 		Limitations: constructLimitations(scopeData["limitations"].([]interface{})),
 		Exclusions:  constructExclusions(scopeData["exclusions"].([]interface{})),
-	}
-}
-
-// constructMobileDeviceConfigurationProfileSubsetSelfService constructs a MobileDeviceConfigurationProfileSubsetSelfService object from the provided schema data.
-func constructMobileDeviceConfigurationProfileSubsetSelfService(data []interface{}) jamfpro.MobileDeviceConfigurationProfileSubsetSelfService {
-	if len(data) == 0 {
-		return jamfpro.MobileDeviceConfigurationProfileSubsetSelfService{}
-	}
-	selfServiceData := data[0].(map[string]interface{})
-
-	// Construct SecurityName
-	var securityName jamfpro.MobileDeviceConfigurationProfileSubsetSelfServiceSecurityName
-	if securityNameData, ok := selfServiceData["security_name"].(map[string]interface{}); ok {
-		securityName.RemovalDisallowed = securityNameData["removal_disallowed"].(string)
-	}
-
-	// Construct SelfServiceIcon
-	var selfServiceIcon jamfpro.SharedResourceSelfServiceIcon
-	if iconData, ok := selfServiceData["self_service_icon"].(map[string]interface{}); ok {
-		selfServiceIcon.ID = iconData["id"].(int)
-		selfServiceIcon.URI = iconData["uri"].(string)
-		selfServiceIcon.Data = iconData["data"].(string)
-		selfServiceIcon.Filename = iconData["filename"].(string)
-	}
-
-	// Construct SelfServiceCategories
-	var selfServiceCategories jamfpro.SharedResourceSelfServiceCategories
-	if categoriesData, ok := selfServiceData["self_service_categories"].([]interface{}); ok {
-		for _, category := range categoriesData {
-			catData := category.(map[string]interface{})
-			categoryStruct := jamfpro.SharedResourceSelfServiceCategory{
-				ID:       catData["id"].(int),
-				Name:     catData["name"].(string),
-				Priority: catData["priority"].(int),
-			}
-			selfServiceCategories.Category = append(selfServiceCategories.Category, categoryStruct)
-		}
-	}
-
-	return jamfpro.MobileDeviceConfigurationProfileSubsetSelfService{
-		SelfServiceDescription: selfServiceData["self_service_description"].(string),
-		SecurityName:           securityName,
-		SelfServiceIcon:        selfServiceIcon,
-		FeatureOnMainPage:      selfServiceData["feature_on_main_page"].(bool),
-		SelfServiceCategories:  []jamfpro.SharedResourceSelfServiceCategories{selfServiceCategories}, // Wrap in a slice since the struct field expects a slice
 	}
 }
 
