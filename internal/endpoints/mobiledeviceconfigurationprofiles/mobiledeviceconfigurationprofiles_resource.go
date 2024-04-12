@@ -25,7 +25,7 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 		UpdateContext: ResourceJamfProMobileDeviceConfigurationProfileUpdate,
 		DeleteContext: ResourceJamfProMobileDeviceConfigurationProfileDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(70 * time.Second),
+			Create: schema.DefaultTimeout(20 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
 			Delete: schema.DefaultTimeout(15 * time.Second),
@@ -102,24 +102,24 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 					return warns, errs
 				},
 			},
-			"redeploy_on_update": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Defines the redeployment behaviour when a config profile update occurs.",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := util.GetString(val)
-					if v == "All" || v == "Newly Assigned" {
-						return
-					}
-					errs = append(errs, fmt.Errorf("%q must be either 'All' or 'Newly Assigned', got: %s", key, v))
-					return warns, errs
-				},
-			},
-			"redeploy_days_before_cert_expires": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Description: "The number of days before certificate expiration when the profile should be redeployed.",
-			},
+			// "redeploy_on_update": {
+			// 	Type:        schema.TypeString,
+			// 	Optional:    true,
+			// 	Description: "Defines the redeployment behaviour when a config profile update occurs.",
+			// 	ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+			// 		v := util.GetString(val)
+			// 		if v == "All" || v == "Newly Assigned" {
+			// 			return
+			// 		}
+			// 		errs = append(errs, fmt.Errorf("%q must be either 'All' or 'Newly Assigned', got: %s", key, v))
+			// 		return warns, errs
+			// 	},
+			// },
+			// "redeploy_days_before_cert_expires": {
+			// 	Type:        schema.TypeInt,
+			// 	Optional:    true,
+			// 	Description: "The number of days before certificate expiration when the profile should be redeployed.",
+			// },
 			"payloads": {
 				Type:        schema.TypeString,
 				Optional:    true,
