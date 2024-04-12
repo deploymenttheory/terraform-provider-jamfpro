@@ -127,8 +127,6 @@ package metadata in Jamf Pro.
 - **Status**: Finished
 - **Availability**: Introduced in version `v0.0.38`.
 
-
-
 ## Terraform Parallelism and JAMF Pro Resource Creation in Load Balanced Environments
 
 Jamf Pro is frequently hosted in clustered configurations with loadbalancing with two or more web applications. Jamf Pro handles resource propagation between the web applications and in Jamfcloud configurations the propagation time is exactly 60s to align all web applications (2) in the cluster.
@@ -141,7 +139,7 @@ Mitigation Strategy:
 
 [1] Utilise sticky sessions within the http client used by this terraform provider.
 
-[2] Enforce a 60 second propagation delay for resource creation tf operations when sticky sessions are disabled.
+[2] Enforce a 60 second propagation delay for TF resource creation operations when sticky sessions are disabled.
 
 [3] Ensure that terraform is run with a parallelism of 1 to ensure that resources are created and stated in a controlled manner. (suggested)
 
@@ -153,12 +151,12 @@ Behaviour Description [False] When disabled, the http client doesn't use sticky 
 
 Behaviour Description [True] When enabled, the http client uses sticky sessions and will target all operations to a single jamf pro web app. This negates Jamf Pro's load balancing and results in increased load on the targeted web app. However it provides the benefit that resources can be deployed and stated faster. This is due to the assurance that the web app api that was targeted for resource creation, will always be the same as the web app api used for TF resource stating. The propagation time in this scenario is set to 5 rather than 60 seconds.
 
-**Special note: Terraform parallelism**
+### Special note: Terraform parallelism
 
-By default terraform runs 10 operations in parallel. During load testing I have observed that when terraform performs operations above 1 against jamf pro it frequently results in unreliable resource deployment behavior. E.g resources deployed with partial configuration or stating failure. Consequently I advise when possible to run terraform with the following
+By default terraform runs 10 operations in parallel. During load testing I have observed that when terraform performs Create operations above 1 against jamf pro it frequently results in unreliable resource deployment behavior. E.g resources deployed with partial configuration leading to stating failure. This is due to the fact that the jamf pro API get's overwhelmed due to the concurrency of the Create requests. Consequently I advise when possible to run terraform with the following
 
 `terraform apply -parallelism=1`
 
-From load testing with 500 resource creations, across 10 different resource types. When the cookie jar is enabled I was able to deploy successfully and state all resources.
+Which restricts terraform to a single operation at a time. From load testing with 500 resource creations, across 10 different resource types with the cookie jar is enabled I was able to deploy successfully and state all resources. Effectively a new resource was created and stated every 5 seconds.
 
-If you are unable to control the parallelism of terraform then proceed cautiously when creating resources in batches.
+If you are unable to control the parallelism of terraform due to your pipeline design then proceed cautiously when creating jamf resources in batches.
