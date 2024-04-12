@@ -145,9 +145,11 @@ Mitigation Strategy:
 
 Sticky sessions can be enabled like this in the provider configuration:
 
-`provider "jamfpro" {
+```bash
+provider "jamfpro" {
   enable_cookie_jar = true // or false
-}`
+}
+```
 
 Behaviour Description [False] When disabled, the http client doesn't use sticky sessions and will honor the 60s propagation time of jamf pro in jamf cloud contexts to ensure successful TF resource stating. This results in a given resource creation task taking circa 1 minute to deploy across the board. This approach keeps the load on jamf pro light and when deploying during business hours, this may be the preferred  configuration to ensure that jamf pro api resources are available for various device management activities outside of terraform. The down side of this however is that will take longer for a terraform apply to complete which is pertinent during pipeline runs.
 
