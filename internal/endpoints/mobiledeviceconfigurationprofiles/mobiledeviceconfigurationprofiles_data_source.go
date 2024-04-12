@@ -24,13 +24,13 @@ func DataSourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The unique identifier of the computer prestage.",
+				Computed:    true,
+				Description: "The unique identifier for the mobile device configuration profile.",
 			},
-			"display_name": {
+			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The display name of the computer prestage.",
+				Description: "The name of the mobile device configuration profile.",
 			},
 		},
 	}
