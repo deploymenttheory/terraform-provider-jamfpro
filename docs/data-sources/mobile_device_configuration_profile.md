@@ -17,12 +17,15 @@ description: |-
 
 ### Required
 
-- `display_name` (String) The display name of the computer prestage.
-- `id` (String) The unique identifier of the computer prestage.
+- `name` (String) The name of the mobile device configuration profile.
 
 ### Optional
 
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+
+### Read-Only
+
+- `id` (String) The unique identifier for the mobile device configuration profile.
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`
