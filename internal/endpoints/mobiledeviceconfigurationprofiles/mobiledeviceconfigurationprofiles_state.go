@@ -81,51 +81,51 @@ func prepareScopeData(resource *jamfpro.ResourceMobileDeviceConfigurationProfile
 	}
 
 	// Gather mobile devices, groups, etc.
-	mobileDevices, err := gatherMobileDevices(resource.Scope.MobileDevices)
+	mobileDevices, err := setMobileDevices(resource.Scope.MobileDevices)
 	if err != nil {
 		return nil, err
 	}
 	scopeData["mobile_devices"] = mobileDevices
 
-	mobileDeviceGroups, err := gatherScopeEntities(resource.Scope.MobileDeviceGroups)
+	mobileDeviceGroups, err := setScopeEntities(resource.Scope.MobileDeviceGroups)
 	if err != nil {
 		return nil, err
 	}
 	scopeData["mobile_device_groups"] = mobileDeviceGroups
 
-	jssUsers, err := gatherScopeEntities(resource.Scope.JSSUsers)
+	jssUsers, err := setScopeEntities(resource.Scope.JSSUsers)
 	if err != nil {
 		return nil, err
 	}
 	scopeData["jss_users"] = jssUsers
 
-	jssUserGroups, err := gatherScopeEntities(resource.Scope.JSSUserGroups)
+	jssUserGroups, err := setScopeEntities(resource.Scope.JSSUserGroups)
 	if err != nil {
 		return nil, err
 	}
 	scopeData["jss_user_groups"] = jssUserGroups
 
-	buildings, err := gatherScopeEntities(resource.Scope.Buildings)
+	buildings, err := setScopeEntities(resource.Scope.Buildings)
 	if err != nil {
 		return nil, err
 	}
 	scopeData["buildings"] = buildings
 
-	departments, err := gatherScopeEntities(resource.Scope.Departments)
+	departments, err := setScopeEntities(resource.Scope.Departments)
 	if err != nil {
 		return nil, err
 	}
 	scopeData["departments"] = departments
 
 	// Gather limitations
-	limitationsData, err := gatherLimitations(resource.Scope.Limitations)
+	limitationsData, err := setLimitations(resource.Scope.Limitations)
 	if err != nil {
 		return nil, err
 	}
 	scopeData["limitations"] = limitationsData
 
 	// Gather exclusions
-	exclusionsData, err := gatherExclusions(resource.Scope.Exclusions)
+	exclusionsData, err := setExclusions(resource.Scope.Exclusions)
 	if err != nil {
 		return nil, err
 	}
@@ -134,11 +134,11 @@ func prepareScopeData(resource *jamfpro.ResourceMobileDeviceConfigurationProfile
 	return scopeData, nil
 }
 
-// gatherLimitations collects and formats limitations data for the Terraform state.
-func gatherLimitations(limitations jamfpro.MobileDeviceConfigurationProfileSubsetLimitation) ([]interface{}, error) {
+// setLimitations collects and formats limitations data for the Terraform state.
+func setLimitations(limitations jamfpro.MobileDeviceConfigurationProfileSubsetLimitation) ([]interface{}, error) {
 	result := make(map[string]interface{})
 
-	// Iterate through each type of exclusion and gather them
+	// Iterate through each type of exclusion and set them
 	limitationTypes := map[string][]jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity{
 		"users":       limitations.Users,
 		"user_groups": limitations.UserGroups,
@@ -147,9 +147,9 @@ func gatherLimitations(limitations jamfpro.MobileDeviceConfigurationProfileSubse
 
 	for key, entities := range limitationTypes {
 		if len(entities) > 0 {
-			entityData, err := gatherScopeEntities(entities)
+			entityData, err := setScopeEntities(entities)
 			if err != nil {
-				return nil, fmt.Errorf("error gathering %s: %v", key, err)
+				return nil, fmt.Errorf("error seting %s: %v", key, err)
 			}
 			result[key] = entityData
 		}
@@ -157,9 +157,9 @@ func gatherLimitations(limitations jamfpro.MobileDeviceConfigurationProfileSubse
 
 	// Handle Network Segments specifically if needed
 	if len(limitations.NetworkSegments) > 0 {
-		networkSegments, err := gatherNetworkSegments(limitations.NetworkSegments)
+		networkSegments, err := setNetworkSegments(limitations.NetworkSegments)
 		if err != nil {
-			return nil, fmt.Errorf("error gathering network segments: %v", err)
+			return nil, fmt.Errorf("error seting network segments: %v", err)
 		}
 		result["network_segments"] = networkSegments
 	}
@@ -168,11 +168,11 @@ func gatherLimitations(limitations jamfpro.MobileDeviceConfigurationProfileSubse
 	return []interface{}{result}, nil
 }
 
-// gatherExclusions collects and formats exclusion data for the Terraform state.
-func gatherExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExclusion) ([]interface{}, error) {
+// setExclusions collects and formats exclusion data for the Terraform state.
+func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExclusion) ([]interface{}, error) {
 	result := make(map[string]interface{})
 
-	// Iterate through each type of exclusion and gather them
+	// Iterate through each type of exclusion and set them
 	exclusionTypes := map[string][]jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity{
 		"mobile_device_groups": exclusions.MobileDeviceGroups,
 		"users":                exclusions.Users,
@@ -184,12 +184,12 @@ func gatherExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetE
 		"ibeacons":             exclusions.IBeacons,
 	}
 
-	// This loop will ensure each exclusion type is gathered and added to the result map correctly
+	// This loop will ensure each exclusion type is seted and added to the result map correctly
 	for key, entities := range exclusionTypes {
 		if len(entities) > 0 {
-			entitiesData, err := gatherScopeEntities(entities)
+			entitiesData, err := setScopeEntities(entities)
 			if err != nil {
-				return nil, fmt.Errorf("error gathering %s for exclusions: %v", key, err)
+				return nil, fmt.Errorf("error seting %s for exclusions: %v", key, err)
 			}
 			result[key] = entitiesData
 		}
@@ -197,18 +197,18 @@ func gatherExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetE
 
 	// Handle Mobile Devices specifically if needed
 	if len(exclusions.MobileDevices) > 0 {
-		mobileDevices, err := gatherMobileDevices(exclusions.MobileDevices)
+		mobileDevices, err := setMobileDevices(exclusions.MobileDevices)
 		if err != nil {
-			return nil, fmt.Errorf("error gathering mobile devices for exclusions: %v", err)
+			return nil, fmt.Errorf("error seting mobile devices for exclusions: %v", err)
 		}
 		result["mobile_devices"] = mobileDevices
 	}
 
 	// Handle Network Segments specifically if needed
 	if len(exclusions.NetworkSegments) > 0 {
-		networkSegments, err := gatherNetworkSegments(exclusions.NetworkSegments)
+		networkSegments, err := setNetworkSegments(exclusions.NetworkSegments)
 		if err != nil {
-			return nil, fmt.Errorf("error gathering network segments for exclusions: %v", err)
+			return nil, fmt.Errorf("error seting network segments for exclusions: %v", err)
 		}
 		result["network_segments"] = networkSegments
 	}
@@ -217,8 +217,8 @@ func gatherExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetE
 	return []interface{}{result}, nil
 }
 
-// gatherScopeEntities converts a slice of general scope entities (like user groups, buildings) to a format suitable for Terraform state.
-func gatherScopeEntities(entities []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) ([]interface{}, error) {
+// setScopeEntities converts a slice of general scope entities (like user groups, buildings) to a format suitable for Terraform state.
+func setScopeEntities(entities []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) ([]interface{}, error) {
 	var entityList []interface{}
 	for _, entity := range entities {
 		entityMap := map[string]interface{}{
@@ -230,8 +230,8 @@ func gatherScopeEntities(entities []jamfpro.MobileDeviceConfigurationProfileSubs
 	return entityList, nil
 }
 
-// gatherMobileDevices converts a slice of MobileDevice entities to a format suitable for Terraform state.
-func gatherMobileDevices(devices []jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice) ([]interface{}, error) {
+// setMobileDevices converts a slice of MobileDevice entities to a format suitable for Terraform state.
+func setMobileDevices(devices []jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice) ([]interface{}, error) {
 	var deviceList []interface{}
 	for _, device := range devices {
 		deviceMap := map[string]interface{}{
@@ -246,7 +246,7 @@ func gatherMobileDevices(devices []jamfpro.MobileDeviceConfigurationProfileSubse
 }
 
 // Helper function specific to network segments if they have an additional field such as 'uid'.
-func gatherNetworkSegments(segments []jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment) ([]interface{}, error) {
+func setNetworkSegments(segments []jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment) ([]interface{}, error) {
 	var segmentList []interface{}
 	for _, segment := range segments {
 		segmentMap := map[string]interface{}{
