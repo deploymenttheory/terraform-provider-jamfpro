@@ -159,7 +159,9 @@ Behaviour Description [True] When enabled, the http client uses sticky sessions 
 
 By default terraform runs 10 operations in parallel. During load testing I have observed that when terraform performs Create operations above 1 against jamf pro it frequently results in unreliable resource deployment behavior. E.g resources deployed with partial configuration leading to stating failure. This is due to the fact that the jamf pro API get's overwhelmed due to the concurrency of the Create requests. Consequently I advise when possible to run terraform with the following
 
-`terraform apply -parallelism=1`
+```bash
+terraform apply -parallelism=1
+```
 
 Which restricts terraform to a single operation at a time. From load testing with 500 resource creations, across 10 different resource types with the cookie jar is enabled I was able to deploy successfully and state all resources. Effectively a new resource was created and stated every 5 seconds.
 
