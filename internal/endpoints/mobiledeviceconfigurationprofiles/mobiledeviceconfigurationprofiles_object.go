@@ -15,15 +15,13 @@ import (
 func constructJamfProMobileDeviceConfigurationProfile(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceConfigurationProfile, error) {
 	profile := &jamfpro.ResourceMobileDeviceConfigurationProfile{
 		General: jamfpro.MobileDeviceConfigurationProfileSubsetGeneral{
-			Name:                          d.Get("name").(string),
-			Description:                   d.Get("description").(string),
-			Level:                         d.Get("level").(string),
-			Site:                          constructSharedResourceSite(d.Get("site").([]interface{})),
-			Category:                      constructSharedResourceCategory(d.Get("category").([]interface{})),
-			UUID:                          d.Get("uuid").(string),
-			DeploymentMethod:              d.Get("deployment_method").(string),
-			RedeployOnUpdate:              d.Get("redeploy_on_update").(string),
-			RedeployDaysBeforeCertExpires: d.Get("redeploy_days_before_cert_expires").(int),
+			Name:             d.Get("name").(string),
+			Description:      d.Get("description").(string),
+			Level:            d.Get("level").(string),
+			Site:             constructSharedResourceSite(d.Get("site").([]interface{})),
+			Category:         constructSharedResourceCategory(d.Get("category").([]interface{})),
+			UUID:             d.Get("uuid").(string),
+			DeploymentMethod: d.Get("deployment_method").(string),
 			// Use html.EscapeString to escape the payloads content
 			Payloads: html.EscapeString(d.Get("payloads").(string)),
 		},
@@ -183,7 +181,6 @@ func constructNetworkSegments(data []interface{}) []jamfpro.MobileDeviceConfigur
 				ID:   segmentData["id"].(int),
 				Name: segmentData["name"].(string),
 			},
-			UID: segmentData["uid"].(string),
 		}
 	}
 	return networkSegments

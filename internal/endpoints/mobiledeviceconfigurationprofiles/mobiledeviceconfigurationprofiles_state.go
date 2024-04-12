@@ -2,6 +2,8 @@
 package mobiledeviceconfigurationprofiles
 
 import (
+	"fmt"
+
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -18,8 +20,11 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 		"description":       resource.General.Description,
 		"uuid":              resource.General.UUID,
 		"deployment_method": resource.General.DeploymentMethod,
+
+		// Skipping the 'distribution_method' attribute as appears to be deprecated but still in documenation
 		//"redeploy_on_update":                resource.General.RedeployOnUpdate,
 		//"redeploy_days_before_cert_expires": resource.General.RedeployDaysBeforeCertExpires,
+
 		// Skipping stating payloads and let terraform handle it directly
 		// "payloads": html.UnescapeString(resource.General.Payloads),
 	}
@@ -57,234 +62,198 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 		}
 	}
 
-	// Create a map to hold the scope data
-	scope := []map[string]interface{}{
-		{
-			"all_mobile_devices":   resource.Scope.AllMobileDevices,
-			"all_jss_users":        resource.Scope.AllJSSUsers,
-			"mobile_devices":       make([]interface{}, len(resource.Scope.MobileDevices)),
-			"mobile_device_groups": make([]interface{}, len(resource.Scope.MobileDeviceGroups)),
-			"jss_users":            make([]interface{}, len(resource.Scope.JSSUsers)),
-			"jss_user_groups":      make([]interface{}, len(resource.Scope.JSSUserGroups)),
-			"buildings":            make([]interface{}, len(resource.Scope.Buildings)),
-			"departments":          make([]interface{}, len(resource.Scope.Departments)),
-		},
+	// Preparing and setting scope data
+	if scopeData, err := prepareScopeData(resource); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	} else if err := d.Set("scope", []interface{}{scopeData}); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Fill the slices in the scope data
-	for i, device := range resource.Scope.MobileDevices {
-		scope[0]["mobile_devices"].([]interface{})[i] = device
+	return diags
+
+}
+
+// prepareScopeData prepares the scope data for the Terraform state.
+func prepareScopeData(resource *jamfpro.ResourceMobileDeviceConfigurationProfile) (map[string]interface{}, error) {
+	scopeData := map[string]interface{}{
+		"all_mobile_devices": resource.Scope.AllMobileDevices,
+		"all_jss_users":      resource.Scope.AllJSSUsers,
 	}
 
-	for i, group := range resource.Scope.MobileDeviceGroups {
-		scope[0]["mobile_device_groups"].([]interface{})[i] = group
+	// Gather mobile devices, groups, etc.
+	mobileDevices, err := gatherMobileDevices(resource.Scope.MobileDevices)
+	if err != nil {
+		return nil, err
+	}
+	scopeData["mobile_devices"] = mobileDevices
+
+	mobileDeviceGroups, err := gatherScopeEntities(resource.Scope.MobileDeviceGroups)
+	if err != nil {
+		return nil, err
+	}
+	scopeData["mobile_device_groups"] = mobileDeviceGroups
+
+	jssUsers, err := gatherScopeEntities(resource.Scope.JSSUsers)
+	if err != nil {
+		return nil, err
+	}
+	scopeData["jss_users"] = jssUsers
+
+	jssUserGroups, err := gatherScopeEntities(resource.Scope.JSSUserGroups)
+	if err != nil {
+		return nil, err
+	}
+	scopeData["jss_user_groups"] = jssUserGroups
+
+	buildings, err := gatherScopeEntities(resource.Scope.Buildings)
+	if err != nil {
+		return nil, err
+	}
+	scopeData["buildings"] = buildings
+
+	departments, err := gatherScopeEntities(resource.Scope.Departments)
+	if err != nil {
+		return nil, err
+	}
+	scopeData["departments"] = departments
+
+	// Gather limitations
+	limitationsData, err := gatherLimitations(resource.Scope.Limitations)
+	if err != nil {
+		return nil, err
+	}
+	scopeData["limitations"] = limitationsData
+
+	// Gather exclusions
+	exclusionsData, err := gatherExclusions(resource.Scope.Exclusions)
+	if err != nil {
+		return nil, err
+	}
+	scopeData["exclusions"] = exclusionsData
+
+	return scopeData, nil
+}
+
+// gatherLimitations collects and formats limitations data for the Terraform state.
+func gatherLimitations(limitations jamfpro.MobileDeviceConfigurationProfileSubsetLimitation) ([]interface{}, error) {
+	result := make(map[string]interface{})
+
+	// Iterate through each type of exclusion and gather them
+	limitationTypes := map[string][]jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity{
+		"users":       limitations.Users,
+		"user_groups": limitations.UserGroups,
+		"ibeacons":    limitations.Ibeacons,
 	}
 
-	for i, user := range resource.Scope.JSSUsers {
-		scope[0]["jss_users"].([]interface{})[i] = user
-	}
-
-	for i, userGroup := range resource.Scope.JSSUserGroups {
-		scope[0]["jss_user_groups"].([]interface{})[i] = userGroup
-	}
-
-	for i, building := range resource.Scope.Buildings {
-		scope[0]["buildings"].([]interface{})[i] = building
-	}
-
-	for i, department := range resource.Scope.Departments {
-		scope[0]["departments"].([]interface{})[i] = department
-	}
-
-	// Create a map to hold the limitations data
-	limitations := make([]map[string]interface{}, 0)
-
-	// Add network segments to limitations
-	networkSegments := make([]map[string]interface{}, len(resource.Scope.Limitations.NetworkSegments))
-	for i, segment := range resource.Scope.Limitations.NetworkSegments {
-		networkSegments[i] = map[string]interface{}{
-			"id":   segment.ID,
-			"name": segment.Name,
+	for key, entities := range limitationTypes {
+		if len(entities) > 0 {
+			entityData, err := gatherScopeEntities(entities)
+			if err != nil {
+				return nil, fmt.Errorf("error gathering %s: %v", key, err)
+			}
+			result[key] = entityData
 		}
 	}
-	if len(networkSegments) > 0 {
-		limitations = append(limitations, map[string]interface{}{"network_segments": networkSegments})
+
+	// Handle Network Segments specifically if needed
+	if len(limitations.NetworkSegments) > 0 {
+		networkSegments, err := gatherNetworkSegments(limitations.NetworkSegments)
+		if err != nil {
+			return nil, fmt.Errorf("error gathering network segments: %v", err)
+		}
+		result["network_segments"] = networkSegments
 	}
 
-	// Add users to limitations
-	users := make([]map[string]interface{}, len(resource.Scope.Limitations.Users))
-	for i, user := range resource.Scope.Limitations.Users {
-		users[i] = map[string]interface{}{
-			"id":   user.ID,
-			"name": user.Name,
+	// Ensure to wrap the map into a list to match the expected TypeList structure in Terraform
+	return []interface{}{result}, nil
+}
+
+// gatherExclusions collects and formats exclusion data for the Terraform state.
+func gatherExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExclusion) ([]interface{}, error) {
+	result := make(map[string]interface{})
+
+	// Iterate through each type of exclusion and gather them
+	exclusionTypes := map[string][]jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity{
+		"mobile_device_groups": exclusions.MobileDeviceGroups,
+		"users":                exclusions.Users,
+		"user_groups":          exclusions.UserGroups,
+		"buildings":            exclusions.Buildings,
+		"departments":          exclusions.Departments,
+		"jss_users":            exclusions.JSSUsers,
+		"jss_user_groups":      exclusions.JSSUserGroups,
+		"ibeacons":             exclusions.IBeacons,
+	}
+
+	// This loop will ensure each exclusion type is gathered and added to the result map correctly
+	for key, entities := range exclusionTypes {
+		if len(entities) > 0 {
+			entitiesData, err := gatherScopeEntities(entities)
+			if err != nil {
+				return nil, fmt.Errorf("error gathering %s for exclusions: %v", key, err)
+			}
+			result[key] = entitiesData
 		}
 	}
-	if len(users) > 0 {
-		limitations = append(limitations, map[string]interface{}{"users": users})
-	}
 
-	// Add user groups to limitations
-	userGroups := make([]map[string]interface{}, len(resource.Scope.Limitations.UserGroups))
-	for i, group := range resource.Scope.Limitations.UserGroups {
-		userGroups[i] = map[string]interface{}{
-			"id":   group.ID,
-			"name": group.Name,
+	// Handle Mobile Devices specifically if needed
+	if len(exclusions.MobileDevices) > 0 {
+		mobileDevices, err := gatherMobileDevices(exclusions.MobileDevices)
+		if err != nil {
+			return nil, fmt.Errorf("error gathering mobile devices for exclusions: %v", err)
 		}
-	}
-	if len(userGroups) > 0 {
-		limitations = append(limitations, map[string]interface{}{"user_groups": userGroups})
+		result["mobile_devices"] = mobileDevices
 	}
 
-	// Add iBeacons to limitations
-	ibeacons := make([]map[string]interface{}, len(resource.Scope.Limitations.Ibeacons))
-	for i, ibeacon := range resource.Scope.Limitations.Ibeacons {
-		ibeacons[i] = map[string]interface{}{
-			"id":   ibeacon.ID,
-			"name": ibeacon.Name,
+	// Handle Network Segments specifically if needed
+	if len(exclusions.NetworkSegments) > 0 {
+		networkSegments, err := gatherNetworkSegments(exclusions.NetworkSegments)
+		if err != nil {
+			return nil, fmt.Errorf("error gathering network segments for exclusions: %v", err)
 		}
-	}
-	if len(ibeacons) > 0 {
-		limitations = append(limitations, map[string]interface{}{"ibeacons": ibeacons})
+		result["network_segments"] = networkSegments
 	}
 
-	// Assign limitations to the scope
-	if len(limitations) > 0 {
-		scope[0]["limitations"] = limitations
+	// Wrap the map in a slice to match the TypeList expectation
+	return []interface{}{result}, nil
+}
+
+// gatherScopeEntities converts a slice of general scope entities (like user groups, buildings) to a format suitable for Terraform state.
+func gatherScopeEntities(entities []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) ([]interface{}, error) {
+	var entityList []interface{}
+	for _, entity := range entities {
+		entityMap := map[string]interface{}{
+			"id":   entity.ID,
+			"name": entity.Name,
+		}
+		entityList = append(entityList, entityMap)
 	}
+	return entityList, nil
+}
 
-	// Initialize a slice for exclusions
-	exclusions := make([]map[string]interface{}, 0)
-
-	// Add exclusions to the slice
-	exclusionsData := map[string]interface{}{
-		"mobile_devices":       make([]interface{}, len(resource.Scope.Exclusions.MobileDevices)),
-		"mobile_device_groups": make([]interface{}, len(resource.Scope.Exclusions.MobileDeviceGroups)),
-		"users":                make([]interface{}, len(resource.Scope.Exclusions.Users)),
-		"user_groups":          make([]interface{}, len(resource.Scope.Exclusions.UserGroups)),
-		"buildings":            make([]interface{}, len(resource.Scope.Exclusions.Buildings)),
-		"departments":          make([]interface{}, len(resource.Scope.Exclusions.Departments)),
-		"network_segments":     make([]interface{}, len(resource.Scope.Exclusions.NetworkSegments)),
-		"jss_users":            make([]interface{}, len(resource.Scope.Exclusions.JSSUsers)),
-		"jss_user_groups":      make([]interface{}, len(resource.Scope.Exclusions.JSSUserGroups)),
-		"ibeacons":             make([]interface{}, len(resource.Scope.Exclusions.IBeacons)),
-	}
-
-	// Populate the exclusions data
-	for i, device := range resource.Scope.Exclusions.MobileDevices {
-		exclusionsData["mobile_devices"].([]interface{})[i] = map[string]interface{}{
+// gatherMobileDevices converts a slice of MobileDevice entities to a format suitable for Terraform state.
+func gatherMobileDevices(devices []jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice) ([]interface{}, error) {
+	var deviceList []interface{}
+	for _, device := range devices {
+		deviceMap := map[string]interface{}{
 			"id":               device.ID,
 			"name":             device.Name,
 			"udid":             device.UDID,
 			"wifi_mac_address": device.WifiMacAddress,
 		}
+		deviceList = append(deviceList, deviceMap)
 	}
+	return deviceList, nil
+}
 
-	for i, group := range resource.Scope.Exclusions.MobileDeviceGroups {
-		exclusionsData["mobile_device_groups"].([]interface{})[i] = map[string]interface{}{
-			"id":   group.ID,
-			"name": group.Name,
-		}
-	}
-
-	for i, user := range resource.Scope.Exclusions.Users {
-		exclusionsData["users"].([]interface{})[i] = map[string]interface{}{
-			"id":   user.ID,
-			"name": user.Name,
-		}
-	}
-
-	for i, group := range resource.Scope.Exclusions.UserGroups {
-		exclusionsData["user_groups"].([]interface{})[i] = map[string]interface{}{
-			"id":   group.ID,
-			"name": group.Name,
-		}
-	}
-
-	for i, building := range resource.Scope.Exclusions.Buildings {
-		exclusionsData["buildings"].([]interface{})[i] = map[string]interface{}{
-			"id":   building.ID,
-			"name": building.Name,
-		}
-	}
-
-	for i, department := range resource.Scope.Exclusions.Departments {
-		exclusionsData["departments"].([]interface{})[i] = map[string]interface{}{
-			"id":   department.ID,
-			"name": department.Name,
-		}
-	}
-
-	for i, segment := range resource.Scope.Exclusions.NetworkSegments {
-		exclusionsData["network_segments"].([]interface{})[i] = map[string]interface{}{
+// Helper function specific to network segments if they have an additional field such as 'uid'.
+func gatherNetworkSegments(segments []jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment) ([]interface{}, error) {
+	var segmentList []interface{}
+	for _, segment := range segments {
+		segmentMap := map[string]interface{}{
 			"id":   segment.ID,
 			"name": segment.Name,
-			"uid":  segment.UID,
 		}
+		segmentList = append(segmentList, segmentMap)
 	}
-
-	for i, jssUser := range resource.Scope.Exclusions.JSSUsers {
-		exclusionsData["jss_users"].([]interface{})[i] = map[string]interface{}{
-			"id":   jssUser.ID,
-			"name": jssUser.Name,
-		}
-	}
-
-	for i, jssUserGroup := range resource.Scope.Exclusions.JSSUserGroups {
-		exclusionsData["jss_user_groups"].([]interface{})[i] = map[string]interface{}{
-			"id":   jssUserGroup.ID,
-			"name": jssUserGroup.Name,
-		}
-	}
-
-	for i, ibeacon := range resource.Scope.Exclusions.IBeacons {
-		exclusionsData["ibeacons"].([]interface{})[i] = map[string]interface{}{
-			"id":   ibeacon.ID,
-			"name": ibeacon.Name,
-		}
-	}
-
-	// Add exclusionsData to exclusions
-	if len(exclusionsData) > 0 {
-		exclusions = append(exclusions, exclusionsData)
-	}
-
-	// Assign exclusions to the scope
-	if len(exclusions) > 0 {
-		scope[0]["exclusions"] = exclusions
-	}
-
-	// Add scope data to the resource data
-	resourceData["scope"] = scope
-
-	// Set resource data into the Terraform schema
-	for key, val := range resourceData {
-		if err := d.Set(key, val); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-
-	return diags
-}
-
-// setScopeEntities sets the scope entities in the scope data.
-func setScopeEntities(scopeData []map[string]interface{}, key string, entities []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) {
-	scopeEntityList := make([]interface{}, len(entities))
-	for i, entity := range entities {
-		scopeEntityList[i] = map[string]interface{}{
-			"id":   entity.ID,
-			"name": entity.Name,
-		}
-	}
-	scopeData[0][key] = scopeEntityList
-}
-
-// setConditionalAttribute sets the conditional attribute in the Terraform schema.
-func setConditionalAttribute(d *schema.ResourceData, attrName string, id int) diag.Diagnostics {
-	var diags diag.Diagnostics
-	if id != -1 {
-		if err := d.Set(attrName, []interface{}{map[string]interface{}{"id": id}}); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-	return diags
+	return segmentList, nil
 }

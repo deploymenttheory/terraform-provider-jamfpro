@@ -26,8 +26,6 @@ description: |-
 - `description` (String) The description of the mobile device configuration profile.
 - `level` (String) The level at which the mobile device configuration profile is applied, can be either 'Device Level' or 'User Level'.
 - `payloads` (String) The iOS / iPadOS / tvOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist.
-- `redeploy_days_before_cert_expires` (Number) The number of days before certificate expiration when the profile should be redeployed.
-- `redeploy_on_update` (String) Defines the redeployment behaviour when a config profile update occurs.
 - `scope` (Block List) The scope in which the mobile device configuration profile is applied. (see [below for nested schema](#nestedblock--scope))
 - `site` (Block List, Max: 1) The site information associated with the mobile device configuration profile. (see [below for nested schema](#nestedblock--site))
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
