@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -137,30 +136,19 @@ func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta 
 
 	// Attempt to fetch the resource by ID
 	resource, err := conn.GetSiteByID(resourceIDInt)
+
 	if err != nil {
-		// If the error is a "not found" error, remove the resource from the state
-		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
-			d.SetId("") // Remove the resource from Terraform state
-			return diag.Diagnostics{
-				{
-					Severity: diag.Warning,
-					Summary:  "Resource not found",
-					Detail:   fmt.Sprintf("Jamf Pro Site with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
-				},
-			}
-		}
-		// For other errors, return an error diagnostic
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Site with ID '%s': %v", resourceID, err))
+		// Handle not found error or other errors
+		return common.HandleResourceNotFoundError(err, d)
 	}
 
-	// Update Terraform state with the resource information
-	if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("name", resource.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
+	// Update the Terraform state with the fetched data from the resource
+	diags = updateTerraformState(d, resource)
 
+	// Handle any errors and return diagnostics
+	if len(diags) > 0 {
+		return diags
+	}
 	return nil
 }
 

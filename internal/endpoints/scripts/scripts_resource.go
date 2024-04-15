@@ -4,7 +4,6 @@ package scripts
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -199,59 +198,25 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
 
-	// Use the script ID from Terraform's data schema as the resource identifier
+	// Initialize variables
 	resourceID := d.Id()
+	var diags diag.Diagnostics
 
 	// Attempt to fetch the resource by ID
 	resource, err := apiclient.Conn.GetScriptByID(resourceID)
 
 	if err != nil {
-		// Skip resource state removal if this is a create operation
-		if !d.IsNewResource() {
-			// If the error is a "not found" error, remove the resource from the state
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
-				d.SetId("") // Remove the resource from Terraform state
-				return diag.Diagnostics{
-					{
-						Severity: diag.Warning,
-						Summary:  "Resource not found",
-						Detail:   fmt.Sprintf("Jamf Pro Script resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
-					},
-				}
-			}
-		}
-		// For other errors, or if this is a create operation, return a diagnostic error
-		return diag.FromErr(err)
+		// Handle not found error or other errors
+		return common.HandleResourceNotFoundError(err, d)
 	}
 
-	// Update the Terraform state with the fetched data
-	resourceData := map[string]interface{}{
-		"id":              resource.ID,
-		"name":            resource.Name,
-		"category_name":   resource.CategoryName,
-		"category_id":     resource.CategoryId,
-		"info":            resource.Info,
-		"notes":           resource.Notes,
-		"os_requirements": resource.OSRequirements,
-		"priority":        resource.Priority,
-		"script_contents": resource.ScriptContents,
-		"parameter4":      resource.Parameter4,
-		"parameter5":      resource.Parameter5,
-		"parameter6":      resource.Parameter6,
-		"parameter7":      resource.Parameter7,
-		"parameter8":      resource.Parameter8,
-		"parameter9":      resource.Parameter9,
-		"parameter10":     resource.Parameter10,
-		"parameter11":     resource.Parameter11,
-	}
+	// Update the Terraform state with the fetched data from the resource
+	diags = updateTerraformState(d, resource)
 
-	// Iterate over the map and set each key-value pair in the Terraform state
-	for key, val := range resourceData {
-		if err := d.Set(key, val); err != nil {
-			return diag.FromErr(err)
-		}
+	// Handle any errors and return diagnostics
+	if len(diags) > 0 {
+		return diags
 	}
-
 	return nil
 }
 
