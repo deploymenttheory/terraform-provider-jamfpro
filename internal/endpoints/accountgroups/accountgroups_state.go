@@ -14,9 +14,6 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAcco
 	var diags diag.Diagnostics
 
 	// Update the Terraform state with the fetched data
-	// if err := d.Set("id", resource.ID); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
 
 	if err := d.Set("name", resource.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
