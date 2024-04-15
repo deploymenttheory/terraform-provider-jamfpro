@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -256,7 +255,7 @@ func ResourceJamfProFileShareDistributionPointsCreate(ctx context.Context, d *sc
 		return apiclient.Conn.GetDistributionPointByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Fileshare Distribution Point", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Fileshare Distribution Point", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
@@ -286,6 +285,8 @@ func ResourceJamfProFileShareDistributionPointsRead(ctx context.Context, d *sche
 
 	// Initialize variables
 	resourceID := d.Id()
+	var diags diag.Diagnostics
+
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
@@ -293,63 +294,19 @@ func ResourceJamfProFileShareDistributionPointsRead(ctx context.Context, d *sche
 
 	// Attempt to fetch the resource by ID
 	resource, err := conn.GetDistributionPointByID(resourceIDInt)
+
 	if err != nil {
-		// Skip resource state removal if this is a create operation
-		if !d.IsNewResource() {
-			// If the error is a "not found" error, remove the resource from the state
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
-				d.SetId("") // Remove the resource from Terraform state
-				return diag.Diagnostics{
-					{
-						Severity: diag.Warning,
-						Summary:  "Resource not found",
-						Detail:   fmt.Sprintf("Jamf Pro Fileshare Distribution Point resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
-					},
-				}
-			}
-		}
-		// For other errors, or if this is a create operation, return a diagnostic error
-		return diag.FromErr(err)
+		// Handle not found error or other errors
+		return common.HandleResourceNotFoundError(err, d)
 	}
 
-	// Check if distribution point data exists
-	if resource != nil {
-		// Organize state updates into a map
-		resourceData := map[string]interface{}{
-			"id":                    resourceID,
-			"name":                  resource.Name,
-			"ip_address":            resource.IPAddress,
-			"is_master":             resource.IsMaster,
-			"failover_point":        resource.FailoverPoint,
-			"failover_point_url":    resource.FailoverPointURL,
-			"enable_load_balancing": resource.EnableLoadBalancing,
-			"local_path":            resource.LocalPath,
-			"ssh_username":          resource.SSHUsername,
-			// "password": resource.Password,  // sensitive field, not included in state
-			"connection_type":                  resource.ConnectionType,
-			"share_name":                       resource.ShareName,
-			"workgroup_or_domain":              resource.WorkgroupOrDomain,
-			"share_port":                       resource.SharePort,
-			"read_only_username":               resource.ReadOnlyUsername,
-			"https_downloads_enabled":          resource.HTTPDownloadsEnabled,
-			"http_url":                         resource.HTTPURL,
-			"https_share_path":                 resource.Context,
-			"protocol":                         resource.Protocol,
-			"https_port":                       resource.Port,
-			"no_authentication_required":       resource.NoAuthenticationRequired,
-			"https_username_password_required": resource.UsernamePasswordRequired,
-			"https_username":                   resource.HTTPUsername,
-		}
+	// Update the Terraform state with the fetched data from the resource
+	diags = updateTerraformState(d, resource)
 
-		// Iterate over the map and set each key-value pair in the Terraform state
-		for key, val := range resourceData {
-			if err := d.Set(key, val); err != nil {
-				return diag.FromErr(err)
-			}
-		}
-
+	// Handle any errors and return diagnostics
+	if len(diags) > 0 {
+		return diags
 	}
-
 	return nil
 }
 

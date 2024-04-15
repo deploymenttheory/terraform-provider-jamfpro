@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -159,6 +158,8 @@ func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, m
 
 	// Initialize variables
 	resourceID := d.Id()
+	var diags diag.Diagnostics
+
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
@@ -168,44 +169,17 @@ func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, m
 	resource, err := apiclient.Conn.GetDockItemByID(resourceIDInt)
 
 	if err != nil {
-		// Skip resource state removal if this is a create operation
-		if !d.IsNewResource() {
-			// If the error is a "not found" error, remove the resource from the state
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
-				d.SetId("") // Remove the resource from Terraform state
-				return diag.Diagnostics{
-					{
-						Severity: diag.Warning,
-						Summary:  "Resource not found",
-						Detail:   fmt.Sprintf("Dock Item with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
-					},
-				}
-			}
-		}
-		// For other errors, or if this is a create operation, return a diagnostic error
-		return diag.FromErr(err)
+		// Handle not found error or other errors
+		return common.HandleResourceNotFoundError(err, d)
 	}
 
-	// Check if dockItem data exists and update the Terraform state
-	if resource != nil {
-		resourceData := map[string]interface{}{
-			"id":       strconv.Itoa(resource.ID),
-			"name":     resource.Name,
-			"type":     resource.Type,
-			"path":     resource.Path,
-			"contents": resource.Contents,
-		}
+	// Update the Terraform state with the fetched data from the resource
+	diags = updateTerraformState(d, resource)
 
-		// Set each attribute in the Terraform state, checking for errors
-		var diags diag.Diagnostics
-		for key, val := range resourceData {
-			if err := d.Set(key, val); err != nil {
-				diags = append(diags, diag.FromErr(err)...)
-			}
-		}
+	// Handle any errors and return diagnostics
+	if len(diags) > 0 {
 		return diags
 	}
-
 	return nil
 }
 

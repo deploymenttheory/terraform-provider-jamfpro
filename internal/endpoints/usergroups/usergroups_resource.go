@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -308,92 +307,18 @@ func ResourceJamfProUserGroupRead(ctx context.Context, d *schema.ResourceData, m
 	resource, err := conn.GetUserGroupByID(resourceIDInt)
 
 	if err != nil {
-		// Skip resource state removal if this is a create operation
-		if !d.IsNewResource() {
-			// If the error is a "not found" error, remove the resource from the state
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
-				d.SetId("") // Remove the resource from Terraform state
-				return diag.Diagnostics{
-					{
-						Severity: diag.Warning,
-						Summary:  "Resource not found",
-						Detail:   fmt.Sprintf("Jamf Pro User Group resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
-					},
-				}
-			}
-		}
-		// For other errors, or if this is a create operation, return a diagnostic error
-		return diag.FromErr(err)
+		// Handle not found error or other errors
+		return common.HandleResourceNotFoundError(err, d)
 	}
 
-	// Update the Terraform state with the fetched data
-	if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("name", resource.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("is_smart", resource.IsSmart); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("is_notify_on_change", resource.IsNotifyOnChange); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
+	// Update the Terraform state with the fetched data from the resource
+	diags = updateTerraformState(d, resource)
 
-	// Set the 'site' attribute in the state only if it's not empty (i.e., not default values)
-	site := []interface{}{}
-
-	if resource.Site.ID != -1 || resource.Site.Name != "None" {
-		site = append(site, map[string]interface{}{
-			"id":   resource.Site.ID,
-			"name": resource.Site.Name,
-		})
+	// Handle any errors and return diagnostics
+	if len(diags) > 0 {
+		return diags
 	}
-	if len(site) > 0 {
-		if err := d.Set("site", site); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-
-	// 'criteria' attribute
-	criteria := make([]interface{}, len(resource.Criteria))
-	for i, criterion := range resource.Criteria {
-		criteria[i] = map[string]interface{}{
-			"name":          criterion.Name,
-			"priority":      criterion.Priority,
-			"and_or":        criterion.AndOr,
-			"search_type":   criterion.SearchType,
-			"value":         criterion.Value,
-			"opening_paren": criterion.OpeningParen,
-			"closing_paren": criterion.ClosingParen,
-		}
-	}
-	d.Set("criteria", criteria)
-
-	// Set the user id's only if the group is not smart
-	if !resource.IsSmart {
-		var userIDStrList []string
-		for _, user := range resource.Users {
-			userIDStrList = append(userIDStrList, strconv.Itoa(user.ID))
-		}
-
-		if err := d.Set("users", []interface{}{
-			map[string]interface{}{
-				"id": userIDStrList,
-			},
-		}); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-
-	if err := d.Set("user_additions", convertUserItems(resource.UserAdditions)); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("user_deletions", convertUserItems(resource.UserDeletions)); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	return diags
+	return nil
 }
 
 // ResourceJamfProUserGroupUpdate is responsible for updating an existing Jamf Pro Printer on the remote system.
