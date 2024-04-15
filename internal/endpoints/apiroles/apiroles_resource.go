@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -144,39 +143,18 @@ func ResourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, me
 	resource, err := conn.GetJamfApiRoleByID(resourceID)
 
 	if err != nil {
-		// Skip resource state removal if this is a create operation
-		if !d.IsNewResource() {
-			// If the error is a "not found" error, remove the resource from the state
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
-				d.SetId("") // Remove the resource from Terraform state
-				return diag.Diagnostics{
-					{
-						Severity: diag.Warning,
-						Summary:  "Resource not found",
-						Detail:   fmt.Sprintf("Jamf Pro API Role resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
-					},
-				}
-			}
-		}
-		// For other errors, or if this is a create operation, return a diagnostic error
-		return diag.FromErr(err)
+		// Handle not found error or other errors
+		return common.HandleResourceNotFoundError(err, d)
 	}
 
-	// Map the configuration fields from the API response to a structured map
-	apiRoleData := map[string]interface{}{
-		"id":           resource.ID,
-		"display_name": resource.DisplayName,
-		"privileges":   resource.Privileges,
-	}
+	// Update the Terraform state with the fetched data from the resource
+	diags = updateTerraformState(d, resource)
 
-	// Set the structured map in the Terraform state
-	for key, val := range apiRoleData {
-		if err := d.Set(key, val); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("failed to set '%s': %v", key, err))...)
-		}
+	// Handle any errors and return diagnostics
+	if len(diags) > 0 {
+		return diags
 	}
-
-	return diags
+	return nil
 }
 
 // ResourceJamfProAPIRolesUpdate handles updating a Jamf Pro API Role.
