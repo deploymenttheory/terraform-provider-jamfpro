@@ -4,7 +4,6 @@ package buildings
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -158,43 +157,18 @@ func ResourceJamfProBuildingRead(ctx context.Context, d *schema.ResourceData, me
 	resource, err := conn.GetBuildingByID(resourceID)
 
 	if err != nil {
-		// Skip resource state removal if this is a create operation
-		if !d.IsNewResource() {
-			// If the error is a "not found" error, remove the resource from the state
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
-				d.SetId("") // Remove the resource from Terraform state
-				return diag.Diagnostics{
-					{
-						Severity: diag.Warning,
-						Summary:  "Resource not found",
-						Detail:   fmt.Sprintf("Jamf Pro Building resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
-					},
-				}
-			}
-		}
-		// For other errors, or if this is a create operation, return a diagnostic error
-		return diag.FromErr(err)
+		// Handle not found error or other errors
+		return common.HandleResourceNotFoundError(err, d)
 	}
 
-	// Map the configuration fields from the API response to a structured map
-	buildingData := map[string]interface{}{
-		"name":            resource.Name,
-		"street_address1": resource.StreetAddress1,
-		"street_address2": resource.StreetAddress2,
-		"city":            resource.City,
-		"state_province":  resource.StateProvince,
-		"zip_postal_code": resource.ZipPostalCode,
-		"country":         resource.Country,
-	}
+	// Update the Terraform state with the fetched data from the resource
+	diags = updateTerraformState(d, resource)
 
-	// Set the structured map in the Terraform state
-	for key, val := range buildingData {
-		if err := d.Set(key, val); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+	// Handle any errors and return diagnostics
+	if len(diags) > 0 {
+		return diags
 	}
-
-	return diags
+	return nil
 }
 
 // ResourceJamfProBuildingUpdate is responsible for updating an existing Building on the remote system.
