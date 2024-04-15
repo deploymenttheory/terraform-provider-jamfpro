@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -287,79 +286,18 @@ func ResourceJamfProComputerGroupsRead(ctx context.Context, d *schema.ResourceDa
 	resource, err := conn.GetComputerGroupByID(resourceIDInt)
 
 	if err != nil {
-		// Skip resource state removal if this is a create operation
-		if !d.IsNewResource() {
-			// If the error is a "not found" error, remove the resource from the state
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
-				d.SetId("") // Remove the resource from Terraform state
-				return diag.Diagnostics{
-					{
-						Severity: diag.Warning,
-						Summary:  "Resource not found",
-						Detail:   fmt.Sprintf("Jamf Pro Computer Group resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
-					},
-				}
-			}
-		}
-		// For other errors, or if this is a create operation, return a diagnostic error
-		return diag.FromErr(err)
+		// Handle not found error or other errors
+		return common.HandleResourceNotFoundError(err, d)
 	}
 
-	// Update the Terraform state with the fetched data
-	if resource != nil {
-		if err := d.Set("name", resource.Name); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("is_smart", resource.IsSmart); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+	// Update the Terraform state with the fetched data from the resource
+	diags = updateTerraformState(d, resource)
 
-		site := map[string]interface{}{
-			"id":   resource.Site.ID,
-			"name": resource.Site.Name,
-		}
-		if err := d.Set("site", []interface{}{site}); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-
-		// Set the criteria
-		criteriaList := make([]interface{}, len(resource.Criteria.Criterion))
-		for i, crit := range resource.Criteria.Criterion {
-			criteriaMap := map[string]interface{}{
-				"name":          crit.Name,
-				"priority":      crit.Priority,
-				"and_or":        crit.AndOr,
-				"search_type":   crit.SearchType,
-				"value":         crit.Value,
-				"opening_paren": crit.OpeningParen,
-				"closing_paren": crit.ClosingParen,
-			}
-			criteriaList[i] = criteriaMap
-		}
-		if err := d.Set("criteria", criteriaList); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-
-		// Set the computers only if the group is not smart
-		if !resource.IsSmart {
-			computersList := make([]interface{}, len(resource.Computers))
-			for i, comp := range resource.Computers {
-				computerMap := map[string]interface{}{
-					"id":              comp.ID,
-					"name":            comp.Name,
-					"mac_address":     comp.MacAddress,
-					"alt_mac_address": comp.AltMacAddress,
-					"serial_number":   comp.SerialNumber,
-				}
-				computersList[i] = computerMap
-			}
-			if err := d.Set("computers", computersList); err != nil {
-				diags = append(diags, diag.FromErr(err)...)
-			}
-		}
+	// Handle any errors and return diagnostics
+	if len(diags) > 0 {
+		return diags
 	}
-
-	return diags
+	return nil
 }
 
 // ResourceJamfProComputerGroupsUpdate is responsible for updating an existing Jamf Pro Computer Group on the remote system.
