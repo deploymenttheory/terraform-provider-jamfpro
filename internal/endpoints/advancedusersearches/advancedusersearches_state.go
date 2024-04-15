@@ -2,6 +2,8 @@
 package advancedusersearches
 
 import (
+	"strconv"
+
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -12,7 +14,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAdva
 
 	var diags diag.Diagnostics
 	// Update the Terraform state with the fetched data
-	if err := d.Set("id", resource.ID); err != nil {
+	if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("name", resource.Name); err != nil {
