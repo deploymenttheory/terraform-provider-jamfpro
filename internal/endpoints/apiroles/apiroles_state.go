@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// updateTerraformState updates the Terraform state with the latest Building information from the Jamf Pro API.
+// updateTerraformState updates the Terraform state with the latest API Role information from the Jamf Pro API.
 func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAPIRole) diag.Diagnostics {
 
 	var diags diag.Diagnostics
