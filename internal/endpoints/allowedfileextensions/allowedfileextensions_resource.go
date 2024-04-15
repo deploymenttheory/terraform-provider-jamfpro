@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
@@ -137,33 +136,18 @@ func ResourceJamfProAllowedFileExtensionRead(ctx context.Context, d *schema.Reso
 	resource, err := conn.GetAllowedFileExtensionByID(resourceIDInt)
 
 	if err != nil {
-		// Skip resource state removal if this is a create operation
-		if !d.IsNewResource() {
-			// If the error is a "not found" error, remove the resource from the state
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
-				d.SetId("") // Remove the resource from Terraform state
-				return diag.Diagnostics{
-					{
-						Severity: diag.Warning,
-						Summary:  "Resource not found",
-						Detail:   fmt.Sprintf("Jamf Pro Allowed File Extension resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
-					},
-				}
-			}
-		}
-		// For other errors, or if this is a create operation, return a diagnostic error
-		return diag.FromErr(err)
+		// Handle not found error or other errors
+		return common.HandleResourceNotFoundError(err, d)
 	}
 
-	// Update the Terraform state with the fetched data
-	if err := d.Set("id", resourceID); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("extension", resource.Extension); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
+	// Update the Terraform state with the fetched data from the resource
+	diags = updateTerraformState(d, resource)
 
-	return diags
+	// Handle any errors and return diagnostics
+	if len(diags) > 0 {
+		return diags
+	}
+	return nil
 }
 
 // ResourceJamfProAllowedFileExtensionUpdate handles the update operation for an AllowedFileExtension resource in Terraform.
