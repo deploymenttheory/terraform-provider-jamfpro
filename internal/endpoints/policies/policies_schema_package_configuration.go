@@ -5,8 +5,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func getPackageConfigSchema() *schema.Resource {
-	SchemaPackageConfiguration := &schema.Resource{
+func getPolicySchemaPackages() *schema.Resource {
+	out := &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"package": {
 				Type:        schema.TypeList,
@@ -31,12 +31,12 @@ func getPackageConfigSchema() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{"Install", "Cache", "Install Cached"}, false),
 							Default:      "Install",
 						},
-						"fut": {
+						"fill_user_template": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Fill User Template (FUT).",
 						},
-						"feu": {
+						"fill_existing_user_template": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Fill Existing Users (FEU).",
@@ -52,5 +52,5 @@ func getPackageConfigSchema() *schema.Resource {
 		},
 	}
 
-	return SchemaPackageConfiguration
+	return out
 }
