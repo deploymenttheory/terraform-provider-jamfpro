@@ -40,57 +40,58 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Required:    true,
 				Description: "Define whether the policy is enabled.",
 			},
-			"trigger": {
-				Type:         schema.TypeString,
-				Required:     true,
-				Description:  "Event(s) triggers to use to initiate the policy. Values can be 'USER_INITIATED' for self self trigger and 'EVENT' for an event based trigger",
-				ValidateFunc: validation.StringInSlice([]string{"EVENT", "USER_INITIATED"}, false),
-			},
+			// "trigger": { // NOTE appears to be redundant when used with the below. Maybe this use to be a multiple choice option?
+			// 	Type:         schema.TypeString,
+			// 	Required:     true,
+			// 	Description:  "Event(s) triggers to use to initiate the policy. Values can be 'USER_INITIATED' for self self trigger and 'EVENT' for an event based trigger",
+			// 	ValidateFunc: validation.StringInSlice([]string{"EVENT", "USER_INITIATED"}, false),
+			// },
 			"trigger_checkin": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Trigger policy when device performs recurring check-in against the frequency configured in Jamf Pro",
 				Default:     false,
+				Description: "Trigger policy when device performs recurring check-in against the frequency configured in Jamf Pro",
 			},
 			"trigger_enrollment_complete": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Trigger policy when device enrollment is complete.",
 				Default:     false,
+				Description: "Trigger policy when device enrollment is complete.",
 			},
 			"trigger_login": {
 				Type:        schema.TypeBool,
 				Optional:    true,
+				Default:     false,
 				Description: "Trigger policy when a user logs in to a computer. A login event that checks for policies must be configured in Jamf Pro for this to work",
-				Default:     false,
 			},
-			"trigger_logout": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Description: "Trigger policy when a user logout.",
-				Default:     false,
-			},
+			// "trigger_logout": { // NOTE appears to be redundant
+			// 	Type:        schema.TypeBool,
+			// 	Optional:    true,
+			// 	Description: "Trigger policy when a user logout.",
+			// 	Default:     false,
+			// },
 			"trigger_network_state_changed": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Trigger policy when it's network state changes. When a computer's network state changes (e.g., when the network connection changes, when the computer name changes, when the IP address changes)",
 				Default:     false,
+				Description: "Trigger policy when it's network state changes. When a computer's network state changes (e.g., when the network connection changes, when the computer name changes, when the IP address changes)",
 			},
 			"trigger_startup": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Trigger policy when a computer starts up. A startup script that checks for policies must be configured in Jamf Pro for this to work",
 				Default:     false,
+				Description: "Trigger policy when a computer starts up. A startup script that checks for policies must be configured in Jamf Pro for this to work",
 			},
 			"trigger_other": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Any other trigger for the policy.",
 				Default:     "",
+				Description: "Any other trigger for the policy.",
+				// TODO need a validation func here to make sure this cannot be provided as empty.
 			},
 			"frequency": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "Frequency of policy execution.",
 				Default:     "Once per computer",
 				ValidateFunc: validation.StringInSlice([]string{
@@ -103,7 +104,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 					"Ongoing",
 				}, false),
 			},
-			"retry_event": {
+			"retry_event": { // Retry only relevant if frequency is Once Per Computer
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Event on which to retry policy execution.",
@@ -134,19 +135,19 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Description: "Send notifications for each failed policy retry attempt. ",
 				Default:     false,
 			},
-			"location_user_only": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Description: "Location-based policy for user only.",
-				Default:     false,
-			},
+			// "location_user_only": { // NOTE Can't find in GUI
+			// 	Type:        schema.TypeBool,
+			// 	Optional:    true,
+			// 	Description: "Location-based policy for user only.",
+			// 	Default:     false,
+			// },
 			"target_drive": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The drive on which to run the policy (e.g. /Volumes/Restore/ ). The policy runs on the boot drive by default",
 				Default:     "/",
 			},
-			"offline": {
+			"offline": { // Only avaible if frequency set to continuous else not needed
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Description: "Make policy available offline by caching the policy to the macOS device to ensure it runs when Jamf Pro is unavailable. Only used when execution policy is set to 'ongoing'. ",
@@ -253,21 +254,21 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Default:      "No Minimum",
 							ValidateFunc: validation.StringInSlice([]string{"No Minimum", "Ethernet"}, false),
 						},
-						"any_ip_address": {
+						"any_ip_address": { // NOT IN THE UI
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether the policy applies to any IP address.",
 							Default:     true,
 						},
-						"network_segments": {
+						"network_segments": { // surely this has been moved to scope now?
 							Type:        schema.TypeString,
 							Description: "Network segment limitations for the policy.",
 							Optional:    true,
 						},
 					},
 				},
-			},
-			"override_default_settings": {
+			}, // END OF General UI
+			"override_default_settings": { // UI > payloads > software update settings
 				Type:        schema.TypeList,
 				Required:    true,
 				Description: "Settings to override default configurations.",
@@ -300,7 +301,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 					},
 				},
 			},
-			"network_requirements": {
+			"network_requirements": { // NOT IN THE UI
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Network requirements for the policy.",
@@ -332,707 +333,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 				MaxItems:    1,
 				Required:    true,
 				Description: "Scope configuration for the profile.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"all_computers": {
-							Type:        schema.TypeBool,
-							Required:    true,
-							Description: "scope all_computers if true, applies the profile to all computers. If false applies to specific computers.",
-						},
-						"computers": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"computer": {
-										Type:     schema.TypeList,
-										Optional: true,
-										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:        schema.TypeInt,
-													Required:    true,
-													Description: "The unique identifier of the scoped computer.",
-												},
-												"name": {
-													Type:        schema.TypeString,
-													Computed:    true,
-													Description: "Name of the scoped computer.",
-												},
-												"udid": {
-													Type:        schema.TypeString,
-													Computed:    true,
-													Description: "UDID of the scoped computer.",
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-						"buildings": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"building": {
-										Type:     schema.TypeList,
-										Optional: true,
-										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:        schema.TypeInt,
-													Required:    true,
-													Description: "The unique identifier of the scoped building.",
-												},
-												"name": {
-													Type:        schema.TypeString,
-													Description: "Name of the scoped building.",
-													Computed:    true,
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-						"departments": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"department": {
-										Type:     schema.TypeList,
-										Optional: true,
-										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:        schema.TypeInt,
-													Required:    true,
-													Description: "The unique identifier of the scoped department.",
-												},
-												"name": {
-													Type:        schema.TypeString,
-													Description: "Name of the scoped department.",
-													Computed:    true,
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-						"computer_groups": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"computer_group": {
-										Type:     schema.TypeList,
-										Optional: true,
-										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:        schema.TypeInt,
-													Required:    true,
-													Description: "The unique identifier of the scoped computer group.",
-												},
-												"name": {
-													Type:        schema.TypeString,
-													Description: "Name of the computer scoped group.",
-													Computed:    true,
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-						"jss_users": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"jss_user": {
-										Type:     schema.TypeList,
-										Optional: true,
-										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:        schema.TypeInt,
-													Required:    true,
-													Description: "The unique identifier of the scoped JSS user.",
-												},
-												"name": {
-													Type:        schema.TypeString,
-													Description: "Name of the scoped JSS user.",
-													Computed:    true,
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-						"jss_user_groups": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Required:    true,
-										Description: "The unique identifier of the scoped JSS user group.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Description: "Name of the scoped JSS user group.",
-										Computed:    true,
-									},
-								},
-							},
-						},
-						"limitations": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							Description: "Scoped limitations for the policy.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"network_segments": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"network_segment": {
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"id": {
-																Type:        schema.TypeInt,
-																Required:    true,
-																Description: "The unique identifier of the scoped network segment.",
-															},
-															"name": {
-																Type:        schema.TypeString,
-																Description: "Name of the scoped network segment.",
-																Computed:    true,
-															},
-															"uid": {
-																Type:        schema.TypeString,
-																Description: "UID of the scoped network segment.",
-																Computed:    true,
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-									"users": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"user": {
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"id": {
-																Type:        schema.TypeInt,
-																Required:    true,
-																Description: "The unique identifier of the user.",
-															},
-															"name": {
-																Type:        schema.TypeString,
-																Description: "Name of the user.",
-																Computed:    true,
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-									"user_groups": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"user_group": {
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"id": {
-																Type:        schema.TypeInt,
-																Required:    true,
-																Description: "The unique identifier of the scoped user group.",
-															},
-															"name": {
-																Type:        schema.TypeString,
-																Description: "Name of the scoped user group.",
-																Computed:    true,
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-									"ibeacons": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"ibeacon": {
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"id": {
-																Type:        schema.TypeInt,
-																Required:    true,
-																Description: "The unique identifier of the scoped iBeacon.",
-															},
-															"name": {
-																Type:        schema.TypeString,
-																Description: "Name of the scoped iBeacon.",
-																Computed:    true,
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-						"exclusions": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							Description: "Scoped exclusions to exclude from the policy.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"computers": {
-										Type:        schema.TypeList,
-										Optional:    true,
-										Description: "Scoped computer exclusions to exclude from the policy.",
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"computer": {
-													Type:        schema.TypeList,
-													Optional:    true,
-													Description: "The individual computer to exclude from the policy.",
-													MaxItems:    1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"id": {
-																Type:        schema.TypeInt,
-																Required:    true,
-																Description: "The unique identifier of the computer.",
-															},
-															"name": {
-																Type:        schema.TypeString,
-																Description: "Name of the computer.",
-																Computed:    true,
-															},
-															"udid": {
-																Type:        schema.TypeString,
-																Description: "UDID of the computer.",
-																Computed:    true,
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-									"computer_groups": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"computer_group": {
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"id": {
-																Type:        schema.TypeInt,
-																Required:    true,
-																Description: "The unique identifier of the computer group.",
-															},
-															"name": {
-																Type:        schema.TypeString,
-																Description: "Name of the computer group.",
-																Computed:    true,
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-									"jss_users": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"jss_user": {
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"id": {
-																Type:        schema.TypeInt,
-																Required:    true,
-																Description: "The unique identifier of the JSS user.",
-															},
-															"name": {
-																Type:        schema.TypeString,
-																Description: "Name of the JSS user.",
-																Computed:    true,
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-									"jss_user_groups": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"jss_user_group": {
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"id": {
-																Type:        schema.TypeInt,
-																Required:    true,
-																Description: "The unique identifier of the JSS user group.",
-															},
-															"name": {
-																Type:        schema.TypeString,
-																Optional:    true,
-																Description: "Name of the JSS user group.",
-																Computed:    true,
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-									"buildings": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"building": {
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"id": {
-																Type:        schema.TypeInt,
-																Required:    true,
-																Description: "The unique identifier of the building.",
-															},
-															"name": {
-																Type:        schema.TypeString,
-																Description: "Name of the building.",
-																Computed:    true,
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-									"departments": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"department": {
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"id": {
-																Type:        schema.TypeInt,
-																Required:    true,
-																Description: "The unique identifier of the department.",
-															},
-															"name": {
-																Type:        schema.TypeString,
-																Description: "Name of the department.",
-																Computed:    true,
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-									"network_segments": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"network_segment": {
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"id": {
-																Type:        schema.TypeInt,
-																Required:    true,
-																Description: "The unique identifier of the network segment.",
-															},
-															"uid": {
-																Type:        schema.TypeString,
-																Description: "UID of the network segment.",
-																Computed:    true,
-															},
-															"name": {
-																Type:        schema.TypeString,
-																Description: "Name of the network segment.",
-																Computed:    true,
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-									"users": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"user": {
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"id": {
-																Type:        schema.TypeInt,
-																Required:    true,
-																Description: "The unique identifier of the user.",
-															},
-															"name": {
-																Type:        schema.TypeString,
-																Optional:    true,
-																Description: "Name of the user.",
-																Computed:    true,
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-									"user_groups": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"user_group": {
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"id": {
-																Type:        schema.TypeInt,
-																Required:    true,
-																Description: "The unique identifier of the user group.",
-															},
-															"name": {
-																Type:        schema.TypeString,
-																Description: "Name of the user group.",
-																Computed:    true,
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-									"ibeacons": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"ibeacon": {
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"id": {
-																Type:        schema.TypeInt,
-																Required:    true,
-																Description: "The unique identifier of the iBeacon.",
-															},
-															"name": {
-																Type:        schema.TypeString,
-																Optional:    true,
-																Description: "Name of the iBeacon.",
-																Computed:    true,
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
+				Elem:        GetSharedSchemaScope(),
 			},
 			"self_service": {
 				Type:        schema.TypeList,
 				Required:    true,
 				Description: "Self-service settings of the policy.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"use_for_self_service": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Whether the policy is available for self-service.",
-							Default:     false,
-						},
-						"self_service_display_name": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Display name of the policy in self-service.",
-							Default:     "",
-						},
-						"install_button_text": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Text displayed on the install button in self-service.",
-							Default:     "Install",
-						},
-						"reinstall_button_text": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Text displayed on the re-install button in self-service.",
-							Default:     "REINSTALL",
-						},
-						"self_service_description": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Description of the policy displayed in self-service.",
-							Default:     "",
-						},
-						"force_users_to_view_description": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Whether to force users to view the policy description in self-service.",
-							Default:     false,
-						},
-						"self_service_icon": {
-							Type:        schema.TypeList,
-							Required:    true,
-							Description: "Icon settings for the policy in self-service.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "ID of the icon used in self-service.",
-										Default:     0,
-									},
-									"filename": {
-										Type:        schema.TypeString,
-										Description: "Filename of the icon used in self-service.",
-										Computed:    true,
-									},
-									"uri": {
-										Type:        schema.TypeString,
-										Description: "URI of the icon used in self-service.",
-										Computed:    true,
-									},
-								},
-							},
-						},
-						"feature_on_main_page": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Whether to feature the policy on the main page of self-service.",
-							Default:     false,
-						},
-						"self_service_categories": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							Description: "Category settings for the policy in self-service.",
-							Computed:    true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"category": {
-										Type:        schema.TypeList,
-										Optional:    true,
-										Description: "Category details for the policy in self-service.",
-										Computed:    true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:        schema.TypeInt,
-													Optional:    true,
-													Description: "Category ID for the policy in self-service.",
-												},
-												"name": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "Category name for the policy in self-service.",
-												},
-												"display_in": {
-													Type:        schema.TypeBool,
-													Optional:    true,
-													Description: "Whether to display the category in self-service.",
-													Default:     false,
-												},
-												"feature_in": {
-													Type:        schema.TypeBool,
-													Optional:    true,
-													Description: "Whether to feature the category in self-service.",
-													Default:     false,
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
+				Elem:        getSelfServiceSchema(),
 			},
 			"package_configuration": {
 				Type:        schema.TypeList,
@@ -1040,55 +347,11 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Description: "Package configuration settings of the policy.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"packages": {
+						"packages": { // TODO Unnecessary branching
 							Type:        schema.TypeList,
 							Optional:    true,
 							Description: "List of packages included in the policy.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"package": {
-										Type:        schema.TypeList,
-										Optional:    true,
-										Description: "Details of the package.",
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:        schema.TypeInt,
-													Required:    true,
-													Description: "Unique identifier of the package.",
-												},
-												"name": {
-													Type:        schema.TypeString,
-													Description: "Name of the package.",
-													Computed:    true,
-												},
-												"action": {
-													Type:         schema.TypeString,
-													Optional:     true,
-													Description:  "Action to be performed for the package.",
-													ValidateFunc: validation.StringInSlice([]string{"Install", "Cache", "Install Cached"}, false),
-													Default:      "Install",
-												},
-												"fut": {
-													Type:        schema.TypeBool,
-													Optional:    true,
-													Description: "Fill User Template (FUT).",
-												},
-												"feu": {
-													Type:        schema.TypeBool,
-													Optional:    true,
-													Description: "Fill Existing Users (FEU).",
-												},
-												"update_autorun": {
-													Type:        schema.TypeBool,
-													Optional:    true,
-													Description: "Update auto-run status of the package.",
-												},
-											},
-										},
-									},
-								},
-							},
+							Elem:        getPackageConfigSchema(),
 						},
 					},
 				},
@@ -1099,7 +362,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Description: "Scripts settings of the policy.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"script": {
+						"script": { // Unnecessary branching
 							Type:        schema.TypeList,
 							Optional:    true,
 							Description: "Details of the scripts.",

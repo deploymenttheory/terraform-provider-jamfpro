@@ -347,7 +347,7 @@ func Provider() *schema.Provider {
 			},
 			ClientOptions: httpclient.ClientOptions{
 				LogLevel:                  d.Get("log_level").(string),
-				LogOutputFormat:           d.Get("log_output_format").(string),
+				LogOutputFormat:           d.Get("lo g_output_format").(string),
 				LogConsoleSeparator:       d.Get("log_console_separator").(string),
 				LogExportPath:             d.Get("log_export_path").(string),
 				EnableCookieJar:           enableCookieJar,
