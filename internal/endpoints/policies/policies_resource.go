@@ -61,8 +61,8 @@ func ResourceJamfProPolicies() *schema.Resource {
 			"trigger_login": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Trigger policy when a user logs in to a computer. A login event that checks for policies must be configured in Jamf Pro for this to work",
 				Default:     false,
+				Description: "Trigger policy when a user logs in to a computer. A login event that checks for policies must be configured in Jamf Pro for this to work",
 			},
 			// "trigger_logout": { // NOTE appears to be redundant
 			// 	Type:        schema.TypeBool,
@@ -73,20 +73,21 @@ func ResourceJamfProPolicies() *schema.Resource {
 			"trigger_network_state_changed": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Trigger policy when it's network state changes. When a computer's network state changes (e.g., when the network connection changes, when the computer name changes, when the IP address changes)",
 				Default:     false,
+				Description: "Trigger policy when it's network state changes. When a computer's network state changes (e.g., when the network connection changes, when the computer name changes, when the IP address changes)",
 			},
 			"trigger_startup": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Trigger policy when a computer starts up. A startup script that checks for policies must be configured in Jamf Pro for this to work",
 				Default:     false,
+				Description: "Trigger policy when a computer starts up. A startup script that checks for policies must be configured in Jamf Pro for this to work",
 			},
 			"trigger_other": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Any other trigger for the policy.",
 				Default:     "",
+				Description: "Any other trigger for the policy.",
+				// TODO need a validation func here to make sure this cannot be provided as empty.
 			},
 			"frequency": {
 				Type:        schema.TypeString,
@@ -103,7 +104,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 					"Ongoing",
 				}, false),
 			},
-			"retry_event": {
+			"retry_event": { // Retry only relevant if frequency is Once Per Computer
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Event on which to retry policy execution.",
@@ -146,7 +147,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Description: "The drive on which to run the policy (e.g. /Volumes/Restore/ ). The policy runs on the boot drive by default",
 				Default:     "/",
 			},
-			"offline": {
+			"offline": { // Only avaible if frequency set to continuous else not needed
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Description: "Make policy available offline by caching the policy to the macOS device to ensure it runs when Jamf Pro is unavailable. Only used when execution policy is set to 'ongoing'. ",
@@ -253,21 +254,21 @@ func ResourceJamfProPolicies() *schema.Resource {
 							Default:      "No Minimum",
 							ValidateFunc: validation.StringInSlice([]string{"No Minimum", "Ethernet"}, false),
 						},
-						"any_ip_address": {
+						"any_ip_address": { // NOT IN THE UI
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether the policy applies to any IP address.",
 							Default:     true,
 						},
-						"network_segments": {
+						"network_segments": { // surely this has been moved to scope now?
 							Type:        schema.TypeString,
 							Description: "Network segment limitations for the policy.",
 							Optional:    true,
 						},
 					},
 				},
-			},
-			"override_default_settings": {
+			}, // END OF General UI
+			"override_default_settings": { // UI > payloads > software update settings
 				Type:        schema.TypeList,
 				Required:    true,
 				Description: "Settings to override default configurations.",
@@ -300,7 +301,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 					},
 				},
 			},
-			"network_requirements": {
+			"network_requirements": { // NOT IN THE UI
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Network requirements for the policy.",
@@ -1040,55 +1041,11 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Description: "Package configuration settings of the policy.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"packages": {
+						"packages": { // TODO Unnecessary branching
 							Type:        schema.TypeList,
 							Optional:    true,
 							Description: "List of packages included in the policy.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"package": {
-										Type:        schema.TypeList,
-										Optional:    true,
-										Description: "Details of the package.",
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:        schema.TypeInt,
-													Required:    true,
-													Description: "Unique identifier of the package.",
-												},
-												"name": {
-													Type:        schema.TypeString,
-													Description: "Name of the package.",
-													Computed:    true,
-												},
-												"action": {
-													Type:         schema.TypeString,
-													Optional:     true,
-													Description:  "Action to be performed for the package.",
-													ValidateFunc: validation.StringInSlice([]string{"Install", "Cache", "Install Cached"}, false),
-													Default:      "Install",
-												},
-												"fut": {
-													Type:        schema.TypeBool,
-													Optional:    true,
-													Description: "Fill User Template (FUT).",
-												},
-												"feu": {
-													Type:        schema.TypeBool,
-													Optional:    true,
-													Description: "Fill Existing Users (FEU).",
-												},
-												"update_autorun": {
-													Type:        schema.TypeBool,
-													Optional:    true,
-													Description: "Update auto-run status of the package.",
-												},
-											},
-										},
-									},
-								},
-							},
+							Elem:        getPackageConfigSchema(),
 						},
 					},
 				},
@@ -1099,7 +1056,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Description: "Scripts settings of the policy.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"script": {
+						"script": { // Unnecessary branching
 							Type:        schema.TypeList,
 							Optional:    true,
 							Description: "Details of the scripts.",
