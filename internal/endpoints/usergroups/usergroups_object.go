@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -19,20 +20,12 @@ func constructJamfProUserGroup(d *schema.ResourceData) (*jamfpro.ResourceUserGro
 		IsNotifyOnChange: d.Get("is_notify_on_change").(bool),
 	}
 
-	// Handle 'site' attribute with default values if not set
-	site, ok := d.GetOk("site")
-	if ok && len(site.([]interface{})) > 0 {
-		siteBlock := site.([]interface{})[0].(map[string]interface{})
-		userGroup.Site = jamfpro.SharedResourceSite{
-			ID:   siteBlock["id"].(int),
-			Name: siteBlock["name"].(string),
-		}
+	// Handle Site
+	if v, ok := d.GetOk("site"); ok {
+		userGroup.Site = common.ConstructSharedResourceSite(v.([]interface{}))
 	} else {
-		// Set default values if 'site' block is not specified
-		userGroup.Site = jamfpro.SharedResourceSite{
-			ID:   -1,     // Default ID
-			Name: "None", // Default name
-		}
+		// Set default values if 'site' data is not provided
+		userGroup.Site = common.ConstructSharedResourceSite([]interface{}{})
 	}
 
 	criteria := d.Get("criteria").([]interface{})

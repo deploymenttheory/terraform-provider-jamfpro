@@ -29,11 +29,9 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceUser
 
 	// Set the 'site' attribute in the state only if it's not empty (i.e., not default values)
 	site := []interface{}{}
-
-	if resource.Site.ID != -1 || resource.Site.Name != "None" {
+	if resource.Site.ID != -1 {
 		site = append(site, map[string]interface{}{
-			"id":   resource.Site.ID,
-			"name": resource.Site.Name,
+			"id": resource.Site.ID,
 		})
 	}
 	if len(site) > 0 {

@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -54,10 +55,10 @@ func constructJamfProAdvancedMobileDeviceSearch(d *schema.ResourceData) (*jamfpr
 
 	// Handle Site
 	if v, ok := d.GetOk("site"); ok {
-		search.Site = constructSharedResourceSite(v.([]interface{}))
+		search.Site = common.ConstructSharedResourceSite(v.([]interface{}))
 	} else {
 		// Set default values if 'site' data is not provided
-		search.Site = constructSharedResourceSite([]interface{}{})
+		search.Site = common.ConstructSharedResourceSite([]interface{}{})
 	}
 
 	// Serialize and pretty-print the Advanced Mobile Device Search object as XML for logging
@@ -70,27 +71,4 @@ func constructJamfProAdvancedMobileDeviceSearch(d *schema.ResourceData) (*jamfpr
 	log.Printf("[DEBUG] Constructed Jamf Pro Advanced Mobile Device Search XML:\n%s\n", string(resourceXML))
 
 	return search, nil
-}
-
-// Helper functions for nested structures
-
-// constructSharedResourceSite constructs a SharedResourceSite object from the provided schema data,
-// setting default values if none are presented.
-func constructSharedResourceSite(data []interface{}) jamfpro.SharedResourceSite {
-	// Check if 'site' data is provided and non-empty
-	if len(data) > 0 && data[0] != nil {
-		site := data[0].(map[string]interface{})
-
-		// Return the 'site' object with data from the schema
-		return jamfpro.SharedResourceSite{
-			ID:   site["id"].(int),
-			Name: site["name"].(string),
-		}
-	}
-
-	// Return default 'site' values if no data is provided or it is empty
-	return jamfpro.SharedResourceSite{
-		ID:   -1,     // Default ID
-		Name: "None", // Default name
-	}
 }
