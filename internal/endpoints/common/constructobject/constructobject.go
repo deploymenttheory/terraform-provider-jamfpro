@@ -1,5 +1,5 @@
 // common/constructobject.go
-package common
+package constructobject
 
 import "github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 
