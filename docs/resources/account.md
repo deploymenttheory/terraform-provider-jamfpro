@@ -23,9 +23,9 @@ description: |-
 
 ### Optional
 
-- `casper_admin_privileges` (List of String) Privileges related to Casper Admin.
-- `casper_imaging_privileges` (List of String) Privileges related to Casper Imaging.
-- `casper_remote_privileges` (List of String) Privileges related to Casper Remote.
+- `casper_admin_privileges` (Set of String) Privileges related to Casper Admin.
+- `casper_imaging_privileges` (Set of String) Privileges related to Casper Imaging.
+- `casper_remote_privileges` (Set of String) Privileges related to Casper Remote.
 - `directory_user` (Boolean) Indicates if the user is a directory user.
 - `email` (String) The email of the account user.
 - `email_address` (String) The email address of the account user.
@@ -33,12 +33,12 @@ description: |-
 - `full_name` (String) The full name of the account user.
 - `groups` (Block Set) A set of group names and IDs associated with the account. (see [below for nested schema](#nestedblock--groups))
 - `identity_server` (Block List, Max: 1) LDAP or IdP server associated with the account group. (see [below for nested schema](#nestedblock--identity_server))
-- `jss_actions_privileges` (List of String) Privileges related to JSS Actions.
-- `jss_objects_privileges` (List of String) Privileges related to JSS Objects.
-- `jss_settings_privileges` (List of String) Privileges related to JSS Settings.
+- `jss_actions_privileges` (Set of String) Privileges related to JSS Actions.
+- `jss_objects_privileges` (Set of String) Privileges related to JSS Objects.
+- `jss_settings_privileges` (Set of String) Privileges related to JSS Settings.
 - `password` (String, Sensitive) The password for the account.
 - `privilege_set` (String) The privilege set assigned to the account.
-- `recon_privileges` (List of String) Privileges related to Recon.
+- `recon_privileges` (Set of String) Privileges related to Recon.
 - `site` (Block List, Max: 1) The site information associated with the account group if access_level is set to Site Access. (see [below for nested schema](#nestedblock--site))
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
