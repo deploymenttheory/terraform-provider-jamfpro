@@ -239,6 +239,9 @@ func Provider() *schema.Provider {
 		DataSourcesMap: map[string]*schema.Resource{
 			"jamfpro_account":                             accounts.DataSourceJamfProAccounts(),
 			"jamfpro_account_group":                       accountgroups.DataSourceJamfProAccountGroups(),
+			"jamfpro_advanced_computer_search":            advancedcomputersearches.DataSourceJamfProAdvancedComputerSearches(),
+			"jamfpro_advanced_mobile_device_search":       advancedmobiledevicesearches.DataSourceJamfProAdvancedMobileDeviceSearches(),
+			"jamfpro_advanced_user_search":                advancedusersearches.DataSourceJamfProAdvancedUserSearches(),
 			"jamfpro_api_integration":                     apiintegrations.DataSourceJamfProApiIntegrations(),
 			"jamfpro_api_role":                            apiroles.DataSourceJamfProAPIRoles(),
 			"jamfpro_building":                            buildings.DataSourceJamfProBuildings(),
