@@ -324,7 +324,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Type:        schema.TypeList,
 				Required:    true,
 				Description: "Self-service settings of the policy.",
-				Elem:        getSelfServiceSchema(),
+				Elem:        getPolicySelfServiceSchema(),
 			},
 			"package_configuration": {
 				Type:        schema.TypeList,
@@ -345,7 +345,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Scripts settings of the policy.",
-				Elem:        getSharedSchemaScript(),
+				Elem:        getPolicySchemaScript(),
 			},
 			"printers": {
 				Type:        schema.TypeList,
@@ -592,171 +592,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Use this section to restart computers and specify the disk to boot them to",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"message": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The reboot message displayed to the user.",
-							Default:     "This computer will restart in 5 minutes. Please save anything you are working on and log out by choosing Log Out from the bottom of the Apple menu.",
-						},
-						"specify_startup": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Reboot Method",
-							Default:     "",
-							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-								v := util.GetString(val)
-								validMethods := []string{"", "Standard Restart", "MDM Restart with Kernel Cache Rebuild"}
-								for _, method := range validMethods {
-									if v == method {
-										return
-									}
-								}
-								errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validMethods, v))
-								return
-							},
-						},
-						"startup_disk": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Disk to boot computers to",
-							Default:     "Current Startup Disk",
-							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-								v := util.GetString(val)
-								validDisks := []string{"Current Startup Disk", "Currently Selected Startup Disk (No Bless)", "macOS Installer", "Specify Local Startup Disk"}
-								for _, disk := range validDisks {
-									if v == disk {
-										return
-									}
-								}
-								errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validDisks, v))
-								return
-							},
-						},
-						"no_user_logged_in": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Action to take if no user is logged in to the computer",
-							Default:     "Do not restart",
-							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-								v := util.GetString(val)
-								validOptions := []string{"Restart if a package or update requires it", "Restart Immediately", "Do not restart"}
-								for _, option := range validOptions {
-									if v == option {
-										return
-									}
-								}
-								errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validOptions, v))
-								return
-							},
-						},
-						"user_logged_in": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Default:     "Do not restart",
-							Description: "Action to take if a user is logged in to the computer",
-							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-								v := util.GetString(val)
-								validOptions := []string{"Restart if a package or update requires it", "Restart Immediately", "Restart", "Do not restart"}
-								for _, option := range validOptions {
-									if v == option {
-										return
-									}
-								}
-								errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validOptions, v))
-								return
-							},
-						},
-						"minutes_until_reboot": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "Amount of time to wait before the restart begins.",
-							Default:     5,
-						},
-						"start_reboot_timer_immediately": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Defines if the reboot timer should start immediately once the policy applies to a macOS device.",
-							Default:     false,
-						},
-						"file_vault_2_reboot": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Perform authenticated restart on computers with FileVault 2 enabled. Restart FileVault 2-encrypted computers without requiring an unlock during the next startup",
-							Default:     false,
-						},
-					},
-				},
+				Elem:        getPolicySchemaReboot(),
 			},
 			"maintenance": {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Maintenance settings of the policy. Use this section to update inventory, reset computer names, install all cached packages, and run common maintenance tasks.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"recon": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Whether to run recon (inventory update) as part of the maintenance. Forces computers to submit updated inventory information to Jamf Pro",
-							Default:     false,
-						},
-						"reset_name": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Whether to reset the computer name to the name stored in Jamf Pro. Changes the computer name on computers to match the computer name in Jamf Pro",
-							Default:     false,
-						},
-						"install_all_cached_packages": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Whether to install all cached packages. Installs packages cached by Jamf Pro",
-							Default:     false,
-						},
-						"heal": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Whether to heal the policy.",
-							Default:     false,
-						},
-						"prebindings": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Whether to update prebindings.",
-							Default:     false,
-						},
-						"permissions": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Whether to fix Disk Permissions (Not compatible with macOS v10.12 or later)",
-							Default:     false,
-						},
-						"byhost": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Whether to fix ByHost files andnpreferences.",
-							Default:     false,
-						},
-						"system_cache": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Whether to flush caches from /Library/Caches/ and /System/Library/Caches/, except for any com.apple.LaunchServices caches",
-							Default:     false,
-						},
-						"user_cache": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Whether to flush caches from ~/Library/Caches/, ~/.jpi_cache/, and ~/Library/Preferences/Microsoft/Office version #/Office Font Cache. Enabling this may cause problems with system fonts displaying unless a restart option is configured.",
-							Default:     false,
-						},
-						"verify": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Whether to verify system files and structure on the Startup Disk",
-							Default:     false,
-						},
-					},
-				},
+				Elem:        getPolicySchemaMaintenance(),
 			},
 			"files_processes": {
 				Type:        schema.TypeList,

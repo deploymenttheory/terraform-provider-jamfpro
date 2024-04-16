@@ -5,7 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func getSharedSchemaScript() *schema.Resource {
+func getPolicySchemaScript() *schema.Resource {
 	out := &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"id": {

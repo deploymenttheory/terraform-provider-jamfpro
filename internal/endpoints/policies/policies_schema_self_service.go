@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func getSelfServiceSchema() *schema.Resource {
+func getPolicySelfServiceSchema() *schema.Resource {
 	selfServiceSchema := &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"use_for_self_service": {
