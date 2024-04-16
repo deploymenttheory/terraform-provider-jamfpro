@@ -62,12 +62,12 @@ func DataSourceJamfProAdvancedMobileDeviceSearchesRead(ctx context.Context, d *s
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	var resource *jamfpro.ResourceAdvancedUserSearch
+	var resource *jamfpro.ResourceAdvancedMobileDeviceSearch
 
 	// Read operation with retry
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		resource, apiErr = conn.GetAdvancedUserSearchByID(resourceIDInt)
+		resource, apiErr = conn.GetAdvancedMobileDeviceSearchByID(resourceIDInt)
 		if apiErr != nil {
 			// Convert any API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)

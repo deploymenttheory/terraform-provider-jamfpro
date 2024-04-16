@@ -1,6 +1,6 @@
-// common/state.go
+// common/state/state.go
 // This package contains shared / common resource functions
-package common
+package state
 
 import (
 	"strings"

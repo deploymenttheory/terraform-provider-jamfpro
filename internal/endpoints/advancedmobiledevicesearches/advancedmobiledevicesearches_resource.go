@@ -10,6 +10,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -218,7 +219,7 @@ func ResourceJamfProAdvancedMobileDeviceSearchRead(ctx context.Context, d *schem
 
 	if err != nil {
 		// Handle not found error or other errors
-		return common.HandleResourceNotFoundError(err, d)
+		return state.HandleResourceNotFoundError(err, d)
 	}
 
 	// Update the Terraform state with the fetched data from the resource
@@ -268,7 +269,7 @@ func ResourceJamfProAdvancedMobileDeviceSearchUpdate(ctx context.Context, d *sch
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Advanced User Search '%s' (ID: %s) after retries: %v", resource.Name, resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Advanced Mobile Device Search '%s' (ID: %s) after retries: %v", resource.Name, resourceID, err))
 	}
 
 	// Read the resource to ensure the Terraform state is up to date

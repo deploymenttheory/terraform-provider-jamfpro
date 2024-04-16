@@ -10,6 +10,8 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/jamfprivileges"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
@@ -177,7 +179,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 				Description: "Privileges related to JSS Objects.",
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: common.ValidateJSSObjectsPrivileges,
+					ValidateFunc: jamfprivileges.ValidateJSSObjectsPrivileges,
 				},
 			},
 			"jss_settings_privileges": {
@@ -186,7 +188,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 				Description: "Privileges related to JSS Settings.",
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: common.ValidateJSSSettingsPrivileges,
+					ValidateFunc: jamfprivileges.ValidateJSSSettingsPrivileges,
 				},
 			},
 			"jss_actions_privileges": {
@@ -195,7 +197,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 				Description: "Privileges related to JSS Actions.",
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: common.ValidateJSSActionsPrivileges,
+					ValidateFunc: jamfprivileges.ValidateJSSActionsPrivileges,
 				},
 			},
 			"casper_admin_privileges": {
@@ -204,7 +206,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 				Description: "Privileges related to Casper Admin.",
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: common.ValidateCasperAdminPrivileges,
+					ValidateFunc: jamfprivileges.ValidateCasperAdminPrivileges,
 				},
 			},
 			"casper_remote_privileges": {
@@ -328,7 +330,7 @@ func ResourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, met
 
 	if err != nil {
 		// Handle not found error or other errors
-		return common.HandleResourceNotFoundError(err, d)
+		return state.HandleResourceNotFoundError(err, d)
 	}
 
 	// Update the Terraform state with the fetched data from the resource

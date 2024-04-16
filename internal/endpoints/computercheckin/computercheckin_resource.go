@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -165,7 +165,7 @@ func ResourceJamfProComputerCheckinRead(ctx context.Context, d *schema.ResourceD
 
 	if err != nil {
 		// Handle not found error or other errors
-		return common.HandleResourceNotFoundError(err, d)
+		return state.HandleResourceNotFoundError(err, d)
 	}
 
 	// Update the Terraform state with the fetched data from the resource

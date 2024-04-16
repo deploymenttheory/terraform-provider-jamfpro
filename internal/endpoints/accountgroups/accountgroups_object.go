@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/constructobject"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -20,10 +21,10 @@ func constructJamfProAccountGroup(d *schema.ResourceData) (*jamfpro.ResourceAcco
 
 	// Handle Site
 	if v, ok := d.GetOk("site"); ok {
-		accountGroup.Site = constructSharedResourceSite(v.([]interface{}))
+		accountGroup.Site = constructobject.ConstructSharedResourceSite(v.([]interface{}))
 	} else {
 		// Set default values if 'site' data is not provided
-		accountGroup.Site = constructSharedResourceSite([]interface{}{})
+		accountGroup.Site = constructobject.ConstructSharedResourceSite([]interface{}{})
 	}
 
 	// Handle Privileges
@@ -63,27 +64,6 @@ func constructJamfProAccountGroup(d *schema.ResourceData) (*jamfpro.ResourceAcco
 }
 
 // Helper functions for nested structures
-
-// constructSharedResourceSite constructs a SharedResourceSite object from the provided schema data,
-// setting default values if none are presented.
-func constructSharedResourceSite(data []interface{}) jamfpro.SharedResourceSite {
-	// Check if 'site' data is provided and non-empty
-	if len(data) > 0 && data[0] != nil {
-		site := data[0].(map[string]interface{})
-
-		// Return the 'site' object with data from the schema
-		return jamfpro.SharedResourceSite{
-			ID:   site["id"].(int),
-			Name: site["name"].(string),
-		}
-	}
-
-	// Return default 'site' values if no data is provided or it is empty
-	return jamfpro.SharedResourceSite{
-		ID:   -1,     // Default ID
-		Name: "None", // Default name
-	}
-}
 
 // constructAccountSubsetPrivileges constructs AccountSubsetPrivileges from schema data.
 func constructAccountSubsetPrivileges(d *schema.ResourceData) jamfpro.AccountSubsetPrivileges {
