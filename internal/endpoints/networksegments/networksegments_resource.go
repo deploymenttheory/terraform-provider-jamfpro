@@ -5,11 +5,11 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -25,10 +25,10 @@ func ResourceJamfProNetworkSegments() *schema.Resource {
 		UpdateContext: ResourceJamfProNetworkSegmentsUpdate,
 		DeleteContext: ResourceJamfProNetworkSegmentsDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Second),
+			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
-			Delete: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -149,7 +149,7 @@ func ResourceJamfProNetworkSegmentsCreate(ctx context.Context, d *schema.Resourc
 		return apiclient.Conn.GetNetworkSegmentByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Network Segment", strconv.Itoa(creationResponse.ID), checkResourceExists, 5*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Network Segment", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
@@ -177,6 +177,8 @@ func ResourceJamfProNetworkSegmentsRead(ctx context.Context, d *schema.ResourceD
 
 	// Initialize variables
 	resourceID := d.Id()
+	var diags diag.Diagnostics
+
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
@@ -186,47 +188,17 @@ func ResourceJamfProNetworkSegmentsRead(ctx context.Context, d *schema.ResourceD
 	resource, err := apiclient.Conn.GetNetworkSegmentByID(resourceIDInt)
 
 	if err != nil {
-		// Skip resource state removal if this is a create operation
-		if !d.IsNewResource() {
-			// If the error is a "not found" error, remove the resource from the state
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
-				d.SetId("") // Remove the resource from Terraform state
-				return diag.Diagnostics{
-					{
-						Severity: diag.Warning,
-						Summary:  "Resource not found",
-						Detail:   fmt.Sprintf("Jamf Pro Network Segment resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
-					},
-				}
-			}
-		}
-		// For other errors, or if this is a create operation, return a diagnostic error
-		return diag.FromErr(err)
+		// Handle not found error or other errors
+		return common.HandleResourceNotFoundError(err, d)
 	}
 
-	// Update the Terraform state with the fetched data
-	resourceData := map[string]interface{}{
-		"id":                   strconv.Itoa(resource.ID),
-		"name":                 resource.Name,
-		"starting_address":     resource.StartingAddress,
-		"ending_address":       resource.EndingAddress,
-		"distribution_server":  resource.DistributionServer,
-		"distribution_point":   resource.DistributionPoint,
-		"url":                  resource.URL,
-		"swu_server":           resource.SWUServer,
-		"building":             resource.Building,
-		"department":           resource.Department,
-		"override_buildings":   resource.OverrideBuildings,
-		"override_departments": resource.OverrideDepartments,
-	}
+	// Update the Terraform state with the fetched data from the resource
+	diags = updateTerraformState(d, resource)
 
-	// Iterate over the map and set each key-value pair in the Terraform state
-	for key, val := range resourceData {
-		if err := d.Set(key, val); err != nil {
-			return diag.FromErr(err)
-		}
+	// Handle any errors and return diagnostics
+	if len(diags) > 0 {
+		return diags
 	}
-
 	return nil
 }
 

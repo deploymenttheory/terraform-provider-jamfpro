@@ -10,6 +10,7 @@ import (
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -25,7 +26,7 @@ func ResourceJamfProDiskEncryptionConfigurations() *schema.Resource {
 		UpdateContext: ResourceJamfProDiskEncryptionConfigurationsUpdate,
 		DeleteContext: ResourceJamfProDiskEncryptionConfigurationsDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(120 * time.Second),
+			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
 			Delete: schema.DefaultTimeout(15 * time.Second),
@@ -147,7 +148,7 @@ func ResourceJamfProDiskEncryptionConfigurationsCreate(ctx context.Context, d *s
 	// Construct the resource object
 	resource, err := constructJamfProDiskEncryptionConfiguration(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Dock Item: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Disk Encryption Configuration: %v", err))
 	}
 
 	// Retry the API call to create the resource in Jamf Pro
@@ -178,7 +179,7 @@ func ResourceJamfProDiskEncryptionConfigurationsCreate(ctx context.Context, d *s
 		return apiclient.Conn.GetDiskEncryptionConfigurationByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Disk Encryption Configuration", strconv.Itoa(creationResponse.ID), checkResourceExists, 30*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Disk Encryption Configuration", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
@@ -212,58 +213,18 @@ func ResourceJamfProDiskEncryptionConfigurationsRead(ctx context.Context, d *sch
 	resource, err := apiclient.Conn.GetDiskEncryptionConfigurationByID(resourceIDInt)
 
 	if err != nil {
-		// Skip resource state removal if this is a create operation
-		if !d.IsNewResource() {
-			// If the error is a "not found" error, remove the resource from the state
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
-				d.SetId("") // Remove the resource from Terraform state
-				return diag.Diagnostics{
-					{
-						Severity: diag.Warning,
-						Summary:  "Resource not found",
-						Detail:   fmt.Sprintf("Jamf Pro Disk Encryption Configuration with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
-					},
-				}
-			}
-		}
-		// For other errors, or if this is a create operation, return a diagnostic error
-		return diag.FromErr(err)
+		// Handle not found error or other errors
+		return common.HandleResourceNotFoundError(err, d)
 	}
 
-	// Assuming successful retrieval, proceed to set the resource attributes in Terraform state
-	if resource != nil {
-		// Set the fields directly in the Terraform state
-		if err := d.Set("id", strconv.Itoa(resourceIDInt)); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("name", resource.Name); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("key_type", resource.KeyType); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("file_vault_enabled_users", resource.FileVaultEnabledUsers); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+	// Update the Terraform state with the fetched data from the resource
+	diags = updateTerraformState(d, resource)
 
-		// Handle Institutional Recovery Key
-		if resource.InstitutionalRecoveryKey != nil {
-			irk := make(map[string]interface{})
-			irk["certificate_type"] = resource.InstitutionalRecoveryKey.CertificateType
-			//irk["password"] = resource.InstitutionalRecoveryKey.Password // Uncomment if password should be set
-			irk["data"] = resource.InstitutionalRecoveryKey.Data
-
-			if err := d.Set("institutional_recovery_key", []interface{}{irk}); err != nil {
-				diags = append(diags, diag.FromErr(err)...)
-			}
-		} else {
-			// Ensure institutional_recovery_key is not set in the Terraform state if nil or empty
-			if err := d.Set("institutional_recovery_key", []interface{}{}); err != nil {
-				diags = append(diags, diag.FromErr(err)...)
-			}
-		}
+	// Handle any errors and return diagnostics
+	if len(diags) > 0 {
+		return diags
 	}
-	return diags
+	return nil
 }
 
 // ResourceJamfProDiskEncryptionConfigurationsUpdate is responsible for updating an existing Jamf Pro Disk Encryption Configuration on the remote system.

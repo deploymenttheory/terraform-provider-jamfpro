@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 
-	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -102,33 +101,31 @@ func validateGroupAccessPrivilegeSetRequirement(_ context.Context, d *schema.Res
 
 // validateCasperAdminUsePrivileges checks for required privileges when "Use Casper Admin" is selected.
 func validateCasperAdminUsePrivileges(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
-	casperAdminPrivileges, ok := d.GetOk("casper_admin_privileges")
-	if ok {
-		for _, privilege := range casperAdminPrivileges.([]interface{}) {
-			if privilege.(string) == "Use Casper Admin" {
-				requiredReadPrivileges := []string{
-					"Read Categories",
-					"Read Directory Bindings",
-					"Read Dock Items",
-					"Read Packages",
-					"Read Printers",
-					"Read Scripts",
-				}
+	if v, ok := d.GetOk("casper_admin_privileges"); ok {
+		casperAdminPrivilegesSet := v.(*schema.Set)
+		if casperAdminPrivilegesSet.Contains("Use Casper Admin") {
+			requiredReadPrivileges := []string{
+				"Read Categories",
+				"Read Directory Bindings",
+				"Read Dock Items",
+				"Read Packages",
+				"Read Printers",
+				"Read Scripts",
+			}
 
-				jssObjectsPrivileges, ok := d.GetOk("jss_objects_privileges")
-				if !ok {
-					return fmt.Errorf("when 'Use Casper Admin' is selected, the following JSS Object Privileges are required: %v", requiredReadPrivileges)
-				}
+			jssObjectsPrivilegesSet, ok := d.GetOk("jss_objects_privileges")
+			if !ok {
+				return fmt.Errorf("when 'Use Casper Admin' is selected, the following JSS Object Privileges are required: %v", requiredReadPrivileges)
+			}
 
-				jssPrivilegesSet := make(map[string]bool)
-				for _, priv := range jssObjectsPrivileges.([]interface{}) {
-					jssPrivilegesSet[priv.(string)] = true
-				}
+			jssPrivilegesSet := make(map[string]bool)
+			for _, priv := range jssObjectsPrivilegesSet.(*schema.Set).List() {
+				jssPrivilegesSet[priv.(string)] = true
+			}
 
-				for _, requiredPriv := range requiredReadPrivileges {
-					if !jssPrivilegesSet[requiredPriv] {
-						return fmt.Errorf("missing required privilege '%s' in 'jss_objects_privileges' when 'Use Casper Admin' is selected in 'casper_admin_privileges'", requiredPriv)
-					}
+			for _, requiredPriv := range requiredReadPrivileges {
+				if !jssPrivilegesSet[requiredPriv] {
+					return fmt.Errorf("missing required privilege '%s' in 'jss_objects_privileges' when 'Use Casper Admin' is selected in 'casper_admin_privileges'", requiredPriv)
 				}
 			}
 		}
@@ -139,33 +136,31 @@ func validateCasperAdminUsePrivileges(_ context.Context, d *schema.ResourceDiff,
 
 // validateCasperAdminSavePrivileges checks for required privileges when "Save With Casper Admin" is selected.
 func validateCasperAdminSavePrivileges(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
-	casperAdminPrivileges, ok := d.GetOk("casper_admin_privileges")
-	if ok {
-		for _, privilege := range casperAdminPrivileges.([]interface{}) {
-			if privilege.(string) == "Save With Casper Admin" {
-				requiredCrudPrivileges := []string{
-					"Create Categories", "Read Categories", "Update Categories", "Delete Categories",
-					"Create Directory Bindings", "Read Directory Bindings", "Update Directory Bindings", "Delete Directory Bindings",
-					"Create Dock Items", "Read Dock Items", "Update Dock Items", "Delete Dock Items",
-					"Create Packages", "Read Packages", "Update Packages", "Delete Packages",
-					"Create Printers", "Read Printers", "Update Printers", "Delete Printers",
-					"Create Scripts", "Read Scripts", "Update Scripts", "Delete Scripts",
-				}
+	if v, ok := d.GetOk("casper_admin_privileges"); ok {
+		casperAdminPrivilegesSet := v.(*schema.Set)
+		if casperAdminPrivilegesSet.Contains("Save With Casper Admin") {
+			requiredCrudPrivileges := []string{
+				"Create Categories", "Read Categories", "Update Categories", "Delete Categories",
+				"Create Directory Bindings", "Read Directory Bindings", "Update Directory Bindings", "Delete Directory Bindings",
+				"Create Dock Items", "Read Dock Items", "Update Dock Items", "Delete Dock Items",
+				"Create Packages", "Read Packages", "Update Packages", "Delete Packages",
+				"Create Printers", "Read Printers", "Update Printers", "Delete Printers",
+				"Create Scripts", "Read Scripts", "Update Scripts", "Delete Scripts",
+			}
 
-				jssObjectsPrivileges, ok := d.GetOk("jss_objects_privileges")
-				if !ok {
-					return fmt.Errorf("when 'Save With Casper Admin' is selected, the following JSS Object Privileges are required: %v", requiredCrudPrivileges)
-				}
+			jssObjectsPrivilegesSet, ok := d.GetOk("jss_objects_privileges")
+			if !ok {
+				return fmt.Errorf("when 'Save With Casper Admin' is selected, the following JSS Object Privileges are required: %v", requiredCrudPrivileges)
+			}
 
-				jssPrivilegesSet := make(map[string]bool)
-				for _, priv := range jssObjectsPrivileges.([]interface{}) {
-					jssPrivilegesSet[priv.(string)] = true
-				}
+			jssPrivilegesSet := make(map[string]bool)
+			for _, priv := range jssObjectsPrivilegesSet.(*schema.Set).List() {
+				jssPrivilegesSet[priv.(string)] = true
+			}
 
-				for _, requiredPriv := range requiredCrudPrivileges {
-					if !jssPrivilegesSet[requiredPriv] {
-						return fmt.Errorf("missing required privilege '%s' in 'jss_objects_privileges' when 'Save With Casper Admin' is selected in 'casper_admin_privileges'", requiredPriv)
-					}
+			for _, requiredPriv := range requiredCrudPrivileges {
+				if !jssPrivilegesSet[requiredPriv] {
+					return fmt.Errorf("missing required privilege '%s' in 'jss_objects_privileges' when 'Save With Casper Admin' is selected in 'casper_admin_privileges'", requiredPriv)
 				}
 			}
 		}
@@ -178,8 +173,9 @@ func validateCasperAdminSavePrivileges(_ context.Context, d *schema.ResourceDiff
 func validateReverseDependencyChecks(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
 	jssObjectsPrivileges, ok := d.GetOk("jss_objects_privileges")
 	if ok {
+		jssObjectsPrivilegesSet := jssObjectsPrivileges.(*schema.Set)
 		jssPrivilegesSet := make(map[string]bool)
-		for _, priv := range jssObjectsPrivileges.([]interface{}) {
+		for _, priv := range jssObjectsPrivilegesSet.List() {
 			jssPrivilegesSet[priv.(string)] = true
 		}
 
@@ -195,7 +191,12 @@ func validateReverseDependencyChecks(_ context.Context, d *schema.ResourceDiff, 
 
 		if allReadPrivilegesPresent {
 			casperAdminPrivileges, ok := d.GetOk("casper_admin_privileges")
-			if !ok || !util.GetStringFromSlice(casperAdminPrivileges.([]interface{}), "Use Casper Admin") {
+			if ok {
+				casperAdminPrivilegesSet := casperAdminPrivileges.(*schema.Set)
+				if !casperAdminPrivilegesSet.Contains("Use Casper Admin") {
+					return fmt.Errorf("when the following JSS Object Privileges are set %v, 'Use Casper Admin' must be included in 'casper_admin_privileges'", readPrivileges)
+				}
+			} else {
 				return fmt.Errorf("when the following JSS Object Privileges are set %v, 'Use Casper Admin' must be included in 'casper_admin_privileges'", readPrivileges)
 			}
 		}
@@ -220,22 +221,14 @@ func validateReverseDependencyChecks(_ context.Context, d *schema.ResourceDiff, 
 		if allCrudPrivilegesPresent {
 			casperAdminPrivileges, ok := d.GetOk("casper_admin_privileges")
 			if ok {
-				hasSaveWithCasperAdmin := false
-				for _, privilege := range casperAdminPrivileges.([]interface{}) {
-					if privilege.(string) == "Save With Casper Admin" {
-						hasSaveWithCasperAdmin = true
-						break
-					}
-				}
-				if !hasSaveWithCasperAdmin {
+				casperAdminPrivilegesSet := casperAdminPrivileges.(*schema.Set)
+				if !casperAdminPrivilegesSet.Contains("Save With Casper Admin") {
 					return fmt.Errorf("when the following JSS Object Privileges are set %v, 'Save With Casper Admin' must be included in 'casper_admin_privileges'", crudPrivileges)
 				}
 			} else {
-				// Handle the case where casper_admin_privileges is not set at all but all CRUD privileges are present
 				return fmt.Errorf("when the following JSS Object Privileges are set %v, 'Save With Casper Admin' must be included in 'casper_admin_privileges'", crudPrivileges)
 			}
 		}
-
 	}
 
 	return nil

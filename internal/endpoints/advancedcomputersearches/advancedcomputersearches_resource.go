@@ -10,6 +10,7 @@ import (
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -25,10 +26,10 @@ func ResourceJamfProAdvancedComputerSearches() *schema.Resource {
 		UpdateContext: ResourceJamfProAdvancedComputerSearchUpdate,
 		DeleteContext: ResourceJamfProAdvancedComputerSearchDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Second),
+			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
-			Delete: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
 		Schema: map[string]*schema.Schema{
 			"id": {
@@ -149,7 +150,7 @@ func ResourceJamfProAdvancedComputerSearchCreate(ctx context.Context, d *schema.
 	// Construct the resource object
 	resource, err := constructJamfProAdvancedComputerSearch(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Advanced Computer Search: %v", err))
 	}
 
 	// Retry the API call to create the resource in Jamf Pro
@@ -180,7 +181,7 @@ func ResourceJamfProAdvancedComputerSearchCreate(ctx context.Context, d *schema.
 		return apiclient.Conn.GetAdvancedComputerSearchByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Advanced Computer Search", strconv.Itoa(creationResponse.ID), checkResourceExists, 45*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Advanced Computer Search", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
 	if waitDiags.HasError() {
 		return waitDiags
 	}

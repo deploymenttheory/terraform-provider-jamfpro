@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -14,7 +13,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/utilities"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -30,10 +28,10 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 		DeleteContext: ResourceJamfProAccountGroupDelete,
 		CustomizeDiff: customDiffAccountGroups,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Second),
+			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
-			Delete: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
 		Schema: map[string]*schema.Schema{
 			"id": {
@@ -154,6 +152,21 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 					},
 				},
 			},
+			"identity_server": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: "LDAP or IdP server associated with the account group.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:        schema.TypeInt,
+							Optional:    true,
+							Description: "ID is the ID of the LDAP or IdP configuration in Jamf Pro.",
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -210,7 +223,8 @@ func ResourceJamfProAccountGroupCreate(ctx context.Context, d *schema.ResourceDa
 		return apiclient.Conn.GetAccountGroupByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Account Group", strconv.Itoa(creationResponse.ID), checkResourceExists, 45*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Account Group", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
+
 	if waitDiags.HasError() {
 		return waitDiags
 	}
@@ -251,76 +265,14 @@ func ResourceJamfProAccountGroupRead(ctx context.Context, d *schema.ResourceData
 	resource, err := conn.GetAccountGroupByID(resourceIDInt)
 
 	if err != nil {
-		// Skip resource state removal if this is a create operation
-		if !d.IsNewResource() {
-			// If the error is a "not found" error, remove the resource from the state
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
-				d.SetId("") // Remove the resource from Terraform state
-				return diag.Diagnostics{
-					{
-						Severity: diag.Warning,
-						Summary:  "Resource not found",
-						Detail:   fmt.Sprintf("Jamf Pro Account Group resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
-					},
-				}
-			}
-		}
-		// For other errors, or if this is a create operation, return a diagnostic error
-		return diag.FromErr(err)
+		// Handle not found error or other errors
+		return common.HandleResourceNotFoundError(err, d)
 	}
 
-	// Update the Terraform state with the fetched data
-	if err := d.Set("id", resourceID); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
+	// Update the Terraform state with the fetched data from the resource
+	diags = updateTerraformState(d, resource)
 
-	if err := d.Set("name", resource.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("access_level", resource.AccessLevel); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("privilege_set", resource.PrivilegeSet); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	// Update site information
-	site := make(map[string]interface{})
-	site["id"] = resource.Site.ID
-	site["name"] = resource.Site.Name
-	if err := d.Set("site", []interface{}{site}); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	// Set privileges
-	privilegeAttributes := map[string][]string{
-		"jss_objects_privileges":  resource.Privileges.JSSObjects,
-		"jss_settings_privileges": resource.Privileges.JSSSettings,
-		"jss_actions_privileges":  resource.Privileges.JSSActions,
-		"casper_admin_privileges": resource.Privileges.CasperAdmin,
-	}
-
-	for attrName, privileges := range privilegeAttributes {
-		if err := d.Set(attrName, schema.NewSet(schema.HashString, utilities.ConvertToStringInterface(privileges))); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-
-	// Update members
-	members := make([]interface{}, 0)
-	for _, memberStruct := range resource.Members {
-		member := memberStruct.User // Access the User field
-		memberMap := map[string]interface{}{
-			"id":   member.ID,
-			"name": member.Name,
-		}
-		members = append(members, memberMap)
-	}
-	if err := d.Set("members", members); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	// Check if there were any errors and return the diagnostics
+	// Handle any errors and return diagnostics
 	if len(diags) > 0 {
 		return diags
 	}

@@ -4,11 +4,12 @@ package buildings
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -23,10 +24,10 @@ func ResourceJamfProBuildings() *schema.Resource {
 		UpdateContext: ResourceJamfProBuildingUpdate,
 		DeleteContext: ResourceJamfProBuildingDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Second),
+			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
-			Delete: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
 		Schema: map[string]*schema.Schema{
 			"id": {
@@ -93,7 +94,7 @@ func ResourceJamfProBuildingCreate(ctx context.Context, d *schema.ResourceData, 
 	// Construct the resource object
 	resource, err := constructJamfProBuilding(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Buildings: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Building: %v", err))
 	}
 
 	// Retry the API call to create the resource in Jamf Pro
@@ -114,6 +115,17 @@ func ResourceJamfProBuildingCreate(ctx context.Context, d *schema.ResourceData, 
 
 	// Set the resource ID in Terraform state
 	d.SetId(creationResponse.ID)
+
+	// Wait for the resource to be fully available before reading it
+	checkResourceExists := func(id interface{}) (interface{}, error) {
+		return apiclient.Conn.GetBuildingByID(id.(string))
+	}
+
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Building", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
+
+	if waitDiags.HasError() {
+		return waitDiags
+	}
 
 	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProBuildingRead(ctx, d, meta)
@@ -141,60 +153,22 @@ func ResourceJamfProBuildingRead(ctx context.Context, d *schema.ResourceData, me
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	var resource *jamfpro.ResourceBuilding
+	// Attempt to fetch the resource by ID
+	resource, err := conn.GetBuildingByID(resourceID)
 
-	// Read operation with retry
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
-		resource, apiErr = conn.GetBuildingByID(resourceID)
-		if apiErr != nil {
-			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
-				// Return non-retryable error with a message to avoid SDK issues
-				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
-			}
-			// Retry for other types of errors
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	// If err is not nil, check if it's due to the resource being not found
 	if err != nil {
-		if err.Error() == "resource not found, marked for deletion" {
-			// Resource not found, remove from Terraform state
-			d.SetId("")
-			// Append a warning diagnostic and return
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "Resource not found",
-				Detail:   fmt.Sprintf("Jamf Pro Buildings with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
-			})
-			return diags
-		}
-
-		// For other errors, return an error diagnostic
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Buildings with ID '%s' after retries: %v", resourceID, err))
+		// Handle not found error or other errors
+		return common.HandleResourceNotFoundError(err, d)
 	}
 
-	// Map the configuration fields from the API response to a structured map
-	buildingData := map[string]interface{}{
-		"name":            resource.Name,
-		"street_address1": resource.StreetAddress1,
-		"street_address2": resource.StreetAddress2,
-		"city":            resource.City,
-		"state_province":  resource.StateProvince,
-		"zip_postal_code": resource.ZipPostalCode,
-		"country":         resource.Country,
-	}
+	// Update the Terraform state with the fetched data from the resource
+	diags = updateTerraformState(d, resource)
 
-	// Set the structured map in the Terraform state
-	for key, val := range buildingData {
-		if err := d.Set(key, val); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+	// Handle any errors and return diagnostics
+	if len(diags) > 0 {
+		return diags
 	}
-
-	return diags
+	return nil
 }
 
 // ResourceJamfProBuildingUpdate is responsible for updating an existing Building on the remote system.

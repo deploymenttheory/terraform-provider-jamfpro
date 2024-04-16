@@ -114,3 +114,20 @@ resource "jamfpro_account_groups"  "jamf_pro_account_group_004" {
   }
   
 }
+
+// account group - custom example
+resource "jamfpro_account_group"  "jamf_pro_account_group_004" {
+  name         = "IDENTITY_SERVER_GROUP_NAME" // LDAP_GROUP_NAME / iDP_GROUP_NAME
+  access_level = "Full Access" // Full Access / Site Access / Group Access
+  privilege_set = "Custom" 
+
+  site {
+    id   = -1 
+    name = "None" 
+  }
+
+  identity_server {
+    id   = 1 // LDAP_GROUP_ID / iDP_GROUP_ID
+  }
+  
+}

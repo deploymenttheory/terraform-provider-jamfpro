@@ -44,7 +44,7 @@ Optional:
 - `name` (String) The name of the criterion.
 - `opening_paren` (Boolean) Indicates if there is an opening parenthesis before this criterion, denoting the start of a grouped expression.
 - `priority` (Number) The priority of the criterion.
-- `search_type` (String) The type of user smart group search operator. Allowed values are 'is', 'is not', 'like', 'not like', 'matches regex', 'does not match regex'.
+- `search_type` (String) The type of user smart group search operator. Allowed values are 'is', 'is not', 'like', 'not like', 'matches regex', 'does not match regex', 'member of', 'not member of'.
 - `value` (String) The value to search for.
 
 
