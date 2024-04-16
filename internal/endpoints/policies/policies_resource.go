@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -91,7 +91,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 			},
 			"frequency": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "Frequency of policy execution.",
 				Default:     "Once per computer",
 				ValidateFunc: validation.StringInSlice([]string{
@@ -333,7 +333,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 				MaxItems:    1,
 				Required:    true,
 				Description: "Scope configuration for the profile.",
-				Elem:        GetSharedSchemaScope(),
+				Elem:        sharedschemas.GetSharedSchemaScope(),
 			},
 			"self_service": {
 				Type:        schema.TypeList,
