@@ -268,7 +268,7 @@ func ResourceJamfProAdvancedMobileDeviceSearchUpdate(ctx context.Context, d *sch
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Advanced User Search '%s' (ID: %s) after retries: %v", resource.Name, resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Advanced Mobile Device Search '%s' (ID: %s) after retries: %v", resource.Name, resourceID, err))
 	}
 
 	// Read the resource to ensure the Terraform state is up to date
