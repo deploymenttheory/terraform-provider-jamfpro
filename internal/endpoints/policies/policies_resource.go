@@ -91,7 +91,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 			},
 			"frequency": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "Frequency of policy execution.",
 				Default:     "Once per computer",
 				ValidateFunc: validation.StringInSlice([]string{
