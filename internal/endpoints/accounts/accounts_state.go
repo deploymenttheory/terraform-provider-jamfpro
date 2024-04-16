@@ -2,9 +2,8 @@
 package accounts
 
 import (
-	"strconv"
-
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/utilities"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -14,16 +13,10 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAcco
 
 	var diags diag.Diagnostics
 
-	// Update the Terraform state with the fetched data
-
-	if err := d.Set("name", resource.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
 	// Update Terraform state with the resource information
-	if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
+	// if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
+	// 	diags = append(diags, diag.FromErr(err)...)
+	// }
 	if err := d.Set("name", resource.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -41,7 +34,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAcco
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Update LDAP server information
+	// Set LDAP server information
 	if resource.LdapServer.ID != 0 || resource.LdapServer.Name != "" {
 		ldapServer := make(map[string]interface{})
 		ldapServer["id"] = resource.LdapServer.ID
@@ -56,7 +49,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAcco
 
 	d.Set("privilege_set", resource.PrivilegeSet)
 
-	// Update site information
+	// Set site information
 	if resource.Site.ID != 0 || resource.Site.Name != "" {
 		site := make(map[string]interface{})
 		site["id"] = resource.Site.ID
@@ -80,27 +73,21 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAcco
 		return diag.FromErr(err)
 	}
 
-	// Update privileges
-	if err := d.Set("jss_objects_privileges", resource.Privileges.JSSObjects); err != nil {
-		return diag.FromErr(err)
+	// Set privileges
+	privilegeAttributes := map[string][]string{
+		"jss_objects_privileges":    resource.Privileges.JSSObjects,
+		"jss_settings_privileges":   resource.Privileges.JSSSettings,
+		"jss_actions_privileges":    resource.Privileges.JSSActions,
+		"casper_admin_privileges":   resource.Privileges.CasperAdmin,
+		"casper_remote_privileges":  resource.Privileges.CasperRemote,
+		"casper_imaging_privileges": resource.Privileges.CasperImaging,
+		"recon_privileges":          resource.Privileges.Recon,
 	}
-	if err := d.Set("jss_settings_privileges", resource.Privileges.JSSSettings); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("jss_actions_privileges", resource.Privileges.JSSActions); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("casper_admin_privileges", resource.Privileges.CasperAdmin); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("casper_remote_privileges", resource.Privileges.CasperRemote); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("casper_imaging_privileges", resource.Privileges.CasperImaging); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("recon_privileges", resource.Privileges.Recon); err != nil {
-		return diag.FromErr(err)
+
+	for attrName, privileges := range privilegeAttributes {
+		if err := d.Set(attrName, schema.NewSet(schema.HashString, utilities.ConvertToStringInterface(privileges))); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	return diags

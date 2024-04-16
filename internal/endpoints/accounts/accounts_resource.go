@@ -143,7 +143,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 							Type:        schema.TypeInt,
 							Optional:    true,
 							Description: "Jamf Pro Site ID. Value defaults to '0' aka not used.",
-							Default:     "",
+							Default:     -1,
 						},
 						"name": {
 							Type:        schema.TypeString,
@@ -172,7 +172,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 				},
 			},
 			"jss_objects_privileges": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Privileges related to JSS Objects.",
 				Elem: &schema.Schema{
@@ -181,7 +181,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 				},
 			},
 			"jss_settings_privileges": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Privileges related to JSS Settings.",
 				Elem: &schema.Schema{
@@ -190,7 +190,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 				},
 			},
 			"jss_actions_privileges": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Privileges related to JSS Actions.",
 				Elem: &schema.Schema{
@@ -199,7 +199,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 				},
 			},
 			"casper_admin_privileges": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Privileges related to Casper Admin.",
 				Elem: &schema.Schema{
@@ -208,7 +208,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 				},
 			},
 			"casper_remote_privileges": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Privileges related to Casper Remote.",
 				Elem: &schema.Schema{
@@ -216,7 +216,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 				},
 			},
 			"casper_imaging_privileges": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Privileges related to Casper Imaging.",
 				Elem: &schema.Schema{
@@ -224,7 +224,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 				},
 			},
 			"recon_privileges": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Privileges related to Recon.",
 				Elem: &schema.Schema{
@@ -234,10 +234,6 @@ func ResourceJamfProAccounts() *schema.Resource {
 		},
 	}
 }
-
-const (
-	JamfProResourceAccount = "Account"
-)
 
 // ResourceJamfProAccountCreate is responsible for creating a new Jamf Pro Script in the remote system.
 // The function:
