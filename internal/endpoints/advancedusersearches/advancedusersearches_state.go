@@ -57,13 +57,17 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAdva
 		}
 	}
 
-	// Handle "site" field
-	site := map[string]interface{}{
-		"id":   resource.Site.ID,
-		"name": resource.Site.Name,
+	// Set the 'site' attribute in the state only if it's not empty (i.e., not default values)
+	site := []interface{}{}
+	if resource.Site.ID != -1 {
+		site = append(site, map[string]interface{}{
+			"id": resource.Site.ID,
+		})
 	}
-	if err := d.Set("site", []interface{}{site}); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	if len(site) > 0 {
+		if err := d.Set("site", site); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	return diags

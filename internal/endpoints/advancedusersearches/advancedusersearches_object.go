@@ -48,13 +48,12 @@ func constructJamfProAdvancedUserSearch(d *schema.ResourceData) (*jamfpro.Resour
 		search.DisplayFields = []jamfpro.SharedAdvancedSearchContainerDisplayField{{DisplayField: displayFields}}
 	}
 
-	// Handle 'site' field
-	if v, ok := d.GetOk("site"); ok && len(v.([]interface{})) > 0 {
-		siteData := v.([]interface{})[0].(map[string]interface{})
-		search.Site = jamfpro.SharedResourceSite{
-			ID:   siteData["id"].(int),
-			Name: siteData["name"].(string),
-		}
+	// Handle Site
+	if v, ok := d.GetOk("site"); ok {
+		search.Site = constructSharedResourceSite(v.([]interface{}))
+	} else {
+		// Set default values if 'site' data is not provided
+		search.Site = constructSharedResourceSite([]interface{}{})
 	}
 
 	// Serialize and pretty-print the Advanced User Search object as XML for logging
@@ -67,4 +66,27 @@ func constructJamfProAdvancedUserSearch(d *schema.ResourceData) (*jamfpro.Resour
 	log.Printf("[DEBUG] Constructed Jamf Pro Advanced User Search XML:\n%s\n", string(resourceXML))
 
 	return search, nil
+}
+
+// Helper functions for nested structures
+
+// constructSharedResourceSite constructs a SharedResourceSite object from the provided schema data,
+// setting default values if none are presented.
+func constructSharedResourceSite(data []interface{}) jamfpro.SharedResourceSite {
+	// Check if 'site' data is provided and non-empty
+	if len(data) > 0 && data[0] != nil {
+		site := data[0].(map[string]interface{})
+
+		// Return the 'site' object with data from the schema
+		return jamfpro.SharedResourceSite{
+			ID:   site["id"].(int),
+			Name: site["name"].(string),
+		}
+	}
+
+	// Return default 'site' values if no data is provided or it is empty
+	return jamfpro.SharedResourceSite{
+		ID:   -1,     // Default ID
+		Name: "None", // Default name
+	}
 }
