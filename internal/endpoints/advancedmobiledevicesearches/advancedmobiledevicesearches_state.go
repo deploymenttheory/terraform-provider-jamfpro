@@ -1,5 +1,5 @@
-// advancedusersearches_state.go
-package advancedusersearches
+// advancedmobiledevicesearches_resource.go
+package advancedmobiledevicesearches
 
 import (
 	"strconv"
@@ -10,14 +10,27 @@ import (
 )
 
 // updateTerraformState updates the Terraform state with the latest Advanced User Search information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAdvancedUserSearch) diag.Diagnostics {
+func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAdvancedMobileDeviceSearch) diag.Diagnostics {
 
 	var diags diag.Diagnostics
 	// Update the Terraform state with the fetched data
 	if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+
 	if err := d.Set("name", resource.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("view_as", resource.ViewAs); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("sort1", resource.Sort1); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("sort2", resource.Sort2); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("sort3", resource.Sort3); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

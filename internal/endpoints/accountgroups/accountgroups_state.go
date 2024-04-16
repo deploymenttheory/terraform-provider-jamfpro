@@ -25,7 +25,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAcco
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Update LDAP server information
+	// Set LDAP server information
 	if resource.LDAPServer.ID != 0 {
 		ldapServer := make(map[string]interface{})
 		ldapServer["id"] = resource.LDAPServer.ID

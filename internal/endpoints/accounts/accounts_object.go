@@ -1,3 +1,4 @@
+// accounts_object.go
 package accounts
 
 import (
@@ -30,23 +31,16 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 		}
 	}
 
-	if v, ok := d.GetOk("site"); ok && len(v.([]interface{})) > 0 {
-		siteData := v.([]interface{})[0].(map[string]interface{})
-		account.Site = jamfpro.SharedResourceSite{
-			ID:   siteData["id"].(int),
-			Name: siteData["name"].(string),
-		}
+	// Handle Site
+	if v, ok := d.GetOk("site"); ok {
+		account.Site = constructSharedResourceSite(v.([]interface{}))
+	} else {
+		// Set default values if 'site' data is not provided
+		account.Site = constructSharedResourceSite([]interface{}{})
 	}
 
-	account.Privileges = jamfpro.AccountSubsetPrivileges{
-		JSSObjects:    getStringSliceFromInterface(d.Get("jss_objects_privileges")),
-		JSSSettings:   getStringSliceFromInterface(d.Get("jss_settings_privileges")),
-		JSSActions:    getStringSliceFromInterface(d.Get("jss_actions_privileges")),
-		Recon:         getStringSliceFromInterface(d.Get("recon_privileges")),
-		CasperAdmin:   getStringSliceFromInterface(d.Get("casper_admin_privileges")),
-		CasperRemote:  getStringSliceFromInterface(d.Get("casper_remote_privileges")),
-		CasperImaging: getStringSliceFromInterface(d.Get("casper_imaging_privileges")),
-	}
+	// Handle Privileges
+	account.Privileges = constructAccountSubsetPrivileges(d)
 
 	if v, ok := d.GetOk("groups"); ok {
 		groupsSet := v.(*schema.Set)
@@ -71,12 +65,64 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 	return account, nil
 }
 
-func getStringSliceFromInterface(i interface{}) []string {
-	var slice []string
-	if i != nil {
-		for _, item := range i.([]interface{}) {
-			slice = append(slice, item.(string))
+// Helper functions for nested structures
+
+// constructSharedResourceSite constructs a SharedResourceSite object from the provided schema data,
+// setting default values if none are presented.
+func constructSharedResourceSite(data []interface{}) jamfpro.SharedResourceSite {
+	// Check if 'site' data is provided and non-empty
+	if len(data) > 0 && data[0] != nil {
+		site := data[0].(map[string]interface{})
+
+		// Return the 'site' object with data from the schema
+		return jamfpro.SharedResourceSite{
+			ID:   site["id"].(int),
+			Name: site["name"].(string),
 		}
+	}
+
+	// Return default 'site' values if no data is provided or it is empty
+	return jamfpro.SharedResourceSite{
+		ID:   -1,     // Default ID
+		Name: "None", // Default name
+	}
+}
+
+// constructAccountSubsetPrivileges constructs AccountSubsetPrivileges from schema data.
+func constructAccountSubsetPrivileges(d *schema.ResourceData) jamfpro.AccountSubsetPrivileges {
+	privileges := jamfpro.AccountSubsetPrivileges{}
+
+	if v, ok := d.GetOk("jss_objects_privileges"); ok {
+		privileges.JSSObjects = getStringSliceFromSet(v.(*schema.Set))
+	}
+	if v, ok := d.GetOk("jss_settings_privileges"); ok {
+		privileges.JSSSettings = getStringSliceFromSet(v.(*schema.Set))
+	}
+	if v, ok := d.GetOk("jss_actions_privileges"); ok {
+		privileges.JSSActions = getStringSliceFromSet(v.(*schema.Set))
+	}
+	if v, ok := d.GetOk("casper_admin_privileges"); ok {
+		privileges.CasperAdmin = getStringSliceFromSet(v.(*schema.Set))
+	}
+	if v, ok := d.GetOk("casper_remote_privileges"); ok {
+		privileges.CasperRemote = getStringSliceFromSet(v.(*schema.Set))
+	}
+	if v, ok := d.GetOk("casper_imaging_privileges"); ok {
+		privileges.CasperImaging = getStringSliceFromSet(v.(*schema.Set))
+	}
+	if v, ok := d.GetOk("recon_privileges"); ok {
+		privileges.Recon = getStringSliceFromSet(v.(*schema.Set))
+	}
+
+	return privileges
+}
+
+// getStringSliceFromSet converts a *schema.Set to a slice of strings.
+func getStringSliceFromSet(set *schema.Set) []string {
+	list := set.List()
+	slice := make([]string, len(list))
+	for i, item := range list {
+		slice[i] = item.(string) // Direct assertion to string, assuming all items are strings.
 	}
 	return slice
 }
