@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -215,93 +214,21 @@ func ResourceJamfProAdvancedMobileDeviceSearchRead(ctx context.Context, d *schem
 	}
 
 	// Attempt to fetch the resource by ID
-	resource, err := conn.GetAdvancedComputerSearchByID(resourceIDInt)
+	resource, err := conn.GetAdvancedMobileDeviceSearchByID(resourceIDInt)
 
 	if err != nil {
-		// Skip resource state removal if this is a create operation
-		if !d.IsNewResource() {
-			// If the error is a "not found" error, remove the resource from the state
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
-				d.SetId("") // Remove the resource from Terraform state
-				return diag.Diagnostics{
-					{
-						Severity: diag.Warning,
-						Summary:  "Resource not found",
-						Detail:   fmt.Sprintf("Jamf Pro Advanced Mobile Device Search resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
-					},
-				}
-			}
-		}
-		// For other errors, or if this is a create operation, return a diagnostic error
-		return diag.FromErr(err)
+		// Handle not found error or other errors
+		return common.HandleResourceNotFoundError(err, d)
 	}
 
-	// Update the Terraform state with the fetched data
-	if err := d.Set("id", resourceID); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("name", resource.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("view_as", resource.ViewAs); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("sort1", resource.Sort1); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("sort2", resource.Sort2); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("sort3", resource.Sort3); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
+	// Update the Terraform state with the fetched data from the resource
+	diags = updateTerraformState(d, resource)
 
-	// Handle "criteria" field
-	criteriaList := make([]interface{}, len(resource.Criteria.Criterion))
-	for i, crit := range resource.Criteria.Criterion {
-		criteriaMap := map[string]interface{}{
-			"name":          crit.Name,
-			"priority":      crit.Priority,
-			"and_or":        crit.AndOr,
-			"search_type":   crit.SearchType,
-			"value":         crit.Value,
-			"opening_paren": crit.OpeningParen,
-			"closing_paren": crit.ClosingParen,
-		}
-		criteriaList[i] = criteriaMap
+	// Handle any errors and return diagnostics
+	if len(diags) > 0 {
+		return diags
 	}
-	if err := d.Set("criteria", criteriaList); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	// Handle "display_fields" field
-	if len(resource.DisplayFields) == 0 || len(resource.DisplayFields[0].DisplayField) == 0 {
-		if err := d.Set("display_fields", []interface{}{}); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	} else {
-		displayFieldsList := make([]map[string]interface{}, len(resource.DisplayFields[0].DisplayField))
-		for i, displayField := range resource.DisplayFields[0].DisplayField {
-			displayFieldMap := map[string]interface{}{
-				"name": displayField.Name,
-			}
-			displayFieldsList[i] = displayFieldMap
-		}
-		if err := d.Set("display_fields", displayFieldsList); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-
-	// Handle "site" field
-	site := map[string]interface{}{
-		"id":   resource.Site.ID,
-		"name": resource.Site.Name,
-	}
-	if err := d.Set("site", []interface{}{site}); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	return diags
+	return nil
 }
 
 // ResourceJamfProAdvancedMobileDeviceSearchUpdate is responsible for updating an existing Jamf Pro mobile device Search on the remote system.
