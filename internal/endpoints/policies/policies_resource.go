@@ -158,148 +158,27 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Optional:    true,
 				Description: "Category to add the policy to.",
 				Computed:    true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "The category ID assigned to the jamf pro policy. Defaults to '-1' aka not used.",
-							Default:     "-1",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Category Name for assigned jamf pro policy. Value defaults to 'No category assigned' aka not used",
-							Default:     "No category assigned",
-						},
-					},
-				},
+				Elem:        sharedschemas.GetSharedSchemaCategory(),
 			},
 			"date_time_limitations": {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Server-side limitations use your Jamf Pro host server's time zone and settings. The Jamf Pro host service is in UTC time.",
 				Computed:    true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"activation_date": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The activation date of the policy.",
-							Computed:    true,
-						},
-						"activation_date_epoch": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "The epoch time of the activation date.",
-							Computed:    true,
-						},
-						"activation_date_utc": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The UTC time of the activation date.",
-							Computed:    true,
-						},
-						"expiration_date": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The expiration date of the policy.",
-							Computed:    true,
-						},
-						"expiration_date_epoch": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "The epoch time of the expiration date.",
-							Computed:    true,
-						},
-						"expiration_date_utc": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The UTC time of the expiration date.",
-						},
-						"no_execute_on": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}, false),
-							},
-							Description: "Client-side limitations are enforced based on the settings on computers. This field sets specific days when the policy should not execute.",
-							Computed:    true,
-						},
-						"no_execute_start": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Client-side limitations are enforced based on the settings on computers. This field sets the start time when the policy should not execute.",
-						},
-						"no_execute_end": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Client-side limitations are enforced based on the settings on computers. This field sets the end time when the policy should not execute.",
-						},
-					},
-				},
+				Elem:        GetPolicySchemaDateTimeLimitations(),
 			},
 			"network_limitations": {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Network limitations for the policy.",
 				Computed:    true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"minimum_network_connection": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Description:  "Minimum network connection required for the policy.",
-							Default:      "No Minimum",
-							ValidateFunc: validation.StringInSlice([]string{"No Minimum", "Ethernet"}, false),
-						},
-						"any_ip_address": { // NOT IN THE UI
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Whether the policy applies to any IP address.",
-							Default:     true,
-						},
-						"network_segments": { // surely this has been moved to scope now?
-							Type:        schema.TypeString,
-							Description: "Network segment limitations for the policy.",
-							Optional:    true,
-						},
-					},
-				},
+				Elem:        &schema.Resource{},
 			}, // END OF General UI
 			"override_default_settings": { // UI > payloads > software update settings
 				Type:        schema.TypeList,
 				Required:    true,
 				Description: "Settings to override default configurations.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"target_drive": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The drive on which to run the policy (e.g. '/Volumes/Restore/'). Defaults to '/' if no value is defined, which is the root of the file system.",
-							Default:     "/",
-						},
-						"distribution_point": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Distribution point for the policy.",
-							Default:     "default",
-						},
-						"force_afp_smb": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Whether to force AFP/SMB.",
-							Default:     false,
-						},
-						"sus": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Software Update Service for the policy.",
-							Default:     "default",
-						},
-					},
-				},
+				Elem:        GetPolicySchemaNetworkLimitations(),
 			},
 			"network_requirements": { // NOT IN THE UI
 				Type:        schema.TypeString,
@@ -342,80 +221,13 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Printers settings of the policy.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"leave_existing_default": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Policy for handling existing default printers.",
-						},
-						"printer": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							Description: "Details of the printer configuration.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Required:    true,
-										Description: "Unique identifier of the printer.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Description: "Name of the printer.",
-										Computed:    true,
-									},
-									"action": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										Description:  "Action to be performed for the printer (e.g., install, uninstall).",
-										ValidateFunc: validation.StringInSlice([]string{"install", "uninstall"}, false),
-									},
-									"make_default": {
-										Type:        schema.TypeBool,
-										Optional:    true,
-										Description: "Whether to set the printer as the default.",
-									},
-								},
-							},
-						},
-					},
-				},
+				Elem:        getPolicySchemaPrinter(),
 			},
 			"dock_items": {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Dock items settings of the policy.",
-				Computed:    true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"dock_item": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							Description: "Details of the dock item configuration.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Required:    true,
-										Description: "Unique identifier of the dock item.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Description: "Name of the dock item.",
-										Computed:    true,
-									},
-									"action": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										Description:  "Action to be performed for the dock item (e.g., Add To Beginning, Add To End, Remove).",
-										ValidateFunc: validation.StringInSlice([]string{"Add To Beginning", "Add To End", "Remove"}, false),
-									},
-								},
-							},
-						},
-					},
-				},
+				Elem:        getPolicySchemaDockItems(),
 			},
 			"account_maintenance": {
 				Type:        schema.TypeList,

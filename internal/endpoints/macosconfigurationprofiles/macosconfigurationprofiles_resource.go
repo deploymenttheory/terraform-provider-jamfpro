@@ -59,40 +59,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Description: "The site to which the configuration profile is scoped.",
 				Optional:    true,
 				Default:     nil,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:        schema.TypeInt,
-							Required:    true,
-							Description: "The unique identifier of the site to which the configuration profile is scoped.",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "The name of the site to which the configuration profile is scoped.",
-						},
-					},
-				},
+				Elem:        sharedschemas.GetSharedSchemaSite(),
 			},
 			"category": {
 				Type:        schema.TypeList,
 				MaxItems:    1,
 				Description: "The category to which the configuration profile is scoped.",
 				Optional:    true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:        schema.TypeInt,
-							Required:    true,
-							Description: "The unique identifier of the category to which the configuration profile is scoped.",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The name of the category to which the configuration profile is scoped.",
-						},
-					},
-				},
+				Elem:        sharedschemas.GetSharedSchemaCategory(),
 			},
 			"distribution_method": {
 				Type:         schema.TypeString,
