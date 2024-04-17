@@ -174,6 +174,14 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Computed:    true,
 				Elem:        &schema.Resource{},
 			}, // END OF General UI
+			"payloads": {
+				Type:        schema.TypeList,
+				Required:    true,
+				Description: "All payloads container",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{},
+				},
+			}, // MOVING EVERYTHING BELOW INTO HERE
 			"override_default_settings": { // UI > payloads > software update settings
 				Type:        schema.TypeList,
 				Required:    true,
@@ -235,76 +243,67 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Description: "Account maintenance settings of the policy. Use this section to create and delete local accounts, and to reset local account passwords. Also use this section to disable an existing local account for FileVault 2.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"accounts": {
+						"account": {
 							Type:        schema.TypeList,
 							Optional:    true,
-							Description: "List of account maintenance configurations.",
+							Description: "Details of each account configuration.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"account": {
-										Type:        schema.TypeList,
+									"action": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										Description:  "Action to be performed on the account (e.g., Create, Reset, Delete, DisableFileVault).",
+										ValidateFunc: validation.StringInSlice([]string{"Create", "Reset", "Delete", "DisableFileVault"}, false),
+									},
+									"username": {
+										Type:        schema.TypeString,
 										Optional:    true,
-										Description: "Details of each account configuration.",
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"action": {
-													Type:         schema.TypeString,
-													Optional:     true,
-													Description:  "Action to be performed on the account (e.g., Create, Reset, Delete, DisableFileVault).",
-													ValidateFunc: validation.StringInSlice([]string{"Create", "Reset", "Delete", "DisableFileVault"}, false),
-												},
-												"username": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "Username/short name for the account",
-												},
-												"realname": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "Real name associated with the account.",
-												},
-												"password": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "Set a new account password. This does not update the account's login keychain password or FileVault 2 password.",
-												},
-												"archive_home_directory": {
-													Type:        schema.TypeBool,
-													Optional:    true,
-													Description: "Permanently delete home directory. If set to true will archive the home directory.",
-												},
-												"archive_home_directory_to": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "Path in which to archive the home directory to.",
-												},
-												"home": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "Full path in which to create the home directory (e.g. /Users/username/ or /private/var/username/)",
-												},
-												"hint": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "Hint to help the user remember the password",
-												},
-												"picture": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "Full path to the account picture (e.g. /Library/User Pictures/Animals/Butterfly.tif )",
-												},
-												"admin": {
-													Type:        schema.TypeBool,
-													Optional:    true,
-													Description: "Whether the account has admin privileges.Setting this to true will set the user administrator privileges to the computer",
-												},
-												"filevault_enabled": {
-													Type:        schema.TypeBool,
-													Optional:    true,
-													Description: "Allow the user to unlock the FileVault 2-encrypted drive",
-												},
-											},
-										},
+										Description: "Username/short name for the account",
+									},
+									"realname": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "Real name associated with the account.",
+									},
+									"password": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "Set a new account password. This does not update the account's login keychain password or FileVault 2 password.",
+									},
+									"archive_home_directory": {
+										Type:        schema.TypeBool,
+										Optional:    true,
+										Description: "Permanently delete home directory. If set to true will archive the home directory.",
+									},
+									"archive_home_directory_to": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "Path in which to archive the home directory to.",
+									},
+									"home": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "Full path in which to create the home directory (e.g. /Users/username/ or /private/var/username/)",
+									},
+									"hint": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "Hint to help the user remember the password",
+									},
+									"picture": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "Full path to the account picture (e.g. /Library/User Pictures/Animals/Butterfly.tif )",
+									},
+									"admin": {
+										Type:        schema.TypeBool,
+										Optional:    true,
+										Description: "Whether the account has admin privileges.Setting this to true will set the user administrator privileges to the computer",
+									},
+									"filevault_enabled": {
+										Type:        schema.TypeBool,
+										Optional:    true,
+										Description: "Allow the user to unlock the FileVault 2-encrypted drive",
 									},
 								},
 							},
