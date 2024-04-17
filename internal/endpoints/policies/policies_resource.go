@@ -165,14 +165,14 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Optional:    true,
 				Description: "Server-side limitations use your Jamf Pro host server's time zone and settings. The Jamf Pro host service is in UTC time.",
 				Computed:    true,
-				Elem:        GetPolicySchemaDateTimeLimitations(),
+				Elem:        getPolicySchemaDateTimeLimitations(),
 			},
 			"network_limitations": {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Network limitations for the policy.",
 				Computed:    true,
-				Elem:        &schema.Resource{},
+				Elem:        getPolicySchemaNetworkLimitations(),
 			}, // END OF General UI
 			"payloads": {
 				Type:        schema.TypeList,

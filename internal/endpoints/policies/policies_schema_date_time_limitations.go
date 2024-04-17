@@ -5,7 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func GetPolicySchemaDateTimeLimitations() *schema.Resource {
+func getPolicySchemaDateTimeLimitations() *schema.Resource {
 	out := &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"activation_date": {
