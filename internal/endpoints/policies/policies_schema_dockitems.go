@@ -5,7 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func GetPolicySchemaDockItems() *schema.Resource {
+func getPolicySchemaDockItems() *schema.Resource {
 	out := &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"id": {
