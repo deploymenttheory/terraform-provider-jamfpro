@@ -19,8 +19,6 @@ description: |-
 
 - `authentication_prompt` (String) The authentication prompt message displayed to the user during enrollment.
 - `auto_advance_setup` (Boolean) Indicates if setup should auto-advance.
-- `custom_package_distribution_point_id` (String) Custom package distribution point ID.
-- `custom_package_ids` (List of String) Custom package IDs.
 - `default_prestage` (Boolean) Indicates if this is the default computer prestage enrollment configuration. If yes then new devices will be automatically assigned to this PreStage enrollment
 - `department` (String) The department the computer prestage is assigned to.
 - `device_enrollment_program_instance_id` (String) The device enrollment program instance ID.
@@ -34,15 +32,15 @@ description: |-
 - `mandatory` (Boolean) Indicates whether the computer prestage is mandatory.
 - `mdm_removable` (Boolean) Indicates if the MDM profile is removable.
 - `prevent_activation_lock` (Boolean) Indicates if activation lock should be prevented.
-- `profile_uuid` (String) The profile UUID.
 - `purchasing_information` (Block List, Min: 1) Purchasing information associated with the computer prestage. (see [below for nested schema](#nestedblock--purchasing_information))
-- `require_authentication` (Boolean) Indicates if the user is required to provide username and password on computers with macOS 10.10 or later.
 - `support_phone_number` (String) The Support phone number for the organization.
 
 ### Optional
 
 - `account_settings` (Block List) (see [below for nested schema](#nestedblock--account_settings))
 - `anchor_certificates` (List of String) List of Base64 encoded PEM Certificates.
+- `custom_package_distribution_point_id` (String) Custom package distribution point ID.
+- `custom_package_ids` (List of String) Custom package IDs.
 - `enable_recovery_lock` (Boolean) Indicates if recovery lock should be enabled.
 - `enrollment_customization_id` (String) The enrollment customization ID.
 - `language` (String) The language setting.
@@ -50,6 +48,7 @@ description: |-
 - `recovery_lock_password` (String) The recovery lock password.
 - `recovery_lock_password_type` (String) The recovery lock password type.
 - `region` (String) The region setting.
+- `require_authentication` (Boolean) Indicates if the user is required to provide username and password on computers with macOS 10.10 or later.
 - `rotate_recovery_lock_password` (Boolean) Indicates if the recovery lock password should be rotated.
 - `site_id` (String) The site ID.
 - `skip_setup_items` (Block List, Max: 1) Selected items are not displayed in the Setup Assistant during macOS device setup within Apple Device Enrollment (ADE). (see [below for nested schema](#nestedblock--skip_setup_items))
@@ -60,6 +59,7 @@ description: |-
 ### Read-Only
 
 - `id` (String) The unique identifier of the computer prestage.
+- `profile_uuid` (String) The profile UUID.
 
 <a id="nestedblock--location_information"></a>
 ### Nested Schema for `location_information`
