@@ -78,8 +78,8 @@ github.com/cyphar/filepath-securejoin v0.2.4/go.mod h1:aPGpWjXOXUn2NCNjFvBE6aRxG
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/deploymenttheory/go-api-http-client v0.1.29 h1:sVLQdLnTP10Fgk93rphqDcTkbtJOi/ozvtzBacvS/MU=
-github.com/deploymenttheory/go-api-http-client v0.1.29/go.mod h1:C2rwc+/7YdeqRdhYxLP4sogZZESpKu7h27+ba+eZ2gM=
+github.com/deploymenttheory/go-api-http-client v0.1.32 h1:mNDvK/JAUDfYygATPS0SfT/PLGxB/A7ZihJRxNtla5E=
+github.com/deploymenttheory/go-api-http-client v0.1.32/go.mod h1:FWSFqBZbtwrP/AeWiFjoyG9PvbLF53Q1JHlrp9+5O8Q=
 github.com/deploymenttheory/go-api-sdk-jamfpro v1.5.8 h1:4SNihiHkRoXMwlUE2GK+qVpe+oCyM3v6018YcHRDkeM=
 github.com/deploymenttheory/go-api-sdk-jamfpro v1.5.8/go.mod h1:kFS332IMoic01UCae1kXhEWhMSDSmDcM9AL2+slTxps=
 github.com/emirpasic/gods v1.18.1 h1:FXtiHYKDGKCW2KzwZKx0iC0PQmdlorYgdFG9jPXJ1Bc=
