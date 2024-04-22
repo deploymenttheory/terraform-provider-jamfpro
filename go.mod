@@ -5,8 +5,8 @@ go 1.21
 toolchain go1.21.0
 
 require (
-	github.com/deploymenttheory/go-api-http-client v0.1.29
-	github.com/deploymenttheory/go-api-sdk-jamfpro v1.5.8
+	github.com/deploymenttheory/go-api-http-client v0.1.30
+	github.com/deploymenttheory/go-api-sdk-jamfpro v1.5.10-0.20240422152729-ccfc7492cecd
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/go-hclog v1.6.2
 	github.com/hashicorp/terraform-plugin-docs v0.19.0

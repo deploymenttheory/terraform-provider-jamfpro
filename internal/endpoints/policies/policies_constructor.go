@@ -1,6 +1,7 @@
 package policies
 
 import (
+	"encoding/xml"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -12,10 +13,13 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, er
 	// Non computed values first
 	policy := &jamfpro.ResourcePolicy{
 		General: jamfpro.PolicySubsetGeneral{
-			Name: d.Get("name").(string),
+			Name:    d.Get("name").(string),
+			Enabled: d.Get("enabled").(bool),
 		},
 	}
 
-	log.Printf("+%v", policy)
+	policyXML, _ := xml.MarshalIndent(policy, "", "  ")
+	log.Println("LOGHERE")
+	log.Println(string(policyXML))
 	return policy, nil
 }
