@@ -371,11 +371,13 @@ func ResourceJamfProMacOSConfigurationProfilesDelete(ctx context.Context, d *sch
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
+	resourceName := d.Get("name").(string)
+
 	// Use the retry function for the delete operation with appropriate timeout
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		apiErr := conn.DeleteMacOSConfigurationProfileByID(resourceIDInt)
 		if apiErr != nil {
-			resourceName := d.Get("name").(string)
+
 			apiErrByName := conn.DeleteMacOSConfigurationProfileByName(resourceName)
 			if apiErrByName != nil {
 				return retry.RetryableError(apiErrByName)
@@ -385,7 +387,7 @@ func ResourceJamfProMacOSConfigurationProfilesDelete(ctx context.Context, d *sch
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro macOS Configuration Profile '%s' (ID: %d) after retries: %v", d.Get("name").(string), resourceIDInt, err))
+		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro macOS Configuration Profile '%s' (ID: %d) after retries: %v", resourceName, resourceIDInt, err))
 	}
 
 	d.SetId("")

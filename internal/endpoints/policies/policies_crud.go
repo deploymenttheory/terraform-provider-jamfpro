@@ -30,7 +30,7 @@ func ResourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	// Retry the API call to create the policy in Jamf Pro
-	var creationResponse *jamfpro.ResourcePolicyCreateAndUpdate
+	var creationResponse *jamfpro.ResponsePolicyCreateAndUpdate
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
 		creationResponse, apiErr = conn.CreatePolicy(resource)
@@ -161,16 +161,13 @@ func ResourceJamfProPoliciesDelete(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	generalSettings := d.Get("general").([]interface{})
-	generalMap := generalSettings[0].(map[string]interface{})
-	resourceName := generalMap["name"].(string)
+	resourceName := d.Get("name").(string)
 
 	// Use the retry function for the delete operation with appropriate timeout
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// Attempt to delete by ID
 		apiErr := conn.DeletePolicyByID(resourceIDInt)
 		if apiErr != nil {
-			// If the DELETE by ID fails, try deleting by name
+
 			apiErrByName := conn.DeletePolicyByName(resourceName)
 			if apiErrByName != nil {
 				// If deletion by name also fails, return a retryable error
