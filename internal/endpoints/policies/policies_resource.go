@@ -36,12 +36,12 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Required:    true,
 				Description: "Define whether the policy is enabled.",
 			},
-			// "trigger_checkin": {
-			// 	Type:        schema.TypeBool,
-			// 	Optional:    true,
-			// 	Default:     false,
-			// 	Description: "Trigger policy when device performs recurring check-in against the frequency configured in Jamf Pro",
-			// },
+			"trigger_checkin": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Trigger policy when device performs recurring check-in against the frequency configured in Jamf Pro",
+			},
 			// "trigger_enrollment_complete": {
 			// 	Type:        schema.TypeBool,
 			// 	Optional:    true,

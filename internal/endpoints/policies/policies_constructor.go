@@ -13,8 +13,9 @@ func constructJamfProPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, er
 	// Non computed values first
 	policy := &jamfpro.ResourcePolicy{
 		General: jamfpro.PolicySubsetGeneral{
-			Name:    d.Get("name").(string),
-			Enabled: d.Get("enabled").(bool),
+			Name:           d.Get("name").(string),
+			Enabled:        d.Get("enabled").(bool),
+			TriggerCheckin: d.Get("trigger_checkin").(bool),
 		},
 	}
 

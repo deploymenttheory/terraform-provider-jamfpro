@@ -97,6 +97,9 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Policy '%s' (ID: %d) after retries: %v", policyName, resourceIDInt, err))
 	}
 
+	trigger_checkin := resp.General.TriggerCheckin
+	d.Set("trigger_checkin", trigger_checkin)
+
 	log.Println(resp)
 
 	return diags
