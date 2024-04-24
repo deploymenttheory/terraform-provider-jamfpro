@@ -19,8 +19,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProWebhook defines the schema and CRUD operations for managing Jamf Pro Webhooks in Terraform.
-func ResourceJamfProWebhook() *schema.Resource {
+// ResourceJamfProWebhooks defines the schema and CRUD operations for managing Jamf Pro Webhooks in Terraform.
+func ResourceJamfProWebhooks() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: ResourceJamfProWebhookCreate,
 		ReadContext:   ResourceJamfProWebhookRead,

@@ -112,7 +112,7 @@ Read-Only:
 - `institutional_recovery_key_present` (Boolean)
 
 <a id="nestedobjatt--disk_encryption--boot_partition_encryption_details"></a>
-### Nested Schema for ``
+### Nested Schema for `disk_encryption.boot_partition_encryption_details`
 
 Read-Only:
 
@@ -181,7 +181,7 @@ Read-Only:
 - `user_approved_mdm` (Boolean)
 
 <a id="nestedobjatt--general--enrollment_method"></a>
-### Nested Schema for ``
+### Nested Schema for `general.enrollment_method`
 
 Read-Only:
 
@@ -191,7 +191,7 @@ Read-Only:
 
 
 <a id="nestedobjatt--general--extension_attributes"></a>
-### Nested Schema for ``
+### Nested Schema for `general.extension_attributes`
 
 Read-Only:
 
@@ -207,7 +207,7 @@ Read-Only:
 
 
 <a id="nestedobjatt--general--mdm_capable"></a>
-### Nested Schema for ``
+### Nested Schema for `general.mdm_capable`
 
 Read-Only:
 
@@ -216,7 +216,7 @@ Read-Only:
 
 
 <a id="nestedobjatt--general--remote_management"></a>
-### Nested Schema for ``
+### Nested Schema for `general.remote_management`
 
 Read-Only:
 
@@ -225,7 +225,7 @@ Read-Only:
 
 
 <a id="nestedobjatt--general--site"></a>
-### Nested Schema for ``
+### Nested Schema for `general.site`
 
 Read-Only:
 
@@ -277,7 +277,7 @@ Read-Only:
 - `total_ram_megabytes` (Number)
 
 <a id="nestedobjatt--hardware--extension_attributes"></a>
-### Nested Schema for ``
+### Nested Schema for `hardware.extension_attributes`
 
 Read-Only:
 
@@ -350,7 +350,7 @@ Read-Only:
 - `version` (String)
 
 <a id="nestedobjatt--operating_system--extension_attributes"></a>
-### Nested Schema for ``
+### Nested Schema for `operating_system.extension_attributes`
 
 Read-Only:
 
@@ -417,7 +417,7 @@ Read-Only:
 - `warranty_date` (String)
 
 <a id="nestedobjatt--purchasing--extension_attributes"></a>
-### Nested Schema for ``
+### Nested Schema for `purchasing.extension_attributes`
 
 Read-Only:
 
@@ -478,7 +478,7 @@ Read-Only:
 - `disks` (List of Object) (see [below for nested schema](#nestedobjatt--storage--disks))
 
 <a id="nestedobjatt--storage--disks"></a>
-### Nested Schema for ``
+### Nested Schema for `storage.disks`
 
 Read-Only:
 
@@ -493,7 +493,7 @@ Read-Only:
 - `type` (String)
 
 <a id="nestedobjatt--storage--disks--partitions"></a>
-### Nested Schema for ``
+### Nested Schema for `storage.disks.partitions`
 
 Read-Only:
 
@@ -525,7 +525,7 @@ Read-Only:
 - `username` (String)
 
 <a id="nestedobjatt--user_and_location--extension_attributes"></a>
-### Nested Schema for ``
+### Nested Schema for `user_and_location.extension_attributes`
 
 Read-Only:
 
