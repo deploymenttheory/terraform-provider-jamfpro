@@ -4,11 +4,13 @@ package categories
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -24,10 +26,10 @@ func ResourceJamfProCategories() *schema.Resource {
 		UpdateContext: ResourceJamfProCategoriesUpdate,
 		DeleteContext: ResourceJamfProCategoriesDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Second),
+			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
-			Delete: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -70,24 +72,44 @@ func ResourceJamfProCategoriesCreate(ctx context.Context, d *schema.ResourceData
 
 	// Initialize variables
 	var diags diag.Diagnostics
-	resourceName := d.Get("name").(string)
 
 	// Construct the resource object
 	resource, err := constructJamfProCategory(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Category '%s': %v", resourceName, err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Category Group: %v", err))
 	}
 
-	// Attempt to create the Category in Jamf Pro
-	creationResponse, err := conn.CreateCategory(resource)
+	// Retry the API call to create the resource in Jamf Pro
+	var creationResponse *jamfpro.ResponseCategoryCreateAndUpdate
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		var apiErr error
+		creationResponse, apiErr = conn.CreateCategory(resource)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
+		}
+		// No error, exit the retry loop
+		return nil
+	})
+
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Category '%s': %v", resourceName, err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Category '%s' after retries: %v", resource.Name, err))
 	}
 
-	// Set the resource ID in the Terraform state
+	// Set the resource ID in Terraform state
 	d.SetId(creationResponse.ID)
 
-	// Sync the Terraform state with the remote system
+	// Wait for the resource to be fully available before reading it
+	checkResourceExists := func(id interface{}) (interface{}, error) {
+		return apiclient.Conn.GetCategoryByID(id.(string))
+	}
+
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Category", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
+
+	if waitDiags.HasError() {
+		return waitDiags
+	}
+
+	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProCategoriesRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
@@ -113,56 +135,23 @@ func ResourceJamfProCategoriesRead(ctx context.Context, d *schema.ResourceData, 
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
-	var resource *jamfpro.ResourceCategory
 
-	// Read operation with retry
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
-		resource, apiErr = conn.GetCategoryByID(resourceID)
-		if apiErr != nil {
-			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
-				// Return non-retryable error with a message to avoid SDK issues
-				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
-			}
-			// Retry for other types of errors
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
+	// Attempt to fetch the resource by ID
+	resource, err := conn.GetCategoryByID(resourceID)
 
-	// If err is not nil, check if it's due to the resource being not found
 	if err != nil {
-		if err.Error() == "resource not found, marked for deletion" {
-			// Resource not found, remove from Terraform state
-			d.SetId("")
-			// Append a warning diagnostic and return
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "Resource not found",
-				Detail:   fmt.Sprintf("Jamf Pro Category with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
-			})
-			return diags
-		}
-
-		// For other errors, return an error diagnostic
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Category with ID '%s' after retries: %v", resourceID, err))
+		// Handle not found error or other errors
+		return state.HandleResourceNotFoundError(err, d)
 	}
 
-	// Update the Terraform state with the fetched data
-	if resource != nil {
-		// Set the fields directly in the Terraform state
-		if err := d.Set("id", resourceID); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("name", resource.Name); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("priority", resource.Priority); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
+	// Update the Terraform state with the fetched data from the resource
+	diags = updateTerraformState(d, resource)
 
-	return diags
+	// Handle any errors and return diagnostics
+	if len(diags) > 0 {
+		return diags
+	}
+	return nil
 }
 
 // ResourceJamfProCategoriesUpdate is responsible for updating an existing Jamf Pro Category on the remote system.

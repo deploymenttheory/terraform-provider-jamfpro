@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/constructobject"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -17,17 +18,16 @@ func constructJamfProComputerGroup(d *schema.ResourceData) (*jamfpro.ResourceCom
 		IsSmart: d.Get("is_smart").(bool),
 	}
 
-	// Handle nested "site" field
-	if v, ok := d.GetOk("site"); ok && len(v.([]interface{})) > 0 {
-		siteData := v.([]interface{})[0].(map[string]interface{})
-		group.Site = jamfpro.SharedResourceSite{
-			ID:   siteData["id"].(int),
-			Name: siteData["name"].(string),
-		}
+	// Handle Site
+	if v, ok := d.GetOk("site"); ok {
+		group.Site = constructobject.ConstructSharedResourceSite(v.([]interface{}))
+	} else {
+		// Set default values if 'site' data is not provided
+		group.Site = constructobject.ConstructSharedResourceSite([]interface{}{})
 	}
 
-	// Handle "criteria" field
-	if v, ok := d.GetOk("criteria"); ok {
+	// Handle "criteria" field only if it has entries
+	if v, ok := d.GetOk("criteria"); ok && len(v.([]interface{})) > 0 {
 		criteria := constructGroupCriteria(v.([]interface{}))
 		group.Criteria = jamfpro.SharedContainerCriteria{
 			Criterion: criteria,
@@ -51,7 +51,9 @@ func constructJamfProComputerGroup(d *schema.ResourceData) (*jamfpro.ResourceCom
 	return group, nil
 }
 
-// Helper function to construct group criteria from schema data
+// Helper functions for nested structures
+
+// constructGroupCriteria constructs a slice of SharedSubsetCriteria from the provided schema data.
 func constructGroupCriteria(criteriaData []interface{}) []jamfpro.SharedSubsetCriteria {
 	var criteria []jamfpro.SharedSubsetCriteria
 	for _, crit := range criteriaData {
@@ -70,7 +72,7 @@ func constructGroupCriteria(criteriaData []interface{}) []jamfpro.SharedSubsetCr
 	return criteria
 }
 
-// Helper function to construct group computers from schema data
+// constructGroupComputers constructs a slice of ComputerGroupSubsetComputer from the provided schema data.
 func constructGroupComputers(computersData []interface{}) []jamfpro.ComputerGroupSubsetComputer {
 	var computers []jamfpro.ComputerGroupSubsetComputer
 	for _, comp := range computersData {

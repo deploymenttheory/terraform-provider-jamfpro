@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -26,10 +26,10 @@ func ResourceJamfProComputerCheckin() *schema.Resource {
 			return validateComputerCheckinDependencies(d)
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Second),
+			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
-			Delete: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -116,14 +116,14 @@ func ResourceJamfProComputerCheckinCreate(ctx context.Context, d *schema.Resourc
 	var diags diag.Diagnostics
 
 	// Construct the resource object
-	checkinConfig, err := constructJamfProComputerCheckin(d)
+	resource, err := constructJamfProComputerCheckin(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Check-In for update: %v", err))
 	}
 
 	// Update (or effectively create) the check-in configuration with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		apiErr := conn.UpdateComputerCheckinInformation(checkinConfig)
+		apiErr := conn.UpdateComputerCheckinInformation(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -153,59 +153,29 @@ func ResourceJamfProComputerCheckinRead(ctx context.Context, d *schema.ResourceD
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
-	resourceID := d.Id()
 
-	var resource *jamfpro.ResourceComputerCheckin
-
-	// Read operation with retry
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
-		resource, apiErr = conn.GetComputerCheckinInformation()
-		if apiErr != nil {
-			// Convert any API error into a retryable error to continue retrying
-			return retry.RetryableError(apiErr)
-		}
-		// Successfully read the site, exit the retry loop
-		return nil
-	})
-
-	if err != nil {
-		// Handle the final error after all retries have been exhausted
-		d.SetId("") // Remove from Terraform state if unable to read after retries
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Computer Check-In with ID '%s' after retries: %v", resourceID, err))
-	}
+	// Attempt to fetch the resource by ID
+	resource, err := apiclient.Conn.GetComputerCheckinInformation()
 
 	// The constant ID "jamfpro_computer_checkin_singleton" is assigned to satisfy Terraform's requirement for an ID.
 	d.SetId("jamfpro_computer_checkin_singleton")
 
-	// Map the configuration fields from the API response to a structured map
-	checkinData := map[string]interface{}{
-		"check_in_frequency":                       resource.CheckInFrequency,
-		"create_startup_script":                    resource.CreateStartupScript,
-		"log_startup_event":                        resource.LogStartupEvent,
-		"check_for_policies_at_startup":            resource.CheckForPoliciesAtStartup,
-		"apply_computer_level_managed_preferences": resource.ApplyComputerLevelManagedPrefs,
-		"ensure_ssh_is_enabled":                    resource.EnsureSSHIsEnabled,
-		"create_login_logout_hooks":                resource.CreateLoginLogoutHooks,
-		"log_username":                             resource.LogUsername,
-		"check_for_policies_at_login_logout":       resource.CheckForPoliciesAtLoginLogout,
-		"apply_user_level_managed_preferences":     resource.ApplyUserLevelManagedPreferences,
-		"hide_restore_partition":                   resource.HideRestorePartition,
-		"perform_login_actions_in_background":      resource.PerformLoginActionsInBackground,
+	if err != nil {
+		// Handle not found error or other errors
+		return state.HandleResourceNotFoundError(err, d)
 	}
 
-	// Set the structured map in the Terraform state
-	for key, val := range checkinData {
-		if err := d.Set(key, val); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
+	// Update the Terraform state with the fetched data from the resource
+	diags = updateTerraformState(d, resource)
 
-	return diags
+	// Handle any errors and return diagnostics
+	if len(diags) > 0 {
+		return diags
+	}
+	return nil
 }
 
 // ResourceJamfProComputerCheckinUpdate is responsible for updating the Jamf Pro computer check-in configuration.

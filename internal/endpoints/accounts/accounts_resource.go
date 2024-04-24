@@ -5,12 +5,13 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/jamfprivileges"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
@@ -29,7 +30,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 		DeleteContext: ResourceJamfProAccountDelete,
 		CustomizeDiff: customDiffAccounts,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(120 * time.Second),
+			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
 			Delete: schema.DefaultTimeout(15 * time.Second),
@@ -78,24 +79,17 @@ func ResourceJamfProAccounts() *schema.Resource {
 					return warns, errs
 				},
 			},
-			"ldap_server": {
+			"identity_server": {
 				Type:        schema.TypeList,
 				Optional:    true,
 				MaxItems:    1,
-				Description: "LDAP server information associated with the account.",
+				Description: "LDAP or IdP server associated with the account group.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:        schema.TypeInt,
 							Optional:    true,
-							Description: "The ID of the LDAP server.",
-							Default:     "",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The name of the LDAP server.",
-							Computed:    true,
+							Description: "ID is the ID of the LDAP or IdP configuration in Jamf Pro.",
 						},
 					},
 				},
@@ -151,7 +145,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 							Type:        schema.TypeInt,
 							Optional:    true,
 							Description: "Jamf Pro Site ID. Value defaults to '0' aka not used.",
-							Default:     "",
+							Default:     -1,
 						},
 						"name": {
 							Type:        schema.TypeString,
@@ -180,43 +174,43 @@ func ResourceJamfProAccounts() *schema.Resource {
 				},
 			},
 			"jss_objects_privileges": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Privileges related to JSS Objects.",
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: common.ValidateJSSObjectsPrivileges,
+					ValidateFunc: jamfprivileges.ValidateJSSObjectsPrivileges,
 				},
 			},
 			"jss_settings_privileges": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Privileges related to JSS Settings.",
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: common.ValidateJSSSettingsPrivileges,
+					ValidateFunc: jamfprivileges.ValidateJSSSettingsPrivileges,
 				},
 			},
 			"jss_actions_privileges": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Privileges related to JSS Actions.",
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: common.ValidateJSSActionsPrivileges,
+					ValidateFunc: jamfprivileges.ValidateJSSActionsPrivileges,
 				},
 			},
 			"casper_admin_privileges": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Privileges related to Casper Admin.",
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: common.ValidateCasperAdminPrivileges,
+					ValidateFunc: jamfprivileges.ValidateCasperAdminPrivileges,
 				},
 			},
 			"casper_remote_privileges": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Privileges related to Casper Remote.",
 				Elem: &schema.Schema{
@@ -224,7 +218,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 				},
 			},
 			"casper_imaging_privileges": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Privileges related to Casper Imaging.",
 				Elem: &schema.Schema{
@@ -232,7 +226,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 				},
 			},
 			"recon_privileges": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Privileges related to Recon.",
 				Elem: &schema.Schema{
@@ -242,10 +236,6 @@ func ResourceJamfProAccounts() *schema.Resource {
 		},
 	}
 }
-
-const (
-	JamfProResourceAccount = "Account"
-)
 
 // ResourceJamfProAccountCreate is responsible for creating a new Jamf Pro Script in the remote system.
 // The function:
@@ -298,7 +288,7 @@ func ResourceJamfProAccountCreate(ctx context.Context, d *schema.ResourceData, m
 		return apiclient.Conn.GetAccountByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Account", strconv.Itoa(creationResponse.ID), checkResourceExists, 45*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Account", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
@@ -339,109 +329,18 @@ func ResourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, met
 	resource, err := conn.GetAccountByID(resourceIDInt)
 
 	if err != nil {
-		// Skip resource state removal if this is a create operation
-		if !d.IsNewResource() {
-			// If the error is a "not found" error, remove the resource from the state
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
-				d.SetId("") // Remove the resource from Terraform state
-				return diag.Diagnostics{
-					{
-						Severity: diag.Warning,
-						Summary:  "Resource not found",
-						Detail:   fmt.Sprintf("Jamf Pro Account resource with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
-					},
-				}
-			}
-		}
-		// For other errors, or if this is a create operation, return a diagnostic error
-		return diag.FromErr(err)
+		// Handle not found error or other errors
+		return state.HandleResourceNotFoundError(err, d)
 	}
 
-	// Update Terraform state with the resource information
-	if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("name", resource.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("directory_user", resource.DirectoryUser); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("full_name", resource.FullName); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	// Update the Terraform state with the fetched data from the resource
+	diags = updateTerraformState(d, resource)
 
+	// Handle any errors and return diagnostics
+	if len(diags) > 0 {
+		return diags
 	}
-	if err := d.Set("email", resource.Email); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("enabled", resource.Enabled); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	// Update LDAP server information
-	if resource.LdapServer.ID != 0 || resource.LdapServer.Name != "" {
-		ldapServer := make(map[string]interface{})
-		ldapServer["id"] = resource.LdapServer.ID
-		ldapServer["name"] = resource.LdapServer.Name
-		d.Set("ldap_server", []interface{}{ldapServer})
-	} else {
-		d.Set("ldap_server", []interface{}{}) // Clear the LDAP server data if not present
-	}
-
-	d.Set("force_password_change", resource.ForcePasswordChange)
-	d.Set("access_level", resource.AccessLevel)
-	// skip	d.Set("password", resource.Password)
-
-	d.Set("privilege_set", resource.PrivilegeSet)
-
-	// Update site information
-	if resource.Site.ID != 0 || resource.Site.Name != "" {
-		site := make(map[string]interface{})
-		site["id"] = resource.Site.ID
-		site["name"] = resource.Site.Name
-		d.Set("site", []interface{}{site})
-	} else {
-		d.Set("site", []interface{}{}) // Clear the site data if not present
-	}
-
-	// Construct and set the groups attribute
-	groups := make([]interface{}, len(resource.Groups))
-	for i, group := range resource.Groups {
-		groupMap := make(map[string]interface{})
-		groupMap["name"] = group.Name
-		groupMap["id"] = group.ID
-
-		groups[i] = groupMap
-	}
-
-	if err := d.Set("groups", groups); err != nil {
-		return diag.FromErr(err)
-	}
-
-	// Update privileges
-	if err := d.Set("jss_objects_privileges", resource.Privileges.JSSObjects); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("jss_settings_privileges", resource.Privileges.JSSSettings); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("jss_actions_privileges", resource.Privileges.JSSActions); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("casper_admin_privileges", resource.Privileges.CasperAdmin); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("casper_remote_privileges", resource.Privileges.CasperRemote); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("casper_imaging_privileges", resource.Privileges.CasperImaging); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("recon_privileges", resource.Privileges.Recon); err != nil {
-		return diag.FromErr(err)
-	}
-
-	return diags
+	return nil
 }
 
 // ResourceJamfProAccountUpdate is responsible for updating an existing Jamf Pro Account Group on the remote system.

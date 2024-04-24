@@ -1,6 +1,6 @@
-// jamf_privileges.go
+// common/jamfprivileges/validate.go
 // This package contains shared / common resource functions
-package common
+package jamfprivileges
 
 import "fmt"
 

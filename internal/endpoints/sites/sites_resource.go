@@ -5,11 +5,12 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -25,7 +26,7 @@ func ResourceJamfProSites() *schema.Resource {
 		UpdateContext: ResourceJamfProSitesUpdate,
 		DeleteContext: ResourceJamfProSitesDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(120 * time.Second),
+			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
 			Delete: schema.DefaultTimeout(15 * time.Second),
@@ -99,7 +100,7 @@ func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, met
 		return apiclient.Conn.GetSiteByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Site", strconv.Itoa(creationResponse.ID), checkResourceExists, 10*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Site", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
@@ -136,30 +137,19 @@ func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta 
 
 	// Attempt to fetch the resource by ID
 	resource, err := conn.GetSiteByID(resourceIDInt)
+
 	if err != nil {
-		// If the error is a "not found" error, remove the resource from the state
-		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
-			d.SetId("") // Remove the resource from Terraform state
-			return diag.Diagnostics{
-				{
-					Severity: diag.Warning,
-					Summary:  "Resource not found",
-					Detail:   fmt.Sprintf("Jamf Pro Site with ID '%s' was not found and has been removed from the Terraform state.", resourceID),
-				},
-			}
-		}
-		// For other errors, return an error diagnostic
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Site with ID '%s': %v", resourceID, err))
+		// Handle not found error or other errors
+		return state.HandleResourceNotFoundError(err, d)
 	}
 
-	// Update Terraform state with the resource information
-	if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("name", resource.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
+	// Update the Terraform state with the fetched data from the resource
+	diags = updateTerraformState(d, resource)
 
+	// Handle any errors and return diagnostics
+	if len(diags) > 0 {
+		return diags
+	}
 	return nil
 }
 

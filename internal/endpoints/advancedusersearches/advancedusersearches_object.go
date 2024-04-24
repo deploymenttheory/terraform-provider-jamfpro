@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/constructobject"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -48,13 +49,12 @@ func constructJamfProAdvancedUserSearch(d *schema.ResourceData) (*jamfpro.Resour
 		search.DisplayFields = []jamfpro.SharedAdvancedSearchContainerDisplayField{{DisplayField: displayFields}}
 	}
 
-	// Handle 'site' field
-	if v, ok := d.GetOk("site"); ok && len(v.([]interface{})) > 0 {
-		siteData := v.([]interface{})[0].(map[string]interface{})
-		search.Site = jamfpro.SharedResourceSite{
-			ID:   siteData["id"].(int),
-			Name: siteData["name"].(string),
-		}
+	// Handle Site
+	if v, ok := d.GetOk("site"); ok {
+		search.Site = constructobject.ConstructSharedResourceSite(v.([]interface{}))
+	} else {
+		// Set default values if 'site' data is not provided
+		search.Site = constructobject.ConstructSharedResourceSite([]interface{}{})
 	}
 
 	// Serialize and pretty-print the Advanced User Search object as XML for logging

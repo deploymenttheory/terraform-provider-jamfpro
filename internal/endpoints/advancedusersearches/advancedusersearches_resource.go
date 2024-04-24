@@ -5,11 +5,13 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -24,10 +26,10 @@ func ResourceJamfProAdvancedUserSearches() *schema.Resource {
 		UpdateContext: ResourceJamfProAdvancedUserSearchUpdate,
 		DeleteContext: ResourceJamfProAdvancedUserSearchDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Second),
+			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
-			Delete: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
 		Schema: map[string]*schema.Schema{
 			"id": {
@@ -131,8 +133,8 @@ func ResourceJamfProAdvancedUserSearchCreate(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Advanced User Search: %v", err))
 	}
 
-	// Retry the API call to create the site in Jamf Pro
-	var creationResponse *jamfpro.ResourceAdvancedUserSearchCreatedAndUpdated
+	// Retry the API call to create the resource in Jamf Pro
+	var creationResponse *jamfpro.ResponseAdvancedUserSearchCreatedAndUpdated
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
 		creationResponse, apiErr = conn.CreateAdvancedUserSearch(resource)
@@ -149,6 +151,20 @@ func ResourceJamfProAdvancedUserSearchCreate(ctx context.Context, d *schema.Reso
 
 	// Set the resource ID in Terraform state
 	d.SetId(strconv.Itoa(creationResponse.ID))
+
+	// Wait for the resource to be fully available before reading it
+	checkResourceExists := func(id interface{}) (interface{}, error) {
+		intID, err := strconv.Atoi(id.(string))
+		if err != nil {
+			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
+		}
+		return apiclient.Conn.GetAdvancedUserSearchByID(intID)
+	}
+
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Advanced User Search", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
+	if waitDiags.HasError() {
+		return waitDiags
+	}
 
 	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProAdvancedUserSearchRead(ctx, d, meta)
@@ -178,94 +194,22 @@ func ResourceJamfProAdvancedUserSearchRead(ctx context.Context, d *schema.Resour
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	var resource *jamfpro.ResourceAdvancedUserSearch
+	// Attempt to fetch the resource by ID
+	resource, err := conn.GetAdvancedUserSearchByID(resourceIDInt)
 
-	// Read operation with retry
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
-		resource, apiErr = conn.GetAdvancedUserSearchByID(resourceIDInt)
-		if apiErr != nil {
-			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
-				// Return non-retryable error with a message to avoid SDK issues
-				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
-			}
-			// Retry for other types of errors
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	// If err is not nil, check if it's due to the resource being not found
 	if err != nil {
-		if err.Error() == "resource not found, marked for deletion" {
-			// Resource not found, remove from Terraform state
-			d.SetId("")
-			// Append a warning diagnostic and return
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "Resource not found",
-				Detail:   fmt.Sprintf("Jamf Pro Advanced User Search with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
-			})
-			return diags
-		}
-
-		// For other errors, return an error diagnostic
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Advanced User Search with ID '%s' after retries: %v", resourceID, err))
-	}
-	// Update the Terraform state with the fetched data
-	if err := d.Set("id", resourceID); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("name", resource.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+		// Handle not found error or other errors
+		return state.HandleResourceNotFoundError(err, d)
 	}
 
-	// Handle "criteria" field
-	criteriaList := make([]interface{}, len(resource.Criteria.Criterion))
-	for i, crit := range resource.Criteria.Criterion {
-		criteriaMap := map[string]interface{}{
-			"name":          crit.Name,
-			"priority":      crit.Priority,
-			"and_or":        crit.AndOr,
-			"search_type":   crit.SearchType,
-			"value":         crit.Value,
-			"opening_paren": crit.OpeningParen,
-			"closing_paren": crit.ClosingParen,
-		}
-		criteriaList[i] = criteriaMap
-	}
-	if err := d.Set("criteria", criteriaList); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
+	// Update the Terraform state with the fetched data from the resource
+	diags = updateTerraformState(d, resource)
 
-	// Handle "display_fields" field
-	if len(resource.DisplayFields) == 0 || len(resource.DisplayFields[0].DisplayField) == 0 {
-		if err := d.Set("display_fields", []interface{}{}); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	} else {
-		displayFieldsList := make([]map[string]interface{}, len(resource.DisplayFields[0].DisplayField))
-		for i, displayField := range resource.DisplayFields[0].DisplayField {
-			displayFieldMap := map[string]interface{}{
-				"name": displayField.Name,
-			}
-			displayFieldsList[i] = displayFieldMap
-		}
-		if err := d.Set("display_fields", displayFieldsList); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+	// Handle any errors and return diagnostics
+	if len(diags) > 0 {
+		return diags
 	}
-
-	// Handle "site" field
-	site := map[string]interface{}{
-		"id":   resource.Site.ID,
-		"name": resource.Site.Name,
-	}
-	if err := d.Set("site", []interface{}{site}); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	return diags
+	return nil
 }
 
 // ResourceJamfProAdvancedUserSearchUpdate is responsible for updating an existing Jamf Pro advanced user Search on the remote system.

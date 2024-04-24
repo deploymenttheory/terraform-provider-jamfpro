@@ -46,18 +46,15 @@ Optional:
 <a id="nestedblock--criteria"></a>
 ### Nested Schema for `criteria`
 
-Required:
-
-- `name` (String) Name of the smart group search criteria. Can be from the Jamf built in enteries or can be an extension attribute.
-- `priority` (Number) The priority of the criterion.
-- `search_type` (String) The type of smart group search operator. Allowed values are 'is', 'is not', 'has', 'does not have', 'member of', 'not member of', 'before (yyyy-mm-dd)', 'after (yyyy-mm-dd)', 'more than x days ago', 'less than x days ago', 'like', 'not like', 'greater than', 'less than', 'greater than or equal', 'less than or equal', 'matches regex', 'does not match regex'.
-- `value` (String) Search value for the smart group criteria to match with.
-
 Optional:
 
 - `and_or` (String) Either 'and', 'or', or blank.
 - `closing_paren` (Boolean) Closing parenthesis flag used during smart group construction.
+- `name` (String) Name of the smart group search criteria. Can be from the Jamf built in enteries or can be an extension attribute.
 - `opening_paren` (Boolean) Opening parenthesis flag used during smart group construction.
+- `priority` (Number) The priority of the criterion.
+- `search_type` (String) The type of smart group search operator. Allowed values are 'is', 'is not', 'has', 'does not have', 'member of', 'not member of', 'before (yyyy-mm-dd)', 'after (yyyy-mm-dd)', 'more than x days ago', 'less than x days ago', 'like', 'not like', 'greater than', 'more than', 'less than', 'greater than or equal', 'less than or equal', 'matches regex', 'does not match regex'.
+- `value` (String) Search value for the smart group criteria to match with.
 
 
 <a id="nestedblock--site"></a>

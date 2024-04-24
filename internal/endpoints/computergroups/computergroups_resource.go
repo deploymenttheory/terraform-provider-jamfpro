@@ -5,11 +5,13 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -51,10 +53,10 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 		UpdateContext: ResourceJamfProComputerGroupsUpdate,
 		DeleteContext: ResourceJamfProComputerGroupsDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Second),
+			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
-			Delete: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
 		CustomizeDiff: customDiffComputeGroups,
 		Importer: &schema.ResourceImporter{
@@ -104,12 +106,13 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Description: "Name of the smart group search criteria. Can be from the Jamf built in enteries or can be an extension attribute.",
 						},
 						"priority": {
 							Type:        schema.TypeInt,
-							Required:    true,
+							Optional:    true,
+							Default:     0,
 							Description: "The priority of the criterion.",
 						},
 						"and_or": {
@@ -125,7 +128,8 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 						},
 						"search_type": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
+							Default:  "is",
 							Description: fmt.Sprintf("The type of smart group search operator. Allowed values are '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'. ",
 								SearchTypeIs, SearchTypeIsNot, SearchTypeHas, SearchTypeDoesNotHave, SearchTypeMemberOf, SearchTypeNotMemberOf,
 								SearchTypeBeforeYYYYMMDD, SearchTypeAfterYYYYMMDD, SearchTypeMoreThanXDaysAgo, SearchTypeLessThanXDaysAgo,
@@ -140,7 +144,7 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 						},
 						"value": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Description: "Search value for the smart group criteria to match with.",
 						},
 						"opening_paren": {
@@ -238,7 +242,22 @@ func ResourceJamfProComputerGroupsCreate(ctx context.Context, d *schema.Resource
 	// Set the resource ID in Terraform state
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	// Read the site to ensure the Terraform state is up to date
+	// Wait for the resource to be fully available before reading it
+	checkResourceExists := func(id interface{}) (interface{}, error) {
+		intID, err := strconv.Atoi(id.(string))
+		if err != nil {
+			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
+		}
+		return apiclient.Conn.GetComputerGroupByID(intID)
+	}
+
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Computer Group", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
+
+	if waitDiags.HasError() {
+		return waitDiags
+	}
+
+	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProComputerGroupsRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
@@ -266,96 +285,22 @@ func ResourceJamfProComputerGroupsRead(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	var resource *jamfpro.ResourceComputerGroup
+	// Attempt to fetch the resource by ID
+	resource, err := conn.GetComputerGroupByID(resourceIDInt)
 
-	// Read operation with retry
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
-		resource, apiErr = conn.GetComputerGroupByID(resourceIDInt)
-		if apiErr != nil {
-			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
-				// Return non-retryable error with a message to avoid SDK issues
-				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
-			}
-			// Retry for other types of errors
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	// If err is not nil, check if it's due to the resource being not found
 	if err != nil {
-		if err.Error() == "resource not found, marked for deletion" {
-			// Resource not found, remove from Terraform state
-			d.SetId("")
-			// Append a warning diagnostic and return
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "Resource not found",
-				Detail:   fmt.Sprintf("Jamf Pro Computer Group with ID '%s' was not found on the server and is marked for deletion from terraform state.", resourceID),
-			})
-			return diags
-		}
-
-		// For other errors, return an error diagnostic
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Computer Group with ID '%s' after retries: %v", resourceID, err))
+		// Handle not found error or other errors
+		return state.HandleResourceNotFoundError(err, d)
 	}
 
-	// Update the Terraform state with the fetched data
-	if resource != nil {
-		if err := d.Set("name", resource.Name); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("is_smart", resource.IsSmart); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+	// Update the Terraform state with the fetched data from the resource
+	diags = updateTerraformState(d, resource)
 
-		site := map[string]interface{}{
-			"id":   resource.Site.ID,
-			"name": resource.Site.Name,
-		}
-		if err := d.Set("site", []interface{}{site}); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-
-		// Set the criteria
-		criteriaList := make([]interface{}, len(resource.Criteria.Criterion))
-		for i, crit := range resource.Criteria.Criterion {
-			criteriaMap := map[string]interface{}{
-				"name":          crit.Name,
-				"priority":      crit.Priority,
-				"and_or":        crit.AndOr,
-				"search_type":   crit.SearchType,
-				"value":         crit.Value,
-				"opening_paren": crit.OpeningParen,
-				"closing_paren": crit.ClosingParen,
-			}
-			criteriaList[i] = criteriaMap
-		}
-		if err := d.Set("criteria", criteriaList); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-
-		// Set the computers only if the group is not smart
-		if !resource.IsSmart {
-			computersList := make([]interface{}, len(resource.Computers))
-			for i, comp := range resource.Computers {
-				computerMap := map[string]interface{}{
-					"id":              comp.ID,
-					"name":            comp.Name,
-					"mac_address":     comp.MacAddress,
-					"alt_mac_address": comp.AltMacAddress,
-					"serial_number":   comp.SerialNumber,
-				}
-				computersList[i] = computerMap
-			}
-			if err := d.Set("computers", computersList); err != nil {
-				diags = append(diags, diag.FromErr(err)...)
-			}
-		}
+	// Handle any errors and return diagnostics
+	if len(diags) > 0 {
+		return diags
 	}
-
-	return diags
+	return nil
 }
 
 // ResourceJamfProComputerGroupsUpdate is responsible for updating an existing Jamf Pro Computer Group on the remote system.

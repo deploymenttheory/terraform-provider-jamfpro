@@ -1,6 +1,6 @@
-// variables.go
+// common/jamfprivileges/validprivileges.go
 // This package contains shared / common resource variables
-package common
+package jamfprivileges
 
 // ValidJSSObjectsPrivileges contains a list of all valid values for JSS Object Priviledges field. Used by
 // accounts and account groups. Privileges are reflectively of jamf pro up to version 11.3.0
