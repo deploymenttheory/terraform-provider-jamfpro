@@ -98,12 +98,13 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Required:    true,
 				Description: "A MacOS configuration profile xml file as a file",
 			},
-			// "redeploy_on_update": { // TODO Review this, missing from the gui
-			// 	Type:        schema.TypeString,
-			// 	Optional:    true,
-			// 	Default:     "true",
-			// 	Description: "Whether the configuration profile is redeployed on update.",
-			// },
+			"redeploy_on_update": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "Newly Assigned",
+				Description:  "Whether the configuration profile is redeployed on update.",
+				ValidateFunc: validation.StringInSlice([]string{"All", "Newly Assigned"}, false),
+			},
 			"scope": {
 				Type:        schema.TypeList,
 				MaxItems:    1,

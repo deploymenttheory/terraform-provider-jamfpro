@@ -7,6 +7,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"howett.net/plist"
 )
 
 // updateTerraformState updates the Terraform state with the latest MacOS Configuration Profile information from the Jamf Pro API.
@@ -61,6 +62,17 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacO
 		log.Println("Not stating default category response") // TODO logging
 	}
 
+	// Payloads
+	var payloads interface{}
+	format, err := plist.Unmarshal([]byte(resource.General.Payloads), &payloads)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	payload, _ := plist.MarshalIndent(payloads, format, "    ")
+	if err := d.Set("payload", string(payload)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	// Distribution Method
 	// if err := d.Set("distribution_method", resource.General.DistributionMethod); err != nil {
 	// 	diags = append(diags, diag.FromErr(err)...)
@@ -81,10 +93,10 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacO
 	// 	diags = append(diags, diag.FromErr(err)...)
 	// }
 
-	// Redeploy On Update - not in ui
-	// if err := d.Set("redeploy_on_update", resource.General.RedeployOnUpdate); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
+	// Redeploy On Update - In UI, a modal offers this setting after any update
+	if err := d.Set("redeploy_on_update", resource.General.RedeployOnUpdate); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	// Scope
 
@@ -296,7 +308,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacO
 	}
 
 	// Set Scope to state
-	err := d.Set("scope", out_scope)
+	err = d.Set("scope", out_scope)
 	if err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
