@@ -26,7 +26,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 		UpdateContext: ResourceJamfProComputerPrestageEnrollmentUpdate,
 		DeleteContext: ResourceJamfProComputerPrestageEnrollmentDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(70 * time.Second),
+			Create: schema.DefaultTimeout(20 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
 			Delete: schema.DefaultTimeout(15 * time.Second),
@@ -89,7 +89,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 			},
 			"require_authentication": {
 				Type:        schema.TypeBool,
-				Required:    true,
+				Optional:    true,
 				Description: "Indicates if the user is required to provide username and password on computers with macOS 10.10 or later.",
 			},
 			"authentication_prompt": {
@@ -392,13 +392,13 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 			},
 			"custom_package_ids": {
 				Type:        schema.TypeList,
-				Required:    true,
+				Optional:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "Custom package IDs.",
 			},
 			"custom_package_distribution_point_id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "Custom package distribution point ID.",
 			},
 			"enable_recovery_lock": {
@@ -434,7 +434,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 			},
 			"profile_uuid": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Computed:    true,
 				Description: "The profile UUID.",
 			},
 			"site_id": {

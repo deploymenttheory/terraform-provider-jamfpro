@@ -106,12 +106,13 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Description: "Name of the smart group search criteria. Can be from the Jamf built in enteries or can be an extension attribute.",
 						},
 						"priority": {
 							Type:        schema.TypeInt,
-							Required:    true,
+							Optional:    true,
+							Default:     0,
 							Description: "The priority of the criterion.",
 						},
 						"and_or": {
@@ -127,7 +128,8 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 						},
 						"search_type": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
+							Default:  "is",
 							Description: fmt.Sprintf("The type of smart group search operator. Allowed values are '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'. ",
 								SearchTypeIs, SearchTypeIsNot, SearchTypeHas, SearchTypeDoesNotHave, SearchTypeMemberOf, SearchTypeNotMemberOf,
 								SearchTypeBeforeYYYYMMDD, SearchTypeAfterYYYYMMDD, SearchTypeMoreThanXDaysAgo, SearchTypeLessThanXDaysAgo,
@@ -142,7 +144,7 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 						},
 						"value": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Description: "Search value for the smart group criteria to match with.",
 						},
 						"opening_paren": {

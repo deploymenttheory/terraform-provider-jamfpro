@@ -25,8 +25,9 @@ func constructJamfProComputerGroup(d *schema.ResourceData) (*jamfpro.ResourceCom
 		// Set default values if 'site' data is not provided
 		group.Site = constructobject.ConstructSharedResourceSite([]interface{}{})
 	}
-	// Handle "criteria" field
-	if v, ok := d.GetOk("criteria"); ok {
+
+	// Handle "criteria" field only if it has entries
+	if v, ok := d.GetOk("criteria"); ok && len(v.([]interface{})) > 0 {
 		criteria := constructGroupCriteria(v.([]interface{}))
 		group.Criteria = jamfpro.SharedContainerCriteria{
 			Criterion: criteria,
