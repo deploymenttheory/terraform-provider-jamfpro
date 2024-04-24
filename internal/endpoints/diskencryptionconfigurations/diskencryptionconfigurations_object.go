@@ -29,7 +29,7 @@ func constructJamfProDiskEncryptionConfiguration(d *schema.ResourceData) (*jamfp
 	}
 
 	// Print the constructed XML output to the log
-	xmlOutput, err := constructobject.SerializeAndRedactXML(diskEncryptionConfig, []string{"password"})
+	xmlOutput, err := constructobject.SerializeAndRedactXML(diskEncryptionConfig, []string{"Password"})
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}

@@ -48,7 +48,8 @@ func constructJamfProWebhook(d *schema.ResourceData) (*jamfpro.ResourceWebhook, 
 	}
 
 	// Print the constructed XML output to the log
-	xmlOutput, err := constructobject.SerializeAndRedactXML(webhook, []string{"password"})
+	// redaction requires case matching to the struct field names
+	xmlOutput, err := constructobject.SerializeAndRedactXML(webhook, []string{"Password"})
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}

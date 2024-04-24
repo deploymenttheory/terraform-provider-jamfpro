@@ -54,7 +54,8 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 	}
 
 	// Print the constructed XML output to the log
-	xmlOutput, err := constructobject.SerializeAndRedactXML(account, []string{"password"})
+	// redaction requires case matching to the struct field names
+	xmlOutput, err := constructobject.SerializeAndRedactXML(account, []string{"Password"})
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}
