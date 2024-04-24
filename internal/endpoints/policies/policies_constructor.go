@@ -1,6 +1,7 @@
 package policies
 
 import (
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"log"
@@ -10,8 +11,10 @@ import (
 )
 
 func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
-
+	log.Println(("LOGHERE"))
 	// Non computed values first
+
+	log.Println("STRUCT START")
 	out := &jamfpro.ResourcePolicy{
 		General: jamfpro.PolicySubsetGeneral{
 			// ID computed
@@ -50,11 +53,17 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 		// DiskEncryption
 		// Reboot
 	}
+	log.Println("STRUCT END")
+	json, _ := json.MarshalIndent(out, " ", "    ")
+	log.Println(string(json))
+
+	log.Println("PROCESS START")
 
 	// Processed Fields
 
 	// General
 
+	log.Println("LOG-CATEGORY")
 	// Category
 	if len(d.Get("category").([]interface{})) > 0 {
 		out.General.Category = &jamfpro.SharedResourceCategory{
@@ -63,6 +72,7 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 		}
 	}
 
+	log.Println("LOG-SITE")
 	// Site
 	if len(d.Get("site").([]interface{})) > 0 {
 		out.General.Site = &jamfpro.SharedResourceSite{
@@ -71,36 +81,44 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 		}
 	}
 
+	log.Println("LOG-DATETIME")
 	// Date time Limitations
 	if len(d.Get("date_time_limitations").([]interface{})) > 0 {
 		pathRoot := "date_time_limitations.0."
 		out.General.DateTimeLimitations = &jamfpro.PolicySubsetGeneralDateTimeLimitations{
-			ActivationDate:      d.Get(fmt.Sprintf("%s,%s", pathRoot, "activation_date")).(string),
-			ActivationDateEpoch: d.Get(fmt.Sprintf("%s,%s", pathRoot, "activation_date_epoch")).(int),
-			ActivationDateUTC:   d.Get(fmt.Sprintf("%s,%s", pathRoot, "activation_date_utc")).(string),
-			ExpirationDate:      d.Get(fmt.Sprintf("%s,%s", pathRoot, "expiration_date")).(string),
-			ExpirationDateEpoch: d.Get(fmt.Sprintf("%s,%s", pathRoot, "expiration_date_epoch")).(int),
-			ExpirationDateUTC:   d.Get(fmt.Sprintf("%s,%s", pathRoot, "expiration_date_utc")).(string),
+			ActivationDate:      d.Get(fmt.Sprintf("%s%s", pathRoot, "activation_date")).(string),
+			ActivationDateEpoch: d.Get(fmt.Sprintf("%s%s", pathRoot, "activation_date_epoch")).(int),
+			ActivationDateUTC:   d.Get(fmt.Sprintf("%s%s", pathRoot, "activation_date_utc")).(string),
+			ExpirationDate:      d.Get(fmt.Sprintf("%s%s", pathRoot, "expiration_date")).(string),
+			ExpirationDateEpoch: d.Get(fmt.Sprintf("%s%s", pathRoot, "expiration_date_epoch")).(int),
+			ExpirationDateUTC:   d.Get(fmt.Sprintf("%s%s", pathRoot, "expiration_date_utc")).(string),
 			// no execute on // TODO
-			NoExecuteStart: d.Get(fmt.Sprintf("%s,%s", pathRoot, "no_execute_start")).(string),
-			NoExecuteEnd:   d.Get(fmt.Sprintf("%s,%s", pathRoot, "no_execute_end")).(string),
+			NoExecuteStart: d.Get(fmt.Sprintf("%s%s", pathRoot, "no_execute_start")).(string),
+			NoExecuteEnd:   d.Get(fmt.Sprintf("%s%s", pathRoot, "no_execute_end")).(string),
 		}
 	}
 
+	log.Println("LOG-NETWORK")
 	// Network Limitations
-	if len(d.Get("network_limiations").([]interface{})) > 0 {
+	if len(d.Get("network_limitations").([]interface{})) > 0 {
+		log.Println("FLAG 1")
 		pathRoot := "network_limitations.0."
-		out.General.NetworkLimitations = &jamfpro.PolicySubsetGeneralNetworkLimitations{
-			MinimumNetworkConnection: d.Get(fmt.Sprintf("%s,%s", pathRoot, "minimum_network_connection")).(string),
-			AnyIPAddress:             d.Get(fmt.Sprintf("%s,%s", pathRoot, "any_ip_address")).(bool),
-			NetworkSegments:          d.Get(fmt.Sprintf("%s,%s", pathRoot, "network_segments")).(string),
-		}
+		out.General.NetworkLimitations = &jamfpro.PolicySubsetGeneralNetworkLimitations{}
+		log.Println("FLAG 2")
+		// out.General.NetworkLimitations.MinimumNetworkConnection = d.Get(fmt.Sprintf("%s%s", pathRoot, "minimum_network_connection")).(string)
+		out.General.NetworkRequirements = d.Get(fmt.Sprintf("%s%s", pathRoot, "minimum_network_connection")).(string)
+		log.Println("FLAG 3")
+		out.General.NetworkLimitations.AnyIPAddress = d.Get(fmt.Sprintf("%s%s", pathRoot, "any_ip_address")).(bool)
+		log.Println("FLAG 4")
+		out.General.NetworkLimitations.NetworkSegments = d.Get(fmt.Sprintf("%s%s", pathRoot, "network_segments")).(string)
+
+		log.Println("FLAG 5")
 	}
 
 	// Scope
 
 	policyXML, _ := xml.MarshalIndent(out, "", "  ")
-	log.Println("LOGHERE")
+	log.Println("LOGEND")
 	log.Println(string(policyXML))
 	return out, nil
 }
