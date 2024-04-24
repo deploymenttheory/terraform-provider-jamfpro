@@ -19,31 +19,18 @@ description: |-
 
 - `enabled` (Boolean) Define whether the policy is enabled.
 - `name` (String) The name of the policy.
-- `override_default_settings` (Block List, Min: 1) Settings to override default configurations. (see [below for nested schema](#nestedblock--override_default_settings))
-- `scope` (Block List, Min: 1, Max: 1) Scope configuration for the profile. (see [below for nested schema](#nestedblock--scope))
-- `self_service` (Block List, Min: 1) Self-service settings of the policy. (see [below for nested schema](#nestedblock--self_service))
-- `site` (Block List, Min: 1) Jamf Pro Site-related settings of the policy. (see [below for nested schema](#nestedblock--site))
+- `payloads` (Block List, Min: 1) All payloads container (see [below for nested schema](#nestedblock--payloads))
 
 ### Optional
 
-- `account_maintenance` (Block List) Account maintenance settings of the policy. Use this section to create and delete local accounts, and to reset local account passwords. Also use this section to disable an existing local account for FileVault 2. (see [below for nested schema](#nestedblock--account_maintenance))
 - `category` (Block List) Category to add the policy to. (see [below for nested schema](#nestedblock--category))
 - `date_time_limitations` (Block List) Server-side limitations use your Jamf Pro host server's time zone and settings. The Jamf Pro host service is in UTC time. (see [below for nested schema](#nestedblock--date_time_limitations))
-- `disk_encryption` (Block List) Disk encryption settings of the policy. Use this section to enable FileVault 2 or to issue a new recovery key. (see [below for nested schema](#nestedblock--disk_encryption))
-- `dock_items` (Block List) Dock items settings of the policy. (see [below for nested schema](#nestedblock--dock_items))
-- `files_processes` (Block List) Files and processes settings of the policy. Use this section to search for and log specific files and processes. Also use this section to execute a command. (see [below for nested schema](#nestedblock--files_processes))
 - `frequency` (String) Frequency of policy execution.
-- `maintenance` (Block List) Maintenance settings of the policy. Use this section to update inventory, reset computer names, install all cached packages, and run common maintenance tasks. (see [below for nested schema](#nestedblock--maintenance))
 - `network_limitations` (Block List) Network limitations for the policy. (see [below for nested schema](#nestedblock--network_limitations))
-- `network_requirements` (String) Network requirements for the policy.
 - `notify_on_each_failed_retry` (Boolean) Send notifications for each failed policy retry attempt.
 - `offline` (Boolean) Make policy available offline by caching the policy to the macOS device to ensure it runs when Jamf Pro is unavailable. Only used when execution policy is set to 'ongoing'.
-- `package_configuration` (Block List) Package configuration settings of the policy. (see [below for nested schema](#nestedblock--package_configuration))
-- `printers` (Block List) Printers settings of the policy. (see [below for nested schema](#nestedblock--printers))
-- `reboot` (Block Set) Use this section to restart computers and specify the disk to boot them to (see [below for nested schema](#nestedblock--reboot))
 - `retry_attempts` (Number) Number of retry attempts for the jamf pro policy. Valid values are -1 (not configured) and 1 through 10.
 - `retry_event` (String) Event on which to retry policy execution.
-- `scripts` (Block List) Scripts settings of the policy. (see [below for nested schema](#nestedblock--scripts))
 - `target_drive` (String) The drive on which to run the policy (e.g. /Volumes/Restore/ ). The policy runs on the boot drive by default
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 - `trigger_checkin` (Boolean) Trigger policy when device performs recurring check-in against the frequency configured in Jamf Pro
@@ -52,25 +39,47 @@ description: |-
 - `trigger_network_state_changed` (Boolean) Trigger policy when it's network state changes. When a computer's network state changes (e.g., when the network connection changes, when the computer name changes, when the IP address changes)
 - `trigger_other` (String) Any other trigger for the policy.
 - `trigger_startup` (Boolean) Trigger policy when a computer starts up. A startup script that checks for policies must be configured in Jamf Pro for this to work
-- `user_interaction` (Block List) User interaction settings of the policy. (see [below for nested schema](#nestedblock--user_interaction))
 
 ### Read-Only
 
 - `id` (String) The unique identifier of the Jamf Pro policy.
 
-<a id="nestedblock--override_default_settings"></a>
-### Nested Schema for `override_default_settings`
+<a id="nestedblock--payloads"></a>
+### Nested Schema for `payloads`
+
+Required:
+
+- `override_default_settings` (Block List, Min: 1) Settings to override default configurations. (see [below for nested schema](#nestedblock--payloads--override_default_settings))
+- `scope` (Block List, Min: 1, Max: 1) Scope configuration for the profile. (see [below for nested schema](#nestedblock--payloads--scope))
+- `self_service` (Block List, Min: 1) Self-service settings of the policy. (see [below for nested schema](#nestedblock--payloads--self_service))
+- `site` (Block List, Min: 1) Jamf Pro Site-related settings of the policy. (see [below for nested schema](#nestedblock--payloads--site))
 
 Optional:
 
-- `distribution_point` (String) Distribution point for the policy.
-- `force_afp_smb` (Boolean) Whether to force AFP/SMB.
-- `sus` (String) Software Update Service for the policy.
-- `target_drive` (String) The drive on which to run the policy (e.g. '/Volumes/Restore/'). Defaults to '/' if no value is defined, which is the root of the file system.
+- `account_maintenance` (Block List) Account maintenance settings of the policy. Use this section to create and delete local accounts, and to reset local account passwords. Also use this section to disable an existing local account for FileVault 2. (see [below for nested schema](#nestedblock--payloads--account_maintenance))
+- `disk_encryption` (Block List) Disk encryption settings of the policy. Use this section to enable FileVault 2 or to issue a new recovery key. (see [below for nested schema](#nestedblock--payloads--disk_encryption))
+- `dock_items` (Block List) Dock items settings of the policy. (see [below for nested schema](#nestedblock--payloads--dock_items))
+- `files_processes` (Block List) Files and processes settings of the policy. Use this section to search for and log specific files and processes. Also use this section to execute a command. (see [below for nested schema](#nestedblock--payloads--files_processes))
+- `maintenance` (Block List) Maintenance settings of the policy. Use this section to update inventory, reset computer names, install all cached packages, and run common maintenance tasks. (see [below for nested schema](#nestedblock--payloads--maintenance))
+- `network_requirements` (String) Network requirements for the policy.
+- `packages` (Block List) Package configuration settings of the policy. (see [below for nested schema](#nestedblock--payloads--packages))
+- `printers` (Block List) Printers settings of the policy. (see [below for nested schema](#nestedblock--payloads--printers))
+- `reboot` (Block Set) Use this section to restart computers and specify the disk to boot them to (see [below for nested schema](#nestedblock--payloads--reboot))
+- `scripts` (Block List) Scripts settings of the policy. (see [below for nested schema](#nestedblock--payloads--scripts))
+- `user_interaction` (Block List) User interaction settings of the policy. (see [below for nested schema](#nestedblock--payloads--user_interaction))
+
+<a id="nestedblock--payloads--override_default_settings"></a>
+### Nested Schema for `payloads.override_default_settings`
+
+Optional:
+
+- `any_ip_address` (Boolean) Whether the policy applies to any IP address.
+- `minimum_network_connection` (String) Minimum network connection required for the policy.
+- `network_segments` (String) Network segment limitations for the policy.
 
 
-<a id="nestedblock--scope"></a>
-### Nested Schema for `scope`
+<a id="nestedblock--payloads--scope"></a>
+### Nested Schema for `payloads.scope`
 
 Required:
 
@@ -83,13 +92,13 @@ Optional:
 - `computer_group_ids` (List of Number) The computer groups to which the configuration profile is scoped by Jamf ID
 - `computer_ids` (List of Number) The computers to which the configuration profile is scoped by Jamf ID
 - `department_ids` (List of Number) The departments to which the configuration profile is scoped by Jamf ID
-- `exclusions` (Block List, Max: 1) The exclusions from the scope. (see [below for nested schema](#nestedblock--scope--exclusions))
+- `exclusions` (Block List, Max: 1) The exclusions from the scope. (see [below for nested schema](#nestedblock--payloads--scope--exclusions))
 - `jss_user_group_ids` (List of Number) The jss user groups to which the configuration profile is scoped by Jamf ID
 - `jss_user_ids` (List of Number) The jss users to which the configuration profile is scoped by Jamf ID
-- `limitations` (Block List, Max: 1) The limitations within the scope. (see [below for nested schema](#nestedblock--scope--limitations))
+- `limitations` (Block List, Max: 1) The limitations within the scope. (see [below for nested schema](#nestedblock--payloads--scope--limitations))
 
-<a id="nestedblock--scope--exclusions"></a>
-### Nested Schema for `scope.exclusions`
+<a id="nestedblock--payloads--scope--exclusions"></a>
+### Nested Schema for `payloads.scope.exclusions`
 
 Optional:
 
@@ -103,8 +112,8 @@ Optional:
 - `network_segment_ids` (List of Number) Network segments excluded from scope by Jamf ID.
 
 
-<a id="nestedblock--scope--limitations"></a>
-### Nested Schema for `scope.limitations`
+<a id="nestedblock--payloads--scope--limitations"></a>
+### Nested Schema for `payloads.scope.limitations`
 
 Optional:
 
@@ -115,12 +124,12 @@ Optional:
 
 
 
-<a id="nestedblock--self_service"></a>
-### Nested Schema for `self_service`
+<a id="nestedblock--payloads--self_service"></a>
+### Nested Schema for `payloads.self_service`
 
 Required:
 
-- `self_service_icon` (Block List, Min: 1) Icon settings for the policy in self-service. (see [below for nested schema](#nestedblock--self_service--self_service_icon))
+- `self_service_icon` (Block List, Min: 1) Icon settings for the policy in self-service. (see [below for nested schema](#nestedblock--payloads--self_service--self_service_icon))
 
 Optional:
 
@@ -128,13 +137,13 @@ Optional:
 - `force_users_to_view_description` (Boolean) Whether to force users to view the policy description in self-service.
 - `install_button_text` (String) Text displayed on the install button in self-service.
 - `reinstall_button_text` (String) Text displayed on the re-install button in self-service.
-- `self_service_categories` (Block List) Category settings for the policy in self-service. (see [below for nested schema](#nestedblock--self_service--self_service_categories))
+- `self_service_categories` (Block List) Category settings for the policy in self-service. (see [below for nested schema](#nestedblock--payloads--self_service--self_service_categories))
 - `self_service_description` (String) Description of the policy displayed in self-service.
 - `self_service_display_name` (String) Display name of the policy in self-service.
 - `use_for_self_service` (Boolean) Whether the policy is available for self-service.
 
-<a id="nestedblock--self_service--self_service_icon"></a>
-### Nested Schema for `self_service.self_service_icon`
+<a id="nestedblock--payloads--self_service--self_service_icon"></a>
+### Nested Schema for `payloads.self_service.self_service_icon`
 
 Optional:
 
@@ -146,15 +155,15 @@ Read-Only:
 - `uri` (String) URI of the icon used in self-service.
 
 
-<a id="nestedblock--self_service--self_service_categories"></a>
-### Nested Schema for `self_service.self_service_categories`
+<a id="nestedblock--payloads--self_service--self_service_categories"></a>
+### Nested Schema for `payloads.self_service.self_service_categories`
 
 Optional:
 
-- `category` (Block List) Category details for the policy in self-service. (see [below for nested schema](#nestedblock--self_service--self_service_categories--category))
+- `category` (Block List) Category details for the policy in self-service. (see [below for nested schema](#nestedblock--payloads--self_service--self_service_categories--category))
 
-<a id="nestedblock--self_service--self_service_categories--category"></a>
-### Nested Schema for `self_service.self_service_categories.category`
+<a id="nestedblock--payloads--self_service--self_service_categories--category"></a>
+### Nested Schema for `payloads.self_service.self_service_categories.category`
 
 Optional:
 
@@ -166,8 +175,8 @@ Optional:
 
 
 
-<a id="nestedblock--site"></a>
-### Nested Schema for `site`
+<a id="nestedblock--payloads--site"></a>
+### Nested Schema for `payloads.site`
 
 Optional:
 
@@ -175,25 +184,45 @@ Optional:
 - `name` (String) Jamf Pro Site Name. Value defaults to 'None' aka not used
 
 
-<a id="nestedblock--account_maintenance"></a>
-### Nested Schema for `account_maintenance`
+<a id="nestedblock--payloads--account_maintenance"></a>
+### Nested Schema for `payloads.account_maintenance`
 
 Optional:
 
-- `accounts` (Block List) List of account maintenance configurations. (see [below for nested schema](#nestedblock--account_maintenance--accounts))
-- `directory_bindings` (Block List) Directory binding settings for the policy. Use this section to bind computers to a directory service (see [below for nested schema](#nestedblock--account_maintenance--directory_bindings))
-- `management_account` (Block List) Management account settings for the policy. Use this section to change or reset the management account password. (see [below for nested schema](#nestedblock--account_maintenance--management_account))
-- `open_firmware_efi_password` (Block List) Open Firmware/EFI password settings for the policy. Use this section to set or remove an Open Firmware/EFI password on computers with Intel-based processors. (see [below for nested schema](#nestedblock--account_maintenance--open_firmware_efi_password))
+- `directory_bindings` (Block List) Directory binding settings for the policy. Use this section to bind computers to a directory service (see [below for nested schema](#nestedblock--payloads--account_maintenance--directory_bindings))
+- `local_accounts` (Block List, Max: 1) Local user account configurations (see [below for nested schema](#nestedblock--payloads--account_maintenance--local_accounts))
+- `management_account` (Block List) Management account settings for the policy. Use this section to change or reset the management account password. (see [below for nested schema](#nestedblock--payloads--account_maintenance--management_account))
+- `open_firmware_efi_password` (Block List) Open Firmware/EFI password settings for the policy. Use this section to set or remove an Open Firmware/EFI password on computers with Intel-based processors. (see [below for nested schema](#nestedblock--payloads--account_maintenance--open_firmware_efi_password))
 
-<a id="nestedblock--account_maintenance--accounts"></a>
-### Nested Schema for `account_maintenance.accounts`
+<a id="nestedblock--payloads--account_maintenance--directory_bindings"></a>
+### Nested Schema for `payloads.account_maintenance.directory_bindings`
 
 Optional:
 
-- `account` (Block List) Details of each account configuration. (see [below for nested schema](#nestedblock--account_maintenance--accounts--account))
+- `binding` (Block List) Details of the directory binding. (see [below for nested schema](#nestedblock--payloads--account_maintenance--directory_bindings--binding))
 
-<a id="nestedblock--account_maintenance--accounts--account"></a>
-### Nested Schema for `account_maintenance.accounts.account`
+<a id="nestedblock--payloads--account_maintenance--directory_bindings--binding"></a>
+### Nested Schema for `payloads.account_maintenance.directory_bindings.binding`
+
+Required:
+
+- `id` (Number) The unique identifier of the binding.
+
+Read-Only:
+
+- `name` (String) The name of the binding.
+
+
+
+<a id="nestedblock--payloads--account_maintenance--local_accounts"></a>
+### Nested Schema for `payloads.account_maintenance.local_accounts`
+
+Optional:
+
+- `account` (Block List) Details of each account configuration. (see [below for nested schema](#nestedblock--payloads--account_maintenance--local_accounts--account))
+
+<a id="nestedblock--payloads--account_maintenance--local_accounts--account"></a>
+### Nested Schema for `payloads.account_maintenance.local_accounts.account`
 
 Optional:
 
@@ -211,28 +240,8 @@ Optional:
 
 
 
-<a id="nestedblock--account_maintenance--directory_bindings"></a>
-### Nested Schema for `account_maintenance.directory_bindings`
-
-Optional:
-
-- `binding` (Block List) Details of the directory binding. (see [below for nested schema](#nestedblock--account_maintenance--directory_bindings--binding))
-
-<a id="nestedblock--account_maintenance--directory_bindings--binding"></a>
-### Nested Schema for `account_maintenance.directory_bindings.binding`
-
-Required:
-
-- `id` (Number) The unique identifier of the binding.
-
-Read-Only:
-
-- `name` (String) The name of the binding.
-
-
-
-<a id="nestedblock--account_maintenance--management_account"></a>
-### Nested Schema for `account_maintenance.management_account`
+<a id="nestedblock--payloads--account_maintenance--management_account"></a>
+### Nested Schema for `payloads.account_maintenance.management_account`
 
 Optional:
 
@@ -241,8 +250,8 @@ Optional:
 - `managed_password_length` (Number) Length of the managed password. Only necessary when utilizing the random action
 
 
-<a id="nestedblock--account_maintenance--open_firmware_efi_password"></a>
-### Nested Schema for `account_maintenance.open_firmware_efi_password`
+<a id="nestedblock--payloads--account_maintenance--open_firmware_efi_password"></a>
+### Nested Schema for `payloads.account_maintenance.open_firmware_efi_password`
 
 Optional:
 
@@ -251,13 +260,152 @@ Optional:
 
 
 
-<a id="nestedblock--category"></a>
-### Nested Schema for `category`
+<a id="nestedblock--payloads--disk_encryption"></a>
+### Nested Schema for `payloads.disk_encryption`
 
 Optional:
 
-- `id` (Number) The category ID assigned to the jamf pro policy. Defaults to '-1' aka not used.
-- `name` (String) Category Name for assigned jamf pro policy. Value defaults to 'No category assigned' aka not used
+- `action` (String) The action to perform for disk encryption (e.g., apply, remediate).
+- `auth_restart` (Boolean) Whether to allow authentication restart.
+- `disk_encryption_configuration_id` (Number) ID of the disk encryption configuration to apply.
+- `remediate_disk_encryption_configuration_id` (Number) Disk encryption ID to utilize for remediating institutional recovery key types.
+- `remediate_key_type` (String) Type of key to use for remediation (e.g., Individual, Institutional, Individual And Institutional).
+
+
+<a id="nestedblock--payloads--dock_items"></a>
+### Nested Schema for `payloads.dock_items`
+
+Required:
+
+- `id` (Number) Unique identifier of the dock item.
+
+Optional:
+
+- `action` (String) Action to be performed for the dock item (e.g., Add To Beginning, Add To End, Remove).
+
+
+<a id="nestedblock--payloads--files_processes"></a>
+### Nested Schema for `payloads.files_processes`
+
+Optional:
+
+- `delete_file` (Boolean) Whether to delete the file found at the specified path.
+- `kill_process` (Boolean) Whether to kill the process if found. This works with exact matches only
+- `locate_file` (String) Path of the file to locate. Name of the file, including the file extension. This field is case-sensitive and returns partial matches
+- `run_command` (String) Command to execute on computers. This command is executed as the 'root' user
+- `search_by_path` (String) Path of the file to search for.
+- `search_for_process` (String) Name of the process to search for. This field is case-sensitive and returns partial matches
+- `spotlight_search` (String) Search For File Using Spotlight. File to search for. This field is not case-sensitive and returns partial matches
+- `update_locate_database` (Boolean) Whether to update the locate database. Update the locate database before searching for the file
+
+
+<a id="nestedblock--payloads--maintenance"></a>
+### Nested Schema for `payloads.maintenance`
+
+Optional:
+
+- `byhost` (Boolean) Whether to fix ByHost files andnpreferences.
+- `heal` (Boolean) Whether to heal the policy.
+- `install_all_cached_packages` (Boolean) Whether to install all cached packages. Installs packages cached by Jamf Pro
+- `permissions` (Boolean) Whether to fix Disk Permissions (Not compatible with macOS v10.12 or later)
+- `prebindings` (Boolean) Whether to update prebindings.
+- `recon` (Boolean) Whether to run recon (inventory update) as part of the maintenance. Forces computers to submit updated inventory information to Jamf Pro
+- `reset_name` (Boolean) Whether to reset the computer name to the name stored in Jamf Pro. Changes the computer name on computers to match the computer name in Jamf Pro
+- `system_cache` (Boolean) Whether to flush caches from /Library/Caches/ and /System/Library/Caches/, except for any com.apple.LaunchServices caches
+- `user_cache` (Boolean) Whether to flush caches from ~/Library/Caches/, ~/.jpi_cache/, and ~/Library/Preferences/Microsoft/Office version #/Office Font Cache. Enabling this may cause problems with system fonts displaying unless a restart option is configured.
+- `verify` (Boolean) Whether to verify system files and structure on the Startup Disk
+
+
+<a id="nestedblock--payloads--packages"></a>
+### Nested Schema for `payloads.packages`
+
+Optional:
+
+- `package` (Block List) Details of the package. (see [below for nested schema](#nestedblock--payloads--packages--package))
+
+<a id="nestedblock--payloads--packages--package"></a>
+### Nested Schema for `payloads.packages.package`
+
+Required:
+
+- `id` (Number) Unique identifier of the package.
+
+Optional:
+
+- `action` (String) Action to be performed for the package.
+- `fill_existing_user_template` (Boolean) Fill Existing Users (FEU).
+- `fill_user_template` (Boolean) Fill User Template (FUT).
+
+
+
+<a id="nestedblock--payloads--printers"></a>
+### Nested Schema for `payloads.printers`
+
+Required:
+
+- `action` (String) Action to be performed for the printer (e.g., install, uninstall).
+- `id` (Number) Unique identifier of the printer.
+
+Optional:
+
+- `make_default` (Boolean) Whether to set the printer as the default.
+
+
+<a id="nestedblock--payloads--reboot"></a>
+### Nested Schema for `payloads.reboot`
+
+Optional:
+
+- `file_vault_2_reboot` (Boolean) Perform authenticated restart on computers with FileVault 2 enabled. Restart FileVault 2-encrypted computers without requiring an unlock during the next startup
+- `message` (String) The reboot message displayed to the user.
+- `minutes_until_reboot` (Number) Amount of time to wait before the restart begins.
+- `no_user_logged_in` (String) Action to take if no user is logged in to the computer
+- `specify_startup` (String) Reboot Method
+- `start_reboot_timer_immediately` (Boolean) Defines if the reboot timer should start immediately once the policy applies to a macOS device.
+- `startup_disk` (String) Disk to boot computers to
+- `user_logged_in` (String) Action to take if a user is logged in to the computer
+
+
+<a id="nestedblock--payloads--scripts"></a>
+### Nested Schema for `payloads.scripts`
+
+Optional:
+
+- `id` (Number) Unique identifier of the script.
+- `parameter10` (String) Custom parameter 10 for the script.
+- `parameter11` (String) Custom parameter 11 for the script.
+- `parameter4` (String) Custom parameter 4 for the script.
+- `parameter5` (String) Custom parameter 5 for the script.
+- `parameter6` (String) Custom parameter 6 for the script.
+- `parameter7` (String) Custom parameter 7 for the script.
+- `parameter8` (String) Custom parameter 8 for the script.
+- `parameter9` (String) Custom parameter 9 for the script.
+- `priority` (String) Execution priority of the script.
+
+
+<a id="nestedblock--payloads--user_interaction"></a>
+### Nested Schema for `payloads.user_interaction`
+
+Optional:
+
+- `allow_deferral_minutes` (Number) Number of minutes after the user was first prompted by the policy at which the policy runs and deferrals are prohibited
+- `allow_deferral_until_utc` (String) Date/time at which deferrals are prohibited and the policy runs. Uses time zone settings of your hosting server. Standard environments hosted in Jamf Cloud use Coordinated Universal Time (UTC)
+- `allow_user_to_defer` (Boolean) Allow user deferral and configure deferral type. A deferral limit must be specified for this to work.
+- `message_finish` (String) Message to display when the policy is complete.
+- `message_start` (String) Message to display before the policy runs
+
+
+
+<a id="nestedblock--category"></a>
+### Nested Schema for `category`
+
+Required:
+
+- `id` (Number) The unique identifier of the category to which the configuration profile is scoped.
+
+Optional:
+
+- `name` (String) The name of the category to which the configuration profile is scoped.
 
 
 <a id="nestedblock--date_time_limitations"></a>
@@ -276,74 +424,6 @@ Optional:
 - `no_execute_start` (String) Client-side limitations are enforced based on the settings on computers. This field sets the start time when the policy should not execute.
 
 
-<a id="nestedblock--disk_encryption"></a>
-### Nested Schema for `disk_encryption`
-
-Optional:
-
-- `action` (String) The action to perform for disk encryption (e.g., apply, remediate).
-- `auth_restart` (Boolean) Whether to allow authentication restart.
-- `disk_encryption_configuration_id` (Number) ID of the disk encryption configuration to apply.
-- `remediate_disk_encryption_configuration_id` (Number) Disk encryption ID to utilize for remediating institutional recovery key types.
-- `remediate_key_type` (String) Type of key to use for remediation (e.g., Individual, Institutional, Individual And Institutional).
-
-
-<a id="nestedblock--dock_items"></a>
-### Nested Schema for `dock_items`
-
-Optional:
-
-- `dock_item` (Block List) Details of the dock item configuration. (see [below for nested schema](#nestedblock--dock_items--dock_item))
-
-<a id="nestedblock--dock_items--dock_item"></a>
-### Nested Schema for `dock_items.dock_item`
-
-Required:
-
-- `id` (Number) Unique identifier of the dock item.
-
-Optional:
-
-- `action` (String) Action to be performed for the dock item (e.g., Add To Beginning, Add To End, Remove).
-
-Read-Only:
-
-- `name` (String) Name of the dock item.
-
-
-
-<a id="nestedblock--files_processes"></a>
-### Nested Schema for `files_processes`
-
-Optional:
-
-- `delete_file` (Boolean) Whether to delete the file found at the specified path.
-- `kill_process` (Boolean) Whether to kill the process if found. This works with exact matches only
-- `locate_file` (String) Path of the file to locate. Name of the file, including the file extension. This field is case-sensitive and returns partial matches
-- `run_command` (String) Command to execute on computers. This command is executed as the 'root' user
-- `search_by_path` (String) Path of the file to search for.
-- `search_for_process` (String) Name of the process to search for. This field is case-sensitive and returns partial matches
-- `spotlight_search` (String) Search For File Using Spotlight. File to search for. This field is not case-sensitive and returns partial matches
-- `update_locate_database` (Boolean) Whether to update the locate database. Update the locate database before searching for the file
-
-
-<a id="nestedblock--maintenance"></a>
-### Nested Schema for `maintenance`
-
-Optional:
-
-- `byhost` (Boolean) Whether to fix ByHost files andnpreferences.
-- `heal` (Boolean) Whether to heal the policy.
-- `install_all_cached_packages` (Boolean) Whether to install all cached packages. Installs packages cached by Jamf Pro
-- `permissions` (Boolean) Whether to fix Disk Permissions (Not compatible with macOS v10.12 or later)
-- `prebindings` (Boolean) Whether to update prebindings.
-- `recon` (Boolean) Whether to run recon (inventory update) as part of the maintenance. Forces computers to submit updated inventory information to Jamf Pro
-- `reset_name` (Boolean) Whether to reset the computer name to the name stored in Jamf Pro. Changes the computer name on computers to match the computer name in Jamf Pro
-- `system_cache` (Boolean) Whether to flush caches from /Library/Caches/ and /System/Library/Caches/, except for any com.apple.LaunchServices caches
-- `user_cache` (Boolean) Whether to flush caches from ~/Library/Caches/, ~/.jpi_cache/, and ~/Library/Preferences/Microsoft/Office version #/Office Font Cache. Enabling this may cause problems with system fonts displaying unless a restart option is configured.
-- `verify` (Boolean) Whether to verify system files and structure on the Startup Disk
-
-
 <a id="nestedblock--network_limitations"></a>
 ### Nested Schema for `network_limitations`
 
@@ -352,103 +432,6 @@ Optional:
 - `any_ip_address` (Boolean) Whether the policy applies to any IP address.
 - `minimum_network_connection` (String) Minimum network connection required for the policy.
 - `network_segments` (String) Network segment limitations for the policy.
-
-
-<a id="nestedblock--package_configuration"></a>
-### Nested Schema for `package_configuration`
-
-Optional:
-
-- `packages` (Block List) List of packages included in the policy. (see [below for nested schema](#nestedblock--package_configuration--packages))
-
-<a id="nestedblock--package_configuration--packages"></a>
-### Nested Schema for `package_configuration.packages`
-
-Optional:
-
-- `package` (Block List) Details of the package. (see [below for nested schema](#nestedblock--package_configuration--packages--package))
-
-<a id="nestedblock--package_configuration--packages--package"></a>
-### Nested Schema for `package_configuration.packages.package`
-
-Required:
-
-- `id` (Number) Unique identifier of the package.
-
-Optional:
-
-- `action` (String) Action to be performed for the package.
-- `feu` (Boolean) Fill Existing Users (FEU).
-- `fut` (Boolean) Fill User Template (FUT).
-
-
-
-
-<a id="nestedblock--printers"></a>
-### Nested Schema for `printers`
-
-Optional:
-
-- `leave_existing_default` (Boolean) Policy for handling existing default printers.
-- `printer` (Block List) Details of the printer configuration. (see [below for nested schema](#nestedblock--printers--printer))
-
-<a id="nestedblock--printers--printer"></a>
-### Nested Schema for `printers.printer`
-
-Required:
-
-- `id` (Number) Unique identifier of the printer.
-
-Optional:
-
-- `action` (String) Action to be performed for the printer (e.g., install, uninstall).
-- `make_default` (Boolean) Whether to set the printer as the default.
-
-Read-Only:
-
-- `name` (String) Name of the printer.
-
-
-
-<a id="nestedblock--reboot"></a>
-### Nested Schema for `reboot`
-
-Optional:
-
-- `file_vault_2_reboot` (Boolean) Perform authenticated restart on computers with FileVault 2 enabled. Restart FileVault 2-encrypted computers without requiring an unlock during the next startup
-- `message` (String) The reboot message displayed to the user.
-- `minutes_until_reboot` (Number) Amount of time to wait before the restart begins.
-- `no_user_logged_in` (String) Action to take if no user is logged in to the computer
-- `specify_startup` (String) Reboot Method
-- `start_reboot_timer_immediately` (Boolean) Defines if the reboot timer should start immediately once the policy applies to a macOS device.
-- `startup_disk` (String) Disk to boot computers to
-- `user_logged_in` (String) Action to take if a user is logged in to the computer
-
-
-<a id="nestedblock--scripts"></a>
-### Nested Schema for `scripts`
-
-Optional:
-
-- `script` (Block List) Details of the scripts. (see [below for nested schema](#nestedblock--scripts--script))
-
-<a id="nestedblock--scripts--script"></a>
-### Nested Schema for `scripts.script`
-
-Optional:
-
-- `id` (Number) Unique identifier of the script.
-- `name` (String) Name of the script.
-- `parameter10` (String) Custom parameter 10 for the script.
-- `parameter11` (String) Custom parameter 11 for the script.
-- `parameter4` (String) Custom parameter 4 for the script.
-- `parameter5` (String) Custom parameter 5 for the script.
-- `parameter6` (String) Custom parameter 6 for the script.
-- `parameter7` (String) Custom parameter 7 for the script.
-- `parameter8` (String) Custom parameter 8 for the script.
-- `parameter9` (String) Custom parameter 9 for the script.
-- `priority` (String) Execution priority of the script.
-
 
 
 <a id="nestedblock--timeouts"></a>
@@ -460,15 +443,3 @@ Optional:
 - `delete` (String)
 - `read` (String)
 - `update` (String)
-
-
-<a id="nestedblock--user_interaction"></a>
-### Nested Schema for `user_interaction`
-
-Optional:
-
-- `allow_deferral_minutes` (Number) Number of minutes after the user was first prompted by the policy at which the policy runs and deferrals are prohibited
-- `allow_deferral_until_utc` (String) Date/time at which deferrals are prohibited and the policy runs. Uses time zone settings of your hosting server. Standard environments hosted in Jamf Cloud use Coordinated Universal Time (UTC)
-- `allow_user_to_defer` (Boolean) Allow user deferral and configure deferral type. A deferral limit must be specified for this to work.
-- `message_finish` (String) Message to display when the policy is complete.
-- `message_start` (String) Message to display before the policy runs
