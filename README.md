@@ -11,8 +11,29 @@ The provider contains:
 ## Requirements
 
 - [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.0
-- [Go](https://golang.org/doc/install) >= 1.21
+- [Go](https://golang.org/doc/install) >= 1.22.2
 - [Jamf Pro](https://www.jamf.com/) >= 11.2.0
+
+## Community & Support
+
+For further community support and to engage with other users of the Jamf Pro Terraform Provider, please join us on the Mac Admins Slack channel. You can ask questions, provide feedback, and share best practices with the community. Join us at:
+
+- [Mac Admins Slack Channel](https://macadmins.slack.com/archives/C06R172PUV6) - #terraform-provider-jamfpro
+
+## Getting Started with Examples
+
+For those new to using Terraform with Jamf Pro, we provide a comprehensive demo example that serves as an excellent starting point. This demo implementation utilizes:
+
+- Terraform Cloud as the remote backend
+- GitHub Actions pipelines
+- A simple PR process for managing changes
+- Sample hcl files for creating and managing Jamf Pro resources
+
+This repository is specifically designed to kickstart your Terraform projects by providing practical, easy-to-follow examples of how to configure and deploy resources within Jamf Pro using Terraform.
+
+- **Demo Repository**: [Terraform Demo Jamf Pro](https://github.com/deploymenttheory/terraform-demo-jamfpro)
+
+Feel free to explore this repository to better understand the implementation and to get your infrastructure (configuration)-as-code initiatives up and running smoothly.
 
 ## Resource Completion Status
 
