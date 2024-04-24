@@ -138,27 +138,28 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Category to add the policy to.",
-				Computed:    true,
+				MaxItems:    1,
 				Elem:        sharedschemas.GetSharedSchemaCategory(),
 			},
 			"site": {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Jamf Pro Site-related settings of the policy.",
+				MaxItems:    1,
 				Elem:        sharedschemas.GetSharedSchemaSite(),
 			},
 			"date_time_limitations": {
 				Type:        schema.TypeList,
 				Optional:    true,
+				MaxItems:    1,
 				Description: "Server-side limitations use your Jamf Pro host server's time zone and settings. The Jamf Pro host service is in UTC time.",
-				Computed:    true,
 				Elem:        getPolicySchemaDateTimeLimitations(),
 			},
 			"network_limitations": {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Network limitations for the policy.",
-				Computed:    true,
+				MaxItems:    1,
 				Elem:        getPolicySchemaNetworkLimitations(),
 			}, // END OF General UI
 			// "payloads": {
@@ -177,6 +178,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 			"self_service": {
 				Type:        schema.TypeList,
 				Optional:    true,
+				MaxItems:    1,
 				Description: "Self-service settings of the policy.",
 				Elem:        getPolicySchemaSelfService(),
 			},
