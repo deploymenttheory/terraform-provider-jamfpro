@@ -22,7 +22,7 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 			UserRemovable:      d.Get("user_removeable").(bool),
 			Level:              d.Get("level").(string),
 			UUID:               d.Get("uuid").(string), // TODO not sure if this is needed as it's computed
-			// RedeployOnUpdate:   d.Get("redeploy_on_update").(string), // TODO Review this, I don't think it's in the UI
+			RedeployOnUpdate:   d.Get("redeploy_on_update").(string),
 		},
 		Scope: jamfpro.MacOSConfigurationProfileSubsetScope{},
 		SelfService: jamfpro.MacOSConfigurationProfileSubsetSelfService{
