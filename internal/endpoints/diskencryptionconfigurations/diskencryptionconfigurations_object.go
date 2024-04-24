@@ -2,11 +2,10 @@
 package diskencryptionconfigurations
 
 import (
-	"encoding/xml"
-	"fmt"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/constructobject"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -29,14 +28,14 @@ func constructJamfProDiskEncryptionConfiguration(d *schema.ResourceData) (*jamfp
 		}
 	}
 
-	// Serialize and pretty-print the Disk Encryption Configurations object as XML for logging
-	resourceXML, err := xml.MarshalIndent(diskEncryptionConfig, "", "  ")
+	// Print the constructed XML output to the log
+	xmlOutput, err := constructobject.SerializeAndRedactXML(diskEncryptionConfig, []string{"password"})
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Disk Encryption Configurations '%s' to XML: %v", diskEncryptionConfig.Name, err)
+		log.Fatalf("Error: %v", err)
 	}
 
 	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
-	log.Printf("[DEBUG] Constructed Jamf Pro Disk Encryption Configurations XML:\n%s\n", string(resourceXML))
+	log.Printf("[DEBUG] Constructed Jamf Pro Disk Encryption Configurations XML:\n%s\n", string(xmlOutput))
 
 	return diskEncryptionConfig, nil
 }

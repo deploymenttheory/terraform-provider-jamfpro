@@ -2,11 +2,10 @@
 package webhooks
 
 import (
-	"encoding/xml"
-	"fmt"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/constructobject"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -48,14 +47,14 @@ func constructJamfProWebhook(d *schema.ResourceData) (*jamfpro.ResourceWebhook, 
 		}
 	}
 
-	// Serialize and pretty-print the Webhook object as XML for logging
-	resourceXML, err := xml.MarshalIndent(webhook, "", "  ")
+	// Print the constructed XML output to the log
+	xmlOutput, err := constructobject.SerializeAndRedactXML(webhook, []string{"password"})
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Webhook '%s' to XML: %v", webhook.Name, err)
+		log.Fatalf("Error: %v", err)
 	}
 
 	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
-	log.Printf("[DEBUG] Constructed Jamf Pro Webhook XML:\n%s\n", string(resourceXML))
+	log.Printf("[DEBUG] Constructed Jamf Pro Webhook XML:\n%s\n", xmlOutput)
 
 	return webhook, nil
 }
