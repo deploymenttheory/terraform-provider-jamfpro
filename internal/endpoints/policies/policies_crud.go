@@ -73,11 +73,6 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 	var resp *jamfpro.ResourcePolicy
 
 	// Extract policy name from schema
-	var policyName string
-	if generalSettings, ok := d.GetOk("general"); ok && len(generalSettings.([]interface{})) > 0 {
-		generalMap := generalSettings.([]interface{})[0].(map[string]interface{})
-		policyName = generalMap["name"].(string)
-	}
 
 	// Use the retry function for the read operation
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
@@ -94,7 +89,7 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 
 	if err != nil {
 		d.SetId("") // Remove from Terraform state if unable to read after retries
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Policy '%s' (ID: %d) after retries: %v", policyName, resourceIDInt, err))
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Policy '%s' (ID: %d) after retries: %v", "no", resourceIDInt, err))
 	}
 
 	trigger_checkin := resp.General.TriggerCheckin
