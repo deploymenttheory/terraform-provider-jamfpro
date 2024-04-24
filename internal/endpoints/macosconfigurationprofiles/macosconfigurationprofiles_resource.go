@@ -304,7 +304,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	}
 
 	// Update the Terraform state with the fetched data from the resource
-	diags = updateTerraformState(d, resource)
+	diags = updateTerraformState(d, resource, resourceID)
 
 	// Handle any errors and return diagnostics
 	if len(diags) > 0 {
