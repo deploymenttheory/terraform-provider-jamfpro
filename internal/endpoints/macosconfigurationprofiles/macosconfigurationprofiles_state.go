@@ -93,10 +93,10 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacO
 	// 	diags = append(diags, diag.FromErr(err)...)
 	// }
 
-	// Redeploy On Update - In UI, a modal offers this setting after any update
-	if err := d.Set("redeploy_on_update", resource.General.RedeployOnUpdate); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
+	// Redeploy On Update - This is always "Newly Assigned" on existing profile objects
+	// if err := d.Set("redeploy_on_update", resource.General.RedeployOnUpdate); err != nil {
+	// 	diags = append(diags, diag.FromErr(err)...)
+	// }
 
 	// Scope
 

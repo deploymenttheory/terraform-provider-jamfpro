@@ -101,7 +101,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 			"redeploy_on_update": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "Newly Assigned",
+				Default:      "Newly Assigned", // This is always "Newly Assigned" on existing profile objects, but may be set "All" on profile update requests and in TF state.
 				Description:  "Whether the configuration profile is redeployed on update.",
 				ValidateFunc: validation.StringInSlice([]string{"All", "Newly Assigned"}, false),
 			},
