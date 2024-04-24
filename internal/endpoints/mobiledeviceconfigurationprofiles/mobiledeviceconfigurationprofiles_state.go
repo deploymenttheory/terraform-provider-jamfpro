@@ -149,7 +149,7 @@ func setLimitations(limitations jamfpro.MobileDeviceConfigurationProfileSubsetLi
 		if len(entities) > 0 {
 			entityData, err := setScopeEntities(entities)
 			if err != nil {
-				return nil, fmt.Errorf("error seting %s: %v", key, err)
+				return nil, fmt.Errorf("error setting %s: %v", key, err)
 			}
 			result[key] = entityData
 		}
@@ -159,7 +159,7 @@ func setLimitations(limitations jamfpro.MobileDeviceConfigurationProfileSubsetLi
 	if len(limitations.NetworkSegments) > 0 {
 		networkSegments, err := setNetworkSegments(limitations.NetworkSegments)
 		if err != nil {
-			return nil, fmt.Errorf("error seting network segments: %v", err)
+			return nil, fmt.Errorf("error setting network segments: %v", err)
 		}
 		result["network_segments"] = networkSegments
 	}
@@ -189,7 +189,7 @@ func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExcl
 		if len(entities) > 0 {
 			entitiesData, err := setScopeEntities(entities)
 			if err != nil {
-				return nil, fmt.Errorf("error seting %s for exclusions: %v", key, err)
+				return nil, fmt.Errorf("error setting %s for exclusions: %v", key, err)
 			}
 			result[key] = entitiesData
 		}
@@ -199,7 +199,7 @@ func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExcl
 	if len(exclusions.MobileDevices) > 0 {
 		mobileDevices, err := setMobileDevices(exclusions.MobileDevices)
 		if err != nil {
-			return nil, fmt.Errorf("error seting mobile devices for exclusions: %v", err)
+			return nil, fmt.Errorf("error setting mobile devices for exclusions: %v", err)
 		}
 		result["mobile_devices"] = mobileDevices
 	}
@@ -208,7 +208,7 @@ func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExcl
 	if len(exclusions.NetworkSegments) > 0 {
 		networkSegments, err := setNetworkSegments(exclusions.NetworkSegments)
 		if err != nil {
-			return nil, fmt.Errorf("error seting network segments for exclusions: %v", err)
+			return nil, fmt.Errorf("error setting network segments for exclusions: %v", err)
 		}
 		result["network_segments"] = networkSegments
 	}

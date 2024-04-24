@@ -33,9 +33,9 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 			}
 		}
 
-		// Set the criteria
-		criteriaList := make([]interface{}, len(resource.Criteria.Criterion))
-		for i, crit := range resource.Criteria.Criterion {
+		// Set the 'criteria' attribute in the state
+		criteriaList := []interface{}{} // Initialize as empty slice
+		for _, crit := range resource.Criteria.Criterion {
 			criteriaMap := map[string]interface{}{
 				"name":          crit.Name,
 				"priority":      crit.Priority,
@@ -45,16 +45,16 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 				"opening_paren": crit.OpeningParen,
 				"closing_paren": crit.ClosingParen,
 			}
-			criteriaList[i] = criteriaMap
+			criteriaList = append(criteriaList, criteriaMap)
 		}
 		if err := d.Set("criteria", criteriaList); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 
-		// Set the computers only if the group is not smart
+		// Set the 'computers' attribute in the state
+		computersList := []interface{}{} // Initialize as empty slice
 		if !resource.IsSmart {
-			computersList := make([]interface{}, len(resource.Computers))
-			for i, comp := range resource.Computers {
+			for _, comp := range resource.Computers {
 				computerMap := map[string]interface{}{
 					"id":              comp.ID,
 					"name":            comp.Name,
@@ -62,11 +62,11 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 					"alt_mac_address": comp.AltMacAddress,
 					"serial_number":   comp.SerialNumber,
 				}
-				computersList[i] = computerMap
+				computersList = append(computersList, computerMap)
 			}
-			if err := d.Set("computers", computersList); err != nil {
-				diags = append(diags, diag.FromErr(err)...)
-			}
+		}
+		if err := d.Set("computers", computersList); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 	return diags

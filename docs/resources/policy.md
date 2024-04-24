@@ -23,7 +23,6 @@ description: |-
 - `scope` (Block List, Min: 1, Max: 1) Scope configuration for the profile. (see [below for nested schema](#nestedblock--scope))
 - `self_service` (Block List, Min: 1) Self-service settings of the policy. (see [below for nested schema](#nestedblock--self_service))
 - `site` (Block List, Min: 1) Jamf Pro Site-related settings of the policy. (see [below for nested schema](#nestedblock--site))
-- `trigger` (String) Event(s) triggers to use to initiate the policy. Values can be 'USER_INITIATED' for self self trigger and 'EVENT' for an event based trigger
 
 ### Optional
 
@@ -34,7 +33,6 @@ description: |-
 - `dock_items` (Block List) Dock items settings of the policy. (see [below for nested schema](#nestedblock--dock_items))
 - `files_processes` (Block List) Files and processes settings of the policy. Use this section to search for and log specific files and processes. Also use this section to execute a command. (see [below for nested schema](#nestedblock--files_processes))
 - `frequency` (String) Frequency of policy execution.
-- `location_user_only` (Boolean) Location-based policy for user only.
 - `maintenance` (Block List) Maintenance settings of the policy. Use this section to update inventory, reset computer names, install all cached packages, and run common maintenance tasks. (see [below for nested schema](#nestedblock--maintenance))
 - `network_limitations` (Block List) Network limitations for the policy. (see [below for nested schema](#nestedblock--network_limitations))
 - `network_requirements` (String) Network requirements for the policy.
@@ -51,7 +49,6 @@ description: |-
 - `trigger_checkin` (Boolean) Trigger policy when device performs recurring check-in against the frequency configured in Jamf Pro
 - `trigger_enrollment_complete` (Boolean) Trigger policy when device enrollment is complete.
 - `trigger_login` (Boolean) Trigger policy when a user logs in to a computer. A login event that checks for policies must be configured in Jamf Pro for this to work
-- `trigger_logout` (Boolean) Trigger policy when a user logout.
 - `trigger_network_state_changed` (Boolean) Trigger policy when it's network state changes. When a computer's network state changes (e.g., when the network connection changes, when the computer name changes, when the IP address changes)
 - `trigger_other` (String) Any other trigger for the policy.
 - `trigger_startup` (Boolean) Trigger policy when a computer starts up. A startup script that checks for policies must be configured in Jamf Pro for this to work
@@ -77,349 +74,33 @@ Optional:
 
 Required:
 
-- `all_computers` (Boolean) scope all_computers if true, applies the profile to all computers. If false applies to specific computers.
+- `all_computers` (Boolean) Whether the configuration profile is scoped to all computers.
 
 Optional:
 
-- `buildings` (Block List) (see [below for nested schema](#nestedblock--scope--buildings))
-- `computer_groups` (Block List) (see [below for nested schema](#nestedblock--scope--computer_groups))
-- `computers` (Block List) (see [below for nested schema](#nestedblock--scope--computers))
-- `departments` (Block List) (see [below for nested schema](#nestedblock--scope--departments))
-- `exclusions` (Block List) Scoped exclusions to exclude from the policy. (see [below for nested schema](#nestedblock--scope--exclusions))
-- `jss_user_groups` (Block List) (see [below for nested schema](#nestedblock--scope--jss_user_groups))
-- `jss_users` (Block List) (see [below for nested schema](#nestedblock--scope--jss_users))
-- `limitations` (Block List) Scoped limitations for the policy. (see [below for nested schema](#nestedblock--scope--limitations))
-
-<a id="nestedblock--scope--buildings"></a>
-### Nested Schema for `scope.buildings`
-
-Optional:
-
-- `building` (Block List, Max: 1) (see [below for nested schema](#nestedblock--scope--buildings--building))
-
-<a id="nestedblock--scope--buildings--building"></a>
-### Nested Schema for `scope.buildings.building`
-
-Required:
-
-- `id` (Number) The unique identifier of the scoped building.
-
-Read-Only:
-
-- `name` (String) Name of the scoped building.
-
-
-
-<a id="nestedblock--scope--computer_groups"></a>
-### Nested Schema for `scope.computer_groups`
-
-Optional:
-
-- `computer_group` (Block List, Max: 1) (see [below for nested schema](#nestedblock--scope--computer_groups--computer_group))
-
-<a id="nestedblock--scope--computer_groups--computer_group"></a>
-### Nested Schema for `scope.computer_groups.computer_group`
-
-Required:
-
-- `id` (Number) The unique identifier of the scoped computer group.
-
-Read-Only:
-
-- `name` (String) Name of the computer scoped group.
-
-
-
-<a id="nestedblock--scope--computers"></a>
-### Nested Schema for `scope.computers`
-
-Optional:
-
-- `computer` (Block List, Max: 1) (see [below for nested schema](#nestedblock--scope--computers--computer))
-
-<a id="nestedblock--scope--computers--computer"></a>
-### Nested Schema for `scope.computers.computer`
-
-Required:
-
-- `id` (Number) The unique identifier of the scoped computer.
-
-Read-Only:
-
-- `name` (String) Name of the scoped computer.
-- `udid` (String) UDID of the scoped computer.
-
-
-
-<a id="nestedblock--scope--departments"></a>
-### Nested Schema for `scope.departments`
-
-Optional:
-
-- `department` (Block List, Max: 1) (see [below for nested schema](#nestedblock--scope--departments--department))
-
-<a id="nestedblock--scope--departments--department"></a>
-### Nested Schema for `scope.departments.department`
-
-Required:
-
-- `id` (Number) The unique identifier of the scoped department.
-
-Read-Only:
-
-- `name` (String) Name of the scoped department.
-
-
+- `all_jss_users` (Boolean) Whether the configuration profile is scoped to all JSS users.
+- `building_ids` (List of Number) The buildings to which the configuration profile is scoped by Jamf ID
+- `computer_group_ids` (List of Number) The computer groups to which the configuration profile is scoped by Jamf ID
+- `computer_ids` (List of Number) The computers to which the configuration profile is scoped by Jamf ID
+- `department_ids` (List of Number) The departments to which the configuration profile is scoped by Jamf ID
+- `exclusions` (Block List, Max: 1) The exclusions from the scope. (see [below for nested schema](#nestedblock--scope--exclusions))
+- `jss_user_group_ids` (List of Number) The jss user groups to which the configuration profile is scoped by Jamf ID
+- `jss_user_ids` (List of Number) The jss users to which the configuration profile is scoped by Jamf ID
+- `limitations` (Block List, Max: 1) The limitations within the scope. (see [below for nested schema](#nestedblock--scope--limitations))
 
 <a id="nestedblock--scope--exclusions"></a>
 ### Nested Schema for `scope.exclusions`
 
 Optional:
 
-- `buildings` (Block List) (see [below for nested schema](#nestedblock--scope--exclusions--buildings))
-- `computer_groups` (Block List) (see [below for nested schema](#nestedblock--scope--exclusions--computer_groups))
-- `computers` (Block List) Scoped computer exclusions to exclude from the policy. (see [below for nested schema](#nestedblock--scope--exclusions--computers))
-- `departments` (Block List) (see [below for nested schema](#nestedblock--scope--exclusions--departments))
-- `ibeacons` (Block List) (see [below for nested schema](#nestedblock--scope--exclusions--ibeacons))
-- `jss_user_groups` (Block List) (see [below for nested schema](#nestedblock--scope--exclusions--jss_user_groups))
-- `jss_users` (Block List) (see [below for nested schema](#nestedblock--scope--exclusions--jss_users))
-- `network_segments` (Block List) (see [below for nested schema](#nestedblock--scope--exclusions--network_segments))
-- `user_groups` (Block List) (see [below for nested schema](#nestedblock--scope--exclusions--user_groups))
-- `users` (Block List) (see [below for nested schema](#nestedblock--scope--exclusions--users))
-
-<a id="nestedblock--scope--exclusions--buildings"></a>
-### Nested Schema for `scope.exclusions.buildings`
-
-Optional:
-
-- `building` (Block List, Max: 1) (see [below for nested schema](#nestedblock--scope--exclusions--buildings--building))
-
-<a id="nestedblock--scope--exclusions--buildings--building"></a>
-### Nested Schema for `scope.exclusions.buildings.building`
-
-Required:
-
-- `id` (Number) The unique identifier of the building.
-
-Read-Only:
-
-- `name` (String) Name of the building.
-
-
-
-<a id="nestedblock--scope--exclusions--computer_groups"></a>
-### Nested Schema for `scope.exclusions.computer_groups`
-
-Optional:
-
-- `computer_group` (Block List, Max: 1) (see [below for nested schema](#nestedblock--scope--exclusions--computer_groups--computer_group))
-
-<a id="nestedblock--scope--exclusions--computer_groups--computer_group"></a>
-### Nested Schema for `scope.exclusions.computer_groups.computer_group`
-
-Required:
-
-- `id` (Number) The unique identifier of the computer group.
-
-Read-Only:
-
-- `name` (String) Name of the computer group.
-
-
-
-<a id="nestedblock--scope--exclusions--computers"></a>
-### Nested Schema for `scope.exclusions.computers`
-
-Optional:
-
-- `computer` (Block List, Max: 1) The individual computer to exclude from the policy. (see [below for nested schema](#nestedblock--scope--exclusions--computers--computer))
-
-<a id="nestedblock--scope--exclusions--computers--computer"></a>
-### Nested Schema for `scope.exclusions.computers.computer`
-
-Required:
-
-- `id` (Number) The unique identifier of the computer.
-
-Read-Only:
-
-- `name` (String) Name of the computer.
-- `udid` (String) UDID of the computer.
-
-
-
-<a id="nestedblock--scope--exclusions--departments"></a>
-### Nested Schema for `scope.exclusions.departments`
-
-Optional:
-
-- `department` (Block List, Max: 1) (see [below for nested schema](#nestedblock--scope--exclusions--departments--department))
-
-<a id="nestedblock--scope--exclusions--departments--department"></a>
-### Nested Schema for `scope.exclusions.departments.department`
-
-Required:
-
-- `id` (Number) The unique identifier of the department.
-
-Read-Only:
-
-- `name` (String) Name of the department.
-
-
-
-<a id="nestedblock--scope--exclusions--ibeacons"></a>
-### Nested Schema for `scope.exclusions.ibeacons`
-
-Optional:
-
-- `ibeacon` (Block List, Max: 1) (see [below for nested schema](#nestedblock--scope--exclusions--ibeacons--ibeacon))
-
-<a id="nestedblock--scope--exclusions--ibeacons--ibeacon"></a>
-### Nested Schema for `scope.exclusions.ibeacons.ibeacon`
-
-Required:
-
-- `id` (Number) The unique identifier of the iBeacon.
-
-Optional:
-
-- `name` (String) Name of the iBeacon.
-
-
-
-<a id="nestedblock--scope--exclusions--jss_user_groups"></a>
-### Nested Schema for `scope.exclusions.jss_user_groups`
-
-Optional:
-
-- `jss_user_group` (Block List, Max: 1) (see [below for nested schema](#nestedblock--scope--exclusions--jss_user_groups--jss_user_group))
-
-<a id="nestedblock--scope--exclusions--jss_user_groups--jss_user_group"></a>
-### Nested Schema for `scope.exclusions.jss_user_groups.jss_user_group`
-
-Required:
-
-- `id` (Number) The unique identifier of the JSS user group.
-
-Optional:
-
-- `name` (String) Name of the JSS user group.
-
-
-
-<a id="nestedblock--scope--exclusions--jss_users"></a>
-### Nested Schema for `scope.exclusions.jss_users`
-
-Optional:
-
-- `jss_user` (Block List, Max: 1) (see [below for nested schema](#nestedblock--scope--exclusions--jss_users--jss_user))
-
-<a id="nestedblock--scope--exclusions--jss_users--jss_user"></a>
-### Nested Schema for `scope.exclusions.jss_users.jss_user`
-
-Required:
-
-- `id` (Number) The unique identifier of the JSS user.
-
-Read-Only:
-
-- `name` (String) Name of the JSS user.
-
-
-
-<a id="nestedblock--scope--exclusions--network_segments"></a>
-### Nested Schema for `scope.exclusions.network_segments`
-
-Optional:
-
-- `network_segment` (Block List, Max: 1) (see [below for nested schema](#nestedblock--scope--exclusions--network_segments--network_segment))
-
-<a id="nestedblock--scope--exclusions--network_segments--network_segment"></a>
-### Nested Schema for `scope.exclusions.network_segments.network_segment`
-
-Required:
-
-- `id` (Number) The unique identifier of the network segment.
-
-Read-Only:
-
-- `name` (String) Name of the network segment.
-- `uid` (String) UID of the network segment.
-
-
-
-<a id="nestedblock--scope--exclusions--user_groups"></a>
-### Nested Schema for `scope.exclusions.user_groups`
-
-Optional:
-
-- `user_group` (Block List, Max: 1) (see [below for nested schema](#nestedblock--scope--exclusions--user_groups--user_group))
-
-<a id="nestedblock--scope--exclusions--user_groups--user_group"></a>
-### Nested Schema for `scope.exclusions.user_groups.user_group`
-
-Required:
-
-- `id` (Number) The unique identifier of the user group.
-
-Read-Only:
-
-- `name` (String) Name of the user group.
-
-
-
-<a id="nestedblock--scope--exclusions--users"></a>
-### Nested Schema for `scope.exclusions.users`
-
-Optional:
-
-- `user` (Block List, Max: 1) (see [below for nested schema](#nestedblock--scope--exclusions--users--user))
-
-<a id="nestedblock--scope--exclusions--users--user"></a>
-### Nested Schema for `scope.exclusions.users.user`
-
-Required:
-
-- `id` (Number) The unique identifier of the user.
-
-Optional:
-
-- `name` (String) Name of the user.
-
-
-
-
-<a id="nestedblock--scope--jss_user_groups"></a>
-### Nested Schema for `scope.jss_user_groups`
-
-Required:
-
-- `id` (Number) The unique identifier of the scoped JSS user group.
-
-Read-Only:
-
-- `name` (String) Name of the scoped JSS user group.
-
-
-<a id="nestedblock--scope--jss_users"></a>
-### Nested Schema for `scope.jss_users`
-
-Optional:
-
-- `jss_user` (Block List, Max: 1) (see [below for nested schema](#nestedblock--scope--jss_users--jss_user))
-
-<a id="nestedblock--scope--jss_users--jss_user"></a>
-### Nested Schema for `scope.jss_users.jss_user`
-
-Required:
-
-- `id` (Number) The unique identifier of the scoped JSS user.
-
-Read-Only:
-
-- `name` (String) Name of the scoped JSS user.
-
+- `building_ids` (List of Number) Buildings excluded from scope by Jamf ID.
+- `computer_group_ids` (List of Number) Computer Groups excluded from scope by Jamf ID.
+- `computer_ids` (List of Number) Computers excluded from scope by Jamf ID.
+- `department_ids` (List of Number) Departments excluded from scope by Jamf ID.
+- `ibeacon_ids` (List of Number) Ibeacons excluded from scope by Jamf ID.
+- `jss_user_group_ids` (List of Number) JSS User Groups excluded from scope by Jamf ID.
+- `jss_user_ids` (List of Number) JSS Users excluded from scope by Jamf ID.
+- `network_segment_ids` (List of Number) Network segments excluded from scope by Jamf ID.
 
 
 <a id="nestedblock--scope--limitations"></a>
@@ -427,91 +108,10 @@ Read-Only:
 
 Optional:
 
-- `ibeacons` (Block List) (see [below for nested schema](#nestedblock--scope--limitations--ibeacons))
-- `network_segments` (Block List) (see [below for nested schema](#nestedblock--scope--limitations--network_segments))
-- `user_groups` (Block List) (see [below for nested schema](#nestedblock--scope--limitations--user_groups))
-- `users` (Block List) (see [below for nested schema](#nestedblock--scope--limitations--users))
-
-<a id="nestedblock--scope--limitations--ibeacons"></a>
-### Nested Schema for `scope.limitations.ibeacons`
-
-Optional:
-
-- `ibeacon` (Block List, Max: 1) (see [below for nested schema](#nestedblock--scope--limitations--ibeacons--ibeacon))
-
-<a id="nestedblock--scope--limitations--ibeacons--ibeacon"></a>
-### Nested Schema for `scope.limitations.ibeacons.ibeacon`
-
-Required:
-
-- `id` (Number) The unique identifier of the scoped iBeacon.
-
-Read-Only:
-
-- `name` (String) Name of the scoped iBeacon.
-
-
-
-<a id="nestedblock--scope--limitations--network_segments"></a>
-### Nested Schema for `scope.limitations.network_segments`
-
-Optional:
-
-- `network_segment` (Block List, Max: 1) (see [below for nested schema](#nestedblock--scope--limitations--network_segments--network_segment))
-
-<a id="nestedblock--scope--limitations--network_segments--network_segment"></a>
-### Nested Schema for `scope.limitations.network_segments.network_segment`
-
-Required:
-
-- `id` (Number) The unique identifier of the scoped network segment.
-
-Read-Only:
-
-- `name` (String) Name of the scoped network segment.
-- `uid` (String) UID of the scoped network segment.
-
-
-
-<a id="nestedblock--scope--limitations--user_groups"></a>
-### Nested Schema for `scope.limitations.user_groups`
-
-Optional:
-
-- `user_group` (Block List, Max: 1) (see [below for nested schema](#nestedblock--scope--limitations--user_groups--user_group))
-
-<a id="nestedblock--scope--limitations--user_groups--user_group"></a>
-### Nested Schema for `scope.limitations.user_groups.user_group`
-
-Required:
-
-- `id` (Number) The unique identifier of the scoped user group.
-
-Read-Only:
-
-- `name` (String) Name of the scoped user group.
-
-
-
-<a id="nestedblock--scope--limitations--users"></a>
-### Nested Schema for `scope.limitations.users`
-
-Optional:
-
-- `user` (Block List, Max: 1) (see [below for nested schema](#nestedblock--scope--limitations--users--user))
-
-<a id="nestedblock--scope--limitations--users--user"></a>
-### Nested Schema for `scope.limitations.users.user`
-
-Required:
-
-- `id` (Number) The unique identifier of the user.
-
-Read-Only:
-
-- `name` (String) Name of the user.
-
-
+- `ibeacon_ids` (List of Number) Ibeacons the scope is limited to by Jamf ID.
+- `network_segment_ids` (List of Number) Network segments the scope is limited to by Jamf ID.
+- `user_group_ids` (List of Number) Users groups the scope is limited to by Jamf ID.
+- `user_names` (List of String) Users the macOS config profile scope is limited to by Jamf ID.
 
 
 
@@ -780,11 +380,6 @@ Optional:
 - `action` (String) Action to be performed for the package.
 - `feu` (Boolean) Fill Existing Users (FEU).
 - `fut` (Boolean) Fill User Template (FUT).
-- `update_autorun` (Boolean) Update auto-run status of the package.
-
-Read-Only:
-
-- `name` (String) Name of the package.
 
 
 
