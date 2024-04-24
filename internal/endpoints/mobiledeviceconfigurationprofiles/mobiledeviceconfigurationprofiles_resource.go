@@ -103,19 +103,19 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 					return warns, errs
 				},
 			},
-			// "redeploy_on_update": {
-			// 	Type:        schema.TypeString,
-			// 	Optional:    true,
-			// 	Description: "Defines the redeployment behaviour when a config profile update occurs.",
-			// 	ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-			// 		v := util.GetString(val)
-			// 		if v == "All" || v == "Newly Assigned" {
-			// 			return
-			// 		}
-			// 		errs = append(errs, fmt.Errorf("%q must be either 'All' or 'Newly Assigned', got: %s", key, v))
-			// 		return warns, errs
-			// 	},
-			// },
+			"redeploy_on_update": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state",
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := util.GetString(val)
+					if v == "All" || v == "Newly Assigned" {
+						return
+					}
+					errs = append(errs, fmt.Errorf("%q must be either 'All' or 'Newly Assigned', got: %s", key, v))
+					return warns, errs
+				},
+			},
 			// "redeploy_days_before_cert_expires": {
 			// 	Type:        schema.TypeInt,
 			// 	Optional:    true,

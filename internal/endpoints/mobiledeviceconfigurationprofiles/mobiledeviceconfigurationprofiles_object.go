@@ -22,6 +22,7 @@ func constructJamfProMobileDeviceConfigurationProfile(d *schema.ResourceData) (*
 			Category:         constructSharedResourceCategory(d.Get("category").([]interface{})),
 			UUID:             d.Get("uuid").(string),
 			DeploymentMethod: d.Get("deployment_method").(string),
+			RedeployOnUpdate: d.Get("redeploy_on_update").(string),
 			// Use html.EscapeString to escape the payloads content
 			Payloads: html.EscapeString(d.Get("payloads").(string)),
 		},
