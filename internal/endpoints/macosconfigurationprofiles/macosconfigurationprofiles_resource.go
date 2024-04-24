@@ -59,40 +59,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Description: "The site to which the configuration profile is scoped.",
 				Optional:    true,
 				Default:     nil,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:        schema.TypeInt,
-							Required:    true,
-							Description: "The unique identifier of the site to which the configuration profile is scoped.",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "The name of the site to which the configuration profile is scoped.",
-						},
-					},
-				},
+				Elem:        sharedschemas.GetSharedSchemaSite(),
 			},
 			"category": {
 				Type:        schema.TypeList,
 				MaxItems:    1,
 				Description: "The category to which the configuration profile is scoped.",
 				Optional:    true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:        schema.TypeInt,
-							Required:    true,
-							Description: "The unique identifier of the category to which the configuration profile is scoped.",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The name of the category to which the configuration profile is scoped.",
-						},
-					},
-				},
+				Elem:        sharedschemas.GetSharedSchemaCategory(),
 			},
 			"distribution_method": {
 				Type:         schema.TypeString,
@@ -124,12 +98,13 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Required:    true,
 				Description: "A MacOS configuration profile xml file as a file",
 			},
-			// "redeploy_on_update": { // TODO Review this, missing from the gui
-			// 	Type:        schema.TypeString,
-			// 	Optional:    true,
-			// 	Default:     "true",
-			// 	Description: "Whether the configuration profile is redeployed on update.",
-			// },
+			"redeploy_on_update": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "Newly Assigned", // This is always "Newly Assigned" on existing profile objects, but may be set "All" on profile update requests and in TF state.
+				Description:  "Whether the configuration profile is redeployed on update.",
+				ValidateFunc: validation.StringInSlice([]string{"All", "Newly Assigned"}, false),
+			},
 			"scope": {
 				Type:        schema.TypeList,
 				MaxItems:    1,
