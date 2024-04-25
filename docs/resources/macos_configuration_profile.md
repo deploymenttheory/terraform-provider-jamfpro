@@ -27,6 +27,7 @@ description: |-
 - `description` (String) Description of the configuration profile.
 - `distribution_method` (String) The distribution method for the configuration profile. ['Make Available in Self Service','Install Automatically']
 - `level` (String) The level of the configuration profile. Available options are: 'Computer', 'User' or 'System'.
+- `redeploy_on_update` (String) Whether the configuration profile is redeployed on update.
 - `self_service` (Block List, Max: 1) Self Service Configuration (see [below for nested schema](#nestedblock--self_service))
 - `site` (Block List, Max: 1) The site to which the configuration profile is scoped. (see [below for nested schema](#nestedblock--site))
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
@@ -127,10 +128,10 @@ Optional:
 <a id="nestedblock--site"></a>
 ### Nested Schema for `site`
 
-Required:
+Optional:
 
-- `id` (Number) The unique identifier of the site to which the configuration profile is scoped.
-- `name` (String) The name of the site to which the configuration profile is scoped.
+- `id` (Number) Jamf Pro Site ID. Value defaults to -1 aka not used.
+- `name` (String) Jamf Pro Site Name. Value defaults to 'None' aka not used
 
 
 <a id="nestedblock--timeouts"></a>

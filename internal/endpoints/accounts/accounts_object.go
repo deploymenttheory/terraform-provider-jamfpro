@@ -2,8 +2,6 @@
 package accounts
 
 import (
-	"encoding/xml"
-	"fmt"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -55,12 +53,14 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 		}
 	}
 
-	resourceXML, err := xml.MarshalIndent(account, "", "  ")
+	// Print the constructed XML output to the log
+	// redaction requires case matching to the struct field names
+	xmlOutput, err := constructobject.SerializeAndRedactXML(account, []string{"Password"})
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Account '%s' to XML: %v", account.Name, err)
+		log.Fatalf("Error: %v", err)
 	}
 
-	log.Printf("[DEBUG] Constructed Jamf Pro Account XML:\n%s\n", string(resourceXML))
+	log.Printf("[DEBUG] Constructed Jamf Pro Account XML:\n%s\n", string(xmlOutput))
 
 	return account, nil
 }
