@@ -236,6 +236,14 @@ func Provider() *schema.Provider {
 				Description: "Specifies the API type or handler to use for the client.",
 				Default:     "jamfpro",
 			},
+			"custom_cookies": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Default:  nil,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"jamfpro_account":                             accounts.DataSourceJamfProAccounts(),
@@ -349,19 +357,35 @@ func Provider() *schema.Provider {
 				ClientSecret: clientSecret,
 			},
 			ClientOptions: httpclient.ClientOptions{
-				LogLevel:                  d.Get("log_level").(string),
-				LogOutputFormat:           d.Get("log_output_format").(string),
-				LogConsoleSeparator:       d.Get("log_console_separator").(string),
-				LogExportPath:             d.Get("log_export_path").(string),
-				EnableCookieJar:           enableCookieJar,
-				HideSensitiveData:         d.Get("hide_sensitive_data").(bool),
-				MaxRetryAttempts:          d.Get("max_retry_attempts").(int),
-				EnableDynamicRateLimiting: d.Get("enable_dynamic_rate_limiting").(bool),
-				MaxConcurrentRequests:     d.Get("max_concurrent_requests").(int),
-				TokenRefreshBufferPeriod:  time.Duration(d.Get("token_refresh_buffer_period").(int)) * time.Minute,
-				TotalRetryDuration:        time.Duration(d.Get("total_retry_duration").(int)) * time.Second,
-				CustomTimeout:             time.Duration(d.Get("custom_timeout").(int)) * time.Second,
+				Logging: httpclient.LoggingConfig{
+					LogLevel:            d.Get("log_level").(string),
+					LogOutputFormat:     d.Get("log_output_format").(string),
+					LogConsoleSeparator: d.Get("log_console_separator").(string),
+					LogExportPath:       d.Get("log_export_path").(string),
+					HideSensitiveData:   d.Get("hide_sensitive_data").(bool),
+				},
+				Cookies: httpclient.CookieConfig{
+					EnableCookieJar: enableCookieJar,
+					CustomCookies:   make(map[string]string),
+				},
+				Retry: httpclient.RetryConfig{
+					MaxRetryAttempts:          d.Get("max_retry_attempts").(int),
+					EnableDynamicRateLimiting: d.Get("enable_dynamic_rate_limiting").(bool),
+				},
+				Concurrency: httpclient.ConcurrencyConfig{
+					MaxConcurrentRequests: d.Get("max_concurrent_requests").(int),
+				},
+				Timeout: httpclient.TimeoutConfig{
+					TokenRefreshBufferPeriod: time.Duration(d.Get("token_refresh_buffer_period").(int)) * time.Minute,
+					TotalRetryDuration:       time.Duration(d.Get("total_retry_duration").(int)) * time.Second,
+					CustomTimeout:            time.Duration(d.Get("custom_timeout").(int)) * time.Second,
+				},
+				Redirect: httpclient.RedirectConfig{},
 			},
+		}
+
+		if d.Get("custom_cookies") != nil {
+			httpClientConfig.ClientOptions.Cookies.CustomCookies[d.Get("custom_cookies.key").(string)] = d.Get("custom_cookies.value").(string)
 		}
 
 		// Conditionally print debug information.

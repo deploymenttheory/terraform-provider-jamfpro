@@ -1,7 +1,6 @@
 package policies
 
 import (
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -19,25 +18,6 @@ func getPolicySchemaPayloads() *schema.Resource {
 				Optional:    true,
 				Description: "Network requirements for the policy.",
 				Default:     "Any",
-			},
-			"site": {
-				Type:        schema.TypeList,
-				Required:    true,
-				Description: "Jamf Pro Site-related settings of the policy.",
-				Elem:        sharedschemas.GetSharedSchemaSite(),
-			},
-			"scope": {
-				Type:        schema.TypeList,
-				MaxItems:    1,
-				Required:    true,
-				Description: "Scope configuration for the profile.",
-				Elem:        sharedschemas.GetSharedSchemaScope(),
-			},
-			"self_service": {
-				Type:        schema.TypeList,
-				Required:    true,
-				Description: "Self-service settings of the policy.",
-				Elem:        getPolicySchemaSelfService(),
 			},
 			"packages": {
 				Type:        schema.TypeList,
