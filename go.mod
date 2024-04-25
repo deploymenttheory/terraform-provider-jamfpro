@@ -5,7 +5,7 @@ go 1.22.2
 // Direct
 require (
 	github.com/deploymenttheory/go-api-http-client v0.1.37
-	github.com/deploymenttheory/go-api-sdk-jamfpro v1.5.12-0.20240425153726-e4bcc4078382
+	github.com/deploymenttheory/go-api-sdk-jamfpro v1.5.12
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/terraform-plugin-docs v0.19.1
