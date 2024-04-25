@@ -28,7 +28,7 @@ func ResourceJamfProWebhooks() *schema.Resource {
 		DeleteContext: ResourceJamfProWebhookDelete,
 		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(70 * time.Second),
+			Create: schema.DefaultTimeout(10 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
 			Delete: schema.DefaultTimeout(15 * time.Second),
@@ -112,13 +112,31 @@ func ResourceJamfProWebhooks() *schema.Resource {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     2,
-				Description: "Amount of time to wait for a response from the webhook's host server after sending a request, in seconds",
+				Description: "Amount of time to wait for a response from the webhook's host server after sending a request, in seconds.Value must be an integer between 1 and 15",
+				ValidateFunc: func(val interface{}, key string) ([]string, []error) {
+					v := util.GetInt(val)
+					if v < 0 || v > 16 {
+						errs := make([]error, 0)
+						errs = append(errs, fmt.Errorf("%q must be between 1 and 15, inclusive, got: %d", key, v))
+						return nil, errs
+					}
+					return nil, nil
+				},
 			},
 			"read_timeout": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     5,
-				Description: "Amount of time to attempt to connect to the webhook's host server, in seconds.",
+				Description: "Amount of time to attempt to connect to the webhook's host server, in seconds.Value must be an integer between 1 and 15",
+				ValidateFunc: func(val interface{}, key string) ([]string, []error) {
+					v := util.GetInt(val)
+					if v < 0 || v > 16 {
+						errs := make([]error, 0)
+						errs = append(errs, fmt.Errorf("%q must be between 1 and 15, inclusive, got: %d", key, v))
+						return nil, errs
+					}
+					return nil, nil
+				},
 			},
 			"authentication_type": {
 				Type:        schema.TypeString,
@@ -166,24 +184,10 @@ func ResourceJamfProWebhooks() *schema.Resource {
 				Description: "List of display fields associated with the webhook.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"size": {
-							Type:        schema.TypeInt,
+						"name": {
+							Type:        schema.TypeString,
 							Required:    true,
-							Description: "The size of the display field.",
-						},
-						"display_field": {
-							Type:        schema.TypeList,
-							Required:    true,
-							Description: "List of sub-display fields.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "The name of the sub-display field.",
-									},
-								},
-							},
+							Description: "The name of the display field.",
 						},
 					},
 				},

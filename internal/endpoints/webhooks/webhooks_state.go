@@ -55,7 +55,6 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceWebh
 	displayFields := make([]interface{}, 0, len(resource.DisplayFields))
 	for _, field := range resource.DisplayFields {
 		df := make(map[string]interface{})
-		df["size"] = field.Size
 
 		subFields := make([]interface{}, 0, len(field.DisplayField))
 		for _, subField := range field.DisplayField {
