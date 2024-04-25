@@ -12,9 +12,11 @@ import (
 
 func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	log.Println(("LOGHERE"))
-	// Non computed values first
+
+	// Main Object Definition with primitive values assigned.
 
 	log.Println("STRUCT START")
+
 	out := &jamfpro.ResourcePolicy{
 		General: jamfpro.PolicySubsetGeneral{
 			// ID computed
@@ -83,32 +85,27 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 		// DiskEncryption
 		// Reboot
 	}
+
+	// DEBUG
 	log.Println("STRUCT END")
 	json, _ := json.MarshalIndent(out, " ", "    ")
 	log.Println(string(json))
-
 	log.Println("PROCESS START")
 
 	// Processed Fields
 
 	// General
 
-	log.Println("LOG-CATEGORY")
 	// Category
+	log.Println("LOG-CATEGORY")
 	suppliedCategory := d.Get("category").([]interface{})
 	if len(suppliedCategory) > 0 {
 		log.Println(suppliedCategory[0])
 		outCat := &jamfpro.SharedResourceCategory{}
 		suppliedId := suppliedCategory[0].(map[string]interface{})["id"].(int)
-		suppliedName := suppliedCategory[0].(map[string]interface{})["name"].(string)
 		if suppliedId != 0 {
 			outCat.ID = suppliedId
 		}
-
-		if suppliedName != "None" {
-			outCat.Name = suppliedName
-		}
-
 		out.General.Category = outCat
 	}
 

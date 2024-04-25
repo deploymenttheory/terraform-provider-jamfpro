@@ -162,12 +162,12 @@ func ResourceJamfProPolicies() *schema.Resource {
 				MaxItems:    1,
 				Elem:        getPolicySchemaNetworkLimitations(),
 			}, // END OF General UI
-			"payloads": {
-				Type:        schema.TypeList,
-				Required:    true,
-				Description: "All payloads container",
-				Elem:        getPolicySchemaPayloads(),
-			},
+			// "payloads": {
+			// 	Type:        schema.TypeList,
+			// 	Required:    true,
+			// 	Description: "All payloads container",
+			// 	Elem:        getPolicySchemaPayloads(),
+			// },
 			"scope": {
 				Type:        schema.TypeList,
 				MaxItems:    1,
