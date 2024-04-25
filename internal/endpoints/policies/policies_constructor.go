@@ -38,10 +38,40 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 			// network limitations processed
 		},
 		Scope: &jamfpro.PolicySubsetScope{
-			// Processed
+			AllComputers: d.Get("scope.0.all_computers").(bool),
+			AllJSSUsers:  d.Get("scope.0.all_jss_users").(bool),
+			// computer ids
+			// computer group ids
+			// jss_user_ids
+			// jss_user_group_ids
+			// building_ids
+			// department_ids
+			// Limitations :
+			/// user_names
+			/// network_segment_ids
+			/// ibeacon_ids
+			/// user_group_ids
+			// Exclusions
+			/// computer_ids
+			/// computer_group_ids
+			/// user_ids
+			/// user_group_ids
+			/// department_ids
+			/// network_segment_ids
+			/// jss_user_ids
+			/// jss_user_group_ids
+			/// ibeacon_ids
 		},
 		SelfService: &jamfpro.PolicySubsetSelfService{
-			UseForSelfService: d.Get("self_service.0.use_for_self_service").(bool),
+			UseForSelfService:           d.Get("self_service.0.use_for_self_service").(bool),
+			SelfServiceDisplayName:      d.Get("self_service_display_name").(string),
+			InstallButtonText:           d.Get("install_button_text").(string),
+			ReinstallButtonText:         d.Get("reinstall_button_text").(string),
+			SelfServiceDescription:      d.Get("self_service_description").(string),
+			ForceUsersToViewDescription: d.Get("force_users_to_view_description").(bool),
+			// TODO self service icon later
+			FeatureOnMainPage: d.Get("feature_on_main_page").(bool),
+			// TODO Self service categories later
 		},
 		// Package Configuration
 		// Scripts
@@ -65,11 +95,21 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 
 	log.Println("LOG-CATEGORY")
 	// Category
-	if len(d.Get("category").([]interface{})) > 0 {
-		out.General.Category = &jamfpro.SharedResourceCategory{
-			ID:   d.Get("category.0.id").(int),
-			Name: d.Get("category.0.name").(string),
+	suppliedCategory := d.Get("category").([]interface{})
+	if len(suppliedCategory) > 0 {
+		log.Println(suppliedCategory[0])
+		outCat := &jamfpro.SharedResourceCategory{}
+		suppliedId := suppliedCategory[0].(map[string]interface{})["id"].(int)
+		suppliedName := suppliedCategory[0].(map[string]interface{})["name"].(string)
+		if suppliedId != 0 {
+			outCat.ID = suppliedId
 		}
+
+		if suppliedName != "None" {
+			outCat.Name = suppliedName
+		}
+
+		out.General.Category = outCat
 	}
 
 	log.Println("LOG-SITE")
