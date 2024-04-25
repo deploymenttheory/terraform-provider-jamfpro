@@ -300,13 +300,14 @@ func ResourceJamfProAdvancedComputerSearchDelete(ctx context.Context, d *schema.
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
+	resourceName := d.Get("name").(string)
+
 	// Use the retry function for the delete operation with appropriate timeout
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Attempt to delete by ID
 		apiErr := conn.DeleteAdvancedComputerSearchByID(resourceIDInt)
 		if apiErr != nil {
 			// If deleting by ID fails, attempt to delete by Name
-			resourceName := d.Get("name").(string)
 			apiErrByName := conn.DeleteAdvancedComputerSearchByName(resourceName)
 			if apiErrByName != nil {
 				// If deletion by name also fails, return a retryable error
@@ -318,7 +319,7 @@ func ResourceJamfProAdvancedComputerSearchDelete(ctx context.Context, d *schema.
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Advanced Computer Search '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Advanced Computer Search '%s' (ID: %s) after retries: %v", resourceName, resourceID, err))
 	}
 
 	// Clear the ID from the Terraform state as the resource has been deleted

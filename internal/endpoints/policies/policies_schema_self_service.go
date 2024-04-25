@@ -45,7 +45,7 @@ func getPolicySchemaSelfService() *schema.Resource {
 			},
 			"self_service_icon": {
 				Type:        schema.TypeList,
-				Required:    true,
+				Optional:    true,
 				Description: "Icon settings for the policy in self-service.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
-	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -40,12 +39,6 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Required:    true,
 				Description: "Define whether the policy is enabled.",
 			},
-			// "trigger": { // NOTE appears to be redundant when used with the below. Maybe this use to be a multiple choice option?
-			// 	Type:         schema.TypeString,
-			// 	Required:     true,
-			// 	Description:  "Event(s) triggers to use to initiate the policy. Values can be 'USER_INITIATED' for self self trigger and 'EVENT' for an event based trigger",
-			// 	ValidateFunc: validation.StringInSlice([]string{"EVENT", "USER_INITIATED"}, false),
-			// },
 			"trigger_checkin": {
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -64,12 +57,6 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Default:     false,
 				Description: "Trigger policy when a user logs in to a computer. A login event that checks for policies must be configured in Jamf Pro for this to work",
 			},
-			// "trigger_logout": { // NOTE appears to be redundant
-			// 	Type:        schema.TypeBool,
-			// 	Optional:    true,
-			// 	Description: "Trigger policy when a user logout.",
-			// 	Default:     false,
-			// },
 			"trigger_network_state_changed": {
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -121,11 +108,11 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Description: "Number of retry attempts for the jamf pro policy. Valid values are -1 (not configured) and 1 through 10.",
 				Default:     -1,
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := util.GetInt(val)
-					if v == -1 || (v > 0 && v <= 10) {
+					vInt := val.(int)
+					if vInt == -1 || (vInt > 0 && vInt <= 10) {
 						return
 					}
-					errs = append(errs, fmt.Errorf("%q must be -1 if not being set or between 1 and 10 if it is being set, got: %d", key, v))
+					errs = append(errs, fmt.Errorf("%q must be -1 if not being set or between 1 and 10 if it is being set, got: %d", key, val))
 					return warns, errs
 				},
 			},
@@ -135,12 +122,6 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Description: "Send notifications for each failed policy retry attempt. ",
 				Default:     false,
 			},
-			// "location_user_only": { // NOTE Can't find in GUI
-			// 	Type:        schema.TypeBool,
-			// 	Optional:    true,
-			// 	Description: "Location-based policy for user only.",
-			// 	Default:     false,
-			// },
 			"target_drive": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -157,29 +138,50 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Category to add the policy to.",
-				Computed:    true,
+				MaxItems:    1,
 				Elem:        sharedschemas.GetSharedSchemaCategory(),
+			},
+			"site": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Jamf Pro Site-related settings of the policy.",
+				MaxItems:    1,
+				Elem:        sharedschemas.GetSharedSchemaSite(),
 			},
 			"date_time_limitations": {
 				Type:        schema.TypeList,
 				Optional:    true,
+				MaxItems:    1,
 				Description: "Server-side limitations use your Jamf Pro host server's time zone and settings. The Jamf Pro host service is in UTC time.",
-				Computed:    true,
 				Elem:        getPolicySchemaDateTimeLimitations(),
 			},
 			"network_limitations": {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Network limitations for the policy.",
-				Computed:    true,
+				MaxItems:    1,
 				Elem:        getPolicySchemaNetworkLimitations(),
 			}, // END OF General UI
-			"payloads": {
+			// "payloads": {
+			// 	Type:        schema.TypeList,
+			// 	Required:    true,
+			// 	Description: "All payloads container",
+			// 	Elem:        getPolicySchemaPayloads(),
+			// },
+			"scope": {
 				Type:        schema.TypeList,
-				Required:    true,
-				Description: "All payloads container",
-				Elem:        getPolicySchemaPayloads(),
-			}, // MOVING EVERYTHING BELOW INTO HERE
+				MaxItems:    1,
+				Optional:    true,
+				Description: "Scope configuration for the profile.",
+				Elem:        sharedschemas.GetSharedSchemaScope(),
+			},
+			"self_service": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: "Self-service settings of the policy.",
+				Elem:        getPolicySchemaSelfService(),
+			},
 		},
 	}
 }
