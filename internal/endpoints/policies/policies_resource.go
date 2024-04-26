@@ -139,6 +139,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Optional:    true,
 				Description: "Category to add the policy to.",
 				MaxItems:    1,
+				Default:     nil,
 				Elem:        sharedschemas.GetSharedSchemaCategory(),
 			},
 			"site": {

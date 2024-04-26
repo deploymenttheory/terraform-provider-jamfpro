@@ -161,8 +161,8 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 	if resp.General.Site.ID != -1 && resp.General.Site.Name != "None" {
 		out_site := []map[string]interface{}{
 			{
-				"id":   resp.General.Site.ID,
-				"name": resp.General.Site.Name,
+				"id": resp.General.Site.ID,
+				// "name": resp.General.Site.Name,
 			},
 		}
 
@@ -177,8 +177,8 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 	if resp.General.Category.ID != -1 && resp.General.Category.Name != "No category assigned" {
 		out_category := []map[string]interface{}{
 			{
-				"id":   resp.General.Category.ID,
-				"name": resp.General.Category.Name,
+				"id": resp.General.Category.ID,
+				// "name": resp.General.Category.Name,
 			},
 		}
 		if err := d.Set("category", out_category); err != nil {

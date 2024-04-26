@@ -65,14 +65,14 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 			/// ibeacon_ids
 		},
 		SelfService: &jamfpro.PolicySubsetSelfService{
-			UseForSelfService:           d.Get("self_service.0.use_for_self_service").(bool),
-			SelfServiceDisplayName:      d.Get("self_service_display_name").(string),
-			InstallButtonText:           d.Get("install_button_text").(string),
-			ReinstallButtonText:         d.Get("reinstall_button_text").(string),
-			SelfServiceDescription:      d.Get("self_service_description").(string),
-			ForceUsersToViewDescription: d.Get("force_users_to_view_description").(bool),
+			// UseForSelfService:           d.Get("self_service.0.use_for_self_service").(bool),
+			// SelfServiceDisplayName:      d.Get("self_service_display_name").(string),
+			// InstallButtonText:           d.Get("install_button_text").(string),
+			// ReinstallButtonText:         d.Get("reinstall_button_text").(string),
+			// SelfServiceDescription:      d.Get("self_service_description").(string),
+			// ForceUsersToViewDescription: d.Get("force_users_to_view_description").(bool),
 			// TODO self service icon later
-			FeatureOnMainPage: d.Get("feature_on_main_page").(bool),
+			// FeatureOnMainPage: d.Get("feature_on_main_page").(bool),
 			// TODO Self service categories later
 		},
 		// Package Configuration
@@ -97,29 +97,33 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	// General
 
 	// Category
-	log.Println("LOG-CATEGORY")
 	suppliedCategory := d.Get("category").([]interface{})
 	if len(suppliedCategory) > 0 {
-		log.Println(suppliedCategory[0])
-		outCat := &jamfpro.SharedResourceCategory{}
-		suppliedId := suppliedCategory[0].(map[string]interface{})["id"].(int)
-		if suppliedId != 0 {
-			outCat.ID = suppliedId
+		outCat := &jamfpro.SharedResourceCategory{
+			ID: suppliedCategory[0].(map[string]interface{})["id"].(int),
 		}
 		out.General.Category = outCat
-	}
-
-	log.Println("LOG-SITE")
-	// Site
-	if len(d.Get("site").([]interface{})) > 0 {
-		out.General.Site = &jamfpro.SharedResourceSite{
-			ID:   d.Get("site.0.id").(int),
-			Name: d.Get("site.0.name").(string),
+	} else {
+		out.General.Category = &jamfpro.SharedResourceCategory{
+			ID: 0,
 		}
 	}
 
-	log.Println("LOG-DATETIME")
+	// Site
+	suppliedSite := d.Get("site").([]interface{})
+	if len(suppliedSite) > 0 {
+		outSite := &jamfpro.SharedResourceSite{
+			ID: suppliedSite[0].(map[string]interface{})["id"].(int),
+		}
+		out.General.Site = outSite
+	} else {
+		out.General.Site = &jamfpro.SharedResourceSite{
+			ID: 0,
+		}
+	}
+
 	// Date time Limitations
+	log.Println("LOG-DATETIME")
 	if len(d.Get("date_time_limitations").([]interface{})) > 0 {
 		pathRoot := "date_time_limitations.0."
 		out.General.DateTimeLimitations = &jamfpro.PolicySubsetGeneralDateTimeLimitations{
@@ -135,8 +139,8 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 		}
 	}
 
-	log.Println("LOG-NETWORK")
 	// Network Limitations
+	log.Println("LOG-NETWORK")
 	if len(d.Get("network_limitations").([]interface{})) > 0 {
 		log.Println("FLAG 1")
 		pathRoot := "network_limitations.0."
@@ -154,8 +158,11 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 
 	// Scope
 
+	// DEBUG
 	policyXML, _ := xml.MarshalIndent(out, "", "  ")
 	log.Println("LOGEND")
 	log.Println(string(policyXML))
+
+	// END
 	return out, nil
 }
