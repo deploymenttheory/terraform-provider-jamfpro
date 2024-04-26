@@ -36,7 +36,7 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 			Offline:                    d.Get("offline").(bool),
 			// Category processed
 			// site processed
-			// date time limitations processed
+			// Date time limitations
 			// network limitations processed
 		},
 		Scope: &jamfpro.PolicySubsetScope{
@@ -99,11 +99,13 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	// Category
 	suppliedCategory := d.Get("category").([]interface{})
 	if len(suppliedCategory) > 0 {
+		// construct category if provided
 		outCat := &jamfpro.SharedResourceCategory{
 			ID: suppliedCategory[0].(map[string]interface{})["id"].(int),
 		}
 		out.General.Category = outCat
 	} else {
+		// if no category, supply empty cat to remove it.
 		out.General.Category = &jamfpro.SharedResourceCategory{
 			ID: 0,
 		}
@@ -112,11 +114,13 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	// Site
 	suppliedSite := d.Get("site").([]interface{})
 	if len(suppliedSite) > 0 {
+		// If site provided, construct
 		outSite := &jamfpro.SharedResourceSite{
 			ID: suppliedSite[0].(map[string]interface{})["id"].(int),
 		}
 		out.General.Site = outSite
 	} else {
+		// If no site, construct no site obj. We have to do this for the site to be removed.
 		out.General.Site = &jamfpro.SharedResourceSite{
 			ID: 0,
 		}
