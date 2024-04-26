@@ -34,9 +34,19 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 			NotifyOnEachFailedRetry:    d.Get("notify_on_each_failed_retry").(bool),
 			TargetDrive:                d.Get("target_drive").(string),
 			Offline:                    d.Get("offline").(bool),
+			DateTimeLimitations: &jamfpro.PolicySubsetGeneralDateTimeLimitations{
+				ActivationDate:      d.Get("date_time_limitations.0.activation_date").(string),
+				ActivationDateEpoch: d.Get("date_time_limitations.0.activation_date_epoch").(int),
+				ActivationDateUTC:   d.Get("date_time_limitations.0.activation_date_utc").(string),
+				ExpirationDate:      d.Get("date_time_limitations.0.expiration_date").(string),
+				ExpirationDateEpoch: d.Get("date_time_limitations.0.expiration_date_epoch").(int),
+				ExpirationDateUTC:   d.Get("date_time_limitations.0.expiration_date_utc").(string),
+				// no execute on // TODO
+				NoExecuteStart: d.Get("no_execute_start").(string),
+				NoExecuteEnd:   d.Get("no_execute_end").(string),
+			},
 			// Category processed
 			// site processed
-			// Date time limitations
 			// network limitations processed
 		},
 		Scope: &jamfpro.PolicySubsetScope{
@@ -123,23 +133,6 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 		// If no site, construct no site obj. We have to do this for the site to be removed.
 		out.General.Site = &jamfpro.SharedResourceSite{
 			ID: 0,
-		}
-	}
-
-	// Date time Limitations
-	log.Println("LOG-DATETIME")
-	if len(d.Get("date_time_limitations").([]interface{})) > 0 {
-		pathRoot := "date_time_limitations.0."
-		out.General.DateTimeLimitations = &jamfpro.PolicySubsetGeneralDateTimeLimitations{
-			ActivationDate:      d.Get(fmt.Sprintf("%s%s", pathRoot, "activation_date")).(string),
-			ActivationDateEpoch: d.Get(fmt.Sprintf("%s%s", pathRoot, "activation_date_epoch")).(int),
-			ActivationDateUTC:   d.Get(fmt.Sprintf("%s%s", pathRoot, "activation_date_utc")).(string),
-			ExpirationDate:      d.Get(fmt.Sprintf("%s%s", pathRoot, "expiration_date")).(string),
-			ExpirationDateEpoch: d.Get(fmt.Sprintf("%s%s", pathRoot, "expiration_date_epoch")).(int),
-			ExpirationDateUTC:   d.Get(fmt.Sprintf("%s%s", pathRoot, "expiration_date_utc")).(string),
-			// no execute on // TODO
-			NoExecuteStart: d.Get(fmt.Sprintf("%s%s", pathRoot, "no_execute_start")).(string),
-			NoExecuteEnd:   d.Get(fmt.Sprintf("%s%s", pathRoot, "no_execute_end")).(string),
 		}
 	}
 
