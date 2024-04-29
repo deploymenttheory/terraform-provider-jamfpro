@@ -365,7 +365,6 @@ func Provider() *schema.Provider {
 			},
 			ClientOptions: httpclient.ClientOptions{
 				Logging: httpclient.LoggingConfig{
-					//LogLevel:            d.Get("log_level").(string),
 					LogLevel:            logLevel,
 					LogOutputFormat:     d.Get("log_output_format").(string),
 					LogConsoleSeparator: d.Get("log_console_separator").(string),
