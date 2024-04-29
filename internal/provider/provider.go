@@ -179,17 +179,25 @@ func Provider() *schema.Provider {
 				Default:     "",
 				Description: "Specify the path to export http client logs to.",
 			},
+			"hide_sensitive_data": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     true,
+				Description: "Define whether sensitive fields should be hidden in logs. Default to hiding sensitive data in logs",
+			},
 			"enable_cookie_jar": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Enable or disable the cookie jar for the HTTP client.",
 			},
-			"hide_sensitive_data": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     true,
-				Description: "Define whether sensitive fields should be hidden in logs. Default to hiding sensitive data in logs",
+			"custom_cookies": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Default:  nil,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 			"max_retry_attempts": {
 				Type:        schema.TypeInt,
@@ -235,16 +243,8 @@ func Provider() *schema.Provider {
 			"api_type": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Specifies the API type or handler to use for the client.",
+				Description: "Specifies the API integration handler to use for the http client.",
 				Default:     "jamfpro",
-			},
-			"custom_cookies": {
-				Type:     schema.TypeMap,
-				Optional: true,
-				Default:  nil,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
