@@ -14,6 +14,8 @@ import (
 	"github.com/deploymenttheory/go-api-http-client/httpclient"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
+
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accountgroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accounts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/advancedcomputersearches"
@@ -344,6 +346,11 @@ func Provider() *schema.Provider {
 			return nil, diags
 		}
 
+		// Translate the log level from the Terraform configuration
+		logLevelStr := d.Get("log_level").(string)
+		logLevel := logging.TranslateLogLevel(logLevelStr)
+
+		// Build the HTTP client configuration
 		httpClientConfig := httpclient.ClientConfig{
 			Environment: httpclient.EnvironmentConfig{
 				InstanceName:       instanceName,
@@ -358,7 +365,8 @@ func Provider() *schema.Provider {
 			},
 			ClientOptions: httpclient.ClientOptions{
 				Logging: httpclient.LoggingConfig{
-					LogLevel:            d.Get("log_level").(string),
+					//LogLevel:            d.Get("log_level").(string),
+					LogLevel:            logLevel,
 					LogOutputFormat:     d.Get("log_output_format").(string),
 					LogConsoleSeparator: d.Get("log_console_separator").(string),
 					LogExportPath:       d.Get("log_export_path").(string),
