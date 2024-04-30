@@ -14,8 +14,6 @@ import (
 func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResourceScript, error) {
 	script := &jamfpro.ResourceScript{
 		Name:           d.Get("name").(string),
-		CategoryName:   d.Get("category_name").(string),
-		CategoryId:     d.Get("category_id").(string),
 		Info:           d.Get("info").(string),
 		Notes:          d.Get("notes").(string),
 		OSRequirements: d.Get("os_requirements").(string),
@@ -28,6 +26,21 @@ func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResourceScript, er
 		Parameter9:     d.Get("parameter9").(string),
 		Parameter10:    d.Get("parameter10").(string),
 		Parameter11:    d.Get("parameter11").(string),
+	}
+
+	// Check hcl for category_name or category_id and set the appropriate default value if not set
+	categoryName, ok := d.GetOk("category_name")
+	if !ok {
+		script.CategoryName = "NONE" // Default value if not set
+	} else {
+		script.CategoryName = categoryName.(string)
+	}
+
+	categoryId, ok := d.GetOk("category_id")
+	if !ok {
+		script.CategoryId = "-1" // Default value if not set
+	} else {
+		script.CategoryId = categoryId.(string)
 	}
 
 	// Directly assign script_contents as a string

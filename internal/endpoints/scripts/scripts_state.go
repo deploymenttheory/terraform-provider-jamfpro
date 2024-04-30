@@ -11,12 +11,10 @@ import (
 func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceScript) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// Update the Terraform state with the fetched data
+	// Update the Terraform state with the fetched data, excluding category name and category id
 	resourceData := map[string]interface{}{
 		"id":              resource.ID,
 		"name":            resource.Name,
-		"category_name":   resource.CategoryName,
-		"category_id":     resource.CategoryId,
 		"info":            resource.Info,
 		"notes":           resource.Notes,
 		"os_requirements": resource.OSRequirements,
@@ -36,6 +34,19 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceScri
 	for key, val := range resourceData {
 		if err := d.Set(key, val); err != nil {
 			return diag.FromErr(err)
+		}
+	}
+
+	// Set category_name and category_id in the state only if they are not default values
+	if resource.CategoryName != "NONE" {
+		if err := d.Set("category_name", resource.CategoryName); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	if resource.CategoryId != "-1" {
+		if err := d.Set("category_id", resource.CategoryId); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
