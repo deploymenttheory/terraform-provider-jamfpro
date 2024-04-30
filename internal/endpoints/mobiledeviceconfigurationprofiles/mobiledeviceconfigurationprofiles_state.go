@@ -7,6 +7,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"howett.net/plist"
 )
 
 // updateTerraformState updates the Terraform state with the latest ResourceMobileDeviceConfigurationProfile
@@ -22,8 +23,8 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 		"deployment_method": resource.General.DeploymentMethod,
 
 		// Skipping the 'distribution_method' attribute as appears to be deprecated but still in documenation
-		//"redeploy_on_update":                resource.General.RedeployOnUpdate,
-		//"redeploy_days_before_cert_expires": resource.General.RedeployDaysBeforeCertExpires,
+		"redeploy_on_update":                resource.General.RedeployOnUpdate,
+		"redeploy_days_before_cert_expires": resource.General.RedeployDaysBeforeCertExpires,
 
 		// Skipping stating payloads and let terraform handle it directly
 		// "payloads": html.UnescapeString(resource.General.Payloads),
@@ -47,6 +48,17 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 		if err := d.Set("site", site); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
+	}
+
+	// Payloads
+	var payloads interface{}
+	format, err := plist.Unmarshal([]byte(resource.General.Payloads), &payloads)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	payload, _ := plist.MarshalIndent(payloads, format, "    ")
+	if err := d.Set("payload", string(payload)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	// Set the 'category' attribute in the state only if it's not empty (i.e., not default values)

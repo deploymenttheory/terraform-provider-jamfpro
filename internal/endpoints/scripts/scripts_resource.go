@@ -45,16 +45,15 @@ func ResourceJamfProScripts() *schema.Resource {
 				Required:    true,
 				Description: "Display name for the script.",
 			},
+			"category_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The Jamf Pro unique identifier (ID) of the category.",
+			},
 			"category_name": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Computed:    true,
 				Description: "Name of the category to add the script to.",
-			},
-			"category_id": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The Jamf Pro unique identifier (ID) of the category.",
 			},
 			"info": {
 				Type:        schema.TypeString,

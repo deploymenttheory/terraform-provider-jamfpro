@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -27,7 +28,7 @@ func constructJamfProComputerExtensionAttribute(d *schema.ResourceData) (*jamfpr
 		inputType := jamfpro.ComputerExtensionAttributeSubsetInputType{
 			Type:     inputTypeData["type"].(string),
 			Platform: inputTypeData["platform"].(string),
-			Script:   inputTypeData["script"].(string),
+			Script:   strings.TrimSpace(inputTypeData["script"].(string)), // Trim leading/trailing whitespace on script content
 		}
 
 		// Handle "choices" within "input_type"
