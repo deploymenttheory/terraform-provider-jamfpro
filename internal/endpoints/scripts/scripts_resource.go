@@ -53,6 +53,7 @@ func ResourceJamfProScripts() *schema.Resource {
 			"category_name": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Computed:    true,
 				Description: "Name of the category to add the script to.",
 			},
 			"info": {
