@@ -15,7 +15,7 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 
 	// Main Object Definition with primitive values assigned.
 
-	log.Println("STRUCT START")
+	log.Println("LOG-UNPROCESSED FIELDS START")
 
 	out := &jamfpro.ResourcePolicy{
 		General: jamfpro.PolicySubsetGeneral{
@@ -97,16 +97,19 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	}
 
 	// DEBUG
-	log.Println("STRUCT END")
+	log.Println("LOG-UNPROCESSED FIELDS END")
+	log.Println("STRUCT NOW:")
 	json, _ := json.MarshalIndent(out, " ", "    ")
 	log.Println(string(json))
-	log.Println("PROCESS START")
+	log.Println("LOG-PROCESSED FIELDS START")
 
 	// Processed Fields
 
 	// General
 
 	// Category
+	log.Println("CATEGORY")
+
 	suppliedCategory := d.Get("category").([]interface{})
 	if len(suppliedCategory) > 0 {
 		// construct category if provided
@@ -122,6 +125,8 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	}
 
 	// Site
+	log.Println("SITE")
+
 	suppliedSite := d.Get("site").([]interface{})
 	if len(suppliedSite) > 0 {
 		// If site provided, construct
@@ -137,7 +142,8 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	}
 
 	// Network Limitations
-	log.Println("LOG-NETWORK")
+	log.Println("NETWORK LIMITATION")
+
 	if len(d.Get("network_limitations").([]interface{})) > 0 {
 		log.Println("FLAG 1")
 		pathRoot := "network_limitations.0."

@@ -1,5 +1,4 @@
-// macosconfigurationprofiles_state.go
-package macosconfigurationprofiles
+package policies
 
 import (
 	"log"
@@ -7,31 +6,83 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"howett.net/plist"
 )
 
-// updateTerraformState updates the Terraform state with the latest MacOS Configuration Profile information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfigurationProfile, resourceID string) diag.Diagnostics {
+func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, resourceID string) diag.Diagnostics {
 	var diags diag.Diagnostics
+	var err error
 
-	// Stating - commented ones appear to be done automatically.
-
-	// ID
 	if err := d.Set("id", resourceID); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Name
-	if err := d.Set("name", resp.General.Name); err != nil {
+	err = d.Set("name", resp.General.Name)
+	if err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Description
-	if err := d.Set("description", resp.General.Description); err != nil {
+	err = d.Set("enabled", resp.General.Enabled)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("trigger_checkin", resp.General.TriggerCheckin)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("trigger_enrollment_complete", resp.General.TriggerEnrollmentComplete)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("trigger_login", resp.General.TriggerLogin)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("trigger_network_state_changed", resp.General.TriggerNetworkStateChanged)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("trigger_startup", resp.General.TriggerStartup)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("trigger_other", resp.General.TriggerOther)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("frequency", resp.General.Frequency)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("retry_event", resp.General.RetryEvent)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("retry_attempts", resp.General.RetryAttempts)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("notify_on_each_failed_retry", resp.General.NotifyOnEachFailedRetry)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("offline", resp.General.Offline)
+	if err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	// Site
+	// TODO Review this logic
 	if resp.General.Site.ID != -1 && resp.General.Site.Name != "None" {
 		out_site := []map[string]interface{}{
 			{
@@ -44,7 +95,7 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSCon
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	} else {
-		log.Println("Not stating default site response") // TODO logging
+		log.Println("Not stating default site response") // TODO Logging
 	}
 
 	// Category
@@ -62,45 +113,6 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSCon
 		log.Println("Not stating default category response") // TODO logging
 	}
 
-	// Payloads
-	// TODO why is this now broken?
-	var payloads interface{}
-	format, err := plist.Unmarshal([]byte(resp.General.Payloads), &payloads)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	payload, _ := plist.MarshalIndent(payloads, format, "    ")
-	if err := d.Set("payload", string(payload)); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	// Distribution Method
-	if err := d.Set("distribution_method", resp.General.DistributionMethod); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	// User Removeable
-	if err := d.Set("user_removeable", resp.General.UserRemovable); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	// Level
-	if err := d.Set("level", resp.General.Level); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	// UUID
-	if err := d.Set("uuid", resp.General.UUID); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	// Redeploy On Update - This is always "Newly Assigned" on existing profile objects
-	if err := d.Set("redeploy_on_update", resp.General.RedeployOnUpdate); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	// Scope
-
 	out_scope := make([]map[string]interface{}, 0)
 	out_scope = append(out_scope, make(map[string]interface{}, 1))
 
@@ -108,9 +120,9 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSCon
 	out_scope[0]["all_jss_users"] = resp.Scope.AllJSSUsers
 
 	// Computers
-	if len(resp.Scope.Computers) > 0 {
+	if len(*resp.Scope.Computers) > 0 {
 		var listOfIds []int
-		for _, v := range resp.Scope.Computers {
+		for _, v := range *resp.Scope.Computers {
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope[0]["computer_ids"] = listOfIds
@@ -121,45 +133,45 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSCon
 	// out_scope[0]["computer_ids"] = comps
 
 	// Computer Groups
-	if len(resp.Scope.ComputerGroups) > 0 {
+	if len(*resp.Scope.ComputerGroups) > 0 {
 		var listOfIds []int
-		for _, v := range resp.Scope.ComputerGroups {
+		for _, v := range *resp.Scope.ComputerGroups {
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope[0]["computer_group_ids"] = listOfIds
 	}
 
 	// JSS Users
-	if len(resp.Scope.JSSUsers) > 0 {
+	if len(*resp.Scope.JSSUsers) > 0 {
 		var listOfIds []int
-		for _, v := range resp.Scope.JSSUsers {
+		for _, v := range *resp.Scope.JSSUsers {
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope[0]["jss_user_ids"] = listOfIds
 	}
 
 	// JSS User Groups
-	if len(resp.Scope.JSSUserGroups) > 0 {
+	if len(*resp.Scope.JSSUserGroups) > 0 {
 		var listOfIds []int
-		for _, v := range resp.Scope.JSSUserGroups {
+		for _, v := range *resp.Scope.JSSUserGroups {
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope[0]["jss_user_group_ids"] = listOfIds
 	}
 
 	// Buildings
-	if len(resp.Scope.Buildings) > 0 {
+	if len(*resp.Scope.Buildings) > 0 {
 		var listOfIds []int
-		for _, v := range resp.Scope.Buildings {
+		for _, v := range *resp.Scope.Buildings {
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope[0]["building_ids"] = listOfIds
 	}
 
 	// Departments
-	if len(resp.Scope.Departments) > 0 {
+	if len(*resp.Scope.Departments) > 0 {
 		var listOfIds []int
-		for _, v := range resp.Scope.Departments {
+		for _, v := range *resp.Scope.Departments {
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope[0]["department_ids"] = listOfIds
@@ -172,9 +184,9 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSCon
 	var limitationsSet bool
 
 	// Users
-	if len(resp.Scope.Limitations.Users) > 0 {
+	if len(*resp.Scope.Limitations.Users) > 0 {
 		var listOfNames []string
-		for _, v := range resp.Scope.Limitations.Users {
+		for _, v := range *resp.Scope.Limitations.Users {
 			listOfNames = append(listOfNames, v.Name)
 		}
 		out_scope_limitations[0]["user_names"] = listOfNames
@@ -182,9 +194,9 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSCon
 	}
 
 	// Network Segments
-	if len(resp.Scope.Limitations.NetworkSegments) > 0 {
+	if len(*resp.Scope.Limitations.NetworkSegments) > 0 {
 		var listOfIds []int
-		for _, v := range resp.Scope.Limitations.NetworkSegments {
+		for _, v := range *resp.Scope.Limitations.NetworkSegments {
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope_limitations[0]["network_segment_ids"] = listOfIds
@@ -192,9 +204,9 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSCon
 	}
 
 	// IBeacons
-	if len(resp.Scope.Limitations.IBeacons) > 0 {
+	if len(*resp.Scope.Limitations.IBeacons) > 0 {
 		var listOfIds []int
-		for _, v := range resp.Scope.Limitations.IBeacons {
+		for _, v := range *resp.Scope.Limitations.IBeacons {
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope_limitations[0]["ibeacon_ids"] = listOfIds
@@ -202,9 +214,9 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSCon
 	}
 
 	// User Groups
-	if len(resp.Scope.Limitations.UserGroups) > 0 {
+	if len(*resp.Scope.Limitations.UserGroups) > 0 {
 		var listOfIds []int
-		for _, v := range resp.Scope.Limitations.UserGroups {
+		for _, v := range *resp.Scope.Limitations.UserGroups {
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope_limitations[0]["user_group_ids"] = listOfIds
@@ -222,9 +234,9 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSCon
 	var exclusionsSet bool
 
 	// Computers
-	if len(resp.Scope.Exclusions.Computers) > 0 {
+	if len(*resp.Scope.Exclusions.Computers) > 0 {
 		var listOfIds []int
-		for _, v := range resp.Scope.Exclusions.Computers {
+		for _, v := range *resp.Scope.Exclusions.Computers {
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope_exclusions[0]["computer_ids"] = listOfIds
@@ -232,9 +244,9 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSCon
 	}
 
 	// Computer Groups
-	if len(resp.Scope.Exclusions.ComputerGroups) > 0 {
+	if len(*resp.Scope.Exclusions.ComputerGroups) > 0 {
 		var listOfIds []int
-		for _, v := range resp.Scope.Exclusions.ComputerGroups {
+		for _, v := range *resp.Scope.Exclusions.ComputerGroups {
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope_exclusions[0]["computer_group_ids"] = listOfIds
@@ -242,9 +254,9 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSCon
 	}
 
 	// Buildings
-	if len(resp.Scope.Exclusions.Buildings) > 0 {
+	if len(*resp.Scope.Exclusions.Buildings) > 0 {
 		var listOfIds []int
-		for _, v := range resp.Scope.Exclusions.Buildings {
+		for _, v := range *resp.Scope.Exclusions.Buildings {
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope_exclusions[0]["building_ids"] = listOfIds
@@ -252,9 +264,9 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSCon
 	}
 
 	// Departments
-	if len(resp.Scope.Exclusions.Departments) > 0 {
+	if len(*resp.Scope.Exclusions.Departments) > 0 {
 		var listOfIds []int
-		for _, v := range resp.Scope.Exclusions.Departments {
+		for _, v := range *resp.Scope.Exclusions.Departments {
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope_exclusions[0]["department_ids"] = listOfIds
@@ -262,9 +274,9 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSCon
 	}
 
 	// Network Segments
-	if len(resp.Scope.Exclusions.NetworkSegments) > 0 {
+	if len(*resp.Scope.Exclusions.NetworkSegments) > 0 {
 		var listOfIds []int
-		for _, v := range resp.Scope.Exclusions.NetworkSegments {
+		for _, v := range *resp.Scope.Exclusions.NetworkSegments {
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope_exclusions[0]["network_segment_ids"] = listOfIds
@@ -272,9 +284,9 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSCon
 	}
 
 	// JSS Users
-	if len(resp.Scope.Exclusions.JSSUsers) > 0 {
+	if len(*resp.Scope.Exclusions.JSSUsers) > 0 {
 		var listOfIds []int
-		for _, v := range resp.Scope.Exclusions.JSSUsers {
+		for _, v := range *resp.Scope.Exclusions.JSSUsers {
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope_exclusions[0]["jss_user_ids"] = listOfIds
@@ -282,9 +294,9 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSCon
 	}
 
 	// JSS User Groups
-	if len(resp.Scope.Exclusions.JSSUserGroups) > 0 {
+	if len(*resp.Scope.Exclusions.JSSUserGroups) > 0 {
 		var listOfIds []int
-		for _, v := range resp.Scope.Exclusions.JSSUserGroups {
+		for _, v := range *resp.Scope.Exclusions.JSSUserGroups {
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope_exclusions[0]["jss_user_group_ids"] = listOfIds
@@ -292,9 +304,9 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSCon
 	}
 
 	// IBeacons
-	if len(resp.Scope.Exclusions.IBeacons) > 0 {
+	if len(*resp.Scope.Exclusions.IBeacons) > 0 {
 		var listOfIds []int
-		for _, v := range resp.Scope.Exclusions.IBeacons {
+		for _, v := range *resp.Scope.Exclusions.IBeacons {
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope_exclusions[0]["ibeacon_ids"] = listOfIds
@@ -314,37 +326,5 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSCon
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Self Service
-
-	out_self_service := make([]map[string]interface{}, 0)
-	out_self_service = append(out_self_service, make(map[string]interface{}, 1))
-	var selfServiceSet bool
-
-	// Fix the stupid broken double key issue
-	err = FixStupidDoubleKey(resp, &out_self_service)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	// TODO this is problematic and will be solved another day
-	// if len(resp.SelfService.SelfServiceCategories) > 0 {
-	// 	var listOfIds []int
-	// 	for _, v := range resp.SelfService.SelfServiceCategories {
-	// 		listOfIds = append(listOfIds, v.ID)
-	// 	}
-	// 	out_self_service[0]["self_service_categories"] = listOfIds
-	// 	selfServiceSet = true
-	// }
-
-	if selfServiceSet {
-		err = d.Set("self_service", out_self_service)
-		if err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	} else {
-		log.Println("no self service") // TODO logging
-	}
-
 	return diags
-
 }
