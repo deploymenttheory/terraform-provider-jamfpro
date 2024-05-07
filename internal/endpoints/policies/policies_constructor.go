@@ -85,8 +85,10 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	out.Scope.AllComputers = d.Get("scope.0.all_computers").(bool)
 	out.Scope.AllJSSUsers = d.Get("scope.0.all_jss_users").(bool)
 
+	out.Scope.Computers = &[]jamfpro.PolicySubsetComputer{}
 	log.Println("Process Start")
 	log.Println("CONSTRUCT-FLAG-1")
+	log.Println(out.Scope.Computers)
 
 	// Computers
 	err = GetAttrsListFromHCL[jamfpro.PolicySubsetComputer, int]("scope.0.computer_ids", "ID", d, out.Scope.Computers)
@@ -94,9 +96,9 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 		return nil, err
 	}
 
+	log.Println(out.Scope.Computers)
+	log.Printf("%+v", out.Scope.Computers)
 	log.Println("CONSTRUCT-FLAG-2")
-	log.Println(out)
-	log.Printf("%+v", out.Scope)
 
 	// Computer Groups
 	err = GetAttrsListFromHCL[jamfpro.PolicySubsetComputerGroup, int]("scope.0.computer_group_ids", "ID", d, out.Scope.ComputerGroups)
@@ -309,6 +311,7 @@ func GetAttrsListFromHCL[NestedObjectType any, ListItemPrimitiveType any](path s
 
 		for _, v := range getAttr.([]interface{}) {
 			var newObj NestedObjectType
+
 			newObjReflect := reflect.ValueOf(&newObj).Elem()
 			idField := newObjReflect.FieldByName(target_field)
 
@@ -317,19 +320,34 @@ func GetAttrsListFromHCL[NestedObjectType any, ListItemPrimitiveType any](path s
 			} else {
 				return fmt.Errorf("error cannot set field line 695") // TODO write this error
 			}
+			log.Printf("%+v", newObj)
 
 			outList = append(outList, newObj)
 
 		}
 
+		log.Println("BEFORE:")
+		log.Println("OUTLIST", outList)
+		log.Println("HOME", home)
+
+		log.Println(reflect.TypeOf(outList))
+		log.Println(reflect.TypeOf(home))
+
 		log.Println("HELPER FLAG-4")
 
 		if len(outList) > 0 {
 			log.Println("Outlist found")
-			*home = outList
+			home = &outList
 		} else {
 			log.Println("list is empty")
 		}
+
+		log.Println("AFTER")
+		log.Println("OUTLIST", outList)
+		log.Println("HOME", home)
+
+		log.Println(reflect.TypeOf(outList))
+		log.Println(reflect.TypeOf(home))
 
 		log.Println("HELPER FLAG-5")
 
