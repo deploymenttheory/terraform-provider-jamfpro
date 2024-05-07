@@ -12,9 +12,16 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, 
 	var diags diag.Diagnostics
 	var err error
 
+	// General / root level
+
+	log.Println("LOGHERE-STATE")
+	log.Println("STATE-FLAG-1")
+
 	if err := d.Set("id", resourceID); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+
+	log.Println("STATE-FLAG-2")
 
 	err = d.Set("name", resp.General.Name)
 	if err != nil {
@@ -81,6 +88,8 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, 
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	log.Println("STATE-FLAG-3")
+
 	// Site
 	// TODO Review this logic
 	if resp.General.Site.ID != -1 && resp.General.Site.Name != "None" {
@@ -98,6 +107,8 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, 
 		log.Println("Not stating default site response") // TODO Logging
 	}
 
+	log.Println("STATE-FLAG-4")
+
 	// Category
 	if resp.General.Category.ID != -1 && resp.General.Category.Name != "No category assigned" {
 		out_category := []map[string]interface{}{
@@ -113,211 +124,271 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, 
 		log.Println("Not stating default category response") // TODO logging
 	}
 
+	log.Println("STATE-FLAG-5")
+
+	// log.Printf("%+v\n", resp.Scope)
+	// jsonData, err := json.MarshalIndent(resp.Scope, "", "	")
+	// log.Println(string(jsonData))
+
+	// Scope
 	out_scope := make([]map[string]interface{}, 0)
 	out_scope = append(out_scope, make(map[string]interface{}, 1))
-
 	out_scope[0]["all_computers"] = resp.Scope.AllComputers
 	out_scope[0]["all_jss_users"] = resp.Scope.AllJSSUsers
 
+	log.Println("STATE-FLAG-6")
+
 	// Computers
-	if len(*resp.Scope.Computers) > 0 {
-		var listOfIds []int
-		for _, v := range *resp.Scope.Computers {
-			listOfIds = append(listOfIds, v.ID)
+	if resp.Scope.Computers != nil {
+		log.Println("LINE 144")
+		if len(*resp.Scope.Computers) > 0 {
+			log.Println("TEST HERE")
+			var listOfIds []int
+			for _, v := range *resp.Scope.Computers {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope[0]["computer_ids"] = listOfIds
 		}
-		out_scope[0]["computer_ids"] = listOfIds
 	}
 
 	// TODO make this work later. It's a replacement for the log above.
 	// comps, err := GetListOfIdsFromResp[jamfpro.MacOSConfigurationProfileSubsetComputer](resp.Scope.Computers, "id")
 	// out_scope[0]["computer_ids"] = comps
 
-	// Computer Groups
-	if len(*resp.Scope.ComputerGroups) > 0 {
-		var listOfIds []int
-		for _, v := range *resp.Scope.ComputerGroups {
-			listOfIds = append(listOfIds, v.ID)
+	log.Println("STATE-FLAG-7")
+
+	a := 1
+
+	if a == 2 {
+
+		// Computer Groups
+		if *resp.Scope.ComputerGroups != nil {
+			if len(*resp.Scope.ComputerGroups) > 0 {
+				var listOfIds []int
+				for _, v := range *resp.Scope.ComputerGroups {
+					listOfIds = append(listOfIds, v.ID)
+				}
+				out_scope[0]["computer_group_ids"] = listOfIds
+			}
 		}
-		out_scope[0]["computer_group_ids"] = listOfIds
-	}
 
-	// JSS Users
-	if len(*resp.Scope.JSSUsers) > 0 {
-		var listOfIds []int
-		for _, v := range *resp.Scope.JSSUsers {
-			listOfIds = append(listOfIds, v.ID)
+		log.Println("STATE-FLAG-8")
+
+		// JSS Users
+		if len(*resp.Scope.JSSUsers) > 0 {
+			var listOfIds []int
+			for _, v := range *resp.Scope.JSSUsers {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope[0]["jss_user_ids"] = listOfIds
 		}
-		out_scope[0]["jss_user_ids"] = listOfIds
-	}
 
-	// JSS User Groups
-	if len(*resp.Scope.JSSUserGroups) > 0 {
-		var listOfIds []int
-		for _, v := range *resp.Scope.JSSUserGroups {
-			listOfIds = append(listOfIds, v.ID)
+		log.Println("STATE-FLAG-9")
+
+		// JSS User Groups
+		if len(*resp.Scope.JSSUserGroups) > 0 {
+			var listOfIds []int
+			for _, v := range *resp.Scope.JSSUserGroups {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope[0]["jss_user_group_ids"] = listOfIds
 		}
-		out_scope[0]["jss_user_group_ids"] = listOfIds
-	}
 
-	// Buildings
-	if len(*resp.Scope.Buildings) > 0 {
-		var listOfIds []int
-		for _, v := range *resp.Scope.Buildings {
-			listOfIds = append(listOfIds, v.ID)
+		log.Println("STATE-FLAG-10")
+
+		// Buildings
+		if len(*resp.Scope.Buildings) > 0 {
+			var listOfIds []int
+			for _, v := range *resp.Scope.Buildings {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope[0]["building_ids"] = listOfIds
 		}
-		out_scope[0]["building_ids"] = listOfIds
-	}
 
-	// Departments
-	if len(*resp.Scope.Departments) > 0 {
-		var listOfIds []int
-		for _, v := range *resp.Scope.Departments {
-			listOfIds = append(listOfIds, v.ID)
+		log.Println("STATE-FLAG-11")
+
+		// Departments
+		if len(*resp.Scope.Departments) > 0 {
+			var listOfIds []int
+			for _, v := range *resp.Scope.Departments {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope[0]["department_ids"] = listOfIds
 		}
-		out_scope[0]["department_ids"] = listOfIds
-	}
 
-	// Scope Limitations
+		log.Println("STATE-FLAG-12")
 
-	out_scope_limitations := make([]map[string]interface{}, 0)
-	out_scope_limitations = append(out_scope_limitations, make(map[string]interface{}))
-	var limitationsSet bool
+		// Scope Limitations
+		out_scope_limitations := make([]map[string]interface{}, 0)
+		out_scope_limitations = append(out_scope_limitations, make(map[string]interface{}))
+		var limitationsSet bool
 
-	// Users
-	if len(*resp.Scope.Limitations.Users) > 0 {
-		var listOfNames []string
-		for _, v := range *resp.Scope.Limitations.Users {
-			listOfNames = append(listOfNames, v.Name)
+		log.Println("STATE-FLAG-13")
+
+		// Users
+		if len(*resp.Scope.Limitations.Users) > 0 {
+			var listOfNames []string
+			for _, v := range *resp.Scope.Limitations.Users {
+				listOfNames = append(listOfNames, v.Name)
+			}
+			out_scope_limitations[0]["user_names"] = listOfNames
+			limitationsSet = true
 		}
-		out_scope_limitations[0]["user_names"] = listOfNames
-		limitationsSet = true
-	}
 
-	// Network Segments
-	if len(*resp.Scope.Limitations.NetworkSegments) > 0 {
-		var listOfIds []int
-		for _, v := range *resp.Scope.Limitations.NetworkSegments {
-			listOfIds = append(listOfIds, v.ID)
+		log.Println("STATE-FLAG-14")
+
+		// Network Segments
+		if len(*resp.Scope.Limitations.NetworkSegments) > 0 {
+			var listOfIds []int
+			for _, v := range *resp.Scope.Limitations.NetworkSegments {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope_limitations[0]["network_segment_ids"] = listOfIds
+			limitationsSet = true
 		}
-		out_scope_limitations[0]["network_segment_ids"] = listOfIds
-		limitationsSet = true
-	}
 
-	// IBeacons
-	if len(*resp.Scope.Limitations.IBeacons) > 0 {
-		var listOfIds []int
-		for _, v := range *resp.Scope.Limitations.IBeacons {
-			listOfIds = append(listOfIds, v.ID)
+		log.Println("STATE-FLAG-15")
+
+		// IBeacons
+		if len(*resp.Scope.Limitations.IBeacons) > 0 {
+			var listOfIds []int
+			for _, v := range *resp.Scope.Limitations.IBeacons {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope_limitations[0]["ibeacon_ids"] = listOfIds
+			limitationsSet = true
 		}
-		out_scope_limitations[0]["ibeacon_ids"] = listOfIds
-		limitationsSet = true
-	}
 
-	// User Groups
-	if len(*resp.Scope.Limitations.UserGroups) > 0 {
-		var listOfIds []int
-		for _, v := range *resp.Scope.Limitations.UserGroups {
-			listOfIds = append(listOfIds, v.ID)
+		log.Println("STATE-FLAG-16")
+
+		// User Groups
+		if len(*resp.Scope.Limitations.UserGroups) > 0 {
+			var listOfIds []int
+			for _, v := range *resp.Scope.Limitations.UserGroups {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope_limitations[0]["user_group_ids"] = listOfIds
+			limitationsSet = true
 		}
-		out_scope_limitations[0]["user_group_ids"] = listOfIds
-		limitationsSet = true
-	}
 
-	if limitationsSet {
-		out_scope[0]["limitations"] = out_scope_limitations
-	}
-
-	// Scope Exclusions
-
-	out_scope_exclusions := make([]map[string]interface{}, 0)
-	out_scope_exclusions = append(out_scope_exclusions, make(map[string]interface{}))
-	var exclusionsSet bool
-
-	// Computers
-	if len(*resp.Scope.Exclusions.Computers) > 0 {
-		var listOfIds []int
-		for _, v := range *resp.Scope.Exclusions.Computers {
-			listOfIds = append(listOfIds, v.ID)
+		if limitationsSet {
+			out_scope[0]["limitations"] = out_scope_limitations
 		}
-		out_scope_exclusions[0]["computer_ids"] = listOfIds
-		exclusionsSet = true
-	}
 
-	// Computer Groups
-	if len(*resp.Scope.Exclusions.ComputerGroups) > 0 {
-		var listOfIds []int
-		for _, v := range *resp.Scope.Exclusions.ComputerGroups {
-			listOfIds = append(listOfIds, v.ID)
+		log.Println("STATE-FLAG-17")
+
+		// Scope Exclusions
+		out_scope_exclusions := make([]map[string]interface{}, 0)
+		out_scope_exclusions = append(out_scope_exclusions, make(map[string]interface{}))
+		var exclusionsSet bool
+
+		log.Println("STATE-FLAG-18")
+
+		// Computers
+		if len(*resp.Scope.Exclusions.Computers) > 0 {
+			var listOfIds []int
+			for _, v := range *resp.Scope.Exclusions.Computers {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope_exclusions[0]["computer_ids"] = listOfIds
+			exclusionsSet = true
 		}
-		out_scope_exclusions[0]["computer_group_ids"] = listOfIds
-		exclusionsSet = true
-	}
 
-	// Buildings
-	if len(*resp.Scope.Exclusions.Buildings) > 0 {
-		var listOfIds []int
-		for _, v := range *resp.Scope.Exclusions.Buildings {
-			listOfIds = append(listOfIds, v.ID)
+		log.Println("STATE-FLAG-19")
+
+		// Computer Groups
+		if len(*resp.Scope.Exclusions.ComputerGroups) > 0 {
+			var listOfIds []int
+			for _, v := range *resp.Scope.Exclusions.ComputerGroups {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope_exclusions[0]["computer_group_ids"] = listOfIds
+			exclusionsSet = true
 		}
-		out_scope_exclusions[0]["building_ids"] = listOfIds
-		exclusionsSet = true
-	}
 
-	// Departments
-	if len(*resp.Scope.Exclusions.Departments) > 0 {
-		var listOfIds []int
-		for _, v := range *resp.Scope.Exclusions.Departments {
-			listOfIds = append(listOfIds, v.ID)
+		log.Println("STATE-FLAG-20")
+
+		// Buildings
+		if len(*resp.Scope.Exclusions.Buildings) > 0 {
+			var listOfIds []int
+			for _, v := range *resp.Scope.Exclusions.Buildings {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope_exclusions[0]["building_ids"] = listOfIds
+			exclusionsSet = true
 		}
-		out_scope_exclusions[0]["department_ids"] = listOfIds
-		exclusionsSet = true
-	}
 
-	// Network Segments
-	if len(*resp.Scope.Exclusions.NetworkSegments) > 0 {
-		var listOfIds []int
-		for _, v := range *resp.Scope.Exclusions.NetworkSegments {
-			listOfIds = append(listOfIds, v.ID)
+		log.Println("STATE-FLAG-21")
+
+		// Departments
+		if len(*resp.Scope.Exclusions.Departments) > 0 {
+			var listOfIds []int
+			for _, v := range *resp.Scope.Exclusions.Departments {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope_exclusions[0]["department_ids"] = listOfIds
+			exclusionsSet = true
 		}
-		out_scope_exclusions[0]["network_segment_ids"] = listOfIds
-		exclusionsSet = true
-	}
 
-	// JSS Users
-	if len(*resp.Scope.Exclusions.JSSUsers) > 0 {
-		var listOfIds []int
-		for _, v := range *resp.Scope.Exclusions.JSSUsers {
-			listOfIds = append(listOfIds, v.ID)
+		log.Println("STATE-FLAG-22")
+
+		// Network Segments
+		if len(*resp.Scope.Exclusions.NetworkSegments) > 0 {
+			var listOfIds []int
+			for _, v := range *resp.Scope.Exclusions.NetworkSegments {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope_exclusions[0]["network_segment_ids"] = listOfIds
+			exclusionsSet = true
 		}
-		out_scope_exclusions[0]["jss_user_ids"] = listOfIds
-		exclusionsSet = true
-	}
 
-	// JSS User Groups
-	if len(*resp.Scope.Exclusions.JSSUserGroups) > 0 {
-		var listOfIds []int
-		for _, v := range *resp.Scope.Exclusions.JSSUserGroups {
-			listOfIds = append(listOfIds, v.ID)
+		log.Println("STATE-FLAG-23")
+
+		// JSS Users
+		if len(*resp.Scope.Exclusions.JSSUsers) > 0 {
+			var listOfIds []int
+			for _, v := range *resp.Scope.Exclusions.JSSUsers {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope_exclusions[0]["jss_user_ids"] = listOfIds
+			exclusionsSet = true
 		}
-		out_scope_exclusions[0]["jss_user_group_ids"] = listOfIds
-		exclusionsSet = true
-	}
 
-	// IBeacons
-	if len(*resp.Scope.Exclusions.IBeacons) > 0 {
-		var listOfIds []int
-		for _, v := range *resp.Scope.Exclusions.IBeacons {
-			listOfIds = append(listOfIds, v.ID)
+		log.Println("STATE-FLAG-24")
+
+		// JSS User Groups
+		if len(*resp.Scope.Exclusions.JSSUserGroups) > 0 {
+			var listOfIds []int
+			for _, v := range *resp.Scope.Exclusions.JSSUserGroups {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope_exclusions[0]["jss_user_group_ids"] = listOfIds
+			exclusionsSet = true
 		}
-		out_scope_exclusions[0]["ibeacon_ids"] = listOfIds
-		exclusionsSet = true
-	}
 
-	// Append Exclusions if they're set
-	if exclusionsSet {
-		out_scope[0]["exclusions"] = out_scope_exclusions
-	} else {
-		log.Println("No exclusions set") // TODO logging
+		log.Println("STATE-FLAG-25")
+
+		// IBeacons
+		if len(*resp.Scope.Exclusions.IBeacons) > 0 {
+			var listOfIds []int
+			for _, v := range *resp.Scope.Exclusions.IBeacons {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope_exclusions[0]["ibeacon_ids"] = listOfIds
+			exclusionsSet = true
+		}
+
+		log.Println("STATE-FLAG-26")
+
+		// Append Exclusions if they're set
+		if exclusionsSet {
+			out_scope[0]["exclusions"] = out_scope_exclusions
+		} else {
+			log.Println("No exclusions set") // TODO logging
+		}
+
+		log.Println("STATE-FLAG-27")
+
 	}
 
 	// Set Scope to state
@@ -325,6 +396,8 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, 
 	if err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+
+	log.Println("STATE-FLAG-28")
 
 	return diags
 }

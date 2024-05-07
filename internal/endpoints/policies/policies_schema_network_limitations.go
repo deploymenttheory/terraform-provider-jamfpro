@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func mgetPolicySchemaNetworkLimitations() *schema.Resource {
+func getPolicySchemaNetworkLimitations() *schema.Resource {
 	out := &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"minimum_network_connection": {
