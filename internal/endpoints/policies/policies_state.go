@@ -139,6 +139,7 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, 
 	log.Println("STATE-FLAG-6")
 
 	// Computers
+	log.Printf("%+v", resp.Scope)
 	if resp.Scope.Computers != nil {
 		log.Println("LINE 144")
 		if len(*resp.Scope.Computers) > 0 {
@@ -151,28 +152,24 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, 
 		}
 	}
 
-	// TODO make this work later. It's a replacement for the log above.
-	// comps, err := GetListOfIdsFromResp[jamfpro.MacOSConfigurationProfileSubsetComputer](resp.Scope.Computers, "id")
-	// out_scope[0]["computer_ids"] = comps
-
 	log.Println("STATE-FLAG-7")
+
+	// Computer Groups
+	if resp.Scope.ComputerGroups != nil {
+		if len(*resp.Scope.ComputerGroups) > 0 {
+			var listOfIds []int
+			for _, v := range *resp.Scope.ComputerGroups {
+				listOfIds = append(listOfIds, v.ID)
+			}
+			out_scope[0]["computer_group_ids"] = listOfIds
+		}
+	}
+
+	log.Println("STATE-FLAG-8")
 
 	a := 1
 
 	if a == 2 {
-
-		// Computer Groups
-		if *resp.Scope.ComputerGroups != nil {
-			if len(*resp.Scope.ComputerGroups) > 0 {
-				var listOfIds []int
-				for _, v := range *resp.Scope.ComputerGroups {
-					listOfIds = append(listOfIds, v.ID)
-				}
-				out_scope[0]["computer_group_ids"] = listOfIds
-			}
-		}
-
-		log.Println("STATE-FLAG-8")
 
 		// JSS Users
 		if len(*resp.Scope.JSSUsers) > 0 {
