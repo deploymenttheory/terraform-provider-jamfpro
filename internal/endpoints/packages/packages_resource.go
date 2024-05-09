@@ -31,6 +31,9 @@ func ResourceJamfProPackages() *schema.Resource {
 			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
 		CustomizeDiff: customValidateFilePath,
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
