@@ -77,7 +77,14 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 
 	log.Println("SCOPE")
 
-	out.Scope = &jamfpro.PolicySubsetScope{}
+	out.Scope = &jamfpro.PolicySubsetScope{
+		Computers:      &[]jamfpro.PolicySubsetComputer{},
+		ComputerGroups: &[]jamfpro.PolicySubsetComputerGroup{},
+		JSSUsers:       &[]jamfpro.PolicySubsetJSSUser{},
+		JSSUserGroups:  &[]jamfpro.PolicySubsetJSSUserGroup{},
+		Buildings:      &[]jamfpro.PolicySubsetBuilding{},
+		Departments:    &[]jamfpro.PolicySubsetDepartment{},
+	}
 
 	// Scope - Targets
 	var err error
@@ -137,15 +144,14 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 
 	// Scope - Limitations
 
-	// Users
-	// err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetUser, string]("scope.0.limitations.0.user_names", "Name", d, out.Scope.Limitations.Users)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
 	log.Println("CONSTRUCT-FLAG-8")
 
-	out.Scope.Limitations = &jamfpro.PolicySubsetScopeLimitations{}
+	out.Scope.Limitations = &jamfpro.PolicySubsetScopeLimitations{
+		Users:           &[]jamfpro.PolicySubsetUser{},
+		UserGroups:      &[]jamfpro.PolicySubsetUserGroup{},
+		NetworkSegments: &[]jamfpro.PolicySubsetNetworkSegment{},
+		IBeacons:        &[]jamfpro.PolicySubsetIBeacon{},
+	}
 
 	// Network Segments
 	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetNetworkSegment, int]("scope.0.limitations.0.network_segment_ids", "ID", d, out.Scope.Limitations.NetworkSegments)
@@ -169,11 +175,24 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 		return nil, err
 	}
 
+	// TODO Users
+
 	log.Println("CONSTRUCT-FLAG-11")
 
 	// Scope - Exclusions
 
-	out.Scope.Exclusions = &jamfpro.PolicySubsetScopeExclusions{}
+	out.Scope.Exclusions = &jamfpro.PolicySubsetScopeExclusions{
+		Computers:       &[]jamfpro.PolicySubsetComputer{},
+		ComputerGroups:  &[]jamfpro.PolicySubsetComputerGroup{},
+		Users:           &[]jamfpro.PolicySubsetUser{},
+		UserGroups:      &[]jamfpro.PolicySubsetUserGroup{},
+		Buildings:       &[]jamfpro.PolicySubsetBuilding{},
+		Departments:     &[]jamfpro.PolicySubsetDepartment{},
+		NetworkSegments: &[]jamfpro.PolicySubsetNetworkSegment{},
+		JSSUsers:        &[]jamfpro.PolicySubsetJSSUser{},
+		JSSUserGroups:   &[]jamfpro.PolicySubsetJSSUserGroup{},
+		IBeacons:        &[]jamfpro.PolicySubsetIBeacon{},
+	}
 
 	// Computers
 	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetComputer, int]("scope.0.exclusions.0.computer_ids", "ID", d, out.Scope.Exclusions.Computers)
@@ -272,8 +291,6 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	// DiskEncryption
 	// Reboot
 
-	log.Println("CONSTRUCT-FLAG-21")
-
 	// DEBUG
 	policyXML, _ := xml.MarshalIndent(out, "", "  ")
 	log.Println("LOGEND")
@@ -281,53 +298,38 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 
 	// END
 
-	log.Println("CONSTRUCT-FLAG-22")
 	return out, nil
 }
 
 // TODO this is copied from config profiles just to make this work - it'll have a centralised home
 func GetAttrsListFromHCLForPointers[NestedObjectType any, ListItemPrimitiveType any](path string, target_field string, d *schema.ResourceData, home *[]NestedObjectType) (err error) {
-	log.Println("H-FLAG-1")
 	getAttr, ok := d.GetOk(path)
 
-	log.Println("H-FLAG-2")
 	if len(getAttr.([]interface{})) == 0 {
 		return nil
 	}
 
-	log.Println("H-FLAG-3")
 	if ok {
-		home = &[]NestedObjectType{}
-		log.Println("H-FLAG-4")
+		*home = []NestedObjectType{}
 
 		outList := make([]NestedObjectType, 0)
 
-		log.Println("H-FLAG-5")
 		for _, v := range getAttr.([]interface{}) {
 			var newObj NestedObjectType
-			log.Println("H-FLAG-L1")
 			newObjReflect := reflect.ValueOf(&newObj).Elem()
 			idField := newObjReflect.FieldByName(target_field)
-			log.Println("H-FLAG-L2")
 			if idField.IsValid() && idField.CanSet() {
 				idField.Set(reflect.ValueOf(v.(ListItemPrimitiveType)))
 			} else {
 				return fmt.Errorf("error cannot set field line 695") // TODO write this error
 			}
-			log.Println("H-FLAG-L3")
 			outList = append(outList, newObj)
-			log.Println("H-FLAG-L4")
 		}
-		log.Println("H-FLAG-6")
 		if len(outList) > 0 {
-			log.Println("H-FLAG-7")
-			log.Println(home)
-			log.Println(outList)
 			*home = outList
 		} else {
 			log.Println("list is empty")
 		}
-		log.Println("H-FLAG-8")
 		return nil
 	}
 	return fmt.Errorf("no path found/no scoped items at %v", path)
