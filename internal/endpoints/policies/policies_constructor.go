@@ -1,6 +1,7 @@
 package policies
 
 // TODO remove all the log.print's. Debug use only
+// TODO handle all toxic combinations
 
 import (
 	"encoding/xml"
@@ -275,9 +276,8 @@ func constructScope(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
 }
 
 func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
+
 	if len(d.Get("self_service").([]interface{})) > 0 {
-		log.Println(d.Get("self_service"))
-		log.Println("CONSTRUCT-FLAG-21")
 		out.SelfService = &jamfpro.PolicySubsetSelfService{
 			UseForSelfService:           d.Get("self_service.0.use_for_self_service").(bool),
 			SelfServiceDisplayName:      d.Get("self_service.0.self_service_display_name").(string),
@@ -289,7 +289,6 @@ func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) e
 			FeatureOnMainPage: d.Get("self_service.0.feature_on_main_page").(bool),
 			// TODO Self service categories later
 		}
-
 	}
 
 	return nil

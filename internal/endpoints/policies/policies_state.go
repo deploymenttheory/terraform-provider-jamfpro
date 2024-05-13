@@ -13,123 +13,12 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, 
 	var diags diag.Diagnostics
 	var err error
 
-	// General / root level
-
-	log.Println("LOGHERE-STATE")
-	log.Println("STATE-FLAG-1")
-
 	if err := d.Set("id", resourceID); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	log.Println("STATE-FLAG-2")
-
-	err = d.Set("name", resp.General.Name)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	err = d.Set("enabled", resp.General.Enabled)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	err = d.Set("trigger_checkin", resp.General.TriggerCheckin)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	err = d.Set("trigger_enrollment_complete", resp.General.TriggerEnrollmentComplete)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	err = d.Set("trigger_login", resp.General.TriggerLogin)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	err = d.Set("trigger_network_state_changed", resp.General.TriggerNetworkStateChanged)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	err = d.Set("trigger_startup", resp.General.TriggerStartup)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	err = d.Set("trigger_other", resp.General.TriggerOther)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	err = d.Set("frequency", resp.General.Frequency)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	err = d.Set("retry_event", resp.General.RetryEvent)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	err = d.Set("retry_attempts", resp.General.RetryAttempts)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	err = d.Set("notify_on_each_failed_retry", resp.General.NotifyOnEachFailedRetry)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	err = d.Set("offline", resp.General.Offline)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	log.Println("STATE-FLAG-3")
-
-	// Site
-	// TODO Review this logic
-	if resp.General.Site.ID != -1 && resp.General.Site.Name != "None" {
-		out_site := []map[string]interface{}{
-			{
-				"id": resp.General.Site.ID,
-				// "name": resp.General.Site.Name,
-			},
-		}
-
-		if err := d.Set("site", out_site); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	} else {
-		log.Println("Not stating default site response") // TODO Logging
-	}
-
-	log.Println("STATE-FLAG-4")
-
-	// Category
-	if resp.General.Category.ID != -1 && resp.General.Category.Name != "No category assigned" {
-		out_category := []map[string]interface{}{
-			{
-				"id": resp.General.Category.ID,
-				// "name": resp.General.Category.Name,
-			},
-		}
-		if err := d.Set("category", out_category); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	} else {
-		log.Println("Not stating default category response") // TODO logging
-	}
-
-	log.Println("STATE-FLAG-5")
-
-	// log.Printf("%+v\n", resp.Scope)
-	// jsonData, err := json.MarshalIndent(resp.Scope, "", "	")
-	// log.Println(string(jsonData))
+	// General/Root level
+	stateGeneral(d, resp, diags)
 
 	// Scope
 	out_scope := make([]map[string]interface{}, 0)
@@ -414,6 +303,111 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, 
 	}
 
 	log.Println("STATE-FLAG-28")
+
+	return diags
+}
+
+func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags diag.Diagnostics) diag.Diagnostics {
+	var err error
+
+	err = d.Set("name", resp.General.Name)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("enabled", resp.General.Enabled)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("trigger_checkin", resp.General.TriggerCheckin)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("trigger_enrollment_complete", resp.General.TriggerEnrollmentComplete)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("trigger_login", resp.General.TriggerLogin)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("trigger_network_state_changed", resp.General.TriggerNetworkStateChanged)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("trigger_startup", resp.General.TriggerStartup)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("trigger_other", resp.General.TriggerOther)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("frequency", resp.General.Frequency)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("retry_event", resp.General.RetryEvent)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("retry_attempts", resp.General.RetryAttempts)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("notify_on_each_failed_retry", resp.General.NotifyOnEachFailedRetry)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("offline", resp.General.Offline)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	// Site
+	// TODO Review this logic
+	if resp.General.Site.ID != -1 && resp.General.Site.Name != "None" {
+		out_site := []map[string]interface{}{
+			{
+				"id": resp.General.Site.ID,
+			},
+		}
+
+		if err := d.Set("site", out_site); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	} else {
+		log.Println("Not stating default site response") // TODO Logging
+	}
+
+	log.Println("STATE-FLAG-4")
+
+	// Category
+	if resp.General.Category.ID != -1 && resp.General.Category.Name != "No category assigned" {
+		out_category := []map[string]interface{}{
+			{
+				"id": resp.General.Category.ID,
+			},
+		}
+		if err := d.Set("category", out_category); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	} else {
+		log.Println("Not stating default category response") // TODO logging
+	}
+
+	log.Println("STATE-FLAG-5")
 
 	return diags
 }
