@@ -181,6 +181,7 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 
 	// Scope - Exclusions
 
+	// TODO I don't really want this here but it won't work without it. I think it's defeating the purpose of the struct layout slightly.
 	out.Scope.Exclusions = &jamfpro.PolicySubsetScopeExclusions{
 		Computers:       &[]jamfpro.PolicySubsetComputer{},
 		ComputerGroups:  &[]jamfpro.PolicySubsetComputerGroup{},
