@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// Primary
+
 func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, resourceID string) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -29,6 +31,8 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, 
 
 	return diags
 }
+
+// Child funcs
 
 func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
 	var err error

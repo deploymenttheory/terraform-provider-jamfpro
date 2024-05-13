@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// Primary
+
 func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	log.Println(("LOGHERE-CONSTRUCT"))
 	var err error
@@ -56,6 +58,8 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	log.Println("LOGEND")
 	return out, nil
 }
+
+// Child funcs
 
 func constructGeneral(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
 	log.Println("GENERAL")
