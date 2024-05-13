@@ -11,108 +11,91 @@ import (
 
 func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, resourceID string) diag.Diagnostics {
 	var diags diag.Diagnostics
-	var err error
 
 	if err := d.Set("id", resourceID); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	// General/Root level
-	stateGeneral(d, resp, diags)
+	stateGeneral(d, resp, &diags)
 
 	// Scope
 	stateScope(d, resp, &diags)
 
-	out_ss := make([]map[string]interface{}, 0)
-	out_ss = append(out_ss, make(map[string]interface{}, 1))
-
-	if resp.SelfService != nil {
-		log.Println("STATE-FLAG_RESP_SELFERVICE")
-		log.Printf("%+v", resp.SelfService)
-		out_ss[0]["use_for_self_service"] = resp.SelfService.UseForSelfService
-		out_ss[0]["self_service_display_name"] = resp.SelfService.SelfServiceDisplayName
-		out_ss[0]["install_button_text"] = resp.SelfService.InstallButtonText
-		out_ss[0]["self_service_description"] = resp.SelfService.SelfServiceDescription
-		out_ss[0]["force_users_to_view_description"] = resp.SelfService.ForceUsersToViewDescription
-		out_ss[0]["feature_on_main_page"] = resp.SelfService.FeatureOnMainPage
-
-		err = d.Set("self_service", out_ss)
-		if err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
+	//Self Service
+	stateSelfService(d, resp, &diags)
 
 	log.Println("STATE-FLAG-28")
 
 	return diags
 }
 
-func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags diag.Diagnostics) diag.Diagnostics {
+func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
 	var err error
 
 	err = d.Set("name", resp.General.Name)
 	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+		*diags = append(*diags, diag.FromErr(err)...)
 	}
 
 	err = d.Set("enabled", resp.General.Enabled)
 	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+		*diags = append(*diags, diag.FromErr(err)...)
 	}
 
 	err = d.Set("trigger_checkin", resp.General.TriggerCheckin)
 	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+		*diags = append(*diags, diag.FromErr(err)...)
 	}
 
 	err = d.Set("trigger_enrollment_complete", resp.General.TriggerEnrollmentComplete)
 	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+		*diags = append(*diags, diag.FromErr(err)...)
 	}
 
 	err = d.Set("trigger_login", resp.General.TriggerLogin)
 	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+		*diags = append(*diags, diag.FromErr(err)...)
 	}
 
 	err = d.Set("trigger_network_state_changed", resp.General.TriggerNetworkStateChanged)
 	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+		*diags = append(*diags, diag.FromErr(err)...)
 	}
 
 	err = d.Set("trigger_startup", resp.General.TriggerStartup)
 	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+		*diags = append(*diags, diag.FromErr(err)...)
 	}
 
 	err = d.Set("trigger_other", resp.General.TriggerOther)
 	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+		*diags = append(*diags, diag.FromErr(err)...)
 	}
 
 	err = d.Set("frequency", resp.General.Frequency)
 	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+		*diags = append(*diags, diag.FromErr(err)...)
 	}
 
 	err = d.Set("retry_event", resp.General.RetryEvent)
 	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+		*diags = append(*diags, diag.FromErr(err)...)
 	}
 
 	err = d.Set("retry_attempts", resp.General.RetryAttempts)
 	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+		*diags = append(*diags, diag.FromErr(err)...)
 	}
 
 	err = d.Set("notify_on_each_failed_retry", resp.General.NotifyOnEachFailedRetry)
 	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+		*diags = append(*diags, diag.FromErr(err)...)
 	}
 
 	err = d.Set("offline", resp.General.Offline)
 	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+		*diags = append(*diags, diag.FromErr(err)...)
 	}
 
 	// Site
@@ -125,7 +108,7 @@ func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags di
 		}
 
 		if err := d.Set("site", out_site); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+			*diags = append(*diags, diag.FromErr(err)...)
 		}
 	} else {
 		log.Println("Not stating default site response") // TODO Logging
@@ -141,18 +124,15 @@ func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags di
 			},
 		}
 		if err := d.Set("category", out_category); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+			*diags = append(*diags, diag.FromErr(err)...)
 		}
 	} else {
 		log.Println("Not stating default category response") // TODO logging
 	}
 
-	log.Println("STATE-FLAG-5")
-
-	return diags
 }
 
-func stateScope(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) diag.Diagnostics {
+func stateScope(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
 	var err error
 
 	out_scope := make([]map[string]interface{}, 0)
@@ -367,5 +347,27 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *dia
 	if err != nil {
 		*diags = append(*diags, diag.FromErr(err)...)
 	}
-	return *diags
+
+}
+
+func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
+	var err error
+	out_ss := make([]map[string]interface{}, 0)
+	out_ss = append(out_ss, make(map[string]interface{}, 1))
+
+	if resp.SelfService != nil {
+		log.Println("STATE-FLAG_RESP_SELFERVICE")
+		log.Printf("%+v", resp.SelfService)
+		out_ss[0]["use_for_self_service"] = resp.SelfService.UseForSelfService
+		out_ss[0]["self_service_display_name"] = resp.SelfService.SelfServiceDisplayName
+		out_ss[0]["install_button_text"] = resp.SelfService.InstallButtonText
+		out_ss[0]["self_service_description"] = resp.SelfService.SelfServiceDescription
+		out_ss[0]["force_users_to_view_description"] = resp.SelfService.ForceUsersToViewDescription
+		out_ss[0]["feature_on_main_page"] = resp.SelfService.FeatureOnMainPage
+
+		err = d.Set("self_service", out_ss)
+		if err != nil {
+			*diags = append(*diags, diag.FromErr(err)...)
+		}
+	}
 }
