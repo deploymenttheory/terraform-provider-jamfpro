@@ -394,6 +394,25 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, 
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	out_ss := make([]map[string]interface{}, 0)
+	out_ss = append(out_ss, make(map[string]interface{}, 1))
+
+	if resp.SelfService != nil {
+		log.Println("STATE-FLAG_RESP_SELFERVICE")
+		log.Printf("%+v", resp.SelfService)
+		out_ss[0]["use_for_self_service"] = resp.SelfService.UseForSelfService
+		out_ss[0]["self_service_display_name"] = resp.SelfService.SelfServiceDisplayName
+		out_ss[0]["install_button_text"] = resp.SelfService.InstallButtonText
+		out_ss[0]["self_service_description"] = resp.SelfService.SelfServiceDescription
+		out_ss[0]["force_users_to_view_description"] = resp.SelfService.ForceUsersToViewDescription
+		out_ss[0]["feature_on_main_page"] = resp.SelfService.FeatureOnMainPage
+
+		err = d.Set("self_service", out_ss)
+		if err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
 	log.Println("STATE-FLAG-28")
 
 	return diags

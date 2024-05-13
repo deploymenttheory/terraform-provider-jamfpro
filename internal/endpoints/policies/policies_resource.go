@@ -179,6 +179,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 			"self_service": {
 				Type:        schema.TypeList,
 				Optional:    true,
+				Default:     nil,
 				MaxItems:    1,
 				Description: "Self-service settings of the policy.",
 				Elem:        getPolicySchemaSelfService(),

@@ -3,7 +3,6 @@ package policies
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
@@ -94,8 +93,6 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 
 	// State
 	updateTerraformState(d, resp, resourceID)
-
-	log.Println(resp)
 
 	return diags
 }
