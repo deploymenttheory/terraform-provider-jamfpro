@@ -1,6 +1,7 @@
 package policies
 
 import (
+	"encoding/xml"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -137,6 +138,11 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, 
 	out_scope[0]["all_jss_users"] = resp.Scope.AllJSSUsers
 
 	log.Println("STATE-FLAG-6")
+
+	log.Println("XMLIN")
+	log.Println(resp.Scope.AllJSSUsers)
+	xmlData, _ := xml.MarshalIndent(resp, "", "    ")
+	log.Println(string(xmlData))
 
 	// Computers
 	if resp.Scope.Computers != nil && len(*resp.Scope.Computers) > 0 {

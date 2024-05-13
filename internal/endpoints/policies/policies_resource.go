@@ -172,7 +172,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 			"scope": {
 				Type:        schema.TypeList,
 				MaxItems:    1,
-				Optional:    true,
+				Required:    true,
 				Description: "Scope configuration for the profile.",
 				Elem:        sharedschemas.GetSharedSchemaScope(),
 			},
