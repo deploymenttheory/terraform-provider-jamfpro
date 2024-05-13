@@ -39,6 +39,11 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 		return nil, err
 	}
 
+	err = constructPayloads(d, out)
+	if err != nil {
+		return nil, err
+	}
+
 	// Package Configuration
 	// Scripts
 	// Printers
@@ -293,6 +298,23 @@ func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) e
 			FeatureOnMainPage: d.Get("self_service.0.feature_on_main_page").(bool),
 			// TODO Self service categories later
 		}
+	}
+
+	return nil
+}
+
+func constructPayloads(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
+	// Package Configurations
+	hclPackages := d.Get("payloads.0.packages")
+	if len(hclPackages.([]interface{})) == 0 {
+		return nil
+	}
+
+	log.Println("LOGHERE")
+
+	for k, v := range hclPackages.([]interface{}) {
+		log.Println(k, v)
+		log.Println(v.(map[string][]interface{})["package"][0])
 	}
 
 	return nil
