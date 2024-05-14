@@ -314,7 +314,10 @@ func constructPayloads(d *schema.ResourceData, out *jamfpro.ResourcePolicy) erro
 
 	for k, v := range hclPackages.([]interface{}) {
 		log.Println(k, v)
-		log.Println(v.(map[string][]interface{})["package"][0])
+		log.Println(v.(map[string]interface{})["package"].([]interface{})[0].(map[string]interface{})["id"])
+		newObj := &jamfpro.PolicySubsetPackageConfigurationPackage{
+			ID: ,
+		}
 	}
 
 	return nil
