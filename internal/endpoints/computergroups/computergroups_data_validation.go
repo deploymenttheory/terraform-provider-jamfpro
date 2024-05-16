@@ -27,7 +27,7 @@ func validateComputersNotAllowedWithSmart(_ context.Context, d *schema.ResourceD
 	site := d.Get("site").([]interface{})[0].(map[string]interface{})
 	if isSmart && site["id"] != -1 {
 		if computers, exists := d.GetOk("computers"); exists && len(computers.([]interface{})) > 0 {
-			return fmt.Errorf("'computers' field is not allowed when 'is_smart' is true %v", site)
+			return fmt.Errorf("'computers' field is not allowed when 'is_smart' is true")
 		}
 	}
 	return nil
