@@ -5,11 +5,15 @@ PLUGINS  := ${HOME}/bin/plugins/registry.terraform.io/${DEV}/${PROVIDER}
 BIN      := terraform-provider-jamfpro_${VERSION}
 
 define TERRAFORMRC
+
+add the following config to ~/.terraformrc to enable override:
+```
 provider_installation {
   dev_overrides {
     "${DEV}/${PROVIDER}" = "${PLUGINS}"
   }
 }
+```
 endef
 
 default: testacc
@@ -21,15 +25,17 @@ testacc:
 
 # Run go build. Output to dist/.
 .PHONY: build
-.SILENT: build
 build:
-	mkdir -p dist
+	@mkdir -p dist
 	go build -o dist/${BIN} .
+
+# Run go build. Output to dist/.
+.PHONY: build_override
+build_override: build
+	mkdir -p ${PLUGINS}
+	mv dist/${BIN} ${PLUGINS}/${BIN}
 
 # Run go build. Move artifact to terraform plugins dir. Output override config for ~/.terraformrc
 .PHONY: install
-.SILENT: install
-install: build
-	mkdir -p ${PLUGINS}
-	mv dist/${BIN} ${PLUGINS}/${BIN}
+install: build_override
 	$(info ${TERRAFORMRC})
