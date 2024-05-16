@@ -24,9 +24,10 @@ func customDiffComputeGroups(ctx context.Context, d *schema.ResourceDiff, meta i
 // validateComputersNotAllowedWithSmart checks that 'computers' is not set when 'is_smart' is true.
 func validateComputersNotAllowedWithSmart(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
 	isSmart := d.Get("is_smart").(bool)
-	if isSmart {
+	site := d.Get("site").([]interface{})[0].(map[string]interface{})
+	if isSmart && site["id"] != -1 {
 		if computers, exists := d.GetOk("computers"); exists && len(computers.([]interface{})) > 0 {
-			return fmt.Errorf("'computers' field is not allowed when 'is_smart' is true")
+			return fmt.Errorf("'computers' field is not allowed when 'is_smart' is true %v", site)
 		}
 	}
 	return nil
