@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -16,19 +17,19 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacO
 	// Stating - commented ones appear to be done automatically.
 
 	// ID
-	// if err := d.Set("id", resourceID); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
+	if err := d.Set("id", resourceID); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	// Name
-	// if err := d.Set("name", resource.General.Name); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
+	if err := d.Set("name", resource.General.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	// Description
-	// if err := d.Set("description", resource.General.Description); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
+	if err := d.Set("description", resource.General.Description); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	// Site
 	if resource.General.Site.ID != -1 && resource.General.Site.Name != "None" {
@@ -61,30 +62,36 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacO
 		log.Println("Not stating default category response") // TODO logging
 	}
 
+	// Payloads
+	profile := sharedschemas.NormalizePayloadState(resource.General.Payloads)
+	if err := d.Set("payload", profile); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	// Distribution Method
-	// if err := d.Set("distribution_method", resource.General.DistributionMethod); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
+	if err := d.Set("distribution_method", resource.General.DistributionMethod); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	// User Removeable
-	// if err := d.Set("user_removeable", resource.General.UserRemovable); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
+	if err := d.Set("user_removeable", resource.General.UserRemovable); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	// Level
-	// if err := d.Set("level", resource.General.Level); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
+	if err := d.Set("level", resource.General.Level); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	// UUID
-	// if err := d.Set("uuid", resource.General.UUID); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
+	if err := d.Set("uuid", resource.General.UUID); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
-	// Redeploy On Update - not in ui
-	// if err := d.Set("redeploy_on_update", resource.General.RedeployOnUpdate); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
+	// Redeploy On Update - This is always "Newly Assigned" on existing profile objects
+	if err := d.Set("redeploy_on_update", resource.General.RedeployOnUpdate); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	// Scope
 

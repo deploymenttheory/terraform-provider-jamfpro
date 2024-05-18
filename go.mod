@@ -15,6 +15,8 @@ require (
 	howett.net/plist v1.0.1
 )
 
+require github.com/groob/plist v0.0.0-20220217120414-63fa881b19a5
+
 require (
 	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/Kunde21/markdownfmt/v3 v3.1.0 // indirect

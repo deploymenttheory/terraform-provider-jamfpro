@@ -37,7 +37,6 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
-
 			"id": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -46,12 +45,18 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Jamf UI name for configuration profile.",
+				Description: "Jamf UI name and PayloadDisplayname of configuration profile.",
 			},
 			"description": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Description of the configuration profile.",
+				Description: "The Jamf description and PayloadDescription of the configuration profile.",
+			},
+			"organization": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The PayloadOrganization of the profile.",
+				Default:     "terraform-provider-jamfpro",
 			},
 			"site": {
 				Type:        schema.TypeList,
@@ -91,12 +96,12 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 			"uuid": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The UUID of the configuration profile.",
+				Description: "The UUID and PayloadIdentifier of the configuration profile.",
 			},
 			"payload": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "A MacOS configuration profile xml file as a file",
+				Description: "A MacOS configuration profile xml file as a file. A Top-level PayloadUUID is required. A PayloadContent array with at least one value is required. Top-level PayloadVersion, Type, Identifier, Organization, Description, and DisplayName set in this plist are ignored. Format differences (indents, whitespace, etc) are suppressed.",
 			},
 			"redeploy_on_update": {
 				Type:         schema.TypeString,

@@ -1,12 +1,12 @@
 package macosconfigurationprofiles
 
 import (
-	"encoding/xml"
 	"fmt"
 	"html"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -58,15 +58,29 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 
 	// Payload
 	payload, ok := d.GetOk("payload")
-	if ok {
-		payload = html.EscapeString(payload.(string))
-		out.General.Payloads = payload.(string)
-	} else {
+	if !ok {
+		return nil, fmt.Errorf("an error occurred setting the payload")
+
+	}
+
+	profile, err := sharedschemas.UnmarshalPayload(payload.(string))
+	if err != nil {
 		return nil, fmt.Errorf("an error occurred setting the payload")
 	}
 
-	// Scope
-	var err error
+	profile.MutableValues["PayloadDisplayName"] = d.Get("name").(string)
+	profile.MutableValues["PayloadDescription"] = d.Get("description").(string)
+	profile.MutableValues["PayloadOrganization"] = d.Get("organization").(string)
+	profile.MutableValues["PayloadIdentifier"] = profile.MutableValues["PayloadUUID"]
+	profile.MutableValues["PayloadType"] = "Configuration"
+	profile.MutableValues["PayloadVersion"] = 1
+
+	xml, err := sharedschemas.MarshalPayload(profile.MutableValues)
+	if err != nil {
+		return nil, fmt.Errorf("an error occurred setting the payload")
+	}
+
+	out.General.Payloads = html.EscapeString(xml)
 
 	// Scope - Targets
 	out.Scope.AllComputers = d.Get("scope.0.all_computers").(bool)
@@ -212,14 +226,8 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 		}
 	}
 
-	// Serialize and pretty-print the macOS Configuration Profile object as XML for logging
-	resourceXML, err := xml.MarshalIndent(out, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro macOS Configuration Profile '%s' to XML: %v", out.General.Name, err)
-	}
-
 	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
-	log.Printf("[DEBUG] Constructed Jamf Pro macOS Configuration Profile XML:\n%s\n", string(resourceXML))
+	log.Printf("[DEBUG] Constructed Jamf Pro macOS Configuration Profile XML:\n%s\n", xml)
 
 	return &out, nil
 }
