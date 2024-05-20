@@ -27,7 +27,7 @@ description: |-
 - `level` (String) The level at which the mobile device configuration profile is applied, can be either 'Device Level' or 'User Level'.
 - `payloads` (String) The iOS / iPadOS / tvOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist.
 - `redeploy_on_update` (String) Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state
-- `scope` (Block List) The scope in which the mobile device configuration profile is applied. (see [below for nested schema](#nestedblock--scope))
+- `scope` (Block List, Max: 1) The scope in which the mobile device configuration profile is applied. (see [below for nested schema](#nestedblock--scope))
 - `site` (Block List, Max: 1) The site information associated with the mobile device configuration profile. (see [below for nested schema](#nestedblock--site))
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
@@ -51,198 +51,28 @@ Optional:
 
 - `all_jss_users` (Boolean) If true, the profile is applied to all JSS users.
 - `all_mobile_devices` (Boolean) If true, the profile is applied to all mobile devices.
-- `buildings` (Block Set) The list of buildings to which the profile is applied. (see [below for nested schema](#nestedblock--scope--buildings))
-- `departments` (Block Set) The list of departments to which the profile is applied. (see [below for nested schema](#nestedblock--scope--departments))
-- `exclusions` (Block List) Items that are excluded from the scope. (see [below for nested schema](#nestedblock--scope--exclusions))
-- `jss_user_groups` (Block Set) The list of JSS user groups targetted in scope. (see [below for nested schema](#nestedblock--scope--jss_user_groups))
-- `jss_users` (Block Set) The list of JSS users targetted in scope. (see [below for nested schema](#nestedblock--scope--jss_users))
-- `limitations` (Block List) Restrictions on where or how the profile is applied within the scope. (see [below for nested schema](#nestedblock--scope--limitations))
-- `mobile_device_groups` (Block Set) The list of mobile device groups to which the profile is applied. (see [below for nested schema](#nestedblock--scope--mobile_device_groups))
-- `mobile_devices` (Block Set) The list of specific mobile devices to which the profile is applied. (see [below for nested schema](#nestedblock--scope--mobile_devices))
-
-<a id="nestedblock--scope--buildings"></a>
-### Nested Schema for `scope.buildings`
-
-Optional:
-
-- `id` (Number) The unique identifier of the building.
-
-Read-Only:
-
-- `name` (String) The name of the building.
-
-
-<a id="nestedblock--scope--departments"></a>
-### Nested Schema for `scope.departments`
-
-Optional:
-
-- `id` (Number) The unique identifier of the department.
-
-Read-Only:
-
-- `name` (String) The name of the department.
-
+- `building_ids` (List of Number) A list of building IDs associated with the profile.
+- `department_ids` (List of Number) A list of department IDs associated with the profile.
+- `exclusions` (Block List, Max: 1) Exclusions for the profile. (see [below for nested schema](#nestedblock--scope--exclusions))
+- `jss_user_group_ids` (List of Number) A list of JSS user group IDs associated with the profile.
+- `jss_user_ids` (List of Number) A list of JSS user IDs associated with the profile.
+- `limitations` (Block List, Max: 1) Limitations for the profile. (see [below for nested schema](#nestedblock--scope--limitations))
+- `mobile_device_group_ids` (List of Number) A list of mobile device group IDs associated with the profile.
+- `mobile_device_ids` (List of Number) A list of mobile device IDs associated with the profile.
 
 <a id="nestedblock--scope--exclusions"></a>
 ### Nested Schema for `scope.exclusions`
 
 Optional:
 
-- `buildings` (Block Set) The list of buildings excluded from the scope. (see [below for nested schema](#nestedblock--scope--exclusions--buildings))
-- `departments` (Block Set) The list of departments excluded from the scope. (see [below for nested schema](#nestedblock--scope--exclusions--departments))
-- `ibeacons` (Block Set) The list of iBeacons excluded from the scope. (see [below for nested schema](#nestedblock--scope--exclusions--ibeacons))
-- `jss_user_groups` (Block Set) The list of JSS user groups excluded from the scope. (see [below for nested schema](#nestedblock--scope--exclusions--jss_user_groups))
-- `jss_users` (Block Set) The list of JSS users excluded from the scope. (see [below for nested schema](#nestedblock--scope--exclusions--jss_users))
-- `mobile_device_groups` (Block Set) The list of mobile device groups excluded from the scope. (see [below for nested schema](#nestedblock--scope--exclusions--mobile_device_groups))
-- `mobile_devices` (Block Set) The list of mobile devices excluded from the scope. (see [below for nested schema](#nestedblock--scope--exclusions--mobile_devices))
-- `network_segments` (Block Set) The list of network segments excluded from the scope. (see [below for nested schema](#nestedblock--scope--exclusions--network_segments))
-- `user_groups` (Block Set) The list of user groups excluded from the scope. (see [below for nested schema](#nestedblock--scope--exclusions--user_groups))
-- `users` (Block Set) The list of users excluded from the scope. (see [below for nested schema](#nestedblock--scope--exclusions--users))
-
-<a id="nestedblock--scope--exclusions--buildings"></a>
-### Nested Schema for `scope.exclusions.buildings`
-
-Optional:
-
-- `id` (Number) The unique identifier of the building.
-
-Read-Only:
-
-- `name` (String) The name of the building.
-
-
-<a id="nestedblock--scope--exclusions--departments"></a>
-### Nested Schema for `scope.exclusions.departments`
-
-Optional:
-
-- `id` (Number) The unique identifier of the department.
-
-Read-Only:
-
-- `name` (String) The name of the department.
-
-
-<a id="nestedblock--scope--exclusions--ibeacons"></a>
-### Nested Schema for `scope.exclusions.ibeacons`
-
-Optional:
-
-- `id` (Number) The unique identifier of the iBeacon.
-
-Read-Only:
-
-- `name` (String) The name of the iBeacon.
-
-
-<a id="nestedblock--scope--exclusions--jss_user_groups"></a>
-### Nested Schema for `scope.exclusions.jss_user_groups`
-
-Optional:
-
-- `id` (Number) The unique identifier of the JSS user group.
-
-Read-Only:
-
-- `name` (String) The name of the JSS user group.
-
-
-<a id="nestedblock--scope--exclusions--jss_users"></a>
-### Nested Schema for `scope.exclusions.jss_users`
-
-Optional:
-
-- `id` (Number) The unique identifier of the JSS user.
-
-Read-Only:
-
-- `name` (String) The name of the JSS user.
-
-
-<a id="nestedblock--scope--exclusions--mobile_device_groups"></a>
-### Nested Schema for `scope.exclusions.mobile_device_groups`
-
-Optional:
-
-- `id` (Number) The unique identifier of the mobile device group.
-
-Read-Only:
-
-- `name` (String) The name of the mobile device group.
-
-
-<a id="nestedblock--scope--exclusions--mobile_devices"></a>
-### Nested Schema for `scope.exclusions.mobile_devices`
-
-Optional:
-
-- `id` (Number) The unique identifier of the mobile device.
-
-Read-Only:
-
-- `name` (String) The name of the mobile device.
-
-
-<a id="nestedblock--scope--exclusions--network_segments"></a>
-### Nested Schema for `scope.exclusions.network_segments`
-
-Optional:
-
-- `id` (Number) The unique identifier of the network segment.
-
-Read-Only:
-
-- `name` (String) The name of the network segment.
-
-
-<a id="nestedblock--scope--exclusions--user_groups"></a>
-### Nested Schema for `scope.exclusions.user_groups`
-
-Optional:
-
-- `id` (Number) The unique identifier of the user group.
-
-Read-Only:
-
-- `name` (String) The name of the user group.
-
-
-<a id="nestedblock--scope--exclusions--users"></a>
-### Nested Schema for `scope.exclusions.users`
-
-Optional:
-
-- `id` (Number) The unique identifier of the user.
-
-Read-Only:
-
-- `name` (String) The name of the user.
-
-
-
-<a id="nestedblock--scope--jss_user_groups"></a>
-### Nested Schema for `scope.jss_user_groups`
-
-Optional:
-
-- `id` (Number) The unique identifier of the JSS user group.
-
-Read-Only:
-
-- `name` (String) The name of the JSS user group.
-
-
-<a id="nestedblock--scope--jss_users"></a>
-### Nested Schema for `scope.jss_users`
-
-Optional:
-
-- `id` (Number) The unique identifier of the JSS user.
-
-Read-Only:
-
-- `name` (String) The name of the JSS user.
+- `building_ids` (List of Number) A list of building IDs for exclusions.
+- `department_ids` (List of Number) A list of department IDs for exclusions.
+- `ibeacon_ids` (List of Number) A list of iBeacon IDs for exclusions.
+- `jss_user_group_ids` (List of Number) A list of JSS user group IDs for exclusions.
+- `jss_user_ids` (List of Number) A list of JSS user IDs for exclusions.
+- `mobile_device_group_ids` (List of Number) A list of mobile device group IDs for exclusions.
+- `mobile_device_ids` (List of Number) A list of mobile device IDs for exclusions.
+- `network_segment_ids` (List of Number) A list of network segment IDs for exclusions.
 
 
 <a id="nestedblock--scope--limitations"></a>
@@ -250,84 +80,10 @@ Read-Only:
 
 Optional:
 
-- `ibeacons` (Block Set) The list of iBeacons to which limitations apply. (see [below for nested schema](#nestedblock--scope--limitations--ibeacons))
-- `network_segments` (Block Set) The list of network segments to which limitations apply. (see [below for nested schema](#nestedblock--scope--limitations--network_segments))
-- `user_groups` (Block Set) The list of user groups to which limitations apply. (see [below for nested schema](#nestedblock--scope--limitations--user_groups))
-- `users` (Block Set) The list of users to which limitations apply. (see [below for nested schema](#nestedblock--scope--limitations--users))
-
-<a id="nestedblock--scope--limitations--ibeacons"></a>
-### Nested Schema for `scope.limitations.ibeacons`
-
-Optional:
-
-- `id` (Number) The unique identifier of the iBeacon.
-
-Read-Only:
-
-- `name` (String) The name of the iBeacon.
-
-
-<a id="nestedblock--scope--limitations--network_segments"></a>
-### Nested Schema for `scope.limitations.network_segments`
-
-Optional:
-
-- `id` (Number) The unique identifier of the network segment.
-
-Read-Only:
-
-- `name` (String) The name of the network segment.
-
-
-<a id="nestedblock--scope--limitations--user_groups"></a>
-### Nested Schema for `scope.limitations.user_groups`
-
-Optional:
-
-- `id` (Number) The unique identifier of the user group.
-
-Read-Only:
-
-- `name` (String) The name of the user group.
-
-
-<a id="nestedblock--scope--limitations--users"></a>
-### Nested Schema for `scope.limitations.users`
-
-Optional:
-
-- `id` (Number) The unique identifier of the user.
-
-Read-Only:
-
-- `name` (String) The name of the user.
-
-
-
-<a id="nestedblock--scope--mobile_device_groups"></a>
-### Nested Schema for `scope.mobile_device_groups`
-
-Optional:
-
-- `id` (Number) The unique identifier of the mobile device group.
-
-Read-Only:
-
-- `name` (String) The name of the mobile device group.
-
-
-<a id="nestedblock--scope--mobile_devices"></a>
-### Nested Schema for `scope.mobile_devices`
-
-Optional:
-
-- `id` (Number) The unique identifier of the mobile device.
-
-Read-Only:
-
-- `name` (String) The name of the mobile device.
-- `udid` (String) The UDID of the mobile device.
-- `wifi_mac_address` (String) The WiFi MAC address of the mobile device.
+- `ibeacon_ids` (List of Number) A list of iBeacon IDs for limitations.
+- `network_segment_ids` (List of Number) A list of network segment IDs for limitations.
+- `user_group_ids` (List of Number) A list of user group IDs for limitations.
+- `user_ids` (List of Number) A list of user IDs for limitations.
 
 
 
