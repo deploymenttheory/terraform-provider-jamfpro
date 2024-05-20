@@ -1,7 +1,6 @@
 package policies
 
 import (
-	"encoding/xml"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -29,9 +28,6 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, 
 
 	// Payloads
 	statePayloads(d, resp, &diags)
-
-	log.Println("STATE-FLAG-28")
-	log.Printf("%+v", diags)
 
 	return diags
 }
@@ -125,8 +121,6 @@ func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *d
 		log.Println("Not stating default site response") // TODO Logging
 	}
 
-	log.Println("STATE-FLAG-4")
-
 	// Category
 	if resp.General.Category.ID != -1 && resp.General.Category.Name != "No category assigned" {
 		out_category := []map[string]interface{}{
@@ -153,12 +147,6 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *dia
 	out_scope = append(out_scope, make(map[string]interface{}, 1))
 	out_scope[0]["all_computers"] = resp.Scope.AllComputers
 	out_scope[0]["all_jss_users"] = resp.Scope.AllJSSUsers
-
-	// DEBUG // TODO remove this
-	log.Println("XMLIN")
-	log.Println(resp.Scope.AllJSSUsers)
-	xmlData, _ := xml.MarshalIndent(resp, "", "    ")
-	log.Println(string(xmlData))
 
 	// Computers
 	if resp.Scope.Computers != nil && len(*resp.Scope.Computers) > 0 {
@@ -373,8 +361,6 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 	out_ss = append(out_ss, make(map[string]interface{}, 1))
 
 	if resp.SelfService != nil {
-		log.Println("STATE-FLAG_RESP_SELFERVICE")
-		log.Printf("%+v", resp.SelfService)
 		out_ss[0]["use_for_self_service"] = resp.SelfService.UseForSelfService
 		out_ss[0]["self_service_display_name"] = resp.SelfService.SelfServiceDisplayName
 		out_ss[0]["install_button_text"] = resp.SelfService.InstallButtonText
@@ -397,13 +383,9 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 	out := make([]map[string]interface{}, 0)
 	out = append(out, make(map[string]interface{}, 1))
 	out[0]["packages"] = make([]map[string]interface{}, 0)
-	log.Println("LOGHERE")
-	log.Printf("%+v", out)
 
 	if resp.PackageConfiguration != nil {
-		log.Println("NOT NIL")
 		for _, v := range *resp.PackageConfiguration.Packages {
-			log.Println("LOOPING")
 			outMap := make(map[string]interface{})
 			outMap["id"] = v.ID
 			outMap["action"] = v.Action
@@ -414,12 +396,8 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 
 	}
 
-	log.Println("OUT DONE:")
-	log.Printf("%+v", out)
-
 	err = d.Set("payloads", out)
 	if err != nil {
-		log.Println("ERROR FOUND", err)
 		if diags == nil {
 			diags = &diag.Diagnostics{}
 		}
