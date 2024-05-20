@@ -184,6 +184,12 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Description: "Self-service settings of the policy.",
 				Elem:        getPolicySchemaSelfService(),
 			},
+			"package_distribution_point": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "default",
+				Description: "repository of which packages are collected from",
+			},
 		},
 	}
 }

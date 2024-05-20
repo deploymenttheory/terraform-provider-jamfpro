@@ -39,10 +39,10 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 		return nil, err
 	}
 
-	err = constructPayloads(d, out)
-	if err != nil {
-		return nil, err
-	}
+	// err = constructPayloads(d, out)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	// Package Configuration
 	// Scripts
@@ -312,12 +312,19 @@ func constructPayloads(d *schema.ResourceData, out *jamfpro.ResourcePolicy) erro
 
 	log.Println("LOGHERE")
 
+	var outBlock jamfpro.PolicySubsetPackageConfiguration
+	outBlock.DistributionPoint = d.Get("package_distribution_point").(string)
+	outBlock.Packages = []
+
 	for k, v := range hclPackages.([]interface{}) {
 		log.Println(k, v)
-		log.Println(v.(map[string]interface{})["package"].([]interface{})[0].(map[string]interface{})["id"])
+		package_id := v.(map[string]interface{})["package"].([]interface{})[0].(map[string]interface{})["id"].(int)
+		// get other vals here
 		newObj := &jamfpro.PolicySubsetPackageConfigurationPackage{
-			ID: ,
+			ID: package_id,
 		}
+		outBlock.Packages = append(outBlock.Packages)
+
 	}
 
 	return nil
