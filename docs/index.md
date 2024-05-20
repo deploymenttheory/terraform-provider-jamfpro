@@ -17,9 +17,10 @@ description: |-
 
 ### Optional
 
-- `api_type` (String) Specifies the API type or handler to use for the client.
+- `api_type` (String) Specifies the API integration handler to use for the http client.
 - `client_id` (String) The Jamf Pro Client ID for authentication.
 - `client_secret` (String, Sensitive) The Jamf Pro Client secret for authentication.
+- `custom_cookies` (Map of String)
 - `custom_timeout` (Number) The custom timeout in seconds for the HTTP client.
 - `enable_cookie_jar` (Boolean) Enable or disable the cookie jar for the HTTP client.
 - `enable_dynamic_rate_limiting` (Boolean) Enable dynamic rate limiting.

@@ -72,7 +72,11 @@ jobs:
         with:
           go-version-file: 'go.mod'
           cache: true
-      - run: make golangcilint
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          args: --timeout=5m --config=/my/path/.golangci.yml
+          version: v1.58
   generate:
     name: go generate
     needs: [build]

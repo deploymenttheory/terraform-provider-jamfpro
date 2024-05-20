@@ -1,4 +1,4 @@
-// usergroups_helpers.go
+// usergroups_state.go
 package usergroups
 
 import (

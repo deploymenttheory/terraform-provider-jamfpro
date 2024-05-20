@@ -51,9 +51,9 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 			diags = append(diags, diag.FromErr(err)...)
 		}
 
-		// Set the 'computers' attribute in the state
+		// Set the 'computers' attribute in the state only if it's not a Smart Group or if the site is not set
 		computersList := []interface{}{} // Initialize as empty slice
-		if !resource.IsSmart {
+		if !resource.IsSmart || len(site) == 0 {
 			for _, comp := range resource.Computers {
 				computerMap := map[string]interface{}{
 					"id":              comp.ID,

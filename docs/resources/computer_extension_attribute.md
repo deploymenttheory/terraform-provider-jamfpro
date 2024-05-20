@@ -22,10 +22,10 @@ description: |-
 
 ### Optional
 
-- `data_type` (String) Data type of the computer extension attribute. Can be String / Integer / Date (YYYY-MM-DD hh:mm:ss)
+- `data_type` (String) Data type of the computer extension attribute. Can be String / Integer / Date (YYYY-MM-DD hh:mm:ss). Value defaults to `String`.
 - `description` (String) Description of the computer extension attribute.
 - `input_type` (Block List, Max: 1) Input type details of the computer extension attribute. (see [below for nested schema](#nestedblock--input_type))
-- `inventory_display` (String) Display details for inventory for the computer extension attribute.
+- `inventory_display` (String) Display details for inventory for the computer extension attribute. Value defaults to `General`.
 - `recon_display` (String) Display details for recon for the computer extension attribute.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 

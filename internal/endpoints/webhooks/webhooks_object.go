@@ -2,6 +2,7 @@
 package webhooks
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -30,31 +31,35 @@ func constructJamfProWebhook(d *schema.ResourceData) (*jamfpro.ResourceWebhook, 
 	if v, ok := d.GetOk("display_fields"); ok {
 		displayFieldsData := v.([]interface{})
 		for _, fieldData := range displayFieldsData {
-			field := fieldData.(map[string]interface{})
-			displayField := jamfpro.SharedAdvancedSearchContainerDisplayField{
-				Size: field["size"].(int),
+			field, ok := fieldData.(map[string]interface{})
+			if !ok {
+				return nil, fmt.Errorf("display_field is not a valid map")
 			}
-
-			subFieldsData := field["display_field"].([]interface{})
-			for _, subFieldData := range subFieldsData {
-				subField := subFieldData.(map[string]interface{})
-				displayField.DisplayField = append(displayField.DisplayField, jamfpro.SharedAdvancedSearchSubsetDisplayField{
-					Name: subField["name"].(string),
-				})
+			var displayFields []jamfpro.SharedAdvancedSearchSubsetDisplayField
+			if subFieldsData, ok := field["display_field"].([]interface{}); ok {
+				for _, subFieldData := range subFieldsData {
+					subField, ok := subFieldData.(map[string]interface{})
+					if !ok {
+						return nil, fmt.Errorf("sub_display_field is not a valid map")
+					}
+					if name, ok := subField["name"].(string); ok {
+						displayFields = append(displayFields, jamfpro.SharedAdvancedSearchSubsetDisplayField{
+							Name: name,
+						})
+					}
+				}
 			}
-
-			webhook.DisplayFields = append(webhook.DisplayFields, displayField)
+			webhook.DisplayFields = append(webhook.DisplayFields, jamfpro.SharedAdvancedSearchContainerDisplayField{
+				DisplayField: displayFields,
+			})
 		}
 	}
 
-	// Print the constructed XML output to the log
-	// redaction requires case matching to the struct field names
+	// Serialize and log the XML output for debugging
 	xmlOutput, err := constructobject.SerializeAndRedactXML(webhook, []string{"Password"})
 	if err != nil {
-		log.Fatalf("Error: %v", err)
+		log.Fatalf("Error serializing webhook to XML: %v", err)
 	}
-
-	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
 	log.Printf("[DEBUG] Constructed Jamf Pro Webhook XML:\n%s\n", xmlOutput)
 
 	return webhook, nil

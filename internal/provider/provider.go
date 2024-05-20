@@ -14,6 +14,8 @@ import (
 	"github.com/deploymenttheory/go-api-http-client/httpclient"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
+
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accountgroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accounts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/advancedcomputersearches"
@@ -39,6 +41,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/packages"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/policies"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/printers"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/restrictedsoftware"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/scripts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/sites"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/usergroups"
@@ -177,17 +180,25 @@ func Provider() *schema.Provider {
 				Default:     "",
 				Description: "Specify the path to export http client logs to.",
 			},
+			"hide_sensitive_data": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     true,
+				Description: "Define whether sensitive fields should be hidden in logs. Default to hiding sensitive data in logs",
+			},
 			"enable_cookie_jar": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Enable or disable the cookie jar for the HTTP client.",
 			},
-			"hide_sensitive_data": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     true,
-				Description: "Define whether sensitive fields should be hidden in logs. Default to hiding sensitive data in logs",
+			"custom_cookies": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Default:  nil,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 			"max_retry_attempts": {
 				Type:        schema.TypeInt,
@@ -233,16 +244,8 @@ func Provider() *schema.Provider {
 			"api_type": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Specifies the API type or handler to use for the client.",
+				Description: "Specifies the API integration handler to use for the http client.",
 				Default:     "jamfpro",
-			},
-			"custom_cookies": {
-				Type:     schema.TypeMap,
-				Optional: true,
-				Default:  nil,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
@@ -267,11 +270,12 @@ func Provider() *schema.Provider {
 			"jamfpro_mobile_device_configuration_profile": mobiledeviceconfigurationprofiles.DataSourceJamfProMobileDeviceConfigurationProfiles(),
 			"jamfpro_package":                             packages.DataSourceJamfProPackages(),
 			// "jamfpro_policy":                        policies.DataSourceJamfProPolicies(),
-			"jamfpro_printer":    printers.DataSourceJamfProPrinters(),
-			"jamfpro_script":     scripts.DataSourceJamfProScripts(),
-			"jamfpro_site":       sites.DataSourceJamfProSites(),
-			"jamfpro_user_group": usergroups.DataSourceJamfProUserGroups(),
-			"jamfpro_webhook":    webhooks.DataSourceJamfProWebhooks(),
+			"jamfpro_printer":             printers.DataSourceJamfProPrinters(),
+			"jamfpro_script":              scripts.DataSourceJamfProScripts(),
+			"jamfpro_site":                sites.DataSourceJamfProSites(),
+			"jamfpro_restricted_software": restrictedsoftware.DataSourceJamfProRestrictedSoftwares(),
+			"jamfpro_user_group":          usergroups.DataSourceJamfProUserGroups(),
+			"jamfpro_webhook":             webhooks.DataSourceJamfProWebhooks(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"jamfpro_account":                             accounts.ResourceJamfProAccounts(),
@@ -300,6 +304,7 @@ func Provider() *schema.Provider {
 			"jamfpro_printer":                             printers.ResourceJamfProPrinters(),
 			"jamfpro_script":                              scripts.ResourceJamfProScripts(),
 			"jamfpro_site":                                sites.ResourceJamfProSites(),
+			"jamfpro_restricted_software":                 restrictedsoftware.ResourceJamfProRestrictedSoftwares(),
 			"jamfpro_user_group":                          usergroups.ResourceJamfProUserGroups(),
 			"jamfpro_webhook":                             webhooks.ResourceJamfProWebhooks(),
 		},
@@ -344,6 +349,11 @@ func Provider() *schema.Provider {
 			return nil, diags
 		}
 
+		// Translate the log level from the Terraform configuration
+		logLevelStr := d.Get("log_level").(string)
+		logLevel := logging.TranslateLogLevel(logLevelStr)
+
+		// Build the HTTP client configuration
 		httpClientConfig := httpclient.ClientConfig{
 			Environment: httpclient.EnvironmentConfig{
 				InstanceName:       instanceName,
@@ -358,7 +368,7 @@ func Provider() *schema.Provider {
 			},
 			ClientOptions: httpclient.ClientOptions{
 				Logging: httpclient.LoggingConfig{
-					LogLevel:            d.Get("log_level").(string),
+					LogLevel:            logLevel,
 					LogOutputFormat:     d.Get("log_output_format").(string),
 					LogConsoleSeparator: d.Get("log_console_separator").(string),
 					LogExportPath:       d.Get("log_export_path").(string),

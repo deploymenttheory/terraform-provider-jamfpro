@@ -61,7 +61,8 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 			"data_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Description:  "Data type of the computer extension attribute. Can be String / Integer / Date (YYYY-MM-DD hh:mm:ss)",
+				Default:      "String",
+				Description:  "Data type of the computer extension attribute. Can be String / Integer / Date (YYYY-MM-DD hh:mm:ss). Value defaults to `String`.",
 				ValidateFunc: validation.StringInSlice([]string{"String", "Integer", "Date"}, false),
 			},
 			"input_type": {
@@ -101,7 +102,8 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 			"inventory_display": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Description:  "Display details for inventory for the computer extension attribute.",
+				Default:      "General",
+				Description:  "Display details for inventory for the computer extension attribute. Value defaults to `General`.",
 				ValidateFunc: validation.StringInSlice([]string{"General", "Hardware", "Operating System", "User and Location", "Purchasing", "Extension Attributes"}, false),
 			},
 			"recon_display": {
