@@ -385,10 +385,10 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 	out = append(out, make(map[string]interface{}, 1))
 
 	// Packages
-	statePayloadPackages(&out, d, resp, diags)
+	statePayloadPackages(&out, resp)
 
 	// Scripts
-	statePayloadScripts(&out, d, resp, diags)
+	statePayloadScripts(&out, resp)
 
 	var err error
 	err = d.Set("payloads", out)
@@ -402,7 +402,7 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 	log.Println("LOGEND")
 }
 
-func statePayloadPackages(out *[]map[string]interface{}, d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
+func statePayloadPackages(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	log.Println("LOGHERE-packages")
 	if resp.PackageConfiguration == nil {
 		return
@@ -420,7 +420,7 @@ func statePayloadPackages(out *[]map[string]interface{}, d *schema.ResourceData,
 
 }
 
-func statePayloadScripts(out *[]map[string]interface{}, d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
+func statePayloadScripts(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	log.Println("LOGHERE-scripts")
 	log.Printf("%+v", resp.Scripts.Script)
 	if resp.Scripts.Script == nil {
