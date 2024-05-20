@@ -31,6 +31,7 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, 
 	statePayloads(d, resp, &diags)
 
 	log.Println("STATE-FLAG-28")
+	log.Printf("%+v", diags)
 
 	return diags
 }
@@ -115,6 +116,9 @@ func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *d
 		}
 
 		if err := d.Set("site", out_site); err != nil {
+			if diags == nil {
+				diags = &diag.Diagnostics{}
+			}
 			*diags = append(*diags, diag.FromErr(err)...)
 		}
 	} else {
@@ -131,6 +135,9 @@ func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *d
 			},
 		}
 		if err := d.Set("category", out_category); err != nil {
+			if diags == nil {
+				diags = &diag.Diagnostics{}
+			}
 			*diags = append(*diags, diag.FromErr(err)...)
 		}
 	} else {
@@ -352,6 +359,9 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *dia
 	// State Scope
 	err = d.Set("scope", out_scope)
 	if err != nil {
+		if diags == nil {
+			diags = &diag.Diagnostics{}
+		}
 		*diags = append(*diags, diag.FromErr(err)...)
 	}
 
@@ -374,6 +384,9 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 
 		err = d.Set("self_service", out_ss)
 		if err != nil {
+			if diags == nil {
+				diags = &diag.Diagnostics{}
+			}
 			*diags = append(*diags, diag.FromErr(err)...)
 		}
 	}
@@ -407,6 +420,9 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 	err = d.Set("payloads", out)
 	if err != nil {
 		log.Println("ERROR FOUND", err)
+		if diags == nil {
+			diags = &diag.Diagnostics{}
+		}
 		*diags = append(*diags, diag.FromErr(err)...)
 	}
 
