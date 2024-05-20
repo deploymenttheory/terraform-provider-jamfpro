@@ -70,7 +70,7 @@ Optional:
 - `department_ids` (List of Number) A list of department IDs for exclusions.
 - `ibeacon_ids` (List of Number) A list of iBeacon IDs for exclusions.
 - `jss_user_group_ids` (List of Number) A list of JSS user group IDs for exclusions.
-- `jss_user_names` (List of String) A list of user names for exclusions.
+- `jss_user_ids` (List of Number) A list of user names for exclusions.
 - `mobile_device_group_ids` (List of Number) A list of mobile device group IDs for exclusions.
 - `mobile_device_ids` (List of Number) A list of mobile device IDs for exclusions.
 - `network_segment_ids` (List of Number) A list of network segment IDs for exclusions.
@@ -81,10 +81,10 @@ Optional:
 
 Optional:
 
+- `directory_service_or_local_usernames` (List of String) A list of directory service / local usernames for scoping limitations.
 - `ibeacon_ids` (List of Number) A list of iBeacon IDs for limitations.
 - `network_segment_ids` (List of Number) A list of network segment IDs for limitations.
 - `user_group_ids` (List of Number) A list of user group IDs for limitations.
-- `user_ids` (List of Number) A list of user IDs for limitations.
 
 
 

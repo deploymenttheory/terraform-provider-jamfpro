@@ -27,7 +27,7 @@ resource "jamfpro_mobile_device_configuration_profile" "mobile_device_configurat
     limitations {
       network_segment_ids = [701, 702]
       ibeacon_ids = [801]
-      user_ids = [901, 902]
+      directory_service_or_local_usernames = [901, 902]
       user_group_ids = [1001, 1002]
     }
 

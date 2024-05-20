@@ -72,7 +72,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 	}
 
 	// Preparing and setting scope data
-	if scopeData, err := prepareScopeData(resource); err != nil {
+	if scopeData, err := flattenScope(resource); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	} else if err := d.Set("scope", []interface{}{scopeData}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
@@ -88,8 +88,8 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 	return diags
 }
 
-// prepareScopeData prepares the scope data for the Terraform state.
-func prepareScopeData(resource *jamfpro.ResourceMobileDeviceConfigurationProfile) (map[string]interface{}, error) {
+// flattenScope converts the scope structure into a format suitable for setting in the Terraform state.
+func flattenScope(resource *jamfpro.ResourceMobileDeviceConfigurationProfile) (map[string]interface{}, error) {
 	scopeData := map[string]interface{}{
 		"all_mobile_devices": resource.Scope.AllMobileDevices,
 		"all_jss_users":      resource.Scope.AllJSSUsers,
@@ -98,7 +98,7 @@ func prepareScopeData(resource *jamfpro.ResourceMobileDeviceConfigurationProfile
 	// Gather mobile devices, groups, etc.
 	scopeData["mobile_device_ids"] = flattenAndSortMobileDeviceIDs(resource.Scope.MobileDevices)
 	scopeData["mobile_device_group_ids"] = flattenAndSortScopeEntityIds(resource.Scope.MobileDeviceGroups)
-	scopeData["jss_user_names"] = flattenAndSortScopeEntityNames(resource.Scope.JSSUsers)
+	scopeData["jss_user_ids"] = flattenAndSortScopeEntityIds(resource.Scope.JSSUsers)
 	scopeData["jss_user_group_ids"] = flattenAndSortScopeEntityIds(resource.Scope.JSSUserGroups)
 	scopeData["building_ids"] = flattenAndSortScopeEntityIds(resource.Scope.Buildings)
 	scopeData["department_ids"] = flattenAndSortScopeEntityIds(resource.Scope.Departments)
@@ -125,7 +125,7 @@ func setLimitations(limitations jamfpro.MobileDeviceConfigurationProfileSubsetLi
 	result := map[string]interface{}{}
 
 	if len(limitations.Users) > 0 {
-		result["user_ids"] = flattenAndSortScopeEntityIds(limitations.Users)
+		result["directory_service_or_local_usernames"] = flattenAndSortScopeEntityNames(limitations.Users)
 	}
 
 	if len(limitations.UserGroups) > 0 {
@@ -156,7 +156,7 @@ func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExcl
 	}
 
 	if len(exclusions.Users) > 0 {
-		result["user_ids"] = flattenAndSortScopeEntityIds(exclusions.Users)
+		result["jss_user_ids"] = flattenAndSortScopeEntityIds(exclusions.Users)
 	}
 
 	if len(exclusions.UserGroups) > 0 {

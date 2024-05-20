@@ -105,8 +105,8 @@ func constructMobileDeviceConfigurationProfileSubsetScope(data map[string]interf
 func constructLimitations(data map[string]interface{}) jamfpro.MobileDeviceConfigurationProfileSubsetLimitation {
 	limitations := jamfpro.MobileDeviceConfigurationProfileSubsetLimitation{}
 
-	if userIDs, ok := data["user_ids"]; ok {
-		limitations.Users = constructScopeEntitiesFromIds(userIDs.([]interface{}))
+	if userNames, ok := data["directory_service_or_local_usernames"]; ok {
+		limitations.Users = constructScopeEntitiesFromIdsFromNames(userNames.([]interface{}))
 	}
 	if userGroupIDs, ok := data["user_group_ids"]; ok {
 		limitations.UserGroups = constructScopeEntitiesFromIds(userGroupIDs.([]interface{}))
@@ -211,6 +211,17 @@ func constructScopeEntitiesFromIds(ids []interface{}) []jamfpro.MobileDeviceConf
 	for i, id := range ids {
 		scopeEntities[i] = jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity{
 			ID: id.(int),
+		}
+	}
+	return scopeEntities
+}
+
+// constructScopeEntitiesFromIdsFromNames constructs a slice of MobileDeviceConfigurationProfileSubsetScopeEntity from a list of names.
+func constructScopeEntitiesFromIdsFromNames(names []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity {
+	scopeEntities := make([]jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, len(names))
+	for i, name := range names {
+		scopeEntities[i] = jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity{
+			Name: name.(string),
 		}
 	}
 	return scopeEntities

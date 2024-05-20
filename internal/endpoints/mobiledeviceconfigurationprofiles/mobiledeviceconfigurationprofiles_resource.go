@@ -202,11 +202,11 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 										Description: "A list of iBeacon IDs for limitations.",
 										Elem:        &schema.Schema{Type: schema.TypeInt},
 									},
-									"user_ids": {
+									"directory_service_or_local_usernames": {
 										Type:        schema.TypeList,
 										Optional:    true,
-										Description: "A list of user IDs for limitations.",
-										Elem:        &schema.Schema{Type: schema.TypeInt},
+										Description: "A list of directory service / local usernames for scoping limitations.",
+										Elem:        &schema.Schema{Type: schema.TypeString},
 									},
 									"user_group_ids": {
 										Type:        schema.TypeList,
@@ -254,10 +254,10 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 										Description: "A list of network segment IDs for exclusions.",
 										Elem:        &schema.Schema{Type: schema.TypeInt},
 									},
-									"jss_user_names": {
+									"jss_user_ids": {
 										Type:        schema.TypeList,
 										Optional:    true,
-										Elem:        &schema.Schema{Type: schema.TypeString},
+										Elem:        &schema.Schema{Type: schema.TypeInt},
 										Description: "A list of user names for exclusions.",
 									},
 									"jss_user_group_ids": {

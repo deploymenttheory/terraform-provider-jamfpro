@@ -57,7 +57,7 @@ Optional:
 - `computer_group_ids` (List of Number) A list of computer group IDs for exclusions.
 - `computer_ids` (List of Number) A list of computer IDs for exclusions.
 - `department_ids` (List of Number) A list of department IDs for exclusions.
-- `jss_user_names` (List of String) A list of user names for exclusions.
+- `directory_service_or_local_usernames` (List of String) A list of directory service / local usernames for scoping exclusions.
 
 
 <a id="nestedblock--scope--limitations"></a>
