@@ -3,7 +3,6 @@ package policies
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
@@ -92,10 +91,8 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Policy '%s' (ID: %d) after retries: %v", "no", resourceIDInt, err))
 	}
 
-	trigger_checkin := resp.General.TriggerCheckin
-	d.Set("trigger_checkin", trigger_checkin)
-
-	log.Println(resp)
+	// State
+	updateTerraformState(d, resp, resourceID)
 
 	return diags
 }

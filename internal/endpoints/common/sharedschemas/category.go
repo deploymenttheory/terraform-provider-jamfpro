@@ -10,11 +10,11 @@ func GetSharedSchemaCategory() *schema.Resource {
 				Required:    true,
 				Description: "The unique identifier of the category to which the configuration profile is scoped.",
 			},
-			"name": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The name of the category to which the configuration profile is scoped.",
-			},
+			// "name": {
+			// 	Type:        schema.TypeString,
+			// 	Optional:    true,
+			// 	Description: "The name of the category to which the configuration profile is scoped.",
+			// },
 		},
 	}
 

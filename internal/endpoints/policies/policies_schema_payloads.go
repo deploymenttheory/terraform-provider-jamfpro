@@ -9,7 +9,7 @@ func getPolicySchemaPayloads() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"override_default_settings": { // UI > payloads > software update settings
 				Type:        schema.TypeList,
-				Required:    true,
+				Optional:    true,
 				Description: "Settings to override default configurations.",
 				Elem:        getPolicySchemaNetworkLimitations(),
 			},

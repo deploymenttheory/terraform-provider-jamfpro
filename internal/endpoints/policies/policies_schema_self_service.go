@@ -43,31 +43,31 @@ func getPolicySchemaSelfService() *schema.Resource {
 				Description: "Whether to force users to view the policy description in self-service.",
 				Default:     false,
 			},
-			"self_service_icon": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Icon settings for the policy in self-service.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "ID of the icon used in self-service.",
-							Default:     0,
-						},
-						"filename": {
-							Type:        schema.TypeString,
-							Description: "Filename of the icon used in self-service.",
-							Computed:    true,
-						},
-						"uri": {
-							Type:        schema.TypeString,
-							Description: "URI of the icon used in self-service.",
-							Computed:    true,
-						},
-					},
-				},
-			},
+			// "self_service_icon": {
+			// 	Type:        schema.TypeList,
+			// 	Optional:    true,
+			// 	Description: "Icon settings for the policy in self-service.",
+			// 	Elem: &schema.Resource{
+			// 		Schema: map[string]*schema.Schema{
+			// 			"id": {
+			// 				Type:        schema.TypeInt,
+			// 				Optional:    true,
+			// 				Description: "ID of the icon used in self-service.",
+			// 				Default:     0,
+			// 			},
+			// 			"filename": {
+			// 				Type:        schema.TypeString,
+			// 				Description: "Filename of the icon used in self-service.",
+			// 				Computed:    true,
+			// 			},
+			// 			"uri": {
+			// 				Type:        schema.TypeString,
+			// 				Description: "URI of the icon used in self-service.",
+			// 				Computed:    true,
+			// 			},
+			// 		},
+			// 	},
+			// },
 			"feature_on_main_page": {
 				Type:        schema.TypeBool,
 				Optional:    true,
