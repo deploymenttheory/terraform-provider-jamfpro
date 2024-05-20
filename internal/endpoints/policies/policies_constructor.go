@@ -285,6 +285,7 @@ func constructScope(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
 }
 
 func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
+	log.Println("SELF SERVICE")
 
 	if len(d.Get("self_service").([]interface{})) > 0 {
 		out.SelfService = &jamfpro.PolicySubsetSelfService{
@@ -304,8 +305,19 @@ func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) e
 }
 
 func constructPayloads(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
-	hclPackages := d.Get("payloads.0.packages")
-	if len(hclPackages.([]interface{})) == 0 {
+	log.Println("PAYLOADS")
+
+	constructPayloadPackages(d, out)
+	constructPayloadScripts(d, out)
+
+	return nil
+}
+
+func constructPayloadPackages(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
+	log.Println("PACKAGES")
+
+	hcl := d.Get("payloads.0.packages")
+	if len(hcl.([]interface{})) == 0 {
 		return nil
 	}
 
@@ -313,20 +325,59 @@ func constructPayloads(d *schema.ResourceData, out *jamfpro.ResourcePolicy) erro
 	outBlock.DistributionPoint = d.Get("package_distribution_point").(string)
 	outBlock.Packages = &[]jamfpro.PolicySubsetPackageConfigurationPackage{}
 
-	packages := *outBlock.Packages
+	payload := *outBlock.Packages
 
-	for _, v := range hclPackages.([]interface{}) {
+	for _, v := range hcl.([]interface{}) {
 		newObj := jamfpro.PolicySubsetPackageConfigurationPackage{
 			ID:                v.(map[string]interface{})["id"].(int),
 			Action:            v.(map[string]interface{})["action"].(string),
 			FillUserTemplate:  v.(map[string]interface{})["fill_user_template"].(bool),
 			FillExistingUsers: v.(map[string]interface{})["fill_existing_user_template"].(bool),
 		}
-		packages = append(packages, newObj)
+		payload = append(payload, newObj)
 	}
 
-	outBlock.Packages = &packages
+	outBlock.Packages = &payload
 	out.PackageConfiguration = outBlock
+
+	return nil
+}
+
+func constructPayloadScripts(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
+	log.Println("SCRIPTS")
+	hcl := d.Get("payloads.0.scripts")
+	log.Println("FLAG-2")
+	if len(hcl.([]interface{})) == 0 {
+		return nil
+	}
+	log.Println("FLAG-3")
+
+	outBlock := new(jamfpro.PolicySubsetScripts)
+	outBlock.Script = &[]jamfpro.PolicySubsetScript{}
+	log.Println("FLAG-4")
+
+	payload := *outBlock.Script
+	log.Println("FLAG-5")
+
+	for _, v := range hcl.([]interface{}) {
+		newObj := jamfpro.PolicySubsetScript{
+			ID:          v.(map[string]interface{})["id"].(string),
+			Priority:    v.(map[string]interface{})["priority"].(string),
+			Parameter4:  v.(map[string]interface{})["parameter4"].(string),
+			Parameter5:  v.(map[string]interface{})["parameter5"].(string),
+			Parameter6:  v.(map[string]interface{})["parameter6"].(string),
+			Parameter7:  v.(map[string]interface{})["parameter7"].(string),
+			Parameter8:  v.(map[string]interface{})["parameter8"].(string),
+			Parameter9:  v.(map[string]interface{})["parameter9"].(string),
+			Parameter10: v.(map[string]interface{})["parameter10"].(string),
+			Parameter11: v.(map[string]interface{})["parameter11"].(string),
+		}
+		payload = append(payload, newObj)
+	}
+	log.Println("FLAG-6")
+
+	outBlock.Script = &payload
+	out.Scripts = outBlock
 
 	return nil
 }
