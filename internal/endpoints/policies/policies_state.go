@@ -31,6 +31,7 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, 
 	statePayloads(d, resp, &diags)
 
 	log.Println("STATE-FLAG-28")
+	log.Printf("%+v", diags)
 
 	return diags
 }
@@ -394,6 +395,7 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 			outMap := make(map[string]interface{})
 			outMap["id"] = v.ID
 			outMap["action"] = v.Action
+			outMap["name"] = v.Name
 			outMap["fill_user_template"] = v.FillUserTemplate
 			outMap["fill_existing_user_template"] = v.FillExistingUsers
 			out[0]["packages"] = append(out[0]["packages"].([]map[string]interface{}), outMap)
@@ -407,6 +409,9 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 	err = d.Set("payloads", out)
 	if err != nil {
 		log.Println("ERROR FOUND", err)
+		if diags == nil {
+			diags = &diag.Diagnostics{}
+		}
 		*diags = append(*diags, diag.FromErr(err)...)
 	}
 

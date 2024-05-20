@@ -92,7 +92,7 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	// State
-	updateTerraformState(d, resp, resourceID)
+	diags = append(updateTerraformState(d, resp, resourceID), diags...)
 
 	return diags
 }
