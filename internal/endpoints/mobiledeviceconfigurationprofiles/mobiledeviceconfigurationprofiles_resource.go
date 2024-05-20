@@ -26,7 +26,7 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 		UpdateContext: ResourceJamfProMobileDeviceConfigurationProfileUpdate,
 		DeleteContext: ResourceJamfProMobileDeviceConfigurationProfileDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(20 * time.Second),
+			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
 			Delete: schema.DefaultTimeout(15 * time.Second),
@@ -254,11 +254,11 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 										Description: "A list of network segment IDs for exclusions.",
 										Elem:        &schema.Schema{Type: schema.TypeInt},
 									},
-									"jss_user_ids": {
+									"jss_user_names": {
 										Type:        schema.TypeList,
 										Optional:    true,
-										Description: "A list of JSS user IDs for exclusions.",
-										Elem:        &schema.Schema{Type: schema.TypeInt},
+										Elem:        &schema.Schema{Type: schema.TypeString},
+										Description: "A list of user names for exclusions.",
 									},
 									"jss_user_group_ids": {
 										Type:        schema.TypeList,

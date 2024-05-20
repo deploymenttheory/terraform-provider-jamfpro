@@ -70,7 +70,7 @@ func constructJamfProRestrictedSoftware(d *schema.ResourceData) (*jamfpro.Resour
 			if departmentIDs, ok := exclusionData["department_ids"]; ok {
 				scope.Exclusions.Departments = constructScopeEntitiesFromIds(departmentIDs.([]interface{}))
 			}
-			if userNames, ok := exclusionData["user_names"]; ok {
+			if userNames, ok := exclusionData["jss_user_names"]; ok {
 				scope.Exclusions.Users = constructScopeEntitiesFromIdsFromNames(userNames.([]interface{}))
 			}
 		}

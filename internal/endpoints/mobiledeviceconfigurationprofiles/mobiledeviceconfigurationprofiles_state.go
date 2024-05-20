@@ -98,7 +98,7 @@ func prepareScopeData(resource *jamfpro.ResourceMobileDeviceConfigurationProfile
 	// Gather mobile devices, groups, etc.
 	scopeData["mobile_device_ids"] = flattenAndSortMobileDeviceIDs(resource.Scope.MobileDevices)
 	scopeData["mobile_device_group_ids"] = flattenAndSortScopeEntityIds(resource.Scope.MobileDeviceGroups)
-	scopeData["jss_user_ids"] = flattenAndSortScopeEntityIds(resource.Scope.JSSUsers)
+	scopeData["jss_user_names"] = flattenAndSortScopeEntityNames(resource.Scope.JSSUsers)
 	scopeData["jss_user_group_ids"] = flattenAndSortScopeEntityIds(resource.Scope.JSSUserGroups)
 	scopeData["building_ids"] = flattenAndSortScopeEntityIds(resource.Scope.Buildings)
 	scopeData["department_ids"] = flattenAndSortScopeEntityIds(resource.Scope.Departments)
@@ -200,6 +200,16 @@ func flattenAndSortScopeEntityIds(entities []jamfpro.MobileDeviceConfigurationPr
 	}
 	sort.Ints(ids)
 	return ids
+}
+
+// flattenAndSortScopeEntityNames converts a slice of RestrictedSoftwareSubsetScopeEntity into a sorted slice of strings.
+func flattenAndSortScopeEntityNames(entities []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) []string {
+	var names []string
+	for _, entity := range entities {
+		names = append(names, entity.Name)
+	}
+	sort.Strings(names)
+	return names
 }
 
 // flattenAndSortMobileDeviceIDs converts a slice of MobileDeviceConfigurationProfileSubsetMobileDevice into a sorted slice of integers.

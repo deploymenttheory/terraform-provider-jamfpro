@@ -26,6 +26,7 @@ description: |-
 - `description` (String) The description of the mobile device configuration profile.
 - `level` (String) The level at which the mobile device configuration profile is applied, can be either 'Device Level' or 'User Level'.
 - `payloads` (String) The iOS / iPadOS / tvOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist.
+- `redeploy_days_before_cert_expires` (Number) The number of days before certificate expiration when the profile should be redeployed.
 - `redeploy_on_update` (String) Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state
 - `scope` (Block List, Max: 1) The scope in which the mobile device configuration profile is applied. (see [below for nested schema](#nestedblock--scope))
 - `site` (Block List, Max: 1) The site information associated with the mobile device configuration profile. (see [below for nested schema](#nestedblock--site))
@@ -69,7 +70,7 @@ Optional:
 - `department_ids` (List of Number) A list of department IDs for exclusions.
 - `ibeacon_ids` (List of Number) A list of iBeacon IDs for exclusions.
 - `jss_user_group_ids` (List of Number) A list of JSS user group IDs for exclusions.
-- `jss_user_ids` (List of Number) A list of JSS user IDs for exclusions.
+- `jss_user_names` (List of String) A list of user names for exclusions.
 - `mobile_device_group_ids` (List of Number) A list of mobile device group IDs for exclusions.
 - `mobile_device_ids` (List of Number) A list of mobile device IDs for exclusions.
 - `network_segment_ids` (List of Number) A list of network segment IDs for exclusions.

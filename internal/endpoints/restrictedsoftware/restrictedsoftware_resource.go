@@ -184,7 +184,7 @@ func ResourceJamfProRestrictedSoftwares() *schema.Resource {
 										Elem:        &schema.Schema{Type: schema.TypeInt},
 										Description: "A list of department IDs for exclusions.",
 									},
-									"user_names": {
+									"jss_user_names": {
 										Type:        schema.TypeList,
 										Optional:    true,
 										Elem:        &schema.Schema{Type: schema.TypeString},

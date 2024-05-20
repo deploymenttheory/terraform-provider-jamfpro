@@ -78,7 +78,7 @@ func flattenScope(scope jamfpro.RestrictedSoftwareSubsetScope) []interface{} {
 				"computer_group_ids": flattenAndSortScopeEntityIds(scope.Exclusions.ComputerGroups),
 				"building_ids":       flattenAndSortScopeEntityIds(scope.Exclusions.Buildings),
 				"department_ids":     flattenAndSortScopeEntityIds(scope.Exclusions.Departments),
-				"user_names":         flattenAndSortScopeEntityNames(scope.Exclusions.Users),
+				"jss_user_names":     flattenAndSortScopeEntityNames(scope.Exclusions.Users),
 			},
 		}
 	}
