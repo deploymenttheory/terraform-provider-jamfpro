@@ -334,9 +334,9 @@ Read-Only:
 <a id="nestedblock--site"></a>
 ### Nested Schema for `site`
 
-Read-Only:
+Optional:
 
-- `id` (Number) The ID of this resource.
+- `id` (Number)
 
 
 <a id="nestedblock--timeouts"></a>
