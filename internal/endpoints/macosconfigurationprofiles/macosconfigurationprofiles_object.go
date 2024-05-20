@@ -29,7 +29,7 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 			InstallButtonText:           d.Get("self_service.0.install_button_text").(string),
 			SelfServiceDescription:      d.Get("self_service.0.self_service_description").(string),
 			ForceUsersToViewDescription: d.Get("self_service.0.force_users_to_view_description").(bool),
-			// Self Service Icon - TBA at a later date because jamf is odd
+			// Self Service Icon - // TODO at a later date because jamf is odd
 			FeatureOnMainPage: d.Get("self_service.0.feature_on_main_page").(bool),
 			// Self Service Categories
 			// Notification parsed cos it's stupid and has dupe keys
@@ -41,18 +41,32 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 	// Processed Fields
 
 	// Site
-	if len(d.Get("site").([]interface{})) != 0 {
+	suppliedSite := d.Get("site").([]interface{})
+	if len(suppliedSite) > 0 {
+		// If site provided, construct
+		outSite := jamfpro.SharedResourceSite{
+			ID: suppliedSite[0].(map[string]interface{})["id"].(int),
+		}
+		out.General.Site = outSite
+	} else {
+		// If no site, construct no site obj. We have to do this for the site to be removed.
 		out.General.Site = jamfpro.SharedResourceSite{
-			ID:   d.Get("site.0.id").(int),
-			Name: d.Get("site.0.name").(string),
+			ID: 0,
 		}
 	}
 
 	// Category
-	if len(d.Get("category").([]interface{})) != 0 {
+	suppliedCategory := d.Get("category").([]interface{})
+	if len(suppliedCategory) > 0 {
+		// construct category if provided
+		outCat := jamfpro.SharedResourceCategory{
+			ID: suppliedCategory[0].(map[string]interface{})["id"].(int),
+		}
+		out.General.Category = outCat
+	} else {
+		// if no category, supply empty cat to remove it.
 		out.General.Category = jamfpro.SharedResourceCategory{
-			ID:   d.Get("category.0.id").(int),
-			Name: d.Get("category.0.name").(string),
+			ID: 0,
 		}
 	}
 
