@@ -39,10 +39,10 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 		return nil, err
 	}
 
-	// err = constructPayloads(d, out)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	err = constructPayloads(d, out)
+	if err != nil {
+		return nil, err
+	}
 
 	// Package Configuration
 	// Scripts
@@ -304,28 +304,29 @@ func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) e
 }
 
 func constructPayloads(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
-	// Package Configurations
 	hclPackages := d.Get("payloads.0.packages")
 	if len(hclPackages.([]interface{})) == 0 {
 		return nil
 	}
 
-	log.Println("LOGHERE")
-
-	var outBlock jamfpro.PolicySubsetPackageConfiguration
+	outBlock := new(jamfpro.PolicySubsetPackageConfiguration)
 	outBlock.DistributionPoint = d.Get("package_distribution_point").(string)
-	outBlock.Packages = []
+	outBlock.Packages = &[]jamfpro.PolicySubsetPackageConfigurationPackage{}
 
-	for k, v := range hclPackages.([]interface{}) {
-		log.Println(k, v)
-		package_id := v.(map[string]interface{})["package"].([]interface{})[0].(map[string]interface{})["id"].(int)
-		// get other vals here
-		newObj := &jamfpro.PolicySubsetPackageConfigurationPackage{
-			ID: package_id,
+	packages := *outBlock.Packages
+
+	for _, v := range hclPackages.([]interface{}) {
+		newObj := jamfpro.PolicySubsetPackageConfigurationPackage{
+			ID:                v.(map[string]interface{})["id"].(int),
+			Action:            v.(map[string]interface{})["action"].(string),
+			FillUserTemplate:  v.(map[string]interface{})["fill_user_template"].(bool),
+			FillExistingUsers: v.(map[string]interface{})["fill_existing_user_template"].(bool),
 		}
-		outBlock.Packages = append(outBlock.Packages)
-
+		packages = append(packages, newObj)
 	}
+
+	outBlock.Packages = &packages
+	out.PackageConfiguration = outBlock
 
 	return nil
 }
