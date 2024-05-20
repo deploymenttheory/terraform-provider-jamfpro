@@ -141,6 +141,13 @@ package metadata in Jamf Pro.
 - **Status**: Finished
 - **Availability**: Introduced in version `v0.0.42.`
 
+### Restricted Software
+
+- **Resource & Data Source**: Facilitates the management of Restricted Software in Jamf Pro. This includes the creation, update, and deletion of restricted software entities, along with the ability to specify software properties and associated payloads.
+
+- **Status**: Finished
+- **Availability**: Introduced in version `v0.0.53.`
+
 ### User Groups
 
 - **Resource & Data Source**: Enables the handling of User Groups in Jamf Pro. This encompasses the capabilities to create, update, and remove user group entities, as well as the functionality to detail user group attributes and memberships.
