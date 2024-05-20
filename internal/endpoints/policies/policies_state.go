@@ -422,7 +422,7 @@ func statePayloadPackages(out *[]map[string]interface{}, d *schema.ResourceData,
 
 func statePayloadScripts(out *[]map[string]interface{}, d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
 	log.Println("LOGHERE-scripts")
-	log.Printf("%+v", resp.Scripts)
+	log.Printf("%+v", resp.Scripts.Script)
 	if resp.Scripts.Script == nil {
 		log.Println("LOGHERE-NIL")
 		return
@@ -435,14 +435,11 @@ func statePayloadScripts(out *[]map[string]interface{}, d *schema.ResourceData, 
 	log.Println("FLAG-2")
 	for _, v := range *resp.Scripts.Script {
 		outMap := make(map[string]interface{})
-		log.Println("FLAG-2.1")
+
 		outMap["id"] = v.ID
-		log.Println("FLAG-2.2")
-		outMap["parameter4"] = v.Parameter4
 		outMap["priority"] = v.Priority
-		log.Println("FLAG-2.3")
+		outMap["parameter4"] = v.Parameter4
 		outMap["parameter5"] = v.Parameter5
-		log.Println("FLAG-2.4")
 		outMap["parameter6"] = v.Parameter6
 		outMap["parameter7"] = v.Parameter7
 		outMap["parameter8"] = v.Parameter8
