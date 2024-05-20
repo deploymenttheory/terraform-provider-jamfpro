@@ -4,9 +4,9 @@ import (
 	"sort"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"howett.net/plist"
 )
 
 // updateTerraformState updates the Terraform state with the latest ResourceMobileDeviceConfigurationProfile
@@ -48,15 +48,47 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 	}
 
 	// Payloads
-	var payloads interface{}
-	format, err := plist.Unmarshal([]byte(resource.General.Payloads), &payloads)
+	// Normalize and set the payloads
+	keysToRemove := []string{"PayloadOrganization", "PayloadUUID", "PayloadIdentifier"}
+	normalizedPayload, err := configurationprofiles.NormalizePayload(resource.General.Payloads, keysToRemove)
 	if err != nil {
 		diags = append(diags, diag.FromErr(err)...)
+		return diags
 	}
-	payload, _ := plist.MarshalIndent(payloads, format, "    ")
-	if err := d.Set("payloads", string(payload)); err != nil {
+
+	if err := d.Set("payloads", normalizedPayload); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+
+	// Parse the payloads to a struct
+	// profileStruct, err := configurationprofiles.ConfigurationProfilePlistToStructFromString(resource.General.Payloads)
+	// if err != nil {
+	// 	diags = append(diags, diag.FromErr(err)...)
+	// 	return diags
+	// }
+
+	// // Filter out the non-relevant fields
+	// filteredPayloads := configurationprofiles.FilterPayloadSpecificFields(profileStruct)
+
+	// // Convert the filtered payloads back to a plist string
+	// filteredPayloadsPlistData, err := plist.MarshalIndent(filteredPayloads, plist.XMLFormat, "    ")
+	// if err != nil {
+	// 	diags = append(diags, diag.FromErr(err)...)
+	// 	return diags
+	// }
+
+	// if err := d.Set("payloads", string(filteredPayloadsPlistData)); err != nil {
+	// 	diags = append(diags, diag.FromErr(err)...)
+	// }
+	// var payloads interface{}
+	// format, err := plist.Unmarshal([]byte(resource.General.Payloads), &payloads)
+	// if err != nil {
+	// 	diags = append(diags, diag.FromErr(err)...)
+	// }
+	// payload, _ := plist.MarshalIndent(payloads, format, "    ")
+	// if err := d.Set("payloads", string(payload)); err != nil {
+	// 	diags = append(diags, diag.FromErr(err)...)
+	// }
 
 	// Set the 'category' attribute in the state only if it's not empty (i.e., not default values)
 	category := []interface{}{}
