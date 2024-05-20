@@ -74,11 +74,11 @@ func flattenScope(scope jamfpro.RestrictedSoftwareSubsetScope) []interface{} {
 	if len(scope.Exclusions.Computers) > 0 || len(scope.Exclusions.ComputerGroups) > 0 || len(scope.Exclusions.Buildings) > 0 || len(scope.Exclusions.Departments) > 0 || len(scope.Exclusions.Users) > 0 {
 		scopeMap["exclusions"] = []interface{}{
 			map[string]interface{}{
-				"computer_ids":       flattenAndSortScopeEntityIds(scope.Exclusions.Computers),
-				"computer_group_ids": flattenAndSortScopeEntityIds(scope.Exclusions.ComputerGroups),
-				"building_ids":       flattenAndSortScopeEntityIds(scope.Exclusions.Buildings),
-				"department_ids":     flattenAndSortScopeEntityIds(scope.Exclusions.Departments),
-				"user_names":         flattenAndSortScopeEntityNames(scope.Exclusions.Users),
+				"computer_ids":                         flattenAndSortScopeEntityIds(scope.Exclusions.Computers),
+				"computer_group_ids":                   flattenAndSortScopeEntityIds(scope.Exclusions.ComputerGroups),
+				"building_ids":                         flattenAndSortScopeEntityIds(scope.Exclusions.Buildings),
+				"department_ids":                       flattenAndSortScopeEntityIds(scope.Exclusions.Departments),
+				"directory_service_or_local_usernames": flattenAndSortScopeEntityNames(scope.Exclusions.Users),
 			},
 		}
 	}
