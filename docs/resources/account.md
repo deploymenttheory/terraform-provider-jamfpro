@@ -51,11 +51,8 @@ description: |-
 
 Optional:
 
+- `id` (Number)
 - `name` (String)
-
-Read-Only:
-
-- `id` (Number) The ID of this resource.
 
 
 <a id="nestedblock--identity_server"></a>
