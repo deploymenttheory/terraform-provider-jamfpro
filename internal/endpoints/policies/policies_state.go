@@ -379,23 +379,18 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 }
 
 func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
-	var err error
+	// Out Container Setup
+	log.Println("LOGHERE")
 	out := make([]map[string]interface{}, 0)
 	out = append(out, make(map[string]interface{}, 1))
-	out[0]["packages"] = make([]map[string]interface{}, 0)
 
-	if resp.PackageConfiguration != nil {
-		for _, v := range *resp.PackageConfiguration.Packages {
-			outMap := make(map[string]interface{})
-			outMap["id"] = v.ID
-			outMap["action"] = v.Action
-			outMap["fill_user_template"] = v.FillUserTemplate
-			outMap["fill_existing_user_template"] = v.FillExistingUsers
-			out[0]["packages"] = append(out[0]["packages"].([]map[string]interface{}), outMap)
-		}
+	// Packages
+	statePayloadPackages(&out, d, resp, diags)
 
-	}
+	// Scripts
+	statePayloadScripts(&out, d, resp, diags)
 
+	var err error
 	err = d.Set("payloads", out)
 	if err != nil {
 		if diags == nil {
@@ -403,5 +398,60 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 		}
 		*diags = append(*diags, diag.FromErr(err)...)
 	}
+
+	log.Println("LOGEND")
+}
+
+func statePayloadPackages(out *[]map[string]interface{}, d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
+	log.Println("LOGHERE-packages")
+	if resp.PackageConfiguration == nil {
+		return
+	}
+
+	(*out)[0]["packages"] = make([]map[string]interface{}, 0)
+	for _, v := range *resp.PackageConfiguration.Packages {
+		outMap := make(map[string]interface{})
+		outMap["id"] = v.ID
+		outMap["action"] = v.Action
+		outMap["fill_user_template"] = v.FillUserTemplate
+		outMap["fill_existing_user_template"] = v.FillExistingUsers
+		(*out)[0]["packages"] = append((*out)[0]["packages"].([]map[string]interface{}), outMap)
+	}
+
+}
+
+func statePayloadScripts(out *[]map[string]interface{}, d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
+	log.Println("LOGHERE-scripts")
+	log.Printf("%+v", resp.Scripts)
+	if resp.Scripts.Script == nil {
+		log.Println("LOGHERE-NIL")
+		return
+	}
+
+	log.Println("FLAG-1")
+
+	(*out)[0]["scripts"] = make([]map[string]interface{}, 0)
+
+	log.Println("FLAG-2")
+	for _, v := range *resp.Scripts.Script {
+		outMap := make(map[string]interface{})
+		log.Println("FLAG-2.1")
+		outMap["id"] = v.ID
+		log.Println("FLAG-2.2")
+		outMap["parameter4"] = v.Parameter4
+		log.Println("FLAG-2.3")
+		outMap["parameter5"] = v.Parameter5
+		log.Println("FLAG-2.4")
+		outMap["parameter6"] = v.Parameter6
+		outMap["parameter7"] = v.Parameter7
+		outMap["parameter8"] = v.Parameter8
+		outMap["parameter9"] = v.Parameter9
+		outMap["parameter10"] = v.Parameter10
+		outMap["parameter11"] = v.Parameter11
+
+		(*out)[0]["scripts"] = append((*out)[0]["scripts"].([]map[string]interface{}), outMap)
+	}
+
+	log.Println("FLAG-3")
 
 }

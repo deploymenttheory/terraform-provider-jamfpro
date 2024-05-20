@@ -9,7 +9,7 @@ func getPolicySchemaScript() *schema.Resource {
 	out := &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:        schema.TypeInt,
+				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Unique identifier of the script.",
 			},
