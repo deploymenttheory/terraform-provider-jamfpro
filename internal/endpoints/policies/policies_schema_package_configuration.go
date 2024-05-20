@@ -28,11 +28,13 @@ func getPolicySchemaPackages() *schema.Resource {
 			"fill_user_template": {
 				Type:        schema.TypeBool,
 				Optional:    true,
+				Default:     false,
 				Description: "Fill User Template (FUT).",
 			},
 			"fill_existing_user_template": {
 				Type:        schema.TypeBool,
 				Optional:    true,
+				Default:     false,
 				Description: "Fill Existing Users (FEU).",
 			},
 			// "update_autorun": { // NOT IN THE UI or in response
