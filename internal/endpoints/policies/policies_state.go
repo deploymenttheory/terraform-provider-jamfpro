@@ -439,6 +439,7 @@ func statePayloadScripts(out *[]map[string]interface{}, d *schema.ResourceData, 
 		outMap["id"] = v.ID
 		log.Println("FLAG-2.2")
 		outMap["parameter4"] = v.Parameter4
+		outMap["priority"] = v.Priority
 		log.Println("FLAG-2.3")
 		outMap["parameter5"] = v.Parameter5
 		log.Println("FLAG-2.4")
