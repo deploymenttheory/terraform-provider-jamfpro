@@ -14,6 +14,9 @@ import (
 // Parent func for invdividual stating functions
 func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, resourceID string) diag.Diagnostics {
 	var diags diag.Diagnostics
+	log.Println("LOGHERE-RESPONSE")
+	// xmlData, _ := xml.MarshalIndent(resp, " ", "	")
+	// log.Println(string(xmlData))
 
 	if err := d.Set("id", resourceID); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
@@ -413,14 +416,41 @@ func prepStatePayloadScripts(out *[]map[string]interface{}, resp *jamfpro.Resour
 		outMap := make(map[string]interface{})
 		outMap["id"] = v.ID
 		outMap["priority"] = v.Priority
-		outMap["parameter4"] = v.Parameter4
-		outMap["parameter5"] = v.Parameter5
-		outMap["parameter6"] = v.Parameter6
-		outMap["parameter7"] = v.Parameter7
-		outMap["parameter8"] = v.Parameter8
-		outMap["parameter9"] = v.Parameter9
-		outMap["parameter10"] = v.Parameter10
-		outMap["parameter11"] = v.Parameter11
+
+		if v.Parameter4 != "" {
+			outMap["parameter4"] = v.Parameter4
+		}
+		if v.Parameter5 != "" {
+			outMap["parameter5"] = v.Parameter5
+		}
+		if v.Parameter6 != "" {
+			outMap["parameter6"] = v.Parameter6
+		}
+		if v.Parameter7 != "" {
+			outMap["parameter7"] = v.Parameter7
+		}
+		if v.Parameter8 != "" {
+			outMap["parameter8"] = v.Parameter8
+		}
+		if v.Parameter9 != "" {
+			outMap["parameter9"] = v.Parameter9
+		}
+		if v.Parameter10 != "" {
+			outMap["parameter10"] = v.Parameter10
+		}
+		if v.Parameter11 != "" {
+			outMap["parameter11"] = v.Parameter11
+		}
+
+		// outMap["parameter5"] = v.Parameter5
+		// outMap["parameter6"] = v.Parameter6
+		// outMap["parameter7"] = v.Parameter7
+		// outMap["parameter8"] = v.Parameter8
+		// outMap["parameter9"] = v.Parameter9
+		// outMap["parameter10"] = v.Parameter10
+		// outMap["parameter11"] = v.Parameter11
 		(*out)[0]["scripts"] = append((*out)[0]["scripts"].([]map[string]interface{}), outMap)
+		log.Println("LOGHERE-SCRIPT OUT")
+		log.Println(outMap)
 	}
 }

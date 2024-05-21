@@ -47,7 +47,7 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	// Reboot
 
 	// DEBUG
-	log.Println("XMLOUT")
+	log.Println("LOGHERE-CONSTRUCTED")
 	policyXML, _ := xml.MarshalIndent(out, "", "  ")
 	log.Println(string(policyXML))
 
@@ -281,10 +281,10 @@ func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 
 	if len(d.Get("self_service").([]interface{})) > 0 {
 		out.SelfService = &jamfpro.PolicySubsetSelfService{
-			UseForSelfService:           d.Get("self_service.0.use_for_self_service").(bool),
-			SelfServiceDisplayName:      d.Get("self_service.0.self_service_display_name").(string),
-			InstallButtonText:           d.Get("self_service.0.install_button_text").(string),
-			ReinstallButtonText:         d.Get("self_service.0.reinstall_button_text").(string),
+			UseForSelfService:      d.Get("self_service.0.use_for_self_service").(bool),
+			SelfServiceDisplayName: d.Get("self_service.0.self_service_display_name").(string),
+			InstallButtonText:      d.Get("self_service.0.install_button_text").(string),
+			// ReinstallButtonText:         d.Get("self_service.0.reinstall_button_text").(string),
 			SelfServiceDescription:      d.Get("self_service.0.self_service_description").(string),
 			ForceUsersToViewDescription: d.Get("self_service.0.force_users_to_view_description").(bool),
 			// TODO self service icon
@@ -359,6 +359,7 @@ func constructPayloadScripts(d *schema.ResourceData, out *jamfpro.ResourcePolicy
 			Parameter10: v.(map[string]interface{})["parameter10"].(string),
 			Parameter11: v.(map[string]interface{})["parameter11"].(string),
 		}
+
 		payload = append(payload, newObj)
 	}
 
