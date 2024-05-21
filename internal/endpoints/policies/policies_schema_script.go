@@ -28,19 +28,22 @@ func getPolicySchemaScript() *schema.Resource {
 			"parameter4": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     "",
 				Description: "Custom parameter 4 for the script.",
 			},
 			"parameter5": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     "",
 				Description: "Custom parameter 5 for the script.",
+				Optional:    true,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					if old == new {
+						return true
+					}
+					return false
+				},
 			},
 			"parameter6": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     "",
 				Description: "Custom parameter 6 for the script.",
 			},
 			"parameter7": {
