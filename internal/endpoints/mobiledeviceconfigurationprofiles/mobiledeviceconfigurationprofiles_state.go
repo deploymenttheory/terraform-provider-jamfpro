@@ -1,12 +1,13 @@
 package mobiledeviceconfigurationprofiles
 
 import (
+	"log"
 	"sort"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"howett.net/plist"
 )
 
 // updateTerraformState updates the Terraform state with the latest ResourceMobileDeviceConfigurationProfile
@@ -47,14 +48,20 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 		}
 	}
 
-	// Payloads
-	var payloads interface{}
-	format, err := plist.Unmarshal([]byte(resource.General.Payloads), &payloads)
+	// Sanitize and set the payloads using the plist processor function removing the mdm server unique identifiers
+	keysToRemove := []string{"PayloadUUID", "PayloadIdentifier", "PayloadOrganization"}
+	processedProfile, err := configurationprofiles.ProcessConfigurationProfile(resource.General.Payloads, keysToRemove)
 	if err != nil {
+		log.Printf("Error processing configuration profile: %v\n", err)
 		diags = append(diags, diag.FromErr(err)...)
+		return diags
 	}
-	payload, _ := plist.MarshalIndent(payloads, format, "    ")
-	if err := d.Set("payloads", string(payload)); err != nil {
+
+	log.Printf("Processed profile payload: %s\n", processedProfile)
+
+	// Set the processed payloads field
+	if err := d.Set("payloads", processedProfile); err != nil {
+		log.Printf("Error setting payloads: %v\n", err)
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

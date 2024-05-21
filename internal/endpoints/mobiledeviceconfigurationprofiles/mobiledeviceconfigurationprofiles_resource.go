@@ -109,6 +109,7 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 			"redeploy_on_update": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Default:     "Newly Assigned",
 				Description: "Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := util.GetString(val)
@@ -125,9 +126,10 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 				Description: "The number of days before certificate expiration when the profile should be redeployed.",
 			},
 			"payloads": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The iOS / iPadOS / tvOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist.",
+				Type:             schema.TypeString,
+				Optional:         true,
+				Description:      "The iOS / iPadOS / tvOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist.",
+				DiffSuppressFunc: diffSuppressPayloads,
 			},
 			// Scope
 			"scope": {

@@ -13,6 +13,7 @@ import (
 
 // constructJamfProMobileDeviceConfigurationProfile constructs a ResourceMobileDeviceConfigurationProfile object from the provided schema data.
 func constructJamfProMobileDeviceConfigurationProfile(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceConfigurationProfile, error) {
+
 	profile := &jamfpro.ResourceMobileDeviceConfigurationProfile{
 		General: jamfpro.MobileDeviceConfigurationProfileSubsetGeneral{
 			Name:             d.Get("name").(string),
