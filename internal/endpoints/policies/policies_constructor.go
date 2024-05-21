@@ -14,6 +14,8 @@ import (
 )
 
 // Primary
+
+// Returns ResourcePolicy required for client to marshal into api req
 func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	log.Println(("LOGHERE-CONSTRUCT"))
 	var err error
@@ -58,6 +60,7 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 
 // Child funcs
 
+// Pulls "general" settings from HCL and packages into object
 func constructGeneral(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	log.Println("GENERAL")
 
@@ -111,6 +114,7 @@ func constructGeneral(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	}
 }
 
+// Pulls "scope" settings from HCL and packages into object
 func constructScope(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
 	log.Println("SCOPE")
 	var err error
@@ -121,6 +125,7 @@ func constructScope(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
 
 	// Targets
 
+	// TODO review this and similar blocks below
 	out.Scope = &jamfpro.PolicySubsetScope{
 		Computers:      &[]jamfpro.PolicySubsetComputer{},
 		ComputerGroups: &[]jamfpro.PolicySubsetComputerGroup{},
@@ -274,6 +279,7 @@ func constructScope(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
 	return nil
 }
 
+// Pulls "self service" settings from HCL and packages into object
 func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	log.Println("SELF SERVICE")
 
@@ -285,14 +291,15 @@ func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 			ReinstallButtonText:         d.Get("self_service.0.reinstall_button_text").(string),
 			SelfServiceDescription:      d.Get("self_service.0.self_service_description").(string),
 			ForceUsersToViewDescription: d.Get("self_service.0.force_users_to_view_description").(bool),
-			// TODO self service icon later
+			// TODO self service icon
 			FeatureOnMainPage: d.Get("self_service.0.feature_on_main_page").(bool),
-			// TODO Self service categories later
+			// TODO Self service categories
 		}
 	}
 
 }
 
+// Pulls "payload" settings from HCL and packages into object
 func constructPayloads(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	log.Println("PAYLOADS")
 
@@ -304,6 +311,7 @@ func constructPayloads(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 
 }
 
+// Pulls "package" settings from HCL and packages into object
 func constructPayloadPackages(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	log.Println("PACKAGES")
 
@@ -332,6 +340,7 @@ func constructPayloadPackages(d *schema.ResourceData, out *jamfpro.ResourcePolic
 
 }
 
+// Pulls "script" settings from HCL and packages into object
 func constructPayloadScripts(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	log.Println("SCRIPTS")
 
