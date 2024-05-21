@@ -1,5 +1,8 @@
 package policies
 
+// TODO remove log.prints, debug use only
+// TODO maybe review error handling here too?
+
 import (
 	"log"
 
@@ -7,8 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
-
-// Primary
 
 // Parent func for invdividual stating functions
 func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, resourceID string) diag.Diagnostics {
@@ -32,8 +33,6 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, 
 
 	return diags
 }
-
-// Child funcs
 
 // Reads response and states general/root level items
 func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {

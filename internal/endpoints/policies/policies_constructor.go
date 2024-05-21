@@ -13,8 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// Primary
-
 // Returns ResourcePolicy required for client to marshal into api req
 func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	log.Println(("LOGHERE-CONSTRUCT"))
@@ -57,8 +55,6 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	log.Println("LOGEND")
 	return out, nil
 }
-
-// Child funcs
 
 // Pulls "general" settings from HCL and packages into object
 func constructGeneral(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
@@ -296,7 +292,6 @@ func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 			// TODO Self service categories
 		}
 	}
-
 }
 
 // Pulls "payload" settings from HCL and packages into object
@@ -308,7 +303,6 @@ func constructPayloads(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 
 	// Scripts
 	constructPayloadScripts(d, out)
-
 }
 
 // Pulls "package" settings from HCL and packages into object
@@ -337,7 +331,6 @@ func constructPayloadPackages(d *schema.ResourceData, out *jamfpro.ResourcePolic
 
 	outBlock.Packages = &payload
 	out.PackageConfiguration = outBlock
-
 }
 
 // Pulls "script" settings from HCL and packages into object
@@ -371,5 +364,4 @@ func constructPayloadScripts(d *schema.ResourceData, out *jamfpro.ResourcePolicy
 
 	outBlock.Script = &payload
 	out.Scripts = outBlock
-
 }
