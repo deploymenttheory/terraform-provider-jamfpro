@@ -2,6 +2,7 @@ package policies
 
 // TODO remove all the log.print's. Debug use only
 // TODO handle all toxic combinations
+// TODO review error handling here? Feels like there is not enough
 
 import (
 	"encoding/xml"
@@ -13,7 +14,6 @@ import (
 )
 
 // Primary
-
 func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	log.Println(("LOGHERE-CONSTRUCT"))
 	var err error
