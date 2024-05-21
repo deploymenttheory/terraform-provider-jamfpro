@@ -44,19 +44,13 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Computed:    true,
 				Description: "Jamf UI name and PayloadDisplayname of configuration profile.",
 			},
 			"description": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "The Jamf description and PayloadDescription of the configuration profile.",
-			},
-			"organization": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The PayloadOrganization of the profile.",
-				Default:     "terraform-provider-jamfpro",
 			},
 			"site": {
 				Type:        schema.TypeList,
@@ -87,22 +81,16 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Description: "Whether the configuration profile is user removeable or not.",
 			},
 			"level": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "System",
-				Description:  "The level of the configuration profile. Available options are: 'Computer', 'User' or 'System'.",
-				ValidateFunc: validation.StringInSlice([]string{"Computer", "User", "System"}, false),
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The level and PayloadScope of the configuration profile. May be 'Computer', 'User', or 'System'.",
 			},
 			"uuid": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The UUID and PayloadIdentifier of the configuration profile.",
 			},
-			"payload": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "A MacOS configuration profile xml file as a file. A Top-level PayloadUUID is required. A PayloadContent array with at least one value is required. Top-level PayloadVersion, Type, Identifier, Organization, Description, and DisplayName set in this plist are ignored. Format differences (indents, whitespace, etc) are suppressed.",
-			},
+			"payload": sharedschemas.GetSharedSchemaPayload(),
 			"redeploy_on_update": {
 				Type:         schema.TypeString,
 				Optional:     true,

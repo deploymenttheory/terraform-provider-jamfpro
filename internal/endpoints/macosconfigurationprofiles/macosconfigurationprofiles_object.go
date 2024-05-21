@@ -16,12 +16,8 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 	// Main obj with fields which do not require processing
 	out := jamfpro.ResourceMacOSConfigurationProfile{
 		General: jamfpro.MacOSConfigurationProfileSubsetGeneral{
-			Name:               d.Get("name").(string),
-			Description:        d.Get("description").(string),
 			DistributionMethod: d.Get("distribution_method").(string),
 			UserRemovable:      d.Get("user_removeable").(bool),
-			Level:              d.Get("level").(string),
-			UUID:               d.Get("uuid").(string), // TODO not sure if this is needed as it's computed
 			RedeployOnUpdate:   d.Get("redeploy_on_update").(string),
 		},
 		Scope: jamfpro.MacOSConfigurationProfileSubsetScope{},
@@ -65,22 +61,14 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 
 	profile, err := sharedschemas.UnmarshalPayload(payload.(string))
 	if err != nil {
-		return nil, fmt.Errorf("an error occurred setting the payload")
+		return nil, err
 	}
 
-	profile.MutableValues["PayloadDisplayName"] = d.Get("name").(string)
-	profile.MutableValues["PayloadDescription"] = d.Get("description").(string)
-	profile.MutableValues["PayloadOrganization"] = d.Get("organization").(string)
-	profile.MutableValues["PayloadIdentifier"] = profile.MutableValues["PayloadUUID"]
-	profile.MutableValues["PayloadType"] = "Configuration"
-	profile.MutableValues["PayloadVersion"] = 1
-
-	xml, err := sharedschemas.MarshalPayload(profile.MutableValues)
-	if err != nil {
-		return nil, fmt.Errorf("an error occurred setting the payload")
-	}
-
-	out.General.Payloads = html.EscapeString(xml)
+	out.General.Name = profile.PayloadDisplayName
+	out.General.Description = profile.PayloadDescription
+	out.General.UUID = profile.PayloadIdentifier
+	out.General.Level = profile.PayloadScope
+	out.General.Payloads = html.EscapeString(payload.(string))
 
 	// Scope - Targets
 	out.Scope.AllComputers = d.Get("scope.0.all_computers").(bool)
@@ -227,7 +215,7 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 	}
 
 	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
-	log.Printf("[DEBUG] Constructed Jamf Pro macOS Configuration Profile XML:\n%s\n", xml)
+	log.Printf("[DEBUG] Constructed Jamf Pro macOS Configuration Profile XML:\n%s\n", payload.(string))
 
 	return &out, nil
 }
