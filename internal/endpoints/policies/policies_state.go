@@ -112,13 +112,8 @@ func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *d
 		}
 
 		if err := d.Set("site", out_site); err != nil {
-			if diags == nil {
-				diags = &diag.Diagnostics{}
-			}
 			*diags = append(*diags, diag.FromErr(err)...)
 		}
-	} else {
-		log.Println("Not stating default site response") // TODO Logging
 	}
 
 	// Category
@@ -134,10 +129,7 @@ func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *d
 			}
 			*diags = append(*diags, diag.FromErr(err)...)
 		}
-	} else {
-		log.Println("Not stating default category response") // TODO logging
 	}
-
 }
 
 func stateScope(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
@@ -347,9 +339,6 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *dia
 	// State Scope
 	err = d.Set("scope", out_scope)
 	if err != nil {
-		if diags == nil {
-			diags = &diag.Diagnostics{}
-		}
 		*diags = append(*diags, diag.FromErr(err)...)
 	}
 
@@ -370,9 +359,6 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 
 		err = d.Set("self_service", out_ss)
 		if err != nil {
-			if diags == nil {
-				diags = &diag.Diagnostics{}
-			}
 			*diags = append(*diags, diag.FromErr(err)...)
 		}
 	}
@@ -380,30 +366,24 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 
 func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
 	// Out Container Setup
-	log.Println("LOGHERE")
 	out := make([]map[string]interface{}, 0)
 	out = append(out, make(map[string]interface{}, 1))
 
 	// Packages
-	statePayloadPackages(&out, resp)
+	prepStatePayloadPackages(&out, resp)
 
 	// Scripts
-	statePayloadScripts(&out, resp)
+	prepStatePayloadScripts(&out, resp)
 
-	var err error
-	err = d.Set("payloads", out)
+	// State
+	err := d.Set("payloads", out)
 	if err != nil {
-		if diags == nil {
-			diags = &diag.Diagnostics{}
-		}
 		*diags = append(*diags, diag.FromErr(err)...)
 	}
 
-	log.Println("LOGEND")
 }
 
-func statePayloadPackages(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	log.Println("LOGHERE-packages")
+func prepStatePayloadPackages(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	if resp.PackageConfiguration == nil {
 		return
 	}
@@ -417,25 +397,16 @@ func statePayloadPackages(out *[]map[string]interface{}, resp *jamfpro.ResourceP
 		outMap["fill_existing_user_template"] = v.FillExistingUsers
 		(*out)[0]["packages"] = append((*out)[0]["packages"].([]map[string]interface{}), outMap)
 	}
-
 }
 
-func statePayloadScripts(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	log.Println("LOGHERE-scripts")
-	log.Printf("%+v", resp.Scripts.Script)
+func prepStatePayloadScripts(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	if resp.Scripts.Script == nil {
-		log.Println("LOGHERE-NIL")
 		return
 	}
 
-	log.Println("FLAG-1")
-
 	(*out)[0]["scripts"] = make([]map[string]interface{}, 0)
-
-	log.Println("FLAG-2")
 	for _, v := range *resp.Scripts.Script {
 		outMap := make(map[string]interface{})
-
 		outMap["id"] = v.ID
 		outMap["priority"] = v.Priority
 		outMap["parameter4"] = v.Parameter4
@@ -446,10 +417,6 @@ func statePayloadScripts(out *[]map[string]interface{}, resp *jamfpro.ResourcePo
 		outMap["parameter9"] = v.Parameter9
 		outMap["parameter10"] = v.Parameter10
 		outMap["parameter11"] = v.Parameter11
-
 		(*out)[0]["scripts"] = append((*out)[0]["scripts"].([]map[string]interface{}), outMap)
 	}
-
-	log.Println("FLAG-3")
-
 }

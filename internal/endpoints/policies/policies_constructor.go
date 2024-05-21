@@ -22,10 +22,7 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	out := &jamfpro.ResourcePolicy{}
 
 	// General
-	err = constructGeneral(d, out)
-	if err != nil {
-		return nil, err
-	}
+	constructGeneral(d, out)
 
 	// Scope
 	err = constructScope(d, out)
@@ -34,15 +31,10 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	}
 
 	// Self Service
-	err = constructSelfService(d, out)
-	if err != nil {
-		return nil, err
-	}
+	constructSelfService(d, out)
 
-	err = constructPayloads(d, out)
-	if err != nil {
-		return nil, err
-	}
+	// Payloads
+	constructPayloads(d, out)
 
 	// Package Configuration
 	// Scripts
@@ -66,7 +58,7 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 
 // Child funcs
 
-func constructGeneral(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
+func constructGeneral(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	log.Println("GENERAL")
 
 	// Primitive fields
@@ -117,8 +109,6 @@ func constructGeneral(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error
 			ID: 0,
 		}
 	}
-
-	return nil
 }
 
 func constructScope(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
@@ -284,7 +274,7 @@ func constructScope(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
 	return nil
 }
 
-func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
+func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	log.Println("SELF SERVICE")
 
 	if len(d.Get("self_service").([]interface{})) > 0 {
@@ -301,30 +291,30 @@ func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) e
 		}
 	}
 
-	return nil
 }
 
-func constructPayloads(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
+func constructPayloads(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	log.Println("PAYLOADS")
 
+	// Packages
 	constructPayloadPackages(d, out)
+
+	// Scripts
 	constructPayloadScripts(d, out)
 
-	return nil
 }
 
-func constructPayloadPackages(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
+func constructPayloadPackages(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	log.Println("PACKAGES")
 
 	hcl := d.Get("payloads.0.packages")
 	if len(hcl.([]interface{})) == 0 {
-		return nil
+		return
 	}
 
 	outBlock := new(jamfpro.PolicySubsetPackageConfiguration)
 	outBlock.DistributionPoint = d.Get("package_distribution_point").(string)
 	outBlock.Packages = &[]jamfpro.PolicySubsetPackageConfigurationPackage{}
-
 	payload := *outBlock.Packages
 
 	for _, v := range hcl.([]interface{}) {
@@ -340,24 +330,19 @@ func constructPayloadPackages(d *schema.ResourceData, out *jamfpro.ResourcePolic
 	outBlock.Packages = &payload
 	out.PackageConfiguration = outBlock
 
-	return nil
 }
 
-func constructPayloadScripts(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
+func constructPayloadScripts(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	log.Println("SCRIPTS")
+
 	hcl := d.Get("payloads.0.scripts")
-	log.Println("FLAG-2")
 	if len(hcl.([]interface{})) == 0 {
-		return nil
+		return
 	}
-	log.Println("FLAG-3")
 
 	outBlock := new(jamfpro.PolicySubsetScripts)
 	outBlock.Script = &[]jamfpro.PolicySubsetScript{}
-	log.Println("FLAG-4")
-
 	payload := *outBlock.Script
-	log.Println("FLAG-5")
 
 	for _, v := range hcl.([]interface{}) {
 		newObj := jamfpro.PolicySubsetScript{
@@ -374,10 +359,8 @@ func constructPayloadScripts(d *schema.ResourceData, out *jamfpro.ResourcePolicy
 		}
 		payload = append(payload, newObj)
 	}
-	log.Println("FLAG-6")
 
 	outBlock.Script = &payload
 	out.Scripts = outBlock
 
-	return nil
 }
