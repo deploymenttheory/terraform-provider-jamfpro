@@ -3,12 +3,11 @@ package policies
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
-	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -56,63 +55,31 @@ func ResourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, 
 
 // Reads and states
 func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	log.Println("LOGHERE-READING")
+	var err error
 	apiclient, ok := meta.(*client.APIClient)
-	log.Println("LOGHERE-READING2")
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
-	log.Println("LOGHERE-READING3")
+
 	conn := apiclient.Conn
-	log.Println("LOGHERE-READING4")
 
 	var diags diag.Diagnostics
 	resourceID := d.Id()
-	log.Println("LOGHERE-READING5")
 
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
-	log.Println("LOGHERE-READING6")
 
 	var resp *jamfpro.ResourcePolicy
 
-	log.Println("LOGHERE-READING7")
-	// Extract policy name from schema
-
-	// Use the retry function for the read operation
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		log.Println("LOGHERE-READING7.1")
-		var apiErr error
-		resp, apiErr = conn.GetPolicyByID(resourceIDInt)
-		log.Println("LOGHERE-READING7.2")
-		if apiErr != nil {
-			log.Println("LOGHERE-READING7.3")
-			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
-				log.Println("LOGHERE-READING7.4")
-				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
-
-			}
-			log.Println("LOGHERE-READING7.5")
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	log.Println("LOGHERE-READING8")
-	log.Printf("%+v", resp)
-
+	resp, err = conn.GetPolicyByID(resourceIDInt)
 	if err != nil {
-		d.SetId("") // Remove from Terraform state if unable to read after retries
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Policy (ID: %d) after retries: %v", resourceIDInt, err))
+		return state.HandleResourceNotFoundError(err, d)
 	}
-
-	log.Println("LOGHERE-READING9")
 
 	// State
 	diags = append(updateTerraformState(d, resp, resourceID), diags...)
-	log.Println("LOGHERE-READING10")
 
 	return diags
 }
