@@ -4,7 +4,7 @@ go 1.22.2
 
 // Direct
 require (
-	github.com/deploymenttheory/go-api-http-client v0.1.38
+	github.com/deploymenttheory/go-api-http-client v0.1.39-0.20240521141533-b6514aade27c
 	github.com/deploymenttheory/go-api-sdk-jamfpro v1.6.6-0.20240520151916-1b468dc17cc3
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/go-hclog v1.6.3
