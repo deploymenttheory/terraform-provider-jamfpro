@@ -10,6 +10,7 @@ import (
 
 // Primary
 
+// Parent func for invdividual stating functions
 func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, resourceID string) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -34,6 +35,7 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, 
 
 // Child funcs
 
+// Reads response and states general/root level items
 func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
 	var err error
 
@@ -103,7 +105,7 @@ func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *d
 	}
 
 	// Site
-	// TODO Review this logic
+	// TODO Review this logic (site and cat)
 	if resp.General.Site.ID != -1 && resp.General.Site.Name != "None" {
 		out_site := []map[string]interface{}{
 			{
@@ -132,6 +134,7 @@ func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *d
 	}
 }
 
+// Reads response and states scope items
 func stateScope(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
 	var err error
 
@@ -140,6 +143,7 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *dia
 	out_scope[0]["all_computers"] = resp.Scope.AllComputers
 	out_scope[0]["all_jss_users"] = resp.Scope.AllJSSUsers
 
+	// TODO see if we can simplify/centralise the repeated logic below
 	// Computers
 	if resp.Scope.Computers != nil && len(*resp.Scope.Computers) > 0 {
 		var listOfIds []int
@@ -341,9 +345,9 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *dia
 	if err != nil {
 		*diags = append(*diags, diag.FromErr(err)...)
 	}
-
 }
 
+// Reads response and states self service items
 func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
 	var err error
 	out_ss := make([]map[string]interface{}, 0)
@@ -364,8 +368,8 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 	}
 }
 
+// Parent func for stating payloads. Constructs var with prep funcs and states as one here.
 func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
-	// Out Container Setup
 	out := make([]map[string]interface{}, 0)
 	out = append(out, make(map[string]interface{}, 1))
 
@@ -380,9 +384,9 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 	if err != nil {
 		*diags = append(*diags, diag.FromErr(err)...)
 	}
-
 }
 
+// Reads response and preps package payload items
 func prepStatePayloadPackages(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	if resp.PackageConfiguration == nil {
 		return
@@ -399,6 +403,7 @@ func prepStatePayloadPackages(out *[]map[string]interface{}, resp *jamfpro.Resou
 	}
 }
 
+// Reads response and preps script payload items
 func prepStatePayloadScripts(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	if resp.Scripts.Script == nil {
 		return
