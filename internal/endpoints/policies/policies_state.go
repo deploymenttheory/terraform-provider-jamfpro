@@ -124,8 +124,7 @@ func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *d
 	if resp.General.Category.ID != -1 && resp.General.Category.Name != "No category assigned" {
 		out_category := []map[string]interface{}{
 			{
-				"id":   resp.General.Category.ID,
-				"name": resp.General.Category.Name,
+				"id": resp.General.Category.ID,
 			},
 		}
 		if err := d.Set("category", out_category); err != nil {
