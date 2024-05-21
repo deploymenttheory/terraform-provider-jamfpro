@@ -50,18 +50,15 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 
 	// Normalize and set the payloads using the dispatcher function
 	keysToRemove := []string{"PayloadUUID", "PayloadIdentifier", "PayloadOrganization"}
-	processedProfile, payloadHash, err := configurationprofiles.ProcessConfigurationProfile(resource.General.Payloads, keysToRemove)
+	processedProfile, err := configurationprofiles.ProcessConfigurationProfile(resource.General.Payloads, keysToRemove)
 	if err != nil {
 		log.Printf("Error processing configuration profile: %v\n", err)
 		diags = append(diags, diag.FromErr(err)...)
 		return diags
 	}
 
-	log.Printf("Processed profile payload: %s\n", processedProfile)
-	log.Printf("Hash of the payload: %s\n", payloadHash)
-
 	// Set the hash of the payloads field
-	if err := d.Set("payloads", payloadHash); err != nil {
+	if err := d.Set("payloads", processedProfile); err != nil {
 		log.Printf("Error setting payloads: %v\n", err)
 		diags = append(diags, diag.FromErr(err)...)
 	}

@@ -4,14 +4,12 @@ package mobiledeviceconfigurationprofiles
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
@@ -27,6 +25,7 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 		ReadContext:   ResourceJamfProMobileDeviceConfigurationProfileRead,
 		UpdateContext: ResourceJamfProMobileDeviceConfigurationProfileUpdate,
 		DeleteContext: ResourceJamfProMobileDeviceConfigurationProfileDelete,
+		//CustomizeDiff: customDiffMobileDeviceConfigurationProfiles,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
@@ -380,29 +379,6 @@ func ResourceJamfProMobileDeviceConfigurationProfileRead(ctx context.Context, d 
 	if err != nil {
 		// Handle not found error or other errors
 		return state.HandleResourceNotFoundError(err, d)
-	}
-
-	// Define fields to remove from the plist data
-	fieldsToRemove := []string{"PayloadUUID", "PayloadIdentifier", "PayloadOrganization"}
-
-	// Process the payload from the server
-	_, serverPayloadHash, err := configurationprofiles.ProcessConfigurationProfile(resource.General.Payloads, fieldsToRemove)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to process configuration profile: %v", err))
-	}
-
-	// Retrieve the stored payload hash from the state
-	storedPayloadHash := d.Get("payloads").(string)
-
-	// Log the two hashes being compared
-	log.Printf("[DEBUG] Comparing payload hashes: stored hash = %s, server hash = %s", storedPayloadHash, serverPayloadHash)
-
-	// Compare the hash with the stored hash in the state
-	if storedPayloadHash != serverPayloadHash {
-		// If hashes do not match, update the payloads field in the state
-		if err := d.Set("payloads", serverPayloadHash); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("failed to set payload hash in state: %v", err))...)
-		}
 	}
 
 	// Update the Terraform state with the fetched data from the resource
