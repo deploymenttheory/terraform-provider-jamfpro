@@ -42,9 +42,6 @@ Required:
 - `name` (String)
 - `search_type` (String)
 - `value` (String)
-
-Optional:
-
 - `and_or` (String)
 - `closing_paren` (Boolean)
 - `opening_paren` (Boolean)
