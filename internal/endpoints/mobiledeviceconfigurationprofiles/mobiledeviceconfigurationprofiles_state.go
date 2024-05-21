@@ -48,7 +48,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 		}
 	}
 
-	// Normalize and set the payloads using the dispatcher function
+	// Sanitize and set the payloads using the plist processor function removing the mdm server unique identifiers
 	keysToRemove := []string{"PayloadUUID", "PayloadIdentifier", "PayloadOrganization"}
 	processedProfile, err := configurationprofiles.ProcessConfigurationProfile(resource.General.Payloads, keysToRemove)
 	if err != nil {
@@ -57,7 +57,9 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 		return diags
 	}
 
-	// Set the hash of the payloads field
+	log.Printf("Processed profile payload: %s\n", processedProfile)
+
+	// Set the processed payloads field
 	if err := d.Set("payloads", processedProfile); err != nil {
 		log.Printf("Error setting payloads: %v\n", err)
 		diags = append(diags, diag.FromErr(err)...)
