@@ -47,7 +47,6 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 		}
 	}
 
-	// Payloads
 	// Normalize and set the payloads
 	keysToRemove := []string{"PayloadOrganization", "PayloadUUID", "PayloadIdentifier"}
 	normalizedPayload, err := configurationprofiles.NormalizePayload(resource.General.Payloads, keysToRemove)
