@@ -21,7 +21,17 @@ type ConfigurationProfile struct {
 	PayloadType              string                 `mapstructure:"PayloadType" validate:"required,eq=Configuration"`
 	PayloadUUID              string                 `mapstructure:"PayloadUUID" validate:"required"`
 	PayloadVersion           int                    `mapstructure:"PayloadVersion" validate:"required,eq=1"`
+	PayloadContent           []ConfigurationPayload `mapstructure:"PayloadContent"`
 	AdditionalFields         map[string]interface{} `mapstructure:",remain"`
+}
+
+type ConfigurationPayload struct {
+	ConfigurationProfile
+	payloadIdentifier   string                 `mapstructure:"PayloadIdentifier,-"`
+	PayloadOrganization string                 `mapstructure:"PayloadOrganization" validate:"required"`
+	PayloadType         string                 `mapstructure:"PayloadType" validate:"required"`
+	payloadUUID         string                 `mapstructure:"PayloadUUID,-"`
+	AdditionalFields    map[string]interface{} `mapstructure:",remain"`
 }
 
 func GetSharedSchemaPayload() *schema.Schema {
@@ -61,7 +71,7 @@ func UnmarshalPayload(payload string) (*ConfigurationProfile, error) {
 }
 
 func MarshalPayload(profile *ConfigurationProfile) (string, error) {
-	mergedPayload := MergePayloadFieldsIntoMap(profile)
+	mergedPayload := MergeConfigurationProfileFieldsIntoMap(profile)
 	xml, err := plist.MarshalIndent(mergedPayload, plist.XMLFormat, "\t")
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal payload: %w", err)
@@ -69,7 +79,7 @@ func MarshalPayload(profile *ConfigurationProfile) (string, error) {
 	return string(xml), nil
 }
 
-func MergePayloadFieldsIntoMap(profile *ConfigurationProfile) map[string]interface{} {
+func MergeConfigurationProfileFieldsIntoMap(profile *ConfigurationProfile) map[string]interface{} {
 	merged := make(map[string]interface{}, len(profile.AdditionalFields))
 	for k, v := range profile.AdditionalFields {
 		merged[k] = v
@@ -82,6 +92,31 @@ func MergePayloadFieldsIntoMap(profile *ConfigurationProfile) map[string]interfa
 		field := typ.Field(i)
 		mapKey := field.Tag.Get("mapstructure")
 		if mapKey != "" && mapKey != ",remain" {
+			merged[mapKey] = val.Field(i).Interface()
+		}
+	}
+
+	mergedPayloads := make([]map[string]interface{}, len(profile.PayloadContent))
+	for k, v := range profile.PayloadContent {
+		mergedPayloads[k] = MergeCongfigurationPayloadFieldsIntoMap(&v)
+	}
+
+	return merged
+}
+
+func MergeCongfigurationPayloadFieldsIntoMap(payload *ConfigurationPayload) map[string]interface{} {
+	merged := make(map[string]interface{}, len(payload.AdditionalFields))
+	for k, v := range payload.AdditionalFields {
+		merged[k] = v
+	}
+
+	val := reflect.ValueOf(payload).Elem()
+	typ := val.Type()
+
+	for i := 0; i < val.NumField(); i++ {
+		field := typ.Field(i)
+		mapKey := field.Tag.Get("mapstructure")
+		if mapKey != "" && mapKey != ",remain" && !strings.Contains(mapKey, ",-") {
 			merged[mapKey] = val.Field(i).Interface()
 		}
 	}
@@ -115,12 +150,12 @@ func ValidatePayload(payload interface{}, key string) (warns []string, errs []er
 	}
 
 	// Custom validation
-	errs = validateFields(profile)
+	errs = ValidatePayloadFields(profile)
 
 	return warns, errs
 }
 
-func validateFields(profile *ConfigurationProfile) []error {
+func ValidatePayloadFields(profile *ConfigurationProfile) []error {
 	var errs []error
 
 	// Iterate over struct fields
