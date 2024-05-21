@@ -1,3 +1,4 @@
+// common/configurationprofiles/state.go contains the functions to process configuration profiles.
 package configurationprofiles
 
 import (

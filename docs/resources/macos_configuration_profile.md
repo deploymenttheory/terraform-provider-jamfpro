@@ -91,10 +91,6 @@ Required:
 
 - `id` (Number) The unique identifier of the category to which the configuration profile is scoped.
 
-Optional:
-
-- `name` (String) The name of the category to which the configuration profile is scoped.
-
 
 <a id="nestedblock--self_service"></a>
 ### Nested Schema for `self_service`
@@ -131,7 +127,6 @@ Optional:
 Optional:
 
 - `id` (Number) Jamf Pro Site ID. Value defaults to -1 aka not used.
-- `name` (String) Jamf Pro Site Name. Value defaults to 'None' aka not used
 
 
 <a id="nestedblock--timeouts"></a>
