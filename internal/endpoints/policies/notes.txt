@@ -1,4 +1,0 @@
-1. All Jss Users
-    - It seems this always comes back false regardless of setting?
-    - I can set it correctly, the setting applies but is always returned false.
-    - Not sure what the issue is, moving on.
