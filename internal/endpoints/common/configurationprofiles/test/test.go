@@ -10,85 +10,58 @@ import (
 // TestProcessConfigurationProfile tests the ProcessConfigurationProfile function
 func TestProcessConfigurationProfile() {
 	originalPlist := `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
+	<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+	<plist version="1.0">
 	<dict>
 		<key>PayloadContent</key>
 		<array>
 			<dict>
-				<key>AutoJoin</key>
-				<true/>
-				<key>CaptiveBypass</key>
-				<true/>
-				<key>DisableAssociationMACRandomization</key>
-				<false/>
-				<key>EAPClientConfiguration</key>
-				<dict>
-					<key>AcceptEAPTypes</key>
-					<array>
-						<integer>13</integer>
-						<integer>17</integer>
-						<integer>43</integer>
-						<integer>21</integer>
-						<integer>25</integer>
-						<integer>18</integer>
-						<integer>23</integer>
-					</array>
-					<key>EAPFASTProvisionPAC</key>
-					<true/>
-					<key>EAPFASTProvisionPACAnonymously</key>
-					<true/>
-					<key>EAPFASTUsePAC</key>
-					<true/>
-					<key>TLSAllowTrustExceptions</key>
-					<true/>
-					<key>TTLSInnerAuthentication</key>
-					<string>MSCHAPv2</string>
-				</dict>
-				<key>EncryptionType</key>
-				<string>WPA3</string>
-				<key>HIDDEN_NETWORK</key>
-				<true/>
-				<key>PayloadDescription</key>
-				<string/>
 				<key>PayloadDisplayName</key>
-				<string>WiFi (thing)</string>
-				<key>PayloadEnabled</key>
-				<true/>
+				<string>Relay #1</string>
+				<key>PayloadIdentifier</key>
+				<string>com.apple.relay.managed.BC5A86E6-338F-4AAE-81BB-E957661345B5</string>
 				<key>PayloadType</key>
-				<string>com.apple.wifi.managed</string>
+				<string>com.apple.relay.managed</string>
+				<key>PayloadUUID</key>
+				<string>BC5A86E6-338F-4AAE-81BB-E957661345B5</string>
 				<key>PayloadVersion</key>
 				<integer>1</integer>
-				<key>ProxyPassword</key>
-				<string>thing</string>
-				<key>ProxyServer</key>
-				<string>server.com:443</string>
-				<key>ProxyServerPort</key>
-				<integer>0</integer>
-				<key>ProxyType</key>
-				<string>Manual</string>
-				<key>ProxyUsername</key>
-				<string>thing</string>
-				<key>SSID_STR</key>
-				<string>thing</string>
+				<key>Relays</key>
+				<array/>
+			</dict>
+			<dict>
+				<key>OPPrefBiometryAllowed</key>
+				<true/>
+				<key>OPPreferencesNotifyCompromisedWebsites</key>
+				<true/>
+				<key>OPPreferencesNotifyOfTOTPCopy</key>
+				<true/>
+				<key>OPPreferencesNotifyVaultAddedRemoved</key>
+				<true/>
+				<key>PayloadDisplayName</key>
+				<string>1Password 7</string>
+				<key>PayloadIdentifier</key>
+				<string>com.agilebits.onepassword7.C9F016D2-2813-48E2-9052-6426AB10D470</string>
+				<key>PayloadType</key>
+				<string>com.agilebits.onepassword7</string>
+				<key>PayloadUUID</key>
+				<string>C9F016D2-2813-48E2-9052-6426AB10D470</string>
+				<key>PayloadVersion</key>
+				<integer>1</integer>
 			</dict>
 		</array>
-		<key>PayloadDescription</key>
-		<string/>
 		<key>PayloadDisplayName</key>
-		<string>mobile-wifi</string>
-		<key>PayloadEnabled</key>
-		<true/>
-		<key>PayloadRemovalDisallowed</key>
-		<true/>
-		<key>PayloadScope</key>
-		<string>System</string>
+		<string>Untitled</string>
+		<key>PayloadIdentifier</key>
+		<string>Dafydds-MacBook-Air.5663C461-5EE7-427E-BAED-FA62B1AE88E8</string>
 		<key>PayloadType</key>
 		<string>Configuration</string>
+		<key>PayloadUUID</key>
+		<string>5663C461-5EE7-427E-BAED-FA62B1AE88E8</string>
 		<key>PayloadVersion</key>
 		<integer>1</integer>
 	</dict>
-</plist>`
+	</plist>`
 
 	keysToRemove := []string{"PayloadUUID", "PayloadIdentifier", "PayloadOrganization"}
 	processedProfile, err := configurationprofiles.ProcessConfigurationProfile(originalPlist, keysToRemove)

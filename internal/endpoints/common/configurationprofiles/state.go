@@ -4,6 +4,8 @@ package configurationprofiles
 import (
 	"bytes"
 	"log"
+	"strconv"
+	"strings"
 
 	"howett.net/plist"
 )
@@ -42,39 +44,41 @@ func decodeAndCleanPlist(plistData []byte, fieldsToRemove []string) (map[string]
 	}
 
 	log.Printf("Raw plist data: %v\n", rawData)
-	removeFields(rawData, fieldsToRemove)
+	removeFields(rawData, fieldsToRemove, "")
 	log.Printf("Cleaned plist data: %v\n", rawData)
 
 	return rawData, nil
 }
 
 // Function to remove specified fields from a nested map
-func removeFields(data map[string]interface{}, fieldsToRemove []string) {
-	for key, value := range data {
-		switch v := value.(type) {
-		case map[string]interface{}:
-			removeFields(v, fieldsToRemove)
-		case []interface{}:
-			for i, item := range v {
-				if nestedMap, ok := item.(map[string]interface{}); ok {
-					removeFields(nestedMap, fieldsToRemove)
-				}
-				v[i] = item
-			}
-			data[key] = v
+func removeFields(data map[string]interface{}, fieldsToRemove []string, path string) {
+	// Iterate over the fields to remove and delete them if they exist
+	for _, field := range fieldsToRemove {
+		if _, exists := data[field]; exists {
+			log.Printf("Removing field: %s from path: %s\n", field, path)
+			delete(data, field)
 		}
 	}
 
-	for _, field := range fieldsToRemove {
-		if _, exists := data[field]; exists {
-			log.Printf("Removing field: %s\n", field)
-			delete(data, field)
+	// Recursively process nested maps and arrays
+	for key, value := range data {
+		newPath := path + "/" + key
+		switch v := value.(type) {
+		case map[string]interface{}:
+			removeFields(v, fieldsToRemove, newPath)
+		case []interface{}:
+			for i, item := range v {
+				if nestedMap, ok := item.(map[string]interface{}); ok {
+					removeFields(nestedMap, fieldsToRemove, newPath+strings.ReplaceAll(key, "/", "_")+strconv.Itoa(i))
+				}
+			}
 		}
 	}
 }
 
 // EncodePlist encodes a cleaned map back to plist XML format
 func EncodePlist(cleanedData map[string]interface{}) (string, error) {
+	log.Printf("Encoding plist data: %v\n", cleanedData)
 	var buffer bytes.Buffer
 	encoder := plist.NewEncoder(&buffer)
 	encoder.Indent("\t") // Optional: for pretty-printing the XML
@@ -82,6 +86,5 @@ func EncodePlist(cleanedData map[string]interface{}) (string, error) {
 		log.Printf("Error encoding plist data: %v\n", err)
 		return "", err
 	}
-
 	return buffer.String(), nil
 }

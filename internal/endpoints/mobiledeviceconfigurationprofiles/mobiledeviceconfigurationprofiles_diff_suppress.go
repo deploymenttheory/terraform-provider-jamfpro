@@ -2,11 +2,10 @@
 package mobiledeviceconfigurationprofiles
 
 import (
-	"crypto/sha256"
-	"fmt"
 	"log"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/hash"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -26,8 +25,8 @@ func diffSuppressPayloads(k, old, new string, d *schema.ResourceData) bool {
 		return false
 	}
 
-	oldHash := hashString(processedOldPayload)
-	newHash := hashString(processedNewPayload)
+	oldHash := hash.HashString(processedOldPayload)
+	newHash := hash.HashString(processedNewPayload)
 
 	log.Printf("Old payload hash: %s, New payload hash: %s", oldHash, newHash)
 
@@ -44,14 +43,4 @@ func processPayload(payload string) (string, error) {
 	}
 	log.Printf("Processed payload: %s", processedPayload)
 	return processedPayload, nil
-}
-
-// hashString calculates the SHA-256 hash of a string and returns it as a hexadecimal string.
-func hashString(s string) string {
-	log.Printf("Hashing string: %s", s)
-	h := sha256.New()
-	h.Write([]byte(s))
-	hash := fmt.Sprintf("%x", h.Sum(nil))
-	log.Printf("Computed hash: %s", hash)
-	return hash
 }
