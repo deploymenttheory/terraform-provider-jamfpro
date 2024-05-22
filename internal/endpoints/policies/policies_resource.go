@@ -173,7 +173,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 				MaxItems:    1,
 				Required:    true,
 				Description: "Scope configuration for the profile.",
-				Elem:        sharedschemas.GetSharedSchemaScope(),
+				Elem:        sharedschemas.GetSharedmacOSComputerSchemaScope(),
 			},
 			"self_service": {
 				Type:        schema.TypeList,

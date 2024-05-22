@@ -17,7 +17,7 @@ description: |-
 
 ### Required
 
-- `name` (String) The name of the mobile device configuration profile.
+- `id` (String) The unique identifier for the mobile device configuration profile.
 
 ### Optional
 
@@ -25,7 +25,7 @@ description: |-
 
 ### Read-Only
 
-- `id` (String) The unique identifier for the mobile device configuration profile.
+- `name` (String) The name of the mobile device configuration profile.
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

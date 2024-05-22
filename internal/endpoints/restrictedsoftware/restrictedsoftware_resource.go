@@ -184,11 +184,11 @@ func ResourceJamfProRestrictedSoftwares() *schema.Resource {
 										Elem:        &schema.Schema{Type: schema.TypeInt},
 										Description: "A list of department IDs for exclusions.",
 									},
-									"user_names": {
+									"directory_service_or_local_usernames": {
 										Type:        schema.TypeList,
 										Optional:    true,
 										Elem:        &schema.Schema{Type: schema.TypeString},
-										Description: "A list of user names for exclusions.",
+										Description: "A list of directory service / local usernames for scoping exclusions.",
 									},
 								},
 							},

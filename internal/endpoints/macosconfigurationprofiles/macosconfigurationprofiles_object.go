@@ -93,31 +93,31 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 	}
 
 	// Computer Groups
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetComputerGroup, int]("scope.0.computer_group_ids", "ID", d, &out.Scope.ComputerGroups)
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.computer_group_ids", "ID", d, &out.Scope.ComputerGroups)
 	if err != nil {
 		return nil, err
 	}
 
 	// JSS Users
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetJSSUser, int]("scope.0.jss_user_ids", "ID", d, &out.Scope.JSSUsers)
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.jss_user_ids", "ID", d, &out.Scope.JSSUsers)
 	if err != nil {
 		return nil, err
 	}
 
 	// JSS User Groups
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetJSSUserGroup, int]("scope.0.jss_user_group_ids", "ID", d, &out.Scope.JSSUserGroups)
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.jss_user_group_ids", "ID", d, &out.Scope.JSSUserGroups)
 	if err != nil {
 		return nil, err
 	}
 
 	// Buildings
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetBuilding, int]("scope.0.building_ids", "ID", d, &out.Scope.Buildings)
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.building_ids", "ID", d, &out.Scope.Buildings)
 	if err != nil {
 		return nil, err
 	}
 
 	// Departments
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetDepartment, int]("scope.0.department_ids", "ID", d, &out.Scope.Departments)
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.department_ids", "ID", d, &out.Scope.Departments)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 	// Scope - Limitations
 
 	// Users
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetUser, string]("scope.0.limitations.0.user_names", "Name", d, &out.Scope.Limitations.Users)
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, string]("scope.0.limitations.0.user_names", "Name", d, &out.Scope.Limitations.Users)
 	if err != nil {
 		return nil, err
 	}
@@ -137,13 +137,13 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 	}
 
 	// IBeacons
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetIBeacon, int]("scope.0.limitations.0.ibeacon_ids", "ID", d, &out.Scope.Limitations.IBeacons)
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.limitations.0.ibeacon_ids", "ID", d, &out.Scope.Limitations.IBeacons)
 	if err != nil {
 		return nil, err
 	}
 
 	// User Groups
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetUserGroup, int]("scope.0.limitations.0.user_group_ids", "ID", d, &out.Scope.Limitations.UserGroups)
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.limitations.0.user_group_ids", "ID", d, &out.Scope.Limitations.UserGroups)
 	if err != nil {
 		return nil, err
 	}
@@ -157,19 +157,19 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 	}
 
 	// Computer Groups
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetComputerGroup, int]("scope.0.exclusions.0.computer_group_ids", "ID", d, &out.Scope.Exclusions.ComputerGroups)
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.computer_group_ids", "ID", d, &out.Scope.Exclusions.ComputerGroups)
 	if err != nil {
 		return nil, err
 	}
 
 	// Buildings
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetBuilding, int]("scope.0.exclusions.0.building_ids", "ID", d, &out.Scope.Exclusions.Buildings)
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.building_ids", "ID", d, &out.Scope.Exclusions.Buildings)
 	if err != nil {
 		return nil, err
 	}
 
 	// Departments
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetDepartment, int]("scope.0.exclusions.0.department_ids", "ID", d, &out.Scope.Exclusions.Departments)
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.department_ids", "ID", d, &out.Scope.Exclusions.Departments)
 	if err != nil {
 		return nil, err
 	}
@@ -181,19 +181,19 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 	}
 
 	// JSS Users
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetJSSUser, int]("scope.0.exclusions.0.jss_user_ids", "ID", d, &out.Scope.Exclusions.JSSUsers)
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.jss_user_ids", "ID", d, &out.Scope.Exclusions.JSSUsers)
 	if err != nil {
 		return nil, err
 	}
 
 	// JSS User Groups
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetJSSUserGroup, int]("scope.0.exclusions.0.jss_user_group_ids", "ID", d, &out.Scope.Exclusions.JSSUserGroups)
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.jss_user_group_ids", "ID", d, &out.Scope.Exclusions.JSSUserGroups)
 	if err != nil {
 		return nil, err
 	}
 
 	// IBeacons
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetIBeacon, int]("scope.0.exclusions.0.ibeacon_ids", "ID", d, &out.Scope.Exclusions.IBeacons)
+	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.ibeacon_ids", "ID", d, &out.Scope.Exclusions.IBeacons)
 	if err != nil {
 		return nil, err
 	}

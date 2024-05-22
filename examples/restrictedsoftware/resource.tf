@@ -22,7 +22,7 @@ resource "jamfpro_restricted_software" "restricted_software_001" {
       computer_group_ids = [118 ]
       building_ids       = ([1348, 1349])
       department_ids     = ([37287, 37288])
-      user_names           = ["Jane Smith","John Doe"]
+      directory_service_or_local_usernames = ["Jane Smith","John Doe"]
     }
   }
 }
