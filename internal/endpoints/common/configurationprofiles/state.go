@@ -4,6 +4,7 @@ package configurationprofiles
 import (
 	"bytes"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -23,8 +24,11 @@ func ProcessConfigurationProfile(plistData string, fieldsToRemove []string) (str
 		return "", err
 	}
 
+	// Sort keys for consistent order
+	sortedData := sortKeys(cleanedData)
+
 	// Encode the cleaned data back to plist XML format
-	encodedPlist, err := EncodePlist(cleanedData)
+	encodedPlist, err := EncodePlist(sortedData)
 	if err != nil {
 		log.Printf("Error encoding cleaned data to plist: %v\n", err)
 		return "", err
@@ -74,6 +78,35 @@ func removeFields(data map[string]interface{}, fieldsToRemove []string, path str
 			}
 		}
 	}
+}
+
+// sortKeys recursively sorts the keys of a nested map in alphabetical order.
+func sortKeys(data map[string]interface{}) map[string]interface{} {
+	sortedData := make(map[string]interface{})
+	keys := make([]string, 0, len(data))
+	for k := range data {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		switch v := data[k].(type) {
+		case map[string]interface{}:
+			sortedData[k] = sortKeys(v)
+		case []interface{}:
+			sortedArray := make([]interface{}, len(v))
+			for i, item := range v {
+				if nestedMap, ok := item.(map[string]interface{}); ok {
+					sortedArray[i] = sortKeys(nestedMap)
+				} else {
+					sortedArray[i] = item
+				}
+			}
+			sortedData[k] = sortedArray
+		default:
+			sortedData[k] = v
+		}
+	}
+	return sortedData
 }
 
 // EncodePlist encodes a cleaned map back to plist XML format
