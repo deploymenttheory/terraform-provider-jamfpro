@@ -27,6 +27,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 		ReadContext:   ResourceJamfProMacOSConfigurationProfilesRead,
 		UpdateContext: ResourceJamfProMacOSConfigurationProfilesUpdate,
 		DeleteContext: ResourceJamfProMacOSConfigurationProfilesDelete,
+		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
