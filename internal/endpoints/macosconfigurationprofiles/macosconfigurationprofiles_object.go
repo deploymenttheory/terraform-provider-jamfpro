@@ -83,7 +83,7 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 	var err error
 
 	// Scope - Targets
-	out.Scope.AllComputers = d.Get("scope.0.all_computers").(bool) // t
+	out.Scope.AllComputers = d.Get("scope.0.all_computers").(bool)
 	out.Scope.AllJSSUsers = d.Get("scope.0.all_jss_users").(bool)
 
 	// Computers
