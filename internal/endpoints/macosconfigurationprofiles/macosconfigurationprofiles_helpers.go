@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
-	"strconv"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -47,21 +45,21 @@ func GetAttrsListFromHCL[NestedObjectType any, ListItemPrimitiveType any](path s
 }
 
 // TODO rename this func and put it somewhere else too
-func FixStupidDoubleKey(resp *jamfpro.ResourceMacOSConfigurationProfile, home *[]map[string]interface{}) error {
-	var err error
-	var correctNotifValue bool
-	for _, k := range resp.SelfService.Notification {
-		if k == "true" || k == "false" {
-			correctNotifValue, err = strconv.ParseBool(k)
-			if err != nil {
-				return err
-			}
-			(*home)[0]["notification"] = correctNotifValue
-			return nil
-		}
-	}
-	return fmt.Errorf("failed to parse value %+v", resp.SelfService)
-}
+// func FixStupidDoubleKey(resp *jamfpro.ResourceMacOSConfigurationProfile, home *[]map[string]interface{}) error {
+// 	var err error
+// 	var correctNotifValue bool
+// 	for _, k := range resp.SelfService.Notification {
+// 		if k == "true" || k == "false" {
+// 			correctNotifValue, err = strconv.ParseBool(k)
+// 			if err != nil {
+// 				return err
+// 			}
+// 			(*home)[0]["notification"] = correctNotifValue
+// 			return nil
+// 		}
+// 	}
+// 	return fmt.Errorf("failed to parse value %+v", resp.SelfService)
+// }
 
 // TODO Make this work later
 

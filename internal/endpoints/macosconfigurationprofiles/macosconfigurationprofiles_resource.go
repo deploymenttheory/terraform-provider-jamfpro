@@ -93,10 +93,11 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Description:  "The level of the configuration profile. Available options are: 'Computer', 'User' or 'System'.",
 				ValidateFunc: validation.StringInSlice([]string{"Computer", "User", "System"}, false),
 			},
-			"payload": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "A MacOS configuration profile xml file as a file",
+			"payloads": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Description:      "The macOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist.",
+				DiffSuppressFunc: diffSuppressPayloads,
 			},
 			"redeploy_on_update": {
 				Type:        schema.TypeString,
