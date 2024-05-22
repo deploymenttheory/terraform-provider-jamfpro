@@ -35,8 +35,18 @@ func constructJamfProComputerGroup(d *schema.ResourceData) (*jamfpro.ResourceCom
 	}
 
 	// Handle "computers" field
-	if v, ok := d.GetOk("computers"); ok && !group.IsSmart {
-		group.Computers = constructGroupComputers(v.([]interface{}))
+
+	if !group.IsSmart {
+		computers, ok := d.GetOk("computers")
+
+		if len(computers.([]interface{})) > 0 && ok {
+			group.Computers = constructGroupComputers(computers.([]interface{}))
+
+		} else if !ok {
+			return nil, fmt.Errorf("failed to get computers")
+		}
+	} else {
+		group.Computers = nil
 	}
 
 	// Serialize and pretty-print the Computer Group object as XML for logging
@@ -73,7 +83,7 @@ func constructGroupCriteria(criteriaData []interface{}) []jamfpro.SharedSubsetCr
 }
 
 // constructGroupComputers constructs a slice of ComputerGroupSubsetComputer from the provided schema data.
-func constructGroupComputers(computersData []interface{}) []jamfpro.ComputerGroupSubsetComputer {
+func constructGroupComputers(computersData []interface{}) *[]jamfpro.ComputerGroupSubsetComputer {
 	var computers []jamfpro.ComputerGroupSubsetComputer
 	for _, comp := range computersData {
 		computerMap := comp.(map[string]interface{})
@@ -86,5 +96,5 @@ func constructGroupComputers(computersData []interface{}) []jamfpro.ComputerGrou
 		})
 	}
 
-	return computers
+	return &computers
 }
