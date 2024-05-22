@@ -21,7 +21,7 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 			DistributionMethod: d.Get("distribution_method").(string),
 			UserRemovable:      d.Get("user_removable").(bool),
 			Level:              d.Get("level").(string),
-			UUID:               d.Get("uuid").(string), // TODO not sure if this is needed as it's computed
+			UUID:               d.Get("uuid").(string),
 			RedeployOnUpdate:   d.Get("redeploy_on_update").(string),
 		},
 		Scope: jamfpro.MacOSConfigurationProfileSubsetScope{},

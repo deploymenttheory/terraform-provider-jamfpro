@@ -1,7 +1,9 @@
 // common/helpers.go
 package common
 
-import "reflect"
+import (
+	"reflect"
+)
 
 // ConvertToInterfaceSlice converts a slice of any type to a slice of empty interfaces.
 func ConvertToInterfaceSlice(slice interface{}) []interface{} {

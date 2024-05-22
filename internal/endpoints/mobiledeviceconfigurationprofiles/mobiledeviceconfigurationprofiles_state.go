@@ -48,7 +48,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 	}
 
 	// Sanitize and set the payloads using the plist processor function removing the mdm server unique identifiers
-	keysToRemove := []string{"PayloadUUID", "PayloadIdentifier", "PayloadOrganization"}
+	keysToRemove := []string{"PayloadUUID", "PayloadIdentifier", "PayloadOrganization", "PayloadDisplayName"}
 	processedProfile, err := configurationprofiles.ProcessConfigurationProfile(resource.General.Payloads, keysToRemove)
 	if err != nil {
 		log.Printf("Error processing configuration profile: %v\n", err)
