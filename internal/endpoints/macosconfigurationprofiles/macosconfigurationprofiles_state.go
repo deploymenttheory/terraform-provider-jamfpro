@@ -1,4 +1,4 @@
-package mobiledeviceconfigurationprofiles
+package macosconfigurationprofiles
 
 import (
 	"log"
@@ -10,20 +10,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// updateTerraformState updates the Terraform state with the latest ResourceMobileDeviceConfigurationProfile
+// updateTerraformState updates the Terraform state with the latest ResourceMacOSConfigurationProfile
 // information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobileDeviceConfigurationProfile) diag.Diagnostics {
+func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacOSConfigurationProfile) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Create a map to hold the resource data
 	resourceData := map[string]interface{}{
-		"name":              resource.General.Name,
-		"description":       resource.General.Description,
-		"uuid":              resource.General.UUID,
-		"deployment_method": resource.General.DeploymentMethod,
-		// Skipping the 'distribution_method' attribute as it appears to be deprecated but still in documentation
-		"redeploy_on_update":                resource.General.RedeployOnUpdate,
-		"redeploy_days_before_cert_expires": resource.General.RedeployDaysBeforeCertExpires,
+		"name":                resource.General.Name,
+		"description":         resource.General.Description,
+		"uuid":                resource.General.UUID,
+		"distribution_method": resource.General.DistributionMethod,
+		"user_removable":      resource.General.UserRemovable,
+		"redeploy_on_update":  resource.General.RedeployOnUpdate,
 	}
 
 	// Check if the level is "System" and set it to "Device Level", otherwise use the value from resource
@@ -58,8 +57,8 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 	log.Printf("Processed profile payload: %s\n", processedProfile)
 
 	// Set the processed payloads field
-	if err := d.Set("payloads", processedProfile); err != nil {
-		log.Printf("Error setting payloads: %v\n", err)
+	if err := d.Set("payload", processedProfile); err != nil {
+		log.Printf("Error setting payload: %v\n", err)
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -83,6 +82,13 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	// Preparing and setting self-service data
+	if selfServiceData, err := setSelfService(resource.SelfService); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	} else if err := d.Set("self_service", []interface{}{selfServiceData}); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	// Update the resource data
 	for k, v := range resourceData {
 		if err := d.Set(k, v); err != nil {
@@ -94,15 +100,15 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 }
 
 // setScope converts the scope structure into a format suitable for setting in the Terraform state.
-func setScope(resource *jamfpro.ResourceMobileDeviceConfigurationProfile) (map[string]interface{}, error) {
+func setScope(resource *jamfpro.ResourceMacOSConfigurationProfile) (map[string]interface{}, error) {
 	scopeData := map[string]interface{}{
-		"all_mobile_devices": resource.Scope.AllMobileDevices,
-		"all_jss_users":      resource.Scope.AllJSSUsers,
+		"all_computers": resource.Scope.AllComputers,
+		"all_jss_users": resource.Scope.AllJSSUsers,
 	}
 
-	// Gather mobile devices, groups, etc.
-	scopeData["mobile_device_ids"] = flattenAndSortMobileDeviceIDs(resource.Scope.MobileDevices)
-	scopeData["mobile_device_group_ids"] = flattenAndSortScopeEntityIds(resource.Scope.MobileDeviceGroups)
+	// Gather computers, groups, etc.
+	scopeData["computer_ids"] = flattenAndSortComputerIds(resource.Scope.Computers)
+	scopeData["computer_group_ids"] = flattenAndSortScopeEntityIds(resource.Scope.ComputerGroups)
 	scopeData["jss_user_ids"] = flattenAndSortScopeEntityIds(resource.Scope.JSSUsers)
 	scopeData["jss_user_group_ids"] = flattenAndSortScopeEntityIds(resource.Scope.JSSUserGroups)
 	scopeData["building_ids"] = flattenAndSortScopeEntityIds(resource.Scope.Buildings)
@@ -126,15 +132,15 @@ func setScope(resource *jamfpro.ResourceMobileDeviceConfigurationProfile) (map[s
 }
 
 // setLimitations collects and formats limitations data for the Terraform state.
-func setLimitations(limitations jamfpro.MobileDeviceConfigurationProfileSubsetLimitation) ([]map[string]interface{}, error) {
+func setLimitations(limitations jamfpro.MacOSConfigurationProfileSubsetLimitations) ([]map[string]interface{}, error) {
 	result := map[string]interface{}{}
 
 	if len(limitations.NetworkSegments) > 0 {
 		result["network_segment_ids"] = flattenAndSortNetworkSegmentIds(limitations.NetworkSegments)
 	}
 
-	if len(limitations.Ibeacons) > 0 {
-		result["ibeacon_ids"] = flattenAndSortScopeEntityIds(limitations.Ibeacons)
+	if len(limitations.IBeacons) > 0 {
+		result["ibeacon_ids"] = flattenAndSortScopeEntityIds(limitations.IBeacons)
 	}
 
 	if len(limitations.Users) > 0 {
@@ -149,15 +155,15 @@ func setLimitations(limitations jamfpro.MobileDeviceConfigurationProfileSubsetLi
 }
 
 // setExclusions collects and formats exclusion data for the Terraform state.
-func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExclusion) ([]map[string]interface{}, error) {
+func setExclusions(exclusions jamfpro.MacOSConfigurationProfileSubsetExclusions) ([]map[string]interface{}, error) {
 	result := map[string]interface{}{}
 
-	if len(exclusions.MobileDevices) > 0 {
-		result["mobile_device_ids"] = flattenAndSortMobileDeviceIDs(exclusions.MobileDevices)
+	if len(exclusions.Computers) > 0 {
+		result["computer_ids"] = flattenAndSortComputerIds(exclusions.Computers)
 	}
 
-	if len(exclusions.MobileDeviceGroups) > 0 {
-		result["mobile_device_group_ids"] = flattenAndSortScopeEntityIds(exclusions.MobileDeviceGroups)
+	if len(exclusions.ComputerGroups) > 0 {
+		result["computer_group_ids"] = flattenAndSortScopeEntityIds(exclusions.ComputerGroups)
 	}
 
 	if len(exclusions.Buildings) > 0 {
@@ -181,7 +187,7 @@ func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExcl
 	}
 
 	if len(exclusions.Users) > 0 {
-		result["directory_service_or_local_usernames"] = flattenAndSortScopeEntityIds(exclusions.Users)
+		result["directory_service_or_local_usernames"] = flattenAndSortScopeEntityNames(exclusions.Users)
 	}
 
 	if len(exclusions.UserGroups) > 0 {
@@ -195,10 +201,49 @@ func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExcl
 	return []map[string]interface{}{result}, nil
 }
 
+// setSelfService converts the self-service structure into a format suitable for setting in the Terraform state.
+func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfService) (map[string]interface{}, error) {
+	selfServiceData := map[string]interface{}{
+		"install_button_text":             selfService.InstallButtonText,
+		"self_service_description":        selfService.SelfServiceDescription,
+		"force_users_to_view_description": selfService.ForceUsersToViewDescription,
+		"feature_on_main_page":            selfService.FeatureOnMainPage,
+		"notification":                    selfService.Notification,
+		"notification_subject":            selfService.NotificationSubject,
+		"notification_message":            selfService.NotificationMessage,
+	}
+
+	if selfService.SelfServiceIcon.ID != 0 {
+		selfServiceData["self_service_icon"] = []interface{}{
+			map[string]interface{}{
+				"id":       selfService.SelfServiceIcon.ID,
+				"uri":      selfService.SelfServiceIcon.URI,
+				"data":     selfService.SelfServiceIcon.Data,
+				"filename": selfService.SelfServiceIcon.Filename,
+			},
+		}
+	}
+
+	if len(selfService.SelfServiceCategories) > 0 {
+		categories := []interface{}{}
+		for _, category := range selfService.SelfServiceCategories {
+			categories = append(categories, map[string]interface{}{
+				"id":         category.ID,
+				"name":       category.Name,
+				"display_in": category.DisplayIn,
+				"feature_in": category.FeatureIn,
+			})
+		}
+		selfServiceData["self_service_categories"] = categories
+	}
+
+	return selfServiceData, nil
+}
+
 // helper functions
 
 // flattenAndSortScopeEntityIds converts a slice of general scope entities (like user groups, buildings) to a format suitable for Terraform state.
-func flattenAndSortScopeEntityIds(entities []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) []int {
+func flattenAndSortScopeEntityIds(entities []jamfpro.MacOSConfigurationProfileSubsetScopeEntity) []int {
 	var ids []int
 	for _, entity := range entities {
 		ids = append(ids, entity.ID)
@@ -208,7 +253,7 @@ func flattenAndSortScopeEntityIds(entities []jamfpro.MobileDeviceConfigurationPr
 }
 
 // flattenAndSortScopeEntityNames converts a slice of RestrictedSoftwareSubsetScopeEntity into a sorted slice of strings.
-func flattenAndSortScopeEntityNames(entities []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) []string {
+func flattenAndSortScopeEntityNames(entities []jamfpro.MacOSConfigurationProfileSubsetScopeEntity) []string {
 	var names []string
 	for _, entity := range entities {
 		names = append(names, entity.Name)
@@ -217,18 +262,18 @@ func flattenAndSortScopeEntityNames(entities []jamfpro.MobileDeviceConfiguration
 	return names
 }
 
-// flattenAndSortMobileDeviceIDs converts a slice of MobileDeviceConfigurationProfileSubsetMobileDevice into a sorted slice of integers.
-func flattenAndSortMobileDeviceIDs(devices []jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice) []int {
+// flattenAndSortComputerIds converts a slice of MacOSConfigurationProfileSubsetComputer into a sorted slice of integers.
+func flattenAndSortComputerIds(computers []jamfpro.MacOSConfigurationProfileSubsetComputer) []int {
 	var ids []int
-	for _, device := range devices {
-		ids = append(ids, device.ID)
+	for _, computer := range computers {
+		ids = append(ids, computer.ID)
 	}
 	sort.Ints(ids)
 	return ids
 }
 
-// flattenAndSortNetworkSegmentIds converts a slice of MobileDeviceConfigurationProfileSubsetNetworkSegment into a sorted slice of integers.
-func flattenAndSortNetworkSegmentIds(segments []jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment) []int {
+// flattenAndSortNetworkSegmentIds converts a slice of MacOSConfigurationProfileSubsetNetworkSegment into a sorted slice of integers.
+func flattenAndSortNetworkSegmentIds(segments []jamfpro.MacOSConfigurationProfileSubsetNetworkSegment) []int {
 	var ids []int
 	for _, segment := range segments {
 		ids = append(ids, segment.ID)
