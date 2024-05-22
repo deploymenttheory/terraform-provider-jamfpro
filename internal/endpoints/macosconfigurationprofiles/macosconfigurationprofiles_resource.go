@@ -12,8 +12,8 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
+	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -53,6 +53,11 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Optional:    true,
 				Description: "Description of the configuration profile.",
 			},
+			"uuid": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The universally unique identifier for the profile.",
+			},
 			"site": {
 				Type:        schema.TypeList,
 				MaxItems:    1,
@@ -88,22 +93,24 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Description:  "The level of the configuration profile. Available options are: 'Computer', 'User' or 'System'.",
 				ValidateFunc: validation.StringInSlice([]string{"Computer", "User", "System"}, false),
 			},
-			"uuid": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The UUID of the configuration profile.",
-			},
 			"payload": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "A MacOS configuration profile xml file as a file",
 			},
 			"redeploy_on_update": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "Newly Assigned", // This is always "Newly Assigned" on existing profile objects, but may be set "All" on profile update requests and in TF state.
-				Description:  "Whether the configuration profile is redeployed on update.",
-				ValidateFunc: validation.StringInSlice([]string{"All", "Newly Assigned"}, false),
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "Newly Assigned", // This is always "Newly Assigned" on existing profile objects, but may be set "All" on profile update requests and in TF state.
+				Description: "Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state",
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := util.GetString(val)
+					if v == "All" || v == "Newly Assigned" {
+						return
+					}
+					errs = append(errs, fmt.Errorf("%q must be either 'All' or 'Newly Assigned', got: %s", key, v))
+					return warns, errs
+				},
 			},
 			"scope": {
 				Type:        schema.TypeList,
