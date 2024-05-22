@@ -110,7 +110,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				MaxItems:    1,
 				Description: "The scope of the configuration profile.",
 				Required:    true,
-				Elem:        sharedschemas.GetSharedSchemaScope(),
+				Elem:        sharedschemas.GetSharedmacOSComputerSchemaScope(),
 			},
 			"self_service": {
 				Type:        schema.TypeList,
