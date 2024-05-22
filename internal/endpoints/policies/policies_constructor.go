@@ -2,6 +2,7 @@ package policies
 
 // TODO remove all the log.print's. Debug use only
 // TODO handle all toxic combinations
+// TODO review error handling here? Feels like there is not enough
 
 import (
 	"encoding/xml"
@@ -12,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// Primary
-
+// Returns ResourcePolicy required for client to marshal into api req
 func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	log.Println(("LOGHERE-CONSTRUCT"))
 	var err error
@@ -22,10 +22,7 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	out := &jamfpro.ResourcePolicy{}
 
 	// General
-	err = constructGeneral(d, out)
-	if err != nil {
-		return nil, err
-	}
+	constructGeneral(d, out)
 
 	// Scope
 	err = constructScope(d, out)
@@ -34,15 +31,10 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	}
 
 	// Self Service
-	err = constructSelfService(d, out)
-	if err != nil {
-		return nil, err
-	}
+	constructSelfService(d, out)
 
-	err = constructPayloads(d, out)
-	if err != nil {
-		return nil, err
-	}
+	// Payloads
+	constructPayloads(d, out)
 
 	// Package Configuration
 	// Scripts
@@ -55,7 +47,7 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	// Reboot
 
 	// DEBUG
-	log.Println("XMLOUT")
+	log.Println("LOGHERE-CONSTRUCTED")
 	policyXML, _ := xml.MarshalIndent(out, "", "  ")
 	log.Println(string(policyXML))
 
@@ -64,9 +56,8 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	return out, nil
 }
 
-// Child funcs
-
-func constructGeneral(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
+// Pulls "general" settings from HCL and packages into object
+func constructGeneral(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	log.Println("GENERAL")
 
 	// Primitive fields
@@ -117,10 +108,9 @@ func constructGeneral(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error
 			ID: 0,
 		}
 	}
-
-	return nil
 }
 
+// Pulls "scope" settings from HCL and packages into object
 func constructScope(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
 	log.Println("SCOPE")
 	var err error
@@ -131,6 +121,7 @@ func constructScope(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
 
 	// Targets
 
+	// TODO review this and similar blocks below
 	out.Scope = &jamfpro.PolicySubsetScope{
 		Computers:      &[]jamfpro.PolicySubsetComputer{},
 		ComputerGroups: &[]jamfpro.PolicySubsetComputerGroup{},
@@ -284,49 +275,94 @@ func constructScope(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
 	return nil
 }
 
-func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
+// Pulls "self service" settings from HCL and packages into object
+func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
+	log.Println("SELF SERVICE")
 
 	if len(d.Get("self_service").([]interface{})) > 0 {
 		out.SelfService = &jamfpro.PolicySubsetSelfService{
-			UseForSelfService:           d.Get("self_service.0.use_for_self_service").(bool),
-			SelfServiceDisplayName:      d.Get("self_service.0.self_service_display_name").(string),
-			InstallButtonText:           d.Get("self_service.0.install_button_text").(string),
-			ReinstallButtonText:         d.Get("self_service.0.reinstall_button_text").(string),
+			UseForSelfService:      d.Get("self_service.0.use_for_self_service").(bool),
+			SelfServiceDisplayName: d.Get("self_service.0.self_service_display_name").(string),
+			InstallButtonText:      d.Get("self_service.0.install_button_text").(string),
+			// ReinstallButtonText:         d.Get("self_service.0.reinstall_button_text").(string),
 			SelfServiceDescription:      d.Get("self_service.0.self_service_description").(string),
 			ForceUsersToViewDescription: d.Get("self_service.0.force_users_to_view_description").(bool),
-			// TODO self service icon later
+			// TODO self service icon
 			FeatureOnMainPage: d.Get("self_service.0.feature_on_main_page").(bool),
-			// TODO Self service categories later
+			// TODO Self service categories
 		}
 	}
-
-	return nil
 }
 
-func constructPayloads(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
-	hclPackages := d.Get("payloads.0.packages")
-	if len(hclPackages.([]interface{})) == 0 {
-		return nil
+// Pulls "payload" settings from HCL and packages into object
+func constructPayloads(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
+	log.Println("PAYLOADS")
+
+	// Packages
+	constructPayloadPackages(d, out)
+
+	// Scripts
+	constructPayloadScripts(d, out)
+}
+
+// Pulls "package" settings from HCL and packages into object
+func constructPayloadPackages(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
+	log.Println("PACKAGES")
+
+	hcl := d.Get("payloads.0.packages")
+	if len(hcl.([]interface{})) == 0 {
+		return
 	}
 
 	outBlock := new(jamfpro.PolicySubsetPackageConfiguration)
 	outBlock.DistributionPoint = d.Get("package_distribution_point").(string)
 	outBlock.Packages = &[]jamfpro.PolicySubsetPackageConfigurationPackage{}
+	payload := *outBlock.Packages
 
-	packages := *outBlock.Packages
-
-	for _, v := range hclPackages.([]interface{}) {
+	for _, v := range hcl.([]interface{}) {
 		newObj := jamfpro.PolicySubsetPackageConfigurationPackage{
 			ID:                v.(map[string]interface{})["id"].(int),
 			Action:            v.(map[string]interface{})["action"].(string),
 			FillUserTemplate:  v.(map[string]interface{})["fill_user_template"].(bool),
 			FillExistingUsers: v.(map[string]interface{})["fill_existing_user_template"].(bool),
 		}
-		packages = append(packages, newObj)
+		payload = append(payload, newObj)
 	}
 
-	outBlock.Packages = &packages
+	outBlock.Packages = &payload
 	out.PackageConfiguration = outBlock
+}
 
-	return nil
+// Pulls "script" settings from HCL and packages into object
+func constructPayloadScripts(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
+	log.Println("SCRIPTS")
+
+	hcl := d.Get("payloads.0.scripts")
+	if len(hcl.([]interface{})) == 0 {
+		return
+	}
+
+	outBlock := new(jamfpro.PolicySubsetScripts)
+	outBlock.Script = &[]jamfpro.PolicySubsetScript{}
+	payload := *outBlock.Script
+
+	for _, v := range hcl.([]interface{}) {
+		newObj := jamfpro.PolicySubsetScript{
+			ID:          v.(map[string]interface{})["id"].(string),
+			Priority:    v.(map[string]interface{})["priority"].(string),
+			Parameter4:  v.(map[string]interface{})["parameter4"].(string),
+			Parameter5:  v.(map[string]interface{})["parameter5"].(string),
+			Parameter6:  v.(map[string]interface{})["parameter6"].(string),
+			Parameter7:  v.(map[string]interface{})["parameter7"].(string),
+			Parameter8:  v.(map[string]interface{})["parameter8"].(string),
+			Parameter9:  v.(map[string]interface{})["parameter9"].(string),
+			Parameter10: v.(map[string]interface{})["parameter10"].(string),
+			Parameter11: v.(map[string]interface{})["parameter11"].(string),
+		}
+
+		payload = append(payload, newObj)
+	}
+
+	outBlock.Script = &payload
+	out.Scripts = outBlock
 }

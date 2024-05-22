@@ -1,7 +1,9 @@
 package policies
 
+// TODO remove log.prints, debug use only
+// TODO maybe review error handling here too?
+
 import (
-	"encoding/xml"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -9,10 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// Primary
-
+// Parent func for invdividual stating functions
 func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, resourceID string) diag.Diagnostics {
 	var diags diag.Diagnostics
+	log.Println("LOGHERE-RESPONSE")
+	// xmlData, _ := xml.MarshalIndent(resp, " ", "	")
+	// log.Println(string(xmlData))
 
 	if err := d.Set("id", resourceID); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
@@ -30,14 +34,10 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, 
 	// Payloads
 	statePayloads(d, resp, &diags)
 
-	log.Println("STATE-FLAG-28")
-	log.Printf("%+v", diags)
-
 	return diags
 }
 
-// Child funcs
-
+// Reads response and states general/root level items
 func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
 	var err error
 
@@ -107,7 +107,7 @@ func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *d
 	}
 
 	// Site
-	// TODO Review this logic
+	// TODO Review this logic (site and cat)
 	if resp.General.Site.ID != -1 && resp.General.Site.Name != "None" {
 		out_site := []map[string]interface{}{
 			{
@@ -116,16 +116,9 @@ func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *d
 		}
 
 		if err := d.Set("site", out_site); err != nil {
-			if diags == nil {
-				diags = &diag.Diagnostics{}
-			}
 			*diags = append(*diags, diag.FromErr(err)...)
 		}
-	} else {
-		log.Println("Not stating default site response") // TODO Logging
 	}
-
-	log.Println("STATE-FLAG-4")
 
 	// Category
 	if resp.General.Category.ID != -1 && resp.General.Category.Name != "No category assigned" {
@@ -140,12 +133,10 @@ func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *d
 			}
 			*diags = append(*diags, diag.FromErr(err)...)
 		}
-	} else {
-		log.Println("Not stating default category response") // TODO logging
 	}
-
 }
 
+// Reads response and states scope items
 func stateScope(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
 	var err error
 
@@ -154,12 +145,7 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *dia
 	out_scope[0]["all_computers"] = resp.Scope.AllComputers
 	out_scope[0]["all_jss_users"] = resp.Scope.AllJSSUsers
 
-	// DEBUG // TODO remove this
-	log.Println("XMLIN")
-	log.Println(resp.Scope.AllJSSUsers)
-	xmlData, _ := xml.MarshalIndent(resp, "", "    ")
-	log.Println(string(xmlData))
-
+	// TODO see if we can simplify/centralise the repeated logic below
 	// Computers
 	if resp.Scope.Computers != nil && len(*resp.Scope.Computers) > 0 {
 		var listOfIds []int
@@ -359,22 +345,17 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *dia
 	// State Scope
 	err = d.Set("scope", out_scope)
 	if err != nil {
-		if diags == nil {
-			diags = &diag.Diagnostics{}
-		}
 		*diags = append(*diags, diag.FromErr(err)...)
 	}
-
 }
 
+// Reads response and states self service items
 func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
 	var err error
 	out_ss := make([]map[string]interface{}, 0)
 	out_ss = append(out_ss, make(map[string]interface{}, 1))
 
 	if resp.SelfService != nil {
-		log.Println("STATE-FLAG_RESP_SELFERVICE")
-		log.Printf("%+v", resp.SelfService)
 		out_ss[0]["use_for_self_service"] = resp.SelfService.UseForSelfService
 		out_ss[0]["self_service_display_name"] = resp.SelfService.SelfServiceDisplayName
 		out_ss[0]["install_button_text"] = resp.SelfService.InstallButtonText
@@ -384,46 +365,92 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 
 		err = d.Set("self_service", out_ss)
 		if err != nil {
-			if diags == nil {
-				diags = &diag.Diagnostics{}
-			}
 			*diags = append(*diags, diag.FromErr(err)...)
 		}
 	}
 }
 
+// Parent func for stating payloads. Constructs var with prep funcs and states as one here.
 func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
-	var err error
 	out := make([]map[string]interface{}, 0)
 	out = append(out, make(map[string]interface{}, 1))
-	out[0]["packages"] = make([]map[string]interface{}, 0)
-	log.Println("LOGHERE")
-	log.Printf("%+v", out)
 
-	if resp.PackageConfiguration != nil {
-		log.Println("NOT NIL")
-		for _, v := range *resp.PackageConfiguration.Packages {
-			log.Println("LOOPING")
-			outMap := make(map[string]interface{})
-			outMap["id"] = v.ID
-			outMap["action"] = v.Action
-			outMap["fill_user_template"] = v.FillUserTemplate
-			outMap["fill_existing_user_template"] = v.FillExistingUsers
-			out[0]["packages"] = append(out[0]["packages"].([]map[string]interface{}), outMap)
-		}
+	// Packages
+	prepStatePayloadPackages(&out, resp)
 
-	}
+	// Scripts
+	prepStatePayloadScripts(&out, resp)
 
-	log.Println("OUT DONE:")
-	log.Printf("%+v", out)
-
-	err = d.Set("payloads", out)
+	// State
+	err := d.Set("payloads", out)
 	if err != nil {
-		log.Println("ERROR FOUND", err)
-		if diags == nil {
-			diags = &diag.Diagnostics{}
-		}
 		*diags = append(*diags, diag.FromErr(err)...)
 	}
+}
 
+// Reads response and preps package payload items
+func prepStatePayloadPackages(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
+	if resp.PackageConfiguration == nil {
+		return
+	}
+
+	(*out)[0]["packages"] = make([]map[string]interface{}, 0)
+	for _, v := range *resp.PackageConfiguration.Packages {
+		outMap := make(map[string]interface{})
+		outMap["id"] = v.ID
+		outMap["action"] = v.Action
+		outMap["fill_user_template"] = v.FillUserTemplate
+		outMap["fill_existing_user_template"] = v.FillExistingUsers
+		(*out)[0]["packages"] = append((*out)[0]["packages"].([]map[string]interface{}), outMap)
+	}
+}
+
+// Reads response and preps script payload items
+func prepStatePayloadScripts(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
+	if resp.Scripts.Script == nil {
+		return
+	}
+
+	(*out)[0]["scripts"] = make([]map[string]interface{}, 0)
+	for _, v := range *resp.Scripts.Script {
+		outMap := make(map[string]interface{})
+		outMap["id"] = v.ID
+		outMap["priority"] = v.Priority
+
+		if v.Parameter4 != "" {
+			outMap["parameter4"] = v.Parameter4
+		}
+		if v.Parameter5 != "" {
+			outMap["parameter5"] = v.Parameter5
+		}
+		if v.Parameter6 != "" {
+			outMap["parameter6"] = v.Parameter6
+		}
+		if v.Parameter7 != "" {
+			outMap["parameter7"] = v.Parameter7
+		}
+		if v.Parameter8 != "" {
+			outMap["parameter8"] = v.Parameter8
+		}
+		if v.Parameter9 != "" {
+			outMap["parameter9"] = v.Parameter9
+		}
+		if v.Parameter10 != "" {
+			outMap["parameter10"] = v.Parameter10
+		}
+		if v.Parameter11 != "" {
+			outMap["parameter11"] = v.Parameter11
+		}
+
+		// outMap["parameter5"] = v.Parameter5
+		// outMap["parameter6"] = v.Parameter6
+		// outMap["parameter7"] = v.Parameter7
+		// outMap["parameter8"] = v.Parameter8
+		// outMap["parameter9"] = v.Parameter9
+		// outMap["parameter10"] = v.Parameter10
+		// outMap["parameter11"] = v.Parameter11
+		(*out)[0]["scripts"] = append((*out)[0]["scripts"].([]map[string]interface{}), outMap)
+		log.Println("LOGHERE-SCRIPT OUT")
+		log.Println(outMap)
+	}
 }

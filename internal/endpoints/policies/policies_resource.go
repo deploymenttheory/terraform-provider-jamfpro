@@ -72,7 +72,6 @@ func ResourceJamfProPolicies() *schema.Resource {
 			"trigger_other": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     "",
 				Description: "Any other trigger for the policy.",
 				// TODO need a validation func here to make sure this cannot be provided as empty.
 			},
