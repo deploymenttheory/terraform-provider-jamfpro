@@ -124,14 +124,20 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 
 	// Scope - Limitations
 
-	// Users
-	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, string]("scope.0.limitations.0.user_names", "Name", d, &out.Scope.Limitations.Users)
+	// Network Segment
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetNetworkSegment, int]("scope.0.limitations.0.network_segment_ids", "ID", d, &out.Scope.Limitations.NetworkSegments)
 	if err != nil {
 		return nil, err
 	}
 
-	// Network Segment
-	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetNetworkSegment, int]("scope.0.limitations.0.network_segment_ids", "ID", d, &out.Scope.Limitations.NetworkSegments)
+	// directory service Users
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, string]("scope.0.limitations.0.directory_service_or_local_usernames", "Name", d, &out.Scope.Limitations.Users)
+	if err != nil {
+		return nil, err
+	}
+
+	// directory service User Groups
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.limitations.0.directory_service_usergroup_ids", "ID", d, &out.Scope.Limitations.UserGroups)
 	if err != nil {
 		return nil, err
 	}
@@ -142,13 +148,7 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 		return nil, err
 	}
 
-	// User Groups
-	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.limitations.0.user_group_ids", "ID", d, &out.Scope.Limitations.UserGroups)
-	if err != nil {
-		return nil, err
-	}
-
-	// Scope - Limitations
+	// Scope - Exclusions
 
 	// Computers
 	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetComputer, int]("scope.0.exclusions.0.computer_ids", "ID", d, &out.Scope.Exclusions.Computers)
@@ -158,6 +158,18 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 
 	// Computer Groups
 	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.computer_group_ids", "ID", d, &out.Scope.Exclusions.ComputerGroups)
+	if err != nil {
+		return nil, err
+	}
+
+	// JSS Users
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.jss_user_ids", "ID", d, &out.Scope.Exclusions.JSSUsers)
+	if err != nil {
+		return nil, err
+	}
+
+	// JSS User Groups
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.jss_user_group_ids", "ID", d, &out.Scope.Exclusions.JSSUserGroups)
 	if err != nil {
 		return nil, err
 	}
@@ -180,14 +192,14 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 		return nil, err
 	}
 
-	// JSS Users
-	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.jss_user_ids", "ID", d, &out.Scope.Exclusions.JSSUsers)
+	// directory service Users
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, string]("scope.0.exclusions.0.directory_service_or_local_usernames", "Name", d, &out.Scope.Limitations.Users)
 	if err != nil {
 		return nil, err
 	}
 
-	// JSS User Groups
-	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.jss_user_group_ids", "ID", d, &out.Scope.Exclusions.JSSUserGroups)
+	// directory service User Groups
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.directory_service_usergroup_ids", "ID", d, &out.Scope.Limitations.UserGroups)
 	if err != nil {
 		return nil, err
 	}

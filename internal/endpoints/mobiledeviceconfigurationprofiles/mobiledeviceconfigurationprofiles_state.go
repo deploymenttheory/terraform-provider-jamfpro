@@ -27,6 +27,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 	}
 
 	// Check if the level is "System" and set it to "Device Level", otherwise use the value from resource
+	// This is done to match the Jamf Pro API behavior
 	levelValue := resource.General.Level
 	if levelValue == "System" {
 		levelValue = "Device Level"

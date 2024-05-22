@@ -90,8 +90,8 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "System",
-				Description:  "The level of the configuration profile. Available options are: 'Computer', 'User' or 'System'.",
-				ValidateFunc: validation.StringInSlice([]string{"Computer", "User", "System"}, false),
+				Description:  "The deployment level of the configuration profile. Available options are: 'User' or 'System'. Note: 'System' is mapped to 'Computer Level' in the Jamf Pro GUI.",
+				ValidateFunc: validation.StringInSlice([]string{"User", "System"}, false),
 			},
 			"payloads": {
 				Type:             schema.TypeString,

@@ -25,10 +25,11 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacO
 		"redeploy_on_update":  resource.General.RedeployOnUpdate,
 	}
 
-	// Check if the level is "System" and set it to "Device Level", otherwise use the value from resource
+	// Check if the level is "Computer" and set it to "System", otherwise use the value from resource
+	// This is done to match the Jamf Pro API behavior
 	levelValue := resource.General.Level
-	if levelValue == "System" {
-		levelValue = "Device Level"
+	if levelValue == "Computer" {
+		levelValue = "System"
 	}
 	resourceData["level"] = levelValue
 
@@ -85,8 +86,10 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacO
 	// Preparing and setting self-service data
 	if selfServiceData, err := setSelfService(resource.SelfService); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
-	} else if err := d.Set("self_service", []interface{}{selfServiceData}); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	} else if selfServiceData != nil {
+		if err := d.Set("self_service", []interface{}{selfServiceData}); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	// Update the resource data
@@ -203,13 +206,26 @@ func setExclusions(exclusions jamfpro.MacOSConfigurationProfileSubsetExclusions)
 
 // setSelfService converts the self-service structure into a format suitable for setting in the Terraform state.
 func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfService) (map[string]interface{}, error) {
-	selfServiceData := map[string]interface{}{
-		"install_button_text":             selfService.InstallButtonText,
-		"self_service_description":        selfService.SelfServiceDescription,
-		"force_users_to_view_description": selfService.ForceUsersToViewDescription,
-		"feature_on_main_page":            selfService.FeatureOnMainPage,
-		"notification_subject":            selfService.NotificationSubject,
-		"notification_message":            selfService.NotificationMessage,
+	selfServiceData := make(map[string]interface{})
+
+	// Set real values only, avoiding defaults
+	if selfService.InstallButtonText != "" && selfService.InstallButtonText != "Install" {
+		selfServiceData["install_button_text"] = selfService.InstallButtonText
+	}
+	if selfService.SelfServiceDescription != "" && selfService.SelfServiceDescription != "no description set" {
+		selfServiceData["self_service_description"] = selfService.SelfServiceDescription
+	}
+	if selfService.ForceUsersToViewDescription {
+		selfServiceData["force_users_to_view_description"] = selfService.ForceUsersToViewDescription
+	}
+	if selfService.FeatureOnMainPage {
+		selfServiceData["feature_on_main_page"] = selfService.FeatureOnMainPage
+	}
+	if selfService.NotificationSubject != "" && selfService.NotificationSubject != "no message subject set" {
+		selfServiceData["notification_subject"] = selfService.NotificationSubject
+	}
+	if selfService.NotificationMessage != "" {
+		selfServiceData["notification_message"] = selfService.NotificationMessage
 	}
 
 	// Fix the notification field
@@ -220,9 +236,10 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 		if err != nil {
 			return nil, err
 		}
-		selfServiceData["notification"] = correctNotifValue
-	} else {
-		selfServiceData["notification"] = false // Default to false if no valid boolean value is found
+		// Only set notification if it's true
+		if correctNotifValue {
+			selfServiceData["notification"] = correctNotifValue
+		}
 	}
 
 	if selfService.SelfServiceIcon.ID != 0 {
@@ -247,6 +264,11 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 			})
 		}
 		selfServiceData["self_service_categories"] = categories
+	}
+
+	// Return nil map if there are no real values to avoid setting the self_service block
+	if len(selfServiceData) == 0 {
+		return nil, nil
 	}
 
 	return selfServiceData, nil
