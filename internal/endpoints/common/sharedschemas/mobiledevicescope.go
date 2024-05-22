@@ -140,7 +140,7 @@ func GetSharedMobileDeviceSchemaScope() *schema.Resource {
 							Description: "A list of directory service / local usernames for scoping limitations.",
 							Elem:        &schema.Schema{Type: schema.TypeString},
 						},
-						"directory_service_or_local_usergroup_ids": {
+						"directory_service_usergroup_ids": {
 							Type:        schema.TypeList,
 							Optional:    true,
 							Description: "A list of directory service / local user group IDs for limitations.",
