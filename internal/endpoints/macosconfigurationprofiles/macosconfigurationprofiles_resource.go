@@ -27,6 +27,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 		ReadContext:   ResourceJamfProMacOSConfigurationProfilesRead,
 		UpdateContext: ResourceJamfProMacOSConfigurationProfilesUpdate,
 		DeleteContext: ResourceJamfProMacOSConfigurationProfilesDelete,
+		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
@@ -80,7 +81,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Description:  "The distribution method for the configuration profile. ['Make Available in Self Service','Install Automatically']",
 				ValidateFunc: validation.StringInSlice([]string{"Make Available in Self Service", "Install Automatically"}, false),
 			},
-			"user_removeable": {
+			"user_removable": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
@@ -90,13 +91,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "System",
-				Description:  "The level of the configuration profile. Available options are: 'Computer', 'User' or 'System'.",
-				ValidateFunc: validation.StringInSlice([]string{"Computer", "User", "System"}, false),
+				Description:  "The deployment level of the configuration profile. Available options are: 'User' or 'System'. Note: 'System' is mapped to 'Computer Level' in the Jamf Pro GUI.",
+				ValidateFunc: validation.StringInSlice([]string{"User", "System"}, false),
 			},
-			"payload": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "A MacOS configuration profile xml file as a file",
+			"payloads": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Description:      "The macOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist.",
+				DiffSuppressFunc: diffSuppressPayloads,
 			},
 			"redeploy_on_update": {
 				Type:        schema.TypeString,
@@ -303,7 +305,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	}
 
 	// Attempt to fetch the resource by ID
-	resp, err := apiclient.Conn.GetMacOSConfigurationProfileByID(resourceIDInt)
+	resource, err := apiclient.Conn.GetMacOSConfigurationProfileByID(resourceIDInt)
 
 	if err != nil {
 		// Handle not found error or other errors
@@ -311,7 +313,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	}
 
 	// Update the Terraform state with the fetched data from the resource
-	diags = updateTerraformState(d, resp, resourceID)
+	diags = updateTerraformState(d, resource)
 
 	// Handle any errors and return diagnostics
 	if len(diags) > 0 {
