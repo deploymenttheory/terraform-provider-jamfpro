@@ -19,7 +19,7 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 			Name:               d.Get("name").(string),
 			Description:        d.Get("description").(string),
 			DistributionMethod: d.Get("distribution_method").(string),
-			UserRemovable:      d.Get("user_removeable").(bool),
+			UserRemovable:      d.Get("user_removable").(bool),
 			Level:              d.Get("level").(string),
 			UUID:               d.Get("uuid").(string), // TODO not sure if this is needed as it's computed
 			RedeployOnUpdate:   d.Get("redeploy_on_update").(string),
@@ -71,7 +71,7 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 	}
 
 	// Payload
-	payload, ok := d.GetOk("payload")
+	payload, ok := d.GetOk("payloads")
 	if ok {
 		payload = html.EscapeString(payload.(string))
 		out.General.Payloads = payload.(string)
@@ -87,113 +87,125 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 	out.Scope.AllJSSUsers = d.Get("scope.0.all_jss_users").(bool)
 
 	// Computers
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetComputer, int]("scope.0.computer_ids", "ID", d, &out.Scope.Computers)
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetComputer, int]("scope.0.computer_ids", "ID", d, &out.Scope.Computers)
 	if err != nil {
 		return nil, err
 	}
 
 	// Computer Groups
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.computer_group_ids", "ID", d, &out.Scope.ComputerGroups)
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.computer_group_ids", "ID", d, &out.Scope.ComputerGroups)
 	if err != nil {
 		return nil, err
 	}
 
 	// JSS Users
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.jss_user_ids", "ID", d, &out.Scope.JSSUsers)
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.jss_user_ids", "ID", d, &out.Scope.JSSUsers)
 	if err != nil {
 		return nil, err
 	}
 
 	// JSS User Groups
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.jss_user_group_ids", "ID", d, &out.Scope.JSSUserGroups)
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.jss_user_group_ids", "ID", d, &out.Scope.JSSUserGroups)
 	if err != nil {
 		return nil, err
 	}
 
 	// Buildings
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.building_ids", "ID", d, &out.Scope.Buildings)
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.building_ids", "ID", d, &out.Scope.Buildings)
 	if err != nil {
 		return nil, err
 	}
 
 	// Departments
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.department_ids", "ID", d, &out.Scope.Departments)
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.department_ids", "ID", d, &out.Scope.Departments)
 	if err != nil {
 		return nil, err
 	}
 
 	// Scope - Limitations
 
-	// Users
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, string]("scope.0.limitations.0.user_names", "Name", d, &out.Scope.Limitations.Users)
+	// Network Segment
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetNetworkSegment, int]("scope.0.limitations.0.network_segment_ids", "ID", d, &out.Scope.Limitations.NetworkSegments)
 	if err != nil {
 		return nil, err
 	}
 
-	// Network Segment
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetNetworkSegment, int]("scope.0.limitations.0.network_segment_ids", "ID", d, &out.Scope.Limitations.NetworkSegments)
+	// directory service Users
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, string]("scope.0.limitations.0.directory_service_or_local_usernames", "Name", d, &out.Scope.Limitations.Users)
+	if err != nil {
+		return nil, err
+	}
+
+	// directory service User Groups
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.limitations.0.directory_service_usergroup_ids", "ID", d, &out.Scope.Limitations.UserGroups)
 	if err != nil {
 		return nil, err
 	}
 
 	// IBeacons
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.limitations.0.ibeacon_ids", "ID", d, &out.Scope.Limitations.IBeacons)
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.limitations.0.ibeacon_ids", "ID", d, &out.Scope.Limitations.IBeacons)
 	if err != nil {
 		return nil, err
 	}
 
-	// User Groups
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.limitations.0.user_group_ids", "ID", d, &out.Scope.Limitations.UserGroups)
-	if err != nil {
-		return nil, err
-	}
-
-	// Scope - Limitations
+	// Scope - Exclusions
 
 	// Computers
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetComputer, int]("scope.0.exclusions.0.computer_ids", "ID", d, &out.Scope.Exclusions.Computers)
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetComputer, int]("scope.0.exclusions.0.computer_ids", "ID", d, &out.Scope.Exclusions.Computers)
 	if err != nil {
 		return nil, err
 	}
 
 	// Computer Groups
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.computer_group_ids", "ID", d, &out.Scope.Exclusions.ComputerGroups)
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.computer_group_ids", "ID", d, &out.Scope.Exclusions.ComputerGroups)
+	if err != nil {
+		return nil, err
+	}
+
+	// JSS Users
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.jss_user_ids", "ID", d, &out.Scope.Exclusions.JSSUsers)
+	if err != nil {
+		return nil, err
+	}
+
+	// JSS User Groups
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.jss_user_group_ids", "ID", d, &out.Scope.Exclusions.JSSUserGroups)
 	if err != nil {
 		return nil, err
 	}
 
 	// Buildings
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.building_ids", "ID", d, &out.Scope.Exclusions.Buildings)
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.building_ids", "ID", d, &out.Scope.Exclusions.Buildings)
 	if err != nil {
 		return nil, err
 	}
 
 	// Departments
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.department_ids", "ID", d, &out.Scope.Exclusions.Departments)
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.department_ids", "ID", d, &out.Scope.Exclusions.Departments)
 	if err != nil {
 		return nil, err
 	}
 
 	// Network Segments
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetNetworkSegment, int]("scope.0.exclusions.0.network_segment_ids", "ID", d, &out.Scope.Exclusions.NetworkSegments)
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetNetworkSegment, int]("scope.0.exclusions.0.network_segment_ids", "ID", d, &out.Scope.Exclusions.NetworkSegments)
 	if err != nil {
 		return nil, err
 	}
 
-	// JSS Users
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.jss_user_ids", "ID", d, &out.Scope.Exclusions.JSSUsers)
+	// directory service Users
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, string]("scope.0.exclusions.0.directory_service_or_local_usernames", "Name", d, &out.Scope.Limitations.Users)
 	if err != nil {
 		return nil, err
 	}
 
-	// JSS User Groups
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.jss_user_group_ids", "ID", d, &out.Scope.Exclusions.JSSUserGroups)
+	// directory service User Groups
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.directory_service_usergroup_ids", "ID", d, &out.Scope.Limitations.UserGroups)
 	if err != nil {
 		return nil, err
 	}
 
 	// IBeacons
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.ibeacon_ids", "ID", d, &out.Scope.Exclusions.IBeacons)
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.ibeacon_ids", "ID", d, &out.Scope.Exclusions.IBeacons)
 	if err != nil {
 		return nil, err
 	}

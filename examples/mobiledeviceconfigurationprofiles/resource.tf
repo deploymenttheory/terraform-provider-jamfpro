@@ -27,8 +27,8 @@ resource "jamfpro_mobile_device_configuration_profile" "mobile_device_configurat
     limitations {
       network_segment_ids = [701, 702]
       ibeacon_ids = [801]
-      directory_service_or_local_usernames = [901, 902]
-      user_group_ids = [1001, 1002]
+      directory_service_or_local_usernames = ["Jane Smith","John Doe"]
+      directory_service_usergroup_ids = [1001, 1002]
     }
 
     exclusions {
@@ -39,6 +39,8 @@ resource "jamfpro_mobile_device_configuration_profile" "mobile_device_configurat
       network_segment_ids = [1501, 1502]
       jss_user_ids = [1601, 1602]
       jss_user_group_ids = [1701]
+      directory_service_or_local_usernames = ["Jane Smith","John Doe"]
+      directory_service_usergroup_ids = [1001, 1002]
       ibeacon_ids = [1801]
     }
   }

@@ -1,4 +1,4 @@
-// macosconfigurationprofiles_data_handling.go
+// macosconfigurationprofiles_diff_suppress.go
 package macosconfigurationprofiles
 
 import (
