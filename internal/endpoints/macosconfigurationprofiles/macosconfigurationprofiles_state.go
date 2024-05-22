@@ -82,6 +82,13 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacO
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	// Preparing and setting self-service data
+	if selfServiceData, err := setSelfService(resource.SelfService); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	} else if err := d.Set("self_service", []interface{}{selfServiceData}); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	// Update the resource data
 	for k, v := range resourceData {
 		if err := d.Set(k, v); err != nil {
@@ -180,7 +187,7 @@ func setExclusions(exclusions jamfpro.MacOSConfigurationProfileSubsetExclusions)
 	}
 
 	if len(exclusions.Users) > 0 {
-		result["directory_service_or_local_usernames"] = flattenAndSortScopeEntityIds(exclusions.Users)
+		result["directory_service_or_local_usernames"] = flattenAndSortScopeEntityNames(exclusions.Users)
 	}
 
 	if len(exclusions.UserGroups) > 0 {
@@ -192,6 +199,45 @@ func setExclusions(exclusions jamfpro.MacOSConfigurationProfileSubsetExclusions)
 	}
 
 	return []map[string]interface{}{result}, nil
+}
+
+// setSelfService converts the self-service structure into a format suitable for setting in the Terraform state.
+func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfService) (map[string]interface{}, error) {
+	selfServiceData := map[string]interface{}{
+		"install_button_text":             selfService.InstallButtonText,
+		"self_service_description":        selfService.SelfServiceDescription,
+		"force_users_to_view_description": selfService.ForceUsersToViewDescription,
+		"feature_on_main_page":            selfService.FeatureOnMainPage,
+		"notification":                    selfService.Notification,
+		"notification_subject":            selfService.NotificationSubject,
+		"notification_message":            selfService.NotificationMessage,
+	}
+
+	if selfService.SelfServiceIcon.ID != 0 {
+		selfServiceData["self_service_icon"] = []interface{}{
+			map[string]interface{}{
+				"id":       selfService.SelfServiceIcon.ID,
+				"uri":      selfService.SelfServiceIcon.URI,
+				"data":     selfService.SelfServiceIcon.Data,
+				"filename": selfService.SelfServiceIcon.Filename,
+			},
+		}
+	}
+
+	if len(selfService.SelfServiceCategories) > 0 {
+		categories := []interface{}{}
+		for _, category := range selfService.SelfServiceCategories {
+			categories = append(categories, map[string]interface{}{
+				"id":         category.ID,
+				"name":       category.Name,
+				"display_in": category.DisplayIn,
+				"feature_in": category.FeatureIn,
+			})
+		}
+		selfServiceData["self_service_categories"] = categories
+	}
+
+	return selfServiceData, nil
 }
 
 // helper functions
