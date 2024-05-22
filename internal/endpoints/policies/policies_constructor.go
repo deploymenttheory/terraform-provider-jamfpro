@@ -15,7 +15,7 @@ import (
 
 // Returns ResourcePolicy required for client to marshal into api req
 func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
-	log.Println(("LOGHERE-CONSTRUCT"))
+
 	var err error
 
 	// Main obj
@@ -52,13 +52,12 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	log.Println(string(policyXML))
 
 	// END
-	log.Println("LOGEND")
+
 	return out, nil
 }
 
 // Pulls "general" settings from HCL and packages into object
 func constructGeneral(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
-	log.Println("GENERAL")
 
 	// Primitive fields
 	out.General = jamfpro.PolicySubsetGeneral{
@@ -80,7 +79,6 @@ func constructGeneral(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 
 	// TODO Do we need these set or can we just set the default to nil?
 	// Category
-	log.Println("CATEGORY")
 
 	suppliedCategory := d.Get("category").([]interface{})
 	if len(suppliedCategory) > 0 {
@@ -95,7 +93,6 @@ func constructGeneral(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	}
 
 	// Site
-	log.Println("SITE")
 
 	suppliedSite := d.Get("site").([]interface{})
 	if len(suppliedSite) > 0 {
@@ -112,7 +109,7 @@ func constructGeneral(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 
 // Pulls "scope" settings from HCL and packages into object
 func constructScope(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
-	log.Println("SCOPE")
+
 	var err error
 
 	if len(d.Get("scope").([]interface{})) == 0 {
@@ -193,7 +190,7 @@ func constructScope(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
 	}
 
 	// User Groups
-	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetUserGroup, int]("scope.0.limitations.0.user_group_ids", "ID", d, out.Scope.Limitations.UserGroups)
+	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetUserGroup, int]("scope.0.limitations.0.directory_service_usergroup_ids", "ID", d, out.Scope.Limitations.UserGroups)
 	if err != nil {
 		return err
 	}
@@ -277,7 +274,6 @@ func constructScope(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
 
 // Pulls "self service" settings from HCL and packages into object
 func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
-	log.Println("SELF SERVICE")
 
 	if len(d.Get("self_service").([]interface{})) > 0 {
 		out.SelfService = &jamfpro.PolicySubsetSelfService{
@@ -296,7 +292,6 @@ func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 
 // Pulls "payload" settings from HCL and packages into object
 func constructPayloads(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
-	log.Println("PAYLOADS")
 
 	// Packages
 	constructPayloadPackages(d, out)
@@ -307,7 +302,6 @@ func constructPayloads(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 
 // Pulls "package" settings from HCL and packages into object
 func constructPayloadPackages(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
-	log.Println("PACKAGES")
 
 	hcl := d.Get("payloads.0.packages")
 	if len(hcl.([]interface{})) == 0 {
@@ -335,7 +329,6 @@ func constructPayloadPackages(d *schema.ResourceData, out *jamfpro.ResourcePolic
 
 // Pulls "script" settings from HCL and packages into object
 func constructPayloadScripts(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
-	log.Println("SCRIPTS")
 
 	hcl := d.Get("payloads.0.scripts")
 	if len(hcl.([]interface{})) == 0 {
