@@ -87,14 +87,20 @@ func sortKeys(data map[string]interface{}) map[string]interface{} {
 	for k := range data {
 		keys = append(keys, k)
 	}
+	log.Printf("Unsorted keys: %v\n", keys)
 	sort.Strings(keys)
+	log.Printf("Sorted keys: %v\n", keys)
 	for _, k := range keys {
+		log.Printf("Processing key: %s\n", k)
 		switch v := data[k].(type) {
 		case map[string]interface{}:
+			log.Printf("Key %s is a nested map, sorting nested keys...\n", k)
 			sortedData[k] = sortKeys(v)
 		case []interface{}:
+			log.Printf("Key %s is an array, processing items...\n", k)
 			sortedArray := make([]interface{}, len(v))
 			for i, item := range v {
+				log.Printf("Processing item %d of array %s\n", i, k)
 				if nestedMap, ok := item.(map[string]interface{}); ok {
 					sortedArray[i] = sortKeys(nestedMap)
 				} else {
