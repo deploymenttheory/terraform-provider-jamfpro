@@ -1,3 +1,4 @@
+// macosconfigurationprofiles_helpers.go
 package macosconfigurationprofiles
 
 import (

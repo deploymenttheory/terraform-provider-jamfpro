@@ -193,13 +193,13 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 	}
 
 	// directory service Users
-	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, string]("scope.0.exclusions.0.directory_service_or_local_usernames", "Name", d, &out.Scope.Limitations.Users)
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, string]("scope.0.exclusions.0.directory_service_or_local_usernames", "Name", d, &out.Scope.Exclusions.Users)
 	if err != nil {
 		return nil, err
 	}
 
 	// directory service User Groups
-	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.directory_service_usergroup_ids", "ID", d, &out.Scope.Limitations.UserGroups)
+	err = ExtractNestedObjectsFromSchema[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.exclusions.0.directory_service_usergroup_ids", "ID", d, &out.Scope.Exclusions.UserGroups)
 	if err != nil {
 		return nil, err
 	}
