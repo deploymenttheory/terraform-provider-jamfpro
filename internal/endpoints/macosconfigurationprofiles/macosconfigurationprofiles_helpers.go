@@ -4,62 +4,91 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"strconv"
 
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// TODO rename this func and put it somewhere else
-func GetAttrsListFromHCL[NestedObjectType any, ListItemPrimitiveType any](path string, target_field string, d *schema.ResourceData, home *[]NestedObjectType) (err error) {
+// ExtractNestedObjectsFromSchema is a helper function to extract a list of nested objects from HCL configuration
+func ExtractNestedObjectsFromSchema[NestedObjectType any, ListItemPrimitiveType any](path string, targetField string, d *schema.ResourceData, home *[]NestedObjectType) error {
 	getAttr, ok := d.GetOk(path)
-
-	if len(getAttr.([]interface{})) == 0 {
+	if !ok {
 		return nil
 	}
 
-	if ok {
-		outList := make([]NestedObjectType, 0)
-		for _, v := range getAttr.([]interface{}) {
-			var newObj NestedObjectType
-			newObjReflect := reflect.ValueOf(&newObj).Elem()
-			idField := newObjReflect.FieldByName(target_field)
+	attrList, ok := getAttr.([]interface{})
+	if !ok {
+		return fmt.Errorf("failed to cast %s to []interface{}", path)
+	}
 
-			if idField.IsValid() && idField.CanSet() {
-				idField.Set(reflect.ValueOf(v.(ListItemPrimitiveType)))
-			} else {
-				return fmt.Errorf("error cannot set field line 695") // TODO write this error
-			}
+	if len(attrList) == 0 {
+		return nil
+	}
 
-			outList = append(outList, newObj)
-
+	outList := make([]NestedObjectType, 0)
+	for _, v := range attrList {
+		if v == nil {
+			continue
 		}
 
-		if len(outList) > 0 {
-			*home = outList
+		var newObj NestedObjectType
+		newObjReflect := reflect.ValueOf(&newObj).Elem()
+		idField := newObjReflect.FieldByName(targetField)
+
+		if idField.IsValid() && idField.CanSet() {
+			idField.Set(reflect.ValueOf(v.(ListItemPrimitiveType)))
 		} else {
-			log.Println("list is empty")
+			return fmt.Errorf("error cannot set field %s", targetField)
 		}
 
-		return nil
+		outList = append(outList, newObj)
 	}
-	return fmt.Errorf("no path found/no scoped items at %v", path)
+
+	if len(outList) > 0 {
+		*home = outList
+	} else {
+		log.Println("list is empty")
+	}
+
+	return nil
 }
 
-// TODO rename this func and put it somewhere else too
-// func FixStupidDoubleKey(resp *jamfpro.ResourceMacOSConfigurationProfile, home *[]map[string]interface{}) error {
-// 	var err error
-// 	var correctNotifValue bool
-// 	for _, k := range resp.SelfService.Notification {
-// 		if k == "true" || k == "false" {
-// 			correctNotifValue, err = strconv.ParseBool(k)
-// 			if err != nil {
-// 				return err
-// 			}
-// 			(*home)[0]["notification"] = correctNotifValue
-// 			return nil
-// 		}
-// 	}
-// 	return fmt.Errorf("failed to parse value %+v", resp.SelfService)
-// }
+// FixDuplicateNotificationKey handles the double key issue in the notification field of the self_service block.
+/*
+<self_service>
+        <self_service_display_name>WiFi Test</self_service_display_name>
+        <install_button_text>Install</install_button_text>
+        <self_service_description>null</self_service_description>
+        <force_users_to_view_description>false</force_users_to_view_description>
+        <security>
+            <removal_disallowed>Never</removal_disallowed>
+        </security>
+        <self_service_icon/>
+        <feature_on_main_page>false</feature_on_main_page>
+        <self_service_categories/>
+        <notification>false</notification>				<-- This is the issue
+        <notification>Self Service</notification>  <-- This is the issue
+        <notification_subject/>
+        <notification_message/>
+    </self_service>
+*/
+func FixDuplicateNotificationKey(resp *jamfpro.ResourceMacOSConfigurationProfile) (bool, error) {
+	for _, k := range resp.SelfService.Notification {
+		strValue := fmt.Sprintf("%v", k)
+		if strValue == "true" || strValue == "false" {
+			correctNotifValue, err := strconv.ParseBool(strValue)
+			if err != nil {
+				return false, err
+			}
+			return correctNotifValue, nil
+		} else {
+			log.Printf("Ignoring non-boolean notification value: %s", strValue)
+		}
+	}
+	// Return default value if no valid boolean value is found
+	return false, nil
+}
 
 // TODO Make this work later
 

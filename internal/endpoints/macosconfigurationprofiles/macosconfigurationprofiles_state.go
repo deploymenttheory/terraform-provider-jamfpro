@@ -57,7 +57,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacO
 	log.Printf("Processed profile payload: %s\n", processedProfile)
 
 	// Set the processed payloads field
-	if err := d.Set("payload", processedProfile); err != nil {
+	if err := d.Set("payloads", processedProfile); err != nil {
 		log.Printf("Error setting payload: %v\n", err)
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -208,9 +208,21 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 		"self_service_description":        selfService.SelfServiceDescription,
 		"force_users_to_view_description": selfService.ForceUsersToViewDescription,
 		"feature_on_main_page":            selfService.FeatureOnMainPage,
-		"notification":                    selfService.Notification,
 		"notification_subject":            selfService.NotificationSubject,
 		"notification_message":            selfService.NotificationMessage,
+	}
+
+	// Fix the notification field
+	if len(selfService.Notification) > 0 {
+		correctNotifValue, err := FixDuplicateNotificationKey(&jamfpro.ResourceMacOSConfigurationProfile{
+			SelfService: selfService,
+		})
+		if err != nil {
+			return nil, err
+		}
+		selfServiceData["notification"] = correctNotifValue
+	} else {
+		selfServiceData["notification"] = false // Default to false if no valid boolean value is found
 	}
 
 	if selfService.SelfServiceIcon.ID != 0 {

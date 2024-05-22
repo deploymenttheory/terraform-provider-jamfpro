@@ -80,7 +80,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Description:  "The distribution method for the configuration profile. ['Make Available in Self Service','Install Automatically']",
 				ValidateFunc: validation.StringInSlice([]string{"Make Available in Self Service", "Install Automatically"}, false),
 			},
-			"user_removeable": {
+			"user_removable": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
