@@ -194,7 +194,7 @@ func setExclusions(exclusions jamfpro.MacOSConfigurationProfileSubsetExclusions)
 	}
 
 	if len(exclusions.UserGroups) > 0 {
-		result["directory_service_or_local_usergroup_ids"] = flattenAndSortScopeEntityIds(exclusions.UserGroups)
+		result["directory_service_usergroup_ids"] = flattenAndSortScopeEntityIds(exclusions.UserGroups)
 	}
 
 	if len(exclusions.IBeacons) > 0 {
