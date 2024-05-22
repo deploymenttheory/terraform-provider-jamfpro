@@ -303,7 +303,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	}
 
 	// Attempt to fetch the resource by ID
-	resp, err := apiclient.Conn.GetMacOSConfigurationProfileByID(resourceIDInt)
+	resource, err := apiclient.Conn.GetMacOSConfigurationProfileByID(resourceIDInt)
 
 	if err != nil {
 		// Handle not found error or other errors
@@ -311,7 +311,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	}
 
 	// Update the Terraform state with the fetched data from the resource
-	diags = updateTerraformState(d, resp, resourceID)
+	diags = updateTerraformState(d, resource)
 
 	// Handle any errors and return diagnostics
 	if len(diags) > 0 {
