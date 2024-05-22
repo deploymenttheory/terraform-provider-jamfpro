@@ -44,12 +44,10 @@ func constructJamfProComputerGroup(d *schema.ResourceData) (*jamfpro.ResourceCom
 
 		} else if !ok {
 			return nil, fmt.Errorf("failed to get computers")
+		}
 	} else {
 		group.Computers = nil
 	}
-
-
-	log.Printf("%+v", group)
 
 	// Serialize and pretty-print the Computer Group object as XML for logging
 	resourceXML, err := xml.MarshalIndent(group, "", "  ")
@@ -85,7 +83,7 @@ func constructGroupCriteria(criteriaData []interface{}) []jamfpro.SharedSubsetCr
 }
 
 // constructGroupComputers constructs a slice of ComputerGroupSubsetComputer from the provided schema data.
-func constructGroupComputers(computersData []interface{}) []jamfpro.ComputerGroupSubsetComputer {
+func constructGroupComputers(computersData []interface{}) *[]jamfpro.ComputerGroupSubsetComputer {
 	var computers []jamfpro.ComputerGroupSubsetComputer
 	for _, comp := range computersData {
 		computerMap := comp.(map[string]interface{})
@@ -98,5 +96,5 @@ func constructGroupComputers(computersData []interface{}) []jamfpro.ComputerGrou
 		})
 	}
 
-	return computers
+	return &computers
 }
