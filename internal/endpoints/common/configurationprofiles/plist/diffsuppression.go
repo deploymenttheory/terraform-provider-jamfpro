@@ -1,5 +1,5 @@
-// common/configurationprofiles/sanitize.go contains the functions to process configuration profiles.
-package configurationprofiles
+// common/configurationprofiles/plist/diffsuppression.go contains the functions to process configuration profiles.
+package plist
 
 import (
 	"log"
@@ -15,18 +15,14 @@ func ProcessConfigurationProfileForDiffSuppression(plistData string, fieldsToRem
 
 	// Decode and clean the plist data
 	plistBytes := []byte(plistData)
-	log.Printf("Decoding plist data: %s\n", plistData)
 	cleanedData, err := decodeAndCleanPlist(plistBytes, fieldsToRemove)
 	if err != nil {
 		log.Printf("Error decoding and cleaning plist data: %v\n", err)
 		return "", err
 	}
 
-	log.Printf("Cleaned plist data: %v\n", cleanedData)
-
 	// Sort keys for consistent order
-	log.Println("Sorting keys for consistent order...")
-	sortedData := sortKeys(cleanedData)
+	sortedData := SortPlistKeys(cleanedData)
 
 	log.Printf("Sorted plist data: %v\n", sortedData)
 
@@ -37,7 +33,6 @@ func ProcessConfigurationProfileForDiffSuppression(plistData string, fieldsToRem
 		return "", err
 	}
 
-	log.Printf("Successfully processed configuration profile\n")
 	return encodedPlist, nil
 }
 
@@ -51,15 +46,28 @@ func decodeAndCleanPlist(plistData []byte, fieldsToRemove []string) (map[string]
 	}
 
 	log.Printf("Raw plist data: %v\n", rawData)
-	removeFields(rawData, fieldsToRemove, "")
+	RemoveFields(rawData, fieldsToRemove, "")
 	log.Printf("Cleaned plist data: %v\n", rawData)
 
 	return rawData, nil
 }
 
-func removeFields(data map[string]interface{}, fieldsToRemove []string, path string) {
-	// Iterate over the fields to remove and delete them if they exist
+// RemoveFields removes specified fields from a nested map
+func RemoveFields(data map[string]interface{}, fieldsToRemove []string, path string) {
+	// Create a set of fields to remove for quick lookup
+	fieldsToRemoveSet := make(map[string]struct{}, len(fieldsToRemove))
 	for _, field := range fieldsToRemove {
+		fieldsToRemoveSet[field] = struct{}{}
+	}
+
+	// Recursively remove fields
+	recursivelyRemoveFields(data, fieldsToRemoveSet, path)
+}
+
+// recursivelyRemoveFields removes specified fields from a nested map
+func recursivelyRemoveFields(data map[string]interface{}, fieldsToRemoveSet map[string]struct{}, path string) {
+	// Iterate over the map and remove fields if they exist
+	for field := range fieldsToRemoveSet {
 		if _, exists := data[field]; exists {
 			log.Printf("Removing field: %s from path: %s\n", field, path)
 			delete(data, field)
@@ -72,12 +80,12 @@ func removeFields(data map[string]interface{}, fieldsToRemove []string, path str
 		switch v := value.(type) {
 		case map[string]interface{}:
 			log.Printf("Recursively removing fields in nested map at path: %s\n", newPath)
-			removeFields(v, fieldsToRemove, newPath)
+			recursivelyRemoveFields(v, fieldsToRemoveSet, newPath)
 		case []interface{}:
 			for i, item := range v {
 				if nestedMap, ok := item.(map[string]interface{}); ok {
 					log.Printf("Recursively removing fields in array at path: %s[%d]\n", newPath, i)
-					removeFields(nestedMap, fieldsToRemove, newPath+strings.ReplaceAll(key, "/", "_")+strconv.Itoa(i))
+					recursivelyRemoveFields(nestedMap, fieldsToRemoveSet, newPath+strings.ReplaceAll(key, "/", "_")+strconv.Itoa(i))
 				}
 			}
 			// Ensure empty arrays are preserved

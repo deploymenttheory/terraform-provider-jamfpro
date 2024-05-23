@@ -26,6 +26,7 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 		ReadContext:   ResourceJamfProMobileDeviceConfigurationProfileRead,
 		UpdateContext: ResourceJamfProMobileDeviceConfigurationProfileUpdate,
 		DeleteContext: ResourceJamfProMobileDeviceConfigurationProfileDelete,
+		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),

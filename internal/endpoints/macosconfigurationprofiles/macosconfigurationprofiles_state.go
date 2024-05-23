@@ -6,7 +6,7 @@ import (
 	"sort"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles/plist"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -47,8 +47,8 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacO
 		}
 	}
 
-	// Sanitize and set the payloads using the plist processor function
-	processedProfile, err := configurationprofiles.ProcessConfigurationProfileForState(resource.General.Payloads)
+	// Process and set the payloads using the plist processor function
+	processedProfile, err := plist.ProcessConfigurationProfileForState(resource.General.Payloads)
 	if err != nil {
 		log.Printf("Error processing configuration profile: %v\n", err)
 		diags = append(diags, diag.FromErr(err)...)
@@ -57,12 +57,27 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacO
 
 	log.Printf("Processed profile payload: %s\n", processedProfile)
 
+	// Log the current value of the payloads field before setting the new value
+	currentPayloads, ok := d.GetOk("payloads")
+	if ok {
+		log.Printf("Current payloads before setting new value: %s\n", currentPayloads)
+	} else {
+		log.Println("Current payloads before setting new value: not set or empty")
+	}
+
 	// Set the processed payloads field
 	if err := d.Set("payloads", processedProfile); err != nil {
 		log.Printf("Error setting payloads: %v\n", err)
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	// Log the value of the payloads field after setting the new value
+	updatedPayloads, ok := d.GetOk("payloads")
+	if ok {
+		log.Printf("Updated payloads after setting new value: %s\n", updatedPayloads)
+	} else {
+		log.Println("Updated payloads after setting new value: not set or empty")
+	}
 	// Set the 'category' attribute in the state only if it's not empty (i.e., not default values)
 	category := []interface{}{}
 	if resource.General.Category.ID != -1 {

@@ -1,4 +1,4 @@
-// webhooks_data_validation.go
+// webhooks_data_validator.go
 package webhooks
 
 import (
@@ -25,6 +25,7 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 
 // validateAuthenticationRequirements checks the conditions related to the 'authentication_type' attribute.
 func validateAuthenticationRequirements(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+	resourceName := diff.Get("name").(string)
 	authType, ok := diff.GetOk("authentication_type")
 	if !ok || authType.(string) != "Basic Authentication" {
 		// If not using Basic Authentication or attribute not set, no need to validate further.
@@ -36,10 +37,10 @@ func validateAuthenticationRequirements(_ context.Context, diff *schema.Resource
 	password, passwordOk := diff.GetOk("password")
 
 	if !usernameOk || username == "" {
-		return fmt.Errorf("when 'authentication_type' is set to 'Basic Authentication', 'username' must be provided")
+		return fmt.Errorf("in 'jamfpro_webhook.%s': when 'authentication_type' is set to 'Basic Authentication', 'username' must be provided", resourceName)
 	}
 	if !passwordOk || password == "" {
-		return fmt.Errorf("when 'authentication_type' is set to 'Basic Authentication', 'password' must be provided")
+		return fmt.Errorf("in 'jamfpro_webhook.%s': when 'authentication_type' is set to 'Basic Authentication', 'password' must be provided", resourceName)
 	}
 
 	return nil
@@ -47,6 +48,7 @@ func validateAuthenticationRequirements(_ context.Context, diff *schema.Resource
 
 // validateSmartGroupIDRequirement checks if the specified events require a smart_group_id and validates its presence.
 func validateSmartGroupIDRequirement(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+	resourceName := diff.Get("name").(string)
 	event, ok := diff.GetOk("event")
 	if !ok {
 		return nil // Event not set, no further validation needed
@@ -64,7 +66,7 @@ func validateSmartGroupIDRequirement(_ context.Context, diff *schema.ResourceDif
 		if event.(string) == reqEvent {
 			smartGroupID, smartGroupIDOk := diff.GetOk("smart_group_id")
 			if !smartGroupIDOk || smartGroupID == 0 {
-				return fmt.Errorf("when 'event' is set to '%s', 'smart_group_id' must be provided and must be a valid non-zero integer", event)
+				return fmt.Errorf("in 'jamfpro_webhook.%s': when 'event' is set to '%s', 'smart_group_id' must be provided and must be a valid non-zero integer", resourceName, event)
 			}
 			break
 		}
