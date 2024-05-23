@@ -28,7 +28,8 @@ func diffSuppressPayloads(k, old, new string, d *schema.ResourceData) bool {
 	oldHash := hash.HashString(processedOldPayload)
 	newHash := hash.HashString(processedNewPayload)
 
-	log.Printf("Old payload hash (Terraform state): %s, New payload hash (Jamf Pro server): %s", oldHash, newHash)
+	log.Printf("Old payload hash (Terraform state): %s\nOld payload (processed): %s", oldHash, processedOldPayload)
+	log.Printf("New payload hash (Jamf Pro server): %s\nNew payload (processed): %s", newHash, processedNewPayload)
 
 	return oldHash == newHash
 }
