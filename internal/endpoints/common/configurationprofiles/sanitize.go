@@ -25,9 +25,10 @@ func ProcessConfigurationProfile(plistData string, fieldsToRemove []string) (str
 	}
 
 	// Sort keys for consistent order
+	log.Println("Sorting keys for consistent order...")
 	sortedData := sortKeys(cleanedData)
 
-	// Encode the cleaned data back to plist XML format
+	// Encode the cleaned and sorted data back to plist XML format
 	encodedPlist, err := EncodePlist(sortedData)
 	if err != nil {
 		log.Printf("Error encoding cleaned data to plist: %v\n", err)
@@ -76,6 +77,8 @@ func removeFields(data map[string]interface{}, fieldsToRemove []string, path str
 					removeFields(nestedMap, fieldsToRemove, newPath+strings.ReplaceAll(key, "/", "_")+strconv.Itoa(i))
 				}
 			}
+			// Ensure empty arrays are preserved
+			data[key] = v
 		}
 	}
 }
