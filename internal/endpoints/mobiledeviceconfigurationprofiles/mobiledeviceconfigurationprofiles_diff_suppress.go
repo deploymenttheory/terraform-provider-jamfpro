@@ -4,7 +4,7 @@ package mobiledeviceconfigurationprofiles
 import (
 	"log"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles/plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/hash"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -37,7 +37,7 @@ func diffSuppressPayloads(k, old, new string, d *schema.ResourceData) bool {
 func processPayload(payload string) (string, error) {
 	log.Printf("Processing payload: %s", payload)
 	fieldsToRemove := []string{"PayloadUUID", "PayloadIdentifier", "PayloadOrganization", "PayloadDisplayName"}
-	processedPayload, err := configurationprofiles.ProcessConfigurationProfileForDiffSuppression(payload, fieldsToRemove)
+	processedPayload, err := plist.ProcessConfigurationProfileForDiffSuppression(payload, fieldsToRemove)
 	if err != nil {
 		return "", err
 	}

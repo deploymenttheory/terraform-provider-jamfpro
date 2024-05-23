@@ -1,5 +1,5 @@
-// common/configurationprofiles/shared.go contains the shared functions to process configuration profiles.
-package configurationprofiles
+// common/configurationprofiles/plist/shared.go contains the shared functions to process configuration profiles.
+package plist
 
 import (
 	"bytes"

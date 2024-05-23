@@ -6,7 +6,7 @@ import (
 	"sort"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles/plist"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -49,7 +49,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 	}
 
 	// Sanitize and set the payloads using the plist processor function
-	processedProfile, err := configurationprofiles.ProcessConfigurationProfileForState(resource.General.Payloads)
+	processedProfile, err := plist.ProcessConfigurationProfileForState(resource.General.Payloads)
 	if err != nil {
 		log.Printf("Error processing configuration profile: %v\n", err)
 		diags = append(diags, diag.FromErr(err)...)

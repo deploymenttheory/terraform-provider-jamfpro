@@ -5,7 +5,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles/datavalidators"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles/plist"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -13,6 +14,11 @@ import (
 func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
 	// Validate configuration profile level
 	if err := validateConfigurationProfileLevel(ctx, diff, i); err != nil {
+		return err
+	}
+
+	// Validate configuration profile indentation
+	if err := validateConfigurationProfileFormatting(ctx, diff, i); err != nil {
 		return err
 	}
 
@@ -26,13 +32,13 @@ func validateConfigurationProfileLevel(_ context.Context, diff *schema.ResourceD
 	payloads := diff.Get("payloads").(string)
 
 	// Decode the plist payload
-	plistData, err := configurationprofiles.DecodePlist([]byte(payloads))
+	plistData, err := plist.DecodePlist([]byte(payloads))
 	if err != nil {
 		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile.%s': error decoding plist data: %v", resourceName, err)
 	}
 
 	// Check the PayloadScope in the plist
-	payloadScope, err := getPayloadScope(plistData)
+	payloadScope, err := datavalidators.GetPayloadScope(plistData)
 	if err != nil {
 		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile.%s': error getting 'PayloadScope' from plist: %v", resourceName, err)
 	}
@@ -44,10 +50,15 @@ func validateConfigurationProfileLevel(_ context.Context, diff *schema.ResourceD
 	return nil
 }
 
-// getPayloadScope retrieves the 'PayloadScope' key from the decoded plist data.
-func getPayloadScope(plistData map[string]interface{}) (string, error) {
-	if scope, ok := plistData["PayloadScope"].(string); ok {
-		return scope, nil
+// validateConfigurationProfileFormatting validates the indentation of the plist XML.
+func validateConfigurationProfileFormatting(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+	resourceName := diff.Get("name").(string)
+	payloads := diff.Get("payloads").(string)
+
+	// Check if the XML is well-formed and properly indented
+	if err := datavalidators.CheckPlistIndentationAndWhiteSpace(payloads); err != nil {
+		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile.%s': %v", resourceName, err)
 	}
-	return "", fmt.Errorf("'PayloadScope' key not found in plist")
+
+	return nil
 }

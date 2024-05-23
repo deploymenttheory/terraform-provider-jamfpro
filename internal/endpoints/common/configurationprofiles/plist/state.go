@@ -1,5 +1,5 @@
-// common/configurationprofiles/state.go contains the functions to process configuration profiles.
-package configurationprofiles
+// common/configurationprofiles/plist/state.go contains the functions to process configuration profiles.
+package plist
 
 import (
 	"log"
