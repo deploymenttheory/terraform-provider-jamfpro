@@ -113,14 +113,18 @@ func setScope(resource *jamfpro.ResourceMobileDeviceConfigurationProfile) (map[s
 	if err != nil {
 		return nil, err
 	}
-	scopeData["limitations"] = limitationsData
+	if limitationsData != nil {
+		scopeData["limitations"] = limitationsData
+	}
 
 	// Gather exclusions
 	exclusionsData, err := setExclusions(resource.Scope.Exclusions)
 	if err != nil {
 		return nil, err
 	}
-	scopeData["exclusions"] = exclusionsData
+	if exclusionsData != nil {
+		scopeData["exclusions"] = exclusionsData
+	}
 
 	return scopeData, nil
 }
@@ -130,19 +134,35 @@ func setLimitations(limitations jamfpro.MobileDeviceConfigurationProfileSubsetLi
 	result := map[string]interface{}{}
 
 	if len(limitations.NetworkSegments) > 0 {
-		result["network_segment_ids"] = flattenAndSortNetworkSegmentIds(limitations.NetworkSegments)
+		networkSegmentIDs := flattenAndSortNetworkSegmentIds(limitations.NetworkSegments)
+		if len(networkSegmentIDs) > 0 {
+			result["network_segment_ids"] = networkSegmentIDs
+		}
 	}
 
 	if len(limitations.Ibeacons) > 0 {
-		result["ibeacon_ids"] = flattenAndSortScopeEntityIds(limitations.Ibeacons)
+		ibeaconIDs := flattenAndSortScopeEntityIds(limitations.Ibeacons)
+		if len(ibeaconIDs) > 0 {
+			result["ibeacon_ids"] = ibeaconIDs
+		}
 	}
 
 	if len(limitations.Users) > 0 {
-		result["directory_service_or_local_usernames"] = flattenAndSortScopeEntityNames(limitations.Users)
+		userNames := flattenAndSortScopeEntityNames(limitations.Users)
+		if len(userNames) > 0 {
+			result["directory_service_or_local_usernames"] = userNames
+		}
 	}
 
 	if len(limitations.UserGroups) > 0 {
-		result["directory_service_usergroup_ids"] = flattenAndSortScopeEntityIds(limitations.UserGroups)
+		userGroupIDs := flattenAndSortScopeEntityIds(limitations.UserGroups)
+		if len(userGroupIDs) > 0 {
+			result["directory_service_usergroup_ids"] = userGroupIDs
+		}
+	}
+
+	if len(result) == 0 {
+		return nil, nil
 	}
 
 	return []map[string]interface{}{result}, nil
@@ -153,43 +173,77 @@ func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExcl
 	result := map[string]interface{}{}
 
 	if len(exclusions.MobileDevices) > 0 {
-		result["mobile_device_ids"] = flattenAndSortMobileDeviceIDs(exclusions.MobileDevices)
+		computerIDs := flattenAndSortMobileDeviceIDs(exclusions.MobileDevices)
+		if len(computerIDs) > 0 {
+			result["mobile_device_ids"] = computerIDs
+		}
 	}
 
 	if len(exclusions.MobileDeviceGroups) > 0 {
-		result["mobile_device_group_ids"] = flattenAndSortScopeEntityIds(exclusions.MobileDeviceGroups)
+		computerGroupIDs := flattenAndSortScopeEntityIds(exclusions.MobileDeviceGroups)
+		if len(computerGroupIDs) > 0 {
+			result["mobile_device_group_ids"] = computerGroupIDs
+		}
 	}
 
 	if len(exclusions.Buildings) > 0 {
-		result["building_ids"] = flattenAndSortScopeEntityIds(exclusions.Buildings)
+		buildingIDs := flattenAndSortScopeEntityIds(exclusions.Buildings)
+		if len(buildingIDs) > 0 {
+			result["building_ids"] = buildingIDs
+		}
 	}
 
 	if len(exclusions.JSSUsers) > 0 {
-		result["jss_user_ids"] = flattenAndSortScopeEntityIds(exclusions.JSSUsers)
+		jssUserIDs := flattenAndSortScopeEntityIds(exclusions.JSSUsers)
+		if len(jssUserIDs) > 0 {
+			result["jss_user_ids"] = jssUserIDs
+		}
 	}
 
 	if len(exclusions.JSSUserGroups) > 0 {
-		result["jss_user_group_ids"] = flattenAndSortScopeEntityIds(exclusions.JSSUserGroups)
+		jssUserGroupIDs := flattenAndSortScopeEntityIds(exclusions.JSSUserGroups)
+		if len(jssUserGroupIDs) > 0 {
+			result["jss_user_group_ids"] = jssUserGroupIDs
+		}
 	}
 
 	if len(exclusions.Departments) > 0 {
-		result["department_ids"] = flattenAndSortScopeEntityIds(exclusions.Departments)
+		departmentIDs := flattenAndSortScopeEntityIds(exclusions.Departments)
+		if len(departmentIDs) > 0 {
+			result["department_ids"] = departmentIDs
+		}
 	}
 
 	if len(exclusions.NetworkSegments) > 0 {
-		result["network_segment_ids"] = flattenAndSortNetworkSegmentIds(exclusions.NetworkSegments)
+		networkSegmentIDs := flattenAndSortNetworkSegmentIds(exclusions.NetworkSegments)
+		if len(networkSegmentIDs) > 0 {
+			result["network_segment_ids"] = networkSegmentIDs
+		}
 	}
 
 	if len(exclusions.Users) > 0 {
-		result["directory_service_or_local_usernames"] = flattenAndSortScopeEntityIds(exclusions.Users)
+		userNames := flattenAndSortScopeEntityNames(exclusions.Users)
+		if len(userNames) > 0 {
+			result["directory_service_or_local_usernames"] = userNames
+		}
 	}
 
 	if len(exclusions.UserGroups) > 0 {
-		result["directory_service_usergroup_ids"] = flattenAndSortScopeEntityIds(exclusions.UserGroups)
+		userGroupIDs := flattenAndSortScopeEntityIds(exclusions.UserGroups)
+		if len(userGroupIDs) > 0 {
+			result["directory_service_usergroup_ids"] = userGroupIDs
+		}
 	}
 
 	if len(exclusions.IBeacons) > 0 {
-		result["ibeacon_ids"] = flattenAndSortScopeEntityIds(exclusions.IBeacons)
+		ibeaconIDs := flattenAndSortScopeEntityIds(exclusions.IBeacons)
+		if len(ibeaconIDs) > 0 {
+			result["ibeacon_ids"] = ibeaconIDs
+		}
+	}
+
+	if len(result) == 0 {
+		return nil, nil
 	}
 
 	return []map[string]interface{}{result}, nil
@@ -201,7 +255,9 @@ func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExcl
 func flattenAndSortScopeEntityIds(entities []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) []int {
 	var ids []int
 	for _, entity := range entities {
-		ids = append(ids, entity.ID)
+		if entity.ID != 0 {
+			ids = append(ids, entity.ID)
+		}
 	}
 	sort.Ints(ids)
 	return ids
@@ -211,7 +267,9 @@ func flattenAndSortScopeEntityIds(entities []jamfpro.MobileDeviceConfigurationPr
 func flattenAndSortScopeEntityNames(entities []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) []string {
 	var names []string
 	for _, entity := range entities {
-		names = append(names, entity.Name)
+		if entity.Name != "" {
+			names = append(names, entity.Name)
+		}
 	}
 	sort.Strings(names)
 	return names
@@ -221,7 +279,9 @@ func flattenAndSortScopeEntityNames(entities []jamfpro.MobileDeviceConfiguration
 func flattenAndSortMobileDeviceIDs(devices []jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice) []int {
 	var ids []int
 	for _, device := range devices {
-		ids = append(ids, device.ID)
+		if device.ID != 0 {
+			ids = append(ids, device.ID)
+		}
 	}
 	sort.Ints(ids)
 	return ids
@@ -231,7 +291,9 @@ func flattenAndSortMobileDeviceIDs(devices []jamfpro.MobileDeviceConfigurationPr
 func flattenAndSortNetworkSegmentIds(segments []jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment) []int {
 	var ids []int
 	for _, segment := range segments {
-		ids = append(ids, segment.ID)
+		if segment.ID != 0 {
+			ids = append(ids, segment.ID)
+		}
 	}
 	sort.Ints(ids)
 	return ids
