@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles/plist"
 )
 
 func main() {
@@ -65,7 +65,7 @@ func main() {
 	</plist>`
 
 	// Process the configuration profile
-	processedData, err := configurationprofiles.ProcessConfigurationProfileForState(plistData)
+	processedData, err := plist.ProcessConfigurationProfileForState(plistData)
 	if err != nil {
 		log.Fatalf("Failed to process configuration profile: %v", err)
 	}
