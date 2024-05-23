@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles/plist"
 )
 
 func main() {
@@ -65,17 +65,17 @@ func main() {
 	</plist>
 	`)
 
-	decodedData, err := configurationprofiles.DecodePlist(plistData)
+	decodedData, err := plist.DecodePlist(plistData)
 	if err != nil {
 		log.Fatalf("Failed to decode plist: %v", err)
 	}
 
 	fieldsToRemove := []string{"PayloadUUID", "PayloadIdentifier", "PayloadOrganization", "PayloadDisplayName"}
 
-	configurationprofiles.RemoveFields(decodedData, fieldsToRemove, "")
+	plist.RemoveFields(decodedData, fieldsToRemove, "")
 
-	sortedData := configurationprofiles.SortPlistKeys(decodedData)
-	encodedPlist, err := configurationprofiles.EncodePlist(sortedData)
+	sortedData := plist.SortPlistKeys(decodedData)
+	encodedPlist, err := plist.EncodePlist(sortedData)
 	if err != nil {
 		log.Fatalf("Failed to encode plist: %v", err)
 	}

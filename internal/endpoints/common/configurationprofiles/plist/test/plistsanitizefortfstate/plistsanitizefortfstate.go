@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles/plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/hash"
 )
 
@@ -173,14 +173,14 @@ func TestProcessAndCompareConfigurationProfiles() {
 	keysToRemove := []string{"PayloadUUID", "PayloadIdentifier", "PayloadOrganization", "PayloadDisplayName"}
 
 	log.Println("Processing the first configuration profile...")
-	processedProfile1, err := configurationprofiles.ProcessConfigurationProfileForDiffSuppression(plistPreJamfProUpload, keysToRemove)
+	processedProfile1, err := plist.ProcessConfigurationProfileForDiffSuppression(plistPreJamfProUpload, keysToRemove)
 	if err != nil {
 		log.Fatalf("Error processing the first configuration profile: %v\n", err)
 	}
 	log.Printf("Processed first profile payload:\n%s\n", processedProfile1)
 
 	log.Println("Processing the second configuration profile...")
-	processedProfile2, err := configurationprofiles.ProcessConfigurationProfileForDiffSuppression(plistPostJamfProUpload, keysToRemove)
+	processedProfile2, err := plist.ProcessConfigurationProfileForDiffSuppression(plistPostJamfProUpload, keysToRemove)
 	if err != nil {
 		log.Fatalf("Error processing the second configuration profile: %v\n", err)
 	}
