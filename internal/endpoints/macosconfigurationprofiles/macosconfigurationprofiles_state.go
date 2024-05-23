@@ -6,7 +6,6 @@ import (
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/hash"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -47,9 +46,8 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacO
 		}
 	}
 
-	// Sanitize and set the payloads using the plist processor function removing the mdm server unique identifiers
-	keysToRemove := []string{"PayloadUUID", "PayloadIdentifier", "PayloadOrganization", "PayloadDisplayName"}
-	processedProfile, err := configurationprofiles.ProcessConfigurationProfile(resource.General.Payloads, keysToRemove)
+	// Sanitize and set the payloads using the plist processor function
+	processedProfile, err := configurationprofiles.ProcessConfigurationProfileForState(resource.General.Payloads)
 	if err != nil {
 		log.Printf("Error processing configuration profile: %v\n", err)
 		diags = append(diags, diag.FromErr(err)...)
@@ -60,14 +58,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacO
 
 	// Set the processed payloads field
 	if err := d.Set("payloads", processedProfile); err != nil {
-		log.Printf("Error setting payload: %v\n", err)
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	// Calculate and set the payloads hash
-	payloadsHash := hash.HashString(processedProfile)
-	if err := d.Set("payloads_hash", payloadsHash); err != nil {
-		log.Printf("Error setting payloads_hash: %v\n", err)
+		log.Printf("Error setting payloads: %v\n", err)
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -130,14 +121,18 @@ func setScope(resource *jamfpro.ResourceMacOSConfigurationProfile) (map[string]i
 	if err != nil {
 		return nil, err
 	}
-	scopeData["limitations"] = limitationsData
+	if limitationsData != nil {
+		scopeData["limitations"] = limitationsData
+	}
 
 	// Gather exclusions
 	exclusionsData, err := setExclusions(resource.Scope.Exclusions)
 	if err != nil {
 		return nil, err
 	}
-	scopeData["exclusions"] = exclusionsData
+	if exclusionsData != nil {
+		scopeData["exclusions"] = exclusionsData
+	}
 
 	return scopeData, nil
 }
@@ -147,19 +142,35 @@ func setLimitations(limitations jamfpro.MacOSConfigurationProfileSubsetLimitatio
 	result := map[string]interface{}{}
 
 	if len(limitations.NetworkSegments) > 0 {
-		result["network_segment_ids"] = flattenAndSortNetworkSegmentIds(limitations.NetworkSegments)
+		networkSegmentIDs := flattenAndSortNetworkSegmentIds(limitations.NetworkSegments)
+		if len(networkSegmentIDs) > 0 {
+			result["network_segment_ids"] = networkSegmentIDs
+		}
 	}
 
 	if len(limitations.IBeacons) > 0 {
-		result["ibeacon_ids"] = flattenAndSortScopeEntityIds(limitations.IBeacons)
+		ibeaconIDs := flattenAndSortScopeEntityIds(limitations.IBeacons)
+		if len(ibeaconIDs) > 0 {
+			result["ibeacon_ids"] = ibeaconIDs
+		}
 	}
 
 	if len(limitations.Users) > 0 {
-		result["directory_service_or_local_usernames"] = flattenAndSortScopeEntityNames(limitations.Users)
+		userNames := flattenAndSortScopeEntityNames(limitations.Users)
+		if len(userNames) > 0 {
+			result["directory_service_or_local_usernames"] = userNames
+		}
 	}
 
 	if len(limitations.UserGroups) > 0 {
-		result["directory_service_usergroup_ids"] = flattenAndSortScopeEntityIds(limitations.UserGroups)
+		userGroupIDs := flattenAndSortScopeEntityIds(limitations.UserGroups)
+		if len(userGroupIDs) > 0 {
+			result["directory_service_usergroup_ids"] = userGroupIDs
+		}
+	}
+
+	if len(result) == 0 {
+		return nil, nil
 	}
 
 	return []map[string]interface{}{result}, nil
@@ -170,43 +181,77 @@ func setExclusions(exclusions jamfpro.MacOSConfigurationProfileSubsetExclusions)
 	result := map[string]interface{}{}
 
 	if len(exclusions.Computers) > 0 {
-		result["computer_ids"] = flattenAndSortComputerIds(exclusions.Computers)
+		computerIDs := flattenAndSortComputerIds(exclusions.Computers)
+		if len(computerIDs) > 0 {
+			result["computer_ids"] = computerIDs
+		}
 	}
 
 	if len(exclusions.ComputerGroups) > 0 {
-		result["computer_group_ids"] = flattenAndSortScopeEntityIds(exclusions.ComputerGroups)
+		computerGroupIDs := flattenAndSortScopeEntityIds(exclusions.ComputerGroups)
+		if len(computerGroupIDs) > 0 {
+			result["computer_group_ids"] = computerGroupIDs
+		}
 	}
 
 	if len(exclusions.Buildings) > 0 {
-		result["building_ids"] = flattenAndSortScopeEntityIds(exclusions.Buildings)
+		buildingIDs := flattenAndSortScopeEntityIds(exclusions.Buildings)
+		if len(buildingIDs) > 0 {
+			result["building_ids"] = buildingIDs
+		}
 	}
 
 	if len(exclusions.JSSUsers) > 0 {
-		result["jss_user_ids"] = flattenAndSortScopeEntityIds(exclusions.JSSUsers)
+		jssUserIDs := flattenAndSortScopeEntityIds(exclusions.JSSUsers)
+		if len(jssUserIDs) > 0 {
+			result["jss_user_ids"] = jssUserIDs
+		}
 	}
 
 	if len(exclusions.JSSUserGroups) > 0 {
-		result["jss_user_group_ids"] = flattenAndSortScopeEntityIds(exclusions.JSSUserGroups)
+		jssUserGroupIDs := flattenAndSortScopeEntityIds(exclusions.JSSUserGroups)
+		if len(jssUserGroupIDs) > 0 {
+			result["jss_user_group_ids"] = jssUserGroupIDs
+		}
 	}
 
 	if len(exclusions.Departments) > 0 {
-		result["department_ids"] = flattenAndSortScopeEntityIds(exclusions.Departments)
+		departmentIDs := flattenAndSortScopeEntityIds(exclusions.Departments)
+		if len(departmentIDs) > 0 {
+			result["department_ids"] = departmentIDs
+		}
 	}
 
 	if len(exclusions.NetworkSegments) > 0 {
-		result["network_segment_ids"] = flattenAndSortNetworkSegmentIds(exclusions.NetworkSegments)
+		networkSegmentIDs := flattenAndSortNetworkSegmentIds(exclusions.NetworkSegments)
+		if len(networkSegmentIDs) > 0 {
+			result["network_segment_ids"] = networkSegmentIDs
+		}
 	}
 
 	if len(exclusions.Users) > 0 {
-		result["directory_service_or_local_usernames"] = flattenAndSortScopeEntityNames(exclusions.Users)
+		userNames := flattenAndSortScopeEntityNames(exclusions.Users)
+		if len(userNames) > 0 {
+			result["directory_service_or_local_usernames"] = userNames
+		}
 	}
 
 	if len(exclusions.UserGroups) > 0 {
-		result["directory_service_usergroup_ids"] = flattenAndSortScopeEntityIds(exclusions.UserGroups)
+		userGroupIDs := flattenAndSortScopeEntityIds(exclusions.UserGroups)
+		if len(userGroupIDs) > 0 {
+			result["directory_service_usergroup_ids"] = userGroupIDs
+		}
 	}
 
 	if len(exclusions.IBeacons) > 0 {
-		result["ibeacon_ids"] = flattenAndSortScopeEntityIds(exclusions.IBeacons)
+		ibeaconIDs := flattenAndSortScopeEntityIds(exclusions.IBeacons)
+		if len(ibeaconIDs) > 0 {
+			result["ibeacon_ids"] = ibeaconIDs
+		}
+	}
+
+	if len(result) == 0 {
+		return nil, nil
 	}
 
 	return []map[string]interface{}{result}, nil
@@ -288,7 +333,9 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 func flattenAndSortScopeEntityIds(entities []jamfpro.MacOSConfigurationProfileSubsetScopeEntity) []int {
 	var ids []int
 	for _, entity := range entities {
-		ids = append(ids, entity.ID)
+		if entity.ID != 0 {
+			ids = append(ids, entity.ID)
+		}
 	}
 	sort.Ints(ids)
 	return ids
@@ -298,7 +345,9 @@ func flattenAndSortScopeEntityIds(entities []jamfpro.MacOSConfigurationProfileSu
 func flattenAndSortScopeEntityNames(entities []jamfpro.MacOSConfigurationProfileSubsetScopeEntity) []string {
 	var names []string
 	for _, entity := range entities {
-		names = append(names, entity.Name)
+		if entity.Name != "" {
+			names = append(names, entity.Name)
+		}
 	}
 	sort.Strings(names)
 	return names
@@ -308,7 +357,9 @@ func flattenAndSortScopeEntityNames(entities []jamfpro.MacOSConfigurationProfile
 func flattenAndSortComputerIds(computers []jamfpro.MacOSConfigurationProfileSubsetComputer) []int {
 	var ids []int
 	for _, computer := range computers {
-		ids = append(ids, computer.ID)
+		if computer.ID != 0 {
+			ids = append(ids, computer.ID)
+		}
 	}
 	sort.Ints(ids)
 	return ids
@@ -318,7 +369,9 @@ func flattenAndSortComputerIds(computers []jamfpro.MacOSConfigurationProfileSubs
 func flattenAndSortNetworkSegmentIds(segments []jamfpro.MacOSConfigurationProfileSubsetNetworkSegment) []int {
 	var ids []int
 	for _, segment := range segments {
-		ids = append(ids, segment.ID)
+		if segment.ID != 0 {
+			ids = append(ids, segment.ID)
+		}
 	}
 	sort.Ints(ids)
 	return ids
