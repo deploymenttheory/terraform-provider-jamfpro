@@ -1,4 +1,4 @@
-// mobiledeviceconfigurationprofiles_data_handling.go
+// mobiledeviceconfigurationprofiles_diff_suppress.go
 package mobiledeviceconfigurationprofiles
 
 import (

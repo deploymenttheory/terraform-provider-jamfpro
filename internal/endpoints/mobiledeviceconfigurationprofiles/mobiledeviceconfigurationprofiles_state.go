@@ -1,3 +1,4 @@
+// mobiledeviceconfigurationprofiles_state.go
 package mobiledeviceconfigurationprofiles
 
 import (

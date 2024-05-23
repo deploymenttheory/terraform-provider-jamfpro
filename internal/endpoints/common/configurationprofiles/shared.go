@@ -9,6 +9,32 @@ import (
 	"howett.net/plist"
 )
 
+// Function to decode a plist into a map without removing any fields
+func DecodePlist(plistData []byte) (map[string]interface{}, error) {
+	var rawData map[string]interface{}
+	_, err := plist.Unmarshal(plistData, &rawData)
+	if err != nil {
+		log.Printf("Error unmarshalling plist data: %v\n", err)
+		return nil, err
+	}
+
+	log.Printf("Decoded plist data: %v\n", rawData)
+	return rawData, nil
+}
+
+// EncodePlist encodes a cleaned map back to plist XML format
+func EncodePlist(cleanedData map[string]interface{}) (string, error) {
+	log.Printf("Encoding plist data: %v\n", cleanedData)
+	var buffer bytes.Buffer
+	encoder := plist.NewEncoder(&buffer)
+	encoder.Indent("\t") // Optional: for pretty-printing the XML
+	if err := encoder.Encode(cleanedData); err != nil {
+		log.Printf("Error encoding plist data: %v\n", err)
+		return "", err
+	}
+	return buffer.String(), nil
+}
+
 // sortKeys recursively sorts the keys of a nested map in alphabetical order,
 // and sorts elements within arrays if they are strings.
 func sortKeys(data map[string]interface{}) map[string]interface{} {
@@ -56,17 +82,4 @@ func sortKeys(data map[string]interface{}) map[string]interface{} {
 		}
 	}
 	return sortedData
-}
-
-// EncodePlist encodes a cleaned map back to plist XML format
-func EncodePlist(cleanedData map[string]interface{}) (string, error) {
-	log.Printf("Encoding plist data: %v\n", cleanedData)
-	var buffer bytes.Buffer
-	encoder := plist.NewEncoder(&buffer)
-	encoder.Indent("\t") // Optional: for pretty-printing the XML
-	if err := encoder.Encode(cleanedData); err != nil {
-		log.Printf("Error encoding plist data: %v\n", err)
-		return "", err
-	}
-	return buffer.String(), nil
 }

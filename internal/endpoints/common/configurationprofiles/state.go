@@ -3,8 +3,6 @@ package configurationprofiles
 
 import (
 	"log"
-
-	"howett.net/plist"
 )
 
 // ProcessConfigurationProfileForState processes the plist data, removes specified fields, and returns the cleaned plist XML as a string.
@@ -14,7 +12,7 @@ func ProcessConfigurationProfileForState(plistData string) (string, error) {
 	// Decode and clean the plist data
 	plistBytes := []byte(plistData)
 	log.Printf("Decoding plist data: %s\n", plistData)
-	decodedPlist, err := decodePlist(plistBytes)
+	decodedPlist, err := DecodePlist(plistBytes)
 	if err != nil {
 		log.Printf("Error decoding plist data: %v\n", err)
 		return "", err
@@ -33,17 +31,4 @@ func ProcessConfigurationProfileForState(plistData string) (string, error) {
 
 	log.Printf("Successfully processed configuration profile\n")
 	return encodedPlist, nil
-}
-
-// Function to decode a plist into a map without removing any fields
-func decodePlist(plistData []byte) (map[string]interface{}, error) {
-	var rawData map[string]interface{}
-	_, err := plist.Unmarshal(plistData, &rawData)
-	if err != nil {
-		log.Printf("Error unmarshalling plist data: %v\n", err)
-		return nil, err
-	}
-
-	log.Printf("Decoded plist data: %v\n", rawData)
-	return rawData, nil
 }
