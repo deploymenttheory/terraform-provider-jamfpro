@@ -255,7 +255,7 @@ Optional:
 
 Optional:
 
-- `id` (Number) Unique identifier of the script.
+- `id` (String) Unique identifier of the script.
 - `parameter10` (String) Custom parameter 10 for the script.
 - `parameter11` (String) Custom parameter 11 for the script.
 - `parameter4` (String) Custom parameter 4 for the script.
@@ -294,10 +294,10 @@ Optional:
 - `computer_group_ids` (List of Number) The computer groups to which the configuration profile is scoped by Jamf ID
 - `computer_ids` (List of Number) The computers to which the configuration profile is scoped by Jamf ID
 - `department_ids` (List of Number) The departments to which the configuration profile is scoped by Jamf ID
-- `exclusions` (Block List, Max: 1) The exclusions from the scope. (see [below for nested schema](#nestedblock--scope--exclusions))
+- `exclusions` (Block List, Max: 1) The scope exclusions from the macOS configuration profile. (see [below for nested schema](#nestedblock--scope--exclusions))
 - `jss_user_group_ids` (List of Number) The jss user groups to which the configuration profile is scoped by Jamf ID
 - `jss_user_ids` (List of Number) The jss users to which the configuration profile is scoped by Jamf ID
-- `limitations` (Block List, Max: 1) The limitations within the scope. (see [below for nested schema](#nestedblock--scope--limitations))
+- `limitations` (Block List, Max: 1) The scope limitations from the macOS configuration profile. (see [below for nested schema](#nestedblock--scope--limitations))
 
 <a id="nestedblock--scope--exclusions"></a>
 ### Nested Schema for `scope.exclusions`
@@ -308,6 +308,8 @@ Optional:
 - `computer_group_ids` (List of Number) Computer Groups excluded from scope by Jamf ID.
 - `computer_ids` (List of Number) Computers excluded from scope by Jamf ID.
 - `department_ids` (List of Number) Departments excluded from scope by Jamf ID.
+- `directory_service_or_local_usernames` (List of String) A list of directory service / local usernames for scoping limitations.
+- `directory_service_usergroup_ids` (List of Number) A list of directory service / local user group IDs for limitations.
 - `ibeacon_ids` (List of Number) Ibeacons excluded from scope by Jamf ID.
 - `jss_user_group_ids` (List of Number) JSS User Groups excluded from scope by Jamf ID.
 - `jss_user_ids` (List of Number) JSS Users excluded from scope by Jamf ID.
@@ -319,10 +321,10 @@ Optional:
 
 Optional:
 
-- `ibeacon_ids` (List of Number) Ibeacons the scope is limited to by Jamf ID.
-- `network_segment_ids` (List of Number) Network segments the scope is limited to by Jamf ID.
-- `user_group_ids` (List of Number) Users groups the scope is limited to by Jamf ID.
-- `user_names` (List of String) Users the macOS config profile scope is limited to by Jamf ID.
+- `directory_service_or_local_usernames` (List of String) A list of directory service / local usernames for scoping limitations.
+- `directory_service_usergroup_ids` (List of Number) A list of directory service user group IDs for limitations.
+- `ibeacon_ids` (List of Number) A list of iBeacon IDs for limitations.
+- `network_segment_ids` (List of Number) A list of network segment IDs for limitations.
 
 
 
@@ -332,6 +334,10 @@ Optional:
 Required:
 
 - `id` (Number) The unique identifier of the category to which the configuration profile is scoped.
+
+Read-Only:
+
+- `name` (String) The name of the category to which the configuration profile is scoped.
 
 
 <a id="nestedblock--date_time_limitations"></a>
@@ -367,30 +373,9 @@ Optional:
 - `feature_on_main_page` (Boolean) Whether to feature the policy on the main page of self-service.
 - `force_users_to_view_description` (Boolean) Whether to force users to view the policy description in self-service.
 - `install_button_text` (String) Text displayed on the install button in self-service.
-- `reinstall_button_text` (String) Text displayed on the re-install button in self-service.
-- `self_service_categories` (Block List) Category settings for the policy in self-service. (see [below for nested schema](#nestedblock--self_service--self_service_categories))
 - `self_service_description` (String) Description of the policy displayed in self-service.
 - `self_service_display_name` (String) Display name of the policy in self-service.
 - `use_for_self_service` (Boolean) Whether the policy is available for self-service.
-
-<a id="nestedblock--self_service--self_service_categories"></a>
-### Nested Schema for `self_service.self_service_categories`
-
-Optional:
-
-- `category` (Block List) Category details for the policy in self-service. (see [below for nested schema](#nestedblock--self_service--self_service_categories--category))
-
-<a id="nestedblock--self_service--self_service_categories--category"></a>
-### Nested Schema for `self_service.self_service_categories.category`
-
-Optional:
-
-- `display_in` (Boolean) Whether to display the category in self-service.
-- `feature_in` (Boolean) Whether to feature the category in self-service.
-- `id` (Number) Category ID for the policy in self-service.
-- `name` (String) Category name for the policy in self-service.
-
-
 
 
 <a id="nestedblock--site"></a>
