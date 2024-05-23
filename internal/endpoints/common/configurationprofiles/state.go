@@ -8,7 +8,7 @@ import (
 )
 
 // ProcessConfigurationProfileForState processes the plist data, removes specified fields, and returns the cleaned plist XML as a string.
-func ProcessConfigurationProfileForState(plistData string, fieldsToRemove []string) (string, error) {
+func ProcessConfigurationProfileForState(plistData string) (string, error) {
 	log.Println("Starting ProcessConfigurationProfile")
 
 	// Decode and clean the plist data

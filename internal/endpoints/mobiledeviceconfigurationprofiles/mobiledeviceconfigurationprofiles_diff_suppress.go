@@ -33,11 +33,11 @@ func diffSuppressPayloads(k, old, new string, d *schema.ResourceData) bool {
 	return oldHash == newHash
 }
 
-// processPayload processes the payload using the configurationprofiles.ProcessConfigurationProfile function.
+// processPayload processes the payload by comparing the old and new payloads. It removes specified fields and compares the hashes.
 func processPayload(payload string) (string, error) {
 	log.Printf("Processing payload: %s", payload)
 	fieldsToRemove := []string{"PayloadUUID", "PayloadIdentifier", "PayloadOrganization", "PayloadDisplayName"}
-	processedPayload, err := configurationprofiles.ProcessConfigurationProfile(payload, fieldsToRemove)
+	processedPayload, err := configurationprofiles.ProcessConfigurationProfileForDiffSuppression(payload, fieldsToRemove)
 	if err != nil {
 		return "", err
 	}

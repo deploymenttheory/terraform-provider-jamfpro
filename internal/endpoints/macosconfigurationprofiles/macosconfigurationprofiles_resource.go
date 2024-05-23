@@ -100,11 +100,6 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Description:      "The macOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist.",
 				DiffSuppressFunc: diffSuppressPayloads,
 			},
-			"payloads_hash": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The SHA-256 hash of the configuration profile payload. Used for diff suppression.",
-			},
 			"redeploy_on_update": {
 				Type:        schema.TypeString,
 				Optional:    true,

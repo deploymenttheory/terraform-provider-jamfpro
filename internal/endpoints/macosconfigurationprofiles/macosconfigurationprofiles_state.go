@@ -6,7 +6,6 @@ import (
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/hash"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -47,9 +46,8 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacO
 		}
 	}
 
-	// Sanitize and set the payloads using the plist processor function removing the mdm server unique identifiers
-	keysToRemove := []string{"PayloadUUID", "PayloadIdentifier", "PayloadOrganization", "PayloadDisplayName"}
-	processedProfile, err := configurationprofiles.ProcessConfigurationProfile(resource.General.Payloads, keysToRemove)
+	// Sanitize and set the payloads using the plist processor function
+	processedProfile, err := configurationprofiles.ProcessConfigurationProfileForState(resource.General.Payloads)
 	if err != nil {
 		log.Printf("Error processing configuration profile: %v\n", err)
 		diags = append(diags, diag.FromErr(err)...)
@@ -60,14 +58,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacO
 
 	// Set the processed payloads field
 	if err := d.Set("payloads", processedProfile); err != nil {
-		log.Printf("Error setting payload: %v\n", err)
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	// Calculate and set the payloads hash
-	payloadsHash := hash.HashString(processedProfile)
-	if err := d.Set("payloads_hash", payloadsHash); err != nil {
-		log.Printf("Error setting payloads_hash: %v\n", err)
+		log.Printf("Error setting payloads: %v\n", err)
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
