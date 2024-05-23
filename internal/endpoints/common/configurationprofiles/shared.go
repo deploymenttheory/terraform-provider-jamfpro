@@ -9,7 +9,8 @@ import (
 	"howett.net/plist"
 )
 
-// sortKeys recursively sorts the keys of a nested map in alphabetical order.
+// sortKeys recursively sorts the keys of a nested map in alphabetical order,
+// and sorts elements within arrays if they are strings.
 func sortKeys(data map[string]interface{}) map[string]interface{} {
 	sortedData := make(map[string]interface{})
 	keys := make([]string, 0, len(data))
@@ -34,6 +35,19 @@ func sortKeys(data map[string]interface{}) map[string]interface{} {
 					sortedArray[i] = sortKeys(nestedMap)
 				} else {
 					sortedArray[i] = item
+				}
+			}
+			// Check if the array elements are strings and sort them
+			if len(sortedArray) > 0 {
+				if _, ok := sortedArray[0].(string); ok {
+					stringArray := make([]string, len(sortedArray))
+					for i, item := range sortedArray {
+						stringArray[i] = item.(string)
+					}
+					sort.Strings(stringArray)
+					for i, item := range stringArray {
+						sortedArray[i] = item
+					}
 				}
 			}
 			sortedData[k] = sortedArray

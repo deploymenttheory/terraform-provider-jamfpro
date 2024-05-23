@@ -2,6 +2,7 @@ package macosconfigurationprofiles
 
 import (
 	"log"
+	"reflect"
 	"sort"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -82,11 +83,19 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacO
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Preparing and setting self-service data
-	if selfServiceData, err := setSelfService(resource.SelfService); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	} else if selfServiceData != nil {
-		if err := d.Set("self_service", []interface{}{selfServiceData}); err != nil {
+	// Check if the self_service block is provided and set it in the state accordingly
+	defaultSelfService := jamfpro.MacOSConfigurationProfileSubsetSelfService{}
+	if !compareSelfService(resource.SelfService, defaultSelfService) {
+		if selfServiceData, err := setSelfService(resource.SelfService); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		} else if selfServiceData != nil {
+			if err := d.Set("self_service", []interface{}{selfServiceData}); err != nil {
+				diags = append(diags, diag.FromErr(err)...)
+			}
+		}
+	} else {
+		// If self_service block is not provided, set it to an empty array
+		if err := d.Set("self_service", []interface{}{}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
@@ -325,6 +334,19 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 	}
 
 	return selfServiceData, nil
+}
+
+// compareSelfService compares two MacOSConfigurationProfileSubsetSelfService structs
+func compareSelfService(a, b jamfpro.MacOSConfigurationProfileSubsetSelfService) bool {
+	return a.InstallButtonText == b.InstallButtonText &&
+		a.SelfServiceDescription == b.SelfServiceDescription &&
+		a.ForceUsersToViewDescription == b.ForceUsersToViewDescription &&
+		reflect.DeepEqual(a.SelfServiceIcon, b.SelfServiceIcon) &&
+		a.FeatureOnMainPage == b.FeatureOnMainPage &&
+		reflect.DeepEqual(a.SelfServiceCategories, b.SelfServiceCategories) &&
+		a.Notification == b.Notification &&
+		a.NotificationSubject == b.NotificationSubject &&
+		a.NotificationMessage == b.NotificationMessage
 }
 
 // helper functions

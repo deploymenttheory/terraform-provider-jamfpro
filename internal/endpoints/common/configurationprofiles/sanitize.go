@@ -22,9 +22,13 @@ func ProcessConfigurationProfileForDiffSuppression(plistData string, fieldsToRem
 		return "", err
 	}
 
+	log.Printf("Cleaned plist data: %v\n", cleanedData)
+
 	// Sort keys for consistent order
 	log.Println("Sorting keys for consistent order...")
 	sortedData := sortKeys(cleanedData)
+
+	log.Printf("Sorted plist data: %v\n", sortedData)
 
 	// Encode the cleaned and sorted data back to plist XML format
 	encodedPlist, err := EncodePlist(sortedData)
@@ -53,7 +57,6 @@ func decodeAndCleanPlist(plistData []byte, fieldsToRemove []string) (map[string]
 	return rawData, nil
 }
 
-// Function to remove specified fields from a nested map
 func removeFields(data map[string]interface{}, fieldsToRemove []string, path string) {
 	// Iterate over the fields to remove and delete them if they exist
 	for _, field := range fieldsToRemove {
@@ -68,10 +71,12 @@ func removeFields(data map[string]interface{}, fieldsToRemove []string, path str
 		newPath := path + "/" + key
 		switch v := value.(type) {
 		case map[string]interface{}:
+			log.Printf("Recursively removing fields in nested map at path: %s\n", newPath)
 			removeFields(v, fieldsToRemove, newPath)
 		case []interface{}:
 			for i, item := range v {
 				if nestedMap, ok := item.(map[string]interface{}); ok {
+					log.Printf("Recursively removing fields in array at path: %s[%d]\n", newPath, i)
 					removeFields(nestedMap, fieldsToRemove, newPath+strings.ReplaceAll(key, "/", "_")+strconv.Itoa(i))
 				}
 			}
