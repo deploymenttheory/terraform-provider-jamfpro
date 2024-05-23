@@ -47,7 +47,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacO
 		}
 	}
 
-	// Sanitize and set the payloads using the plist processor function
+	// Process and set the payloads using the plist processor function
 	processedProfile, err := configurationprofiles.ProcessConfigurationProfileForState(resource.General.Payloads)
 	if err != nil {
 		log.Printf("Error processing configuration profile: %v\n", err)
