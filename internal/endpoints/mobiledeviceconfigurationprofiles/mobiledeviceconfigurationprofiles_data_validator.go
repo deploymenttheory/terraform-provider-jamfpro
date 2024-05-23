@@ -13,7 +13,7 @@ import (
 // mainCustomDiffFunc orchestrates all custom diff validations.
 func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
 	// Validate configuration profile level
-	if err := validateConfigurationProfileLevel(ctx, diff, i); err != nil {
+	if err := validateMobileDeviceConfigurationProfileLevel(ctx, diff, i); err != nil {
 		return err
 	}
 
@@ -25,9 +25,9 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 	return nil
 }
 
-// validateConfigurationProfileLevel validates that the 'PayloadScope' key in the payload matches the 'level' attribute.
-func validateConfigurationProfileLevel(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
-	resourceName := diff.Get("name").(string) // Assuming 'name' is always set and is unique
+// validateMobileDeviceConfigurationProfileLevel validates that the 'PayloadScope' key in the payload matches the 'level' attribute.
+func validateMobileDeviceConfigurationProfileLevel(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+	resourceName := diff.Get("name").(string)
 	level := diff.Get("level").(string)
 	payloads := diff.Get("payloads").(string)
 
@@ -43,8 +43,19 @@ func validateConfigurationProfileLevel(_ context.Context, diff *schema.ResourceD
 		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile.%s': error getting 'PayloadScope' from plist: %v", resourceName, err)
 	}
 
-	if payloadScope != level {
-		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile.%s': 'level' attribute (%s) does not match the 'PayloadScope' in the plist (%s)", resourceName, level, payloadScope)
+	// Map the level to the expected PayloadScope
+	expectedScope := ""
+	switch level {
+	case "Device Level":
+		expectedScope = "System"
+	case "User Level":
+		expectedScope = "User"
+	default:
+		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile.%s': invalid 'level' attribute (%s)", resourceName, level)
+	}
+
+	if payloadScope != expectedScope {
+		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile.%s': .hcl 'level' attribute (%s) does not match the 'PayloadScope' in the plist (%s). When .hcl 'level' attribute is 'Device Level', the payload value must be 'System'. When .hcl 'level' attribute is 'User Level', the payload value must be 'User'.", resourceName, level, payloadScope)
 	}
 
 	return nil

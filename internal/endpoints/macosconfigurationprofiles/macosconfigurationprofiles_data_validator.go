@@ -17,8 +17,8 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 		return err
 	}
 
-	// Validate configuration profile level
-	if err := validateConfigurationProfileLevel(ctx, diff, i); err != nil {
+	// Validate MacOS configuration profile level
+	if err := validateMacOSConfigurationProfileLevel(ctx, diff, i); err != nil {
 		return err
 	}
 
@@ -52,8 +52,8 @@ func validateDistributionMethod(_ context.Context, diff *schema.ResourceDiff, _ 
 	return nil
 }
 
-// validateConfigurationProfileLevel validates that the 'PayloadScope' key in the payload matches the 'level' attribute.
-func validateConfigurationProfileLevel(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+// validateMacOSConfigurationProfileLevel validates that the 'PayloadScope' key in the payload matches the 'level' attribute.
+func validateMacOSConfigurationProfileLevel(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
 	resourceName := diff.Get("name").(string)
 	level := diff.Get("level").(string)
 	payloads := diff.Get("payloads").(string)
