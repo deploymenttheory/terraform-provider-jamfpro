@@ -37,7 +37,6 @@ func HashAndUpdateSensitiveField(d *schema.ResourceData, fieldKey string, config
 
 // HashString calculates the SHA-256 hash of a string and returns it as a hexadecimal string.
 func HashString(s string) string {
-	log.Printf("Hashing string: %s", s)
 	h := sha256.New()
 	h.Write([]byte(s))
 	hash := fmt.Sprintf("%x", h.Sum(nil))

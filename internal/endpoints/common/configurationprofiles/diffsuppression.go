@@ -15,17 +15,13 @@ func ProcessConfigurationProfileForDiffSuppression(plistData string, fieldsToRem
 
 	// Decode and clean the plist data
 	plistBytes := []byte(plistData)
-	log.Printf("Decoding plist data: %s\n", plistData)
 	cleanedData, err := decodeAndCleanPlist(plistBytes, fieldsToRemove)
 	if err != nil {
 		log.Printf("Error decoding and cleaning plist data: %v\n", err)
 		return "", err
 	}
 
-	log.Printf("Cleaned plist data: %v\n", cleanedData)
-
 	// Sort keys for consistent order
-	log.Println("Sorting keys for consistent order...")
 	sortedData := SortPlistKeys(cleanedData)
 
 	log.Printf("Sorted plist data: %v\n", sortedData)
@@ -37,7 +33,6 @@ func ProcessConfigurationProfileForDiffSuppression(plistData string, fieldsToRem
 		return "", err
 	}
 
-	log.Printf("Successfully processed configuration profile\n")
 	return encodedPlist, nil
 }
 

@@ -17,8 +17,6 @@ func DecodePlist(plistData []byte) (map[string]interface{}, error) {
 		log.Printf("Error unmarshalling plist data: %v\n", err)
 		return nil, err
 	}
-
-	log.Printf("Decoded plist data: %v\n", rawData)
 	return rawData, nil
 }
 
@@ -29,15 +27,12 @@ func EncodePlist(cleanedData map[string]interface{}) (string, error) {
 	encoder := plist.NewEncoder(&buffer)
 	encoder.Indent("\t") // Optional: for pretty-printing the XML
 
-	// Additional logging to track the data structure before encoding
-	log.Printf("Data structure before encoding: %v\n", cleanedData)
 	if err := encoder.Encode(cleanedData); err != nil {
 		log.Printf("Error encoding plist data: %v\n", err)
 		return "", err
 	}
 
 	encodedString := buffer.String()
-	log.Printf("Encoded plist data: %s\n", encodedString)
 
 	return encodedString, nil
 }
