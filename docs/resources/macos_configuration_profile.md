@@ -18,7 +18,6 @@ description: |-
 ### Required
 
 - `name` (String) Jamf UI name for configuration profile.
-- `payload` (String) A MacOS configuration profile xml file as a file
 - `scope` (Block List, Min: 1, Max: 1) The scope of the configuration profile. (see [below for nested schema](#nestedblock--scope))
 
 ### Optional
@@ -26,17 +25,18 @@ description: |-
 - `category` (Block List, Max: 1) The category to which the configuration profile is scoped. (see [below for nested schema](#nestedblock--category))
 - `description` (String) Description of the configuration profile.
 - `distribution_method` (String) The distribution method for the configuration profile. ['Make Available in Self Service','Install Automatically']
-- `level` (String) The level of the configuration profile. Available options are: 'Computer', 'User' or 'System'.
-- `redeploy_on_update` (String) Whether the configuration profile is redeployed on update.
+- `level` (String) The deployment level of the configuration profile. Available options are: 'User' or 'System'. Note: 'System' is mapped to 'Computer Level' in the Jamf Pro GUI.
+- `payloads` (String) The macOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist.
+- `redeploy_on_update` (String) Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state
 - `self_service` (Block List, Max: 1) Self Service Configuration (see [below for nested schema](#nestedblock--self_service))
 - `site` (Block List, Max: 1) The site to which the configuration profile is scoped. (see [below for nested schema](#nestedblock--site))
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
-- `user_removeable` (Boolean) Whether the configuration profile is user removeable or not.
+- `user_removable` (Boolean) Whether the configuration profile is user removeable or not.
 
 ### Read-Only
 
 - `id` (String) The unique identifier of the macOS configuration profile.
-- `uuid` (String) The UUID of the configuration profile.
+- `uuid` (String) The universally unique identifier for the profile.
 
 <a id="nestedblock--scope"></a>
 ### Nested Schema for `scope`
@@ -52,10 +52,10 @@ Optional:
 - `computer_group_ids` (List of Number) The computer groups to which the configuration profile is scoped by Jamf ID
 - `computer_ids` (List of Number) The computers to which the configuration profile is scoped by Jamf ID
 - `department_ids` (List of Number) The departments to which the configuration profile is scoped by Jamf ID
-- `exclusions` (Block List, Max: 1) The exclusions from the scope. (see [below for nested schema](#nestedblock--scope--exclusions))
+- `exclusions` (Block List, Max: 1) The scope exclusions from the macOS configuration profile. (see [below for nested schema](#nestedblock--scope--exclusions))
 - `jss_user_group_ids` (List of Number) The jss user groups to which the configuration profile is scoped by Jamf ID
 - `jss_user_ids` (List of Number) The jss users to which the configuration profile is scoped by Jamf ID
-- `limitations` (Block List, Max: 1) The limitations within the scope. (see [below for nested schema](#nestedblock--scope--limitations))
+- `limitations` (Block List, Max: 1) The scope limitations from the macOS configuration profile. (see [below for nested schema](#nestedblock--scope--limitations))
 
 <a id="nestedblock--scope--exclusions"></a>
 ### Nested Schema for `scope.exclusions`
@@ -66,6 +66,8 @@ Optional:
 - `computer_group_ids` (List of Number) Computer Groups excluded from scope by Jamf ID.
 - `computer_ids` (List of Number) Computers excluded from scope by Jamf ID.
 - `department_ids` (List of Number) Departments excluded from scope by Jamf ID.
+- `directory_service_or_local_usernames` (List of String) A list of directory service / local usernames for scoping limitations.
+- `directory_service_usergroup_ids` (List of Number) A list of directory service / local user group IDs for limitations.
 - `ibeacon_ids` (List of Number) Ibeacons excluded from scope by Jamf ID.
 - `jss_user_group_ids` (List of Number) JSS User Groups excluded from scope by Jamf ID.
 - `jss_user_ids` (List of Number) JSS Users excluded from scope by Jamf ID.
@@ -77,10 +79,10 @@ Optional:
 
 Optional:
 
-- `ibeacon_ids` (List of Number) Ibeacons the scope is limited to by Jamf ID.
-- `network_segment_ids` (List of Number) Network segments the scope is limited to by Jamf ID.
-- `user_group_ids` (List of Number) Users groups the scope is limited to by Jamf ID.
-- `user_names` (List of String) Users the macOS config profile scope is limited to by Jamf ID.
+- `directory_service_or_local_usernames` (List of String) A list of directory service / local usernames for scoping limitations.
+- `directory_service_usergroup_ids` (List of Number) A list of directory service user group IDs for limitations.
+- `ibeacon_ids` (List of Number) A list of iBeacon IDs for limitations.
+- `network_segment_ids` (List of Number) A list of network segment IDs for limitations.
 
 
 
@@ -90,6 +92,10 @@ Optional:
 Required:
 
 - `id` (Number) The unique identifier of the category to which the configuration profile is scoped.
+
+Read-Only:
+
+- `name` (String) The name of the category to which the configuration profile is scoped.
 
 
 <a id="nestedblock--self_service"></a>
