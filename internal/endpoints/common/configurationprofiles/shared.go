@@ -28,11 +28,18 @@ func EncodePlist(cleanedData map[string]interface{}) (string, error) {
 	var buffer bytes.Buffer
 	encoder := plist.NewEncoder(&buffer)
 	encoder.Indent("\t") // Optional: for pretty-printing the XML
+
+	// Additional logging to track the data structure before encoding
+	log.Printf("Data structure before encoding: %v\n", cleanedData)
 	if err := encoder.Encode(cleanedData); err != nil {
 		log.Printf("Error encoding plist data: %v\n", err)
 		return "", err
 	}
-	return buffer.String(), nil
+
+	encodedString := buffer.String()
+	log.Printf("Encoded plist data: %s\n", encodedString)
+
+	return encodedString, nil
 }
 
 // SortPlistKeys recursively sorts the keys of a nested map in alphabetical order,
