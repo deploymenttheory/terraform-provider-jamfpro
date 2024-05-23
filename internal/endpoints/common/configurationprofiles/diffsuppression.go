@@ -26,7 +26,7 @@ func ProcessConfigurationProfileForDiffSuppression(plistData string, fieldsToRem
 
 	// Sort keys for consistent order
 	log.Println("Sorting keys for consistent order...")
-	sortedData := sortKeys(cleanedData)
+	sortedData := SortPlistKeys(cleanedData)
 
 	log.Printf("Sorted plist data: %v\n", sortedData)
 

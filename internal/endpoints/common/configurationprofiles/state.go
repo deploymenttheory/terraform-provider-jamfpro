@@ -20,7 +20,7 @@ func ProcessConfigurationProfileForState(plistData string) (string, error) {
 
 	// Sort keys for consistent order
 	log.Println("Sorting keys for consistent order...")
-	sortedData := sortKeys(decodedPlist)
+	sortedData := SortPlistKeys(decodedPlist)
 
 	// Encode the cleaned and sorted data back to plist XML format
 	encodedPlist, err := EncodePlist(sortedData)

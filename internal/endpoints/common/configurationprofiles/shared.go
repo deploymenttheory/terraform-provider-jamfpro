@@ -35,9 +35,9 @@ func EncodePlist(cleanedData map[string]interface{}) (string, error) {
 	return buffer.String(), nil
 }
 
-// sortKeys recursively sorts the keys of a nested map in alphabetical order,
-// and sorts elements within arrays if they are strings.
-func sortKeys(data map[string]interface{}) map[string]interface{} {
+// SortPlistKeys recursively sorts the keys of a nested map in alphabetical order,
+// and sorts elements within arrays if they are strings or dictionaries.
+func SortPlistKeys(data map[string]interface{}) map[string]interface{} {
 	sortedData := make(map[string]interface{})
 	keys := make([]string, 0, len(data))
 	for k := range data {
@@ -51,21 +51,22 @@ func sortKeys(data map[string]interface{}) map[string]interface{} {
 		switch v := data[k].(type) {
 		case map[string]interface{}:
 			log.Printf("Key %s is a nested map, sorting nested keys...\n", k)
-			sortedData[k] = sortKeys(v)
+			sortedData[k] = SortPlistKeys(v)
 		case []interface{}:
 			log.Printf("Key %s is an array, processing items...\n", k)
 			sortedArray := make([]interface{}, len(v))
 			for i, item := range v {
 				log.Printf("Processing item %d of array %s\n", i, k)
 				if nestedMap, ok := item.(map[string]interface{}); ok {
-					sortedArray[i] = sortKeys(nestedMap)
+					sortedArray[i] = SortPlistKeys(nestedMap)
 				} else {
 					sortedArray[i] = item
 				}
 			}
 			// Check if the array elements are strings and sort them
 			if len(sortedArray) > 0 {
-				if _, ok := sortedArray[0].(string); ok {
+				switch sortedArray[0].(type) {
+				case string:
 					stringArray := make([]string, len(sortedArray))
 					for i, item := range sortedArray {
 						stringArray[i] = item.(string)
@@ -73,6 +74,12 @@ func sortKeys(data map[string]interface{}) map[string]interface{} {
 					sort.Strings(stringArray)
 					for i, item := range stringArray {
 						sortedArray[i] = item
+					}
+				case map[string]interface{}:
+					for i, item := range sortedArray {
+						if nestedMap, ok := item.(map[string]interface{}); ok {
+							sortedArray[i] = SortPlistKeys(nestedMap)
+						}
 					}
 				}
 			}
