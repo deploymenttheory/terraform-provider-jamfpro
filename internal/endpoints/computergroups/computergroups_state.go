@@ -17,6 +17,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 		return diags
 	}
 
+	// Easy Attrs
 	if err := d.Set("name", resource.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -24,6 +25,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	// TODO update this
 	// Set the 'site' attribute in the state only if it's not empty (i.e., not default values)
 	site := []interface{}{}
 	if resource.Site.ID != -1 {
@@ -31,26 +33,34 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 			"id": resource.Site.ID,
 		})
 	}
+
 	if len(site) > 0 {
 		if err := d.Set("site", site); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
+	// TODO Overhaul this too
 	// Set the 'criteria' attribute in the state
-	criteriaList := []interface{}{} // Initialize as empty slice
-	for _, crit := range resource.Criteria.Criterion {
-		criteriaMap := map[string]interface{}{
-			"name":          crit.Name,
-			"priority":      crit.Priority,
-			"and_or":        crit.AndOr,
-			"search_type":   crit.SearchType,
-			"value":         crit.Value,
-			"opening_paren": crit.OpeningParen,
-			"closing_paren": crit.ClosingParen,
+	var criteriaList []interface{}
+	if len(resource.Criteria.Criterion) > 0 {
+		criteriaList = []interface{}{} // Initialize as empty slice
+		for _, crit := range resource.Criteria.Criterion {
+			criteriaMap := map[string]interface{}{
+				"name":          crit.Name,
+				"priority":      crit.Priority,
+				"and_or":        crit.AndOr,
+				"search_type":   crit.SearchType,
+				"value":         crit.Value,
+				"opening_paren": crit.OpeningParen,
+				"closing_paren": crit.ClosingParen,
+			}
+			criteriaList = append(criteriaList, criteriaMap)
 		}
-		criteriaList = append(criteriaList, criteriaMap)
+	} else {
+		criteriaList = nil
 	}
+
 	if err := d.Set("criteria", criteriaList); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -73,6 +83,8 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 				}
 				computersList = append(computersList, computerMap)
 			}
+		} else {
+			computersList = nil
 		}
 	}
 
