@@ -17,7 +17,7 @@ type ConfigurationProfile struct {
 	PayloadIdentifier        string                 `mapstructure:"PayloadIdentifier" validate:"required"`
 	PayloadOrganization      string                 `mapstructure:"PayloadOrganization" validate:"required"`
 	PayloadRemovalDisallowed bool                   `mapstructe:"PayloadRemovalDisallowed" validate:"required"`
-	PayloadScope             string                 `mapstructure:"PayloadScope" validate:"required,oneof=System User"`
+	PayloadScope             string                 `mapstructure:"PayloadScope" validate:"required,oneof=System User Computer"`
 	PayloadType              string                 `mapstructure:"PayloadType" validate:"required,eq=Configuration"`
 	PayloadUUID              string                 `mapstructure:"PayloadUUID" validate:"required"`
 	PayloadVersion           int                    `mapstructure:"PayloadVersion" validate:"required,eq=1"`
@@ -100,6 +100,8 @@ func MergeConfigurationProfileFieldsIntoMap(profile *ConfigurationProfile) map[s
 	for k, v := range profile.PayloadContent {
 		mergedPayloads[k] = MergeCongfigurationPayloadFieldsIntoMap(&v)
 	}
+
+	merged["PayloadContent"] = mergedPayloads
 
 	return merged
 }
