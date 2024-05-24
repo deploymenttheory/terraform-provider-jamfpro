@@ -60,7 +60,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacO
 
 	// Payloads
 	profile := sharedschemas.NormalizePayloadState(resource.General.Payloads)
-	if err := d.Set("payload", profile); err != nil {
+	if err := d.Set("payloads", profile); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

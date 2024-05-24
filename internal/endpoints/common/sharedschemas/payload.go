@@ -36,11 +36,12 @@ type ConfigurationPayload struct {
 
 func GetSharedSchemaPayload() *schema.Schema {
 	return &schema.Schema{
-		Type:         schema.TypeString,
-		Required:     true,
-		StateFunc:    NormalizePayloadState,
-		ValidateFunc: ValidatePayload,
-		Description:  "A MacOS configuration profile as a plist-formatted XML string.",
+		Type:             schema.TypeString,
+		Required:         true,
+		StateFunc:        NormalizePayloadState,
+		ValidateFunc:     ValidatePayload,
+		DiffSuppressFunc: macosconfigurationprofilesw0de.DiffSuppressPayloads,
+		Description:      "A MacOS configuration profile as a plist-formatted XML string.",
 	}
 }
 
