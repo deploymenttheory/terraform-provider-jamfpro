@@ -7,6 +7,7 @@ import (
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles/plist"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -57,17 +58,9 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacO
 
 	log.Printf("Processed profile payload: %s\n", processedProfile)
 
-	// Log the current value of the payloads field before setting the new value
-	currentPayloads, ok := d.GetOk("payloads")
-	if ok {
-		log.Printf("Current payloads before setting new value: %s\n", currentPayloads)
-	} else {
-		log.Println("Current payloads before setting new value: not set or empty")
-	}
-
-	// Set the processed payloads field
-	if err := d.Set("payloads", processedProfile); err != nil {
-		log.Printf("Error setting payloads: %v\n", err)
+	// Payloads
+	profile := sharedschemas.NormalizePayloadState(resource.General.Payloads)
+	if err := d.Set("payload", profile); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

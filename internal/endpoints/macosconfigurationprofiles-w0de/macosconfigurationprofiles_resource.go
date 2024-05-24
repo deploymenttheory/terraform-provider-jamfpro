@@ -94,12 +94,13 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Description:  "The deployment level of the configuration profile. Available options are: 'User' or 'System'. Note: 'System' is mapped to 'Computer Level' in the Jamf Pro GUI.",
 				ValidateFunc: validation.StringInSlice([]string{"User", "System"}, false),
 			},
-			"payloads": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Description:      "The macOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist.",
-				DiffSuppressFunc: diffSuppressPayloads,
-			},
+			"payload": sharedschemas.GetSharedSchemaPayload(),
+			// "payloads": {
+			// 	Type:             schema.TypeString,
+			// 	Optional:         true,
+			// 	Description:      "The macOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist.",
+			// 	DiffSuppressFunc: diffSuppressPayloads,
+			// },
 			"redeploy_on_update": {
 				Type:        schema.TypeString,
 				Optional:    true,
