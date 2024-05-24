@@ -1,4 +1,4 @@
-package sharedschemas
+package plist
 
 import (
 	"errors"
@@ -6,11 +6,11 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mitchellh/mapstructure"
 	"howett.net/plist"
 )
 
+// ConfigurationProfile represents a root level MacOS configuration profile.
 type ConfigurationProfile struct {
 	PayloadDescription       string                 `mapstructure:"PayloadDescription"`
 	PayloadDisplayName       string                 `mapstructure:"PayloadDisplayName" validate:"required"`
@@ -25,6 +25,7 @@ type ConfigurationProfile struct {
 	AdditionalFields         map[string]interface{} `mapstructure:",remain"`
 }
 
+// ConfigurationPayload represents a nested MacOS configuration profile.
 type ConfigurationPayload struct {
 	ConfigurationProfile
 	payloadIdentifier   string                 `mapstructure:"PayloadIdentifier,-"`
@@ -34,17 +35,7 @@ type ConfigurationPayload struct {
 	AdditionalFields    map[string]interface{} `mapstructure:",remain"`
 }
 
-func GetSharedSchemaPayload() *schema.Schema {
-	return &schema.Schema{
-		Type:             schema.TypeString,
-		Required:         true,
-		StateFunc:        NormalizePayloadState,
-		ValidateFunc:     ValidatePayload,
-		DiffSuppressFunc: macosconfigurationprofilesw0de.DiffSuppressPayloads,
-		Description:      "A MacOS configuration profile as a plist-formatted XML string.",
-	}
-}
-
+// UnmarshalPayload unmarshals a plist payload into a ConfigurationProfile struct using mapstructure.
 func UnmarshalPayload(payload string) (*ConfigurationProfile, error) {
 	var profile map[string]interface{}
 	_, err := plist.Unmarshal([]byte(payload), &profile)
@@ -71,6 +62,7 @@ func UnmarshalPayload(payload string) (*ConfigurationProfile, error) {
 	return &out, nil
 }
 
+// MarshalPayload marshals a ConfigurationProfile struct into a plist payload using mapstructure.
 func MarshalPayload(profile *ConfigurationProfile) (string, error) {
 	mergedPayload := MergeConfigurationProfileFieldsIntoMap(profile)
 	xml, err := plist.MarshalIndent(mergedPayload, plist.XMLFormat, "\t")
@@ -80,6 +72,7 @@ func MarshalPayload(profile *ConfigurationProfile) (string, error) {
 	return string(xml), nil
 }
 
+// MergeConfigurationProfileFieldsIntoMap merges the fields of a ConfigurationProfile struct into a map.
 func MergeConfigurationProfileFieldsIntoMap(profile *ConfigurationProfile) map[string]interface{} {
 	merged := make(map[string]interface{}, len(profile.AdditionalFields))
 	for k, v := range profile.AdditionalFields {
@@ -107,6 +100,7 @@ func MergeConfigurationProfileFieldsIntoMap(profile *ConfigurationProfile) map[s
 	return merged
 }
 
+// MergeCongfigurationPayloadFieldsIntoMap merges the fields of a ConfigurationPayload struct into a map.
 func MergeCongfigurationPayloadFieldsIntoMap(payload *ConfigurationPayload) map[string]interface{} {
 	merged := make(map[string]interface{}, len(payload.AdditionalFields))
 	for k, v := range payload.AdditionalFields {
@@ -127,6 +121,7 @@ func MergeCongfigurationPayloadFieldsIntoMap(payload *ConfigurationPayload) map[
 	return merged
 }
 
+// NormalizePayloadState normalizes a payload state by unmarshalling and remarshal it.
 func NormalizePayloadState(payload any) string {
 	profile, err := UnmarshalPayload(payload.(string))
 	if err != nil {
@@ -141,6 +136,7 @@ func NormalizePayloadState(payload any) string {
 	return xml
 }
 
+// ValidatePayload validates a payload by unmarshalling it and checking for required fields.
 func ValidatePayload(payload interface{}, key string) (warns []string, errs []error) {
 	profile, err := UnmarshalPayload(payload.(string))
 	if err != nil {
@@ -158,6 +154,7 @@ func ValidatePayload(payload interface{}, key string) (warns []string, errs []er
 	return warns, errs
 }
 
+// ValidatePayloadFields validates the fields of a ConfigurationProfile struct.
 func ValidatePayloadFields(profile *ConfigurationProfile) []error {
 	var errs []error
 
@@ -180,8 +177,4 @@ func ValidatePayloadFields(profile *ConfigurationProfile) []error {
 	}
 
 	return errs
-}
-
-func SuppressPayloadDiff(k, old string, new string, d *schema.ResourceData) bool {
-	return NormalizePayloadState(old) == NormalizePayloadState(new)
 }

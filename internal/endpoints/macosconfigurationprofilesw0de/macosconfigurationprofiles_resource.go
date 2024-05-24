@@ -10,6 +10,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles/plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
@@ -94,16 +95,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Description:  "The deployment level of the configuration profile. Available options are: 'User' or 'System'. Note: 'System' is mapped to 'Computer Level' in the Jamf Pro GUI.",
 				ValidateFunc: validation.StringInSlice([]string{"User", "System"}, false),
 			},
-
 			"payloads": {
 				Type:             schema.TypeString,
 				Required:         true,
-				StateFunc:        sharedschemas.NormalizePayloadState,
-				ValidateFunc:     sharedschemas.ValidatePayload,
+				StateFunc:        plist.NormalizePayloadState,
+				ValidateFunc:     plist.ValidatePayload,
 				DiffSuppressFunc: DiffSuppressPayloads,
 				Description:      "A MacOS configuration profile as a plist-formatted XML string.",
 			},
-
 			"redeploy_on_update": {
 				Type:        schema.TypeString,
 				Optional:    true,
