@@ -1,4 +1,4 @@
-// usergroups_object.go
+// usergroups_resource.go
 package usergroups
 
 import (

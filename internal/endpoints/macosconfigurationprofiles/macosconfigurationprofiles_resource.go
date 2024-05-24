@@ -12,8 +12,8 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
+	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -27,6 +27,7 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 		ReadContext:   ResourceJamfProMacOSConfigurationProfilesRead,
 		UpdateContext: ResourceJamfProMacOSConfigurationProfilesUpdate,
 		DeleteContext: ResourceJamfProMacOSConfigurationProfilesDelete,
+		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
@@ -52,6 +53,11 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Computed:    true,
 				Description: "The Jamf description and PayloadDescription of the configuration profile.",
 			},
+			"uuid": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The universally unique identifier for the profile.",
+			},
 			"site": {
 				Type:        schema.TypeList,
 				MaxItems:    1,
@@ -74,13 +80,14 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Description:  "The distribution method for the configuration profile. ['Make Available in Self Service','Install Automatically']",
 				ValidateFunc: validation.StringInSlice([]string{"Make Available in Self Service", "Install Automatically"}, false),
 			},
-			"user_removeable": {
+			"user_removable": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Whether the configuration profile is user removeable or not.",
 			},
 			"level": {
+
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The level and PayloadScope of the configuration profile. May be 'Computer', 'User', or 'System'.",
@@ -89,21 +96,29 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The UUID and PayloadIdentifier of the configuration profile.",
+
 			},
 			"payload": sharedschemas.GetSharedSchemaPayload(),
 			"redeploy_on_update": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "Newly Assigned", // This is always "Newly Assigned" on existing profile objects, but may be set "All" on profile update requests and in TF state.
-				Description:  "Whether the configuration profile is redeployed on update.",
-				ValidateFunc: validation.StringInSlice([]string{"All", "Newly Assigned"}, false),
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "Newly Assigned", // This is always "Newly Assigned" on existing profile objects, but may be set "All" on profile update requests and in TF state.
+				Description: "Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state",
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := util.GetString(val)
+					if v == "All" || v == "Newly Assigned" {
+						return
+					}
+					errs = append(errs, fmt.Errorf("%q must be either 'All' or 'Newly Assigned', got: %s", key, v))
+					return warns, errs
+				},
 			},
 			"scope": {
 				Type:        schema.TypeList,
 				MaxItems:    1,
 				Description: "The scope of the configuration profile.",
 				Required:    true,
-				Elem:        sharedschemas.GetSharedSchemaScope(),
+				Elem:        sharedschemas.GetSharedmacOSComputerSchemaScope(),
 			},
 			"self_service": {
 				Type:        schema.TypeList,
@@ -297,7 +312,7 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	}
 
 	// Update the Terraform state with the fetched data from the resource
-	diags = updateTerraformState(d, resource, resourceID)
+	diags = updateTerraformState(d, resource)
 
 	// Handle any errors and return diagnostics
 	if len(diags) > 0 {

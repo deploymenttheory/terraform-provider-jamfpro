@@ -72,7 +72,6 @@ func ResourceJamfProPolicies() *schema.Resource {
 			"trigger_other": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     "",
 				Description: "Any other trigger for the policy.",
 				// TODO need a validation func here to make sure this cannot be provided as empty.
 			},
@@ -139,6 +138,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Optional:    true,
 				Description: "Category to add the policy to.",
 				MaxItems:    1,
+				Default:     nil,
 				Elem:        sharedschemas.GetSharedSchemaCategory(),
 			},
 			"site": {
@@ -162,25 +162,32 @@ func ResourceJamfProPolicies() *schema.Resource {
 				MaxItems:    1,
 				Elem:        getPolicySchemaNetworkLimitations(),
 			}, // END OF General UI
-			// "payloads": {
-			// 	Type:        schema.TypeList,
-			// 	Required:    true,
-			// 	Description: "All payloads container",
-			// 	Elem:        getPolicySchemaPayloads(),
-			// },
+			"payloads": {
+				Type:        schema.TypeList,
+				Required:    true,
+				Description: "All payloads container",
+				Elem:        getPolicySchemaPayloads(),
+			},
 			"scope": {
 				Type:        schema.TypeList,
 				MaxItems:    1,
-				Optional:    true,
+				Required:    true,
 				Description: "Scope configuration for the profile.",
-				Elem:        sharedschemas.GetSharedSchemaScope(),
+				Elem:        sharedschemas.GetSharedmacOSComputerSchemaScope(),
 			},
 			"self_service": {
 				Type:        schema.TypeList,
 				Optional:    true,
+				Default:     nil,
 				MaxItems:    1,
 				Description: "Self-service settings of the policy.",
 				Elem:        getPolicySchemaSelfService(),
+			},
+			"package_distribution_point": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "default",
+				Description: "repository of which packages are collected from",
 			},
 		},
 	}

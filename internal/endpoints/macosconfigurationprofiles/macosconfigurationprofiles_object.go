@@ -6,51 +6,33 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
+
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // constructJamfProMacOSConfigurationProfile constructs a ResourceMacOSConfigurationProfile object from the provided schema data.
 func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro.ResourceMacOSConfigurationProfile, error) {
-	// Main obj with fields which do not require processing
-	out := jamfpro.ResourceMacOSConfigurationProfile{
+	profile := &jamfpro.ResourceMacOSConfigurationProfile{
 		General: jamfpro.MacOSConfigurationProfileSubsetGeneral{
 			DistributionMethod: d.Get("distribution_method").(string),
+
 			UserRemovable:      d.Get("user_removeable").(bool),
+
 			RedeployOnUpdate:   d.Get("redeploy_on_update").(string),
-		},
-		Scope: jamfpro.MacOSConfigurationProfileSubsetScope{},
-		SelfService: jamfpro.MacOSConfigurationProfileSubsetSelfService{
-			InstallButtonText:           d.Get("self_service.0.install_button_text").(string),
-			SelfServiceDescription:      d.Get("self_service.0.self_service_description").(string),
-			ForceUsersToViewDescription: d.Get("self_service.0.force_users_to_view_description").(bool),
-			// Self Service Icon - TBA at a later date because jamf is odd
-			FeatureOnMainPage: d.Get("self_service.0.feature_on_main_page").(bool),
-			// Self Service Categories
-			// Notification parsed cos it's stupid and has dupe keys
-			NotificationSubject: d.Get("self_service.0.notification_subject").(string),
-			NotificationMessage: d.Get("self_service.0.notification_message").(string),
+			Payloads:           html.EscapeString(d.Get("payloads").(string)),
 		},
 	}
 
-	// Processed Fields
-
-	// Site
-	if len(d.Get("site").([]interface{})) != 0 {
-		out.General.Site = jamfpro.SharedResourceSite{
-			ID:   d.Get("site.0.id").(int),
-			Name: d.Get("site.0.name").(string),
-		}
+	// Handle Site
+	if v, ok := d.GetOk("site"); ok {
+		profile.General.Site = constructobject.ConstructSharedResourceSite(v.([]interface{}))
+	} else {
+		profile.General.Site = constructobject.ConstructSharedResourceSite([]interface{}{})
 	}
 
-	// Category
-	if len(d.Get("category").([]interface{})) != 0 {
-		out.General.Category = jamfpro.SharedResourceCategory{
-			ID:   d.Get("category.0.id").(int),
-			Name: d.Get("category.0.name").(string),
-		}
-	}
 
 	// Payload
 	payload, ok := d.GetOk("payload")
@@ -74,148 +56,189 @@ func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro
 	out.Scope.AllComputers = d.Get("scope.0.all_computers").(bool)
 	out.Scope.AllJSSUsers = d.Get("scope.0.all_jss_users").(bool)
 
-	// Computers
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetComputer, int]("scope.0.computer_ids", "ID", d, &out.Scope.Computers)
+
+	// Handle Self Service
+	if v, ok := d.GetOk("self_service"); ok {
+		selfServiceData := v.([]interface{})[0].(map[string]interface{})
+		profile.SelfService = constructMacOSConfigurationProfileSubsetSelfService(selfServiceData)
+	}
+
+	// Serialize and pretty-print the macOS Configuration Profile object as XML for logging
+	resourceXML, err := xml.MarshalIndent(profile, "", "  ")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to marshal Jamf Pro macOS Configuration Profile '%s' to XML: %v", profile.General.Name, err)
 	}
 
-	// Computer Groups
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetComputerGroup, int]("scope.0.computer_group_ids", "ID", d, &out.Scope.ComputerGroups)
-	if err != nil {
-		return nil, err
+	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
+	log.Printf("[DEBUG] Constructed Jamf Pro macOS Configuration Profile XML:\n%s\n", string(resourceXML))
+
+	return profile, nil
+}
+
+// constructMacOSConfigurationProfileSubsetScope constructs a MacOSConfigurationProfileSubsetScope object from the provided schema data.
+func constructMacOSConfigurationProfileSubsetScope(data map[string]interface{}) jamfpro.MacOSConfigurationProfileSubsetScope {
+	scope := jamfpro.MacOSConfigurationProfileSubsetScope{
+		AllComputers: data["all_computers"].(bool),
+		AllJSSUsers:  data["all_jss_users"].(bool),
 	}
 
-	// JSS Users
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetJSSUser, int]("scope.0.jss_user_ids", "ID", d, &out.Scope.JSSUsers)
-	if err != nil {
-		return nil, err
+	if computerIDs, ok := data["computer_ids"]; ok {
+		scope.Computers = constructComputers(computerIDs.([]interface{}))
+	}
+	if computerGroupIDs, ok := data["computer_group_ids"]; ok {
+		scope.ComputerGroups = constructScopeEntitiesFromIds(computerGroupIDs.([]interface{}))
+	}
+	if buildingIDs, ok := data["building_ids"]; ok {
+		scope.Buildings = constructScopeEntitiesFromIds(buildingIDs.([]interface{}))
+	}
+	if departmentIDs, ok := data["department_ids"]; ok {
+		scope.Departments = constructScopeEntitiesFromIds(departmentIDs.([]interface{}))
+	}
+	if jssUserIDs, ok := data["jss_user_ids"]; ok {
+		scope.JSSUsers = constructScopeEntitiesFromIds(jssUserIDs.([]interface{}))
+	}
+	if jssUserGroupIDs, ok := data["jss_user_group_ids"]; ok {
+		scope.JSSUserGroups = constructScopeEntitiesFromIds(jssUserGroupIDs.([]interface{}))
 	}
 
-	// JSS User Groups
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetJSSUserGroup, int]("scope.0.jss_user_group_ids", "ID", d, &out.Scope.JSSUserGroups)
-	if err != nil {
-		return nil, err
+	// Handle Limitations
+	if limitations, ok := data["limitations"]; ok && len(limitations.([]interface{})) > 0 {
+		limitationData := limitations.([]interface{})[0].(map[string]interface{})
+		scope.Limitations = constructLimitations(limitationData)
 	}
 
-	// Buildings
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetBuilding, int]("scope.0.building_ids", "ID", d, &out.Scope.Buildings)
-	if err != nil {
-		return nil, err
+	// Handle Exclusions
+	if exclusions, ok := data["exclusions"]; ok && len(exclusions.([]interface{})) > 0 {
+		exclusionData := exclusions.([]interface{})[0].(map[string]interface{})
+		scope.Exclusions = constructExclusions(exclusionData)
 	}
 
-	// Departments
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetDepartment, int]("scope.0.department_ids", "ID", d, &out.Scope.Departments)
-	if err != nil {
-		return nil, err
+	return scope
+}
+
+// constructLimitations constructs a MacOSConfigurationProfileSubsetLimitation object from the provided schema data.
+func constructLimitations(data map[string]interface{}) jamfpro.MacOSConfigurationProfileSubsetLimitations {
+	limitations := jamfpro.MacOSConfigurationProfileSubsetLimitations{}
+
+	if userNames, ok := data["directory_service_or_local_usernames"]; ok {
+		limitations.Users = constructScopeEntitiesFromIdsFromNames(userNames.([]interface{}))
+	}
+	if userGroupIDs, ok := data["directory_service_usergroup_ids"]; ok {
+		limitations.UserGroups = constructScopeEntitiesFromIds(userGroupIDs.([]interface{}))
+	}
+	if networkSegmentIDs, ok := data["network_segment_ids"]; ok {
+		limitations.NetworkSegments = constructNetworkSegments(networkSegmentIDs.([]interface{}))
+	}
+	if ibeaconIDs, ok := data["ibeacon_ids"]; ok {
+		limitations.IBeacons = constructScopeEntitiesFromIds(ibeaconIDs.([]interface{}))
 	}
 
-	// Scope - Limitations
+	return limitations
+}
 
-	// Users
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetUser, string]("scope.0.limitations.0.user_names", "Name", d, &out.Scope.Limitations.Users)
-	if err != nil {
-		return nil, err
+// constructExclusions constructs a MacOSConfigurationProfileSubsetExclusion object from the provided schema data.
+func constructExclusions(data map[string]interface{}) jamfpro.MacOSConfigurationProfileSubsetExclusions {
+	exclusions := jamfpro.MacOSConfigurationProfileSubsetExclusions{}
+
+	if computerIDs, ok := data["computer_ids"]; ok {
+		exclusions.Computers = constructComputers(computerIDs.([]interface{}))
+	}
+	if computerGroupIDs, ok := data["computer_group_ids"]; ok {
+		exclusions.ComputerGroups = constructScopeEntitiesFromIds(computerGroupIDs.([]interface{}))
+	}
+	if userIDs, ok := data["jss_user_ids"]; ok {
+		exclusions.JSSUsers = constructScopeEntitiesFromIds(userIDs.([]interface{}))
+	}
+	if userGroupIDs, ok := data["jss_user_group_ids"]; ok {
+		exclusions.JSSUserGroups = constructScopeEntitiesFromIds(userGroupIDs.([]interface{}))
+	}
+	if buildingIDs, ok := data["building_ids"]; ok {
+		exclusions.Buildings = constructScopeEntitiesFromIds(buildingIDs.([]interface{}))
+	}
+	if departmentIDs, ok := data["department_ids"]; ok {
+		exclusions.Departments = constructScopeEntitiesFromIds(departmentIDs.([]interface{}))
+	}
+	if networkSegmentIDs, ok := data["network_segment_ids"]; ok {
+		exclusions.NetworkSegments = constructNetworkSegments(networkSegmentIDs.([]interface{}))
+	}
+	if ibeaconIDs, ok := data["ibeacon_ids"]; ok {
+		exclusions.IBeacons = constructScopeEntitiesFromIds(ibeaconIDs.([]interface{}))
 	}
 
-	// Network Segment
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetNetworkSegment, int]("scope.0.limitations.0.network_segment_ids", "ID", d, &out.Scope.Limitations.NetworkSegments)
-	if err != nil {
-		return nil, err
-	}
+	return exclusions
+}
 
-	// IBeacons
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetIBeacon, int]("scope.0.limitations.0.ibeacon_ids", "ID", d, &out.Scope.Limitations.IBeacons)
-	if err != nil {
-		return nil, err
-	}
-
-	// User Groups
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetUserGroup, int]("scope.0.limitations.0.user_group_ids", "ID", d, &out.Scope.Limitations.UserGroups)
-	if err != nil {
-		return nil, err
-	}
-
-	// Scope - Limitations
-
-	// Computers
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetComputer, int]("scope.0.exclusions.0.computer_ids", "ID", d, &out.Scope.Exclusions.Computers)
-	if err != nil {
-		return nil, err
-	}
-
-	// Computer Groups
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetComputerGroup, int]("scope.0.exclusions.0.computer_group_ids", "ID", d, &out.Scope.Exclusions.ComputerGroups)
-	if err != nil {
-		return nil, err
-	}
-
-	// Buildings
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetBuilding, int]("scope.0.exclusions.0.building_ids", "ID", d, &out.Scope.Exclusions.Buildings)
-	if err != nil {
-		return nil, err
-	}
-
-	// Departments
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetDepartment, int]("scope.0.exclusions.0.department_ids", "ID", d, &out.Scope.Exclusions.Departments)
-	if err != nil {
-		return nil, err
-	}
-
-	// Network Segments
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetNetworkSegment, int]("scope.0.exclusions.0.network_segment_ids", "ID", d, &out.Scope.Exclusions.NetworkSegments)
-	if err != nil {
-		return nil, err
-	}
-
-	// JSS Users
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetJSSUser, int]("scope.0.exclusions.0.jss_user_ids", "ID", d, &out.Scope.Exclusions.JSSUsers)
-	if err != nil {
-		return nil, err
-	}
-
-	// JSS User Groups
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetJSSUserGroup, int]("scope.0.exclusions.0.jss_user_group_ids", "ID", d, &out.Scope.Exclusions.JSSUserGroups)
-	if err != nil {
-		return nil, err
-	}
-
-	// IBeacons
-	err = GetAttrsListFromHCL[jamfpro.MacOSConfigurationProfileSubsetIBeacon, int]("scope.0.exclusions.0.ibeacon_ids", "ID", d, &out.Scope.Exclusions.IBeacons)
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO make this better, it works for now
-	if out.Scope.AllComputers && (out.Scope.Computers != nil ||
-		out.Scope.ComputerGroups != nil ||
-		out.Scope.Departments != nil ||
-		out.Scope.Buildings != nil) {
-		return nil, fmt.Errorf("invalid combination - all computers with scoped endpoints")
-	}
-
-	// Self Service
-	// TODO move this to a helper or omit whole key. Logic bad.
-	value, ok := d.GetOk("self_service.0.self_service_categories")
-	if ok {
-		listOfVals := value.([]interface{})
-		for _, v := range listOfVals {
-			mapOfVals := v.(map[string]interface{})
-			catId := mapOfVals["id"]
-			displayIn := mapOfVals["display_in"]
-			featureIn := mapOfVals["feature_in"]
-			name := mapOfVals["name"]
-			out.SelfService.SelfServiceCategories = append(out.SelfService.SelfServiceCategories, jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory{
-				Name:      name.(string),
-				ID:        catId.(int),
-				DisplayIn: displayIn.(bool),
-				FeatureIn: featureIn.(bool),
-			})
+// constructComputers constructs a slice of MacOSConfigurationProfileSubsetComputer from the provided schema data.
+func constructComputers(ids []interface{}) []jamfpro.MacOSConfigurationProfileSubsetComputer {
+	computers := make([]jamfpro.MacOSConfigurationProfileSubsetComputer, len(ids))
+	for i, id := range ids {
+		computers[i] = jamfpro.MacOSConfigurationProfileSubsetComputer{
+			MacOSConfigurationProfileSubsetScopeEntity: jamfpro.MacOSConfigurationProfileSubsetScopeEntity{
+				ID: id.(int),
+			},
 		}
 	}
+	return computers
+}
+
+// constructNetworkSegments constructs a slice of MacOSConfigurationProfileSubsetNetworkSegment from the provided schema data.
+func constructNetworkSegments(data []interface{}) []jamfpro.MacOSConfigurationProfileSubsetNetworkSegment {
+	networkSegments := make([]jamfpro.MacOSConfigurationProfileSubsetNetworkSegment, len(data))
+	for i, id := range data {
+		networkSegments[i] = jamfpro.MacOSConfigurationProfileSubsetNetworkSegment{
+			MacOSConfigurationProfileSubsetScopeEntity: jamfpro.MacOSConfigurationProfileSubsetScopeEntity{
+				ID: id.(int),
+			},
+		}
+	}
+	return networkSegments
+}
+
+// constructMacOSConfigurationProfileSubsetSelfService constructs a MacOSConfigurationProfileSubsetSelfService object from the provided schema data.
+func constructMacOSConfigurationProfileSubsetSelfService(data map[string]interface{}) jamfpro.MacOSConfigurationProfileSubsetSelfService {
+	selfService := jamfpro.MacOSConfigurationProfileSubsetSelfService{
+		InstallButtonText:           data["install_button_text"].(string),
+		SelfServiceDescription:      data["self_service_description"].(string),
+		ForceUsersToViewDescription: data["force_users_to_view_description"].(bool),
+		FeatureOnMainPage:           data["feature_on_main_page"].(bool),
+		NotificationSubject:         data["notification_subject"].(string),
+		NotificationMessage:         data["notification_message"].(string),
+	}
+
+	if categories, ok := data["self_service_categories"]; ok {
+		selfService.SelfServiceCategories = constructSelfServiceCategories(categories.([]interface{}))
+	}
+
+	return selfService
+}
+
+// constructSelfServiceCategories constructs a slice of MacOSConfigurationProfileSubsetSelfServiceCategory from the provided schema data.
+func constructSelfServiceCategories(categories []interface{}) []jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory {
+	selfServiceCategories := make([]jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory, len(categories))
+	for i, category := range categories {
+		catData := category.(map[string]interface{})
+		selfServiceCategories[i] = jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory{
+			ID:        catData["id"].(int),
+			Name:      catData["name"].(string),
+			DisplayIn: catData["display_in"].(bool),
+			FeatureIn: catData["feature_in"].(bool),
+		}
+	}
+	return selfServiceCategories
+}
+
 
 	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
 	log.Printf("[DEBUG] Constructed Jamf Pro macOS Configuration Profile XML:\n%s\n", payload.(string))
 
-	return &out, nil
+
+// constructScopeEntitiesFromIdsFromNames constructs a slice of MacOSConfigurationProfileSubsetScopeEntity from a list of names.
+func constructScopeEntitiesFromIdsFromNames(names []interface{}) []jamfpro.MacOSConfigurationProfileSubsetScopeEntity {
+	scopeEntities := make([]jamfpro.MacOSConfigurationProfileSubsetScopeEntity, len(names))
+	for i, name := range names {
+		scopeEntities[i] = jamfpro.MacOSConfigurationProfileSubsetScopeEntity{
+			Name: name.(string),
+		}
+	}
+	return scopeEntities
 }

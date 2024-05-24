@@ -2,12 +2,13 @@
 package mobiledeviceconfigurationprofiles
 
 import (
-	"fmt"
+	"log"
+	"sort"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles/plist"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"howett.net/plist"
 )
 
 // updateTerraformState updates the Terraform state with the latest ResourceMobileDeviceConfigurationProfile
@@ -21,16 +22,13 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 		"description":       resource.General.Description,
 		"uuid":              resource.General.UUID,
 		"deployment_method": resource.General.DeploymentMethod,
-
-		// Skipping the 'distribution_method' attribute as appears to be deprecated but still in documenation
+		// Skipping the 'distribution_method' attribute as it appears to be deprecated but still in documentation
 		"redeploy_on_update":                resource.General.RedeployOnUpdate,
 		"redeploy_days_before_cert_expires": resource.General.RedeployDaysBeforeCertExpires,
-
-		// Skipping stating payloads and let terraform handle it directly
-		// "payloads": html.UnescapeString(resource.General.Payloads),
 	}
 
 	// Check if the level is "System" and set it to "Device Level", otherwise use the value from resource
+	// This is done to match the Jamf Pro API behavior
 	levelValue := resource.General.Level
 	if levelValue == "System" {
 		levelValue = "Device Level"
@@ -50,14 +48,19 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 		}
 	}
 
-	// Payloads
-	var payloads interface{}
-	format, err := plist.Unmarshal([]byte(resource.General.Payloads), &payloads)
+	// Sanitize and set the payloads using the plist processor function
+	processedProfile, err := plist.ProcessConfigurationProfileForState(resource.General.Payloads)
 	if err != nil {
+		log.Printf("Error processing configuration profile: %v\n", err)
 		diags = append(diags, diag.FromErr(err)...)
+		return diags
 	}
-	payload, _ := plist.MarshalIndent(payloads, format, "    ")
-	if err := d.Set("payload", string(payload)); err != nil {
+
+	log.Printf("Processed profile payload: %s\n", processedProfile)
+
+	// Set the processed payloads field
+	if err := d.Set("payloads", processedProfile); err != nil {
+		log.Printf("Error setting payloads: %v\n", err)
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -75,197 +78,224 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 	}
 
 	// Preparing and setting scope data
-	if scopeData, err := prepareScopeData(resource); err != nil {
+	if scopeData, err := setScope(resource); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	} else if err := d.Set("scope", []interface{}{scopeData}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	return diags
+	// Update the resource data
+	for k, v := range resourceData {
+		if err := d.Set(k, v); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
 
+	return diags
 }
 
-// prepareScopeData prepares the scope data for the Terraform state.
-func prepareScopeData(resource *jamfpro.ResourceMobileDeviceConfigurationProfile) (map[string]interface{}, error) {
+// setScope converts the scope structure into a format suitable for setting in the Terraform state.
+func setScope(resource *jamfpro.ResourceMobileDeviceConfigurationProfile) (map[string]interface{}, error) {
 	scopeData := map[string]interface{}{
 		"all_mobile_devices": resource.Scope.AllMobileDevices,
 		"all_jss_users":      resource.Scope.AllJSSUsers,
 	}
 
 	// Gather mobile devices, groups, etc.
-	mobileDevices, err := setMobileDevices(resource.Scope.MobileDevices)
-	if err != nil {
-		return nil, err
-	}
-	scopeData["mobile_devices"] = mobileDevices
-
-	mobileDeviceGroups, err := setScopeEntities(resource.Scope.MobileDeviceGroups)
-	if err != nil {
-		return nil, err
-	}
-	scopeData["mobile_device_groups"] = mobileDeviceGroups
-
-	jssUsers, err := setScopeEntities(resource.Scope.JSSUsers)
-	if err != nil {
-		return nil, err
-	}
-	scopeData["jss_users"] = jssUsers
-
-	jssUserGroups, err := setScopeEntities(resource.Scope.JSSUserGroups)
-	if err != nil {
-		return nil, err
-	}
-	scopeData["jss_user_groups"] = jssUserGroups
-
-	buildings, err := setScopeEntities(resource.Scope.Buildings)
-	if err != nil {
-		return nil, err
-	}
-	scopeData["buildings"] = buildings
-
-	departments, err := setScopeEntities(resource.Scope.Departments)
-	if err != nil {
-		return nil, err
-	}
-	scopeData["departments"] = departments
+	scopeData["mobile_device_ids"] = flattenAndSortMobileDeviceIDs(resource.Scope.MobileDevices)
+	scopeData["mobile_device_group_ids"] = flattenAndSortScopeEntityIds(resource.Scope.MobileDeviceGroups)
+	scopeData["jss_user_ids"] = flattenAndSortScopeEntityIds(resource.Scope.JSSUsers)
+	scopeData["jss_user_group_ids"] = flattenAndSortScopeEntityIds(resource.Scope.JSSUserGroups)
+	scopeData["building_ids"] = flattenAndSortScopeEntityIds(resource.Scope.Buildings)
+	scopeData["department_ids"] = flattenAndSortScopeEntityIds(resource.Scope.Departments)
 
 	// Gather limitations
 	limitationsData, err := setLimitations(resource.Scope.Limitations)
 	if err != nil {
 		return nil, err
 	}
-	scopeData["limitations"] = limitationsData
+	if limitationsData != nil {
+		scopeData["limitations"] = limitationsData
+	}
 
 	// Gather exclusions
 	exclusionsData, err := setExclusions(resource.Scope.Exclusions)
 	if err != nil {
 		return nil, err
 	}
-	scopeData["exclusions"] = exclusionsData
+	if exclusionsData != nil {
+		scopeData["exclusions"] = exclusionsData
+	}
 
 	return scopeData, nil
 }
 
 // setLimitations collects and formats limitations data for the Terraform state.
-func setLimitations(limitations jamfpro.MobileDeviceConfigurationProfileSubsetLimitation) ([]interface{}, error) {
-	result := make(map[string]interface{})
+func setLimitations(limitations jamfpro.MobileDeviceConfigurationProfileSubsetLimitation) ([]map[string]interface{}, error) {
+	result := map[string]interface{}{}
 
-	// Iterate through each type of exclusion and set them
-	limitationTypes := map[string][]jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity{
-		"users":       limitations.Users,
-		"user_groups": limitations.UserGroups,
-		"ibeacons":    limitations.Ibeacons,
-	}
-
-	for key, entities := range limitationTypes {
-		if len(entities) > 0 {
-			entityData, err := setScopeEntities(entities)
-			if err != nil {
-				return nil, fmt.Errorf("error setting %s: %v", key, err)
-			}
-			result[key] = entityData
-		}
-	}
-
-	// Handle Network Segments specifically if needed
 	if len(limitations.NetworkSegments) > 0 {
-		networkSegments, err := setNetworkSegments(limitations.NetworkSegments)
-		if err != nil {
-			return nil, fmt.Errorf("error setting network segments: %v", err)
+		networkSegmentIDs := flattenAndSortNetworkSegmentIds(limitations.NetworkSegments)
+		if len(networkSegmentIDs) > 0 {
+			result["network_segment_ids"] = networkSegmentIDs
 		}
-		result["network_segments"] = networkSegments
 	}
 
-	// Ensure to wrap the map into a list to match the expected TypeList structure in Terraform
-	return []interface{}{result}, nil
+	if len(limitations.Ibeacons) > 0 {
+		ibeaconIDs := flattenAndSortScopeEntityIds(limitations.Ibeacons)
+		if len(ibeaconIDs) > 0 {
+			result["ibeacon_ids"] = ibeaconIDs
+		}
+	}
+
+	if len(limitations.Users) > 0 {
+		userNames := flattenAndSortScopeEntityNames(limitations.Users)
+		if len(userNames) > 0 {
+			result["directory_service_or_local_usernames"] = userNames
+		}
+	}
+
+	if len(limitations.UserGroups) > 0 {
+		userGroupIDs := flattenAndSortScopeEntityIds(limitations.UserGroups)
+		if len(userGroupIDs) > 0 {
+			result["directory_service_usergroup_ids"] = userGroupIDs
+		}
+	}
+
+	if len(result) == 0 {
+		return nil, nil
+	}
+
+	return []map[string]interface{}{result}, nil
 }
 
 // setExclusions collects and formats exclusion data for the Terraform state.
-func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExclusion) ([]interface{}, error) {
-	result := make(map[string]interface{})
+func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExclusion) ([]map[string]interface{}, error) {
+	result := map[string]interface{}{}
 
-	// Iterate through each type of exclusion and set them
-	exclusionTypes := map[string][]jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity{
-		"mobile_device_groups": exclusions.MobileDeviceGroups,
-		"users":                exclusions.Users,
-		"user_groups":          exclusions.UserGroups,
-		"buildings":            exclusions.Buildings,
-		"departments":          exclusions.Departments,
-		"jss_users":            exclusions.JSSUsers,
-		"jss_user_groups":      exclusions.JSSUserGroups,
-		"ibeacons":             exclusions.IBeacons,
-	}
-
-	// This loop will ensure each exclusion type is seted and added to the result map correctly
-	for key, entities := range exclusionTypes {
-		if len(entities) > 0 {
-			entitiesData, err := setScopeEntities(entities)
-			if err != nil {
-				return nil, fmt.Errorf("error setting %s for exclusions: %v", key, err)
-			}
-			result[key] = entitiesData
-		}
-	}
-
-	// Handle Mobile Devices specifically if needed
 	if len(exclusions.MobileDevices) > 0 {
-		mobileDevices, err := setMobileDevices(exclusions.MobileDevices)
-		if err != nil {
-			return nil, fmt.Errorf("error setting mobile devices for exclusions: %v", err)
+		computerIDs := flattenAndSortMobileDeviceIDs(exclusions.MobileDevices)
+		if len(computerIDs) > 0 {
+			result["mobile_device_ids"] = computerIDs
 		}
-		result["mobile_devices"] = mobileDevices
 	}
 
-	// Handle Network Segments specifically if needed
+	if len(exclusions.MobileDeviceGroups) > 0 {
+		computerGroupIDs := flattenAndSortScopeEntityIds(exclusions.MobileDeviceGroups)
+		if len(computerGroupIDs) > 0 {
+			result["mobile_device_group_ids"] = computerGroupIDs
+		}
+	}
+
+	if len(exclusions.Buildings) > 0 {
+		buildingIDs := flattenAndSortScopeEntityIds(exclusions.Buildings)
+		if len(buildingIDs) > 0 {
+			result["building_ids"] = buildingIDs
+		}
+	}
+
+	if len(exclusions.JSSUsers) > 0 {
+		jssUserIDs := flattenAndSortScopeEntityIds(exclusions.JSSUsers)
+		if len(jssUserIDs) > 0 {
+			result["jss_user_ids"] = jssUserIDs
+		}
+	}
+
+	if len(exclusions.JSSUserGroups) > 0 {
+		jssUserGroupIDs := flattenAndSortScopeEntityIds(exclusions.JSSUserGroups)
+		if len(jssUserGroupIDs) > 0 {
+			result["jss_user_group_ids"] = jssUserGroupIDs
+		}
+	}
+
+	if len(exclusions.Departments) > 0 {
+		departmentIDs := flattenAndSortScopeEntityIds(exclusions.Departments)
+		if len(departmentIDs) > 0 {
+			result["department_ids"] = departmentIDs
+		}
+	}
+
 	if len(exclusions.NetworkSegments) > 0 {
-		networkSegments, err := setNetworkSegments(exclusions.NetworkSegments)
-		if err != nil {
-			return nil, fmt.Errorf("error setting network segments for exclusions: %v", err)
+		networkSegmentIDs := flattenAndSortNetworkSegmentIds(exclusions.NetworkSegments)
+		if len(networkSegmentIDs) > 0 {
+			result["network_segment_ids"] = networkSegmentIDs
 		}
-		result["network_segments"] = networkSegments
 	}
 
-	// Wrap the map in a slice to match the TypeList expectation
-	return []interface{}{result}, nil
+	if len(exclusions.Users) > 0 {
+		userNames := flattenAndSortScopeEntityNames(exclusions.Users)
+		if len(userNames) > 0 {
+			result["directory_service_or_local_usernames"] = userNames
+		}
+	}
+
+	if len(exclusions.UserGroups) > 0 {
+		userGroupIDs := flattenAndSortScopeEntityIds(exclusions.UserGroups)
+		if len(userGroupIDs) > 0 {
+			result["directory_service_usergroup_ids"] = userGroupIDs
+		}
+	}
+
+	if len(exclusions.IBeacons) > 0 {
+		ibeaconIDs := flattenAndSortScopeEntityIds(exclusions.IBeacons)
+		if len(ibeaconIDs) > 0 {
+			result["ibeacon_ids"] = ibeaconIDs
+		}
+	}
+
+	if len(result) == 0 {
+		return nil, nil
+	}
+
+	return []map[string]interface{}{result}, nil
 }
 
-// setScopeEntities converts a slice of general scope entities (like user groups, buildings) to a format suitable for Terraform state.
-func setScopeEntities(entities []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) ([]interface{}, error) {
-	var entityList []interface{}
+// helper functions
+
+// flattenAndSortScopeEntityIds converts a slice of general scope entities (like user groups, buildings) to a format suitable for Terraform state.
+func flattenAndSortScopeEntityIds(entities []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) []int {
+	var ids []int
 	for _, entity := range entities {
-		entityMap := map[string]interface{}{
-			"id":   entity.ID,
-			"name": entity.Name,
+		if entity.ID != 0 {
+			ids = append(ids, entity.ID)
 		}
-		entityList = append(entityList, entityMap)
 	}
-	return entityList, nil
+	sort.Ints(ids)
+	return ids
 }
 
-// setMobileDevices converts a slice of MobileDevice entities to a format suitable for Terraform state.
-func setMobileDevices(devices []jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice) ([]interface{}, error) {
-	var deviceList []interface{}
+// flattenAndSortScopeEntityNames converts a slice of RestrictedSoftwareSubsetScopeEntity into a sorted slice of strings.
+func flattenAndSortScopeEntityNames(entities []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) []string {
+	var names []string
+	for _, entity := range entities {
+		if entity.Name != "" {
+			names = append(names, entity.Name)
+		}
+	}
+	sort.Strings(names)
+	return names
+}
+
+// flattenAndSortMobileDeviceIDs converts a slice of MobileDeviceConfigurationProfileSubsetMobileDevice into a sorted slice of integers.
+func flattenAndSortMobileDeviceIDs(devices []jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice) []int {
+	var ids []int
 	for _, device := range devices {
-		deviceMap := map[string]interface{}{
-			"id":               device.ID,
-			"name":             device.Name,
-			"udid":             device.UDID,
-			"wifi_mac_address": device.WifiMacAddress,
+		if device.ID != 0 {
+			ids = append(ids, device.ID)
 		}
-		deviceList = append(deviceList, deviceMap)
 	}
-	return deviceList, nil
+	sort.Ints(ids)
+	return ids
 }
 
-// Helper function specific to network segments if they have an additional field such as 'uid'.
-func setNetworkSegments(segments []jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment) ([]interface{}, error) {
-	var segmentList []interface{}
+// flattenAndSortNetworkSegmentIds converts a slice of MobileDeviceConfigurationProfileSubsetNetworkSegment into a sorted slice of integers.
+func flattenAndSortNetworkSegmentIds(segments []jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment) []int {
+	var ids []int
 	for _, segment := range segments {
-		segmentMap := map[string]interface{}{
-			"id":   segment.ID,
-			"name": segment.Name,
+		if segment.ID != 0 {
+			ids = append(ids, segment.ID)
 		}
-		segmentList = append(segmentList, segmentMap)
 	}
-	return segmentList, nil
+	sort.Ints(ids)
+	return ids
 }

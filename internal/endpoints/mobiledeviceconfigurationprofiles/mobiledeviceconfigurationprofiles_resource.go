@@ -10,6 +10,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
@@ -25,8 +26,9 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 		ReadContext:   ResourceJamfProMobileDeviceConfigurationProfileRead,
 		UpdateContext: ResourceJamfProMobileDeviceConfigurationProfileUpdate,
 		DeleteContext: ResourceJamfProMobileDeviceConfigurationProfileDelete,
+		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(20 * time.Second),
+			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
 			Delete: schema.DefaultTimeout(15 * time.Second),
@@ -109,6 +111,7 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 			"redeploy_on_update": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Default:     "Newly Assigned", // This is always "Newly Assigned" on existing profile objects, but may be set "All" on profile update requests and in TF state.
 				Description: "Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := util.GetString(val)
@@ -119,398 +122,24 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 					return warns, errs
 				},
 			},
-			// "redeploy_days_before_cert_expires": {
-			// 	Type:        schema.TypeInt,
-			// 	Optional:    true,
-			// 	Description: "The number of days before certificate expiration when the profile should be redeployed.",
-			// },
-			"payloads": {
-				Type:        schema.TypeString,
+			"redeploy_days_before_cert_expires": {
+				Type:        schema.TypeInt,
 				Optional:    true,
-				Description: "The iOS / iPadOS / tvOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist.",
+				Description: "The number of days before certificate expiration when the profile should be redeployed.",
+			},
+			"payloads": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Description:      "The iOS / iPadOS / tvOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist.",
+				DiffSuppressFunc: diffSuppressPayloads,
 			},
 			// Scope
 			"scope": {
 				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "The scope in which the mobile device configuration profile is applied.",
-				Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-					"all_mobile_devices": {
-						Type:        schema.TypeBool,
-						Optional:    true,
-						Description: "If true, the profile is applied to all mobile devices.",
-					},
-					"all_jss_users": {
-						Type:        schema.TypeBool,
-						Optional:    true,
-						Description: "If true, the profile is applied to all JSS users.",
-					},
-					"mobile_devices": {
-						Type:        schema.TypeSet,
-						Optional:    true,
-						Description: "The list of specific mobile devices to which the profile is applied.",
-						Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-							"id": {
-								Type:        schema.TypeInt,
-								Optional:    true,
-								Description: "The unique identifier of the mobile device.",
-							},
-							"name": {
-								Type:        schema.TypeString,
-								Computed:    true,
-								Description: "The name of the mobile device.",
-							},
-							"udid": {
-								Type:        schema.TypeString,
-								Computed:    true,
-								Description: "The UDID of the mobile device.",
-							},
-							"wifi_mac_address": {
-								Type:        schema.TypeString,
-								Computed:    true,
-								Description: "The WiFi MAC address of the mobile device.",
-							},
-						}},
-					},
-					"mobile_device_groups": {
-						Type:        schema.TypeSet,
-						Optional:    true,
-						Description: "The list of mobile device groups to which the profile is applied.",
-						Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-							"id": {
-								Type:        schema.TypeInt,
-								Optional:    true,
-								Description: "The unique identifier of the mobile device group.",
-							},
-							"name": {
-								Type:        schema.TypeString,
-								Computed:    true,
-								Description: "The name of the mobile device group.",
-							},
-						}},
-					},
-					"buildings": {
-						Type:        schema.TypeSet,
-						Optional:    true,
-						Description: "The list of buildings to which the profile is applied.",
-						Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-							"id": {
-								Type:        schema.TypeInt,
-								Optional:    true,
-								Description: "The unique identifier of the building.",
-							},
-							"name": {
-								Type:        schema.TypeString,
-								Computed:    true,
-								Description: "The name of the building.",
-							},
-						}},
-					},
-					"departments": {
-						Type:        schema.TypeSet,
-						Optional:    true,
-						Description: "The list of departments to which the profile is applied.",
-						Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-							"id": {
-								Type:        schema.TypeInt,
-								Optional:    true,
-								Description: "The unique identifier of the department.",
-							},
-							"name": {
-								Type:        schema.TypeString,
-								Computed:    true,
-								Description: "The name of the department.",
-							},
-						}},
-					},
-					"jss_users": {
-						Type:        schema.TypeSet,
-						Optional:    true,
-						Description: "The list of JSS users targetted in scope.",
-						Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-							"id": {
-								Type:        schema.TypeInt,
-								Optional:    true,
-								Description: "The unique identifier of the JSS user.",
-							},
-							"name": {
-								Type:        schema.TypeString,
-								Computed:    true,
-								Description: "The name of the JSS user.",
-							},
-						}},
-					},
-					"jss_user_groups": {
-						Type:        schema.TypeSet,
-						Optional:    true,
-						Description: "The list of JSS user groups targetted in scope.",
-						Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-							"id": {
-								Type:        schema.TypeInt,
-								Optional:    true,
-								Description: "The unique identifier of the JSS user group.",
-							},
-							"name": {
-								Type:        schema.TypeString,
-								Computed:    true,
-								Description: "The name of the JSS user group.",
-							},
-						}},
-					},
-					// Scope limitations and exclusions
-					"limitations": {
-						Type:        schema.TypeList,
-						Optional:    true,
-						Description: "Restrictions on where or how the profile is applied within the scope.",
-						Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-							"network_segments": {
-								Type:        schema.TypeSet,
-								Optional:    true,
-								Description: "The list of network segments to which limitations apply.",
-								Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "The unique identifier of the network segment.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: "The name of the network segment.",
-									},
-								}},
-							},
-							"users": {
-								Type:        schema.TypeSet,
-								Optional:    true,
-								Description: "The list of users to which limitations apply.",
-								Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "The unique identifier of the user.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: "The name of the user.",
-									},
-								}},
-							},
-							"user_groups": {
-								Type:        schema.TypeSet,
-								Optional:    true,
-								Description: "The list of user groups to which limitations apply.",
-								Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "The unique identifier of the user group.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: "The name of the user group.",
-									},
-								}},
-							},
-							"ibeacons": {
-								Type:        schema.TypeSet,
-								Optional:    true,
-								Description: "The list of iBeacons to which limitations apply.",
-								Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "The unique identifier of the iBeacon.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: "The name of the iBeacon.",
-									},
-								}},
-							},
-						}},
-					},
-					"exclusions": {
-						Type:        schema.TypeList,
-						Optional:    true,
-						Description: "Items that are excluded from the scope.",
-						Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-							"mobile_devices": {
-								Type:        schema.TypeSet,
-								Optional:    true,
-								Description: "The list of mobile devices excluded from the scope.",
-								Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "The unique identifier of the mobile device.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: "The name of the mobile device.",
-									},
-								}},
-							},
-							"mobile_device_groups": {
-								Type:        schema.TypeSet,
-								Optional:    true,
-								Description: "The list of mobile device groups excluded from the scope.",
-								Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "The unique identifier of the mobile device group.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: "The name of the mobile device group.",
-									},
-								}},
-							},
-							"users": {
-								Type:        schema.TypeSet,
-								Optional:    true,
-								Description: "The list of users excluded from the scope.",
-								Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "The unique identifier of the user.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: "The name of the user.",
-									},
-								}},
-							},
-							"user_groups": {
-								Type:        schema.TypeSet,
-								Optional:    true,
-								Description: "The list of user groups excluded from the scope.",
-								Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "The unique identifier of the user group.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: "The name of the user group.",
-									},
-								}},
-							},
-							"buildings": {
-								Type:        schema.TypeSet,
-								Optional:    true,
-								Description: "The list of buildings excluded from the scope.",
-								Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "The unique identifier of the building.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: "The name of the building.",
-									},
-								}},
-							},
-							"departments": {
-								Type:        schema.TypeSet,
-								Optional:    true,
-								Description: "The list of departments excluded from the scope.",
-								Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "The unique identifier of the department.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: "The name of the department.",
-									},
-								}},
-							},
-							"network_segments": {
-								Type:        schema.TypeSet,
-								Optional:    true,
-								Description: "The list of network segments excluded from the scope.",
-								Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "The unique identifier of the network segment.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: "The name of the network segment.",
-									},
-								}},
-							},
-							"jss_users": {
-								Type:        schema.TypeSet,
-								Optional:    true,
-								Description: "The list of JSS users excluded from the scope.",
-								Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "The unique identifier of the JSS user.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: "The name of the JSS user.",
-									},
-								}},
-							},
-							"jss_user_groups": {
-								Type:        schema.TypeSet,
-								Optional:    true,
-								Description: "The list of JSS user groups excluded from the scope.",
-								Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "The unique identifier of the JSS user group.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: "The name of the JSS user group.",
-									},
-								}},
-							},
-							"ibeacons": {
-								Type:        schema.TypeSet,
-								Optional:    true,
-								Description: "The list of iBeacons excluded from the scope.",
-								Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "The unique identifier of the iBeacon.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: "The name of the iBeacon.",
-									},
-								}},
-							},
-						}},
-					},
-				}},
+				MaxItems:    1,
+				Description: "The scope of the configuration profile.",
+				Required:    true,
+				Elem:        sharedschemas.GetSharedMobileDeviceSchemaScope(),
 			},
 		},
 	}

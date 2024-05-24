@@ -2,7 +2,7 @@ package sharedschemas
 
 import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-func GetSharedSchemaScope() *schema.Resource {
+func GetSharedmacOSComputerSchemaScope() *schema.Resource {
 	scope := &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"all_computers": {
@@ -66,47 +66,34 @@ func GetSharedSchemaScope() *schema.Resource {
 			},
 			"limitations": {
 				Type:        schema.TypeList,
-				MaxItems:    1,
-				Description: "The limitations within the scope.",
 				Optional:    true,
-				Default:     nil,
+				MaxItems:    1,
+				Description: "The scope limitations from the macOS configuration profile.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"user_names": {
-							Type:        schema.TypeList,
-							Description: "Users the macOS config profile scope is limited to by Jamf ID.",
-							Optional:    true,
-							Default:     nil,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
 						"network_segment_ids": {
 							Type:        schema.TypeList,
-							Description: "Network segments the scope is limited to by Jamf ID.",
 							Optional:    true,
-							Default:     nil,
-							Elem: &schema.Schema{
-								Type: schema.TypeInt,
-							},
+							Description: "A list of network segment IDs for limitations.",
+							Elem:        &schema.Schema{Type: schema.TypeInt},
+						},
+						"directory_service_or_local_usernames": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							Description: "A list of directory service / local usernames for scoping limitations.",
+							Elem:        &schema.Schema{Type: schema.TypeString},
+						},
+						"directory_service_usergroup_ids": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							Description: "A list of directory service user group IDs for limitations.",
+							Elem:        &schema.Schema{Type: schema.TypeInt},
 						},
 						"ibeacon_ids": {
 							Type:        schema.TypeList,
-							Description: "Ibeacons the scope is limited to by Jamf ID.",
 							Optional:    true,
-							Default:     nil,
-							Elem: &schema.Schema{
-								Type: schema.TypeInt,
-							},
-						},
-						"user_group_ids": {
-							Type:        schema.TypeList,
-							Description: "Users groups the scope is limited to by Jamf ID.",
-							Optional:    true,
-							Default:     nil,
-							Elem: &schema.Schema{
-								Type: schema.TypeInt,
-							},
+							Description: "A list of iBeacon IDs for limitations.",
+							Elem:        &schema.Schema{Type: schema.TypeInt},
 						},
 					},
 				},
@@ -114,7 +101,7 @@ func GetSharedSchemaScope() *schema.Resource {
 			"exclusions": {
 				Type:        schema.TypeList,
 				MaxItems:    1,
-				Description: "The exclusions from the scope.",
+				Description: "The scope exclusions from the macOS configuration profile.",
 				Optional:    true,
 				Default:     nil,
 				Elem: &schema.Resource{
@@ -135,8 +122,22 @@ func GetSharedSchemaScope() *schema.Resource {
 								Type: schema.TypeInt,
 							},
 						},
-						// "user_ids": {}, // TODO need directory services to fix this
-						// "user_group_ids": {},
+						"jss_user_ids": {
+							Type:        schema.TypeList,
+							Description: "JSS Users excluded from scope by Jamf ID.",
+							Optional:    true,
+							Elem: &schema.Schema{
+								Type: schema.TypeInt,
+							},
+						},
+						"jss_user_group_ids": {
+							Type:        schema.TypeList,
+							Description: "JSS User Groups excluded from scope by Jamf ID.",
+							Optional:    true,
+							Elem: &schema.Schema{
+								Type: schema.TypeInt,
+							},
+						},
 						"building_ids": {
 							Type:        schema.TypeList,
 							Description: "Buildings excluded from scope by Jamf ID.",
@@ -161,21 +162,17 @@ func GetSharedSchemaScope() *schema.Resource {
 								Type: schema.TypeInt,
 							},
 						},
-						"jss_user_ids": {
+						"directory_service_or_local_usernames": {
 							Type:        schema.TypeList,
-							Description: "JSS Users excluded from scope by Jamf ID.",
 							Optional:    true,
-							Elem: &schema.Schema{
-								Type: schema.TypeInt,
-							},
+							Description: "A list of directory service / local usernames for scoping limitations.",
+							Elem:        &schema.Schema{Type: schema.TypeString},
 						},
-						"jss_user_group_ids": {
+						"directory_service_usergroup_ids": {
 							Type:        schema.TypeList,
-							Description: "JSS User Groups excluded from scope by Jamf ID.",
 							Optional:    true,
-							Elem: &schema.Schema{
-								Type: schema.TypeInt,
-							},
+							Description: "A list of directory service / local user group IDs for limitations.",
+							Elem:        &schema.Schema{Type: schema.TypeInt},
 						},
 						"ibeacon_ids": {
 							Type:        schema.TypeList,

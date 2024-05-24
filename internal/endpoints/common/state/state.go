@@ -1,5 +1,6 @@
 // common/state/state.go
-// This package contains shared / common resource functions
+// This package contains shared / common resource functions for stating
+
 package state
 
 import (
@@ -9,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// Helper function to handle "resource not found" errors
+// HandleResourceNotFoundError is a helper function to handle 404 and 410 errors and remove the resource from Terraform state
 func HandleResourceNotFoundError(err error, d *schema.ResourceData) diag.Diagnostics {
 	if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "410") {
 		d.SetId("") // Remove the resource from Terraform state

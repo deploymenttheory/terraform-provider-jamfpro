@@ -9,7 +9,7 @@ func getPolicySchemaPayloads() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"override_default_settings": { // UI > payloads > software update settings
 				Type:        schema.TypeList,
-				Required:    true,
+				Optional:    true,
 				Description: "Settings to override default configurations.",
 				Elem:        getPolicySchemaNetworkLimitations(),
 			},
@@ -17,7 +17,7 @@ func getPolicySchemaPayloads() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Network requirements for the policy.",
-				Default:     "Any",
+				Default:     "",
 			},
 			"packages": {
 				Type:        schema.TypeList,
@@ -77,7 +77,6 @@ func getPolicySchemaPayloads() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Disk encryption settings of the policy. Use this section to enable FileVault 2 or to issue a new recovery key.",
-				Computed:    true,
 				Elem:        getSharedSchemaDiskEncryption(),
 			},
 		},

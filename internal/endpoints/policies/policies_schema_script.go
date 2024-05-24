@@ -9,7 +9,7 @@ func getPolicySchemaScript() *schema.Resource {
 	out := &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:        schema.TypeInt,
+				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Unique identifier of the script.",
 			},
@@ -32,8 +32,14 @@ func getPolicySchemaScript() *schema.Resource {
 			},
 			"parameter5": {
 				Type:        schema.TypeString,
-				Optional:    true,
 				Description: "Custom parameter 5 for the script.",
+				Optional:    true,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					if old == new {
+						return true
+					}
+					return false
+				},
 			},
 			"parameter6": {
 				Type:        schema.TypeString,
@@ -43,11 +49,13 @@ func getPolicySchemaScript() *schema.Resource {
 			"parameter7": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Default:     "",
 				Description: "Custom parameter 7 for the script.",
 			},
 			"parameter8": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Default:     "",
 				Description: "Custom parameter 8 for the script.",
 			},
 			"parameter9": {
@@ -58,11 +66,13 @@ func getPolicySchemaScript() *schema.Resource {
 			"parameter10": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Default:     "",
 				Description: "Custom parameter 10 for the script.",
 			},
 			"parameter11": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Default:     "",
 				Description: "Custom parameter 11 for the script.",
 			},
 		},

@@ -12,7 +12,7 @@ func GetSharedSchemaCategory() *schema.Resource {
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "The name of the category to which the configuration profile is scoped.",
 			},
 		},

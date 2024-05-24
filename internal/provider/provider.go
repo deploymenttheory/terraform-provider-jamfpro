@@ -30,6 +30,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computerextensionattributes"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computerinventory"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computerinventorycollection"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computerprestageenrollments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/departments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/diskencryptionconfigurations"
@@ -41,6 +42,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/packages"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/policies"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/printers"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/restrictedsoftware"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/scripts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/sites"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/usergroups"
@@ -269,11 +271,12 @@ func Provider() *schema.Provider {
 			"jamfpro_mobile_device_configuration_profile": mobiledeviceconfigurationprofiles.DataSourceJamfProMobileDeviceConfigurationProfiles(),
 			"jamfpro_package":                             packages.DataSourceJamfProPackages(),
 			// "jamfpro_policy":                        policies.DataSourceJamfProPolicies(),
-			"jamfpro_printer":    printers.DataSourceJamfProPrinters(),
-			"jamfpro_script":     scripts.DataSourceJamfProScripts(),
-			"jamfpro_site":       sites.DataSourceJamfProSites(),
-			"jamfpro_user_group": usergroups.DataSourceJamfProUserGroups(),
-			"jamfpro_webhook":    webhooks.DataSourceJamfProWebhooks(),
+			"jamfpro_printer":             printers.DataSourceJamfProPrinters(),
+			"jamfpro_script":              scripts.DataSourceJamfProScripts(),
+			"jamfpro_site":                sites.DataSourceJamfProSites(),
+			"jamfpro_restricted_software": restrictedsoftware.DataSourceJamfProRestrictedSoftwares(),
+			"jamfpro_user_group":          usergroups.DataSourceJamfProUserGroups(),
+			"jamfpro_webhook":             webhooks.DataSourceJamfProWebhooks(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"jamfpro_account":                             accounts.ResourceJamfProAccounts(),
@@ -289,6 +292,7 @@ func Provider() *schema.Provider {
 			"jamfpro_computer_checkin":                    computercheckin.ResourceJamfProComputerCheckin(),
 			"jamfpro_computer_extension_attribute":        computerextensionattributes.ResourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_group":                      computergroups.ResourceJamfProComputerGroups(),
+			"jamfpro_computer_inventory_collection":       computerinventorycollection.ResourceJamfProComputerInventoryCollection(),
 			"jamfpro_computer_prestage_enrollment":        computerprestageenrollments.ResourceJamfProComputerPrestageEnrollmentEnrollment(),
 			"jamfpro_department":                          departments.ResourceJamfProDepartments(),
 			"jamfpro_disk_encryption_configuration":       diskencryptionconfigurations.ResourceJamfProDiskEncryptionConfigurations(),
@@ -302,6 +306,7 @@ func Provider() *schema.Provider {
 			"jamfpro_printer":                             printers.ResourceJamfProPrinters(),
 			"jamfpro_script":                              scripts.ResourceJamfProScripts(),
 			"jamfpro_site":                                sites.ResourceJamfProSites(),
+			"jamfpro_restricted_software":                 restrictedsoftware.ResourceJamfProRestrictedSoftwares(),
 			"jamfpro_user_group":                          usergroups.ResourceJamfProUserGroups(),
 			"jamfpro_webhook":                             webhooks.ResourceJamfProWebhooks(),
 		},

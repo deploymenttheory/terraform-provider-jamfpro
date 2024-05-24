@@ -3,12 +3,11 @@ package policies
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
-	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -56,10 +55,12 @@ func ResourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, 
 
 // Reads and states
 func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	var err error
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
 	}
+
 	conn := apiclient.Conn
 
 	var diags diag.Diagnostics
@@ -72,30 +73,13 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 
 	var resp *jamfpro.ResourcePolicy
 
-	// Extract policy name from schema
-
-	// Use the retry function for the read operation
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
-		resp, apiErr = conn.GetPolicyByID(resourceIDInt)
-		if apiErr != nil {
-			if strings.Contains(apiErr.Error(), "404") || strings.Contains(apiErr.Error(), "410") {
-				return retry.NonRetryableError(fmt.Errorf("resource not found, marked for deletion"))
-			}
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
+	resp, err = conn.GetPolicyByID(resourceIDInt)
 	if err != nil {
-		d.SetId("") // Remove from Terraform state if unable to read after retries
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Policy '%s' (ID: %d) after retries: %v", "no", resourceIDInt, err))
+		return state.HandleResourceNotFoundError(err, d)
 	}
 
-	trigger_checkin := resp.General.TriggerCheckin
-	d.Set("trigger_checkin", trigger_checkin)
-
-	log.Println(resp)
+	// State
+	diags = append(updateTerraformState(d, resp, resourceID), diags...)
 
 	return diags
 }

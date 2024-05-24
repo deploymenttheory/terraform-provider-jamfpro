@@ -63,7 +63,7 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 				Optional:     true,
 				Default:      "String",
 				Description:  "Data type of the computer extension attribute. Can be String / Integer / Date (YYYY-MM-DD hh:mm:ss). Value defaults to `String`.",
-				ValidateFunc: validation.StringInSlice([]string{"String", "Integer", "Date"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"string", "integer", "date"}, false),
 			},
 			"input_type": {
 				Type:     schema.TypeList,
