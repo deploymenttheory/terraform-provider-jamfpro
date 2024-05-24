@@ -2,48 +2,65 @@
 package computergroups
 
 import (
-	"context"
 	"fmt"
-	"strconv"
 	"time"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 const (
-	And                          DeviceGroupAndOr = "and"
-	Or                           DeviceGroupAndOr = "or"
-	SearchTypeIs                                  = "is"
-	SearchTypeIsNot                               = "is not"
-	SearchTypeHas                                 = "has"
-	SearchTypeDoesNotHave                         = "does not have"
-	SearchTypeMemberOf                            = "member of"
-	SearchTypeNotMemberOf                         = "not member of"
-	SearchTypeBeforeYYYYMMDD                      = "before (yyyy-mm-dd)"
-	SearchTypeAfterYYYYMMDD                       = "after (yyyy-mm-dd)"
-	SearchTypeMoreThanXDaysAgo                    = "more than x days ago"
-	SearchTypeLessThanXDaysAgo                    = "less than x days ago"
-	SearchTypeLike                                = "like"
-	SearchTypeNotLike                             = "not like"
-	SearchTypeGreaterThan                         = "greater than"
-	SearchTypeMoreThan                            = "more than"
-	SearchTypeLessThan                            = "less than"
-	SearchTypeGreaterThanOrEqual                  = "greater than or equal"
-	SearchTypeLessThanOrEqual                     = "less than or equal"
-	SearchTypeMatchesRegex                        = "matches regex"
-	SearchTypeDoesNotMatch                        = "does not match regex"
+	And                          string = "and"
+	Or                           string = "or"
+	SearchTypeIs                 string = "is"
+	SearchTypeIsNot              string = "is not"
+	SearchTypeHas                string = "has"
+	SearchTypeDoesNotHave        string = "does not have"
+	SearchTypeMemberOf           string = "member of"
+	SearchTypeNotMemberOf        string = "not member of"
+	SearchTypeBeforeYYYYMMDD     string = "before (yyyy-mm-dd)"
+	SearchTypeAfterYYYYMMDD      string = "after (yyyy-mm-dd)"
+	SearchTypeMoreThanXDaysAgo   string = "more than x days ago"
+	SearchTypeLessThanXDaysAgo   string = "less than x days ago"
+	SearchTypeLike               string = "like"
+	SearchTypeNotLike            string = "not like"
+	SearchTypeGreaterThan        string = "greater than"
+	SearchTypeMoreThan           string = "more than"
+	SearchTypeLessThan           string = "less than"
+	SearchTypeGreaterThanOrEqual string = "greater than or equal"
+	SearchTypeLessThanOrEqual    string = "less than or equal"
+	SearchTypeMatchesRegex       string = "matches regex"
+	SearchTypeDoesNotMatch       string = "does not match regex"
 )
 
-type DeviceGroupAndOr string
+func getCriteriaOperators() []string {
+	var out []string
+	out = []string{
+		And,
+		Or,
+		SearchTypeIs,
+		SearchTypeIsNot,
+		SearchTypeHas,
+		SearchTypeDoesNotHave,
+		SearchTypeMemberOf,
+		SearchTypeNotMemberOf,
+		SearchTypeBeforeYYYYMMDD,
+		SearchTypeAfterYYYYMMDD,
+		SearchTypeMoreThanXDaysAgo,
+		SearchTypeLessThanXDaysAgo,
+		SearchTypeLike,
+		SearchTypeNotLike,
+		SearchTypeGreaterThan,
+		SearchTypeMoreThan,
+		SearchTypeLessThan,
+		SearchTypeGreaterThanOrEqual,
+		SearchTypeLessThanOrEqual,
+		SearchTypeMatchesRegex,
+		SearchTypeDoesNotMatch,
+	}
+	return out
+}
 
 // ResourceJamfProComputerGroups defines the schema and CRUD operations for managing Jamf Pro Computer Groups in Terraform.
 func ResourceJamfProComputerGroups() *schema.Resource {
@@ -75,28 +92,22 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 			},
 			"is_smart": {
 				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
+				Required:    true,
 				Description: "Boolean selection to state if the group is a Smart group or not. If false then the group is a static group.",
 			},
 			"site": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "The ID of the site assigned to the computer group.",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Name of the site assigned to the computer group.",
-						},
-					},
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Jamf Pro Site-related settings of the policy.",
+				MaxItems:    1,
+				Elem:        sharedschemas.GetSharedSchemaSite(),
+			},
+			"computer_ids": {
+				Type:        schema.TypeList,
+				Description: "The computers to which the configuration profile is scoped by Jamf ID",
+				Optional:    true,
+				Elem: &schema.Schema{
+					Type: schema.TypeInt,
 				},
 			},
 			"criteria": {
@@ -116,31 +127,18 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 							Description: "The priority of the criterion.",
 						},
 						"and_or": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Either 'and', 'or', or blank.",
-							Default:     "and",
-							ValidateFunc: validation.StringInSlice([]string{
-								"",
-								string(And),
-								string(Or),
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Description:  "Either 'and', 'or', or blank.",
+							Default:      "and",
+							ValidateFunc: validation.StringInSlice([]string{"", And, Or}, false),
 						},
 						"search_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  "is",
-							Description: fmt.Sprintf("The type of smart group search operator. Allowed values are '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'. ",
-								SearchTypeIs, SearchTypeIsNot, SearchTypeHas, SearchTypeDoesNotHave, SearchTypeMemberOf, SearchTypeNotMemberOf,
-								SearchTypeBeforeYYYYMMDD, SearchTypeAfterYYYYMMDD, SearchTypeMoreThanXDaysAgo, SearchTypeLessThanXDaysAgo,
-								SearchTypeLike, SearchTypeNotLike, SearchTypeGreaterThan, SearchTypeMoreThan, SearchTypeLessThan, SearchTypeGreaterThanOrEqual,
-								SearchTypeLessThanOrEqual, SearchTypeMatchesRegex, SearchTypeDoesNotMatch),
-							ValidateFunc: validation.StringInSlice([]string{
-								SearchTypeIs, SearchTypeIsNot, SearchTypeHas, SearchTypeDoesNotHave, SearchTypeMemberOf, SearchTypeNotMemberOf,
-								SearchTypeBeforeYYYYMMDD, SearchTypeAfterYYYYMMDD, SearchTypeMoreThanXDaysAgo, SearchTypeLessThanXDaysAgo,
-								SearchTypeLike, SearchTypeNotLike, SearchTypeGreaterThan, SearchTypeMoreThan, SearchTypeLessThan, SearchTypeGreaterThanOrEqual,
-								SearchTypeLessThanOrEqual, SearchTypeMatchesRegex, SearchTypeDoesNotMatch,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "is",
+							Description:  fmt.Sprintf("The type of smart group search operator. Allowed values are '%v'", getCriteriaOperators()),
+							ValidateFunc: validation.StringInSlice(getCriteriaOperators(), false),
 						},
 						"value": {
 							Type:        schema.TypeString,
@@ -162,237 +160,6 @@ func ResourceJamfProComputerGroups() *schema.Resource {
 					},
 				},
 			},
-			"computers": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Computed:    true,
-							Description: "The ID of the computer used during static computer group construction.",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Computed:    true,
-							Description: "Name of the computer used during static computer group construction.",
-						},
-						"mac_address": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Computed:    true,
-							Description: "MAC Address of the computer used during static computer group construction.",
-						},
-						"alt_mac_address": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Computed:    true,
-							Description: "Alternative MAC Address of the computer used during static computer group construction.",
-						},
-						"serial_number": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Computed:    true,
-							Description: "Serial number of the computer used during static computer group construction.",
-						},
-					},
-				},
-			},
 		},
 	}
-}
-
-// ResourceJamfProComputerGroupsCreate is responsible for creating a new Jamf Pro Computer Group in the remote system.
-func ResourceJamfProComputerGroupsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Assert the meta interface to the expected APIClient type
-	apiclient, ok := meta.(*client.APIClient)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
-	}
-	conn := apiclient.Conn
-
-	// Initialize variables
-	var diags diag.Diagnostics
-
-	// Construct the resource object
-	resource, err := constructJamfProComputerGroup(d)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Group: %v", err))
-	}
-
-	// Retry the API call to create the resource in Jamf Pro
-	var creationResponse *jamfpro.ResourceComputerGroup
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		var apiErr error
-		creationResponse, apiErr = conn.CreateComputerGroup(resource)
-		if apiErr != nil {
-			return retry.RetryableError(apiErr)
-		}
-		// No error, exit the retry loop
-		return nil
-	})
-
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Computer Group '%s' after retries: %v", resource.Name, err))
-	}
-
-	// Set the resource ID in Terraform state
-	d.SetId(strconv.Itoa(creationResponse.ID))
-
-	// Wait for the resource to be fully available before reading it
-	checkResourceExists := func(id interface{}) (interface{}, error) {
-		intID, err := strconv.Atoi(id.(string))
-		if err != nil {
-			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
-		}
-		return apiclient.Conn.GetComputerGroupByID(intID)
-	}
-
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Computer Group", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
-
-	if waitDiags.HasError() {
-		return waitDiags
-	}
-
-	// Read the resource to ensure the Terraform state is up to date
-	readDiags := ResourceJamfProComputerGroupsRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
-}
-
-// ResourceJamfProComputerGroupsRead is responsible for reading the current state of a Jamf Pro Computer Group from the remote system.
-func ResourceJamfProComputerGroupsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
-	}
-	conn := apiclient.Conn
-
-	// Initialize variables
-	var diags diag.Diagnostics
-	resourceID := d.Id()
-
-	// Convert resourceID from string to int
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
-
-	// Attempt to fetch the resource by ID
-	resource, err := conn.GetComputerGroupByID(resourceIDInt)
-
-	if err != nil {
-		// Handle not found error or other errors
-		return state.HandleResourceNotFoundError(err, d)
-	}
-
-	// Update the Terraform state with the fetched data from the resource
-	diags = updateTerraformState(d, resource)
-
-	// Handle any errors and return diagnostics
-	if len(diags) > 0 {
-		return diags
-	}
-	return nil
-}
-
-// ResourceJamfProComputerGroupsUpdate is responsible for updating an existing Jamf Pro Computer Group on the remote system.
-func ResourceJamfProComputerGroupsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
-	}
-	conn := apiclient.Conn
-
-	// Initialize variables
-	var diags diag.Diagnostics
-	resourceID := d.Id()
-
-	// Convert resourceID from string to int
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
-
-	// Construct the resource object
-	resource, err := constructJamfProComputerGroup(d)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Group for update: %v", err))
-	}
-
-	// Update operations with retries
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateComputerGroupByID(resourceIDInt, resource)
-		if apiErr != nil {
-			return retry.RetryableError(apiErr)
-		}
-		// Successfully updated the resource, exit the retry loop
-		return nil
-	})
-
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Computer Group '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
-	}
-
-	// Read the resource to ensure the Terraform state is up to date
-	readDiags := ResourceJamfProComputerGroupsRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
-}
-
-// ResourceJamfProComputerGroupsDelete is responsible for deleting a Jamf Pro Computer Group.
-func ResourceJamfProComputerGroupsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
-	}
-	conn := apiclient.Conn
-
-	// Initialize variables
-	var diags diag.Diagnostics
-	resourceID := d.Id()
-
-	// Convert resourceID from string to int
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
-
-	// Use the retry function for the delete operation with appropriate timeout
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// Attempt to delete by ID
-		apiErr := conn.DeleteComputerGroupByID(resourceIDInt)
-		if apiErr != nil {
-			// If deleting by ID fails, attempt to delete by Name
-			resourceName := d.Get("name").(string)
-			apiErrByName := conn.DeleteComputerGroupByName(resourceName)
-			if apiErrByName != nil {
-				// If deletion by name also fails, return a retryable error
-				return retry.RetryableError(apiErrByName)
-			}
-		}
-		// Successfully deleted the resource, exit the retry loop
-		return nil
-	})
-
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Computer Group '%s' (ID: %d) after retries: %v", d.Get("name").(string), resourceIDInt, err))
-	}
-
-	// Clear the ID from the Terraform state as the resource has been deleted
-	d.SetId("")
-
-	return diags
 }

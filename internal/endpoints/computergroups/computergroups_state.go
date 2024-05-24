@@ -12,21 +12,15 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 
 	var diags diag.Diagnostics
 
-	// Update the Terraform state with the fetched data
-	if resource == nil {
-		return diags
-	}
-
-	// Easy Attrs
+	// Primitive Attrs
 	if err := d.Set("name", resource.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+
 	if err := d.Set("is_smart", resource.IsSmart); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// TODO update this
-	// Set the 'site' attribute in the state only if it's not empty (i.e., not default values)
 	site := []interface{}{}
 	if resource.Site.ID != -1 {
 		site = append(site, map[string]interface{}{
@@ -43,9 +37,9 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 	// TODO Overhaul this too
 	// Set the 'criteria' attribute in the state
 	var criteriaList []interface{}
-	if len(resource.Criteria.Criterion) > 0 {
+	if len(*resource.Criteria.Criterion) > 0 && resource.IsSmart {
 		criteriaList = []interface{}{} // Initialize as empty slice
-		for _, crit := range resource.Criteria.Criterion {
+		for _, crit := range *resource.Criteria.Criterion {
 			criteriaMap := map[string]interface{}{
 				"name":          crit.Name,
 				"priority":      crit.Priority,
@@ -66,31 +60,31 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 	}
 
 	// Set the 'computers' attribute in the state only if it's not a Smart Group or if the site is not set
-	computersList := []interface{}{} // Initialize as empty slice
+	// computersList := []interface{}{} // Initialize as empty slice
 
-	if !resource.IsSmart || len(site) == 0 {
+	// if !resource.IsSmart || len(site) == 0 {
 
-		if resource.Computers != nil {
+	// 	if resource.Computers != nil {
 
-			for _, comp := range *resource.Computers {
+	// 		for _, comp := range *resource.Computers.Computers {
 
-				computerMap := map[string]interface{}{
-					"id":              comp.ID,
-					"name":            comp.Name,
-					"mac_address":     comp.MacAddress,
-					"alt_mac_address": comp.AltMacAddress,
-					"serial_number":   comp.SerialNumber,
-				}
-				computersList = append(computersList, computerMap)
-			}
-		} else {
-			computersList = nil
-		}
-	}
+	// 			computerMap := map[string]interface{}{
+	// 				"id":              comp.ID,
+	// 				"name":            comp.Name,
+	// 				"mac_address":     comp.MacAddress,
+	// 				"alt_mac_address": comp.AltMacAddress,
+	// 				"serial_number":   comp.SerialNumber,
+	// 			}
+	// 			computersList = append(computersList, computerMap)
+	// 		}
+	// 	} else {
+	// 		computersList = nil
+	// 	}
+	// }
 
-	if err := d.Set("computers", computersList); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
+	// if err := d.Set("computers", computersList); err != nil {
+	// 	diags = append(diags, diag.FromErr(err)...)
+	// }
 
 	return diags
 }
