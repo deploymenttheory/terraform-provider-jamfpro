@@ -12,36 +12,33 @@ resource "jamfpro_computer_inventory_collection" "example" {
   include_fonts                   = true
   include_plugins                 = true
 
-  applications = [
-    {
-      path     = "/Applications/ExampleApp.app"
-      platform = "macOS"
-    },
-    {
-      path     = "/Applications/AnotherApp.app"
-      platform = "macOS"
-    }
-  ]
+  applications {
+    path     = "/Applications/ExampleApp.app"
+    platform = "macOS"
+  }
 
-  fonts = [
-    {
-      path     = "/Library/Fonts/ExampleFont.ttf"
-      platform = "macOS"
-    },
-    {
-      path     = "/Library/Fonts/AnotherFont.ttf"
-      platform = "macOS"
-    }
-  ]
+  applications {
+    path     = "/Applications/AnotherApp.app"
+    platform = "macOS"
+  }
 
-  plugins = [
-    {
-      path     = "/Library/Internet Plug-Ins/ExamplePlugin.plugin"
-      platform = "macOS"
-    },
-    {
-      path     = "/Library/Internet Plug-Ins/AnotherPlugin.plugin"
-      platform = "macOS"
-    }
-  ]
+  fonts {
+    path     = "/Library/Fonts/ExampleFont.ttf"
+    platform = "macOS"
+  }
+
+  fonts {
+    path     = "/Library/Fonts/AnotherFont.ttf"
+    platform = "macOS"
+  }
+
+  plugins {
+    path     = "/Library/Internet Plug-Ins/ExamplePlugin.plugin"
+    platform = "macOS"
+  }
+
+  plugins {
+    path     = "/Library/Internet Plug-Ins/AnotherPlugin.plugin"
+    platform = "macOS"
+  }
 }
