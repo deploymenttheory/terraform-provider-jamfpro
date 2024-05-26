@@ -99,12 +99,12 @@ func ResourceJamfProComputerInventoryCollection() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"path": {
 							Type:        schema.TypeString,
-							Optional:    true,
+							Required:    true,
 							Description: "Path to the application.",
 						},
 						"platform": {
 							Type:        schema.TypeString,
-							Optional:    true,
+							Required:    true,
 							Description: "Platform of the application.",
 						},
 					},
@@ -118,12 +118,12 @@ func ResourceJamfProComputerInventoryCollection() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"path": {
 							Type:        schema.TypeString,
-							Optional:    true,
+							Required:    true,
 							Description: "Path to the font.",
 						},
 						"platform": {
 							Type:        schema.TypeString,
-							Optional:    true,
+							Required:    true,
 							Description: "Platform of the font.",
 						},
 					},
@@ -137,12 +137,12 @@ func ResourceJamfProComputerInventoryCollection() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"path": {
 							Type:        schema.TypeString,
-							Optional:    true,
+							Required:    true,
 							Description: "Path to the plugin.",
 						},
 						"platform": {
 							Type:        schema.TypeString,
-							Optional:    true,
+							Required:    true,
 							Description: "Platform of the plugin.",
 						},
 					},
