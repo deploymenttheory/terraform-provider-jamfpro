@@ -1,4 +1,5 @@
-resource "jamfpro_mobile_device_configuration_profile" "mobile_device_configuration_profile_001" {
+// Example of creating a mobie device configuration profile in Jamf Pro for self service using a plist source file
+resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_device_configuration_profile_001" {
   name              = "your-mobile_device_configuration_profile-name"
   description       = "An example mobile device configuration profile."
   deployment_method = "Install Automatically"
@@ -46,7 +47,7 @@ resource "jamfpro_mobile_device_configuration_profile" "mobile_device_configurat
   }
 }
 
-resource "jamfpro_mobile_device_configuration_profile" "mobile_device_configuration_profile_002" {
+resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_device_configuration_profile_002" {
   name             = "Profile 002"
   description      = "Description for Profile 002"
   level            = "User Level"

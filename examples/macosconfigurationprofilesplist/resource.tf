@@ -4,8 +4,8 @@ variable "version_number" {
   default     = "v1.0"
 }
 
-// Example of creating a macOS configuration profile in Jamf Pro for self service
-resource "jamfpro_macos_configuration_profile" "jamfpro_macos_configuration_profile_001" {
+// Example of creating a macOS configuration profile in Jamf Pro for self service using a plist source file
+resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuration_profile_001" {
   name              = "your-name-${var.version_number}"
   description       = "An example mobile device configuration profile."
   level             = "User" // "User", "Device"
