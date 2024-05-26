@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
+	"github.com/deploymenttheory/go-api-http-client/helpers"
 	"github.com/deploymenttheory/go-api-http-client/httpclient"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
@@ -390,9 +391,9 @@ func Provider() *schema.Provider {
 					MaxConcurrentRequests: d.Get("max_concurrent_requests").(int),
 				},
 				Timeout: httpclient.TimeoutConfig{
-					TokenRefreshBufferPeriod: time.Duration(d.Get("token_refresh_buffer_period").(int)) * time.Minute,
-					TotalRetryDuration:       time.Duration(d.Get("total_retry_duration").(int)) * time.Second,
-					CustomTimeout:            time.Duration(d.Get("custom_timeout").(int)) * time.Second,
+					TokenRefreshBufferPeriod: helpers.JSONDuration(time.Duration(d.Get("token_refresh_buffer_period").(int)) * time.Minute),
+					TotalRetryDuration:       helpers.JSONDuration(time.Duration(d.Get("total_retry_duration").(int)) * time.Second),
+					CustomTimeout:            helpers.JSONDuration(time.Duration(d.Get("custom_timeout").(int)) * time.Second),
 				},
 				Redirect: httpclient.RedirectConfig{},
 			},
