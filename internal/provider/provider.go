@@ -37,6 +37,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/dockitems"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/filesharedistributionpoints"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/macosconfigurationprofiles"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/macosconfigurationprofilesw0de"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/mobiledeviceconfigurationprofiles"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/networksegments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/packages"
@@ -300,6 +301,7 @@ func Provider() *schema.Provider {
 			"jamfpro_file_share_distribution_point":       filesharedistributionpoints.ResourceJamfProFileShareDistributionPoints(),
 			"jamfpro_network_segment":                     networksegments.ResourceJamfProNetworkSegments(),
 			"jamfpro_macos_configuration_profile":         macosconfigurationprofiles.ResourceJamfProMacOSConfigurationProfiles(),
+			"jamfpro_macos_configuration_profile_w0de":    macosconfigurationprofilesw0de.ResourceJamfProMacOSConfigurationProfiles(),
 			"jamfpro_mobile_device_configuration_profile": mobiledeviceconfigurationprofiles.ResourceJamfProMobileDeviceConfigurationProfiles(),
 			"jamfpro_package":                             packages.ResourceJamfProPackages(),
 			"jamfpro_policy":                              policies.ResourceJamfProPolicies(),
