@@ -1,5 +1,5 @@
-// macosconfigurationprofiles_data_validator.go
-package macosconfigurationprofilesw0de
+// macosconfigurationprofilesplist_data_validator.go
+package macosconfigurationprofilesplist
 
 import (
 	"context"

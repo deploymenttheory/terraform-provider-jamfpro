@@ -1,5 +1,5 @@
-// macosconfigurationprofiles_diff_suppress.go
-package macosconfigurationprofilesw0de
+// macosconfigurationprofilesplist_diff_suppress.go
+package macosconfigurationprofilesplist
 
 import (
 	"log"

@@ -1,5 +1,5 @@
-// macosconfigurationprofiles_data_source.go
-package macosconfigurationprofilesw0de
+// macosconfigurationprofilesplist_data_source.go
+package macosconfigurationprofilesplist
 
 import (
 	"context"
@@ -14,10 +14,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProMacOSConfigurationProfiles provides information about a specific department in Jamf Pro.
-func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
+// DataSourceJamfProMacOSConfigurationProfilesPlist provides information about a specific department in Jamf Pro.
+func DataSourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceJamfProMacOSConfigurationProfileRead,
+		ReadContext: DataSourceJamfProMacOSConfigurationProfilePlistRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(30 * time.Second),
 		},
@@ -36,8 +36,8 @@ func DataSourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 	}
 }
 
-// DataSourceJamfProMacOSConfigurationProfileRead fetches the details of a macOS configuration profile.
-func DataSourceJamfProMacOSConfigurationProfileRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// DataSourceJamfProMacOSConfigurationProfilePlistRead fetches the details of a macOS configuration profile.
+func DataSourceJamfProMacOSConfigurationProfilePlistRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {

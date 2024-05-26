@@ -1,5 +1,5 @@
-// macosconfigurationprofiles_helpers.go
-package macosconfigurationprofilesw0de
+// macosconfigurationprofilesplist_helpers.go
+package macosconfigurationprofilesplist
 
 import (
 	"fmt"

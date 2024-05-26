@@ -1,5 +1,5 @@
-// macosconfigurationprofiles_resource.go
-package macosconfigurationprofilesw0de
+// macosconfigurationprofilesplist_resource.go
+package macosconfigurationprofilesplist
 
 import (
 	"context"
@@ -21,13 +21,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-// ResourceJamfProMacOSConfigurationProfiles defines the schema and CRUD operations for managing Jamf Pro macOS Configuration Profiles in Terraform.
-func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
+// ResourceJamfProMacOSConfigurationPlistProfiles defines the schema and CRUD operations for managing Jamf Pro macOS Configuration Profiles in Terraform.
+func ResourceJamfProMacOSConfigurationPlistProfiles() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProMacOSConfigurationProfilesCreate,
-		ReadContext:   ResourceJamfProMacOSConfigurationProfilesRead,
-		UpdateContext: ResourceJamfProMacOSConfigurationProfilesUpdate,
-		DeleteContext: ResourceJamfProMacOSConfigurationProfilesDelete,
+		CreateContext: ResourceJamfProMacOSConfigurationProfilesPlistCreate,
+		ReadContext:   ResourceJamfProMacOSConfigurationProfilesPlistRead,
+		UpdateContext: ResourceJamfProMacOSConfigurationProfilesPlistUpdate,
+		DeleteContext: ResourceJamfProMacOSConfigurationProfilesPlistDelete,
 		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
@@ -223,13 +223,13 @@ func ResourceJamfProMacOSConfigurationProfiles() *schema.Resource {
 	}
 }
 
-// ResourceJamfProMacOSConfigurationProfilesCreate is responsible for creating a new Jamf Pro macOS Configuration Profile in the remote system.
+// ResourceJamfProMacOSConfigurationProfilesPlistCreate is responsible for creating a new Jamf Pro macOS Configuration Profile in the remote system.
 // The function:
 // 1. Constructs the attribute data using the provided Terraform configuration.
 // 2. Calls the API to create the attribute in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ResourceJamfProMacOSConfigurationProfilesPlistCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.APIClient")
@@ -278,7 +278,7 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 	}
 
 	// Read the resource to ensure the Terraform state is up to date
-	readDiags := ResourceJamfProMacOSConfigurationProfilesRead(ctx, d, meta)
+	readDiags := ResourceJamfProMacOSConfigurationProfilesPlistRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
 	}
@@ -286,12 +286,12 @@ func ResourceJamfProMacOSConfigurationProfilesCreate(ctx context.Context, d *sch
 	return diags
 }
 
-// ResourceJamfProMacOSConfigurationProfilesRead is responsible for reading the current state of a Jamf Pro config profile Resource from the remote system.
+// ResourceJamfProMacOSConfigurationProfilesPlistRead is responsible for reading the current state of a Jamf Pro config profile Resource from the remote system.
 // The function:
 // 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
-func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ResourceJamfProMacOSConfigurationProfilesPlistRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -325,8 +325,8 @@ func ResourceJamfProMacOSConfigurationProfilesRead(ctx context.Context, d *schem
 	return nil
 }
 
-// ResourceJamfProMacOSConfigurationProfilesUpdate is responsible for updating an existing Jamf Pro config profile on the remote system.
-func ResourceJamfProMacOSConfigurationProfilesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// ResourceJamfProMacOSConfigurationProfilesPlistUpdate is responsible for updating an existing Jamf Pro config profile on the remote system.
+func ResourceJamfProMacOSConfigurationProfilesPlistUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -359,7 +359,7 @@ func ResourceJamfProMacOSConfigurationProfilesUpdate(ctx context.Context, d *sch
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro macOS Configuration Profile '%s' (ID: %d) after retries: %v", resource.General.Name, resourceIDInt, err))
 	}
 
-	readDiags := ResourceJamfProMacOSConfigurationProfilesRead(ctx, d, meta)
+	readDiags := ResourceJamfProMacOSConfigurationProfilesPlistRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
 	}
@@ -367,8 +367,8 @@ func ResourceJamfProMacOSConfigurationProfilesUpdate(ctx context.Context, d *sch
 	return diags
 }
 
-// ResourceJamfProMacOSConfigurationProfilesDelete is responsible for deleting a Jamf Pro config profile.
-func ResourceJamfProMacOSConfigurationProfilesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// ResourceJamfProMacOSConfigurationProfilesPlistDelete is responsible for deleting a Jamf Pro config profile.
+func ResourceJamfProMacOSConfigurationProfilesPlistDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {

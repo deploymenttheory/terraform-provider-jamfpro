@@ -38,7 +38,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/dockitems"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/filesharedistributionpoints"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/macosconfigurationprofiles"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/macosconfigurationprofilesw0de"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/macosconfigurationprofilesplist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/mobiledeviceconfigurationprofiles"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/networksegments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/packages"
@@ -270,6 +270,7 @@ func Provider() *schema.Provider {
 			"jamfpro_dock_item":                           dockitems.DataSourceJamfProDockItems(),
 			"jamfpro_file_share_distribution_point":       filesharedistributionpoints.DataSourceJamfProFileShareDistributionPoints(),
 			"jamfpro_network_segment":                     networksegments.DataSourceJamfProNetworkSegments(),
+			"jamfpro_macos_configuration_profile_plist":   macosconfigurationprofilesplist.DataSourceJamfProMacOSConfigurationProfilesPlist(),
 			"jamfpro_mobile_device_configuration_profile": mobiledeviceconfigurationprofiles.DataSourceJamfProMobileDeviceConfigurationProfiles(),
 			"jamfpro_package":                             packages.DataSourceJamfProPackages(),
 			// "jamfpro_policy":                        policies.DataSourceJamfProPolicies(),
@@ -302,7 +303,7 @@ func Provider() *schema.Provider {
 			"jamfpro_file_share_distribution_point":       filesharedistributionpoints.ResourceJamfProFileShareDistributionPoints(),
 			"jamfpro_network_segment":                     networksegments.ResourceJamfProNetworkSegments(),
 			"jamfpro_macos_configuration_profile":         macosconfigurationprofiles.ResourceJamfProMacOSConfigurationProfiles(),
-			"jamfpro_macos_configuration_profile_w0de":    macosconfigurationprofilesw0de.ResourceJamfProMacOSConfigurationProfiles(),
+			"jamfpro_macos_configuration_profile_plist":   macosconfigurationprofilesplist.ResourceJamfProMacOSConfigurationPlistProfiles(),
 			"jamfpro_mobile_device_configuration_profile": mobiledeviceconfigurationprofiles.ResourceJamfProMobileDeviceConfigurationProfiles(),
 			"jamfpro_package":                             packages.ResourceJamfProPackages(),
 			"jamfpro_policy":                              policies.ResourceJamfProPolicies(),

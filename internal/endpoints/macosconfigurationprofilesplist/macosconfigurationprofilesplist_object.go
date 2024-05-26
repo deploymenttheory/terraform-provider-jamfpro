@@ -1,4 +1,5 @@
-package macosconfigurationprofilesw0de
+// macosconfigurationprofilesplist_object.go
+package macosconfigurationprofilesplist
 
 import (
 	"encoding/xml"

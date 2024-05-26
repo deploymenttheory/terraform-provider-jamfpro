@@ -1,4 +1,4 @@
-package macosconfigurationprofilesw0de
+package macosconfigurationprofilesplist
 
 import (
 	"reflect"
