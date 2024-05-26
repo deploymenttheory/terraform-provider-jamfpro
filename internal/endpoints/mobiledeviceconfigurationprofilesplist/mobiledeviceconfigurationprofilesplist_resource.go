@@ -1,5 +1,5 @@
-// mobiledeviceconfigurationprofiles_resource.go
-package mobiledeviceconfigurationprofiles
+// mobiledeviceconfigurationprofilesplist_resource.go
+package mobiledeviceconfigurationprofilesplist
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles/plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
@@ -19,13 +20,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProMobileDeviceConfigurationProfile defines the schema for mobile device configuration profiles in Terraform.
-func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
+// ResourceJamfProMobileDeviceConfigurationProfilesPlist defines the schema for mobile device configuration profiles in Terraform.
+func ResourceJamfProMobileDeviceConfigurationProfilesPlist() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProMobileDeviceConfigurationProfileCreate,
-		ReadContext:   ResourceJamfProMobileDeviceConfigurationProfileRead,
-		UpdateContext: ResourceJamfProMobileDeviceConfigurationProfileUpdate,
-		DeleteContext: ResourceJamfProMobileDeviceConfigurationProfileDelete,
+		CreateContext: ResourceJamfProMobileDeviceConfigurationProfilePlistCreate,
+		ReadContext:   ResourceJamfProMobileDeviceConfigurationProfilePlistRead,
+		UpdateContext: ResourceJamfProMobileDeviceConfigurationProfilePlistUpdate,
+		DeleteContext: ResourceJamfProMobileDeviceConfigurationProfilePlistDelete,
 		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
@@ -129,9 +130,11 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 			},
 			"payloads": {
 				Type:             schema.TypeString,
-				Optional:         true,
+				Required:         true,
+				StateFunc:        plist.NormalizePayloadState,
+				ValidateFunc:     plist.ValidatePayload,
+				DiffSuppressFunc: DiffSuppressPayloads,
 				Description:      "The iOS / iPadOS / tvOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist.",
-				DiffSuppressFunc: diffSuppressPayloads,
 			},
 			// Scope
 			"scope": {
@@ -151,8 +154,7 @@ func ResourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
 // 2. Calls the API to create the attribute in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-// ResourceJamfProMobileDeviceConfigurationProfileCreate is responsible for creating a new Jamf Pro Mobile Device Configuration Profile in the remote system.
-func ResourceJamfProMobileDeviceConfigurationProfileCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ResourceJamfProMobileDeviceConfigurationProfilePlistCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Assert the meta interface to the expected APIClient type
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -164,7 +166,7 @@ func ResourceJamfProMobileDeviceConfigurationProfileCreate(ctx context.Context, 
 	var diags diag.Diagnostics
 
 	// Construct the resource object
-	resource, err := constructJamfProMobileDeviceConfigurationProfile(d)
+	resource, err := constructJamfProMobileDeviceConfigurationProfilePlist(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Mobile Device Configuration Profile: %v", err))
 	}
@@ -204,7 +206,7 @@ func ResourceJamfProMobileDeviceConfigurationProfileCreate(ctx context.Context, 
 	}
 
 	// Read the resource to ensure the Terraform state is up to date
-	readDiags := ResourceJamfProMobileDeviceConfigurationProfileRead(ctx, d, meta)
+	readDiags := ResourceJamfProMobileDeviceConfigurationProfilePlistRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
 	}
@@ -212,12 +214,12 @@ func ResourceJamfProMobileDeviceConfigurationProfileCreate(ctx context.Context, 
 	return diags
 }
 
-// ResourceJamfProMobileDeviceConfigurationProfileRead is responsible for reading the current state of a Jamf Pro Mobile Device Configuration Profile Resource from the remote system.
+// ResourceJamfProMobileDeviceConfigurationProfilePlistRead is responsible for reading the current state of a Jamf Pro Mobile Device Configuration Profile Resource from the remote system.
 // The function:
 // 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
-func ResourceJamfProMobileDeviceConfigurationProfileRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ResourceJamfProMobileDeviceConfigurationProfilePlistRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -253,8 +255,8 @@ func ResourceJamfProMobileDeviceConfigurationProfileRead(ctx context.Context, d 
 	return nil
 }
 
-// ResourceJamfProMobileDeviceConfigurationProfileUpdate is responsible for updating an existing Jamf Pro Mobile Device Configuration Profile on the remote system.
-func ResourceJamfProMobileDeviceConfigurationProfileUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// ResourceJamfProMobileDeviceConfigurationProfilePlistUpdate is responsible for updating an existing Jamf Pro Mobile Device Configuration Profile on the remote system.
+func ResourceJamfProMobileDeviceConfigurationProfilePlistUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -273,7 +275,7 @@ func ResourceJamfProMobileDeviceConfigurationProfileUpdate(ctx context.Context, 
 	}
 
 	// Construct the resource object
-	resource, err := constructJamfProMobileDeviceConfigurationProfile(d)
+	resource, err := constructJamfProMobileDeviceConfigurationProfilePlist(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Mobile Device Configuration Profile for update: %v", err))
 	}
@@ -294,7 +296,7 @@ func ResourceJamfProMobileDeviceConfigurationProfileUpdate(ctx context.Context, 
 	}
 
 	// Read the resource to ensure the Terraform state is up to date
-	readDiags := ResourceJamfProMobileDeviceConfigurationProfileRead(ctx, d, meta)
+	readDiags := ResourceJamfProMobileDeviceConfigurationProfilePlistRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
 	}
@@ -302,8 +304,8 @@ func ResourceJamfProMobileDeviceConfigurationProfileUpdate(ctx context.Context, 
 	return diags
 }
 
-// ResourceJamfProMobileDeviceConfigurationProfileDelete is responsible for deleting a Jamf Pro Mobile Device Configuration Profile.
-func ResourceJamfProMobileDeviceConfigurationProfileDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// ResourceJamfProMobileDeviceConfigurationProfilePlistDelete is responsible for deleting a Jamf Pro Mobile Device Configuration Profile.
+func ResourceJamfProMobileDeviceConfigurationProfilePlistDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {

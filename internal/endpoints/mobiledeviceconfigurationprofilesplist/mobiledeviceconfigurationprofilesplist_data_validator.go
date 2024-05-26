@@ -1,5 +1,5 @@
-// mobiledeviceconfigurationprofiles_data_validator.go
-package mobiledeviceconfigurationprofiles
+// mobiledeviceconfigurationprofilesplist_data_validator.go
+package mobiledeviceconfigurationprofilesplist
 
 import (
 	"context"

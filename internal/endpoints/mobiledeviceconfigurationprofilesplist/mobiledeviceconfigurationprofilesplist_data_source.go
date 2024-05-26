@@ -1,5 +1,5 @@
-// mobiledeviceconfigurationprofiles_data_source.go
-package mobiledeviceconfigurationprofiles
+// mobiledeviceconfigurationprofilesplist_data_source.go
+package mobiledeviceconfigurationprofilesplist
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 )
 
 // DataSourceJamfProMobileDeviceConfigurationProfiles provides information about a specific department in Jamf Pro.
-func DataSourceJamfProMobileDeviceConfigurationProfiles() *schema.Resource {
+func DataSourceJamfProMobileDeviceConfigurationProfilesPlist() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: DataSourceJamfProMobileDeviceConfigurationProfileRead,
 		Timeouts: &schema.ResourceTimeout{

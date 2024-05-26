@@ -240,7 +240,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlistCreate(ctx context.Context, d
 	var diags diag.Diagnostics
 
 	// Construct the resource object
-	resource, err := constructJamfProMacOSConfigurationProfile(d)
+	resource, err := constructJamfProMacOSConfigurationProfilePlist(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro macOS Configuration Profile: %v", err))
 	}
@@ -342,7 +342,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlistUpdate(ctx context.Context, d
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	resource, err := constructJamfProMacOSConfigurationProfile(d)
+	resource, err := constructJamfProMacOSConfigurationProfilePlist(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro macOS Configuration Profile for update: %v", err))
 	}

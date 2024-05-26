@@ -1,5 +1,5 @@
-// mobiledeviceconfigurationprofiles_diff_suppress.go
-package mobiledeviceconfigurationprofiles
+// mobiledeviceconfigurationprofilesplist_diff_suppress.go
+package mobiledeviceconfigurationprofilesplist
 
 import (
 	"log"
@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// diffSuppressPayloads is a custom diff suppression function for the payloads attribute.
-func diffSuppressPayloads(k, old, new string, d *schema.ResourceData) bool {
+// DiffSuppressPayloads is a custom diff suppression function for the payloads attribute.
+func DiffSuppressPayloads(k, old, new string, d *schema.ResourceData) bool {
 	log.Printf("Suppressing diff for key: %s", k)
 
 	processedOldPayload, err := processPayload(old)

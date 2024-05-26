@@ -1,5 +1,5 @@
-// mobiledeviceconfigurationprofiles_state.go
-package mobiledeviceconfigurationprofiles
+// mobiledeviceconfigurationprofilesplist_state.go
+package mobiledeviceconfigurationprofilesplist
 
 import (
 	"log"

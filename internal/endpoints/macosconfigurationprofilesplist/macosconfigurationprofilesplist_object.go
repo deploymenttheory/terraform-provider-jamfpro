@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// constructJamfProMacOSConfigurationProfile constructs a ResourceMacOSConfigurationProfile object from the provided schema data.
-func constructJamfProMacOSConfigurationProfile(d *schema.ResourceData) (*jamfpro.ResourceMacOSConfigurationProfile, error) {
+// constructJamfProMacOSConfigurationProfilePlist constructs a ResourceMacOSConfigurationProfile object from the provided schema data.
+func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData) (*jamfpro.ResourceMacOSConfigurationProfile, error) {
 	profile := &jamfpro.ResourceMacOSConfigurationProfile{
 		General: jamfpro.MacOSConfigurationProfileSubsetGeneral{
 			Name:               d.Get("name").(string),

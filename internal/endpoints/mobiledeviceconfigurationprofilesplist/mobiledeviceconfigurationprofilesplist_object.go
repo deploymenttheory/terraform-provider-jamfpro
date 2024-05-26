@@ -1,5 +1,5 @@
-// mobiledeviceconfigurationprofiles_object.go
-package mobiledeviceconfigurationprofiles
+// mobiledeviceconfigurationprofilesplist_object.go
+package mobiledeviceconfigurationprofilesplist
 
 import (
 	"encoding/xml"
@@ -13,7 +13,7 @@ import (
 )
 
 // constructJamfProMobileDeviceConfigurationProfile constructs a ResourceMobileDeviceConfigurationProfile object from the provided schema data.
-func constructJamfProMobileDeviceConfigurationProfile(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceConfigurationProfile, error) {
+func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceConfigurationProfile, error) {
 
 	profile := &jamfpro.ResourceMobileDeviceConfigurationProfile{
 		General: jamfpro.MobileDeviceConfigurationProfileSubsetGeneral{
