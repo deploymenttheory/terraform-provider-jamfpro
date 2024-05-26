@@ -2,7 +2,6 @@
 package mobiledeviceconfigurationprofilesplist
 
 import (
-	"log"
 	"sort"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -49,18 +48,8 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 	}
 
 	// Sanitize and set the payloads using the plist processor function
-	processedProfile, err := plist.ProcessConfigurationProfileForState(resource.General.Payloads)
-	if err != nil {
-		log.Printf("Error processing configuration profile: %v\n", err)
-		diags = append(diags, diag.FromErr(err)...)
-		return diags
-	}
-
-	log.Printf("Processed profile payload: %s\n", processedProfile)
-
-	// Set the processed payloads field
-	if err := d.Set("payloads", processedProfile); err != nil {
-		log.Printf("Error setting payloads: %v\n", err)
+	profile := plist.NormalizePayloadState(resource.General.Payloads)
+	if err := d.Set("payloads", profile); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
