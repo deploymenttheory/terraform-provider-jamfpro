@@ -71,6 +71,13 @@ This section outlines the resources and data sources provided by our Terraform p
 - **Status**: Community Preview
 - **Availability**: Introduced in version `v0.0.31.`
 
+### Activation Code
+
+- **Resource & Data Source**: Enables the management of the Activation Code within Jamf Pro, allowing for the configuration of activation code and organization details.
+
+- **Status**: Community Preview
+- **Availability**: Introduced in version `v0.0.57.`
+
 ### API Roles
 
 - **Resource & Data Source**: Enables the management of API roles within Jamf Pro, allowing for the configuration of role names, privileges, and other details. these can be assigned to api integrations.
