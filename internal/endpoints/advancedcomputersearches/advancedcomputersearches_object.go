@@ -68,7 +68,6 @@ func constructJamfProAdvancedComputerSearch(d *schema.ResourceData) (*jamfpro.Re
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Advanced Computer Search '%s' to XML: %v", search.Name, err)
 	}
 
-	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
 	log.Printf("[DEBUG] Constructed Jamf Pro Advanced Computer Search XML:\n%s\n", string(resourceXML))
 
 	return search, nil

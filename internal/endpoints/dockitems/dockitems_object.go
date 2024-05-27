@@ -25,7 +25,6 @@ func constructJamfProDockItem(d *schema.ResourceData) (*jamfpro.ResourceDockItem
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Dock Item '%s' to XML: %v", dockItem.Name, err)
 	}
 
-	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
 	log.Printf("[DEBUG] Constructed Jamf Pro Dock Item XML:\n%s\n", string(resourceXML))
 
 	return dockItem, nil

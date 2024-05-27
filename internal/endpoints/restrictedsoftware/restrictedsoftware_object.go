@@ -84,7 +84,6 @@ func constructJamfProRestrictedSoftware(d *schema.ResourceData) (*jamfpro.Resour
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Restricted Software '%s' to XML: %v", restrictedSoftware.General.Name, err)
 	}
 
-	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
 	log.Printf("[DEBUG] Constructed Jamf Pro Restricted Software XML:\n%s\n", string(resourceXML))
 
 	return restrictedSoftware, nil

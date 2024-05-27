@@ -22,7 +22,6 @@ func constructJamfProDepartment(d *schema.ResourceData) (*jamfpro.ResourceDepart
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Department '%s' to XML: %v", department.Name, err)
 	}
 
-	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
 	log.Printf("[DEBUG] Constructed Jamf Pro Department XML:\n%s\n", string(resourceXML))
 
 	return department, nil

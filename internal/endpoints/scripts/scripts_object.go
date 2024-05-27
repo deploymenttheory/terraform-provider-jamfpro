@@ -54,7 +54,6 @@ func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResourceScript, er
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Script '%s' to JSON: %v", script.Name, err)
 	}
 
-	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
 	log.Printf("[DEBUG] Constructed Jamf Pro Script JSON:\n%s\n", string(resourceJSON))
 
 	return script, nil

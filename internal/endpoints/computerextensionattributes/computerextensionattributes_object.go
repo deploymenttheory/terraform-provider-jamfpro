@@ -47,7 +47,6 @@ func constructJamfProComputerExtensionAttribute(d *schema.ResourceData) (*jamfpr
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Extension Attribute '%s' to XML: %v", attribute.Name, err)
 	}
 
-	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
 	log.Printf("[DEBUG] Constructed Jamf Pro Computer Extension Attribute XML:\n%s\n", string(resourceXML))
 
 	return attribute, nil

@@ -76,7 +76,6 @@ func constructJamfProComputerInventoryCollection(d *schema.ResourceData) (*jamfp
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Inventory Collection to XML: %v", err)
 	}
 
-	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
 	log.Printf("[DEBUG] Constructed Jamf Pro Computer Inventory Collection XML:\n%s\n", string(resourceXML))
 
 	return inventoryCollection, nil

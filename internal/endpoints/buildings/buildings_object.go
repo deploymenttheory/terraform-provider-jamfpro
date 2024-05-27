@@ -28,7 +28,6 @@ func constructJamfProBuilding(d *schema.ResourceData) (*jamfpro.ResourceBuilding
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Building '%s' to JSON: %v", building.Name, err)
 	}
 
-	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
 	log.Printf("[DEBUG] Constructed Jamf Pro Building JSON:\n%s\n", string(resourceJSON))
 
 	return building, nil

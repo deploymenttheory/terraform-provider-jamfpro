@@ -22,7 +22,6 @@ func constructJamfProSite(d *schema.ResourceData) (*jamfpro.SharedResourceSite, 
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Site '%s' to XML: %v", site.Name, err)
 	}
 
-	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
 	log.Printf("[DEBUG] Constructed Jamf Pro Site XML:\n%s\n", string(resourceXML))
 
 	return site, nil

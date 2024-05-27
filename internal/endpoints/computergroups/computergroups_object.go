@@ -55,7 +55,6 @@ func constructJamfProComputerGroup(d *schema.ResourceData) (*jamfpro.ResourceCom
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Group '%s' to XML: %v", group.Name, err)
 	}
 
-	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
 	log.Printf("[DEBUG] Constructed Jamf Pro Computer Group XML:\n%s\n", string(resourceXML))
 
 	return group, nil
