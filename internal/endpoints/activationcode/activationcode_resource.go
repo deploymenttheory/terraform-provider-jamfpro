@@ -68,7 +68,7 @@ func ResourceJamfProActivationCodeCreate(ctx context.Context, d *schema.Resource
 
 	// Update (or effectively create) the activation code configuration with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		apiErr := conn.UpdateActivationCode(activationCodeConfig.OrganizationName, activationCodeConfig.Code)
+		apiErr := conn.UpdateActivationCode(activationCodeConfig)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -143,7 +143,7 @@ func ResourceJamfProActivationCodeUpdate(ctx context.Context, d *schema.Resource
 
 	// Update (or effectively create) the activation code configuration with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		apiErr := conn.UpdateActivationCode(activationCodeConfig.OrganizationName, activationCodeConfig.Code)
+		apiErr := conn.UpdateActivationCode(activationCodeConfig)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}

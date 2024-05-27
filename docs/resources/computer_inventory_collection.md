@@ -44,7 +44,7 @@ description: |-
 <a id="nestedblock--applications"></a>
 ### Nested Schema for `applications`
 
-Optional:
+Required:
 
 - `path` (String) Path to the application.
 - `platform` (String) Platform of the application.
@@ -53,7 +53,7 @@ Optional:
 <a id="nestedblock--fonts"></a>
 ### Nested Schema for `fonts`
 
-Optional:
+Required:
 
 - `path` (String) Path to the font.
 - `platform` (String) Platform of the font.
@@ -62,7 +62,7 @@ Optional:
 <a id="nestedblock--plugins"></a>
 ### Nested Schema for `plugins`
 
-Optional:
+Required:
 
 - `path` (String) Path to the plugin.
 - `platform` (String) Platform of the plugin.
