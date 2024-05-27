@@ -57,7 +57,6 @@ func constructJamfProAccountGroup(d *schema.ResourceData) (*jamfpro.ResourceAcco
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Account Group '%s' to XML: %v", accountGroup.Name, err)
 	}
 
-	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
 	log.Printf("[DEBUG] Constructed Jamf Pro Account Group XML:\n%s\n", string(resourceXML))
 
 	return accountGroup, nil

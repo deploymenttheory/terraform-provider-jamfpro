@@ -34,7 +34,6 @@ func constructJamfProPrinter(d *schema.ResourceData) (*jamfpro.ResourcePrinter, 
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Printer '%s' to XML: %v", printer.Name, err)
 	}
 
-	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
 	log.Printf("[DEBUG] Constructed Jamf Pro Printer XML:\n%s\n", string(resourceXML))
 
 	return printer, nil

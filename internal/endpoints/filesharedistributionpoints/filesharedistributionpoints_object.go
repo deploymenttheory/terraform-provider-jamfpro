@@ -42,7 +42,6 @@ func constructJamfProFileShareDistributionPoint(d *schema.ResourceData) (*jamfpr
 		log.Fatalf("Error: %v", err)
 	}
 
-	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
 	log.Printf("[DEBUG] Constructed Jamf Pro File Share Distribution Point XML:\n%s\n", string(resourceXML))
 
 	return fileShareDistributionPoint, nil

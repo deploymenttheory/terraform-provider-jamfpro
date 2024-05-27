@@ -32,7 +32,6 @@ func constructJamfProNetworkSegment(d *schema.ResourceData) (*jamfpro.ResourceNe
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Network Segment '%s' to XML: %v", networkSegment.Name, err)
 	}
 
-	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
 	log.Printf("[DEBUG] Constructed Jamf Pro Network Segment XML:\n%s\n", string(resourceXML))
 
 	return networkSegment, nil

@@ -67,7 +67,6 @@ func constructJamfProAdvancedMobileDeviceSearch(d *schema.ResourceData) (*jamfpr
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Advanced Mobile Device Search '%s' to XML: %v", search.Name, err)
 	}
 
-	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
 	log.Printf("[DEBUG] Constructed Jamf Pro Advanced Mobile Device Search XML:\n%s\n", string(resourceXML))
 
 	return search, nil

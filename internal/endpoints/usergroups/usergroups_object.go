@@ -72,7 +72,6 @@ func constructJamfProUserGroup(d *schema.ResourceData) (*jamfpro.ResourceUserGro
 		return nil, fmt.Errorf("failed to marshal Jamf Pro User Group  '%s' to XML: %v", userGroup.Name, err)
 	}
 
-	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
 	log.Printf("[DEBUG] Constructed Jamf Pro User Group  XML:\n%s\n", string(resourceXML))
 
 	return userGroup, nil

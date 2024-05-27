@@ -38,7 +38,6 @@ func constructJamfProApiIntegration(d *schema.ResourceData) (*jamfpro.ResourceAp
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Api Integration '%s' to JSON: %v", integration.DisplayName, err)
 	}
 
-	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
 	log.Printf("[DEBUG] Constructed Jamf Pro Api Integration JSON:\n%s\n", string(resourceJSON))
 
 	return integration, nil

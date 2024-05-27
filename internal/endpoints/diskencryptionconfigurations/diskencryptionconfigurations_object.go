@@ -34,7 +34,6 @@ func constructJamfProDiskEncryptionConfiguration(d *schema.ResourceData) (*jamfp
 		log.Fatalf("Error: %v", err)
 	}
 
-	// Use log.Printf instead of fmt.Printf for logging within the Terraform provider context
 	log.Printf("[DEBUG] Constructed Jamf Pro Disk Encryption Configurations XML:\n%s\n", string(xmlOutput))
 
 	return diskEncryptionConfig, nil
