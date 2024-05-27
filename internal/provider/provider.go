@@ -19,6 +19,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accountgroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accounts"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/activationcode"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/advancedcomputersearches"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/advancedmobiledevicesearches"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/advancedusersearches"
@@ -284,6 +285,7 @@ func Provider() *schema.Provider {
 		ResourcesMap: map[string]*schema.Resource{
 			"jamfpro_account":                                   accounts.ResourceJamfProAccounts(),
 			"jamfpro_account_group":                             accountgroups.ResourceJamfProAccountGroups(),
+			"jamfpro_activation_code":                           activationcode.ResourceJamfProActivationCode(),
 			"jamfpro_advanced_computer_search":                  advancedcomputersearches.ResourceJamfProAdvancedComputerSearches(),
 			"jamfpro_advanced_mobile_device_search":             advancedmobiledevicesearches.ResourceJamfProAdvancedMobileDeviceSearches(),
 			"jamfpro_advanced_user_search":                      advancedusersearches.ResourceJamfProAdvancedUserSearches(),
