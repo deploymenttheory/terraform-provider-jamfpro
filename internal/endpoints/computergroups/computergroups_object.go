@@ -2,83 +2,70 @@
 package computergroups
 
 import (
-	"encoding/xml"
-	"fmt"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/constructobject"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas/sharedschema_constructors"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // constructJamfProComputerGroup constructs a ResourceComputerGroup object from the provided schema data.
 func constructJamfProComputerGroup(d *schema.ResourceData) (*jamfpro.ResourceComputerGroup, error) {
-	group := &jamfpro.ResourceComputerGroup{
-		Name:    d.Get("name").(string),
-		IsSmart: d.Get("is_smart").(bool),
+	log.Println("LOGHERE")
+	out := &jamfpro.ResourceComputerGroup{
+		Name:      d.Get("name").(string),
+		IsSmart:   d.Get("is_smart").(bool),
+		Criteria:  &jamfpro.ComputerGroupSubsetContainerCriteria{},
+		Computers: &jamfpro.ComputerGroupSubsetComputersContainer{},
 	}
+	log.Println("FLAG-1")
 
-	// Handle Site
-	if v, ok := d.GetOk("site"); ok {
-		group.Site = constructobject.ConstructSharedResourceSite(v.([]interface{}))
-	} else {
-		// Set default values if 'site' data is not provided
-		group.Site = constructobject.ConstructSharedResourceSite([]interface{}{})
-	}
-
-	// Handle "criteria" field only if it has entries
-	if v, ok := d.GetOk("criteria"); ok && len(v.([]interface{})) > 0 {
-		criteria := constructGroupCriteria(v.([]interface{}))
-		group.Criteria = jamfpro.SharedContainerCriteria{
-			Criterion: criteria,
-		}
-	}
-
-	// Handle "computers" field
-
-	if !group.IsSmart {
-		computers, ok := d.GetOk("computers")
-
-		if len(computers.([]interface{})) > 0 && ok {
-			group.Computers = constructGroupComputers(computers.([]interface{}))
-
-		} else if !ok {
-			return nil, fmt.Errorf("failed to get computers")
-		}
-	} else {
-		group.Computers = nil
-	}
-
-	// Serialize and pretty-print the Computer Group object as XML for logging
-	resourceXML, err := xml.MarshalIndent(group, "", "  ")
+	site, err := sharedschema_constructors.GetSite(d)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Group '%s' to XML: %v", group.Name, err)
+		return nil, err
 	}
+	out.Site = site
 
-	log.Printf("[DEBUG] Constructed Jamf Pro Computer Group XML:\n%s\n", string(resourceXML))
+	log.Println("FLAG-2")
 
-	return group, nil
+	constructGroupCriteria(d, out.Criteria)
+	log.Printf("%+v", out.Criteria.Criterion)
+
+	log.Println("FLAG-3")
+
+	return out, nil
+
 }
 
 // Helper functions for nested structures
 
 // constructGroupCriteria constructs a slice of SharedSubsetCriteria from the provided schema data.
-func constructGroupCriteria(criteriaData []interface{}) []jamfpro.SharedSubsetCriteria {
-	var criteria []jamfpro.SharedSubsetCriteria
-	for _, crit := range criteriaData {
-		criterionMap := crit.(map[string]interface{})
-		criteria = append(criteria, jamfpro.SharedSubsetCriteria{
-			Name:         criterionMap["name"].(string),
-			Priority:     criterionMap["priority"].(int),
-			AndOr:        criterionMap["and_or"].(string),
-			SearchType:   criterionMap["search_type"].(string),
-			Value:        criterionMap["value"].(string),
-			OpeningParen: criterionMap["opening_paren"].(bool),
-			ClosingParen: criterionMap["closing_paren"].(bool),
-		})
+func constructGroupCriteria(d *schema.ResourceData, home *jamfpro.ComputerGroupSubsetContainerCriteria) {
+	log.Println("FLAG-2.1")
+	criteria := d.Get("criteria")
+	log.Println("FLAG-2.2")
+	if criteria == nil {
+		log.Println("FLAG-2.3")
+		home = &jamfpro.ComputerGroupSubsetContainerCriteria{
+			Size: 0,
+		}
+		return
 	}
-
-	return criteria
+	log.Println("FLAG-2.4")
+	home.Criterion = &[]jamfpro.SharedSubsetCriteria{}
+	for _, crit := range criteria.([]interface{}) {
+		log.Println("FLAG-2.5")
+		*home.Criterion = append(*home.Criterion, jamfpro.SharedSubsetCriteria{
+			Name:         crit.(map[string]interface{})["name"].(string),
+			Priority:     crit.(map[string]interface{})["priority"].(int),
+			AndOr:        crit.(map[string]interface{})["and_or"].(string),
+			SearchType:   crit.(map[string]interface{})["search_type"].(string),
+			Value:        crit.(map[string]interface{})["value"].(string),
+			OpeningParen: crit.(map[string]interface{})["opening_paren"].(bool),
+			ClosingParen: crit.(map[string]interface{})["closing_paren"].(bool),
+		})
+		log.Println("FLAG-2.6")
+	}
 }
 
 // constructGroupComputers constructs a slice of ComputerGroupSubsetComputer from the provided schema data.
