@@ -21,8 +21,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-// ResourceJamfProMacOSConfigurationPlistProfiles defines the schema and CRUD operations for managing Jamf Pro macOS Configuration Profiles in Terraform.
-func ResourceJamfProMacOSConfigurationPlistProfiles() *schema.Resource {
+// ResourceJamfProMacOSConfigurationProfilesPlist defines the schema and CRUD operations for managing Jamf Pro macOS Configuration Profiles in Terraform.
+func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: ResourceJamfProMacOSConfigurationProfilesPlistCreate,
 		ReadContext:   ResourceJamfProMacOSConfigurationProfilesPlistRead,

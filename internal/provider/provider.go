@@ -30,7 +30,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/categories"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computercheckin"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computerextensionattributes"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computerinventory"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computerinventorycollection"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/computerprestageenrollments"
@@ -38,7 +37,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/diskencryptionconfigurations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/dockitems"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/filesharedistributionpoints"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/macosconfigurationprofiles"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/macosconfigurationprofilesplist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/mobiledeviceconfigurationprofilesplist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/networksegments"
@@ -49,6 +47,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/scripts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/sites"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/smartcomputergroups"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/staticcomputergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/usergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/webhooks"
 )
@@ -255,32 +254,34 @@ func Provider() *schema.Provider {
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 
-			"jamfpro_account":                             accounts.DataSourceJamfProAccounts(),
-			"jamfpro_account_group":                       accountgroups.DataSourceJamfProAccountGroups(),
-			"jamfpro_advanced_computer_search":            advancedcomputersearches.DataSourceJamfProAdvancedComputerSearches(),
-			"jamfpro_advanced_mobile_device_search":       advancedmobiledevicesearches.DataSourceJamfProAdvancedMobileDeviceSearches(),
-			"jamfpro_advanced_user_search":                advancedusersearches.DataSourceJamfProAdvancedUserSearches(),
-			"jamfpro_api_integration":                     apiintegrations.DataSourceJamfProApiIntegrations(),
-			"jamfpro_api_role":                            apiroles.DataSourceJamfProAPIRoles(),
-			"jamfpro_building":                            buildings.DataSourceJamfProBuildings(),
-			"jamfpro_category":                            categories.DataSourceJamfProCategories(),
-			"jamfpro_computer_extension_attribute":        computerextensionattributes.DataSourceJamfProComputerExtensionAttributes(),
-			"jamfpro_computer_inventory":                  computerinventory.DataSourceJamfProComputerInventory(),
-			"jamfpro_computer_prestage_enrollment":        computerprestageenrollments.DataSourceJamfProComputerPrestageEnrollmentEnrollment(),
-			"jamfpro_department":                          departments.DataSourceJamfProDepartments(),
-			"jamfpro_disk_encryption_configuration":       diskencryptionconfigurations.DataSourceJamfProDiskEncryptionConfigurations(),
-			"jamfpro_dock_item":                           dockitems.DataSourceJamfProDockItems(),
-			"jamfpro_file_share_distribution_point":       filesharedistributionpoints.DataSourceJamfProFileShareDistributionPoints(),
-			"jamfpro_network_segment":                     networksegments.DataSourceJamfProNetworkSegments(),
-			"jamfpro_mobile_device_configuration_profile": mobiledeviceconfigurationprofilesplist.DataSourceJamfProMobileDeviceConfigurationProfilesPlist(),
-			"jamfpro_package":                             packages.DataSourceJamfProPackages(),
-			"jamfpro_printer":                             printers.DataSourceJamfProPrinters(),
-			"jamfpro_script":                              scripts.DataSourceJamfProScripts(),
-			"jamfpro_site":                                sites.DataSourceJamfProSites(),
-			"jamfpro_smart_computer_group":                smartcomputergroups.DataSourceJamfProSmartComputerGroups(),
-			"jamfpro_restricted_software":                 restrictedsoftware.DataSourceJamfProRestrictedSoftwares(),
-			"jamfpro_user_group":                          usergroups.DataSourceJamfProUserGroups(),
-			"jamfpro_webhook":                             webhooks.DataSourceJamfProWebhooks(),
+			"jamfpro_account":                                   accounts.DataSourceJamfProAccounts(),
+			"jamfpro_account_group":                             accountgroups.DataSourceJamfProAccountGroups(),
+			"jamfpro_advanced_computer_search":                  advancedcomputersearches.DataSourceJamfProAdvancedComputerSearches(),
+			"jamfpro_advanced_mobile_device_search":             advancedmobiledevicesearches.DataSourceJamfProAdvancedMobileDeviceSearches(),
+			"jamfpro_advanced_user_search":                      advancedusersearches.DataSourceJamfProAdvancedUserSearches(),
+			"jamfpro_api_integration":                           apiintegrations.DataSourceJamfProApiIntegrations(),
+			"jamfpro_api_role":                                  apiroles.DataSourceJamfProAPIRoles(),
+			"jamfpro_building":                                  buildings.DataSourceJamfProBuildings(),
+			"jamfpro_category":                                  categories.DataSourceJamfProCategories(),
+			"jamfpro_computer_extension_attribute":              computerextensionattributes.DataSourceJamfProComputerExtensionAttributes(),
+			"jamfpro_computer_inventory":                        computerinventory.DataSourceJamfProComputerInventory(),
+			"jamfpro_computer_prestage_enrollment":              computerprestageenrollments.DataSourceJamfProComputerPrestageEnrollmentEnrollment(),
+			"jamfpro_department":                                departments.DataSourceJamfProDepartments(),
+			"jamfpro_disk_encryption_configuration":             diskencryptionconfigurations.DataSourceJamfProDiskEncryptionConfigurations(),
+			"jamfpro_dock_item":                                 dockitems.DataSourceJamfProDockItems(),
+			"jamfpro_file_share_distribution_point":             filesharedistributionpoints.DataSourceJamfProFileShareDistributionPoints(),
+			"jamfpro_network_segment":                           networksegments.DataSourceJamfProNetworkSegments(),
+			"jamfpro_macos_configuration_profile_plist":         macosconfigurationprofilesplist.DataSourceJamfProMacOSConfigurationProfilesPlist(),
+			"jamfpro_mobile_device_configuration_profile_plist": mobiledeviceconfigurationprofilesplist.DataSourceJamfProMobileDeviceConfigurationProfilesPlist(),
+			"jamfpro_package":                                   packages.DataSourceJamfProPackages(),
+			"jamfpro_printer":                                   printers.DataSourceJamfProPrinters(),
+			"jamfpro_script":                                    scripts.DataSourceJamfProScripts(),
+			"jamfpro_site":                                      sites.DataSourceJamfProSites(),
+			"jamfpro_smart_computer_group":                      smartcomputergroups.DataSourceJamfProSmartComputerGroups(),
+			"jamfpro_static_computer_group":                     staticcomputergroups.DataSourceJamfProStaticComputerGroups(),
+			"jamfpro_restricted_software":                       restrictedsoftware.DataSourceJamfProRestrictedSoftwares(),
+			"jamfpro_user_group":                                usergroups.DataSourceJamfProUserGroups(),
+			"jamfpro_webhook":                                   webhooks.DataSourceJamfProWebhooks(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"jamfpro_account":                                   accounts.ResourceJamfProAccounts(),
@@ -296,7 +297,6 @@ func Provider() *schema.Provider {
 			"jamfpro_category":                                  categories.ResourceJamfProCategories(),
 			"jamfpro_computer_checkin":                          computercheckin.ResourceJamfProComputerCheckin(),
 			"jamfpro_computer_extension_attribute":              computerextensionattributes.ResourceJamfProComputerExtensionAttributes(),
-			"jamfpro_computer_group":                            computergroups.ResourceJamfProComputerGroups(),
 			"jamfpro_computer_inventory_collection":             computerinventorycollection.ResourceJamfProComputerInventoryCollection(),
 			"jamfpro_computer_prestage_enrollment":              computerprestageenrollments.ResourceJamfProComputerPrestageEnrollmentEnrollment(),
 			"jamfpro_department":                                departments.ResourceJamfProDepartments(),
@@ -304,8 +304,7 @@ func Provider() *schema.Provider {
 			"jamfpro_dock_item":                                 dockitems.ResourceJamfProDockItems(),
 			"jamfpro_file_share_distribution_point":             filesharedistributionpoints.ResourceJamfProFileShareDistributionPoints(),
 			"jamfpro_network_segment":                           networksegments.ResourceJamfProNetworkSegments(),
-			"jamfpro_macos_configuration_profile":               macosconfigurationprofiles.ResourceJamfProMacOSConfigurationProfiles(),
-			"jamfpro_macos_configuration_profile_plist":         macosconfigurationprofilesplist.ResourceJamfProMacOSConfigurationPlistProfiles(),
+			"jamfpro_macos_configuration_profile_plist":         macosconfigurationprofilesplist.ResourceJamfProMacOSConfigurationProfilesPlist(),
 			"jamfpro_mobile_device_configuration_profile_plist": mobiledeviceconfigurationprofilesplist.ResourceJamfProMobileDeviceConfigurationProfilesPlist(),
 			"jamfpro_package":                                   packages.ResourceJamfProPackages(),
 			"jamfpro_policy":                                    policies.ResourceJamfProPolicies(),
@@ -313,6 +312,7 @@ func Provider() *schema.Provider {
 			"jamfpro_script":                                    scripts.ResourceJamfProScripts(),
 			"jamfpro_site":                                      sites.ResourceJamfProSites(),
 			"jamfpro_smart_computer_group":                      smartcomputergroups.ResourceJamfProSmartComputerGroups(),
+			"jamfpro_static_computer_group":                     staticcomputergroups.ResourceJamfProStaticComputerGroups(),
 			"jamfpro_restricted_software":                       restrictedsoftware.ResourceJamfProRestrictedSoftwares(),
 			"jamfpro_user_group":                                usergroups.ResourceJamfProUserGroups(),
 			"jamfpro_webhook":                                   webhooks.ResourceJamfProWebhooks(),

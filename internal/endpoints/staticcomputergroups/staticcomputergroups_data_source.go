@@ -1,5 +1,5 @@
-// computergroup_data_source.go
-package computergroups
+// staticcomputergroup_data_source.go
+package staticcomputergroups
 
 import (
 	"context"
@@ -13,27 +13,27 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProComputerGroups provides information about a specific computer group in Jamf Pro.
-func DataSourceJamfProComputerGroups() *schema.Resource {
+// DataSourceJamfProStaticComputerGroups provides information about a specific computer group in Jamf Pro.
+func DataSourceJamfProStaticComputerGroups() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceJamfProComputerGroupsRead,
+		ReadContext: DataSourceJamfProStaticComputerGroupsRead,
 
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The unique identifier of the computer group.",
+				Description: "The unique identifier of the Jamf Pro static computer group.",
 			},
 			"name": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The unique name of the Jamf Pro computer group.",
+				Description: "The unique name of the Jamf Pro static computer group.",
 			},
 		},
 	}
 }
 
-// DataSourceJamfProComputerGroupsRead fetches the details of a specific computer group
+// DataSourceJamfProStaticComputerGroupsRead fetches the details of a specific computer group
 // from Jamf Pro using either its unique Name or its Id. The function prioritizes the 'name' attribute over the 'id'
 // attribute for fetching details. If neither 'name' nor 'id' is provided, it returns an error.
 // Once the details are fetched, they are set in the data source's state.
@@ -45,7 +45,7 @@ func DataSourceJamfProComputerGroups() *schema.Resource {
 //
 // Returns:
 // - diag.Diagnostics: Returns any diagnostics (errors or warnings) encountered during the function's execution.
-func DataSourceJamfProComputerGroupsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func DataSourceJamfProStaticComputerGroupsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
 	apiclient, ok := meta.(*client.APIClient)
 	if !ok {
@@ -79,14 +79,14 @@ func DataSourceJamfProComputerGroupsRead(ctx context.Context, d *schema.Resource
 
 	if err != nil {
 		// Handle the final error after all retries have been exhausted
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Printer with ID '%s' after retries: %v", resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Jamf Pro Static Computer Group with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	// Check if resource data exists and set the Terraform state
 	if resource != nil {
 		d.SetId(resourceID) // Confirm the ID in the Terraform state
 		if err := d.Set("name", resource.Name); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Printer with ID '%s': %v", resourceID, err))...)
+			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Static Computer Group with ID '%s': %v", resourceID, err))...)
 		}
 	} else {
 		d.SetId("") // Data not found, unset the ID in the Terraform state
