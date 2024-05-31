@@ -31,7 +31,7 @@ func ResourceJamfProComputerGroupsCreate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Group: %v", err))
 	}
 
-	var creationResponse *jamfpro.ResourceComputerGroup
+	var creationResponse *jamfpro.ResponseComputerGroupreatedAndUpdated
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
 		creationResponse, apiErr = conn.CreateComputerGroup(resource)

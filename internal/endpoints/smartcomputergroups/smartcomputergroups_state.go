@@ -2,39 +2,39 @@
 package smartcomputergroups
 
 import (
-	"strconv"
-
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // updateTerraformState updates the Terraform state with the provided ResourceComputerGroup object.
-func updateTerraformState(d *schema.ResourceData, group *jamfpro.ResourceComputerGroup) diag.Diagnostics {
+func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComputerGroup) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if err := d.Set("name", group.Name); err != nil {
+	if err := d.Set("name", resource.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("is_smart", group.IsSmart); err != nil {
+	if err := d.Set("is_smart", resource.IsSmart); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	// Handle Site
-	if group.Site != nil {
-		site := flattenSharedResourceSite(group.Site)
+	site := []interface{}{}
+	if resource.Site.ID != -1 {
+		site = append(site, map[string]interface{}{
+			"id": resource.Site.ID,
+		})
+	}
+
+	if len(site) > 0 {
 		if err := d.Set("site", site); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	} else {
-		if err := d.Set("site", nil); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
 	// Handle Criteria
-	if group.Criteria != nil && group.Criteria.Criterion != nil {
-		criteria := flattenComputerGroupSubsetContainerCriteria(group.Criteria)
+	if resource.Criteria != nil && resource.Criteria.Criterion != nil {
+		criteria := flattenComputerGroupSubsetContainerCriteria(resource.Criteria)
 		if err := d.Set("criteria", criteria); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
@@ -44,26 +44,7 @@ func updateTerraformState(d *schema.ResourceData, group *jamfpro.ResourceCompute
 		}
 	}
 
-	// Handle ID
-	if err := d.Set("id", strconv.Itoa(group.ID)); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
 	return diags
-}
-
-// flattenSharedResourceSite flattens a SharedResourceSite object into a format suitable for Terraform state.
-func flattenSharedResourceSite(site *jamfpro.SharedResourceSite) []interface{} {
-	if site == nil {
-		return nil
-	}
-
-	siteMap := map[string]interface{}{
-		"id":   site.ID,
-		"name": site.Name,
-	}
-
-	return []interface{}{siteMap}
 }
 
 // flattenComputerGroupSubsetContainerCriteria flattens a ComputerGroupSubsetContainerCriteria object into a format suitable for Terraform state.

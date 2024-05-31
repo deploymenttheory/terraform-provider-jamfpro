@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// constructJamfProComputerGroup constructs a ResourceComputerGroup object from the provided schema data.
-func constructJamfProComputerGroup(d *schema.ResourceData) (*jamfpro.ResourceComputerGroup, error) {
+// constructJamfProSmartComputerGroup constructs a ResourceComputerGroup object from the provided schema data.
+func constructJamfProSmartComputerGroup(d *schema.ResourceData) (*jamfpro.ResourceComputerGroup, error) {
 	group := &jamfpro.ResourceComputerGroup{
 		Name:    d.Get("name").(string),
 		IsSmart: true,

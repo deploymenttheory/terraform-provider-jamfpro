@@ -47,7 +47,6 @@ func ResourceJamfProSmartComputerGroups() *schema.Resource {
 			Update: schema.DefaultTimeout(30 * time.Second),
 			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
-		CustomizeDiff: customDiffComputeGroups,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -64,14 +63,13 @@ func ResourceJamfProSmartComputerGroups() *schema.Resource {
 			},
 			"is_smart": {
 				Type:        schema.TypeBool,
-				Required:    true,
+				Computed:    true,
 				Description: "Boolean selection to state if the group is a Smart group or not. If false then the group is a static group.",
-				Default:     true,
 			},
 			"site": {
 				Type:        schema.TypeList,
 				Optional:    true,
-				Description: "Jamf Pro Site-related settings of the policy.",
+				Description: "Jamf Pro Site related settings of the smart computer group.",
 				MaxItems:    1,
 				Elem:        sharedschemas.GetSharedSchemaSite(),
 			},
