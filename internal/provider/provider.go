@@ -48,6 +48,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/restrictedsoftware"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/scripts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/sites"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/smartcomputergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/usergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/webhooks"
 )
@@ -254,17 +255,16 @@ func Provider() *schema.Provider {
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 
-			"jamfpro_account":                       accounts.DataSourceJamfProAccounts(),
-			"jamfpro_account_group":                 accountgroups.DataSourceJamfProAccountGroups(),
-			"jamfpro_advanced_computer_search":      advancedcomputersearches.DataSourceJamfProAdvancedComputerSearches(),
-			"jamfpro_advanced_mobile_device_search": advancedmobiledevicesearches.DataSourceJamfProAdvancedMobileDeviceSearches(),
-			"jamfpro_advanced_user_search":          advancedusersearches.DataSourceJamfProAdvancedUserSearches(),
-			"jamfpro_api_integration":               apiintegrations.DataSourceJamfProApiIntegrations(),
-			"jamfpro_api_role":                      apiroles.DataSourceJamfProAPIRoles(),
-			"jamfpro_building":                      buildings.DataSourceJamfProBuildings(),
-			"jamfpro_category":                      categories.DataSourceJamfProCategories(),
-			"jamfpro_computer_extension_attribute":  computerextensionattributes.DataSourceJamfProComputerExtensionAttributes(),
-			// "jamfpro_computer_group":                      computergroups.DataSourceJamfProComputerGroups(),
+			"jamfpro_account":                             accounts.DataSourceJamfProAccounts(),
+			"jamfpro_account_group":                       accountgroups.DataSourceJamfProAccountGroups(),
+			"jamfpro_advanced_computer_search":            advancedcomputersearches.DataSourceJamfProAdvancedComputerSearches(),
+			"jamfpro_advanced_mobile_device_search":       advancedmobiledevicesearches.DataSourceJamfProAdvancedMobileDeviceSearches(),
+			"jamfpro_advanced_user_search":                advancedusersearches.DataSourceJamfProAdvancedUserSearches(),
+			"jamfpro_api_integration":                     apiintegrations.DataSourceJamfProApiIntegrations(),
+			"jamfpro_api_role":                            apiroles.DataSourceJamfProAPIRoles(),
+			"jamfpro_building":                            buildings.DataSourceJamfProBuildings(),
+			"jamfpro_category":                            categories.DataSourceJamfProCategories(),
+			"jamfpro_computer_extension_attribute":        computerextensionattributes.DataSourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_inventory":                  computerinventory.DataSourceJamfProComputerInventory(),
 			"jamfpro_computer_prestage_enrollment":        computerprestageenrollments.DataSourceJamfProComputerPrestageEnrollmentEnrollment(),
 			"jamfpro_department":                          departments.DataSourceJamfProDepartments(),
@@ -272,16 +272,15 @@ func Provider() *schema.Provider {
 			"jamfpro_dock_item":                           dockitems.DataSourceJamfProDockItems(),
 			"jamfpro_file_share_distribution_point":       filesharedistributionpoints.DataSourceJamfProFileShareDistributionPoints(),
 			"jamfpro_network_segment":                     networksegments.DataSourceJamfProNetworkSegments(),
-			"jamfpro_mobile_device_configuration_profile": mobiledeviceconfigurationprofiles.DataSourceJamfProMobileDeviceConfigurationProfiles(),
+			"jamfpro_mobile_device_configuration_profile": mobiledeviceconfigurationprofilesplist.DataSourceJamfProMobileDeviceConfigurationProfilesPlist(),
 			"jamfpro_package":                             packages.DataSourceJamfProPackages(),
-
-			// "jamfpro_policy":                        policies.DataSourceJamfProPolicies(),
-			"jamfpro_printer":             printers.DataSourceJamfProPrinters(),
-			"jamfpro_script":              scripts.DataSourceJamfProScripts(),
-			"jamfpro_site":                sites.DataSourceJamfProSites(),
-			"jamfpro_restricted_software": restrictedsoftware.DataSourceJamfProRestrictedSoftwares(),
-			"jamfpro_user_group":          usergroups.DataSourceJamfProUserGroups(),
-			"jamfpro_webhook":             webhooks.DataSourceJamfProWebhooks(),
+			"jamfpro_printer":                             printers.DataSourceJamfProPrinters(),
+			"jamfpro_script":                              scripts.DataSourceJamfProScripts(),
+			"jamfpro_site":                                sites.DataSourceJamfProSites(),
+			"jamfpro_smart_computer_group":                smartcomputergroups.DataSourceJamfProSmartComputerGroups(),
+			"jamfpro_restricted_software":                 restrictedsoftware.DataSourceJamfProRestrictedSoftwares(),
+			"jamfpro_user_group":                          usergroups.DataSourceJamfProUserGroups(),
+			"jamfpro_webhook":                             webhooks.DataSourceJamfProWebhooks(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"jamfpro_account":                                   accounts.ResourceJamfProAccounts(),
@@ -313,6 +312,7 @@ func Provider() *schema.Provider {
 			"jamfpro_printer":                                   printers.ResourceJamfProPrinters(),
 			"jamfpro_script":                                    scripts.ResourceJamfProScripts(),
 			"jamfpro_site":                                      sites.ResourceJamfProSites(),
+			"jamfpro_smart_computer_group":                      smartcomputergroups.ResourceJamfProSmartComputerGroups(),
 			"jamfpro_restricted_software":                       restrictedsoftware.ResourceJamfProRestrictedSoftwares(),
 			"jamfpro_user_group":                                usergroups.ResourceJamfProUserGroups(),
 			"jamfpro_webhook":                                   webhooks.ResourceJamfProWebhooks(),

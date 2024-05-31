@@ -385,6 +385,10 @@ Optional:
 
 - `id` (Number) Jamf Pro Site ID. Value defaults to -1 aka not used.
 
+Read-Only:
+
+- `name` (String) The name of the Jamf Pro Site. Computed value based on the utilised site ID.
+
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

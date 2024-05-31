@@ -4,10 +4,8 @@ go 1.22.2
 
 // Direct
 require (
-
-	github.com/deploymenttheory/go-api-http-client v0.1.41
-	github.com/deploymenttheory/go-api-sdk-jamfpro v1.6.13
-
+	github.com/deploymenttheory/go-api-http-client v0.1.42
+	github.com/deploymenttheory/go-api-sdk-jamfpro v1.6.14
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/terraform-plugin-docs v0.19.2
@@ -33,10 +31,10 @@ require (
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.27.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.2 // indirect
-	github.com/aws/aws-sdk-go-v2/config v1.27.15 // indirect
+	github.com/aws/aws-sdk-go-v2/config v1.27.16 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.16 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.3 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.16.20 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.16.21 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.7 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.7 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.0 // indirect
