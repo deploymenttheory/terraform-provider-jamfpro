@@ -49,6 +49,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/scripts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/sites"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/smartcomputergroups"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/staticcomputergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/usergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/webhooks"
 )
@@ -278,6 +279,7 @@ func Provider() *schema.Provider {
 			"jamfpro_script":                              scripts.DataSourceJamfProScripts(),
 			"jamfpro_site":                                sites.DataSourceJamfProSites(),
 			"jamfpro_smart_computer_group":                smartcomputergroups.DataSourceJamfProSmartComputerGroups(),
+			"jamfpro_static_computer_group":               staticcomputergroups.DataSourceJamfProStaticComputerGroups(),
 			"jamfpro_restricted_software":                 restrictedsoftware.DataSourceJamfProRestrictedSoftwares(),
 			"jamfpro_user_group":                          usergroups.DataSourceJamfProUserGroups(),
 			"jamfpro_webhook":                             webhooks.DataSourceJamfProWebhooks(),
@@ -313,6 +315,7 @@ func Provider() *schema.Provider {
 			"jamfpro_script":                                    scripts.ResourceJamfProScripts(),
 			"jamfpro_site":                                      sites.ResourceJamfProSites(),
 			"jamfpro_smart_computer_group":                      smartcomputergroups.ResourceJamfProSmartComputerGroups(),
+			"jamfpro_static_computer_group":                     staticcomputergroups.ResourceJamfProStaticComputerGroups(),
 			"jamfpro_restricted_software":                       restrictedsoftware.ResourceJamfProRestrictedSoftwares(),
 			"jamfpro_user_group":                                usergroups.ResourceJamfProUserGroups(),
 			"jamfpro_webhook":                                   webhooks.ResourceJamfProWebhooks(),
