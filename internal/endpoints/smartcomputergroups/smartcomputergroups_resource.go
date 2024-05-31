@@ -41,6 +41,7 @@ func ResourceJamfProSmartComputerGroups() *schema.Resource {
 		ReadContext:   ResourceJamfProSmartComputerGroupsRead,
 		UpdateContext: ResourceJamfProSmartComputerGroupsUpdate,
 		DeleteContext: ResourceJamfProSmartComputerGroupsDelete,
+		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
