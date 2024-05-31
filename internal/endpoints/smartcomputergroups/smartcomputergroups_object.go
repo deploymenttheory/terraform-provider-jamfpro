@@ -28,6 +28,11 @@ func constructJamfProSmartComputerGroup(d *schema.ResourceData) (*jamfpro.Resour
 		group.Site = &site
 	}
 
+	// Handle Criteria
+	if v, ok := d.GetOk("criteria"); ok {
+		group.Criteria = constructComputerGroupSubsetContainerCriteria(v.([]interface{}))
+	}
+
 	// Serialize and pretty-print the Computer Group object as XML for logging
 	resourceXML, err := xml.MarshalIndent(group, "", "  ")
 	if err != nil {
