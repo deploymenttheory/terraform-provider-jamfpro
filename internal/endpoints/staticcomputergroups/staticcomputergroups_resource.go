@@ -71,12 +71,42 @@ func ResourceJamfProStaticComputerGroups() *schema.Resource {
 				MaxItems:    1,
 				Elem:        sharedschemas.GetSharedSchemaSite(),
 			},
-			"computer_ids": {
+			"assignments": {
 				Type:        schema.TypeList,
-				Description: "The list of computer IDs that are members of the static computer group.",
+				Description: "Assignment block containing the list of computer IDs.",
 				Optional:    true,
-				Elem: &schema.Schema{
-					Type: schema.TypeInt,
+				MaxItems:    1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"computer_ids": {
+							Type:        schema.TypeList,
+							Description: "The list of computer IDs that are members of the static computer group.",
+							Optional:    true,
+							Elem: &schema.Schema{
+								Type: schema.TypeInt,
+							},
+						},
+						"name": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The name of the computer.",
+						},
+						"serial_number": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The serial number of the computer.",
+						},
+						"mac_address": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The MAC address of the computer.",
+						},
+						"alt_mac_address": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The alternative MAC address of the computer.",
+						},
+					},
 				},
 			},
 		},

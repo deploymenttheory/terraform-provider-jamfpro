@@ -2,8 +2,6 @@
 package staticcomputergroups
 
 import (
-	"sort"
-
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -33,29 +31,23 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Handle Computers
+	// Set the assignments attribute
 	if resource.Computers != nil && resource.Computers.Computers != nil {
-		computerIDs := flattenAndSortComputerIds(*resource.Computers.Computers)
-		if err := d.Set("computer_ids", computerIDs); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+		computerIDs := make([]int, len(*resource.Computers.Computers))
+		for i, computer := range *resource.Computers.Computers {
+			computerIDs[i] = computer.ID
+		}
+		assignments := map[string]interface{}{
+			"computer_ids": computerIDs,
+		}
+		if err := d.Set("assignments", []interface{}{assignments}); err != nil {
+			return diag.FromErr(err)
 		}
 	} else {
-		if err := d.Set("computer_ids", []interface{}{}); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+		if err := d.Set("assignments", nil); err != nil {
+			return diag.FromErr(err)
 		}
 	}
 
 	return diags
-}
-
-// flattenAndSortComputerIds converts a slice of ComputerGroupSubsetComputer into a sorted slice of integers.
-func flattenAndSortComputerIds(computers []jamfpro.ComputerGroupSubsetComputer) []int {
-	var ids []int
-	for _, computer := range computers {
-		if computer.ID != 0 {
-			ids = append(ids, computer.ID)
-		}
-	}
-	sort.Ints(ids)
-	return ids
 }
