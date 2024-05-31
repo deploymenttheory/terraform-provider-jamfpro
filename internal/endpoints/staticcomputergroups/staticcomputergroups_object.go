@@ -28,9 +28,10 @@ func constructJamfProStaticComputerGroup(d *schema.ResourceData) (*jamfpro.Resou
 		group.Site = &site
 	}
 
-	// Handle Computers
-	if v, ok := d.GetOk("computers"); ok {
-		group.Computers = constructComputerGroupSubsetComputersContainer(v.([]interface{}))
+	// Handle Computers by IDs
+	if v, ok := d.GetOk("computer_ids"); ok {
+		computerIDs := v.([]interface{})
+		group.Computers = constructComputerGroupSubsetComputersContainerFromIDs(computerIDs)
 	}
 
 	// Serialize and pretty-print the Computer Group object as XML for logging
@@ -44,21 +45,16 @@ func constructJamfProStaticComputerGroup(d *schema.ResourceData) (*jamfpro.Resou
 	return group, nil
 }
 
-// constructComputerGroupSubsetComputersContainer constructs a ComputerGroupSubsetComputersContainer object from the provided schema data.
-func constructComputerGroupSubsetComputersContainer(computersList []interface{}) *jamfpro.ComputerGroupSubsetComputersContainer {
+// constructComputerGroupSubsetComputersContainerFromIDs constructs a ComputerGroupSubsetComputersContainer object from the provided list of computer IDs.
+func constructComputerGroupSubsetComputersContainerFromIDs(computerIDs []interface{}) *jamfpro.ComputerGroupSubsetComputersContainer {
 	computers := &jamfpro.ComputerGroupSubsetComputersContainer{
-		Size:      len(computersList),
+		Size:      len(computerIDs),
 		Computers: &[]jamfpro.ComputerGroupSubsetComputer{},
 	}
 
-	for _, item := range computersList {
-		computerData := item.(map[string]interface{})
+	for _, id := range computerIDs {
 		computer := jamfpro.ComputerGroupSubsetComputer{
-			ID:            computerData["id"].(int),
-			Name:          computerData["name"].(string),
-			SerialNumber:  computerData["serial_number"].(string),
-			MacAddress:    computerData["mac_address"].(string),
-			AltMacAddress: computerData["alt_mac_address"].(string),
+			ID: id.(int),
 		}
 		*computers.Computers = append(*computers.Computers, computer)
 	}
