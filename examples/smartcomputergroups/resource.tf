@@ -1,5 +1,6 @@
 resource "jamfpro_smart_computer_group" "smart_example" {
   name = "Example Smart Computer Group"
+  
   # Optional: Specify site details
   site {
     id   = 123  # Replace with the actual site ID
@@ -9,7 +10,7 @@ resource "jamfpro_smart_computer_group" "smart_example" {
   # Optional: Define criteria for Smart groups
   criteria {
     name          = "Criterion Name #1"
-    priority      = 1
+    priority      = 0      # 0 is the highest priority, 1 is the next highest, etc.
     and_or        = "and"  # or "or", defaults to "and" if not provided
     search_type   = "is"   # or any other supported search type
     value         = "Criterion Value"
