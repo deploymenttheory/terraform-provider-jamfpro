@@ -1,6 +1,7 @@
 resource "jamfpro_static_computer_group" "jamfpro_static_computer_group_001" {
   name = "Example Static Computer Group"
 
+  # Optional: Specify site details
   site {
     id   = 123  # Replace with the actual site ID
     name = "Site Name"  # Replace with the actual site name
