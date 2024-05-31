@@ -33,7 +33,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 
 	// Handle Criteria
 	if resource.Criteria != nil && resource.Criteria.Criterion != nil {
-		criteria := flattenComputerGroupSubsetContainerCriteria(resource.Criteria)
+		criteria := setComputerGroupSubsetContainerCriteria(resource.Criteria)
 		if err := d.Set("criteria", criteria); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
@@ -46,8 +46,8 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 	return diags
 }
 
-// flattenComputerGroupSubsetContainerCriteria flattens a ComputerGroupSubsetContainerCriteria object into a format suitable for Terraform state.
-func flattenComputerGroupSubsetContainerCriteria(criteria *jamfpro.ComputerGroupSubsetContainerCriteria) []interface{} {
+// setComputerGroupSubsetContainerCriteria flattens a ComputerGroupSubsetContainerCriteria object into a format suitable for Terraform state.
+func setComputerGroupSubsetContainerCriteria(criteria *jamfpro.ComputerGroupSubsetContainerCriteria) []interface{} {
 	if criteria == nil || criteria.Criterion == nil {
 		return []interface{}{}
 	}
