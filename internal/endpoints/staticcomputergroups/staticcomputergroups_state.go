@@ -55,11 +55,11 @@ func setComputerGroupSubsetComputersContainer(computers *jamfpro.ComputerGroupSu
 	var computersList []interface{}
 	for _, computer := range *computers.Computers {
 		computerMap := map[string]interface{}{
-			"id":              computer.ID,
-			"name":            computer.Name,
-			"serial_number":   computer.SerialNumber,
-			"mac_address":     computer.MacAddress,
-			"alt_mac_address": computer.AltMacAddress,
+			"id": computer.ID,
+			// "name":            computer.Name,
+			// "serial_number":   computer.SerialNumber,
+			// "mac_address":     computer.MacAddress,
+			// "alt_mac_address": computer.AltMacAddress,
 		}
 		computersList = append(computersList, computerMap)
 	}
