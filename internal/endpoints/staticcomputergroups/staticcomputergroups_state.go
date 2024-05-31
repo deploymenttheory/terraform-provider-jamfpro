@@ -1,4 +1,4 @@
-// staticcomputergroup_state.go
+// computergroup_state.go
 package staticcomputergroups
 
 import (
@@ -7,47 +7,47 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// updateTerraformState updates the Terraform state with the provided ResourceComputerGroup object.
+// updateTerraformState updates the Terraform state with the latest Computer Prestage Enrollment information from the Jamf Pro API.
 func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComputerGroup) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if err := d.Set("name", resource.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("is_smart", resource.IsSmart); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	// Handle Site
-	site := []interface{}{}
-	if resource.Site != nil && resource.Site.ID != -1 {
-		site = append(site, map[string]interface{}{
-			"id":   resource.Site.ID,
-			"name": resource.Site.Name,
-		})
-	}
-
-	if err := d.Set("site", site); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	// Set the assignments attribute
-	if resource.Computers != nil && resource.Computers.Computers != nil {
-		computerIDs := make([]int, len(*resource.Computers.Computers))
-		for i, computer := range *resource.Computers.Computers {
-			computerIDs[i] = computer.ID
+	// Update the Terraform state with the fetched data
+	if resource != nil {
+		if err := d.Set("name", resource.Name); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
 		}
-		assignments := map[string]interface{}{
-			"computer_ids": computerIDs,
+		if err := d.Set("is_smart", resource.IsSmart); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("assignments", []interface{}{assignments}); err != nil {
-			return diag.FromErr(err)
+
+		// Set the 'site' attribute in the state only if it's not empty (i.e., not default values)
+		site := []interface{}{}
+		if resource.Site.ID != -1 {
+			site = append(site, map[string]interface{}{
+				"id": resource.Site.ID,
+			})
 		}
-	} else {
-		if err := d.Set("assignments", nil); err != nil {
-			return diag.FromErr(err)
+		if len(site) > 0 {
+			if err := d.Set("site", site); err != nil {
+				diags = append(diags, diag.FromErr(err)...)
+			}
+		}
+
+		// Set the 'assignments' attribute in the state
+		assignmentsList := []interface{}{}
+		if resource.Computers != nil {
+			computerIDs := []interface{}{}
+			for _, comp := range *resource.Computers {
+				computerIDs = append(computerIDs, comp.ID)
+			}
+			assignments := map[string]interface{}{
+				"computer_ids": computerIDs,
+			}
+			assignmentsList = append(assignmentsList, assignments)
+		}
+		if err := d.Set("assignments", assignmentsList); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
-
 	return diags
 }

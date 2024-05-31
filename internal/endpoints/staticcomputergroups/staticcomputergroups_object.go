@@ -11,50 +11,53 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// constructJamfProStaticComputerGroup constructs a ResourceComputerGroup object from the schema.ResourceData
+// constructJamfProStaticComputerGroup constructs a ResourceComputerGroup object from the provided schema data.
 func constructJamfProStaticComputerGroup(d *schema.ResourceData) (*jamfpro.ResourceComputerGroup, error) {
-
-	// Initialize the ResourceComputerGroup object
-	resource := &jamfpro.ResourceComputerGroup{
+	group := &jamfpro.ResourceComputerGroup{
 		Name:    d.Get("name").(string),
-		IsSmart: false, // Static computer groups are not smart
+		IsSmart: false,
 	}
+
 	// Handle Site
 	if v, ok := d.GetOk("site"); ok {
 		site := constructobject.ConstructSharedResourceSite(v.([]interface{}))
-		resource.Site = &site
+		group.Site = &site
 	} else {
 		// Set default values if 'site' data is not provided
 		site := constructobject.ConstructSharedResourceSite([]interface{}{})
-		resource.Site = &site
+		group.Site = &site
 	}
 
-	// Extract the assignments information if provided
+	// Handle "assignments" field
 	if v, ok := d.GetOk("assignments"); ok {
-		assignmentsList := v.([]interface{})
-		if len(assignmentsList) > 0 {
-			assignmentsData := assignmentsList[0].(map[string]interface{})
-			computerIDs := assignmentsData["computer_ids"].([]interface{})
-
-			computers := make([]jamfpro.ComputerGroupSubsetComputer, len(computerIDs))
-			for i, id := range computerIDs {
-				computers[i] = jamfpro.ComputerGroupSubsetComputer{
-					ID: id.(int),
-				}
-			}
-			resource.Computers = &jamfpro.ComputerGroupSubsetComputersContainer{
-				Size:      len(computers),
-				Computers: &computers,
-			}
+		assignments := v.([]interface{})
+		if len(assignments) > 0 {
+			computerIDs := assignments[0].(map[string]interface{})["computer_ids"].([]interface{})
+			group.Computers = constructGroupComputers(computerIDs)
 		}
 	}
 	// Serialize and pretty-print the Computer Group object as XML for logging
-	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
+	resourceXML, err := xml.MarshalIndent(group, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Static Computer Group '%s' to XML: %v", resource.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Group '%s' to XML: %v", group.Name, err)
 	}
 
-	log.Printf("[DEBUG] Constructed Jamf Pro Static Computer Group XML:\n%s\n", string(resourceXML))
+	log.Printf("[DEBUG] Constructed Jamf Pro Computer Group XML:\n%s\n", string(resourceXML))
 
-	return resource, nil
+	return group, nil
+}
+
+// Helper functions for nested structures
+
+// constructGroupComputers constructs a slice of ComputerGroupSubsetComputer from the provided schema data.
+func constructGroupComputers(computerIDs []interface{}) *[]jamfpro.ComputerGroupSubsetComputer {
+	var computers []jamfpro.ComputerGroupSubsetComputer
+	for _, id := range computerIDs {
+		computer := jamfpro.ComputerGroupSubsetComputer{
+			ID: id.(int),
+		}
+		computers = append(computers, computer)
+	}
+
+	return &computers
 }

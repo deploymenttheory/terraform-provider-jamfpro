@@ -1,4 +1,3 @@
-// smartcomputergroup_resource.go
 package staticcomputergroups
 
 import (
@@ -32,7 +31,7 @@ const (
 	SearchTypeDoesNotMatch       string = "does not match regex"
 )
 
-// ResourceJamfProStaticComputerGroups defines the schema and CRUD operations for managing Jamf Pro smart Computer Groups in Terraform.
+// ResourceJamfProStaticComputerGroups defines the schema and CRUD operations for managing Jamf Pro static Computer Groups in Terraform.
 func ResourceJamfProStaticComputerGroups() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: ResourceJamfProStaticComputerGroupsCreate,
@@ -52,7 +51,7 @@ func ResourceJamfProStaticComputerGroups() *schema.Resource {
 			"id": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The unique identifier of the Jamf Pro stati computer group.",
+				Description: "The unique identifier of the Jamf Pro static computer group.",
 			},
 			"name": {
 				Type:        schema.TypeString,
@@ -67,7 +66,7 @@ func ResourceJamfProStaticComputerGroups() *schema.Resource {
 			"site": {
 				Type:        schema.TypeList,
 				Optional:    true,
-				Description: "Jamf Pro Site related settings of the smart computer group.",
+				Description: "Jamf Pro Site related settings of the static computer group.",
 				MaxItems:    1,
 				Elem:        sharedschemas.GetSharedSchemaSite(),
 			},
@@ -81,30 +80,10 @@ func ResourceJamfProStaticComputerGroups() *schema.Resource {
 						"computer_ids": {
 							Type:        schema.TypeList,
 							Description: "The list of computer IDs that are members of the static computer group.",
-							Optional:    true,
+							Required:    true,
 							Elem: &schema.Schema{
 								Type: schema.TypeInt,
 							},
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The name of the computer.",
-						},
-						"serial_number": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The serial number of the computer.",
-						},
-						"mac_address": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The MAC address of the computer.",
-						},
-						"alt_mac_address": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The alternative MAC address of the computer.",
 						},
 					},
 				},
