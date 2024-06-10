@@ -4,8 +4,8 @@ go 1.22.2
 
 // Direct
 require (
-	github.com/deploymenttheory/go-api-http-client v0.1.42
-	github.com/deploymenttheory/go-api-sdk-jamfpro v1.6.15
+	github.com/deploymenttheory/go-api-http-client v0.1.54-0.20240610152828-419f1aeacb7a
+	github.com/deploymenttheory/go-api-sdk-jamfpro v1.7.2-0.20240610152739-6d2c12030bfd
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/terraform-plugin-docs v0.19.2
@@ -52,6 +52,7 @@ require (
 	github.com/bmatcuk/doublestar/v4 v4.6.1 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/deploymenttheory/go-api-http-client-integration-jamfpro v0.0.0-20240610142526-769f07834f50 // indirect
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/frankban/quicktest v1.14.4 // indirect
 	github.com/go-test/deep v1.1.0 // indirect
@@ -100,7 +101,7 @@ require (
 	github.com/yuin/goldmark-meta v1.1.0 // indirect
 	github.com/zclconf/go-cty v1.14.4 // indirect
 	go.abhg.dev/goldmark/frontmatter v0.2.0 // indirect
-	go.uber.org/multierr v1.10.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/exp v0.0.0-20230809150735-7b3493d9a819 // indirect
