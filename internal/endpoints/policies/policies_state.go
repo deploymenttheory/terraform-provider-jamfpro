@@ -393,6 +393,10 @@ func prepStatePayloadPackages(out *[]map[string]interface{}, resp *jamfpro.Resou
 	if resp.PackageConfiguration == nil {
 		return
 	}
+	//packages can be nil but deployment state default
+	if resp.PackageConfiguration.Packages == nil {
+		return
+	}
 
 	(*out)[0]["packages"] = make([]map[string]interface{}, 0)
 	for _, v := range *resp.PackageConfiguration.Packages {
