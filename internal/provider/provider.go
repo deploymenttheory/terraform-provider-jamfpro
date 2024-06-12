@@ -10,6 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
+	"github.com/deploymenttheory/go-api-http-client-integration-jamfpro/jamfprointegration"
+	"github.com/deploymenttheory/go-api-http-client/httpclient"
+	"github.com/deploymenttheory/go-api-http-client/logger"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accountgroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accounts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/activationcode"
@@ -118,7 +121,7 @@ func GetClientPassword(d *schema.ResourceData) (string, error) {
 func Provider() *schema.Provider {
 	provider := &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"instance_name": {
+			"instance_domain": {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_INSTANCE_NAME", ""),
@@ -347,7 +350,22 @@ func Provider() *schema.Provider {
 			return nil, diags
 		}
 
+		log := logger.BuildLogger(logger.LogLevelInfo, "pretty", "	", "", false)
+
+		jamfIntegration, err := jamfprointegration.BuildIntegrationWithOAuth(
+			d.Get("instance_name").(string),
+			"fix this",
+			log,
+			bufferPeriod,
+			Creds.Cid,
+			Creds.Cs,
+		)
+
 		logLevel := d.Get("log_level").(string)
+
+		config := httpclient.ClientConfig{
+			LogLevel: d.Get("log_level").(string),
+		}
 
 		// Build the HTTP client configuration
 		// httpClientConfig := httpclient.ClientConfig{
