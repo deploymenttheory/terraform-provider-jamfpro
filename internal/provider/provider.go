@@ -5,17 +5,10 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
-	"github.com/deploymenttheory/go-api-http-client/helpers"
-	"github.com/deploymenttheory/go-api-http-client/httpclient"
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accountgroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accounts"
@@ -320,9 +313,11 @@ func Provider() *schema.Provider {
 	}
 
 	provider.ConfigureContextFunc = func(_ context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+
 		var diags diag.Diagnostics
 
 		instanceName, err := GetInstanceName(d)
+
 		if err != nil {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
@@ -332,24 +327,18 @@ func Provider() *schema.Provider {
 			return nil, diags
 		}
 
-		// Attempt to get client credentials (Client ID and Secret) or user credentials (Username and Password)
 		clientID, errClientID := GetClientID(d)
 		clientSecret, errClientSecret := GetClientSecret(d)
 		username, errUsername := GetClientUsername(d)
 		password, errPassword := GetClientPassword(d)
 
-		// extract value for httpclient build and for determining resource propagation time
 		enableCookieJar := d.Get("enable_cookie_jar").(bool)
 
-		// Check if either pair of credentials is provided, prioritizing Client ID/Secret
+		// TODO refactor this
 		if errClientID == nil && errClientSecret == nil && clientID != "" && clientSecret != "" {
-			// Client ID and Client Secret are provided
-			// Initialize client with OAuth credentials
 		} else if errUsername == nil && errPassword == nil && username != "" && password != "" {
-			// Username and Password are provided
-			// Initialize client with Username/Password credentials
 		} else {
-			// Neither set of credentials provided or incomplete set provided
+
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
 				Summary:  "Invalid Authentication Configuration",
@@ -358,70 +347,70 @@ func Provider() *schema.Provider {
 			return nil, diags
 		}
 
-		// Translate the log level from the Terraform configuration
-		logLevelStr := d.Get("log_level").(string)
-		logLevel := logging.TranslateLogLevel(logLevelStr)
+		logLevel := d.Get("log_level").(string)
 
 		// Build the HTTP client configuration
-		httpClientConfig := httpclient.ClientConfig{
-			Environment: httpclient.EnvironmentConfig{
-				InstanceName:       instanceName,
-				OverrideBaseDomain: d.Get("override_base_domain").(string),
-				APIType:            "jamfpro",
-			},
-			Auth: httpclient.AuthConfig{
-				Username:     username,
-				Password:     password,
-				ClientID:     clientID,
-				ClientSecret: clientSecret,
-			},
-			ClientOptions: httpclient.ClientOptions{
-				Logging: httpclient.LoggingConfig{
-					LogLevel:            logLevel,
-					LogOutputFormat:     d.Get("log_output_format").(string),
-					LogConsoleSeparator: d.Get("log_console_separator").(string),
-					LogExportPath:       d.Get("log_export_path").(string),
-					HideSensitiveData:   d.Get("hide_sensitive_data").(bool),
-				},
-				Cookies: httpclient.CookieConfig{
-					EnableCookieJar: enableCookieJar,
-					CustomCookies:   make(map[string]string),
-				},
-				Retry: httpclient.RetryConfig{
-					MaxRetryAttempts:          d.Get("max_retry_attempts").(int),
-					EnableDynamicRateLimiting: d.Get("enable_dynamic_rate_limiting").(bool),
-				},
-				Concurrency: httpclient.ConcurrencyConfig{
-					MaxConcurrentRequests: d.Get("max_concurrent_requests").(int),
-				},
-				Timeout: httpclient.TimeoutConfig{
-					TokenRefreshBufferPeriod: helpers.JSONDuration(time.Duration(d.Get("token_refresh_buffer_period").(int)) * time.Minute),
-					TotalRetryDuration:       helpers.JSONDuration(time.Duration(d.Get("total_retry_duration").(int)) * time.Second),
-					CustomTimeout:            helpers.JSONDuration(time.Duration(d.Get("custom_timeout").(int)) * time.Second),
-				},
-				Redirect: httpclient.RedirectConfig{},
-			},
-		}
+		// httpClientConfig := httpclient.ClientConfig{
+		// 	Environment: httpclient.EnvironmentConfig{
+		// 		InstanceName:       instanceName,
+		// 		OverrideBaseDomain: d.Get("override_base_domain").(string),
+		// 		APIType:            "jamfpro",
+		// 	},
+		// 	Auth: httpclient.AuthConfig{
+		// 		Username:     username,
+		// 		Password:     password,
+		// 		ClientID:     clientID,
+		// 		ClientSecret: clientSecret,
+		// 	},
+		// 	ClientOptions: httpclient.ClientOptions{
+		// 		Logging: httpclient.LoggingConfig{
+		// 			LogLevel:            logLevel,
+		// 			LogOutputFormat:     d.Get("log_output_format").(string),
+		// 			LogConsoleSeparator: d.Get("log_console_separator").(string),
+		// 			LogExportPath:       d.Get("log_export_path").(string),
+		// 			HideSensitiveData:   d.Get("hide_sensitive_data").(bool),
+		// 		},
+		// 		Cookies: httpclient.CookieConfig{
+		// 			EnableCookieJar: enableCookieJar,
+		// 			CustomCookies:   make(map[string]string),
+		// 		},
+		// 		Retry: httpclient.RetryConfig{
+		// 			MaxRetryAttempts:          d.Get("max_retry_attempts").(int),
+		// 			EnableDynamicRateLimiting: d.Get("enable_dynamic_rate_limiting").(bool),
+		// 		},
+		// 		Concurrency: httpclient.ConcurrencyConfig{
+		// 			MaxConcurrentRequests: d.Get("max_concurrent_requests").(int),
+		// 		},
+		// 		Timeout: httpclient.TimeoutConfig{
+		// 			// TokenRefreshBufferPeriod: helpers.JSONDuration(time.Duration(d.Get("token_refresh_buffer_period").(int)) * time.Minute),
+		// 			// TotalRetryDuration:       helpers.JSONDuration(time.Duration(d.Get("total_retry_duration").(int)) * time.Second),
+		// 			// CustomTimeout:            helpers.JSONDuration(time.Duration(d.Get("custom_timeout").(int)) * time.Second),
+		// 		},
+		// 		Redirect: httpclient.RedirectConfig{},
+		// 	},
+		// }
 
 		if d.Get("custom_cookies") != nil {
-			httpClientConfig.ClientOptions.Cookies.CustomCookies[d.Get("custom_cookies.key").(string)] = d.Get("custom_cookies.value").(string)
+			// TODO refactor
 		}
 
 		// Conditionally print debug information.
 		if !d.Get("hide_sensitive_data").(bool) {
-			fmt.Printf("Debug: Building HTTP client with config: %+v\n", httpClientConfig)
+			// TODO refactor
 		}
 
-		httpclient, err := jamfpro.BuildClient(httpClientConfig)
-		if err != nil {
-			return nil, diag.FromErr(err)
-		}
+		// TODO
+		// httpclient, err := jamfpro.BuildClient(httpClientConfig)
+		// if err != nil {
+		// 	return nil, diag.FromErr(err)
+		// }
 
+		// TODO refactor
 		// Initialize the provider's APIClient struct with the Jamf Pro HTTP client and cookie jar setting
-		jamfProAPIClient := client.APIClient{
-			Conn:            httpclient,
-			EnableCookieJar: enableCookieJar, // Allows use the cookie jar value within provider outside of the client
-		}
+		// jamfProAPIClient := client.APIClient{
+		// 	Conn:            httpclient,
+		// 	EnableCookieJar: enableCookieJar, // Allows use the cookie jar value within provider outside of the client
+		// }
 
 		return &jamfProAPIClient, diags
 	}
