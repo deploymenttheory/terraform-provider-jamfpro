@@ -3,7 +3,7 @@ package provider
 
 import (
 	"context"
-	"os"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -49,102 +49,94 @@ import (
 
 // TerraformProviderProductUserAgent is included in the User-Agent header for
 // any API requests made by the provider.
-const TerraformProviderProductUserAgent = "terraform-provider-jamfpro"
+const (
+	terraformProviderProductUserAgent = "terraform-provider-jamfpro"
+	envKeyOAuthClientId               = "JAMFPRO_CLIENT_ID"
+	envKeyOAuthClientSecret           = "JAMFPRO_CLIENT_SECRET"
+	envKeyBasicAuthUsername           = "JAMFPRO_BASIC_USERNAME"
+	envKeyBasicAuthPassword           = "JAMFPRO_BASIC_PASSWORD"
+	envKeyJamfProUrlRoot              = "JAMFPRO_URL_ROOT" // e.g https://yourcompany.jamfcloud.com
+)
 
 // GetInstanceName retrieves the 'instance_name' value from the Terraform configuration.
 // If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_INSTANCE_NAME environment variable.
 func GetInstanceName(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	instanceName := d.Get("instance_name").(string)
 	if instanceName == "" {
-		instanceName = os.Getenv("JAMFPRO_INSTANCE_NAME")
-		if instanceName == "" {
-			*diags = append(*diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error getting instance name",
-				Detail:   "instance_name must be provided either as an environment variable (JAMFPRO_INSTANCE_NAME) or in the Terraform configuration",
-			})
-			return ""
-		}
+		*diags = append(*diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Error getting instance name",
+			Detail:   "instance_name must be provided either as an environment variable (JAMFPRO_INSTANCE_NAME) or in the Terraform configuration",
+		})
+		return ""
 	}
 	return instanceName
 }
 
-// GetClientID retrieves the 'client_id' value from the Terraform configuration.
-// If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_CLIENT_ID environment variable.
+// GetClientID retrieves the 'client_id' value from the Terraform configuration which defaults to env if not set in schema.
 func GetClientID(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	clientID := d.Get("client_id").(string)
 	if clientID == "" {
-		clientID = os.Getenv("JAMFPRO_CLIENT_ID")
-		if clientID == "" {
 
-			*diags = append(*diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error getting client id",
-				Detail:   "client_id must be provided either as an environment variable (JAMFPRO_CLIENT_ID) or in the Terraform configuration",
-			})
+		*diags = append(*diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Error getting client id",
+			Detail:   "client_id must be provided either as an environment variable (JAMFPRO_CLIENT_ID) or in the Terraform configuration",
+		})
 
-			return ""
-		}
+		return ""
+
 	}
 	return clientID
 }
 
-// GetClientSecret retrieves the 'client_secret' value from the Terraform configuration.
-// If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_CLIENT_SECRET environment variable.
+// GetClientSecret retrieves the 'client_secret' value from the Terraform configuration which defaults to env if not set in schema.
 func GetClientSecret(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	clientSecret := d.Get("client_secret").(string)
 	if clientSecret == "" {
-		clientSecret = os.Getenv("JAMFPRO_CLIENT_SECRET")
-		if clientSecret == "" {
 
-			*diags = append(*diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error getting client secret",
-				Detail:   "client_secret must be provided either as an environment variable (JAMFPRO_CLIENT_SECRET) or in the Terraform configuration",
-			})
+		*diags = append(*diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Error getting client secret",
+			Detail:   "client_secret must be provided either as an environment variable (JAMFPRO_CLIENT_SECRET) or in the Terraform configuration",
+		})
 
-			return ""
-		}
+		return ""
+
 	}
 	return clientSecret
 }
 
-// GetClientUsername retrieves the 'username' value from the Terraform configuration.
-// If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_USERNAME environment variable.
-func GetClientUsername(d *schema.ResourceData, diags *diag.Diagnostics) string {
+// GetClientUsername retrieves the 'username' value from the Terraform configuration which defaults to env if not set in schema.
+func GetBasicAuthUsername(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	username := d.Get("username").(string)
 	if username == "" {
-		username = os.Getenv("JAMFPRO_USERNAME")
-		if username == "" {
 
-			*diags = append(*diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error getting basic auth username",
-				Detail:   "username must be provided either as an environment variable (JAMFPRO_USERNAME) or in the Terraform configuration",
-			})
+		*diags = append(*diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Error getting basic auth username",
+			Detail:   "username must be provided either as an environment variable (JAMFPRO_USERNAME) or in the Terraform configuration",
+		})
 
-			return ""
-		}
+		return ""
+
 	}
 	return username
 }
 
-// GetClientPassword retrieves the 'password' value from the Terraform configuration.
-// If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_PASSWORD environment variable.
-func GetClientPassword(d *schema.ResourceData, diags *diag.Diagnostics) string {
+// GetClientPassword retrieves the 'password' value from the Terraform configuration which defaults to env if not set in schema.
+func GetBasicAuthPassword(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	password := d.Get("password").(string)
 	if password == "" {
-		password = os.Getenv("JAMFPRO_PASSWORD")
-		if password == "" {
 
-			*diags = append(*diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error getting basic auth password",
-				Detail:   "password must be provided either as an environment variable (JAMFPRO_PASSWORD) or in the Terraform configuration",
-			})
+		*diags = append(*diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Error getting basic auth password",
+			Detail:   "password must be provided either as an environment variable (JAMFPRO_PASSWORD) or in the Terraform configuration",
+		})
 
-			return ""
-		}
+		return ""
+
 	}
 	return password
 }
@@ -156,7 +148,7 @@ func Provider() *schema.Provider {
 			"instance_domain": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_INSTANCE_NAME", ""),
+				DefaultFunc: schema.EnvDefaultFunc(envKeyJamfProUrlRoot, ""),
 				Description: "The Jamf Pro domain root. example: https://mycompany.jamfcloud.com",
 			},
 			"auth_method": {
@@ -170,27 +162,27 @@ func Provider() *schema.Provider {
 			"client_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_CLIENT_ID", ""),
+				DefaultFunc: schema.EnvDefaultFunc(envKeyOAuthClientSecret, ""),
 				Description: "The Jamf Pro Client ID for authentication.",
 			},
 			"client_secret": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
-				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_CLIENT_SECRET", ""),
+				DefaultFunc: schema.EnvDefaultFunc(envKeyOAuthClientSecret, ""),
 				Description: "The Jamf Pro Client secret for authentication.",
 			},
 			"basic_auth_username": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_USERNAME", ""),
+				DefaultFunc: schema.EnvDefaultFunc(envKeyBasicAuthUsername, ""),
 				Description: "The Jamf Pro username used for authentication.",
 			},
 			"basic_auth_password": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
-				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_PASSWORD", ""),
+				DefaultFunc: schema.EnvDefaultFunc(envKeyBasicAuthPassword, ""),
 				Description: "The Jamf Pro password used for authentication.",
 			},
 			"log_level": {
@@ -256,36 +248,25 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     10,
-				Description: "The maximum number of concurrent requests allowed in the semaphore.",
+				Description: "The maximum number of concurrent requests allowed.",
 			},
-			"token_refresh_buffer_period": {
+			"token_refresh_buffer_period_seconds": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Default:     5, // Convert minutes to time.Duration in code
+				Default:     5,
 				Description: "The buffer period in minutes for token refresh.",
 			},
-			"total_retry_duration": {
+			"total_retry_duration_seconds": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Default:     60, // Convert seconds to time.Duration in code
+				Default:     60,
 				Description: "The total retry duration in seconds.",
 			},
-			"custom_timeout": {
+			"custom_timeout_seconds": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Default:     60, // Convert seconds to time.Duration in code
+				Default:     60,
 				Description: "The custom timeout in seconds for the HTTP client.",
-			},
-			"override_base_domain": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Base domain override used when the default in the API handler isn't suitable.",
-			},
-			"api_type": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Specifies the API integration handler to use for the http client.",
-				Default:     "jamfpro",
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
@@ -357,52 +338,38 @@ func Provider() *schema.Provider {
 
 	provider.ConfigureContextFunc = func(_ context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 
+		var err error
 		var diags diag.Diagnostics
-		var instanceName,
+		var jamfIntegration *jamfprointegration.Integration
+		var jamfDomain,
 			clientId,
 			clientSecret,
 			basicAuthUsername,
 			basicAuthPassword string
 
-		instanceName = GetInstanceName(d, &diags)
-
-		// diags = append(diags, diag.Diagnostic{
-		// 	Severity: diag.Error,
-		// 	Summary:  "Error getting instance name",
-		// 	Detail:   err.Error(),
-		// })
-		// return nil, diags
-
-		clientId = GetClientID(d, &diags)
-		clientSecret = GetClientSecret(d, &diags)
-		basicAuthUsername = GetClientUsername(d, &diags)
-		basicAuthPassword = GetClientPassword(d, &diags)
-
-		enableCookieJar := d.Get("enable_cookie_jar").(bool)
-
-		// TODO refactor this
-		if errClientID == nil && errClientSecret == nil && clientID != "" && clientSecret != "" {
-		} else if errUsername == nil && errPassword == nil && username != "" && password != "" {
-		} else {
-
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Invalid Authentication Configuration",
-				Detail:   "You must provide either a valid 'client_id' and 'client_secret' pair or a 'username' and 'password' pair for authentication.",
-			})
-			return nil, diags
-		}
+		jamfDomain = GetInstanceName(d, &diags)
 
 		log := logger.BuildLogger(logger.LogLevelInfo, "pretty", "	", "", false)
+		tokenRefrshBufferPeriodSeconds := d.Get("token_refresh_buffer_period_seconds").(int)
+		tokenRefrshBufferPeriodSeconds = tokenRefrshBufferPeriodSeconds * time.Second
 
-		jamfIntegration, err := jamfprointegration.BuildIntegrationWithOAuth(
-			d.Get("instance_name").(string),
-			"fix this",
-			log,
-			bufferPeriod,
-			Creds.Cid,
-			Creds.Cs,
-		)
+		switch d.Get("auth_method").(string) {
+		case "oauth2":
+			clientId = GetClientID(d, &diags)
+			clientSecret = GetClientSecret(d, &diags)
+			jamfIntegration, err = jamfprointegration.BuildIntegrationWithOAuth(
+				jamfDomain,
+				"fix this",
+				log,
+				tokenRefrshBufferPeriodSeconds,
+				clientId,
+				clientSecret,
+			)
+		case "basic":
+			basicAuthUsername = GetBasicAuthUsername(d, &diags)
+			basicAuthPassword = GetBasicAuthPassword(d, &diags)
+
+		}
 
 		logLevel := d.Get("log_level").(string)
 

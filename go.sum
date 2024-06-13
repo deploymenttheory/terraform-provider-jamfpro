@@ -42,6 +42,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/deploymenttheory/go-api-http-client v0.1.54-0.20240610150412-38f2fbd05db6 h1:350IooMHDpHg3np4g7QM0gBFGTZzmbm5wawciESXHjk=
 github.com/deploymenttheory/go-api-http-client v0.1.54-0.20240610150412-38f2fbd05db6/go.mod h1:6ODoDOTtFx40t6f311I17ifUzvsaNRbMk+tJ4Cavh5U=
+github.com/deploymenttheory/go-api-http-client-integration-jamfpro v0.0.0-20240610142526-769f07834f50 h1:wGwI8cpfDAnnMYAX5cJE/TJaIb/oQN4Nyzrfrtcj1Og=
+github.com/deploymenttheory/go-api-http-client-integration-jamfpro v0.0.0-20240610142526-769f07834f50/go.mod h1:57h5+i4v167pAEg6fLwJ0r0obHguEh15v2fNasqUl7Y=
 github.com/deploymenttheory/go-api-sdk-jamfpro v1.7.1 h1:c+zWLx/XL5SFKj+f/mK7yclZlYNxr10U6DZHNblsOC0=
 github.com/deploymenttheory/go-api-sdk-jamfpro v1.7.1/go.mod h1:+KSllitj5sqbE5epucdBDdP2S1AltxqFuEqcOoJIZhs=
 github.com/emirpasic/gods v1.18.1 h1:FXtiHYKDGKCW2KzwZKx0iC0PQmdlorYgdFG9jPXJ1Bc=
