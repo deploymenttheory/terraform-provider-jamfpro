@@ -3,6 +3,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -12,6 +13,8 @@ import (
 	"github.com/deploymenttheory/go-api-http-client-integration-jamfpro/jamfprointegration"
 	"github.com/deploymenttheory/go-api-http-client/httpclient"
 	"github.com/deploymenttheory/go-api-http-client/logger"
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accountgroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accounts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/activationcode"
@@ -238,17 +241,23 @@ func Provider() *schema.Provider {
 				Default:     3,
 				Description: "The maximum number of retry request attempts for retryable HTTP methods.",
 			},
+			"max_concurrent_requests": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     10,
+				Description: "The maximum number of concurrent requests allowed.",
+			},
 			"enable_dynamic_rate_limiting": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Enable dynamic rate limiting.",
 			},
-			"max_concurrent_requests": {
+			"custom_timeout_seconds": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Default:     10,
-				Description: "The maximum number of concurrent requests allowed.",
+				Default:     60,
+				Description: "The custom timeout in seconds for the HTTP client.",
 			},
 			"token_refresh_buffer_period_seconds": {
 				Type:        schema.TypeInt,
@@ -262,12 +271,7 @@ func Provider() *schema.Provider {
 				Default:     60,
 				Description: "The total retry duration in seconds.",
 			},
-			"custom_timeout_seconds": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Default:     60,
-				Description: "The custom timeout in seconds for the HTTP client.",
-			},
+			// TODO redirects?
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 
@@ -338,8 +342,11 @@ func Provider() *schema.Provider {
 
 	provider.ConfigureContextFunc = func(_ context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 
+		// vars
 		var err error
 		var diags diag.Diagnostics
+		var log logger.Logger
+		var tokenRefrshBufferPeriodSeconds time.Duration
 		var jamfIntegration *jamfprointegration.Integration
 		var jamfDomain,
 			clientId,
@@ -347,12 +354,18 @@ func Provider() *schema.Provider {
 			basicAuthUsername,
 			basicAuthPassword string
 
+		// pre-processing
 		jamfDomain = GetInstanceName(d, &diags)
+		tokenRefrshBufferPeriodSeconds = time.Duration(d.Get("token_refresh_buffer_period_seconds").(int)) * time.Second
+		log = logger.BuildLogger(
+			logger.ParseLogLevelFromString(d.Get("log_level").(string)),
+			d.Get("log_output_format").(string),
+			d.Get("log_console_separator").(string),
+			d.Get("log_filepath").(string),
+			d.Get("export_logs").(bool),
+		)
 
-		log := logger.BuildLogger(logger.LogLevelInfo, "pretty", "	", "", false)
-		tokenRefrshBufferPeriodSeconds := d.Get("token_refresh_buffer_period_seconds").(int)
-		tokenRefrshBufferPeriodSeconds = tokenRefrshBufferPeriodSeconds * time.Second
-
+		// auth swtich
 		switch d.Get("auth_method").(string) {
 		case "oauth2":
 			clientId = GetClientID(d, &diags)
@@ -368,77 +381,47 @@ func Provider() *schema.Provider {
 		case "basic":
 			basicAuthUsername = GetBasicAuthUsername(d, &diags)
 			basicAuthPassword = GetBasicAuthPassword(d, &diags)
+			jamfIntegration, err = jamfprointegration.BuildIntegrationWithBasicAuth(
+				jamfDomain,
+				"fix this",
+				log,
+				tokenRefrshBufferPeriodSeconds,
+				basicAuthUsername,
+				basicAuthPassword,
+			)
 
 		}
 
-		logLevel := d.Get("log_level").(string)
+		if err != nil {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error getting building jamf integration",
+				Detail:   fmt.Sprintf("error: %v", err),
+			})
+		}
 
 		config := httpclient.ClientConfig{
-			LogLevel: d.Get("log_level").(string),
-		}
-
-		// Build the HTTP client configuration
-		// httpClientConfig := httpclient.ClientConfig{
-		// 	Environment: httpclient.EnvironmentConfig{
-		// 		InstanceName:       instanceName,
-		// 		OverrideBaseDomain: d.Get("override_base_domain").(string),
-		// 		APIType:            "jamfpro",
-		// 	},
-		// 	Auth: httpclient.AuthConfig{
-		// 		Username:     username,
-		// 		Password:     password,
-		// 		ClientID:     clientID,
-		// 		ClientSecret: clientSecret,
-		// 	},
-		// 	ClientOptions: httpclient.ClientOptions{
-		// 		Logging: httpclient.LoggingConfig{
-		// 			LogLevel:            logLevel,
-		// 			LogOutputFormat:     d.Get("log_output_format").(string),
-		// 			LogConsoleSeparator: d.Get("log_console_separator").(string),
-		// 			LogExportPath:       d.Get("log_export_path").(string),
-		// 			HideSensitiveData:   d.Get("hide_sensitive_data").(bool),
-		// 		},
-		// 		Cookies: httpclient.CookieConfig{
-		// 			EnableCookieJar: enableCookieJar,
-		// 			CustomCookies:   make(map[string]string),
-		// 		},
-		// 		Retry: httpclient.RetryConfig{
-		// 			MaxRetryAttempts:          d.Get("max_retry_attempts").(int),
-		// 			EnableDynamicRateLimiting: d.Get("enable_dynamic_rate_limiting").(bool),
-		// 		},
-		// 		Concurrency: httpclient.ConcurrencyConfig{
-		// 			MaxConcurrentRequests: d.Get("max_concurrent_requests").(int),
-		// 		},
-		// 		Timeout: httpclient.TimeoutConfig{
-		// 			// TokenRefreshBufferPeriod: helpers.JSONDuration(time.Duration(d.Get("token_refresh_buffer_period").(int)) * time.Minute),
-		// 			// TotalRetryDuration:       helpers.JSONDuration(time.Duration(d.Get("total_retry_duration").(int)) * time.Second),
-		// 			// CustomTimeout:            helpers.JSONDuration(time.Duration(d.Get("custom_timeout").(int)) * time.Second),
-		// 		},
-		// 		Redirect: httpclient.RedirectConfig{},
-		// 	},
-		// }
-
-		if d.Get("custom_cookies") != nil {
-			// TODO refactor
-		}
-
-		// Conditionally print debug information.
-		if !d.Get("hide_sensitive_data").(bool) {
-			// TODO refactor
+			Integration:               jamfIntegration,
+			HideSensitiveData:         d.Get("hide_sensitive_data").(bool),
+			MaxRetryAttempts:          d.Get("max_retry_attempts").(int),
+			MaxConcurrentRequests:     d.Get("max_concurrent_requests").(int),
+			EnableDynamicRateLimiting: d.Get("enable_dynamic_rate_limiting").(bool),
+			CustomTimeout:             time.Duration(d.Get("custom_timeout_seconds").(int)) * time.Second,
+			TokenRefreshBufferPeriod:  tokenRefrshBufferPeriodSeconds,
+			TotalRetryDuration:        time.Duration(d.Get("total_retry_duration").(int)) * time.Second,
 		}
 
 		// TODO
-		// httpclient, err := jamfpro.BuildClient(httpClientConfig)
-		// if err != nil {
-		// 	return nil, diag.FromErr(err)
-		// }
+		completeClient, err := jamfpro.BuildClient(config)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
 
 		// TODO refactor
 		// Initialize the provider's APIClient struct with the Jamf Pro HTTP client and cookie jar setting
-		// jamfProAPIClient := client.APIClient{
-		// 	Conn:            httpclient,
-		// 	EnableCookieJar: enableCookieJar, // Allows use the cookie jar value within provider outside of the client
-		// }
+		jamfProAPIClient := client.APIClient{
+			Conn: completeClient,
+		}
 
 		return &jamfProAPIClient, diags
 	}
