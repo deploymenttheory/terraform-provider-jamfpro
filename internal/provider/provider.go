@@ -3,7 +3,6 @@ package provider
 
 import (
 	"context"
-	"fmt"
 	"os"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -54,67 +53,100 @@ const TerraformProviderProductUserAgent = "terraform-provider-jamfpro"
 
 // GetInstanceName retrieves the 'instance_name' value from the Terraform configuration.
 // If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_INSTANCE_NAME environment variable.
-func GetInstanceName(d *schema.ResourceData) (string, error) {
+func GetInstanceName(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	instanceName := d.Get("instance_name").(string)
 	if instanceName == "" {
 		instanceName = os.Getenv("JAMFPRO_INSTANCE_NAME")
 		if instanceName == "" {
-			return "", fmt.Errorf("instance_name must be provided either as an environment variable (JAMFPRO_INSTANCE_NAME) or in the Terraform configuration")
+			*diags = append(*diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error getting instance name",
+				Detail:   "instance_name must be provided either as an environment variable (JAMFPRO_INSTANCE_NAME) or in the Terraform configuration",
+			})
+			return ""
 		}
 	}
-	return instanceName, nil
+	return instanceName
 }
 
 // GetClientID retrieves the 'client_id' value from the Terraform configuration.
 // If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_CLIENT_ID environment variable.
-func GetClientID(d *schema.ResourceData) (string, error) {
+func GetClientID(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	clientID := d.Get("client_id").(string)
 	if clientID == "" {
 		clientID = os.Getenv("JAMFPRO_CLIENT_ID")
 		if clientID == "" {
-			return "", fmt.Errorf("client_id must be provided either as an environment variable (JAMFPRO_CLIENT_ID) or in the Terraform configuration")
+
+			*diags = append(*diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error getting client id",
+				Detail:   "client_id must be provided either as an environment variable (JAMFPRO_CLIENT_ID) or in the Terraform configuration",
+			})
+
+			return ""
 		}
 	}
-	return clientID, nil
+	return clientID
 }
 
 // GetClientSecret retrieves the 'client_secret' value from the Terraform configuration.
 // If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_CLIENT_SECRET environment variable.
-func GetClientSecret(d *schema.ResourceData) (string, error) {
+func GetClientSecret(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	clientSecret := d.Get("client_secret").(string)
 	if clientSecret == "" {
 		clientSecret = os.Getenv("JAMFPRO_CLIENT_SECRET")
 		if clientSecret == "" {
-			return "", fmt.Errorf("client_secret must be provided either as an environment variable (JAMFPRO_CLIENT_SECRET) or in the Terraform configuration")
+
+			*diags = append(*diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error getting client secret",
+				Detail:   "client_secret must be provided either as an environment variable (JAMFPRO_CLIENT_SECRET) or in the Terraform configuration",
+			})
+
+			return ""
 		}
 	}
-	return clientSecret, nil
+	return clientSecret
 }
 
 // GetClientUsername retrieves the 'username' value from the Terraform configuration.
 // If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_USERNAME environment variable.
-func GetClientUsername(d *schema.ResourceData) (string, error) {
+func GetClientUsername(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	username := d.Get("username").(string)
 	if username == "" {
 		username = os.Getenv("JAMFPRO_USERNAME")
 		if username == "" {
-			return "", fmt.Errorf("username must be provided either as an environment variable (JAMFPRO_USERNAME) or in the Terraform configuration")
+
+			*diags = append(*diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error getting basic auth username",
+				Detail:   "username must be provided either as an environment variable (JAMFPRO_USERNAME) or in the Terraform configuration",
+			})
+
+			return ""
 		}
 	}
-	return username, nil
+	return username
 }
 
 // GetClientPassword retrieves the 'password' value from the Terraform configuration.
 // If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_PASSWORD environment variable.
-func GetClientPassword(d *schema.ResourceData) (string, error) {
+func GetClientPassword(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	password := d.Get("password").(string)
 	if password == "" {
 		password = os.Getenv("JAMFPRO_PASSWORD")
 		if password == "" {
-			return "", fmt.Errorf("password must be provided either as an environment variable (JAMFPRO_PASSWORD) or in the Terraform configuration")
+
+			*diags = append(*diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error getting basic auth password",
+				Detail:   "password must be provided either as an environment variable (JAMFPRO_PASSWORD) or in the Terraform configuration",
+			})
+
+			return ""
 		}
 	}
-	return password, nil
+	return password
 }
 
 // Schema defines the configuration attributes for the  within the JamfPro provider.
@@ -125,7 +157,15 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_INSTANCE_NAME", ""),
-				Description: "The Jamf Pro instance name. For https://mycompany.jamfcloud.com, define 'mycompany' in this field.",
+				Description: "The Jamf Pro domain root. example: https://mycompany.jamfcloud.com",
+			},
+			"auth_method": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Auth method chosen for Jamf.",
+				ValidateFunc: validation.StringInSlice([]string{
+					"basic", "oauth2",
+				}, true),
 			},
 			"client_id": {
 				Type:        schema.TypeString,
@@ -140,13 +180,13 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_CLIENT_SECRET", ""),
 				Description: "The Jamf Pro Client secret for authentication.",
 			},
-			"username": {
+			"basic_auth_username": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_USERNAME", ""),
 				Description: "The Jamf Pro username used for authentication.",
 			},
-			"password": {
+			"basic_auth_password": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
@@ -156,7 +196,7 @@ func Provider() *schema.Provider {
 			"log_level": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "warning", // Align with the default log level in the  package
+				Default:  "warning",
 				ValidateFunc: validation.StringInSlice([]string{
 					"debug", "info", "warning", "none",
 				}, false),
@@ -165,13 +205,13 @@ func Provider() *schema.Provider {
 			"log_output_format": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     "console", // Default to console for human-readable format
+				Default:     "pretty",
 				Description: "The output format of the logs. Use 'JSON' for JSON format, 'console' for human-readable format. Defaults to console if no value is supplied.",
 			},
 			"log_console_separator": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     " ", // Set a default value for the separator
+				Default:     " ",
 				Description: "The separator character used in console log output.",
 			},
 			"log_export_path": {
@@ -318,22 +358,25 @@ func Provider() *schema.Provider {
 	provider.ConfigureContextFunc = func(_ context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 
 		var diags diag.Diagnostics
+		var instanceName,
+			clientId,
+			clientSecret,
+			basicAuthUsername,
+			basicAuthPassword string
 
-		instanceName, err := GetInstanceName(d)
+		instanceName = GetInstanceName(d, &diags)
 
-		if err != nil {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error getting instance name",
-				Detail:   err.Error(),
-			})
-			return nil, diags
-		}
+		// diags = append(diags, diag.Diagnostic{
+		// 	Severity: diag.Error,
+		// 	Summary:  "Error getting instance name",
+		// 	Detail:   err.Error(),
+		// })
+		// return nil, diags
 
-		clientID, errClientID := GetClientID(d)
-		clientSecret, errClientSecret := GetClientSecret(d)
-		username, errUsername := GetClientUsername(d)
-		password, errPassword := GetClientPassword(d)
+		clientId = GetClientID(d, &diags)
+		clientSecret = GetClientSecret(d, &diags)
+		basicAuthUsername = GetClientUsername(d, &diags)
+		basicAuthPassword = GetClientPassword(d, &diags)
 
 		enableCookieJar := d.Get("enable_cookie_jar").(bool)
 
