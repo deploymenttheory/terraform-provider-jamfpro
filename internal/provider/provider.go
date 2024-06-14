@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -238,7 +239,7 @@ func Provider() *schema.Provider {
 				Default:  nil,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"key": {
+						"name": {
 							Type:        schema.TypeString,
 							Required:    true,
 							Description: "cookie key",
@@ -376,18 +377,13 @@ func Provider() *schema.Provider {
 			basicAuthUsername,
 			basicAuthPassword string
 
-		log.Println("FLAG-1")
-		parsedLogLevel := logger.ParseLogLevelFromString(d.Get("log_level").(string))
-		log.Println("FLAG-1.1")
-		logOutputFormat := d.Get("log_output_format").(string)
-		log.Println("FLAG-1.2")
-		logConsoleSeparator := d.Get("log_console_separator").(string)
-		log.Println("FLAG-1.3")
-		logFilePath := d.Get("log_export_path").(string)
-		log.Println("FLAG-1.4")
-		exportLogs := d.Get("export_logs").(bool)
-		log.Println("FLAG-1.5")
 		// pre-processing
+		parsedLogLevel := logger.ParseLogLevelFromString(d.Get("log_level").(string))
+		logOutputFormat := d.Get("log_output_format").(string)
+		logConsoleSeparator := d.Get("log_console_separator").(string)
+		logFilePath := d.Get("log_export_path").(string)
+		exportLogs := d.Get("export_logs").(bool)
+
 		sharedLogger = logger.BuildLogger(
 			parsedLogLevel,
 			logOutputFormat,
@@ -396,11 +392,9 @@ func Provider() *schema.Provider {
 			exportLogs,
 		)
 
-		log.Println("FLAG-2")
-
 		jamfDomain = GetInstanceName(d, &diags)
 		tokenRefrshBufferPeriod := time.Duration(d.Get("token_refresh_buffer_period_seconds").(int)) * time.Second
-		log.Println("FLAG-3")
+
 		// auth swtich
 		switch d.Get("auth_method").(string) {
 		case "oauth2":
@@ -414,7 +408,7 @@ func Provider() *schema.Provider {
 				clientId,
 				clientSecret,
 			)
-			log.Println("FLAG-3.1")
+
 		case "basic":
 			basicAuthUsername = GetBasicAuthUsername(d, &diags)
 			basicAuthPassword = GetBasicAuthPassword(d, &diags)
@@ -435,7 +429,6 @@ func Provider() *schema.Provider {
 			})
 
 		}
-		log.Println("FLAG-4")
 
 		if err != nil {
 			diags = append(diags, diag.Diagnostic{
@@ -444,11 +437,22 @@ func Provider() *schema.Provider {
 				Detail:   fmt.Sprintf("error: %v", err),
 			})
 		}
-		log.Println("FLAG-5")
 
-		if d.Get("custom_cookies") != nil {
-			log.Println(d.Get("custom_cookies"))
+		var cookiesList []*http.Cookie
+		customCookies := d.Get("custom_cookies")
+		if customCookies != nil && len(customCookies.([]interface{})) > 0 {
+			for _, v := range customCookies.([]interface{}) {
+				name := v.(map[string]interface{})["name"]
+				value := v.(map[string]interface{})["value"]
+				httpCookie := &http.Cookie{
+					Name:  name.(string),
+					Value: value.(string),
+				}
+				cookiesList = append(cookiesList, httpCookie)
+			}
 		}
+
+		log.Println("HERE", cookiesList)
 
 		config := httpclient.ClientConfig{
 			Integration:               jamfIntegration,
@@ -459,20 +463,17 @@ func Provider() *schema.Provider {
 			CustomTimeout:             time.Duration(d.Get("custom_timeout_seconds").(int)) * time.Second,
 			TokenRefreshBufferPeriod:  tokenRefrshBufferPeriod,
 			TotalRetryDuration:        time.Duration(d.Get("total_retry_duration_seconds").(int)) * time.Second,
+			CustomCookies:             cookiesList,
 		}
-		log.Println("FLAG-6")
 
-		// TODO
 		goHttpClient, err := httpclient.BuildClient(config, false, sharedLogger)
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}
-		log.Println("FLAG-7")
 
 		jamfClient := jamfpro.Client{
 			HTTP: goHttpClient,
 		}
-		log.Println("FLAG-8")
 
 		// TODO refactor
 		// Initialize the provider's APIClient struct with the Jamf Pro HTTP client and cookie jar setting
