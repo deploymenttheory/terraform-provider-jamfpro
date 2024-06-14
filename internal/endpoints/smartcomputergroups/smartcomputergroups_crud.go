@@ -61,7 +61,7 @@ func ResourceJamfProSmartComputerGroupsCreate(ctx context.Context, d *schema.Res
 		return client.GetComputerGroupByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Smart Computer Group", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, client.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Smart Computer Group", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
 
 	if waitDiags.HasError() {
 		return waitDiags

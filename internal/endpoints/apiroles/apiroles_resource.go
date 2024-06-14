@@ -109,7 +109,7 @@ func ResourceJamfProAPIRolesCreate(ctx context.Context, d *schema.ResourceData, 
 		return client.GetJamfApiRoleByID(strconv.Itoa(intID))
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro API Role", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, client.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro API Role", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
 
 	if waitDiags.HasError() {
 		return waitDiags

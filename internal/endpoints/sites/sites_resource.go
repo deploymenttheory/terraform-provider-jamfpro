@@ -98,7 +98,7 @@ func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, met
 		return client.GetSiteByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Site", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, client.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Site", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
 	if waitDiags.HasError() {
 		return waitDiags
 	}

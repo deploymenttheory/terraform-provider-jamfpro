@@ -129,7 +129,7 @@ func ResourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData,
 		return client.GetDockItemByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Dock Item", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, client.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Dock Item", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
 	if waitDiags.HasError() {
 		return waitDiags
 	}

@@ -178,7 +178,7 @@ func ResourceJamfProDiskEncryptionConfigurationsCreate(ctx context.Context, d *s
 		return client.GetDiskEncryptionConfigurationByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Disk Encryption Configuration", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, client.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Disk Encryption Configuration", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
 	if waitDiags.HasError() {
 		return waitDiags
 	}

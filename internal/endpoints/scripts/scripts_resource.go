@@ -171,7 +171,7 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 		return client.GetScriptByID(id.(string))
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Script", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, client.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Script", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
 	if waitDiags.HasError() {
 		return waitDiags
 	}

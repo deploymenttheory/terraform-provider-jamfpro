@@ -245,7 +245,7 @@ func ResourceJamfProWebhookCreate(ctx context.Context, d *schema.ResourceData, m
 		return client.GetWebhookByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Webhook", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, client.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Webhook", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
 	if waitDiags.HasError() {
 		return waitDiags
 	}

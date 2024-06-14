@@ -122,7 +122,7 @@ func ResourceJamfProApiIntegrationsCreate(ctx context.Context, d *schema.Resourc
 		return client.GetApiIntegrationByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro API Integration", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, client.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro API Integration", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
 
 	if waitDiags.HasError() {
 		return waitDiags
