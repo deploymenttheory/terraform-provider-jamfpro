@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
@@ -63,12 +62,11 @@ func ResourceJamfProCategories() *schema.Resource {
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 // ResourceJamfProCategoriesCreate is responsible for creating a new Jamf Pro Category in the remote system.
 func ResourceJamfProCategoriesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Assert the meta interface to the expected APIClient type
-	apiclient, ok := meta.(*client.APIClient)
+	// Assert the meta interface to the expected client type
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -83,7 +81,7 @@ func ResourceJamfProCategoriesCreate(ctx context.Context, d *schema.ResourceData
 	var creationResponse *jamfpro.ResponseCategoryCreateAndUpdate
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreateCategory(resource)
+		creationResponse, apiErr = client.CreateCategory(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -100,10 +98,10 @@ func ResourceJamfProCategoriesCreate(ctx context.Context, d *schema.ResourceData
 
 	// Wait for the resource to be fully available before reading it
 	checkResourceExists := func(id interface{}) (interface{}, error) {
-		return apiclient.Conn.GetCategoryByID(id.(string))
+		return client.GetCategoryByID(id.(string))
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Category", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Category", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, client.EnableCookieJar)
 
 	if waitDiags.HasError() {
 		return waitDiags
@@ -126,18 +124,17 @@ func ResourceJamfProCategoriesCreate(ctx context.Context, d *schema.ResourceData
 // ResourceJamfProCategoriesRead is responsible for reading the current state of a Jamf Pro Category Resource from the remote system.
 func ResourceJamfProCategoriesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
 	// Attempt to fetch the resource by ID
-	resource, err := conn.GetCategoryByID(resourceID)
+	resource, err := client.GetCategoryByID(resourceID)
 
 	if err != nil {
 		// Handle not found error or other errors
@@ -157,11 +154,10 @@ func ResourceJamfProCategoriesRead(ctx context.Context, d *schema.ResourceData, 
 // ResourceJamfProCategoriesUpdate is responsible for updating an existing Jamf Pro Category on the remote system.
 func ResourceJamfProCategoriesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -176,14 +172,14 @@ func ResourceJamfProCategoriesUpdate(ctx context.Context, d *schema.ResourceData
 
 	// Update operations with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateCategoryByID(resourceID, Category)
+		_, apiErr := client.UpdateCategoryByID(resourceID, Category)
 		if apiErr == nil {
 			// Successfully updated the Category, exit the retry loop
 			return nil
 		}
 
 		// If update by ID fails, attempt to update by Name
-		_, apiErrByName := conn.UpdateCategoryByName(resourceName, Category)
+		_, apiErrByName := client.UpdateCategoryByName(resourceName, Category)
 		if apiErrByName != nil {
 			// Log the error and return a retryable error
 			return retry.RetryableError(fmt.Errorf("failed to update Category '%s' by ID '%s' and by name due to errors: %v, %v", resourceName, resourceID, apiErr, apiErrByName))
@@ -214,11 +210,10 @@ func ResourceJamfProCategoriesUpdate(ctx context.Context, d *schema.ResourceData
 // ResourceJamfProCategoriesDelete is responsible for deleting a Jamf Pro Category.
 func ResourceJamfProCategoriesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -228,10 +223,10 @@ func ResourceJamfProCategoriesDelete(ctx context.Context, d *schema.ResourceData
 	// Use the retry function for the delete operation with appropriate timeout
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Attempt to delete by ID
-		apiErr := conn.DeleteCategoryByID(resourceID)
+		apiErr := client.DeleteCategoryByID(resourceID)
 		if apiErr != nil {
 			// If deletion by ID fails, attempt to delete by Name
-			apiErrByName := conn.DeleteCategoryByName(resourceName)
+			apiErrByName := client.DeleteCategoryByName(resourceName)
 			if apiErrByName != nil {
 				// Log the error and return a retryable error
 				return retry.RetryableError(fmt.Errorf("failed to delete Category '%s' by ID '%s' and by name due to errors: %v, %v", resourceName, resourceID, apiErr, apiErrByName))

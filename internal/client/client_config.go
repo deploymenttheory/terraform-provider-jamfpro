@@ -14,10 +14,9 @@ type MockAPIClient struct {
 }
 
 // APIClient wraps the Jamf Pro SDK Client.
-type APIClient struct {
-	Conn            *jamfpro.Client // Use the SDK client
-	EnableCookieJar bool            // Use the cookie jar value
-}
+// type APIClient struct {
+// 	Conn *jamfpro.Client
+// }
 
 // This function maps the string log level from the Terraform configuration
 // to the appropriate log level in the httpclient package.

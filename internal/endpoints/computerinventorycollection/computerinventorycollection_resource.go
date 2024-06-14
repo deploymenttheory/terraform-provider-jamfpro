@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -158,11 +158,10 @@ func ResourceJamfProComputerInventoryCollection() *schema.Resource {
 // ResourceJamfProComputerInventoryCollectionCreate is responsible for initializing the Jamf Pro Computer Inventory Collection configuration in Terraform.
 func ResourceJamfProComputerInventoryCollectionCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize api client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -175,7 +174,7 @@ func ResourceJamfProComputerInventoryCollectionCreate(ctx context.Context, d *sc
 
 	// Update (or effectively create) the check-in configuration with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		apiErr := conn.UpdateComputerInventoryCollectionInformation(resource)
+		apiErr := client.UpdateComputerInventoryCollectionInformation(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -201,16 +200,16 @@ func ResourceJamfProComputerInventoryCollectionCreate(ctx context.Context, d *sc
 // ResourceJamfProComputerInventoryCollectionRead is responsible for reading the current state of the Jamf Pro Computer Inventory Collection configuration.
 func ResourceJamfProComputerInventoryCollectionRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
 
 	// Initialize variables
 	var diags diag.Diagnostics
 
 	// Attempt to fetch the resource by ID
-	resource, err := apiclient.Conn.GetComputerInventoryCollectionInformation()
+	resource, err := client.GetComputerInventoryCollectionInformation()
 
 	// The constant ID "jamfpro_computer_inventory_collection_singleton" is assigned to satisfy Terraform's requirement for an ID.
 	d.SetId("jamfpro_computer_inventory_collection_singleton")
@@ -233,11 +232,10 @@ func ResourceJamfProComputerInventoryCollectionRead(ctx context.Context, d *sche
 // ResourceJamfProComputerInventoryCollectionUpdate is responsible for updating the Jamf Pro Computer Inventory Collection configuration.
 func ResourceJamfProComputerInventoryCollectionUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize api client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -250,7 +248,7 @@ func ResourceJamfProComputerInventoryCollectionUpdate(ctx context.Context, d *sc
 
 	// Update (or effectively create) the check-in configuration with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		apiErr := conn.UpdateComputerInventoryCollectionInformation(inventoryCollectionConfig)
+		apiErr := client.UpdateComputerInventoryCollectionInformation(inventoryCollectionConfig)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}

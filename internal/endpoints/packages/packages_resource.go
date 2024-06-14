@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
@@ -178,12 +178,11 @@ func ResourceJamfProPackages() *schema.Resource {
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Assert the meta interface to the expected APIClient type
-	apiclient, ok := meta.(*client.APIClient)
+	// Assert the meta interface to the expected client type
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize diagnostics
 	var diags diag.Diagnostics
@@ -192,7 +191,7 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 	filePath := d.Get("package_file_path").(string)
 
 	// Step 1: Call CreateJCDS2PackageV2 to upload the file to JCDS 2.0
-	fileUploadResponse, err := conn.CreateJCDS2PackageV2(filePath)
+	fileUploadResponse, err := client.CreateJCDS2PackageV2(filePath)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to upload file to JCDS 2.0 with file path '%s': %v", filePath, err))
 	}
@@ -218,7 +217,7 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 	packageResource := *packageResourcePointer
 
 	// Step 2: Call CreatePackage to create the package metadata in Jamf Pro
-	creationResponse, err := conn.CreatePackage(packageResource)
+	creationResponse, err := client.CreatePackage(packageResource)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Package '%s': %v", packageResource.Name, err))
 	}
@@ -240,7 +239,7 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 		if err != nil {
 			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
 		}
-		return apiclient.Conn.GetPackageByID(intID)
+		return client.GetPackageByID(intID)
 	}
 
 	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Package", strconv.Itoa(creationResponse.ID), checkResourceExists, 45*time.Second, false)
@@ -264,9 +263,9 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProPackagesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
 
 	// Initialize variables
@@ -279,7 +278,7 @@ func ResourceJamfProPackagesRead(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	resource, err := apiclient.Conn.GetPackageByID(resourceIDInt)
+	resource, err := client.GetPackageByID(resourceIDInt)
 
 	if err != nil {
 		// Handle not found error or other errors
@@ -298,11 +297,10 @@ func ResourceJamfProPackagesRead(ctx context.Context, d *schema.ResourceData, me
 
 // ResourceJamfProPackagesUpdate is responsible for updating an existing Jamf Pro Package on the remote system.
 func ResourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	var diags diag.Diagnostics
 
@@ -325,7 +323,7 @@ func ResourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, 
 		oldFileHash, _ := d.GetChange("md5_file_hash")
 		if newFileHash != oldFileHash.(string) {
 			// The file has changed, upload it
-			fileUploadResponse, err := conn.CreateJCDS2PackageV2(filePath)
+			fileUploadResponse, err := client.CreateJCDS2PackageV2(filePath)
 			if err != nil {
 				return diag.FromErr(fmt.Errorf("failed to upload file to JCDS 2.0 with file path '%s': %v", filePath, err))
 			}
@@ -344,7 +342,7 @@ func ResourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	// Update package metadata in Jamf Pro using the integer package ID
-	_, err = conn.UpdatePackageByID(packageID, packageResource)
+	_, err = client.UpdatePackageByID(packageID, packageResource)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to update package with ID %d: %v", packageID, err))
 	}
@@ -361,11 +359,10 @@ func ResourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, 
 // ResourceJamfProPackagesDelete is responsible for deleting a Jamf Pro Package.
 func ResourceJamfProPackagesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -380,11 +377,11 @@ func ResourceJamfProPackagesDelete(ctx context.Context, d *schema.ResourceData, 
 	// Use the retry function for the delete operation with appropriate timeout
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Attempt to delete by ID
-		apiErr := conn.DeletePackageByID(resourceIDInt)
+		apiErr := client.DeletePackageByID(resourceIDInt)
 		if apiErr != nil {
 			// If deleting by ID fails, attempt to delete by Name
 			resourceName := d.Get("name").(string)
-			apiErrByName := conn.DeletePackageByName(resourceName)
+			apiErrByName := client.DeletePackageByName(resourceName)
 			if apiErrByName != nil {
 				// If deletion by name also fails, return a retryable error
 				return retry.RetryableError(apiErrByName)

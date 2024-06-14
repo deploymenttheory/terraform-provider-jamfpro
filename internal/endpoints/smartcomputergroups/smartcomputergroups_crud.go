@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
@@ -19,12 +18,11 @@ import (
 
 // ResourceJamfProSmartComputerGroupsCreate is responsible for creating a new Jamf Pro Smart Computer Group in the remote system.
 func ResourceJamfProSmartComputerGroupsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Assert the meta interface to the expected APIClient type
-	apiclient, ok := meta.(*client.APIClient)
+	// Assert the meta interface to the expected client type
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -39,7 +37,7 @@ func ResourceJamfProSmartComputerGroupsCreate(ctx context.Context, d *schema.Res
 	var creationResponse *jamfpro.ResponseComputerGroupreatedAndUpdated
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreateComputerGroup(resource)
+		creationResponse, apiErr = client.CreateComputerGroup(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -60,10 +58,10 @@ func ResourceJamfProSmartComputerGroupsCreate(ctx context.Context, d *schema.Res
 		if err != nil {
 			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
 		}
-		return apiclient.Conn.GetComputerGroupByID(intID)
+		return client.GetComputerGroupByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Smart Computer Group", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Smart Computer Group", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, client.EnableCookieJar)
 
 	if waitDiags.HasError() {
 		return waitDiags
@@ -81,11 +79,10 @@ func ResourceJamfProSmartComputerGroupsCreate(ctx context.Context, d *schema.Res
 // ResourceJamfProSmartComputerGroupsRead is responsible for reading the current state of a Jamf Pro Smart Computer Group from the remote system.
 func ResourceJamfProSmartComputerGroupsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -95,7 +92,7 @@ func ResourceJamfProSmartComputerGroupsRead(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	resource, err := conn.GetComputerGroupByID(resourceIDInt)
+	resource, err := client.GetComputerGroupByID(resourceIDInt)
 
 	if err != nil {
 		return state.HandleResourceNotFoundError(err, d)
@@ -111,11 +108,10 @@ func ResourceJamfProSmartComputerGroupsRead(ctx context.Context, d *schema.Resou
 
 // ResourceJamfProSmartComputerGroupsUpdate is responsible for updating an existing Jamf Pro Smart Computer Group on the remote system.
 func ResourceJamfProSmartComputerGroupsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -131,7 +127,7 @@ func ResourceJamfProSmartComputerGroupsUpdate(ctx context.Context, d *schema.Res
 	}
 
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateComputerGroupByID(resourceIDInt, resource)
+		_, apiErr := client.UpdateComputerGroupByID(resourceIDInt, resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -153,11 +149,10 @@ func ResourceJamfProSmartComputerGroupsUpdate(ctx context.Context, d *schema.Res
 
 // ResourceJamfProSmartComputerGroupsDelete is responsible for deleting a Jamf Pro Smart Computer Group.
 func ResourceJamfProSmartComputerGroupsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -169,11 +164,11 @@ func ResourceJamfProSmartComputerGroupsDelete(ctx context.Context, d *schema.Res
 
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 
-		apiErr := conn.DeleteComputerGroupByID(resourceIDInt)
+		apiErr := client.DeleteComputerGroupByID(resourceIDInt)
 		if apiErr != nil {
 
 			resourceName := d.Get("name").(string)
-			apiErrByName := conn.DeleteComputerGroupByName(resourceName)
+			apiErrByName := client.DeleteComputerGroupByName(resourceName)
 			if apiErrByName != nil {
 
 				return retry.RetryableError(apiErrByName)

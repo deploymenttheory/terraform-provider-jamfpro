@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
@@ -119,12 +118,11 @@ func ResourceJamfProPrinters() *schema.Resource {
 // 3. Updates the Terraform state with the ID of the newly created printer.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProPrintersCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Assert the meta interface to the expected APIClient type
-	apiclient, ok := meta.(*client.APIClient)
+	// Assert the meta interface to the expected client type
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -139,7 +137,7 @@ func ResourceJamfProPrintersCreate(ctx context.Context, d *schema.ResourceData, 
 	var creationResponse *jamfpro.ResponsePrinterCreateAndUpdate
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreatePrinter(resource)
+		creationResponse, apiErr = client.CreatePrinter(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -160,10 +158,10 @@ func ResourceJamfProPrintersCreate(ctx context.Context, d *schema.ResourceData, 
 		if err != nil {
 			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
 		}
-		return apiclient.Conn.GetPrinterByID(intID)
+		return client.GetPrinterByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Printer", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Printer", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, client.EnableCookieJar)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
@@ -184,9 +182,9 @@ func ResourceJamfProPrintersCreate(ctx context.Context, d *schema.ResourceData, 
 // 3. Handles any discrepancies, such as the printer being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
 
 	// Initialize variables
@@ -199,7 +197,7 @@ func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	// Attempt to fetch the resource by ID
-	resource, err := apiclient.Conn.GetPrinterByID(resourceIDInt)
+	resource, err := client.GetPrinterByID(resourceIDInt)
 
 	if err != nil {
 		// Handle not found error or other errors
@@ -219,11 +217,10 @@ func ResourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, me
 // ResourceJamfProPrintersUpdate is responsible for updating an existing Jamf Pro Printer on the remote system.
 func ResourceJamfProPrintersUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -243,7 +240,7 @@ func ResourceJamfProPrintersUpdate(ctx context.Context, d *schema.ResourceData, 
 
 	// Update operations with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdatePrinterByID(resourceIDInt, resource)
+		_, apiErr := client.UpdatePrinterByID(resourceIDInt, resource)
 		if apiErr != nil {
 			// If updating by ID fails, attempt to update by Name
 			return retry.RetryableError(apiErr)
@@ -268,11 +265,10 @@ func ResourceJamfProPrintersUpdate(ctx context.Context, d *schema.ResourceData, 
 // ResourceJamfProPrintersDelete is responsible for deleting a Jamf Pro Printer.
 func ResourceJamfProPrintersDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -287,11 +283,11 @@ func ResourceJamfProPrintersDelete(ctx context.Context, d *schema.ResourceData, 
 	// Use the retry function for the delete operation with appropriate timeout
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Attempt to delete by ID
-		apiErr := conn.DeletePrinterByID(resourceIDInt)
+		apiErr := client.DeletePrinterByID(resourceIDInt)
 		if apiErr != nil {
 			// If deleting by ID fails, attempt to delete by Name
 			resourceName := d.Get("name").(string)
-			apiErrByName := conn.DeletePrinterByName(resourceName)
+			apiErrByName := client.DeletePrinterByName(resourceName)
 			if apiErrByName != nil {
 				// If deletion by name also fails, return a retryable error
 				return retry.RetryableError(apiErrByName)

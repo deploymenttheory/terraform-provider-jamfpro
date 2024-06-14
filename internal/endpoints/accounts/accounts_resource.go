@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/jamfprivileges"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
@@ -247,12 +246,11 @@ func ResourceJamfProAccounts() *schema.Resource {
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProAccountCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Assert the meta interface to the expected APIClient type
-	apiclient, ok := meta.(*client.APIClient)
+	// Assert the meta interface to the expected client type
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -267,7 +265,7 @@ func ResourceJamfProAccountCreate(ctx context.Context, d *schema.ResourceData, m
 	var creationResponse *jamfpro.ResponseAccountCreatedAndUpdated
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreateAccount(resource)
+		creationResponse, apiErr = client.CreateAccount(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -288,10 +286,10 @@ func ResourceJamfProAccountCreate(ctx context.Context, d *schema.ResourceData, m
 		if err != nil {
 			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
 		}
-		return apiclient.Conn.GetAccountByID(intID)
+		return client.GetAccountByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Account", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Account", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, client.EnableCookieJar)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
@@ -312,11 +310,10 @@ func ResourceJamfProAccountCreate(ctx context.Context, d *schema.ResourceData, m
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -329,7 +326,7 @@ func ResourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, met
 	}
 
 	// Attempt to fetch the resource by ID
-	resource, err := conn.GetAccountByID(resourceIDInt)
+	resource, err := client.GetAccountByID(resourceIDInt)
 
 	if err != nil {
 		// Handle not found error or other errors
@@ -349,11 +346,10 @@ func ResourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, met
 // ResourceJamfProAccountUpdate is responsible for updating an existing Jamf Pro Account Group on the remote system.
 func ResourceJamfProAccountUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -373,7 +369,7 @@ func ResourceJamfProAccountUpdate(ctx context.Context, d *schema.ResourceData, m
 
 	// Update operations with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateAccountByID(resourceIDInt, resource)
+		_, apiErr := client.UpdateAccountByID(resourceIDInt, resource)
 		if apiErr != nil {
 			// If updating by ID fails, attempt to update by Name
 			return retry.RetryableError(apiErr)
@@ -398,11 +394,10 @@ func ResourceJamfProAccountUpdate(ctx context.Context, d *schema.ResourceData, m
 // ResourceJamfProAccountDelete is responsible for deleting a Jamf Pro account .
 func ResourceJamfProAccountDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -417,11 +412,11 @@ func ResourceJamfProAccountDelete(ctx context.Context, d *schema.ResourceData, m
 	// Use the retry function for the delete operation with appropriate timeout
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Attempt to delete by ID
-		apiErr := conn.DeleteAccountByID(resourceIDInt)
+		apiErr := client.DeleteAccountByID(resourceIDInt)
 		if apiErr != nil {
 			// If deleting by ID fails, attempt to delete by Name
 			resourceName := d.Get("name").(string)
-			apiErrByName := conn.DeleteAccountByName(resourceName)
+			apiErrByName := client.DeleteAccountByName(resourceName)
 			if apiErrByName != nil {
 				// If deletion by name also fails, return a retryable error
 				return retry.RetryableError(apiErrByName)

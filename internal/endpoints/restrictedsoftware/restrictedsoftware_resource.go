@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
@@ -223,12 +222,11 @@ func scopeEntitySchema() map[string]*schema.Schema {
 // 3. Updates the Terraform state with the ID of the newly created User Group.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProRestrictedSoftwareCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Assert the meta interface to the expected APIClient type
-	apiclient, ok := meta.(*client.APIClient)
+	// Assert the meta interface to the expected client type
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -243,7 +241,7 @@ func ResourceJamfProRestrictedSoftwareCreate(ctx context.Context, d *schema.Reso
 	var creationResponse *jamfpro.ResponseRestrictedSoftwareCreateAndUpdate
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreateRestrictedSoftware(resource)
+		creationResponse, apiErr = client.CreateRestrictedSoftware(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -264,10 +262,10 @@ func ResourceJamfProRestrictedSoftwareCreate(ctx context.Context, d *schema.Reso
 		if err != nil {
 			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
 		}
-		return apiclient.Conn.GetRestrictedSoftwareByID(intID)
+		return client.GetRestrictedSoftwareByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Restricted Software", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Restricted Software", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, client.EnableCookieJar)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
@@ -288,11 +286,10 @@ func ResourceJamfProRestrictedSoftwareCreate(ctx context.Context, d *schema.Reso
 // 3. Handles any discrepancies, such as the user group being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProRestrictedSoftwareRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -305,7 +302,7 @@ func ResourceJamfProRestrictedSoftwareRead(ctx context.Context, d *schema.Resour
 	}
 
 	// Attempt to fetch the resource by ID
-	resource, err := conn.GetRestrictedSoftwareByID(resourceIDInt)
+	resource, err := client.GetRestrictedSoftwareByID(resourceIDInt)
 
 	if err != nil {
 		// Handle not found error or other errors
@@ -325,11 +322,10 @@ func ResourceJamfProRestrictedSoftwareRead(ctx context.Context, d *schema.Resour
 // ResourceJamfProRestrictedSoftwareUpdate is responsible for updating an existing Jamf Pro Printer on the remote system.
 func ResourceJamfProRestrictedSoftwareUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -349,7 +345,7 @@ func ResourceJamfProRestrictedSoftwareUpdate(ctx context.Context, d *schema.Reso
 
 	// Update operations with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateRestrictedSoftwareByID(resourceIDInt, resource)
+		_, apiErr := client.UpdateRestrictedSoftwareByID(resourceIDInt, resource)
 		if apiErr != nil {
 			// If updating by ID fails, attempt to update by Name
 			return retry.RetryableError(apiErr)
@@ -374,11 +370,10 @@ func ResourceJamfProRestrictedSoftwareUpdate(ctx context.Context, d *schema.Reso
 // ResourceJamfProRestrictedSoftwareDelete is responsible for deleting a Jamf Pro Restricted Software.
 func ResourceJamfProRestrictedSoftwareDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -393,11 +388,11 @@ func ResourceJamfProRestrictedSoftwareDelete(ctx context.Context, d *schema.Reso
 	// Use the retry function for the delete operation with appropriate timeout
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Attempt to delete by ID
-		apiErr := conn.DeleteRestrictedSoftwareByID(resourceIDInt)
+		apiErr := client.DeleteRestrictedSoftwareByID(resourceIDInt)
 		if apiErr != nil {
 			// If deleting by ID fails, attempt to delete by Name
 			resourceName := d.Get("name").(string)
-			apiErrByName := conn.DeleteRestrictedSoftwareByName(resourceName)
+			apiErrByName := client.DeleteRestrictedSoftwareByName(resourceName)
 			if apiErrByName != nil {
 				// If deletion by name also fails, return a retryable error
 				return retry.RetryableError(apiErrByName)

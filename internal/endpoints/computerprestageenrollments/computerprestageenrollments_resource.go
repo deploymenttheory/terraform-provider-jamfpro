@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
@@ -563,12 +562,11 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 // 3. Updates the Terraform state with the ID of the newly created computer prestage.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProComputerPrestageEnrollmentCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Assert the meta interface to the expected APIClient type
-	apiclient, ok := meta.(*client.APIClient)
+	// Assert the meta interface to the expected client type
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -583,7 +581,7 @@ func ResourceJamfProComputerPrestageEnrollmentCreate(ctx context.Context, d *sch
 	var creationResponse *jamfpro.ResponseComputerPrestageCreate
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreateComputerPrestage(resource)
+		creationResponse, apiErr = client.CreateComputerPrestage(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -600,10 +598,10 @@ func ResourceJamfProComputerPrestageEnrollmentCreate(ctx context.Context, d *sch
 
 	// Wait for the resource to be fully available before reading it
 	checkResourceExists := func(id interface{}) (interface{}, error) {
-		return apiclient.Conn.GetComputerPrestageByID(id.(string))
+		return client.GetComputerPrestageByID(id.(string))
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Computer Prestage Enrollment", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Computer Prestage Enrollment", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, client.EnableCookieJar)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
@@ -624,9 +622,9 @@ func ResourceJamfProComputerPrestageEnrollmentCreate(ctx context.Context, d *sch
 // 3. Handles any discrepancies, such as the building being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProComputerPrestageEnrollmentRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
 
 	// Initialize variables
@@ -634,7 +632,7 @@ func ResourceJamfProComputerPrestageEnrollmentRead(ctx context.Context, d *schem
 	resourceID := d.Id()
 
 	// Attempt to fetch the resource by ID
-	resource, err := apiclient.Conn.GetComputerPrestageByID(resourceID)
+	resource, err := client.GetComputerPrestageByID(resourceID)
 
 	if err != nil {
 		// Handle not found error or other errors
@@ -654,11 +652,10 @@ func ResourceJamfProComputerPrestageEnrollmentRead(ctx context.Context, d *schem
 // ResourceJamfProComputerPrestageEnrollmentUpdate is responsible for updating an existing Jamf Pro Department on the remote system.
 func ResourceJamfProComputerPrestageEnrollmentUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -672,7 +669,7 @@ func ResourceJamfProComputerPrestageEnrollmentUpdate(ctx context.Context, d *sch
 
 	// Update operations with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateComputerPrestageByID(resourceID, resource)
+		_, apiErr := client.UpdateComputerPrestageByID(resourceID, resource)
 		if apiErr != nil {
 			// If updating by ID fails, attempt to update by Name
 			return retry.RetryableError(apiErr)
@@ -697,11 +694,10 @@ func ResourceJamfProComputerPrestageEnrollmentUpdate(ctx context.Context, d *sch
 // ResourceJamfProComputerPrestageEnrollmentDelete is responsible for deleting a Jamf Pro Computer Prestage.
 func ResourceJamfProComputerPrestageEnrollmentDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -710,11 +706,11 @@ func ResourceJamfProComputerPrestageEnrollmentDelete(ctx context.Context, d *sch
 	// Use the retry function for the delete operation with appropriate timeout
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Attempt to delete by ID
-		apiErr := conn.DeleteComputerPrestageByID(resourceID)
+		apiErr := client.DeleteComputerPrestageByID(resourceID)
 		if apiErr != nil {
 			// If deleting by ID fails, attempt to delete by Display Name
 			resourceDisplayName := d.Get("display_name").(string)
-			apiErrByDisplayName := conn.DeleteComputerPrestageByName(resourceDisplayName)
+			apiErrByDisplayName := client.DeleteComputerPrestageByName(resourceDisplayName)
 			if apiErrByDisplayName != nil {
 				// If deletion by display name also fails, return a retryable error
 				return retry.RetryableError(apiErrByDisplayName)

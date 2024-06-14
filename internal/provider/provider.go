@@ -14,7 +14,6 @@ import (
 	"github.com/deploymenttheory/go-api-http-client/httpclient"
 	"github.com/deploymenttheory/go-api-http-client/logger"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accountgroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accounts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/activationcode"
@@ -235,6 +234,12 @@ func Provider() *schema.Provider {
 					Type: schema.TypeString,
 				},
 			},
+			"jamf_load_balancer_lock": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "programatically determines all available load balancers and locks all instances of client to the same one for faster executions. \nTEMP SOLUTION UNTIL JAMF PROVIDES SOLUTION",
+			},
 			"max_retry_attempts": {
 				Type:        schema.TypeInt,
 				Optional:    true,
@@ -390,6 +395,13 @@ func Provider() *schema.Provider {
 				basicAuthPassword,
 			)
 
+		default:
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "invalid auth method supplied",
+				Detail:   "You should not be able to find this error. If you have, please raise an issue with the schema.",
+			})
+
 		}
 
 		if err != nil {
@@ -419,11 +431,11 @@ func Provider() *schema.Provider {
 
 		// TODO refactor
 		// Initialize the provider's APIClient struct with the Jamf Pro HTTP client and cookie jar setting
-		jamfProAPIClient := client.APIClient{
-			Conn: completeClient,
-		}
+		// jamfProAPIClient := client.APIClient{
+		// 	Conn: completeClient,
+		// }
 
-		return &jamfProAPIClient, diags
+		return &completeClient, diags
 	}
 	return provider
 }
