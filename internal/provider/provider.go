@@ -233,11 +233,22 @@ func Provider() *schema.Provider {
 				Description: "Enable or disable the cookie jar for the HTTP client.",
 			},
 			"custom_cookies": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeList,
 				Optional: true,
 				Default:  nil,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "cookie key",
+						},
+						"value": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "cookie value",
+						},
+					},
 				},
 			},
 			"jamf_load_balancer_lock": {
@@ -434,6 +445,10 @@ func Provider() *schema.Provider {
 			})
 		}
 		log.Println("FLAG-5")
+
+		if d.Get("custom_cookies") != nil {
+			log.Println(d.Get("custom_cookies"))
+		}
 
 		config := httpclient.ClientConfig{
 			Integration:               jamfIntegration,
