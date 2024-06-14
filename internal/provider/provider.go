@@ -350,7 +350,6 @@ func Provider() *schema.Provider {
 		var err error
 		var diags diag.Diagnostics
 		var log logger.Logger
-		var tokenRefrshBufferPeriodSeconds time.Duration
 		var jamfIntegration *jamfprointegration.Integration
 		var jamfDomain,
 			clientId,
@@ -360,7 +359,7 @@ func Provider() *schema.Provider {
 
 		// pre-processing
 		jamfDomain = GetInstanceName(d, &diags)
-		tokenRefrshBufferPeriodSeconds = time.Duration(d.Get("token_refresh_buffer_period_seconds").(int)) * time.Second
+		tokenRefrshBufferPeriod := time.Duration(d.Get("token_refresh_buffer_period_seconds").(int)) * time.Second
 		log = logger.BuildLogger(
 			logger.ParseLogLevelFromString(d.Get("log_level").(string)),
 			d.Get("log_output_format").(string),
@@ -378,7 +377,7 @@ func Provider() *schema.Provider {
 				jamfDomain,
 				"fix this",
 				log,
-				tokenRefrshBufferPeriodSeconds,
+				tokenRefrshBufferPeriod,
 				clientId,
 				clientSecret,
 			)
@@ -389,7 +388,7 @@ func Provider() *schema.Provider {
 				jamfDomain,
 				"fix this",
 				log,
-				tokenRefrshBufferPeriodSeconds,
+				tokenRefrshBufferPeriod,
 				basicAuthUsername,
 				basicAuthPassword,
 			)
@@ -418,14 +417,18 @@ func Provider() *schema.Provider {
 			MaxConcurrentRequests:     d.Get("max_concurrent_requests").(int),
 			EnableDynamicRateLimiting: d.Get("enable_dynamic_rate_limiting").(bool),
 			CustomTimeout:             time.Duration(d.Get("custom_timeout_seconds").(int)) * time.Second,
-			TokenRefreshBufferPeriod:  tokenRefrshBufferPeriodSeconds,
+			TokenRefreshBufferPeriod:  tokenRefrshBufferPeriod,
 			TotalRetryDuration:        time.Duration(d.Get("total_retry_duration").(int)) * time.Second,
 		}
 
 		// TODO
-		completeClient, err := jamfpro.BuildClient(config)
+		goHttpClient, err := httpclient.BuildClient(config, false, log)
 		if err != nil {
 			return nil, diag.FromErr(err)
+		}
+
+		jamfClient := jamfpro.Client{
+			HTTP: goHttpClient,
 		}
 
 		// TODO refactor
@@ -434,7 +437,7 @@ func Provider() *schema.Provider {
 		// 	Conn: completeClient,
 		// }
 
-		return &completeClient, diags
+		return &jamfClient, diags
 	}
 	return provider
 }
