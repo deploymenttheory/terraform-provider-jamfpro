@@ -4,6 +4,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -62,7 +63,7 @@ const (
 // GetInstanceName retrieves the 'instance_name' value from the Terraform configuration.
 // If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_INSTANCE_NAME environment variable.
 func GetInstanceName(d *schema.ResourceData, diags *diag.Diagnostics) string {
-	instanceName := d.Get("instance_name").(string)
+	instanceName := d.Get("instance_domain").(string)
 	if instanceName == "" {
 		*diags = append(*diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -213,6 +214,12 @@ func Provider() *schema.Provider {
 				Default:     "",
 				Description: "Specify the path to export http client logs to.",
 			},
+			"export_logs": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "export logs to file",
+			},
 			"hide_sensitive_data": {
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -345,11 +352,12 @@ func Provider() *schema.Provider {
 	}
 
 	provider.ConfigureContextFunc = func(_ context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+		log.Println("LOGHERE")
 
 		// vars
 		var err error
 		var diags diag.Diagnostics
-		var log logger.Logger
+		var sharedLogger logger.Logger
 		var jamfIntegration *jamfprointegration.Integration
 		var jamfDomain,
 			clientId,
@@ -357,17 +365,31 @@ func Provider() *schema.Provider {
 			basicAuthUsername,
 			basicAuthPassword string
 
+		log.Println("FLAG-1")
+		parsedLogLevel := logger.ParseLogLevelFromString(d.Get("log_level").(string))
+		log.Println("FLAG-1.1")
+		logOutputFormat := d.Get("log_output_format").(string)
+		log.Println("FLAG-1.2")
+		logConsoleSeparator := d.Get("log_console_separator").(string)
+		log.Println("FLAG-1.3")
+		logFilePath := d.Get("log_export_path").(string)
+		log.Println("FLAG-1.4")
+		exportLogs := d.Get("export_logs").(bool)
+		log.Println("FLAG-1.5")
 		// pre-processing
-		jamfDomain = GetInstanceName(d, &diags)
-		tokenRefrshBufferPeriod := time.Duration(d.Get("token_refresh_buffer_period_seconds").(int)) * time.Second
-		log = logger.BuildLogger(
-			logger.ParseLogLevelFromString(d.Get("log_level").(string)),
-			d.Get("log_output_format").(string),
-			d.Get("log_console_separator").(string),
-			d.Get("log_filepath").(string),
-			d.Get("export_logs").(bool),
+		sharedLogger = logger.BuildLogger(
+			parsedLogLevel,
+			logOutputFormat,
+			logConsoleSeparator,
+			logFilePath,
+			exportLogs,
 		)
 
+		log.Println("FLAG-2")
+
+		jamfDomain = GetInstanceName(d, &diags)
+		tokenRefrshBufferPeriod := time.Duration(d.Get("token_refresh_buffer_period_seconds").(int)) * time.Second
+		log.Println("FLAG-3")
 		// auth swtich
 		switch d.Get("auth_method").(string) {
 		case "oauth2":
@@ -376,18 +398,19 @@ func Provider() *schema.Provider {
 			jamfIntegration, err = jamfprointegration.BuildIntegrationWithOAuth(
 				jamfDomain,
 				"fix this",
-				log,
+				sharedLogger,
 				tokenRefrshBufferPeriod,
 				clientId,
 				clientSecret,
 			)
+			log.Println("FLAG-3.1")
 		case "basic":
 			basicAuthUsername = GetBasicAuthUsername(d, &diags)
 			basicAuthPassword = GetBasicAuthPassword(d, &diags)
 			jamfIntegration, err = jamfprointegration.BuildIntegrationWithBasicAuth(
 				jamfDomain,
 				"fix this",
-				log,
+				sharedLogger,
 				tokenRefrshBufferPeriod,
 				basicAuthUsername,
 				basicAuthPassword,
@@ -401,6 +424,7 @@ func Provider() *schema.Provider {
 			})
 
 		}
+		log.Println("FLAG-4")
 
 		if err != nil {
 			diags = append(diags, diag.Diagnostic{
@@ -409,6 +433,7 @@ func Provider() *schema.Provider {
 				Detail:   fmt.Sprintf("error: %v", err),
 			})
 		}
+		log.Println("FLAG-5")
 
 		config := httpclient.ClientConfig{
 			Integration:               jamfIntegration,
@@ -418,18 +443,21 @@ func Provider() *schema.Provider {
 			EnableDynamicRateLimiting: d.Get("enable_dynamic_rate_limiting").(bool),
 			CustomTimeout:             time.Duration(d.Get("custom_timeout_seconds").(int)) * time.Second,
 			TokenRefreshBufferPeriod:  tokenRefrshBufferPeriod,
-			TotalRetryDuration:        time.Duration(d.Get("total_retry_duration").(int)) * time.Second,
+			TotalRetryDuration:        time.Duration(d.Get("total_retry_duration_seconds").(int)) * time.Second,
 		}
+		log.Println("FLAG-6")
 
 		// TODO
-		goHttpClient, err := httpclient.BuildClient(config, false, log)
+		goHttpClient, err := httpclient.BuildClient(config, false, sharedLogger)
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}
+		log.Println("FLAG-7")
 
 		jamfClient := jamfpro.Client{
 			HTTP: goHttpClient,
 		}
+		log.Println("FLAG-8")
 
 		// TODO refactor
 		// Initialize the provider's APIClient struct with the Jamf Pro HTTP client and cookie jar setting
