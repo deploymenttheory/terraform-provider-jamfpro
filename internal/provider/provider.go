@@ -4,7 +4,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -63,7 +62,7 @@ const (
 
 // GetInstanceName retrieves the 'instance_name' value from the Terraform configuration.
 // If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_INSTANCE_NAME environment variable.
-func GetInstanceName(d *schema.ResourceData, diags *diag.Diagnostics) string {
+func GetInstanceDomain(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	instanceName := d.Get("instance_domain").(string)
 	if instanceName == "" {
 		*diags = append(*diags, diag.Diagnostic{
@@ -256,7 +255,7 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
-				Description: "programatically determines all available load balancers and locks all instances of client to the same one for faster executions. \nTEMP SOLUTION UNTIL JAMF PROVIDES SOLUTION",
+				Description: "programatically determines all available web app members in the load balance and locks all instances of httpclient to the app for faster executions. \nTEMP SOLUTION UNTIL JAMF PROVIDES SOLUTION",
 			},
 			"max_retry_attempts": {
 				Type:        schema.TypeInt,
@@ -285,8 +284,8 @@ func Provider() *schema.Provider {
 			"token_refresh_buffer_period_seconds": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Default:     5,
-				Description: "The buffer period in minutes for token refresh.",
+				Default:     300,
+				Description: "The buffer period in seconds for token refresh.",
 			},
 			"total_retry_duration_seconds": {
 				Type:        schema.TypeInt,
@@ -294,7 +293,6 @@ func Provider() *schema.Provider {
 				Default:     60,
 				Description: "The total retry duration in seconds.",
 			},
-			// TODO redirects?
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 
@@ -364,9 +362,6 @@ func Provider() *schema.Provider {
 	}
 
 	provider.ConfigureContextFunc = func(_ context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-		log.Println("LOGHERE")
-
-		// vars
 		var err error
 		var diags diag.Diagnostics
 		var sharedLogger logger.Logger
@@ -377,7 +372,6 @@ func Provider() *schema.Provider {
 			basicAuthUsername,
 			basicAuthPassword string
 
-		// pre-processing
 		parsedLogLevel := logger.ParseLogLevelFromString(d.Get("log_level").(string))
 		logOutputFormat := d.Get("log_output_format").(string)
 		logConsoleSeparator := d.Get("log_console_separator").(string)
@@ -392,10 +386,9 @@ func Provider() *schema.Provider {
 			exportLogs,
 		)
 
-		jamfDomain = GetInstanceName(d, &diags)
+		jamfDomain = GetInstanceDomain(d, &diags)
 		tokenRefrshBufferPeriod := time.Duration(d.Get("token_refresh_buffer_period_seconds").(int)) * time.Second
 
-		// auth swtich
 		switch d.Get("auth_method").(string) {
 		case "oauth2":
 			clientId = GetClientID(d, &diags)
@@ -452,8 +445,6 @@ func Provider() *schema.Provider {
 			}
 		}
 
-		log.Println("HERE", cookiesList)
-
 		config := httpclient.ClientConfig{
 			Integration:               jamfIntegration,
 			HideSensitiveData:         d.Get("hide_sensitive_data").(bool),
@@ -474,12 +465,6 @@ func Provider() *schema.Provider {
 		jamfClient := jamfpro.Client{
 			HTTP: goHttpClient,
 		}
-
-		// TODO refactor
-		// Initialize the provider's APIClient struct with the Jamf Pro HTTP client and cookie jar setting
-		// jamfProAPIClient := client.APIClient{
-		// 	Conn: completeClient,
-		// }
 
 		return &jamfClient, diags
 	}
