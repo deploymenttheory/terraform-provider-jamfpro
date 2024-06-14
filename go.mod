@@ -15,7 +15,10 @@ require (
 	howett.net/plist v1.0.1
 )
 
-require github.com/mitchellh/mapstructure v1.5.0
+require (
+	github.com/deploymenttheory/go-api-http-client-integration-jamfpro v0.0.0-20240610142526-769f07834f50
+	github.com/mitchellh/mapstructure v1.5.0
+)
 
 require (
 	github.com/BurntSushi/toml v1.2.1 // indirect
@@ -33,7 +36,6 @@ require (
 	github.com/bmatcuk/doublestar/v4 v4.6.1 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/deploymenttheory/go-api-http-client-integration-jamfpro v0.0.0-20240610142526-769f07834f50 // indirect
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/frankban/quicktest v1.14.4 // indirect
 	github.com/go-test/deep v1.1.0 // indirect
