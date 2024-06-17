@@ -293,6 +293,12 @@ func Provider() *schema.Provider {
 				Default:     60,
 				Description: "The total retry duration in seconds.",
 			},
+			"enable_concurrency_manager": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "enables http client concurrency management",
+			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 
@@ -471,15 +477,16 @@ func Provider() *schema.Provider {
 		}
 
 		config := httpclient.ClientConfig{
-			Integration:               jamfIntegration,
-			HideSensitiveData:         d.Get("hide_sensitive_data").(bool),
-			MaxRetryAttempts:          d.Get("max_retry_attempts").(int),
-			MaxConcurrentRequests:     d.Get("max_concurrent_requests").(int),
-			EnableDynamicRateLimiting: d.Get("enable_dynamic_rate_limiting").(bool),
-			CustomTimeout:             time.Duration(d.Get("custom_timeout_seconds").(int)) * time.Second,
-			TokenRefreshBufferPeriod:  tokenRefrshBufferPeriod,
-			TotalRetryDuration:        time.Duration(d.Get("total_retry_duration_seconds").(int)) * time.Second,
-			CustomCookies:             cookiesList,
+			Integration:                  jamfIntegration,
+			HideSensitiveData:            d.Get("hide_sensitive_data").(bool),
+			MaxRetryAttempts:             d.Get("max_retry_attempts").(int),
+			MaxConcurrentRequests:        d.Get("max_concurrent_requests").(int),
+			EnableDynamicRateLimiting:    d.Get("enable_dynamic_rate_limiting").(bool),
+			CustomTimeout:                time.Duration(d.Get("custom_timeout_seconds").(int)) * time.Second,
+			TokenRefreshBufferPeriod:     tokenRefrshBufferPeriod,
+			TotalRetryDuration:           time.Duration(d.Get("total_retry_duration_seconds").(int)) * time.Second,
+			CustomCookies:                cookiesList,
+			ConcurrencyManagementEnabled: d.Get("enable_concurrency_manager").(bool),
 		}
 
 		goHttpClient, err := httpclient.BuildClient(config, false, sharedLogger)
