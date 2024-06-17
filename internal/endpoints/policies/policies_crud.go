@@ -14,12 +14,11 @@ import (
 
 // Constructs, creates states
 func ResourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
 	client, ok := meta.(*jamfpro.Client)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.client")
 	}
-
-	var diags diag.Diagnostics
 
 	resource, err := constructPolicy(d)
 	if err != nil {
@@ -38,7 +37,11 @@ func ResourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, 
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Policy '%s' after retries: %v", resource.General.Name, err))
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "failed to create",
+			Detail:   fmt.Sprintf("error: %v", err),
+		})
 	}
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
