@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -95,15 +97,15 @@ func ResourceJamfProCategoriesCreate(ctx context.Context, d *schema.ResourceData
 	d.SetId(creationResponse.ID)
 
 	// Wait for the resource to be fully available before reading it
-	// checkResourceExists := func(id interface{}) (interface{}, error) {
-	// 	return client.GetCategoryByID(id.(string))
-	// }
+	checkResourceExists := func(id interface{}) (interface{}, error) {
+		return client.GetCategoryByID(id.(string))
+	}
 
-	// _, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Category", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Category", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
 
-	// if waitDiags.HasError() {
-	// 	return waitDiags
-	// }
+	if waitDiags.HasError() {
+		return waitDiags
+	}
 
 	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProCategoriesRead(ctx, d, meta)
@@ -143,10 +145,8 @@ func ResourceJamfProCategoriesRead(ctx context.Context, d *schema.ResourceData, 
 	diags = updateTerraformState(d, resource)
 
 	// Handle any errors and return diagnostics
-	if len(diags) > 0 {
-		return diags
-	}
-	return nil
+
+	return diags
 }
 
 // ResourceJamfProCategoriesUpdate is responsible for updating an existing Jamf Pro Category on the remote system.

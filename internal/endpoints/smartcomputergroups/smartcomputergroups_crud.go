@@ -5,12 +5,9 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -53,19 +50,19 @@ func ResourceJamfProSmartComputerGroupsCreate(ctx context.Context, d *schema.Res
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
 	// Wait for the resource to be fully available before reading it
-	checkResourceExists := func(id interface{}) (interface{}, error) {
-		intID, err := strconv.Atoi(id.(string))
-		if err != nil {
-			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
-		}
-		return client.GetComputerGroupByID(intID)
-	}
+	// checkResourceExists := func(id interface{}) (interface{}, error) {
+	// 	intID, err := strconv.Atoi(id.(string))
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
+	// 	}
+	// 	return client.GetComputerGroupByID(intID)
+	// }
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Smart Computer Group", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
+	// _, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Smart Computer Group", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
 
-	if waitDiags.HasError() {
-		return waitDiags
-	}
+	// if waitDiags.HasError() {
+	// 	return waitDiags
+	// }
 
 	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProSmartComputerGroupsRead(ctx, d, meta)
