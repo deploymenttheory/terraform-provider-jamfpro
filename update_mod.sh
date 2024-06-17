@@ -1,6 +1,6 @@
 dir="/Users/joseph/Github/terraform-provider-jamfpro"
 
-if [ -d "$dir" ]; then
+if [ ! -d "$dir" ]; then
   echo "Directory exists. Proceeding with updates..."
 
   echo "Updating integration..."
