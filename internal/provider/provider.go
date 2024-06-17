@@ -431,7 +431,9 @@ func Provider() *schema.Provider {
 			})
 		}
 
+		// Cookie workaround. Likely will be moved out to tidy this func up.
 		var cookiesList []*http.Cookie
+
 		if d.Get("jamf_load_balancer_lock").(bool) {
 			cookies, err := jamfIntegration.GetSessionCookies()
 			if err != nil {
