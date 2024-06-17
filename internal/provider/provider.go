@@ -443,8 +443,8 @@ func Provider() *schema.Provider {
 					Detail:   fmt.Sprintf("error: %v", err),
 				})
 			}
-			for _, c := range *cookies {
-				cookiesList = append(cookiesList, &c)
+			for _, c := range cookies {
+				cookiesList = append(cookiesList, c)
 
 			}
 

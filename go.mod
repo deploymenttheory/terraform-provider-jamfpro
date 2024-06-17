@@ -16,7 +16,7 @@ require (
 )
 
 require (
-	github.com/deploymenttheory/go-api-http-client-integration-jamfpro v0.0.0-20240617081822-7f57d0eab711
+	github.com/deploymenttheory/go-api-http-client-integration-jamfpro v0.0.0-20240617121455-fb1855b40b4c
 	github.com/mitchellh/mapstructure v1.5.0
 )
 
