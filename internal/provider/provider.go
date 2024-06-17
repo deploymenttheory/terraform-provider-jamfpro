@@ -434,8 +434,16 @@ func Provider() *schema.Provider {
 		// Cookie workaround. Likely will be moved out to tidy this func up.
 		var cookiesList []*http.Cookie
 
-		if d.Get("jamf_load_balancer_lock").(bool) {
+		load_balancer_lock := d.Get("jamf_load_balancer_lock").(bool)
+		customCookies := d.Get("custom_cookies")
+
+		if load_balancer_lock && customCookies != nil && len(customCookies.([]interface{})) > 0 {
+			diags = append(diags, diag.Errorf("cannot have custom cookes and load balancer lock enabled at the same time")...)
+		}
+
+		if load_balancer_lock {
 			cookies, err := jamfIntegration.GetSessionCookies()
+
 			if err != nil {
 				diags = append(diags, diag.Diagnostic{
 					Severity: diag.Error,
@@ -450,7 +458,6 @@ func Provider() *schema.Provider {
 
 		}
 
-		customCookies := d.Get("custom_cookies")
 		if customCookies != nil && len(customCookies.([]interface{})) > 0 {
 			for _, v := range customCookies.([]interface{}) {
 				name := v.(map[string]interface{})["name"]
