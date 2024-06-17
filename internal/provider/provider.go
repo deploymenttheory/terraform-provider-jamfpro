@@ -432,6 +432,10 @@ func Provider() *schema.Provider {
 		}
 
 		var cookiesList []*http.Cookie
+		if d.Get("jamf_load_balancer_lock").(bool) {
+			cookiesList = append(cookiesList, jamfIntegration.GetSessionCookies())
+		}
+
 		customCookies := d.Get("custom_cookies")
 		if customCookies != nil && len(customCookies.([]interface{})) > 0 {
 			for _, v := range customCookies.([]interface{}) {
