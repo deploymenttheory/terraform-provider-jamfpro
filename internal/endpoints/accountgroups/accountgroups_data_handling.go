@@ -14,11 +14,9 @@ import (
 func customDiffAccountGroups(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 	accessLevel, ok := d.GetOk("access_level")
 	if !ok || accessLevel == nil {
-		// If access_level is not set, no further checks required
 		return nil
 	}
 
-	// Enforce that the 'site' attribute must be set if access_level is 'Site Access'
 	if accessLevel.(string) == "Site Access" {
 		if _, ok := d.GetOk("site"); !ok {
 			return fmt.Errorf("'site' must be set when 'access_level' is 'Site Access'")

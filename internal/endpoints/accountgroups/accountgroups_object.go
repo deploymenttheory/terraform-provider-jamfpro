@@ -19,18 +19,14 @@ func constructJamfProAccountGroup(d *schema.ResourceData) (*jamfpro.ResourceAcco
 		PrivilegeSet: d.Get("privilege_set").(string),
 	}
 
-	// Handle Site
 	if v, ok := d.GetOk("site"); ok {
 		accountGroup.Site = constructobject.ConstructSharedResourceSite(v.([]interface{}))
 	} else {
-		// Set default values if 'site' data is not provided
 		accountGroup.Site = constructobject.ConstructSharedResourceSite([]interface{}{})
 	}
 
-	// Handle Privileges
 	accountGroup.Privileges = constructAccountSubsetPrivileges(d)
 
-	// Handle Members
 	if v, ok := d.GetOk("members"); ok {
 		memberList := v.([]interface{})
 		accountGroup.Members = make(jamfpro.AccountGroupSubsetMembers, len(memberList))
@@ -43,7 +39,6 @@ func constructJamfProAccountGroup(d *schema.ResourceData) (*jamfpro.ResourceAcco
 		}
 	}
 
-	// Handle Identity Server (LDAP Server). Fields are used for both LDAP and IdP configuration
 	if v, ok := d.GetOk("identity_server"); ok && len(v.([]interface{})) > 0 {
 		identityServerData := v.([]interface{})[0].(map[string]interface{})
 		accountGroup.LDAPServer = jamfpro.AccountGroupSubsetLDAPServer{
@@ -51,7 +46,6 @@ func constructJamfProAccountGroup(d *schema.ResourceData) (*jamfpro.ResourceAcco
 		}
 	}
 
-	// Serialize and pretty-print the accountGroup object as XML for logging
 	resourceXML, err := xml.MarshalIndent(accountGroup, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Account Group '%s' to XML: %v", accountGroup.Name, err)
