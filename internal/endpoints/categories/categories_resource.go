@@ -60,22 +60,18 @@ func ResourceJamfProCategories() *schema.Resource {
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 // ResourceJamfProCategoriesCreate is responsible for creating a new Jamf Pro Category in the remote system.
 func ResourceJamfProCategoriesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Assert the meta interface to the expected client type
 	client, ok := meta.(*jamfpro.Client)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.client")
 	}
 
-	// Initialize variables
 	var diags diag.Diagnostics
 
-	// Construct the resource object
 	resource, err := constructJamfProCategory(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Category Group: %v", err))
 	}
 
-	// Retry the API call to create the resource in Jamf Pro
 	var creationResponse *jamfpro.ResponseCategoryCreateAndUpdate
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
@@ -83,7 +79,7 @@ func ResourceJamfProCategoriesCreate(ctx context.Context, d *schema.ResourceData
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
-		// No error, exit the retry loop
+
 		return nil
 	})
 
@@ -91,9 +87,9 @@ func ResourceJamfProCategoriesCreate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Category '%s' after retries: %v", resource.Name, err))
 	}
 
-	// Set the resource ID in Terraform state
 	d.SetId(creationResponse.ID)
 
+	// TODO remove waitfor I think?
 	// // Wait for the resource to be fully available before reading it
 	// checkResourceExists := func(id interface{}) (interface{}, error) {
 	// 	return client.GetCategoryByID(id.(string))
@@ -105,7 +101,6 @@ func ResourceJamfProCategoriesCreate(ctx context.Context, d *schema.ResourceData
 	// 	return waitDiags
 	// }
 
-	// Read the resource to ensure the Terraform state is up to date
 	readDiags := ResourceJamfProCategoriesRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
