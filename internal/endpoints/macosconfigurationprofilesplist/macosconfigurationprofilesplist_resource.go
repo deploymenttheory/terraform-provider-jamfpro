@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles/plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
@@ -230,11 +229,10 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProMacOSConfigurationProfilesPlistCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -249,7 +247,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlistCreate(ctx context.Context, d
 	var creationResponse *jamfpro.ResponseMacOSConfigurationProfileCreationUpdate
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreateMacOSConfigurationProfile(resource)
+		creationResponse, apiErr = client.CreateMacOSConfigurationProfile(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -269,10 +267,10 @@ func ResourceJamfProMacOSConfigurationProfilesPlistCreate(ctx context.Context, d
 		if err != nil {
 			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
 		}
-		return apiclient.Conn.GetMacOSConfigurationProfileByID(intID)
+		return client.GetMacOSConfigurationProfileByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro macOS Configuration Profile", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro macOS Configuration Profile", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
@@ -293,9 +291,9 @@ func ResourceJamfProMacOSConfigurationProfilesPlistCreate(ctx context.Context, d
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProMacOSConfigurationProfilesPlistRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
 
 	// Initialize variables
@@ -308,7 +306,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlistRead(ctx context.Context, d *
 	}
 
 	// Attempt to fetch the resource by ID
-	resource, err := apiclient.Conn.GetMacOSConfigurationProfileByID(resourceIDInt)
+	resource, err := client.GetMacOSConfigurationProfileByID(resourceIDInt)
 
 	if err != nil {
 		// Handle not found error or other errors
@@ -328,11 +326,10 @@ func ResourceJamfProMacOSConfigurationProfilesPlistRead(ctx context.Context, d *
 // ResourceJamfProMacOSConfigurationProfilesPlistUpdate is responsible for updating an existing Jamf Pro config profile on the remote system.
 func ResourceJamfProMacOSConfigurationProfilesPlistUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -348,7 +345,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlistUpdate(ctx context.Context, d
 	}
 
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateMacOSConfigurationProfileByID(resourceIDInt, resource)
+		_, apiErr := client.UpdateMacOSConfigurationProfileByID(resourceIDInt, resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -370,11 +367,10 @@ func ResourceJamfProMacOSConfigurationProfilesPlistUpdate(ctx context.Context, d
 // ResourceJamfProMacOSConfigurationProfilesPlistDelete is responsible for deleting a Jamf Pro config profile.
 func ResourceJamfProMacOSConfigurationProfilesPlistDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -388,10 +384,10 @@ func ResourceJamfProMacOSConfigurationProfilesPlistDelete(ctx context.Context, d
 
 	// Use the retry function for the delete operation with appropriate timeout
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		apiErr := conn.DeleteMacOSConfigurationProfileByID(resourceIDInt)
+		apiErr := client.DeleteMacOSConfigurationProfileByID(resourceIDInt)
 		if apiErr != nil {
 
-			apiErrByName := conn.DeleteMacOSConfigurationProfileByName(resourceName)
+			apiErrByName := client.DeleteMacOSConfigurationProfileByName(resourceName)
 			if apiErrByName != nil {
 				return retry.RetryableError(apiErrByName)
 			}

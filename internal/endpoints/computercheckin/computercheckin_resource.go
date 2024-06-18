@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -106,11 +106,10 @@ func ResourceJamfProComputerCheckin() *schema.Resource {
 // ResourceJamfProComputerCheckinCreate is responsible for initializing the Jamf Pro computer check-in configuration in Terraform.
 func ResourceJamfProComputerCheckinCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize api client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -123,7 +122,7 @@ func ResourceJamfProComputerCheckinCreate(ctx context.Context, d *schema.Resourc
 
 	// Update (or effectively create) the check-in configuration with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		apiErr := conn.UpdateComputerCheckinInformation(resource)
+		apiErr := client.UpdateComputerCheckinInformation(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -149,16 +148,16 @@ func ResourceJamfProComputerCheckinCreate(ctx context.Context, d *schema.Resourc
 // ResourceJamfProComputerCheckinRead is responsible for reading the current state of the Jamf Pro computer check-in configuration.
 func ResourceJamfProComputerCheckinRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
 
 	// Initialize variables
 	var diags diag.Diagnostics
 
 	// Attempt to fetch the resource by ID
-	resource, err := apiclient.Conn.GetComputerCheckinInformation()
+	resource, err := client.GetComputerCheckinInformation()
 
 	// The constant ID "jamfpro_computer_checkin_singleton" is assigned to satisfy Terraform's requirement for an ID.
 	d.SetId("jamfpro_computer_checkin_singleton")
@@ -181,11 +180,10 @@ func ResourceJamfProComputerCheckinRead(ctx context.Context, d *schema.ResourceD
 // ResourceJamfProComputerCheckinUpdate is responsible for updating the Jamf Pro computer check-in configuration.
 func ResourceJamfProComputerCheckinUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize api client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -198,7 +196,7 @@ func ResourceJamfProComputerCheckinUpdate(ctx context.Context, d *schema.Resourc
 
 	// Update (or effectively create) the check-in configuration with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		apiErr := conn.UpdateComputerCheckinInformation(checkinConfig)
+		apiErr := client.UpdateComputerCheckinInformation(checkinConfig)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}

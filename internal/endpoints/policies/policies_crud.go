@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -15,13 +14,11 @@ import (
 
 // Constructs, creates states
 func ResourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	apiclient, ok := meta.(*client.APIClient)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
-	}
-	conn := apiclient.Conn
-
 	var diags diag.Diagnostics
+	client, ok := meta.(*jamfpro.Client)
+	if !ok {
+		return diag.Errorf("error asserting meta as *client.client")
+	}
 
 	resource, err := constructPolicy(d)
 	if err != nil {
@@ -32,7 +29,7 @@ func ResourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, 
 	var creationResponse *jamfpro.ResponsePolicyCreateAndUpdate
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreatePolicy(resource)
+		creationResponse, apiErr = client.CreatePolicy(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -40,7 +37,11 @@ func ResourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, 
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Policy '%s' after retries: %v", resource.General.Name, err))
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "failed to create",
+			Detail:   fmt.Sprintf("error: %v", err),
+		})
 	}
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
@@ -56,12 +57,10 @@ func ResourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, 
 // Reads and states
 func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var err error
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-
-	conn := apiclient.Conn
 
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -73,7 +72,7 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 
 	var resp *jamfpro.ResourcePolicy
 
-	resp, err = conn.GetPolicyByID(resourceIDInt)
+	resp, err = client.GetPolicyByID(resourceIDInt)
 	if err != nil {
 		return state.HandleResourceNotFoundError(err, d)
 	}
@@ -86,11 +85,10 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 
 // Constructs, updates and reads
 func ResourceJamfProPoliciesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -106,7 +104,7 @@ func ResourceJamfProPoliciesUpdate(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdatePolicyByID(resourceIDInt, resource)
+		_, apiErr := client.UpdatePolicyByID(resourceIDInt, resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -129,11 +127,10 @@ func ResourceJamfProPoliciesUpdate(ctx context.Context, d *schema.ResourceData, 
 
 // Deletes and removes from state
 func ResourceJamfProPoliciesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -147,10 +144,10 @@ func ResourceJamfProPoliciesDelete(ctx context.Context, d *schema.ResourceData, 
 
 	// Use the retry function for the delete operation with appropriate timeout
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		apiErr := conn.DeletePolicyByID(resourceIDInt)
+		apiErr := client.DeletePolicyByID(resourceIDInt)
 		if apiErr != nil {
 
-			apiErrByName := conn.DeletePolicyByName(resourceName)
+			apiErrByName := client.DeletePolicyByName(resourceName)
 			if apiErrByName != nil {
 				// If deletion by name also fails, return a retryable error
 				return retry.RetryableError(apiErrByName)

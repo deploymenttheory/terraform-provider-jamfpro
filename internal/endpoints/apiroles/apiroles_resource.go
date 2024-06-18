@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
@@ -67,12 +66,11 @@ func ResourceJamfProAPIRoles() *schema.Resource {
 // 3. Updates the Terraform state with the ID of the newly created role.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProAPIRolesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Assert the meta interface to the expected APIClient type
-	apiclient, ok := meta.(*client.APIClient)
+	// Assert the meta interface to the expected client type
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -87,7 +85,7 @@ func ResourceJamfProAPIRolesCreate(ctx context.Context, d *schema.ResourceData, 
 	var creationResponse *jamfpro.ResourceAPIRole
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreateJamfApiRole(resource)
+		creationResponse, apiErr = client.CreateJamfApiRole(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -108,10 +106,10 @@ func ResourceJamfProAPIRolesCreate(ctx context.Context, d *schema.ResourceData, 
 		if err != nil {
 			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
 		}
-		return apiclient.Conn.GetJamfApiRoleByID(strconv.Itoa(intID))
+		return client.GetJamfApiRoleByID(strconv.Itoa(intID))
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro API Role", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro API Role", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
 
 	if waitDiags.HasError() {
 		return waitDiags
@@ -133,18 +131,17 @@ func ResourceJamfProAPIRolesCreate(ctx context.Context, d *schema.ResourceData, 
 // 3. Updates the Terraform state with the fetched data.
 func ResourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
 	// Attempt to fetch the resource by ID
-	resource, err := conn.GetJamfApiRoleByID(resourceID)
+	resource, err := client.GetJamfApiRoleByID(resourceID)
 
 	if err != nil {
 		// Handle not found error or other errors
@@ -168,11 +165,10 @@ func ResourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, me
 // 3. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProAPIRolesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -186,7 +182,7 @@ func ResourceJamfProAPIRolesUpdate(ctx context.Context, d *schema.ResourceData, 
 
 	// Update operations with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateJamfApiRoleByID(resourceID, resource)
+		_, apiErr := client.UpdateJamfApiRoleByID(resourceID, resource)
 		if apiErr != nil {
 			// If updating by ID fails, attempt to update by Name
 			return retry.RetryableError(apiErr)
@@ -211,11 +207,10 @@ func ResourceJamfProAPIRolesUpdate(ctx context.Context, d *schema.ResourceData, 
 // ResourceJamfProAPIRolesDelete handles the deletion of a Jamf Pro API Role.
 func ResourceJamfProAPIRolesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -224,11 +219,11 @@ func ResourceJamfProAPIRolesDelete(ctx context.Context, d *schema.ResourceData, 
 	// Use the retry function for the delete operation with appropriate timeout
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Attempt to delete by ID
-		apiErr := conn.DeleteJamfApiRoleByID(resourceID)
+		apiErr := client.DeleteJamfApiRoleByID(resourceID)
 		if apiErr != nil {
 			// If deleting by ID fails, attempt to delete by Name
 			resourceName := d.Get("display_name").(string)
-			apiErrByName := conn.DeleteJamfApiRoleByName(resourceName)
+			apiErrByName := client.DeleteJamfApiRoleByName(resourceName)
 			if apiErrByName != nil {
 				// If deletion by name also fails, return a retryable error
 				return retry.RetryableError(apiErrByName)

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles/plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
@@ -155,12 +154,11 @@ func ResourceJamfProMobileDeviceConfigurationProfilesPlist() *schema.Resource {
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProMobileDeviceConfigurationProfilePlistCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Assert the meta interface to the expected APIClient type
-	apiclient, ok := meta.(*client.APIClient)
+	// Assert the meta interface to the expected client type
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -175,7 +173,7 @@ func ResourceJamfProMobileDeviceConfigurationProfilePlistCreate(ctx context.Cont
 	var creationResponse *jamfpro.ResponseMobileDeviceConfigurationProfileCreateAndUpdate
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreateMobileDeviceConfigurationProfile(resource)
+		creationResponse, apiErr = client.CreateMobileDeviceConfigurationProfile(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -196,10 +194,10 @@ func ResourceJamfProMobileDeviceConfigurationProfilePlistCreate(ctx context.Cont
 		if err != nil {
 			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
 		}
-		return apiclient.Conn.GetMobileDeviceConfigurationProfileByID(intID)
+		return client.GetMobileDeviceConfigurationProfileByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Mobile Device Configuration Profile", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Mobile Device Configuration Profile", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
 
 	if waitDiags.HasError() {
 		return waitDiags
@@ -221,11 +219,10 @@ func ResourceJamfProMobileDeviceConfigurationProfilePlistCreate(ctx context.Cont
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProMobileDeviceConfigurationProfilePlistRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -238,7 +235,7 @@ func ResourceJamfProMobileDeviceConfigurationProfilePlistRead(ctx context.Contex
 	}
 
 	// Attempt to fetch the resource by ID
-	resource, err := conn.GetMobileDeviceConfigurationProfileByID(resourceIDInt)
+	resource, err := client.GetMobileDeviceConfigurationProfileByID(resourceIDInt)
 
 	if err != nil {
 		// Handle not found error or other errors
@@ -258,11 +255,10 @@ func ResourceJamfProMobileDeviceConfigurationProfilePlistRead(ctx context.Contex
 // ResourceJamfProMobileDeviceConfigurationProfilePlistUpdate is responsible for updating an existing Jamf Pro Mobile Device Configuration Profile on the remote system.
 func ResourceJamfProMobileDeviceConfigurationProfilePlistUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -282,7 +278,7 @@ func ResourceJamfProMobileDeviceConfigurationProfilePlistUpdate(ctx context.Cont
 
 	// Update operations with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateMobileDeviceConfigurationProfileByID(resourceIDInt, resource)
+		_, apiErr := client.UpdateMobileDeviceConfigurationProfileByID(resourceIDInt, resource)
 		if apiErr != nil {
 			// If updating by ID fails, attempt to update by Name
 			return retry.RetryableError(apiErr)
@@ -307,11 +303,10 @@ func ResourceJamfProMobileDeviceConfigurationProfilePlistUpdate(ctx context.Cont
 // ResourceJamfProMobileDeviceConfigurationProfilePlistDelete is responsible for deleting a Jamf Pro Mobile Device Configuration Profile.
 func ResourceJamfProMobileDeviceConfigurationProfilePlistDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -326,11 +321,11 @@ func ResourceJamfProMobileDeviceConfigurationProfilePlistDelete(ctx context.Cont
 	// Use the retry function for the delete operation with appropriate timeout
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Attempt to delete by ID
-		apiErr := conn.DeleteMobileDeviceConfigurationProfileByID(resourceIDInt)
+		apiErr := client.DeleteMobileDeviceConfigurationProfileByID(resourceIDInt)
 		if apiErr != nil {
 			// If deleting by ID fails, attempt to delete by Name
 			resourceName := d.Get("name").(string)
-			apiErrByName := conn.DeleteMobileDeviceConfigurationProfileByName(resourceName)
+			apiErrByName := client.DeleteMobileDeviceConfigurationProfileByName(resourceName)
 			if apiErrByName != nil {
 				// If deletion by name also fails, return a retryable error
 				return retry.RetryableError(apiErrByName)

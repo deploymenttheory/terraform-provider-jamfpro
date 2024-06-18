@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
@@ -57,12 +56,11 @@ func ResourceJamfProDepartments() *schema.Resource {
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 // ResourceJamfProDepartmentsCreate is responsible for creating a new Jamf Pro Department in the remote system.
 func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Assert the meta interface to the expected APIClient type
-	apiclient, ok := meta.(*client.APIClient)
+	// Assert the meta interface to the expected client type
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -77,7 +75,7 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 	var creationResponse *jamfpro.ResponseDepartmentCreate
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreateDepartment(resource)
+		creationResponse, apiErr = client.CreateDepartment(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -94,10 +92,10 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 
 	// Wait for the resource to be fully available before reading it
 	checkResourceExists := func(id interface{}) (interface{}, error) {
-		return apiclient.Conn.GetDepartmentByID(id.(string))
+		return client.GetDepartmentByID(id.(string))
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Department", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Department", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
 
 	if waitDiags.HasError() {
 		return waitDiags
@@ -120,18 +118,17 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 // ResourceJamfProDepartmentsRead is responsible for reading the current state of a Jamf Pro Department Resource from the remote system.
 func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
 	// Attempt to fetch the resource by ID
-	resource, err := conn.GetDepartmentByID(resourceID)
+	resource, err := client.GetDepartmentByID(resourceID)
 
 	if err != nil {
 		// Handle not found error or other errors
@@ -151,11 +148,10 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 // ResourceJamfProDepartmentsUpdate is responsible for updating an existing Jamf Pro Department on the remote system.
 func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -170,14 +166,14 @@ func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 
 	// Update operations with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateDepartmentByID(resourceID, department)
+		_, apiErr := client.UpdateDepartmentByID(resourceID, department)
 		if apiErr == nil {
 			// Successfully updated the department, exit the retry loop
 			return nil
 		}
 
 		// If update by ID fails, attempt to update by Name
-		_, apiErrByName := conn.UpdateDepartmentByName(resourceName, department)
+		_, apiErrByName := client.UpdateDepartmentByName(resourceName, department)
 		if apiErrByName != nil {
 			// Log the error and return a retryable error
 			return retry.RetryableError(fmt.Errorf("failed to update department '%s' by ID '%s' and by name due to errors: %v, %v", resourceName, resourceID, apiErr, apiErrByName))
@@ -208,11 +204,10 @@ func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 // ResourceJamfProDepartmentsDelete is responsible for deleting a Jamf Pro Department.
 func ResourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -222,10 +217,10 @@ func ResourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceDat
 	// Use the retry function for the delete operation with appropriate timeout
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Attempt to delete by ID
-		apiErr := conn.DeleteDepartmentByID(resourceID)
+		apiErr := client.DeleteDepartmentByID(resourceID)
 		if apiErr != nil {
 			// If deletion by ID fails, attempt to delete by Name
-			apiErrByName := conn.DeleteDepartmentByName(resourceName)
+			apiErrByName := client.DeleteDepartmentByName(resourceName)
 			if apiErrByName != nil {
 				// Log the error and return a retryable error
 				return retry.RetryableError(fmt.Errorf("failed to delete department '%s' by ID '%s' and by name due to errors: %v, %v", resourceName, resourceID, apiErr, apiErrByName))

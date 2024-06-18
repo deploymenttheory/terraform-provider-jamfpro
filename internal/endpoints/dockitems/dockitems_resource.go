@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
@@ -87,12 +86,11 @@ func ResourceJamfProDockItems() *schema.Resource {
 // 3. Updates the Terraform state with the ID of the newly created dock item.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Assert the meta interface to the expected APIClient type
-	apiclient, ok := meta.(*client.APIClient)
+	// Assert the meta interface to the expected client type
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -107,7 +105,7 @@ func ResourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData,
 	var creationResponse *jamfpro.ResourceDockItem
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreateDockItem(resource)
+		creationResponse, apiErr = client.CreateDockItem(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -128,10 +126,10 @@ func ResourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData,
 		if err != nil {
 			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
 		}
-		return apiclient.Conn.GetDockItemByID(intID)
+		return client.GetDockItemByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Dock Item", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Dock Item", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
@@ -152,9 +150,9 @@ func ResourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData,
 // 3. Handles any discrepancies, such as the dock item being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
 
 	// Initialize variables
@@ -167,7 +165,7 @@ func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	// Attempt to fetch the resource by ID
-	resource, err := apiclient.Conn.GetDockItemByID(resourceIDInt)
+	resource, err := client.GetDockItemByID(resourceIDInt)
 
 	if err != nil {
 		// Handle not found error or other errors
@@ -187,11 +185,10 @@ func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, m
 // ResourceJamfProDockItemsUpdate is responsible for updating a Jamf Pro dock item.
 func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -211,7 +208,7 @@ func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData,
 
 	// Update operations with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateDockItemByID(resourceIDInt, resource)
+		_, apiErr := client.UpdateDockItemByID(resourceIDInt, resource)
 		if apiErr != nil {
 			// If updating by ID fails, attempt to update by Name
 			return retry.RetryableError(apiErr)
@@ -236,11 +233,10 @@ func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData,
 // ResourceJamfProDiskEncryptionConfigurationsDelete is responsible for deleting a Jamf Pro Disk Encryption Configuration.
 func ResourceJamfProDockItemsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -255,11 +251,11 @@ func ResourceJamfProDockItemsDelete(ctx context.Context, d *schema.ResourceData,
 	// Use the retry function for the delete operation with appropriate timeout
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Attempt to delete by ID
-		apiErr := conn.DeleteDockItemByID(resourceIDInt)
+		apiErr := client.DeleteDockItemByID(resourceIDInt)
 		if apiErr != nil {
 			// If deleting by ID fails, attempt to delete by Name
 			resourceName := d.Get("name").(string)
-			apiErrByName := conn.DeleteDockItemByName(resourceName)
+			apiErrByName := client.DeleteDockItemByName(resourceName)
 			if apiErrByName != nil {
 				// If deletion by name also fails, return a retryable error
 				return retry.RetryableError(apiErrByName)

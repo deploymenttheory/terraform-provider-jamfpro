@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -51,11 +51,10 @@ func ResourceJamfProActivationCode() *schema.Resource {
 // ResourceJamfProActivationCodeCreate is responsible for initializing the Jamf Pro computer check-in configuration in Terraform.
 func ResourceJamfProActivationCodeCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -68,7 +67,7 @@ func ResourceJamfProActivationCodeCreate(ctx context.Context, d *schema.Resource
 
 	// Update (or effectively create) the activation code configuration with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		apiErr := conn.UpdateActivationCode(activationCodeConfig)
+		apiErr := client.UpdateActivationCode(activationCodeConfig)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -94,16 +93,16 @@ func ResourceJamfProActivationCodeCreate(ctx context.Context, d *schema.Resource
 // ResourceJamfProActivationCodeRead is responsible for reading the current state of the Jamf Pro computer check-in configuration.
 func ResourceJamfProActivationCodeRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
 
 	// Initialize variables
 	var diags diag.Diagnostics
 
 	// Attempt to fetch the resource by ID
-	resource, err := apiclient.Conn.GetActivationCode()
+	resource, err := client.GetActivationCode()
 
 	// The constant ID "jamfpro_computer_checkin_singleton" is assigned to satisfy Terraform's requirement for an ID.
 	d.SetId("jamfpro_computer_checkin_singleton")
@@ -126,11 +125,10 @@ func ResourceJamfProActivationCodeRead(ctx context.Context, d *schema.ResourceDa
 // ResourceJamfProActivationCodeUpdate is responsible for updating the Jamf Pro computer check-in configuration.
 func ResourceJamfProActivationCodeUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -143,7 +141,7 @@ func ResourceJamfProActivationCodeUpdate(ctx context.Context, d *schema.Resource
 
 	// Update (or effectively create) the activation code configuration with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		apiErr := conn.UpdateActivationCode(activationCodeConfig)
+		apiErr := client.UpdateActivationCode(activationCodeConfig)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}

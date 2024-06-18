@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -44,11 +43,10 @@ func DataSourceJamfProDiskEncryptionConfigurations() *schema.Resource {
 // from Jamf Pro and returns the details of the disk encryption configuration in the Terraform state.
 func DataSourceJamfProDiskEncryptionConfigurationsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -65,7 +63,7 @@ func DataSourceJamfProDiskEncryptionConfigurationsRead(ctx context.Context, d *s
 	// Read operation with retry
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		resource, apiErr = conn.GetDiskEncryptionConfigurationByID(resourceIDInt)
+		resource, apiErr = client.GetDiskEncryptionConfigurationByID(resourceIDInt)
 		if apiErr != nil {
 			// Convert any API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)

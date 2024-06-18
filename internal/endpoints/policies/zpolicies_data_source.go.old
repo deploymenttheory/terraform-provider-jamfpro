@@ -48,11 +48,11 @@ func DataSourceJamfProPolicies() *schema.Resource {
 // DataSourceJamfProPoliciesRead fetches the details of specific policy items from Jamf Pro using either their unique Name or Id.
 func DataSourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
+	
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -76,11 +76,11 @@ func DataSourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, 
 	// Use the retry function for the read operation
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		policy, apiErr = conn.GetPolicyByID(resourceIDInt)
+		policy, apiErr = client.GetPolicyByID(resourceIDInt)
 		if apiErr != nil {
 			// If fetching by ID fails and policyName is available, try fetching by Name
 			if policyName != "" {
-				policy, apiErr = conn.GetPolicyByName(policyName)
+				policy, apiErr = client.GetPolicyByName(policyName)
 			}
 			if apiErr != nil {
 				// Consider retrying only if it's a retryable error

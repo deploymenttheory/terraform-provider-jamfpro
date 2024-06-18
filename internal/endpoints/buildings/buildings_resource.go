@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
@@ -85,12 +84,11 @@ func ResourceJamfProBuildings() *schema.Resource {
 // 3. Updates the Terraform state with the ID of the newly created building.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProBuildingCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Assert the meta interface to the expected APIClient type
-	apiclient, ok := meta.(*client.APIClient)
+	// Assert the meta interface to the expected client type
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -105,7 +103,7 @@ func ResourceJamfProBuildingCreate(ctx context.Context, d *schema.ResourceData, 
 	var creationResponse *jamfpro.ResponseBuildingCreate
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreateBuilding(resource)
+		creationResponse, apiErr = client.CreateBuilding(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -122,10 +120,10 @@ func ResourceJamfProBuildingCreate(ctx context.Context, d *schema.ResourceData, 
 
 	// Wait for the resource to be fully available before reading it
 	checkResourceExists := func(id interface{}) (interface{}, error) {
-		return apiclient.Conn.GetBuildingByID(id.(string))
+		return client.GetBuildingByID(id.(string))
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Building", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Building", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
 
 	if waitDiags.HasError() {
 		return waitDiags
@@ -147,18 +145,17 @@ func ResourceJamfProBuildingCreate(ctx context.Context, d *schema.ResourceData, 
 // 3. Handles any discrepancies, such as the building being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProBuildingRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
 	// Attempt to fetch the resource by ID
-	resource, err := conn.GetBuildingByID(resourceID)
+	resource, err := client.GetBuildingByID(resourceID)
 
 	if err != nil {
 		// Handle not found error or other errors
@@ -178,11 +175,10 @@ func ResourceJamfProBuildingRead(ctx context.Context, d *schema.ResourceData, me
 // ResourceJamfProBuildingUpdate is responsible for updating an existing Building on the remote system.
 func ResourceJamfProBuildingUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -196,7 +192,7 @@ func ResourceJamfProBuildingUpdate(ctx context.Context, d *schema.ResourceData, 
 
 	// Update operations with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateBuildingByID(resourceID, resource)
+		_, apiErr := client.UpdateBuildingByID(resourceID, resource)
 		if apiErr != nil {
 			// If updating by ID fails, attempt to update by Name
 			return retry.RetryableError(apiErr)
@@ -221,11 +217,10 @@ func ResourceJamfProBuildingUpdate(ctx context.Context, d *schema.ResourceData, 
 // ResourceJamfProBuildingDelete is responsible for deleting a Building.
 func ResourceJamfProBuildingDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -234,11 +229,11 @@ func ResourceJamfProBuildingDelete(ctx context.Context, d *schema.ResourceData, 
 	// Use the retry function for the delete operation with appropriate timeout
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Attempt to delete by ID
-		apiErr := conn.DeleteBuildingByID(resourceID)
+		apiErr := client.DeleteBuildingByID(resourceID)
 		if apiErr != nil {
 			// If deleting by ID fails, attempt to delete by Name
 			resourceName := d.Get("name").(string)
-			apiErrByName := conn.DeleteBuildingByName(resourceName)
+			apiErrByName := client.DeleteBuildingByName(resourceName)
 			if apiErrByName != nil {
 				// If deletion by name also fails, return a retryable error
 				return retry.RetryableError(apiErrByName)

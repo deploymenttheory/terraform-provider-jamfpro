@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
@@ -212,12 +211,11 @@ const (
 // 3. Updates the Terraform state with the ID of the newly created dock item.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProFileShareDistributionPointsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Assert the meta interface to the expected APIClient type
-	apiclient, ok := meta.(*client.APIClient)
+	// Assert the meta interface to the expected client type
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -232,7 +230,7 @@ func ResourceJamfProFileShareDistributionPointsCreate(ctx context.Context, d *sc
 	var creationResponse *jamfpro.ResponseFileShareDistributionPointCreatedAndUpdated
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreateDistributionPoint(resource)
+		creationResponse, apiErr = client.CreateDistributionPoint(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -253,10 +251,10 @@ func ResourceJamfProFileShareDistributionPointsCreate(ctx context.Context, d *sc
 		if err != nil {
 			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
 		}
-		return apiclient.Conn.GetDistributionPointByID(intID)
+		return client.GetDistributionPointByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Fileshare Distribution Point", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Fileshare Distribution Point", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
@@ -278,11 +276,10 @@ func ResourceJamfProFileShareDistributionPointsCreate(ctx context.Context, d *sc
 // 3. Handles any discrepancies, such as the dock item being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProFileShareDistributionPointsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	resourceID := d.Id()
@@ -294,7 +291,7 @@ func ResourceJamfProFileShareDistributionPointsRead(ctx context.Context, d *sche
 	}
 
 	// Attempt to fetch the resource by ID
-	resource, err := conn.GetDistributionPointByID(resourceIDInt)
+	resource, err := client.GetDistributionPointByID(resourceIDInt)
 
 	if err != nil {
 		// Handle not found error or other errors
@@ -314,11 +311,10 @@ func ResourceJamfProFileShareDistributionPointsRead(ctx context.Context, d *sche
 // ResourceJamfProFileShareDistributionPointsUpdate is responsible for updating an existing Jamf Pro Site on the remote system.
 func ResourceJamfProFileShareDistributionPointsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -338,7 +334,7 @@ func ResourceJamfProFileShareDistributionPointsUpdate(ctx context.Context, d *sc
 
 	// Update operations with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateDistributionPointByID(resourceIDInt, resource)
+		_, apiErr := client.UpdateDistributionPointByID(resourceIDInt, resource)
 		if apiErr != nil {
 			// If updating by ID fails, attempt to update by Name
 			return retry.RetryableError(apiErr)
@@ -363,11 +359,10 @@ func ResourceJamfProFileShareDistributionPointsUpdate(ctx context.Context, d *sc
 // ResourceJamfProFileShareDistributionPointsDeleteis responsible for deleting a Jamf Pro file share distribution point from the remote system.
 func ResourceJamfProFileShareDistributionPointsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -382,11 +377,11 @@ func ResourceJamfProFileShareDistributionPointsDelete(ctx context.Context, d *sc
 	// Use the retry function for the delete operation with appropriate timeout
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Attempt to delete by ID
-		apiErr := conn.DeleteDistributionPointByID(resourceIDInt)
+		apiErr := client.DeleteDistributionPointByID(resourceIDInt)
 		if apiErr != nil {
 			// If deleting by ID fails, attempt to delete by Name
 			resourceName := d.Get("name").(string)
-			apiErrByName := conn.DeleteDistributionPointByName(resourceName)
+			apiErrByName := client.DeleteDistributionPointByName(resourceName)
 			if apiErrByName != nil {
 				// If deletion by name also fails, return a retryable error
 				return retry.RetryableError(apiErrByName)

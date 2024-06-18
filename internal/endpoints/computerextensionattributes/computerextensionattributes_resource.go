@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
@@ -123,12 +122,11 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Assert the meta interface to the expected APIClient type
-	apiclient, ok := meta.(*client.APIClient)
+	// Assert the meta interface to the expected client type
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -143,7 +141,7 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 	var creationResponse *jamfpro.ResourceComputerExtensionAttribute
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreateComputerExtensionAttribute(resource)
+		creationResponse, apiErr = client.CreateComputerExtensionAttribute(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -164,10 +162,10 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 		if err != nil {
 			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
 		}
-		return apiclient.Conn.GetComputerExtensionAttributeByID(intID)
+		return client.GetComputerExtensionAttributeByID(intID)
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Computer Extension Attribute", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Computer Extension Attribute", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
@@ -188,9 +186,9 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
 
 	// Initialize variables
@@ -204,7 +202,7 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 	}
 
 	// Attempt to fetch the resource by ID
-	resource, err := apiclient.Conn.GetComputerExtensionAttributeByID(resourceIDInt)
+	resource, err := client.GetComputerExtensionAttributeByID(resourceIDInt)
 
 	if err != nil {
 		// Handle not found error or other errors
@@ -224,11 +222,10 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 // ResourceJamfProComputerExtensionAttributesUpdate is responsible for updating an existing Jamf Pro Computer Extension Attribute on the remote system.
 func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -248,7 +245,7 @@ func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 
 	// Update operations with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateComputerExtensionAttributeByID(resourceIDInt, resource)
+		_, apiErr := client.UpdateComputerExtensionAttributeByID(resourceIDInt, resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -272,11 +269,10 @@ func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 // ResourceJamfProComputerExtensionAttributesDelete is responsible for deleting a Jamf Pro Computer Extension Attribute.
 func ResourceJamfProComputerExtensionAttributesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -291,11 +287,11 @@ func ResourceJamfProComputerExtensionAttributesDelete(ctx context.Context, d *sc
 	// Use the retry function for the delete operation with appropriate timeout
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Attempt to delete by ID
-		apiErr := conn.DeleteComputerExtensionAttributeByID(resourceIDInt)
+		apiErr := client.DeleteComputerExtensionAttributeByID(resourceIDInt)
 		if apiErr != nil {
 			// If deleting by ID fails, attempt to delete by Name
 			resourceName := d.Get("name").(string)
-			apiErrByName := conn.DeleteComputerExtensionAttributeByNameByID(resourceName)
+			apiErrByName := client.DeleteComputerExtensionAttributeByNameByID(resourceName)
 			if apiErrByName != nil {
 				// If deletion by name also fails, return a retryable error
 				return retry.RetryableError(apiErrByName)

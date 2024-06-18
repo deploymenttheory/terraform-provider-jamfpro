@@ -5,8 +5,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -33,11 +32,10 @@ func DataSourceJamfProCategories() *schema.Resource {
 // DataSourceJamfProCategoriesRead fetches the details of a specific category from Jamf Pro using its unique ID.
 func DataSourceJamfProCategoriesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -46,7 +44,7 @@ func DataSourceJamfProCategoriesRead(ctx context.Context, d *schema.ResourceData
 	resourceID := d.Get("id").(string)
 
 	// Attempt to fetch the Category's details using its ID
-	Category, err := conn.GetCategoryByID(resourceID)
+	Category, err := client.GetCategoryByID(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Category with ID '%s': %v", resourceID, err))
 	}

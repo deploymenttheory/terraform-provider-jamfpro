@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
@@ -133,12 +132,11 @@ func ResourceJamfProScripts() *schema.Resource {
 // 3. Updates the Terraform state with the ID of the newly created script.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Assert the meta interface to the expected APIClient type
-	apiclient, ok := meta.(*client.APIClient)
+	// Assert the meta interface to the expected client type
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -153,7 +151,7 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 	var creationResponse *jamfpro.ResponseScriptCreate
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreateScript(resource)
+		creationResponse, apiErr = client.CreateScript(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -170,10 +168,10 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 
 	// Wait for the resource to be fully available before reading it
 	checkResourceExists := func(id interface{}) (interface{}, error) {
-		return apiclient.Conn.GetScriptByID(id.(string))
+		return client.GetScriptByID(id.(string))
 	}
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Script", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
+	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Script", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
 	if waitDiags.HasError() {
 		return waitDiags
 	}
@@ -194,9 +192,9 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 // 3. Handles any discrepancies, such as the script being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
 
 	// Initialize variables
@@ -204,7 +202,7 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 	var diags diag.Diagnostics
 
 	// Attempt to fetch the resource by ID
-	resource, err := apiclient.Conn.GetScriptByID(resourceID)
+	resource, err := client.GetScriptByID(resourceID)
 
 	if err != nil {
 		// Handle not found error or other errors
@@ -224,11 +222,10 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 // ResourceJamfProScriptsUpdate is responsible for updating an existing Jamf Pro Department on the remote system.
 func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -242,11 +239,11 @@ func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, m
 
 	// Update operation with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateScriptByID(resourceID, resource)
+		_, apiErr := client.UpdateScriptByID(resourceID, resource)
 		if apiErr != nil {
 			// If updating by ID fails, attempt to update by Name
 			resourceName := d.Get("name").(string)
-			_, apiErrByName := conn.UpdateScriptByName(resourceName, resource)
+			_, apiErrByName := client.UpdateScriptByName(resourceName, resource)
 			if apiErrByName != nil {
 				// If updating by name also fails, return a retryable error
 				return retry.RetryableError(apiErrByName)
@@ -272,11 +269,10 @@ func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, m
 // ResourceJamfProScriptsDelete is responsible for deleting a Jamf Pro Department.
 func ResourceJamfProScriptsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	// Initialize variables
 	var diags diag.Diagnostics
@@ -285,11 +281,11 @@ func ResourceJamfProScriptsDelete(ctx context.Context, d *schema.ResourceData, m
 	// Use the retry function for the delete operation with appropriate timeout
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		// Attempt to delete the resource by ID
-		apiErr := conn.DeleteScriptByID(resourceID)
+		apiErr := client.DeleteScriptByID(resourceID)
 		if apiErr != nil {
 			// If deleting by ID fails, attempt to delete by Name
 			resourceName := d.Get("name").(string)
-			apiErrByName := conn.DeleteScriptByName(resourceName)
+			apiErrByName := client.DeleteScriptByName(resourceName)
 			if apiErrByName != nil {
 				// If deletion by name also fails, return a retryable error
 				return retry.RetryableError(apiErrByName)
