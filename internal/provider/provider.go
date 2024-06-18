@@ -443,6 +443,7 @@ func Provider() *schema.Provider {
 		load_balancer_lock := d.Get("jamf_load_balancer_lock").(bool)
 		customCookies := d.Get("custom_cookies")
 
+		// TODO make this check for the specific load balancer cookie and not just two settings in general
 		if load_balancer_lock && customCookies != nil && len(customCookies.([]interface{})) > 0 {
 			diags = append(diags, diag.Errorf("cannot have custom cookes and load balancer lock enabled at the same time")...)
 		}
@@ -457,10 +458,8 @@ func Provider() *schema.Provider {
 					Detail:   fmt.Sprintf("error: %v", err),
 				})
 			}
-			for _, c := range cookies {
-				cookiesList = append(cookiesList, c)
 
-			}
+			cookiesList = append(cookiesList, cookies...)
 
 		}
 
