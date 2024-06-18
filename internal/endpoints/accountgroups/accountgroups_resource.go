@@ -174,12 +174,6 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 }
 
 // ResourceJamfProAccountGroupCreate is responsible for creating a new Jamf Pro Script in the remote system.
-// The function:
-// 1. Constructs the attribute data using the provided Terraform configuration.
-// 2. Calls the API to create the attribute in Jamf Pro.
-// 3. Updates the Terraform state with the ID of the newly created attribute.
-// 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-// ResourceJamfProAccountGroupCreate is responsible for creating a new Jamf Pro Account Group in the remote system.
 func ResourceJamfProAccountGroupCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 
@@ -229,10 +223,6 @@ func ResourceJamfProAccountGroupCreate(ctx context.Context, d *schema.ResourceDa
 }
 
 // ResourceJamfProAccountGroupRead is responsible for reading the current state of a Jamf Pro Account Group Resource from the remote system.
-// The function:
-// 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
-// 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
-// 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProAccountGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 

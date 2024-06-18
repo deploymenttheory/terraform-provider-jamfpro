@@ -401,7 +401,6 @@ func Provider() *schema.Provider {
 			clientSecret = GetClientSecret(d, &diags)
 			jamfIntegration, err = jamfprointegration.BuildIntegrationWithOAuth(
 				jamfDomain,
-				"fix this",
 				sharedLogger,
 				tokenRefrshBufferPeriod,
 				clientId,
@@ -413,7 +412,6 @@ func Provider() *schema.Provider {
 			basicAuthPassword = GetBasicAuthPassword(d, &diags)
 			jamfIntegration, err = jamfprointegration.BuildIntegrationWithBasicAuth(
 				jamfDomain,
-				"fix this",
 				sharedLogger,
 				tokenRefrshBufferPeriod,
 				basicAuthUsername,

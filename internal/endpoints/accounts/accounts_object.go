@@ -30,14 +30,13 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 		}
 	}
 
-	// Handle Site
 	if v, ok := d.GetOk("site"); ok {
 		account.Site = constructobject.ConstructSharedResourceSite(v.([]interface{}))
 	} else {
-		// Set default values if 'site' data is not provided
+
 		account.Site = constructobject.ConstructSharedResourceSite([]interface{}{})
 	}
-	// Handle Privileges
+
 	account.Privileges = constructAccountSubsetPrivileges(d)
 
 	if v, ok := d.GetOk("groups"); ok {
@@ -53,8 +52,6 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 		}
 	}
 
-	// Print the constructed XML output to the log
-	// redaction requires case matching to the struct field names
 	xmlOutput, err := constructobject.SerializeAndRedactXML(account, []string{"Password"})
 	if err != nil {
 		log.Fatalf("Error: %v", err)
@@ -64,8 +61,6 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 
 	return account, nil
 }
-
-// Helper functions for nested structures
 
 // constructAccountSubsetPrivileges constructs AccountSubsetPrivileges from schema data.
 func constructAccountSubsetPrivileges(d *schema.ResourceData) jamfpro.AccountSubsetPrivileges {
