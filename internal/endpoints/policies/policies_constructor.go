@@ -43,7 +43,7 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	// Account Maintenance
 	// FilesProcesses
 	// UserInteraction
-	// DiskEncryption
+	// DiskEncryption part of payloads
 	// Reboot
 
 	// DEBUG
@@ -272,6 +272,8 @@ func constructScope(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
 	return nil
 }
 
+
+
 // Pulls "self service" settings from HCL and packages into object
 func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 
@@ -298,6 +300,28 @@ func constructPayloads(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 
 	// Scripts
 	constructPayloadScripts(d, out)
+	// DiskEncryption
+	constructPayloadDiskEncryption(d, out)
+}
+
+// Pulls "disk encryption" settings from HCL and packages into object
+func constructPayloadDiskEncryption(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
+
+	hcl := d.Get("payloads.0.disk_encryption")
+	if len(hcl.([]interface{})) == 0 {
+		return
+	}
+
+	if len(d.Get("payloads.0.disk_encryption").([]interface{})) > 0 {
+		out.DiskEncryption = &jamfpro.PolicySubsetDiskEncryption{
+			Action:      d.Get("payloads.0.disk_encryption.0.action").(string),
+			DiskEncryptionConfigurationID: d.Get("payloads.0.disk_encryption.0.disk_encryption_configuration_id").(int),
+			AuthRestart:      d.Get("payloads.0.disk_encryption.0.auth_restart").(bool),
+			RemediateKeyType:      d.Get("payloads.0.disk_encryption.0.remediate_key_type").(string),
+			RemediateDiskEncryptionConfigurationID: d.Get("payloads.0.disk_encryption.0.remediate_disk_encryption_configuration_id").(int),
+
+		}
+	}
 }
 
 // Pulls "package" settings from HCL and packages into object
