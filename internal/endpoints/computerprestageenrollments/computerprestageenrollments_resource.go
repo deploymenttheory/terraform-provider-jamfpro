@@ -7,9 +7,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -562,22 +560,14 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 // 3. Updates the Terraform state with the ID of the newly created computer prestage.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProComputerPrestageEnrollmentCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Assert the meta interface to the expected client type
-	client, ok := meta.(*jamfpro.Client)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.client")
-	}
-
-	// Initialize variables
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	// Construct the resource object
 	resource, err := constructJamfProComputerPrestageEnrollment(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Prestage Enrollment: %v", err))
 	}
 
-	// Retry the API call to create the resource in Jamf Pro
 	var creationResponse *jamfpro.ResponseComputerPrestageCreate
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
@@ -585,7 +575,6 @@ func ResourceJamfProComputerPrestageEnrollmentCreate(ctx context.Context, d *sch
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
-		// No error, exit the retry loop
 		return nil
 	})
 
@@ -593,26 +582,18 @@ func ResourceJamfProComputerPrestageEnrollmentCreate(ctx context.Context, d *sch
 		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Computer Prestage Enrollment '%s' after retries: %v", resource.DisplayName, err))
 	}
 
-	// Set the resource ID in Terraform state
 	d.SetId(creationResponse.ID)
 
-	// Wait for the resource to be fully available before reading it
-	checkResourceExists := func(id interface{}) (interface{}, error) {
-		return client.GetComputerPrestageByID(id.(string))
-	}
+	// checkResourceExists := func(id interface{}) (interface{}, error) {
+	// 	return client.GetComputerPrestageByID(id.(string))
+	// }
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Computer Prestage Enrollment", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
-	if waitDiags.HasError() {
-		return waitDiags
-	}
+	// _, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Computer Prestage Enrollment", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
+	// if waitDiags.HasError() {
+	// 	return waitDiags
+	// }
 
-	// Read the resource to ensure the Terraform state is up to date
-	readDiags := ResourceJamfProComputerPrestageEnrollmentRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		return readDiags
-	}
-
-	return diags
+	return append(diags, ResourceJamfProComputerPrestageEnrollmentRead(ctx, d, meta)...)
 }
 
 // ResourceJamfProComputerPrestageEnrollmentRead is responsible for reading the current state of a Building Resource from the remote system.
@@ -621,60 +602,35 @@ func ResourceJamfProComputerPrestageEnrollmentCreate(ctx context.Context, d *sch
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the building being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProComputerPrestageEnrollmentRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize API client
-	client, ok := meta.(*jamfpro.Client)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.client")
-	}
-
-	// Initialize variables
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	// Attempt to fetch the resource by ID
 	resource, err := client.GetComputerPrestageByID(resourceID)
 
 	if err != nil {
-		// Handle not found error or other errors
 		return state.HandleResourceNotFoundError(err, d)
 	}
 
-	// Update the Terraform state with the fetched data from the resource
-	diags = updateTerraformState(d, resource)
-
-	// Handle any errors and return diagnostics
-	if len(diags) > 0 {
-		return diags
-	}
-	return nil
+	return append(diags, updateTerraformState(d, resource)...)
 }
 
 // ResourceJamfProComputerPrestageEnrollmentUpdate is responsible for updating an existing Jamf Pro Department on the remote system.
 func ResourceJamfProComputerPrestageEnrollmentUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize API client
-	client, ok := meta.(*jamfpro.Client)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.client")
-	}
-
-	// Initialize variables
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	// Construct the resource object
 	resource, err := constructJamfProComputerPrestageEnrollment(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Disk Computer Prestage for update: %v", err))
 	}
 
-	// Update operations with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		_, apiErr := client.UpdateComputerPrestageByID(resourceID, resource)
 		if apiErr != nil {
-			// If updating by ID fails, attempt to update by Name
 			return retry.RetryableError(apiErr)
 		}
-		// Successfully updated the resource, exit the retry loop
 		return nil
 	})
 
@@ -682,41 +638,24 @@ func ResourceJamfProComputerPrestageEnrollmentUpdate(ctx context.Context, d *sch
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Computer Prestage '%s' (ID: %s) after retries: %v", resource.DisplayName, resourceID, err))
 	}
 
-	// Read the resource to ensure the Terraform state is up to date
-	readDiags := ResourceJamfProComputerPrestageEnrollmentRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
+	return append(diags, ResourceJamfProComputerPrestageEnrollmentRead(ctx, d, meta)...)
 }
 
 // ResourceJamfProComputerPrestageEnrollmentDelete is responsible for deleting a Jamf Pro Computer Prestage.
 func ResourceJamfProComputerPrestageEnrollmentDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize API client
-	client, ok := meta.(*jamfpro.Client)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.client")
-	}
-
-	// Initialize variables
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	// Use the retry function for the delete operation with appropriate timeout
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// Attempt to delete by ID
 		apiErr := client.DeleteComputerPrestageByID(resourceID)
 		if apiErr != nil {
-			// If deleting by ID fails, attempt to delete by Display Name
 			resourceDisplayName := d.Get("display_name").(string)
 			apiErrByDisplayName := client.DeleteComputerPrestageByName(resourceDisplayName)
 			if apiErrByDisplayName != nil {
-				// If deletion by display name also fails, return a retryable error
 				return retry.RetryableError(apiErrByDisplayName)
 			}
 		}
-		// Successfully deleted the resource, exit the retry loop
 		return nil
 	})
 
@@ -724,7 +663,6 @@ func ResourceJamfProComputerPrestageEnrollmentDelete(ctx context.Context, d *sch
 		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Computer Prestage '%s' (ID: %s) after retries: %v", d.Get("display_name").(string), resourceID, err))
 	}
 
-	// Clear the ID from the Terraform state as the resource has been deleted
 	d.SetId("")
 
 	return diags

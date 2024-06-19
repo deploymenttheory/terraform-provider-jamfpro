@@ -92,6 +92,7 @@ func constructAccountSubsetPrivileges(d *schema.ResourceData) jamfpro.AccountSub
 }
 
 // getStringSliceFromSet converts a *schema.Set to a slice of strings.
+// TODO move this out
 func getStringSliceFromSet(set *schema.Set) []string {
 	list := set.List()
 	slice := make([]string, len(list))

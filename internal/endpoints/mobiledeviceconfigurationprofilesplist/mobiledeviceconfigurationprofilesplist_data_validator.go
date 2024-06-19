@@ -12,12 +12,10 @@ import (
 
 // mainCustomDiffFunc orchestrates all custom diff validations.
 func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
-	// Validate configuration profile level
 	if err := validateMobileDeviceConfigurationProfileLevel(ctx, diff, i); err != nil {
 		return err
 	}
 
-	// Validate configuration profile indentation
 	if err := validateConfigurationProfileFormatting(ctx, diff, i); err != nil {
 		return err
 	}
@@ -31,19 +29,16 @@ func validateMobileDeviceConfigurationProfileLevel(_ context.Context, diff *sche
 	level := diff.Get("level").(string)
 	payloads := diff.Get("payloads").(string)
 
-	// Decode the plist payload
 	plistData, err := plist.DecodePlist([]byte(payloads))
 	if err != nil {
 		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile.%s': error decoding plist data: %v", resourceName, err)
 	}
 
-	// Check the PayloadScope in the plist
 	payloadScope, err := datavalidators.GetPayloadScope(plistData)
 	if err != nil {
 		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile.%s': error getting 'PayloadScope' from plist: %v", resourceName, err)
 	}
 
-	// Map the level to the expected PayloadScope
 	expectedScope := ""
 	switch level {
 	case "Device Level":
@@ -66,7 +61,6 @@ func validateConfigurationProfileFormatting(_ context.Context, diff *schema.Reso
 	resourceName := diff.Get("name").(string)
 	payloads := diff.Get("payloads").(string)
 
-	// Check if the XML is well-formed and properly indented
 	if err := datavalidators.CheckPlistIndentationAndWhiteSpace(payloads); err != nil {
 		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile.%s': %v", resourceName, err)
 	}

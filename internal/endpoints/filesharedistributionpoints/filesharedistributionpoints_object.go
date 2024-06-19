@@ -36,7 +36,6 @@ func constructJamfProFileShareDistributionPoint(d *schema.ResourceData) (*jamfpr
 		HTTPURL:                  d.Get("http_url").(string),
 	}
 
-	// Print the constructed XML output to the log
 	resourceXML, err := constructobject.SerializeAndRedactXML(fileShareDistributionPoint, []string{"ReadOnlyPassword", "ReadWritePassword", "HTTPPassword"})
 	if err != nil {
 		log.Fatalf("Error: %v", err)

@@ -15,22 +15,14 @@ import (
 
 // ResourceJamfProSmartComputerGroupsCreate is responsible for creating a new Jamf Pro Smart Computer Group in the remote system.
 func ResourceJamfProSmartComputerGroupsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Assert the meta interface to the expected client type
-	client, ok := meta.(*jamfpro.Client)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.client")
-	}
-
-	// Initialize variables
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	// Construct the resource object
 	resource, err := constructJamfProSmartComputerGroup(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Smart Computer Group: %v", err))
 	}
 
-	// Retry the API call to create the resource in Jamf Pro
 	var creationResponse *jamfpro.ResponseComputerGroupreatedAndUpdated
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
@@ -38,7 +30,6 @@ func ResourceJamfProSmartComputerGroupsCreate(ctx context.Context, d *schema.Res
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
-		// No error, exit the retry loop
 		return nil
 	})
 
@@ -46,7 +37,6 @@ func ResourceJamfProSmartComputerGroupsCreate(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Smart Computer Group '%s' after retries: %v", resource.Name, err))
 	}
 
-	// Set the resource ID in Terraform state
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
 	// Wait for the resource to be fully available before reading it
@@ -64,23 +54,12 @@ func ResourceJamfProSmartComputerGroupsCreate(ctx context.Context, d *schema.Res
 	// 	return waitDiags
 	// }
 
-	// Read the resource to ensure the Terraform state is up to date
-	readDiags := ResourceJamfProSmartComputerGroupsRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
+	return append(diags, ResourceJamfProSmartComputerGroupsRead(ctx, d, meta)...)
 }
 
 // ResourceJamfProSmartComputerGroupsRead is responsible for reading the current state of a Jamf Pro Smart Computer Group from the remote system.
 func ResourceJamfProSmartComputerGroupsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-
-	client, ok := meta.(*jamfpro.Client)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.client")
-	}
-
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
@@ -95,21 +74,12 @@ func ResourceJamfProSmartComputerGroupsRead(ctx context.Context, d *schema.Resou
 		return state.HandleResourceNotFoundError(err, d)
 	}
 
-	diags = updateTerraformState(d, resource)
-
-	if len(diags) > 0 {
-		return diags
-	}
-	return nil
+	return append(diags, updateTerraformState(d, resource)...)
 }
 
 // ResourceJamfProSmartComputerGroupsUpdate is responsible for updating an existing Jamf Pro Smart Computer Group on the remote system.
 func ResourceJamfProSmartComputerGroupsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client, ok := meta.(*jamfpro.Client)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.client")
-	}
-
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
@@ -136,21 +106,12 @@ func ResourceJamfProSmartComputerGroupsUpdate(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Smart Computer Group '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
 	}
 
-	readDiags := ResourceJamfProSmartComputerGroupsRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
+	return append(diags, ResourceJamfProSmartComputerGroupsRead(ctx, d, meta)...)
 }
 
 // ResourceJamfProSmartComputerGroupsDelete is responsible for deleting a Jamf Pro Smart Computer Group.
 func ResourceJamfProSmartComputerGroupsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client, ok := meta.(*jamfpro.Client)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.client")
-	}
-
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
@@ -160,14 +121,11 @@ func ResourceJamfProSmartComputerGroupsDelete(ctx context.Context, d *schema.Res
 	}
 
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-
 		apiErr := client.DeleteComputerGroupByID(resourceIDInt)
 		if apiErr != nil {
-
 			resourceName := d.Get("name").(string)
 			apiErrByName := client.DeleteComputerGroupByName(resourceName)
 			if apiErrByName != nil {
-
 				return retry.RetryableError(apiErrByName)
 			}
 		}

@@ -157,22 +157,14 @@ func ResourceJamfProComputerInventoryCollection() *schema.Resource {
 // this function will simply set the initial state in Terraform.
 // ResourceJamfProComputerInventoryCollectionCreate is responsible for initializing the Jamf Pro Computer Inventory Collection configuration in Terraform.
 func ResourceJamfProComputerInventoryCollectionCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize api client
-	client, ok := meta.(*jamfpro.Client)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.client")
-	}
-
-	// Initialize variables
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	// Construct the resource object
 	resource, err := constructJamfProComputerInventoryCollection(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Inventory Collection for update: %v", err))
 	}
 
-	// Update (or effectively create) the check-in configuration with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		apiErr := client.UpdateComputerInventoryCollectionInformation(resource)
 		if apiErr != nil {
@@ -185,68 +177,37 @@ func ResourceJamfProComputerInventoryCollectionCreate(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Computer Inventory Collection configuration after retries: %v", err))
 	}
 
-	// Since this resource is a singleton, use a fixed ID to represent it in the Terraform state
 	d.SetId("jamfpro_computer_inventory_collection_singleton")
 
-	// Read the site to ensure the Terraform state is up to date
-	readDiags := ResourceJamfProComputerInventoryCollectionRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
+	return append(diags, ResourceJamfProComputerInventoryCollectionRead(ctx, d, meta)...)
 }
 
 // ResourceJamfProComputerInventoryCollectionRead is responsible for reading the current state of the Jamf Pro Computer Inventory Collection configuration.
 func ResourceJamfProComputerInventoryCollectionRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize API client
-	client, ok := meta.(*jamfpro.Client)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.client")
-	}
-
-	// Initialize variables
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	// Attempt to fetch the resource by ID
 	resource, err := client.GetComputerInventoryCollectionInformation()
 
-	// The constant ID "jamfpro_computer_inventory_collection_singleton" is assigned to satisfy Terraform's requirement for an ID.
 	d.SetId("jamfpro_computer_inventory_collection_singleton")
 
 	if err != nil {
-		// Handle not found error or other errors
 		return state.HandleResourceNotFoundError(err, d)
 	}
 
-	// Update the Terraform state with the fetched data from the resource
-	diags = updateTerraformState(d, resource)
-
-	// Handle any errors and return diagnostics
-	if len(diags) > 0 {
-		return diags
-	}
-	return nil
+	return append(diags, updateTerraformState(d, resource)...)
 }
 
 // ResourceJamfProComputerInventoryCollectionUpdate is responsible for updating the Jamf Pro Computer Inventory Collection configuration.
 func ResourceJamfProComputerInventoryCollectionUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize api client
-	client, ok := meta.(*jamfpro.Client)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.client")
-	}
-
-	// Initialize variables
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	// Construct the resource object
 	inventoryCollectionConfig, err := constructJamfProComputerInventoryCollection(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Inventory Collection for update: %v", err))
 	}
 
-	// Update (or effectively create) the check-in configuration with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		apiErr := client.UpdateComputerInventoryCollectionInformation(inventoryCollectionConfig)
 		if apiErr != nil {
@@ -259,23 +220,15 @@ func ResourceJamfProComputerInventoryCollectionUpdate(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Computer Inventory Collection configuration after retries: %v", err))
 	}
 
-	// Since this resource is a singleton, use a fixed ID to represent it in the Terraform state
 	d.SetId("jamfpro_computer_checkin_singleton")
 
-	// Read the site to ensure the Terraform state is up to date
-	readDiags := ResourceJamfProComputerInventoryCollectionRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
+	return append(diags, ResourceJamfProComputerInventoryCollectionRead(ctx, d, meta)...)
 }
 
 // ResourceJamfProComputerInventoryCollectionDelete is responsible for 'deleting' the Jamf Pro Computer Inventory Collection configuration.
 // Since this resource represents a configuration and not an actual entity that can be deleted,
 // this function will simply remove it from the Terraform state.
 func ResourceJamfProComputerInventoryCollectionDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Simply remove the resource from the Terraform state by setting the ID to an empty string.
 	d.SetId("")
 
 	return nil

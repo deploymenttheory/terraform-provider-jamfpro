@@ -48,7 +48,6 @@ func ResourceJamfProActivationCode() *schema.Resource {
 // ResourceJamfProActivationCodeCreate is responsible for initializing the Jamf Pro computer check-in configuration in Terraform.
 func ResourceJamfProActivationCodeCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
-
 	var diags diag.Diagnostics
 
 	activationCodeConfig, err := constructJamfProActivationCode(d)
@@ -65,26 +64,19 @@ func ResourceJamfProActivationCodeCreate(ctx context.Context, d *schema.Resource
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Activation Code configuration after retries: %v", err))
+		diags = append(diags, diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Activation Code configuration after retries: %v", err))...)
 	}
 
 	// TODO document why this is not an ID
 	d.SetId("jamfpro_activation_code_singleton")
 
-	readDiags := ResourceJamfProActivationCodeRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
+	return append(diags, ResourceJamfProActivationCodeRead(ctx, d, meta)...)
 }
 
 // ResourceJamfProActivationCodeRead is responsible for reading the current state of the Jamf Pro computer check-in configuration.
 func ResourceJamfProActivationCodeRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
-
 	var diags diag.Diagnostics
-
 	resource, err := client.GetActivationCode()
 
 	// TODO here too
@@ -94,18 +86,12 @@ func ResourceJamfProActivationCodeRead(ctx context.Context, d *schema.ResourceDa
 		return state.HandleResourceNotFoundError(err, d)
 	}
 
-	diags = updateTerraformState(d, resource)
-
-	if len(diags) > 0 {
-		return diags
-	}
-	return nil
+	return append(diags, updateTerraformState(d, resource)...)
 }
 
 // ResourceJamfProActivationCodeUpdate is responsible for updating the Jamf Pro computer check-in configuration.
 func ResourceJamfProActivationCodeUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
-
 	var diags diag.Diagnostics
 
 	activationCodeConfig, err := constructJamfProActivationCode(d)
@@ -125,14 +111,10 @@ func ResourceJamfProActivationCodeUpdate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Activation Code configuration after retries: %v", err))
 	}
 
+	// TODO and here
 	d.SetId("jamfpro_activation_code_singleton")
 
-	readDiags := ResourceJamfProActivationCodeRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
+	return append(diags, ResourceJamfProActivationCodeRead(ctx, d, meta)...)
 }
 
 // ResourceJamfProActivationCodeDelete is responsible for 'deleting' the Jamf Pro computer check-in configuration.

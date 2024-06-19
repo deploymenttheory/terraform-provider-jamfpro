@@ -277,12 +277,7 @@ func ResourceJamfProAccountCreate(ctx context.Context, d *schema.ResourceData, m
 	// 	return waitDiags
 	// }
 
-	readDiags := ResourceJamfProAccountRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
+	return append(diags, ResourceJamfProAccountRead(ctx, d, meta)...)
 }
 
 // ResourceJamfProAccountRead is responsible for reading the current state of a Jamf Pro Account Group Resource from the remote system.
@@ -303,18 +298,12 @@ func ResourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, met
 		return state.HandleResourceNotFoundError(err, d)
 	}
 
-	diags = updateTerraformState(d, resource)
-
-	if len(diags) > 0 {
-		return diags
-	}
-	return nil
+	return append(diags, updateTerraformState(d, resource)...)
 }
 
 // ResourceJamfProAccountUpdate is responsible for updating an existing Jamf Pro Account Group on the remote system.
 func ResourceJamfProAccountUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
-
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
@@ -340,12 +329,7 @@ func ResourceJamfProAccountUpdate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Account '%s' (ID: %s) after retries: %v", resource.Name, resourceID, err))
 	}
 
-	readDiags := ResourceJamfProAccountRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
+	return append(diags, ResourceJamfProAccountRead(ctx, d, meta)...)
 }
 
 // ResourceJamfProAccountDelete is responsible for deleting a Jamf Pro account .

@@ -13,7 +13,6 @@ import (
 func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceUserGroup) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// Update the Terraform state with the fetched data
 	if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -27,7 +26,6 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceUser
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Set the 'site' attribute in the state only if it's not empty (i.e., not default values)
 	site := []interface{}{}
 	if resource.Site.ID != -1 {
 		site = append(site, map[string]interface{}{
@@ -40,7 +38,6 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceUser
 		}
 	}
 
-	// 'criteria' attribute
 	criteria := make([]interface{}, len(resource.Criteria))
 	for i, criterion := range resource.Criteria {
 		criteria[i] = map[string]interface{}{
@@ -55,7 +52,6 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceUser
 	}
 	d.Set("criteria", criteria)
 
-	// Set the user id's only if the group is not smart
 	if !resource.IsSmart {
 		var userIDStrList []string
 		for _, user := range resource.Users {

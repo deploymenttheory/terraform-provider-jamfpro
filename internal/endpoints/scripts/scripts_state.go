@@ -11,7 +11,6 @@ import (
 func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceScript) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// Update the Terraform state with the fetched data, excluding category name and category id
 	resourceData := map[string]interface{}{
 		"id":              resource.ID,
 		"name":            resource.Name,
@@ -30,14 +29,12 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceScri
 		"parameter11":     resource.Parameter11,
 	}
 
-	// Iterate over the map and set each key-value pair in the Terraform state
 	for key, val := range resourceData {
 		if err := d.Set(key, val); err != nil {
 			return diag.FromErr(err)
 		}
 	}
 
-	// Set category_name and category_id in the state only if they are not default values
 	if resource.CategoryName != "NONE" {
 		if err := d.Set("category_name", resource.CategoryName); err != nil {
 			diags = append(diags, diag.FromErr(err)...)

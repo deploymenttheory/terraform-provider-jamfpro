@@ -44,17 +44,11 @@ func DataSourceJamfProAdvancedMobileDeviceSearches() *schema.Resource {
 // Returns:
 // - diag.Diagnostics: Returns any diagnostics (errors or warnings) encountered during the function's execution.
 func DataSourceJamfProAdvancedMobileDeviceSearchesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize API client
-	client, ok := meta.(*jamfpro.Client)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.client")
-	}
+	client := meta.(*jamfpro.Client)
 
-	// Initialize variables
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)
 
-	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
@@ -62,31 +56,26 @@ func DataSourceJamfProAdvancedMobileDeviceSearchesRead(ctx context.Context, d *s
 
 	var resource *jamfpro.ResourceAdvancedMobileDeviceSearch
 
-	// Read operation with retry
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
 		resource, apiErr = client.GetAdvancedMobileDeviceSearchByID(resourceIDInt)
 		if apiErr != nil {
-			// Convert any API error into a retryable error to continue retrying
 			return retry.RetryableError(apiErr)
 		}
-		// Successfully read the resource, exit the retry loop
 		return nil
 	})
 
 	if err != nil {
-		// Handle the final error after all retries have been exhausted
 		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Advanced User Search with ID '%s' after retries: %v", resourceID, err))
 	}
 
-	// Check if resource data exists and set the Terraform state
 	if resource != nil {
-		d.SetId(resourceID) // Confirm the ID in the Terraform state
+		d.SetId(resourceID)
 		if err := d.Set("name", resource.Name); err != nil {
 			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Advanced User Search with ID '%s': %v", resourceID, err))...)
 		}
 	} else {
-		d.SetId("") // Data not found, unset the ID in the Terraform state
+		d.SetId("")
 	}
 
 	return diags

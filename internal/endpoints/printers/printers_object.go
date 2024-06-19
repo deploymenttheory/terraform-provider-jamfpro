@@ -28,7 +28,6 @@ func constructJamfProPrinter(d *schema.ResourceData) (*jamfpro.ResourcePrinter, 
 		PPDContents: d.Get("ppd_contents").(string),
 	}
 
-	// Serialize and pretty-print the Printer object as XML for logging
 	resourceXML, err := xml.MarshalIndent(printer, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Printer '%s' to XML: %v", printer.Name, err)

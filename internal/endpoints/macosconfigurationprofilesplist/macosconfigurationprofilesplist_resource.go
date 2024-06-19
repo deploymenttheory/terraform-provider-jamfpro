@@ -8,12 +8,10 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles/plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -229,21 +227,14 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func ResourceJamfProMacOSConfigurationProfilesPlistCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client, ok := meta.(*jamfpro.Client)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.client")
-	}
-
-	// Initialize variables
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	// Construct the resource object
 	resource, err := constructJamfProMacOSConfigurationProfilePlist(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro macOS Configuration Profile: %v", err))
 	}
 
-	// Retry the API call to create the MacOs Configuration Profile in Jamf Pro
 	var creationResponse *jamfpro.ResponseMacOSConfigurationProfileCreationUpdate
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
@@ -258,30 +249,22 @@ func ResourceJamfProMacOSConfigurationProfilesPlistCreate(ctx context.Context, d
 		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro macOS Configuration Profile '%s' after retries: %v", resource.General.Name, err))
 	}
 
-	// Set the resource ID in Terraform state
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	// Wait for the resource to be fully available before reading it
-	checkResourceExists := func(id interface{}) (interface{}, error) {
-		intID, err := strconv.Atoi(id.(string))
-		if err != nil {
-			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
-		}
-		return client.GetMacOSConfigurationProfileByID(intID)
-	}
+	// checkResourceExists := func(id interface{}) (interface{}, error) {
+	// 	intID, err := strconv.Atoi(id.(string))
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
+	// 	}
+	// 	return client.GetMacOSConfigurationProfileByID(intID)
+	// }
 
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro macOS Configuration Profile", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
-	if waitDiags.HasError() {
-		return waitDiags
-	}
+	// _, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro macOS Configuration Profile", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
+	// if waitDiags.HasError() {
+	// 	return waitDiags
+	// }
 
-	// Read the resource to ensure the Terraform state is up to date
-	readDiags := ResourceJamfProMacOSConfigurationProfilesPlistRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
+	return append(diags, ResourceJamfProMacOSConfigurationProfilesPlistRead(ctx, d, meta)...)
 }
 
 // ResourceJamfProMacOSConfigurationProfilesPlistRead is responsible for reading the current state of a Jamf Pro config profile Resource from the remote system.
@@ -290,13 +273,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlistCreate(ctx context.Context, d
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
 func ResourceJamfProMacOSConfigurationProfilesPlistRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize API client
-	client, ok := meta.(*jamfpro.Client)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.client")
-	}
-
-	// Initialize variables
+	client := meta.(*jamfpro.Client)
 	resourceID := d.Id()
 	var diags diag.Diagnostics
 
@@ -305,32 +282,17 @@ func ResourceJamfProMacOSConfigurationProfilesPlistRead(ctx context.Context, d *
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	// Attempt to fetch the resource by ID
 	resource, err := client.GetMacOSConfigurationProfileByID(resourceIDInt)
-
 	if err != nil {
-		// Handle not found error or other errors
 		return state.HandleResourceNotFoundError(err, d)
 	}
 
-	// Update the Terraform state with the fetched data from the resource
-	diags = updateTerraformState(d, resource)
-
-	// Handle any errors and return diagnostics
-	if len(diags) > 0 {
-		return diags
-	}
-	return nil
+	return append(diags, updateTerraformState(d, resource)...)
 }
 
 // ResourceJamfProMacOSConfigurationProfilesPlistUpdate is responsible for updating an existing Jamf Pro config profile on the remote system.
 func ResourceJamfProMacOSConfigurationProfilesPlistUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize API client
-	client, ok := meta.(*jamfpro.Client)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.client")
-	}
-
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
@@ -356,22 +318,12 @@ func ResourceJamfProMacOSConfigurationProfilesPlistUpdate(ctx context.Context, d
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro macOS Configuration Profile '%s' (ID: %d) after retries: %v", resource.General.Name, resourceIDInt, err))
 	}
 
-	readDiags := ResourceJamfProMacOSConfigurationProfilesPlistRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
+	return append(diags, ResourceJamfProMacOSConfigurationProfilesPlistRead(ctx, d, meta)...)
 }
 
 // ResourceJamfProMacOSConfigurationProfilesPlistDelete is responsible for deleting a Jamf Pro config profile.
 func ResourceJamfProMacOSConfigurationProfilesPlistDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize API client
-	client, ok := meta.(*jamfpro.Client)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.client")
-	}
-
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
@@ -382,11 +334,9 @@ func ResourceJamfProMacOSConfigurationProfilesPlistDelete(ctx context.Context, d
 
 	resourceName := d.Get("name").(string)
 
-	// Use the retry function for the delete operation with appropriate timeout
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		apiErr := client.DeleteMacOSConfigurationProfileByID(resourceIDInt)
 		if apiErr != nil {
-
 			apiErrByName := client.DeleteMacOSConfigurationProfileByName(resourceName)
 			if apiErrByName != nil {
 				return retry.RetryableError(apiErrByName)

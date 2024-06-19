@@ -11,9 +11,7 @@ import (
 func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComputerPrestage) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// Update the Terraform state with the fetched data
 	if resource != nil {
-		// Construct a map of computer prestage attributes
 		prestageAttributes := map[string]interface{}{
 			"display_name":                          resource.DisplayName,
 			"mandatory":                             resource.Mandatory,
@@ -51,7 +49,6 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 			"account_settings":                      resource.AccountSettings,
 		}
 
-		// Handle nested location_information
 		if locationInformation := resource.LocationInformation; locationInformation != (jamfpro.ComputerPrestageSubsetLocationInformation{}) {
 			prestageAttributes["location_information"] = []interface{}{
 				map[string]interface{}{
@@ -68,7 +65,6 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 				},
 			}
 		}
-		// Handle nested purchasing_information
 		if purchasingInformation := resource.PurchasingInformation; purchasingInformation != (jamfpro.ComputerPrestageSubsetPurchasingInformation{}) {
 			prestageAttributes["purchasing_information"] = []interface{}{
 				map[string]interface{}{
@@ -89,7 +85,6 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 				},
 			}
 		}
-		// Add other single-level attributes
 		prestageAttributes["anchor_certificates"] = resource.AnchorCertificates
 		prestageAttributes["enrollment_customization_id"] = resource.EnrollmentCustomizationId
 		prestageAttributes["language"] = resource.Language
@@ -106,7 +101,6 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 		prestageAttributes["profile_uuid"] = resource.ProfileUuid
 		prestageAttributes["site_id"] = resource.SiteId
 		prestageAttributes["version_lock"] = resource.VersionLock
-		// Handle nested account_settings
 		if accountSettings := resource.AccountSettings; accountSettings != (jamfpro.ComputerPrestageSubsetAccountSettings{}) {
 			prestageAttributes["account_settings"] = []interface{}{
 				map[string]interface{}{
@@ -127,7 +121,6 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 				},
 			}
 		}
-		// Update the Terraform state with prestage attributes
 		for key, val := range prestageAttributes {
 			if err := d.Set(key, val); err != nil {
 				return diag.FromErr(err)

@@ -42,7 +42,6 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceFile
 			"https_username":                   resource.HTTPUsername,
 		}
 
-		// Iterate over the map and set each key-value pair in the Terraform state
 		for key, val := range resourceData {
 			if err := d.Set(key, val); err != nil {
 				return diag.FromErr(err)

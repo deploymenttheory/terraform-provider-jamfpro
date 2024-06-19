@@ -45,9 +45,9 @@ func DataSourceJamfProAdvancedComputerSearches() *schema.Resource {
 // - diag.Diagnostics: Returns any diagnostics (errors or warnings) encountered during the function's execution.
 func DataSourceJamfProAdvancedComputerSearchesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
-
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)
+
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))

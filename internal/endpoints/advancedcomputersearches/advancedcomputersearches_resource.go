@@ -176,12 +176,7 @@ func ResourceJamfProAdvancedComputerSearchCreate(ctx context.Context, d *schema.
 	// 	return waitDiags
 	// }
 
-	readDiags := ResourceJamfProAdvancedComputerSearchRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
+	return append(diags, ResourceJamfProAdvancedComputerSearchRead(ctx, d, meta)...)
 }
 
 // ResourceJamfProAdvancedComputerSearchRead is responsible for reading the current state of a Jamf Pro Advanced Computer Search from the remote system.
@@ -198,16 +193,12 @@ func ResourceJamfProAdvancedComputerSearchRead(ctx context.Context, d *schema.Re
 
 	resource, err := client.GetAdvancedComputerSearchByID(resourceIDInt)
 
+	// TODO come back to this
 	if err != nil {
 		return state.HandleResourceNotFoundError(err, d)
 	}
 
-	diags = updateTerraformState(d, resource)
-
-	if len(diags) > 0 {
-		return diags
-	}
-	return nil
+	return append(diags, updateTerraformState(d, resource)...)
 }
 
 // ResourceJamfProAdvancedComputerSearchUpdate is responsible for updating an existing Jamf Pro Advanced Computer Search on the remote system.
@@ -241,12 +232,7 @@ func ResourceJamfProAdvancedComputerSearchUpdate(ctx context.Context, d *schema.
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Advanced Computer Search '%s' (ID: %s) after retries: %v", resource.Name, resourceID, err))
 	}
 
-	readDiags := ResourceJamfProAdvancedComputerSearchRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
+	return append(diags, ResourceJamfProAdvancedComputerSearchRead(ctx, d, meta)...)
 }
 
 // ResourceJamfProAdvancedComputerSearchDelete is responsible for deleting a Jamf Pro AdvancedComputerSearch.

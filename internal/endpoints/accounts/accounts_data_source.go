@@ -39,7 +39,6 @@ func DataSourceJamfProAccounts() *schema.Resource {
 // DataSourceJamfProAccountRead fetches the details of specific account from Jamf Pro using either their unique Name or Id.
 func DataSourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
-
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)
 

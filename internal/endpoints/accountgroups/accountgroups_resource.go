@@ -176,7 +176,6 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 // ResourceJamfProAccountGroupCreate is responsible for creating a new Jamf Pro Script in the remote system.
 func ResourceJamfProAccountGroupCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
-
 	var diags diag.Diagnostics
 
 	resource, err := constructJamfProAccountGroup(d)
@@ -195,11 +194,12 @@ func ResourceJamfProAccountGroupCreate(ctx context.Context, d *schema.ResourceDa
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Account Group '%s' after retries: %v", resource.Name, err))
+		return append(diags, diag.FromErr(fmt.Errorf("failed to create Jamf Pro Account Group '%s' after retries: %v", resource.Name, err))...)
 	}
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
+	// region concurrency
 	// checkResourceExists := func(id interface{}) (interface{}, error) {
 	// 	intID, err := strconv.Atoi(id.(string))
 	// 	if err != nil {
@@ -207,26 +207,18 @@ func ResourceJamfProAccountGroupCreate(ctx context.Context, d *schema.ResourceDa
 	// 	}
 	// 	return client.GetAccountGroupByID(intID)
 	// }
-
 	// _, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Account Group", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
-
 	// if waitDiags.HasError() {
 	// 	return waitDiags
 	// }
+	// endregion
 
-	readDiags := ResourceJamfProAccountGroupRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
+	return append(diags, ResourceJamfProAccountGroupRead(ctx, d, meta)...)
 }
 
 // ResourceJamfProAccountGroupRead is responsible for reading the current state of a Jamf Pro Account Group Resource from the remote system.
 func ResourceJamfProAccountGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
-
-	var diags diag.Diagnostics
 	resourceID := d.Id()
 
 	resourceIDInt, err := strconv.Atoi(resourceID)
@@ -240,18 +232,12 @@ func ResourceJamfProAccountGroupRead(ctx context.Context, d *schema.ResourceData
 		return state.HandleResourceNotFoundError(err, d)
 	}
 
-	diags = updateTerraformState(d, resource)
-
-	if len(diags) > 0 {
-		return diags
-	}
-	return nil
+	return updateTerraformState(d, resource)
 }
 
 // ResourceJamfProAccountGroupUpdate is responsible for updating an existing Jamf Pro Account Group on the remote system.
 func ResourceJamfProAccountGroupUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
-
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
@@ -268,30 +254,23 @@ func ResourceJamfProAccountGroupUpdate(ctx context.Context, d *schema.ResourceDa
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		_, apiErr := client.UpdateAccountGroupByID(resourceIDInt, resource)
 		if apiErr != nil {
-
 			return retry.RetryableError(apiErr)
 		}
 
 		return nil
 	})
 
+	// TODO should this be a program breakpoint or just a warn?
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Account Group '%s' (ID: %s) after retries: %v", resource.Name, resourceID, err))
+		return append(diags, diag.FromErr(fmt.Errorf("failed to update Jamf Pro Account Group '%s' (ID: %s) after retries: %v", resource.Name, resourceID, err))...)
 	}
 
-	readDiags := ResourceJamfProAccountGroupRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
+	return append(diags, ResourceJamfProAccountGroupRead(ctx, d, meta)...)
 }
 
 // ResourceJamfProAccountGroupDelete is responsible for deleting a Jamf Pro account group.
 func ResourceJamfProAccountGroupDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-
 	client := meta.(*jamfpro.Client)
-
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
@@ -301,7 +280,6 @@ func ResourceJamfProAccountGroupDelete(ctx context.Context, d *schema.ResourceDa
 	}
 
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-
 		apiErr := client.DeleteAccountGroupByID(resourceIDInt)
 		if apiErr != nil {
 			resourceName := d.Get("name").(string)
@@ -310,12 +288,11 @@ func ResourceJamfProAccountGroupDelete(ctx context.Context, d *schema.ResourceDa
 				return retry.RetryableError(apiErrByName)
 			}
 		}
-
 		return nil
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Account Group '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
+		diags = append(diags, diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Account Group '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))...)
 	}
 
 	d.SetId("")
