@@ -41,12 +41,10 @@ func customDiffAccounts(ctx context.Context, d *schema.ResourceDiff, meta interf
 func validateAccessLevelSiteRequirement(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
 	accessLevel, ok := d.GetOk("access_level")
 	if !ok || accessLevel == nil {
-		// If access_level is not set, no further checks required
 		return nil
 	}
 
 	if accessLevel.(string) == "Site Access" {
-		// Check if 'site' block is defined and 'id' is set within it
 		if site, ok := d.GetOk("site"); ok {
 			siteList := site.([]interface{})
 			if len(siteList) == 0 || siteList[0] == nil {
@@ -69,11 +67,9 @@ func validateAccessLevelSiteRequirement(_ context.Context, d *schema.ResourceDif
 func validatePrivilegesForSiteAccess(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
 	accessLevel, ok := d.GetOk("access_level")
 	if !ok || accessLevel.(string) != "Site Access" {
-		// If access_level is not 'Site Access', no further checks required
 		return nil
 	}
 
-	// Check if 'jss_settings_privileges' or 'casper_admin_privileges' are set
 	if jssSettingsPrivileges, ok := d.GetOk("jss_settings_privileges"); ok && len(jssSettingsPrivileges.([]interface{})) > 0 {
 		return fmt.Errorf("when 'access_level' is 'Site Access', 'jss_settings_privileges' are not allowed")
 	}
@@ -179,7 +175,6 @@ func validateReverseDependencyChecks(_ context.Context, d *schema.ResourceDiff, 
 			jssPrivilegesSet[priv.(string)] = true
 		}
 
-		// Check for "Use Casper Admin" if specific read privileges are set
 		readPrivileges := []string{"Read Categories", "Read Directory Bindings", "Read Dock Items", "Read Packages", "Read Printers", "Read Scripts"}
 		allReadPrivilegesPresent := true
 		for _, priv := range readPrivileges {
@@ -201,7 +196,6 @@ func validateReverseDependencyChecks(_ context.Context, d *schema.ResourceDiff, 
 			}
 		}
 
-		// Check for "Save With Casper Admin" if specific CRUD privileges are set
 		crudPrivileges := []string{
 			"Create Categories", "Read Categories", "Update Categories", "Delete Categories",
 			"Create Directory Bindings", "Read Directory Bindings", "Update Directory Bindings", "Delete Directory Bindings",

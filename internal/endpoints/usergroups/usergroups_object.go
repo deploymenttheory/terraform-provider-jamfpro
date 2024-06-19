@@ -20,11 +20,9 @@ func constructJamfProUserGroup(d *schema.ResourceData) (*jamfpro.ResourceUserGro
 		IsNotifyOnChange: d.Get("is_notify_on_change").(bool),
 	}
 
-	// Handle Site
 	if v, ok := d.GetOk("site"); ok {
 		userGroup.Site = constructobject.ConstructSharedResourceSite(v.([]interface{}))
 	} else {
-		// Set default values if 'site' data is not provided
 		userGroup.Site = constructobject.ConstructSharedResourceSite([]interface{}{})
 	}
 
@@ -42,7 +40,6 @@ func constructJamfProUserGroup(d *schema.ResourceData) (*jamfpro.ResourceUserGro
 		})
 	}
 
-	// Handle 'users' attribute
 	if v, ok := d.GetOk("users"); ok && len(v.([]interface{})) > 0 {
 		usersBlock := v.([]interface{})[0].(map[string]interface{})
 		userIDList := usersBlock["id"].([]interface{})
@@ -52,7 +49,7 @@ func constructJamfProUserGroup(d *schema.ResourceData) (*jamfpro.ResourceUserGro
 				return nil, fmt.Errorf("user ID is not a string as expected: %v", userID)
 			}
 
-			intID, err := strconv.Atoi(userIDStr) // Convert string to int
+			intID, err := strconv.Atoi(userIDStr)
 			if err != nil {
 				return nil, fmt.Errorf("error converting user ID '%s' to integer: %v", userIDStr, err)
 			}
@@ -66,7 +63,6 @@ func constructJamfProUserGroup(d *schema.ResourceData) (*jamfpro.ResourceUserGro
 	userGroup.UserAdditions = extractUsers(d.Get("user_additions").([]interface{}))
 	userGroup.UserDeletions = extractUsers(d.Get("user_deletions").([]interface{}))
 
-	// Serialize and pretty-print the User Group object as XML for logging
 	resourceXML, err := xml.MarshalIndent(userGroup, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro User Group  '%s' to XML: %v", userGroup.Name, err)

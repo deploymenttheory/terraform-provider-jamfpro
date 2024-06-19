@@ -19,7 +19,6 @@ func constructJamfProDockItem(d *schema.ResourceData) (*jamfpro.ResourceDockItem
 		Contents: (d.Get("contents").(string)),
 	}
 
-	// Serialize and pretty-print the Dock Item object as XML for logging
 	resourceXML, err := xml.MarshalIndent(dockItem, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Dock Item '%s' to XML: %v", dockItem.Name, err)

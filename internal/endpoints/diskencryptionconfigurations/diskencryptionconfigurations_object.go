@@ -17,7 +17,6 @@ func constructJamfProDiskEncryptionConfiguration(d *schema.ResourceData) (*jamfp
 		FileVaultEnabledUsers: d.Get("file_vault_enabled_users").(string),
 	}
 
-	// Handle institutional_recovery_key
 	if v, ok := d.GetOk("institutional_recovery_key"); ok && len(v.([]interface{})) > 0 {
 		irkData := v.([]interface{})[0].(map[string]interface{})
 		diskEncryptionConfig.InstitutionalRecoveryKey = &jamfpro.DiskEncryptionConfigurationInstitutionalRecoveryKey{
@@ -28,7 +27,6 @@ func constructJamfProDiskEncryptionConfiguration(d *schema.ResourceData) (*jamfp
 		}
 	}
 
-	// Print the constructed XML output to the log
 	xmlOutput, err := constructobject.SerializeAndRedactXML(diskEncryptionConfig, []string{"Password"})
 	if err != nil {
 		log.Fatalf("Error: %v", err)

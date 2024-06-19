@@ -4,8 +4,8 @@ go 1.22.4
 
 // Direct
 require (
-	github.com/deploymenttheory/go-api-http-client v0.1.54-0.20240617153832-256e1346b42d
-	github.com/deploymenttheory/go-api-sdk-jamfpro v1.7.2-0.20240617153339-7c2ca405107d
+	github.com/deploymenttheory/go-api-http-client v0.1.54-0.20240618090742-b34e699f5832
+	github.com/deploymenttheory/go-api-sdk-jamfpro v1.7.2-0.20240618130302-f18272d6f0f5
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/terraform-plugin-docs v0.19.2
@@ -16,7 +16,7 @@ require (
 )
 
 require (
-	github.com/deploymenttheory/go-api-http-client-integration-jamfpro v0.0.0-20240617132858-cfae242da9b7
+	github.com/deploymenttheory/go-api-http-client-integration-jamfpro v0.0.0-20240618135651-0e427039cf99
 	github.com/mitchellh/mapstructure v1.5.0
 )
 

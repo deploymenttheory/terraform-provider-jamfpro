@@ -9,7 +9,6 @@ import (
 
 // updateTerraformState updates the Terraform state with the latest Allowed File Extension information from the Jamf Pro API.
 func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAllowedFileExtension) diag.Diagnostics {
-
 	var diags diag.Diagnostics
 
 	if err := d.Set("extension", resource.Extension); err != nil {

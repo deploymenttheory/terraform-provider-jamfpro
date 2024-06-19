@@ -21,19 +21,13 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	// Main obj
 	out := &jamfpro.ResourcePolicy{}
 
-	// General
 	constructGeneral(d, out)
-
-	// Scope
 	err = constructScope(d, out)
 	if err != nil {
 		return nil, err
 	}
 
-	// Self Service
 	constructSelfService(d, out)
-
-	// Payloads
 	constructPayloads(d, out)
 
 	// Package Configuration
@@ -51,15 +45,11 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	policyXML, _ := xml.MarshalIndent(out, "", "  ")
 	log.Println(string(policyXML))
 
-	// END
-
 	return out, nil
 }
 
 // Pulls "general" settings from HCL and packages into object
 func constructGeneral(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
-
-	// Primitive fields
 	out.General = jamfpro.PolicySubsetGeneral{
 		Name:                       d.Get("name").(string),
 		Enabled:                    d.Get("enabled").(bool),

@@ -15,9 +15,7 @@ func constructJamfProApiRole(d *schema.ResourceData) (*jamfpro.ResourceAPIRole, 
 		DisplayName: d.Get("display_name").(string),
 	}
 
-	// Handle 'privileges' field directly without type assertion helper functions
 	if v, ok := d.GetOk("privileges"); ok {
-		// Convert privileges from interface{} to []interface{} and then to []string
 		privilegesInterface := v.(*schema.Set).List()
 		privileges := make([]string, len(privilegesInterface))
 		for i, priv := range privilegesInterface {
@@ -29,7 +27,6 @@ func constructJamfProApiRole(d *schema.ResourceData) (*jamfpro.ResourceAPIRole, 
 		apiRole.Privileges = privileges
 	}
 
-	// Serialize and pretty-print the Api Role object as JSON for logging
 	resourceJSON, err := json.MarshalIndent(apiRole, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Api Role '%s' to JSON: %v", apiRole.DisplayName, err)

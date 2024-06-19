@@ -27,33 +27,28 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData) (*ja
 		},
 	}
 
-	// Handle Site
 	if v, ok := d.GetOk("site"); ok {
 		profile.General.Site = constructobject.ConstructSharedResourceSite(v.([]interface{}))
 	} else {
 		profile.General.Site = constructobject.ConstructSharedResourceSite([]interface{}{})
 	}
 
-	// Handle Category
 	if v, ok := d.GetOk("category"); ok {
 		profile.General.Category = constructobject.ConstructSharedResourceCategory(v.([]interface{}))
 	} else {
 		profile.General.Category = constructobject.ConstructSharedResourceCategory([]interface{}{})
 	}
 
-	// Handle Scope
 	if v, ok := d.GetOk("scope"); ok {
 		scopeData := v.([]interface{})[0].(map[string]interface{})
 		profile.Scope = constructMacOSConfigurationProfileSubsetScope(scopeData)
 	}
 
-	// Handle Self Service
 	if v, ok := d.GetOk("self_service"); ok {
 		selfServiceData := v.([]interface{})[0].(map[string]interface{})
 		profile.SelfService = constructMacOSConfigurationProfileSubsetSelfService(selfServiceData)
 	}
 
-	// Serialize and pretty-print the macOS Configuration Profile object as XML for logging
 	resourceXML, err := xml.MarshalIndent(profile, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro macOS Configuration Profile '%s' to XML: %v", profile.General.Name, err)
@@ -90,13 +85,11 @@ func constructMacOSConfigurationProfileSubsetScope(data map[string]interface{}) 
 		scope.JSSUserGroups = constructScopeEntitiesFromIds(jssUserGroupIDs.([]interface{}))
 	}
 
-	// Handle Limitations
 	if limitations, ok := data["limitations"]; ok && len(limitations.([]interface{})) > 0 {
 		limitationData := limitations.([]interface{})[0].(map[string]interface{})
 		scope.Limitations = constructLimitations(limitationData)
 	}
 
-	// Handle Exclusions
 	if exclusions, ok := data["exclusions"]; ok && len(exclusions.([]interface{})) > 0 {
 		exclusionData := exclusions.([]interface{})[0].(map[string]interface{})
 		scope.Exclusions = constructExclusions(exclusionData)

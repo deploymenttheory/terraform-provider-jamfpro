@@ -13,7 +13,6 @@ import (
 func updateTerraformState(d *schema.ResourceData, resource *jamfpro.SharedResourceSite) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// Update Terraform state with the resource information
 	if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}

@@ -18,17 +18,14 @@ func constructJamfProStaticComputerGroup(d *schema.ResourceData) (*jamfpro.Resou
 		IsSmart: false,
 	}
 
-	// Handle Site
 	if v, ok := d.GetOk("site"); ok {
 		site := constructobject.ConstructSharedResourceSite(v.([]interface{}))
 		group.Site = &site
 	} else {
-		// Set default values if 'site' data is not provided
 		site := constructobject.ConstructSharedResourceSite([]interface{}{})
 		group.Site = &site
 	}
 
-	// Handle "assignments" field
 	if v, ok := d.GetOk("assignments"); ok {
 		assignments := v.([]interface{})
 		if len(assignments) > 0 {
@@ -36,7 +33,6 @@ func constructJamfProStaticComputerGroup(d *schema.ResourceData) (*jamfpro.Resou
 			group.Computers = constructGroupComputers(computerIDs)
 		}
 	}
-	// Serialize and pretty-print the Computer Group object as XML for logging
 	resourceXML, err := xml.MarshalIndent(group, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Group '%s' to XML: %v", group.Name, err)

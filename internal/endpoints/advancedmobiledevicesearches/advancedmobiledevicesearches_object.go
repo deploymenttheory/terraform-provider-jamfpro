@@ -21,7 +21,6 @@ func constructJamfProAdvancedMobileDeviceSearch(d *schema.ResourceData) (*jamfpr
 		Sort3:  d.Get("sort3").(string),
 	}
 
-	// Handle 'criteria' field
 	if v, ok := d.GetOk("criteria"); ok {
 		criteriaList := v.([]interface{})
 		criteria := make([]jamfpro.SharedSubsetCriteria, len(criteriaList))
@@ -40,7 +39,6 @@ func constructJamfProAdvancedMobileDeviceSearch(d *schema.ResourceData) (*jamfpr
 		search.Criteria.Criterion = criteria
 	}
 
-	// Handle 'display_fields' field
 	if v, ok := d.GetOk("display_fields"); ok {
 		displayFieldsSet := v.(*schema.Set).List()
 		displayFields := make([]jamfpro.SharedAdvancedSearchSubsetDisplayField, len(displayFieldsSet))
@@ -53,15 +51,13 @@ func constructJamfProAdvancedMobileDeviceSearch(d *schema.ResourceData) (*jamfpr
 		search.DisplayFields = []jamfpro.SharedAdvancedSearchContainerDisplayField{{DisplayField: displayFields}}
 	}
 
-	// Handle Site
 	if v, ok := d.GetOk("site"); ok {
 		search.Site = constructobject.ConstructSharedResourceSite(v.([]interface{}))
 	} else {
-		// Set default values if 'site' data is not provided
+
 		search.Site = constructobject.ConstructSharedResourceSite([]interface{}{})
 	}
 
-	// Serialize and pretty-print the Advanced Mobile Device Search object as XML for logging
 	resourceXML, err := xml.MarshalIndent(search, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Advanced Mobile Device Search '%s' to XML: %v", search.Name, err)

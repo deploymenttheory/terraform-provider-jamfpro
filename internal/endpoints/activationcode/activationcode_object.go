@@ -18,7 +18,6 @@ func constructJamfProActivationCode(d *schema.ResourceData) (*jamfpro.ResourceAc
 		Code:             d.Get("code").(string),
 	}
 
-	// Serialize and pretty-print the ActivationCode object as XML for logging
 	resourceXML, err := xml.MarshalIndent(activationCode, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Activation Code to XML: %v", err)

@@ -27,7 +27,6 @@ func constructJamfProWebhook(d *schema.ResourceData) (*jamfpro.ResourceWebhook, 
 		SmartGroupID:                d.Get("smart_group_id").(int),
 	}
 
-	// Handle Display Fields if provided
 	if v, ok := d.GetOk("display_fields"); ok {
 		displayFieldsData := v.([]interface{})
 		for _, fieldData := range displayFieldsData {

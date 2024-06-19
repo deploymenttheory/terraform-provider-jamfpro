@@ -186,11 +186,11 @@ Mitigation Strategy:
 
 [3] Ensure that terraform is run with a parallelism of 1 to ensure that resources are created and stated in a controlled manner. (suggested)
 
-Sticky sessions can be enabled like this in the provider configuration:
+Sticky sessions with paralellism in the provider can be achieved by:
 
 ```bash
 provider "jamfpro" {
-  enable_cookie_jar = true // or false
+    jamf_load_balancer_lock = true
 }
 ```
 

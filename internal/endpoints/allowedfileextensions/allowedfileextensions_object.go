@@ -16,7 +16,6 @@ func constructJamfProAllowedFileExtension(d *schema.ResourceData) (*jamfpro.Reso
 		Extension: d.Get("extension").(string),
 	}
 
-	// Serialize and pretty-print the Allowed File Extension object as XML for logging
 	resourceXML, err := xml.MarshalIndent(allowedFileExtension, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Allowed File Extension '%s' to XML: %v", allowedFileExtension.Extension, err)

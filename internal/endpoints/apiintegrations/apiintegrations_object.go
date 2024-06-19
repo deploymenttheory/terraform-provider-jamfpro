@@ -18,7 +18,6 @@ func constructJamfProApiIntegration(d *schema.ResourceData) (*jamfpro.ResourceAp
 		AccessTokenLifetimeSeconds: d.Get("access_token_lifetime_seconds").(int),
 	}
 
-	// Handle 'authorization_scopes' field directly without helper functions
 	if v, ok := d.GetOk("authorization_scopes"); ok {
 		scopesList := v.(*schema.Set).List()
 		authorizationScopes := make([]string, len(scopesList))
@@ -32,7 +31,6 @@ func constructJamfProApiIntegration(d *schema.ResourceData) (*jamfpro.ResourceAp
 		integration.AuthorizationScopes = authorizationScopes
 	}
 
-	// Serialize and pretty-print the Api Integration object as JSON for logging
 	resourceJSON, err := json.MarshalIndent(integration, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Api Integration '%s' to JSON: %v", integration.DisplayName, err)

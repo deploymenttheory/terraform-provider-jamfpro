@@ -55,7 +55,6 @@ func ResourceJamfProCategories() *schema.Resource {
 // ResourceJamfProCategoriesCreate is responsible for creating a new Jamf Pro Category in the remote system.
 func ResourceJamfProCategoriesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
-
 	var diags diag.Diagnostics
 
 	resource, err := constructJamfProCategory(d)
@@ -100,10 +99,8 @@ func ResourceJamfProCategoriesCreate(ctx context.Context, d *schema.ResourceData
 // ResourceJamfProCategoriesRead is responsible for reading the current state of a Jamf Pro Category Resource from the remote system.
 func ResourceJamfProCategoriesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
-
 	var diags diag.Diagnostics
 	resourceID := d.Id()
-
 	resource, err := client.GetCategoryByID(resourceID)
 
 	// TODO review this logic
@@ -111,15 +108,12 @@ func ResourceJamfProCategoriesRead(ctx context.Context, d *schema.ResourceData, 
 		return state.HandleResourceNotFoundError(err, d)
 	}
 
-	diags = updateTerraformState(d, resource)
-
-	return diags
+	return append(diags, updateTerraformState(d, resource)...)
 }
 
 // ResourceJamfProCategoriesUpdate is responsible for updating an existing Jamf Pro Category on the remote system.
 func ResourceJamfProCategoriesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
-
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 	resourceName := d.Get("name").(string)
@@ -146,8 +140,7 @@ func ResourceJamfProCategoriesUpdate(ctx context.Context, d *schema.ResourceData
 
 	// TODO move this up?
 	if err != nil {
-		diags = append(diags, diag.FromErr(fmt.Errorf("final attempt to update Category '%s' failed: %v", resourceName, err))...)
-		return diags
+		return append(diags, diag.FromErr(fmt.Errorf("final attempt to update Category '%s' failed: %v", resourceName, err))...)
 	}
 
 	// TODO what is this log?
@@ -176,7 +169,7 @@ func ResourceJamfProCategoriesDelete(ctx context.Context, d *schema.ResourceData
 
 	// TODO move this up?
 	if err != nil {
-		diags = append(diags, diag.FromErr(fmt.Errorf("final attempt to delete Category '%s' failed: %v", resourceName, err))...)
+		return append(diags, diag.FromErr(fmt.Errorf("final attempt to delete Category '%s' failed: %v", resourceName, err))...)
 	}
 
 	// TODO what's this log?

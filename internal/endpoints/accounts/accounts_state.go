@@ -13,6 +13,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAcco
 
 	var diags diag.Diagnostics
 
+	// TODO what's this?
 	// Update Terraform state with the resource information
 	// if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
 	// 	diags = append(diags, diag.FromErr(err)...)
@@ -34,13 +35,12 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAcco
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Set LDAP server information
 	if resource.LdapServer.ID != 0 || resource.LdapServer.Name != "" {
 		ldapServer := make(map[string]interface{})
 		ldapServer["id"] = resource.LdapServer.ID
 		d.Set("identity_server", []interface{}{ldapServer})
 	} else {
-		d.Set("identity_server", []interface{}{}) // Clear the LDAP server data if not present
+		d.Set("identity_server", []interface{}{})
 	}
 
 	d.Set("force_password_change", resource.ForcePasswordChange)
@@ -49,17 +49,15 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAcco
 
 	d.Set("privilege_set", resource.PrivilegeSet)
 
-	// Set site information
 	if resource.Site.ID != 0 || resource.Site.Name != "" {
 		site := make(map[string]interface{})
 		site["id"] = resource.Site.ID
 		site["name"] = resource.Site.Name
 		d.Set("site", []interface{}{site})
 	} else {
-		d.Set("site", []interface{}{}) // Clear the site data if not present
+		d.Set("site", []interface{}{})
 	}
 
-	// Construct and set the groups attribute
 	groups := make([]interface{}, len(resource.Groups))
 	for i, group := range resource.Groups {
 		groupMap := make(map[string]interface{})
@@ -73,7 +71,6 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAcco
 		return diag.FromErr(err)
 	}
 
-	// Set privileges
 	privilegeAttributes := map[string][]string{
 		"jss_objects_privileges":    resource.Privileges.JSSObjects,
 		"jss_settings_privileges":   resource.Privileges.JSSSettings,

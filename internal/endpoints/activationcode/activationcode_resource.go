@@ -46,26 +46,15 @@ func ResourceJamfProActivationCode() *schema.Resource {
 }
 
 // ResourceJamfProActivationCodeCreate is responsible for initializing the Jamf Pro computer check-in configuration in Terraform.
-// Since this resource is a configuration set and not a resource that is 'created' in the traditional sense,
-// this function will simply set the initial state in Terraform.
-// ResourceJamfProActivationCodeCreate is responsible for initializing the Jamf Pro computer check-in configuration in Terraform.
 func ResourceJamfProActivationCodeCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize API client
-	client, ok := meta.(*jamfpro.Client)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.client")
-	}
-
-	// Initialize variables
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	// Construct the resource object
 	activationCodeConfig, err := constructJamfProActivationCode(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Activation Code for update: %v", err))
 	}
 
-	// Update (or effectively create) the activation code configuration with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		apiErr := client.UpdateActivationCode(activationCodeConfig)
 		if apiErr != nil {
@@ -75,71 +64,41 @@ func ResourceJamfProActivationCodeCreate(ctx context.Context, d *schema.Resource
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Activation Code configuration after retries: %v", err))
+		diags = append(diags, diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Activation Code configuration after retries: %v", err))...)
 	}
 
-	// Since this resource is a singleton, use a fixed ID to represent it in the Terraform state
+	// TODO document why this is not an ID
 	d.SetId("jamfpro_activation_code_singleton")
 
-	// Read the site to ensure the Terraform state is up to date
-	readDiags := ResourceJamfProActivationCodeRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
+	return append(diags, ResourceJamfProActivationCodeRead(ctx, d, meta)...)
 }
 
 // ResourceJamfProActivationCodeRead is responsible for reading the current state of the Jamf Pro computer check-in configuration.
 func ResourceJamfProActivationCodeRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize API client
-	client, ok := meta.(*jamfpro.Client)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.client")
-	}
-
-	// Initialize variables
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
-
-	// Attempt to fetch the resource by ID
 	resource, err := client.GetActivationCode()
 
-	// The constant ID "jamfpro_computer_checkin_singleton" is assigned to satisfy Terraform's requirement for an ID.
+	// TODO here too
 	d.SetId("jamfpro_computer_checkin_singleton")
 
 	if err != nil {
-		// Handle not found error or other errors
 		return state.HandleResourceNotFoundError(err, d)
 	}
 
-	// Update the Terraform state with the fetched data from the resource
-	diags = updateTerraformState(d, resource)
-
-	// Handle any errors and return diagnostics
-	if len(diags) > 0 {
-		return diags
-	}
-	return nil
+	return append(diags, updateTerraformState(d, resource)...)
 }
 
 // ResourceJamfProActivationCodeUpdate is responsible for updating the Jamf Pro computer check-in configuration.
 func ResourceJamfProActivationCodeUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize API client
-	client, ok := meta.(*jamfpro.Client)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.client")
-	}
-
-	// Initialize variables
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	// Construct the resource object
 	activationCodeConfig, err := constructJamfProActivationCode(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Activation Code for update: %v", err))
 	}
 
-	// Update (or effectively create) the activation code configuration with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		apiErr := client.UpdateActivationCode(activationCodeConfig)
 		if apiErr != nil {
@@ -152,23 +111,16 @@ func ResourceJamfProActivationCodeUpdate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Activation Code configuration after retries: %v", err))
 	}
 
-	// Since this resource is a singleton, use a fixed ID to represent it in the Terraform state
+	// TODO and here
 	d.SetId("jamfpro_activation_code_singleton")
 
-	// Read the site to ensure the Terraform state is up to date
-	readDiags := ResourceJamfProActivationCodeRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
+	return append(diags, ResourceJamfProActivationCodeRead(ctx, d, meta)...)
 }
 
 // ResourceJamfProActivationCodeDelete is responsible for 'deleting' the Jamf Pro computer check-in configuration.
 // Since this resource represents a configuration and not an actual entity that can be deleted,
 // this function will simply remove it from the Terraform state.
 func ResourceJamfProActivationCodeDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Simply remove the resource from the Terraform state by setting the ID to an empty string.
 	d.SetId("")
 
 	return nil
