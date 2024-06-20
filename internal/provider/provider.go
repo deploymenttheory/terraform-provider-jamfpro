@@ -225,12 +225,6 @@ func Provider() *schema.Provider {
 				Default:     true,
 				Description: "Define whether sensitive fields should be hidden in logs. Default to hiding sensitive data in logs",
 			},
-			"enable_cookie_jar": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Enable or disable the cookie jar for the HTTP client.",
-			},
 			"custom_cookies": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -261,18 +255,6 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				Default:     3,
 				Description: "The maximum number of retry request attempts for retryable HTTP methods.",
-			},
-			"max_concurrent_requests": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Default:     10,
-				Description: "The maximum number of concurrent requests allowed.",
-			},
-			"enable_dynamic_rate_limiting": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Enable dynamic rate limiting.",
 			},
 			"custom_timeout_seconds": {
 				Type:        schema.TypeInt,
