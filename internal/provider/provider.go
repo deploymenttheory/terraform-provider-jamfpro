@@ -401,7 +401,7 @@ func Provider() *schema.Provider {
 			)
 
 		default:
-			diags = append(diags, diag.Diagnostic{
+			return nil, append(diags, diag.Diagnostic{
 				Severity: diag.Error,
 				Summary:  "invalid auth method supplied",
 				Detail:   "You should not be able to find this error. If you have, please raise an issue with the schema.",
@@ -410,9 +410,9 @@ func Provider() *schema.Provider {
 		}
 
 		if err != nil {
-			diags = append(diags, diag.Diagnostic{
+			return nil, append(diags, diag.Diagnostic{
 				Severity: diag.Error,
-				Summary:  "Error getting building jamf integration",
+				Summary:  "Error building jamf integration",
 				Detail:   fmt.Sprintf("error: %v", err),
 			})
 		}
