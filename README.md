@@ -119,12 +119,6 @@ This documentation provides a detailed explanation of the configuration options 
 - **Default:** `true`
 - **Description:** Determines whether sensitive information (like passwords) should be hidden in logs. Defaults to hiding sensitive data for security reasons.
 
-### `enable_cookie_jar`
-- **Type:** Boolean
-- **Optional:** Yes
-- **Default:** `false`
-- **Description:** Enables or disables the use of a cookie jar for the HTTP client. A cookie jar stores and manages cookies between HTTP requests.
-
 ### `custom_cookies`
 - **Type:** List of Objects
 - **Optional:** Yes
@@ -151,12 +145,6 @@ This documentation provides a detailed explanation of the configuration options 
 - **Default:** `3`
 - **Description:** The maximum number of retry attempts for retryable HTTP methods. Useful for handling transient errors.
 
-### `max_concurrent_requests`
-- **Type:** Integer
-- **Optional:** Yes
-- **Default:** `10`
-- **Description:** The maximum number of concurrent HTTP requests allowed. Helps manage the load and performance.
-
 ### `enable_dynamic_rate_limiting`
 - **Type:** Boolean
 - **Optional:** Yes
@@ -181,11 +169,6 @@ This documentation provides a detailed explanation of the configuration options 
 - **Default:** `60`
 - **Description:** The total duration, in seconds, for retrying HTTP requests. Limits the total time spent on retries.
 
-### `enable_concurrency_manager`
-- **Type:** Boolean
-- **Optional:** Yes
-- **Default:** `false`
-- **Description:** Enables management of HTTP client concurrency. Helps control and optimize the number of simultaneous requests.
 
 
 For those new to using Terraform with Jamf Pro, we provide a comprehensive demo example that serves as an excellent starting point. This demo implementation utilizes:
