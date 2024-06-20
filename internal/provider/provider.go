@@ -7,11 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
-	"github.com/deploymenttheory/go-api-http-client-integration-jamfpro/jamfprointegration"
+	"github.com/deploymenttheory/go-api-http-client-integrations/jamf/jamfprointegration"
 	"github.com/deploymenttheory/go-api-http-client/httpclient"
 	"github.com/deploymenttheory/go-api-http-client/logger"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -47,6 +43,9 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/staticcomputergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/usergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/webhooks"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 // TerraformProviderProductUserAgent is included in the User-Agent header for

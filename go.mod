@@ -16,6 +16,7 @@ require (
 )
 
 require (
+	github.com/deploymenttheory/go-api-http-client-integrations v0.0.1
 	github.com/mitchellh/mapstructure v1.5.0
 )
 
