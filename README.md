@@ -38,7 +38,7 @@ This documentation provides a detailed explanation of the configuration options 
 
 ### Cookie Jar
 - The cookie jar has been removed as it is redundant with Terraform's parallelism.
-- Please use the cookie lock (which enforces a single cookie across all parallel instances of Terraform) or set a custom cookie (which remains consistent across all instances of Terraform).
+- Please use the cookie lock (which enforces a single cookie across all parallel instances of Terraform) or set a custom cookie (also remains consistent across all instances of Terraform).
 
 
 ## Configuration Schema
