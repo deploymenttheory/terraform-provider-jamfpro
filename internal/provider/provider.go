@@ -57,6 +57,7 @@ const (
 	envKeyBasicAuthUsername           = "JAMFPRO_BASIC_USERNAME"
 	envKeyBasicAuthPassword           = "JAMFPRO_BASIC_PASSWORD"
 	envKeyJamfProUrlRoot              = "JAMFPRO_URL_ROOT" // e.g https://yourcompany.jamfcloud.com
+	jamfLoadBalancerCookieName        = "jpro-ingress"
 )
 
 // GetInstanceName retrieves the 'instance_name' value from the Terraform configuration.
@@ -429,9 +430,8 @@ func Provider() *schema.Provider {
 
 		if load_balancer_lock {
 			cookies, err := jamfIntegration.GetSessionCookies()
-
 			if err != nil {
-				diags = append(diags, diag.Diagnostic{
+				return nil, append(diags, diag.Diagnostic{
 					Severity: diag.Error,
 					Summary:  "Error getting session cookies",
 					Detail:   fmt.Sprintf("error: %v", err),
@@ -446,10 +446,19 @@ func Provider() *schema.Provider {
 			for _, v := range customCookies.([]interface{}) {
 				name := v.(map[string]interface{})["name"]
 				value := v.(map[string]interface{})["value"]
+
+				if name == jamfLoadBalancerCookieName && load_balancer_lock {
+					return nil, append(diags, diag.Diagnostic{
+						Severity: diag.Error,
+						Summary:  "Cannot have load balancer lock and custom cookie of same name.",
+					})
+				}
+
 				httpCookie := &http.Cookie{
 					Name:  name.(string),
 					Value: value.(string),
 				}
+
 				cookiesList = append(cookiesList, httpCookie)
 			}
 		}
