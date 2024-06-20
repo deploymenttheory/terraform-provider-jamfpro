@@ -417,9 +417,7 @@ func Provider() *schema.Provider {
 			})
 		}
 
-		// Cookie workaround. Likely will be moved out to tidy this func up.
 		var cookiesList []*http.Cookie
-
 		load_balancer_lock := d.Get("jamf_load_balancer_lock").(bool)
 		customCookies := d.Get("custom_cookies")
 
