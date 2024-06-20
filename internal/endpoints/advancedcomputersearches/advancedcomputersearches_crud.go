@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProAdvancedComputerSearchCreate is responsible for creating a new Jamf Pro Advanced Computer Search in the remote system.
+// resourceJamfProAdvancedComputerSearchCreate is responsible for creating a new Jamf Pro Advanced Computer Search in the remote system.
 func resourceJamfProAdvancedComputerSearchCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 
@@ -56,7 +56,7 @@ func resourceJamfProAdvancedComputerSearchCreate(ctx context.Context, d *schema.
 	return append(diags, resourceJamfProAdvancedComputerSearchRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProAdvancedComputerSearchRead is responsible for reading the current state of a Jamf Pro Advanced Computer Search from the remote system.
+// resourceJamfProAdvancedComputerSearchRead is responsible for reading the current state of a Jamf Pro Advanced Computer Search from the remote system.
 func resourceJamfProAdvancedComputerSearchRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 
@@ -78,7 +78,7 @@ func resourceJamfProAdvancedComputerSearchRead(ctx context.Context, d *schema.Re
 	return append(diags, updateTerraformState(d, resource)...)
 }
 
-// ResourceJamfProAdvancedComputerSearchUpdate is responsible for updating an existing Jamf Pro Advanced Computer Search on the remote system.
+// resourceJamfProAdvancedComputerSearchUpdate is responsible for updating an existing Jamf Pro Advanced Computer Search on the remote system.
 func resourceJamfProAdvancedComputerSearchUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 
@@ -112,7 +112,7 @@ func resourceJamfProAdvancedComputerSearchUpdate(ctx context.Context, d *schema.
 	return append(diags, resourceJamfProAdvancedComputerSearchRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProAdvancedComputerSearchDelete is responsible for deleting a Jamf Pro AdvancedComputerSearch.
+// resourceJamfProAdvancedComputerSearchDelete is responsible for deleting a Jamf Pro AdvancedComputerSearch.
 func resourceJamfProAdvancedComputerSearchDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 

@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProAccountGroupCreate is responsible for creating a new Jamf Pro Script in the remote system.
-func ResourceJamfProAccountGroupCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProAccountGroupCreate is responsible for creating a new Jamf Pro Script in the remote system.
+func resourceJamfProAccountGroupCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -52,11 +52,11 @@ func ResourceJamfProAccountGroupCreate(ctx context.Context, d *schema.ResourceDa
 	// }
 	// endregion
 
-	return append(diags, ResourceJamfProAccountGroupRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProAccountGroupRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProAccountGroupRead is responsible for reading the current state of a Jamf Pro Account Group Resource from the remote system.
-func ResourceJamfProAccountGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProAccountGroupRead is responsible for reading the current state of a Jamf Pro Account Group Resource from the remote system.
+func resourceJamfProAccountGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	resourceID := d.Id()
 
@@ -74,8 +74,8 @@ func ResourceJamfProAccountGroupRead(ctx context.Context, d *schema.ResourceData
 	return updateTerraformState(d, resource)
 }
 
-// ResourceJamfProAccountGroupUpdate is responsible for updating an existing Jamf Pro Account Group on the remote system.
-func ResourceJamfProAccountGroupUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProAccountGroupUpdate is responsible for updating an existing Jamf Pro Account Group on the remote system.
+func resourceJamfProAccountGroupUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -104,11 +104,11 @@ func ResourceJamfProAccountGroupUpdate(ctx context.Context, d *schema.ResourceDa
 		return append(diags, diag.FromErr(fmt.Errorf("failed to update Jamf Pro Account Group '%s' (ID: %s) after retries: %v", resource.Name, resourceID, err))...)
 	}
 
-	return append(diags, ResourceJamfProAccountGroupRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProAccountGroupRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProAccountGroupDelete is responsible for deleting a Jamf Pro account group.
-func ResourceJamfProAccountGroupDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProAccountGroupDelete is responsible for deleting a Jamf Pro account group.
+func resourceJamfProAccountGroupDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()

@@ -14,13 +14,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProRestrictedSoftwares defines the schema and CRUD operations for managing Jamf Pro Restricted Software in Terraform.
+// resourceJamfProRestrictedSoftwares defines the schema and CRUD operations for managing Jamf Pro Restricted Software in Terraform.
 func ResourceJamfProRestrictedSoftwares() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProRestrictedSoftwareCreate,
-		ReadContext:   ResourceJamfProRestrictedSoftwareRead,
-		UpdateContext: ResourceJamfProRestrictedSoftwareUpdate,
-		DeleteContext: ResourceJamfProRestrictedSoftwareDelete,
+		CreateContext: resourceJamfProRestrictedSoftwareCreate,
+		ReadContext:   resourceJamfProRestrictedSoftwareRead,
+		UpdateContext: resourceJamfProRestrictedSoftwareUpdate,
+		DeleteContext: resourceJamfProRestrictedSoftwareDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
@@ -213,13 +213,13 @@ func scopeEntitySchema() map[string]*schema.Schema {
 	}
 }
 
-// ResourceJamfProRestrictedSoftwareCreate is responsible for creating a new Jamf Pro Restricted Software in the remote system.
+// resourceJamfProRestrictedSoftwareCreate is responsible for creating a new Jamf Pro Restricted Software in the remote system.
 // The function:
 // 1. Constructs the User Group data using the provided Terraform configuration.
 // 2. Calls the API to create the User Group in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created User Group.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func ResourceJamfProRestrictedSoftwareCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProRestrictedSoftwareCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -257,15 +257,15 @@ func ResourceJamfProRestrictedSoftwareCreate(ctx context.Context, d *schema.Reso
 	// 	return waitDiags
 	// }
 
-	return append(diags, ResourceJamfProRestrictedSoftwareRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProRestrictedSoftwareRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProRestrictedSoftwareRead is responsible for reading the current state of a Jamf Pro Restricted Software Resource from the remote system.
+// resourceJamfProRestrictedSoftwareRead is responsible for reading the current state of a Jamf Pro Restricted Software Resource from the remote system.
 // The function:
 // 1. Fetches the user group's current state using its ID. If it fails, it tries to obtain the user group's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the user group being deleted outside of Terraform, to keep the Terraform state synchronized.
-func ResourceJamfProRestrictedSoftwareRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProRestrictedSoftwareRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -284,8 +284,8 @@ func ResourceJamfProRestrictedSoftwareRead(ctx context.Context, d *schema.Resour
 	return append(diags, updateTerraformState(d, resource)...)
 }
 
-// ResourceJamfProRestrictedSoftwareUpdate is responsible for updating an existing Jamf Pro Printer on the remote system.
-func ResourceJamfProRestrictedSoftwareUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProRestrictedSoftwareUpdate is responsible for updating an existing Jamf Pro Printer on the remote system.
+func resourceJamfProRestrictedSoftwareUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -312,11 +312,11 @@ func ResourceJamfProRestrictedSoftwareUpdate(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Restricted Software '%s' (ID: %d) after retries: %v", resource.General.Name, resourceIDInt, err))
 	}
 
-	return append(diags, ResourceJamfProRestrictedSoftwareRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProRestrictedSoftwareRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProRestrictedSoftwareDelete is responsible for deleting a Jamf Pro Restricted Software.
-func ResourceJamfProRestrictedSoftwareDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProRestrictedSoftwareDelete is responsible for deleting a Jamf Pro Restricted Software.
+func resourceJamfProRestrictedSoftwareDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()

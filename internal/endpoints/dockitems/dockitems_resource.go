@@ -15,13 +15,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProDockItems defines the schema and CRUD operations for managing Jamf Pro Dock Items in Terraform.
+// resourceJamfProDockItems defines the schema and CRUD operations for managing Jamf Pro Dock Items in Terraform.
 func ResourceJamfProDockItems() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProDockItemsCreate,
-		ReadContext:   ResourceJamfProDockItemsRead,
-		UpdateContext: ResourceJamfProDockItemsUpdate,
-		DeleteContext: ResourceJamfProDockItemsDelete,
+		CreateContext: resourceJamfProDockItemsCreate,
+		ReadContext:   resourceJamfProDockItemsRead,
+		UpdateContext: resourceJamfProDockItemsUpdate,
+		DeleteContext: resourceJamfProDockItemsDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
@@ -77,13 +77,13 @@ func ResourceJamfProDockItems() *schema.Resource {
 	}
 }
 
-// ResourceJamfProDockItemsCreate is responsible for creating a new Jamf Pro Dock Item in the remote system.
+// resourceJamfProDockItemsCreate is responsible for creating a new Jamf Pro Dock Item in the remote system.
 // The function:
 // 1. Constructs the dock item data using the provided Terraform configuration.
 // 2. Calls the API to create the dock item in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created dock item.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func ResourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -121,15 +121,15 @@ func ResourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData,
 	// 	return waitDiags
 	// }
 
-	return append(diags, ResourceJamfProDockItemsRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProDockItemsRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProDockItemsRead is responsible for reading the current state of a Jamf Pro Dock Item Resource from the remote system.
+// resourceJamfProDockItemsRead is responsible for reading the current state of a Jamf Pro Dock Item Resource from the remote system.
 // The function:
 // 1. Fetches the dock item's current state using its ID. If it fails then obtain dock item's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the dock item being deleted outside of Terraform, to keep the Terraform state synchronized.
-func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	resourceID := d.Id()
 	var diags diag.Diagnostics
@@ -148,8 +148,8 @@ func ResourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, m
 	return append(diags, updateTerraformState(d, resource)...)
 }
 
-// ResourceJamfProDockItemsUpdate is responsible for updating a Jamf Pro dock item.
-func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProDockItemsUpdate is responsible for updating a Jamf Pro dock item.
+func resourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -176,11 +176,11 @@ func ResourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Dock Item '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
 	}
 
-	return append(diags, ResourceJamfProDockItemsRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProDockItemsRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProDiskEncryptionConfigurationsDelete is responsible for deleting a Jamf Pro Disk Encryption Configuration.
-func ResourceJamfProDockItemsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProDiskEncryptionConfigurationsDelete is responsible for deleting a Jamf Pro Disk Encryption Configuration.
+func resourceJamfProDockItemsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()

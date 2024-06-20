@@ -10,13 +10,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-// ResourceJamfProPolicies defines the schema and CRUD operations for managing Jamf Pro Policy in Terraform.
+// resourceJamfProPolicies defines the schema and CRUD operations for managing Jamf Pro Policy in Terraform.
 func ResourceJamfProPolicies() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProPoliciesCreate,
-		ReadContext:   ResourceJamfProPoliciesRead,
-		UpdateContext: ResourceJamfProPoliciesUpdate,
-		DeleteContext: ResourceJamfProPoliciesDelete,
+		CreateContext: resourceJamfProPoliciesCreate,
+		ReadContext:   resourceJamfProPoliciesRead,
+		UpdateContext: resourceJamfProPoliciesUpdate,
+		DeleteContext: resourceJamfProPoliciesDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),

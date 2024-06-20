@@ -15,13 +15,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProNetworkSegments defines the schema and CRUD operations for managing Jamf Pro NetworkSegments in Terraform.
+// resourceJamfProNetworkSegments defines the schema and CRUD operations for managing Jamf Pro NetworkSegments in Terraform.
 func ResourceJamfProNetworkSegments() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProNetworkSegmentsCreate,
-		ReadContext:   ResourceJamfProNetworkSegmentsRead,
-		UpdateContext: ResourceJamfProNetworkSegmentsUpdate,
-		DeleteContext: ResourceJamfProNetworkSegmentsDelete,
+		CreateContext: resourceJamfProNetworkSegmentsCreate,
+		ReadContext:   resourceJamfProNetworkSegmentsRead,
+		UpdateContext: resourceJamfProNetworkSegmentsUpdate,
+		DeleteContext: resourceJamfProNetworkSegmentsDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
@@ -96,13 +96,13 @@ func ResourceJamfProNetworkSegments() *schema.Resource {
 	}
 }
 
-// ResourceJamfProNetworkSegmentsCreate is responsible for creating a new Jamf Network segment in the remote system.
+// resourceJamfProNetworkSegmentsCreate is responsible for creating a new Jamf Network segment in the remote system.
 // The function:
 // 1. Constructs the Network Segment data using the provided Terraform configuration.
 // 2. Calls the API to create the Network Segment in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created Network Segment.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func ResourceJamfProNetworkSegmentsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProNetworkSegmentsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -140,15 +140,15 @@ func ResourceJamfProNetworkSegmentsCreate(ctx context.Context, d *schema.Resourc
 	// 	return waitDiags
 	// }
 
-	return append(diags, ResourceJamfProNetworkSegmentsRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProNetworkSegmentsRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProNetworkSegmentsRead is responsible for reading the current state of a Jamf Pro Site Resource from the remote system.
+// resourceJamfProNetworkSegmentsRead is responsible for reading the current state of a Jamf Pro Site Resource from the remote system.
 // The function:
 // 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
-func ResourceJamfProNetworkSegmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProNetworkSegmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	resourceID := d.Id()
 	var diags diag.Diagnostics
@@ -167,8 +167,8 @@ func ResourceJamfProNetworkSegmentsRead(ctx context.Context, d *schema.ResourceD
 	return append(diags, updateTerraformState(d, resource)...)
 }
 
-// ResourceJamfProNetworkSegmentsUpdate is responsible for updating an existing Jamf Pro Network Segment on the remote system.
-func ResourceJamfProNetworkSegmentsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProNetworkSegmentsUpdate is responsible for updating an existing Jamf Pro Network Segment on the remote system.
+func resourceJamfProNetworkSegmentsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -195,11 +195,11 @@ func ResourceJamfProNetworkSegmentsUpdate(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Network Segment '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
 	}
 
-	return append(diags, ResourceJamfProNetworkSegmentsRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProNetworkSegmentsRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProNetworkSegmentsDeleteis responsible for deleting a Jamf Pro network segment.
-func ResourceJamfProNetworkSegmentsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProNetworkSegmentsDeleteis responsible for deleting a Jamf Pro network segment.
+func resourceJamfProNetworkSegmentsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()

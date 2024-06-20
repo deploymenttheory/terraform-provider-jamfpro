@@ -12,13 +12,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProAccountGroup defines the schema and CRUD operations for managing buildings in Terraform.
+// resourceJamfProAccountGroup defines the schema and CRUD operations for managing buildings in Terraform.
 func ResourceJamfProAccountGroups() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProAccountGroupCreate,
-		ReadContext:   ResourceJamfProAccountGroupRead,
-		UpdateContext: ResourceJamfProAccountGroupUpdate,
-		DeleteContext: ResourceJamfProAccountGroupDelete,
+		CreateContext: resourceJamfProAccountGroupCreate,
+		ReadContext:   resourceJamfProAccountGroupRead,
+		UpdateContext: resourceJamfProAccountGroupUpdate,
+		DeleteContext: resourceJamfProAccountGroupDelete,
 		CustomizeDiff: customDiffAccountGroups,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),

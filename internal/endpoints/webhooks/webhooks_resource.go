@@ -16,13 +16,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProWebhooks defines the schema and CRUD operations for managing Jamf Pro Webhooks in Terraform.
+// resourceJamfProWebhooks defines the schema and CRUD operations for managing Jamf Pro Webhooks in Terraform.
 func ResourceJamfProWebhooks() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProWebhookCreate,
-		ReadContext:   ResourceJamfProWebhookRead,
-		UpdateContext: ResourceJamfProWebhookUpdate,
-		DeleteContext: ResourceJamfProWebhookDelete,
+		CreateContext: resourceJamfProWebhookCreate,
+		ReadContext:   resourceJamfProWebhookRead,
+		UpdateContext: resourceJamfProWebhookUpdate,
+		DeleteContext: resourceJamfProWebhookDelete,
 		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Second),
@@ -193,13 +193,13 @@ func ResourceJamfProWebhooks() *schema.Resource {
 	}
 }
 
-// ResourceJamfProWebhooksCreate is responsible for creating a new Jamf Pro Webhook in the remote system.
+// resourceJamfProWebhooksCreate is responsible for creating a new Jamf Pro Webhook in the remote system.
 // The function:
 // 1. Constructs the Webhook data using the provided Terraform configuration.
 // 2. Calls the API to create the Webhook in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created Webhook.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func ResourceJamfProWebhookCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProWebhookCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -237,15 +237,15 @@ func ResourceJamfProWebhookCreate(ctx context.Context, d *schema.ResourceData, m
 	// 	return waitDiags
 	// }
 
-	return append(diags, ResourceJamfProWebhookRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProWebhookRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProWebhookRead is responsible for reading the current state of a Jamf Pro Webhook Resource from the remote system.
+// resourceJamfProWebhookRead is responsible for reading the current state of a Jamf Pro Webhook Resource from the remote system.
 // The function:
 // 1. Fetches the user group's current state using its ID. If it fails, it tries to obtain the user group's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the user group being deleted outside of Terraform, to keep the Terraform state synchronized.
-func ResourceJamfProWebhookRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProWebhookRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -264,8 +264,8 @@ func ResourceJamfProWebhookRead(ctx context.Context, d *schema.ResourceData, met
 	return append(diags, updateTerraformState(d, resource)...)
 }
 
-// ResourceJamfProWebhookUpdate is responsible for updating an existing Jamf Pro Webhook on the remote system.
-func ResourceJamfProWebhookUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProWebhookUpdate is responsible for updating an existing Jamf Pro Webhook on the remote system.
+func resourceJamfProWebhookUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -292,11 +292,11 @@ func ResourceJamfProWebhookUpdate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Webhook '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
 	}
 
-	return append(diags, ResourceJamfProWebhookRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProWebhookRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProWebhookDelete is responsible for deleting a Jamf Pro Webhook.
-func ResourceJamfProWebhookDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProWebhookDelete is responsible for deleting a Jamf Pro Webhook.
+func resourceJamfProWebhookDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()

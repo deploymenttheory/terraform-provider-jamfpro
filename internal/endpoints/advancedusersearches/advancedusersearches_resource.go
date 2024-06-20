@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProAdvancedUserSearches defines the schema for managing advanced user Searches in Terraform.
+// resourceJamfProAdvancedUserSearches defines the schema for managing advanced user Searches in Terraform.
 func ResourceJamfProAdvancedUserSearches() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProAdvancedUserSearchCreate,

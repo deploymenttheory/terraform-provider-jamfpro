@@ -16,14 +16,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-// ResourceJamfProComputerExtensionAttributes defines the schema and CRUD operations (Create, Read, Update, Delete)
+// resourceJamfProComputerExtensionAttributes defines the schema and CRUD operations (Create, Read, Update, Delete)
 // for managing Jamf Pro Computer Extension Attributes in Terraform.
 func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProComputerExtensionAttributesCreate,
-		ReadContext:   ResourceJamfProComputerExtensionAttributesRead,
-		UpdateContext: ResourceJamfProComputerExtensionAttributesUpdate,
-		DeleteContext: ResourceJamfProComputerExtensionAttributesDelete,
+		CreateContext: resourceJamfProComputerExtensionAttributesCreate,
+		ReadContext:   resourceJamfProComputerExtensionAttributesRead,
+		UpdateContext: resourceJamfProComputerExtensionAttributesUpdate,
+		DeleteContext: resourceJamfProComputerExtensionAttributesDelete,
 		CustomizeDiff: validateJamfProRResourceComputerExtensionAttributesDataFields,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
@@ -113,13 +113,13 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 	}
 }
 
-// ResourceJamfProComputerExtensionAttributesCreate is responsible for creating a new Jamf Pro Computer Extension Attribute in the remote system.
+// resourceJamfProComputerExtensionAttributesCreate is responsible for creating a new Jamf Pro Computer Extension Attribute in the remote system.
 // The function:
 // 1. Constructs the attribute data using the provided Terraform configuration.
 // 2. Calls the API to create the attribute in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -157,15 +157,15 @@ func ResourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 	// 	return waitDiags
 	// }
 
-	return append(diags, ResourceJamfProComputerExtensionAttributesRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProComputerExtensionAttributesRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProComputerExtensionAttributesRead is responsible for reading the current state of a Jamf Pro Computer Extension Attribute from the remote system.
+// resourceJamfProComputerExtensionAttributesRead is responsible for reading the current state of a Jamf Pro Computer Extension Attribute from the remote system.
 // The function:
 // 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
-func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -184,8 +184,8 @@ func ResourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 	return append(diags, updateTerraformState(d, resource)...)
 }
 
-// ResourceJamfProComputerExtensionAttributesUpdate is responsible for updating an existing Jamf Pro Computer Extension Attribute on the remote system.
-func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProComputerExtensionAttributesUpdate is responsible for updating an existing Jamf Pro Computer Extension Attribute on the remote system.
+func resourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
 	client, ok := meta.(*jamfpro.Client)
 	if !ok {
@@ -223,7 +223,7 @@ func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 	}
 
 	// Read the resource to ensure the Terraform state is up to date
-	readDiags := ResourceJamfProComputerExtensionAttributesRead(ctx, d, meta)
+	readDiags := resourceJamfProComputerExtensionAttributesRead(ctx, d, meta)
 	if len(readDiags) > 0 {
 		diags = append(diags, readDiags...)
 	}
@@ -231,8 +231,8 @@ func ResourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 	return diags
 }
 
-// ResourceJamfProComputerExtensionAttributesDelete is responsible for deleting a Jamf Pro Computer Extension Attribute.
-func ResourceJamfProComputerExtensionAttributesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProComputerExtensionAttributesDelete is responsible for deleting a Jamf Pro Computer Extension Attribute.
+func resourceJamfProComputerExtensionAttributesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
 	client, ok := meta.(*jamfpro.Client)
 	if !ok {

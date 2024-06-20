@@ -15,13 +15,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-// ResourceJamfProScripts defines the schema and CRUD operations for managing Jamf Pro Scripts in Terraform.
+// resourceJamfProScripts defines the schema and CRUD operations for managing Jamf Pro Scripts in Terraform.
 func ResourceJamfProScripts() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProScriptsCreate,
-		ReadContext:   ResourceJamfProScriptsRead,
-		UpdateContext: ResourceJamfProScriptsUpdate,
-		DeleteContext: ResourceJamfProScriptsDelete,
+		CreateContext: resourceJamfProScriptsCreate,
+		ReadContext:   resourceJamfProScriptsRead,
+		UpdateContext: resourceJamfProScriptsUpdate,
+		DeleteContext: resourceJamfProScriptsDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
@@ -123,13 +123,13 @@ func ResourceJamfProScripts() *schema.Resource {
 	}
 }
 
-// ResourceJamfProScriptsCreate is responsible for creating a new Jamf Pro Script in the remote system.
+// resourceJamfProScriptsCreate is responsible for creating a new Jamf Pro Script in the remote system.
 // The function:
 // 1. Constructs the script data using the provided Terraform configuration.
 // 2. Calls the API to create the script in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created script.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -163,15 +163,15 @@ func ResourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 	// 	return waitDiags
 	// }
 
-	return append(diags, ResourceJamfProScriptsRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProScriptsRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProScriptsRead is responsible for reading the current state of a Jamf Pro Script Resource from the remote system.
+// resourceJamfProScriptsRead is responsible for reading the current state of a Jamf Pro Script Resource from the remote system.
 // The function:
 // 1. Fetches the script's current state using its ID. If it fails then obtain script's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the script being deleted outside of Terraform, to keep the Terraform state synchronized.
-func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	resourceID := d.Id()
 	var diags diag.Diagnostics
@@ -185,8 +185,8 @@ func ResourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 	return append(diags, updateTerraformState(d, resource)...)
 }
 
-// ResourceJamfProScriptsUpdate is responsible for updating an existing Jamf Pro Department on the remote system.
-func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProScriptsUpdate is responsible for updating an existing Jamf Pro Department on the remote system.
+func resourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -212,11 +212,11 @@ func ResourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Script '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
 	}
 
-	return append(diags, ResourceJamfProScriptsRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProScriptsRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProScriptsDelete is responsible for deleting a Jamf Pro Department.
-func ResourceJamfProScriptsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProScriptsDelete is responsible for deleting a Jamf Pro Department.
+func resourceJamfProScriptsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()

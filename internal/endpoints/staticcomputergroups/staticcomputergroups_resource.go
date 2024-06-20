@@ -31,13 +31,13 @@ const (
 	SearchTypeDoesNotMatch       string = "does not match regex"
 )
 
-// ResourceJamfProStaticComputerGroups defines the schema and CRUD operations for managing Jamf Pro static Computer Groups in Terraform.
+// resourceJamfProStaticComputerGroups defines the schema and CRUD operations for managing Jamf Pro static Computer Groups in Terraform.
 func ResourceJamfProStaticComputerGroups() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProStaticComputerGroupsCreate,
-		ReadContext:   ResourceJamfProStaticComputerGroupsRead,
-		UpdateContext: ResourceJamfProStaticComputerGroupsUpdate,
-		DeleteContext: ResourceJamfProStaticComputerGroupsDelete,
+		CreateContext: resourceJamfProStaticComputerGroupsCreate,
+		ReadContext:   resourceJamfProStaticComputerGroupsRead,
+		UpdateContext: resourceJamfProStaticComputerGroupsUpdate,
+		DeleteContext: resourceJamfProStaticComputerGroupsDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),

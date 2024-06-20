@@ -16,13 +16,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProDiskEncryptionConfigurations defines the schema and CRUD operations for managing Jamf Pro Disk Encryption Configurations in Terraform.
+// resourceJamfProDiskEncryptionConfigurations defines the schema and CRUD operations for managing Jamf Pro Disk Encryption Configurations in Terraform.
 func ResourceJamfProDiskEncryptionConfigurations() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProDiskEncryptionConfigurationsCreate,
-		ReadContext:   ResourceJamfProDiskEncryptionConfigurationsRead,
-		UpdateContext: ResourceJamfProDiskEncryptionConfigurationsUpdate,
-		DeleteContext: ResourceJamfProDiskEncryptionConfigurationsDelete,
+		CreateContext: resourceJamfProDiskEncryptionConfigurationsCreate,
+		ReadContext:   resourceJamfProDiskEncryptionConfigurationsRead,
+		UpdateContext: resourceJamfProDiskEncryptionConfigurationsUpdate,
+		DeleteContext: resourceJamfProDiskEncryptionConfigurationsDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
@@ -126,13 +126,13 @@ const (
 	JamfProResourceDiskEncryptionConfiguration = "Disk Encryption Configuration"
 )
 
-// ResourceJamfProDiskEncryptionConfigurationsCreate is responsible for creating a new Jamf Pro Disk Encryption Configuration in the remote system.
+// resourceJamfProDiskEncryptionConfigurationsCreate is responsible for creating a new Jamf Pro Disk Encryption Configuration in the remote system.
 // The function:
 // 1. Constructs the disk encryption configuration data using the provided Terraform configuration.
 // 2. Calls the API to create the disk encryption configuration in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created disk encryption configuration.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func ResourceJamfProDiskEncryptionConfigurationsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProDiskEncryptionConfigurationsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -170,11 +170,11 @@ func ResourceJamfProDiskEncryptionConfigurationsCreate(ctx context.Context, d *s
 	// 	return waitDiags
 	// }
 
-	return append(diags, ResourceJamfProDiskEncryptionConfigurationsRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProDiskEncryptionConfigurationsRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProDiskEncryptionConfigurationsRead is responsible for reading the current state of a Jamf Pro Disk Encryption Configuration resource from Jamf Pro and updating the Terraform state with the retrieved data.
-func ResourceJamfProDiskEncryptionConfigurationsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProDiskEncryptionConfigurationsRead is responsible for reading the current state of a Jamf Pro Disk Encryption Configuration resource from Jamf Pro and updating the Terraform state with the retrieved data.
+func resourceJamfProDiskEncryptionConfigurationsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -193,8 +193,8 @@ func ResourceJamfProDiskEncryptionConfigurationsRead(ctx context.Context, d *sch
 	return append(diags, updateTerraformState(d, resource)...)
 }
 
-// ResourceJamfProDiskEncryptionConfigurationsUpdate is responsible for updating an existing Jamf Pro Disk Encryption Configuration on the remote system.
-func ResourceJamfProDiskEncryptionConfigurationsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProDiskEncryptionConfigurationsUpdate is responsible for updating an existing Jamf Pro Disk Encryption Configuration on the remote system.
+func resourceJamfProDiskEncryptionConfigurationsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -221,11 +221,11 @@ func ResourceJamfProDiskEncryptionConfigurationsUpdate(ctx context.Context, d *s
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Disk Encryption Configuration '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
 	}
 
-	return append(diags, ResourceJamfProDiskEncryptionConfigurationsRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProDiskEncryptionConfigurationsRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProDiskEncryptionConfigurationsDelete is responsible for deleting a Jamf Pro Disk Encryption Configuration.
-func ResourceJamfProDiskEncryptionConfigurationsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProDiskEncryptionConfigurationsDelete is responsible for deleting a Jamf Pro Disk Encryption Configuration.
+func resourceJamfProDiskEncryptionConfigurationsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()

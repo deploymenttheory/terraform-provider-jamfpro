@@ -18,13 +18,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-// ResourceJamfProMacOSConfigurationProfilesPlist defines the schema and CRUD operations for managing Jamf Pro macOS Configuration Profiles in Terraform.
+// resourceJamfProMacOSConfigurationProfilesPlist defines the schema and CRUD operations for managing Jamf Pro macOS Configuration Profiles in Terraform.
 func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProMacOSConfigurationProfilesPlistCreate,
-		ReadContext:   ResourceJamfProMacOSConfigurationProfilesPlistRead,
-		UpdateContext: ResourceJamfProMacOSConfigurationProfilesPlistUpdate,
-		DeleteContext: ResourceJamfProMacOSConfigurationProfilesPlistDelete,
+		CreateContext: resourceJamfProMacOSConfigurationProfilesPlistCreate,
+		ReadContext:   resourceJamfProMacOSConfigurationProfilesPlistRead,
+		UpdateContext: resourceJamfProMacOSConfigurationProfilesPlistUpdate,
+		DeleteContext: resourceJamfProMacOSConfigurationProfilesPlistDelete,
 		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
@@ -220,13 +220,13 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 	}
 }
 
-// ResourceJamfProMacOSConfigurationProfilesPlistCreate is responsible for creating a new Jamf Pro macOS Configuration Profile in the remote system.
+// resourceJamfProMacOSConfigurationProfilesPlistCreate is responsible for creating a new Jamf Pro macOS Configuration Profile in the remote system.
 // The function:
 // 1. Constructs the attribute data using the provided Terraform configuration.
 // 2. Calls the API to create the attribute in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func ResourceJamfProMacOSConfigurationProfilesPlistCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProMacOSConfigurationProfilesPlistCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -264,15 +264,15 @@ func ResourceJamfProMacOSConfigurationProfilesPlistCreate(ctx context.Context, d
 	// 	return waitDiags
 	// }
 
-	return append(diags, ResourceJamfProMacOSConfigurationProfilesPlistRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProMacOSConfigurationProfilesPlistRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProMacOSConfigurationProfilesPlistRead is responsible for reading the current state of a Jamf Pro config profile Resource from the remote system.
+// resourceJamfProMacOSConfigurationProfilesPlistRead is responsible for reading the current state of a Jamf Pro config profile Resource from the remote system.
 // The function:
 // 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
-func ResourceJamfProMacOSConfigurationProfilesPlistRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProMacOSConfigurationProfilesPlistRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	resourceID := d.Id()
 	var diags diag.Diagnostics
@@ -290,8 +290,8 @@ func ResourceJamfProMacOSConfigurationProfilesPlistRead(ctx context.Context, d *
 	return append(diags, updateTerraformState(d, resource)...)
 }
 
-// ResourceJamfProMacOSConfigurationProfilesPlistUpdate is responsible for updating an existing Jamf Pro config profile on the remote system.
-func ResourceJamfProMacOSConfigurationProfilesPlistUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProMacOSConfigurationProfilesPlistUpdate is responsible for updating an existing Jamf Pro config profile on the remote system.
+func resourceJamfProMacOSConfigurationProfilesPlistUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -318,11 +318,11 @@ func ResourceJamfProMacOSConfigurationProfilesPlistUpdate(ctx context.Context, d
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro macOS Configuration Profile '%s' (ID: %d) after retries: %v", resource.General.Name, resourceIDInt, err))
 	}
 
-	return append(diags, ResourceJamfProMacOSConfigurationProfilesPlistRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProMacOSConfigurationProfilesPlistRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProMacOSConfigurationProfilesPlistDelete is responsible for deleting a Jamf Pro config profile.
-func ResourceJamfProMacOSConfigurationProfilesPlistDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProMacOSConfigurationProfilesPlistDelete is responsible for deleting a Jamf Pro config profile.
+func resourceJamfProMacOSConfigurationProfilesPlistDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()

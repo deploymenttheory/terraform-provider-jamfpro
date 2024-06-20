@@ -15,13 +15,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProSite defines the schema and CRUD operations for managing Jamf Pro Sites in Terraform.
+// resourceJamfProSite defines the schema and CRUD operations for managing Jamf Pro Sites in Terraform.
 func ResourceJamfProSites() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProSitesCreate,
-		ReadContext:   ResourceJamfProSitesRead,
-		UpdateContext: ResourceJamfProSitesUpdate,
-		DeleteContext: ResourceJamfProSitesDelete,
+		CreateContext: resourceJamfProSitesCreate,
+		ReadContext:   resourceJamfProSitesRead,
+		UpdateContext: resourceJamfProSitesUpdate,
+		DeleteContext: resourceJamfProSitesDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
@@ -46,13 +46,13 @@ func ResourceJamfProSites() *schema.Resource {
 	}
 }
 
-// ResourceJamfPrositesCreate is responsible for creating a new Jamf Pro Site in the remote system.
+// resourceJamfPrositesCreate is responsible for creating a new Jamf Pro Site in the remote system.
 // The function:
 // 1. Constructs the attribute data using the provided Terraform configuration.
 // 2. Calls the API to create the attribute in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -90,15 +90,15 @@ func ResourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, met
 	// 	return waitDiags
 	// }
 
-	return append(diags, ResourceJamfProSitesRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProSitesRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProSitesRead is responsible for reading the current state of a Jamf Pro Site Resource from the remote system.
+// resourceJamfProSitesRead is responsible for reading the current state of a Jamf Pro Site Resource from the remote system.
 // The function:
 // 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
-func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -117,8 +117,8 @@ func ResourceJamfProSitesRead(ctx context.Context, d *schema.ResourceData, meta 
 	return append(diags, updateTerraformState(d, resource)...)
 }
 
-// ResourceJamfProSitesUpdate is responsible for updating an existing Jamf Pro Site on the remote system.
-func ResourceJamfProSitesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProSitesUpdate is responsible for updating an existing Jamf Pro Site on the remote system.
+func resourceJamfProSitesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -145,11 +145,11 @@ func ResourceJamfProSitesUpdate(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Site '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
 	}
 
-	return append(diags, ResourceJamfProSitesRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProSitesRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProSitesDelete is responsible for deleting a Jamf Pro Site.
-func ResourceJamfProSitesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProSitesDelete is responsible for deleting a Jamf Pro Site.
+func resourceJamfProSitesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()

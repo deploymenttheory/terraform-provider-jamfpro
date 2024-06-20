@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProAccountCreate is responsible for creating a new Jamf Pro Script in the remote system.
+// resourceJamfProAccountCreate is responsible for creating a new Jamf Pro Script in the remote system.
 func resourceJamfProAccountCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 
@@ -55,7 +55,7 @@ func resourceJamfProAccountCreate(ctx context.Context, d *schema.ResourceData, m
 	return append(diags, resourceJamfProAccountRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProAccountRead is responsible for reading the current state of a Jamf Pro Account Group Resource from the remote system.
+// resourceJamfProAccountRead is responsible for reading the current state of a Jamf Pro Account Group Resource from the remote system.
 func resourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 
@@ -76,7 +76,7 @@ func resourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, met
 	return append(diags, updateTerraformState(d, resource)...)
 }
 
-// ResourceJamfProAccountUpdate is responsible for updating an existing Jamf Pro Account Group on the remote system.
+// resourceJamfProAccountUpdate is responsible for updating an existing Jamf Pro Account Group on the remote system.
 func resourceJamfProAccountUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
@@ -107,7 +107,7 @@ func resourceJamfProAccountUpdate(ctx context.Context, d *schema.ResourceData, m
 	return append(diags, resourceJamfProAccountRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProAccountDelete is responsible for deleting a Jamf Pro account .
+// resourceJamfProAccountDelete is responsible for deleting a Jamf Pro account .
 func resourceJamfProAccountDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 

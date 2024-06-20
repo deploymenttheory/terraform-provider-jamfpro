@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProAdvancedComputerSearches defines the schema for managing Advanced Computer Searches in Terraform.
+// resourceJamfProAdvancedComputerSearches defines the schema for managing Advanced Computer Searches in Terraform.
 func ResourceJamfProAdvancedComputerSearches() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProAdvancedComputerSearchCreate,

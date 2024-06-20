@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProAccount defines the schema and CRUD operations for managing buildings in Terraform.
+// resourceJamfProAccount defines the schema and CRUD operations for managing buildings in Terraform.
 func ResourceJamfProAccounts() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProAccountCreate,

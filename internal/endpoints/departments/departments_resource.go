@@ -15,13 +15,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProDepartments defines the schema and CRUD operations for managing Jamf Pro Departments in Terraform.
+// resourceJamfProDepartments defines the schema and CRUD operations for managing Jamf Pro Departments in Terraform.
 func ResourceJamfProDepartments() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProDepartmentsCreate,
-		ReadContext:   ResourceJamfProDepartmentsRead,
-		UpdateContext: ResourceJamfProDepartmentsUpdate,
-		DeleteContext: ResourceJamfProDepartmentsDelete,
+		CreateContext: resourceJamfProDepartmentsCreate,
+		ReadContext:   resourceJamfProDepartmentsRead,
+		UpdateContext: resourceJamfProDepartmentsUpdate,
+		DeleteContext: resourceJamfProDepartmentsDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
@@ -46,14 +46,14 @@ func ResourceJamfProDepartments() *schema.Resource {
 	}
 }
 
-// ResourceJamfProDepartmentsCreate is responsible for creating a new Jamf Pro Department in the remote system.
+// resourceJamfProDepartmentsCreate is responsible for creating a new Jamf Pro Department in the remote system.
 // The function:
 // 1. Constructs the attribute data using the provided Terraform configuration.
 // 2. Calls the API to create the attribute in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-// ResourceJamfProDepartmentsCreate is responsible for creating a new Jamf Pro Department in the remote system.
-func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProDepartmentsCreate is responsible for creating a new Jamf Pro Department in the remote system.
+func resourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -88,16 +88,16 @@ func ResourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 	// 	return waitDiags
 	// }
 
-	return append(diags, ResourceJamfProDepartmentsRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProDepartmentsRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProDepartmentsRead is responsible for reading the current state of a Jamf Pro Department Resource from the remote system.
+// resourceJamfProDepartmentsRead is responsible for reading the current state of a Jamf Pro Department Resource from the remote system.
 // The function:
 // 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
-// ResourceJamfProDepartmentsRead is responsible for reading the current state of a Jamf Pro Department Resource from the remote system.
-func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProDepartmentsRead is responsible for reading the current state of a Jamf Pro Department Resource from the remote system.
+func resourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -111,8 +111,8 @@ func ResourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 	return append(diags, updateTerraformState(d, resource)...)
 }
 
-// ResourceJamfProDepartmentsUpdate is responsible for updating an existing Jamf Pro Department on the remote system.
-func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProDepartmentsUpdate is responsible for updating an existing Jamf Pro Department on the remote system.
+func resourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -143,11 +143,11 @@ func ResourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 
 	hclog.FromContext(ctx).Info(fmt.Sprintf("Successfully updated department '%s' with ID '%s'", resourceName, resourceID))
 
-	return append(diags, ResourceJamfProDepartmentsRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProDepartmentsRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProDepartmentsDelete is responsible for deleting a Jamf Pro Department.
-func ResourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProDepartmentsDelete is responsible for deleting a Jamf Pro Department.
+func resourceJamfProDepartmentsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()

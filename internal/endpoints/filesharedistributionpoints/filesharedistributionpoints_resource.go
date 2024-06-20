@@ -16,13 +16,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProFileShareDistributionPoints defines the schema and CRUD operations for managing Jamf Pro Distribution Point in Terraform.
+// resourceJamfProFileShareDistributionPoints defines the schema and CRUD operations for managing Jamf Pro Distribution Point in Terraform.
 func ResourceJamfProFileShareDistributionPoints() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProFileShareDistributionPointsCreate,
-		ReadContext:   ResourceJamfProFileShareDistributionPointsRead,
-		UpdateContext: ResourceJamfProFileShareDistributionPointsUpdate,
-		DeleteContext: ResourceJamfProFileShareDistributionPointsDelete,
+		CreateContext: resourceJamfProFileShareDistributionPointsCreate,
+		ReadContext:   resourceJamfProFileShareDistributionPointsRead,
+		UpdateContext: resourceJamfProFileShareDistributionPointsUpdate,
+		DeleteContext: resourceJamfProFileShareDistributionPointsDelete,
 		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
@@ -201,14 +201,14 @@ const (
 	JamfProResourceDistributionPoint = "Distribution Point"
 )
 
-// ResourceJamfProFileShareDistributionPointsCreate is responsible for creating a new file share
+// resourceJamfProFileShareDistributionPointsCreate is responsible for creating a new file share
 // distribution point object in the remote system.
 // The function:
 // 1. Constructs the dock item data using the provided Terraform configuration.
 // 2. Calls the API to create the dock item in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created dock item.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func ResourceJamfProFileShareDistributionPointsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProFileShareDistributionPointsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -246,16 +246,16 @@ func ResourceJamfProFileShareDistributionPointsCreate(ctx context.Context, d *sc
 	// 	return waitDiags
 	// }
 
-	return append(diags, ResourceJamfProFileShareDistributionPointsRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProFileShareDistributionPointsRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProFileShareDistributionPointsRead is responsible for reading the current state of a
+// resourceJamfProFileShareDistributionPointsRead is responsible for reading the current state of a
 // Jamf Pro File Share Distribution Point Resource from the remote system.
 // The function:
 // 1. Fetches the dock item's current state using its ID. If it fails then obtain dock item's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the dock item being deleted outside of Terraform, to keep the Terraform state synchronized.
-func ResourceJamfProFileShareDistributionPointsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProFileShareDistributionPointsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	resourceID := d.Id()
 	var diags diag.Diagnostics
@@ -274,8 +274,8 @@ func ResourceJamfProFileShareDistributionPointsRead(ctx context.Context, d *sche
 	return append(diags, updateTerraformState(d, resource)...)
 }
 
-// ResourceJamfProFileShareDistributionPointsUpdate is responsible for updating an existing Jamf Pro Site on the remote system.
-func ResourceJamfProFileShareDistributionPointsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProFileShareDistributionPointsUpdate is responsible for updating an existing Jamf Pro Site on the remote system.
+func resourceJamfProFileShareDistributionPointsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -302,11 +302,11 @@ func ResourceJamfProFileShareDistributionPointsUpdate(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro file share distribution point '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
 	}
 
-	return append(diags, ResourceJamfProFileShareDistributionPointsRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProFileShareDistributionPointsRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProFileShareDistributionPointsDeleteis responsible for deleting a Jamf Pro file share distribution point from the remote system.
-func ResourceJamfProFileShareDistributionPointsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProFileShareDistributionPointsDeleteis responsible for deleting a Jamf Pro file share distribution point from the remote system.
+func resourceJamfProFileShareDistributionPointsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
