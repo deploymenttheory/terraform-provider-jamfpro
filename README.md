@@ -28,6 +28,166 @@ For further community support and to engage with other users of the Jamf Pro Ter
 
 ## Getting Started with Examples
 
+# Provider Configuration for Jamf Pro in Terraform
+
+This documentation provides a detailed explanation of the configuration options available in the `provider.tf` file for setting up the Jamf Pro provider in Terraform.
+
+## Configuration Schema
+
+### `instance_domain`
+- **Type:** String
+- **Required:** Yes
+- **Default:** Fetched from environment variable `envKeyJamfProUrlRoot` if not provided
+- **Description:** The base URL for the Jamf Pro instance. Example: `https://mycompany.jamfcloud.com`. This URL is used to interact with the Jamf Pro API.
+
+### `auth_method`
+- **Type:** String
+- **Required:** Yes
+- **Description:** The authentication method to use for connecting to Jamf Pro.
+- **Valid Values:** 
+  - `basic`: Use basic authentication with a username and password.
+  - `oauth2`: Use OAuth2 for authentication.
+- **Validation:** Ensures the value is one of the specified valid values.
+
+### `client_id`
+- **Type:** String
+- **Optional:** Yes
+- **Default:** Fetched from environment variable `envKeyOAuthClientSecret` if not provided
+- **Description:** The OAuth2 Client ID used for authentication with Jamf Pro. Required if `auth_method` is `oauth2`.
+
+### `client_secret`
+- **Type:** String
+- **Optional:** Yes
+- **Sensitive:** Yes
+- **Default:** Fetched from environment variable `envKeyOAuthClientSecret` if not provided
+- **Description:** The OAuth2 Client Secret used for authentication with Jamf Pro. This field is sensitive and required if `auth_method` is `oauth2`.
+
+### `basic_auth_username`
+- **Type:** String
+- **Optional:** Yes
+- **Default:** Fetched from environment variable `envKeyBasicAuthUsername` if not provided
+- **Description:** The username for basic authentication with Jamf Pro. Required if `auth_method` is `basic`.
+
+### `basic_auth_password`
+- **Type:** String
+- **Optional:** Yes
+- **Sensitive:** Yes
+- **Default:** Fetched from environment variable `envKeyBasicAuthPassword` if not provided
+- **Description:** The password for basic authentication with Jamf Pro. This field is sensitive and required if `auth_method` is `basic`.
+
+### `log_level`
+- **Type:** String
+- **Optional:** Yes
+- **Default:** `warning`
+- **Description:** The logging level for the provider. Determines the verbosity of logs.
+- **Valid Values:** 
+  - `debug`: Detailed debugging information.
+  - `info`: General information about the operations.
+  - `warning`: Warnings that do not cause the operation to fail.
+  - `none`: No logging.
+- **Validation:** Ensures the value is one of the specified valid values.
+
+### `log_output_format`
+- **Type:** String
+- **Optional:** Yes
+- **Default:** `pretty`
+- **Description:** The format for log output. Determines how logs are presented.
+  - `JSON`: Logs in JSON format.
+  - `console`: Human-readable, console-friendly format.
+
+### `log_console_separator`
+- **Type:** String
+- **Optional:** Yes
+- **Default:** `" "`
+- **Description:** The character used to separate log entries in the console output. Useful for customizing the readability of logs.
+
+### `log_export_path`
+- **Type:** String
+- **Optional:** Yes
+- **Default:** `""`
+- **Description:** The file path to export HTTP client logs to. If specified, logs will be saved to this path.
+
+### `export_logs`
+- **Type:** Boolean
+- **Optional:** Yes
+- **Default:** `false`
+- **Description:** Enables or disables exporting logs to a file. When set to true, logs will be written to the specified `log_export_path`.
+
+### `hide_sensitive_data`
+- **Type:** Boolean
+- **Optional:** Yes
+- **Default:** `true`
+- **Description:** Determines whether sensitive information (like passwords) should be hidden in logs. Defaults to hiding sensitive data for security reasons.
+
+### `enable_cookie_jar`
+- **Type:** Boolean
+- **Optional:** Yes
+- **Default:** `false`
+- **Description:** Enables or disables the use of a cookie jar for the HTTP client. A cookie jar stores and manages cookies between HTTP requests.
+
+### `custom_cookies`
+- **Type:** List of Objects
+- **Optional:** Yes
+- **Default:** `nil`
+- **Description:** A list of custom cookies to be included in HTTP requests. Each cookie object should have a `name` and a `value`.
+  - **name**: 
+    - **Type:** String
+    - **Required:** Yes
+    - **Description:** The name of the cookie.
+  - **value**: 
+    - **Type:** String
+    - **Required:** Yes
+    - **Description:** The value of the cookie.
+
+### `jamf_load_balancer_lock`
+- **Type:** Boolean
+- **Optional:** Yes
+- **Default:** `false`
+- **Description:** Temporarily locks all HTTP client instances to a specific web app member in the load balancer for faster execution. This is a temporary solution until Jamf provides an official load balancing solution.
+
+### `max_retry_attempts`
+- **Type:** Integer
+- **Optional:** Yes
+- **Default:** `3`
+- **Description:** The maximum number of retry attempts for retryable HTTP methods. Useful for handling transient errors.
+
+### `max_concurrent_requests`
+- **Type:** Integer
+- **Optional:** Yes
+- **Default:** `10`
+- **Description:** The maximum number of concurrent HTTP requests allowed. Helps manage the load and performance.
+
+### `enable_dynamic_rate_limiting`
+- **Type:** Boolean
+- **Optional:** Yes
+- **Default:** `false`
+- **Description:** Enables dynamic rate limiting to automatically adjust the rate of HTTP requests based on server responses.
+
+### `custom_timeout_seconds`
+- **Type:** Integer
+- **Optional:** Yes
+- **Default:** `60`
+- **Description:** Custom timeout setting for HTTP requests, in seconds. Determines how long the client waits for a response.
+
+### `token_refresh_buffer_period_seconds`
+- **Type:** Integer
+- **Optional:** Yes
+- **Default:** `300`
+- **Description:** The buffer period in seconds before the token expires during which the token will be refreshed. Helps ensure continuous authentication.
+
+### `total_retry_duration_seconds`
+- **Type:** Integer
+- **Optional:** Yes
+- **Default:** `60`
+- **Description:** The total duration, in seconds, for retrying HTTP requests. Limits the total time spent on retries.
+
+### `enable_concurrency_manager`
+- **Type:** Boolean
+- **Optional:** Yes
+- **Default:** `false`
+- **Description:** Enables management of HTTP client concurrency. Helps control and optimize the number of simultaneous requests.
+
+
 For those new to using Terraform with Jamf Pro, we provide a comprehensive demo example that serves as an excellent starting point. This demo implementation utilizes:
 
 - Terraform Cloud as the remote backend
