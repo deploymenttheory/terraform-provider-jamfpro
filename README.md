@@ -32,6 +32,15 @@ For further community support and to engage with other users of the Jamf Pro Ter
 
 This documentation provides a detailed explanation of the configuration options available in the `provider.tf` file for setting up the Jamf Pro provider in Terraform.
 
+### Concurrency
+- You can adjust paralellism by setting the Terraform parallelism count using `terraform apply -parallelism=X` (the default is 10). [HashiCorp Docs](https://developer.hashicorp.com/terraform/cli/commands/apply#parallelism-n)
+- The provider remains stable using paralellism of up to 50, going beyond is at your own risk!
+
+### Cookie Jar
+- The cookie jar has been removed as it is redundant with Terraform's parallelism.
+- Please use the cookie lock (which enforces a single cookie across all parallel instances of Terraform) or set a custom cookie (also remains consistent across all instances of Terraform).
+
+
 ## Configuration Schema
 
 ### `instance_domain`
