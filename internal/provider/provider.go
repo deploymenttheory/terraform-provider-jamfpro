@@ -471,7 +471,7 @@ func Provider() *schema.Provider {
 
 		goHttpClient, err := httpclient.BuildClient(config, false, sharedLogger)
 		if err != nil {
-			return nil, diag.FromErr(err)
+			return nil, append(diags, diag.FromErr(err)...)
 		}
 
 		jamfClient := jamfpro.Client{
