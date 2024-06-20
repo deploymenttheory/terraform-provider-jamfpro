@@ -2,16 +2,9 @@
 package usergroups
 
 import (
-	"context"
 	"fmt"
-	"strconv"
 	"time"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -31,13 +24,13 @@ const (
 
 type UserGroupAndOr string
 
-// ResourceJamfProUserGroups defines the schema and CRUD operations for managing Jamf Pro Scripts in Terraform.
+// resourceJamfProUserGroups defines the schema and CRUD operations for managing Jamf Pro Scripts in Terraform.
 func ResourceJamfProUserGroups() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProUserGroupCreate,
-		ReadContext:   ResourceJamfProUserGroupRead,
-		UpdateContext: ResourceJamfProUserGroupUpdate,
-		DeleteContext: ResourceJamfProUserGroupDelete,
+		CreateContext: resourceJamfProUserGroupCreate,
+		ReadContext:   resourceJamfProUserGroupRead,
+		UpdateContext: resourceJamfProUserGroupUpdate,
+		DeleteContext: resourceJamfProUserGroupDelete,
 		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
@@ -211,137 +204,4 @@ func userGroupSubsetUserItemSchema() map[string]*schema.Schema {
 			Description: "The email address of the user.",
 		},
 	}
-}
-
-// ResourceJamfProUserGroupCreate is responsible for creating a new Jamf Pro User Group in the remote system.
-// The function:
-// 1. Constructs the User Group data using the provided Terraform configuration.
-// 2. Calls the API to create the User Group in Jamf Pro.
-// 3. Updates the Terraform state with the ID of the newly created User Group.
-// 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func ResourceJamfProUserGroupCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
-
-	resource, err := constructJamfProUserGroup(d)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro User Group: %v", err))
-	}
-
-	var creationResponse *jamfpro.ResponseUserGroupCreateAndUpdate
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		var apiErr error
-		creationResponse, apiErr = client.CreateUserGroup(resource)
-		if apiErr != nil {
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro User Group '%s' after retries: %v", resource.Name, err))
-	}
-
-	d.SetId(strconv.Itoa(creationResponse.ID))
-
-	// checkResourceExists := func(id interface{}) (interface{}, error) {
-	// 	intID, err := strconv.Atoi(id.(string))
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
-	// 	}
-	// 	return client.GetUserGroupByID(intID)
-	// }
-
-	// _, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro User Group", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
-	// if waitDiags.HasError() {
-	// 	return waitDiags
-	// }
-
-	return append(diags, ResourceJamfProUserGroupRead(ctx, d, meta)...)
-}
-
-// ResourceJamfProUserGroupRead is responsible for reading the current state of a Jamf Pro User Group Resource from the remote system.
-// The function:
-// 1. Fetches the user group's current state using its ID. If it fails, it tries to obtain the user group's current state using its Name.
-// 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
-// 3. Handles any discrepancies, such as the user group being deleted outside of Terraform, to keep the Terraform state synchronized.
-func ResourceJamfProUserGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
-	resourceID := d.Id()
-
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
-
-	resource, err := client.GetUserGroupByID(resourceIDInt)
-	if err != nil {
-		return state.HandleResourceNotFoundError(err, d)
-	}
-
-	return append(diags, updateTerraformState(d, resource)...)
-}
-
-// ResourceJamfProUserGroupUpdate is responsible for updating an existing Jamf Pro Printer on the remote system.
-func ResourceJamfProUserGroupUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
-	resourceID := d.Id()
-
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
-
-	resource, err := constructJamfProUserGroup(d)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro User Group for update: %v", err))
-	}
-
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := client.UpdateUserGroupByID(resourceIDInt, resource)
-		if apiErr != nil {
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro User Group '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
-	}
-
-	return append(diags, ResourceJamfProUserGroupRead(ctx, d, meta)...)
-}
-
-// ResourceJamfProUserGroupDelete is responsible for deleting a Jamf Pro User Group.
-func ResourceJamfProUserGroupDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
-	resourceID := d.Id()
-
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
-
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		apiErr := client.DeleteUserGroupByID(resourceIDInt)
-		if apiErr != nil {
-			resourceName := d.Get("name").(string)
-			apiErrByName := client.DeleteUserGroupByName(resourceName)
-			if apiErrByName != nil {
-				return retry.RetryableError(apiErrByName)
-			}
-		}
-		return nil
-	})
-
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro User Group '%s' (ID: %d) after retries: %v", d.Get("name").(string), resourceIDInt, err))
-	}
-
-	d.SetId("")
-
-	return diags
 }

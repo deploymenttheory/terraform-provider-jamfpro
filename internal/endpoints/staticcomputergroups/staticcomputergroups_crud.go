@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProStaticComputerGroupsCreate is responsible for creating a new Jamf Pro Static Computer Group in the remote system.
-func ResourceJamfProStaticComputerGroupsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProStaticComputerGroupsCreate is responsible for creating a new Jamf Pro Static Computer Group in the remote system.
+func resourceJamfProStaticComputerGroupsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -53,11 +53,11 @@ func ResourceJamfProStaticComputerGroupsCreate(ctx context.Context, d *schema.Re
 	// 	return waitDiags
 	// }
 
-	return append(diags, ResourceJamfProStaticComputerGroupsRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProStaticComputerGroupsRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProStaticComputerGroupsRead is responsible for reading the current state of a Jamf Pro Static Computer Group from the remote system.
-func ResourceJamfProStaticComputerGroupsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProStaticComputerGroupsRead is responsible for reading the current state of a Jamf Pro Static Computer Group from the remote system.
+func resourceJamfProStaticComputerGroupsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -75,8 +75,8 @@ func ResourceJamfProStaticComputerGroupsRead(ctx context.Context, d *schema.Reso
 	return append(diags, updateTerraformState(d, resource)...)
 }
 
-// ResourceJamfProStaticComputerGroupsUpdate is responsible for updating an existing Jamf Pro Static Computer Group on the remote system.
-func ResourceJamfProStaticComputerGroupsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProStaticComputerGroupsUpdate is responsible for updating an existing Jamf Pro Static Computer Group on the remote system.
+func resourceJamfProStaticComputerGroupsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -104,11 +104,11 @@ func ResourceJamfProStaticComputerGroupsUpdate(ctx context.Context, d *schema.Re
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Static Computer Group '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
 	}
 
-	return append(diags, ResourceJamfProStaticComputerGroupsRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProStaticComputerGroupsRead(ctx, d, meta)...)
 }
 
-// ResourceJamfProStaticComputerGroupsDelete is responsible for deleting a Jamf Pro Static Computer Group.
-func ResourceJamfProStaticComputerGroupsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProStaticComputerGroupsDelete is responsible for deleting a Jamf Pro Static Computer Group.
+func resourceJamfProStaticComputerGroupsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()

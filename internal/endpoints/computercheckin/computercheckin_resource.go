@@ -3,25 +3,19 @@ package computercheckin
 
 import (
 	"context"
-	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-// ResourceJamfProComputerCheckindefines the schema and RU operations for managing Jamf Pro computer checkin configuration in Terraform.
+// resourceJamfProComputerCheckindefines the schema and RU operations for managing Jamf Pro computer checkin configuration in Terraform.
 func ResourceJamfProComputerCheckin() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProComputerCheckinCreate,
-		ReadContext:   ResourceJamfProComputerCheckinRead,
-		UpdateContext: ResourceJamfProComputerCheckinUpdate,
-		DeleteContext: ResourceJamfProComputerCheckinDelete,
+		CreateContext: resourceJamfProComputerCheckinCreate,
+		ReadContext:   resourceJamfProComputerCheckinRead,
+		UpdateContext: resourceJamfProComputerCheckinUpdate,
+		DeleteContext: resourceJamfProComputerCheckinDelete,
 		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 			return validateComputerCheckinDependencies(d)
 		},
@@ -98,87 +92,4 @@ func ResourceJamfProComputerCheckin() *schema.Resource {
 			},
 		},
 	}
-}
-
-// ResourceJamfProComputerCheckinCreate is responsible for initializing the Jamf Pro computer check-in configuration in Terraform.
-// Since this resource is a configuration set and not a resource that is 'created' in the traditional sense,
-// this function will simply set the initial state in Terraform.
-// ResourceJamfProComputerCheckinCreate is responsible for initializing the Jamf Pro computer check-in configuration in Terraform.
-func ResourceJamfProComputerCheckinCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
-
-	resource, err := constructJamfProComputerCheckin(d)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Check-In for update: %v", err))
-	}
-
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		apiErr := client.UpdateComputerCheckinInformation(resource)
-		if apiErr != nil {
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Computer Check-In configuration after retries: %v", err))
-	}
-
-	d.SetId("jamfpro_computer_checkin_singleton")
-
-	return append(diags, ResourceJamfProComputerCheckinRead(ctx, d, meta)...)
-}
-
-// ResourceJamfProComputerCheckinRead is responsible for reading the current state of the Jamf Pro computer check-in configuration.
-func ResourceJamfProComputerCheckinRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
-
-	resource, err := client.GetComputerCheckinInformation()
-
-	// TODO not an ID?
-	d.SetId("jamfpro_computer_checkin_singleton")
-
-	if err != nil {
-		return state.HandleResourceNotFoundError(err, d)
-	}
-
-	return append(diags, updateTerraformState(d, resource)...)
-}
-
-// ResourceJamfProComputerCheckinUpdate is responsible for updating the Jamf Pro computer check-in configuration.
-func ResourceJamfProComputerCheckinUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
-
-	checkinConfig, err := constructJamfProComputerCheckin(d)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Check-In for update: %v", err))
-	}
-
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		apiErr := client.UpdateComputerCheckinInformation(checkinConfig)
-		if apiErr != nil {
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Computer Check-In configuration after retries: %v", err))
-	}
-
-	d.SetId("jamfpro_computer_checkin_singleton")
-
-	return append(diags, ResourceJamfProComputerCheckinRead(ctx, d, meta)...)
-}
-
-// ResourceJamfProComputerCheckinDelete is responsible for 'deleting' the Jamf Pro computer check-in configuration.
-// Since this resource represents a configuration and not an actual entity that can be deleted,
-// this function will simply remove it from the Terraform state.
-func ResourceJamfProComputerCheckinDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	d.SetId("")
-
-	return nil
 }

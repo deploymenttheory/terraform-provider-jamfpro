@@ -13,7 +13,7 @@ import (
 )
 
 // Constructs, creates states
-func ResourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	client := meta.(*jamfpro.Client)
 
@@ -42,11 +42,11 @@ func ResourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, 
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	return append(diags, ResourceJamfProPoliciesRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProPoliciesRead(ctx, d, meta)...)
 }
 
 // Reads and states
-func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var err error
 	client, ok := meta.(*jamfpro.Client)
 	if !ok {
@@ -71,7 +71,7 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 }
 
 // Constructs, updates and reads
-func ResourceJamfProPoliciesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProPoliciesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -98,11 +98,11 @@ func ResourceJamfProPoliciesUpdate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Policy '%s' (ID: %d) after retries: %v", resource.General.Name, resourceIDInt, err))
 	}
 
-	return append(diags, ResourceJamfProPoliciesRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProPoliciesRead(ctx, d, meta)...)
 }
 
 // Deletes and removes from state
-func ResourceJamfProPoliciesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProPoliciesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()

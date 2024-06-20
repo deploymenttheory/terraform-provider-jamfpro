@@ -2,28 +2,22 @@
 package mobiledeviceconfigurationprofilesplist
 
 import (
-	"context"
 	"fmt"
-	"strconv"
 	"time"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles/plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProMobileDeviceConfigurationProfilesPlist defines the schema for mobile device configuration profiles in Terraform.
+// resourceJamfProMobileDeviceConfigurationProfilesPlist defines the schema for mobile device configuration profiles in Terraform.
 func ResourceJamfProMobileDeviceConfigurationProfilesPlist() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProMobileDeviceConfigurationProfilePlistCreate,
-		ReadContext:   ResourceJamfProMobileDeviceConfigurationProfilePlistRead,
-		UpdateContext: ResourceJamfProMobileDeviceConfigurationProfilePlistUpdate,
-		DeleteContext: ResourceJamfProMobileDeviceConfigurationProfilePlistDelete,
+		CreateContext: resourceJamfProMobileDeviceConfigurationProfilePlistCreate,
+		ReadContext:   resourceJamfProMobileDeviceConfigurationProfilePlistRead,
+		UpdateContext: resourceJamfProMobileDeviceConfigurationProfilePlistUpdate,
+		DeleteContext: resourceJamfProMobileDeviceConfigurationProfilePlistDelete,
 		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
@@ -143,138 +137,4 @@ func ResourceJamfProMobileDeviceConfigurationProfilesPlist() *schema.Resource {
 			},
 		},
 	}
-}
-
-// ResourceJamfProMobileDeviceConfigurationProfileCreate is responsible for creating a new Jamf Pro Mobile Device Configuration Profile in the remote system.
-// The function:
-// 1. Constructs the attribute data using the provided Terraform configuration.
-// 2. Calls the API to create the attribute in Jamf Pro.
-// 3. Updates the Terraform state with the ID of the newly created attribute.
-// 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func ResourceJamfProMobileDeviceConfigurationProfilePlistCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
-
-	resource, err := constructJamfProMobileDeviceConfigurationProfilePlist(d)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Mobile Device Configuration Profile: %v", err))
-	}
-
-	var creationResponse *jamfpro.ResponseMobileDeviceConfigurationProfileCreateAndUpdate
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		var apiErr error
-		creationResponse, apiErr = client.CreateMobileDeviceConfigurationProfile(resource)
-		if apiErr != nil {
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Mobile Device Configuration Profile '%s' after retries: %v", resource.General.Name, err))
-	}
-
-	d.SetId(strconv.Itoa(creationResponse.ID))
-
-	// checkResourceExists := func(id interface{}) (interface{}, error) {
-	// 	intID, err := strconv.Atoi(id.(string))
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
-	// 	}
-	// 	return client.GetMobileDeviceConfigurationProfileByID(intID)
-	// }
-
-	// _, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Mobile Device Configuration Profile", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
-
-	// if waitDiags.HasError() {
-	// 	return waitDiags
-	// }
-
-	return append(diags, ResourceJamfProMobileDeviceConfigurationProfilePlistRead(ctx, d, meta)...)
-}
-
-// ResourceJamfProMobileDeviceConfigurationProfilePlistRead is responsible for reading the current state of a Jamf Pro Mobile Device Configuration Profile Resource from the remote system.
-// The function:
-// 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
-// 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
-// 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
-func ResourceJamfProMobileDeviceConfigurationProfilePlistRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
-	resourceID := d.Id()
-
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
-
-	resource, err := client.GetMobileDeviceConfigurationProfileByID(resourceIDInt)
-	if err != nil {
-		return state.HandleResourceNotFoundError(err, d)
-	}
-
-	return append(diags, updateTerraformState(d, resource)...)
-}
-
-// ResourceJamfProMobileDeviceConfigurationProfilePlistUpdate is responsible for updating an existing Jamf Pro Mobile Device Configuration Profile on the remote system.
-func ResourceJamfProMobileDeviceConfigurationProfilePlistUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
-	resourceID := d.Id()
-
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
-
-	resource, err := constructJamfProMobileDeviceConfigurationProfilePlist(d)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Mobile Device Configuration Profile for update: %v", err))
-	}
-
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := client.UpdateMobileDeviceConfigurationProfileByID(resourceIDInt, resource)
-		if apiErr != nil {
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Mobile Device Configuration Profile '%s' (ID: %s) after retries: %v", resource.General.Name, resourceID, err))
-	}
-
-	return append(diags, ResourceJamfProMobileDeviceConfigurationProfilePlistRead(ctx, d, meta)...)
-}
-
-// ResourceJamfProMobileDeviceConfigurationProfilePlistDelete is responsible for deleting a Jamf Pro Mobile Device Configuration Profile.
-func ResourceJamfProMobileDeviceConfigurationProfilePlistDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
-	resourceID := d.Id()
-
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
-
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		apiErr := client.DeleteMobileDeviceConfigurationProfileByID(resourceIDInt)
-		if apiErr != nil {
-			resourceName := d.Get("name").(string)
-			apiErrByName := client.DeleteMobileDeviceConfigurationProfileByName(resourceName)
-			if apiErrByName != nil {
-				return retry.RetryableError(apiErrByName)
-			}
-		}
-		return nil
-	})
-
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Mobile Device Configuration Profile '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
-	}
-
-	d.SetId("")
-
-	return diags
 }

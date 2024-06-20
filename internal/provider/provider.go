@@ -7,11 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
-	"github.com/deploymenttheory/go-api-http-client-integration-jamfpro/jamfprointegration"
+	"github.com/deploymenttheory/go-api-http-client-integrations/jamf/jamfprointegration"
 	"github.com/deploymenttheory/go-api-http-client/httpclient"
 	"github.com/deploymenttheory/go-api-http-client/logger"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -47,6 +43,9 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/staticcomputergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/usergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/webhooks"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 // TerraformProviderProductUserAgent is included in the User-Agent header for
@@ -58,6 +57,7 @@ const (
 	envKeyBasicAuthUsername           = "JAMFPRO_BASIC_USERNAME"
 	envKeyBasicAuthPassword           = "JAMFPRO_BASIC_PASSWORD"
 	envKeyJamfProUrlRoot              = "JAMFPRO_URL_ROOT" // e.g https://yourcompany.jamfcloud.com
+	jamfLoadBalancerCookieName        = "jpro-ingress"
 )
 
 // GetInstanceName retrieves the 'instance_name' value from the Terraform configuration.
@@ -226,12 +226,6 @@ func Provider() *schema.Provider {
 				Default:     true,
 				Description: "Define whether sensitive fields should be hidden in logs. Default to hiding sensitive data in logs",
 			},
-			"enable_cookie_jar": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Enable or disable the cookie jar for the HTTP client.",
-			},
 			"custom_cookies": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -263,18 +257,6 @@ func Provider() *schema.Provider {
 				Default:     3,
 				Description: "The maximum number of retry request attempts for retryable HTTP methods.",
 			},
-			"max_concurrent_requests": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Default:     10,
-				Description: "The maximum number of concurrent requests allowed.",
-			},
-			"enable_dynamic_rate_limiting": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Enable dynamic rate limiting.",
-			},
 			"custom_timeout_seconds": {
 				Type:        schema.TypeInt,
 				Optional:    true,
@@ -292,12 +274,6 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				Default:     60,
 				Description: "The total retry duration in seconds.",
-			},
-			"enable_concurrency_manager": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "enables http client concurrency management",
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
@@ -419,7 +395,7 @@ func Provider() *schema.Provider {
 			)
 
 		default:
-			diags = append(diags, diag.Diagnostic{
+			return nil, append(diags, diag.Diagnostic{
 				Severity: diag.Error,
 				Summary:  "invalid auth method supplied",
 				Detail:   "You should not be able to find this error. If you have, please raise an issue with the schema.",
@@ -428,29 +404,21 @@ func Provider() *schema.Provider {
 		}
 
 		if err != nil {
-			diags = append(diags, diag.Diagnostic{
+			return nil, append(diags, diag.Diagnostic{
 				Severity: diag.Error,
-				Summary:  "Error getting building jamf integration",
+				Summary:  "Error building jamf integration",
 				Detail:   fmt.Sprintf("error: %v", err),
 			})
 		}
 
-		// Cookie workaround. Likely will be moved out to tidy this func up.
 		var cookiesList []*http.Cookie
-
 		load_balancer_lock := d.Get("jamf_load_balancer_lock").(bool)
 		customCookies := d.Get("custom_cookies")
 
-		// TODO make this check for the specific load balancer cookie and not just two settings in general
-		if load_balancer_lock && customCookies != nil && len(customCookies.([]interface{})) > 0 {
-			diags = append(diags, diag.Errorf("cannot have custom cookes and load balancer lock enabled at the same time")...)
-		}
-
 		if load_balancer_lock {
 			cookies, err := jamfIntegration.GetSessionCookies()
-
 			if err != nil {
-				diags = append(diags, diag.Diagnostic{
+				return nil, append(diags, diag.Diagnostic{
 					Severity: diag.Error,
 					Summary:  "Error getting session cookies",
 					Detail:   fmt.Sprintf("error: %v", err),
@@ -465,30 +433,37 @@ func Provider() *schema.Provider {
 			for _, v := range customCookies.([]interface{}) {
 				name := v.(map[string]interface{})["name"]
 				value := v.(map[string]interface{})["value"]
+
+				if name == jamfLoadBalancerCookieName && load_balancer_lock {
+					return nil, append(diags, diag.Diagnostic{
+						Severity: diag.Error,
+						Summary:  "Cannot have load balancer lock and custom cookie of same name.",
+					})
+				}
+
 				httpCookie := &http.Cookie{
 					Name:  name.(string),
 					Value: value.(string),
 				}
+
 				cookiesList = append(cookiesList, httpCookie)
 			}
 		}
 
 		config := httpclient.ClientConfig{
-			Integration:                  jamfIntegration,
-			HideSensitiveData:            d.Get("hide_sensitive_data").(bool),
-			MaxRetryAttempts:             d.Get("max_retry_attempts").(int),
-			MaxConcurrentRequests:        d.Get("max_concurrent_requests").(int),
-			EnableDynamicRateLimiting:    d.Get("enable_dynamic_rate_limiting").(bool),
-			CustomTimeout:                time.Duration(d.Get("custom_timeout_seconds").(int)) * time.Second,
-			TokenRefreshBufferPeriod:     tokenRefrshBufferPeriod,
-			TotalRetryDuration:           time.Duration(d.Get("total_retry_duration_seconds").(int)) * time.Second,
-			CustomCookies:                cookiesList,
-			ConcurrencyManagementEnabled: d.Get("enable_concurrency_manager").(bool),
+			Integration:              jamfIntegration,
+			HideSensitiveData:        d.Get("hide_sensitive_data").(bool),
+			MaxRetryAttempts:         d.Get("max_retry_attempts").(int),
+			CustomTimeout:            time.Duration(d.Get("custom_timeout_seconds").(int)) * time.Second,
+			TokenRefreshBufferPeriod: tokenRefrshBufferPeriod,
+			TotalRetryDuration:       time.Duration(d.Get("total_retry_duration_seconds").(int)) * time.Second,
+			CustomCookies:            cookiesList,
+			MaxConcurrentRequests:    1,
 		}
 
 		goHttpClient, err := httpclient.BuildClient(config, false, sharedLogger)
 		if err != nil {
-			return nil, diag.FromErr(err)
+			return nil, append(diags, diag.FromErr(err)...)
 		}
 
 		jamfClient := jamfpro.Client{
