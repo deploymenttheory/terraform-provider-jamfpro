@@ -42,15 +42,6 @@ func resourceJamfProComputerPrestageEnrollmentCreate(ctx context.Context, d *sch
 
 	d.SetId(creationResponse.ID)
 
-	// checkResourceExists := func(id interface{}) (interface{}, error) {
-	// 	return client.GetComputerPrestageByID(id.(string))
-	// }
-
-	// _, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Computer Prestage Enrollment", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
-	// if waitDiags.HasError() {
-	// 	return waitDiags
-	// }
-
 	return append(diags, resourceJamfProComputerPrestageEnrollmentRead(ctx, d, meta)...)
 }
 

@@ -43,19 +43,6 @@ func resourceJamfProDiskEncryptionConfigurationsCreate(ctx context.Context, d *s
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	// checkResourceExists := func(id interface{}) (interface{}, error) {
-	// 	intID, err := strconv.Atoi(id.(string))
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
-	// 	}
-	// 	return client.GetDiskEncryptionConfigurationByID(intID)
-	// }
-
-	// _, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Disk Encryption Configuration", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
-	// if waitDiags.HasError() {
-	// 	return waitDiags
-	// }
-
 	return append(diags, resourceJamfProDiskEncryptionConfigurationsRead(ctx, d, meta)...)
 }
 

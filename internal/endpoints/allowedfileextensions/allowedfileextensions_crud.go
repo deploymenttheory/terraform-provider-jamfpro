@@ -38,20 +38,6 @@ func resourceJamfProAllowedFileExtensionCreate(ctx context.Context, d *schema.Re
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	// checkResourceExists := func(id interface{}) (interface{}, error) {
-	// 	intID, err := strconv.Atoi(id.(string))
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
-	// 	}
-	// 	return client.GetAllowedFileExtensionByID(intID)
-	// }
-
-	// _, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Allowed File Extension", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
-
-	// if waitDiags.HasError() {
-	// 	return waitDiags
-	// }
-
 	return append(diags, resourceJamfProAllowedFileExtensionRead(ctx, d, meta)...)
 }
 

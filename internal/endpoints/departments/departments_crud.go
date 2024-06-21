@@ -44,16 +44,6 @@ func resourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 
 	d.SetId(creationResponse.ID)
 
-	// checkResourceExists := func(id interface{}) (interface{}, error) {
-	// 	return client.GetDepartmentByID(id.(string))
-	// }
-
-	// _, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Department", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
-
-	// if waitDiags.HasError() {
-	// 	return waitDiags
-	// }
-
 	return append(diags, resourceJamfProDepartmentsRead(ctx, d, meta)...)
 }
 

@@ -43,20 +43,6 @@ func resourceJamfProMobileDeviceConfigurationProfilePlistCreate(ctx context.Cont
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	// checkResourceExists := func(id interface{}) (interface{}, error) {
-	// 	intID, err := strconv.Atoi(id.(string))
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
-	// 	}
-	// 	return client.GetMobileDeviceConfigurationProfileByID(intID)
-	// }
-
-	// _, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Mobile Device Configuration Profile", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
-
-	// if waitDiags.HasError() {
-	// 	return waitDiags
-	// }
-
 	return append(diags, resourceJamfProMobileDeviceConfigurationProfilePlistRead(ctx, d, meta)...)
 }
 

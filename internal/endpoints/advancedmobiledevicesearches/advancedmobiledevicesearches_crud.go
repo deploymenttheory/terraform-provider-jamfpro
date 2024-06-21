@@ -38,19 +38,6 @@ func resourceJamfProAdvancedMobileDeviceSearchCreate(ctx context.Context, d *sch
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	// checkResourceExists := func(id interface{}) (interface{}, error) {
-	// 	intID, err := strconv.Atoi(id.(string))
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
-	// 	}
-	// 	return client.GetAdvancedComputerSearchByID(intID)
-	// }
-
-	// _, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Advanced Mobile Device Search", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
-	// if waitDiags.HasError() {
-	// 	return waitDiags
-	// }
-
 	return append(diags, resourceJamfProAdvancedMobileDeviceSearchRead(ctx, d, meta)...)
 }
 

@@ -42,15 +42,6 @@ func resourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 
 	d.SetId(creationResponse.ID)
 
-	// checkResourceExists := func(id interface{}) (interface{}, error) {
-	// 	return client.GetScriptByID(id.(string))
-	// }
-
-	// _, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Script", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
-	// if waitDiags.HasError() {
-	// 	return waitDiags
-	// }
-
 	return append(diags, resourceJamfProScriptsRead(ctx, d, meta)...)
 }
 

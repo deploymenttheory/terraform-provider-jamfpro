@@ -39,20 +39,6 @@ func resourceJamfProCategoriesCreate(ctx context.Context, d *schema.ResourceData
 
 	d.SetId(creationResponse.ID)
 
-	// region watifor
-	// TODO remove waitfor I think?
-	// // Wait for the resource to be fully available before reading it
-	// checkResourceExists := func(id interface{}) (interface{}, error) {
-	// 	return client.GetCategoryByID(id.(string))
-	// }
-
-	// _, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Category", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
-
-	// if waitDiags.HasError() {
-	// 	return waitDiags
-	// }
-	// endregion
-
 	return append(diags, resourceJamfProCategoriesRead(ctx, d, meta)...)
 }
 

@@ -38,20 +38,6 @@ func resourceJamfProAccountGroupCreate(ctx context.Context, d *schema.ResourceDa
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	// region concurrency
-	// checkResourceExists := func(id interface{}) (interface{}, error) {
-	// 	intID, err := strconv.Atoi(id.(string))
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
-	// 	}
-	// 	return client.GetAccountGroupByID(intID)
-	// }
-	// _, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Account Group", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
-	// if waitDiags.HasError() {
-	// 	return waitDiags
-	// }
-	// endregion
-
 	return append(diags, resourceJamfProAccountGroupRead(ctx, d, meta)...)
 }
 

@@ -42,16 +42,6 @@ func resourceJamfProBuildingCreate(ctx context.Context, d *schema.ResourceData, 
 
 	d.SetId(creationResponse.ID)
 
-	// checkResourceExists := func(id interface{}) (interface{}, error) {
-	// 	return client.GetBuildingByID(id.(string))
-	// }
-
-	// _, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Building", creationResponse.ID, checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second)
-
-	// if waitDiags.HasError() {
-	// 	return waitDiags
-	// }
-
 	return append(diags, resourceJamfProBuildingRead(ctx, d, meta)...)
 }
 
