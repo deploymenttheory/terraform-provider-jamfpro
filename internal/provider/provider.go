@@ -434,6 +434,7 @@ func Provider() *schema.Provider {
 			exportLogs,
 		)
 
+		// Auth
 		jamfDomain = GetInstanceDomain(d, &diags)
 		tokenRefrshBufferPeriod := time.Duration(d.Get("token_refresh_buffer_period_seconds").(int)) * time.Second
 
@@ -477,6 +478,7 @@ func Provider() *schema.Provider {
 			})
 		}
 
+		// Cookies
 		var cookiesList []*http.Cookie
 		load_balancer_lock := d.Get("jamf_load_balancer_lock").(bool)
 		customCookies := d.Get("custom_cookies")
@@ -516,6 +518,7 @@ func Provider() *schema.Provider {
 			}
 		}
 
+		// Packaging
 		config := httpclient.ClientConfig{
 			Integration:              jamfIntegration,
 			HideSensitiveData:        d.Get("hide_sensitive_data").(bool),
