@@ -537,11 +537,11 @@ func Provider() *schema.Provider {
 		return &jamfClient, diags
 	}
 
-	for _, v := range provider.ResourcesMap {
-		*v.Timeouts.Create = GetDefaultContextTimeoutCreate(load_balancer_lock_enabled)
-		*v.Timeouts.Read = GetDefaultContextTimeoutRead(load_balancer_lock_enabled)
-		*v.Timeouts.Update = GetDefaultContextTimeoutUpdate(load_balancer_lock_enabled)
-		*v.Timeouts.Delete = GetDefaultContextTimeoutDelete(load_balancer_lock_enabled)
+	for _, r := range provider.ResourcesMap {
+		*r.Timeouts.Create = GetDefaultContextTimeoutCreate(load_balancer_lock_enabled)
+		*r.Timeouts.Read = GetDefaultContextTimeoutRead(load_balancer_lock_enabled)
+		*r.Timeouts.Update = GetDefaultContextTimeoutUpdate(load_balancer_lock_enabled)
+		*r.Timeouts.Delete = GetDefaultContextTimeoutDelete(load_balancer_lock_enabled)
 	}
 	return provider
 }
