@@ -148,36 +148,17 @@ This documentation provides a detailed explanation of the configuration options 
 - **Default:** `false`
 - **Description:** Temporarily locks all HTTP client instances to a specific web app member in the load balancer for faster execution. This is a temporary solution until Jamf provides an official load balancing solution.
 
-### `max_retry_attempts`
-- **Type:** Integer
-- **Optional:** Yes
-- **Default:** `3`
-- **Description:** The maximum number of retry attempts for retryable HTTP methods. Useful for handling transient errors.
-
-### `enable_dynamic_rate_limiting`
-- **Type:** Boolean
-- **Optional:** Yes
-- **Default:** `false`
-- **Description:** Enables dynamic rate limiting to automatically adjust the rate of HTTP requests based on server responses.
-
-### `custom_timeout_seconds`
-- **Type:** Integer
-- **Optional:** Yes
-- **Default:** `60`
-- **Description:** Custom timeout setting for HTTP requests, in seconds. Determines how long the client waits for a response.
-
 ### `token_refresh_buffer_period_seconds`
 - **Type:** Integer
 - **Optional:** Yes
 - **Default:** `300`
 - **Description:** The buffer period in seconds before the token expires during which the token will be refreshed. Helps ensure continuous authentication.
 
-### `total_retry_duration_seconds`
+### `mandatory_request_delay_milliseconds`
 - **Type:** Integer
 - **Optional:** Yes
-- **Default:** `60`
-- **Description:** The total duration, in seconds, for retrying HTTP requests. Limits the total time spent on retries.
-
+- **Default:** `100`
+- **Description:** A mandatory delay after each request before returning to reduce high volume of requests in a short time.
 
 
 For those new to using Terraform with Jamf Pro, we provide a comprehensive demo example that serves as an excellent starting point. This demo implementation utilizes:

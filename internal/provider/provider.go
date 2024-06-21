@@ -316,12 +316,6 @@ func Provider() *schema.Provider {
 				Default:     false,
 				Description: "programatically determines all available web app members in the load balance and locks all instances of httpclient to the app for faster executions. \nTEMP SOLUTION UNTIL JAMF PROVIDES SOLUTION",
 			},
-			"max_retry_attempts": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Default:     3,
-				Description: "The maximum number of retry request attempts for retryable HTTP methods.",
-			},
 			"custom_timeout_seconds": {
 				Type:        schema.TypeInt,
 				Optional:    true,
@@ -334,12 +328,7 @@ func Provider() *schema.Provider {
 				Default:     300,
 				Description: "The buffer period in seconds for token refresh.",
 			},
-			"total_retry_duration_seconds": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Default:     60,
-				Description: "The total retry duration in seconds.",
-			},
+
 			"mandatory_request_delay_milliseconds": {
 				Type:        schema.TypeInt,
 				Optional:    true,
@@ -530,12 +519,8 @@ func Provider() *schema.Provider {
 		config := httpclient.ClientConfig{
 			Integration:              jamfIntegration,
 			HideSensitiveData:        d.Get("hide_sensitive_data").(bool),
-			MaxRetryAttempts:         d.Get("max_retry_attempts").(int),
-			CustomTimeout:            time.Duration(d.Get("custom_timeout_seconds").(int)) * time.Second,
 			TokenRefreshBufferPeriod: tokenRefrshBufferPeriod,
-			TotalRetryDuration:       time.Duration(d.Get("total_retry_duration_seconds").(int)) * time.Second,
 			CustomCookies:            cookiesList,
-			MaxConcurrentRequests:    1,
 			MandatoryRequestDelay:    time.Duration(d.Get("mandatory_request_delay_milliseconds").(int)) * time.Millisecond,
 			RetryEligiableRequests:   false, // Forced off for now
 		}
