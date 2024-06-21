@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -61,13 +60,21 @@ func resourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	resource, err := client.GetDockItemByID(resourceIDInt)
+	var response *jamfpro.ResourceDockItem
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		response, apiErr = client.GetDockItemByID(resourceIDInt)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
+		}
+		return nil
+	})
 
 	if err != nil {
-		return state.HandleResourceNotFoundError(err, d)
+		return append(diags, diag.FromErr(err)...)
 	}
 
-	return append(diags, updateTerraformState(d, resource)...)
+	return append(diags, updateTerraformState(d, response)...)
 }
 
 // resourceJamfProDockItemsUpdate is responsible for updating a Jamf Pro dock item.

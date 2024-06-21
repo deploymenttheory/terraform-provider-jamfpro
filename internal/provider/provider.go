@@ -340,6 +340,12 @@ func Provider() *schema.Provider {
 				Default:     60,
 				Description: "The total retry duration in seconds.",
 			},
+			"mandatory_request_delay_milliseconds": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     100,
+				Description: "a mandatory delay after each request before returning to reduce high volume of requests in a short time",
+			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 
@@ -528,6 +534,8 @@ func Provider() *schema.Provider {
 			TotalRetryDuration:       time.Duration(d.Get("total_retry_duration_seconds").(int)) * time.Second,
 			CustomCookies:            cookiesList,
 			MaxConcurrentRequests:    1,
+			MandatoryRequestDelay:    time.Duration(d.Get("mandatory_request_delay_milliseconds").(int)) * time.Millisecond,
+			RetryEligiableRequests:   false, // Forced off for now
 		}
 
 		goHttpClient, err := httpclient.BuildClient(config, false, sharedLogger)

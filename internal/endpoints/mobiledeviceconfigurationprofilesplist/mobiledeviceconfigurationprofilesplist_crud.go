@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -61,12 +60,21 @@ func resourceJamfProMobileDeviceConfigurationProfilePlistRead(ctx context.Contex
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	resource, err := client.GetMobileDeviceConfigurationProfileByID(resourceIDInt)
+	var response *jamfpro.ResourceMobileDeviceConfigurationProfile
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		response, apiErr = client.GetMobileDeviceConfigurationProfileByID(resourceIDInt)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
+		}
+		return nil
+	})
+
 	if err != nil {
-		return state.HandleResourceNotFoundError(err, d)
+		return append(diags, diag.FromErr(err)...)
 	}
 
-	return append(diags, updateTerraformState(d, resource)...)
+	return append(diags, updateTerraformState(d, response)...)
 }
 
 // resourceJamfProMobileDeviceConfigurationProfilePlistUpdate is responsible for updating an existing Jamf Pro Mobile Device Configuration Profile on the remote system.

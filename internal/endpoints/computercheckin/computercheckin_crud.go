@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -45,17 +44,26 @@ func resourceJamfProComputerCheckinCreate(ctx context.Context, d *schema.Resourc
 func resourceJamfProComputerCheckinRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
-
-	resource, err := client.GetComputerCheckinInformation()
+	var err error
 
 	// TODO not an ID?
 	d.SetId("jamfpro_computer_checkin_singleton")
 
+	var response *jamfpro.ResourceComputerCheckin
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		response, apiErr = client.GetComputerCheckinInformation()
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
+		}
+		return nil
+	})
+
 	if err != nil {
-		return state.HandleResourceNotFoundError(err, d)
+		return append(diags, diag.FromErr(err)...)
 	}
 
-	return append(diags, updateTerraformState(d, resource)...)
+	return append(diags, updateTerraformState(d, response)...)
 }
 
 // resourceJamfProComputerCheckinUpdate is responsible for updating the Jamf Pro computer check-in configuration.

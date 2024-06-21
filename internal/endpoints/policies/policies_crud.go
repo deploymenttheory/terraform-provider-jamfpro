@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -61,13 +60,21 @@ func resourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	var resp *jamfpro.ResourcePolicy
-	resp, err = client.GetPolicyByID(resourceIDInt)
+	var response *jamfpro.ResourcePolicy
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		response, apiErr = client.GetPolicyByID(resourceIDInt)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
+		}
+		return nil
+	})
+
 	if err != nil {
-		return state.HandleResourceNotFoundError(err, d)
+		return append(diags, diag.FromErr(err)...)
 	}
 
-	return append(updateTerraformState(d, resp, resourceID), diags...)
+	return append(updateTerraformState(d, response, resourceID), diags...)
 }
 
 // Constructs, updates and reads

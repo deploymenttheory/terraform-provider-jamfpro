@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -61,13 +60,21 @@ func resourceJamfProNetworkSegmentsRead(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	resource, err := client.GetNetworkSegmentByID(resourceIDInt)
+	var response *jamfpro.ResourceNetworkSegment
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		response, apiErr = client.GetNetworkSegmentByID(resourceIDInt)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
+		}
+		return nil
+	})
 
 	if err != nil {
-		return state.HandleResourceNotFoundError(err, d)
+		return append(diags, diag.FromErr(err)...)
 	}
 
-	return append(diags, updateTerraformState(d, resource)...)
+	return append(diags, updateTerraformState(d, response)...)
 }
 
 // resourceJamfProNetworkSegmentsUpdate is responsible for updating an existing Jamf Pro Network Segment on the remote system.

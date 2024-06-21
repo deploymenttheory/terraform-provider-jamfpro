@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -56,15 +55,24 @@ func resourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 func resourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
+	var err error
 	resourceID := d.Id()
 
-	resource, err := client.GetDepartmentByID(resourceID)
+	var response *jamfpro.ResourceDepartment
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		response, apiErr = client.GetDepartmentByID(resourceID)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
+		}
+		return nil
+	})
 
 	if err != nil {
-		return state.HandleResourceNotFoundError(err, d)
+		return append(diags, diag.FromErr(err)...)
 	}
 
-	return append(diags, updateTerraformState(d, resource)...)
+	return append(diags, updateTerraformState(d, response)...)
 }
 
 // resourceJamfProDepartmentsUpdate is responsible for updating an existing Jamf Pro Department on the remote system.

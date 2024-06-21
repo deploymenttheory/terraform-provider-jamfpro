@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -45,16 +44,24 @@ func resourceJamfProComputerInventoryCollectionCreate(ctx context.Context, d *sc
 func resourceJamfProComputerInventoryCollectionRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
-
-	resource, err := client.GetComputerInventoryCollectionInformation()
+	var err error
 
 	d.SetId("jamfpro_computer_inventory_collection_singleton")
+	var response *jamfpro.ResourceComputerInventoryCollection
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		response, apiErr = client.GetComputerInventoryCollectionInformation()
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
+		}
+		return nil
+	})
 
 	if err != nil {
-		return state.HandleResourceNotFoundError(err, d)
+		return append(diags, diag.FromErr(err)...)
 	}
 
-	return append(diags, updateTerraformState(d, resource)...)
+	return append(diags, updateTerraformState(d, response)...)
 }
 
 // resourceJamfProComputerInventoryCollectionUpdate is responsible for updating the Jamf Pro Computer Inventory Collection configuration.
