@@ -60,8 +60,21 @@ const (
 	jamfLoadBalancerCookieName        = "jpro-ingress"
 )
 
-// GetInstanceName retrieves the 'instance_name' value from the Terraform configuration.
-// If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_INSTANCE_NAME environment variable.
+/*
+GetInstanceDomain retrieves the instance domain name from the provided schema resource data.
+
+If the instance domain is not found, it appends an error diagnostic to the diagnostics slice.
+
+Parameters:
+
+	d      - A pointer to the schema.ResourceData object which contains the resource data.
+	diags  - A pointer to a slice of diag.Diagnostics where error messages will be appended.
+
+Returns:
+
+	A string representing the instance domain name. If the instance domain name is not provided,
+	an error diagnostic is appended to diags and an empty string is returned.
+*/
 func GetInstanceDomain(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	instanceName := d.Get("instance_domain").(string)
 	if instanceName == "" {
@@ -75,7 +88,20 @@ func GetInstanceDomain(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	return instanceName
 }
 
-// GetClientID retrieves the 'client_id' value from the Terraform configuration which defaults to env if not set in schema.
+/*
+GetClientID retrieves the client ID from the provided schema resource data.
+If the client ID is not found, it appends an error diagnostic to the diagnostics slice.
+
+Parameters:
+
+	d      - A pointer to the schema.ResourceData object which contains the resource data.
+	diags  - A pointer to a slice of diag.Diagnostics where error messages will be appended.
+
+Returns:
+
+	A string representing the client ID. If the client ID is not provided,
+	an error diagnostic is appended to diags and an empty string is returned.
+*/
 func GetClientID(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	clientID := d.Get("client_id").(string)
 	if clientID == "" {
@@ -92,7 +118,20 @@ func GetClientID(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	return clientID
 }
 
-// GetClientSecret retrieves the 'client_secret' value from the Terraform configuration which defaults to env if not set in schema.
+/*
+GetClientSecret retrieves the client secret from the provided schema resource data.
+If the client ID is not found, it appends an error diagnostic to the diagnostics slice.
+
+Parameters:
+
+	d      - A pointer to the schema.ResourceData object which contains the resource data.
+	diags  - A pointer to a slice of diag.Diagnostics where error messages will be appended.
+
+Returns:
+
+	A string representing the client ID. If the client ID is not provided,
+	an error diagnostic is appended to diags and an empty string is returned.
+*/
 func GetClientSecret(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	clientSecret := d.Get("client_secret").(string)
 	if clientSecret == "" {
@@ -109,7 +148,20 @@ func GetClientSecret(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	return clientSecret
 }
 
-// GetClientUsername retrieves the 'username' value from the Terraform configuration which defaults to env if not set in schema.
+/*
+GetBasicAuthUsername retrieves the basic auth username from the provided schema resource data.
+If the client ID is not found, it appends an error diagnostic to the diagnostics slice.
+
+Parameters:
+
+	d      - A pointer to the schema.ResourceData object which contains the resource data.
+	diags  - A pointer to a slice of diag.Diagnostics where error messages will be appended.
+
+Returns:
+
+	A string representing the client ID. If the client ID is not provided,
+	an error diagnostic is appended to diags and an empty string is returned.
+*/
 func GetBasicAuthUsername(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	username := d.Get("username").(string)
 	if username == "" {
@@ -126,7 +178,20 @@ func GetBasicAuthUsername(d *schema.ResourceData, diags *diag.Diagnostics) strin
 	return username
 }
 
-// GetClientPassword retrieves the 'password' value from the Terraform configuration which defaults to env if not set in schema.
+/*
+GetBasicAuthPassword retrieves the basic auth password from the provided schema resource data.
+If the client ID is not found, it appends an error diagnostic to the diagnostics slice.
+
+Parameters:
+
+	d      - A pointer to the schema.ResourceData object which contains the resource data.
+	diags  - A pointer to a slice of diag.Diagnostics where error messages will be appended.
+
+Returns:
+
+	A string representing the client ID. If the client ID is not provided,
+	an error diagnostic is appended to diags and an empty string is returned.
+*/
 func GetBasicAuthPassword(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	password := d.Get("password").(string)
 	if password == "" {
@@ -147,11 +212,11 @@ func GetBasicAuthPassword(d *schema.ResourceData, diags *diag.Diagnostics) strin
 func Provider() *schema.Provider {
 	provider := &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"instance_domain": {
+			"jamf_instance_fqdn": {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc(envKeyJamfProUrlRoot, ""),
-				Description: "The Jamf Pro domain root. example: https://mycompany.jamfcloud.com",
+				Description: "The Jamf Pro FQDN (fully qualified domain name). example: https://mycompany.jamfcloud.com",
 			},
 			"auth_method": {
 				Type:        schema.TypeString,
@@ -354,6 +419,7 @@ func Provider() *schema.Provider {
 			basicAuthUsername,
 			basicAuthPassword string
 
+		// Logger
 		parsedLogLevel := logger.ParseLogLevelFromString(d.Get("log_level").(string))
 		logOutputFormat := d.Get("log_output_format").(string)
 		logConsoleSeparator := d.Get("log_console_separator").(string)
