@@ -85,7 +85,6 @@ func resourceJamfProAccountGroupUpdate(ctx context.Context, d *schema.ResourceDa
 		return nil
 	})
 
-	// TODO should this be a program breakpoint or just a warn?
 	if err != nil {
 		return append(diags, diag.FromErr(fmt.Errorf("failed to update Jamf Pro Account Group '%s' (ID: %s) after retries: %v", resource.Name, resourceID, err))...)
 	}

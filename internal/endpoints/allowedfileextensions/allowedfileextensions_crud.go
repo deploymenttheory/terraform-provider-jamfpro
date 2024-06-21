@@ -64,7 +64,6 @@ func resourceJamfProAllowedFileExtensionRead(ctx context.Context, d *schema.Reso
 // Since there is no direct update API endpoint, this function will delete the existing AllowedFileExtension and create a new one.
 // This approach simulates an update operation from the user's perspective in Terraform.
 func resourceJamfProAllowedFileExtensionUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// TODO come back to this
 	deleteDiags := resourceJamfProAllowedFileExtensionDelete(ctx, d, meta)
 	if deleteDiags.HasError() {
 		return deleteDiags

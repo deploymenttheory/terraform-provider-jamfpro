@@ -2,6 +2,8 @@
 package accounts
 
 import (
+	"strconv"
+
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/utilities"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -13,11 +15,10 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAcco
 
 	var diags diag.Diagnostics
 
-	// TODO what's this?
 	// Update Terraform state with the resource information
-	// if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
+	if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 	if err := d.Set("name", resource.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
