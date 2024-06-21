@@ -510,7 +510,7 @@ func Provider() *schema.Provider {
 				name := v.(map[string]interface{})["name"]
 				value := v.(map[string]interface{})["value"]
 
-				if name == jamfLoadBalancerCookieName && load_balancer_lock {
+				if name == jamfLoadBalancerCookieName && load_balancer_lock_enabled {
 					return nil, append(diags, diag.Diagnostic{
 						Severity: diag.Error,
 						Summary:  "Cannot have load balancer lock and custom cookie of same name.",
