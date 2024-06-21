@@ -75,9 +75,9 @@ Returns:
 	A string representing the instance domain name. If the instance domain name is not provided,
 	an error diagnostic is appended to diags and an empty string is returned.
 */
-func GetInstanceDomain(d *schema.ResourceData, diags *diag.Diagnostics) string {
-	instanceName := d.Get("instance_domain").(string)
-	if instanceName == "" {
+func GetJamfFqdn(d *schema.ResourceData, diags *diag.Diagnostics) string {
+	jamf_fqdn, ok := d.GetOk("jamf_instance_fqdn")
+	if jamf_fqdn.(string) == "" || !ok {
 		*diags = append(*diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  "Error getting instance name",
@@ -85,7 +85,7 @@ func GetInstanceDomain(d *schema.ResourceData, diags *diag.Diagnostics) string {
 		})
 		return ""
 	}
-	return instanceName
+	return jamf_fqdn.(string)
 }
 
 /*
@@ -435,7 +435,7 @@ func Provider() *schema.Provider {
 		)
 
 		// Auth
-		jamfDomain = GetInstanceDomain(d, &diags)
+		jamfDomain = GetJamfFqdn(d, &diags)
 		tokenRefrshBufferPeriod := time.Duration(d.Get("token_refresh_buffer_period_seconds").(int)) * time.Second
 
 		switch d.Get("auth_method").(string) {
