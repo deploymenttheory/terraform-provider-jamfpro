@@ -54,8 +54,6 @@ github.com/deploymenttheory/go-api-http-client v0.2.1 h1:oWHBuWng5l6gAP2rwVTO90x
 github.com/deploymenttheory/go-api-http-client v0.2.1/go.mod h1:s1UqWIq+PyahwN+BoW06HCT8x11860PiKCL4h0Jhdsc=
 github.com/deploymenttheory/go-api-http-client-integrations v0.0.3 h1:fzGlRQzD6AtB72zti+Hf0xM+KvYtYhqKReo3yizkrIM=
 github.com/deploymenttheory/go-api-http-client-integrations v0.0.3/go.mod h1:tMjemY/2YAa50yaMiqnmoqc0DjRxzr55UMSxQLDA8nY=
-github.com/deploymenttheory/go-api-sdk-jamfpro v1.7.3-0.20240621092342-aef01c34a01e h1:GNc6BaDgfkFPZdYXHv9xzkhIfIDoZwft8M8fNEEQLFM=
-github.com/deploymenttheory/go-api-sdk-jamfpro v1.7.3-0.20240621092342-aef01c34a01e/go.mod h1:b5K4f6z5Z+1MqubElWj2EsVfWDPRYLyg2UVaUNY7my4=
 github.com/deploymenttheory/go-api-sdk-jamfpro v1.7.3 h1:FZgphlMI686q8ucU9DsyckEct5B/QiCmsi62gqTq8zI=
 github.com/deploymenttheory/go-api-sdk-jamfpro v1.7.3/go.mod h1:b5K4f6z5Z+1MqubElWj2EsVfWDPRYLyg2UVaUNY7my4=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=
