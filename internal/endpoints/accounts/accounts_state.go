@@ -71,6 +71,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAcco
 		return diag.FromErr(err)
 	}
 
+	// TODO review this.
 	privilegeAttributes := map[string][]string{
 		"jss_objects_privileges":  resource.Privileges.JSSObjects,
 		"jss_settings_privileges": resource.Privileges.JSSSettings,
