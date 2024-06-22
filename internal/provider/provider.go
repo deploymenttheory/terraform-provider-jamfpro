@@ -210,6 +210,7 @@ func GetBasicAuthPassword(d *schema.ResourceData, diags *diag.Diagnostics) strin
 
 // Schema defines the configuration attributes for the  within the JamfPro provider.
 func Provider() *schema.Provider {
+
 	provider := &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"jamf_instance_fqdn": {
@@ -403,8 +404,6 @@ func Provider() *schema.Provider {
 		},
 	}
 
-	var load_balancer_lock_enabled bool
-
 	provider.ConfigureContextFunc = func(_ context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 		var err error
 		var diags diag.Diagnostics
@@ -477,7 +476,7 @@ func Provider() *schema.Provider {
 
 		// Cookies
 		var cookiesList []*http.Cookie
-		load_balancer_lock_enabled = d.Get("jamf_load_balancer_lock").(bool)
+		load_balancer_lock_enabled := d.Get("jamf_load_balancer_lock").(bool)
 		customCookies := d.Get("custom_cookies")
 
 		if load_balancer_lock_enabled {
@@ -515,6 +514,14 @@ func Provider() *schema.Provider {
 			}
 		}
 
+		// Amend timeouts
+		for _, r := range provider.ResourcesMap {
+			*r.Timeouts.Create = GetDefaultContextTimeoutCreate(load_balancer_lock_enabled)
+			*r.Timeouts.Read = GetDefaultContextTimeoutRead(load_balancer_lock_enabled)
+			*r.Timeouts.Update = GetDefaultContextTimeoutUpdate(load_balancer_lock_enabled)
+			*r.Timeouts.Delete = GetDefaultContextTimeoutDelete(load_balancer_lock_enabled)
+		}
+
 		// Packaging
 		config := httpclient.ClientConfig{
 			Integration:              jamfIntegration,
@@ -537,11 +544,5 @@ func Provider() *schema.Provider {
 		return &jamfClient, diags
 	}
 
-	for _, r := range provider.ResourcesMap {
-		*r.Timeouts.Create = GetDefaultContextTimeoutCreate(load_balancer_lock_enabled)
-		*r.Timeouts.Read = GetDefaultContextTimeoutRead(load_balancer_lock_enabled)
-		*r.Timeouts.Update = GetDefaultContextTimeoutUpdate(load_balancer_lock_enabled)
-		*r.Timeouts.Delete = GetDefaultContextTimeoutDelete(load_balancer_lock_enabled)
-	}
 	return provider
 }
