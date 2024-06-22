@@ -2,6 +2,7 @@
 package accounts
 
 import (
+	"log"
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -46,8 +47,6 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAcco
 
 	d.Set("force_password_change", resource.ForcePasswordChange)
 	d.Set("access_level", resource.AccessLevel)
-	// skip	d.Set("password", resource.Password)
-
 	d.Set("privilege_set", resource.PrivilegeSet)
 
 	if resource.Site.ID != 0 || resource.Site.Name != "" {
@@ -73,14 +72,18 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAcco
 	}
 
 	privilegeAttributes := map[string][]string{
-		"jss_objects_privileges":    resource.Privileges.JSSObjects,
-		"jss_settings_privileges":   resource.Privileges.JSSSettings,
-		"jss_actions_privileges":    resource.Privileges.JSSActions,
-		"casper_admin_privileges":   resource.Privileges.CasperAdmin,
-		"casper_remote_privileges":  resource.Privileges.CasperRemote,
-		"casper_imaging_privileges": resource.Privileges.CasperImaging,
-		"recon_privileges":          resource.Privileges.Recon,
+		"jss_objects_privileges":  resource.Privileges.JSSObjects,
+		"jss_settings_privileges": resource.Privileges.JSSSettings,
+		"jss_actions_privileges":  resource.Privileges.JSSActions,
+		// "casper_admin_privileges":   resource.Privileges.CasperAdmin,
+		// "casper_remote_privileges":  resource.Privileges.CasperRemote,
+		// "casper_imaging_privileges": resource.Privileges.CasperImaging,
+		"recon_privileges": resource.Privileges.Recon,
 	}
+
+	log.Println("LOGHERE")
+	log.Printf("%+v", resource.Privileges.CasperAdmin)
+	log.Println(privilegeAttributes)
 
 	for attrName, privileges := range privilegeAttributes {
 		if err := d.Set(attrName, schema.NewSet(schema.HashString, utilities.ConvertToStringInterface(privileges))); err != nil {
