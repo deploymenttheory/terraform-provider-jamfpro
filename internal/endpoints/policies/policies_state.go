@@ -375,6 +375,9 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 	out := make([]map[string]interface{}, 0)
 	out = append(out, make(map[string]interface{}, 1))
 
+	//Maintenance
+	prepStatePayloadMaintenance(&out, resp)
+	
 	// DiskEncryption
 	prepStatePayloadDiskEncryption(&out, resp)
 	
@@ -389,6 +392,29 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 	if err != nil {
 		*diags = append(*diags, diag.FromErr(err)...)
 	}
+}
+
+// Reads response and preps disk encryption payload items
+func prepStatePayloadMaintenance(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
+	if resp.Maintenance == nil {
+		return
+		log.Println("no maintenance found") // TODO logging
+	}
+	log.Println("maintenance found") // TODO logging
+	(*out)[0]["maintenance"] = make([]map[string]interface{}, 0)
+	outMap := make(map[string]interface{})
+	outMap["recon"] = resp.Maintenance.Recon
+	outMap["reset_name"] = resp.Maintenance.ResetName
+	outMap["install_all_cached_packages"] = resp.Maintenance.InstallAllCachedPackages
+	outMap["heal"] = resp.Maintenance.Heal
+	outMap["prebindings"] = resp.Maintenance.Prebindings
+	outMap["permissions"] = resp.Maintenance.Permissions
+	outMap["byhost"] = resp.Maintenance.Byhost
+	outMap["system_cache"] = resp.Maintenance.SystemCache
+	outMap["user_cache"] = resp.Maintenance.UserCache
+	outMap["verify"] = resp.Maintenance.Verify
+	(*out)[0]["maintenance"] = append((*out)[0]["maintenance"].([]map[string]interface{}), outMap)
+
 }
 
 // Reads response and preps disk encryption payload items

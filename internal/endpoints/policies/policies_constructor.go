@@ -302,8 +302,34 @@ func constructPayloads(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	constructPayloadScripts(d, out)
 	// DiskEncryption
 	constructPayloadDiskEncryption(d, out)
+	//Maintenance
+	constructPayloadMaintenance(d, out)
 }
 
+// Pulls "Maintenance" settings from HCL and packages into object
+func constructPayloadMaintenance(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
+
+	hcl := d.Get("payloads.0.maintenance")
+	if len(hcl.([]interface{})) == 0 {
+		return
+	}
+
+	if len(d.Get("payloads.0.maintenance").([]interface{})) > 0 {
+		out.Maintenance = &jamfpro.PolicySubsetMaintenance{
+			Recon:      d.Get("payloads.0.maintenance.0.recon").(bool),
+			ResetName: d.Get("payloads.0.maintenance.0.reset_name").(bool),
+			InstallAllCachedPackages:      d.Get("payloads.0.maintenance.0.install_all_cached_packages").(bool),
+			Heal:      d.Get("payloads.0.maintenance.0.heal").(bool),
+			Prebindings: d.Get("payloads.0.maintenance.0.prebindings").(bool),
+			Permissions: d.Get("payloads.0.maintenance.0.permissions").(bool),
+			Byhost: d.Get("payloads.0.maintenance.0.byhost").(bool),
+			SystemCache: d.Get("payloads.0.maintenance.0.system_cache").(bool),
+			UserCache: d.Get("payloads.0.maintenance.0.user_cache").(bool),
+			Verify: d.Get("payloads.0.maintenance.0.verify").(bool),
+
+		}
+	}
+}
 // Pulls "disk encryption" settings from HCL and packages into object
 func constructPayloadDiskEncryption(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 
