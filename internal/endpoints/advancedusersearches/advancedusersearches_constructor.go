@@ -7,7 +7,7 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/constructobject"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -48,9 +48,9 @@ func constructJamfProAdvancedUserSearch(d *schema.ResourceData) (*jamfpro.Resour
 	}
 
 	if v, ok := d.GetOk("site_id"); ok {
-		search.Site = constructobject.ConstructSharedResourceSite(v.([]interface{}))
+		search.Site = sharedschemas.ConstructSharedResourceSite(v.([]interface{}))
 	} else {
-		search.Site = constructobject.ConstructSharedResourceSite([]interface{}{})
+		search.Site = sharedschemas.ConstructSharedResourceSite([]interface{}{})
 	}
 
 	resourceXML, err := xml.MarshalIndent(search, "", "  ")

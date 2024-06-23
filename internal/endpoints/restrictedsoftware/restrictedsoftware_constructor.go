@@ -7,7 +7,7 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/constructobject"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -27,10 +27,10 @@ func constructJamfProRestrictedSoftware(d *schema.ResourceData) (*jamfpro.Resour
 
 	// Handle Site
 	if v, ok := d.GetOk("site_id"); ok {
-		restrictedSoftware.General.Site = constructobject.ConstructSharedResourceSite(v.([]interface{}))
+		restrictedSoftware.General.Site = sharedschemas.ConstructSharedResourceSite(v.([]interface{}))
 	} else {
 		// Set default values if 'site' data is not provided
-		restrictedSoftware.General.Site = constructobject.ConstructSharedResourceSite([]interface{}{})
+		restrictedSoftware.General.Site = sharedschemas.ConstructSharedResourceSite([]interface{}{})
 	}
 
 	// Handle Scope

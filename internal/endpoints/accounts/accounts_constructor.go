@@ -6,6 +6,7 @@ import (
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/constructobject"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -31,10 +32,10 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 	}
 
 	if v, ok := d.GetOk("site_id"); ok {
-		account.Site = constructobject.ConstructSharedResourceSite(v.([]interface{}))
+		account.Site = sharedschemas.ConstructSharedResourceSite(v.([]interface{}))
 	} else {
 
-		account.Site = constructobject.ConstructSharedResourceSite([]interface{}{})
+		account.Site = sharedschemas.ConstructSharedResourceSite([]interface{}{})
 	}
 
 	account.Privileges = constructAccountSubsetPrivileges(d)

@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/constructobject"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -21,9 +21,9 @@ func constructJamfProUserGroup(d *schema.ResourceData) (*jamfpro.ResourceUserGro
 	}
 
 	if v, ok := d.GetOk("site_id"); ok {
-		userGroup.Site = constructobject.ConstructSharedResourceSite(v.([]interface{}))
+		userGroup.Site = sharedschemas.ConstructSharedResourceSite(v.([]interface{}))
 	} else {
-		userGroup.Site = constructobject.ConstructSharedResourceSite([]interface{}{})
+		userGroup.Site = sharedschemas.ConstructSharedResourceSite([]interface{}{})
 	}
 
 	criteria := d.Get("criteria").([]interface{})

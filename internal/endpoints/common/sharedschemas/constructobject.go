@@ -1,21 +1,27 @@
 // common/constructobject.go
-package constructobject
+package sharedschemas
 
 import "github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 
+const (
+	// Values required to unset, not just empty values.
+	EmptySiteName     = ""
+	EmptySiteId       = -1
+	EmptyCategoryName = ""
+	EmptyCategoryId   = 0
+)
+
 // ConstructSharedResourceSite constructs a SharedResourceSite object from the provided schema data,
 // setting default values if none are presented.
-func ConstructSharedResourceSite(suppliedSite []interface{}) *jamfpro.SharedResourceSite {
-	var outSite *jamfpro.SharedResourceSite
-	if len(suppliedSite) > 0 && suppliedSite[0].(map[string]interface{})["id"].(int) > 0 {
-		outSite = &jamfpro.SharedResourceSite{
-			ID: suppliedSite[0].(map[string]interface{})["id"].(int),
+func ConstructSharedResourceSite(site_id int) *jamfpro.SharedResourceSite {
+	if site_id == 0 || site_id == -1 {
+		return &jamfpro.SharedResourceSite{
+			ID:   EmptySiteId,
+			Name: EmptySiteName,
 		}
-	} else {
-		outSite = nil
 	}
 
-	return outSite
+	return &jamfpro.SharedResourceSite{ID: site_id}
 }
 
 // ConstructSharedResourceCategory constructs a SharedResourceCategory object from the provided schema data,

@@ -9,6 +9,7 @@ import (
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/constructobject"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -30,10 +31,10 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 
 	// Handle Site
 	if v, ok := d.GetOk("site_id"); ok {
-		profile.General.Site = constructobject.ConstructSharedResourceSite(v.([]interface{}))
+		profile.General.Site = sharedschemas.ConstructSharedResourceSite(v.([]interface{}))
 	} else {
 		// Set default values if 'site' data is not provided
-		profile.General.Site = constructobject.ConstructSharedResourceSite([]interface{}{})
+		profile.General.Site = sharedschemas.ConstructSharedResourceSite([]interface{}{})
 	}
 
 	// Handle Category
