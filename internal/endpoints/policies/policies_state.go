@@ -377,10 +377,10 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 
 	//Maintenance
 	prepStatePayloadMaintenance(&out, resp)
-	
+
 	// DiskEncryption
 	prepStatePayloadDiskEncryption(&out, resp)
-	
+
 	// Packages
 	prepStatePayloadPackages(&out, resp)
 
@@ -398,9 +398,7 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 func prepStatePayloadMaintenance(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	if resp.Maintenance == nil {
 		return
-		log.Println("no maintenance found") // TODO logging
 	}
-	log.Println("maintenance found") // TODO logging
 	(*out)[0]["maintenance"] = make([]map[string]interface{}, 0)
 	outMap := make(map[string]interface{})
 	outMap["recon"] = resp.Maintenance.Recon
@@ -429,6 +427,7 @@ func prepStatePayloadDiskEncryption(out *[]map[string]interface{}, resp *jamfpro
 	outMap["auth_restart"] = resp.DiskEncryption.AuthRestart
 	(*out)[0]["disk_encryption"] = append((*out)[0]["disk_encryption"].([]map[string]interface{}), outMap)
 }
+
 // Reads response and preps package payload items
 func prepStatePayloadPackages(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	if resp.PackageConfiguration == nil {

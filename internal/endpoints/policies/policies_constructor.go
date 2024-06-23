@@ -272,8 +272,6 @@ func constructScope(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
 	return nil
 }
 
-
-
 // Pulls "self service" settings from HCL and packages into object
 func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 
@@ -316,20 +314,20 @@ func constructPayloadMaintenance(d *schema.ResourceData, out *jamfpro.ResourcePo
 
 	if len(d.Get("payloads.0.maintenance").([]interface{})) > 0 {
 		out.Maintenance = &jamfpro.PolicySubsetMaintenance{
-			Recon:      d.Get("payloads.0.maintenance.0.recon").(bool),
-			ResetName: d.Get("payloads.0.maintenance.0.reset_name").(bool),
-			InstallAllCachedPackages:      d.Get("payloads.0.maintenance.0.install_all_cached_packages").(bool),
-			Heal:      d.Get("payloads.0.maintenance.0.heal").(bool),
-			Prebindings: d.Get("payloads.0.maintenance.0.prebindings").(bool),
-			Permissions: d.Get("payloads.0.maintenance.0.permissions").(bool),
-			Byhost: d.Get("payloads.0.maintenance.0.byhost").(bool),
-			SystemCache: d.Get("payloads.0.maintenance.0.system_cache").(bool),
-			UserCache: d.Get("payloads.0.maintenance.0.user_cache").(bool),
-			Verify: d.Get("payloads.0.maintenance.0.verify").(bool),
-
+			Recon:                    d.Get("payloads.0.maintenance.0.recon").(bool),
+			ResetName:                d.Get("payloads.0.maintenance.0.reset_name").(bool),
+			InstallAllCachedPackages: d.Get("payloads.0.maintenance.0.install_all_cached_packages").(bool),
+			Heal:                     d.Get("payloads.0.maintenance.0.heal").(bool),
+			Prebindings:              d.Get("payloads.0.maintenance.0.prebindings").(bool),
+			Permissions:              d.Get("payloads.0.maintenance.0.permissions").(bool),
+			Byhost:                   d.Get("payloads.0.maintenance.0.byhost").(bool),
+			SystemCache:              d.Get("payloads.0.maintenance.0.system_cache").(bool),
+			UserCache:                d.Get("payloads.0.maintenance.0.user_cache").(bool),
+			Verify:                   d.Get("payloads.0.maintenance.0.verify").(bool),
 		}
 	}
 }
+
 // Pulls "disk encryption" settings from HCL and packages into object
 func constructPayloadDiskEncryption(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 
@@ -340,12 +338,11 @@ func constructPayloadDiskEncryption(d *schema.ResourceData, out *jamfpro.Resourc
 
 	if len(d.Get("payloads.0.disk_encryption").([]interface{})) > 0 {
 		out.DiskEncryption = &jamfpro.PolicySubsetDiskEncryption{
-			Action:      d.Get("payloads.0.disk_encryption.0.action").(string),
-			DiskEncryptionConfigurationID: d.Get("payloads.0.disk_encryption.0.disk_encryption_configuration_id").(int),
-			AuthRestart:      d.Get("payloads.0.disk_encryption.0.auth_restart").(bool),
-			RemediateKeyType:      d.Get("payloads.0.disk_encryption.0.remediate_key_type").(string),
+			Action:                                 d.Get("payloads.0.disk_encryption.0.action").(string),
+			DiskEncryptionConfigurationID:          d.Get("payloads.0.disk_encryption.0.disk_encryption_configuration_id").(int),
+			AuthRestart:                            d.Get("payloads.0.disk_encryption.0.auth_restart").(bool),
+			RemediateKeyType:                       d.Get("payloads.0.disk_encryption.0.remediate_key_type").(string),
 			RemediateDiskEncryptionConfigurationID: d.Get("payloads.0.disk_encryption.0.remediate_disk_encryption_configuration_id").(int),
-
 		}
 	}
 }
