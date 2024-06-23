@@ -51,14 +51,8 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 				Computed:    true,
 				Description: "The universally unique identifier for the profile.",
 			},
-			"site_id": sharedschemas.GetSharedSchemaSite(),
-			"category": {
-				Type:        schema.TypeList,
-				MaxItems:    1,
-				Description: "The category to which the configuration profile is scoped.",
-				Optional:    true,
-				Elem:        sharedschemas.GetSharedSchemaCategory(),
-			},
+			"site_id":     sharedschemas.GetSharedSchemaSite(),
+			"category_id": sharedschemas.GetSharedSchemaCategory(),
 			"distribution_method": {
 				Type:         schema.TypeString,
 				Optional:     true,

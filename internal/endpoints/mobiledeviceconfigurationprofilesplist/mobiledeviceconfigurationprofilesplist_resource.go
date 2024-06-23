@@ -57,20 +57,8 @@ func ResourceJamfProMobileDeviceConfigurationProfilesPlist() *schema.Resource {
 					return warns, errs
 				},
 			},
-			"site_id": sharedschemas.GetSharedSchemaSite(),
-			"category": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				MaxItems:    1,
-				Description: "The jamf pro category information for the mobile device configuration profile.",
-				Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-					"id": {
-						Type:        schema.TypeInt,
-						Optional:    true,
-						Description: "The unique identifier for the Jamf Pro category.",
-					},
-				}},
-			},
+			"site_id":  sharedschemas.GetSharedSchemaSite(),
+			"category": sharedschemas.GetSharedSchemaCategory(),
 			"uuid": {
 				Type:        schema.TypeString,
 				Computed:    true,

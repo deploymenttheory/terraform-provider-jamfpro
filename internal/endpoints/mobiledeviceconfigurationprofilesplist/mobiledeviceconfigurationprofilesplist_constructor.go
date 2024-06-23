@@ -29,13 +29,7 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 	}
 
 	profile.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
-
-	// Handle Category
-	if v, ok := d.GetOk("category"); ok {
-		profile.General.Category = sharedschemas.ConstructSharedResourceCategory(v.([]interface{}))
-	} else {
-		profile.General.Category = sharedschemas.ConstructSharedResourceCategory([]interface{}{})
-	}
+	profile.General.Category = sharedschemas.ConstructSharedResourceCategory(d.Get("category_id").(int))
 
 	// Handle Scope
 	if v, ok := d.GetOk("scope"); ok {

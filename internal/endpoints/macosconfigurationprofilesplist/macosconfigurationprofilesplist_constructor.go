@@ -30,12 +30,7 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData) (*ja
 	}
 
 	resource.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
-
-	if v, ok := d.GetOk("category"); ok {
-		resource.General.Category = sharedschemas.ConstructSharedResourceCategory(v.([]interface{}))
-	} else {
-		resource.General.Category = sharedschemas.ConstructSharedResourceCategory([]interface{}{})
-	}
+	resource.General.Category = sharedschemas.ConstructSharedResourceCategory(d.Get("category_id").(int))
 
 	if v, ok := d.GetOk("scope"); ok {
 		scopeData := v.([]interface{})[0].(map[string]interface{})
