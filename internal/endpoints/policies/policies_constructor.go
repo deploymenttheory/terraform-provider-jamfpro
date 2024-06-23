@@ -83,7 +83,7 @@ func constructGeneral(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 
 	// Site
 
-	suppliedSite := d.Get("site").([]interface{})
+	suppliedSite := d.Get("site_id").([]interface{})
 	out.General.Site = constructobject.ConstructSharedResourceSite(suppliedSite)
 }
 

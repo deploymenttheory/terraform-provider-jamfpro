@@ -26,7 +26,7 @@ func constructJamfProRestrictedSoftware(d *schema.ResourceData) (*jamfpro.Resour
 	}
 
 	// Handle Site
-	if v, ok := d.GetOk("site"); ok {
+	if v, ok := d.GetOk("site_id"); ok {
 		restrictedSoftware.General.Site = constructobject.ConstructSharedResourceSite(v.([]interface{}))
 	} else {
 		// Set default values if 'site' data is not provided

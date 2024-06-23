@@ -65,7 +65,7 @@ func ResourceJamfProRestrictedSoftwares() *schema.Resource {
 				Optional:    true,
 				Description: "The message to display when the software is restricted.",
 			},
-			"site": sharedschemas.GetSharedSchemaSite(),
+			"site_id": sharedschemas.GetSharedSchemaSite(),
 			"scope": {
 				Type:        schema.TypeList,
 				Optional:    true,

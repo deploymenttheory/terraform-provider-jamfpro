@@ -115,7 +115,7 @@ func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *d
 			},
 		}
 
-		if err := d.Set("site", out_site); err != nil {
+		if err := d.Set("site_id", out_site); err != nil {
 			*diags = append(*diags, diag.FromErr(err)...)
 		}
 	}

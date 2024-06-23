@@ -63,7 +63,7 @@ func ResourceJamfProStaticComputerGroups() *schema.Resource {
 				Computed:    true,
 				Description: "Computed value indicating whether the computer group is smart or static.",
 			},
-			"site": sharedschemas.GetSharedSchemaSite(),
+			"site_id": sharedschemas.GetSharedSchemaSite(),
 			"assignments": {
 				Type:        schema.TypeList,
 				Description: "Assignment block containing the list of computer IDs.",

@@ -53,9 +53,9 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAcco
 		site := make(map[string]interface{})
 		site["id"] = resource.Site.ID
 		site["name"] = resource.Site.Name
-		d.Set("site", []interface{}{site})
+		d.Set("site_id", []interface{}{site})
 	} else {
-		d.Set("site", []interface{}{})
+		d.Set("site_id", []interface{}{})
 	}
 
 	groups := make([]interface{}, len(resource.Groups))

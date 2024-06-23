@@ -8,7 +8,7 @@ import (
 func GetSite(d *schema.ResourceData) (*jamfpro.SharedResourceSite, error) {
 	var out *jamfpro.SharedResourceSite
 
-	hcl := d.Get("site").([]interface{})
+	hcl := d.Get("site_id").([]interface{})
 
 	if len(hcl) > 0 {
 		out = &jamfpro.SharedResourceSite{

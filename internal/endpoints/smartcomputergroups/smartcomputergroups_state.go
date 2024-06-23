@@ -25,7 +25,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 				"id": resource.Site.ID,
 			},
 		}
-		if err := d.Set("site", site); err != nil {
+		if err := d.Set("site_id", site); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}

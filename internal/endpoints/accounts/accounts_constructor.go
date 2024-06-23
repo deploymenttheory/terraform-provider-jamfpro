@@ -30,7 +30,7 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 		}
 	}
 
-	if v, ok := d.GetOk("site"); ok {
+	if v, ok := d.GetOk("site_id"); ok {
 		account.Site = constructobject.ConstructSharedResourceSite(v.([]interface{}))
 	} else {
 

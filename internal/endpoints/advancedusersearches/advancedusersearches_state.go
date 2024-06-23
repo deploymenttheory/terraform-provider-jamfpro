@@ -61,7 +61,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAdva
 		})
 	}
 	if len(site) > 0 {
-		if err := d.Set("site", site); err != nil {
+		if err := d.Set("site_id", site); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}

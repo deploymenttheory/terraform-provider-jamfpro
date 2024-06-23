@@ -85,7 +85,7 @@ func ResourceJamfProAdvancedUserSearches() *schema.Resource {
 					},
 				},
 			},
-			"site": sharedschemas.GetSharedSchemaSite(),
+			"site_id": sharedschemas.GetSharedSchemaSite(),
 		},
 	}
 }

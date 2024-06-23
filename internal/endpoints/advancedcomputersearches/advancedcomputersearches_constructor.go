@@ -52,7 +52,7 @@ func constructJamfProAdvancedComputerSearch(d *schema.ResourceData) (*jamfpro.Re
 		search.DisplayFields = []jamfpro.SharedAdvancedSearchContainerDisplayField{{DisplayField: displayFields}}
 	}
 
-	if v, ok := d.GetOk("site"); ok {
+	if v, ok := d.GetOk("site_id"); ok {
 		search.Site = constructobject.ConstructSharedResourceSite(v.([]interface{}))
 	} else {
 		search.Site = constructobject.ConstructSharedResourceSite([]interface{}{})

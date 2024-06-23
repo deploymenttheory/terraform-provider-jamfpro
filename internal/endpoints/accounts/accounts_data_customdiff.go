@@ -45,7 +45,7 @@ func validateAccessLevelSiteRequirement(_ context.Context, d *schema.ResourceDif
 	}
 
 	if accessLevel.(string) == "Site Access" {
-		if site, ok := d.GetOk("site"); ok {
+		if site, ok := d.GetOk("site_id"); ok {
 			siteList := site.([]interface{})
 			if len(siteList) == 0 || siteList[0] == nil {
 				return fmt.Errorf("'site' block must be set when 'access_level' is 'Site Access'")

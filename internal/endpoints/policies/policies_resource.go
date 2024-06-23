@@ -141,7 +141,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Default:     nil,
 				Elem:        sharedschemas.GetSharedSchemaCategory(),
 			},
-			"site": sharedschemas.GetSharedSchemaSite(),
+			"site_id": sharedschemas.GetSharedSchemaSite(),
 			"date_time_limitations": {
 				Type:        schema.TypeList,
 				Optional:    true,

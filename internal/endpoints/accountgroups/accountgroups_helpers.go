@@ -18,7 +18,7 @@ func customDiffAccountGroups(ctx context.Context, d *schema.ResourceDiff, meta i
 	}
 
 	if accessLevel.(string) == "Site Access" {
-		if _, ok := d.GetOk("site"); !ok {
+		if _, ok := d.GetOk("site_id"); !ok {
 			return fmt.Errorf("'site' must be set when 'access_level' is 'Site Access'")
 		}
 	}

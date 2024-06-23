@@ -18,7 +18,7 @@ func constructJamfProStaticComputerGroup(d *schema.ResourceData) (*jamfpro.Resou
 		IsSmart: false,
 	}
 
-	if v, ok := d.GetOk("site"); ok {
+	if v, ok := d.GetOk("site_id"); ok {
 		site := constructobject.ConstructSharedResourceSite(v.([]interface{}))
 		group.Site = site
 	}

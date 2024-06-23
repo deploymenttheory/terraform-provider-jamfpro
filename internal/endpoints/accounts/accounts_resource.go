@@ -128,7 +128,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 					return warns, errs
 				},
 			},
-			"site": sharedschemas.GetSharedSchemaSite(),
+			"site_id": sharedschemas.GetSharedSchemaSite(),
 			"groups": {
 				Type:        schema.TypeSet,
 				Optional:    true,

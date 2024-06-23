@@ -147,7 +147,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 								},
 							},
 						},
-						"site": {
+						"site_id": {
 							Type:     schema.TypeList,
 							Computed: true,
 
@@ -1510,7 +1510,7 @@ func setGeneralSection(d *schema.ResourceData, general jamfpro.ComputerInventory
 		site := make(map[string]interface{})
 		site["id"] = general.Site.ID
 		site["name"] = general.Site.Name
-		gen["site"] = []interface{}{site}
+		gen["site_id"] = []interface{}{site}
 	}
 
 	// Handle nested object 'enrollmentMethod'.

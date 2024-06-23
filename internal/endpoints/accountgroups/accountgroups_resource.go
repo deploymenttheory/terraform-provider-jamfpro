@@ -70,7 +70,7 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 					return warns, errs
 				},
 			},
-			"site": sharedschemas.GetSharedSchemaSite(),
+			"site_id": sharedschemas.GetSharedSchemaSite(),
 			"jss_objects_privileges": {
 				Type:        schema.TypeSet,
 				Optional:    true,

@@ -62,7 +62,7 @@ func ResourceJamfProUserGroups() *schema.Resource {
 				Optional:    true,
 				Description: "Indicates if notifications are sent on change.",
 			},
-			"site": {
+			"site_id": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,

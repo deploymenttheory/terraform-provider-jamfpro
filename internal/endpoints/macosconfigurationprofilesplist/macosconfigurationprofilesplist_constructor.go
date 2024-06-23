@@ -27,7 +27,7 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData) (*ja
 		},
 	}
 
-	if v, ok := d.GetOk("site"); ok {
+	if v, ok := d.GetOk("site_id"); ok {
 		profile.General.Site = constructobject.ConstructSharedResourceSite(v.([]interface{}))
 	} else {
 		profile.General.Site = constructobject.ConstructSharedResourceSite([]interface{}{})
