@@ -25,13 +25,7 @@ func constructJamfProRestrictedSoftware(d *schema.ResourceData) (*jamfpro.Resour
 		},
 	}
 
-	// Handle Site
-	if v, ok := d.GetOk("site_id"); ok {
-		restrictedSoftware.General.Site = sharedschemas.ConstructSharedResourceSite(v.([]interface{}))
-	} else {
-		// Set default values if 'site' data is not provided
-		restrictedSoftware.General.Site = sharedschemas.ConstructSharedResourceSite([]interface{}{})
-	}
+	restrictedSoftware.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 
 	// Handle Scope
 	if v, ok := d.GetOk("scope"); ok {

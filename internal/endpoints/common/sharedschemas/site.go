@@ -6,6 +6,7 @@ func GetSharedSchemaSite() *schema.Schema {
 	out := &schema.Schema{
 		Type:        schema.TypeInt,
 		Optional:    true,
+		Default:     -1,
 		Description: "Jamf Pro Site-related settings of the policy.",
 	}
 

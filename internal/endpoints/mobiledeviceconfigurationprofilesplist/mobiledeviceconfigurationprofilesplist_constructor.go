@@ -29,13 +29,7 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 		},
 	}
 
-	// Handle Site
-	if v, ok := d.GetOk("site_id"); ok {
-		profile.General.Site = sharedschemas.ConstructSharedResourceSite(v.([]interface{}))
-	} else {
-		// Set default values if 'site' data is not provided
-		profile.General.Site = sharedschemas.ConstructSharedResourceSite([]interface{}{})
-	}
+	profile.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 
 	// Handle Category
 	if v, ok := d.GetOk("category"); ok {

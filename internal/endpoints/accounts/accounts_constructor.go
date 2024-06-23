@@ -31,12 +31,7 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 		}
 	}
 
-	if v, ok := d.GetOk("site_id"); ok {
-		account.Site = sharedschemas.ConstructSharedResourceSite(v.([]interface{}))
-	} else {
-
-		account.Site = sharedschemas.ConstructSharedResourceSite([]interface{}{})
-	}
+	account.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 
 	account.Privileges = constructAccountSubsetPrivileges(d)
 

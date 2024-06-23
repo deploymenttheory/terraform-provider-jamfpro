@@ -18,10 +18,7 @@ func constructJamfProSmartComputerGroup(d *schema.ResourceData) (*jamfpro.Resour
 		IsSmart: true,
 	}
 
-	if v, ok := d.GetOk("site_id"); ok {
-		site := sharedschemas.ConstructSharedResourceSite(v.([]interface{}))
-		group.Site = site
-	}
+	group.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 
 	if v, ok := d.GetOk("criteria"); ok {
 		group.Criteria = constructComputerGroupSubsetContainerCriteria(v.([]interface{}))

@@ -20,11 +20,7 @@ func constructJamfProUserGroup(d *schema.ResourceData) (*jamfpro.ResourceUserGro
 		IsNotifyOnChange: d.Get("is_notify_on_change").(bool),
 	}
 
-	if v, ok := d.GetOk("site_id"); ok {
-		userGroup.Site = sharedschemas.ConstructSharedResourceSite(v.([]interface{}))
-	} else {
-		userGroup.Site = sharedschemas.ConstructSharedResourceSite([]interface{}{})
-	}
+	userGroup.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 
 	criteria := d.Get("criteria").([]interface{})
 	for _, criterion := range criteria {

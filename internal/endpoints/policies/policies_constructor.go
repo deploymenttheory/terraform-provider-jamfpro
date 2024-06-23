@@ -82,8 +82,7 @@ func constructGeneral(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	}
 
 	// Site
-	suppliedSite := d.Get("site_id").(int)
-	out.General.Site = sharedschemas.ConstructSharedResourceSite(suppliedSite)
+	out.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 }
 
 // Pulls "scope" settings from HCL and packages into object

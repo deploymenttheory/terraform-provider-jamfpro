@@ -52,11 +52,7 @@ func constructJamfProAdvancedComputerSearch(d *schema.ResourceData) (*jamfpro.Re
 		search.DisplayFields = []jamfpro.SharedAdvancedSearchContainerDisplayField{{DisplayField: displayFields}}
 	}
 
-	if v, ok := d.GetOk("site_id"); ok {
-		search.Site = sharedschemas.ConstructSharedResourceSite(v.([]interface{}))
-	} else {
-		search.Site = sharedschemas.ConstructSharedResourceSite([]interface{}{})
-	}
+	search.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 
 	resourceXML, err := xml.MarshalIndent(search, "", "  ")
 	if err != nil {
