@@ -102,8 +102,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 					if v == "Full Access" || v == "Site Access" || v == "Group Access" {
 						return
 					}
-					errs = append(errs, fmt.Errorf("%q must be either 'Full Access' or 'Site Access' or 'Group Access', got: %s", key, v))
-					return warns, errs
+					return warns, append(errs, fmt.Errorf("%q must be either 'Full Access' or 'Site Access' or 'Group Access', got: %s", key, v))
 				},
 			},
 			"password": {
