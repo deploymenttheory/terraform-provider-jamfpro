@@ -53,10 +53,9 @@ func resourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 	client := meta.(*jamfpro.Client)
 	resourceID := d.Id()
 	var diags diag.Diagnostics
-	var err error
 
 	var response *jamfpro.ResourceScript
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
 		response, apiErr = client.GetScriptByID(resourceID)
 		if apiErr != nil {

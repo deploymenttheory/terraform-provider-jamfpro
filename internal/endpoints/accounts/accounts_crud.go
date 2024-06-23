@@ -14,7 +14,6 @@ import (
 // resourceJamfProAccountCreate is responsible for creating a new Jamf Pro Script in the remote system.
 func resourceJamfProAccountCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
-
 	var diags diag.Diagnostics
 
 	resource, err := constructJamfProAccount(d)
@@ -44,7 +43,6 @@ func resourceJamfProAccountCreate(ctx context.Context, d *schema.ResourceData, m
 // resourceJamfProAccountRead is responsible for reading the current state of a Jamf Pro Account Group Resource from the remote system.
 func resourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
-
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 

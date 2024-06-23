@@ -52,11 +52,10 @@ func resourceJamfProBuildingCreate(ctx context.Context, d *schema.ResourceData, 
 func resourceJamfProBuildingRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
-	var err error
 	resourceID := d.Id()
 
 	var response *jamfpro.ResourceBuilding
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
 		response, apiErr = client.GetBuildingByID(resourceID)
 		if apiErr != nil {

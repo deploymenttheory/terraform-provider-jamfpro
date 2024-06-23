@@ -52,11 +52,10 @@ func resourceJamfProComputerPrestageEnrollmentCreate(ctx context.Context, d *sch
 func resourceJamfProComputerPrestageEnrollmentRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
-	var err error
 	resourceID := d.Id()
 
 	var response *jamfpro.ResourceComputerPrestage
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
 		response, apiErr = client.GetComputerPrestageByID(resourceID)
 		if apiErr != nil {

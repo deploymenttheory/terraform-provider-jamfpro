@@ -44,13 +44,12 @@ func resourceJamfProComputerCheckinCreate(ctx context.Context, d *schema.Resourc
 func resourceJamfProComputerCheckinRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
-	var err error
 
 	// TODO not an ID?
 	d.SetId("jamfpro_computer_checkin_singleton")
 
 	var response *jamfpro.ResourceComputerCheckin
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
 		response, apiErr = client.GetComputerCheckinInformation()
 		if apiErr != nil {

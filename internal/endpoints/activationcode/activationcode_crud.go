@@ -32,7 +32,6 @@ func resourceJamfProActivationCodeCreate(ctx context.Context, d *schema.Resource
 		diags = append(diags, diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Activation Code configuration after retries: %v", err))...)
 	}
 
-	// TODO document why this is not an ID
 	d.SetId("jamfpro_activation_code_singleton")
 
 	return append(diags, resourceJamfProActivationCodeRead(ctx, d, meta)...)
@@ -43,7 +42,6 @@ func resourceJamfProActivationCodeRead(ctx context.Context, d *schema.ResourceDa
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	// TODO here too
 	d.SetId("jamfpro_computer_checkin_singleton")
 
 	var response *jamfpro.ResourceActivationCode
@@ -85,7 +83,6 @@ func resourceJamfProActivationCodeUpdate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Activation Code configuration after retries: %v", err))
 	}
 
-	// TODO and here
 	d.SetId("jamfpro_activation_code_singleton")
 
 	return append(diags, resourceJamfProActivationCodeRead(ctx, d, meta)...)

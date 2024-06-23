@@ -101,11 +101,7 @@ func resourceJamfProApiIntegrationsUpdate(ctx context.Context, d *schema.Resourc
 
 // resourceJamfProApiIntegrationsDelete is responsible for deleting a Jamf Pro API Integration.
 func resourceJamfProApiIntegrationsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client, ok := meta.(*jamfpro.Client)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.client")
-	}
-
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 

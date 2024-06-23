@@ -79,35 +79,25 @@ func resourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 
 // resourceJamfProComputerExtensionAttributesUpdate is responsible for updating an existing Jamf Pro Computer Extension Attribute on the remote system.
 func resourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize API client
-	client, ok := meta.(*jamfpro.Client)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.client")
-	}
-
-	// Initialize variables
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	// Construct the resource object
 	resource, err := constructJamfProComputerExtensionAttribute(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Extension Attribute for update: %v", err))
 	}
 
-	// Update operations with retries
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		_, apiErr := client.UpdateComputerExtensionAttributeByID(resourceIDInt, resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
-		// Successfully updated the resource, exit the retry loop
 		return nil
 	})
 
@@ -115,47 +105,29 @@ func resourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Computer Extension Attribute '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
 	}
 
-	// Read the resource to ensure the Terraform state is up to date
-	readDiags := resourceJamfProComputerExtensionAttributesRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
+	return append(diags, resourceJamfProComputerExtensionAttributesRead(ctx, d, meta)...)
 }
 
 // resourceJamfProComputerExtensionAttributesDelete is responsible for deleting a Jamf Pro Computer Extension Attribute.
 func resourceJamfProComputerExtensionAttributesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Initialize API client
-	client, ok := meta.(*jamfpro.Client)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.client")
-	}
-
-	// Initialize variables
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	// Convert resourceID from string to int
 	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	// Use the retry function for the delete operation with appropriate timeout
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		// Attempt to delete by ID
 		apiErr := client.DeleteComputerExtensionAttributeByID(resourceIDInt)
 		if apiErr != nil {
-			// If deleting by ID fails, attempt to delete by Name
 			resourceName := d.Get("name").(string)
 			apiErrByName := client.DeleteComputerExtensionAttributeByNameByID(resourceName)
 			if apiErrByName != nil {
-				// If deletion by name also fails, return a retryable error
 				return retry.RetryableError(apiErrByName)
 			}
 		}
-		// Successfully deleted the resource, exit the retry loop
 		return nil
 	})
 
@@ -163,7 +135,6 @@ func resourceJamfProComputerExtensionAttributesDelete(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Computer Extension Attribute '%s' (ID: %d) after retries: %v", d.Get("name").(string), resourceIDInt, err))
 	}
 
-	// Clear the ID from the Terraform state as the resource has been deleted
 	d.SetId("")
 
 	return diags

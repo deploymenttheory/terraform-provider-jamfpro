@@ -20,7 +20,6 @@ func constructJamfProAccountGroup(d *schema.ResourceData) (*jamfpro.ResourceAcco
 	}
 
 	accountGroup.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
-
 	accountGroup.Privileges = constructAccountSubsetPrivileges(d)
 
 	if v, ok := d.GetOk("members"); ok {
