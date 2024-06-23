@@ -13,7 +13,6 @@ import (
 func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceWebhook) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// Update the Terraform state with the fetched data
 	if err := d.Set("id", strconv.Itoa(resp.ID)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -51,7 +50,6 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceWebhook)
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Handle Display Fields
 	displayFields := make([]interface{}, 0, len(resp.DisplayFields))
 	for _, field := range resp.DisplayFields {
 		df := make(map[string]interface{})
