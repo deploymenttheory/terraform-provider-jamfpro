@@ -4,6 +4,7 @@ package advancedcomputersearches
 import (
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -104,25 +105,7 @@ func ResourceJamfProAdvancedComputerSearches() *schema.Resource {
 					},
 				},
 			},
-			"site": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "ID of the site",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Name of the site",
-						},
-					},
-				},
-			},
+			"site": sharedschemas.GetSharedSchemaSite(),
 		},
 	}
 }

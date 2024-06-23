@@ -67,13 +67,7 @@ func ResourceJamfProSmartComputerGroups() *schema.Resource {
 				Computed:    true,
 				Description: "Boolean selection to state if the group is a Smart group or not. If false then the group is a static group.",
 			},
-			"site": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Jamf Pro Site related settings of the smart computer group.",
-				MaxItems:    1,
-				Elem:        sharedschemas.GetSharedSchemaSite(),
-			},
+			"site": sharedschemas.GetSharedSchemaSite(),
 			"criteria": {
 				Type:     schema.TypeList,
 				Optional: true,

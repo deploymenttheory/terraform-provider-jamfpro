@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/jamfprivileges"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 
 	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 
@@ -69,28 +70,7 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 					return warns, errs
 				},
 			},
-			"site": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				MaxItems:    1,
-				Description: "The site information associated with the account group if access_level is set to Site Access.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "Jamf Pro Site ID. Value defaults to -1 aka not used.",
-							Default:     -1,
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Jamf Pro Site Name. Value defaults to 'None' aka not used",
-							Computed:    true,
-						},
-					},
-				},
-			},
+			"site": sharedschemas.GetSharedSchemaSite(),
 			"jss_objects_privileges": {
 				Type:        schema.TypeSet,
 				Optional:    true,

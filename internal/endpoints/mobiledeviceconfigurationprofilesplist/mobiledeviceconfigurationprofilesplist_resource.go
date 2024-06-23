@@ -57,18 +57,7 @@ func ResourceJamfProMobileDeviceConfigurationProfilesPlist() *schema.Resource {
 					return warns, errs
 				},
 			},
-			"site": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				MaxItems:    1,
-				Description: "The site information associated with the mobile device configuration profile.",
-				Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-					"id": {
-						Type:     schema.TypeInt,
-						Optional: true,
-					},
-				}},
-			},
+			"site": sharedschemas.GetSharedSchemaSite(),
 			"category": {
 				Type:        schema.TypeList,
 				Optional:    true,

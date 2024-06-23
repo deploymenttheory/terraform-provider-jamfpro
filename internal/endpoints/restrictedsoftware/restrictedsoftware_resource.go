@@ -4,6 +4,7 @@ package restrictedsoftware
 import (
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -64,27 +65,7 @@ func ResourceJamfProRestrictedSoftwares() *schema.Resource {
 				Optional:    true,
 				Description: "The message to display when the software is restricted.",
 			},
-			"site": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "The unique identifier of the site.",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Computed:    true,
-							Description: "The name of the site.",
-						},
-					},
-				},
-				Description: "The site associated with the restricted software.",
-			},
+			"site": sharedschemas.GetSharedSchemaSite(),
 			"scope": {
 				Type:        schema.TypeList,
 				Optional:    true,

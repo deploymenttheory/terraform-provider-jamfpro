@@ -15,13 +15,11 @@ import (
 
 // Returns ResourcePolicy required for client to marshal into api req
 func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
-
 	var err error
-
-	// Main obj
 	out := &jamfpro.ResourcePolicy{}
 
 	constructGeneral(d, out)
+
 	err = constructScope(d, out)
 	if err != nil {
 		return nil, err

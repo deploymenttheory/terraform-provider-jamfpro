@@ -66,10 +66,6 @@ func resourceJamfProStaticComputerGroupsRead(ctx context.Context, d *schema.Reso
 		return append(diags, diag.FromErr(err)...)
 	}
 
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-
 	return append(diags, updateTerraformState(d, response)...)
 }
 
