@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -95,9 +94,6 @@ func resourceJamfProCategoriesUpdate(ctx context.Context, d *schema.ResourceData
 		return append(diags, diag.FromErr(fmt.Errorf("final attempt to update Category '%s' failed: %v", resourceName, err))...)
 	}
 
-	// TODO what is this log?
-	hclog.FromContext(ctx).Info(fmt.Sprintf("Successfully updated Category '%s' with ID '%s'", resourceName, resourceID))
-
 	return append(diags, resourceJamfProCategoriesRead(ctx, d, meta)...)
 }
 
@@ -123,9 +119,6 @@ func resourceJamfProCategoriesDelete(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return append(diags, diag.FromErr(fmt.Errorf("final attempt to delete Category '%s' failed: %v", resourceName, err))...)
 	}
-
-	// TODO what's this log?
-	hclog.FromContext(ctx).Info(fmt.Sprintf("Successfully deleted Category '%s' with ID '%s'", resourceName, resourceID))
 
 	d.SetId("")
 
