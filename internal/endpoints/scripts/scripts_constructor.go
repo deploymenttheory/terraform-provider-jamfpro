@@ -30,14 +30,6 @@ func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResourceScript, er
 		Parameter11:    d.Get("parameter11").(string),
 	}
 
-	// Check hcl for category_name or category_id and set the appropriate default value if not set
-	categoryName, ok := d.GetOk("category_name")
-	if !ok {
-		resource.CategoryName = "NONE" // Default value if not set
-	} else {
-		resource.CategoryName = categoryName.(string)
-	}
-
 	categoryId, ok := d.GetOk("category_id")
 	if !ok {
 		resource.CategoryId = "-1" // Default value if not set
