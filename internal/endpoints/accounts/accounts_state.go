@@ -49,14 +49,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAcco
 	d.Set("access_level", resource.AccessLevel)
 	d.Set("privilege_set", resource.PrivilegeSet)
 
-	if resource.Site.ID != 0 || resource.Site.Name != "" {
-		site := make(map[string]interface{})
-		site["id"] = resource.Site.ID
-		site["name"] = resource.Site.Name
-		d.Set("site_id", []interface{}{site})
-	} else {
-		d.Set("site_id", []interface{}{})
-	}
+	d.Set("site_id", resource.Site.ID)
 
 	groups := make([]interface{}, len(resource.Groups))
 	for i, group := range resource.Groups {

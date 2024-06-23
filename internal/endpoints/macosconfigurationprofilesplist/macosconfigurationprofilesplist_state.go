@@ -33,18 +33,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacO
 	}
 	resourceData["level"] = levelValue
 
-	// Set the 'site' attribute in the state only if it's not empty (i.e., not default values)
-	site := []interface{}{}
-	if resource.General.Site.ID != -1 {
-		site = append(site, map[string]interface{}{
-			"id": resource.General.Site.ID,
-		})
-	}
-	if len(site) > 0 {
-		if err := d.Set("site_id", site); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
+	d.Set("site_id", resource.General.Site.ID)
 
 	// Process and set the payloads using the plist processor function
 	profile := plist.NormalizePayloadState(resource.General.Payloads)

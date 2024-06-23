@@ -18,17 +18,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Handle Site
-	if resource.Site != nil && resource.Site.ID != -1 {
-		site := []interface{}{
-			map[string]interface{}{
-				"id": resource.Site.ID,
-			},
-		}
-		if err := d.Set("site_id", site); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
+	d.Set("site_id", resource.Site.ID)
 
 	// Handle Criteria
 	if resource.Criteria != nil && resource.Criteria.Criterion != nil {

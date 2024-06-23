@@ -106,19 +106,7 @@ func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *d
 		*diags = append(*diags, diag.FromErr(err)...)
 	}
 
-	// Site
-	// TODO Review this logic (site and cat)
-	if resp.General.Site.ID != -1 && resp.General.Site.Name != "None" {
-		out_site := []map[string]interface{}{
-			{
-				"id": resp.General.Site.ID,
-			},
-		}
-
-		if err := d.Set("site_id", out_site); err != nil {
-			*diags = append(*diags, diag.FromErr(err)...)
-		}
-	}
+	d.Set("site_id", resp.General.Site.ID)
 
 	// Category
 	if resp.General.Category.ID != -1 && resp.General.Category.Name != "No category assigned" {

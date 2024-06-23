@@ -23,17 +23,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Set the 'site' attribute in the state only if it's not empty (i.e., not default values)
-	if resource.Site != nil && resource.Site.ID != -1 {
-		site := []interface{}{
-			map[string]interface{}{
-				"id": resource.Site.ID,
-			},
-		}
-		if err := d.Set("site_id", site); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
+	d.Set("site_id", resource.Site.ID)
 
 	// Set the 'assignments' attribute in the state
 	if resource.Computers != nil {

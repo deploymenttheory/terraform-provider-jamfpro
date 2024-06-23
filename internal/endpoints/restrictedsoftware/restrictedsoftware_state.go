@@ -40,18 +40,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceRest
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Set the 'site' attribute in the state only if it's not empty (i.e., not default values)
-	site := []interface{}{}
-	if resource.General.Site.ID != -1 {
-		site = append(site, map[string]interface{}{
-			"id": resource.General.Site.ID,
-		})
-	}
-	if len(site) > 0 {
-		if err := d.Set("site_id", site); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
+	d.Set("site_id", resource.General.Site.ID)
 
 	// Update the scope data
 	if err := d.Set("scope", flattenScope(resource.Scope)); err != nil {
