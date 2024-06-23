@@ -8,27 +8,27 @@ import (
 )
 
 // updateTerraformState updates the Terraform state with the latest Computer Group information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComputerGroup) diag.Diagnostics {
+func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceComputerGroup) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if resource == nil {
+	if resp == nil {
 		return diags
 	}
 
 	// Update the Terraform state with the fetched data
-	if err := d.Set("name", resource.Name); err != nil {
+	if err := d.Set("name", resp.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("is_smart", resource.IsSmart); err != nil {
+	if err := d.Set("is_smart", resp.IsSmart); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	d.Set("site_id", resource.Site.ID)
+	d.Set("site_id", resp.Site.ID)
 
 	// Set the 'assignments' attribute in the state
-	if resource.Computers != nil {
+	if resp.Computers != nil {
 		computerIDs := []interface{}{}
-		for _, comp := range *resource.Computers {
+		for _, comp := range *resp.Computers {
 			computerIDs = append(computerIDs, comp.ID)
 		}
 		assignments := []interface{}{

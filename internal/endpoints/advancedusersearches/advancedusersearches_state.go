@@ -10,18 +10,18 @@ import (
 )
 
 // updateTerraformState updates the Terraform state with the latest Advanced User Search information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAdvancedUserSearch) diag.Diagnostics {
+func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceAdvancedUserSearch) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
+	if err := d.Set("id", strconv.Itoa(resp.ID)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("name", resource.Name); err != nil {
+	if err := d.Set("name", resp.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	criteriaList := make([]interface{}, len(resource.Criteria.Criterion))
-	for i, crit := range resource.Criteria.Criterion {
+	criteriaList := make([]interface{}, len(resp.Criteria.Criterion))
+	for i, crit := range resp.Criteria.Criterion {
 		criteriaMap := map[string]interface{}{
 			"name":          crit.Name,
 			"priority":      crit.Priority,
@@ -37,13 +37,13 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAdva
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if len(resource.DisplayFields) == 0 || len(resource.DisplayFields[0].DisplayField) == 0 {
+	if len(resp.DisplayFields) == 0 || len(resp.DisplayFields[0].DisplayField) == 0 {
 		if err := d.Set("display_fields", []interface{}{}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	} else {
-		displayFieldsList := make([]map[string]interface{}, len(resource.DisplayFields[0].DisplayField))
-		for i, displayField := range resource.DisplayFields[0].DisplayField {
+		displayFieldsList := make([]map[string]interface{}, len(resp.DisplayFields[0].DisplayField))
+		for i, displayField := range resp.DisplayFields[0].DisplayField {
 			displayFieldMap := map[string]interface{}{
 				"name": displayField.Name,
 			}
@@ -54,7 +54,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAdva
 		}
 	}
 
-	d.Set("site_id", resource.Site.ID)
+	d.Set("site_id", resp.Site.ID)
 
 	return diags
 

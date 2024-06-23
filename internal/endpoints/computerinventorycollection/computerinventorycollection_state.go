@@ -8,24 +8,24 @@ import (
 )
 
 // updateTerraformState updates the Terraform state with the latest Computer Inventory Collection information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComputerInventoryCollection) diag.Diagnostics {
+func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceComputerInventoryCollection) diag.Diagnostics {
 
 	var diags diag.Diagnostics
 
 	// Map the configuration fields from the API response to a structured map
 	inventoryCollectionData := map[string]interface{}{
-		"local_user_accounts":               resource.LocalUserAccounts,
-		"home_directory_sizes":              resource.HomeDirectorySizes,
-		"hidden_accounts":                   resource.HiddenAccounts,
-		"printers":                          resource.Printers,
-		"active_services":                   resource.ActiveServices,
-		"mobile_device_app_purchasing_info": resource.MobileDeviceAppPurchasingInfo,
-		"computer_location_information":     resource.ComputerLocationInformation,
-		"package_receipts":                  resource.PackageReceipts,
-		"available_software_updates":        resource.AvailableSoftwareUpdates,
-		"include_applications":              resource.InclueApplications,
-		"include_fonts":                     resource.InclueFonts,
-		"include_plugins":                   resource.IncluePlugins,
+		"local_user_accounts":               resp.LocalUserAccounts,
+		"home_directory_sizes":              resp.HomeDirectorySizes,
+		"hidden_accounts":                   resp.HiddenAccounts,
+		"printers":                          resp.Printers,
+		"active_services":                   resp.ActiveServices,
+		"mobile_device_app_purchasing_info": resp.MobileDeviceAppPurchasingInfo,
+		"computer_location_information":     resp.ComputerLocationInformation,
+		"package_receipts":                  resp.PackageReceipts,
+		"available_software_updates":        resp.AvailableSoftwareUpdates,
+		"include_applications":              resp.InclueApplications,
+		"include_fonts":                     resp.InclueFonts,
+		"include_plugins":                   resp.IncluePlugins,
 	}
 
 	// Set the structured map in the Terraform state
@@ -36,17 +36,17 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 	}
 
 	// Process applications
-	if err := d.Set("applications", flattenApplications(resource.Applications)); err != nil {
+	if err := d.Set("applications", flattenApplications(resp.Applications)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	// Process fonts
-	if err := d.Set("fonts", flattenFonts(resource.Fonts)); err != nil {
+	if err := d.Set("fonts", flattenFonts(resp.Fonts)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	// Process plugins
-	if err := d.Set("plugins", flattenPlugins(resource.Plugins)); err != nil {
+	if err := d.Set("plugins", flattenPlugins(resp.Plugins)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

@@ -10,23 +10,23 @@ import (
 )
 
 // updateTerraformState updates the Terraform state with the latest Network Segment information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceNetworkSegment) diag.Diagnostics {
+func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceNetworkSegment) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Update the Terraform state with the fetched data
 	resourceData := map[string]interface{}{
-		"id":                   strconv.Itoa(resource.ID),
-		"name":                 resource.Name,
-		"starting_address":     resource.StartingAddress,
-		"ending_address":       resource.EndingAddress,
-		"distribution_server":  resource.DistributionServer,
-		"distribution_point":   resource.DistributionPoint,
-		"url":                  resource.URL,
-		"swu_server":           resource.SWUServer,
-		"building":             resource.Building,
-		"department":           resource.Department,
-		"override_buildings":   resource.OverrideBuildings,
-		"override_departments": resource.OverrideDepartments,
+		"id":                   strconv.Itoa(resp.ID),
+		"name":                 resp.Name,
+		"starting_address":     resp.StartingAddress,
+		"ending_address":       resp.EndingAddress,
+		"distribution_server":  resp.DistributionServer,
+		"distribution_point":   resp.DistributionPoint,
+		"url":                  resp.URL,
+		"swu_server":           resp.SWUServer,
+		"building":             resp.Building,
+		"department":           resp.Department,
+		"override_buildings":   resp.OverrideBuildings,
+		"override_departments": resp.OverrideDepartments,
 	}
 
 	// Iterate over the map and set each key-value pair in the Terraform state

@@ -10,25 +10,25 @@ import (
 )
 
 // updateTerraformState updates the Terraform state with the latest Printer information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourcePrinter) diag.Diagnostics {
+func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePrinter) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Update the Terraform state with the fetched data
 	resourceData := map[string]interface{}{
-		"id":           strconv.Itoa(resource.ID),
-		"name":         resource.Name,
-		"category":     resource.Category,
-		"uri":          resource.URI,
-		"cups_name":    resource.CUPSName,
-		"location":     resource.Location,
-		"model":        resource.Model,
-		"info":         resource.Info,
-		"notes":        resource.Notes,
-		"make_default": resource.MakeDefault,
-		"use_generic":  resource.UseGeneric,
-		"ppd":          resource.PPD,
-		"ppd_path":     resource.PPDPath,
-		"ppd_contents": resource.PPDContents,
+		"id":           strconv.Itoa(resp.ID),
+		"name":         resp.Name,
+		"category":     resp.Category,
+		"uri":          resp.URI,
+		"cups_name":    resp.CUPSName,
+		"location":     resp.Location,
+		"model":        resp.Model,
+		"info":         resp.Info,
+		"notes":        resp.Notes,
+		"make_default": resp.MakeDefault,
+		"use_generic":  resp.UseGeneric,
+		"ppd":          resp.PPD,
+		"ppd_path":     resp.PPDPath,
+		"ppd_contents": resp.PPDContents,
 	}
 
 	// Iterate over the map and set each key-value pair in the Terraform state

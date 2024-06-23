@@ -10,36 +10,36 @@ import (
 )
 
 // updateTerraformState updates the Terraform state with the latest MacOS Configuration Profile information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceFileShareDistributionPoint) diag.Diagnostics {
+func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceFileShareDistributionPoint) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Check if distribution point data exists
-	if resource != nil {
+	if resp != nil {
 		// Organize state updates into a map
 		resourceData := map[string]interface{}{
-			"id":                    strconv.Itoa(resource.ID),
-			"name":                  resource.Name,
-			"ip_address":            resource.IPAddress,
-			"is_master":             resource.IsMaster,
-			"failover_point":        resource.FailoverPoint,
-			"failover_point_url":    resource.FailoverPointURL,
-			"enable_load_balancing": resource.EnableLoadBalancing,
-			"local_path":            resource.LocalPath,
-			"ssh_username":          resource.SSHUsername,
-			// "password": resource.Password,  // sensitive field, not included in state
-			"connection_type":                  resource.ConnectionType,
-			"share_name":                       resource.ShareName,
-			"workgroup_or_domain":              resource.WorkgroupOrDomain,
-			"share_port":                       resource.SharePort,
-			"read_only_username":               resource.ReadOnlyUsername,
-			"https_downloads_enabled":          resource.HTTPDownloadsEnabled,
-			"http_url":                         resource.HTTPURL,
-			"https_share_path":                 resource.Context,
-			"protocol":                         resource.Protocol,
-			"https_port":                       resource.Port,
-			"no_authentication_required":       resource.NoAuthenticationRequired,
-			"https_username_password_required": resource.UsernamePasswordRequired,
-			"https_username":                   resource.HTTPUsername,
+			"id":                    strconv.Itoa(resp.ID),
+			"name":                  resp.Name,
+			"ip_address":            resp.IPAddress,
+			"is_master":             resp.IsMaster,
+			"failover_point":        resp.FailoverPoint,
+			"failover_point_url":    resp.FailoverPointURL,
+			"enable_load_balancing": resp.EnableLoadBalancing,
+			"local_path":            resp.LocalPath,
+			"ssh_username":          resp.SSHUsername,
+			// "password": resp.Password,  // sensitive field, not included in state
+			"connection_type":                  resp.ConnectionType,
+			"share_name":                       resp.ShareName,
+			"workgroup_or_domain":              resp.WorkgroupOrDomain,
+			"share_port":                       resp.SharePort,
+			"read_only_username":               resp.ReadOnlyUsername,
+			"https_downloads_enabled":          resp.HTTPDownloadsEnabled,
+			"http_url":                         resp.HTTPURL,
+			"https_share_path":                 resp.Context,
+			"protocol":                         resp.Protocol,
+			"https_port":                       resp.Port,
+			"no_authentication_required":       resp.NoAuthenticationRequired,
+			"https_username_password_required": resp.UsernamePasswordRequired,
+			"https_username":                   resp.HTTPUsername,
 		}
 
 		for key, val := range resourceData {

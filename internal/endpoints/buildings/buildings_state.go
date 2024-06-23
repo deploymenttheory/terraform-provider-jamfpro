@@ -8,19 +8,19 @@ import (
 )
 
 // updateTerraformState updates the Terraform state with the latest Building information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceBuilding) diag.Diagnostics {
+func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceBuilding) diag.Diagnostics {
 
 	var diags diag.Diagnostics
 
 	// Map the configuration fields from the API response to a structured map
 	buildingData := map[string]interface{}{
-		"name":            resource.Name,
-		"street_address1": resource.StreetAddress1,
-		"street_address2": resource.StreetAddress2,
-		"city":            resource.City,
-		"state_province":  resource.StateProvince,
-		"zip_postal_code": resource.ZipPostalCode,
-		"country":         resource.Country,
+		"name":            resp.Name,
+		"street_address1": resp.StreetAddress1,
+		"street_address2": resp.StreetAddress2,
+		"city":            resp.City,
+		"state_province":  resp.StateProvince,
+		"zip_postal_code": resp.ZipPostalCode,
+		"country":         resp.Country,
 	}
 
 	// Set the structured map in the Terraform state
