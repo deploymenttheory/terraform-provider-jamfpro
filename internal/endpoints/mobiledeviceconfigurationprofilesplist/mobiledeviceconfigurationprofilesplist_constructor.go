@@ -34,7 +34,6 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 	if v, ok := d.GetOk("category"); ok {
 		profile.General.Category = sharedschemas.ConstructSharedResourceCategory(v.([]interface{}))
 	} else {
-		// Set default values if 'category' data is not provided
 		profile.General.Category = sharedschemas.ConstructSharedResourceCategory([]interface{}{})
 	}
 
