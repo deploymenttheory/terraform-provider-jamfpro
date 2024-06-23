@@ -10,6 +10,7 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/constructobject"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -83,16 +84,7 @@ func constructGeneral(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	// Site
 
 	suppliedSite := d.Get("site").([]interface{})
-	if len(suppliedSite) > 0 {
-		outSite := &jamfpro.SharedResourceSite{
-			ID: suppliedSite[0].(map[string]interface{})["id"].(int),
-		}
-		out.General.Site = outSite
-	} else {
-		out.General.Site = &jamfpro.SharedResourceSite{
-			ID: 0,
-		}
-	}
+	out.General.Site = constructobject.ConstructSharedResourceSite(suppliedSite)
 }
 
 // Pulls "scope" settings from HCL and packages into object

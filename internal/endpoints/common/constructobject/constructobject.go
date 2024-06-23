@@ -5,23 +5,17 @@ import "github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 
 // ConstructSharedResourceSite constructs a SharedResourceSite object from the provided schema data,
 // setting default values if none are presented.
-func ConstructSharedResourceSite(data []interface{}) jamfpro.SharedResourceSite {
-	// Check if 'site' data is provided and non-empty
-	if len(data) > 0 && data[0] != nil {
-		site := data[0].(map[string]interface{})
-
-		// Return the 'site' object with data from the schema
-		return jamfpro.SharedResourceSite{
-			ID:   site["id"].(int),
-			Name: site["name"].(string),
+func ConstructSharedResourceSite(suppliedSite []interface{}) *jamfpro.SharedResourceSite {
+	var outSite *jamfpro.SharedResourceSite
+	if len(suppliedSite) > 0 && suppliedSite[0].(map[string]interface{})["id"].(int) > 0 {
+		outSite = &jamfpro.SharedResourceSite{
+			ID: suppliedSite[0].(map[string]interface{})["id"].(int),
 		}
+	} else {
+		outSite = nil
 	}
 
-	// Return default 'site' values if no data is provided or it is empty
-	return jamfpro.SharedResourceSite{
-		ID:   -1,     // Default ID
-		Name: "None", // Default name
-	}
+	return outSite
 }
 
 // ConstructSharedResourceCategory constructs a SharedResourceCategory object from the provided schema data,

@@ -20,10 +20,7 @@ func constructJamfProStaticComputerGroup(d *schema.ResourceData) (*jamfpro.Resou
 
 	if v, ok := d.GetOk("site"); ok {
 		site := constructobject.ConstructSharedResourceSite(v.([]interface{}))
-		group.Site = &site
-	} else {
-		site := constructobject.ConstructSharedResourceSite([]interface{}{})
-		group.Site = &site
+		group.Site = site
 	}
 
 	if v, ok := d.GetOk("assignments"); ok {
