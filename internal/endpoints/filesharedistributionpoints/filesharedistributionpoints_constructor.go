@@ -11,7 +11,9 @@ import (
 
 // cconstructJamfProFileShareDistributionPoint constructs a ResourceDockItem object from the provided schema data.
 func constructJamfProFileShareDistributionPoint(d *schema.ResourceData) (*jamfpro.ResourceFileShareDistributionPoint, error) {
-	fileShareDistributionPoint := &jamfpro.ResourceFileShareDistributionPoint{
+	var resource *jamfpro.ResourceFileShareDistributionPoint
+
+	resource = &jamfpro.ResourceFileShareDistributionPoint{
 		Name:                     d.Get("name").(string),
 		IP_Address:               d.Get("ip_address").(string),
 		IsMaster:                 d.Get("is_master").(bool),
@@ -36,12 +38,12 @@ func constructJamfProFileShareDistributionPoint(d *schema.ResourceData) (*jamfpr
 		HTTPURL:                  d.Get("http_url").(string),
 	}
 
-	resourceXML, err := constructobject.SerializeAndRedactXML(fileShareDistributionPoint, []string{"ReadOnlyPassword", "ReadWritePassword", "HTTPPassword"})
+	resourceXML, err := constructobject.SerializeAndRedactXML(resource, []string{"ReadOnlyPassword", "ReadWritePassword", "HTTPPassword"})
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro File Share Distribution Point XML:\n%s\n", string(resourceXML))
 
-	return fileShareDistributionPoint, nil
+	return resource, nil
 }

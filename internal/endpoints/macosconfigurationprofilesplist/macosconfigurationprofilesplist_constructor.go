@@ -14,7 +14,9 @@ import (
 
 // constructJamfProMacOSConfigurationProfilePlist constructs a ResourceMacOSConfigurationProfile object from the provided schema data.
 func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData) (*jamfpro.ResourceMacOSConfigurationProfile, error) {
-	profile := &jamfpro.ResourceMacOSConfigurationProfile{
+	var resource *jamfpro.ResourceMacOSConfigurationProfile
+
+	resource = &jamfpro.ResourceMacOSConfigurationProfile{
 		General: jamfpro.MacOSConfigurationProfileSubsetGeneral{
 			Name:               d.Get("name").(string),
 			Description:        d.Get("description").(string),
@@ -27,32 +29,32 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData) (*ja
 		},
 	}
 
-	profile.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
+	resource.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 
 	if v, ok := d.GetOk("category"); ok {
-		profile.General.Category = sharedschemas.ConstructSharedResourceCategory(v.([]interface{}))
+		resource.General.Category = sharedschemas.ConstructSharedResourceCategory(v.([]interface{}))
 	} else {
-		profile.General.Category = sharedschemas.ConstructSharedResourceCategory([]interface{}{})
+		resource.General.Category = sharedschemas.ConstructSharedResourceCategory([]interface{}{})
 	}
 
 	if v, ok := d.GetOk("scope"); ok {
 		scopeData := v.([]interface{})[0].(map[string]interface{})
-		profile.Scope = constructMacOSConfigurationProfileSubsetScope(scopeData)
+		resource.Scope = constructMacOSConfigurationProfileSubsetScope(scopeData)
 	}
 
 	if v, ok := d.GetOk("self_service"); ok {
 		selfServiceData := v.([]interface{})[0].(map[string]interface{})
-		profile.SelfService = constructMacOSConfigurationProfileSubsetSelfService(selfServiceData)
+		resource.SelfService = constructMacOSConfigurationProfileSubsetSelfService(selfServiceData)
 	}
 
-	resourceXML, err := xml.MarshalIndent(profile, "", "  ")
+	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro macOS Configuration Profile '%s' to XML: %v", profile.General.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro macOS Configuration Profile '%s' to XML: %v", resource.General.Name, err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro macOS Configuration Profile XML:\n%s\n", string(resourceXML))
 
-	return profile, nil
+	return resource, nil
 }
 
 // constructMacOSConfigurationProfileSubsetScope constructs a MacOSConfigurationProfileSubsetScope object from the provided schema data.

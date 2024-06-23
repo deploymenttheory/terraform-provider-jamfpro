@@ -13,7 +13,9 @@ import (
 
 // constructJamfProAdvancedUserSearch constructs an advanced user search object for create and update operations.
 func constructJamfProAdvancedUserSearch(d *schema.ResourceData) (*jamfpro.ResourceAdvancedUserSearch, error) {
-	search := &jamfpro.ResourceAdvancedUserSearch{
+	var resource *jamfpro.ResourceAdvancedUserSearch
+
+	resource = &jamfpro.ResourceAdvancedUserSearch{
 		Name: d.Get("name").(string),
 	}
 
@@ -32,7 +34,7 @@ func constructJamfProAdvancedUserSearch(d *schema.ResourceData) (*jamfpro.Resour
 				ClosingParen: criterionMap["closing_paren"].(bool),
 			}
 		}
-		search.Criteria.Criterion = criteria
+		resource.Criteria.Criterion = criteria
 	}
 
 	if v, ok := d.GetOk("display_fields"); ok {
@@ -44,17 +46,17 @@ func constructJamfProAdvancedUserSearch(d *schema.ResourceData) (*jamfpro.Resour
 				Name: fieldMap["name"].(string),
 			}
 		}
-		search.DisplayFields = []jamfpro.SharedAdvancedSearchContainerDisplayField{{DisplayField: displayFields}}
+		resource.DisplayFields = []jamfpro.SharedAdvancedSearchContainerDisplayField{{DisplayField: displayFields}}
 	}
 
-	search.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
+	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 
-	resourceXML, err := xml.MarshalIndent(search, "", "  ")
+	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Advanced User Search '%s' to XML: %v", search.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Advanced User Search '%s' to XML: %v", resource.Name, err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro Advanced User Search XML:\n%s\n", string(resourceXML))
 
-	return search, nil
+	return resource, nil
 }

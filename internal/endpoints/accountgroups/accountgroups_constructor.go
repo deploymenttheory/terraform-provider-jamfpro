@@ -13,21 +13,23 @@ import (
 
 // constructJamfProAccountGroup constructs an AccountGroup object from the provided schema data.
 func constructJamfProAccountGroup(d *schema.ResourceData) (*jamfpro.ResourceAccountGroup, error) {
-	accountGroup := &jamfpro.ResourceAccountGroup{
+	var resource *jamfpro.ResourceAccountGroup
+
+	resource = &jamfpro.ResourceAccountGroup{
 		Name:         d.Get("name").(string),
 		AccessLevel:  d.Get("access_level").(string),
 		PrivilegeSet: d.Get("privilege_set").(string),
 	}
 
-	accountGroup.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
-	accountGroup.Privileges = constructAccountSubsetPrivileges(d)
+	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
+	resource.Privileges = constructAccountSubsetPrivileges(d)
 
 	if v, ok := d.GetOk("members"); ok {
 		memberList := v.([]interface{})
-		accountGroup.Members = make(jamfpro.AccountGroupSubsetMembers, len(memberList))
+		resource.Members = make(jamfpro.AccountGroupSubsetMembers, len(memberList))
 		for i, member := range memberList {
 			memberData := member.(map[string]interface{})
-			accountGroup.Members[i].User = jamfpro.MemberUser{
+			resource.Members[i].User = jamfpro.MemberUser{
 				ID:   memberData["id"].(int),
 				Name: memberData["name"].(string),
 			}
@@ -36,19 +38,19 @@ func constructJamfProAccountGroup(d *schema.ResourceData) (*jamfpro.ResourceAcco
 
 	if v, ok := d.GetOk("identity_server"); ok && len(v.([]interface{})) > 0 {
 		identityServerData := v.([]interface{})[0].(map[string]interface{})
-		accountGroup.LDAPServer = jamfpro.AccountGroupSubsetLDAPServer{
+		resource.LDAPServer = jamfpro.AccountGroupSubsetLDAPServer{
 			ID: identityServerData["id"].(int),
 		}
 	}
 
-	resourceXML, err := xml.MarshalIndent(accountGroup, "", "  ")
+	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Account Group '%s' to XML: %v", accountGroup.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Account Group '%s' to XML: %v", resource.Name, err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro Account Group XML:\n%s\n", string(resourceXML))
 
-	return accountGroup, nil
+	return resource, nil
 }
 
 // Helper functions for nested structures

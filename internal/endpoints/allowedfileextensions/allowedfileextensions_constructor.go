@@ -12,16 +12,18 @@ import (
 
 // constructJamfProAllowedFileExtension creates a new ResourceAllowedFileExtension instance from Terraform data and serializes it to XML.
 func constructJamfProAllowedFileExtension(d *schema.ResourceData) (*jamfpro.ResourceAllowedFileExtension, error) {
-	allowedFileExtension := &jamfpro.ResourceAllowedFileExtension{
+	var resource *jamfpro.ResourceAllowedFileExtension
+
+	resource = &jamfpro.ResourceAllowedFileExtension{
 		Extension: d.Get("extension").(string),
 	}
 
-	resourceXML, err := xml.MarshalIndent(allowedFileExtension, "", "  ")
+	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Allowed File Extension '%s' to XML: %v", allowedFileExtension.Extension, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Allowed File Extension '%s' to XML: %v", resource.Extension, err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro Allowed File Extension XML:\n%s\n", string(resourceXML))
 
-	return allowedFileExtension, nil
+	return resource, nil
 }

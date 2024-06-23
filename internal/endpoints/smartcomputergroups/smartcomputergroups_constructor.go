@@ -13,25 +13,27 @@ import (
 
 // constructJamfProSmartComputerGroup constructs a ResourceComputerGroup object from the provided schema data.
 func constructJamfProSmartComputerGroup(d *schema.ResourceData) (*jamfpro.ResourceComputerGroup, error) {
-	group := &jamfpro.ResourceComputerGroup{
+	var resource *jamfpro.ResourceComputerGroup
+
+	resource = &jamfpro.ResourceComputerGroup{
 		Name:    d.Get("name").(string),
 		IsSmart: true,
 	}
 
-	group.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
+	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 
 	if v, ok := d.GetOk("criteria"); ok {
-		group.Criteria = constructComputerGroupSubsetContainerCriteria(v.([]interface{}))
+		resource.Criteria = constructComputerGroupSubsetContainerCriteria(v.([]interface{}))
 	}
 
-	resourceXML, err := xml.MarshalIndent(group, "", "  ")
+	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Group '%s' to XML: %v", group.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Group '%s' to XML: %v", resource.Name, err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro Computer Group XML:\n%s\n", string(resourceXML))
 
-	return group, nil
+	return resource, nil
 }
 
 // constructComputerGroupSubsetContainerCriteria constructs a ComputerGroupSubsetContainerCriteria object from the provided schema data.

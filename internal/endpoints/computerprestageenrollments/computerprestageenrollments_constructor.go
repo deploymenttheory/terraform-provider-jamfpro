@@ -12,7 +12,9 @@ import (
 
 // constructJamfProComputerPrestageEnrollment constructs a ResourceComputerPrestage object from the provided schema data.
 func constructJamfProComputerPrestageEnrollment(d *schema.ResourceData) (*jamfpro.ResourceComputerPrestage, error) {
-	prestage := &jamfpro.ResourceComputerPrestage{
+	var resource *jamfpro.ResourceComputerPrestage
+
+	resource = &jamfpro.ResourceComputerPrestage{
 		DisplayName:                     d.Get("display_name").(string),
 		Mandatory:                       d.Get("mandatory").(bool),
 		MDMRemovable:                    d.Get("mdm_removable").(bool),
@@ -41,75 +43,69 @@ func constructJamfProComputerPrestageEnrollment(d *schema.ResourceData) (*jamfpr
 
 	if v, ok := d.GetOk("skip_setup_items"); ok && len(v.([]interface{})) > 0 {
 		skipSetupItemsMap := v.([]interface{})[0].(map[string]interface{})
-		prestage.SkipSetupItems = constructSkipSetupItems(skipSetupItemsMap)
+		resource.SkipSetupItems = constructSkipSetupItems(skipSetupItemsMap)
 	}
 
 	if v, ok := d.GetOk("location_information"); ok && len(v.([]interface{})) > 0 {
 		locationData := v.([]interface{})[0].(map[string]interface{})
-		prestage.LocationInformation = constructLocationInformation(locationData)
+		resource.LocationInformation = constructLocationInformation(locationData)
 	}
 
-	// Handling for purchasing_information
 	if v, ok := d.GetOk("purchasing_information"); ok && len(v.([]interface{})) > 0 {
 		purchasingData := v.([]interface{})[0].(map[string]interface{})
-		prestage.PurchasingInformation = constructPurchasingInformation(purchasingData)
+		resource.PurchasingInformation = constructPurchasingInformation(purchasingData)
 	}
 
-	prestage.EnrollmentCustomizationId = d.Get("enrollment_customization_id").(string)
-	prestage.Language = d.Get("language").(string)
-	prestage.Region = d.Get("region").(string)
-	prestage.AutoAdvanceSetup = d.Get("auto_advance_setup").(bool)
-	prestage.InstallProfilesDuringSetup = d.Get("install_profiles_during_setup").(bool)
-	prestage.EnableRecoveryLock = d.Get("enable_recovery_lock").(bool)
-	prestage.RecoveryLockPasswordType = d.Get("recovery_lock_password_type").(string)
-	prestage.RecoveryLockPassword = d.Get("recovery_lock_password").(string)
-	prestage.RotateRecoveryLockPassword = d.Get("rotate_recovery_lock_password").(bool)
-	prestage.ProfileUuid = d.Get("profile_uuid").(string)
-	prestage.SiteId = d.Get("site_id").(string)
-	prestage.VersionLock = d.Get("version_lock").(int)
+	resource.EnrollmentCustomizationId = d.Get("enrollment_customization_id").(string)
+	resource.Language = d.Get("language").(string)
+	resource.Region = d.Get("region").(string)
+	resource.AutoAdvanceSetup = d.Get("auto_advance_setup").(bool)
+	resource.InstallProfilesDuringSetup = d.Get("install_profiles_during_setup").(bool)
+	resource.EnableRecoveryLock = d.Get("enable_recovery_lock").(bool)
+	resource.RecoveryLockPasswordType = d.Get("recovery_lock_password_type").(string)
+	resource.RecoveryLockPassword = d.Get("recovery_lock_password").(string)
+	resource.RotateRecoveryLockPassword = d.Get("rotate_recovery_lock_password").(bool)
+	resource.ProfileUuid = d.Get("profile_uuid").(string)
+	resource.SiteId = d.Get("site_id").(string)
+	resource.VersionLock = d.Get("version_lock").(int)
 
-	// Handling for account_settings
 	if v, ok := d.GetOk("account_settings"); ok && len(v.([]interface{})) > 0 {
 		accountData := v.([]interface{})[0].(map[string]interface{})
-		prestage.AccountSettings = constructAccountSettings(accountData)
+		resource.AccountSettings = constructAccountSettings(accountData)
 	}
 
-	// Handling for anchor_certificates
 	if v, ok := d.GetOk("anchor_certificates"); ok {
 		anchorCertificates := make([]string, len(v.([]interface{})))
 		for i, cert := range v.([]interface{}) {
 			anchorCertificates[i] = cert.(string)
 		}
-		prestage.AnchorCertificates = anchorCertificates
+		resource.AnchorCertificates = anchorCertificates
 	}
 
-	// Handling for prestage_installed_profile_ids
 	if v, ok := d.GetOk("prestage_installed_profile_ids"); ok {
 		profileIDs := make([]string, len(v.([]interface{})))
 		for i, id := range v.([]interface{}) {
 			profileIDs[i] = id.(string)
 		}
-		prestage.PrestageInstalledProfileIds = profileIDs
+		resource.PrestageInstalledProfileIds = profileIDs
 	}
 
-	// Handling for custom_package_ids
 	if v, ok := d.GetOk("custom_package_ids"); ok {
 		packageIDs := make([]string, len(v.([]interface{})))
 		for i, id := range v.([]interface{}) {
 			packageIDs[i] = id.(string)
 		}
-		prestage.CustomPackageIds = packageIDs
+		resource.CustomPackageIds = packageIDs
 	}
 
-	// Serialize and pretty-print the Computer Prestage Enrollment object as XML for logging
-	resourceXML, err := xml.MarshalIndent(prestage, "", "  ")
+	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Prestage Enrollment '%s' to XML: %v", prestage.DisplayName, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Prestage Enrollment '%s' to XML: %v", resource.DisplayName, err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro Computer Prestage Enrollment XML:\n%s\n", string(resourceXML))
 
-	return prestage, nil
+	return resource, nil
 }
 
 // Helper functions for complex structures

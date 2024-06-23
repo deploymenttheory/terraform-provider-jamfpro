@@ -3,6 +3,8 @@ package common
 
 import (
 	"reflect"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // ConvertToInterfaceSlice converts a slice of any type to a slice of empty interfaces.
@@ -18,4 +20,14 @@ func ConvertToInterfaceSlice(slice interface{}) []interface{} {
 	}
 
 	return result
+}
+
+// getStringSliceFromSet converts a *schema.Set to a slice of strings.
+func getStringSliceFromSet(set *schema.Set) []string {
+	list := set.List()
+	slice := make([]string, len(list))
+	for i, item := range list {
+		slice[i] = item.(string)
+	}
+	return slice
 }

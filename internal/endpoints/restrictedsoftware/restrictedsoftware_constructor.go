@@ -13,7 +13,9 @@ import (
 
 // constructJamfProRestrictedSoftware constructs a RestrictedSoftware object from the provided schema data.
 func constructJamfProRestrictedSoftware(d *schema.ResourceData) (*jamfpro.ResourceRestrictedSoftware, error) {
-	restrictedSoftware := &jamfpro.ResourceRestrictedSoftware{
+	var resource *jamfpro.ResourceRestrictedSoftware
+
+	resource = &jamfpro.ResourceRestrictedSoftware{
 		General: jamfpro.RestrictedSoftwareSubsetGeneral{
 			Name:                  d.Get("name").(string),
 			ProcessName:           d.Get("process_name").(string),
@@ -25,7 +27,7 @@ func constructJamfProRestrictedSoftware(d *schema.ResourceData) (*jamfpro.Resour
 		},
 	}
 
-	restrictedSoftware.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
+	resource.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 
 	// Handle Scope
 	if v, ok := d.GetOk("scope"); ok {
@@ -69,18 +71,18 @@ func constructJamfProRestrictedSoftware(d *schema.ResourceData) (*jamfpro.Resour
 			}
 		}
 
-		restrictedSoftware.Scope = scope
+		resource.Scope = scope
 	}
 
 	// Serialize and pretty-print the restrictedSoftware object as XML for logging
-	resourceXML, err := xml.MarshalIndent(restrictedSoftware, "", "  ")
+	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Restricted Software '%s' to XML: %v", restrictedSoftware.General.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Restricted Software '%s' to XML: %v", resource.General.Name, err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro Restricted Software XML:\n%s\n", string(resourceXML))
 
-	return restrictedSoftware, nil
+	return resource, nil
 }
 
 // Helper functions for nested structures

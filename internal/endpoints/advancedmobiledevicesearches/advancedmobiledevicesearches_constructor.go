@@ -13,7 +13,9 @@ import (
 
 // constructJamfProAdvancedMobileDeviceSearch constructs a mobile device search object for create and update operations.
 func constructJamfProAdvancedMobileDeviceSearch(d *schema.ResourceData) (*jamfpro.ResourceAdvancedMobileDeviceSearch, error) {
-	search := &jamfpro.ResourceAdvancedMobileDeviceSearch{
+	var resource *jamfpro.ResourceAdvancedMobileDeviceSearch
+
+	resource = &jamfpro.ResourceAdvancedMobileDeviceSearch{
 		Name:   d.Get("name").(string),
 		ViewAs: d.Get("view_as").(string),
 		Sort1:  d.Get("sort1").(string),
@@ -36,7 +38,7 @@ func constructJamfProAdvancedMobileDeviceSearch(d *schema.ResourceData) (*jamfpr
 				ClosingParen: criterionMap["closing_paren"].(bool),
 			}
 		}
-		search.Criteria.Criterion = criteria
+		resource.Criteria.Criterion = criteria
 	}
 
 	if v, ok := d.GetOk("display_fields"); ok {
@@ -48,17 +50,17 @@ func constructJamfProAdvancedMobileDeviceSearch(d *schema.ResourceData) (*jamfpr
 				Name: fieldMap["name"].(string),
 			}
 		}
-		search.DisplayFields = []jamfpro.SharedAdvancedSearchContainerDisplayField{{DisplayField: displayFields}}
+		resource.DisplayFields = []jamfpro.SharedAdvancedSearchContainerDisplayField{{DisplayField: displayFields}}
 	}
 
-	search.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
+	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 
-	resourceXML, err := xml.MarshalIndent(search, "", "  ")
+	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Advanced Mobile Device Search '%s' to XML: %v", search.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Advanced Mobile Device Search '%s' to XML: %v", resource.Name, err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro Advanced Mobile Device Search XML:\n%s\n", string(resourceXML))
 
-	return search, nil
+	return resource, nil
 }

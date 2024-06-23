@@ -12,7 +12,9 @@ import (
 
 // constructJamfProPrinter constructs a ResourcePrinter object from the provided schema data.
 func constructJamfProPrinter(d *schema.ResourceData) (*jamfpro.ResourcePrinter, error) {
-	printer := &jamfpro.ResourcePrinter{
+	var resource *jamfpro.ResourcePrinter
+
+	resource = &jamfpro.ResourcePrinter{
 		Name:        d.Get("name").(string),
 		Category:    d.Get("category").(string),
 		URI:         d.Get("uri").(string),
@@ -28,12 +30,12 @@ func constructJamfProPrinter(d *schema.ResourceData) (*jamfpro.ResourcePrinter, 
 		PPDContents: d.Get("ppd_contents").(string),
 	}
 
-	resourceXML, err := xml.MarshalIndent(printer, "", "  ")
+	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Printer '%s' to XML: %v", printer.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Printer '%s' to XML: %v", resource.Name, err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro Printer XML:\n%s\n", string(resourceXML))
 
-	return printer, nil
+	return resource, nil
 }

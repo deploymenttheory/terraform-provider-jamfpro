@@ -12,7 +12,9 @@ import (
 
 // constructJamfProNetworkSegment constructs a ResourceNetworkSegment object from the provided schema data.
 func constructJamfProNetworkSegment(d *schema.ResourceData) (*jamfpro.ResourceNetworkSegment, error) {
-	networkSegment := &jamfpro.ResourceNetworkSegment{
+	var resource *jamfpro.ResourceNetworkSegment
+
+	resource = &jamfpro.ResourceNetworkSegment{
 		Name:                d.Get("name").(string),
 		StartingAddress:     d.Get("starting_address").(string),
 		EndingAddress:       d.Get("ending_address").(string),
@@ -27,12 +29,12 @@ func constructJamfProNetworkSegment(d *schema.ResourceData) (*jamfpro.ResourceNe
 	}
 
 	// Serialize and pretty-print the Network Segment object as XML for logging
-	resourceXML, err := xml.MarshalIndent(networkSegment, "", "  ")
+	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Network Segment '%s' to XML: %v", networkSegment.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Network Segment '%s' to XML: %v", resource.Name, err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro Network Segment XML:\n%s\n", string(resourceXML))
 
-	return networkSegment, nil
+	return resource, nil
 }

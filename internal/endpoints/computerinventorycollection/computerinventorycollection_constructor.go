@@ -12,8 +12,9 @@ import (
 
 // constructJamfProComputerInventoryCollection constructs a ResourceComputerInventoryCollection object from the provided schema data and logs its XML representation.
 func constructJamfProComputerInventoryCollection(d *schema.ResourceData) (*jamfpro.ResourceComputerInventoryCollection, error) {
+	var resource *jamfpro.ResourceComputerInventoryCollection
 
-	inventoryCollection := &jamfpro.ResourceComputerInventoryCollection{
+	resource = &jamfpro.ResourceComputerInventoryCollection{
 		LocalUserAccounts:             d.Get("local_user_accounts").(bool),
 		HomeDirectorySizes:            d.Get("home_directory_sizes").(bool),
 		HiddenAccounts:                d.Get("hidden_accounts").(bool),
@@ -33,7 +34,7 @@ func constructJamfProComputerInventoryCollection(d *schema.ResourceData) (*jamfp
 		applications := v.([]interface{})
 		for _, application := range applications {
 			appMap := application.(map[string]interface{})
-			inventoryCollection.Applications = append(inventoryCollection.Applications, jamfpro.ApplicationEntry{
+			resource.Applications = append(resource.Applications, jamfpro.ApplicationEntry{
 				Application: jamfpro.Application{
 					Path:     appMap["path"].(string),
 					Platform: appMap["platform"].(string),
@@ -47,7 +48,7 @@ func constructJamfProComputerInventoryCollection(d *schema.ResourceData) (*jamfp
 		fonts := v.([]interface{})
 		for _, font := range fonts {
 			fontMap := font.(map[string]interface{})
-			inventoryCollection.Fonts = append(inventoryCollection.Fonts, jamfpro.FontEntry{
+			resource.Fonts = append(resource.Fonts, jamfpro.FontEntry{
 				Font: jamfpro.Font{
 					Path:     fontMap["path"].(string),
 					Platform: fontMap["platform"].(string),
@@ -61,7 +62,7 @@ func constructJamfProComputerInventoryCollection(d *schema.ResourceData) (*jamfp
 		plugins := v.([]interface{})
 		for _, plugin := range plugins {
 			pluginMap := plugin.(map[string]interface{})
-			inventoryCollection.Plugins = append(inventoryCollection.Plugins, jamfpro.PluginEntry{
+			resource.Plugins = append(resource.Plugins, jamfpro.PluginEntry{
 				Plugin: jamfpro.Plugin{
 					Path:     pluginMap["path"].(string),
 					Platform: pluginMap["platform"].(string),
@@ -71,12 +72,12 @@ func constructJamfProComputerInventoryCollection(d *schema.ResourceData) (*jamfp
 	}
 
 	// Serialize and pretty-print the inventory collection object as XML for logging
-	resourceXML, err := xml.MarshalIndent(inventoryCollection, "", "  ")
+	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Inventory Collection to XML: %v", err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro Computer Inventory Collection XML:\n%s\n", string(resourceXML))
 
-	return inventoryCollection, nil
+	return resource, nil
 }

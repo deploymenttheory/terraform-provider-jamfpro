@@ -12,8 +12,9 @@ import (
 
 // constructJamfProComputerCheckin constructs a ResourceComputerCheckin object from the provided schema data and logs its XML representation.
 func constructJamfProComputerCheckin(d *schema.ResourceData) (*jamfpro.ResourceComputerCheckin, error) {
+	var resource *jamfpro.ResourceComputerCheckin
 
-	checkin := &jamfpro.ResourceComputerCheckin{
+	resource = &jamfpro.ResourceComputerCheckin{
 		CheckInFrequency:          d.Get("check_in_frequency").(int),
 		CreateStartupScript:       d.Get("create_startup_script").(bool),
 		LogStartupEvent:           d.Get("log_startup_event").(bool),
@@ -27,12 +28,12 @@ func constructJamfProComputerCheckin(d *schema.ResourceData) (*jamfpro.ResourceC
 	}
 
 	// Serialize and pretty-print the Category object as XML for logging
-	resourceXML, err := xml.MarshalIndent(checkin, "", "  ")
+	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Checkin to XML: %v", err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro Computer Checkin XML:\n%s\n", string(resourceXML))
 
-	return checkin, nil
+	return resource, nil
 }

@@ -12,7 +12,9 @@ import (
 
 // constructJamfProWebhook constructs a ResourceWebhook object from the provided schema data.
 func constructJamfProWebhook(d *schema.ResourceData) (*jamfpro.ResourceWebhook, error) {
-	webhook := &jamfpro.ResourceWebhook{
+	var resource *jamfpro.ResourceWebhook
+
+	resource = &jamfpro.ResourceWebhook{
 		Name:                        d.Get("name").(string),
 		Enabled:                     d.Get("enabled").(bool),
 		URL:                         d.Get("url").(string),
@@ -48,18 +50,18 @@ func constructJamfProWebhook(d *schema.ResourceData) (*jamfpro.ResourceWebhook, 
 					}
 				}
 			}
-			webhook.DisplayFields = append(webhook.DisplayFields, jamfpro.SharedAdvancedSearchContainerDisplayField{
+			resource.DisplayFields = append(resource.DisplayFields, jamfpro.SharedAdvancedSearchContainerDisplayField{
 				DisplayField: displayFields,
 			})
 		}
 	}
 
 	// Serialize and log the XML output for debugging
-	xmlOutput, err := constructobject.SerializeAndRedactXML(webhook, []string{"Password"})
+	xmlOutput, err := constructobject.SerializeAndRedactXML(resource, []string{"Password"})
 	if err != nil {
 		log.Fatalf("Error serializing webhook to XML: %v", err)
 	}
 	log.Printf("[DEBUG] Constructed Jamf Pro Webhook XML:\n%s\n", xmlOutput)
 
-	return webhook, nil
+	return resource, nil
 }

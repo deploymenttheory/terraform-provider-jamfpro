@@ -12,7 +12,9 @@ import (
 
 // constructJamfProScript constructs a ResourceScript object from the provided schema data.
 func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResourceScript, error) {
-	script := &jamfpro.ResourceScript{
+	var resource *jamfpro.ResourceScript
+
+	resource = &jamfpro.ResourceScript{
 		Name:           d.Get("name").(string),
 		Info:           d.Get("info").(string),
 		Notes:          d.Get("notes").(string),
@@ -31,30 +33,30 @@ func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResourceScript, er
 	// Check hcl for category_name or category_id and set the appropriate default value if not set
 	categoryName, ok := d.GetOk("category_name")
 	if !ok {
-		script.CategoryName = "NONE" // Default value if not set
+		resource.CategoryName = "NONE" // Default value if not set
 	} else {
-		script.CategoryName = categoryName.(string)
+		resource.CategoryName = categoryName.(string)
 	}
 
 	categoryId, ok := d.GetOk("category_id")
 	if !ok {
-		script.CategoryId = "-1" // Default value if not set
+		resource.CategoryId = "-1" // Default value if not set
 	} else {
-		script.CategoryId = categoryId.(string)
+		resource.CategoryId = categoryId.(string)
 	}
 
 	// Directly assign script_contents as a string
 	if scriptContent, ok := d.GetOk("script_contents"); ok {
-		script.ScriptContents = scriptContent.(string)
+		resource.ScriptContents = scriptContent.(string)
 	}
 
 	// Serialize and pretty-print the Script object as JSON for logging
-	resourceJSON, err := json.MarshalIndent(script, "", "  ")
+	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Script '%s' to JSON: %v", script.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Script '%s' to JSON: %v", resource.Name, err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro Script JSON:\n%s\n", string(resourceJSON))
 
-	return script, nil
+	return resource, nil
 }

@@ -14,18 +14,20 @@ import (
 
 // constructJamfProUserGroup constructs a ResourceUserGroup object from the provided schema data.
 func constructJamfProUserGroup(d *schema.ResourceData) (*jamfpro.ResourceUserGroup, error) {
-	userGroup := &jamfpro.ResourceUserGroup{
+	var resource *jamfpro.ResourceUserGroup
+
+	resource = &jamfpro.ResourceUserGroup{
 		Name:             d.Get("name").(string),
 		IsSmart:          d.Get("is_smart").(bool),
 		IsNotifyOnChange: d.Get("is_notify_on_change").(bool),
 	}
 
-	userGroup.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
+	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 
 	criteria := d.Get("criteria").([]interface{})
 	for _, criterion := range criteria {
 		c := criterion.(map[string]interface{})
-		userGroup.Criteria = append(userGroup.Criteria, jamfpro.SharedSubsetCriteria{
+		resource.Criteria = append(resource.Criteria, jamfpro.SharedSubsetCriteria{
 			Name:         c["name"].(string),
 			Priority:     c["priority"].(int),
 			AndOr:        c["and_or"].(string),
@@ -50,23 +52,23 @@ func constructJamfProUserGroup(d *schema.ResourceData) (*jamfpro.ResourceUserGro
 				return nil, fmt.Errorf("error converting user ID '%s' to integer: %v", userIDStr, err)
 			}
 
-			userGroup.Users = append(userGroup.Users, jamfpro.UserGroupSubsetUserItem{
+			resource.Users = append(resource.Users, jamfpro.UserGroupSubsetUserItem{
 				ID: intID,
 			})
 		}
 	}
 
-	userGroup.UserAdditions = extractUsers(d.Get("user_additions").([]interface{}))
-	userGroup.UserDeletions = extractUsers(d.Get("user_deletions").([]interface{}))
+	resource.UserAdditions = extractUsers(d.Get("user_additions").([]interface{}))
+	resource.UserDeletions = extractUsers(d.Get("user_deletions").([]interface{}))
 
-	resourceXML, err := xml.MarshalIndent(userGroup, "", "  ")
+	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro User Group  '%s' to XML: %v", userGroup.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro User Group  '%s' to XML: %v", resource.Name, err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro User Group  XML:\n%s\n", string(resourceXML))
 
-	return userGroup, nil
+	return resource, nil
 }
 
 // extractUsers converts a slice of interface{} that represents user data into a slice

@@ -2,17 +2,16 @@
 package accounts
 
 import (
-	"log"
-
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/constructobject"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // constructJamfProAccount constructs an Account object from the provided schema data.
 func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, error) {
-	account := &jamfpro.ResourceAccount{
+	var resource *jamfpro.ResourceAccount
+
+	resource = &jamfpro.ResourceAccount{
 		Name:                d.Get("name").(string),
 		DirectoryUser:       d.Get("directory_user").(bool),
 		FullName:            d.Get("full_name").(string),
@@ -26,14 +25,13 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 
 	if v, ok := d.GetOk("identity_server"); ok && len(v.([]interface{})) > 0 {
 		ldapServerData := v.([]interface{})[0].(map[string]interface{})
-		account.LdapServer = jamfpro.AccountSubsetLdapServer{
+		resource.LdapServer = jamfpro.AccountSubsetLdapServer{
 			ID: ldapServerData["id"].(int),
 		}
 	}
 
-	account.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
-
-	account.Privileges = constructAccountSubsetPrivileges(d)
+	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
+	resource.Privileges = constructAccountSubsetPrivileges(d)
 
 	if v, ok := d.GetOk("groups"); ok {
 		groupsSet := v.(*schema.Set)
@@ -44,18 +42,11 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 				Name: groupData["name"].(string),
 			}
 
-			account.Groups = append(account.Groups, group)
+			resource.Groups = append(resource.Groups, group)
 		}
 	}
 
-	xmlOutput, err := constructobject.SerializeAndRedactXML(account, []string{"Password"})
-	if err != nil {
-		log.Fatalf("Error: %v", err)
-	}
-
-	log.Printf("[DEBUG] Constructed Jamf Pro Account XML:\n%s\n", string(xmlOutput))
-
-	return account, nil
+	return resource, nil
 }
 
 // constructAccountSubsetPrivileges constructs AccountSubsetPrivileges from schema data.
@@ -88,12 +79,11 @@ func constructAccountSubsetPrivileges(d *schema.ResourceData) jamfpro.AccountSub
 }
 
 // getStringSliceFromSet converts a *schema.Set to a slice of strings.
-// TODO move this out
 func getStringSliceFromSet(set *schema.Set) []string {
 	list := set.List()
 	slice := make([]string, len(list))
 	for i, item := range list {
-		slice[i] = item.(string) // Direct assertion to string, assuming all items are strings.
+		slice[i] = item.(string)
 	}
 	return slice
 }

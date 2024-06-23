@@ -12,17 +12,19 @@ import (
 
 // constructJamfProSite constructs a SharedResourceSite object from the provided schema data.
 func constructJamfProSite(d *schema.ResourceData) (*jamfpro.SharedResourceSite, error) {
-	site := &jamfpro.SharedResourceSite{
+	var resource *jamfpro.SharedResourceSite
+
+	resource = &jamfpro.SharedResourceSite{
 		Name: d.Get("name").(string),
 	}
 
 	// Serialize and pretty-print the Site object as XML for logging
-	resourceXML, err := xml.MarshalIndent(site, "", "  ")
+	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Site '%s' to XML: %v", site.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Site '%s' to XML: %v", resource.Name, err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro Site XML:\n%s\n", string(resourceXML))
 
-	return site, nil
+	return resource, nil
 }

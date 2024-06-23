@@ -12,7 +12,9 @@ import (
 
 // constructJamfProBuilding constructs a Building object from the provided schema data.
 func constructJamfProBuilding(d *schema.ResourceData) (*jamfpro.ResourceBuilding, error) {
-	building := &jamfpro.ResourceBuilding{
+	var resource *jamfpro.ResourceBuilding
+
+	resource = &jamfpro.ResourceBuilding{
 		Name:           d.Get("name").(string),
 		StreetAddress1: d.Get("street_address1").(string),
 		StreetAddress2: d.Get("street_address2").(string),
@@ -23,12 +25,12 @@ func constructJamfProBuilding(d *schema.ResourceData) (*jamfpro.ResourceBuilding
 	}
 
 	// Serialize and pretty-print the Building object as JSON for logging
-	resourceJSON, err := json.MarshalIndent(building, "", "  ")
+	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Building '%s' to JSON: %v", building.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Building '%s' to JSON: %v", resource.Name, err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro Building JSON:\n%s\n", string(resourceJSON))
 
-	return building, nil
+	return resource, nil
 }

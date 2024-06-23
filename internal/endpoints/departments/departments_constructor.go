@@ -12,16 +12,18 @@ import (
 
 // constructJamfProDepartment constructs a Jamf Pro Department struct from Terraform resource data.
 func constructJamfProDepartment(d *schema.ResourceData) (*jamfpro.ResourceDepartment, error) {
-	department := &jamfpro.ResourceDepartment{
+	var resource *jamfpro.ResourceDepartment
+
+	resource = &jamfpro.ResourceDepartment{
 		Name: d.Get("name").(string),
 	}
 
-	resourceXML, err := xml.MarshalIndent(department, "", "  ")
+	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Department '%s' to XML: %v", department.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Department '%s' to XML: %v", resource.Name, err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro Department XML:\n%s\n", string(resourceXML))
 
-	return department, nil
+	return resource, nil
 }

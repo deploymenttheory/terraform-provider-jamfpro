@@ -11,7 +11,9 @@ import (
 
 // constructJamfProApiRole constructs an ResourceAPIRole object from the provided schema data.
 func constructJamfProApiRole(d *schema.ResourceData) (*jamfpro.ResourceAPIRole, error) {
-	apiRole := &jamfpro.ResourceAPIRole{
+	var resource *jamfpro.ResourceAPIRole
+
+	resource = &jamfpro.ResourceAPIRole{
 		DisplayName: d.Get("display_name").(string),
 	}
 
@@ -24,15 +26,15 @@ func constructJamfProApiRole(d *schema.ResourceData) (*jamfpro.ResourceAPIRole, 
 				return nil, fmt.Errorf("failed to assert privilege to string")
 			}
 		}
-		apiRole.Privileges = privileges
+		resource.Privileges = privileges
 	}
 
-	resourceJSON, err := json.MarshalIndent(apiRole, "", "  ")
+	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Api Role '%s' to JSON: %v", apiRole.DisplayName, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Api Role '%s' to JSON: %v", resource.DisplayName, err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro Api Role JSON:\n%s\n", string(resourceJSON))
 
-	return apiRole, nil
+	return resource, nil
 }
