@@ -8,7 +8,6 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/constructobject"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -33,10 +32,10 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 
 	// Handle Category
 	if v, ok := d.GetOk("category"); ok {
-		profile.General.Category = constructobject.ConstructSharedResourceCategory(v.([]interface{}))
+		profile.General.Category = sharedschemas.ConstructSharedResourceCategory(v.([]interface{}))
 	} else {
 		// Set default values if 'category' data is not provided
-		profile.General.Category = constructobject.ConstructSharedResourceCategory([]interface{}{})
+		profile.General.Category = sharedschemas.ConstructSharedResourceCategory([]interface{}{})
 	}
 
 	// Handle Scope

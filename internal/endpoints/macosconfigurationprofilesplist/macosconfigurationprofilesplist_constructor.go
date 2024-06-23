@@ -8,7 +8,6 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/constructobject"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -31,9 +30,9 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData) (*ja
 	profile.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 
 	if v, ok := d.GetOk("category"); ok {
-		profile.General.Category = constructobject.ConstructSharedResourceCategory(v.([]interface{}))
+		profile.General.Category = sharedschemas.ConstructSharedResourceCategory(v.([]interface{}))
 	} else {
-		profile.General.Category = constructobject.ConstructSharedResourceCategory([]interface{}{})
+		profile.General.Category = sharedschemas.ConstructSharedResourceCategory([]interface{}{})
 	}
 
 	if v, ok := d.GetOk("scope"); ok {
