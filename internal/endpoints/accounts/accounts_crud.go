@@ -37,11 +37,39 @@ func resourceJamfProAccountCreate(ctx context.Context, d *schema.ResourceData, m
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	return append(diags, resourceJamfProAccountRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProAccountReadFromCreate(ctx, d, meta)...)
 }
 
 // resourceJamfProAccountRead is responsible for reading the current state of a Jamf Pro Account Group Resource from the remote system.
 func resourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	client := meta.(*jamfpro.Client)
+	var diags diag.Diagnostics
+	resourceID := d.Id()
+
+	resourceIDInt, err := strconv.Atoi(resourceID)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
+	}
+
+	var response *jamfpro.ResourceAccount
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		response, apiErr = client.GetAccountByID(resourceIDInt)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+
+	return append(diags, updateTerraformState(d, response)...)
+}
+
+// resourceJamfProAccountRead is responsible for reading the current state of a Jamf Pro Account Group Resource from the remote system.
+func resourceJamfProAccountReadFromCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -102,7 +130,6 @@ func resourceJamfProAccountUpdate(ctx context.Context, d *schema.ResourceData, m
 // resourceJamfProAccountDelete is responsible for deleting a Jamf Pro account .
 func resourceJamfProAccountDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
-
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 

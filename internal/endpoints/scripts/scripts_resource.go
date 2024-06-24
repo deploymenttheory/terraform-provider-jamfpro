@@ -12,7 +12,7 @@ import (
 func ResourceJamfProScripts() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProScriptsCreate,
-		ReadContext:   resourceJamfProScriptsRead,
+		ReadContext:   resourceJamfProScriptsReadWithCleanup,
 		UpdateContext: resourceJamfProScriptsUpdate,
 		DeleteContext: resourceJamfProScriptsDelete,
 		Timeouts: &schema.ResourceTimeout{

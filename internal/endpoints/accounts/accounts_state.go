@@ -13,7 +13,6 @@ import (
 
 // updateTerraformState updates the Terraform state with the latest Account information from the Jamf Pro API.
 func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceAccount) diag.Diagnostics {
-
 	var diags diag.Diagnostics
 
 	// Update Terraform state with the resource information
