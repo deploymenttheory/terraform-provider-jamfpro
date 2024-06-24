@@ -2,6 +2,8 @@
 package packages
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"path/filepath"
 
@@ -26,7 +28,7 @@ func constructJamfProPackageCreate(d *schema.ResourceData) (*jamfpro.ResourcePac
 	}
 
 	// Construct the ResourcePackage struct from the Terraform schema data
-	packageResource := &jamfpro.ResourcePackage{
+	resource := &jamfpro.ResourcePackage{
 		PackageName:          d.Get("package_name").(string),
 		FileName:             fileName,
 		CategoryID:           category,
@@ -41,9 +43,15 @@ func constructJamfProPackageCreate(d *schema.ResourceData) (*jamfpro.ResourcePac
 		SuppressRegistration: BoolPtr(d.Get("suppress_registration").(bool)),
 	}
 
-	log.Printf("[DEBUG] Constructed Jamf Pro Package: %+v\n", packageResource)
+	// Serialize and pretty-print the Network Segment object as JSON for logging
+	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Package '%s' to JSON: %v", resource.Name, err)
+	}
 
-	return packageResource, nil
+	log.Printf("[DEBUG] Constructed Jamf Pro Package JSON:\n%s\n", string(resourceJSON))
+
+	return resource, nil
 }
 
 // BoolPtr is a helper function to create a pointer to a bool.
