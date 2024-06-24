@@ -34,7 +34,6 @@ func constructJamfProPackageCreate(d *schema.ResourceData) (*jamfpro.ResourcePac
 		CategoryID:           category,
 		Priority:             d.Get("priority").(int),
 		FillUserTemplate:     BoolPtr(d.Get("fill_user_template").(bool)),
-		SWU:                  BoolPtr(d.Get("swu").(bool)),
 		RebootRequired:       BoolPtr(d.Get("reboot_required").(bool)),
 		OSInstall:            BoolPtr(d.Get("os_install").(bool)),
 		SuppressUpdates:      BoolPtr(d.Get("suppress_updates").(bool)),
@@ -46,7 +45,7 @@ func constructJamfProPackageCreate(d *schema.ResourceData) (*jamfpro.ResourcePac
 	// Serialize and pretty-print the Network Segment object as JSON for logging
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Package '%s' to JSON: %v", resource.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Package '%s' to JSON: %v", resource.FileName, err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro Package JSON:\n%s\n", string(resourceJSON))
