@@ -128,7 +128,7 @@ func ResourceJamfProPackages() *schema.Resource {
 			},
 			"cloud_transfer_status": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "The cloud transfer status.",
 			},
 			"ignore_conflicts": {
@@ -178,7 +178,7 @@ func ResourceJamfProPackages() *schema.Resource {
 			},
 			"size": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "The size of the package.",
 			},
 			"os_installer_version": {
@@ -198,7 +198,7 @@ func ResourceJamfProPackages() *schema.Resource {
 			},
 			"format": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "The format of the package.",
 			},
 			"package_uri": {
