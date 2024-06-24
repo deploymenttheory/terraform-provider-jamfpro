@@ -9,7 +9,7 @@ const (
 	DefaultContextTimeoutDelete = 65 * time.Second
 
 	LoadBalancedContextTimeoutCreate = 15 * time.Second
-	LoadBalancedContextTimeoutRead   = 10 * time.Second
+	LoadBalancedContextTimeoutRead   = 5 * time.Second
 	LoadBalancedContextTimeoutUpdate = 15 * time.Second
 	LoadBalancedContextTimeoutDelete = 10 * time.Second
 )

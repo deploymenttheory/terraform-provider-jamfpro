@@ -3,6 +3,7 @@ package scripts
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
@@ -58,6 +59,8 @@ func resourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 	var diags diag.Diagnostics
 
 	var response *jamfpro.ResourceScript
+	log.Println("LOGHERE")
+	log.Println(schema.TimeoutRead)
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
 		response, apiErr = client.GetScriptByID(resourceID)
