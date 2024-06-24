@@ -14,7 +14,7 @@ import (
 func ResourceJamfProPolicies() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProPoliciesCreate,
-		ReadContext:   resourceJamfProPoliciesRead,
+		ReadContext:   resourceJamfProPoliciesReadWithCleanup,
 		UpdateContext: resourceJamfProPoliciesUpdate,
 		DeleteContext: resourceJamfProPoliciesDelete,
 		Timeouts: &schema.ResourceTimeout{

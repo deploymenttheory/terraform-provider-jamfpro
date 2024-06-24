@@ -13,7 +13,7 @@ import (
 func ResourceJamfProComputerCheckin() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProComputerCheckinCreate,
-		ReadContext:   resourceJamfProComputerCheckinRead,
+		ReadContext:   resourceJamfProComputerCheckinReadWithCleanup,
 		UpdateContext: resourceJamfProComputerCheckinUpdate,
 		DeleteContext: resourceJamfProComputerCheckinDelete,
 		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {

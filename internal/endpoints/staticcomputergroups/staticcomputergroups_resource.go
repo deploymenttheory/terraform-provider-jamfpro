@@ -35,7 +35,7 @@ const (
 func ResourceJamfProStaticComputerGroups() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProStaticComputerGroupsCreate,
-		ReadContext:   resourceJamfProStaticComputerGroupsRead,
+		ReadContext:   resourceJamfProStaticComputerGroupsReadWithCleanup,
 		UpdateContext: resourceJamfProStaticComputerGroupsUpdate,
 		DeleteContext: resourceJamfProStaticComputerGroupsDelete,
 		Timeouts: &schema.ResourceTimeout{

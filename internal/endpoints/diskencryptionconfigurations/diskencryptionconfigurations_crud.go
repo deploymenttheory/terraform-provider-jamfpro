@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -42,11 +43,11 @@ func resourceJamfProDiskEncryptionConfigurationsCreate(ctx context.Context, d *s
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	return append(diags, resourceJamfProDiskEncryptionConfigurationsRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProDiskEncryptionConfigurationsReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProDiskEncryptionConfigurationsRead is responsible for reading the current state of a Jamf Pro Disk Encryption Configuration resource from Jamf Pro and updating the Terraform state with the retrieved data.
-func resourceJamfProDiskEncryptionConfigurationsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProDiskEncryptionConfigurationsRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -67,10 +68,18 @@ func resourceJamfProDiskEncryptionConfigurationsRead(ctx context.Context, d *sch
 	})
 
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, state.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
 	return append(diags, updateTerraformState(d, response)...)
+}
+
+func resourceJamfProDiskEncryptionConfigurationsReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProDiskEncryptionConfigurationsRead(ctx, d, meta, true)
+}
+
+func resourceJamfProDiskEncryptionConfigurationsReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProDiskEncryptionConfigurationsRead(ctx, d, meta, false)
 }
 
 // resourceJamfProDiskEncryptionConfigurationsUpdate is responsible for updating an existing Jamf Pro Disk Encryption Configuration on the remote system.
@@ -101,7 +110,7 @@ func resourceJamfProDiskEncryptionConfigurationsUpdate(ctx context.Context, d *s
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Disk Encryption Configuration '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
 	}
 
-	return append(diags, resourceJamfProDiskEncryptionConfigurationsRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProDiskEncryptionConfigurationsReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProDiskEncryptionConfigurationsDelete is responsible for deleting a Jamf Pro Disk Encryption Configuration.

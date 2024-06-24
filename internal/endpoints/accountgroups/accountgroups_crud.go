@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -37,11 +38,11 @@ func resourceJamfProAccountGroupCreate(ctx context.Context, d *schema.ResourceDa
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	return append(diags, resourceJamfProAccountGroupRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProAccountGroupReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProAccountGroupRead is responsible for reading the current state of a Jamf Pro Account Group Resource from the remote system.
-func resourceJamfProAccountGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProAccountGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	resourceID := d.Id()
 	var diags diag.Diagnostics
@@ -62,10 +63,18 @@ func resourceJamfProAccountGroupRead(ctx context.Context, d *schema.ResourceData
 	})
 
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, state.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
 	return updateTerraformState(d, response)
+}
+
+func resourceJamfProAccountGroupReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProAccountGroupRead(ctx, d, meta, true)
+}
+
+func resourceJamfProAccountGroupReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProAccountGroupRead(ctx, d, meta, false)
 }
 
 // resourceJamfProAccountGroupUpdate is responsible for updating an existing Jamf Pro Account Group on the remote system.
@@ -97,7 +106,7 @@ func resourceJamfProAccountGroupUpdate(ctx context.Context, d *schema.ResourceDa
 		return append(diags, diag.FromErr(fmt.Errorf("failed to update Jamf Pro Account Group '%s' (ID: %s) after retries: %v", resource.Name, resourceID, err))...)
 	}
 
-	return append(diags, resourceJamfProAccountGroupRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProAccountGroupReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProAccountGroupDelete is responsible for deleting a Jamf Pro account group.

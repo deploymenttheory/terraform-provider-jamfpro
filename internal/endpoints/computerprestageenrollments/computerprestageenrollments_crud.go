@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -41,7 +42,7 @@ func resourceJamfProComputerPrestageEnrollmentCreate(ctx context.Context, d *sch
 
 	d.SetId(creationResponse.ID)
 
-	return append(diags, resourceJamfProComputerPrestageEnrollmentRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProComputerPrestageEnrollmentReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProComputerPrestageEnrollmentRead is responsible for reading the current state of a Building Resource from the remote system.
@@ -49,7 +50,7 @@ func resourceJamfProComputerPrestageEnrollmentCreate(ctx context.Context, d *sch
 // 1. Fetches the building's current state using its ID. If it fails, then obtain the building's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the building being deleted outside of Terraform, to keep the Terraform state synchronized.
-func resourceJamfProComputerPrestageEnrollmentRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProComputerPrestageEnrollmentRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -65,10 +66,18 @@ func resourceJamfProComputerPrestageEnrollmentRead(ctx context.Context, d *schem
 	})
 
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, state.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
 	return append(diags, updateTerraformState(d, response)...)
+}
+
+func resourceJamfProComputerPrestageEnrollmentReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProComputerPrestageEnrollmentRead(ctx, d, meta, true)
+}
+
+func resourceJamfProComputerPrestageEnrollmentReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProComputerPrestageEnrollmentRead(ctx, d, meta, false)
 }
 
 // resourceJamfProComputerPrestageEnrollmentUpdate is responsible for updating an existing Jamf Pro Department on the remote system.
@@ -94,7 +103,7 @@ func resourceJamfProComputerPrestageEnrollmentUpdate(ctx context.Context, d *sch
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Computer Prestage '%s' (ID: %s) after retries: %v", resource.DisplayName, resourceID, err))
 	}
 
-	return append(diags, resourceJamfProComputerPrestageEnrollmentRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProComputerPrestageEnrollmentReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProComputerPrestageEnrollmentDelete is responsible for deleting a Jamf Pro Computer Prestage.

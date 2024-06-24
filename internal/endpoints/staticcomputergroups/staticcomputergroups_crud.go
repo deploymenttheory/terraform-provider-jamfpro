@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -38,11 +39,11 @@ func resourceJamfProStaticComputerGroupsCreate(ctx context.Context, d *schema.Re
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	return append(diags, resourceJamfProStaticComputerGroupsRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProStaticComputerGroupsReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProStaticComputerGroupsRead is responsible for reading the current state of a Jamf Pro Static Computer Group from the remote system.
-func resourceJamfProStaticComputerGroupsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProStaticComputerGroupsRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -63,10 +64,18 @@ func resourceJamfProStaticComputerGroupsRead(ctx context.Context, d *schema.Reso
 	})
 
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, state.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
 	return append(diags, updateTerraformState(d, response)...)
+}
+
+func resourceJamfProStaticComputerGroupsReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProStaticComputerGroupsRead(ctx, d, meta, true)
+}
+
+func resourceJamfProStaticComputerGroupsReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProStaticComputerGroupsRead(ctx, d, meta, false)
 }
 
 // resourceJamfProStaticComputerGroupsUpdate is responsible for updating an existing Jamf Pro Static Computer Group on the remote system.
@@ -98,7 +107,7 @@ func resourceJamfProStaticComputerGroupsUpdate(ctx context.Context, d *schema.Re
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Static Computer Group '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
 	}
 
-	return append(diags, resourceJamfProStaticComputerGroupsRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProStaticComputerGroupsReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProStaticComputerGroupsDelete is responsible for deleting a Jamf Pro Static Computer Group.

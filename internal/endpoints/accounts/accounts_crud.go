@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -41,7 +42,7 @@ func resourceJamfProAccountCreate(ctx context.Context, d *schema.ResourceData, m
 }
 
 // resourceJamfProAccountRead is responsible for reading the current state of a Jamf Pro Account Group Resource from the remote system.
-func resourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -62,10 +63,18 @@ func resourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, met
 	})
 
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, state.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
 	return append(diags, updateTerraformState(d, response)...)
+}
+
+func resourceJamfProAccountReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProAccountRead(ctx, d, meta, true)
+}
+
+func resourceJamfProAccountReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProAccountRead(ctx, d, meta, false)
 }
 
 // resourceJamfProAccountRead is responsible for reading the current state of a Jamf Pro Account Group Resource from the remote system.
@@ -90,7 +99,7 @@ func resourceJamfProAccountReadFromCreate(ctx context.Context, d *schema.Resourc
 	})
 
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return diag.FromErr(err)
 	}
 
 	return append(diags, updateTerraformState(d, response)...)
@@ -124,7 +133,7 @@ func resourceJamfProAccountUpdate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Account '%s' (ID: %s) after retries: %v", resource.Name, resourceID, err))
 	}
 
-	return append(diags, resourceJamfProAccountRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProAccountReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProAccountDelete is responsible for deleting a Jamf Pro account .

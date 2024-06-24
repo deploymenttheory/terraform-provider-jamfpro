@@ -11,7 +11,7 @@ import (
 func ResourceJamfProComputerInventoryCollection() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProComputerInventoryCollectionCreate,
-		ReadContext:   resourceJamfProComputerInventoryCollectionRead,
+		ReadContext:   resourceJamfProComputerInventoryCollectionReadWithCleanup,
 		UpdateContext: resourceJamfProComputerInventoryCollectionUpdate,
 		DeleteContext: resourceJamfProComputerInventoryCollectionDelete,
 		Timeouts: &schema.ResourceTimeout{

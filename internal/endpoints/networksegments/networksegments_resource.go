@@ -11,7 +11,7 @@ import (
 func ResourceJamfProNetworkSegments() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProNetworkSegmentsCreate,
-		ReadContext:   resourceJamfProNetworkSegmentsRead,
+		ReadContext:   resourceJamfProNetworkSegmentsReadWithCleanup,
 		UpdateContext: resourceJamfProNetworkSegmentsUpdate,
 		DeleteContext: resourceJamfProNetworkSegmentsDelete,
 		Timeouts: &schema.ResourceTimeout{

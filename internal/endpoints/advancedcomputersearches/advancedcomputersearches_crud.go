@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -38,11 +39,11 @@ func resourceJamfProAdvancedComputerSearchCreate(ctx context.Context, d *schema.
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	return append(diags, resourceJamfProAdvancedComputerSearchRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProAdvancedComputerSearchReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProAdvancedComputerSearchRead is responsible for reading the current state of a Jamf Pro Advanced Computer Search from the remote system.
-func resourceJamfProAdvancedComputerSearchRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProAdvancedComputerSearchRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -63,10 +64,18 @@ func resourceJamfProAdvancedComputerSearchRead(ctx context.Context, d *schema.Re
 	})
 
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, state.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
 	return append(diags, updateTerraformState(d, response)...)
+}
+
+func resourceJamfProAdvancedComputerSearchReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProAdvancedComputerSearchRead(ctx, d, meta, true)
+}
+
+func resourceJamfProAdvancedComputerSearchReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProAdvancedComputerSearchRead(ctx, d, meta, false)
 }
 
 // resourceJamfProAdvancedComputerSearchUpdate is responsible for updating an existing Jamf Pro Advanced Computer Search on the remote system.
@@ -99,7 +108,7 @@ func resourceJamfProAdvancedComputerSearchUpdate(ctx context.Context, d *schema.
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Advanced Computer Search '%s' (ID: %s) after retries: %v", resource.Name, resourceID, err))
 	}
 
-	return append(diags, resourceJamfProAdvancedComputerSearchRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProAdvancedComputerSearchReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProAdvancedComputerSearchDelete is responsible for deleting a Jamf Pro AdvancedComputerSearch.

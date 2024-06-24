@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -41,11 +42,11 @@ func resourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, 
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	return append(diags, resourceJamfProPoliciesRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProPoliciesReadNoCleanup(ctx, d, meta)...)
 }
 
 // Reads and states
-func resourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	var err error
 	client, ok := meta.(*jamfpro.Client)
 	if !ok {
@@ -71,10 +72,18 @@ func resourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 	})
 
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, state.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
 	return append(updateTerraformState(d, response, resourceID), diags...)
+}
+
+func resourceJamfProPoliciesReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProPoliciesRead(ctx, d, meta, true)
+}
+
+func resourceJamfProPoliciesReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProPoliciesRead(ctx, d, meta, false)
 }
 
 // Constructs, updates and reads
@@ -105,7 +114,7 @@ func resourceJamfProPoliciesUpdate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Policy '%s' (ID: %d) after retries: %v", resource.General.Name, resourceIDInt, err))
 	}
 
-	return append(diags, resourceJamfProPoliciesRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProPoliciesReadNoCleanup(ctx, d, meta)...)
 }
 
 // Deletes and removes from state

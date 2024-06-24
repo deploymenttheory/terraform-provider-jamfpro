@@ -38,7 +38,7 @@ const (
 func ResourceJamfProSmartComputerGroups() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProSmartComputerGroupsCreate,
-		ReadContext:   resourceJamfProSmartComputerGroupsRead,
+		ReadContext:   resourceJamfProSmartComputerGroupsReadNoCleanup,
 		UpdateContext: resourceJamfProSmartComputerGroupsUpdate,
 		DeleteContext: resourceJamfProSmartComputerGroupsDelete,
 		CustomizeDiff: mainCustomDiffFunc,

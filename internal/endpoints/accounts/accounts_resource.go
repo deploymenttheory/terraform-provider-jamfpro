@@ -17,7 +17,7 @@ import (
 func ResourceJamfProAccounts() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProAccountCreate,
-		ReadContext:   resourceJamfProAccountRead,
+		ReadContext:   resourceJamfProAccountReadWithCleanup,
 		UpdateContext: resourceJamfProAccountUpdate,
 		DeleteContext: resourceJamfProAccountDelete,
 		CustomizeDiff: customDiffAccounts,

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -41,7 +42,7 @@ func resourceJamfProAPIRolesCreate(ctx context.Context, d *schema.ResourceData, 
 
 	d.SetId(creationResponse.ID)
 
-	return append(diags, resourceJamfProAPIRolesRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProAPIRolesReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProAPIRolesRead handles reading a Jamf Pro API Role from the remote system.
@@ -49,7 +50,7 @@ func resourceJamfProAPIRolesCreate(ctx context.Context, d *schema.ResourceData, 
 // 1. Tries to fetch the API role based on the ID from the Terraform state.
 // 2. If fetching by ID fails, attempts to fetch it by the display name.
 // 3. Updates the Terraform state with the fetched data.
-func resourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -65,10 +66,18 @@ func resourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, me
 	})
 
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, state.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
 	return append(diags, updateTerraformState(d, response)...)
+}
+
+func resourceJamfProAPIRolesReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProAPIRolesRead(ctx, d, meta, true)
+}
+
+func resourceJamfProAPIRolesReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProAPIRolesRead(ctx, d, meta, false)
 }
 
 // resourceJamfProAPIRolesUpdate handles updating a Jamf Pro API Role.
@@ -98,7 +107,7 @@ func resourceJamfProAPIRolesUpdate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro API Role '%s' (ID: %s) after retries: %v", resource.DisplayName, resourceID, err))
 	}
 
-	return append(diags, resourceJamfProAPIRolesRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProAPIRolesReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProAPIRolesDelete handles the deletion of a Jamf Pro API Role.

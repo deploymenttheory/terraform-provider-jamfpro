@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -37,11 +38,11 @@ func resourceJamfProCategoriesCreate(ctx context.Context, d *schema.ResourceData
 
 	d.SetId(creationResponse.ID)
 
-	return append(diags, resourceJamfProCategoriesRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProCategoriesReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProCategoriesRead is responsible for reading the current state of a Jamf Pro Category Resource from the remote system.
-func resourceJamfProCategoriesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProCategoriesRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -57,10 +58,18 @@ func resourceJamfProCategoriesRead(ctx context.Context, d *schema.ResourceData, 
 	})
 
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, state.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
 	return append(diags, updateTerraformState(d, response)...)
+}
+
+func resourceJamfProCategoriesReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProCategoriesRead(ctx, d, meta, true)
+}
+
+func resourceJamfProCategoriesReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProCategoriesRead(ctx, d, meta, false)
 }
 
 // resourceJamfProCategoriesUpdate is responsible for updating an existing Jamf Pro Category on the remote system.
@@ -94,7 +103,7 @@ func resourceJamfProCategoriesUpdate(ctx context.Context, d *schema.ResourceData
 		return append(diags, diag.FromErr(fmt.Errorf("final attempt to update Category '%s' failed: %v", resourceName, err))...)
 	}
 
-	return append(diags, resourceJamfProCategoriesRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProCategoriesReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProCategoriesDelete is responsible for deleting a Jamf Pro Category.

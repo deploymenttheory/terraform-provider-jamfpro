@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -37,11 +38,11 @@ func resourceJamfProAdvancedMobileDeviceSearchCreate(ctx context.Context, d *sch
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	return append(diags, resourceJamfProAdvancedMobileDeviceSearchRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProAdvancedMobileDeviceSearchReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProAdvancedMobileDeviceSearchRead is responsible for reading the current state of a Jamf Pro mobile device Search from the remote system.
-func resourceJamfProAdvancedMobileDeviceSearchRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProAdvancedMobileDeviceSearchRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -62,10 +63,18 @@ func resourceJamfProAdvancedMobileDeviceSearchRead(ctx context.Context, d *schem
 	})
 
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, state.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
 	return append(diags, updateTerraformState(d, response)...)
+}
+
+func resourceJamfProAdvancedMobileDeviceSearchReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProAdvancedMobileDeviceSearchRead(ctx, d, meta, true)
+}
+
+func resourceJamfProAdvancedMobileDeviceSearchReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProAdvancedMobileDeviceSearchRead(ctx, d, meta, true)
 }
 
 // resourceJamfProAdvancedMobileDeviceSearchUpdate is responsible for updating an existing Jamf Pro mobile device Search on the remote system.
@@ -96,7 +105,7 @@ func resourceJamfProAdvancedMobileDeviceSearchUpdate(ctx context.Context, d *sch
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Advanced Mobile Device Search '%s' (ID: %s) after retries: %v", resource.Name, resourceID, err))
 	}
 
-	return append(diags, resourceJamfProAdvancedMobileDeviceSearchRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProAdvancedMobileDeviceSearchReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProAdvancedMobileDeviceSearchDelete is responsible for deleting a Jamf Pro AdvancedMobileDeviceSearch.

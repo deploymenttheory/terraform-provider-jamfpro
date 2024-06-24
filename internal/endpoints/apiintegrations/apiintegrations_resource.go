@@ -11,7 +11,7 @@ import (
 func ResourceJamfProApiIntegrations() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProApiIntegrationsCreate,
-		ReadContext:   resourceJamfProApiIntegrationsRead,
+		ReadContext:   resourceJamfProApiIntegrationsReadWithCleanup,
 		UpdateContext: resourceJamfProApiIntegrationsUpdate,
 		DeleteContext: resourceJamfProApiIntegrationsDelete,
 		CustomizeDiff: validateResourceAPIIntegrationsDataFields,

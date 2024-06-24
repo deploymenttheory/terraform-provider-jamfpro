@@ -13,7 +13,7 @@ import (
 func ResourceJamfProDiskEncryptionConfigurations() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProDiskEncryptionConfigurationsCreate,
-		ReadContext:   resourceJamfProDiskEncryptionConfigurationsRead,
+		ReadContext:   resourceJamfProDiskEncryptionConfigurationsReadWithCleanup,
 		UpdateContext: resourceJamfProDiskEncryptionConfigurationsUpdate,
 		DeleteContext: resourceJamfProDiskEncryptionConfigurationsDelete,
 		Timeouts: &schema.ResourceTimeout{

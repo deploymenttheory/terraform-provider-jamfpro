@@ -11,7 +11,7 @@ import (
 func ResourceJamfProPrinters() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProPrintersCreate,
-		ReadContext:   resourceJamfProPrintersRead,
+		ReadContext:   resourceJamfProPrintersReadWithCleanup,
 		UpdateContext: resourceJamfProPrintersUpdate,
 		DeleteContext: resourceJamfProPrintersDelete,
 		CustomizeDiff: mainCustomDiffFunc,

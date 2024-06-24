@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -42,7 +43,7 @@ func resourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 
 	d.SetId(creationResponse.ID)
 
-	return append(diags, resourceJamfProDepartmentsRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProDepartmentsReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProDepartmentsRead is responsible for reading the current state of a Jamf Pro Department Resource from the remote system.
@@ -51,7 +52,7 @@ func resourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
 // resourceJamfProDepartmentsRead is responsible for reading the current state of a Jamf Pro Department Resource from the remote system.
-func resourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -67,10 +68,18 @@ func resourceJamfProDepartmentsRead(ctx context.Context, d *schema.ResourceData,
 	})
 
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, state.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
 	return append(diags, updateTerraformState(d, response)...)
+}
+
+func resourceJamfProDepartmentsReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProDepartmentsRead(ctx, d, meta, true)
+}
+
+func resourceJamfProDepartmentsReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProDepartmentsRead(ctx, d, meta, false)
 }
 
 // resourceJamfProDepartmentsUpdate is responsible for updating an existing Jamf Pro Department on the remote system.
@@ -103,7 +112,7 @@ func resourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 		return append(diags, diag.FromErr(fmt.Errorf("final attempt to update department '%s' failed: %v", resourceName, err))...)
 	}
 
-	return append(diags, resourceJamfProDepartmentsRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProDepartmentsReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProDepartmentsDelete is responsible for deleting a Jamf Pro Department.
