@@ -12,7 +12,7 @@ jobs:
   # Release for Partner and Community Providers
   terraform-provider-release:
     name: 'Terraform Provider Release'
-    uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/community.yml@v4.0.1
+    uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/community.yml@v5.0.0
     secrets:
       gpg-private-key: '${{ secrets.GPG_PRIVATE_KEY }}'  # Your GPG private key
       gpg-private-key-passphrase: '${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}'  # Passphrase for your GPG key, if applicable
