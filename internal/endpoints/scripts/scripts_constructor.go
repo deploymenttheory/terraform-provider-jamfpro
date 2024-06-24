@@ -14,6 +14,8 @@ import (
 func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResourceScript, error) {
 	var resource *jamfpro.ResourceScript
 
+	// TODO category testing required ASAP
+
 	resource = &jamfpro.ResourceScript{
 		Name:           d.Get("name").(string),
 		Info:           d.Get("info").(string),
@@ -29,8 +31,6 @@ func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResourceScript, er
 		Parameter10:    d.Get("parameter10").(string),
 		Parameter11:    d.Get("parameter11").(string),
 	}
-
-	resource.CategoryId = d.Get("category_id").(string)
 
 	if scriptContent, ok := d.GetOk("script_contents"); ok {
 		resource.ScriptContents = scriptContent.(string)

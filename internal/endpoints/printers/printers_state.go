@@ -15,20 +15,20 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePrinter)
 
 	// Update the Terraform state with the fetched data
 	resourceData := map[string]interface{}{
-		"id":           strconv.Itoa(resp.ID),
-		"name":         resp.Name,
-		"category":     resp.Category,
-		"uri":          resp.URI,
-		"cups_name":    resp.CUPSName,
-		"location":     resp.Location,
-		"model":        resp.Model,
-		"info":         resp.Info,
-		"notes":        resp.Notes,
-		"make_default": resp.MakeDefault,
-		"use_generic":  resp.UseGeneric,
-		"ppd":          resp.PPD,
-		"ppd_path":     resp.PPDPath,
-		"ppd_contents": resp.PPDContents,
+		"id":            strconv.Itoa(resp.ID),
+		"name":          resp.Name,
+		"category_name": resp.Category,
+		"uri":           resp.URI,
+		"cups_name":     resp.CUPSName,
+		"location":      resp.Location,
+		"model":         resp.Model,
+		"info":          resp.Info,
+		"notes":         resp.Notes,
+		"make_default":  resp.MakeDefault,
+		"use_generic":   resp.UseGeneric,
+		"ppd":           resp.PPD,
+		"ppd_path":      resp.PPDPath,
+		"ppd_contents":  resp.PPDContents,
 	}
 
 	// Iterate over the map and set each key-value pair in the Terraform state

@@ -43,17 +43,7 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDe
 	}
 
 	// Set the 'category' attribute in the state only if it's not empty (i.e., not default values)
-	category := []interface{}{}
-	if resp.General.Category.ID != -1 {
-		category = append(category, map[string]interface{}{
-			"id": resp.General.Category.ID,
-		})
-	}
-	if len(category) > 0 {
-		if err := d.Set("category", category); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
+	d.Set("category_id", resp.General.Category.ID)
 
 	// Preparing and setting scope data
 	if scopeData, err := setScope(resp); err != nil {

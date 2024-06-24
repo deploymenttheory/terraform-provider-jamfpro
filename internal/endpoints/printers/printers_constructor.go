@@ -16,7 +16,7 @@ func constructJamfProPrinter(d *schema.ResourceData) (*jamfpro.ResourcePrinter, 
 
 	resource = &jamfpro.ResourcePrinter{
 		Name:        d.Get("name").(string),
-		Category:    d.Get("category").(string),
+		Category:    d.Get("category_name").(string),
 		URI:         d.Get("uri").(string),
 		CUPSName:    d.Get("cups_name").(string),
 		Location:    d.Get("location").(string),

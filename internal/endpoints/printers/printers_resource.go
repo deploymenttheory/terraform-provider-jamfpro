@@ -36,7 +36,7 @@ func ResourceJamfProPrinters() *schema.Resource {
 				Description: "The name of the printer.",
 			},
 			// TODO category string only
-			"category": {
+			"category_name": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "No category assigned",

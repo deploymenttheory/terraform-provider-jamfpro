@@ -35,11 +35,11 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceScript) 
 		}
 	}
 
-	if resp.CategoryId != "-1" {
-		if err := d.Set("category_id", resp.CategoryId); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
+	// if resp.CategoryId != "-1" {
+	// 	if err := d.Set("category_id", resp.CategoryId); err != nil {
+	// 		diags = append(diags, diag.FromErr(err)...)
+	// 	}
+	// }
 
 	return diags
 

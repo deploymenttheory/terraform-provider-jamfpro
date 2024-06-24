@@ -66,20 +66,8 @@ func constructGeneral(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) 
 		Offline:                    d.Get("offline").(bool),
 	}
 
-	// TODO Do we need these set or can we just set the default to nil?
 	// Category
-
-	suppliedCategory := d.Get("category_id").([]interface{})
-	if len(suppliedCategory) > 0 {
-		outCat := &jamfpro.SharedResourceCategory{
-			ID: suppliedCategory[0].(map[string]interface{})["id"].(int),
-		}
-		resource.General.Category = outCat
-	} else {
-		resource.General.Category = &jamfpro.SharedResourceCategory{
-			ID: 0,
-		}
-	}
+	resource.General.Category = sharedschemas.ConstructSharedResourceCategory(d.Get("category_id").(int))
 
 	// Site
 	resource.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
