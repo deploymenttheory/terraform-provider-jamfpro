@@ -61,7 +61,7 @@ const (
 )
 
 /*
-GetInstanceDomain retrieves the instance domain name from the provided schema resource data.
+GetJamfFqdn retrieves the instance domain name from the provided schema resource data.
 
 If the instance domain is not found, it appends an error diagnostic to the diagnostics slice.
 
@@ -195,7 +195,6 @@ Returns:
 func GetBasicAuthPassword(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	password := d.Get("password").(string)
 	if password == "" {
-
 		*diags = append(*diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  "Error getting basic auth password",
@@ -227,6 +226,7 @@ func Provider() *schema.Provider {
 					"basic", "oauth2",
 				}, true),
 			},
+			// TODO the descs below
 			"client_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -316,12 +316,6 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				Default:     false,
 				Description: "programatically determines all available web app members in the load balance and locks all instances of httpclient to the app for faster executions. \nTEMP SOLUTION UNTIL JAMF PROVIDES SOLUTION",
-			},
-			"custom_timeout_seconds": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Default:     60,
-				Description: "The custom timeout in seconds for the HTTP client.",
 			},
 			"token_refresh_buffer_period_seconds": {
 				Type:        schema.TypeInt,
@@ -501,7 +495,7 @@ func Provider() *schema.Provider {
 				if name == jamfLoadBalancerCookieName && load_balancer_lock_enabled {
 					return nil, append(diags, diag.Diagnostic{
 						Severity: diag.Error,
-						Summary:  "Cannot have load balancer lock and custom cookie of same name.",
+						Summary:  "Cannot have load balancer lock and custom cookie of same name. (jpro-ingress)",
 					})
 				}
 
@@ -515,11 +509,15 @@ func Provider() *schema.Provider {
 		}
 
 		// Amend timeouts
-		for _, r := range provider.ResourcesMap {
-			*r.Timeouts.Create = GetDefaultContextTimeoutCreate(load_balancer_lock_enabled)
-			*r.Timeouts.Read = GetDefaultContextTimeoutRead(load_balancer_lock_enabled)
-			*r.Timeouts.Update = GetDefaultContextTimeoutUpdate(load_balancer_lock_enabled)
-			*r.Timeouts.Delete = GetDefaultContextTimeoutDelete(load_balancer_lock_enabled)
+		// TODO fix this
+		// excludedResource := []string{"jamfpro_package"}
+		for key, r := range provider.ResourcesMap {
+			if key != "jamfpro_package" {
+				*r.Timeouts.Create = GetDefaultContextTimeoutCreate(load_balancer_lock_enabled)
+				*r.Timeouts.Read = GetDefaultContextTimeoutRead(load_balancer_lock_enabled)
+				*r.Timeouts.Update = GetDefaultContextTimeoutUpdate(load_balancer_lock_enabled)
+				*r.Timeouts.Delete = GetDefaultContextTimeoutDelete(load_balancer_lock_enabled)
+			}
 		}
 
 		// Packaging
