@@ -58,7 +58,7 @@ func ResourceJamfProPackages() *schema.Resource {
 			},
 			"priority": {
 				Type:        schema.TypeInt,
-				Optional:    true,
+				Required:    true,
 				Description: "The priority of the Jamf Pro package.",
 			},
 			"os_requirements": {
@@ -68,7 +68,7 @@ func ResourceJamfProPackages() *schema.Resource {
 			},
 			"fill_user_template": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Required:    true,
 				Description: "Whether to fill the user template.",
 			},
 			"indexed": {
@@ -88,7 +88,7 @@ func ResourceJamfProPackages() *schema.Resource {
 			},
 			"reboot_required": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Required:    true,
 				Description: "Whether a reboot is required after installing the Jamf Pro package.",
 			},
 			"self_heal_notify": {
@@ -103,7 +103,7 @@ func ResourceJamfProPackages() *schema.Resource {
 			},
 			"os_install": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Required:    true,
 				Description: "Whether the package is an OS install.",
 			},
 			"serial_number": {
@@ -123,12 +123,12 @@ func ResourceJamfProPackages() *schema.Resource {
 			},
 			"suppress_updates": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Required:    true,
 				Description: "Whether to suppress updates.",
 			},
 			"cloud_transfer_status": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "The cloud transfer status.",
 			},
 			"ignore_conflicts": {
@@ -138,17 +138,17 @@ func ResourceJamfProPackages() *schema.Resource {
 			},
 			"suppress_from_dock": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Required:    true,
 				Description: "Whether to suppress from dock.",
 			},
 			"suppress_eula": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Required:    true,
 				Description: "Whether to suppress EULA.",
 			},
 			"suppress_registration": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Required:    true,
 				Description: "Whether to suppress registration.",
 			},
 			"install_language": {
@@ -178,7 +178,7 @@ func ResourceJamfProPackages() *schema.Resource {
 			},
 			"size": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "The size of the package.",
 			},
 			"os_installer_version": {
@@ -198,7 +198,7 @@ func ResourceJamfProPackages() *schema.Resource {
 			},
 			"format": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "The format of the package.",
 			},
 			"package_uri": {

@@ -4,9 +4,11 @@ go 1.22.4
 
 // Direct
 require (
-	github.com/deploymenttheory/go-api-http-client v0.2.2
-	github.com/deploymenttheory/go-api-http-client-integrations v0.0.4
-	github.com/deploymenttheory/go-api-sdk-jamfpro v1.7.5
+
+	github.com/deploymenttheory/go-api-http-client v0.2.3
+	github.com/deploymenttheory/go-api-http-client-integrations v0.0.6
+	github.com/deploymenttheory/go-api-sdk-jamfpro v1.7.6
+
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/terraform-plugin-log v0.9.0
@@ -48,7 +50,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/go-plugin v1.6.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
-	github.com/hashicorp/go-version v1.6.0 // indirect
+	github.com/hashicorp/go-version v1.7.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.20.1 // indirect
 	github.com/hashicorp/logutils v1.0.0 // indirect
 	github.com/hashicorp/terraform-plugin-go v0.23.0 // indirect
@@ -70,7 +72,7 @@ require (
 	github.com/zclconf/go-cty v1.14.4 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
-	golang.org/x/mod v0.16.0 // indirect
+	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
@@ -80,4 +82,5 @@ require (
 	google.golang.org/grpc v1.63.2 // indirect
 	google.golang.org/protobuf v1.34.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
+	gopkg.in/yaml.v2 v2.3.0 // indirect
 )

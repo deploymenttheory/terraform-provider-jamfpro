@@ -22,7 +22,7 @@ description: |-
 ### Optional
 
 - `criteria` (Block List) (see [below for nested schema](#nestedblock--criteria))
-- `site` (Block List, Max: 1) Jamf Pro Site related settings of the smart computer group. (see [below for nested schema](#nestedblock--site))
+- `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
@@ -42,18 +42,6 @@ Optional:
 - `priority` (Number) The priority of the criterion.
 - `search_type` (String) The type of smart group search operator. Allowed values are '[and or is is not has does not have member of not member of before (yyyy-mm-dd) after (yyyy-mm-dd) more than x days ago less than x days ago like not like greater than more than less than greater than or equal less than or equal matches regex does not match regex]'
 - `value` (String) Search value for the smart group criteria to match with.
-
-
-<a id="nestedblock--site"></a>
-### Nested Schema for `site`
-
-Optional:
-
-- `id` (Number) Jamf Pro Site ID. Value defaults to -1 aka not used.
-
-Read-Only:
-
-- `name` (String) The name of the Jamf Pro Site. Computed value based on the utilised site ID.
 
 
 <a id="nestedblock--timeouts"></a>

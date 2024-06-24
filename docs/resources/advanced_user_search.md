@@ -23,7 +23,7 @@ description: |-
 
 - `criteria` (Block List) (see [below for nested schema](#nestedblock--criteria))
 - `display_fields` (Block Set) display field in the advanced user search (see [below for nested schema](#nestedblock--display_fields))
-- `site` (Block List, Max: 1) (see [below for nested schema](#nestedblock--site))
+- `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
@@ -53,15 +53,6 @@ Optional:
 Optional:
 
 - `name` (String) display field item in the advanced user search
-
-
-<a id="nestedblock--site"></a>
-### Nested Schema for `site`
-
-Optional:
-
-- `id` (Number) ID of the site
-- `name` (String) Name of the site
 
 
 <a id="nestedblock--timeouts"></a>

@@ -23,8 +23,6 @@ description: |-
 
 ### Optional
 
-- `category_id` (String) The Jamf Pro unique identifier (ID) of the category. Optional. Category ID can be used in isolation or in tandem with category_name.
-- `category_name` (String) Name of the category to add the script to. Optional. Category name can be used with category_id or not at all.
 - `info` (String) Information to display to the administrator when the script is run.
 - `notes` (String) Notes to display about the script (e.g., who created it and when it was created).
 - `os_requirements` (String) The script can only be run on computers with these operating system versions. Each version must be separated by a comma (e.g., 10.11, 15, 16.1).

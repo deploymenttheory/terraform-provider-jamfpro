@@ -23,7 +23,7 @@ description: |-
 
 - `criteria` (Block List) (see [below for nested schema](#nestedblock--criteria))
 - `display_fields` (Block Set) display field in the mobile device search (see [below for nested schema](#nestedblock--display_fields))
-- `site` (Block List, Max: 1) (see [below for nested schema](#nestedblock--site))
+- `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `sort1` (String) First sorting criteria for the mobile device search
 - `sort2` (String) Second sorting criteria for the mobile device search
 - `sort3` (String) Third sorting criteria for the mobile device search
@@ -57,15 +57,6 @@ Optional:
 Optional:
 
 - `name` (String) display field item in the mobile device search
-
-
-<a id="nestedblock--site"></a>
-### Nested Schema for `site`
-
-Optional:
-
-- `id` (Number) ID of the site
-- `name` (String) Name of the site
 
 
 <a id="nestedblock--timeouts"></a>
