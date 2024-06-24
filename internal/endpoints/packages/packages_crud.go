@@ -115,24 +115,23 @@ func ResourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	// Construct the updated package resource from the Terraform schema
-	// resource, err := constructJamfProPackageCreate(d)
-	// if err != nil {
-	// 	return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package for update: %v", err))
-	// }
+	resource, err := constructJamfProPackageCreate(d)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package for update: %v", err))
+	}
 
 	// Update the package metadata in Jamf Pro
-	// commented this out as it's not working yet.
-	// err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-	// 	_, apiErr := client.UpdatePackageManifestByID(resourceID, *resource)
-	// 	if apiErr != nil {
-	// 		return retry.RetryableError(apiErr)
-	// 	}
-	// 	return nil
-	// })
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+		_, apiErr := client.UpdatePackageManifestByID(resourceID, *resource)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
+		}
+		return nil
+	})
 
-	// if err != nil {
-	// 	return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Package '%s' (ID: %s) after retries: %v", resource.PackageName, resourceID, err))
-	// }
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Package '%s' (ID: %s) after retries: %v", resource.PackageName, resourceID, err))
+	}
 
 	return append(diags, ResourceJamfProPackagesRead(ctx, d, meta)...)
 }
