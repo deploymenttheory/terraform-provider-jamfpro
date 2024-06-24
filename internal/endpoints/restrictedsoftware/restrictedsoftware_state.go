@@ -11,50 +11,39 @@ import (
 )
 
 // updateTerraformState updates the Terraform state with the latest RestrictedSoftware information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceRestrictedSoftware) diag.Diagnostics {
+func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftware) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Update the Terraform state with the fetched data
-	if err := d.Set("id", strconv.Itoa(resource.General.ID)); err != nil {
+	if err := d.Set("id", strconv.Itoa(resp.General.ID)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("name", resource.General.Name); err != nil {
+	if err := d.Set("name", resp.General.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("process_name", resource.General.ProcessName); err != nil {
+	if err := d.Set("process_name", resp.General.ProcessName); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("match_exact_process_name", resource.General.MatchExactProcessName); err != nil {
+	if err := d.Set("match_exact_process_name", resp.General.MatchExactProcessName); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("send_notification", resource.General.SendNotification); err != nil {
+	if err := d.Set("send_notification", resp.General.SendNotification); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("kill_process", resource.General.KillProcess); err != nil {
+	if err := d.Set("kill_process", resp.General.KillProcess); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("delete_executable", resource.General.DeleteExecutable); err != nil {
+	if err := d.Set("delete_executable", resp.General.DeleteExecutable); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("display_message", resource.General.DisplayMessage); err != nil {
+	if err := d.Set("display_message", resp.General.DisplayMessage); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Set the 'site' attribute in the state only if it's not empty (i.e., not default values)
-	site := []interface{}{}
-	if resource.General.Site.ID != -1 {
-		site = append(site, map[string]interface{}{
-			"id": resource.General.Site.ID,
-		})
-	}
-	if len(site) > 0 {
-		if err := d.Set("site", site); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
+	d.Set("site_id", resp.General.Site.ID)
 
 	// Update the scope data
-	if err := d.Set("scope", flattenScope(resource.Scope)); err != nil {
+	if err := d.Set("scope", flattenScope(resp.Scope)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

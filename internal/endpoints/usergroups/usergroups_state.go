@@ -10,39 +10,26 @@ import (
 )
 
 // updateTerraformState updates the Terraform state with the latest UserGroup information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceUserGroup) diag.Diagnostics {
+func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceUserGroup) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// Update the Terraform state with the fetched data
-	if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
+	if err := d.Set("id", strconv.Itoa(resp.ID)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("name", resource.Name); err != nil {
+	if err := d.Set("name", resp.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("is_smart", resource.IsSmart); err != nil {
+	if err := d.Set("is_smart", resp.IsSmart); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("is_notify_on_change", resource.IsNotifyOnChange); err != nil {
+	if err := d.Set("is_notify_on_change", resp.IsNotifyOnChange); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Set the 'site' attribute in the state only if it's not empty (i.e., not default values)
-	site := []interface{}{}
-	if resource.Site.ID != -1 {
-		site = append(site, map[string]interface{}{
-			"id": resource.Site.ID,
-		})
-	}
-	if len(site) > 0 {
-		if err := d.Set("site", site); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
+	d.Set("site_id", resp.Site.ID)
 
-	// 'criteria' attribute
-	criteria := make([]interface{}, len(resource.Criteria))
-	for i, criterion := range resource.Criteria {
+	criteria := make([]interface{}, len(resp.Criteria))
+	for i, criterion := range resp.Criteria {
 		criteria[i] = map[string]interface{}{
 			"name":          criterion.Name,
 			"priority":      criterion.Priority,
@@ -55,10 +42,9 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceUser
 	}
 	d.Set("criteria", criteria)
 
-	// Set the user id's only if the group is not smart
-	if !resource.IsSmart {
+	if !resp.IsSmart {
 		var userIDStrList []string
-		for _, user := range resource.Users {
+		for _, user := range resp.Users {
 			userIDStrList = append(userIDStrList, strconv.Itoa(user.ID))
 		}
 
@@ -71,10 +57,10 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceUser
 		}
 	}
 
-	if err := d.Set("user_additions", setUserItem(resource.UserAdditions)); err != nil {
+	if err := d.Set("user_additions", setUserItem(resp.UserAdditions)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("user_deletions", setUserItem(resource.UserDeletions)); err != nil {
+	if err := d.Set("user_deletions", setUserItem(resp.UserDeletions)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

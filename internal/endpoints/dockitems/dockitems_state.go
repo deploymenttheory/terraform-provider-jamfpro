@@ -10,17 +10,17 @@ import (
 )
 
 // updateTerraformState updates the Terraform state with the latest Dock Item information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceDockItem) diag.Diagnostics {
+func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceDockItem) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Check if dockItem data exists and update the Terraform state
-	if resource != nil {
+	if resp != nil {
 		resourceData := map[string]interface{}{
-			"id":       strconv.Itoa(resource.ID),
-			"name":     resource.Name,
-			"type":     resource.Type,
-			"path":     resource.Path,
-			"contents": resource.Contents,
+			"id":       strconv.Itoa(resp.ID),
+			"name":     resp.Name,
+			"type":     resp.Type,
+			"path":     resp.Path,
+			"contents": resp.Contents,
 		}
 
 		// Set each attribute in the Terraform state, checking for errors

@@ -10,12 +10,10 @@ import (
 
 // mainCustomDiffFunc orchestrates all custom diff validations.
 func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
-	// Validate based on 'authentication_type' attribute.
 	if err := validateAuthenticationRequirements(ctx, diff, i); err != nil {
 		return err
 	}
 
-	// Validate based on 'event' attribute and the requirement for 'smart_group_id'.
 	if err := validateSmartGroupIDRequirement(ctx, diff, i); err != nil {
 		return err
 	}
@@ -28,11 +26,9 @@ func validateAuthenticationRequirements(_ context.Context, diff *schema.Resource
 	resourceName := diff.Get("name").(string)
 	authType, ok := diff.GetOk("authentication_type")
 	if !ok || authType.(string) != "Basic Authentication" {
-		// If not using Basic Authentication or attribute not set, no need to validate further.
 		return nil
 	}
 
-	// Check for existence of 'username' and 'password' when 'Basic Authentication' is used.
 	username, usernameOk := diff.GetOk("username")
 	password, passwordOk := diff.GetOk("password")
 
@@ -51,7 +47,7 @@ func validateSmartGroupIDRequirement(_ context.Context, diff *schema.ResourceDif
 	resourceName := diff.Get("name").(string)
 	event, ok := diff.GetOk("event")
 	if !ok {
-		return nil // Event not set, no further validation needed
+		return nil
 	}
 
 	// List of events that require a smart_group_id

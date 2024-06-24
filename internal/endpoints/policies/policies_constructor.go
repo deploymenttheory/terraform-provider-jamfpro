@@ -10,31 +10,24 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // Returns ResourcePolicy required for client to marshal into api req
 func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
-
 	var err error
+	var resource *jamfpro.ResourcePolicy
 
-	// Main obj
-	out := &jamfpro.ResourcePolicy{}
+	constructGeneral(d, resource)
 
-	// General
-	constructGeneral(d, out)
-
-	// Scope
-	err = constructScope(d, out)
+	err = constructScope(d, resource)
 	if err != nil {
 		return nil, err
 	}
 
-	// Self Service
-	constructSelfService(d, out)
-
-	// Payloads
-	constructPayloads(d, out)
+	constructSelfService(d, resource)
+	constructPayloads(d, resource)
 
 	// Package Configuration
 	// Scripts
@@ -48,19 +41,15 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 
 	// DEBUG
 	log.Println("LOGHERE-CONSTRUCTED")
-	policyXML, _ := xml.MarshalIndent(out, "", "  ")
+	policyXML, _ := xml.MarshalIndent(resource, "", "  ")
 	log.Println(string(policyXML))
 
-	// END
-
-	return out, nil
+	return resource, nil
 }
 
 // Pulls "general" settings from HCL and packages into object
-func constructGeneral(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
-
-	// Primitive fields
-	out.General = jamfpro.PolicySubsetGeneral{
+func constructGeneral(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
+	resource.General = jamfpro.PolicySubsetGeneral{
 		Name:                       d.Get("name").(string),
 		Enabled:                    d.Get("enabled").(bool),
 		TriggerCheckin:             d.Get("trigger_checkin").(bool),
@@ -77,38 +66,15 @@ func constructGeneral(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 		Offline:                    d.Get("offline").(bool),
 	}
 
-	// TODO Do we need these set or can we just set the default to nil?
 	// Category
-
-	suppliedCategory := d.Get("category").([]interface{})
-	if len(suppliedCategory) > 0 {
-		outCat := &jamfpro.SharedResourceCategory{
-			ID: suppliedCategory[0].(map[string]interface{})["id"].(int),
-		}
-		out.General.Category = outCat
-	} else {
-		out.General.Category = &jamfpro.SharedResourceCategory{
-			ID: 0,
-		}
-	}
+	resource.General.Category = sharedschemas.ConstructSharedResourceCategory(d.Get("category_id").(int))
 
 	// Site
-
-	suppliedSite := d.Get("site").([]interface{})
-	if len(suppliedSite) > 0 {
-		outSite := &jamfpro.SharedResourceSite{
-			ID: suppliedSite[0].(map[string]interface{})["id"].(int),
-		}
-		out.General.Site = outSite
-	} else {
-		out.General.Site = &jamfpro.SharedResourceSite{
-			ID: 0,
-		}
-	}
+	resource.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 }
 
 // Pulls "scope" settings from HCL and packages into object
-func constructScope(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
+func constructScope(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
 
 	var err error
 
@@ -119,7 +85,7 @@ func constructScope(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
 	// Targets
 
 	// TODO review this and similar blocks below
-	out.Scope = &jamfpro.PolicySubsetScope{
+	resource.Scope = &jamfpro.PolicySubsetScope{
 		Computers:      &[]jamfpro.PolicySubsetComputer{},
 		ComputerGroups: &[]jamfpro.PolicySubsetComputerGroup{},
 		JSSUsers:       &[]jamfpro.PolicySubsetJSSUser{},
@@ -129,48 +95,48 @@ func constructScope(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
 	}
 
 	// Bools
-	out.Scope.AllComputers = d.Get("scope.0.all_computers").(bool)
-	out.Scope.AllJSSUsers = d.Get("scope.0.all_jss_users").(bool)
+	resource.Scope.AllComputers = d.Get("scope.0.all_computers").(bool)
+	resource.Scope.AllJSSUsers = d.Get("scope.0.all_jss_users").(bool)
 
 	// Computers
-	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetComputer, int]("scope.0.computer_ids", "ID", d, out.Scope.Computers)
+	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetComputer, int]("scope.0.computer_ids", "ID", d, resource.Scope.Computers)
 	if err != nil {
 		return err
 	}
 
 	// Computer Groups
-	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetComputerGroup, int]("scope.0.computer_group_ids", "ID", d, out.Scope.ComputerGroups)
+	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetComputerGroup, int]("scope.0.computer_group_ids", "ID", d, resource.Scope.ComputerGroups)
 	if err != nil {
 		return err
 	}
 
 	// JSS Users
-	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetJSSUser, int]("scope.0.jss_user_ids", "ID", d, out.Scope.JSSUsers)
+	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetJSSUser, int]("scope.0.jss_user_ids", "ID", d, resource.Scope.JSSUsers)
 	if err != nil {
 		return err
 	}
 
 	// JSS User Groups
-	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetJSSUserGroup, int]("scope.0.jss_user_group_ids", "ID", d, out.Scope.JSSUserGroups)
+	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetJSSUserGroup, int]("scope.0.jss_user_group_ids", "ID", d, resource.Scope.JSSUserGroups)
 	if err != nil {
 		return err
 	}
 
 	// Buildings
-	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetBuilding, int]("scope.0.building_ids", "ID", d, out.Scope.Buildings)
+	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetBuilding, int]("scope.0.building_ids", "ID", d, resource.Scope.Buildings)
 	if err != nil {
 		return err
 	}
 
 	// Departments
-	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetDepartment, int]("scope.0.department_ids", "ID", d, out.Scope.Departments)
+	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetDepartment, int]("scope.0.department_ids", "ID", d, resource.Scope.Departments)
 	if err != nil {
 		return err
 	}
 
 	// Limitations
 
-	out.Scope.Limitations = &jamfpro.PolicySubsetScopeLimitations{
+	resource.Scope.Limitations = &jamfpro.PolicySubsetScopeLimitations{
 		Users:           &[]jamfpro.PolicySubsetUser{},
 		UserGroups:      &[]jamfpro.PolicySubsetUserGroup{},
 		NetworkSegments: &[]jamfpro.PolicySubsetNetworkSegment{},
@@ -178,19 +144,19 @@ func constructScope(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
 	}
 
 	// Network Segments
-	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetNetworkSegment, int]("scope.0.limitations.0.network_segment_ids", "ID", d, out.Scope.Limitations.NetworkSegments)
+	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetNetworkSegment, int]("scope.0.limitations.0.network_segment_ids", "ID", d, resource.Scope.Limitations.NetworkSegments)
 	if err != nil {
 		return err
 	}
 
 	// IBeacons
-	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetIBeacon, int]("scope.0.limitations.0.ibeacon_ids", "ID", d, out.Scope.Limitations.IBeacons)
+	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetIBeacon, int]("scope.0.limitations.0.ibeacon_ids", "ID", d, resource.Scope.Limitations.IBeacons)
 	if err != nil {
 		return err
 	}
 
 	// User Groups
-	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetUserGroup, int]("scope.0.limitations.0.directory_service_usergroup_ids", "ID", d, out.Scope.Limitations.UserGroups)
+	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetUserGroup, int]("scope.0.limitations.0.directory_service_usergroup_ids", "ID", d, resource.Scope.Limitations.UserGroups)
 	if err != nil {
 		return err
 	}
@@ -200,7 +166,7 @@ func constructScope(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
 	// Exclusions
 
 	// TODO I don't really want this here but it won't work without it. I think it's defeating the purpose of the struct layout slightly.
-	out.Scope.Exclusions = &jamfpro.PolicySubsetScopeExclusions{
+	resource.Scope.Exclusions = &jamfpro.PolicySubsetScopeExclusions{
 		Computers:       &[]jamfpro.PolicySubsetComputer{},
 		ComputerGroups:  &[]jamfpro.PolicySubsetComputerGroup{},
 		Users:           &[]jamfpro.PolicySubsetUser{},
@@ -214,58 +180,58 @@ func constructScope(d *schema.ResourceData, out *jamfpro.ResourcePolicy) error {
 	}
 
 	// Computers
-	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetComputer, int]("scope.0.exclusions.0.computer_ids", "ID", d, out.Scope.Exclusions.Computers)
+	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetComputer, int]("scope.0.exclusions.0.computer_ids", "ID", d, resource.Scope.Exclusions.Computers)
 	if err != nil {
 		return err
 	}
 
 	// Computer Groups
-	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetComputerGroup, int]("scope.0.exclusions.0.computer_group_ids", "ID", d, out.Scope.Exclusions.ComputerGroups)
+	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetComputerGroup, int]("scope.0.exclusions.0.computer_group_ids", "ID", d, resource.Scope.Exclusions.ComputerGroups)
 	if err != nil {
 		return err
 	}
 
 	// Buildings
-	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetBuilding, int]("scope.0.exclusions.0.building_ids", "ID", d, out.Scope.Exclusions.Buildings)
+	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetBuilding, int]("scope.0.exclusions.0.building_ids", "ID", d, resource.Scope.Exclusions.Buildings)
 	if err != nil {
 		return err
 	}
 
 	// Departments
-	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetDepartment, int]("scope.0.exclusions.0.department_ids", "ID", d, out.Scope.Exclusions.Departments)
+	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetDepartment, int]("scope.0.exclusions.0.department_ids", "ID", d, resource.Scope.Exclusions.Departments)
 	if err != nil {
 		return err
 	}
 
 	// Network Segments
-	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetNetworkSegment, int]("scope.0.exclusions.0.network_segment_ids", "ID", d, out.Scope.Exclusions.NetworkSegments)
+	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetNetworkSegment, int]("scope.0.exclusions.0.network_segment_ids", "ID", d, resource.Scope.Exclusions.NetworkSegments)
 	if err != nil {
 		return err
 	}
 
 	// JSS Users
-	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetJSSUser, int]("scope.0.exclusions.0.jss_user_ids", "ID", d, out.Scope.Exclusions.JSSUsers)
+	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetJSSUser, int]("scope.0.exclusions.0.jss_user_ids", "ID", d, resource.Scope.Exclusions.JSSUsers)
 	if err != nil {
 		return err
 	}
 
 	// JSS User Groups
-	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetJSSUserGroup, int]("scope.0.exclusions.0.jss_user_group_ids", "ID", d, out.Scope.Exclusions.JSSUserGroups)
+	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetJSSUserGroup, int]("scope.0.exclusions.0.jss_user_group_ids", "ID", d, resource.Scope.Exclusions.JSSUserGroups)
 	if err != nil {
 		return err
 	}
 
 	// IBeacons
-	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetIBeacon, int]("scope.0.exclusions.0.ibeacon_ids", "ID", d, out.Scope.Exclusions.IBeacons)
+	err = GetAttrsListFromHCLForPointers[jamfpro.PolicySubsetIBeacon, int]("scope.0.exclusions.0.ibeacon_ids", "ID", d, resource.Scope.Exclusions.IBeacons)
 	if err != nil {
 		return err
 	}
 
 	// TODO make this better, it works for now
-	if out.Scope.AllComputers && (out.Scope.Computers != nil ||
-		out.Scope.ComputerGroups != nil ||
-		out.Scope.Departments != nil ||
-		out.Scope.Buildings != nil) {
+	if resource.Scope.AllComputers && (resource.Scope.Computers != nil ||
+		resource.Scope.ComputerGroups != nil ||
+		resource.Scope.Departments != nil ||
+		resource.Scope.Buildings != nil) {
 		return fmt.Errorf("invalid combination - all computers with scoped endpoints")
 	}
 

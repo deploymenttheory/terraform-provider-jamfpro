@@ -12,61 +12,39 @@ import (
 
 // updateTerraformState updates the Terraform state with the latest ResourceMacOSConfigurationProfile
 // information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacOSConfigurationProfile) diag.Diagnostics {
+func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfigurationProfile) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Create a map to hold the resource data
 	resourceData := map[string]interface{}{
-		"name":                resource.General.Name,
-		"description":         resource.General.Description,
-		"uuid":                resource.General.UUID,
-		"distribution_method": resource.General.DistributionMethod,
-		"user_removable":      resource.General.UserRemovable,
-		"redeploy_on_update":  resource.General.RedeployOnUpdate,
+		"name":                resp.General.Name,
+		"description":         resp.General.Description,
+		"uuid":                resp.General.UUID,
+		"distribution_method": resp.General.DistributionMethod,
+		"user_removable":      resp.General.UserRemovable,
+		"redeploy_on_update":  resp.General.RedeployOnUpdate,
 	}
 
 	// Check if the level is "Computer" and set it to "System", otherwise use the value from resource
 	// This is done to match the Jamf Pro API behavior
-	levelValue := resource.General.Level
+	levelValue := resp.General.Level
 	if levelValue == "Computer" {
 		levelValue = "System"
 	}
 	resourceData["level"] = levelValue
 
-	// Set the 'site' attribute in the state only if it's not empty (i.e., not default values)
-	site := []interface{}{}
-	if resource.General.Site.ID != -1 {
-		site = append(site, map[string]interface{}{
-			"id": resource.General.Site.ID,
-		})
-	}
-	if len(site) > 0 {
-		if err := d.Set("site", site); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
+	d.Set("site_id", resp.General.Site.ID)
 
 	// Process and set the payloads using the plist processor function
-	profile := plist.NormalizePayloadState(resource.General.Payloads)
+	profile := plist.NormalizePayloadState(resp.General.Payloads)
 	if err := d.Set("payloads", profile); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Set the 'category' attribute in the state only if it's not empty (i.e., not default values)
-	category := []interface{}{}
-	if resource.General.Category.ID != -1 {
-		category = append(category, map[string]interface{}{
-			"id": resource.General.Category.ID,
-		})
-	}
-	if len(category) > 0 {
-		if err := d.Set("category", category); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
+	d.Set("category_id", resp.General.Category.ID)
 
 	// Preparing and setting scope data
-	if scopeData, err := setScope(resource); err != nil {
+	if scopeData, err := setScope(resp); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	} else if err := d.Set("scope", []interface{}{scopeData}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
@@ -74,8 +52,8 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacO
 
 	// Check if the self_service block is provided and set it in the state accordingly
 	defaultSelfService := jamfpro.MacOSConfigurationProfileSubsetSelfService{}
-	if !compareSelfService(resource.SelfService, defaultSelfService) {
-		if selfServiceData, err := setSelfService(resource.SelfService); err != nil {
+	if !compareSelfService(resp.SelfService, defaultSelfService) {
+		if selfServiceData, err := setSelfService(resp.SelfService); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		} else if selfServiceData != nil {
 			if err := d.Set("self_service", []interface{}{selfServiceData}); err != nil {
@@ -100,22 +78,22 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMacO
 }
 
 // setScope converts the scope structure into a format suitable for setting in the Terraform state.
-func setScope(resource *jamfpro.ResourceMacOSConfigurationProfile) (map[string]interface{}, error) {
+func setScope(resp *jamfpro.ResourceMacOSConfigurationProfile) (map[string]interface{}, error) {
 	scopeData := map[string]interface{}{
-		"all_computers": resource.Scope.AllComputers,
-		"all_jss_users": resource.Scope.AllJSSUsers,
+		"all_computers": resp.Scope.AllComputers,
+		"all_jss_users": resp.Scope.AllJSSUsers,
 	}
 
 	// Gather computers, groups, etc.
-	scopeData["computer_ids"] = flattenAndSortComputerIds(resource.Scope.Computers)
-	scopeData["computer_group_ids"] = flattenAndSortScopeEntityIds(resource.Scope.ComputerGroups)
-	scopeData["jss_user_ids"] = flattenAndSortScopeEntityIds(resource.Scope.JSSUsers)
-	scopeData["jss_user_group_ids"] = flattenAndSortScopeEntityIds(resource.Scope.JSSUserGroups)
-	scopeData["building_ids"] = flattenAndSortScopeEntityIds(resource.Scope.Buildings)
-	scopeData["department_ids"] = flattenAndSortScopeEntityIds(resource.Scope.Departments)
+	scopeData["computer_ids"] = flattenAndSortComputerIds(resp.Scope.Computers)
+	scopeData["computer_group_ids"] = flattenAndSortScopeEntityIds(resp.Scope.ComputerGroups)
+	scopeData["jss_user_ids"] = flattenAndSortScopeEntityIds(resp.Scope.JSSUsers)
+	scopeData["jss_user_group_ids"] = flattenAndSortScopeEntityIds(resp.Scope.JSSUserGroups)
+	scopeData["building_ids"] = flattenAndSortScopeEntityIds(resp.Scope.Buildings)
+	scopeData["department_ids"] = flattenAndSortScopeEntityIds(resp.Scope.Departments)
 
 	// Gather limitations
-	limitationsData, err := setLimitations(resource.Scope.Limitations)
+	limitationsData, err := setLimitations(resp.Scope.Limitations)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +102,7 @@ func setScope(resource *jamfpro.ResourceMacOSConfigurationProfile) (map[string]i
 	}
 
 	// Gather exclusions
-	exclusionsData, err := setExclusions(resource.Scope.Exclusions)
+	exclusionsData, err := setExclusions(resp.Scope.Exclusions)
 	if err != nil {
 		return nil, err
 	}
@@ -325,6 +303,7 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 	return selfServiceData, nil
 }
 
+// TODO what is going on here?
 // compareSelfService compares two MacOSConfigurationProfileSubsetSelfService structs
 func compareSelfService(a, b jamfpro.MacOSConfigurationProfileSubsetSelfService) bool {
 	return a.InstallButtonText == b.InstallButtonText &&

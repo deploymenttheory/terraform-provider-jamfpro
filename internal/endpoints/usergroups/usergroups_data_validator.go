@@ -10,24 +10,20 @@ import (
 
 // mainCustomDiffFunc orchestrates all custom diff validations.
 func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
-	// Validate based on 'is_smart' attribute.
 	if err := validateIsSmartAttribute(ctx, diff, i); err != nil {
 		return err
 	}
 
-	// Validate the sequential order of 'priority' in 'criteria' blocks.
 	if err := validateCriteriaPrioritySequence(ctx, diff, i); err != nil {
 		return err
 	}
-
-	// Add more validation calls here as needed.
 
 	return nil
 }
 
 // validateIsSmartAttribute checks the conditions related to the 'is_smart' attribute.
 func validateIsSmartAttribute(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
-	resourceName := diff.Get("name").(string) // Assuming 'name' is always set and is unique
+	resourceName := diff.Get("name").(string)
 	isSmart, ok := diff.GetOkExists("is_smart")
 
 	if !ok {
@@ -58,7 +54,7 @@ func validateIsSmartAttribute(_ context.Context, diff *schema.ResourceDiff, _ in
 
 // validateCriteriaPrioritySequence checks that the 'priority' fields in the 'criteria' blocks are sequential starting from 0.
 func validateCriteriaPrioritySequence(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
-	resourceName := diff.Get("name").(string) // Assuming 'name' is always set and is unique
+	resourceName := diff.Get("name").(string)
 
 	if criteriaBlocks, ok := diff.GetOk("criteria"); ok {
 		criteriaList := criteriaBlocks.([]interface{})

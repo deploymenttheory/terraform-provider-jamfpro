@@ -10,16 +10,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-// ResourceJamfProPolicies defines the schema and CRUD operations for managing Jamf Pro Policy in Terraform.
+// resourceJamfProPolicies defines the schema and CRUD operations for managing Jamf Pro Policy in Terraform.
 func ResourceJamfProPolicies() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProPoliciesCreate,
-		ReadContext:   ResourceJamfProPoliciesRead,
-		UpdateContext: ResourceJamfProPoliciesUpdate,
-		DeleteContext: ResourceJamfProPoliciesDelete,
+		CreateContext: resourceJamfProPoliciesCreate,
+		ReadContext:   resourceJamfProPoliciesReadWithCleanup,
+		UpdateContext: resourceJamfProPoliciesUpdate,
+		DeleteContext: resourceJamfProPoliciesDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Second),
-			Read:   schema.DefaultTimeout(30 * time.Second),
+			Read:   schema.DefaultTimeout(15 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
 			Delete: schema.DefaultTimeout(30 * time.Second),
 		},
@@ -133,21 +133,8 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Description: "Make policy available offline by caching the policy to the macOS device to ensure it runs when Jamf Pro is unavailable. Only used when execution policy is set to 'ongoing'. ",
 				Default:     false,
 			},
-			"category": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Category to add the policy to.",
-				MaxItems:    1,
-				Default:     nil,
-				Elem:        sharedschemas.GetSharedSchemaCategory(),
-			},
-			"site": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Jamf Pro Site-related settings of the policy.",
-				MaxItems:    1,
-				Elem:        sharedschemas.GetSharedSchemaSite(),
-			},
+			"category_id": sharedschemas.GetSharedSchemaCategory(),
+			"site_id":     sharedschemas.GetSharedSchemaSite(),
 			"date_time_limitations": {
 				Type:        schema.TypeList,
 				Optional:    true,

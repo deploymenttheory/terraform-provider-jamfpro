@@ -12,68 +12,47 @@ import (
 
 // updateTerraformState updates the Terraform state with the latest ResourceMobileDeviceConfigurationProfile
 // information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobileDeviceConfigurationProfile) diag.Diagnostics {
+func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceConfigurationProfile) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Create a map to hold the resource data
 	resourceData := map[string]interface{}{
-		"name":              resource.General.Name,
-		"description":       resource.General.Description,
-		"uuid":              resource.General.UUID,
-		"deployment_method": resource.General.DeploymentMethod,
+		"name":              resp.General.Name,
+		"description":       resp.General.Description,
+		"uuid":              resp.General.UUID,
+		"deployment_method": resp.General.DeploymentMethod,
 		// Skipping the 'distribution_method' attribute as it appears to be deprecated but still in documentation
-		"redeploy_on_update":                resource.General.RedeployOnUpdate,
-		"redeploy_days_before_cert_expires": resource.General.RedeployDaysBeforeCertExpires,
+		"redeploy_on_update":                resp.General.RedeployOnUpdate,
+		"redeploy_days_before_cert_expires": resp.General.RedeployDaysBeforeCertExpires,
 	}
 
 	// Check if the level is "System" and set it to "Device Level", otherwise use the value from resource
 	// This is done to match the Jamf Pro API behavior
-	levelValue := resource.General.Level
+	levelValue := resp.General.Level
 	if levelValue == "System" {
 		levelValue = "Device Level"
 	}
 	resourceData["level"] = levelValue
 
-	// Set the 'site' attribute in the state only if it's not empty (i.e., not default values)
-	site := []interface{}{}
-	if resource.General.Site.ID != -1 {
-		site = append(site, map[string]interface{}{
-			"id": resource.General.Site.ID,
-		})
-	}
-	if len(site) > 0 {
-		if err := d.Set("site", site); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
+	d.Set("site_id", resp.General.Site.ID)
 
 	// Sanitize and set the payloads using the plist processor function
-	profile := plist.NormalizePayloadState(resource.General.Payloads)
+	profile := plist.NormalizePayloadState(resp.General.Payloads)
 	if err := d.Set("payloads", profile); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	// Set the 'category' attribute in the state only if it's not empty (i.e., not default values)
-	category := []interface{}{}
-	if resource.General.Category.ID != -1 {
-		category = append(category, map[string]interface{}{
-			"id": resource.General.Category.ID,
-		})
-	}
-	if len(category) > 0 {
-		if err := d.Set("category", category); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
+	d.Set("category_id", resp.General.Category.ID)
 
 	// Preparing and setting scope data
-	if scopeData, err := setScope(resource); err != nil {
+	if scopeData, err := setScope(resp); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	} else if err := d.Set("scope", []interface{}{scopeData}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Update the resource data
+	// Update the resp data
 	for k, v := range resourceData {
 		if err := d.Set(k, v); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
@@ -84,22 +63,22 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceMobi
 }
 
 // setScope converts the scope structure into a format suitable for setting in the Terraform state.
-func setScope(resource *jamfpro.ResourceMobileDeviceConfigurationProfile) (map[string]interface{}, error) {
+func setScope(resp *jamfpro.ResourceMobileDeviceConfigurationProfile) (map[string]interface{}, error) {
 	scopeData := map[string]interface{}{
-		"all_mobile_devices": resource.Scope.AllMobileDevices,
-		"all_jss_users":      resource.Scope.AllJSSUsers,
+		"all_mobile_devices": resp.Scope.AllMobileDevices,
+		"all_jss_users":      resp.Scope.AllJSSUsers,
 	}
 
 	// Gather mobile devices, groups, etc.
-	scopeData["mobile_device_ids"] = flattenAndSortMobileDeviceIDs(resource.Scope.MobileDevices)
-	scopeData["mobile_device_group_ids"] = flattenAndSortScopeEntityIds(resource.Scope.MobileDeviceGroups)
-	scopeData["jss_user_ids"] = flattenAndSortScopeEntityIds(resource.Scope.JSSUsers)
-	scopeData["jss_user_group_ids"] = flattenAndSortScopeEntityIds(resource.Scope.JSSUserGroups)
-	scopeData["building_ids"] = flattenAndSortScopeEntityIds(resource.Scope.Buildings)
-	scopeData["department_ids"] = flattenAndSortScopeEntityIds(resource.Scope.Departments)
+	scopeData["mobile_device_ids"] = flattenAndSortMobileDeviceIDs(resp.Scope.MobileDevices)
+	scopeData["mobile_device_group_ids"] = flattenAndSortScopeEntityIds(resp.Scope.MobileDeviceGroups)
+	scopeData["jss_user_ids"] = flattenAndSortScopeEntityIds(resp.Scope.JSSUsers)
+	scopeData["jss_user_group_ids"] = flattenAndSortScopeEntityIds(resp.Scope.JSSUserGroups)
+	scopeData["building_ids"] = flattenAndSortScopeEntityIds(resp.Scope.Buildings)
+	scopeData["department_ids"] = flattenAndSortScopeEntityIds(resp.Scope.Departments)
 
 	// Gather limitations
-	limitationsData, err := setLimitations(resource.Scope.Limitations)
+	limitationsData, err := setLimitations(resp.Scope.Limitations)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +87,7 @@ func setScope(resource *jamfpro.ResourceMobileDeviceConfigurationProfile) (map[s
 	}
 
 	// Gather exclusions
-	exclusionsData, err := setExclusions(resource.Scope.Exclusions)
+	exclusionsData, err := setExclusions(resp.Scope.Exclusions)
 	if err != nil {
 		return nil, err
 	}

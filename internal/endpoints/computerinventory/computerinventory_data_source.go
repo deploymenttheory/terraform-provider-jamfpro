@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -148,7 +147,7 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 								},
 							},
 						},
-						"site": {
+						"site_id": {
 							Type:     schema.TypeList,
 							Computed: true,
 
@@ -1333,12 +1332,11 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 // attribute for fetching details. If neither 'name' nor 'id' is provided, it returns an error.
 // Once the details are fetched, they are set in the data source's state.
 func dataSourceJamfProComputerInventoryRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Asserts 'meta' as '*client.APIClient'
-	apiclient, ok := meta.(*client.APIClient)
+	// Asserts 'meta' as '*client.client'
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-	conn := apiclient.Conn
 
 	var profile *jamfpro.ResourceComputerInventory
 	var err error
@@ -1349,13 +1347,13 @@ func dataSourceJamfProComputerInventoryRead(ctx context.Context, d *schema.Resou
 		if !ok {
 			return diag.Errorf("error asserting 'name' as string")
 		}
-		profile, err = conn.GetComputerInventoryByName(profileName)
+		profile, err = client.GetComputerInventoryByName(profileName)
 	} else if v, ok := d.GetOk("id"); ok {
 		profileID, ok := v.(string)
 		if !ok {
 			return diag.Errorf("error asserting 'id' as string")
 		}
-		profile, err = conn.GetComputerInventoryByID(profileID)
+		profile, err = client.GetComputerInventoryByID(profileID)
 	} else {
 		return diag.Errorf("Either 'name' or 'id' must be provided")
 	}
@@ -1512,7 +1510,7 @@ func setGeneralSection(d *schema.ResourceData, general jamfpro.ComputerInventory
 		site := make(map[string]interface{})
 		site["id"] = general.Site.ID
 		site["name"] = general.Site.Name
-		gen["site"] = []interface{}{site}
+		gen["site_id"] = []interface{}{site}
 	}
 
 	// Handle nested object 'enrollmentMethod'.

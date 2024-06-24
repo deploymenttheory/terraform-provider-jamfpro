@@ -2,6 +2,9 @@
 package accounts
 
 import (
+	"log"
+	"strconv"
+
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/utilities"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -9,59 +12,46 @@ import (
 )
 
 // updateTerraformState updates the Terraform state with the latest Account information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAccount) diag.Diagnostics {
-
+func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceAccount) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Update Terraform state with the resource information
-	// if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
-	// 	diags = append(diags, diag.FromErr(err)...)
-	// }
-	if err := d.Set("name", resource.Name); err != nil {
+	if err := d.Set("id", strconv.Itoa(resp.ID)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("directory_user", resource.DirectoryUser); err != nil {
+	if err := d.Set("name", resp.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("full_name", resource.FullName); err != nil {
+	if err := d.Set("directory_user", resp.DirectoryUser); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("full_name", resp.FullName); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 
 	}
-	if err := d.Set("email", resource.Email); err != nil {
+	if err := d.Set("email", resp.Email); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("enabled", resource.Enabled); err != nil {
+	if err := d.Set("enabled", resp.Enabled); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Set LDAP server information
-	if resource.LdapServer.ID != 0 || resource.LdapServer.Name != "" {
+	if resp.LdapServer.ID != 0 || resp.LdapServer.Name != "" {
 		ldapServer := make(map[string]interface{})
-		ldapServer["id"] = resource.LdapServer.ID
+		ldapServer["id"] = resp.LdapServer.ID
 		d.Set("identity_server", []interface{}{ldapServer})
 	} else {
-		d.Set("identity_server", []interface{}{}) // Clear the LDAP server data if not present
+		d.Set("identity_server", []interface{}{})
 	}
 
-	d.Set("force_password_change", resource.ForcePasswordChange)
-	d.Set("access_level", resource.AccessLevel)
-	// skip	d.Set("password", resource.Password)
+	d.Set("force_password_change", resp.ForcePasswordChange)
+	d.Set("access_level", resp.AccessLevel)
+	d.Set("privilege_set", resp.PrivilegeSet)
 
-	d.Set("privilege_set", resource.PrivilegeSet)
+	d.Set("site_id", resp.Site.ID)
 
-	// Set site information
-	if resource.Site.ID != 0 || resource.Site.Name != "" {
-		site := make(map[string]interface{})
-		site["id"] = resource.Site.ID
-		site["name"] = resource.Site.Name
-		d.Set("site", []interface{}{site})
-	} else {
-		d.Set("site", []interface{}{}) // Clear the site data if not present
-	}
-
-	// Construct and set the groups attribute
-	groups := make([]interface{}, len(resource.Groups))
-	for i, group := range resource.Groups {
+	groups := make([]interface{}, len(resp.Groups))
+	for i, group := range resp.Groups {
 		groupMap := make(map[string]interface{})
 		groupMap["name"] = group.Name
 		groupMap["id"] = group.ID
@@ -73,16 +63,20 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAcco
 		return diag.FromErr(err)
 	}
 
-	// Set privileges
+	// TODO review this.
 	privilegeAttributes := map[string][]string{
-		"jss_objects_privileges":    resource.Privileges.JSSObjects,
-		"jss_settings_privileges":   resource.Privileges.JSSSettings,
-		"jss_actions_privileges":    resource.Privileges.JSSActions,
-		"casper_admin_privileges":   resource.Privileges.CasperAdmin,
-		"casper_remote_privileges":  resource.Privileges.CasperRemote,
-		"casper_imaging_privileges": resource.Privileges.CasperImaging,
-		"recon_privileges":          resource.Privileges.Recon,
+		"jss_objects_privileges":  resp.Privileges.JSSObjects,
+		"jss_settings_privileges": resp.Privileges.JSSSettings,
+		"jss_actions_privileges":  resp.Privileges.JSSActions,
+		// "casper_admin_privileges":   resp.Privileges.CasperAdmin,
+		// "casper_remote_privileges":  resp.Privileges.CasperRemote,
+		// "casper_imaging_privileges": resp.Privileges.CasperImaging,
+		"recon_privileges": resp.Privileges.Recon,
 	}
+
+	log.Println("LOGHERE")
+	log.Printf("%+v", resp.Privileges.CasperAdmin)
+	log.Println(privilegeAttributes)
 
 	for attrName, privileges := range privilegeAttributes {
 		if err := d.Set(attrName, schema.NewSet(schema.HashString, utilities.ConvertToStringInterface(privileges))); err != nil {

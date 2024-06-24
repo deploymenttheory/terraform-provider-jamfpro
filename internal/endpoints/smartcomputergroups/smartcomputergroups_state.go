@@ -8,31 +8,21 @@ import (
 )
 
 // updateTerraformState updates the Terraform state with the provided ResourceComputerGroup object.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComputerGroup) diag.Diagnostics {
+func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceComputerGroup) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if err := d.Set("name", resource.Name); err != nil {
+	if err := d.Set("name", resp.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("is_smart", resource.IsSmart); err != nil {
+	if err := d.Set("is_smart", resp.IsSmart); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Handle Site
-	if resource.Site != nil && resource.Site.ID != -1 {
-		site := []interface{}{
-			map[string]interface{}{
-				"id": resource.Site.ID,
-			},
-		}
-		if err := d.Set("site", site); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
+	d.Set("site_id", resp.Site.ID)
 
 	// Handle Criteria
-	if resource.Criteria != nil && resource.Criteria.Criterion != nil {
-		criteria := setComputerSmartGroupSubsetContainerCriteria(resource.Criteria)
+	if resp.Criteria != nil && resp.Criteria.Criterion != nil {
+		criteria := setComputerSmartGroupSubsetContainerCriteria(resp.Criteria)
 		if err := d.Set("criteria", criteria); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}

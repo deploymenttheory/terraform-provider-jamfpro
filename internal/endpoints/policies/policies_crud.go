@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -14,25 +13,19 @@ import (
 )
 
 // Constructs, creates states
-func ResourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	apiclient, ok := meta.(*client.APIClient)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
-	}
-	conn := apiclient.Conn
-
+func resourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+	client := meta.(*jamfpro.Client)
 
 	resource, err := constructPolicy(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Policy: %v", err))
 	}
 
-	// Retry the API call to create the policy in Jamf Pro
 	var creationResponse *jamfpro.ResponsePolicyCreateAndUpdate
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreatePolicy(resource)
+		creationResponse, apiErr = client.CreatePolicy(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -40,28 +33,25 @@ func ResourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, 
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Policy '%s' after retries: %v", resource.General.Name, err))
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "failed to create",
+			Detail:   fmt.Sprintf("error: %v", err),
+		})
 	}
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	readDiags := ResourceJamfProPoliciesRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
+	return append(diags, resourceJamfProPoliciesReadNoCleanup(ctx, d, meta)...)
 }
 
 // Reads and states
-func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	var err error
-	apiclient, ok := meta.(*client.APIClient)
+	client, ok := meta.(*jamfpro.Client)
 	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
+		return diag.Errorf("error asserting meta as *client.client")
 	}
-
-	conn := apiclient.Conn
 
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -71,31 +61,40 @@ func ResourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	var resp *jamfpro.ResourcePolicy
+	var response *jamfpro.ResourcePolicy
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		response, apiErr = client.GetPolicyByID(resourceIDInt)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
+		}
+		return nil
+	})
 
-	resp, err = conn.GetPolicyByID(resourceIDInt)
 	if err != nil {
-		return state.HandleResourceNotFoundError(err, d)
+		return append(diags, state.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
-	// State
-	diags = append(updateTerraformState(d, resp, resourceID), diags...)
+	return append(updateTerraformState(d, response, resourceID), diags...)
+}
 
-	return diags
+// resourceJamfProPoliciesReadWithCleanup reads the resource with cleanup enabled
+func resourceJamfProPoliciesReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProPoliciesRead(ctx, d, meta, true)
+}
+
+// resourceJamfProPoliciesReadNoCleanup reads the resource with cleanup disabled
+func resourceJamfProPoliciesReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProPoliciesRead(ctx, d, meta, false)
 }
 
 // Constructs, updates and reads
-func ResourceJamfProPoliciesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	apiclient, ok := meta.(*client.APIClient)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
-	}
-	conn := apiclient.Conn
-
+func resourceJamfProPoliciesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
-	resourceIDInt, err := strconv.Atoi(resourceID)
 
+	resourceIDInt, err := strconv.Atoi(resourceID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
@@ -106,11 +105,10 @@ func ResourceJamfProPoliciesUpdate(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdatePolicyByID(resourceIDInt, resource)
+		_, apiErr := client.UpdatePolicyByID(resourceIDInt, resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
-		// Successfully updated the resource, exit the retry loop
 		return nil
 	})
 
@@ -118,23 +116,12 @@ func ResourceJamfProPoliciesUpdate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Policy '%s' (ID: %d) after retries: %v", resource.General.Name, resourceIDInt, err))
 	}
 
-	// Read the resource to ensure the Terraform state is up to date
-	readDiags := ResourceJamfProPoliciesRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
+	return append(diags, resourceJamfProPoliciesReadNoCleanup(ctx, d, meta)...)
 }
 
 // Deletes and removes from state
-func ResourceJamfProPoliciesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	apiclient, ok := meta.(*client.APIClient)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
-	}
-	conn := apiclient.Conn
-
+func resourceJamfProPoliciesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
@@ -145,18 +132,15 @@ func ResourceJamfProPoliciesDelete(ctx context.Context, d *schema.ResourceData, 
 
 	resourceName := d.Get("name").(string)
 
-	// Use the retry function for the delete operation with appropriate timeout
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		apiErr := conn.DeletePolicyByID(resourceIDInt)
+		apiErr := client.DeletePolicyByID(resourceIDInt)
 		if apiErr != nil {
 
-			apiErrByName := conn.DeletePolicyByName(resourceName)
+			apiErrByName := client.DeletePolicyByName(resourceName)
 			if apiErrByName != nil {
-				// If deletion by name also fails, return a retryable error
 				return retry.RetryableError(apiErrByName)
 			}
 		}
-		// Successfully deleted the site, exit the retry loop
 		return nil
 	})
 

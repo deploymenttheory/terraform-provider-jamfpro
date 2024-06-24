@@ -4,19 +4,13 @@ package provider
 import (
 	"context"
 	"fmt"
-	"os"
+	"net/http"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
-	"github.com/deploymenttheory/go-api-http-client/helpers"
+	"github.com/deploymenttheory/go-api-http-client-integrations/jamf/jamfprointegration"
 	"github.com/deploymenttheory/go-api-http-client/httpclient"
+	"github.com/deploymenttheory/go-api-http-client/logger"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/logging"
-
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accountgroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accounts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/activationcode"
@@ -40,7 +34,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/macosconfigurationprofilesplist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/mobiledeviceconfigurationprofilesplist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/networksegments"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/packages"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/policies"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/printers"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/restrictedsoftware"
@@ -50,117 +43,220 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/staticcomputergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/usergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/webhooks"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 // TerraformProviderProductUserAgent is included in the User-Agent header for
 // any API requests made by the provider.
-const TerraformProviderProductUserAgent = "terraform-provider-jamfpro"
+const (
+	terraformProviderProductUserAgent = "terraform-provider-jamfpro"
+	envKeyOAuthClientId               = "JAMFPRO_CLIENT_ID"
+	envKeyOAuthClientSecret           = "JAMFPRO_CLIENT_SECRET"
+	envKeyBasicAuthUsername           = "JAMFPRO_BASIC_USERNAME"
+	envKeyBasicAuthPassword           = "JAMFPRO_BASIC_PASSWORD"
+	envKeyJamfProUrlRoot              = "JAMFPRO_URL_ROOT" // e.g https://yourcompany.jamfcloud.com
+	jamfLoadBalancerCookieName        = "jpro-ingress"
+)
 
-// GetInstanceName retrieves the 'instance_name' value from the Terraform configuration.
-// If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_INSTANCE_NAME environment variable.
-func GetInstanceName(d *schema.ResourceData) (string, error) {
-	instanceName := d.Get("instance_name").(string)
-	if instanceName == "" {
-		instanceName = os.Getenv("JAMFPRO_INSTANCE_NAME")
-		if instanceName == "" {
-			return "", fmt.Errorf("instance_name must be provided either as an environment variable (JAMFPRO_INSTANCE_NAME) or in the Terraform configuration")
-		}
+/*
+GetJamfFqdn retrieves the instance domain name from the provided schema resource data.
+
+If the instance domain is not found, it appends an error diagnostic to the diagnostics slice.
+
+Parameters:
+
+	d      - A pointer to the schema.ResourceData object which contains the resource data.
+	diags  - A pointer to a slice of diag.Diagnostics where error messages will be appended.
+
+Returns:
+
+	A string representing the instance domain name. If the instance domain name is not provided,
+	an error diagnostic is appended to diags and an empty string is returned.
+*/
+func GetJamfFqdn(d *schema.ResourceData, diags *diag.Diagnostics) string {
+	jamf_fqdn, ok := d.GetOk("jamf_instance_fqdn")
+	if jamf_fqdn.(string) == "" || !ok {
+		*diags = append(*diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Error getting instance name",
+			Detail:   "instance_name must be provided either as an environment variable (JAMFPRO_INSTANCE_NAME) or in the Terraform configuration",
+		})
+		return ""
 	}
-	return instanceName, nil
+	return jamf_fqdn.(string)
 }
 
-// GetClientID retrieves the 'client_id' value from the Terraform configuration.
-// If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_CLIENT_ID environment variable.
-func GetClientID(d *schema.ResourceData) (string, error) {
+/*
+GetClientID retrieves the client ID from the provided schema resource data.
+If the client ID is not found, it appends an error diagnostic to the diagnostics slice.
+
+Parameters:
+
+	d      - A pointer to the schema.ResourceData object which contains the resource data.
+	diags  - A pointer to a slice of diag.Diagnostics where error messages will be appended.
+
+Returns:
+
+	A string representing the client ID. If the client ID is not provided,
+	an error diagnostic is appended to diags and an empty string is returned.
+*/
+func GetClientID(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	clientID := d.Get("client_id").(string)
 	if clientID == "" {
-		clientID = os.Getenv("JAMFPRO_CLIENT_ID")
-		if clientID == "" {
-			return "", fmt.Errorf("client_id must be provided either as an environment variable (JAMFPRO_CLIENT_ID) or in the Terraform configuration")
-		}
+
+		*diags = append(*diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Error getting client id",
+			Detail:   "client_id must be provided either as an environment variable (JAMFPRO_CLIENT_ID) or in the Terraform configuration",
+		})
+
+		return ""
+
 	}
-	return clientID, nil
+	return clientID
 }
 
-// GetClientSecret retrieves the 'client_secret' value from the Terraform configuration.
-// If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_CLIENT_SECRET environment variable.
-func GetClientSecret(d *schema.ResourceData) (string, error) {
+/*
+GetClientSecret retrieves the client secret from the provided schema resource data.
+If the client ID is not found, it appends an error diagnostic to the diagnostics slice.
+
+Parameters:
+
+	d      - A pointer to the schema.ResourceData object which contains the resource data.
+	diags  - A pointer to a slice of diag.Diagnostics where error messages will be appended.
+
+Returns:
+
+	A string representing the client ID. If the client ID is not provided,
+	an error diagnostic is appended to diags and an empty string is returned.
+*/
+func GetClientSecret(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	clientSecret := d.Get("client_secret").(string)
 	if clientSecret == "" {
-		clientSecret = os.Getenv("JAMFPRO_CLIENT_SECRET")
-		if clientSecret == "" {
-			return "", fmt.Errorf("client_secret must be provided either as an environment variable (JAMFPRO_CLIENT_SECRET) or in the Terraform configuration")
-		}
+
+		*diags = append(*diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Error getting client secret",
+			Detail:   "client_secret must be provided either as an environment variable (JAMFPRO_CLIENT_SECRET) or in the Terraform configuration",
+		})
+
+		return ""
+
 	}
-	return clientSecret, nil
+	return clientSecret
 }
 
-// GetClientUsername retrieves the 'username' value from the Terraform configuration.
-// If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_USERNAME environment variable.
-func GetClientUsername(d *schema.ResourceData) (string, error) {
+/*
+GetBasicAuthUsername retrieves the basic auth username from the provided schema resource data.
+If the client ID is not found, it appends an error diagnostic to the diagnostics slice.
+
+Parameters:
+
+	d      - A pointer to the schema.ResourceData object which contains the resource data.
+	diags  - A pointer to a slice of diag.Diagnostics where error messages will be appended.
+
+Returns:
+
+	A string representing the client ID. If the client ID is not provided,
+	an error diagnostic is appended to diags and an empty string is returned.
+*/
+func GetBasicAuthUsername(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	username := d.Get("username").(string)
 	if username == "" {
-		username = os.Getenv("JAMFPRO_USERNAME")
-		if username == "" {
-			return "", fmt.Errorf("username must be provided either as an environment variable (JAMFPRO_USERNAME) or in the Terraform configuration")
-		}
+
+		*diags = append(*diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Error getting basic auth username",
+			Detail:   "username must be provided either as an environment variable (JAMFPRO_USERNAME) or in the Terraform configuration",
+		})
+
+		return ""
+
 	}
-	return username, nil
+	return username
 }
 
-// GetClientPassword retrieves the 'password' value from the Terraform configuration.
-// If it's not present in the configuration, it attempts to fetch it from the JAMFPRO_PASSWORD environment variable.
-func GetClientPassword(d *schema.ResourceData) (string, error) {
+/*
+GetBasicAuthPassword retrieves the basic auth password from the provided schema resource data.
+If the client ID is not found, it appends an error diagnostic to the diagnostics slice.
+
+Parameters:
+
+	d      - A pointer to the schema.ResourceData object which contains the resource data.
+	diags  - A pointer to a slice of diag.Diagnostics where error messages will be appended.
+
+Returns:
+
+	A string representing the client ID. If the client ID is not provided,
+	an error diagnostic is appended to diags and an empty string is returned.
+*/
+func GetBasicAuthPassword(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	password := d.Get("password").(string)
 	if password == "" {
-		password = os.Getenv("JAMFPRO_PASSWORD")
-		if password == "" {
-			return "", fmt.Errorf("password must be provided either as an environment variable (JAMFPRO_PASSWORD) or in the Terraform configuration")
-		}
+		*diags = append(*diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Error getting basic auth password",
+			Detail:   "password must be provided either as an environment variable (JAMFPRO_PASSWORD) or in the Terraform configuration",
+		})
+
+		return ""
+
 	}
-	return password, nil
+	return password
 }
 
 // Schema defines the configuration attributes for the  within the JamfPro provider.
 func Provider() *schema.Provider {
+
 	provider := &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"instance_name": {
+			"jamf_instance_fqdn": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_INSTANCE_NAME", ""),
-				Description: "The Jamf Pro instance name. For https://mycompany.jamfcloud.com, define 'mycompany' in this field.",
+				DefaultFunc: schema.EnvDefaultFunc(envKeyJamfProUrlRoot, ""),
+				Description: "The Jamf Pro FQDN (fully qualified domain name). example: https://mycompany.jamfcloud.com",
 			},
+			"auth_method": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Auth method chosen for Jamf.",
+				ValidateFunc: validation.StringInSlice([]string{
+					"basic", "oauth2",
+				}, true),
+			},
+			// TODO the descs below
 			"client_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_CLIENT_ID", ""),
+				DefaultFunc: schema.EnvDefaultFunc(envKeyOAuthClientSecret, ""),
 				Description: "The Jamf Pro Client ID for authentication.",
 			},
 			"client_secret": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
-				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_CLIENT_SECRET", ""),
+				DefaultFunc: schema.EnvDefaultFunc(envKeyOAuthClientSecret, ""),
 				Description: "The Jamf Pro Client secret for authentication.",
 			},
-			"username": {
+			"basic_auth_username": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_USERNAME", ""),
+				DefaultFunc: schema.EnvDefaultFunc(envKeyBasicAuthUsername, ""),
 				Description: "The Jamf Pro username used for authentication.",
 			},
-			"password": {
+			"basic_auth_password": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
-				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_PASSWORD", ""),
+				DefaultFunc: schema.EnvDefaultFunc(envKeyBasicAuthPassword, ""),
 				Description: "The Jamf Pro password used for authentication.",
 			},
 			"log_level": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "warning", // Align with the default log level in the  package
+				Default:  "warning",
 				ValidateFunc: validation.StringInSlice([]string{
 					"debug", "info", "warning", "none",
 				}, false),
@@ -169,13 +265,13 @@ func Provider() *schema.Provider {
 			"log_output_format": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     "console", // Default to console for human-readable format
+				Default:     "pretty",
 				Description: "The output format of the logs. Use 'JSON' for JSON format, 'console' for human-readable format. Defaults to console if no value is supplied.",
 			},
 			"log_console_separator": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     " ", // Set a default value for the separator
+				Default:     " ",
 				Description: "The separator character used in console log output.",
 			},
 			"log_export_path": {
@@ -184,72 +280,55 @@ func Provider() *schema.Provider {
 				Default:     "",
 				Description: "Specify the path to export http client logs to.",
 			},
+			"export_logs": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "export logs to file",
+			},
 			"hide_sensitive_data": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     true,
 				Description: "Define whether sensitive fields should be hidden in logs. Default to hiding sensitive data in logs",
 			},
-			"enable_cookie_jar": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Enable or disable the cookie jar for the HTTP client.",
-			},
 			"custom_cookies": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeList,
 				Optional: true,
 				Default:  nil,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "cookie key",
+						},
+						"value": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "cookie value",
+						},
+					},
 				},
 			},
-			"max_retry_attempts": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Default:     3,
-				Description: "The maximum number of retry request attempts for retryable HTTP methods.",
-			},
-			"enable_dynamic_rate_limiting": {
+			"jamf_load_balancer_lock": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
-				Description: "Enable dynamic rate limiting.",
+				Description: "programatically determines all available web app members in the load balance and locks all instances of httpclient to the app for faster executions. \nTEMP SOLUTION UNTIL JAMF PROVIDES SOLUTION",
 			},
-			"max_concurrent_requests": {
+			"token_refresh_buffer_period_seconds": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Default:     10,
-				Description: "The maximum number of concurrent requests allowed in the semaphore.",
+				Default:     300,
+				Description: "The buffer period in seconds for token refresh.",
 			},
-			"token_refresh_buffer_period": {
+
+			"mandatory_request_delay_milliseconds": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Default:     5, // Convert minutes to time.Duration in code
-				Description: "The buffer period in minutes for token refresh.",
-			},
-			"total_retry_duration": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Default:     60, // Convert seconds to time.Duration in code
-				Description: "The total retry duration in seconds.",
-			},
-			"custom_timeout": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Default:     60, // Convert seconds to time.Duration in code
-				Description: "The custom timeout in seconds for the HTTP client.",
-			},
-			"override_base_domain": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Base domain override used when the default in the API handler isn't suitable.",
-			},
-			"api_type": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Specifies the API integration handler to use for the http client.",
-				Default:     "jamfpro",
+				Default:     100,
+				Description: "a mandatory delay after each request before returning to reduce high volume of requests in a short time",
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
@@ -273,15 +352,15 @@ func Provider() *schema.Provider {
 			"jamfpro_network_segment":                           networksegments.DataSourceJamfProNetworkSegments(),
 			"jamfpro_macos_configuration_profile_plist":         macosconfigurationprofilesplist.DataSourceJamfProMacOSConfigurationProfilesPlist(),
 			"jamfpro_mobile_device_configuration_profile_plist": mobiledeviceconfigurationprofilesplist.DataSourceJamfProMobileDeviceConfigurationProfilesPlist(),
-			"jamfpro_package":                                   packages.DataSourceJamfProPackages(),
-			"jamfpro_printer":                                   printers.DataSourceJamfProPrinters(),
-			"jamfpro_script":                                    scripts.DataSourceJamfProScripts(),
-			"jamfpro_site":                                      sites.DataSourceJamfProSites(),
-			"jamfpro_smart_computer_group":                      smartcomputergroups.DataSourceJamfProSmartComputerGroups(),
-			"jamfpro_static_computer_group":                     staticcomputergroups.DataSourceJamfProStaticComputerGroups(),
-			"jamfpro_restricted_software":                       restrictedsoftware.DataSourceJamfProRestrictedSoftwares(),
-			"jamfpro_user_group":                                usergroups.DataSourceJamfProUserGroups(),
-			"jamfpro_webhook":                                   webhooks.DataSourceJamfProWebhooks(),
+			// "jamfpro_package":                                   packages.DataSourceJamfProPackages(),
+			"jamfpro_printer":               printers.DataSourceJamfProPrinters(),
+			"jamfpro_script":                scripts.DataSourceJamfProScripts(),
+			"jamfpro_site":                  sites.DataSourceJamfProSites(),
+			"jamfpro_smart_computer_group":  smartcomputergroups.DataSourceJamfProSmartComputerGroups(),
+			"jamfpro_static_computer_group": staticcomputergroups.DataSourceJamfProStaticComputerGroups(),
+			"jamfpro_restricted_software":   restrictedsoftware.DataSourceJamfProRestrictedSoftwares(),
+			"jamfpro_user_group":            usergroups.DataSourceJamfProUserGroups(),
+			"jamfpro_webhook":               webhooks.DataSourceJamfProWebhooks(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"jamfpro_account":                                   accounts.ResourceJamfProAccounts(),
@@ -306,124 +385,162 @@ func Provider() *schema.Provider {
 			"jamfpro_network_segment":                           networksegments.ResourceJamfProNetworkSegments(),
 			"jamfpro_macos_configuration_profile_plist":         macosconfigurationprofilesplist.ResourceJamfProMacOSConfigurationProfilesPlist(),
 			"jamfpro_mobile_device_configuration_profile_plist": mobiledeviceconfigurationprofilesplist.ResourceJamfProMobileDeviceConfigurationProfilesPlist(),
-			"jamfpro_package":                                   packages.ResourceJamfProPackages(),
-			"jamfpro_policy":                                    policies.ResourceJamfProPolicies(),
-			"jamfpro_printer":                                   printers.ResourceJamfProPrinters(),
-			"jamfpro_script":                                    scripts.ResourceJamfProScripts(),
-			"jamfpro_site":                                      sites.ResourceJamfProSites(),
-			"jamfpro_smart_computer_group":                      smartcomputergroups.ResourceJamfProSmartComputerGroups(),
-			"jamfpro_static_computer_group":                     staticcomputergroups.ResourceJamfProStaticComputerGroups(),
-			"jamfpro_restricted_software":                       restrictedsoftware.ResourceJamfProRestrictedSoftwares(),
-			"jamfpro_user_group":                                usergroups.ResourceJamfProUserGroups(),
-			"jamfpro_webhook":                                   webhooks.ResourceJamfProWebhooks(),
+			// "jamfpro_package":                                   packages.ResourceJamfProPackages(),
+			"jamfpro_policy":                policies.ResourceJamfProPolicies(),
+			"jamfpro_printer":               printers.ResourceJamfProPrinters(),
+			"jamfpro_script":                scripts.ResourceJamfProScripts(),
+			"jamfpro_site":                  sites.ResourceJamfProSites(),
+			"jamfpro_smart_computer_group":  smartcomputergroups.ResourceJamfProSmartComputerGroups(),
+			"jamfpro_static_computer_group": staticcomputergroups.ResourceJamfProStaticComputerGroups(),
+			"jamfpro_restricted_software":   restrictedsoftware.ResourceJamfProRestrictedSoftwares(),
+			"jamfpro_user_group":            usergroups.ResourceJamfProUserGroups(),
+			"jamfpro_webhook":               webhooks.ResourceJamfProWebhooks(),
 		},
 	}
 
 	provider.ConfigureContextFunc = func(_ context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+		var err error
 		var diags diag.Diagnostics
+		var sharedLogger logger.Logger
+		var jamfIntegration *jamfprointegration.Integration
+		var jamfDomain,
+			clientId,
+			clientSecret,
+			basicAuthUsername,
+			basicAuthPassword string
 
-		instanceName, err := GetInstanceName(d)
-		if err != nil {
-			diags = append(diags, diag.Diagnostic{
+		// Logger
+		parsedLogLevel := logger.ParseLogLevelFromString(d.Get("log_level").(string))
+		logOutputFormat := d.Get("log_output_format").(string)
+		logConsoleSeparator := d.Get("log_console_separator").(string)
+		logFilePath := d.Get("log_export_path").(string)
+		exportLogs := d.Get("export_logs").(bool)
+
+		sharedLogger = logger.BuildLogger(
+			parsedLogLevel,
+			logOutputFormat,
+			logConsoleSeparator,
+			logFilePath,
+			exportLogs,
+		)
+
+		// Auth
+		jamfDomain = GetJamfFqdn(d, &diags)
+		tokenRefrshBufferPeriod := time.Duration(d.Get("token_refresh_buffer_period_seconds").(int)) * time.Second
+
+		switch d.Get("auth_method").(string) {
+		case "oauth2":
+			clientId = GetClientID(d, &diags)
+			clientSecret = GetClientSecret(d, &diags)
+			jamfIntegration, err = jamfprointegration.BuildIntegrationWithOAuth(
+				jamfDomain,
+				sharedLogger,
+				tokenRefrshBufferPeriod,
+				clientId,
+				clientSecret,
+			)
+
+		case "basic":
+			basicAuthUsername = GetBasicAuthUsername(d, &diags)
+			basicAuthPassword = GetBasicAuthPassword(d, &diags)
+			jamfIntegration, err = jamfprointegration.BuildIntegrationWithBasicAuth(
+				jamfDomain,
+				sharedLogger,
+				tokenRefrshBufferPeriod,
+				basicAuthUsername,
+				basicAuthPassword,
+			)
+
+		default:
+			return nil, append(diags, diag.Diagnostic{
 				Severity: diag.Error,
-				Summary:  "Error getting instance name",
-				Detail:   err.Error(),
+				Summary:  "invalid auth method supplied",
+				Detail:   "You should not be able to find this error. If you have, please raise an issue with the schema.",
 			})
-			return nil, diags
+
 		}
 
-		// Attempt to get client credentials (Client ID and Secret) or user credentials (Username and Password)
-		clientID, errClientID := GetClientID(d)
-		clientSecret, errClientSecret := GetClientSecret(d)
-		username, errUsername := GetClientUsername(d)
-		password, errPassword := GetClientPassword(d)
-
-		// extract value for httpclient build and for determining resource propagation time
-		enableCookieJar := d.Get("enable_cookie_jar").(bool)
-
-		// Check if either pair of credentials is provided, prioritizing Client ID/Secret
-		if errClientID == nil && errClientSecret == nil && clientID != "" && clientSecret != "" {
-			// Client ID and Client Secret are provided
-			// Initialize client with OAuth credentials
-		} else if errUsername == nil && errPassword == nil && username != "" && password != "" {
-			// Username and Password are provided
-			// Initialize client with Username/Password credentials
-		} else {
-			// Neither set of credentials provided or incomplete set provided
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Invalid Authentication Configuration",
-				Detail:   "You must provide either a valid 'client_id' and 'client_secret' pair or a 'username' and 'password' pair for authentication.",
-			})
-			return nil, diags
-		}
-
-		// Translate the log level from the Terraform configuration
-		logLevelStr := d.Get("log_level").(string)
-		logLevel := logging.TranslateLogLevel(logLevelStr)
-
-		// Build the HTTP client configuration
-		httpClientConfig := httpclient.ClientConfig{
-			Environment: httpclient.EnvironmentConfig{
-				InstanceName:       instanceName,
-				OverrideBaseDomain: d.Get("override_base_domain").(string),
-				APIType:            "jamfpro",
-			},
-			Auth: httpclient.AuthConfig{
-				Username:     username,
-				Password:     password,
-				ClientID:     clientID,
-				ClientSecret: clientSecret,
-			},
-			ClientOptions: httpclient.ClientOptions{
-				Logging: httpclient.LoggingConfig{
-					LogLevel:            logLevel,
-					LogOutputFormat:     d.Get("log_output_format").(string),
-					LogConsoleSeparator: d.Get("log_console_separator").(string),
-					LogExportPath:       d.Get("log_export_path").(string),
-					HideSensitiveData:   d.Get("hide_sensitive_data").(bool),
-				},
-				Cookies: httpclient.CookieConfig{
-					EnableCookieJar: enableCookieJar,
-					CustomCookies:   make(map[string]string),
-				},
-				Retry: httpclient.RetryConfig{
-					MaxRetryAttempts:          d.Get("max_retry_attempts").(int),
-					EnableDynamicRateLimiting: d.Get("enable_dynamic_rate_limiting").(bool),
-				},
-				Concurrency: httpclient.ConcurrencyConfig{
-					MaxConcurrentRequests: d.Get("max_concurrent_requests").(int),
-				},
-				Timeout: httpclient.TimeoutConfig{
-					TokenRefreshBufferPeriod: helpers.JSONDuration(time.Duration(d.Get("token_refresh_buffer_period").(int)) * time.Minute),
-					TotalRetryDuration:       helpers.JSONDuration(time.Duration(d.Get("total_retry_duration").(int)) * time.Second),
-					CustomTimeout:            helpers.JSONDuration(time.Duration(d.Get("custom_timeout").(int)) * time.Second),
-				},
-				Redirect: httpclient.RedirectConfig{},
-			},
-		}
-
-		if d.Get("custom_cookies") != nil {
-			httpClientConfig.ClientOptions.Cookies.CustomCookies[d.Get("custom_cookies.key").(string)] = d.Get("custom_cookies.value").(string)
-		}
-
-		// Conditionally print debug information.
-		if !d.Get("hide_sensitive_data").(bool) {
-			fmt.Printf("Debug: Building HTTP client with config: %+v\n", httpClientConfig)
-		}
-
-		httpclient, err := jamfpro.BuildClient(httpClientConfig)
 		if err != nil {
-			return nil, diag.FromErr(err)
+			return nil, append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error building jamf integration",
+				Detail:   fmt.Sprintf("error: %v", err),
+			})
 		}
 
-		// Initialize the provider's APIClient struct with the Jamf Pro HTTP client and cookie jar setting
-		jamfProAPIClient := client.APIClient{
-			Conn:            httpclient,
-			EnableCookieJar: enableCookieJar, // Allows use the cookie jar value within provider outside of the client
+		// Cookies
+		var cookiesList []*http.Cookie
+		load_balancer_lock_enabled := d.Get("jamf_load_balancer_lock").(bool)
+		customCookies := d.Get("custom_cookies")
+
+		if load_balancer_lock_enabled {
+			cookies, err := jamfIntegration.GetSessionCookies()
+			if err != nil {
+				return nil, append(diags, diag.Diagnostic{
+					Severity: diag.Error,
+					Summary:  "Error getting session cookies",
+					Detail:   fmt.Sprintf("error: %v", err),
+				})
+			}
+
+			cookiesList = append(cookiesList, cookies...)
+
 		}
 
-		return &jamfProAPIClient, diags
+		if customCookies != nil && len(customCookies.([]interface{})) > 0 {
+			for _, v := range customCookies.([]interface{}) {
+				name := v.(map[string]interface{})["name"]
+				value := v.(map[string]interface{})["value"]
+
+				if name == jamfLoadBalancerCookieName && load_balancer_lock_enabled {
+					return nil, append(diags, diag.Diagnostic{
+						Severity: diag.Error,
+						Summary:  "Cannot have load balancer lock and custom cookie of same name. (jpro-ingress)",
+					})
+				}
+
+				httpCookie := &http.Cookie{
+					Name:  name.(string),
+					Value: value.(string),
+				}
+
+				cookiesList = append(cookiesList, httpCookie)
+			}
+		}
+
+		// Amend timeouts
+		// TODO make this exclusions list a lot prettier.
+		// excludedResource := []string{"jamfpro_package"}
+		for key, r := range provider.ResourcesMap {
+			if key != "jamfpro_package" && key != "jamfpro_jamfpro_static_computer_group" && key != "jamfpro_smart_computer_group" {
+				*r.Timeouts.Create = GetDefaultContextTimeoutCreate(load_balancer_lock_enabled)
+				*r.Timeouts.Read = GetDefaultContextTimeoutRead(load_balancer_lock_enabled)
+				*r.Timeouts.Update = GetDefaultContextTimeoutUpdate(load_balancer_lock_enabled)
+				*r.Timeouts.Delete = GetDefaultContextTimeoutDelete(load_balancer_lock_enabled)
+			}
+		}
+
+		// Packaging
+		config := httpclient.ClientConfig{
+			Integration:              jamfIntegration,
+			HideSensitiveData:        d.Get("hide_sensitive_data").(bool),
+			TokenRefreshBufferPeriod: tokenRefrshBufferPeriod,
+			CustomCookies:            cookiesList,
+			MandatoryRequestDelay:    time.Duration(d.Get("mandatory_request_delay_milliseconds").(int)) * time.Millisecond,
+			RetryEligiableRequests:   false, // Forced off for now
+		}
+
+		goHttpClient, err := httpclient.BuildClient(config, false, sharedLogger)
+		if err != nil {
+			return nil, append(diags, diag.FromErr(err)...)
+		}
+
+		jamfClient := jamfpro.Client{
+			HTTP: goHttpClient,
+		}
+
+		return &jamfClient, diags
 	}
+
 	return provider
 }

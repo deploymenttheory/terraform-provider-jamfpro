@@ -5,45 +5,31 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/client"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/waitfor"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProSmartComputerGroupsCreate is responsible for creating a new Jamf Pro Smart Computer Group in the remote system.
-func ResourceJamfProSmartComputerGroupsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Assert the meta interface to the expected APIClient type
-	apiclient, ok := meta.(*client.APIClient)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
-	}
-	conn := apiclient.Conn
-
-	// Initialize variables
+// resourceJamfProSmartComputerGroupsCreate is responsible for creating a new Jamf Pro Smart Computer Group in the remote system.
+func resourceJamfProSmartComputerGroupsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	// Construct the resource object
 	resource, err := constructJamfProSmartComputerGroup(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Smart Computer Group: %v", err))
 	}
 
-	// Retry the API call to create the resource in Jamf Pro
 	var creationResponse *jamfpro.ResponseComputerGroupreatedAndUpdated
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = conn.CreateComputerGroup(resource)
+		creationResponse, apiErr = client.CreateComputerGroup(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
-		// No error, exit the retry loop
 		return nil
 	})
 
@@ -51,42 +37,14 @@ func ResourceJamfProSmartComputerGroupsCreate(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Smart Computer Group '%s' after retries: %v", resource.Name, err))
 	}
 
-	// Set the resource ID in Terraform state
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	// Wait for the resource to be fully available before reading it
-	checkResourceExists := func(id interface{}) (interface{}, error) {
-		intID, err := strconv.Atoi(id.(string))
-		if err != nil {
-			return nil, fmt.Errorf("error converting ID '%v' to integer: %v", id, err)
-		}
-		return apiclient.Conn.GetComputerGroupByID(intID)
-	}
-
-	_, waitDiags := waitfor.ResourceIsAvailable(ctx, d, "Jamf Pro Smart Computer Group", strconv.Itoa(creationResponse.ID), checkResourceExists, time.Duration(common.DefaultPropagationTime)*time.Second, apiclient.EnableCookieJar)
-
-	if waitDiags.HasError() {
-		return waitDiags
-	}
-
-	// Read the resource to ensure the Terraform state is up to date
-	readDiags := ResourceJamfProSmartComputerGroupsRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
+	return append(diags, resourceJamfProSmartComputerGroupsReadNoCleanup(ctx, d, meta)...)
 }
 
-// ResourceJamfProSmartComputerGroupsRead is responsible for reading the current state of a Jamf Pro Smart Computer Group from the remote system.
-func ResourceJamfProSmartComputerGroupsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-
-	apiclient, ok := meta.(*client.APIClient)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
-	}
-	conn := apiclient.Conn
-
+// resourceJamfProSmartComputerGroupsRead is responsible for reading the current state of a Jamf Pro Smart Computer Group from the remote system.
+func resourceJamfProSmartComputerGroupsRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
@@ -95,28 +53,36 @@ func ResourceJamfProSmartComputerGroupsRead(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	resource, err := conn.GetComputerGroupByID(resourceIDInt)
+	var response *jamfpro.ResourceComputerGroup
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		response, apiErr = client.GetComputerGroupByID(resourceIDInt)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
+		}
+		return nil
+	})
 
 	if err != nil {
-		return state.HandleResourceNotFoundError(err, d)
+		return append(diags, state.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
-	diags = updateTerraformState(d, resource)
-
-	if len(diags) > 0 {
-		return diags
-	}
-	return nil
+	return append(diags, updateTerraformState(d, response)...)
 }
 
-// ResourceJamfProSmartComputerGroupsUpdate is responsible for updating an existing Jamf Pro Smart Computer Group on the remote system.
-func ResourceJamfProSmartComputerGroupsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	apiclient, ok := meta.(*client.APIClient)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
-	}
-	conn := apiclient.Conn
+// resourceJamfProSmartComputerGroupsReadWithCleanup reads the resource with cleanup enabled
+func resourceJamfProSmartComputerGroupsReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProSmartComputerGroupsRead(ctx, d, meta, true)
+}
 
+// resourceJamfProSmartComputerGroupsReadNoCleanup reads the resource with cleanup disabled
+func resourceJamfProSmartComputerGroupsReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProSmartComputerGroupsRead(ctx, d, meta, false)
+}
+
+// resourceJamfProSmartComputerGroupsUpdate is responsible for updating an existing Jamf Pro Smart Computer Group on the remote system.
+func resourceJamfProSmartComputerGroupsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
@@ -131,7 +97,7 @@ func ResourceJamfProSmartComputerGroupsUpdate(ctx context.Context, d *schema.Res
 	}
 
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := conn.UpdateComputerGroupByID(resourceIDInt, resource)
+		_, apiErr := client.UpdateComputerGroupByID(resourceIDInt, resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -143,22 +109,12 @@ func ResourceJamfProSmartComputerGroupsUpdate(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Smart Computer Group '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
 	}
 
-	readDiags := ResourceJamfProSmartComputerGroupsRead(ctx, d, meta)
-	if len(readDiags) > 0 {
-		diags = append(diags, readDiags...)
-	}
-
-	return diags
+	return append(diags, resourceJamfProSmartComputerGroupsReadNoCleanup(ctx, d, meta)...)
 }
 
-// ResourceJamfProSmartComputerGroupsDelete is responsible for deleting a Jamf Pro Smart Computer Group.
-func ResourceJamfProSmartComputerGroupsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	apiclient, ok := meta.(*client.APIClient)
-	if !ok {
-		return diag.Errorf("error asserting meta as *client.APIClient")
-	}
-	conn := apiclient.Conn
-
+// resourceJamfProSmartComputerGroupsDelete is responsible for deleting a Jamf Pro Smart Computer Group.
+func resourceJamfProSmartComputerGroupsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
@@ -168,14 +124,11 @@ func ResourceJamfProSmartComputerGroupsDelete(ctx context.Context, d *schema.Res
 	}
 
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-
-		apiErr := conn.DeleteComputerGroupByID(resourceIDInt)
+		apiErr := client.DeleteComputerGroupByID(resourceIDInt)
 		if apiErr != nil {
-
 			resourceName := d.Get("name").(string)
-			apiErrByName := conn.DeleteComputerGroupByName(resourceName)
+			apiErrByName := client.DeleteComputerGroupByName(resourceName)
 			if apiErrByName != nil {
-
 				return retry.RetryableError(apiErrByName)
 			}
 		}

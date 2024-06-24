@@ -8,51 +8,49 @@ import (
 )
 
 // updateTerraformState updates the Terraform state with the latest Computer Prestage Enrollment information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComputerPrestage) diag.Diagnostics {
+func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// Update the Terraform state with the fetched data
-	if resource != nil {
-		// Construct a map of computer prestage attributes
+	// TODO update this logic
+	if resp != nil {
 		prestageAttributes := map[string]interface{}{
-			"display_name":                          resource.DisplayName,
-			"mandatory":                             resource.Mandatory,
-			"mdm_removable":                         resource.MDMRemovable,
-			"support_phone_number":                  resource.SupportPhoneNumber,
-			"support_email_address":                 resource.SupportEmailAddress,
-			"department":                            resource.Department,
-			"default_prestage":                      resource.DefaultPrestage,
-			"enrollment_site_id":                    resource.EnrollmentSiteId,
-			"keep_existing_site_membership":         resource.KeepExistingSiteMembership,
-			"keep_existing_location_information":    resource.KeepExistingLocationInformation,
-			"authentication_prompt":                 resource.AuthenticationPrompt,
-			"prevent_activation_lock":               resource.PreventActivationLock,
-			"enable_device_based_activation_lock":   resource.EnableDeviceBasedActivationLock,
-			"device_enrollment_program_instance_id": resource.DeviceEnrollmentProgramInstanceId,
-			"skip_setup_items":                      resource.SkipSetupItems,
-			"location_information":                  resource.LocationInformation,
-			"purchasing_information":                resource.PurchasingInformation,
-			"anchor_certificates":                   resource.AnchorCertificates,
-			"enrollment_customization_id":           resource.EnrollmentCustomizationId,
-			"language":                              resource.Language,
-			"region":                                resource.Region,
-			"auto_advance_setup":                    resource.AutoAdvanceSetup,
-			"install_profiles_during_setup":         resource.InstallProfilesDuringSetup,
-			"prestage_installed_profile_ids":        resource.PrestageInstalledProfileIds,
-			"custom_package_ids":                    resource.CustomPackageIds,
-			"custom_package_distribution_point_id":  resource.CustomPackageDistributionPointId,
-			"enable_recovery_lock":                  resource.EnableRecoveryLock,
-			"recovery_lock_password_type":           resource.RecoveryLockPasswordType,
-			"recovery_lock_password":                resource.RecoveryLockPassword,
-			"rotate_recovery_lock_password":         resource.RotateRecoveryLockPassword,
-			"profile_uuid":                          resource.ProfileUuid,
-			"site_id":                               resource.SiteId,
-			"version_lock":                          resource.VersionLock,
-			"account_settings":                      resource.AccountSettings,
+			"display_name":                          resp.DisplayName,
+			"mandatory":                             resp.Mandatory,
+			"mdm_removable":                         resp.MDMRemovable,
+			"support_phone_number":                  resp.SupportPhoneNumber,
+			"support_email_address":                 resp.SupportEmailAddress,
+			"department":                            resp.Department,
+			"default_prestage":                      resp.DefaultPrestage,
+			"enrollment_site_id":                    resp.EnrollmentSiteId,
+			"keep_existing_site_membership":         resp.KeepExistingSiteMembership,
+			"keep_existing_location_information":    resp.KeepExistingLocationInformation,
+			"authentication_prompt":                 resp.AuthenticationPrompt,
+			"prevent_activation_lock":               resp.PreventActivationLock,
+			"enable_device_based_activation_lock":   resp.EnableDeviceBasedActivationLock,
+			"device_enrollment_program_instance_id": resp.DeviceEnrollmentProgramInstanceId,
+			"skip_setup_items":                      resp.SkipSetupItems,
+			"location_information":                  resp.LocationInformation,
+			"purchasing_information":                resp.PurchasingInformation,
+			"anchor_certificates":                   resp.AnchorCertificates,
+			"enrollment_customization_id":           resp.EnrollmentCustomizationId,
+			"language":                              resp.Language,
+			"region":                                resp.Region,
+			"auto_advance_setup":                    resp.AutoAdvanceSetup,
+			"install_profiles_during_setup":         resp.InstallProfilesDuringSetup,
+			"prestage_installed_profile_ids":        resp.PrestageInstalledProfileIds,
+			"custom_package_ids":                    resp.CustomPackageIds,
+			"custom_package_distribution_point_id":  resp.CustomPackageDistributionPointId,
+			"enable_recovery_lock":                  resp.EnableRecoveryLock,
+			"recovery_lock_password_type":           resp.RecoveryLockPasswordType,
+			"recovery_lock_password":                resp.RecoveryLockPassword,
+			"rotate_recovery_lock_password":         resp.RotateRecoveryLockPassword,
+			"profile_uuid":                          resp.ProfileUuid,
+			"site_id":                               resp.SiteId,
+			"version_lock":                          resp.VersionLock,
+			"account_settings":                      resp.AccountSettings,
 		}
 
-		// Handle nested location_information
-		if locationInformation := resource.LocationInformation; locationInformation != (jamfpro.ComputerPrestageSubsetLocationInformation{}) {
+		if locationInformation := resp.LocationInformation; locationInformation != (jamfpro.ComputerPrestageSubsetLocationInformation{}) {
 			prestageAttributes["location_information"] = []interface{}{
 				map[string]interface{}{
 					"username":      locationInformation.Username,
@@ -68,8 +66,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 				},
 			}
 		}
-		// Handle nested purchasing_information
-		if purchasingInformation := resource.PurchasingInformation; purchasingInformation != (jamfpro.ComputerPrestageSubsetPurchasingInformation{}) {
+		if purchasingInformation := resp.PurchasingInformation; purchasingInformation != (jamfpro.ComputerPrestageSubsetPurchasingInformation{}) {
 			prestageAttributes["purchasing_information"] = []interface{}{
 				map[string]interface{}{
 					"id":                 purchasingInformation.ID,
@@ -89,25 +86,23 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 				},
 			}
 		}
-		// Add other single-level attributes
-		prestageAttributes["anchor_certificates"] = resource.AnchorCertificates
-		prestageAttributes["enrollment_customization_id"] = resource.EnrollmentCustomizationId
-		prestageAttributes["language"] = resource.Language
-		prestageAttributes["region"] = resource.Region
-		prestageAttributes["auto_advance_setup"] = resource.AutoAdvanceSetup
-		prestageAttributes["install_profiles_during_setup"] = resource.InstallProfilesDuringSetup
-		prestageAttributes["prestage_installed_profile_ids"] = resource.PrestageInstalledProfileIds
-		prestageAttributes["custom_package_ids"] = resource.CustomPackageIds
-		prestageAttributes["custom_package_distribution_point_id"] = resource.CustomPackageDistributionPointId
-		prestageAttributes["enable_recovery_lock"] = resource.EnableRecoveryLock
-		prestageAttributes["recovery_lock_password_type"] = resource.RecoveryLockPasswordType
-		prestageAttributes["recovery_lock_password"] = resource.RecoveryLockPassword
-		prestageAttributes["rotate_recovery_lock_password"] = resource.RotateRecoveryLockPassword
-		prestageAttributes["profile_uuid"] = resource.ProfileUuid
-		prestageAttributes["site_id"] = resource.SiteId
-		prestageAttributes["version_lock"] = resource.VersionLock
-		// Handle nested account_settings
-		if accountSettings := resource.AccountSettings; accountSettings != (jamfpro.ComputerPrestageSubsetAccountSettings{}) {
+		prestageAttributes["anchor_certificates"] = resp.AnchorCertificates
+		prestageAttributes["enrollment_customization_id"] = resp.EnrollmentCustomizationId
+		prestageAttributes["language"] = resp.Language
+		prestageAttributes["region"] = resp.Region
+		prestageAttributes["auto_advance_setup"] = resp.AutoAdvanceSetup
+		prestageAttributes["install_profiles_during_setup"] = resp.InstallProfilesDuringSetup
+		prestageAttributes["prestage_installed_profile_ids"] = resp.PrestageInstalledProfileIds
+		prestageAttributes["custom_package_ids"] = resp.CustomPackageIds
+		prestageAttributes["custom_package_distribution_point_id"] = resp.CustomPackageDistributionPointId
+		prestageAttributes["enable_recovery_lock"] = resp.EnableRecoveryLock
+		prestageAttributes["recovery_lock_password_type"] = resp.RecoveryLockPasswordType
+		prestageAttributes["recovery_lock_password"] = resp.RecoveryLockPassword
+		prestageAttributes["rotate_recovery_lock_password"] = resp.RotateRecoveryLockPassword
+		prestageAttributes["profile_uuid"] = resp.ProfileUuid
+		prestageAttributes["site_id"] = resp.SiteId
+		prestageAttributes["version_lock"] = resp.VersionLock
+		if accountSettings := resp.AccountSettings; accountSettings != (jamfpro.ComputerPrestageSubsetAccountSettings{}) {
 			prestageAttributes["account_settings"] = []interface{}{
 				map[string]interface{}{
 					"id":                          accountSettings.ID,
@@ -127,7 +122,6 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComp
 				},
 			}
 		}
-		// Update the Terraform state with prestage attributes
 		for key, val := range prestageAttributes {
 			if err := d.Set(key, val); err != nil {
 				return diag.FromErr(err)

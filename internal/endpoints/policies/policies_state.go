@@ -107,33 +107,10 @@ func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *d
 	}
 
 	// Site
-	// TODO Review this logic (site and cat)
-	if resp.General.Site.ID != -1 && resp.General.Site.Name != "None" {
-		out_site := []map[string]interface{}{
-			{
-				"id": resp.General.Site.ID,
-			},
-		}
-
-		if err := d.Set("site", out_site); err != nil {
-			*diags = append(*diags, diag.FromErr(err)...)
-		}
-	}
+	d.Set("site_id", resp.General.Site.ID)
 
 	// Category
-	if resp.General.Category.ID != -1 && resp.General.Category.Name != "No category assigned" {
-		out_category := []map[string]interface{}{
-			{
-				"id": resp.General.Category.ID,
-			},
-		}
-		if err := d.Set("category", out_category); err != nil {
-			if diags == nil {
-				diags = &diag.Diagnostics{}
-			}
-			*diags = append(*diags, diag.FromErr(err)...)
-		}
-	}
+	d.Set("category_id", resp.General.Category.ID)
 }
 
 // Reads response and states scope items

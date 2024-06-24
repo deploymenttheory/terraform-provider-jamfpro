@@ -34,17 +34,17 @@ const (
 	SearchTypeDoesNotMatch       string = "does not match regex"
 )
 
-// ResourceJamfProSmartComputerGroups defines the schema and CRUD operations for managing Jamf Pro smart Computer Groups in Terraform.
+// resourceJamfProSmartComputerGroups defines the schema and CRUD operations for managing Jamf Pro smart Computer Groups in Terraform.
 func ResourceJamfProSmartComputerGroups() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProSmartComputerGroupsCreate,
-		ReadContext:   ResourceJamfProSmartComputerGroupsRead,
-		UpdateContext: ResourceJamfProSmartComputerGroupsUpdate,
-		DeleteContext: ResourceJamfProSmartComputerGroupsDelete,
+		CreateContext: resourceJamfProSmartComputerGroupsCreate,
+		ReadContext:   resourceJamfProSmartComputerGroupsReadWithCleanup,
+		UpdateContext: resourceJamfProSmartComputerGroupsUpdate,
+		DeleteContext: resourceJamfProSmartComputerGroupsDelete,
 		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
-			Read:   schema.DefaultTimeout(30 * time.Second),
+			Read:   schema.DefaultTimeout(15 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
 			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
@@ -67,13 +67,7 @@ func ResourceJamfProSmartComputerGroups() *schema.Resource {
 				Computed:    true,
 				Description: "Boolean selection to state if the group is a Smart group or not. If false then the group is a static group.",
 			},
-			"site": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Jamf Pro Site related settings of the smart computer group.",
-				MaxItems:    1,
-				Elem:        sharedschemas.GetSharedSchemaSite(),
-			},
+			"site_id": sharedschemas.GetSharedSchemaSite(),
 			"criteria": {
 				Type:     schema.TypeList,
 				Optional: true,

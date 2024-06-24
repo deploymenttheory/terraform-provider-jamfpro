@@ -10,33 +10,31 @@ import (
 )
 
 // updateTerraformState updates the Terraform state with the latest Advanced User Search information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAdvancedMobileDeviceSearch) diag.Diagnostics {
+func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceAdvancedMobileDeviceSearch) diag.Diagnostics {
 
 	var diags diag.Diagnostics
-	// Update the Terraform state with the fetched data
-	if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
+	if err := d.Set("id", strconv.Itoa(resp.ID)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err := d.Set("name", resource.Name); err != nil {
+	if err := d.Set("name", resp.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("view_as", resource.ViewAs); err != nil {
+	if err := d.Set("view_as", resp.ViewAs); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("sort1", resource.Sort1); err != nil {
+	if err := d.Set("sort1", resp.Sort1); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("sort2", resource.Sort2); err != nil {
+	if err := d.Set("sort2", resp.Sort2); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("sort3", resource.Sort3); err != nil {
+	if err := d.Set("sort3", resp.Sort3); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Handle "criteria" field
-	criteriaList := make([]interface{}, len(resource.Criteria.Criterion))
-	for i, crit := range resource.Criteria.Criterion {
+	criteriaList := make([]interface{}, len(resp.Criteria.Criterion))
+	for i, crit := range resp.Criteria.Criterion {
 		criteriaMap := map[string]interface{}{
 			"name":          crit.Name,
 			"priority":      crit.Priority,
@@ -52,14 +50,13 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAdva
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Handle "display_fields" field
-	if len(resource.DisplayFields) == 0 || len(resource.DisplayFields[0].DisplayField) == 0 {
+	if len(resp.DisplayFields) == 0 || len(resp.DisplayFields[0].DisplayField) == 0 {
 		if err := d.Set("display_fields", []interface{}{}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	} else {
-		displayFieldsList := make([]map[string]interface{}, len(resource.DisplayFields[0].DisplayField))
-		for i, displayField := range resource.DisplayFields[0].DisplayField {
+		displayFieldsList := make([]map[string]interface{}, len(resp.DisplayFields[0].DisplayField))
+		for i, displayField := range resp.DisplayFields[0].DisplayField {
 			displayFieldMap := map[string]interface{}{
 				"name": displayField.Name,
 			}
@@ -70,18 +67,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAdva
 		}
 	}
 
-	// Set the 'site' attribute in the state only if it's not empty (i.e., not default values)
-	site := []interface{}{}
-	if resource.Site.ID != -1 {
-		site = append(site, map[string]interface{}{
-			"id": resource.Site.ID,
-		})
-	}
-	if len(site) > 0 {
-		if err := d.Set("site", site); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
+	d.Set("site_id", resp.Site.ID)
 
 	return diags
 

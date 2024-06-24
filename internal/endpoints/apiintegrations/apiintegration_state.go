@@ -10,21 +10,18 @@ import (
 )
 
 // updateTerraformState updates the Terraform state with the latest API Integration information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceApiIntegration) diag.Diagnostics {
-
+func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceApiIntegration) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// Map the configuration fields from the API response to a structured map
 	apiIntegrationData := map[string]interface{}{
-		"display_name":                  resource.DisplayName,
-		"enabled":                       resource.Enabled,
-		"access_token_lifetime_seconds": resource.AccessTokenLifetimeSeconds,
-		"app_type":                      resource.AppType,
-		"authorization_scopes":          resource.AuthorizationScopes,
-		"client_id":                     resource.ClientID,
+		"display_name":                  resp.DisplayName,
+		"enabled":                       resp.Enabled,
+		"access_token_lifetime_seconds": resp.AccessTokenLifetimeSeconds,
+		"app_type":                      resp.AppType,
+		"authorization_scopes":          resp.AuthorizationScopes,
+		"client_id":                     resp.ClientID,
 	}
 
-	// Set the structured map in the Terraform state
 	for key, val := range apiIntegrationData {
 		if err := d.Set(key, val); err != nil {
 			diags = append(diags, diag.FromErr(fmt.Errorf("failed to set '%s': %v", key, err))...)

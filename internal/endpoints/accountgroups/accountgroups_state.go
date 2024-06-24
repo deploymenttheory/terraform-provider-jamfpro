@@ -9,50 +9,34 @@ import (
 )
 
 // updateTerraformState updates the Terraform state with the latest Account Groupinformation from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAccountGroup) diag.Diagnostics {
-
+func updateTerraformState(d *schema.ResourceData, response *jamfpro.ResourceAccountGroup) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// Update the Terraform state with the fetched data
-
-	if err := d.Set("name", resource.Name); err != nil {
+	if err := d.Set("name", response.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("access_level", resource.AccessLevel); err != nil {
+	if err := d.Set("access_level", response.AccessLevel); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("privilege_set", resource.PrivilegeSet); err != nil {
+	if err := d.Set("privilege_set", response.PrivilegeSet); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Set LDAP server information
-	if resource.LDAPServer.ID != 0 {
+	if response.LDAPServer.ID != 0 {
 		ldapServer := make(map[string]interface{})
-		ldapServer["id"] = resource.LDAPServer.ID
+		ldapServer["id"] = response.LDAPServer.ID
 		d.Set("identity_server", []interface{}{ldapServer})
 	} else {
-		d.Set("identity_server", []interface{}{}) // Clear the LDAP server data if not present
+		d.Set("identity_server", []interface{}{})
 	}
 
-	// Set the 'site' attribute in the state only if it's not empty (i.e., not default values)
-	site := []interface{}{}
-	if resource.Site.ID != -1 {
-		site = append(site, map[string]interface{}{
-			"id": resource.Site.ID,
-		})
-	}
-	if len(site) > 0 {
-		if err := d.Set("site", site); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
+	d.Set("site_id", response.Site.ID)
 
-	// Set privileges
 	privilegeAttributes := map[string][]string{
-		"jss_objects_privileges":  resource.Privileges.JSSObjects,
-		"jss_settings_privileges": resource.Privileges.JSSSettings,
-		"jss_actions_privileges":  resource.Privileges.JSSActions,
-		"casper_admin_privileges": resource.Privileges.CasperAdmin,
+		"jss_objects_privileges":  response.Privileges.JSSObjects,
+		"jss_settings_privileges": response.Privileges.JSSSettings,
+		"jss_actions_privileges":  response.Privileges.JSSActions,
+		"casper_admin_privileges": response.Privileges.CasperAdmin,
 	}
 
 	for attrName, privileges := range privilegeAttributes {
@@ -61,10 +45,9 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAcco
 		}
 	}
 
-	// Update members
 	members := make([]interface{}, 0)
-	for _, memberStruct := range resource.Members {
-		member := memberStruct.User // Access the User field
+	for _, memberStruct := range response.Members {
+		member := memberStruct.User
 		memberMap := map[string]interface{}{
 			"id":   member.ID,
 			"name": member.Name,

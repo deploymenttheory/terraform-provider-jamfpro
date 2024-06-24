@@ -10,15 +10,15 @@ import (
 )
 
 // updateTerraformState updates the Terraform state with the latest API Role information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceAPIRole) diag.Diagnostics {
+func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceAPIRole) diag.Diagnostics {
 
 	var diags diag.Diagnostics
 
 	// Map the configuration fields from the API response to a structured map
 	apiRoleData := map[string]interface{}{
-		"id":           resource.ID,
-		"display_name": resource.DisplayName,
-		"privileges":   resource.Privileges,
+		"id":           resp.ID,
+		"display_name": resp.DisplayName,
+		"privileges":   resp.Privileges,
 	}
 
 	// Set the structured map in the Terraform state

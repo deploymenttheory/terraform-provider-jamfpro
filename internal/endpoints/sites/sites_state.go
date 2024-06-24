@@ -10,14 +10,13 @@ import (
 )
 
 // updateTerraformState updates the Terraform state with the latest Site information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.SharedResourceSite) diag.Diagnostics {
+func updateTerraformState(d *schema.ResourceData, resp *jamfpro.SharedResourceSite) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// Update Terraform state with the resource information
-	if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
+	if err := d.Set("id", strconv.Itoa(resp.ID)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("name", resource.Name); err != nil {
+	if err := d.Set("name", resp.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

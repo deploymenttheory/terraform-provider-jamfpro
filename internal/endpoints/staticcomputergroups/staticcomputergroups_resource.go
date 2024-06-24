@@ -31,16 +31,16 @@ const (
 	SearchTypeDoesNotMatch       string = "does not match regex"
 )
 
-// ResourceJamfProStaticComputerGroups defines the schema and CRUD operations for managing Jamf Pro static Computer Groups in Terraform.
+// resourceJamfProStaticComputerGroups defines the schema and CRUD operations for managing Jamf Pro static Computer Groups in Terraform.
 func ResourceJamfProStaticComputerGroups() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProStaticComputerGroupsCreate,
-		ReadContext:   ResourceJamfProStaticComputerGroupsRead,
-		UpdateContext: ResourceJamfProStaticComputerGroupsUpdate,
-		DeleteContext: ResourceJamfProStaticComputerGroupsDelete,
+		CreateContext: resourceJamfProStaticComputerGroupsCreate,
+		ReadContext:   resourceJamfProStaticComputerGroupsReadWithCleanup,
+		UpdateContext: resourceJamfProStaticComputerGroupsUpdate,
+		DeleteContext: resourceJamfProStaticComputerGroupsDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
-			Read:   schema.DefaultTimeout(30 * time.Second),
+			Read:   schema.DefaultTimeout(15 * time.Second),
 			Update: schema.DefaultTimeout(30 * time.Second),
 			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
@@ -63,13 +63,7 @@ func ResourceJamfProStaticComputerGroups() *schema.Resource {
 				Computed:    true,
 				Description: "Computed value indicating whether the computer group is smart or static.",
 			},
-			"site": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Jamf Pro Site related settings of the static computer group.",
-				MaxItems:    1,
-				Elem:        sharedschemas.GetSharedSchemaSite(),
-			},
+			"site_id": sharedschemas.GetSharedSchemaSite(),
 			"assignments": {
 				Type:        schema.TypeList,
 				Description: "Assignment block containing the list of computer IDs.",

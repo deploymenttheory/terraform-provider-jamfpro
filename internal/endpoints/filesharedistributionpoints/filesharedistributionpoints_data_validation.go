@@ -27,7 +27,7 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 
 // validateIsSmartAttribute checks the conditions related to the 'is_smart' attribute.
 func validateIsSmartAttribute(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
-	resourceName := diff.Get("name").(string) // Assuming 'name' is always set and is unique
+	resourceName := diff.Get("name").(string)
 	isSmart, ok := diff.GetOkExists("is_smart")
 
 	if !ok {

@@ -10,23 +10,24 @@ import (
 )
 
 // updateTerraformState updates the Terraform state with the latest Computer Extension Attribute information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceComputerExtensionAttribute) diag.Diagnostics {
+func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceComputerExtensionAttribute) diag.Diagnostics {
 	var diags diag.Diagnostics
 
+	// TODO review this logic ASAP.
 	// Update the Terraform state with the fetched data
 	resourceData := map[string]interface{}{
-		"name":              resource.Name,
-		"enabled":           resource.Enabled,
-		"description":       resource.Description,
-		"data_type":         strings.ToLower(resource.DataType),
-		"inventory_display": resource.InventoryDisplay,
-		"recon_display":     resource.ReconDisplay,
+		"name":              resp.Name,
+		"enabled":           resp.Enabled,
+		"description":       resp.Description,
+		"data_type":         strings.ToLower(resp.DataType),
+		"inventory_display": resp.InventoryDisplay,
+		"recon_display":     resp.ReconDisplay,
 		"input_type": []interface{}{
 			map[string]interface{}{
-				"type":     resource.InputType.Type,
-				"platform": resource.InputType.Platform,
-				"script":   resource.InputType.Script,
-				"choices":  resource.InputType.Choices,
+				"type":     resp.InputType.Type,
+				"platform": resp.InputType.Platform,
+				"script":   resp.InputType.Script,
+				"choices":  resp.InputType.Choices,
 			},
 		},
 	}

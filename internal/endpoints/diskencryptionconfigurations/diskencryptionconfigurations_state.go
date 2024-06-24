@@ -10,31 +10,31 @@ import (
 )
 
 // updateTerraformState updates the Terraform state with the latest Disk EncryptionC onfiguration information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceDiskEncryptionConfiguration) diag.Diagnostics {
+func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceDiskEncryptionConfiguration) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// Assuming successful retrieval, proceed to set the resource attributes in Terraform state
-	if resource != nil {
+	if resp != nil {
 		// Set the fields directly in the Terraform state
-		if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
+		if err := d.Set("id", strconv.Itoa(resp.ID)); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("name", resource.Name); err != nil {
+		if err := d.Set("name", resp.Name); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("key_type", resource.KeyType); err != nil {
+		if err := d.Set("key_type", resp.KeyType); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-		if err := d.Set("file_vault_enabled_users", resource.FileVaultEnabledUsers); err != nil {
+		if err := d.Set("file_vault_enabled_users", resp.FileVaultEnabledUsers); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 
 		// Handle Institutional Recovery Key
-		if resource.InstitutionalRecoveryKey != nil {
+		if resp.InstitutionalRecoveryKey != nil {
 			irk := make(map[string]interface{})
-			irk["certificate_type"] = resource.InstitutionalRecoveryKey.CertificateType
-			//irk["password"] = resource.InstitutionalRecoveryKey.Password // Uncomment if password should be set
-			irk["data"] = resource.InstitutionalRecoveryKey.Data
+			irk["certificate_type"] = resp.InstitutionalRecoveryKey.CertificateType
+			//irk["password"] = resp.InstitutionalRecoveryKey.Password // Uncomment if password should be set
+			irk["data"] = resp.InstitutionalRecoveryKey.Data
 
 			if err := d.Set("institutional_recovery_key", []interface{}{irk}); err != nil {
 				diags = append(diags, diag.FromErr(err)...)

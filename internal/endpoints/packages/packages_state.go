@@ -2,39 +2,22 @@
 package packages
 
 import (
-	"strconv"
-
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// updateTerraformState updates the Terraform state with the latest Package information from the Jamf Pro API.
+// Helper function to update Terraform state
 func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourcePackage) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// Update Terraform state with the resource information
-	if err := d.Set("id", strconv.Itoa(resource.ID)); err != nil {
+	if err := d.Set("package_name", resource.PackageName); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("name", resource.Name); err != nil {
+	if err := d.Set("file_name", resource.FileName); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	// Check if the category is "No category assigned" and set it to "Unknown"
-	// This is necessary because the API returns "No category assigned" when no category is assigned
-	// but the request expects "Unknown" when no category is assigned.
-	if resource.Category == "No category assigned" {
-		// Set the category to "Unknown"
-		if err := d.Set("category", "Unknown"); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	} else {
-		// Set the category normally if it's not "No category assigned"
-		if err := d.Set("category", resource.Category); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-	if err := d.Set("filename", resource.Filename); err != nil {
+	if err := d.Set("category_id", resource.CategoryID); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("info", resource.Info); err != nil {
@@ -46,45 +29,88 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourcePack
 	if err := d.Set("priority", resource.Priority); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("reboot_required", resource.RebootRequired); err != nil {
+	if err := d.Set("os_requirements", resource.OSRequirements); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("fill_user_template", resource.FillUserTemplate); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+	if err := d.Set("indexed", resource.Indexed); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 	if err := d.Set("fill_existing_users", resource.FillExistingUsers); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("boot_volume_required", resource.BootVolumeRequired); err != nil {
+	if err := d.Set("swu", resource.SWU); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("allow_uninstalled", resource.AllowUninstalled); err != nil {
+	if err := d.Set("reboot_required", resource.RebootRequired); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("os_requirements", resource.OSRequirements); err != nil {
+	if err := d.Set("self_heal_notify", resource.SelfHealNotify); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	/* Fields are in the data model but don't appear to serve a purpose in jamf 11.3 onwards
-	// these fields may only be relevant if a file is indexed by JAMF Admin. which i *think*
-	// is to be deprecated in favor of JCDS 2.0
-	if err := d.Set("required_processor", resource.RequiredProcessor); err != nil {
+	if err := d.Set("self_healing_action", resource.SelfHealingAction); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("switch_with_package", resource.SwitchWithPackage); err != nil {
+	if err := d.Set("os_install", resource.OSInstall); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("reinstall_option", resource.ReinstallOption); err != nil {
+	if err := d.Set("serial_number", resource.SerialNumber); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("triggering_files", resource.TriggeringFiles); err != nil {
+	if err := d.Set("parent_package_id", resource.ParentPackageID); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	*/
-	if err := d.Set("install_if_reported_available", resource.InstallIfReportedAvailable); err != nil {
+	if err := d.Set("base_path", resource.BasePath); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-
-	if err := d.Set("send_notification", resource.SendNotification); err != nil {
+	if err := d.Set("suppress_updates", resource.SuppressUpdates); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("cloud_transfer_status", resource.CloudTransferStatus); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("ignore_conflicts", resource.IgnoreConflicts); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("suppress_from_dock", resource.SuppressFromDock); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("suppress_eula", resource.SuppressEula); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("suppress_registration", resource.SuppressRegistration); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("install_language", resource.InstallLanguage); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("md5", resource.MD5); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("sha256", resource.SHA256); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("hash_type", resource.HashType); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("hash_value", resource.HashValue); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("size", resource.Size); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("os_installer_version", resource.OSInstallerVersion); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("manifest", resource.Manifest); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("manifest_file_name", resource.ManifestFileName); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("format", resource.Format); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
