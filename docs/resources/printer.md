@@ -21,7 +21,7 @@ description: |-
 
 ### Optional
 
-- `category` (String) The jamf pro category of the printer.
+- `category_name` (String) The jamf pro category of the printer.
 - `cups_name` (String) The CUPS name of the printer.
 - `info` (String) Additional information about the printer.
 - `location` (String) The location of the printer.

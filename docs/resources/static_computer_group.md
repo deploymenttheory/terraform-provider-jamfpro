@@ -22,7 +22,7 @@ description: |-
 ### Optional
 
 - `assignments` (Block List, Max: 1) Assignment block containing the list of computer IDs. (see [below for nested schema](#nestedblock--assignments))
-- `site` (Block List, Max: 1) Jamf Pro Site related settings of the static computer group. (see [below for nested schema](#nestedblock--site))
+- `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
@@ -36,18 +36,6 @@ description: |-
 Required:
 
 - `computer_ids` (List of Number) The list of computer IDs that are members of the static computer group.
-
-
-<a id="nestedblock--site"></a>
-### Nested Schema for `site`
-
-Optional:
-
-- `id` (Number) Jamf Pro Site ID. Value defaults to -1 aka not used.
-
-Read-Only:
-
-- `name` (String) The name of the Jamf Pro Site. Computed value based on the utilised site ID.
 
 
 <a id="nestedblock--timeouts"></a>

@@ -23,13 +23,13 @@ description: |-
 
 ### Optional
 
-- `category` (Block List, Max: 1) The category to which the configuration profile is scoped. (see [below for nested schema](#nestedblock--category))
+- `category_id` (Number) Jamf Pro category-related settings of the policy.
 - `description` (String) Description of the configuration profile.
 - `distribution_method` (String) The distribution method for the configuration profile. ['Make Available in Self Service','Install Automatically']
 - `level` (String) The deployment level of the configuration profile. Available options are: 'User' or 'System'. Note: 'System' is mapped to 'Computer Level' in the Jamf Pro GUI.
 - `redeploy_on_update` (String) Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state
 - `self_service` (Block List, Max: 1) Self Service Configuration (see [below for nested schema](#nestedblock--self_service))
-- `site` (Block List, Max: 1) The site to which the configuration profile is scoped. (see [below for nested schema](#nestedblock--site))
+- `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 - `user_removable` (Boolean) Whether the configuration profile is user removeable or not.
 
@@ -86,18 +86,6 @@ Optional:
 
 
 
-<a id="nestedblock--category"></a>
-### Nested Schema for `category`
-
-Required:
-
-- `id` (Number) The unique identifier of the category to which the configuration profile is scoped.
-
-Read-Only:
-
-- `name` (String) The name of the category to which the configuration profile is scoped.
-
-
 <a id="nestedblock--self_service"></a>
 ### Nested Schema for `self_service`
 
@@ -125,18 +113,6 @@ Optional:
 - `id` (Number) ID of category
 - `name` (String) Name of category
 
-
-
-<a id="nestedblock--site"></a>
-### Nested Schema for `site`
-
-Optional:
-
-- `id` (Number) Jamf Pro Site ID. Value defaults to -1 aka not used.
-
-Read-Only:
-
-- `name` (String) The name of the Jamf Pro Site. Computed value based on the utilised site ID.
 
 
 <a id="nestedblock--timeouts"></a>

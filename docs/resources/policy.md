@@ -24,7 +24,7 @@ description: |-
 
 ### Optional
 
-- `category` (Block List, Max: 1) Category to add the policy to. (see [below for nested schema](#nestedblock--category))
+- `category_id` (Number) Jamf Pro category-related settings of the policy.
 - `date_time_limitations` (Block List, Max: 1) Server-side limitations use your Jamf Pro host server's time zone and settings. The Jamf Pro host service is in UTC time. (see [below for nested schema](#nestedblock--date_time_limitations))
 - `frequency` (String) Frequency of policy execution.
 - `network_limitations` (Block List, Max: 1) Network limitations for the policy. (see [below for nested schema](#nestedblock--network_limitations))
@@ -34,7 +34,7 @@ description: |-
 - `retry_attempts` (Number) Number of retry attempts for the jamf pro policy. Valid values are -1 (not configured) and 1 through 10.
 - `retry_event` (String) Event on which to retry policy execution.
 - `self_service` (Block List, Max: 1) Self-service settings of the policy. (see [below for nested schema](#nestedblock--self_service))
-- `site` (Block List, Max: 1) Jamf Pro Site-related settings of the policy. (see [below for nested schema](#nestedblock--site))
+- `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `target_drive` (String) The drive on which to run the policy (e.g. /Volumes/Restore/ ). The policy runs on the boot drive by default
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 - `trigger_checkin` (Boolean) Trigger policy when device performs recurring check-in against the frequency configured in Jamf Pro
@@ -328,18 +328,6 @@ Optional:
 
 
 
-<a id="nestedblock--category"></a>
-### Nested Schema for `category`
-
-Required:
-
-- `id` (Number) The unique identifier of the category to which the configuration profile is scoped.
-
-Read-Only:
-
-- `name` (String) The name of the category to which the configuration profile is scoped.
-
-
 <a id="nestedblock--date_time_limitations"></a>
 ### Nested Schema for `date_time_limitations`
 
@@ -376,18 +364,6 @@ Optional:
 - `self_service_description` (String) Description of the policy displayed in self-service.
 - `self_service_display_name` (String) Display name of the policy in self-service.
 - `use_for_self_service` (Boolean) Whether the policy is available for self-service.
-
-
-<a id="nestedblock--site"></a>
-### Nested Schema for `site`
-
-Optional:
-
-- `id` (Number) Jamf Pro Site ID. Value defaults to -1 aka not used.
-
-Read-Only:
-
-- `name` (String) The name of the Jamf Pro Site. Computed value based on the utilised site ID.
 
 
 <a id="nestedblock--timeouts"></a>

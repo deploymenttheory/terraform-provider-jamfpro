@@ -39,7 +39,7 @@ description: |-
 - `password` (String, Sensitive) The password for the account.
 - `privilege_set` (String) The privilege set assigned to the account.
 - `recon_privileges` (Set of String) Privileges related to Recon.
-- `site` (Block List, Max: 1) The site information associated with the account group if access_level is set to Site Access. (see [below for nested schema](#nestedblock--site))
+- `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
@@ -61,15 +61,6 @@ Optional:
 Optional:
 
 - `id` (Number) ID is the ID of the LDAP or IdP configuration in Jamf Pro.
-
-
-<a id="nestedblock--site"></a>
-### Nested Schema for `site`
-
-Optional:
-
-- `id` (Number) Jamf Pro Site ID. Value defaults to '0' aka not used.
-- `name` (String) Jamf Pro Site Name
 
 
 <a id="nestedblock--timeouts"></a>

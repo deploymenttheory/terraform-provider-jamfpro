@@ -28,7 +28,7 @@ description: |-
 - `match_exact_process_name` (Boolean) Indicates if the process name should be matched exactly.
 - `scope` (Block List, Max: 1) The scope of the restricted software. (see [below for nested schema](#nestedblock--scope))
 - `send_notification` (Boolean) Indicates if a notification should be sent.
-- `site` (Block List, Max: 1) The site associated with the restricted software. (see [below for nested schema](#nestedblock--site))
+- `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
@@ -68,15 +68,6 @@ Optional:
 - `ibeacon_ids` (List of Number) A list of iBeacon IDs for limitations.
 - `network_segment_ids` (List of Number) A list of network segment IDs for limitations.
 
-
-
-<a id="nestedblock--site"></a>
-### Nested Schema for `site`
-
-Optional:
-
-- `id` (Number) The unique identifier of the site.
-- `name` (String) The name of the site.
 
 
 <a id="nestedblock--timeouts"></a>

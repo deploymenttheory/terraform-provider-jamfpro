@@ -176,7 +176,7 @@ Read-Only:
 - `platform` (String)
 - `remote_management` (List of Object) (see [below for nested schema](#nestedobjatt--general--remote_management))
 - `report_date` (String)
-- `site` (List of Object) (see [below for nested schema](#nestedobjatt--general--site))
+- `site_id` (List of Object) (see [below for nested schema](#nestedobjatt--general--site_id))
 - `supervised` (Boolean)
 - `user_approved_mdm` (Boolean)
 
@@ -224,8 +224,8 @@ Read-Only:
 - `management_username` (String)
 
 
-<a id="nestedobjatt--general--site"></a>
-### Nested Schema for `general.site`
+<a id="nestedobjatt--general--site_id"></a>
+### Nested Schema for `general.site_id`
 
 Read-Only:
 

@@ -29,7 +29,7 @@ description: |-
 - `jss_settings_privileges` (Set of String) Privileges related to JSS Settings.
 - `members` (Block List) Members of the account group. (see [below for nested schema](#nestedblock--members))
 - `privilege_set` (String) The privilege set assigned to the account.
-- `site` (Block List, Max: 1) The site information associated with the account group if access_level is set to Site Access. (see [below for nested schema](#nestedblock--site))
+- `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
@@ -51,15 +51,6 @@ Optional:
 
 - `id` (Number)
 - `name` (String)
-
-
-<a id="nestedblock--site"></a>
-### Nested Schema for `site`
-
-Optional:
-
-- `id` (Number) Jamf Pro Site ID. Value defaults to -1 aka not used.
-- `name` (String) Jamf Pro Site Name. Value defaults to 'None' aka not used
 
 
 <a id="nestedblock--timeouts"></a>

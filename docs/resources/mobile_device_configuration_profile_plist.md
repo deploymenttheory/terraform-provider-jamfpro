@@ -23,13 +23,13 @@ description: |-
 
 ### Optional
 
-- `category` (Block List, Max: 1) The jamf pro category information for the mobile device configuration profile. (see [below for nested schema](#nestedblock--category))
+- `category_id` (Number) Jamf Pro category-related settings of the policy.
 - `deployment_method` (String) The deployment method for the mobile device configuration profile, can be either 'Install Automatically' or 'Make Available in Self Service'.
 - `description` (String) The description of the mobile device configuration profile.
 - `level` (String) The level at which the mobile device configuration profile is applied, can be either 'Device Level' or 'User Level'.
 - `redeploy_days_before_cert_expires` (Number) The number of days before certificate expiration when the profile should be redeployed.
 - `redeploy_on_update` (String) Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state
-- `site` (Block List, Max: 1) The site information associated with the mobile device configuration profile. (see [below for nested schema](#nestedblock--site))
+- `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
@@ -80,22 +80,6 @@ Optional:
 - `ibeacon_ids` (List of Number) A list of iBeacon IDs for limitations.
 - `network_segment_ids` (List of Number) A list of network segment IDs for limitations.
 
-
-
-<a id="nestedblock--category"></a>
-### Nested Schema for `category`
-
-Optional:
-
-- `id` (Number) The unique identifier for the Jamf Pro category.
-
-
-<a id="nestedblock--site"></a>
-### Nested Schema for `site`
-
-Optional:
-
-- `id` (Number)
 
 
 <a id="nestedblock--timeouts"></a>
