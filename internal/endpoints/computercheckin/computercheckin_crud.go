@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -37,11 +38,11 @@ func resourceJamfProComputerCheckinCreate(ctx context.Context, d *schema.Resourc
 
 	d.SetId("jamfpro_computer_checkin_singleton")
 
-	return append(diags, resourceJamfProComputerCheckinRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProComputerCheckinReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProComputerCheckinRead is responsible for reading the current state of the Jamf Pro computer check-in configuration.
-func resourceJamfProComputerCheckinRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProComputerCheckinRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -59,10 +60,20 @@ func resourceJamfProComputerCheckinRead(ctx context.Context, d *schema.ResourceD
 	})
 
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, state.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
 	return append(diags, updateTerraformState(d, response)...)
+}
+
+// resourceJamfProComputerCheckinReadWithCleanup reads the resource with cleanup enabled
+func resourceJamfProComputerCheckinReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProComputerCheckinRead(ctx, d, meta, true)
+}
+
+// resourceJamfProComputerCheckinReadNoCleanup reads the resource with cleanup disabled
+func resourceJamfProComputerCheckinReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProComputerCheckinRead(ctx, d, meta, false)
 }
 
 // resourceJamfProComputerCheckinUpdate is responsible for updating the Jamf Pro computer check-in configuration.
@@ -89,7 +100,7 @@ func resourceJamfProComputerCheckinUpdate(ctx context.Context, d *schema.Resourc
 
 	d.SetId("jamfpro_computer_checkin_singleton")
 
-	return append(diags, resourceJamfProComputerCheckinRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProComputerCheckinReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProComputerCheckinDelete is responsible for 'deleting' the Jamf Pro computer check-in configuration.

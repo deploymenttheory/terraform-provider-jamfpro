@@ -46,7 +46,7 @@ func DataSourceJamfProPolicies() *schema.Resource {
 }
 
 // DataSourceJamfProPoliciesRead fetches the details of specific policy items from Jamf Pro using either their unique Name or Id.
-func DataSourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func DataSourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	// Initialize API client
 	client, ok := meta.(*jamfpro.Client)
 	if !ok {

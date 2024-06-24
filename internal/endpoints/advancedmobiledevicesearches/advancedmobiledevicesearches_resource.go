@@ -12,7 +12,7 @@ import (
 func ResourceJamfProAdvancedMobileDeviceSearches() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProAdvancedMobileDeviceSearchCreate,
-		ReadContext:   resourceJamfProAdvancedMobileDeviceSearchRead,
+		ReadContext:   resourceJamfProAdvancedMobileDeviceSearchReadWithCleanup,
 		UpdateContext: resourceJamfProAdvancedMobileDeviceSearchUpdate,
 		DeleteContext: resourceJamfProAdvancedMobileDeviceSearchDelete,
 		Timeouts: &schema.ResourceTimeout{

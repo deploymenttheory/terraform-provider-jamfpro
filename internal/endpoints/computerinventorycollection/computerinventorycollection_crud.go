@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -37,11 +38,11 @@ func resourceJamfProComputerInventoryCollectionCreate(ctx context.Context, d *sc
 
 	d.SetId("jamfpro_computer_inventory_collection_singleton")
 
-	return append(diags, resourceJamfProComputerInventoryCollectionRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProComputerInventoryCollectionReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProComputerInventoryCollectionRead is responsible for reading the current state of the Jamf Pro Computer Inventory Collection configuration.
-func resourceJamfProComputerInventoryCollectionRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProComputerInventoryCollectionRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	var err error
@@ -58,10 +59,20 @@ func resourceJamfProComputerInventoryCollectionRead(ctx context.Context, d *sche
 	})
 
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, state.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
 	return append(diags, updateTerraformState(d, response)...)
+}
+
+// resourceJamfProComputerInventoryCollectionReadWithCleanup reads the resource with cleanup enabled
+func resourceJamfProComputerInventoryCollectionReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProComputerInventoryCollectionRead(ctx, d, meta, true)
+}
+
+// resourceJamfProComputerInventoryCollectionReadNoCleanup reads the resource with cleanup disabled
+func resourceJamfProComputerInventoryCollectionReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProComputerInventoryCollectionRead(ctx, d, meta, false)
 }
 
 // resourceJamfProComputerInventoryCollectionUpdate is responsible for updating the Jamf Pro Computer Inventory Collection configuration.
@@ -88,7 +99,7 @@ func resourceJamfProComputerInventoryCollectionUpdate(ctx context.Context, d *sc
 
 	d.SetId("jamfpro_computer_checkin_singleton")
 
-	return append(diags, resourceJamfProComputerInventoryCollectionRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProComputerInventoryCollectionReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProComputerInventoryCollectionDelete is responsible for 'deleting' the Jamf Pro Computer Inventory Collection configuration.

@@ -12,7 +12,7 @@ import (
 func ResourceJamfProRestrictedSoftwares() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProRestrictedSoftwareCreate,
-		ReadContext:   resourceJamfProRestrictedSoftwareRead,
+		ReadContext:   resourceJamfProRestrictedSoftwareReadWithCleanup,
 		UpdateContext: resourceJamfProRestrictedSoftwareUpdate,
 		DeleteContext: resourceJamfProRestrictedSoftwareDelete,
 		Timeouts: &schema.ResourceTimeout{

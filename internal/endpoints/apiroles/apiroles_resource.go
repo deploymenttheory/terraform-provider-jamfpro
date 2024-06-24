@@ -11,7 +11,7 @@ import (
 func ResourceJamfProAPIRoles() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProAPIRolesCreate,
-		ReadContext:   resourceJamfProAPIRolesRead,
+		ReadContext:   resourceJamfProAPIRolesReadWithCleanup,
 		UpdateContext: resourceJamfProAPIRolesUpdate,
 		DeleteContext: resourceJamfProAPIRolesDelete,
 		Timeouts: &schema.ResourceTimeout{

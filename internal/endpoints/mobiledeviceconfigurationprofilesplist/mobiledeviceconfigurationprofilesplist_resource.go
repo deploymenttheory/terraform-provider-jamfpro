@@ -15,7 +15,7 @@ import (
 func ResourceJamfProMobileDeviceConfigurationProfilesPlist() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProMobileDeviceConfigurationProfilePlistCreate,
-		ReadContext:   resourceJamfProMobileDeviceConfigurationProfilePlistRead,
+		ReadContext:   resourceJamfProMobileDeviceConfigurationProfilePlistReadWithCleanup,
 		UpdateContext: resourceJamfProMobileDeviceConfigurationProfilePlistUpdate,
 		DeleteContext: resourceJamfProMobileDeviceConfigurationProfilePlistDelete,
 		CustomizeDiff: mainCustomDiffFunc,

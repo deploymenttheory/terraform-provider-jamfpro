@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -42,7 +43,7 @@ func resourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData,
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	return append(diags, resourceJamfProDockItemsRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProDockItemsReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProDockItemsRead is responsible for reading the current state of a Jamf Pro Dock Item Resource from the remote system.
@@ -50,7 +51,7 @@ func resourceJamfProDockItemsCreate(ctx context.Context, d *schema.ResourceData,
 // 1. Fetches the dock item's current state using its ID. If it fails then obtain dock item's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the dock item being deleted outside of Terraform, to keep the Terraform state synchronized.
-func resourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	resourceID := d.Id()
 	var diags diag.Diagnostics
@@ -71,10 +72,20 @@ func resourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData, m
 	})
 
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, state.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
 	return append(diags, updateTerraformState(d, response)...)
+}
+
+// resourceJamfProDockItemsReadWithCleanup reads the resource with cleanup enabled
+func resourceJamfProDockItemsReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProDockItemsRead(ctx, d, meta, true)
+}
+
+// resourceJamfProDockItemsReadNoCleanup reads the resource with cleanup disabled
+func resourceJamfProDockItemsReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProDockItemsRead(ctx, d, meta, true)
 }
 
 // resourceJamfProDockItemsUpdate is responsible for updating a Jamf Pro dock item.
@@ -105,7 +116,7 @@ func resourceJamfProDockItemsUpdate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Dock Item '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
 	}
 
-	return append(diags, resourceJamfProDockItemsRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProDockItemsReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProDiskEncryptionConfigurationsDelete is responsible for deleting a Jamf Pro Disk Encryption Configuration.

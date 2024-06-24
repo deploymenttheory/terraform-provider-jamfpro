@@ -13,7 +13,7 @@ import (
 func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProComputerExtensionAttributesCreate,
-		ReadContext:   resourceJamfProComputerExtensionAttributesRead,
+		ReadContext:   resourceJamfProComputerExtensionAttributesReadWithCleanup,
 		UpdateContext: resourceJamfProComputerExtensionAttributesUpdate,
 		DeleteContext: resourceJamfProComputerExtensionAttributesDelete,
 		CustomizeDiff: validateJamfProRResourceComputerExtensionAttributesDataFields,

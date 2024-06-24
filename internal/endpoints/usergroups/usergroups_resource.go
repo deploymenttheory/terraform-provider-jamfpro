@@ -28,7 +28,7 @@ type UserGroupAndOr string
 func ResourceJamfProUserGroups() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProUserGroupCreate,
-		ReadContext:   resourceJamfProUserGroupRead,
+		ReadContext:   resourceJamfProUserGroupReadWithCleanup,
 		UpdateContext: resourceJamfProUserGroupUpdate,
 		DeleteContext: resourceJamfProUserGroupDelete,
 		CustomizeDiff: mainCustomDiffFunc,

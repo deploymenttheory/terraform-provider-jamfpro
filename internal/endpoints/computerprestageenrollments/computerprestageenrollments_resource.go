@@ -13,7 +13,7 @@ import (
 func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProComputerPrestageEnrollmentCreate,
-		ReadContext:   resourceJamfProComputerPrestageEnrollmentRead,
+		ReadContext:   resourceJamfProComputerPrestageEnrollmentReadWithCleanup,
 		UpdateContext: resourceJamfProComputerPrestageEnrollmentUpdate,
 		DeleteContext: resourceJamfProComputerPrestageEnrollmentDelete,
 		Timeouts: &schema.ResourceTimeout{

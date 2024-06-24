@@ -16,7 +16,7 @@ import (
 func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProMacOSConfigurationProfilesPlistCreate,
-		ReadContext:   resourceJamfProMacOSConfigurationProfilesPlistRead,
+		ReadContext:   resourceJamfProMacOSConfigurationProfilesPlistReadWithCleanup,
 		UpdateContext: resourceJamfProMacOSConfigurationProfilesPlistUpdate,
 		DeleteContext: resourceJamfProMacOSConfigurationProfilesPlistDelete,
 		CustomizeDiff: mainCustomDiffFunc,

@@ -11,7 +11,7 @@ import (
 func ResourceJamfProAllowedFileExtensions() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProAllowedFileExtensionCreate,
-		ReadContext:   resourceJamfProAllowedFileExtensionRead,
+		ReadContext:   resourceJamfProAllowedFileExtensionReadWithCleanup,
 		UpdateContext: resourceJamfProAllowedFileExtensionUpdate,
 		DeleteContext: resourceJamfProAllowedFileExtensionDelete,
 		Timeouts: &schema.ResourceTimeout{

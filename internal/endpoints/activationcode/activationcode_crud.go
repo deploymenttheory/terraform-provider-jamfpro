@@ -55,7 +55,7 @@ func resourceJamfProActivationCodeRead(ctx context.Context, d *schema.ResourceDa
 	})
 
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		diag.FromErr(err)
 	}
 
 	return append(diags, updateTerraformState(d, response)...)

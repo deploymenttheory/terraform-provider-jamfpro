@@ -14,7 +14,7 @@ import (
 func ResourceJamfProFileShareDistributionPoints() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProFileShareDistributionPointsCreate,
-		ReadContext:   resourceJamfProFileShareDistributionPointsRead,
+		ReadContext:   resourceJamfProFileShareDistributionPointsReadWithCleanup,
 		UpdateContext: resourceJamfProFileShareDistributionPointsUpdate,
 		DeleteContext: resourceJamfProFileShareDistributionPointsDelete,
 		CustomizeDiff: mainCustomDiffFunc,

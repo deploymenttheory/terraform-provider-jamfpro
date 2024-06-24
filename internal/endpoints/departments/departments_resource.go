@@ -11,7 +11,7 @@ import (
 func ResourceJamfProDepartments() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProDepartmentsCreate,
-		ReadContext:   resourceJamfProDepartmentsRead,
+		ReadContext:   resourceJamfProDepartmentsReadWithCleanup,
 		UpdateContext: resourceJamfProDepartmentsUpdate,
 		DeleteContext: resourceJamfProDepartmentsDelete,
 		Timeouts: &schema.ResourceTimeout{

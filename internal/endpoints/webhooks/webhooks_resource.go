@@ -14,7 +14,7 @@ import (
 func ResourceJamfProWebhooks() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProWebhookCreate,
-		ReadContext:   resourceJamfProWebhookRead,
+		ReadContext:   resourceJamfProWebhookReadWithCleanup,
 		UpdateContext: resourceJamfProWebhookUpdate,
 		DeleteContext: resourceJamfProWebhookDelete,
 		CustomizeDiff: mainCustomDiffFunc,

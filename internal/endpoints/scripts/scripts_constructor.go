@@ -20,6 +20,7 @@ func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResourceScript, er
 		Name:           d.Get("name").(string),
 		Info:           d.Get("info").(string),
 		Notes:          d.Get("notes").(string),
+		CategoryId:     d.Get("category_id").(string),
 		OSRequirements: d.Get("os_requirements").(string),
 		Priority:       d.Get("priority").(string),
 		Parameter4:     d.Get("parameter4").(string),

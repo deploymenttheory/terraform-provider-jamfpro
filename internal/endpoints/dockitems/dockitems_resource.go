@@ -12,7 +12,7 @@ import (
 func ResourceJamfProDockItems() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProDockItemsCreate,
-		ReadContext:   resourceJamfProDockItemsRead,
+		ReadContext:   resourceJamfProDockItemsReadWithCleanup,
 		UpdateContext: resourceJamfProDockItemsUpdate,
 		DeleteContext: resourceJamfProDockItemsDelete,
 		Timeouts: &schema.ResourceTimeout{

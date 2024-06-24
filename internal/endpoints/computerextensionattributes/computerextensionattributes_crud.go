@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -42,7 +43,7 @@ func resourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	return append(diags, resourceJamfProComputerExtensionAttributesRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProComputerExtensionAttributesReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProComputerExtensionAttributesRead is responsible for reading the current state of a Jamf Pro Computer Extension Attribute from the remote system.
@@ -50,7 +51,7 @@ func resourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 // 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
-func resourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -71,10 +72,20 @@ func resourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sche
 	})
 
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, state.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
 	return append(diags, updateTerraformState(d, response)...)
+}
+
+// resourceJamfProComputerExtensionAttributesReadWithCleanup reads the resource with cleanup enabled
+func resourceJamfProComputerExtensionAttributesReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProComputerExtensionAttributesRead(ctx, d, meta, true)
+}
+
+// resourceJamfProComputerExtensionAttributesReadNoCleanup reads the resource with cleanup disabled
+func resourceJamfProComputerExtensionAttributesReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProComputerExtensionAttributesRead(ctx, d, meta, false)
 }
 
 // resourceJamfProComputerExtensionAttributesUpdate is responsible for updating an existing Jamf Pro Computer Extension Attribute on the remote system.
@@ -105,7 +116,7 @@ func resourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Computer Extension Attribute '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
 	}
 
-	return append(diags, resourceJamfProComputerExtensionAttributesRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProComputerExtensionAttributesReadNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProComputerExtensionAttributesDelete is responsible for deleting a Jamf Pro Computer Extension Attribute.

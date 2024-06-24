@@ -3,6 +3,7 @@ package scripts
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
@@ -58,6 +59,8 @@ func resourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 	var diags diag.Diagnostics
 
 	var response *jamfpro.ResourceScript
+	log.Println("LOGHERE")
+	log.Println(schema.TimeoutRead)
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
 		response, apiErr = client.GetScriptByID(resourceID)
@@ -74,14 +77,14 @@ func resourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 	return append(diags, updateTerraformState(d, response)...)
 }
 
-// TODO function comment
-func resourceJamfProScriptsReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProScriptsRead(ctx, d, meta, false)
-}
-
-// TODO function comment
+// resourceJamfProScriptsReadWithCleanup reads the resource with cleanup enabled
 func resourceJamfProScriptsReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProScriptsRead(ctx, d, meta, true)
+}
+
+// resourceJamfProScriptsReadNoCleanup reads the resource with cleanup disabled
+func resourceJamfProScriptsReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProScriptsRead(ctx, d, meta, false)
 }
 
 // resourceJamfProScriptsUpdate is responsible for updating an existing Jamf Pro Department on the remote system.
