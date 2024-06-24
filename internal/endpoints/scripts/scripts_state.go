@@ -17,6 +17,7 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceScript) 
 		"info":            resp.Info,
 		"notes":           resp.Notes,
 		"os_requirements": resp.OSRequirements,
+		"category_id":     resp.CategoryId,
 		"priority":        resp.Priority,
 		"script_contents": resp.ScriptContents,
 		"parameter4":      resp.Parameter4,
@@ -34,12 +35,6 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceScript) 
 			return diag.FromErr(err)
 		}
 	}
-
-	// if resp.CategoryId != "-1" {
-	// 	if err := d.Set("category_id", resp.CategoryId); err != nil {
-	// 		diags = append(diags, diag.FromErr(err)...)
-	// 	}
-	// }
 
 	return diags
 

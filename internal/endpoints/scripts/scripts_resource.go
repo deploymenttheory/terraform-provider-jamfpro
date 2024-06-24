@@ -35,11 +35,12 @@ func ResourceJamfProScripts() *schema.Resource {
 				Required:    true,
 				Description: "Display name for the script.",
 			},
-			// "category_name": {
-			// 	Type:        schema.TypeString,
-			// 	Optional:    true,
-			// 	Description: "The category of the script",
-			// },
+			"category_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "-1",
+				Description: "Script Category",
+			},
 			"info": {
 				Type:        schema.TypeString,
 				Optional:    true,
