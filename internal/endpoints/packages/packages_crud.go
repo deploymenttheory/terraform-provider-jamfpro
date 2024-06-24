@@ -122,7 +122,7 @@ func ResourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, 
 
 	// Update the package metadata in Jamf Pro
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := client.UpdatePackageManifestByID(resourceID, *resource)
+		_, apiErr := client.UpdatePackageByID(resourceID, *resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
