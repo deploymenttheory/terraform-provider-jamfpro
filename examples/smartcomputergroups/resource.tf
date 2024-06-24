@@ -1,11 +1,8 @@
 resource "jamfpro_smart_computer_group" "smart_example" {
   name = "Example Smart Computer Group"
   
-  # Optional: Specify site details
-  site {
-    id   = 123  # Replace with the actual site ID
-    name = "Site Name"  # Replace with the actual site name
-  }
+  # Optional: Specify site details 
+  site_id = 5
 
   # Optional: Define criteria for Smart groups
   criteria {
