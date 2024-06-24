@@ -4,6 +4,7 @@ package scripts
 import (
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -35,12 +36,7 @@ func ResourceJamfProScripts() *schema.Resource {
 				Required:    true,
 				Description: "Display name for the script.",
 			},
-			"category_id": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     -1,
-				Description: "The Jamf Pro unique identifier (ID) of the category. Optional. Category ID can be used in isolation or in tandem with category_name.",
-			},
+			"category_id": sharedschemas.GetSharedSchemaCategory(),
 			"info": {
 				Type:        schema.TypeString,
 				Optional:    true,

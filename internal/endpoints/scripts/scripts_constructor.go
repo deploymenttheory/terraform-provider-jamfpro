@@ -30,19 +30,12 @@ func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResourceScript, er
 		Parameter11:    d.Get("parameter11").(string),
 	}
 
-	categoryId, ok := d.GetOk("category_id")
-	if !ok {
-		resource.CategoryId = "-1" // Default value if not set
-	} else {
-		resource.CategoryId = categoryId.(string)
-	}
+	resource.CategoryId = d.Get("category_id").(string)
 
-	// Directly assign script_contents as a string
 	if scriptContent, ok := d.GetOk("script_contents"); ok {
 		resource.ScriptContents = scriptContent.(string)
 	}
 
-	// Serialize and pretty-print the Script object as JSON for logging
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Script '%s' to JSON: %v", resource.Name, err)

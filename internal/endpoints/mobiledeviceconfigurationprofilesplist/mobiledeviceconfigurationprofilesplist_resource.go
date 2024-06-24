@@ -57,8 +57,8 @@ func ResourceJamfProMobileDeviceConfigurationProfilesPlist() *schema.Resource {
 					return warns, errs
 				},
 			},
-			"site_id":  sharedschemas.GetSharedSchemaSite(),
-			"category": sharedschemas.GetSharedSchemaCategory(),
+			"site_id":     sharedschemas.GetSharedSchemaSite(),
+			"category_id": sharedschemas.GetSharedSchemaCategory(),
 			"uuid": {
 				Type:        schema.TypeString,
 				Computed:    true,

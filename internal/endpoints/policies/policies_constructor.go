@@ -69,7 +69,7 @@ func constructGeneral(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) 
 	// TODO Do we need these set or can we just set the default to nil?
 	// Category
 
-	suppliedCategory := d.Get("category").([]interface{})
+	suppliedCategory := d.Get("category_id").([]interface{})
 	if len(suppliedCategory) > 0 {
 		outCat := &jamfpro.SharedResourceCategory{
 			ID: suppliedCategory[0].(map[string]interface{})["id"].(int),

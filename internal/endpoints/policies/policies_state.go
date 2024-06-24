@@ -115,7 +115,7 @@ func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *d
 				"id": resp.General.Category.ID,
 			},
 		}
-		if err := d.Set("category", out_category); err != nil {
+		if err := d.Set("category_id", out_category); err != nil {
 			if diags == nil {
 				diags = &diag.Diagnostics{}
 			}
