@@ -69,10 +69,12 @@ func resourceJamfProApiIntegrationsRead(ctx context.Context, d *schema.ResourceD
 	return append(diags, updateTerraformState(d, response)...)
 }
 
+// resourceJamfProApiIntegrationsReadWithCleanup reads the resource with cleanup enabled
 func resourceJamfProApiIntegrationsReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProApiIntegrationsRead(ctx, d, meta, true)
 }
 
+// resourceJamfProApiIntegrationsReadNoCleanup reads the resource with cleanup disabled
 func resourceJamfProApiIntegrationsReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProApiIntegrationsRead(ctx, d, meta, false)
 }

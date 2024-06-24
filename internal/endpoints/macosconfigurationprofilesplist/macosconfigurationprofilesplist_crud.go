@@ -78,10 +78,12 @@ func resourceJamfProMacOSConfigurationProfilesPlistRead(ctx context.Context, d *
 	return append(diags, updateTerraformState(d, response)...)
 }
 
+// resourceJamfProMacOSConfigurationProfilesPlistReadWithCleanup reads the resource with cleanup enabled
 func resourceJamfProMacOSConfigurationProfilesPlistReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProMacOSConfigurationProfilesPlistRead(ctx, d, meta, true)
 }
 
+// resourceJamfProMacOSConfigurationProfilesPlistReadNoCleanup reads the resource with cleanup disabled
 func resourceJamfProMacOSConfigurationProfilesPlistReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProMacOSConfigurationProfilesPlistRead(ctx, d, meta, false)
 }

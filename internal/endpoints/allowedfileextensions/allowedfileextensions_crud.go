@@ -69,10 +69,12 @@ func resourceJamfProAllowedFileExtensionRead(ctx context.Context, d *schema.Reso
 	return append(diags, updateTerraformState(d, response)...)
 }
 
+// resourceJamfProAllowedFileExtensionReadWithCleanup reads the resource with cleanup enabled
 func resourceJamfProAllowedFileExtensionReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProAllowedFileExtensionRead(ctx, d, meta, true)
 }
 
+// resourceJamfProAllowedFileExtensionReadNoCleanup reads the resource with cleanup disabled
 func resourceJamfProAllowedFileExtensionReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProAllowedFileExtensionRead(ctx, d, meta, false)
 }

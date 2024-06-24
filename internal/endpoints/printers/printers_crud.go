@@ -78,10 +78,12 @@ func resourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, me
 	return append(diags, updateTerraformState(d, response)...)
 }
 
+// resourceJamfProPrintersReadWithCleanup reads the resource with cleanup enabled
 func resourceJamfProPrintersReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProPrintersRead(ctx, d, meta, true)
 }
 
+// resourceJamfProPrintersReadNoCleanup reads the resource with cleanup disabled
 func resourceJamfProPrintersReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProPrintersRead(ctx, d, meta, false)
 }

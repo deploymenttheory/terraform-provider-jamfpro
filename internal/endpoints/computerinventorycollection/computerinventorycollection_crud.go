@@ -65,10 +65,12 @@ func resourceJamfProComputerInventoryCollectionRead(ctx context.Context, d *sche
 	return append(diags, updateTerraformState(d, response)...)
 }
 
+// resourceJamfProComputerInventoryCollectionReadWithCleanup reads the resource with cleanup enabled
 func resourceJamfProComputerInventoryCollectionReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProComputerInventoryCollectionRead(ctx, d, meta, true)
 }
 
+// resourceJamfProComputerInventoryCollectionReadNoCleanup reads the resource with cleanup disabled
 func resourceJamfProComputerInventoryCollectionReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProComputerInventoryCollectionRead(ctx, d, meta, false)
 }

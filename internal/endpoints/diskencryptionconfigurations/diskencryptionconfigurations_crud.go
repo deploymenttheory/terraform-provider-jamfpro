@@ -74,10 +74,12 @@ func resourceJamfProDiskEncryptionConfigurationsRead(ctx context.Context, d *sch
 	return append(diags, updateTerraformState(d, response)...)
 }
 
+// resourceJamfProDiskEncryptionConfigurationsReadWithCleanup reads the resource with cleanup enabled
 func resourceJamfProDiskEncryptionConfigurationsReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProDiskEncryptionConfigurationsRead(ctx, d, meta, true)
 }
 
+// resourceJamfProDiskEncryptionConfigurationsReadNoCleanup reads the resource with cleanup disabled
 func resourceJamfProDiskEncryptionConfigurationsReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProDiskEncryptionConfigurationsRead(ctx, d, meta, false)
 }

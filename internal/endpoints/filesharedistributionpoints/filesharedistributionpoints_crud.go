@@ -84,10 +84,12 @@ func resourceJamfProFileShareDistributionPointsRead(ctx context.Context, d *sche
 	return append(diags, updateTerraformState(d, response)...)
 }
 
+// resourceJamfProFileShareDistributionPointsReadWithCleanup reads the resource with cleanup enabled
 func resourceJamfProFileShareDistributionPointsReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProFileShareDistributionPointsRead(ctx, d, meta, true)
 }
 
+// resourceJamfProFileShareDistributionPointsReadNoCleanup reads the resource with cleanup disabled
 func resourceJamfProFileShareDistributionPointsReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProFileShareDistributionPointsRead(ctx, d, meta, false)
 }

@@ -78,10 +78,12 @@ func resourceJamfProRestrictedSoftwareRead(ctx context.Context, d *schema.Resour
 	return append(diags, updateTerraformState(d, response)...)
 }
 
+// resourceJamfProRestrictedSoftwareReadWithCleanup reads the resource with cleanup enabled
 func resourceJamfProRestrictedSoftwareReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProRestrictedSoftwareRead(ctx, d, meta, true)
 }
 
+// resourceJamfProRestrictedSoftwareReadNoCleanup reads the resource with cleanup disabled
 func resourceJamfProRestrictedSoftwareReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProRestrictedSoftwareRead(ctx, d, meta, false)
 }

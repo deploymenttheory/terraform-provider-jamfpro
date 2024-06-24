@@ -64,10 +64,12 @@ func resourceJamfProCategoriesRead(ctx context.Context, d *schema.ResourceData, 
 	return append(diags, updateTerraformState(d, response)...)
 }
 
+// resourceJamfProCategoriesReadWithCleanup reads the resource with cleanup enabled
 func resourceJamfProCategoriesReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProCategoriesRead(ctx, d, meta, true)
 }
 
+// resourceJamfProAccountGroupReadWithCleanup reads the resource with cleanup disabled
 func resourceJamfProCategoriesReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProCategoriesRead(ctx, d, meta, false)
 }

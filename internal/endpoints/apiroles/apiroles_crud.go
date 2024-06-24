@@ -72,10 +72,12 @@ func resourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, me
 	return append(diags, updateTerraformState(d, response)...)
 }
 
+// resourceJamfProAPIRolesReadWithCleanup reads the resource with cleanup enabled
 func resourceJamfProAPIRolesReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProAPIRolesRead(ctx, d, meta, true)
 }
 
+// resourceJamfProAPIRolesReadNoCleanup reads the resource with cleanup disabled
 func resourceJamfProAPIRolesReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProAPIRolesRead(ctx, d, meta, false)
 }

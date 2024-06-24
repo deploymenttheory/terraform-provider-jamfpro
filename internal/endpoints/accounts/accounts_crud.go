@@ -69,10 +69,12 @@ func resourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, met
 	return append(diags, updateTerraformState(d, response)...)
 }
 
+// resourceJamfProAccountReadWithCleanup reads the resource with cleanup enabled
 func resourceJamfProAccountReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProAccountRead(ctx, d, meta, true)
 }
 
+// resourceJamfProAccountReadNoCleanup reads the resource with cleanup disabled
 func resourceJamfProAccountReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProAccountRead(ctx, d, meta, false)
 }

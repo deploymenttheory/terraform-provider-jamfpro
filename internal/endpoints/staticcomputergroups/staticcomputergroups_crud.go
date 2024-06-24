@@ -70,10 +70,12 @@ func resourceJamfProStaticComputerGroupsRead(ctx context.Context, d *schema.Reso
 	return append(diags, updateTerraformState(d, response)...)
 }
 
+// resourceJamfProStaticComputerGroupsReadWithCleanup reads the resource with cleanup enabled
 func resourceJamfProStaticComputerGroupsReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProStaticComputerGroupsRead(ctx, d, meta, true)
 }
 
+// resourceJamfProStaticComputerGroupsReadNoCleanup reads the resource with cleanup disabled
 func resourceJamfProStaticComputerGroupsReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProStaticComputerGroupsRead(ctx, d, meta, false)
 }

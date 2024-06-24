@@ -72,10 +72,12 @@ func resourceJamfProComputerPrestageEnrollmentRead(ctx context.Context, d *schem
 	return append(diags, updateTerraformState(d, response)...)
 }
 
+// resourceJamfProComputerPrestageEnrollmentReadWithCleanup reads the resource with cleanup enabled
 func resourceJamfProComputerPrestageEnrollmentReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProComputerPrestageEnrollmentRead(ctx, d, meta, true)
 }
 
+// resourceJamfProComputerPrestageEnrollmentReadNoCleanup reads the resource with cleanup disabled
 func resourceJamfProComputerPrestageEnrollmentReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProComputerPrestageEnrollmentRead(ctx, d, meta, false)
 }

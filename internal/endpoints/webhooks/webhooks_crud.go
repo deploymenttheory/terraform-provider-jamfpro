@@ -78,10 +78,12 @@ func resourceJamfProWebhookRead(ctx context.Context, d *schema.ResourceData, met
 	return append(diags, updateTerraformState(d, response)...)
 }
 
+// resourceJamfProWebhookReadWithCleanup reads the resource with cleanup enabled
 func resourceJamfProWebhookReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProWebhookRead(ctx, d, meta, true)
 }
 
+// resourceJamfProWebhookReadNoCleanup reads the resource with cleanup disabled
 func resourceJamfProWebhookReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProWebhookRead(ctx, d, meta, false)
 }

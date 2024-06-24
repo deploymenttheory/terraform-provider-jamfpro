@@ -69,10 +69,12 @@ func resourceJamfProAdvancedMobileDeviceSearchRead(ctx context.Context, d *schem
 	return append(diags, updateTerraformState(d, response)...)
 }
 
+// resourceJamfProAdvancedMobileDeviceSearchReadWithCleanup reads the resource with cleanup enabled
 func resourceJamfProAdvancedMobileDeviceSearchReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProAdvancedMobileDeviceSearchRead(ctx, d, meta, true)
 }
 
+// resourceJamfProAdvancedMobileDeviceSearchReadNoCleanup reads the resource with cleanup disabled
 func resourceJamfProAdvancedMobileDeviceSearchReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProAdvancedMobileDeviceSearchRead(ctx, d, meta, true)
 }

@@ -69,10 +69,12 @@ func resourceJamfProAdvancedUserSearchRead(ctx context.Context, d *schema.Resour
 	return append(diags, updateTerraformState(d, response)...)
 }
 
+// resourceJamfProAdvancedUserSearchReadWithCleanup reads the resource with cleanup enabled
 func resourceJamfProAdvancedUserSearchReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProAdvancedUserSearchRead(ctx, d, meta, true)
 }
 
+// resourceJamfProAdvancedUserSearchReadNoCleanup reads the resource with cleanup disabled
 func resourceJamfProAdvancedUserSearchReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProAdvancedUserSearchRead(ctx, d, meta, false)
 }

@@ -78,10 +78,12 @@ func resourceJamfProMobileDeviceConfigurationProfilePlistRead(ctx context.Contex
 	return append(diags, updateTerraformState(d, response)...)
 }
 
+// resourceJamfProMobileDeviceConfigurationProfilePlistReadWithCleanup reads the resource with cleanup enabled
 func resourceJamfProMobileDeviceConfigurationProfilePlistReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProMobileDeviceConfigurationProfilePlistRead(ctx, d, meta, true)
 }
 
+// resourceJamfProMobileDeviceConfigurationProfilePlistReadNoCleanup reads the resource with cleanup disabled
 func resourceJamfProMobileDeviceConfigurationProfilePlistReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProMobileDeviceConfigurationProfilePlistRead(ctx, d, meta, false)
 }

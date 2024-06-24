@@ -78,10 +78,12 @@ func resourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 	return append(updateTerraformState(d, response, resourceID), diags...)
 }
 
+// resourceJamfProPoliciesReadWithCleanup reads the resource with cleanup enabled
 func resourceJamfProPoliciesReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProPoliciesRead(ctx, d, meta, true)
 }
 
+// resourceJamfProPoliciesReadNoCleanup reads the resource with cleanup disabled
 func resourceJamfProPoliciesReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProPoliciesRead(ctx, d, meta, false)
 }

@@ -66,10 +66,12 @@ func resourceJamfProComputerCheckinRead(ctx context.Context, d *schema.ResourceD
 	return append(diags, updateTerraformState(d, response)...)
 }
 
+// resourceJamfProComputerCheckinReadWithCleanup reads the resource with cleanup enabled
 func resourceJamfProComputerCheckinReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProComputerCheckinRead(ctx, d, meta, true)
 }
 
+// resourceJamfProComputerCheckinReadNoCleanup reads the resource with cleanup disabled
 func resourceJamfProComputerCheckinReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProComputerCheckinRead(ctx, d, meta, false)
 }

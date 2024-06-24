@@ -78,10 +78,12 @@ func resourceJamfProNetworkSegmentsRead(ctx context.Context, d *schema.ResourceD
 	return append(diags, updateTerraformState(d, response)...)
 }
 
+// resourceJamfProNetworkSegmentsReadWithCleanup reads the resource with cleanup enabled
 func resourceJamfProNetworkSegmentsReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProNetworkSegmentsRead(ctx, d, meta, true)
 }
 
+// resourceJamfProNetworkSegmentsReadNoCleanup reads the resource with cleanup disabled
 func resourceJamfProNetworkSegmentsReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return resourceJamfProNetworkSegmentsRead(ctx, d, meta, false)
 }
