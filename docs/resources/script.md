@@ -23,6 +23,7 @@ description: |-
 
 ### Optional
 
+- `category_id` (String) Script Category
 - `info` (String) Information to display to the administrator when the script is run.
 - `notes` (String) Notes to display about the script (e.g., who created it and when it was created).
 - `os_requirements` (String) The script can only be run on computers with these operating system versions. Each version must be separated by a comma (e.g., 10.11, 15, 16.1).

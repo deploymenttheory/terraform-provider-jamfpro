@@ -19,6 +19,7 @@ import (
 // 2. Calls the API to create the attribute in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
+// ResourceJamfProPackagesCreate is responsible for creating a new Jamf Pro Package in the remote system.
 func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
@@ -29,37 +30,39 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package: %v", err))
 	}
 
-	// Step 1: Create the package in Jamf Pro
-	var creationResponse *jamfpro.ResponsePackageCreatedAndUpdated
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
+		var creationResponse *jamfpro.ResponsePackageCreatedAndUpdated
+
+		// Step 1: Create the package metadata in Jamf Pro
 		creationResponse, apiErr = client.CreatePackage(*resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
+
+		log.Printf("[DEBUG] Jamf Pro Package Metadata created: %+v", creationResponse)
+
+		// Step 2: Upload the package file within the same context
+		filePath := d.Get("package_file_path").(string)
+		fullFilePath, _ := filepath.Abs(filePath)
+
+		log.Printf("[DEBUG] Uploading package file from path: %s", fullFilePath)
+
+		_, apiErr = client.UploadPackage(creationResponse.ID, []string{fullFilePath})
+		if apiErr != nil {
+			log.Printf("[ERROR] Failed to upload package file for package '%s': %v", creationResponse.ID, apiErr)
+
+			return retry.NonRetryableError(apiErr)
+		}
+
+		d.SetId(creationResponse.ID)
+
 		return nil
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Package '%s' after retries: %v", resource.PackageName, err))
+		return diag.FromErr(fmt.Errorf("failed to create and upload Jamf Pro Package '%s' after retries: %v", resource.PackageName, err))
 	}
-
-	// Log the response from the create package API call
-	log.Printf("[DEBUG] Jamf Pro Package created: %+v", creationResponse)
-
-	// Step 2: Upload the package file
-	filePath := d.Get("package_file_path").(string)
-	fullFilePath, _ := filepath.Abs(filePath)
-	log.Printf("[DEBUG] Uploading package file from path: %s", fullFilePath)
-
-	_, err = client.UploadPackage(creationResponse.ID, []string{fullFilePath})
-	if err != nil {
-		log.Printf("[ERROR] Failed to upload package file for package '%s': %v", creationResponse.ID, err)
-		return diag.FromErr(fmt.Errorf("failed to upload package file for package '%s': %v", creationResponse.ID, err))
-	}
-
-	// Set the ID in the Terraform state
-	d.SetId(creationResponse.ID)
 
 	return append(diags, ResourceJamfProPackagesRead(ctx, d, meta)...)
 }
