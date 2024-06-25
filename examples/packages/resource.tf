@@ -1,17 +1,24 @@
 // Definition a Jamf Pro Package Resource
-resource "jamfpro_package" "jamfpro_package_001" {
-  name                          = "tf-example-package-your-package-name"
-  package_file_path             = file("path/to/your.pkg")
-  category                      = "" // Optional / can be explitly set or a reference to a jamfpro_category resource e.g jamfpro_category.jamfpro_category_001.name
-  info                          = "tf package deployment for demonstration"
-  notes                         = "This package is used for Terraform provider documentation example."
-  priority                      = 10
-  reboot_required               = false
-  fill_user_template            = false // Optional for .dmg files only
-  fill_existing_users           = false // Optional for .dmg files only
-  boot_volume_required          = false
-  allow_uninstalled             = false
-  os_requirements               = "macOS 10.15.7, macOS 11.1"
-  install_if_reported_available = false
-  send_notification             = true
+resource "jamfpro_package" "jamfpro_package_002" {
+  package_name                  = "your-package-name" // Required
+  package_file_path             = "/path/to/your/package/file/.pkg or .dmg" // Required
+  category_id                   = "your-category-id" // Required /  jamfpro_category.jamfpro_category_001.id
+  info                          = "tf package deployment for demonstration" // Optional
+  notes                         = "Uploaded by: terraform-provider-jamfpro plugin." // Optional
+  priority                      = 10 // Required
+  reboot_required               = true // Required
+  fill_user_template            = false // Required
+  fill_existing_users           = false // Required
+  os_requirements               = "macOS 10.15.7, macOS 11.1" // Required
+  swu                           = false // optional
+  self_heal_notify              = false // optional
+  os_install                    = false // Required
+  serial_number                 = "" // optional
+  suppress_updates              = false // Required
+  ignore_conflicts              = false
+  suppress_from_dock            = false // Required
+  suppress_eula                 = false // Required
+  suppress_registration         = false // Required
+  manifest                      = ""
+  manifest_file_name            = ""
 }
