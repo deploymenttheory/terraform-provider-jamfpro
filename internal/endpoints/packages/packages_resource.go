@@ -33,12 +33,12 @@ func ResourceJamfProPackages() *schema.Resource {
 			"package_name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The unique name of the Jamf Pro package.",
+				Description: "The unique name of the Jamf Pro package.This doesn't have to match the filename of the package.",
 			},
 			"filename": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The package filename reference of the Jamf Pro package. This is used to associate the package with the file uploaded to the Jamf Pro server.",
+				Description: "The package filename reference of the Jamf Pro package. This is used to associate the package metadata with the file uploaded to the Jamf Pro server.",
 			},
 			"package_file_path": {
 				Type:        schema.TypeString,
@@ -78,7 +78,7 @@ func ResourceJamfProPackages() *schema.Resource {
 			},
 			"indexed": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Computed:    true,
 				Description: "Whether the package has completed indexing within the jamf content delivery service.",
 			},
 			"fill_existing_users": {
@@ -104,7 +104,8 @@ func ResourceJamfProPackages() *schema.Resource {
 			"self_healing_action": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The self-healing action for the package.",
+				Description: "The self-healing action for the package. Defaults to 'nothing' if not specified.",
+				Default:     "nothing",
 			},
 			"os_install": {
 				Type:        schema.TypeBool,
@@ -119,11 +120,12 @@ func ResourceJamfProPackages() *schema.Resource {
 			"parent_package_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The parent package ID.",
+				Description: "The parent package ID. Defaults to -1 if not specified.",
+				Default:     "-1",
 			},
 			"base_path": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "The base path for the package.",
 			},
 			"suppress_updates": {
@@ -158,8 +160,8 @@ func ResourceJamfProPackages() *schema.Resource {
 			},
 			"install_language": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The install language.",
+				Computed:    true,
+				Description: "The install language of the package.",
 			},
 			"md5": {
 				Type:        schema.TypeString,
@@ -188,7 +190,7 @@ func ResourceJamfProPackages() *schema.Resource {
 			},
 			"os_installer_version": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "The OS installer version.",
 			},
 			"manifest": {
