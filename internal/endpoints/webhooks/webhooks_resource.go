@@ -171,16 +171,10 @@ func ResourceJamfProWebhooks() *schema.Resource {
 			},
 			"display_fields": {
 				Type:        schema.TypeList,
+				Description: "List of displayfields",
 				Optional:    true,
-				Description: "List of display fields associated with the webhook.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "The name of the display field.",
-						},
-					},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 		},

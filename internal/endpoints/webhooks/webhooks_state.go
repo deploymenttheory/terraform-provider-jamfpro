@@ -50,22 +50,13 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceWebhook)
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	displayFields := make([]interface{}, 0, len(resp.DisplayFields))
-	for _, field := range resp.DisplayFields {
-		df := make(map[string]interface{})
-
-		subFields := make([]interface{}, 0, len(field.DisplayField))
-		for _, subField := range field.DisplayField {
-			sf := map[string]interface{}{
-				"name": subField.Name,
-			}
-			subFields = append(subFields, sf)
+	if len(resp.DisplayFields) > 0 {
+		var displayFieldList []string
+		for _, v := range resp.DisplayFields {
+			displayFieldList = append(displayFieldList, v.Name)
 		}
-		df["display_field"] = subFields
-		displayFields = append(displayFields, df)
-	}
-	if err := d.Set("display_fields", displayFields); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+
+		d.Set("display_fields", displayFieldList)
 	}
 
 	return diags
