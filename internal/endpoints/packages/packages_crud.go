@@ -4,6 +4,7 @@ package packages
 import (
 	"context"
 	"fmt"
+	"log"
 	"path/filepath"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -43,10 +44,17 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Package '%s' after retries: %v", resource.PackageName, err))
 	}
 
+	// Log the response from the create package API call
+	log.Printf("[DEBUG] Jamf Pro Package created: %+v", creationResponse)
+
 	// Step 2: Upload the package file
 	filePath := d.Get("package_file_path").(string)
-	_, err = client.UploadPackage(creationResponse.ID, []string{filePath})
+	fullFilePath, _ := filepath.Abs(filePath)
+	log.Printf("[DEBUG] Uploading package file from path: %s", fullFilePath)
+
+	_, err = client.UploadPackage(creationResponse.ID, []string{fullFilePath})
 	if err != nil {
+		log.Printf("[ERROR] Failed to upload package file for package '%s': %v", creationResponse.ID, err)
 		return diag.FromErr(fmt.Errorf("failed to upload package file for package '%s': %v", creationResponse.ID, err))
 	}
 
