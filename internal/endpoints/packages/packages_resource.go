@@ -28,68 +28,73 @@ func ResourceJamfProPackages() *schema.Resource {
 			"id": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The unique identifier of the package.",
+				Description: "The unique identifier of the package metadata.",
 			},
 			"package_name": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The unique name of the Jamf Pro package.",
 			},
+			"filename": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The package filename reference of the Jamf Pro package. This is used to associate the package with the file uploaded to the Jamf Pro server.",
+			},
 			"package_file_path": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The file path of the Jamf Pro package.",
+				Description: "The file path of the Jamf Pro package to be uploaded.",
 			},
 			"category_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The category ID of the Jamf Pro package.",
+				Description: "The category ID of the Jamf Pro package. Defaults to -1 if not specified.",
 				Default:     "-1",
 			},
 			"info": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Information about the Jamf Pro package.",
+				Description: "Information to display to the administrator when the package is deployed or uninstalled.",
 			},
 			"notes": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Notes associated with the Jamf Pro package.",
+				Description: "Notes to display about the package (e.g., who built it and when it was built)",
 			},
 			"priority": {
 				Type:        schema.TypeInt,
 				Required:    true,
-				Description: "The priority of the Jamf Pro package.",
+				Description: "The package priority to use for deploying or uninstalling the package (e.g., A package with a priority of '1' is deployed or uninstalled before other packages)",
 			},
 			"os_requirements": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The OS requirements for the Jamf Pro package.",
+				Description: "The OS requirements for the Jamf Pro package. The package can only be deployed to computers with these operating system versions. Each version must be separated by a comma (e.g., '10.6.8, 10.7.x, 10.8')",
 			},
 			"fill_user_template": {
 				Type:        schema.TypeBool,
 				Required:    true,
-				Description: "Whether to fill the user template.",
+				Description: "Define whether to fill new home directories with the contents of the home directory in the package's Users folder. Applies to DMGs only. This setting can be changed when deploying or uninstalling the package using a policy.",
 			},
 			"indexed": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Whether the package is indexed.",
+				Description: "Whether the package has completed indexing within the jamf content delivery service.",
 			},
 			"fill_existing_users": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Whether to fill existing users.",
+				Description: "Whether to fill existing home directories with the contents of the home directory in the package's Users folder. Applies to DMGs only. This setting can be changed when deploying or uninstalling the package using a policy.",
 			},
 			"swu": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Whether the package is a software update.",
+				Description: "Install the package only if it is available as an update. For this to work, the display name of the package must match the name in the command-line version of Software Update. Applies to PKGs only",
 			},
 			"reboot_required": {
 				Type:        schema.TypeBool,
 				Required:    true,
-				Description: "Whether a reboot is required after installing the Jamf Pro package.",
+				Description: "Defines whether a computer must be restarted after installing the package",
 			},
 			"self_heal_notify": {
 				Type:        schema.TypeBool,
@@ -210,11 +215,6 @@ func ResourceJamfProPackages() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "md5 hash of the package file for integrity comparison.",
-			},
-			"filename": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The filename of the Jamf Pro package.",
 			},
 		},
 	}

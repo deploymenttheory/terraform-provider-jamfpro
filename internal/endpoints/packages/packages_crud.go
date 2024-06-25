@@ -19,6 +19,7 @@ import (
 // 2. Calls the API to create the attribute in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
+// ResourceJamfProPackagesCreate is responsible for creating a new Jamf Pro Package in the remote system.
 func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
@@ -33,27 +34,27 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 		var apiErr error
 		var creationResponse *jamfpro.ResponsePackageCreatedAndUpdated
 
-		// Step 1: Create the package in Jamf Pro
+		// Step 1: Create the package metadata in Jamf Pro
 		creationResponse, apiErr = client.CreatePackage(*resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
 
-		// Log the response from the create package API call
-		log.Printf("[DEBUG] Jamf Pro Package created: %+v", creationResponse)
+		log.Printf("[DEBUG] Jamf Pro Package Metadata created: %+v", creationResponse)
 
 		// Step 2: Upload the package file within the same context
 		filePath := d.Get("package_file_path").(string)
 		fullFilePath, _ := filepath.Abs(filePath)
+
 		log.Printf("[DEBUG] Uploading package file from path: %s", fullFilePath)
-		log.Printf("[DEBUG] Shared context")
+
 		_, apiErr = client.UploadPackage(creationResponse.ID, []string{fullFilePath})
 		if apiErr != nil {
 			log.Printf("[ERROR] Failed to upload package file for package '%s': %v", creationResponse.ID, apiErr)
-			return retry.RetryableError(apiErr)
+
+			return retry.NonRetryableError(apiErr)
 		}
 
-		// Set the ID in the Terraform state
 		d.SetId(creationResponse.ID)
 
 		return nil

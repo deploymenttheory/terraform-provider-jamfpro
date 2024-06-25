@@ -14,7 +14,7 @@ func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourcePack
 	if err := d.Set("package_name", resource.PackageName); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("file_name", resource.FileName); err != nil {
+	if err := d.Set("filename", resource.FileName); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("category_id", resource.CategoryID); err != nil {
