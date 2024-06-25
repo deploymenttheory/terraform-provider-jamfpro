@@ -23,11 +23,7 @@ func updateTerraformState(d *schema.ResourceData, response *jamfpro.ResourceAcco
 	}
 
 	if response.LDAPServer.ID != 0 {
-		ldapServer := make(map[string]interface{})
-		ldapServer["id"] = response.LDAPServer.ID
-		d.Set("identity_server", []interface{}{ldapServer})
-	} else {
-		d.Set("identity_server", []interface{}{})
+		d.Set("identity_server", response.LDAPServer.ID)
 	}
 
 	d.Set("site_id", response.Site.ID)
@@ -45,18 +41,31 @@ func updateTerraformState(d *schema.ResourceData, response *jamfpro.ResourceAcco
 		}
 	}
 
-	members := make([]interface{}, 0)
-	for _, memberStruct := range response.Members {
-		member := memberStruct.User
-		memberMap := map[string]interface{}{
-			"id":   member.ID,
-			"name": member.Name,
+	if len(response.Members) > 0 {
+		var member_ids []int
+		for _, v := range response.Members {
+			member_ids = append(member_ids, v.ID)
 		}
-		members = append(members, memberMap)
+
+		if err := d.Set("member_ids", member_ids); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	} else {
+		d.Set("member_ids", nil)
 	}
-	if err := d.Set("members", members); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
+
+	// members := make([]interface{}, 0)
+	// for _, memberStruct := range response.Members {
+	// 	member := memberStruct.User
+	// 	memberMap := map[string]interface{}{
+	// 		"id":   member.ID,
+	// 		"name": member.Name,
+	// 	}
+	// 	members = append(members, memberMap)
+	// }
+	// if err := d.Set("members", members); err != nil {
+	// 	diags = append(diags, diag.FromErr(err)...)
+	// }
 
 	return diags
 }

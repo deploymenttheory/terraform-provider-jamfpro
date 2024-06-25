@@ -111,37 +111,18 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 					ValidateFunc: jamfprivileges.ValidateCasperAdminPrivileges,
 				},
 			},
-			"members": {
+			"member_ids": {
 				Type:        schema.TypeList,
+				Description: "Accounts which should be a member of this group by ID",
 				Optional:    true,
-				Description: "Members of the account group.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-					},
+				Elem: &schema.Schema{
+					Type: schema.TypeInt,
 				},
 			},
 			"identity_server": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeInt,
+				Description: "The Id of the identity server",
 				Optional:    true,
-				MaxItems:    1,
-				Description: "LDAP or IdP server associated with the account group.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "ID is the ID of the LDAP or IdP configuration in Jamf Pro.",
-						},
-					},
-				},
 			},
 		},
 	}
