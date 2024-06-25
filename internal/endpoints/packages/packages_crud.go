@@ -8,19 +8,20 @@ import (
 	"path/filepath"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/state"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProPackagesCreate is responsible for creating a new Jamf Pro Package in the remote system.
+// resourceJamfProPackagesCreate is responsible for creating a new Jamf Pro Package in the remote system.
 // The function:
 // 1. Constructs the attribute data using the provided Terraform configuration.
 // 2. Calls the API to create the attribute in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 // ResourceJamfProPackagesCreate is responsible for creating a new Jamf Pro Package in the remote system.
-func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -46,8 +47,6 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 		filePath := d.Get("package_file_path").(string)
 		fullFilePath, _ := filepath.Abs(filePath)
 
-		log.Printf("[DEBUG] Uploading package file from path: %s", fullFilePath)
-
 		_, apiErr = client.UploadPackage(creationResponse.ID, []string{fullFilePath})
 		if apiErr != nil {
 			log.Printf("[ERROR] Failed to upload package file for package '%s': %v", creationResponse.ID, apiErr)
@@ -64,20 +63,21 @@ func ResourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(fmt.Errorf("failed to create and upload Jamf Pro Package '%s' after retries: %v", resource.PackageName, err))
 	}
 
-	return append(diags, ResourceJamfProPackagesRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProPackagesReadNoCleanup(ctx, d, meta)...)
 }
 
-// ResourceJamfProPackagesRead is responsible for reading the current state of a Jamf Pro Site Resource from the remote system.
+// resourceJamfProPackagesRead is responsible for reading the current state of a Jamf Pro Site Resource from the remote system.
 // The function:
 // 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
-func ResourceJamfProPackagesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProPackagesRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	resourceID := d.Id()
 	var diags diag.Diagnostics
 
 	var response *jamfpro.ResourcePackage
+
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
 		response, apiErr = client.GetPackageByID(resourceID)
@@ -88,14 +88,24 @@ func ResourceJamfProPackagesRead(ctx context.Context, d *schema.ResourceData, me
 	})
 
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return append(diags, state.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
 	return append(diags, updateTerraformState(d, response)...)
 }
 
-// ResourceJamfProPackagesUpdate is responsible for updating an existing Jamf Pro Package on the remote system.
-func ResourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProMacOSConfigurationProfilesPlistReadWithCleanup reads the resource with cleanup enabled
+func resourceJamfProPackagesReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProPackagesRead(ctx, d, meta, true)
+}
+
+// resourceJamfProMacOSConfigurationProfilesPlistReadNoCleanup reads the resource with cleanup disabled
+func resourceJamfProPackagesReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceJamfProPackagesRead(ctx, d, meta, false)
+}
+
+// resourceJamfProPackagesUpdate is responsible for updating an existing Jamf Pro Package on the remote system.
+func resourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -144,11 +154,11 @@ func ResourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Package '%s' (ID: %s) after retries: %v", resource.PackageName, resourceID, err))
 	}
 
-	return append(diags, ResourceJamfProPackagesRead(ctx, d, meta)...)
+	return append(diags, resourceJamfProPackagesReadWithCleanup(ctx, d, meta)...)
 }
 
-// ResourceJamfProPackagesDelete is responsible for deleting a Jamf Pro Package.
-func ResourceJamfProPackagesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceJamfProPackagesDelete is responsible for deleting a Jamf Pro Package.
+func resourceJamfProPackagesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()

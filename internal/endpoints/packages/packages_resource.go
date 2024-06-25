@@ -10,10 +10,10 @@ import (
 // ResourceJamfProPackages defines the schema and CRUD operations for managing Jamf Pro Packages in Terraform.
 func ResourceJamfProPackages() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceJamfProPackagesCreate,
-		ReadContext:   ResourceJamfProPackagesRead,
-		UpdateContext: ResourceJamfProPackagesUpdate,
-		DeleteContext: ResourceJamfProPackagesDelete,
+		CreateContext: resourceJamfProPackagesCreate,
+		ReadContext:   resourceJamfProPackagesRead,
+		UpdateContext: resourceJamfProPackagesUpdate,
+		DeleteContext: resourceJamfProPackagesDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(45 * time.Minute),
 			Read:   schema.DefaultTimeout(15 * time.Second),
