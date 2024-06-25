@@ -38,6 +38,7 @@ func ResourceJamfProAdvancedComputerSearches() *schema.Resource {
 			"view_as": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Default:     "Standard Web Page",
 				Description: "View type of the advanced computer search",
 			},
 			"sort1": {

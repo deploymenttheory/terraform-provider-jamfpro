@@ -109,7 +109,7 @@ func resourceJamfProSmartComputerGroupsUpdate(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Smart Computer Group '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
 	}
 
-	return append(diags, resourceJamfProSmartComputerGroupsReadNoCleanup(ctx, d, meta)...)
+	return append(diags, resourceJamfProSmartComputerGroupsReadWithCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProSmartComputerGroupsDelete is responsible for deleting a Jamf Pro Smart Computer Group.
