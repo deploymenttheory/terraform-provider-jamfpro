@@ -21,4 +21,7 @@ resource "jamfpro_package" "jamfpro_package_002" {
   suppress_registration         = false // Required
   manifest                      = ""
   manifest_file_name            = ""
+  timeouts {
+    create                      = "90m" // Optional / Useful for large packages uploads
+  }
 }
