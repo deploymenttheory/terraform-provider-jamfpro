@@ -52,14 +52,12 @@ func resourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 // 1. Fetches the script's current state using its ID. If it fails then obtain script's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the script being deleted outside of Terraform, to keep the Terraform state synchronized.
-
 func resourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	resourceID := d.Id()
 	var diags diag.Diagnostics
 
 	var response *jamfpro.ResourceScript
-	log.Println("LOGHERE")
 	log.Println(schema.TimeoutRead)
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
