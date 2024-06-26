@@ -21,16 +21,25 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 	// Generate UUID if not provided
 	uuidStr := GenerateUUID()
 
+	// Extracting payload root
+	payloadRootData := payloadData["payload_root"].([]interface{})[0].(map[string]interface{})
+
 	// Extracting payload content
 	payloadContentData := payloadData["payload_content"].([]interface{})
 	payloadContent := make([]PayloadContent, len(payloadContentData))
 
 	for i, pc := range payloadContentData {
 		pcMap := pc.(map[string]interface{})
-		key := pcMap["key"].(string)
-		value := pcMap["value"]
+		configurations := pcMap["configuration"].([]interface{})
+		additionalFields := make(map[string]interface{})
+		for _, config := range configurations {
+			configMap := config.(map[string]interface{})
+			key := configMap["key"].(string)
+			value := configMap["value"]
+			additionalFields[key] = value
+		}
 		payloadContent[i] = PayloadContent{
-			AdditionalFields:    map[string]interface{}{key: value},
+			AdditionalFields:    additionalFields,
 			PayloadDescription:  pcMap["payload_description"].(string),
 			PayloadDisplayName:  pcMap["payload_display_name"].(string),
 			PayloadEnabled:      pcMap["payload_enabled"].(bool),
@@ -44,16 +53,16 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 
 	// Creating a ConfigurationProfile struct from the extracted data
 	profile := &ConfigurationProfile{
-		PayloadDescription:       payloadData["payload_description"].(string),
-		PayloadDisplayName:       payloadData["payload_display_name"].(string),
-		PayloadEnabled:           payloadData["payload_enabled"].(bool),
+		PayloadDescription:       payloadRootData["payload_description_root"].(string),
+		PayloadDisplayName:       payloadRootData["payload_display_name_root"].(string),
+		PayloadEnabled:           payloadRootData["payload_enabled_root"].(bool),
 		PayloadIdentifier:        uuidStr,
-		PayloadOrganization:      payloadData["payload_organization"].(string),
-		PayloadRemovalDisallowed: payloadData["payload_removal_disallowed"].(bool),
-		PayloadScope:             payloadData["payload_scope"].(string),
-		PayloadType:              payloadData["payload_type"].(string),
+		PayloadOrganization:      payloadRootData["payload_organization_root"].(string),
+		PayloadRemovalDisallowed: payloadRootData["payload_removal_disallowed_root"].(bool),
+		PayloadScope:             payloadRootData["payload_scope_root"].(string),
+		PayloadType:              payloadRootData["payload_type_root"].(string),
 		PayloadUUID:              uuidStr,
-		PayloadVersion:           payloadData["payload_version"].(int),
+		PayloadVersion:           payloadRootData["payload_version_root"].(int),
 		PayloadContent:           payloadContent,
 	}
 
@@ -92,43 +101,52 @@ func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
 	var payloadsList []interface{}
 
 	// Create a map for root-level fields
-	profileMap := map[string]interface{}{
-		"payload_description":        profile.PayloadDescription,
-		"payload_display_name":       profile.PayloadDisplayName,
-		"payload_enabled":            profile.PayloadEnabled,
-		"payload_identifier":         profile.PayloadIdentifier,
-		"payload_organization":       profile.PayloadOrganization,
-		"payload_removal_disallowed": profile.PayloadRemovalDisallowed,
-		"payload_scope":              profile.PayloadScope,
-		"payload_type":               profile.PayloadType,
-		"payload_uuid":               profile.PayloadUUID,
-		"payload_version":            profile.PayloadVersion,
+	profileRootMap := map[string]interface{}{
+		"payload_description_root":        profile.PayloadDescription,
+		"payload_display_name_root":       profile.PayloadDisplayName,
+		"payload_enabled_root":            profile.PayloadEnabled,
+		"payload_identifier_root":         profile.PayloadIdentifier,
+		"payload_organization_root":       profile.PayloadOrganization,
+		"payload_removal_disallowed_root": profile.PayloadRemovalDisallowed,
+		"payload_scope_root":              profile.PayloadScope,
+		"payload_type_root":               profile.PayloadType,
+		"payload_uuid_root":               profile.PayloadUUID,
+		"payload_version_root":            profile.PayloadVersion,
 	}
 
 	// Convert each PayloadContent to the appropriate format
 	var payloadContentList []interface{}
 	for _, configurationPayload := range profile.PayloadContent {
+		configurations := make([]interface{}, 0, len(configurationPayload.AdditionalFields))
+		for key, value := range configurationPayload.AdditionalFields {
+			configurations = append(configurations, map[string]interface{}{
+				"key":   key,
+				"value": value,
+			})
+		}
+
 		payloadMap := map[string]interface{}{
 			"payload_description":  configurationPayload.PayloadDescription,
 			"payload_display_name": configurationPayload.PayloadDisplayName,
 			"payload_enabled":      configurationPayload.PayloadEnabled,
-			//"payload_identifier":   configurationPayload.PayloadIdentifier,
+			"payload_identifier":   configurationPayload.PayloadIdentifier,
 			"payload_organization": configurationPayload.PayloadOrganization,
 			"payload_type":         configurationPayload.PayloadType,
-			//"payload_uuid":         configurationPayload.PayloadUUID,
-			"payload_version": configurationPayload.PayloadVersion,
-		}
-
-		// Convert AdditionalFields to key-value pairs within the payload content
-		for key, value := range configurationPayload.AdditionalFields {
-			payloadMap[key] = value
+			"payload_uuid":         configurationPayload.PayloadUUID,
+			"payload_version":      configurationPayload.PayloadVersion,
+			"configuration":        configurations,
 		}
 
 		payloadContentList = append(payloadContentList, payloadMap)
 	}
 
-	profileMap["payload_content"] = payloadContentList
-	payloadsList = append(payloadsList, profileMap)
+	// Create the full payloads map
+	payloadsMap := map[string]interface{}{
+		"payload_root":    []interface{}{profileRootMap},
+		"payload_content": payloadContentList,
+	}
+
+	payloadsList = append(payloadsList, payloadsMap)
 
 	return payloadsList, nil
 }
