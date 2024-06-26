@@ -46,7 +46,6 @@ func resourceJamfProComputerCheckinRead(ctx context.Context, d *schema.ResourceD
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	// TODO not an ID?
 	d.SetId("jamfpro_computer_checkin_singleton")
 
 	var response *jamfpro.ResourceComputerCheckin

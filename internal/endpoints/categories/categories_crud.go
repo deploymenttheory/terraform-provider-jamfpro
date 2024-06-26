@@ -126,7 +126,6 @@ func resourceJamfProCategoriesDelete(ctx context.Context, d *schema.ResourceData
 		return nil
 	})
 
-	// TODO move this up?
 	if err != nil {
 		return append(diags, diag.FromErr(fmt.Errorf("final attempt to delete Category '%s' failed: %v", resourceName, err))...)
 	}

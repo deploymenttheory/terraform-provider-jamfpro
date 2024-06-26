@@ -12,10 +12,11 @@ TODO:
 10. Refactor UserGroups to mirror Computer groups logic
 11. Standardise construction logic from TypeList and TypeMap across all endpoints
 12. Standardise stating logic across all endpoints.
-
-
-
-
+13. Move getStringSliceFromSet function out of accountgroups and into shared package.
+14. Amend account privs for Jamf Pro 11.6+ (Removal of casper admin keys?)
+15. Remove Get by name fallback in all occurances.
+16. Line 306 macosconfigurationprofiles.state
+17. Finish Policies
 
 Known Issues:
 1. Declarative resource redeployment fails if: 

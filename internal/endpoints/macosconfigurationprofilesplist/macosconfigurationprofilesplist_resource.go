@@ -162,7 +162,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 						// 			"filename": {},
 						// 		},
 						// 	},
-						// }, // TODO fix this broken crap later
+						// },
 						"self_service_categories": {
 							Type:        schema.TypeList,
 							Description: "Self Service category options",
