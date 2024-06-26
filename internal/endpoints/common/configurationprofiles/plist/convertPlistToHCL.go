@@ -4,8 +4,8 @@ import (
 	"fmt"
 )
 
-// convertPlistToHCL converts a plist XML to the payloads list that can be set in the Terraform state.
-func convertPlistToHCL(plistXML string) ([]interface{}, error) {
+// ConvertPlistToHCL converts a plist XML to the payloads list that can be set in the Terraform state.
+func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
 	// Unmarshal the plist XML into a ConfigurationProfile struct
 	profile, err := UnmarshalPayload(plistXML)
 	if err != nil {

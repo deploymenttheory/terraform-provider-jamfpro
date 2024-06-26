@@ -35,10 +35,14 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSCon
 
 	d.Set("site_id", resp.General.Site.ID)
 
-	// Process and set the payloads using the plist processor function
-	profile := plist.NormalizePayloadState(resp.General.Payloads)
-	if err := d.Set("payloads", profile); err != nil {
+	// Convert the plist payloads back to HCL format and set them in the state
+	payloadsList, err := plist.ConvertPlistToHCL(resp.General.Payloads)
+	if err != nil {
 		diags = append(diags, diag.FromErr(err)...)
+	} else {
+		if err := d.Set("payloads", payloadsList); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	d.Set("category_id", resp.General.Category.ID)
