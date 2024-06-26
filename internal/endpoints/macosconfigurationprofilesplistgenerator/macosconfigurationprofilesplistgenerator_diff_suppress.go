@@ -1,4 +1,3 @@
-// macosconfigurationprofilesplist_diff_suppress.go
 package macosconfigurationprofilesplistgenerator
 
 import (
@@ -49,21 +48,62 @@ func processPayload(payload string, source string) (map[string]interface{}, erro
 
 // comparePayloads recursively compares two payloads, ignoring specified fields.
 func comparePayloads(oldPayload, newPayload map[string]interface{}) bool {
-	if len(oldPayload) != len(newPayload) {
+	return deepEqualIgnoreFields(oldPayload, newPayload)
+}
+
+// deepEqualIgnoreFields recursively compares two maps, ignoring specified fields.
+func deepEqualIgnoreFields(oldMap, newMap map[string]interface{}) bool {
+	for key, oldValue := range oldMap {
+		if newValue, found := newMap[key]; found {
+			if reflect.TypeOf(oldValue) != reflect.TypeOf(newValue) {
+				return false
+			}
+			switch oldValueTyped := oldValue.(type) {
+			case map[string]interface{}:
+				newValueTyped := newValue.(map[string]interface{})
+				if !deepEqualIgnoreFields(oldValueTyped, newValueTyped) {
+					return false
+				}
+			case []interface{}:
+				newValueTyped := newValue.([]interface{})
+				if !sliceEqualIgnoreFields(oldValueTyped, newValueTyped) {
+					return false
+				}
+			default:
+				if !reflect.DeepEqual(oldValueTyped, newValue) {
+					return false
+				}
+			}
+		} else {
+			return false
+		}
+	}
+	return true
+}
+
+// sliceEqualIgnoreFields compares two slices, ignoring specified fields.
+func sliceEqualIgnoreFields(oldSlice, newSlice []interface{}) bool {
+	if len(oldSlice) != len(newSlice) {
 		return false
 	}
-
-	for key, oldValue := range oldPayload {
-		newValue, exists := newPayload[key]
-		if !exists {
+	for i := range oldSlice {
+		oldValue := oldSlice[i]
+		newValue := newSlice[i]
+		if reflect.TypeOf(oldValue) != reflect.TypeOf(newValue) {
 			return false
 		}
-
-		if !reflect.DeepEqual(oldValue, newValue) {
-			return false
+		switch oldValueTyped := oldValue.(type) {
+		case map[string]interface{}:
+			newValueTyped := newValue.(map[string]interface{})
+			if !deepEqualIgnoreFields(oldValueTyped, newValueTyped) {
+				return false
+			}
+		default:
+			if !reflect.DeepEqual(oldValueTyped, newValue) {
+				return false
+			}
 		}
 	}
-
 	return true
 }
 
@@ -87,7 +127,7 @@ func ProcessConfigurationProfileForDiffSuppression(plistData string, fieldsToRem
 	return sortedData, nil
 }
 
-// decodeAndCleanPlist decodes a plist into a map and removes specified fields
+// decodeAndCleanPlist decodes a plist into a map and removes specified fields.
 func decodeAndCleanPlist(plistData []byte, fieldsToRemove []string) (map[string]interface{}, error) {
 	var rawData map[string]interface{}
 	_, err := plist.Unmarshal(plistData, &rawData)
@@ -103,7 +143,7 @@ func decodeAndCleanPlist(plistData []byte, fieldsToRemove []string) (map[string]
 	return rawData, nil
 }
 
-// RemoveFields removes specified fields from a nested map
+// RemoveFields removes specified fields from a nested map.
 func RemoveFields(data map[string]interface{}, fieldsToRemove []string, path string) {
 	// Create a set of fields to remove for quick lookup
 	fieldsToRemoveSet := make(map[string]struct{}, len(fieldsToRemove))
@@ -115,7 +155,7 @@ func RemoveFields(data map[string]interface{}, fieldsToRemove []string, path str
 	recursivelyRemoveFields(data, fieldsToRemoveSet, path)
 }
 
-// recursivelyRemoveFields removes specified fields from a nested map
+// recursivelyRemoveFields removes specified fields from a nested map.
 func recursivelyRemoveFields(data map[string]interface{}, fieldsToRemoveSet map[string]struct{}, path string) {
 	// Iterate over the map and remove fields if they exist
 	for field := range fieldsToRemoveSet {
@@ -145,7 +185,7 @@ func recursivelyRemoveFields(data map[string]interface{}, fieldsToRemoveSet map[
 	}
 }
 
-// SortPlistKeys sorts the keys of a plist map for consistent ordering
+// SortPlistKeys sorts the keys of a plist map for consistent ordering.
 func SortPlistKeys(data map[string]interface{}) map[string]interface{} {
 	keys := make([]string, 0, len(data))
 	for key := range data {

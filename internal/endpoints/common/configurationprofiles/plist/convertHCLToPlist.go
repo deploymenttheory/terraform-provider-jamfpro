@@ -36,9 +36,9 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 		if v, ok := payloadData["payload_display_name"]; ok {
 			configurationPayload.PayloadDisplayName = v.(string)
 		}
-		// if v, ok := payloadData["payload_enabled"]; ok {
-		// 	configurationPayload.PayloadEnabled = v.(bool)
-		// }
+		if v, ok := payloadData["payload_enabled"]; ok {
+			configurationPayload.PayloadEnabled = v.(bool)
+		}
 		if v, ok := payloadData["payload_identifier"]; ok {
 			configurationPayload.PayloadIdentifier = v.(string)
 		}

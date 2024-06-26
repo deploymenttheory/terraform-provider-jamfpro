@@ -32,6 +32,7 @@ type ConfigurationPayload struct {
 	PayloadOrganization string                 `mapstructure:"PayloadOrganization" validate:"required"`
 	PayloadType         string                 `mapstructure:"PayloadType" validate:"required"`
 	payloadUUID         string                 `mapstructure:"PayloadUUID,-"`
+	PayloadEnabled      bool                   `mapstructure:"PayloadEnabled"`
 	AdditionalFields    map[string]interface{} `mapstructure:",remain"`
 }
 
