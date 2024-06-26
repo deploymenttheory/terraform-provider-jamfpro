@@ -1,8 +1,19 @@
 TODO:
 
-1. Standardise "Criteria" schema blocks across all three advanced searches
+1. Standardise "Criteria" schema blocks across all three advanced searches and computer groups, user groups.
 2. Decide if we're scoping groups to accounts or accounts to groups. Currently allowed scoping accounts to groups in accounts.
 3. Review all schema validation funcs and standardise if possible. 
+4. (SDK) Created shared struct for LDAPServer across accounts/accountgroup
+5. Flatten and optimise Computer Extension Attributes schema
+6. Review Computer Inventory Collection Schema.
+7. Computer Prestage Enrollments entire thing.
+8. Self Service Icons and Categories in Policies and Configuration Profiles.
+9. Restricted Software review if Scope can be aligned to Policy & MacOsConfigProfiles scope.
+10. Refactor UserGroups to mirror Computer groups logic
+11. Standardise construction logic from TypeList and TypeMap across all endpoints
+12. Standardise stating logic across all endpoints.
+
+
 
 
 
