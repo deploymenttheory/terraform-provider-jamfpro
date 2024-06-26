@@ -1,3 +1,4 @@
+// common/configurationprofiles/plist/conversion.go contains the functions to convert HCL to plist and plist to HCL.
 package plist
 
 import (
