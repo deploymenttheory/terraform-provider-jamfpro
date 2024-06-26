@@ -22,12 +22,12 @@ type ConfigurationProfile struct {
 	PayloadType              string                 `mapstructure:"PayloadType" validate:"required,eq=Configuration"`
 	PayloadUUID              string                 `mapstructure:"PayloadUUID" validate:"required"`
 	PayloadVersion           int                    `mapstructure:"PayloadVersion" validate:"required,eq=1"`
-	PayloadContent           []ConfigurationPayload `mapstructure:"PayloadContent"`
+	PayloadContent           []PayloadContent       `mapstructure:"PayloadContent"`
 	AdditionalFields         map[string]interface{} `mapstructure:",remain"`
 }
 
 // ConfigurationPayload represents a nested MacOS configuration profile.
-type ConfigurationPayload struct {
+type PayloadContent struct {
 	PayloadDescription  string                 `mapstructure:"PayloadDescription"`
 	PayloadDisplayName  string                 `mapstructure:"PayloadDisplayName"`
 	PayloadEnabled      bool                   `mapstructure:"PayloadEnabled"`
@@ -105,7 +105,7 @@ func MergeConfigurationProfileFieldsIntoMap(profile *ConfigurationProfile) map[s
 }
 
 // MergeConfigurationPayloadFieldsIntoMap merges the fields of a ConfigurationPayload struct into a map.
-func MergeConfigurationPayloadFieldsIntoMap(payload *ConfigurationPayload) map[string]interface{} {
+func MergeConfigurationPayloadFieldsIntoMap(payload *PayloadContent) map[string]interface{} {
 	merged := make(map[string]interface{}, len(payload.AdditionalFields))
 	for k, v := range payload.AdditionalFields {
 		merged[k] = v

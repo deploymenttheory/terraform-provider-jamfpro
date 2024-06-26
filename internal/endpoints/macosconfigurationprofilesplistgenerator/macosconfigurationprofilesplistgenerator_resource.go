@@ -84,7 +84,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 							Type:      schema.TypeList,
 							Optional:  true,
 							StateFunc: plist.NormalizePayloadState,
-							//ValidateFunc:     plist.ValidatePayload,
+							// ValidateFunc:     plist.ValidatePayload,
 							DiffSuppressFunc: DiffSuppressPayloads,
 							Description:      "A list of key-value pairs for the macOS configuration profile payload.",
 							Elem: &schema.Resource{
@@ -99,9 +99,52 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 										Optional:    true,
 										Description: "The value for the plist entry.",
 									},
+									"payload_description": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "Description of the payload.",
+									},
+									"payload_display_name": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "Display name of the payload.",
+									},
+									"payload_enabled": {
+										Type:        schema.TypeBool,
+										Required:    true,
+										Description: "Whether the payload is enabled.",
+									},
+									"payload_identifier": {
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: "Identifier for the payload.",
+									},
+									"payload_organization": {
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: "Organization associated with the payload.",
+									},
+									"payload_type": {
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: "Type of the config profile payload.",
+										Default:     "Configuration",
+									},
+									"payload_uuid": {
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: "UUID of the payload.",
+									},
+									"payload_version": {
+										Type:        schema.TypeInt,
+										Required:    true,
+										Description: "Version of the payload.",
+										Default:     1,
+									},
 								},
 							},
 						},
+
 						"payload_description": {
 							Type:        schema.TypeString,
 							Optional:    true,
