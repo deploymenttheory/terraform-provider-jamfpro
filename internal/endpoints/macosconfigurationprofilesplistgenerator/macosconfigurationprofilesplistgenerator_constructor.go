@@ -77,6 +77,7 @@ func convertHCLToPlist(d *schema.ResourceData) (string, error) {
 		}
 		payloadContentArray = append(payloadContentArray, payloadContentMap)
 
+		// Only add non-payload_content items to payloadsMap
 		for k, v := range payloadData {
 			if k != "payload_content" {
 				payloadsMap[k] = v
@@ -84,6 +85,7 @@ func convertHCLToPlist(d *schema.ResourceData) (string, error) {
 		}
 	}
 
+	// Properly nest the payload content under "PayloadContent"
 	payloadsMap["PayloadContent"] = payloadContentArray
 
 	// Marshal the structure to plist XML
