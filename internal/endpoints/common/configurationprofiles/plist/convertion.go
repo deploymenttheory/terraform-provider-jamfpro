@@ -9,7 +9,6 @@ import (
 )
 
 // ConvertHCLToPlist converts the payloads list to a map and generates the plist XML.
-// ConvertHCLToPlist converts the payloads list to a map and generates the plist XML.
 func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 	payloadsList := d.Get("payloads").([]interface{})
 	var configurationProfile ConfigurationProfile
@@ -34,7 +33,7 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 		configurationProfile.PayloadContent = append(configurationProfile.PayloadContent, configurationPayload)
 	}
 
-	// Map of field names to their respective setter functions
+	// Retrieve and set the root-level fields from HCL input
 	fields := map[string]interface{}{
 		"payload_description":        &configurationProfile.PayloadDescription,
 		"payload_display_name":       &configurationProfile.PayloadDisplayName,
@@ -48,7 +47,6 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 		"payload_version":            &configurationProfile.PayloadVersion,
 	}
 
-	// Retrieve and set the root-level fields from HCL input
 	for field, fieldPtr := range fields {
 		if v, ok := d.GetOk(fmt.Sprintf("payloads.0.%s", field)); ok {
 			setField(fieldPtr, v)
