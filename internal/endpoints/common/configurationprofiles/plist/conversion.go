@@ -10,6 +10,7 @@ import (
 )
 
 // ConvertHCLToPlist converts the payloads list to a map and generates the plist XML.
+// ConvertHCLToPlist converts the payloads list to a map and generates the plist XML.
 func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 	payloadsList := d.Get("payloads").([]interface{})
 	var configurationProfile ConfigurationProfile
@@ -27,7 +28,17 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 				key := contentData["key"].(string)
 				value := contentData["value"]
 
-				configurationPayload.AdditionalFields[key] = value
+				// Detect the type of the value and set it accordingly
+				switch v := value.(type) {
+				case string:
+					configurationPayload.AdditionalFields[key] = v
+				case int:
+					configurationPayload.AdditionalFields[key] = v
+				case bool:
+					configurationPayload.AdditionalFields[key] = v
+				default:
+					configurationPayload.AdditionalFields[key] = v
+				}
 			}
 		}
 		// Add the configuration payload to the profile's payload content
@@ -68,7 +79,17 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 // setField sets the value of the field based on its type
 func setField(fieldPtr interface{}, value interface{}) {
 	v := reflect.ValueOf(fieldPtr).Elem()
-	v.Set(reflect.ValueOf(value))
+
+	switch v.Kind() {
+	case reflect.Bool:
+		v.SetBool(value.(bool))
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		v.SetInt(int64(value.(int)))
+	case reflect.String:
+		v.SetString(value.(string))
+	default:
+		v.Set(reflect.ValueOf(value))
+	}
 }
 
 // ConvertPlistToHCL converts a plist XML to the payloads list that can be set in the Terraform state.
