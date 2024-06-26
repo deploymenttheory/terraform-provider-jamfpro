@@ -20,42 +20,33 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 	payloadData := payloads[0].(map[string]interface{})
 
 	// Generate UUID if not provided
-	uuidStr := GenerateUUID()
+	uuid := GenerateUUID()
 
 	// Extracting payload content
 	payloadContentData := payloadData["payload_content"].([]interface{})
-	var payloadContent []ConfigurationPayload
+	payloadContent := make([]ConfigurationPayload, len(payloadContentData))
 
-	for _, pc := range payloadContentData {
+	for i, pc := range payloadContentData {
 		pcMap := pc.(map[string]interface{})
-		additionalFields := getAdditionalFields(pcMap)
-		configPayload := ConfigurationPayload{
-			PayloadDescription:  getStringValue(pcMap, "PayloadDescription"),
-			PayloadDisplayName:  getStringValue(pcMap, "PayloadDisplayName"),
-			PayloadEnabled:      getBoolValue(pcMap, "PayloadEnabled"),
-			PayloadIdentifier:   getStringValue(pcMap, "PayloadIdentifier"),
-			PayloadOrganization: getStringValue(pcMap, "PayloadOrganization"),
-			PayloadType:         getStringValue(pcMap, "PayloadType"),
-			PayloadUUID:         getStringValue(pcMap, "PayloadUUID"),
-			PayloadVersion:      getIntValue(pcMap, "PayloadVersion"),
-			AdditionalFields:    additionalFields,
+		key := pcMap["key"].(string)
+		value := pcMap["value"]
+		payloadContent[i] = ConfigurationPayload{
+			AdditionalFields: map[string]interface{}{key: value},
 		}
-		payloadContent = append(payloadContent, configPayload)
 	}
 
 	// Creating a ConfigurationProfile struct from the extracted data
 	profile := &ConfigurationProfile{
-		PayloadDescription:       getStringValue(payloadData, "payload_description"),
-		PayloadDisplayName:       getStringValue(payloadData, "payload_display_name"),
-		PayloadEnabled:           getBoolValue(payloadData, "payload_enabled"),
-		PayloadIdentifier:        uuidStr,
-		PayloadOrganization:      getStringValue(payloadData, "payload_organization"),
-		PayloadRemovalDisallowed: getBoolValue(payloadData, "payload_removal_disallowed"),
-		PayloadScope:             getStringValue(payloadData, "payload_scope"),
-		PayloadType:              getStringValue(payloadData, "payload_type"),
-		PayloadUUID:              uuidStr,
-		PayloadVersion:           getIntValue(payloadData, "payload_version"),
-		PayloadContent:           payloadContent,
+		PayloadDescription: payloadData["payload_description"].(string),
+		//PayloadDisplayName:       payloadData["payload_display_name"].(string),
+		PayloadEnabled:           payloadData["payload_enabled"].(bool),
+		PayloadIdentifier:        uuid,
+		PayloadOrganization:      payloadData["payload_organization"].(string),
+		PayloadRemovalDisallowed: payloadData["payload_removal_disallowed"].(bool),
+		PayloadScope:             payloadData["payload_scope"].(string),
+		PayloadType:              payloadData["payload_type"].(string),
+		PayloadUUID:              uuid,
+		PayloadVersion:           payloadData["payload_version"].(int),
 	}
 
 	// Marshaling the ConfigurationProfile struct to a plist string
@@ -65,13 +56,8 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 	}
 
 	// Pretty-printing the plist XML for DEBUG logging
-	var prettyXML interface{}
-	_, err = plist.Unmarshal([]byte(plistXML), &prettyXML)
-	if err != nil {
-		return "", fmt.Errorf("failed to unmarshal plist for pretty printing: %v", err)
-	}
 
-	prettyPlistXML, err := plist.MarshalIndent(prettyXML, plist.XMLFormat, "  ")
+	prettyPlistXML, err := plist.MarshalIndent(plistXML, plist.XMLFormat, "  ")
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal profile to pretty plist: %v", err)
 	}
@@ -85,39 +71,6 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 func GenerateUUID() string {
 	uuid := uuid.New()
 	return uuid.String()
-}
-
-// Helper functions to get values with error handling
-
-func getStringValue(data map[string]interface{}, key string) string {
-	if val, ok := data[key]; ok && val != nil {
-		return val.(string)
-	}
-	return ""
-}
-
-func getBoolValue(data map[string]interface{}, key string) bool {
-	if val, ok := data[key]; ok && val != nil {
-		return val.(bool)
-	}
-	return false
-}
-
-func getIntValue(data map[string]interface{}, key string) int {
-	if val, ok := data[key]; ok && val != nil {
-		return val.(int)
-	}
-	return 0
-}
-
-func getAdditionalFields(data map[string]interface{}) map[string]interface{} {
-	additionalFields := make(map[string]interface{})
-	for k, v := range data {
-		if k != "PayloadDescription" && k != "PayloadDisplayName" && k != "PayloadEnabled" && k != "PayloadIdentifier" && k != "PayloadOrganization" && k != "PayloadType" && k != "PayloadUUID" && k != "PayloadVersion" {
-			additionalFields[k] = v
-		}
-	}
-	return additionalFields
 }
 
 // // ConvertHCLToPlist converts the payloads list to a map and generates the plist XML.
