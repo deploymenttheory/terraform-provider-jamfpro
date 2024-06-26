@@ -55,38 +55,28 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"string", "integer", "date"}, false),
 			},
 			"input_type": {
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "Extension Attribute Input Type",
+				ValidateFunc: validation.StringInSlice([]string{"script", "Text Field", "Pop-up Menu"}, true),
+			},
+			"input_popup": {
 				Type:        schema.TypeList,
+				Description: "List of popup choices",
 				Optional:    true,
-				MaxItems:    1,
-				Description: "Input type details of the computer extension attribute.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"script", "Text Field", "LDAP Mapping", "Pop-up Menu"}, false),
-						},
-						"platform": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							Description:  "Platform type for the computer extension attribute.",
-							ValidateFunc: validation.StringInSlice([]string{"Mac", "Windows"}, false),
-						},
-						"script": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-						},
-						"choices": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-					},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
+			},
+			"input_script": {
+				Type:        schema.TypeString,
+				Description: "Script to populate extension attribute",
+				Optional:    true,
+			},
+			"input_directory_mapping": {
+				Type:        schema.TypeString,
+				Description: "Script to populate extension attribute",
+				Optional:    true,
 			},
 			"inventory_display": {
 				Type:         schema.TypeString,
