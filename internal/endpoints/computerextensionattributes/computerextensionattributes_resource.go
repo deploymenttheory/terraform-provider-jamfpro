@@ -16,7 +16,6 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 		ReadContext:   resourceJamfProComputerExtensionAttributesReadWithCleanup,
 		UpdateContext: resourceJamfProComputerExtensionAttributesUpdate,
 		DeleteContext: resourceJamfProComputerExtensionAttributesDelete,
-		CustomizeDiff: validateJamfProRResourceComputerExtensionAttributesDataFields,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(15 * time.Second),
@@ -73,11 +72,11 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 				Description: "Script to populate extension attribute",
 				Optional:    true,
 			},
-			"input_directory_mapping": {
-				Type:        schema.TypeString,
-				Description: "Script to populate extension attribute",
-				Optional:    true,
-			},
+			// "input_directory_mapping": {
+			// 	Type:        schema.TypeString,
+			// 	Description: "Script to populate extension attribute",
+			// 	Optional:    true,
+			// },
 			"inventory_display": {
 				Type:         schema.TypeString,
 				Optional:     true,

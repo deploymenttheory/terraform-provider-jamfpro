@@ -13,6 +13,7 @@ import (
 // constructJamfProComputerExtensionAttribute constructs a ResourceComputerExtensionAttribute object from the provided schema data.
 func constructJamfProComputerExtensionAttribute(d *schema.ResourceData) (*jamfpro.ResourceComputerExtensionAttribute, error) {
 	var resource *jamfpro.ResourceComputerExtensionAttribute
+	log.Println("LOGHERE")
 
 	resource = &jamfpro.ResourceComputerExtensionAttribute{
 		Name:             d.Get("name").(string),
@@ -24,11 +25,16 @@ func constructJamfProComputerExtensionAttribute(d *schema.ResourceData) (*jamfpr
 	}
 
 	inputTypeEnabledText := d.Get("input_type").(string) == "Text Field"
-	inputTypeEnabledPopUp := d.Get("input_popup").(string) != ""
-	inputTypeEnabledScript := d.Get("input_script").(string) != ""
-	inputTypeEnabledDirectory := d.Get("input_directory").(string) != ""
+	inputTypeEnabledPopUp := len(d.Get("input_popup").([]interface{})) != 0
+	inputTypeEnabledScript := d.Get("input_script") != ""
+	// inputTypeEnabledDirectory := d.Get("input_directory_mapping") != ""
 
-	inputList := []bool{inputTypeEnabledText, inputTypeEnabledPopUp, inputTypeEnabledScript, inputTypeEnabledDirectory}
+	log.Printf("Text: %v", d.Get("input_type").(string))
+	log.Printf("Popup: %v", d.Get("input_popup"))
+	log.Printf("script: %v", d.Get("input_script"))
+	log.Printf("Dir: %v", d.Get("input_directory_mapping"))
+
+	inputList := []bool{inputTypeEnabledText, inputTypeEnabledPopUp, inputTypeEnabledScript}
 	var boolCount int
 	for _, v := range inputList {
 		if v {
@@ -36,23 +42,22 @@ func constructJamfProComputerExtensionAttribute(d *schema.ResourceData) (*jamfpr
 		}
 	}
 	if boolCount > 1 {
+		log.Println(inputList)
+		log.Println(boolCount)
 		return nil, fmt.Errorf("multiple input types selected, please adjust your configuratuon")
 	}
 
 	inputType := d.Get("input_type").(string)
 	resource.InputType.Type = inputType
 
-	switch inputType {
-	case "Pop-up Menu":
+	if inputType == "Pop-up Menu" {
 		choices := d.Get("input_popup").([]interface{})
 		for _, v := range choices {
 			resource.InputType.Choices = append(resource.InputType.Choices, v.(string))
 		}
-	case "script":
+	} else if inputType == "script" {
 		resource.InputType.Platform = "Mac"
 		resource.InputType.Script = d.Get("input_script").(string)
-	default:
-		return nil, fmt.Errorf("invalid input type supplie")
 	}
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
