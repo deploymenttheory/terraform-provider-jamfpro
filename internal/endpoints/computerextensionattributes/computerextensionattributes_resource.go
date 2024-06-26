@@ -55,9 +55,10 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"string", "integer", "date"}, false),
 			},
 			"input_type": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: "Input type details of the computer extension attribute.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
@@ -86,7 +87,6 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 						},
 					},
 				},
-				Description: "Input type details of the computer extension attribute.",
 			},
 			"inventory_display": {
 				Type:         schema.TypeString,
@@ -103,4 +103,8 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 			},
 		},
 	}
+}
+
+func getInputTypeText() *schema.Schema {
+	return &schema.Schema{}
 }

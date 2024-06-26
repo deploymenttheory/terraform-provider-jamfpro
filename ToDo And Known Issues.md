@@ -20,5 +20,5 @@ TODO:
 
 Known Issues:
 1. Declarative resource redeployment fails if: 
-    1. Deleted resource has Site set
+    1. Deleted resource has Site set and...
     2. Terraform Apply is run very soon (sub 30s) after resource is deleted by means other than Terraform. Jamf Pro appears to have staged deletion process in which the resource still exists but minus it's site for short period of time, confusing terraform.
