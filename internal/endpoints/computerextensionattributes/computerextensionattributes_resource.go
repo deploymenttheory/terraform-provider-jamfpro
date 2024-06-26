@@ -93,7 +93,3 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 		},
 	}
 }
-
-func getInputTypeText() *schema.Schema {
-	return &schema.Schema{}
-}
