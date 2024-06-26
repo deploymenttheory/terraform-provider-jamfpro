@@ -77,6 +77,9 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 				Type:        schema.TypeList,
 				Required:    true,
 				Description: "A list of payloads for the macOS configuration profile.",
+				StateFunc:   plist.NormalizePayloadState,
+				// ValidateFunc:     plist.ValidatePayload,
+				// DiffSuppressFunc: DiffSuppressPayloads,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"payload_root": {
