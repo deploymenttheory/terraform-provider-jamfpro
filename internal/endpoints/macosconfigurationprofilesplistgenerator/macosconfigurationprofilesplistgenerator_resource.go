@@ -82,7 +82,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 					Schema: map[string]*schema.Schema{
 						"payload_content": {
 							Type:      schema.TypeList,
-							Required:  true,
+							Optional:  true,
 							StateFunc: plist.NormalizePayloadState,
 							//ValidateFunc:     plist.ValidatePayload,
 							DiffSuppressFunc: DiffSuppressPayloads,
@@ -91,12 +91,12 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 								Schema: map[string]*schema.Schema{
 									"key": {
 										Type:        schema.TypeString,
-										Required:    true,
+										Optional:    true,
 										Description: "The key for the plist entry.",
 									},
 									"value": {
 										Type:        schema.TypeString,
-										Required:    true,
+										Optional:    true,
 										Description: "The value for the plist entry.",
 									},
 								},
@@ -109,7 +109,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 						},
 						"payload_display_name": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Computed:    true,
 							Description: "Display name of the payload.",
 						},
 						"payload_enabled": {
@@ -119,26 +119,23 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 						},
 						"payload_identifier": {
 							Type:        schema.TypeString,
-							Optional:    true,
+							Computed:    true,
 							Description: "Identifier for the payload.",
-							Default:     "TERRAFOR-MPRO-VIDO-RJAM-FPRO11DDBB15",
 						},
 						"payload_organization": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Computed:    true,
 							Description: "Organization associated with the payload.",
 						},
 						"payload_removal_disallowed": {
 							Type:        schema.TypeBool,
-							Optional:    true,
-							Default:     false,
+							Computed:    true,
 							Description: "Whether the payload removal is disallowed.",
 						},
 						"payload_scope": {
-							Type:         schema.TypeString,
-							Required:     true,
-							Description:  "Scope of the payload.",
-							ValidateFunc: validation.StringInSlice([]string{"User", "System"}, false),
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Scope of the payload.Computed by what is set by level. 'System' or 'User'",
 						},
 						"payload_type": {
 							Type:        schema.TypeString,
@@ -148,9 +145,8 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 						},
 						"payload_uuid": {
 							Type:        schema.TypeString,
-							Optional:    true,
+							Computed:    true,
 							Description: "UUID of the payload.",
-							Default:     "TERRAFOR-MPRO-VIDO-RJAM-FPRO11DDBB15",
 						},
 						"payload_version": {
 							Type:        schema.TypeInt,
