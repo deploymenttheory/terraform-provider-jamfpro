@@ -3,10 +3,12 @@ package plist
 import (
 	"fmt"
 	"log"
+	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// ConvertHCLToPlist converts the payloads list to a map and generates the plist XML.
 // ConvertHCLToPlist converts the payloads list to a map and generates the plist XML.
 func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 	payloadsList := d.Get("payloads").([]interface{})
@@ -28,38 +30,29 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 				configurationPayload.AdditionalFields[key] = value
 			}
 		}
+		// Add the configuration payload to the profile's payload content
+		configurationProfile.PayloadContent = append(configurationProfile.PayloadContent, configurationPayload)
 	}
 
-	// Set the root-level fields
-	if v, ok := d.GetOk("payload_description"); ok {
-		configurationProfile.PayloadDescription = v.(string)
+	// Map of field names to their respective setter functions
+	fields := map[string]interface{}{
+		"payload_description":        &configurationProfile.PayloadDescription,
+		"payload_display_name":       &configurationProfile.PayloadDisplayName,
+		"payload_enabled":            &configurationProfile.PayloadEnabled,
+		"payload_identifier":         &configurationProfile.PayloadIdentifier,
+		"payload_organization":       &configurationProfile.PayloadOrganization,
+		"payload_removal_disallowed": &configurationProfile.PayloadRemovalDisallowed,
+		"payload_scope":              &configurationProfile.PayloadScope,
+		"payload_type":               &configurationProfile.PayloadType,
+		"payload_uuid":               &configurationProfile.PayloadUUID,
+		"payload_version":            &configurationProfile.PayloadVersion,
 	}
-	if v, ok := d.GetOk("payload_display_name"); ok {
-		configurationProfile.PayloadDisplayName = v.(string)
-	}
-	if v, ok := d.GetOk("payload_enabled"); ok {
-		configurationProfile.PayloadEnabled = v.(bool)
-	}
-	if v, ok := d.GetOk("payload_identifier"); ok {
-		configurationProfile.PayloadIdentifier = v.(string)
-	}
-	if v, ok := d.GetOk("payload_organization"); ok {
-		configurationProfile.PayloadOrganization = v.(string)
-	}
-	if v, ok := d.GetOk("payload_removal_disallowed"); ok {
-		configurationProfile.PayloadRemovalDisallowed = v.(bool)
-	}
-	if v, ok := d.GetOk("payload_scope"); ok {
-		configurationProfile.PayloadScope = v.(string)
-	}
-	if v, ok := d.GetOk("payload_type"); ok {
-		configurationProfile.PayloadType = v.(string)
-	}
-	if v, ok := d.GetOk("payload_uuid"); ok {
-		configurationProfile.PayloadUUID = v.(string)
-	}
-	if v, ok := d.GetOk("payload_version"); ok {
-		configurationProfile.PayloadVersion = v.(int)
+
+	// Retrieve and set the root-level fields from HCL input
+	for field, fieldPtr := range fields {
+		if v, ok := d.GetOk(fmt.Sprintf("payloads.0.%s", field)); ok {
+			setField(fieldPtr, v)
+		}
 	}
 
 	// Marshal the ConfigurationProfile to plist XML
@@ -71,6 +64,12 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 	log.Printf("[DEBUG] Constructed plist XML from HCL:\n%s\n", payloadsXML)
 
 	return payloadsXML, nil
+}
+
+// setField sets the value of the field based on its type
+func setField(fieldPtr interface{}, value interface{}) {
+	v := reflect.ValueOf(fieldPtr).Elem()
+	v.Set(reflect.ValueOf(value))
 }
 
 // ConvertPlistToHCL converts a plist XML to the payloads list that can be set in the Terraform state.
