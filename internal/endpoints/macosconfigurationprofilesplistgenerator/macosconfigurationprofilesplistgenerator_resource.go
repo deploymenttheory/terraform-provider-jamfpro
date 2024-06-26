@@ -19,7 +19,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 		ReadContext:   resourceJamfProMacOSConfigurationProfilesPlistGeneratorReadWithCleanup,
 		UpdateContext: resourceJamfProMacOSConfigurationProfilesPlistGeneratorUpdate,
 		DeleteContext: resourceJamfProMacOSConfigurationProfilesPlistGeneratorDelete,
-		CustomizeDiff: mainCustomDiffFunc,
+		//CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(15 * time.Second),
@@ -74,27 +74,93 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 				ValidateFunc: validation.StringInSlice([]string{"User", "System"}, false),
 			},
 			"payloads": {
-				Type:      schema.TypeList,
-				Required:  true,
-				StateFunc: plist.NormalizePayloadState,
-				//ValidateFunc:     plist.ValidatePayload,
-				DiffSuppressFunc: DiffSuppressPayloads,
-				Description:      "A list of key-value pairs for the macOS configuration profile payload.",
+				Type:        schema.TypeList,
+				Required:    true,
+				Description: "A list of payloads for the macOS configuration profile.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"key": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "The key for the plist entry.",
+						"payload_content": {
+							Type:      schema.TypeList,
+							Required:  true,
+							StateFunc: plist.NormalizePayloadState,
+							//ValidateFunc:     plist.ValidatePayload,
+							DiffSuppressFunc: DiffSuppressPayloads,
+							Description:      "A list of key-value pairs for the macOS configuration profile payload.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"key": {
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: "The key for the plist entry.",
+									},
+									"value": {
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: "The value for the plist entry.",
+									},
+								},
+							},
 						},
-						"value": {
+						"payload_description": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Description of the payload.",
+						},
+						"payload_display_name": {
 							Type:        schema.TypeString,
 							Required:    true,
-							Description: "The value for the plist entry.",
+							Description: "Display name of the payload.",
+						},
+						"payload_enabled": {
+							Type:        schema.TypeBool,
+							Required:    true,
+							Description: "Whether the payload is enabled.",
+						},
+						"payload_identifier": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Identifier for the payload.",
+							Default:     "TERRAFOR-MPRO-VIDO-RJAM-FPRO11DDBB15",
+						},
+						"payload_organization": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Organization associated with the payload.",
+						},
+						"payload_removal_disallowed": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Default:     false,
+							Description: "Whether the payload removal is disallowed.",
+						},
+						"payload_scope": {
+							Type:         schema.TypeString,
+							Required:     true,
+							Description:  "Scope of the payload.",
+							ValidateFunc: validation.StringInSlice([]string{"User", "System"}, false),
+						},
+						"payload_type": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Type of the config profile payload.",
+							Default:     "Configuration",
+						},
+						"payload_uuid": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "UUID of the payload.",
+							Default:     "TERRAFOR-MPRO-VIDO-RJAM-FPRO11DDBB15",
+						},
+						"payload_version": {
+							Type:        schema.TypeInt,
+							Optional:    true,
+							Description: "Version of the payload.",
+							Default:     1,
 						},
 					},
 				},
 			},
+
 			"redeploy_on_update": {
 				Type:        schema.TypeString,
 				Optional:    true,

@@ -2,23 +2,23 @@
 package macosconfigurationprofilesplistgenerator
 
 import (
+	"bytes"
 	"encoding/xml"
 	"fmt"
 	"html"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	plistgenerator "github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles/plistgeneration"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"howett.net/plist"
 )
 
 // constructJamfProMacOSConfigurationProfilesPlistGenerator constructs a ResourceMacOSConfigurationProfile object from the provided schema data.
 func constructJamfProMacOSConfigurationProfilesPlistGenerator(d *schema.ResourceData) (*jamfpro.ResourceMacOSConfigurationProfile, error) {
 	var resource *jamfpro.ResourceMacOSConfigurationProfile
 
-	payloadsMap := d.Get("payloads").(map[string]interface{})
-	payloadsXML, err := plistgenerator.GeneratePlistFromPayloads(payloadsMap)
+	plistXML, err := convertHCLToPlist(d)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate plist from payloads: %v", err)
 	}
@@ -32,7 +32,7 @@ func constructJamfProMacOSConfigurationProfilesPlistGenerator(d *schema.Resource
 			Level:              d.Get("level").(string),
 			UUID:               d.Get("uuid").(string),
 			RedeployOnUpdate:   d.Get("redeploy_on_update").(string),
-			Payloads:           html.EscapeString(payloadsXML),
+			Payloads:           html.EscapeString(plistXML),
 		},
 	}
 
@@ -57,6 +57,47 @@ func constructJamfProMacOSConfigurationProfilesPlistGenerator(d *schema.Resource
 	log.Printf("[DEBUG] Constructed Jamf Pro macOS Configuration Profile XML:\n%s\n", string(resourceXML))
 
 	return resource, nil
+}
+
+// convertHCLToPlist converts the payloads list to a map and generates the plist XML.
+func convertHCLToPlist(d *schema.ResourceData) (string, error) {
+	payloadsList := d.Get("payloads").([]interface{})
+	payloadsMap := make(map[string]interface{})
+	payloadContentArray := make([]interface{}, 0)
+
+	for _, payload := range payloadsList {
+		payloadData := payload.(map[string]interface{})
+		payloadContent := payloadData["payload_content"].([]interface{})
+		payloadContentMap := make(map[string]interface{})
+		for _, content := range payloadContent {
+			contentData := content.(map[string]interface{})
+			key := contentData["key"].(string)
+			value := contentData["value"]
+			payloadContentMap[key] = value
+		}
+		payloadContentArray = append(payloadContentArray, payloadContentMap)
+
+		for k, v := range payloadData {
+			if k != "payload_content" {
+				payloadsMap[k] = v
+			}
+		}
+	}
+
+	payloadsMap["PayloadContent"] = payloadContentArray
+
+	// Marshal the structure to plist XML
+	var buffer bytes.Buffer
+	encoder := plist.NewEncoder(&buffer)
+	encoder.Indent("\t")
+	if err := encoder.Encode(payloadsMap); err != nil {
+		return "", fmt.Errorf("failed to encode plist: %w", err)
+	}
+	payloadsXML := buffer.String()
+
+	log.Printf("[DEBUG] Constructed plist XML from HCL:\n%s\n", payloadsXML)
+
+	return payloadsXML, nil
 }
 
 // constructMacOSConfigurationProfileSubsetScope constructs a MacOSConfigurationProfileSubsetScope object from the provided schema data.
