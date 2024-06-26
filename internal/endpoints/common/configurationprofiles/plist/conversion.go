@@ -1,4 +1,3 @@
-// common/configurationprofiles/plist/conversion.go contains the functions to convert HCL to plist and plist to HCL.
 package plist
 
 import (
@@ -20,24 +19,64 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 	for _, payload := range payloadsList {
 		payloadData := payload.(map[string]interface{})
 		var configurationPayload ConfigurationPayload
+		configurationPayload.AdditionalFields = make(map[string]interface{})
 
 		if payloadContent, ok := payloadData["payload_content"].([]interface{}); ok {
-			configurationPayload.AdditionalFields = make(map[string]interface{})
 			for _, content := range payloadContent {
 				contentData := content.(map[string]interface{})
 				key := contentData["key"].(string)
 				value := contentData["value"]
 
 				// Detect the type of the value and set it accordingly
-				if boolVal, err := strconv.ParseBool(fmt.Sprintf("%v", value)); err == nil {
-					configurationPayload.AdditionalFields[key] = boolVal
-				} else if intVal, err := strconv.Atoi(fmt.Sprintf("%v", value)); err == nil {
-					configurationPayload.AdditionalFields[key] = intVal
-				} else {
-					configurationPayload.AdditionalFields[key] = value
+				switch v := value.(type) {
+				case bool:
+					configurationPayload.AdditionalFields[key] = v
+				case int:
+					configurationPayload.AdditionalFields[key] = v
+				case float64: // Terraform SDK might return float64 for numbers
+					configurationPayload.AdditionalFields[key] = int(v)
+				case string:
+					if boolVal, err := strconv.ParseBool(v); err == nil {
+						configurationPayload.AdditionalFields[key] = boolVal
+					} else if intVal, err := strconv.Atoi(v); err == nil {
+						configurationPayload.AdditionalFields[key] = intVal
+					} else {
+						configurationPayload.AdditionalFields[key] = v
+					}
+				default:
+					errorMessage := fmt.Sprintf("ERROR: Got value of type %T with value %v, unable to convert", v, v)
+					configurationPayload.AdditionalFields[key] = "ERROR"
+					log.Println(errorMessage)
 				}
 			}
 		}
+
+		// Set known fields for the ConfigurationPayload
+		if v, ok := payloadData["payload_description"]; ok {
+			configurationPayload.PayloadDescription = v.(string)
+		}
+		if v, ok := payloadData["payload_display_name"]; ok {
+			configurationPayload.PayloadDisplayName = v.(string)
+		}
+		if v, ok := payloadData["payload_enabled"]; ok {
+			configurationPayload.PayloadEnabled = v.(bool)
+		}
+		if v, ok := payloadData["payload_identifier"]; ok {
+			configurationPayload.PayloadIdentifier = v.(string)
+		}
+		if v, ok := payloadData["payload_organization"]; ok {
+			configurationPayload.PayloadOrganization = v.(string)
+		}
+		if v, ok := payloadData["payload_type"]; ok {
+			configurationPayload.PayloadType = v.(string)
+		}
+		if v, ok := payloadData["payload_uuid"]; ok {
+			configurationPayload.PayloadUUID = v.(string)
+		}
+		if v, ok := payloadData["payload_version"]; ok {
+			configurationPayload.PayloadVersion = v.(int)
+		}
+
 		// Add the configuration payload to the profile's payload content
 		configurationProfile.PayloadContent = append(configurationProfile.PayloadContent, configurationPayload)
 	}
@@ -57,7 +96,7 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 	}
 
 	for field, fieldPtr := range fields {
-		if v, ok := d.GetOk(fmt.Sprintf("payloads.0.%s", field)); ok {
+		if v, ok := d.GetOk(field); ok {
 			setField(fieldPtr, v)
 		}
 	}
@@ -81,7 +120,12 @@ func setField(fieldPtr interface{}, value interface{}) {
 	case reflect.Bool:
 		v.SetBool(value.(bool))
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		v.SetInt(int64(value.(int)))
+		switch value.(type) {
+		case int:
+			v.SetInt(int64(value.(int)))
+		case float64: // Terraform SDK might return float64 for numbers
+			v.SetInt(int64(value.(float64)))
+		}
 	case reflect.String:
 		v.SetString(value.(string))
 	default:
@@ -99,32 +143,36 @@ func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
 
 	// Convert the ConfigurationProfile struct to the format required by Terraform state
 	var payloadsList []interface{}
+
+	// Create a map for root-level fields
+	profileMap := map[string]interface{}{
+		"payload_description":        profile.PayloadDescription,
+		"payload_display_name":       profile.PayloadDisplayName,
+		"payload_enabled":            profile.PayloadEnabled,
+		"payload_identifier":         profile.PayloadIdentifier,
+		"payload_organization":       profile.PayloadOrganization,
+		"payload_removal_disallowed": profile.PayloadRemovalDisallowed,
+		"payload_scope":              profile.PayloadScope,
+		"payload_type":               profile.PayloadType,
+		"payload_uuid":               profile.PayloadUUID,
+		"payload_version":            profile.PayloadVersion,
+	}
+
+	// Convert each ConfigurationPayload to the appropriate format
+	var payloadContentList []interface{}
 	for _, configurationPayload := range profile.PayloadContent {
 		payloadMap := make(map[string]interface{})
 
 		// Convert AdditionalFields to payload_content list
-		var payloadContentList []interface{}
 		for key, value := range configurationPayload.AdditionalFields {
-			payloadContentList = append(payloadContentList, map[string]interface{}{
-				"key":   key,
-				"value": value,
-			})
+			payloadMap[key] = value
 		}
-		payloadMap["payload_content"] = payloadContentList
 
-		// Set other fields
-		payloadMap["payload_description"] = configurationPayload.PayloadDescription
-		payloadMap["payload_display_name"] = configurationPayload.PayloadDisplayName
-		payloadMap["payload_identifier"] = configurationPayload.PayloadIdentifier
-		payloadMap["payload_organization"] = configurationPayload.PayloadOrganization
-		payloadMap["payload_removal_disallowed"] = configurationPayload.PayloadRemovalDisallowed
-		payloadMap["payload_scope"] = configurationPayload.PayloadScope
-		payloadMap["payload_type"] = configurationPayload.PayloadType
-		payloadMap["payload_uuid"] = configurationPayload.PayloadUUID
-		payloadMap["payload_version"] = configurationPayload.PayloadVersion
-
-		payloadsList = append(payloadsList, payloadMap)
+		payloadContentList = append(payloadContentList, payloadMap)
 	}
+
+	profileMap["payload_content"] = payloadContentList
+	payloadsList = append(payloadsList, profileMap)
 
 	return payloadsList, nil
 }
