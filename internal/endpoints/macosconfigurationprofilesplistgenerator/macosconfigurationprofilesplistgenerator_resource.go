@@ -77,9 +77,6 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 				Type:        schema.TypeList,
 				Required:    true,
 				Description: "A list of payloads for the macOS configuration profile.",
-				StateFunc:   plist.NormalizePayloadState,
-				// ValidateFunc:     plist.ValidatePayload,
-				// DiffSuppressFunc: DiffSuppressPayloads,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"payload_root": {
@@ -95,17 +92,17 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 									},
 									"payload_display_name_root": {
 										Type:        schema.TypeString,
-										Optional:    true,
+										Computed:    true,
 										Description: "Display name of the payload.",
 									},
 									"payload_enabled_root": {
 										Type:        schema.TypeBool,
-										Required:    true,
+										Computed:    true,
 										Description: "Whether the payload is enabled.",
 									},
 									"payload_identifier_root": {
 										Type:        schema.TypeString,
-										Required:    true,
+										Computed:    true,
 										Description: "Identifier for the payload.",
 									},
 									"payload_organization_root": {
@@ -120,7 +117,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 									},
 									"payload_scope_root": {
 										Type:        schema.TypeString,
-										Optional:    true,
+										Computed:    true,
 										Description: "Scope of the payload. Computed by what is set by level. 'System' or 'User'.",
 									},
 									"payload_type_root": {
@@ -130,7 +127,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 									},
 									"payload_uuid_root": {
 										Type:        schema.TypeString,
-										Required:    true,
+										Computed:    true,
 										Description: "UUID of the payload.",
 									},
 									"payload_version_root": {
