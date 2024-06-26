@@ -74,9 +74,10 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 				ValidateFunc: validation.StringInSlice([]string{"User", "System"}, false),
 			},
 			"payloads": {
-				Type:        schema.TypeList,
-				Required:    true,
-				Description: "A list of payloads for the macOS configuration profile.",
+				Type:             schema.TypeList,
+				Required:         true,
+				DiffSuppressFunc: DiffSuppressPayloads,
+				Description:      "A list of payloads for the macOS configuration profile.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"payload_content": {

@@ -1,4 +1,4 @@
-// common/configurationprofiles/plist/diffsuppression.go contains the functions to process configuration profiles.
+// common/configurationprofiles/plist/plistdiffsuppression.go contains the functions to process configuration profiles.
 package plist
 
 import (
