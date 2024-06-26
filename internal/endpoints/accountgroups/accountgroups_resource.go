@@ -119,7 +119,7 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 					Type: schema.TypeInt,
 				},
 			},
-			"identity_server": {
+			"identity_server_id": {
 				Type:        schema.TypeInt,
 				Description: "The Id of the identity server",
 				Optional:    true,

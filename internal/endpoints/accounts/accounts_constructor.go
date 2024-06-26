@@ -23,28 +23,12 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 		PrivilegeSet:        d.Get("privilege_set").(string),
 	}
 
-	if v, ok := d.GetOk("identity_server"); ok && len(v.([]interface{})) > 0 {
-		ldapServerData := v.([]interface{})[0].(map[string]interface{})
-		resource.LdapServer = jamfpro.AccountSubsetLdapServer{
-			ID: ldapServerData["id"].(int),
-		}
+	resource.LdapServer = jamfpro.AccountSubsetLdapServer{
+		ID: d.Get("identity_server_id").(int),
 	}
 
 	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 	resource.Privileges = constructAccountSubsetPrivileges(d)
-
-	if v, ok := d.GetOk("groups"); ok {
-		groupsSet := v.(*schema.Set)
-		for _, groupItem := range groupsSet.List() {
-			groupData := groupItem.(map[string]interface{})
-			group := jamfpro.AccountsListSubsetGroups{
-				ID:   groupData["id"].(int),
-				Name: groupData["name"].(string),
-			}
-
-			resource.Groups = append(resource.Groups, group)
-		}
-	}
 
 	return resource, nil
 }

@@ -74,20 +74,10 @@ func ResourceJamfProAccounts() *schema.Resource {
 					return warns, errs
 				},
 			},
-			"identity_server": {
-				Type:        schema.TypeList,
+			"identity_server_id": {
+				Type:        schema.TypeInt,
+				Description: "The Id of the identity server",
 				Optional:    true,
-				MaxItems:    1,
-				Description: "LDAP or IdP server associated with the account group.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "ID is the ID of the LDAP or IdP configuration in Jamf Pro.",
-						},
-					},
-				},
 			},
 			"force_password_change": {
 				Type:        schema.TypeBool,
@@ -129,23 +119,6 @@ func ResourceJamfProAccounts() *schema.Resource {
 				},
 			},
 			"site_id": sharedschemas.GetSharedSchemaSite(),
-			"groups": {
-				Type:        schema.TypeSet,
-				Optional:    true,
-				Description: "A set of group names and IDs associated with the account.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-					},
-				},
-			},
 			"jss_objects_privileges": {
 				Type:        schema.TypeSet,
 				Optional:    true,

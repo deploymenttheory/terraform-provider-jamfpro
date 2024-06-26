@@ -36,12 +36,8 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceAccount)
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if resp.LdapServer.ID != 0 || resp.LdapServer.Name != "" {
-		ldapServer := make(map[string]interface{})
-		ldapServer["id"] = resp.LdapServer.ID
-		d.Set("identity_server", []interface{}{ldapServer})
-	} else {
-		d.Set("identity_server", []interface{}{})
+	if resp.LdapServer.ID != 0 {
+		d.Set("identity_server_id", resp.LdapServer.ID)
 	}
 
 	d.Set("force_password_change", resp.ForcePasswordChange)
@@ -49,19 +45,6 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceAccount)
 	d.Set("privilege_set", resp.PrivilegeSet)
 
 	d.Set("site_id", resp.Site.ID)
-
-	groups := make([]interface{}, len(resp.Groups))
-	for i, group := range resp.Groups {
-		groupMap := make(map[string]interface{})
-		groupMap["name"] = group.Name
-		groupMap["id"] = group.ID
-
-		groups[i] = groupMap
-	}
-
-	if err := d.Set("groups", groups); err != nil {
-		return diag.FromErr(err)
-	}
 
 	// TODO review this.
 	privilegeAttributes := map[string][]string{

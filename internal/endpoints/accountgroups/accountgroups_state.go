@@ -23,7 +23,7 @@ func updateTerraformState(d *schema.ResourceData, response *jamfpro.ResourceAcco
 	}
 
 	if response.LDAPServer.ID != 0 {
-		d.Set("identity_server", response.LDAPServer.ID)
+		d.Set("identity_server_id", response.LDAPServer.ID)
 	}
 
 	d.Set("site_id", response.Site.ID)

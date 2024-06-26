@@ -35,20 +35,8 @@ func constructJamfProAccountGroup(d *schema.ResourceData) (*jamfpro.ResourceAcco
 		}
 	}
 
-	// if v, ok := d.GetOk("members"); ok {
-	// 	memberList := v.([]interface{})
-	// 	resource.Members = make(jamfpro.AccountGroupSubsetMembers, len(memberList))
-	// 	for i, member := range memberList {
-	// 		memberData := member.(map[string]interface{})
-	// 		resource.Members[i].User = jamfpro.MemberUser{
-	// 			ID:   memberData["id"].(int),
-	// 			Name: memberData["name"].(string),
-	// 		}
-	// 	}
-	// }
-
 	resource.LDAPServer = jamfpro.AccountGroupSubsetLDAPServer{
-		ID: d.Get("identity_server").(int),
+		ID: d.Get("identity_server_id").(int),
 	}
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
