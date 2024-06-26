@@ -28,40 +28,38 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 				configurationPayload.AdditionalFields[key] = value
 			}
 		}
+	}
 
-		// Set other payload fields
-		if v, ok := payloadData["payload_description"]; ok {
-			configurationPayload.PayloadDescription = v.(string)
-		}
-		if v, ok := payloadData["payload_display_name"]; ok {
-			configurationPayload.PayloadDisplayName = v.(string)
-		}
-		if v, ok := payloadData["payload_enabled"]; ok {
-			configurationPayload.PayloadEnabled = v.(bool)
-		}
-		if v, ok := payloadData["payload_identifier"]; ok {
-			configurationPayload.PayloadIdentifier = v.(string)
-		}
-		if v, ok := payloadData["payload_organization"]; ok {
-			configurationPayload.PayloadOrganization = v.(string)
-		}
-		if v, ok := payloadData["payload_removal_disallowed"]; ok {
-			configurationPayload.PayloadRemovalDisallowed = v.(bool)
-		}
-		if v, ok := payloadData["payload_scope"]; ok {
-			configurationPayload.PayloadScope = v.(string)
-		}
-		if v, ok := payloadData["payload_type"]; ok {
-			configurationPayload.PayloadType = v.(string)
-		}
-		if v, ok := payloadData["payload_uuid"]; ok {
-			configurationPayload.PayloadUUID = v.(string)
-		}
-		if v, ok := payloadData["payload_version"]; ok {
-			configurationPayload.PayloadVersion = v.(int)
-		}
-
-		configurationProfile.PayloadContent = append(configurationProfile.PayloadContent, configurationPayload)
+	// Set the root-level fields
+	if v, ok := d.GetOk("payload_description"); ok {
+		configurationProfile.PayloadDescription = v.(string)
+	}
+	if v, ok := d.GetOk("payload_display_name"); ok {
+		configurationProfile.PayloadDisplayName = v.(string)
+	}
+	if v, ok := d.GetOk("payload_enabled"); ok {
+		configurationProfile.PayloadEnabled = v.(bool)
+	}
+	if v, ok := d.GetOk("payload_identifier"); ok {
+		configurationProfile.PayloadIdentifier = v.(string)
+	}
+	if v, ok := d.GetOk("payload_organization"); ok {
+		configurationProfile.PayloadOrganization = v.(string)
+	}
+	if v, ok := d.GetOk("payload_removal_disallowed"); ok {
+		configurationProfile.PayloadRemovalDisallowed = v.(bool)
+	}
+	if v, ok := d.GetOk("payload_scope"); ok {
+		configurationProfile.PayloadScope = v.(string)
+	}
+	if v, ok := d.GetOk("payload_type"); ok {
+		configurationProfile.PayloadType = v.(string)
+	}
+	if v, ok := d.GetOk("payload_uuid"); ok {
+		configurationProfile.PayloadUUID = v.(string)
+	}
+	if v, ok := d.GetOk("payload_version"); ok {
+		configurationProfile.PayloadVersion = v.(int)
 	}
 
 	// Marshal the ConfigurationProfile to plist XML

@@ -14,6 +14,7 @@ import (
 type ConfigurationProfile struct {
 	PayloadDescription       string                 `mapstructure:"PayloadDescription"`
 	PayloadDisplayName       string                 `mapstructure:"PayloadDisplayName" validate:"required"`
+	PayloadEnabled           bool                   `mapstructure:"PayloadEnabled" validate:"required"`
 	PayloadIdentifier        string                 `mapstructure:"PayloadIdentifier" validate:"required"`
 	PayloadOrganization      string                 `mapstructure:"PayloadOrganization" validate:"required"`
 	PayloadRemovalDisallowed bool                   `mapstructe:"PayloadRemovalDisallowed" validate:"required"`
@@ -32,7 +33,6 @@ type ConfigurationPayload struct {
 	PayloadOrganization string                 `mapstructure:"PayloadOrganization" validate:"required"`
 	PayloadType         string                 `mapstructure:"PayloadType" validate:"required"`
 	payloadUUID         string                 `mapstructure:"PayloadUUID,-"`
-	PayloadEnabled      bool                   `mapstructure:"PayloadEnabled"`
 	AdditionalFields    map[string]interface{} `mapstructure:",remain"`
 }
 
