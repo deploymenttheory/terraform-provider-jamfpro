@@ -17,7 +17,7 @@ import (
 func constructJamfProMacOSConfigurationProfilesPlistGenerator(d *schema.ResourceData) (*jamfpro.ResourceMacOSConfigurationProfile, error) {
 	var resource *jamfpro.ResourceMacOSConfigurationProfile
 
-	plistXML, err := convertHCLToPlist(d)
+	plistXML, err := plist.ConvertHCLToPlist(d)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate plist from payloads: %v", err)
 	}
@@ -56,74 +56,6 @@ func constructJamfProMacOSConfigurationProfilesPlistGenerator(d *schema.Resource
 	log.Printf("[DEBUG] Constructed Jamf Pro macOS Configuration Profile XML:\n%s\n", string(resourceXML))
 
 	return resource, nil
-}
-
-// convertHCLToPlist converts the payloads list to a map and generates the plist XML.
-func convertHCLToPlist(d *schema.ResourceData) (string, error) {
-	payloadsList := d.Get("payloads").([]interface{})
-	var configurationProfile plist.ConfigurationProfile
-
-	configurationProfile.PayloadContent = make([]plist.ConfigurationPayload, 0)
-
-	for _, payload := range payloadsList {
-		payloadData := payload.(map[string]interface{})
-		var configurationPayload plist.ConfigurationPayload
-
-		if payloadContent, ok := payloadData["payload_content"].([]interface{}); ok {
-			configurationPayload.AdditionalFields = make(map[string]interface{})
-			for _, content := range payloadContent {
-				contentData := content.(map[string]interface{})
-				key := contentData["key"].(string)
-				value := contentData["value"]
-
-				configurationPayload.AdditionalFields[key] = value
-			}
-		}
-
-		// Set other payload fields
-		if v, ok := payloadData["payload_description"]; ok {
-			configurationPayload.PayloadDescription = v.(string)
-		}
-		if v, ok := payloadData["payload_display_name"]; ok {
-			configurationPayload.PayloadDisplayName = v.(string)
-		}
-		// if v, ok := payloadData["payload_enabled"]; ok {
-		// 	configurationPayload.PayloadEnabled = v.(bool)
-		// }
-		if v, ok := payloadData["payload_identifier"]; ok {
-			configurationPayload.PayloadIdentifier = v.(string)
-		}
-		if v, ok := payloadData["payload_organization"]; ok {
-			configurationPayload.PayloadOrganization = v.(string)
-		}
-		if v, ok := payloadData["payload_removal_disallowed"]; ok {
-			configurationPayload.PayloadRemovalDisallowed = v.(bool)
-		}
-		if v, ok := payloadData["payload_scope"]; ok {
-			configurationPayload.PayloadScope = v.(string)
-		}
-		if v, ok := payloadData["payload_type"]; ok {
-			configurationPayload.PayloadType = v.(string)
-		}
-		if v, ok := payloadData["payload_uuid"]; ok {
-			configurationPayload.PayloadUUID = v.(string)
-		}
-		if v, ok := payloadData["payload_version"]; ok {
-			configurationPayload.PayloadVersion = v.(int)
-		}
-
-		configurationProfile.PayloadContent = append(configurationProfile.PayloadContent, configurationPayload)
-	}
-
-	// Marshal the ConfigurationProfile to plist XML
-	payloadsXML, err := plist.MarshalPayload(&configurationProfile)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal payload: %w", err)
-	}
-
-	log.Printf("[DEBUG] Constructed plist XML from HCL:\n%s\n", payloadsXML)
-
-	return payloadsXML, nil
 }
 
 // constructMacOSConfigurationProfileSubsetScope constructs a MacOSConfigurationProfileSubsetScope object from the provided schema data.
