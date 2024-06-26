@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ConvertHCLToPlist converts the payloads list to a map and generates the plist XML.
 // ConvertHCLToPlist converts the payloads list to a map and generates the plist XML.
 func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 	payloadsList := d.Get("payloads").([]interface{})
@@ -29,15 +29,12 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 				value := contentData["value"]
 
 				// Detect the type of the value and set it accordingly
-				switch v := value.(type) {
-				case string:
-					configurationPayload.AdditionalFields[key] = v
-				case int:
-					configurationPayload.AdditionalFields[key] = v
-				case bool:
-					configurationPayload.AdditionalFields[key] = v
-				default:
-					configurationPayload.AdditionalFields[key] = v
+				if boolVal, err := strconv.ParseBool(fmt.Sprintf("%v", value)); err == nil {
+					configurationPayload.AdditionalFields[key] = boolVal
+				} else if intVal, err := strconv.Atoi(fmt.Sprintf("%v", value)); err == nil {
+					configurationPayload.AdditionalFields[key] = intVal
+				} else {
+					configurationPayload.AdditionalFields[key] = value
 				}
 			}
 		}
