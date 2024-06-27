@@ -9,6 +9,7 @@ import (
 	"howett.net/plist"
 )
 
+// ConvertHCLToPlist converts the HCL data and serializes it to a plist XML string.
 func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 	// Extracting payloads from the HCL
 	payloads := d.Get("payloads").([]interface{})
@@ -89,7 +90,7 @@ func GenerateUUID() string {
 	return uuid.String()
 }
 
-// ConvertPlistToHCL converts a plist XML to the payloads list that can be set in the Terraform state.
+// ConvertPlistToHCL converts a plist XML string to HCL data. Used for stating the configuration profile data.
 func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
 	// Unmarshal the plist XML into a ConfigurationProfile struct
 	profile, err := UnmarshalPayload(plistXML)
