@@ -1,3 +1,5 @@
+// common/configurationprofiles/plist/payload.go
+// Description: This file contains the ConfigurationProfile and PayloadContent structs, as well as functions for unmarshalling, marshalling, and validating plist payloads.
 package plist
 
 import (

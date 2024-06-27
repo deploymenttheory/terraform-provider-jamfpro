@@ -1,3 +1,6 @@
+// common/configurationprofiles/plist/conversion.go
+// Description: This file contains the functions to convert the HCL data to a plist XML string and vice versa.
+
 package plist
 
 import (

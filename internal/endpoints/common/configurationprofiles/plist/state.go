@@ -1,4 +1,5 @@
-// common/configurationprofiles/plist/state.go contains the functions to process configuration profiles.
+// common/configurationprofiles/plist/state.go
+// contains the functions to process configuration profiles for terraform state.
 package plist
 
 import (
