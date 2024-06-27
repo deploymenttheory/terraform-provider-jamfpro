@@ -182,8 +182,8 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 									},
 									"payload_identifier": {
 										Type:        schema.TypeString,
-										Required:    true,
-										Description: "Identifier for the payload.",
+										Computed:    true,
+										Description: "Unique identifier for the payload within the mdm profile. Required for a valid request to be sent but then overwritten by the Jamf Pro server. This key changes every time a profile is updated.",
 									},
 									"payload_organization": {
 										Type:        schema.TypeString,
@@ -197,8 +197,8 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 									},
 									"payload_uuid": {
 										Type:        schema.TypeString,
-										Required:    true,
-										Description: "UUID of the payload.",
+										Computed:    true,
+										Description: "payload UUID for the payload within the mdm profile. Required for a valid request to be sent but then overwritten by the Jamf Pro server. This key changes every time a profile is updated.",
 									},
 									"payload_version": {
 										Type:        schema.TypeInt,

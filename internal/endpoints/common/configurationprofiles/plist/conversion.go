@@ -13,6 +13,8 @@ import (
 )
 
 // ConvertHCLToPlist converts the HCL data and serializes it to a plist XML string.
+// A UUID is generated for the payload identifier and payload UUID for each payload.
+// This is required for a successful POST request to the Jamf Pro API.
 func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 	// Extracting payloads from the HCL
 	payloads := d.Get("payloads").([]interface{})
@@ -47,10 +49,10 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 			PayloadDescription:  pcMap["payload_description"].(string),
 			PayloadDisplayName:  pcMap["payload_display_name"].(string),
 			PayloadEnabled:      pcMap["payload_enabled"].(bool),
-			PayloadIdentifier:   pcMap["payload_identifier"].(string),
+			PayloadIdentifier:   uuidStr,
 			PayloadOrganization: pcMap["payload_organization"].(string),
 			PayloadType:         pcMap["payload_type"].(string),
-			PayloadUUID:         pcMap["payload_uuid"].(string),
+			PayloadUUID:         uuidStr,
 			PayloadVersion:      pcMap["payload_version"].(int),
 		}
 	}
