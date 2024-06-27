@@ -12,12 +12,9 @@ import (
 // This function is used during the Terraform plan phase to apply custom validation rules
 // that are not covered by the basic schema validation.
 func customDiffAccountGroups(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-	accessLevel, ok := d.GetOk("access_level")
-	if !ok || accessLevel == nil {
-		return nil
-	}
+	accessLevel := d.Get("access_level").(string)
 
-	if accessLevel.(string) == "Site Access" {
+	if accessLevel == "Site Access" {
 		if _, ok := d.GetOk("site_id"); !ok {
 			return fmt.Errorf("'site' must be set when 'access_level' is 'Site Access'")
 		}

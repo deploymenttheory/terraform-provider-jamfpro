@@ -9,10 +9,8 @@ import (
 
 // updateTerraformState updates the Terraform state with the latest Computer Inventory Collection information from the Jamf Pro API.
 func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceComputerInventoryCollection) diag.Diagnostics {
-
 	var diags diag.Diagnostics
 
-	// Map the configuration fields from the API response to a structured map
 	inventoryCollectionData := map[string]interface{}{
 		"local_user_accounts":               resp.LocalUserAccounts,
 		"home_directory_sizes":              resp.HomeDirectorySizes,
@@ -28,24 +26,20 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceComputer
 		"include_plugins":                   resp.IncluePlugins,
 	}
 
-	// Set the structured map in the Terraform state
 	for key, val := range inventoryCollectionData {
 		if err := d.Set(key, val); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	// Process applications
 	if err := d.Set("applications", flattenApplications(resp.Applications)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Process fonts
 	if err := d.Set("fonts", flattenFonts(resp.Fonts)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Process plugins
 	if err := d.Set("plugins", flattenPlugins(resp.Plugins)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}

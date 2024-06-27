@@ -20,7 +20,6 @@ func ResourceJamfProAccounts() *schema.Resource {
 		ReadContext:   resourceJamfProAccountReadWithCleanup,
 		UpdateContext: resourceJamfProAccountUpdate,
 		DeleteContext: resourceJamfProAccountDelete,
-		CustomizeDiff: customDiffAccounts,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(15 * time.Second),
@@ -70,8 +69,8 @@ func ResourceJamfProAccounts() *schema.Resource {
 					if v == "Enabled" || v == "Disabled" {
 						return
 					}
-					errs = append(errs, fmt.Errorf("%q must be either 'Enabled' or 'Disabled', got: %s", key, v))
-					return warns, errs
+
+					return warns, append(errs, fmt.Errorf("%q must be either 'Enabled' or 'Disabled', got: %s", key, v))
 				},
 			},
 			"identity_server_id": {
@@ -114,8 +113,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 							return
 						}
 					}
-					errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validPrivileges, v))
-					return warns, errs
+					return warns, append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validPrivileges, v))
 				},
 			},
 			"site_id": sharedschemas.GetSharedSchemaSite(),

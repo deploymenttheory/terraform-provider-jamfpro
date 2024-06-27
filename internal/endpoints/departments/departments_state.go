@@ -11,13 +11,12 @@ import (
 func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceDepartment) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if resp != nil {
-		if err := d.Set("id", resp.ID); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("name", resp.Name); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+	if err := d.Set("id", resp.ID); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("name", resp.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	return diags

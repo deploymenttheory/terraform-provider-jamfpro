@@ -9,10 +9,8 @@ import (
 
 // updateTerraformState updates the Terraform state with the latest Computer Check-In information from the Jamf Pro API.
 func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceComputerCheckin) diag.Diagnostics {
-
 	var diags diag.Diagnostics
 
-	// Map the configuration fields from the API response to a structured map
 	checkinData := map[string]interface{}{
 		"check_in_frequency":                       resp.CheckInFrequency,
 		"create_startup_script":                    resp.CreateStartupScript,
@@ -28,11 +26,11 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceComputer
 		"perform_login_actions_in_background":      resp.PerformLoginActionsInBackground,
 	}
 
-	// Set the structured map in the Terraform state
 	for key, val := range checkinData {
 		if err := d.Set(key, val); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
+
 	return diags
 }

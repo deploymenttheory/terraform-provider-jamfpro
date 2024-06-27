@@ -42,6 +42,7 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceUserGrou
 	}
 	d.Set("criteria", criteria)
 
+	// TODO review this
 	if !resp.IsSmart {
 		var userIDStrList []string
 		for _, user := range resp.Users {

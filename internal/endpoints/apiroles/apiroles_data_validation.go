@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+// TODO review this whole file
+
 // List of valid privileges - replace these with actual valid privileges.
 var validPrivileges = []string{
 	"Allow User to Enroll",

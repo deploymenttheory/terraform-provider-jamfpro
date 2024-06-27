@@ -13,38 +13,33 @@ import (
 func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceDiskEncryptionConfiguration) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// Assuming successful retrieval, proceed to set the resource attributes in Terraform state
-	if resp != nil {
-		// Set the fields directly in the Terraform state
-		if err := d.Set("id", strconv.Itoa(resp.ID)); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("name", resp.Name); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("key_type", resp.KeyType); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-		if err := d.Set("file_vault_enabled_users", resp.FileVaultEnabledUsers); err != nil {
+	if err := d.Set("id", strconv.Itoa(resp.ID)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("name", resp.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("key_type", resp.KeyType); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("file_vault_enabled_users", resp.FileVaultEnabledUsers); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if resp.InstitutionalRecoveryKey != nil {
+		irk := make(map[string]interface{})
+		irk["certificate_type"] = resp.InstitutionalRecoveryKey.CertificateType
+		irk["data"] = resp.InstitutionalRecoveryKey.Data
+
+		if err := d.Set("institutional_recovery_key", []interface{}{irk}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 
-		// Handle Institutional Recovery Key
-		if resp.InstitutionalRecoveryKey != nil {
-			irk := make(map[string]interface{})
-			irk["certificate_type"] = resp.InstitutionalRecoveryKey.CertificateType
-			//irk["password"] = resp.InstitutionalRecoveryKey.Password // Uncomment if password should be set
-			irk["data"] = resp.InstitutionalRecoveryKey.Data
-
-			if err := d.Set("institutional_recovery_key", []interface{}{irk}); err != nil {
-				diags = append(diags, diag.FromErr(err)...)
-			}
-		} else {
-			// Ensure institutional_recovery_key is not set in the Terraform state if nil or empty
-			if err := d.Set("institutional_recovery_key", []interface{}{}); err != nil {
-				diags = append(diags, diag.FromErr(err)...)
-			}
+	} else {
+		if err := d.Set("institutional_recovery_key", []interface{}{}); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
+
 	return diags
 }

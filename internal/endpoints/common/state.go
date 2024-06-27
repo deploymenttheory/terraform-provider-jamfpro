@@ -1,7 +1,7 @@
 // common/state/state.go
 // This package contains shared / common resource functions for stating
 
-package state
+package common
 
 import (
 	"strings"
