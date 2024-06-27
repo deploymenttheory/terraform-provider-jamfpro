@@ -2,6 +2,9 @@
 package accounts
 
 import (
+	"encoding/json"
+	"log"
+
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -16,19 +19,21 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 		DirectoryUser:       d.Get("directory_user").(bool),
 		FullName:            d.Get("full_name").(string),
 		Email:               d.Get("email").(string),
+		Site:                sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int)),
 		Enabled:             d.Get("enabled").(string),
 		ForcePasswordChange: d.Get("force_password_change").(bool),
 		AccessLevel:         d.Get("access_level").(string),
 		Password:            d.Get("password").(string),
 		PrivilegeSet:        d.Get("privilege_set").(string),
+		LdapServer: jamfpro.AccountSubsetLdapServer{
+			ID: d.Get("identity_server_id").(int),
+		},
+		Privileges: constructAccountSubsetPrivileges(d),
 	}
 
-	resource.LdapServer = jamfpro.AccountSubsetLdapServer{
-		ID: d.Get("identity_server_id").(int),
-	}
-
-	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
-	resource.Privileges = constructAccountSubsetPrivileges(d)
+	log.Println("LOGHERE-OUT")
+	jsonData, _ := json.MarshalIndent(resource, " ", "    ")
+	log.Println(string(jsonData))
 
 	return resource, nil
 }

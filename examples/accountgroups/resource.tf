@@ -5,10 +5,7 @@ resource "jamfpro_account_group"  "jamf_pro_account_group_001" {
   access_level = "Full Access" // Full Access / Site Access / Group Access
   privilege_set = "Custom" 
 
-  site {
-    id   = -1 
-    name = "None" 
-  }
+  # site_id = 1 OPTIONAL
 
   jss_objects_privileges = [
     "Create Advanced Computer Searches",
@@ -121,10 +118,7 @@ resource "jamfpro_account_group"  "jamf_pro_account_group_004" {
   access_level = "Full Access" // Full Access / Site Access / Group Access
   privilege_set = "Custom" 
 
-  site {
-    id   = -1 
-    name = "None" 
-  }
+  site_id = 1
 
   identity_server {
     id   = 1 // LDAP_GROUP_ID / iDP_GROUP_ID

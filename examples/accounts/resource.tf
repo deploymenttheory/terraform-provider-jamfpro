@@ -53,10 +53,6 @@ resource "jamfpro_account" "jamf_pro_account_002" {
   force_password_change  = true
   access_level           = "Group Access" // Full Access / Site Access / Group Access
   privilege_set          = "Custom" // Must be "Custom" for group access
-  groups {
-    id   = 195
-    name = "tf-localtest-standard-group"
-  }
 }
 
 // example of account with group privileges and site access
@@ -71,10 +67,7 @@ resource "jamfpro_account" "jamf_pro_account_003" {
   access_level           = "Site Access" // Full Access / Site Access / Group Access
   privilege_set          = "Custom"
 
-  site {
-    id   = 967
-    name = "test"
-  }
+  site_id = 1
 
   jss_objects_privileges   = ["Create Advanced Computer Searches",
 	"Read Advanced Computer Searches",

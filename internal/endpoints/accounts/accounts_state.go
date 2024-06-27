@@ -2,6 +2,7 @@
 package accounts
 
 import (
+	"encoding/json"
 	"log"
 	"strconv"
 
@@ -14,6 +15,10 @@ import (
 // updateTerraformState updates the Terraform state with the latest Account information from the Jamf Pro API.
 func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceAccount) diag.Diagnostics {
 	var diags diag.Diagnostics
+
+	log.Println("LOGHERE-IN")
+	jsonData, _ := json.MarshalIndent(resp, " ", "    ")
+	log.Println(string(jsonData))
 
 	// Update Terraform state with the resource information
 	if err := d.Set("id", strconv.Itoa(resp.ID)); err != nil {
@@ -43,8 +48,13 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceAccount)
 	d.Set("force_password_change", resp.ForcePasswordChange)
 	d.Set("access_level", resp.AccessLevel)
 	d.Set("privilege_set", resp.PrivilegeSet)
-
-	d.Set("site_id", resp.Site.ID)
+	log.Println("LOGHERE")
+	// log.Printf("%+v", resp)
+	if resp.Site != nil {
+		d.Set("site_id", resp.Site.ID)
+	} else {
+		d.Set("site_id", -1)
+	}
 
 	// TODO review this.
 	privilegeAttributes := map[string][]string{

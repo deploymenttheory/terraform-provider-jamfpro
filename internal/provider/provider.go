@@ -425,6 +425,8 @@ func Provider() *schema.Provider {
 			exportLogs,
 		)
 
+		// newLogger := log.New(os.Stderr, "None", 3)
+
 		// Auth
 		jamfDomain = GetJamfFqdn(d, &diags)
 		tokenRefrshBufferPeriod := time.Duration(d.Get("token_refresh_buffer_period_seconds").(int)) * time.Second
