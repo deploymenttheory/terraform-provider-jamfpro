@@ -1,3 +1,4 @@
+// macosconfigurationprofilesplistgenerator_state.go
 package macosconfigurationprofilesplistgenerator
 
 import (

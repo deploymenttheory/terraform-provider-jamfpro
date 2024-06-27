@@ -1,3 +1,4 @@
+// macosconfigurationprofilesplistgenerator_crud.go
 package macosconfigurationprofilesplistgenerator
 
 import (

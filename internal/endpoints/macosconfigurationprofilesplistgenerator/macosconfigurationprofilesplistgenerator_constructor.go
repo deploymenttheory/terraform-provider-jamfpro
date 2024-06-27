@@ -1,4 +1,4 @@
-// macosconfigurationprofilesplistgenerator_object.go
+// macosconfigurationprofilesplistgenerator_constructor.go
 package macosconfigurationprofilesplistgenerator
 
 import (
