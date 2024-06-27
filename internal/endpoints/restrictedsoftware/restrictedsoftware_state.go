@@ -14,7 +14,6 @@ import (
 func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftware) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// Update the Terraform state with the fetched data
 	if err := d.Set("id", strconv.Itoa(resp.General.ID)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -42,7 +41,6 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceRestrict
 
 	d.Set("site_id", resp.General.Site.ID)
 
-	// Update the scope data
 	if err := d.Set("scope", flattenScope(resp.Scope)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}

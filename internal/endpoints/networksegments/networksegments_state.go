@@ -13,7 +13,6 @@ import (
 func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceNetworkSegment) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// Update the Terraform state with the fetched data
 	resourceData := map[string]interface{}{
 		"id":                   strconv.Itoa(resp.ID),
 		"name":                 resp.Name,
@@ -29,7 +28,6 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceNetworkS
 		"override_departments": resp.OverrideDepartments,
 	}
 
-	// Iterate over the map and set each key-value pair in the Terraform state
 	for key, val := range resourceData {
 		if err := d.Set(key, val); err != nil {
 			return diag.FromErr(err)

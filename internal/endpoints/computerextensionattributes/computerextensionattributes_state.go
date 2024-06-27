@@ -20,7 +20,6 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceComputer
 	d.Set("input_type", resp.InputType)
 	d.Set("input_popup", resp.InputType.Choices)
 	d.Set("input_script", resp.InputType.Script)
-	// d.Set("input_directory_mapping", resp.InputTyp)
 
 	return diags
 

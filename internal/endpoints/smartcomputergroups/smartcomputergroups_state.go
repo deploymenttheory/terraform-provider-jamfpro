@@ -20,7 +20,6 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceComputer
 
 	d.Set("site_id", resp.Site.ID)
 
-	// Handle Criteria
 	if resp.Criteria != nil && resp.Criteria.Criterion != nil {
 		criteria := setComputerSmartGroupSubsetContainerCriteria(resp.Criteria)
 		if err := d.Set("criteria", criteria); err != nil {
@@ -37,6 +36,7 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceComputer
 
 // setComputerSmartGroupSubsetContainerCriteria flattens a ComputerGroupSubsetContainerCriteria object into a format suitable for Terraform state.
 func setComputerSmartGroupSubsetContainerCriteria(criteria *jamfpro.ComputerGroupSubsetContainerCriteria) []interface{} {
+	// TODO Review this!
 	if criteria == nil || criteria.Criterion == nil {
 		return []interface{}{}
 	}

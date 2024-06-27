@@ -32,6 +32,7 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceAdvanced
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	// TODO review this
 	criteriaList := make([]interface{}, len(resp.Criteria.Criterion))
 	for i, crit := range resp.Criteria.Criterion {
 		criteriaMap := map[string]interface{}{

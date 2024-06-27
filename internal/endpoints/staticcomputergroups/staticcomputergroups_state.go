@@ -11,11 +11,6 @@ import (
 func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceComputerGroup) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if resp == nil {
-		return diags
-	}
-
-	// Update the Terraform state with the fetched data
 	if err := d.Set("name", resp.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -25,7 +20,7 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceComputer
 
 	d.Set("site_id", resp.Site.ID)
 
-	// Set the 'assignments' attribute in the state
+	// TODO review this.
 	if resp.Computers != nil {
 		computerIDs := []interface{}{}
 		for _, comp := range *resp.Computers {

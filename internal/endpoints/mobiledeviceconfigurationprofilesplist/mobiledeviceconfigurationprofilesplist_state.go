@@ -15,6 +15,8 @@ import (
 func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceConfigurationProfile) diag.Diagnostics {
 	var diags diag.Diagnostics
 
+	// TODO review this and remove. the. comments.!
+
 	// Create a map to hold the resource data
 	resourceData := map[string]interface{}{
 		"name":              resp.General.Name,

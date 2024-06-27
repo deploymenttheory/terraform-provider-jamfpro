@@ -10,16 +10,17 @@ import (
 // updateTerraformState updates the Terraform state with the latest Activation Code information from the Jamf Pro API.
 func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceActivationCode) diag.Diagnostics {
 	var diags diag.Diagnostics
+	var err error
 
-	activationCodeData := map[string]interface{}{
-		"organization_name": resource.OrganizationName,
-		"code":              resource.Code,
+	err = d.Set("organization_name", resource.OrganizationName)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	for key, val := range activationCodeData {
-		if err := d.Set(key, val); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+	err = d.Set("code", resource.Code)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
+
 	return diags
 }

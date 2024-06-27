@@ -13,24 +13,19 @@ import (
 func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceDockItem) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// Check if dockItem data exists and update the Terraform state
-	if resp != nil {
-		resourceData := map[string]interface{}{
-			"id":       strconv.Itoa(resp.ID),
-			"name":     resp.Name,
-			"type":     resp.Type,
-			"path":     resp.Path,
-			"contents": resp.Contents,
-		}
-
-		// Set each attribute in the Terraform state, checking for errors
-		var diags diag.Diagnostics
-		for key, val := range resourceData {
-			if err := d.Set(key, val); err != nil {
-				diags = append(diags, diag.FromErr(err)...)
-			}
-		}
-		return diags
+	resourceData := map[string]interface{}{
+		"id":       strconv.Itoa(resp.ID),
+		"name":     resp.Name,
+		"type":     resp.Type,
+		"path":     resp.Path,
+		"contents": resp.Contents,
 	}
+
+	for key, val := range resourceData {
+		if err := d.Set(key, val); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
 	return diags
 }

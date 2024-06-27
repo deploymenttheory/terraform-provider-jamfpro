@@ -2,8 +2,6 @@
 package accounts
 
 import (
-	"encoding/json"
-	"log"
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -16,11 +14,6 @@ import (
 func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceAccount) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	log.Println("LOGHERE-IN")
-	jsonData, _ := json.MarshalIndent(resp, " ", "    ")
-	log.Println(string(jsonData))
-
-	// Update Terraform state with the resource information
 	if err := d.Set("id", strconv.Itoa(resp.ID)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -48,8 +41,7 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceAccount)
 	d.Set("force_password_change", resp.ForcePasswordChange)
 	d.Set("access_level", resp.AccessLevel)
 	d.Set("privilege_set", resp.PrivilegeSet)
-	log.Println("LOGHERE")
-	// log.Printf("%+v", resp)
+
 	if resp.Site != nil {
 		d.Set("site_id", resp.Site.ID)
 	} else {
@@ -66,10 +58,6 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceAccount)
 		// "casper_imaging_privileges": resp.Privileges.CasperImaging,
 		"recon_privileges": resp.Privileges.Recon,
 	}
-
-	log.Println("LOGHERE")
-	log.Printf("%+v", resp.Privileges.CasperAdmin)
-	log.Println(privilegeAttributes)
 
 	for attrName, privileges := range privilegeAttributes {
 		if err := d.Set(attrName, schema.NewSet(schema.HashString, utilities.ConvertToStringInterface(privileges))); err != nil {
