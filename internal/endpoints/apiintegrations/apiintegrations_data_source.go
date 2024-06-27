@@ -90,15 +90,23 @@ func dataSourceJamfProApiIntegrationsRead(ctx context.Context, d *schema.Resourc
 	}
 
 	d.SetId(resourceID)
-	d.Set("display_name", resource.DisplayName)
-	d.Set("client_id", resource.ClientID)
 
 	resp, err := client.RefreshClientCredentialsByApiRoleID(resourceID)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
 
-	d.Set("client_secret", resp.ClientSecret)
+	if err = d.Set("display_name", resource.DisplayName); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err = d.Set("client_id", resource.ClientID); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err = d.Set("client_secret", resp.ClientSecret); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	return diags
 }
