@@ -8,8 +8,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/jamfprivileges"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 
-	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -46,12 +44,11 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 				Required:    true,
 				Description: "The access level of the account. This can be either Full Access, scoped to a jamf pro site with Site Access, or scoped to a jamf pro account group with Group Access",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := util.GetString(val)
+					v := val.(string)
 					if v == "Full Access" || v == "Site Access" || v == "Group Access" {
 						return
 					}
-					errs = append(errs, fmt.Errorf("%q must be either 'Full Access' or 'Site Access' or 'Group Access', got: %s", key, v))
-					return warns, errs
+					return warns, append(errs, fmt.Errorf("%q must be either 'Full Access' or 'Site Access' or 'Group Access', got: %s", key, v))
 				},
 			},
 			"privilege_set": {
@@ -59,15 +56,14 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 				Optional:    true,
 				Description: "The privilege set assigned to the account.",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := util.GetString(val)
+					v := val.(string)
 					validPrivileges := []string{"Administrator", "Auditor", "Enrollment Only", "Custom"}
 					for _, validPriv := range validPrivileges {
 						if v == validPriv {
-							return // Valid value found, return without error
+							return
 						}
 					}
-					errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validPrivileges, v))
-					return warns, errs
+					return warns, append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validPrivileges, v))
 				},
 			},
 			"site_id": sharedschemas.GetSharedSchemaSite(),
