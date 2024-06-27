@@ -31,7 +31,7 @@ func constructJamfProAccountGroup(d *schema.ResourceData) (*jamfpro.ResourceAcco
 		}
 	}
 
-	resource.LDAPServer = jamfpro.AccountGroupSubsetLDAPServer{
+	resource.LDAPServer = jamfpro.SharedResourceLdapServer{
 		ID: d.Get("identity_server_id").(int),
 	}
 

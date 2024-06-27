@@ -25,7 +25,7 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 		AccessLevel:         d.Get("access_level").(string),
 		Password:            d.Get("password").(string),
 		PrivilegeSet:        d.Get("privilege_set").(string),
-		LdapServer: jamfpro.AccountSubsetLdapServer{
+		LdapServer: jamfpro.SharedResourceLdapServer{
 			ID: d.Get("identity_server_id").(int),
 		},
 		Privileges: constructAccountSubsetPrivileges(d),
