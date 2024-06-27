@@ -81,7 +81,7 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 	}
 	unescapedPrettyPlistXML := html.UnescapeString(string(prettyPlistXML))
 
-	log.Printf("[DEBUG] HCL serialized plist as XML:\n%s\n", unescapedPrettyPlistXML)
+	log.Printf("[DEBUG] Constructed Plist XML from HCL serialization:\n%s\n", unescapedPrettyPlistXML)
 
 	return plistXML, nil
 }
