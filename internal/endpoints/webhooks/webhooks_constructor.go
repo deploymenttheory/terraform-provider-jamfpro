@@ -2,7 +2,6 @@
 package webhooks
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -29,30 +28,10 @@ func constructJamfProWebhook(d *schema.ResourceData) (*jamfpro.ResourceWebhook, 
 		SmartGroupID:                d.Get("smart_group_id").(int),
 	}
 
-	if v, ok := d.GetOk("display_fields"); ok {
-		displayFieldsData := v.([]interface{})
-		for _, fieldData := range displayFieldsData {
-			field, ok := fieldData.(map[string]interface{})
-			if !ok {
-				return nil, fmt.Errorf("display_field is not a valid map")
-			}
-			var displayFields []jamfpro.SharedAdvancedSearchSubsetDisplayField
-			if subFieldsData, ok := field["display_field"].([]interface{}); ok {
-				for _, subFieldData := range subFieldsData {
-					subField, ok := subFieldData.(map[string]interface{})
-					if !ok {
-						return nil, fmt.Errorf("sub_display_field is not a valid map")
-					}
-					if name, ok := subField["name"].(string); ok {
-						displayFields = append(displayFields, jamfpro.SharedAdvancedSearchSubsetDisplayField{
-							Name: name,
-						})
-					}
-				}
-			}
-			resource.DisplayFields = append(resource.DisplayFields, jamfpro.SharedAdvancedSearchContainerDisplayField{
-				DisplayField: displayFields,
-			})
+	displayFieldsHcl := d.Get("display_fields").([]interface{})
+	if len(displayFieldsHcl) > 0 {
+		for _, v := range displayFieldsHcl {
+			resource.DisplayFields = append(resource.DisplayFields, jamfpro.DisplayField{Name: v.(string)})
 		}
 	}
 

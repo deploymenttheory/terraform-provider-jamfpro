@@ -5,7 +5,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -14,6 +13,7 @@ import (
 // constructJamfProComputerExtensionAttribute constructs a ResourceComputerExtensionAttribute object from the provided schema data.
 func constructJamfProComputerExtensionAttribute(d *schema.ResourceData) (*jamfpro.ResourceComputerExtensionAttribute, error) {
 	var resource *jamfpro.ResourceComputerExtensionAttribute
+	log.Println("LOGHERE")
 
 	resource = &jamfpro.ResourceComputerExtensionAttribute{
 		Name:             d.Get("name").(string),
@@ -24,21 +24,40 @@ func constructJamfProComputerExtensionAttribute(d *schema.ResourceData) (*jamfpr
 		ReconDisplay:     d.Get("recon_display").(string),
 	}
 
-	if v, ok := d.GetOk("input_type"); ok && len(v.([]interface{})) > 0 {
-		inputTypeData := v.([]interface{})[0].(map[string]interface{})
-		inputType := jamfpro.ComputerExtensionAttributeSubsetInputType{
-			Type:     inputTypeData["type"].(string),
-			Platform: inputTypeData["platform"].(string),
-			Script:   strings.TrimSpace(inputTypeData["script"].(string)),
-		}
+	inputTypeEnabledText := d.Get("input_type").(string) == "Text Field"
+	inputTypeEnabledPopUp := len(d.Get("input_popup").([]interface{})) != 0
+	inputTypeEnabledScript := d.Get("input_script") != ""
+	// inputTypeEnabledDirectory := d.Get("input_directory_mapping") != ""
 
-		if choices, exists := inputTypeData["choices"]; exists {
-			for _, choice := range choices.([]interface{}) {
-				inputType.Choices = append(inputType.Choices, choice.(string))
-			}
-		}
+	log.Printf("Text: %v", d.Get("input_type").(string))
+	log.Printf("Popup: %v", d.Get("input_popup"))
+	log.Printf("script: %v", d.Get("input_script"))
+	log.Printf("Dir: %v", d.Get("input_directory_mapping"))
 
-		resource.InputType = inputType
+	inputList := []bool{inputTypeEnabledText, inputTypeEnabledPopUp, inputTypeEnabledScript}
+	var boolCount int
+	for _, v := range inputList {
+		if v {
+			boolCount += 1
+		}
+	}
+	if boolCount > 1 {
+		log.Println(inputList)
+		log.Println(boolCount)
+		return nil, fmt.Errorf("multiple input types selected, please adjust your configuratuon")
+	}
+
+	inputType := d.Get("input_type").(string)
+	resource.InputType.Type = inputType
+
+	if inputType == "Pop-up Menu" {
+		choices := d.Get("input_popup").([]interface{})
+		for _, v := range choices {
+			resource.InputType.Choices = append(resource.InputType.Choices, v.(string))
+		}
+	} else if inputType == "script" {
+		resource.InputType.Platform = "Mac"
+		resource.InputType.Script = d.Get("input_script").(string)
 	}
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")

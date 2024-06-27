@@ -425,6 +425,8 @@ func Provider() *schema.Provider {
 			exportLogs,
 		)
 
+		// newLogger := log.New(os.Stderr, "None", 3)
+
 		// Auth
 		jamfDomain = GetJamfFqdn(d, &diags)
 		tokenRefrshBufferPeriod := time.Duration(d.Get("token_refresh_buffer_period_seconds").(int)) * time.Second
@@ -513,7 +515,7 @@ func Provider() *schema.Provider {
 		// TODO make this exclusions list a lot prettier.
 		// excludedResource := []string{"jamfpro_package"}
 		for key, r := range provider.ResourcesMap {
-			if key != "jamfpro_package" && key != "jamfpro_jamfpro_static_computer_group" && key != "jamfpro_smart_computer_group" {
+			if key != "jamfpro_package" && key != "jamfpro_static_computer_group" && key != "jamfpro_smart_computer_group" {
 				*r.Timeouts.Create = GetDefaultContextTimeoutCreate(load_balancer_lock_enabled)
 				*r.Timeouts.Read = GetDefaultContextTimeoutRead(load_balancer_lock_enabled)
 				*r.Timeouts.Update = GetDefaultContextTimeoutUpdate(load_balancer_lock_enabled)

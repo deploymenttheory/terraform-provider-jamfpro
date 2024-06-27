@@ -44,17 +44,3 @@ func FixDuplicateNotificationKey(resp *jamfpro.ResourceMacOSConfigurationProfile
 	// Return default value if no valid boolean value is found
 	return false, nil
 }
-
-// TODO Make this work later
-
-// func GetListOfIdsFromResp[T any](targetItem []T, targetKey string) ([]int, error) {
-// 	if len(targetItem) == 0 {
-// 		return nil, nil
-// 	} else {
-// 		var out []int
-// 		for k, v := range targetItem.FieldByName(targetKey) {
-// 			out = append(out, v)
-// 		}
-// 		return out, nil
-// 	}
-// }

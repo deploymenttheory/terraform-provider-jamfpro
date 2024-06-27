@@ -2,6 +2,9 @@
 package accounts
 
 import (
+	"encoding/json"
+	"log"
+
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -16,35 +19,21 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 		DirectoryUser:       d.Get("directory_user").(bool),
 		FullName:            d.Get("full_name").(string),
 		Email:               d.Get("email").(string),
+		Site:                sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int)),
 		Enabled:             d.Get("enabled").(string),
 		ForcePasswordChange: d.Get("force_password_change").(bool),
 		AccessLevel:         d.Get("access_level").(string),
 		Password:            d.Get("password").(string),
 		PrivilegeSet:        d.Get("privilege_set").(string),
+		LdapServer: jamfpro.SharedResourceLdapServer{
+			ID: d.Get("identity_server_id").(int),
+		},
+		Privileges: constructAccountSubsetPrivileges(d),
 	}
 
-	if v, ok := d.GetOk("identity_server"); ok && len(v.([]interface{})) > 0 {
-		ldapServerData := v.([]interface{})[0].(map[string]interface{})
-		resource.LdapServer = jamfpro.AccountSubsetLdapServer{
-			ID: ldapServerData["id"].(int),
-		}
-	}
-
-	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
-	resource.Privileges = constructAccountSubsetPrivileges(d)
-
-	if v, ok := d.GetOk("groups"); ok {
-		groupsSet := v.(*schema.Set)
-		for _, groupItem := range groupsSet.List() {
-			groupData := groupItem.(map[string]interface{})
-			group := jamfpro.AccountsListSubsetGroups{
-				ID:   groupData["id"].(int),
-				Name: groupData["name"].(string),
-			}
-
-			resource.Groups = append(resource.Groups, group)
-		}
-	}
+	log.Println("LOGHERE-OUT")
+	jsonData, _ := json.MarshalIndent(resource, " ", "    ")
+	log.Println(string(jsonData))
 
 	return resource, nil
 }

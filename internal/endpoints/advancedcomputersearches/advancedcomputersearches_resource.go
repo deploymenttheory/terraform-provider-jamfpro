@@ -38,6 +38,7 @@ func ResourceJamfProAdvancedComputerSearches() *schema.Resource {
 			"view_as": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Default:     "Standard Web Page",
 				Description: "View type of the advanced computer search",
 			},
 			"sort1": {
@@ -92,17 +93,11 @@ func ResourceJamfProAdvancedComputerSearches() *schema.Resource {
 				},
 			},
 			"display_fields": {
-				Type:        schema.TypeSet,
+				Type:        schema.TypeList,
+				Description: "List of displayfields",
 				Optional:    true,
-				Description: "display field in the advanced computer search",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "display field item in the advanced computer search",
-						},
-					},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 			"site_id": sharedschemas.GetSharedSchemaSite(),

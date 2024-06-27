@@ -24,23 +24,15 @@ func constructJamfProAccountGroup(d *schema.ResourceData) (*jamfpro.ResourceAcco
 	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 	resource.Privileges = constructAccountSubsetPrivileges(d)
 
-	if v, ok := d.GetOk("members"); ok {
-		memberList := v.([]interface{})
-		resource.Members = make(jamfpro.AccountGroupSubsetMembers, len(memberList))
-		for i, member := range memberList {
-			memberData := member.(map[string]interface{})
-			resource.Members[i].User = jamfpro.MemberUser{
-				ID:   memberData["id"].(int),
-				Name: memberData["name"].(string),
-			}
+	members_ids := d.Get("member_ids").([]interface{})
+	if len(members_ids) > 0 {
+		for _, v := range members_ids {
+			resource.Members = append(resource.Members, jamfpro.MemberUser{ID: v.(int)})
 		}
 	}
 
-	if v, ok := d.GetOk("identity_server"); ok && len(v.([]interface{})) > 0 {
-		identityServerData := v.([]interface{})[0].(map[string]interface{})
-		resource.LDAPServer = jamfpro.AccountGroupSubsetLDAPServer{
-			ID: identityServerData["id"].(int),
-		}
+	resource.LDAPServer = jamfpro.SharedResourceLdapServer{
+		ID: d.Get("identity_server_id").(int),
 	}
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")

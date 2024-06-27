@@ -14,8 +14,6 @@ import (
 func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResourceScript, error) {
 	var resource *jamfpro.ResourceScript
 
-	// TODO category testing required ASAP
-
 	resource = &jamfpro.ResourceScript{
 		Name:           d.Get("name").(string),
 		Info:           d.Get("info").(string),

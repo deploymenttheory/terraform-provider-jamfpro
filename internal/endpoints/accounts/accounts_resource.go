@@ -74,20 +74,10 @@ func ResourceJamfProAccounts() *schema.Resource {
 					return warns, errs
 				},
 			},
-			"identity_server": {
-				Type:        schema.TypeList,
+			"identity_server_id": {
+				Type:        schema.TypeInt,
+				Description: "The Id of the identity server",
 				Optional:    true,
-				MaxItems:    1,
-				Description: "LDAP or IdP server associated with the account group.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "ID is the ID of the LDAP or IdP configuration in Jamf Pro.",
-						},
-					},
-				},
 			},
 			"force_password_change": {
 				Type:        schema.TypeBool,
@@ -99,7 +89,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 				Required:    true,
 				Description: "The access level of the account. This can be either Full Access, scoped to a jamf pro site with Site Access, or scoped to a jamf pro account group with Group Access",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := util.GetString(val)
+					v := val.(string)
 					if v == "Full Access" || v == "Site Access" || v == "Group Access" {
 						return
 					}
@@ -117,7 +107,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 				Optional:    true,
 				Description: "The privilege set assigned to the account.",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := util.GetString(val)
+					v := val.(string)
 					validPrivileges := []string{"Administrator", "Auditor", "Enrollment Only", "Custom"}
 					for _, validPriv := range validPrivileges {
 						if v == validPriv {
@@ -129,23 +119,6 @@ func ResourceJamfProAccounts() *schema.Resource {
 				},
 			},
 			"site_id": sharedschemas.GetSharedSchemaSite(),
-			"groups": {
-				Type:        schema.TypeSet,
-				Optional:    true,
-				Description: "A set of group names and IDs associated with the account.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-					},
-				},
-			},
 			"jss_objects_privileges": {
 				Type:        schema.TypeSet,
 				Optional:    true,

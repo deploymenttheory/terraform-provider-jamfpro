@@ -37,16 +37,11 @@ func constructJamfProAdvancedUserSearch(d *schema.ResourceData) (*jamfpro.Resour
 		resource.Criteria.Criterion = criteria
 	}
 
-	if v, ok := d.GetOk("display_fields"); ok {
-		displayFieldsSet := v.(*schema.Set).List()
-		displayFields := make([]jamfpro.SharedAdvancedSearchSubsetDisplayField, len(displayFieldsSet))
-		for i, field := range displayFieldsSet {
-			fieldMap := field.(map[string]interface{})
-			displayFields[i] = jamfpro.SharedAdvancedSearchSubsetDisplayField{
-				Name: fieldMap["name"].(string),
-			}
+	displayFieldsHcl := d.Get("display_fields").([]interface{})
+	if len(displayFieldsHcl) > 0 {
+		for _, v := range displayFieldsHcl {
+			resource.DisplayFields = append(resource.DisplayFields, jamfpro.DisplayField{Name: v.(string)})
 		}
-		resource.DisplayFields = []jamfpro.SharedAdvancedSearchContainerDisplayField{{DisplayField: displayFields}}
 	}
 
 	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))

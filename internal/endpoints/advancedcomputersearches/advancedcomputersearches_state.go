@@ -49,21 +49,13 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceAdvanced
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if len(resp.DisplayFields) == 0 || len(resp.DisplayFields[0].DisplayField) == 0 {
-		if err := d.Set("display_fields", []interface{}{}); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+	if len(resp.DisplayFields) > 0 {
+		var displayFieldList []string
+		for _, v := range resp.DisplayFields {
+			displayFieldList = append(displayFieldList, v.Name)
 		}
-	} else {
-		displayFieldsList := make([]map[string]interface{}, len(resp.DisplayFields[0].DisplayField))
-		for i, displayField := range resp.DisplayFields[0].DisplayField {
-			displayFieldMap := map[string]interface{}{
-				"name": displayField.Name,
-			}
-			displayFieldsList[i] = displayFieldMap
-		}
-		if err := d.Set("display_fields", displayFieldsList); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+
+		d.Set("display_fields", displayFieldList)
 	}
 
 	d.Set("site_id", resp.Site.ID)

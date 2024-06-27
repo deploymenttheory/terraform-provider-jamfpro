@@ -14,9 +14,9 @@ func customDiffAccounts(ctx context.Context, d *schema.ResourceDiff, meta interf
 		return err
 	}
 
-	if err := validatePrivilegesForSiteAccess(ctx, d, meta); err != nil {
-		return err
-	}
+	// if err := validatePrivilegesForSiteAccess(ctx, d, meta); err != nil {
+	// 	return err
+	// }
 
 	if err := validateGroupAccessPrivilegeSetRequirement(ctx, d, meta); err != nil {
 		return err
@@ -39,25 +39,15 @@ func customDiffAccounts(ctx context.Context, d *schema.ResourceDiff, meta interf
 
 // validateAccessLevelSiteRequirement checks that the 'site' attribute is set when access_level is 'Site Access'.
 func validateAccessLevelSiteRequirement(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
-	accessLevel, ok := d.GetOk("access_level")
-	if !ok || accessLevel == nil {
-		return nil
+	accessLevel := d.Get("access_level").(string)
+	site := d.Get("site_id").(int)
+
+	if site > 0 && accessLevel != "Site Access" {
+		return fmt.Errorf("cannot have site set without site access")
 	}
 
-	if accessLevel.(string) == "Site Access" {
-		if site, ok := d.GetOk("site_id"); ok {
-			siteList := site.([]interface{})
-			if len(siteList) == 0 || siteList[0] == nil {
-				return fmt.Errorf("'site' block must be set when 'access_level' is 'Site Access'")
-			}
-
-			siteMap := siteList[0].(map[string]interface{})
-			if id, ok := siteMap["id"]; !ok || id == 0 {
-				return fmt.Errorf("'site.id' must be set when 'access_level' is 'Site Access'")
-			}
-		} else {
-			return fmt.Errorf("'site' block must be set when 'access_level' is 'Site Access'")
-		}
+	if site == -1 && accessLevel == "Site Access" {
+		return fmt.Errorf("cannot have site access without site set")
 	}
 
 	return nil
@@ -65,8 +55,8 @@ func validateAccessLevelSiteRequirement(_ context.Context, d *schema.ResourceDif
 
 // validatePrivilegesForSiteAccess checks that certain privileges are not set when access_level is 'Site Access'.
 func validatePrivilegesForSiteAccess(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
-	accessLevel, ok := d.GetOk("access_level")
-	if !ok || accessLevel.(string) != "Site Access" {
+	accessLevel := d.Get("access_level")
+	if accessLevel.(string) != "Site Access" {
 		return nil
 	}
 
@@ -83,13 +73,11 @@ func validatePrivilegesForSiteAccess(_ context.Context, d *schema.ResourceDiff, 
 
 // validateGroupAccessPrivilegeSetRequirement ensures that if access_level is "Group Access", then privilege_set must be "Custom".
 func validateGroupAccessPrivilegeSetRequirement(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
-	accessLevel, accessLevelOk := d.GetOk("access_level")
-	privilegeSet, privilegeSetOk := d.GetOk("privilege_set")
+	accessLevel := d.Get("access_level").(string)
+	privilegeSet := d.Get("privilege_set").(string)
 
-	if accessLevelOk && accessLevel.(string) == "Group Access" {
-		if !privilegeSetOk || privilegeSet.(string) != "Custom" {
-			return fmt.Errorf("when 'access_level' is 'Group Access', 'privilege_set' must be 'Custom'")
-		}
+	if accessLevel == "Group Access" && privilegeSet != "Custom" {
+		return fmt.Errorf("when 'access_level' is 'Group Access', 'privilege_set' must be 'Custom'")
 	}
 
 	return nil

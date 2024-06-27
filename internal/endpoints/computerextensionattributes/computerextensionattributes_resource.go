@@ -16,7 +16,6 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 		ReadContext:   resourceJamfProComputerExtensionAttributesReadWithCleanup,
 		UpdateContext: resourceJamfProComputerExtensionAttributesUpdate,
 		DeleteContext: resourceJamfProComputerExtensionAttributesDelete,
-		CustomizeDiff: validateJamfProRResourceComputerExtensionAttributesDataFields,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(15 * time.Second),
@@ -55,39 +54,29 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"string", "integer", "date"}, false),
 			},
 			"input_type": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"script", "Text Field", "LDAP Mapping", "Pop-up Menu"}, false),
-						},
-						"platform": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							Description:  "Platform type for the computer extension attribute.",
-							ValidateFunc: validation.StringInSlice([]string{"Mac", "Windows"}, false),
-						},
-						"script": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-						},
-						"choices": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-					},
-				},
-				Description: "Input type details of the computer extension attribute.",
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "Extension Attribute Input Type",
+				ValidateFunc: validation.StringInSlice([]string{"script", "Text Field", "Pop-up Menu"}, true),
 			},
+			"input_popup": {
+				Type:        schema.TypeList,
+				Description: "List of popup choices",
+				Optional:    true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"input_script": {
+				Type:        schema.TypeString,
+				Description: "Script to populate extension attribute",
+				Optional:    true,
+			},
+			// "input_directory_mapping": {
+			// 	Type:        schema.TypeString,
+			// 	Description: "Script to populate extension attribute",
+			// 	Optional:    true,
+			// },
 			"inventory_display": {
 				Type:         schema.TypeString,
 				Optional:     true,

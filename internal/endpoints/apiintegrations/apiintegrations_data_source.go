@@ -4,6 +4,7 @@ package apiintegrations
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -27,6 +28,16 @@ func DataSourceJamfProApiIntegrations() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The display name of the API integration.",
+			},
+			"client_id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "client id",
+			},
+			"client_secret": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "client secret",
 			},
 		},
 	}
@@ -70,13 +81,31 @@ func dataSourceJamfProApiIntegrationsRead(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro API Integration with ID '%s' after retries: %v", resourceID, err))
 	}
 
-	if resource != nil {
-		d.SetId(resourceID)
-		if err := d.Set("display_name", resource.DisplayName); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro API Integration with ID '%s': %v", resourceID, err))...)
-		}
-	} else {
+	log.Println("LOGHERE")
+	log.Printf("%+v", resource)
+
+	if resource == nil {
 		d.SetId("")
+		return append(diags, diag.FromErr(fmt.Errorf("recieved empty resource"))...)
+	}
+
+	d.SetId(resourceID)
+
+	resp, err := client.RefreshClientCredentialsByApiRoleID(resourceID)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+
+	if err = d.Set("display_name", resource.DisplayName); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err = d.Set("client_id", resource.ClientID); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	if err = d.Set("client_secret", resp.ClientSecret); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	return diags

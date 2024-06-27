@@ -2,6 +2,7 @@
 package accounts
 
 import (
+	"encoding/json"
 	"log"
 	"strconv"
 
@@ -14,6 +15,10 @@ import (
 // updateTerraformState updates the Terraform state with the latest Account information from the Jamf Pro API.
 func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceAccount) diag.Diagnostics {
 	var diags diag.Diagnostics
+
+	log.Println("LOGHERE-IN")
+	jsonData, _ := json.MarshalIndent(resp, " ", "    ")
+	log.Println(string(jsonData))
 
 	// Update Terraform state with the resource information
 	if err := d.Set("id", strconv.Itoa(resp.ID)); err != nil {
@@ -36,31 +41,19 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceAccount)
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if resp.LdapServer.ID != 0 || resp.LdapServer.Name != "" {
-		ldapServer := make(map[string]interface{})
-		ldapServer["id"] = resp.LdapServer.ID
-		d.Set("identity_server", []interface{}{ldapServer})
-	} else {
-		d.Set("identity_server", []interface{}{})
+	if resp.LdapServer.ID != 0 {
+		d.Set("identity_server_id", resp.LdapServer.ID)
 	}
 
 	d.Set("force_password_change", resp.ForcePasswordChange)
 	d.Set("access_level", resp.AccessLevel)
 	d.Set("privilege_set", resp.PrivilegeSet)
-
-	d.Set("site_id", resp.Site.ID)
-
-	groups := make([]interface{}, len(resp.Groups))
-	for i, group := range resp.Groups {
-		groupMap := make(map[string]interface{})
-		groupMap["name"] = group.Name
-		groupMap["id"] = group.ID
-
-		groups[i] = groupMap
-	}
-
-	if err := d.Set("groups", groups); err != nil {
-		return diag.FromErr(err)
+	log.Println("LOGHERE")
+	// log.Printf("%+v", resp)
+	if resp.Site != nil {
+		d.Set("site_id", resp.Site.ID)
+	} else {
+		d.Set("site_id", -1)
 	}
 
 	// TODO review this.
