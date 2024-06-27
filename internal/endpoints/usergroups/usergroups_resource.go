@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -62,26 +63,7 @@ func ResourceJamfProUserGroups() *schema.Resource {
 				Optional:    true,
 				Description: "Indicates if notifications are sent on change.",
 			},
-			"site_id": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "The unique identifier of the site.",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The name of the site.",
-						},
-					},
-				},
-				Description: "The site associated with the user group.",
-			},
+			"site_id": sharedschemas.GetSharedSchemaSite(),
 			"criteria": {
 				Type:        schema.TypeList,
 				Optional:    true,
