@@ -123,9 +123,11 @@ func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
 	for _, configurationPayload := range profile.PayloadContent {
 		configurations := make([]interface{}, 0, len(configurationPayload.AdditionalFields))
 		for key, value := range configurationPayload.AdditionalFields {
+			// Ensure all values are converted to strings
+			strValue := fmt.Sprintf("%v", value)
 			configurations = append(configurations, map[string]interface{}{
 				"key":   key,
-				"value": value,
+				"value": strValue,
 			})
 		}
 
