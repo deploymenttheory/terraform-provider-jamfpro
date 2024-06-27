@@ -25,7 +25,6 @@ func resourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	// Construct the package resource from the Terraform schema
 	resource, err := constructJamfProPackageCreate(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package: %v", err))
@@ -35,7 +34,6 @@ func resourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 		var apiErr error
 		var creationResponse *jamfpro.ResponsePackageCreatedAndUpdated
 
-		// Step 1: Create the package metadata in Jamf Pro
 		creationResponse, apiErr = client.CreatePackage(*resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
@@ -43,7 +41,6 @@ func resourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 
 		log.Printf("[DEBUG] Jamf Pro Package Metadata created: %+v", creationResponse)
 
-		// Step 2: Upload the package file within the same context
 		filePath := d.Get("package_file_path").(string)
 		fullFilePath, _ := filepath.Abs(filePath)
 
@@ -115,7 +112,6 @@ func resourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package for update: %v", err))
 	}
 
-	// Step 1: Update the package metadata in Jamf Pro
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		_, apiErr := client.UpdatePackageByID(resourceID, *resource)
 		if apiErr != nil {
@@ -127,8 +123,6 @@ func resourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Package '%s' (ID: %s) after retries: %v", resource.PackageName, resourceID, err))
 	}
-
-	// Step 2: Upload the package file if it has changed
 
 	filePath := d.Get("package_file_path").(string)
 	newFileHash, err := generateMD5FileHash(filePath)
