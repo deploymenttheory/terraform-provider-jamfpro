@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html"
 	"log"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -17,7 +18,6 @@ import (
 // A UUID is generated for the payload identifier and payload UUID for each payload.
 // This is required for a successful POST request to the Jamf Pro API.
 func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
-
 	uuidStr := GenerateUUID()
 	// Extracting HCL data
 	payloads := d.Get("payloads").([]interface{})
@@ -39,7 +39,7 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 		for _, config := range configurations {
 			configMap := config.(map[string]interface{})
 			key := configMap["key"].(string)
-			value := configMap["value"]
+			value := GetTypedValue(configMap["value"])
 			additionalFields[key] = value
 		}
 		payloadContent[i] = PayloadContent{
@@ -90,6 +90,18 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 func GenerateUUID() string {
 	uuid := uuid.New()
 	return uuid.String()
+}
+
+// GetTypedValue converts the value from the HCL always stored as string into the appropriate type for plist serialization.
+func GetTypedValue(value interface{}) interface{} {
+	strValue := fmt.Sprintf("%v", value)
+	if boolValue, err := strconv.ParseBool(strValue); err == nil {
+		return boolValue
+	}
+	if intValue, err := strconv.Atoi(strValue); err == nil {
+		return intValue
+	}
+	return strValue
 }
 
 // ConvertPlistToHCL converts a plist XML string to HCL data. Used for stating the configuration profile data.
