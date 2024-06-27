@@ -5,6 +5,7 @@ package plist
 
 import (
 	"fmt"
+	"html"
 	"log"
 
 	"github.com/google/uuid"
@@ -16,7 +17,9 @@ import (
 // A UUID is generated for the payload identifier and payload UUID for each payload.
 // This is required for a successful POST request to the Jamf Pro API.
 func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
-	// Extracting payloads from the HCL
+
+	uuidStr := GenerateUUID()
+	// Extracting HCL data
 	payloads := d.Get("payloads").([]interface{})
 	if len(payloads) == 0 {
 		return "", fmt.Errorf("no payloads found in the provided HCL")
@@ -24,14 +27,9 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 
 	payloadData := payloads[0].(map[string]interface{})
 
-	// Generate UUID if not provided
-	uuidStr := GenerateUUID()
-
-	// Extracting payload root
 	payloadRootData := payloadData["payload_root"].([]interface{})[0].(map[string]interface{})
-
-	// Extracting payload content
 	payloadContentData := payloadData["payload_content"].([]interface{})
+
 	payloadContent := make([]PayloadContent, len(payloadContentData))
 
 	for i, pc := range payloadContentData {
@@ -72,19 +70,18 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 		PayloadContent:           payloadContent,
 	}
 
-	// Marshaling the ConfigurationProfile struct to a plist string
 	plistXML, err := MarshalPayload(profile)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal profile to plist: %v", err)
 	}
 
-	// Pretty-printing the plist XML for DEBUG logging
 	prettyPlistXML, err := plist.MarshalIndent(plistXML, plist.XMLFormat, "  ")
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal profile to pretty plist: %v", err)
 	}
+	unescapedPrettyPlistXML := html.UnescapeString(string(prettyPlistXML))
 
-	log.Printf("[DEBUG] Pretty printed plist XML:\n%s\n", string(prettyPlistXML))
+	log.Printf("[DEBUG] HCL serialized plist as XML:\n%s\n", unescapedPrettyPlistXML)
 
 	return plistXML, nil
 }
