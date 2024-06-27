@@ -4,7 +4,6 @@ package apiintegrations
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -80,9 +79,6 @@ func dataSourceJamfProApiIntegrationsRead(ctx context.Context, d *schema.Resourc
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro API Integration with ID '%s' after retries: %v", resourceID, err))
 	}
-
-	log.Println("LOGHERE")
-	log.Printf("%+v", resource)
 
 	if resource == nil {
 		d.SetId("")
