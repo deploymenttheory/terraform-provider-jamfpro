@@ -120,8 +120,6 @@ resource "jamfpro_account_group"  "jamf_pro_account_group_004" {
 
   site_id = 1
 
-  identity_server {
-    id   = 1 // LDAP_GROUP_ID / iDP_GROUP_ID
-  }
+  identity_server_id = 1
   
 }

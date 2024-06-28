@@ -1,7 +1,7 @@
 // Specific printer ppd
 resource "jamfpro_printer" "jamfpro_printers_001" {
   name         = "tf-example-printer-specific_ppd-01"
-  category     = "No category assigned"
+  category_name     = "No category assigned"
   uri          = "lpd://10.1.20.204/"
   cups_name    = "HP_DesignJet_1050C_PS3"
   location     = "string"
@@ -18,7 +18,7 @@ resource "jamfpro_printer" "jamfpro_printers_001" {
 // Generic printer ppd
 resource "jamfpro_printer" "jamfpro_printers_002" {
   name         = "tf-example-printer-generic_ppd-01"
-  category     = "No category assigned"
+  category_name    = "No category assigned"
   uri          = "lpd://10.1.20.204/"
   cups_name    = "HP_9th_Floor"
   location     = "string"
