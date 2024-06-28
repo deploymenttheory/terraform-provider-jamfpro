@@ -24,7 +24,7 @@ description: |-
 - `criteria` (Block List) The criteria used for defining the smart user group. (see [below for nested schema](#nestedblock--criteria))
 - `is_notify_on_change` (Boolean) Indicates if notifications are sent on change.
 - `is_smart` (Boolean) Indicates if the user group is a smart group.
-- `site_id` (Block List, Max: 1) The site associated with the user group. (see [below for nested schema](#nestedblock--site_id))
+- `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 - `user_additions` (Block List) Users added to the user group. (see [below for nested schema](#nestedblock--user_additions))
 - `user_deletions` (Block List) Users removed from the user group. (see [below for nested schema](#nestedblock--user_deletions))
@@ -46,15 +46,6 @@ Optional:
 - `priority` (Number) The priority of the criterion.
 - `search_type` (String) The type of user smart group search operator. Allowed values are 'is', 'is not', 'like', 'not like', 'matches regex', 'does not match regex', 'member of', 'not member of'.
 - `value` (String) The value to search for.
-
-
-<a id="nestedblock--site_id"></a>
-### Nested Schema for `site_id`
-
-Optional:
-
-- `id` (Number) The unique identifier of the site.
-- `name` (String) The name of the site.
 
 
 <a id="nestedblock--timeouts"></a>

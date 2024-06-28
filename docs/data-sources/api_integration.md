@@ -21,4 +21,6 @@ description: |-
 
 ### Read-Only
 
+- `client_id` (String) client id
+- `client_secret` (String) client secret
 - `display_name` (String) The display name of the API integration.

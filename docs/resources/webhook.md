@@ -27,7 +27,7 @@ description: |-
 
 - `authentication_type` (String) The type of authentication required for the webhook (e.g., BASIC 'Basic Authentication', HEADER for 'Header Authentication').
 - `connection_timeout` (Number) Amount of time to wait for a response from the webhook's host server after sending a request, in seconds.Value must be an integer between 1 and 15
-- `display_fields` (Block List) List of display fields associated with the webhook. (see [below for nested schema](#nestedblock--display_fields))
+- `display_fields` (List of String) List of displayfields
 - `enable_display_fields_for_group` (Boolean) Whether to enable display fields for the group associated with the webhook.
 - `password` (String, Sensitive) The password for authentication, if applicable.
 - `read_timeout` (Number) Amount of time to attempt to connect to the webhook's host server, in seconds.Value must be an integer between 1 and 15
@@ -38,14 +38,6 @@ description: |-
 ### Read-Only
 
 - `id` (String) The unique identifier of the Jamf Pro webhook.
-
-<a id="nestedblock--display_fields"></a>
-### Nested Schema for `display_fields`
-
-Required:
-
-- `name` (String) The name of the display field.
-
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`
