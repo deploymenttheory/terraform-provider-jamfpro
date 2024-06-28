@@ -44,16 +44,15 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceUserGrou
 
 	// TODO review this
 	if !resp.IsSmart {
-		var userIDStrList []string
-		for _, user := range resp.Users {
-			userIDStrList = append(userIDStrList, strconv.Itoa(user.ID))
+		var userIDStrList []int
+		if len(resp.Users) > 0 {
+			for _, v := range resp.Users {
+				userIDStrList = append(userIDStrList, v.ID)
+			}
 		}
 
-		if err := d.Set("users", []interface{}{
-			map[string]interface{}{
-				"id": userIDStrList,
-			},
-		}); err != nil {
+		err := d.Set("assigned_user_ids", userIDStrList)
+		if err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
