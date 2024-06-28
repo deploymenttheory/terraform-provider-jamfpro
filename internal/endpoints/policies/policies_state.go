@@ -354,12 +354,27 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 
 	// DiskEncryption
 	prepStatePayloadDiskEncryption(&out, resp)
-	
+
 	// Packages
 	prepStatePayloadPackages(&out, resp)
 
 	// Scripts
 	prepStatePayloadScripts(&out, resp)
+
+	// Account Maintenance
+	prepStatePayloadAccountMaintenance(&out, resp)
+
+	// Files Processes
+	prepStatePayloadFilesProcesses(&out, resp)
+
+	// User Interaction
+	prepStatePayloadUserInteraction(&out, resp)
+
+	// Reboot
+	prepStatePayloadReboot(&out, resp)
+
+	// Maintenance
+	prepStatePayloadMaintenance(&out, resp)
 
 	// State
 	err := d.Set("payloads", out)
@@ -380,6 +395,7 @@ func prepStatePayloadDiskEncryption(out *[]map[string]interface{}, resp *jamfpro
 	outMap["auth_restart"] = resp.DiskEncryption.AuthRestart
 	(*out)[0]["disk_encryption"] = append((*out)[0]["disk_encryption"].([]map[string]interface{}), outMap)
 }
+
 // Reads response and preps package payload items
 func prepStatePayloadPackages(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	if resp.PackageConfiguration == nil {
@@ -449,4 +465,103 @@ func prepStatePayloadScripts(out *[]map[string]interface{}, resp *jamfpro.Resour
 		log.Println("LOGHERE-SCRIPT OUT")
 		log.Println(outMap)
 	}
+}
+
+// Reads response and preps account maintenance payload items
+func prepStatePayloadAccountMaintenance(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
+	if resp.AccountMaintenance == nil || resp.AccountMaintenance.Accounts == nil {
+		return
+	}
+
+	(*out)[0]["account_maintenance"] = make([]map[string]interface{}, 0)
+	for _, v := range *resp.AccountMaintenance.Accounts {
+		outMap := make(map[string]interface{})
+		outMap["action"] = v.Action
+		outMap["username"] = v.Username
+		outMap["realname"] = v.Realname
+		outMap["password"] = v.Password
+		outMap["archive_home_directory"] = v.ArchiveHomeDirectory
+		outMap["archive_home_directory_to"] = v.ArchiveHomeDirectoryTo
+		outMap["home"] = v.Home
+		outMap["hint"] = v.Hint
+		outMap["picture"] = v.Picture
+		outMap["admin"] = v.Admin
+		outMap["filevault_enabled"] = v.FilevaultEnabled
+		(*out)[0]["account_maintenance"] = append((*out)[0]["account_maintenance"].([]map[string]interface{}), outMap)
+	}
+}
+
+// Reads response and preps files and processes payload items
+func prepStatePayloadFilesProcesses(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
+	if resp.FilesProcesses == nil {
+		return
+	}
+
+	(*out)[0]["files_processes"] = make([]map[string]interface{}, 0)
+	outMap := make(map[string]interface{})
+	outMap["search_by_path"] = resp.FilesProcesses.SearchByPath
+	outMap["delete_file"] = resp.FilesProcesses.DeleteFile
+	outMap["locate_file"] = resp.FilesProcesses.LocateFile
+	outMap["update_locate_database"] = resp.FilesProcesses.UpdateLocateDatabase
+	outMap["spotlight_search"] = resp.FilesProcesses.SpotlightSearch
+	outMap["search_for_process"] = resp.FilesProcesses.SearchForProcess
+	outMap["kill_process"] = resp.FilesProcesses.KillProcess
+	outMap["run_command"] = resp.FilesProcesses.RunCommand
+	(*out)[0]["files_processes"] = append((*out)[0]["files_processes"].([]map[string]interface{}), outMap)
+}
+
+// Reads response and preps user interaction payload items
+func prepStatePayloadUserInteraction(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
+	if resp.UserInteraction == nil {
+		return
+	}
+
+	(*out)[0]["user_interaction"] = make([]map[string]interface{}, 0)
+	outMap := make(map[string]interface{})
+	outMap["message_start"] = resp.UserInteraction.MessageStart
+	outMap["allow_user_to_defer"] = resp.UserInteraction.AllowUserToDefer
+	outMap["allow_deferral_until_utc"] = resp.UserInteraction.AllowDeferralUntilUtc
+	outMap["allow_deferral_minutes"] = resp.UserInteraction.AllowDeferralMinutes
+	outMap["message_finish"] = resp.UserInteraction.MessageFinish
+	(*out)[0]["user_interaction"] = append((*out)[0]["user_interaction"].([]map[string]interface{}), outMap)
+}
+
+// Reads response and preps reboot payload items
+func prepStatePayloadReboot(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
+	if resp.Reboot == nil {
+		return
+	}
+
+	(*out)[0]["reboot"] = make([]map[string]interface{}, 0)
+	outMap := make(map[string]interface{})
+	outMap["message"] = resp.Reboot.Message
+	outMap["specify_startup"] = resp.Reboot.SpecifyStartup
+	outMap["startup_disk"] = resp.Reboot.StartupDisk
+	outMap["no_user_logged_in"] = resp.Reboot.NoUserLoggedIn
+	outMap["user_logged_in"] = resp.Reboot.UserLoggedIn
+	outMap["minutes_until_reboot"] = resp.Reboot.MinutesUntilReboot
+	outMap["start_reboot_timer_immediately"] = resp.Reboot.StartRebootTimerImmediately
+	outMap["file_vault_2_reboot"] = resp.Reboot.FileVault2Reboot
+	(*out)[0]["reboot"] = append((*out)[0]["reboot"].([]map[string]interface{}), outMap)
+}
+
+// Reads response and preps maintenance payload items
+func prepStatePayloadMaintenance(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
+	if resp.Maintenance == nil {
+		return
+	}
+
+	(*out)[0]["maintenance"] = make([]map[string]interface{}, 0)
+	outMap := make(map[string]interface{})
+	outMap["recon"] = resp.Maintenance.Recon
+	outMap["reset_name"] = resp.Maintenance.ResetName
+	outMap["install_all_cached_packages"] = resp.Maintenance.InstallAllCachedPackages
+	outMap["heal"] = resp.Maintenance.Heal
+	outMap["prebindings"] = resp.Maintenance.Prebindings
+	outMap["permissions"] = resp.Maintenance.Permissions
+	outMap["byhost"] = resp.Maintenance.Byhost
+	outMap["system_cache"] = resp.Maintenance.SystemCache
+	outMap["user_cache"] = resp.Maintenance.UserCache
+	outMap["verify"] = resp.Maintenance.Verify
+	(*out)[0]["maintenance"] = append((*out)[0]["maintenance"].([]map[string]interface{}), outMap)
 }
