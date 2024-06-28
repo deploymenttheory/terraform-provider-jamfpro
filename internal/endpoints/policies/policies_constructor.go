@@ -27,6 +27,7 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	}
 
 	constructSelfService(d, resource)
+
 	constructPayloads(d, resource)
 
 	// Package Configuration
