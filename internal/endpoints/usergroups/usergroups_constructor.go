@@ -5,7 +5,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"log"
-	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
@@ -38,23 +37,14 @@ func constructJamfProUserGroup(d *schema.ResourceData) (*jamfpro.ResourceUserGro
 		})
 	}
 
-	if v, ok := d.GetOk("users"); ok && len(v.([]interface{})) > 0 {
-		usersBlock := v.([]interface{})[0].(map[string]interface{})
-		userIDList := usersBlock["id"].([]interface{})
-		for _, userID := range userIDList {
-			userIDStr, ok := userID.(string)
-			if !ok {
-				return nil, fmt.Errorf("user ID is not a string as expected: %v", userID)
+	if !resource.IsSmart {
+		assignedUsers := d.Get("assigned_user_ids").([]interface{})
+		if len(assignedUsers) > 0 {
+			for _, v := range assignedUsers {
+				resource.Users = append(resource.Users, jamfpro.UserGroupSubsetUserItem{
+					ID: v.(int),
+				})
 			}
-
-			intID, err := strconv.Atoi(userIDStr)
-			if err != nil {
-				return nil, fmt.Errorf("error converting user ID '%s' to integer: %v", userIDStr, err)
-			}
-
-			resource.Users = append(resource.Users, jamfpro.UserGroupSubsetUserItem{
-				ID: intID,
-			})
 		}
 	}
 

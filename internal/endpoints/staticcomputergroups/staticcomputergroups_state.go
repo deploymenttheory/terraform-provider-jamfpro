@@ -20,18 +20,13 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceComputer
 
 	d.Set("site_id", resp.Site.ID)
 
-	// TODO review this.
+	var assignments []interface{}
 	if resp.Computers != nil {
-		computerIDs := []interface{}{}
 		for _, comp := range *resp.Computers {
-			computerIDs = append(computerIDs, comp.ID)
+			assignments = append(assignments, comp.ID)
 		}
-		assignments := []interface{}{
-			map[string]interface{}{
-				"computer_ids": computerIDs,
-			},
-		}
-		if err := d.Set("assignments", assignments); err != nil {
+
+		if err := d.Set("assigned_computer_ids", assignments); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}

@@ -22,13 +22,17 @@ func constructJamfProStaticComputerGroup(d *schema.ResourceData) (*jamfpro.Resou
 
 	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 
-	if v, ok := d.GetOk("assignments"); ok {
-		assignments := v.([]interface{})
-		if len(assignments) > 0 {
-			computerIDs := assignments[0].(map[string]interface{})["computer_ids"].([]interface{})
-			resource.Computers = constructGroupComputers(computerIDs)
+	if resource.Computers != nil {
+		assignedComputers := d.Get("assigned_computer_ids").([]interface{})
+		if len(assignedComputers) > 0 {
+			for _, v := range assignedComputers {
+				*resource.Computers = append(*resource.Computers, jamfpro.ComputerGroupSubsetComputer{
+					ID: v.(int),
+				})
+			}
 		}
 	}
+
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Group '%s' to XML: %v", resource.Name, err)
@@ -40,16 +44,3 @@ func constructJamfProStaticComputerGroup(d *schema.ResourceData) (*jamfpro.Resou
 }
 
 // Helper functions for nested structures
-
-// constructGroupComputers constructs a slice of ComputerGroupSubsetComputer from the provided schema data.
-func constructGroupComputers(computerIDs []interface{}) *[]jamfpro.ComputerGroupSubsetComputer {
-	var computers []jamfpro.ComputerGroupSubsetComputer
-	for _, id := range computerIDs {
-		computer := jamfpro.ComputerGroupSubsetComputer{
-			ID: id.(int),
-		}
-		computers = append(computers, computer)
-	}
-
-	return &computers
-}

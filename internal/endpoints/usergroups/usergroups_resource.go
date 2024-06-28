@@ -122,20 +122,12 @@ func ResourceJamfProUserGroups() *schema.Resource {
 					},
 				},
 			},
-			"users": {
+			"assigned_user_ids": {
 				Type:        schema.TypeList,
 				Optional:    true,
-				Description: "A block representing the users belonging to the user group.",
-				MaxItems:    1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:        schema.TypeList,
-							Required:    true,
-							Elem:        &schema.Schema{Type: schema.TypeString},
-							Description: "A list of jamf pro user object ID's for use within a static group.",
-						},
-					},
+				Description: "assigned computer by ids",
+				Elem: &schema.Schema{
+					Type: schema.TypeInt,
 				},
 			},
 			"user_additions": {
