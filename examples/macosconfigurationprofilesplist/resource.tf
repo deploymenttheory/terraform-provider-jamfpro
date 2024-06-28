@@ -14,14 +14,10 @@ resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuratio
   user_removable    = false
 
   // Optional Block
-   site {
-    id = 967
-  }
+   site_id = 1
 
 // Optional Block
-  category {
-    id = 5
-  }
+  category_id = 1
 
 // Optional Block
   scope {
@@ -89,14 +85,10 @@ resource "jamfpro_macos_configuration_profile" "jamfpro_macos_configuration_prof
   user_removable    = false
 
   // Optional Block
-   site {
-    id = 967
-  }
+   site_id = 1
 
 // Optional Block
-  category {
-    id = 5
-  }
+  category_id = 1
 
 // Optional Block
   scope {

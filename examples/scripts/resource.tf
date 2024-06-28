@@ -3,6 +3,7 @@
 resource "jamfpro_script" "scripts_0001" {
   name            = "tf-example-script-fileupload"
   script_contents = file("support_files/scripts/Add or Remove Group Membership.zsh")
+  category_id = 5
   os_requirements = "13"
   priority        = "BEFORE"
   info            = "Adds target user or group to specified group membership, or removes said membership."

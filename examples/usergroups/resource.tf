@@ -4,14 +4,9 @@ resource "jamfpro_user_group" "jamfpro_user_group_001" {
   is_smart            = false
   is_notify_on_change = false
 
-  site {
-    id   = 1
-    name = "thing"
-  }
+  site_id = 5
 
-  users {
-    id = [2, 3]
-  }
+  users_ids = sort(1, 2)
 }
 
 
@@ -21,10 +16,7 @@ resource "jamfpro_user_group" "jamfpro_user_group_002" {
   is_smart            = true
   is_notify_on_change = true
 
-  site {
-    id   = 1
-    name = "thing"
-  }
+  site_id = 5
 
   criteria {
     name          = "Email Address"
