@@ -22,12 +22,14 @@ func constructJamfProStaticComputerGroup(d *schema.ResourceData) (*jamfpro.Resou
 
 	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 
-	assignedComputers := d.Get("assigned_computer_ids").([]interface{})
-	if len(assignedComputers) > 0 {
-		for _, v := range assignedComputers {
-			*resource.Computers = append(*resource.Computers, jamfpro.ComputerGroupSubsetComputer{
-				ID: v.(int),
-			})
+	if resource.Computers != nil {
+		assignedComputers := d.Get("assigned_computer_ids").([]interface{})
+		if len(assignedComputers) > 0 {
+			for _, v := range assignedComputers {
+				*resource.Computers = append(*resource.Computers, jamfpro.ComputerGroupSubsetComputer{
+					ID: v.(int),
+				})
+			}
 		}
 	}
 

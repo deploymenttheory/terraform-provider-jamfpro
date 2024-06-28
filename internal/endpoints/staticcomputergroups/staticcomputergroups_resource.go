@@ -69,7 +69,7 @@ func ResourceJamfProStaticComputerGroups() *schema.Resource {
 				Optional:    true,
 				Description: "assigned computer by ids",
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type: schema.TypeInt,
 				},
 			},
 		},
