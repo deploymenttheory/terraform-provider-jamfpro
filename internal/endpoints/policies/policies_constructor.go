@@ -1,9 +1,5 @@
 package policies
 
-// TODO remove all the log.print's. Debug use only
-// TODO handle all toxic combinations
-// TODO review error handling here? Feels like there is not enough
-
 import (
 	"encoding/xml"
 	"fmt"
@@ -17,7 +13,7 @@ import (
 // Returns ResourcePolicy required for client to marshal into api req
 func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	var err error
-	var resource *jamfpro.ResourcePolicy
+	resource := &jamfpro.ResourcePolicy{}
 
 	constructGeneral(d, resource)
 
@@ -28,17 +24,10 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 
 	constructSelfService(d, resource)
 
-	constructPayloads(d, resource)
-
-	// Package Configuration
-	// Scripts
-	// Printers
-	// DockItems
-	// Account Maintenance
-	// FilesProcesses
-	// UserInteraction
-	// DiskEncryption part of payloads
-	// Reboot
+	err = constructPayloads(d, resource)
+	if err != nil {
+		return nil, err
+	}
 
 	// DEBUG
 	log.Println("LOGHERE-CONSTRUCTED")
@@ -76,7 +65,6 @@ func constructGeneral(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) 
 
 // Pulls "scope" settings from HCL and packages into object
 func constructScope(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
-
 	var err error
 
 	if len(d.Get("scope").([]interface{})) == 0 {
@@ -255,18 +243,6 @@ func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	}
 }
 
-// // Pulls "payload" settings from HCL and packages into object
-// func constructPayloads(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
-
-// 	// Packages
-// 	constructPayloadPackages(d, out)
-
-//		// Scripts
-//		constructPayloadScripts(d, out)
-//		// DiskEncryption
-//		constructPayloadDiskEncryption(d, out)
-//	}
-//
 // constructPayloads pulls "payload" settings from HCL and packages them into the resource.
 func constructPayloads(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
 	if err := constructPayloadPackages(d, resource); err != nil {
@@ -311,7 +287,7 @@ func constructPayloadPackages(d *schema.ResourceData, resource *jamfpro.Resource
 	}
 
 	outBlock := new(jamfpro.PolicySubsetPackageConfiguration)
-	outBlock.DistributionPoint = d.Get("package_distribution_point").(string)
+	outBlock.DistributionPoint = d.Get("payloads.0.packages.0.distribution_point").(string)
 	outBlock.Packages = &[]jamfpro.PolicySubsetPackageConfigurationPackage{}
 	payload := *outBlock.Packages
 
