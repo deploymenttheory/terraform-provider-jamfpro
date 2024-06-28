@@ -40,9 +40,9 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceUserGrou
 			"closing_paren": criterion.ClosingParen,
 		}
 	}
+
 	d.Set("criteria", criteria)
 
-	// TODO review this
 	if !resp.IsSmart {
 		var userIDStrList []int
 		if len(resp.Users) > 0 {
