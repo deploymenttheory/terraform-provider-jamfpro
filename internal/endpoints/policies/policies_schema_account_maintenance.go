@@ -122,8 +122,9 @@ func getPolicySchemaDirectoryBinding() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:        schema.TypeInt,
-							Required:    true,
+							Optional:    true,
 							Description: "The unique identifier of the binding.",
+							Default:     -1,
 						},
 						"name": {
 							Type:        schema.TypeString,

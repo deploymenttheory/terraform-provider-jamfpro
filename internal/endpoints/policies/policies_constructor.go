@@ -347,17 +347,20 @@ func constructPayloadScripts(d *schema.ResourceData, resource *jamfpro.ResourceP
 // Pulls "disk encryption" settings from HCL and packages them into the resource.
 func constructPayloadDiskEncryption(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
 	hcl := d.Get("payloads.0.disk_encryption")
-	if len(hcl.([]interface{})) == 0 {
+	if hcl == nil || len(hcl.([]interface{})) == 0 {
 		return nil
 	}
 
-	resource.DiskEncryption = &jamfpro.PolicySubsetDiskEncryption{
-		Action:                                 d.Get("payloads.0.disk_encryption.0.action").(string),
-		DiskEncryptionConfigurationID:          d.Get("payloads.0.disk_encryption.0.disk_encryption_configuration_id").(int),
-		AuthRestart:                            d.Get("payloads.0.disk_encryption.0.auth_restart").(bool),
-		RemediateKeyType:                       d.Get("payloads.0.disk_encryption.0.remediate_key_type").(string),
-		RemediateDiskEncryptionConfigurationID: d.Get("payloads.0.disk_encryption.0.remediate_disk_encryption_configuration_id").(int),
-	}
+	outBlock := new(jamfpro.PolicySubsetDiskEncryption)
+	data := hcl.([]interface{})[0].(map[string]interface{})
+
+	outBlock.Action = data["action"].(string)
+	outBlock.DiskEncryptionConfigurationID = data["disk_encryption_configuration_id"].(int)
+	outBlock.AuthRestart = data["auth_restart"].(bool)
+	outBlock.RemediateKeyType = data["remediate_key_type"].(string)
+	outBlock.RemediateDiskEncryptionConfigurationID = data["remediate_disk_encryption_configuration_id"].(int)
+
+	resource.DiskEncryption = outBlock
 
 	return nil
 }
@@ -500,10 +503,11 @@ func constructPayloadAccountMaintenance(d *schema.ResourceData, resource *jamfpr
 // constructPayloadFilesProcesses builds the files and processes payload settings of the policy.
 func constructPayloadFilesProcesses(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
 	hcl := d.Get("payloads.0.files_processes")
-	if len(hcl.([]interface{})) == 0 {
+	if hcl == nil || len(hcl.([]interface{})) == 0 {
 		return nil
 	}
 
+	outBlock := new(jamfpro.PolicySubsetFilesProcesses)
 	payload := []jamfpro.PolicySubsetFilesProcesses{}
 
 	for _, v := range hcl.([]interface{}) {
@@ -522,7 +526,8 @@ func constructPayloadFilesProcesses(d *schema.ResourceData, resource *jamfpro.Re
 	}
 
 	if len(payload) > 0 {
-		resource.FilesProcesses = &payload[0]
+		outBlock = &payload[0]
+		resource.FilesProcesses = outBlock
 	}
 
 	return nil
@@ -531,17 +536,29 @@ func constructPayloadFilesProcesses(d *schema.ResourceData, resource *jamfpro.Re
 // constructPayloadUserInteraction builds the user interaction payload settings of the policy.
 func constructPayloadUserInteraction(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
 	hcl := d.Get("payloads.0.user_interaction")
-	if len(hcl.([]interface{})) == 0 {
+	if hcl == nil || len(hcl.([]interface{})) == 0 {
 		return nil
 	}
 
-	resource.UserInteraction = &jamfpro.PolicySubsetUserInteraction{
-		MessageStart:          d.Get("payloads.0.user_interaction.0.message_start").(string),
-		AllowUserToDefer:      d.Get("payloads.0.user_interaction.0.allow_user_to_defer").(bool),
-		AllowDeferralUntilUtc: d.Get("payloads.0.user_interaction.0.allow_deferral_until_utc").(string),
-		AllowDeferralMinutes:  d.Get("payloads.0.user_interaction.0.allow_deferral_minutes").(int),
-		MessageFinish:         d.Get("payloads.0.user_interaction.0.message_finish").(string),
+	outBlock := new(jamfpro.PolicySubsetUserInteraction)
+	payload := []jamfpro.PolicySubsetUserInteraction{}
+
+	for _, v := range hcl.([]interface{}) {
+		data := v.(map[string]interface{})
+
+		newObj := jamfpro.PolicySubsetUserInteraction{
+			MessageStart:          data["message_start"].(string),
+			AllowUserToDefer:      data["allow_user_to_defer"].(bool),
+			AllowDeferralUntilUtc: data["allow_deferral_until_utc"].(string),
+			AllowDeferralMinutes:  data["allow_deferral_minutes"].(int),
+			MessageFinish:         data["message_finish"].(string),
+		}
+
+		payload = append(payload, newObj)
 	}
+
+	outBlock = &payload[0]
+	resource.UserInteraction = outBlock
 
 	return nil
 }
@@ -549,20 +566,23 @@ func constructPayloadUserInteraction(d *schema.ResourceData, resource *jamfpro.R
 // constructPayloadReboot builds the reboot payload settings of the policy.
 func constructPayloadReboot(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
 	hcl := d.Get("payloads.0.reboot")
-	if len(hcl.([]interface{})) == 0 {
+	if hcl == nil || len(hcl.(*schema.Set).List()) == 0 {
 		return nil
 	}
 
-	resource.Reboot = &jamfpro.PolicySubsetReboot{
-		Message:                     d.Get("payloads.0.reboot.0.message").(string),
-		SpecifyStartup:              d.Get("payloads.0.reboot.0.specify_startup").(string),
-		StartupDisk:                 d.Get("payloads.0.reboot.0.startup_disk").(string),
-		NoUserLoggedIn:              d.Get("payloads.0.reboot.0.no_user_logged_in").(string),
-		UserLoggedIn:                d.Get("payloads.0.reboot.0.user_logged_in").(string),
-		MinutesUntilReboot:          d.Get("payloads.0.reboot.0.minutes_until_reboot").(int),
-		StartRebootTimerImmediately: d.Get("payloads.0.reboot.0.start_reboot_timer_immediately").(bool),
-		FileVault2Reboot:            d.Get("payloads.0.reboot.0.file_vault_2_reboot").(bool),
-	}
+	outBlock := new(jamfpro.PolicySubsetReboot)
+	data := hcl.(*schema.Set).List()[0].(map[string]interface{})
+
+	outBlock.Message = data["message"].(string)
+	outBlock.SpecifyStartup = data["specify_startup"].(string)
+	outBlock.StartupDisk = data["startup_disk"].(string)
+	outBlock.NoUserLoggedIn = data["no_user_logged_in"].(string)
+	outBlock.UserLoggedIn = data["user_logged_in"].(string)
+	outBlock.MinutesUntilReboot = data["minutes_until_reboot"].(int)
+	outBlock.StartRebootTimerImmediately = data["start_reboot_timer_immediately"].(bool)
+	outBlock.FileVault2Reboot = data["file_vault_2_reboot"].(bool)
+
+	resource.Reboot = outBlock
 
 	return nil
 }
@@ -570,22 +590,34 @@ func constructPayloadReboot(d *schema.ResourceData, resource *jamfpro.ResourcePo
 // constructPayloadMaintenance builds the maintenance payload settings of the policy.
 func constructPayloadMaintenance(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
 	hcl := d.Get("payloads.0.maintenance")
-	if len(hcl.([]interface{})) == 0 {
+	if hcl == nil || len(hcl.([]interface{})) == 0 {
 		return nil
 	}
 
-	resource.Maintenance = &jamfpro.PolicySubsetMaintenance{
-		Recon:                    d.Get("payloads.0.maintenance.0.recon").(bool),
-		ResetName:                d.Get("payloads.0.maintenance.0.reset_name").(bool),
-		InstallAllCachedPackages: d.Get("payloads.0.maintenance.0.install_all_cached_packages").(bool),
-		Heal:                     d.Get("payloads.0.maintenance.0.heal").(bool),
-		Prebindings:              d.Get("payloads.0.maintenance.0.prebindings").(bool),
-		Permissions:              d.Get("payloads.0.maintenance.0.permissions").(bool),
-		Byhost:                   d.Get("payloads.0.maintenance.0.byhost").(bool),
-		SystemCache:              d.Get("payloads.0.maintenance.0.system_cache").(bool),
-		UserCache:                d.Get("payloads.0.maintenance.0.user_cache").(bool),
-		Verify:                   d.Get("payloads.0.maintenance.0.verify").(bool),
+	outBlock := new(jamfpro.PolicySubsetMaintenance)
+	payload := []jamfpro.PolicySubsetMaintenance{}
+
+	for _, v := range hcl.([]interface{}) {
+		data := v.(map[string]interface{})
+
+		newObj := jamfpro.PolicySubsetMaintenance{
+			Recon:                    data["recon"].(bool),
+			ResetName:                data["reset_name"].(bool),
+			InstallAllCachedPackages: data["install_all_cached_packages"].(bool),
+			Heal:                     data["heal"].(bool),
+			Prebindings:              data["prebindings"].(bool),
+			Permissions:              data["permissions"].(bool),
+			Byhost:                   data["byhost"].(bool),
+			SystemCache:              data["system_cache"].(bool),
+			UserCache:                data["user_cache"].(bool),
+			Verify:                   data["verify"].(bool),
+		}
+
+		payload = append(payload, newObj)
 	}
+
+	outBlock = &payload[0]
+	resource.Maintenance = outBlock
 
 	return nil
 }
