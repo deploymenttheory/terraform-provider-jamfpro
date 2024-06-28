@@ -254,43 +254,59 @@ func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	}
 }
 
-// Pulls "payload" settings from HCL and packages into object
-func constructPayloads(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
+// // Pulls "payload" settings from HCL and packages into object
+// func constructPayloads(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 
-	// Packages
-	constructPayloadPackages(d, out)
+// 	// Packages
+// 	constructPayloadPackages(d, out)
 
-	// Scripts
-	constructPayloadScripts(d, out)
-	// DiskEncryption
-	constructPayloadDiskEncryption(d, out)
-}
-
-// Pulls "disk encryption" settings from HCL and packages into object
-func constructPayloadDiskEncryption(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
-
-	hcl := d.Get("payloads.0.disk_encryption")
-	if len(hcl.([]interface{})) == 0 {
-		return
+//		// Scripts
+//		constructPayloadScripts(d, out)
+//		// DiskEncryption
+//		constructPayloadDiskEncryption(d, out)
+//	}
+//
+// constructPayloads pulls "payload" settings from HCL and packages them into the resource.
+func constructPayloads(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
+	if err := constructPayloadPackages(d, resource); err != nil {
+		return err
+	}
+	if err := constructPayloadScripts(d, resource); err != nil {
+		return err
+	}
+	if err := constructPayloadDiskEncryption(d, resource); err != nil {
+		return err
+	}
+	if err := constructPayloadPrinters(d, resource); err != nil {
+		return err
+	}
+	if err := constructPayloadDockItems(d, resource); err != nil {
+		return err
+	}
+	if err := constructPayloadAccountMaintenance(d, resource); err != nil {
+		return err
+	}
+	if err := constructPayloadFilesProcesses(d, resource); err != nil {
+		return err
+	}
+	if err := constructPayloadUserInteraction(d, resource); err != nil {
+		return err
+	}
+	if err := constructPayloadReboot(d, resource); err != nil {
+		return err
+	}
+	if err := constructPayloadMaintenance(d, resource); err != nil {
+		return err
 	}
 
-	if len(d.Get("payloads.0.disk_encryption").([]interface{})) > 0 {
-		out.DiskEncryption = &jamfpro.PolicySubsetDiskEncryption{
-			Action:                                 d.Get("payloads.0.disk_encryption.0.action").(string),
-			DiskEncryptionConfigurationID:          d.Get("payloads.0.disk_encryption.0.disk_encryption_configuration_id").(int),
-			AuthRestart:                            d.Get("payloads.0.disk_encryption.0.auth_restart").(bool),
-			RemediateKeyType:                       d.Get("payloads.0.disk_encryption.0.remediate_key_type").(string),
-			RemediateDiskEncryptionConfigurationID: d.Get("payloads.0.disk_encryption.0.remediate_disk_encryption_configuration_id").(int),
-		}
-	}
+	return nil
 }
 
-// Pulls "package" settings from HCL and packages into object
-func constructPayloadPackages(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
-
+// Pulls "package" settings from HCL and packages them into the resource.
+func constructPayloadPackages(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
 	hcl := d.Get("payloads.0.packages")
 	if len(hcl.([]interface{})) == 0 {
-		return
+		return nil
 	}
 
 	outBlock := new(jamfpro.PolicySubsetPackageConfiguration)
@@ -309,15 +325,16 @@ func constructPayloadPackages(d *schema.ResourceData, out *jamfpro.ResourcePolic
 	}
 
 	outBlock.Packages = &payload
-	out.PackageConfiguration = outBlock
+	resource.PackageConfiguration = outBlock
+
+	return nil
 }
 
-// Pulls "script" settings from HCL and packages into object
-func constructPayloadScripts(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
-
+// Pulls "script" settings from HCL and packages them into the resource.
+func constructPayloadScripts(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
 	hcl := d.Get("payloads.0.scripts")
 	if len(hcl.([]interface{})) == 0 {
-		return
+		return nil
 	}
 
 	outBlock := new(jamfpro.PolicySubsetScripts)
@@ -342,5 +359,203 @@ func constructPayloadScripts(d *schema.ResourceData, out *jamfpro.ResourcePolicy
 	}
 
 	outBlock.Script = &payload
-	out.Scripts = outBlock
+	resource.Scripts = outBlock
+
+	return nil
+}
+
+// Pulls "disk encryption" settings from HCL and packages them into the resource.
+func constructPayloadDiskEncryption(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
+	hcl := d.Get("payloads.0.disk_encryption")
+	if len(hcl.([]interface{})) == 0 {
+		return nil
+	}
+
+	resource.DiskEncryption = &jamfpro.PolicySubsetDiskEncryption{
+		Action:                                 d.Get("payloads.0.disk_encryption.0.action").(string),
+		DiskEncryptionConfigurationID:          d.Get("payloads.0.disk_encryption.0.disk_encryption_configuration_id").(int),
+		AuthRestart:                            d.Get("payloads.0.disk_encryption.0.auth_restart").(bool),
+		RemediateKeyType:                       d.Get("payloads.0.disk_encryption.0.remediate_key_type").(string),
+		RemediateDiskEncryptionConfigurationID: d.Get("payloads.0.disk_encryption.0.remediate_disk_encryption_configuration_id").(int),
+	}
+
+	return nil
+}
+
+// Pulls "printers" settings from HCL and packages them into the resource.
+func constructPayloadPrinters(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
+	hcl := d.Get("payloads.0.printers")
+	if len(hcl.([]interface{})) == 0 {
+		return nil
+	}
+
+	outBlock := new(jamfpro.PolicySubsetPrinters)
+	outBlock.Printer = &[]jamfpro.PolicySubsetPrinter{}
+	payload := *outBlock.Printer
+
+	for _, v := range hcl.([]interface{}) {
+		newObj := jamfpro.PolicySubsetPrinter{
+			ID:          v.(map[string]interface{})["id"].(int),
+			Action:      v.(map[string]interface{})["action"].(string),
+			MakeDefault: v.(map[string]interface{})["make_default"].(bool),
+		}
+		payload = append(payload, newObj)
+	}
+
+	outBlock.Printer = &payload
+	resource.Printers = outBlock
+
+	return nil
+}
+
+// constructPayloadDockItems builds the dock items payload settings of the policy.
+func constructPayloadDockItems(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
+	hcl := d.Get("payloads.0.dock_items")
+	if len(hcl.([]interface{})) == 0 {
+		return nil
+	}
+
+	outBlock := new(jamfpro.PolicySubsetDockItems)
+	outBlock.DockItem = &[]jamfpro.PolicySubsetDockItem{}
+	payload := *outBlock.DockItem
+
+	for _, v := range hcl.([]interface{}) {
+		newObj := jamfpro.PolicySubsetDockItem{
+			ID:     v.(map[string]interface{})["id"].(int),
+			Action: v.(map[string]interface{})["action"].(string),
+		}
+		payload = append(payload, newObj)
+	}
+
+	outBlock.DockItem = &payload
+	resource.DockItems = outBlock
+
+	return nil
+}
+
+// constructPayloadAccountMaintenance builds the account maintenance payload settings of the policy.
+func constructPayloadAccountMaintenance(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
+	hcl := d.Get("payloads.0.account_maintenance")
+	if len(hcl.([]interface{})) == 0 {
+		return nil
+	}
+
+	outBlock := new(jamfpro.PolicySubsetAccountMaintenance)
+	payload := []jamfpro.PolicySubsetAccountMaintenanceAccount{}
+
+	for _, v := range hcl.([]interface{}) {
+		data := v.(map[string]interface{})
+		newObj := jamfpro.PolicySubsetAccountMaintenanceAccount{
+			Action:                 data["action"].(string),
+			Username:               data["username"].(string),
+			Realname:               data["realname"].(string),
+			Password:               data["password"].(string),
+			ArchiveHomeDirectory:   data["archive_home_directory"].(bool),
+			ArchiveHomeDirectoryTo: data["archive_home_directory_to"].(string),
+			Home:                   data["home"].(string),
+			Hint:                   data["hint"].(string),
+			Picture:                data["picture"].(string),
+			Admin:                  data["admin"].(bool),
+			FilevaultEnabled:       data["filevault_enabled"].(bool),
+		}
+		payload = append(payload, newObj)
+	}
+
+	outBlock.Accounts = &payload
+	resource.AccountMaintenance = outBlock
+
+	return nil
+}
+
+// constructPayloadFilesProcesses builds the files and processes payload settings of the policy.
+func constructPayloadFilesProcesses(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
+	hcl := d.Get("payloads.0.files_processes")
+	if len(hcl.([]interface{})) == 0 {
+		return nil
+	}
+
+	payload := []jamfpro.PolicySubsetFilesProcesses{}
+
+	for _, v := range hcl.([]interface{}) {
+		data := v.(map[string]interface{})
+		newObj := jamfpro.PolicySubsetFilesProcesses{
+			SearchByPath:         data["search_by_path"].(string),
+			DeleteFile:           data["delete_file"].(bool),
+			LocateFile:           data["locate_file"].(string),
+			UpdateLocateDatabase: data["update_locate_database"].(bool),
+			SpotlightSearch:      data["spotlight_search"].(string),
+			SearchForProcess:     data["search_for_process"].(string),
+			KillProcess:          data["kill_process"].(bool),
+			RunCommand:           data["run_command"].(string),
+		}
+		payload = append(payload, newObj)
+	}
+
+	if len(payload) > 0 {
+		resource.FilesProcesses = &payload[0]
+	}
+
+	return nil
+}
+
+// constructPayloadUserInteraction builds the user interaction payload settings of the policy.
+func constructPayloadUserInteraction(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
+	hcl := d.Get("payloads.0.user_interaction")
+	if len(hcl.([]interface{})) == 0 {
+		return nil
+	}
+
+	resource.UserInteraction = &jamfpro.PolicySubsetUserInteraction{
+		MessageStart:          d.Get("payloads.0.user_interaction.0.message_start").(string),
+		AllowUserToDefer:      d.Get("payloads.0.user_interaction.0.allow_user_to_defer").(bool),
+		AllowDeferralUntilUtc: d.Get("payloads.0.user_interaction.0.allow_deferral_until_utc").(string),
+		AllowDeferralMinutes:  d.Get("payloads.0.user_interaction.0.allow_deferral_minutes").(int),
+		MessageFinish:         d.Get("payloads.0.user_interaction.0.message_finish").(string),
+	}
+
+	return nil
+}
+
+// constructPayloadReboot builds the reboot payload settings of the policy.
+func constructPayloadReboot(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
+	hcl := d.Get("payloads.0.reboot")
+	if len(hcl.([]interface{})) == 0 {
+		return nil
+	}
+
+	resource.Reboot = &jamfpro.PolicySubsetReboot{
+		Message:                     d.Get("payloads.0.reboot.0.message").(string),
+		SpecifyStartup:              d.Get("payloads.0.reboot.0.specify_startup").(string),
+		StartupDisk:                 d.Get("payloads.0.reboot.0.startup_disk").(string),
+		NoUserLoggedIn:              d.Get("payloads.0.reboot.0.no_user_logged_in").(string),
+		UserLoggedIn:                d.Get("payloads.0.reboot.0.user_logged_in").(string),
+		MinutesUntilReboot:          d.Get("payloads.0.reboot.0.minutes_until_reboot").(int),
+		StartRebootTimerImmediately: d.Get("payloads.0.reboot.0.start_reboot_timer_immediately").(bool),
+		FileVault2Reboot:            d.Get("payloads.0.reboot.0.file_vault_2_reboot").(bool),
+	}
+
+	return nil
+}
+
+// constructPayloadMaintenance builds the maintenance payload settings of the policy.
+func constructPayloadMaintenance(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
+	hcl := d.Get("payloads.0.maintenance")
+	if len(hcl.([]interface{})) == 0 {
+		return nil
+	}
+
+	resource.Maintenance = &jamfpro.PolicySubsetMaintenance{
+		Recon:                    d.Get("payloads.0.maintenance.0.recon").(bool),
+		ResetName:                d.Get("payloads.0.maintenance.0.reset_name").(bool),
+		InstallAllCachedPackages: d.Get("payloads.0.maintenance.0.install_all_cached_packages").(bool),
+		Heal:                     d.Get("payloads.0.maintenance.0.heal").(bool),
+		Prebindings:              d.Get("payloads.0.maintenance.0.prebindings").(bool),
+		Permissions:              d.Get("payloads.0.maintenance.0.permissions").(bool),
+		Byhost:                   d.Get("payloads.0.maintenance.0.byhost").(bool),
+		SystemCache:              d.Get("payloads.0.maintenance.0.system_cache").(bool),
+		UserCache:                d.Get("payloads.0.maintenance.0.user_cache").(bool),
+		Verify:                   d.Get("payloads.0.maintenance.0.verify").(bool),
+	}
+
+	return nil
 }
