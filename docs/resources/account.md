@@ -31,8 +31,7 @@ description: |-
 - `email_address` (String) The email address of the account user.
 - `force_password_change` (Boolean) Indicates if the user is forced to change password on next login.
 - `full_name` (String) The full name of the account user.
-- `groups` (Block Set) A set of group names and IDs associated with the account. (see [below for nested schema](#nestedblock--groups))
-- `identity_server` (Block List, Max: 1) LDAP or IdP server associated with the account group. (see [below for nested schema](#nestedblock--identity_server))
+- `identity_server_id` (Number) The Id of the identity server
 - `jss_actions_privileges` (Set of String) Privileges related to JSS Actions.
 - `jss_objects_privileges` (Set of String) Privileges related to JSS Objects.
 - `jss_settings_privileges` (Set of String) Privileges related to JSS Settings.
@@ -45,23 +44,6 @@ description: |-
 ### Read-Only
 
 - `id` (String) The unique identifier of the jamf pro account.
-
-<a id="nestedblock--groups"></a>
-### Nested Schema for `groups`
-
-Optional:
-
-- `id` (Number)
-- `name` (String)
-
-
-<a id="nestedblock--identity_server"></a>
-### Nested Schema for `identity_server`
-
-Optional:
-
-- `id` (Number) ID is the ID of the LDAP or IdP configuration in Jamf Pro.
-
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`
