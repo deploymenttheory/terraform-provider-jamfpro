@@ -397,11 +397,12 @@ func prepStatePayloadDiskEncryption(out *[]map[string]interface{}, resp *jamfpro
 }
 
 // Reads response and preps package payload items
+// Reads response and preps package payload items
 func prepStatePayloadPackages(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	if resp.PackageConfiguration == nil {
 		return
 	}
-	//packages can be nil but deployment state default
+	// Packages can be nil but deployment state default
 	if resp.PackageConfiguration.Packages == nil {
 		return
 	}
@@ -415,6 +416,8 @@ func prepStatePayloadPackages(out *[]map[string]interface{}, resp *jamfpro.Resou
 		outMap["fill_existing_user_template"] = v.FillExistingUsers
 		(*out)[0]["packages"] = append((*out)[0]["packages"].([]map[string]interface{}), outMap)
 	}
+
+	(*out)[0]["distribution_point"] = resp.PackageConfiguration.DistributionPoint
 }
 
 // Reads response and preps script payload items
@@ -453,14 +456,6 @@ func prepStatePayloadScripts(out *[]map[string]interface{}, resp *jamfpro.Resour
 		if v.Parameter11 != "" {
 			outMap["parameter11"] = v.Parameter11
 		}
-
-		// outMap["parameter5"] = v.Parameter5
-		// outMap["parameter6"] = v.Parameter6
-		// outMap["parameter7"] = v.Parameter7
-		// outMap["parameter8"] = v.Parameter8
-		// outMap["parameter9"] = v.Parameter9
-		// outMap["parameter10"] = v.Parameter10
-		// outMap["parameter11"] = v.Parameter11
 		(*out)[0]["scripts"] = append((*out)[0]["scripts"].([]map[string]interface{}), outMap)
 		log.Println("LOGHERE-SCRIPT OUT")
 		log.Println(outMap)

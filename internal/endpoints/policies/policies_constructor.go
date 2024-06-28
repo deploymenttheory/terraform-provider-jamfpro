@@ -243,7 +243,7 @@ func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	}
 }
 
-// constructPayloads pulls "payload" settings from HCL and packages them into the resource.
+// constructPayloads builds the policy payload(s) from the HCL
 func constructPayloads(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
 	if err := constructPayloadPackages(d, resource); err != nil {
 		return err
@@ -279,24 +279,27 @@ func constructPayloads(d *schema.ResourceData, resource *jamfpro.ResourcePolicy)
 	return nil
 }
 
-// Pulls "package" settings from HCL and packages them into the resource.
+// constructPayloadPackages builds the packages payload settings of the policy.
 func constructPayloadPackages(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
 	hcl := d.Get("payloads.0.packages")
-	if len(hcl.([]interface{})) == 0 {
+	if hcl == nil || len(hcl.([]interface{})) == 0 {
 		return nil
 	}
 
 	outBlock := new(jamfpro.PolicySubsetPackageConfiguration)
-	outBlock.DistributionPoint = d.Get("payloads.0.packages.0.distribution_point").(string)
+	packageConfig := hcl.([]interface{})[0].(map[string]interface{})
+	outBlock.DistributionPoint = packageConfig["distribution_point"].(string)
 	outBlock.Packages = &[]jamfpro.PolicySubsetPackageConfigurationPackage{}
 	payload := *outBlock.Packages
 
-	for _, v := range hcl.([]interface{}) {
+	packageList := packageConfig["package"].([]interface{})
+	for _, v := range packageList {
+		packageData := v.(map[string]interface{})
 		newObj := jamfpro.PolicySubsetPackageConfigurationPackage{
-			ID:                v.(map[string]interface{})["id"].(int),
-			Action:            v.(map[string]interface{})["action"].(string),
-			FillUserTemplate:  v.(map[string]interface{})["fill_user_template"].(bool),
-			FillExistingUsers: v.(map[string]interface{})["fill_existing_user_template"].(bool),
+			ID:                packageData["id"].(int),
+			Action:            packageData["action"].(string),
+			FillUserTemplate:  packageData["fill_user_template"].(bool),
+			FillExistingUsers: packageData["fill_existing_user_template"].(bool),
 		}
 		payload = append(payload, newObj)
 	}
