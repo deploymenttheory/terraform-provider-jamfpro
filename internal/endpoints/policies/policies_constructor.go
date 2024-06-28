@@ -416,34 +416,84 @@ func constructPayloadDockItems(d *schema.ResourceData, resource *jamfpro.Resourc
 // constructPayloadAccountMaintenance builds the account maintenance payload settings of the policy.
 func constructPayloadAccountMaintenance(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
 	hcl := d.Get("payloads.0.account_maintenance")
-	if len(hcl.([]interface{})) == 0 {
+	if hcl == nil || len(hcl.([]interface{})) == 0 {
 		return nil
 	}
 
 	outBlock := new(jamfpro.PolicySubsetAccountMaintenance)
-	payload := []jamfpro.PolicySubsetAccountMaintenanceAccount{}
 
 	for _, v := range hcl.([]interface{}) {
 		data := v.(map[string]interface{})
-		newObj := jamfpro.PolicySubsetAccountMaintenanceAccount{
-			Action:                 data["action"].(string),
-			Username:               data["username"].(string),
-			Realname:               data["realname"].(string),
-			Password:               data["password"].(string),
-			ArchiveHomeDirectory:   data["archive_home_directory"].(bool),
-			ArchiveHomeDirectoryTo: data["archive_home_directory_to"].(string),
-			Home:                   data["home"].(string),
-			Hint:                   data["hint"].(string),
-			Picture:                data["picture"].(string),
-			Admin:                  data["admin"].(bool),
-			FilevaultEnabled:       data["filevault_enabled"].(bool),
+
+		// Handle local accounts
+		if localAccounts, ok := data["local_accounts"]; ok && len(localAccounts.([]interface{})) > 0 {
+			localAccountsList := localAccounts.([]interface{})
+			if len(localAccountsList) > 0 {
+				accountsData := localAccountsList[0].(map[string]interface{})["account"].([]interface{})
+				accounts := []jamfpro.PolicySubsetAccountMaintenanceAccount{}
+				for _, account := range accountsData {
+					accountData := account.(map[string]interface{})
+					newAccount := jamfpro.PolicySubsetAccountMaintenanceAccount{
+						Action:                 accountData["action"].(string),
+						Username:               accountData["username"].(string),
+						Realname:               accountData["realname"].(string),
+						Password:               accountData["password"].(string),
+						ArchiveHomeDirectory:   accountData["archive_home_directory"].(bool),
+						ArchiveHomeDirectoryTo: accountData["archive_home_directory_to"].(string),
+						Home:                   accountData["home"].(string),
+						Hint:                   accountData["hint"].(string),
+						Picture:                accountData["picture"].(string),
+						Admin:                  accountData["admin"].(bool),
+						FilevaultEnabled:       accountData["filevault_enabled"].(bool),
+					}
+					accounts = append(accounts, newAccount)
+				}
+				outBlock.Accounts = &accounts
+			}
 		}
-		payload = append(payload, newObj)
+
+		// Handle directory bindings
+		if directoryBindings, ok := data["directory_bindings"]; ok && len(directoryBindings.([]interface{})) > 0 {
+			directoryBindingsList := directoryBindings.([]interface{})
+			bindings := []jamfpro.PolicySubsetAccountMaintenanceDirectoryBindings{}
+			for _, binding := range directoryBindingsList {
+				bindingData := binding.(map[string]interface{})
+				newBinding := jamfpro.PolicySubsetAccountMaintenanceDirectoryBindings{
+					ID:   bindingData["id"].(int),
+					Name: bindingData["name"].(string),
+				}
+				bindings = append(bindings, newBinding)
+			}
+			outBlock.DirectoryBindings = &bindings
+		}
+
+		// Handle management account
+		if managementAccount, ok := data["management_account"]; ok && len(managementAccount.([]interface{})) > 0 {
+			managementAccountList := managementAccount.([]interface{})
+			if len(managementAccountList) > 0 {
+				managementAccountData := managementAccountList[0].(map[string]interface{})
+				outBlock.ManagementAccount = &jamfpro.PolicySubsetAccountMaintenanceManagementAccount{
+					Action:                managementAccountData["action"].(string),
+					ManagedPassword:       managementAccountData["managed_password"].(string),
+					ManagedPasswordLength: managementAccountData["managed_password_length"].(int),
+				}
+			}
+		}
+
+		// Handle open firmware/EFI password
+		if openFirmwareEfiPassword, ok := data["open_firmware_efi_password"]; ok && len(openFirmwareEfiPassword.([]interface{})) > 0 {
+			openFirmwareEfiPasswordList := openFirmwareEfiPassword.([]interface{})
+			if len(openFirmwareEfiPasswordList) > 0 {
+				openFirmwareEfiPasswordData := openFirmwareEfiPasswordList[0].(map[string]interface{})
+				outBlock.OpenFirmwareEfiPassword = &jamfpro.PolicySubsetAccountMaintenanceOpenFirmwareEfiPassword{
+					OfMode:     openFirmwareEfiPasswordData["of_mode"].(string),
+					OfPassword: openFirmwareEfiPasswordData["of_password"].(string),
+				}
+			}
+		}
 	}
 
-	outBlock.Accounts = &payload
 	resource.AccountMaintenance = outBlock
-
 	return nil
 }
 

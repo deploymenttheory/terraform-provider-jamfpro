@@ -397,7 +397,6 @@ func prepStatePayloadDiskEncryption(out *[]map[string]interface{}, resp *jamfpro
 }
 
 // Reads response and preps package payload items
-// Reads response and preps package payload items
 func prepStatePayloadPackages(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	if resp.PackageConfiguration == nil {
 		return
