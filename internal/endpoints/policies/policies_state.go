@@ -734,28 +734,76 @@ func prepStatePayloadDockItems(out *[]map[string]interface{}, resp *jamfpro.Reso
 	log.Printf("Final state dock items: %+v\n", (*out)[0]["dock_items"])
 }
 
-// Reads response and preps account maintenance payload items
+// prepStatePayloadAccountMaintenance reads response and preps account maintenance payload items
 func prepStatePayloadAccountMaintenance(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	if resp.AccountMaintenance == nil || resp.AccountMaintenance.Accounts == nil {
+	if resp.AccountMaintenance == nil {
+		log.Println("No account maintenance configuration found")
 		return
 	}
 
+	// Ensure the map is initialized before setting values
+	if len((*out)[0]) == 0 {
+		(*out)[0] = make(map[string]interface{})
+	}
+
+	log.Println("Initializing account maintenance in state")
 	(*out)[0]["account_maintenance"] = make([]map[string]interface{}, 0)
-	for _, v := range *resp.AccountMaintenance.Accounts {
+
+	// Handle accounts
+	if resp.AccountMaintenance.Accounts != nil {
+		for _, v := range *resp.AccountMaintenance.Accounts {
+			outMap := make(map[string]interface{})
+			outMap["action"] = v.Action
+			outMap["username"] = v.Username
+			outMap["realname"] = v.Realname
+			outMap["password"] = v.Password
+			outMap["archive_home_directory"] = v.ArchiveHomeDirectory
+			outMap["archive_home_directory_to"] = v.ArchiveHomeDirectoryTo
+			outMap["home"] = v.Home
+			outMap["hint"] = v.Hint
+			outMap["picture"] = v.Picture
+			outMap["admin"] = v.Admin
+			outMap["filevault_enabled"] = v.FilevaultEnabled
+
+			log.Printf("Adding account to state: %+v\n", outMap)
+			(*out)[0]["account_maintenance"] = append((*out)[0]["account_maintenance"].([]map[string]interface{}), outMap)
+		}
+	}
+
+	// Handle directory bindings
+	if resp.AccountMaintenance.DirectoryBindings != nil {
+		for _, v := range *resp.AccountMaintenance.DirectoryBindings {
+			outMap := make(map[string]interface{})
+			outMap["id"] = v.ID
+			outMap["name"] = v.Name
+
+			log.Printf("Adding directory binding to state: %+v\n", outMap)
+			(*out)[0]["account_maintenance"] = append((*out)[0]["account_maintenance"].([]map[string]interface{}), outMap)
+		}
+	}
+
+	// Handle management account
+	if resp.AccountMaintenance.ManagementAccount != nil {
 		outMap := make(map[string]interface{})
-		outMap["action"] = v.Action
-		outMap["username"] = v.Username
-		outMap["realname"] = v.Realname
-		outMap["password"] = v.Password
-		outMap["archive_home_directory"] = v.ArchiveHomeDirectory
-		outMap["archive_home_directory_to"] = v.ArchiveHomeDirectoryTo
-		outMap["home"] = v.Home
-		outMap["hint"] = v.Hint
-		outMap["picture"] = v.Picture
-		outMap["admin"] = v.Admin
-		outMap["filevault_enabled"] = v.FilevaultEnabled
+		outMap["action"] = resp.AccountMaintenance.ManagementAccount.Action
+		outMap["managed_password"] = resp.AccountMaintenance.ManagementAccount.ManagedPassword
+		outMap["managed_password_length"] = resp.AccountMaintenance.ManagementAccount.ManagedPasswordLength
+
+		log.Printf("Adding management account to state: %+v\n", outMap)
 		(*out)[0]["account_maintenance"] = append((*out)[0]["account_maintenance"].([]map[string]interface{}), outMap)
 	}
+
+	// Handle open firmware/EFI password
+	if resp.AccountMaintenance.OpenFirmwareEfiPassword != nil {
+		outMap := make(map[string]interface{})
+		outMap["of_mode"] = resp.AccountMaintenance.OpenFirmwareEfiPassword.OfMode
+		outMap["of_password"] = resp.AccountMaintenance.OpenFirmwareEfiPassword.OfPassword
+
+		log.Printf("Adding open firmware/EFI password to state: %+v\n", outMap)
+		(*out)[0]["account_maintenance"] = append((*out)[0]["account_maintenance"].([]map[string]interface{}), outMap)
+	}
+
+	log.Printf("Final state account maintenance: %+v\n", (*out)[0]["account_maintenance"])
 }
 
 // Reads response and preps files and processes payload items
