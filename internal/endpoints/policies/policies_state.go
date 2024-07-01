@@ -836,12 +836,12 @@ func prepStatePayloadFilesProcesses(out *[]map[string]interface{}, resp *jamfpro
 	// Define default values
 	defaults := map[string]interface{}{
 		"search_by_path":         "",
-		"delete_file":            "",
+		"delete_file":            false,
 		"locate_file":            "",
 		"update_locate_database": false,
 		"spotlight_search":       "",
 		"search_for_process":     "",
-		"kill_process":           "",
+		"kill_process":           false,
 		"run_command":            "",
 	}
 
