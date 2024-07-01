@@ -734,7 +734,8 @@ func prepStatePayloadDockItems(out *[]map[string]interface{}, resp *jamfpro.Reso
 	log.Printf("Final state dock items: %+v\n", (*out)[0]["dock_items"])
 }
 
-// prepStatePayloadAccountMaintenance reads response and preps account maintenance payload items
+// prepStatePayloadAccountMaintenance reads response and preps account maintenance payload items.
+// If all values are default, do not set the account_maintenance block
 func prepStatePayloadAccountMaintenance(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	if resp.AccountMaintenance == nil {
 		log.Println("No account maintenance configuration found")
@@ -747,63 +748,84 @@ func prepStatePayloadAccountMaintenance(out *[]map[string]interface{}, resp *jam
 	}
 
 	log.Println("Initializing account maintenance in state")
-	(*out)[0]["account_maintenance"] = make([]map[string]interface{}, 0)
+	accountMaintenanceMap := make(map[string]interface{})
 
 	// Handle accounts
 	if resp.AccountMaintenance.Accounts != nil {
+		localAccounts := make([]map[string]interface{}, 0)
 		for _, v := range *resp.AccountMaintenance.Accounts {
-			outMap := make(map[string]interface{})
-			outMap["action"] = v.Action
-			outMap["username"] = v.Username
-			outMap["realname"] = v.Realname
-			outMap["password"] = v.Password
-			outMap["archive_home_directory"] = v.ArchiveHomeDirectory
-			outMap["archive_home_directory_to"] = v.ArchiveHomeDirectoryTo
-			outMap["home"] = v.Home
-			outMap["hint"] = v.Hint
-			outMap["picture"] = v.Picture
-			outMap["admin"] = v.Admin
-			outMap["filevault_enabled"] = v.FilevaultEnabled
+			accountMap := make(map[string]interface{})
+			accountMap["action"] = v.Action
+			accountMap["username"] = v.Username
+			accountMap["realname"] = v.Realname
+			accountMap["password"] = v.Password
+			accountMap["archive_home_directory"] = v.ArchiveHomeDirectory
+			accountMap["archive_home_directory_to"] = v.ArchiveHomeDirectoryTo
+			accountMap["home"] = v.Home
+			accountMap["hint"] = v.Hint
+			accountMap["picture"] = v.Picture
+			accountMap["admin"] = v.Admin
+			accountMap["filevault_enabled"] = v.FilevaultEnabled
 
-			log.Printf("Adding account to state: %+v\n", outMap)
-			(*out)[0]["account_maintenance"] = append((*out)[0]["account_maintenance"].([]map[string]interface{}), outMap)
+			log.Printf("Adding account to state: %+v\n", accountMap)
+			localAccounts = append(localAccounts, accountMap)
+		}
+
+		if len(localAccounts) > 0 {
+			accountMaintenanceMap["local_accounts"] = []map[string]interface{}{
+				{"account": localAccounts},
+			}
 		}
 	}
 
 	// Handle directory bindings
 	if resp.AccountMaintenance.DirectoryBindings != nil {
+		directoryBindings := make([]map[string]interface{}, 0)
 		for _, v := range *resp.AccountMaintenance.DirectoryBindings {
-			outMap := make(map[string]interface{})
-			outMap["id"] = v.ID
-			outMap["name"] = v.Name
+			bindingMap := make(map[string]interface{})
+			bindingMap["id"] = v.ID
+			bindingMap["name"] = v.Name
 
-			log.Printf("Adding directory binding to state: %+v\n", outMap)
-			(*out)[0]["account_maintenance"] = append((*out)[0]["account_maintenance"].([]map[string]interface{}), outMap)
+			log.Printf("Adding directory binding to state: %+v\n", bindingMap)
+			directoryBindings = append(directoryBindings, bindingMap)
+		}
+
+		if len(directoryBindings) > 0 {
+			accountMaintenanceMap["directory_bindings"] = []map[string]interface{}{
+				{"binding": directoryBindings},
+			}
 		}
 	}
 
 	// Handle management account
 	if resp.AccountMaintenance.ManagementAccount != nil {
-		outMap := make(map[string]interface{})
-		outMap["action"] = resp.AccountMaintenance.ManagementAccount.Action
-		outMap["managed_password"] = resp.AccountMaintenance.ManagementAccount.ManagedPassword
-		outMap["managed_password_length"] = resp.AccountMaintenance.ManagementAccount.ManagedPasswordLength
+		managementAccountMap := make(map[string]interface{})
+		if resp.AccountMaintenance.ManagementAccount.Action != "doNotChange" || resp.AccountMaintenance.ManagementAccount.ManagedPassword != "" || resp.AccountMaintenance.ManagementAccount.ManagedPasswordLength != 0 {
+			managementAccountMap["action"] = resp.AccountMaintenance.ManagementAccount.Action
+			managementAccountMap["managed_password"] = resp.AccountMaintenance.ManagementAccount.ManagedPassword
+			managementAccountMap["managed_password_length"] = resp.AccountMaintenance.ManagementAccount.ManagedPasswordLength
 
-		log.Printf("Adding management account to state: %+v\n", outMap)
-		(*out)[0]["account_maintenance"] = append((*out)[0]["account_maintenance"].([]map[string]interface{}), outMap)
+			log.Printf("Adding management account to state: %+v\n", managementAccountMap)
+			accountMaintenanceMap["management_account"] = []map[string]interface{}{managementAccountMap}
+		}
 	}
 
 	// Handle open firmware/EFI password
 	if resp.AccountMaintenance.OpenFirmwareEfiPassword != nil {
-		outMap := make(map[string]interface{})
-		outMap["of_mode"] = resp.AccountMaintenance.OpenFirmwareEfiPassword.OfMode
-		outMap["of_password"] = resp.AccountMaintenance.OpenFirmwareEfiPassword.OfPassword
+		openFirmwareMap := make(map[string]interface{})
+		if resp.AccountMaintenance.OpenFirmwareEfiPassword.OfMode != "none" || resp.AccountMaintenance.OpenFirmwareEfiPassword.OfPassword != "" {
+			openFirmwareMap["of_mode"] = resp.AccountMaintenance.OpenFirmwareEfiPassword.OfMode
+			openFirmwareMap["of_password"] = resp.AccountMaintenance.OpenFirmwareEfiPassword.OfPassword
 
-		log.Printf("Adding open firmware/EFI password to state: %+v\n", outMap)
-		(*out)[0]["account_maintenance"] = append((*out)[0]["account_maintenance"].([]map[string]interface{}), outMap)
+			log.Printf("Adding open firmware/EFI password to state: %+v\n", openFirmwareMap)
+			accountMaintenanceMap["open_firmware_efi_password"] = []map[string]interface{}{openFirmwareMap}
+		}
 	}
 
-	log.Printf("Final state account maintenance: %+v\n", (*out)[0]["account_maintenance"])
+	if len(accountMaintenanceMap) > 0 {
+		(*out)[0]["account_maintenance"] = []map[string]interface{}{accountMaintenanceMap}
+		log.Printf("Final state account maintenance: %+v\n", (*out)[0]["account_maintenance"])
+	}
 }
 
 // Reads response and preps files and processes payload items
