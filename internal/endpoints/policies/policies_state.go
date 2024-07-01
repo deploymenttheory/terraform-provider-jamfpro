@@ -554,24 +554,35 @@ func prepStatePayloadDiskEncryption(out *[]map[string]interface{}, resp *jamfpro
 // Reads response and preps package payload items
 func prepStatePayloadPackages(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	if resp.PackageConfiguration == nil {
+		log.Println("No package configuration found")
 		return
 	}
 	// Packages can be nil but deployment state default
 	if resp.PackageConfiguration.Packages == nil {
+		log.Println("No packages found in package configuration")
 		return
 	}
 
+	// Ensure the map is initialized before setting values
+	if len((*out)[0]) == 0 {
+		(*out)[0] = make(map[string]interface{})
+	}
+
+	log.Println("Initializing packages in state")
 	(*out)[0]["packages"] = make([]map[string]interface{}, 0)
+
 	for _, v := range *resp.PackageConfiguration.Packages {
 		outMap := make(map[string]interface{})
 		outMap["id"] = v.ID
 		outMap["action"] = v.Action
 		outMap["fill_user_template"] = v.FillUserTemplate
 		outMap["fill_existing_user_template"] = v.FillExistingUsers
+		log.Printf("Adding package to state: %+v\n", outMap)
 		(*out)[0]["packages"] = append((*out)[0]["packages"].([]map[string]interface{}), outMap)
 	}
 
 	(*out)[0]["distribution_point"] = resp.PackageConfiguration.DistributionPoint
+	log.Printf("Final state packages: %+v\n", (*out)[0]["packages"])
 }
 
 // Reads response and preps script payload items
@@ -742,20 +753,82 @@ func prepStatePayloadReboot(out *[]map[string]interface{}, resp *jamfpro.Resourc
 		return
 	}
 
-	(*out)[0]["reboot"] = make([]map[string]interface{}, 0)
-	outMap := make(map[string]interface{})
-	outMap["message"] = resp.Reboot.Message
-	outMap["specify_startup"] = resp.Reboot.SpecifyStartup
-	outMap["startup_disk"] = resp.Reboot.StartupDisk
-	outMap["no_user_logged_in"] = resp.Reboot.NoUserLoggedIn
-	outMap["user_logged_in"] = resp.Reboot.UserLoggedIn
-	outMap["minutes_until_reboot"] = resp.Reboot.MinutesUntilReboot
-	outMap["start_reboot_timer_immediately"] = resp.Reboot.StartRebootTimerImmediately
-	outMap["file_vault_2_reboot"] = resp.Reboot.FileVault2Reboot
-	(*out)[0]["reboot"] = append((*out)[0]["reboot"].([]map[string]interface{}), outMap)
+	// Define default values
+	defaults := map[string]interface{}{
+		"Message":                     "This computer will restart in 5 minutes. Please save anything you are working on and log out by choosing Log Out from the bottom of the Apple menu.",
+		"SpecifyStartup":              "",
+		"StartupDisk":                 "Current Startup Disk",
+		"NoUserLoggedIn":              "Do not restart",
+		"UserLoggedIn":                "Do not restart",
+		"MinutesUntilReboot":          5,
+		"StartRebootTimerImmediately": false,
+		"FileVault2Reboot":            false,
+	}
+
+	// Check if all values are default
+	v := reflect.ValueOf(*resp.Reboot)
+	allDefault := true
+
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		fieldName := v.Type().Field(i).Name
+
+		switch field.Kind() {
+		case reflect.String:
+			if field.String() != defaults[fieldName].(string) {
+				allDefault = false
+			}
+		case reflect.Int:
+			if field.Int() != int64(defaults[fieldName].(int)) {
+				allDefault = false
+			}
+		case reflect.Bool:
+			if field.Bool() != defaults[fieldName].(bool) {
+				allDefault = false
+			}
+		}
+		if !allDefault {
+			break
+		}
+	}
+
+	if allDefault {
+		return
+	}
+
+	// Otherwise, proceed to set the reboot block
+	rebootBlock := make(map[string]interface{})
+	if resp.Reboot.Message != defaults["Message"].(string) {
+		rebootBlock["message"] = resp.Reboot.Message
+	}
+	if resp.Reboot.SpecifyStartup != defaults["SpecifyStartup"].(string) {
+		rebootBlock["specify_startup"] = resp.Reboot.SpecifyStartup
+	}
+	if resp.Reboot.StartupDisk != defaults["StartupDisk"].(string) {
+		rebootBlock["startup_disk"] = resp.Reboot.StartupDisk
+	}
+	if resp.Reboot.NoUserLoggedIn != defaults["NoUserLoggedIn"].(string) {
+		rebootBlock["no_user_logged_in"] = resp.Reboot.NoUserLoggedIn
+	}
+	if resp.Reboot.UserLoggedIn != defaults["UserLoggedIn"].(string) {
+		rebootBlock["user_logged_in"] = resp.Reboot.UserLoggedIn
+	}
+	if resp.Reboot.MinutesUntilReboot != defaults["MinutesUntilReboot"].(int) {
+		rebootBlock["minutes_until_reboot"] = resp.Reboot.MinutesUntilReboot
+	}
+	if resp.Reboot.StartRebootTimerImmediately != defaults["StartRebootTimerImmediately"].(bool) {
+		rebootBlock["start_reboot_timer_immediately"] = resp.Reboot.StartRebootTimerImmediately
+	}
+	if resp.Reboot.FileVault2Reboot != defaults["FileVault2Reboot"].(bool) {
+		rebootBlock["file_vault_2_reboot"] = resp.Reboot.FileVault2Reboot
+	}
+
+	if len(rebootBlock) > 0 {
+		(*out)[0]["reboot"] = []map[string]interface{}{rebootBlock}
+	}
 }
 
-// Reads response and preps maintenance payload items. If all values are default, do not set the maintenance block
+// prepStatePayloadMaintenance Reads response and preps maintenance payload items. If all values are default, do not set the maintenance block
 func prepStatePayloadMaintenance(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	if resp.Maintenance == nil {
 		return
