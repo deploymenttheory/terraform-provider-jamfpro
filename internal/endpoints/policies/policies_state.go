@@ -444,24 +444,57 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *dia
 	}
 }
 
-// Reads response and states self service items
+// stateSelfService Reads response and states self-service items and states only if non-default
 func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
-	var err error
+	if resp.SelfService == nil {
+		return
+	}
+
+	defaults := map[string]interface{}{
+		"use_for_self_service":            false,
+		"self_service_display_name":       "",
+		"install_button_text":             "Install",
+		"self_service_description":        "",
+		"force_users_to_view_description": false,
+		"feature_on_main_page":            false,
+	}
+
+	current := map[string]interface{}{
+		"use_for_self_service":            resp.SelfService.UseForSelfService,
+		"self_service_display_name":       resp.SelfService.SelfServiceDisplayName,
+		"install_button_text":             resp.SelfService.InstallButtonText,
+		"self_service_description":        resp.SelfService.SelfServiceDescription,
+		"force_users_to_view_description": resp.SelfService.ForceUsersToViewDescription,
+		"feature_on_main_page":            resp.SelfService.FeatureOnMainPage,
+	}
+
+	nonDefault := false
+	for key, value := range current {
+		if value != defaults[key] {
+			nonDefault = true
+			break
+		}
+	}
+
+	if !nonDefault {
+		log.Println("[DEBUG] Self-service block has only default values, skipping state")
+		return
+	}
+
+	log.Println("[DEBUG] Initializing self-service block in state")
 	out_ss := make([]map[string]interface{}, 0)
 	out_ss = append(out_ss, make(map[string]interface{}, 1))
 
-	if resp.SelfService != nil {
-		out_ss[0]["use_for_self_service"] = resp.SelfService.UseForSelfService
-		out_ss[0]["self_service_display_name"] = resp.SelfService.SelfServiceDisplayName
-		out_ss[0]["install_button_text"] = resp.SelfService.InstallButtonText
-		out_ss[0]["self_service_description"] = resp.SelfService.SelfServiceDescription
-		out_ss[0]["force_users_to_view_description"] = resp.SelfService.ForceUsersToViewDescription
-		out_ss[0]["feature_on_main_page"] = resp.SelfService.FeatureOnMainPage
+	out_ss[0]["use_for_self_service"] = resp.SelfService.UseForSelfService
+	out_ss[0]["self_service_display_name"] = resp.SelfService.SelfServiceDisplayName
+	out_ss[0]["install_button_text"] = resp.SelfService.InstallButtonText
+	out_ss[0]["self_service_description"] = resp.SelfService.SelfServiceDescription
+	out_ss[0]["force_users_to_view_description"] = resp.SelfService.ForceUsersToViewDescription
+	out_ss[0]["feature_on_main_page"] = resp.SelfService.FeatureOnMainPage
 
-		err = d.Set("self_service", out_ss)
-		if err != nil {
-			*diags = append(*diags, diag.FromErr(err)...)
-		}
+	err := d.Set("self_service", out_ss)
+	if err != nil {
+		*diags = append(*diags, diag.FromErr(err)...)
 	}
 }
 
@@ -481,6 +514,9 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 
 	// Printers
 	prepStatePayloadPrinters(&out, resp)
+
+	// Dock Items
+	prepStatePayloadDockItems(&out, resp)
 
 	// Account Maintenance
 	prepStatePayloadAccountMaintenance(&out, resp)
@@ -668,6 +704,34 @@ func prepStatePayloadPrinters(out *[]map[string]interface{}, resp *jamfpro.Resou
 	}
 
 	log.Printf("Final state printers: %+v\n", (*out)[0]["printers"])
+}
+
+// Reads response and preps dock items payload items
+func prepStatePayloadDockItems(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
+	if resp.DockItems.DockItem == nil {
+		log.Println("No dock items found")
+		return
+	}
+
+	// Ensure the map is initialized before setting values
+	if len((*out)[0]) == 0 {
+		(*out)[0] = make(map[string]interface{})
+	}
+
+	log.Println("Initializing dock items in state")
+	(*out)[0]["dock_items"] = make([]map[string]interface{}, 0)
+
+	for _, v := range *resp.DockItems.DockItem {
+		outMap := make(map[string]interface{})
+		outMap["id"] = v.ID
+		outMap["name"] = v.Name
+		outMap["action"] = v.Action
+
+		log.Printf("Adding dock item to state: %+v\n", outMap)
+		(*out)[0]["dock_items"] = append((*out)[0]["dock_items"].([]map[string]interface{}), outMap)
+	}
+
+	log.Printf("Final state dock items: %+v\n", (*out)[0]["dock_items"])
 }
 
 // Reads response and preps account maintenance payload items

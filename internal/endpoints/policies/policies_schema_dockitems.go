@@ -13,11 +13,11 @@ func getPolicySchemaDockItems() *schema.Resource {
 				Required:    true,
 				Description: "Unique identifier of the dock item.",
 			},
-			// "name": {
-			// 	Type:        schema.TypeString,
-			// 	Description: "Name of the dock item.",
-			// 	Computed:    true,
-			// }, // Not needed
+			"name": { // Name + ID required to successfully request. do not remove.
+				Type:        schema.TypeString,
+				Description: "Name of the dock item.",
+				Required:    true,
+			},
 			"action": {
 				Type:         schema.TypeString,
 				Optional:     true,

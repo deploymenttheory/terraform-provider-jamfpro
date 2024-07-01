@@ -445,6 +445,7 @@ func constructPayloadDockItems(d *schema.ResourceData, resource *jamfpro.Resourc
 	for _, v := range hcl.([]interface{}) {
 		newObj := jamfpro.PolicySubsetDockItem{
 			ID:     v.(map[string]interface{})["id"].(int),
+			Name:   v.(map[string]interface{})["name"].(string),
 			Action: v.(map[string]interface{})["action"].(string),
 		}
 		payload = append(payload, newObj)
