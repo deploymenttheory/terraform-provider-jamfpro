@@ -227,7 +227,6 @@ func Provider() *schema.Provider {
 					"basic", "oauth2",
 				}, true),
 			},
-			// TODO the descs below
 			"client_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -267,7 +266,7 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "pretty",
-				Description: "The output format of the logs. Use 'JSON' for JSON format, 'console' for human-readable format. Defaults to console if no value is supplied.",
+				Description: "The output format of the logs. Use 'JSON' for JSON format, 'pretty' for human-readable format. Defaults to console if no value is supplied.",
 			},
 			"log_console_separator": {
 				Type:        schema.TypeString,
@@ -285,7 +284,7 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
-				Description: "export logs to file",
+				Description: "Enables exporting logs to a file",
 			},
 			"hide_sensitive_data": {
 				Type:        schema.TypeBool,
@@ -294,9 +293,10 @@ func Provider() *schema.Provider {
 				Description: "Define whether sensitive fields should be hidden in logs. Default to hiding sensitive data in logs",
 			},
 			"custom_cookies": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Default:  nil,
+				Type:        schema.TypeList,
+				Optional:    true,
+				Default:     nil,
+				Description: "Persistent custom cookies used by HTTP Client in all requests.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -316,7 +316,7 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
-				Description: "programatically determines all available web app members in the load balance and locks all instances of httpclient to the app for faster executions. \nTEMP SOLUTION UNTIL JAMF PROVIDES SOLUTION",
+				Description: "Programatically determines all available web app members in the load balance and locks all instances of httpclient to the app for faster executions. \nTEMP SOLUTION UNTIL JAMF PROVIDES SOLUTION",
 			},
 			"token_refresh_buffer_period_seconds": {
 				Type:        schema.TypeInt,
@@ -329,7 +329,7 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     100,
-				Description: "a mandatory delay after each request before returning to reduce high volume of requests in a short time",
+				Description: "A mandatory delay after each request before returning to reduce high volume of requests in a short time",
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{

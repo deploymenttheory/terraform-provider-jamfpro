@@ -79,10 +79,7 @@ resource "jamfpro_account_groups"  "jamf_pro_account_group_002" {
   access_level = "Full Access" // Full Access / Site Access / Group Access
   privilege_set = "Administrator" 
 
-  site {
-    id   = -1    
-    name = "None" 
-  }
+  # site_id = 1 OPTIONAL
   
 }
 
@@ -92,11 +89,7 @@ resource "jamfpro_account_groups"  "jamf_pro_account_group_003" {
   access_level = "Full Access" // Full Access / Site Access / Group Access
   privilege_set = "Auditor" 
 
-  site {
-    id   = -1    
-    name = "None" 
-  }
-  
+  # site_id = 1 OPTIONAL
 }
 
 // account group - enrollment only example
@@ -105,10 +98,7 @@ resource "jamfpro_account_groups"  "jamf_pro_account_group_004" {
   access_level = "Full Access" // Full Access / Site Access / Group Access
   privilege_set = "Enrollment Only" 
 
-  site {
-    id   = -1    
-    name = "None"
-  }
+  # site_id = 1 OPTIONAL
   
 }
 
@@ -120,8 +110,6 @@ resource "jamfpro_account_group"  "jamf_pro_account_group_004" {
 
   site_id = 1
 
-  identity_server {
-    id   = 1 // LDAP_GROUP_ID / iDP_GROUP_ID
-  }
+  identity_server_id = 1
   
 }

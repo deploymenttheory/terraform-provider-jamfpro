@@ -13,10 +13,11 @@ resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuratio
   payloads          = file("${path.module}/path/to/your/file.mobileconfig")
   user_removable    = false
 
-  // Optional Block
+// Optional Block
+
   site_id = 967
   
-  // Optional Block
+// Optional Block
   category_id = 5
   
 // Optional Block
@@ -85,14 +86,10 @@ resource "jamfpro_macos_configuration_profile" "jamfpro_macos_configuration_prof
   user_removable    = false
 
   // Optional Block
-   site {
-    id = 967
-  }
+   site_id = 1
 
 // Optional Block
-  category {
-    id = 5
-  }
+  category_id = 1
 
 // Optional Block
   scope {

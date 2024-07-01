@@ -8,28 +8,27 @@ terraform {
 }
 
 provider "jamfpro" {
-  instance_name               = var.jamfpro_instance_name
+  jamf_instance_fqdn          = var.jamfpro_instance_name
+  auth_method =               "oauth2" // basic
   client_id                   = var.jamfpro_client_id
   client_secret               = var.jamfpro_client_secret
+  # basic_auth_username = ""
+  # basic_auth_password = ""
   log_level                   = "debug" # or "debug", "info", "none" depending on the desired verbosity of the http client
   log_output_format           = "console" # or "JSON" for JSON format
   log_console_separator       = " " # Separator character for console log output
+  log_export_path             = "/path/to/log"
+  export_logs                 = false
   hide_sensitive_data         = true # Hides sensitive data in logs
-  max_retry_attempts          = 5
-  enable_dynamic_rate_limiting = false
-  max_concurrent_requests     = 5
-  token_refresh_buffer_period = 5 # minutes
-  total_retry_duration        = 30 # seconds
-  custom_timeout              = 30 # seconds
-  enable_cookie_jar           = true
-  // This setting controls the use of a cookie jar, effectively enabling sticky sessions. When enabled, resources deploy 
-  // faster due to a reduced propagation wait time of 5 seconds, however this WILL lead to increased load on a single jamf 
-  // pro web application (clustered or otherwise) as it handles all Terraform CRUD operations and negates any load balancing.
-  // It will pick the first web app to respond to the initial request and stick to it for the duration of the session.
+  token_refresh_buffer_period_seconds = 5 # minutes
+  jamf_load_balancer_lock     = true
   custom_cookies = {
-    "jpro-ingress" = "your-cookie-value" // optional and useful for hard coding a specific jamf pro web app
+    name = "jpro-ingress"
+    value = "value"
   }
+  mandatory_request_delay_milliseconds = 100
 }
+
 variable "jamfpro_instance_name" {
   description = "Jamf Pro Instance name."
   default     = ""
