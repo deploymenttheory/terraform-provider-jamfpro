@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// TODO this is copied from config profiles just to make this work - it'll have a centralised home
+// GetAttrsListFromHCLForPointers is a helper function that takes a path to a list of items in HCL and a target field to set in the list of pointers.
 func GetAttrsListFromHCLForPointers[NestedObjectType any, ListItemPrimitiveType any](path string, target_field string, d *schema.ResourceData, home *[]NestedObjectType) (err error) {
 	getAttr, ok := d.GetOk(path)
 	log.Println("START")

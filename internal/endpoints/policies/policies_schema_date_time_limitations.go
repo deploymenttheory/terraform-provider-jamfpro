@@ -11,31 +11,28 @@ func getPolicySchemaDateTimeLimitations() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The activation date of the policy.",
-				Computed:    true,
 			},
 			"activation_date_epoch": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Description: "The epoch time of the activation date.",
-				Computed:    true,
+				Default:     0,
 			},
 			"activation_date_utc": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The UTC time of the activation date.",
-				Computed:    true,
 			},
 			"expiration_date": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The expiration date of the policy.",
-				Computed:    true,
 			},
 			"expiration_date_epoch": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Description: "The epoch time of the expiration date.",
-				Computed:    true,
+				Default:     0,
 			},
 			"expiration_date_utc": {
 				Type:        schema.TypeString,

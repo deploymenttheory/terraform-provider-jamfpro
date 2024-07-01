@@ -13,11 +13,12 @@ func getPolicySchemaPayloads() *schema.Resource {
 				Description: "Settings to override default configurations.",
 				Elem:        getPolicySchemaNetworkLimitations(),
 			},
-			"network_requirements": { // NOT IN THE UI
-				Type:        schema.TypeString,
-				Optional:    true,
+			"network_requirements": { // NOT IN THE UI, testing with a computed value
+				Type:     schema.TypeString,
+				Computed: true,
+				//Optional:    true,
 				Description: "Network requirements for the policy.",
-				Default:     "",
+				//Default:     "",
 			},
 			"packages": {
 				Type:        schema.TypeList,

@@ -1,9 +1,5 @@
 package policies
 
-// TODO remove all the log.print's. Debug use only
-// TODO handle all toxic combinations
-// TODO review error handling here? Feels like there is not enough
-
 import (
 	"encoding/xml"
 	"fmt"
@@ -14,10 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// Returns ResourcePolicy required for client to marshal into api req
+// constructPolicy builds the policy object from the HCL. It's composed of several sub-objects, each with their own schema.
 func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	var err error
-	var resource *jamfpro.ResourcePolicy
+	resource := &jamfpro.ResourcePolicy{}
 
 	constructGeneral(d, resource)
 
@@ -27,27 +23,19 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	}
 
 	constructSelfService(d, resource)
-	constructPayloads(d, resource)
 
-	// Package Configuration
-	// Scripts
-	// Printers
-	// DockItems
-	// Account Maintenance
-	// FilesProcesses
-	// UserInteraction
-	// DiskEncryption part of payloads
-	// Reboot
+	err = constructPayloads(d, resource)
+	if err != nil {
+		return nil, err
+	}
 
-	// DEBUG
-	log.Println("LOGHERE-CONSTRUCTED")
 	policyXML, _ := xml.MarshalIndent(resource, "", "  ")
 	log.Println(string(policyXML))
 
 	return resource, nil
 }
 
-// Pulls "general" settings from HCL and packages into object
+// constructGeneral builds the general settings of the jamf pro policy from the HCL.
 func constructGeneral(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
 	resource.General = jamfpro.PolicySubsetGeneral{
 		Name:                       d.Get("name").(string),
@@ -64,18 +52,58 @@ func constructGeneral(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) 
 		NotifyOnEachFailedRetry:    d.Get("notify_on_each_failed_retry").(bool),
 		TargetDrive:                d.Get("target_drive").(string),
 		Offline:                    d.Get("offline").(bool),
+		NetworkRequirements:        d.Get("network_requirements").(string),
 	}
 
 	// Category
 	resource.General.Category = sharedschemas.ConstructSharedResourceCategory(d.Get("category_id").(int))
 
+	// DateTime Limitations
+	setDateTimeLimitations(d, resource)
+
+	// Network Limitations
+	setNetworkLimitations(d, resource)
+
 	// Site
 	resource.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 }
 
+// Helper function to set DateTime Limitations
+func setDateTimeLimitations(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
+	if dateTimeLimitations, ok := d.GetOk("date_time_limitations"); ok {
+		dateTimeLimitationsList := dateTimeLimitations.([]interface{})
+		if len(dateTimeLimitationsList) > 0 {
+			dateTimeLimitationsMap := dateTimeLimitationsList[0].(map[string]interface{})
+			resource.General.DateTimeLimitations = &jamfpro.PolicySubsetGeneralDateTimeLimitations{
+				ActivationDate:      dateTimeLimitationsMap["activation_date"].(string),
+				ActivationDateEpoch: dateTimeLimitationsMap["activation_date_epoch"].(int),
+				ActivationDateUTC:   dateTimeLimitationsMap["activation_date_utc"].(string),
+				ExpirationDate:      dateTimeLimitationsMap["expiration_date"].(string),
+				ExpirationDateEpoch: dateTimeLimitationsMap["expiration_date_epoch"].(int),
+				ExpirationDateUTC:   dateTimeLimitationsMap["expiration_date_utc"].(string),
+				NoExecuteStart:      dateTimeLimitationsMap["no_execute_start"].(string),
+				NoExecuteEnd:        dateTimeLimitationsMap["no_execute_end"].(string),
+			}
+		}
+	}
+}
+
+// Helper function to set Network Limitations
+func setNetworkLimitations(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
+	if networkLimitations, ok := d.GetOk("network_limitations"); ok {
+		networkLimitationsList := networkLimitations.([]interface{})
+		if len(networkLimitationsList) > 0 {
+			networkLimitationsMap := networkLimitationsList[0].(map[string]interface{})
+			resource.General.NetworkLimitations = &jamfpro.PolicySubsetGeneralNetworkLimitations{
+				MinimumNetworkConnection: networkLimitationsMap["minimum_network_connection"].(string),
+				AnyIPAddress:             networkLimitationsMap["any_ip_address"].(bool),
+			}
+		}
+	}
+}
+
 // Pulls "scope" settings from HCL and packages into object
 func constructScope(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
-
 	var err error
 
 	if len(d.Get("scope").([]interface{})) == 0 {
@@ -254,70 +282,78 @@ func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	}
 }
 
-// Pulls "payload" settings from HCL and packages into object
-func constructPayloads(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
-
-	// Packages
-	constructPayloadPackages(d, out)
-
-	// Scripts
-	constructPayloadScripts(d, out)
-	// DiskEncryption
-	constructPayloadDiskEncryption(d, out)
-}
-
-// Pulls "disk encryption" settings from HCL and packages into object
-func constructPayloadDiskEncryption(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
-
-	hcl := d.Get("payloads.0.disk_encryption")
-	if len(hcl.([]interface{})) == 0 {
-		return
+// constructPayloads builds the policy payload(s) from the HCL
+func constructPayloads(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
+	if err := constructPayloadPackages(d, resource); err != nil {
+		return err
+	}
+	if err := constructPayloadScripts(d, resource); err != nil {
+		return err
+	}
+	if err := constructPayloadDiskEncryption(d, resource); err != nil {
+		return err
+	}
+	if err := constructPayloadPrinters(d, resource); err != nil {
+		return err
+	}
+	if err := constructPayloadDockItems(d, resource); err != nil {
+		return err
+	}
+	if err := constructPayloadAccountMaintenance(d, resource); err != nil {
+		return err
+	}
+	if err := constructPayloadFilesProcesses(d, resource); err != nil {
+		return err
+	}
+	if err := constructPayloadUserInteraction(d, resource); err != nil {
+		return err
+	}
+	if err := constructPayloadReboot(d, resource); err != nil {
+		return err
+	}
+	if err := constructPayloadMaintenance(d, resource); err != nil {
+		return err
 	}
 
-	if len(d.Get("payloads.0.disk_encryption").([]interface{})) > 0 {
-		out.DiskEncryption = &jamfpro.PolicySubsetDiskEncryption{
-			Action:                                 d.Get("payloads.0.disk_encryption.0.action").(string),
-			DiskEncryptionConfigurationID:          d.Get("payloads.0.disk_encryption.0.disk_encryption_configuration_id").(int),
-			AuthRestart:                            d.Get("payloads.0.disk_encryption.0.auth_restart").(bool),
-			RemediateKeyType:                       d.Get("payloads.0.disk_encryption.0.remediate_key_type").(string),
-			RemediateDiskEncryptionConfigurationID: d.Get("payloads.0.disk_encryption.0.remediate_disk_encryption_configuration_id").(int),
-		}
-	}
+	return nil
 }
 
-// Pulls "package" settings from HCL and packages into object
-func constructPayloadPackages(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
-
+// constructPayloadPackages builds the packages payload settings of the policy.
+func constructPayloadPackages(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
 	hcl := d.Get("payloads.0.packages")
-	if len(hcl.([]interface{})) == 0 {
-		return
+	if hcl == nil || len(hcl.([]interface{})) == 0 {
+		return nil
 	}
 
 	outBlock := new(jamfpro.PolicySubsetPackageConfiguration)
-	outBlock.DistributionPoint = d.Get("package_distribution_point").(string)
+	packageConfig := hcl.([]interface{})[0].(map[string]interface{})
+	outBlock.DistributionPoint = packageConfig["distribution_point"].(string)
 	outBlock.Packages = &[]jamfpro.PolicySubsetPackageConfigurationPackage{}
 	payload := *outBlock.Packages
 
-	for _, v := range hcl.([]interface{}) {
+	packageList := packageConfig["package"].([]interface{})
+	for _, v := range packageList {
+		packageData := v.(map[string]interface{})
 		newObj := jamfpro.PolicySubsetPackageConfigurationPackage{
-			ID:                v.(map[string]interface{})["id"].(int),
-			Action:            v.(map[string]interface{})["action"].(string),
-			FillUserTemplate:  v.(map[string]interface{})["fill_user_template"].(bool),
-			FillExistingUsers: v.(map[string]interface{})["fill_existing_user_template"].(bool),
+			ID:                packageData["id"].(int),
+			Action:            packageData["action"].(string),
+			FillUserTemplate:  packageData["fill_user_template"].(bool),
+			FillExistingUsers: packageData["fill_existing_user_template"].(bool),
 		}
 		payload = append(payload, newObj)
 	}
 
 	outBlock.Packages = &payload
-	out.PackageConfiguration = outBlock
+	resource.PackageConfiguration = outBlock
+
+	return nil
 }
 
-// Pulls "script" settings from HCL and packages into object
-func constructPayloadScripts(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
-
+// Pulls "script" settings from HCL and packages them into the resource.
+func constructPayloadScripts(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
 	hcl := d.Get("payloads.0.scripts")
 	if len(hcl.([]interface{})) == 0 {
-		return
+		return nil
 	}
 
 	outBlock := new(jamfpro.PolicySubsetScripts)
@@ -342,5 +378,287 @@ func constructPayloadScripts(d *schema.ResourceData, out *jamfpro.ResourcePolicy
 	}
 
 	outBlock.Script = &payload
-	out.Scripts = outBlock
+	resource.Scripts = outBlock
+
+	return nil
+}
+
+// Pulls "disk encryption" settings from HCL and packages them into the resource.
+func constructPayloadDiskEncryption(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
+	hcl := d.Get("payloads.0.disk_encryption")
+	if hcl == nil || len(hcl.([]interface{})) == 0 {
+		return nil
+	}
+
+	outBlock := new(jamfpro.PolicySubsetDiskEncryption)
+	data := hcl.([]interface{})[0].(map[string]interface{})
+
+	outBlock.Action = data["action"].(string)
+	outBlock.DiskEncryptionConfigurationID = data["disk_encryption_configuration_id"].(int)
+	outBlock.AuthRestart = data["auth_restart"].(bool)
+	outBlock.RemediateKeyType = data["remediate_key_type"].(string)
+	outBlock.RemediateDiskEncryptionConfigurationID = data["remediate_disk_encryption_configuration_id"].(int)
+
+	resource.DiskEncryption = outBlock
+
+	return nil
+}
+
+// Pulls "printers" settings from HCL and packages them into the resource.
+func constructPayloadPrinters(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
+	hcl := d.Get("payloads.0.printers")
+	if len(hcl.([]interface{})) == 0 {
+		return nil
+	}
+
+	outBlock := new(jamfpro.PolicySubsetPrinters)
+	outBlock.Printer = &[]jamfpro.PolicySubsetPrinter{}
+	payload := *outBlock.Printer
+
+	for _, v := range hcl.([]interface{}) {
+		newObj := jamfpro.PolicySubsetPrinter{
+			ID:          v.(map[string]interface{})["id"].(int),
+			Name:        v.(map[string]interface{})["name"].(string),
+			Action:      v.(map[string]interface{})["action"].(string),
+			MakeDefault: v.(map[string]interface{})["make_default"].(bool),
+		}
+		payload = append(payload, newObj)
+	}
+
+	outBlock.Printer = &payload
+	resource.Printers = outBlock
+
+	return nil
+}
+
+// constructPayloadDockItems builds the dock items payload settings of the policy.
+func constructPayloadDockItems(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
+	hcl := d.Get("payloads.0.dock_items")
+	if len(hcl.([]interface{})) == 0 {
+		return nil
+	}
+
+	outBlock := new(jamfpro.PolicySubsetDockItems)
+	outBlock.DockItem = &[]jamfpro.PolicySubsetDockItem{}
+	payload := *outBlock.DockItem
+
+	for _, v := range hcl.([]interface{}) {
+		newObj := jamfpro.PolicySubsetDockItem{
+			ID:     v.(map[string]interface{})["id"].(int),
+			Name:   v.(map[string]interface{})["name"].(string),
+			Action: v.(map[string]interface{})["action"].(string),
+		}
+		payload = append(payload, newObj)
+	}
+
+	outBlock.DockItem = &payload
+	resource.DockItems = outBlock
+
+	return nil
+}
+
+// constructPayloadAccountMaintenance builds the account maintenance payload settings of the policy.
+func constructPayloadAccountMaintenance(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
+	hcl := d.Get("payloads.0.account_maintenance")
+	if hcl == nil || len(hcl.([]interface{})) == 0 {
+		return nil
+	}
+
+	outBlock := new(jamfpro.PolicySubsetAccountMaintenance)
+
+	for _, v := range hcl.([]interface{}) {
+		data := v.(map[string]interface{})
+
+		// Handle local accounts
+		if localAccounts, ok := data["local_accounts"]; ok && len(localAccounts.([]interface{})) > 0 {
+			localAccountsList := localAccounts.([]interface{})
+			if len(localAccountsList) > 0 {
+				accountsData := localAccountsList[0].(map[string]interface{})["account"].([]interface{})
+				accounts := []jamfpro.PolicySubsetAccountMaintenanceAccount{}
+				for _, account := range accountsData {
+					accountData := account.(map[string]interface{})
+					newAccount := jamfpro.PolicySubsetAccountMaintenanceAccount{
+						Action:                 accountData["action"].(string),
+						Username:               accountData["username"].(string),
+						Realname:               accountData["realname"].(string),
+						Password:               accountData["password"].(string),
+						ArchiveHomeDirectory:   accountData["archive_home_directory"].(bool),
+						ArchiveHomeDirectoryTo: accountData["archive_home_directory_to"].(string),
+						Home:                   accountData["home"].(string),
+						Hint:                   accountData["hint"].(string),
+						Picture:                accountData["picture"].(string),
+						Admin:                  accountData["admin"].(bool),
+						FilevaultEnabled:       accountData["filevault_enabled"].(bool),
+					}
+					accounts = append(accounts, newAccount)
+				}
+				outBlock.Accounts = &accounts
+			}
+		}
+
+		// Handle directory bindings
+		if directoryBindings, ok := data["directory_bindings"]; ok && len(directoryBindings.([]interface{})) > 0 {
+			directoryBindingsList := directoryBindings.([]interface{})
+			bindings := []jamfpro.PolicySubsetAccountMaintenanceDirectoryBindings{}
+			for _, binding := range directoryBindingsList {
+				bindingData := binding.(map[string]interface{})
+				newBinding := jamfpro.PolicySubsetAccountMaintenanceDirectoryBindings{
+					ID:   bindingData["id"].(int),
+					Name: bindingData["name"].(string),
+				}
+				bindings = append(bindings, newBinding)
+			}
+			outBlock.DirectoryBindings = &bindings
+		}
+
+		// Handle management account
+		if managementAccount, ok := data["management_account"]; ok && len(managementAccount.([]interface{})) > 0 {
+			managementAccountList := managementAccount.([]interface{})
+			if len(managementAccountList) > 0 {
+				managementAccountData := managementAccountList[0].(map[string]interface{})
+				outBlock.ManagementAccount = &jamfpro.PolicySubsetAccountMaintenanceManagementAccount{
+					Action:                managementAccountData["action"].(string),
+					ManagedPassword:       managementAccountData["managed_password"].(string),
+					ManagedPasswordLength: managementAccountData["managed_password_length"].(int),
+				}
+			}
+		}
+
+		// Handle open firmware/EFI password
+		if openFirmwareEfiPassword, ok := data["open_firmware_efi_password"]; ok && len(openFirmwareEfiPassword.([]interface{})) > 0 {
+			openFirmwareEfiPasswordList := openFirmwareEfiPassword.([]interface{})
+			if len(openFirmwareEfiPasswordList) > 0 {
+				openFirmwareEfiPasswordData := openFirmwareEfiPasswordList[0].(map[string]interface{})
+				outBlock.OpenFirmwareEfiPassword = &jamfpro.PolicySubsetAccountMaintenanceOpenFirmwareEfiPassword{
+					OfMode:     openFirmwareEfiPasswordData["of_mode"].(string),
+					OfPassword: openFirmwareEfiPasswordData["of_password"].(string),
+				}
+			}
+		}
+	}
+
+	resource.AccountMaintenance = outBlock
+	return nil
+}
+
+// constructPayloadFilesProcesses builds the files and processes payload settings of the policy.
+func constructPayloadFilesProcesses(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
+	hcl := d.Get("payloads.0.files_processes")
+	if hcl == nil || len(hcl.([]interface{})) == 0 {
+		return nil
+	}
+
+	outBlock := new(jamfpro.PolicySubsetFilesProcesses)
+	payload := []jamfpro.PolicySubsetFilesProcesses{}
+
+	for _, v := range hcl.([]interface{}) {
+		data := v.(map[string]interface{})
+		newObj := jamfpro.PolicySubsetFilesProcesses{
+			SearchByPath:         data["search_by_path"].(string),
+			DeleteFile:           data["delete_file"].(bool),
+			LocateFile:           data["locate_file"].(string),
+			UpdateLocateDatabase: data["update_locate_database"].(bool),
+			SpotlightSearch:      data["spotlight_search"].(string),
+			SearchForProcess:     data["search_for_process"].(string),
+			KillProcess:          data["kill_process"].(bool),
+			RunCommand:           data["run_command"].(string),
+		}
+		payload = append(payload, newObj)
+	}
+
+	if len(payload) > 0 {
+		outBlock = &payload[0]
+		resource.FilesProcesses = outBlock
+	}
+
+	return nil
+}
+
+// constructPayloadUserInteraction builds the user interaction payload settings of the policy.
+func constructPayloadUserInteraction(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
+	hcl := d.Get("payloads.0.user_interaction")
+	if hcl == nil || len(hcl.([]interface{})) == 0 {
+		return nil
+	}
+
+	outBlock := new(jamfpro.PolicySubsetUserInteraction)
+	payload := []jamfpro.PolicySubsetUserInteraction{}
+
+	for _, v := range hcl.([]interface{}) {
+		data := v.(map[string]interface{})
+
+		newObj := jamfpro.PolicySubsetUserInteraction{
+			MessageStart:          data["message_start"].(string),
+			AllowUserToDefer:      data["allow_user_to_defer"].(bool),
+			AllowDeferralUntilUtc: data["allow_deferral_until_utc"].(string),
+			AllowDeferralMinutes:  data["allow_deferral_minutes"].(int),
+			MessageFinish:         data["message_finish"].(string),
+		}
+
+		payload = append(payload, newObj)
+	}
+
+	outBlock = &payload[0]
+	resource.UserInteraction = outBlock
+
+	return nil
+}
+
+// constructPayloadReboot builds the reboot payload settings of the policy.
+func constructPayloadReboot(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
+	hcl := d.Get("payloads.0.reboot")
+	if hcl == nil || len(hcl.(*schema.Set).List()) == 0 {
+		return nil
+	}
+
+	outBlock := new(jamfpro.PolicySubsetReboot)
+	data := hcl.(*schema.Set).List()[0].(map[string]interface{})
+
+	outBlock.Message = data["message"].(string)
+	outBlock.SpecifyStartup = data["specify_startup"].(string)
+	outBlock.StartupDisk = data["startup_disk"].(string)
+	outBlock.NoUserLoggedIn = data["no_user_logged_in"].(string)
+	outBlock.UserLoggedIn = data["user_logged_in"].(string)
+	outBlock.MinutesUntilReboot = data["minutes_until_reboot"].(int)
+	outBlock.StartRebootTimerImmediately = data["start_reboot_timer_immediately"].(bool)
+	outBlock.FileVault2Reboot = data["file_vault_2_reboot"].(bool)
+
+	resource.Reboot = outBlock
+
+	return nil
+}
+
+// constructPayloadMaintenance builds the maintenance payload settings of the policy.
+func constructPayloadMaintenance(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
+	hcl := d.Get("payloads.0.maintenance")
+	if hcl == nil || len(hcl.([]interface{})) == 0 {
+		return nil
+	}
+
+	outBlock := new(jamfpro.PolicySubsetMaintenance)
+	payload := []jamfpro.PolicySubsetMaintenance{}
+
+	for _, v := range hcl.([]interface{}) {
+		data := v.(map[string]interface{})
+
+		newObj := jamfpro.PolicySubsetMaintenance{
+			Recon:                    data["recon"].(bool),
+			ResetName:                data["reset_name"].(bool),
+			InstallAllCachedPackages: data["install_all_cached_packages"].(bool),
+			Heal:                     data["heal"].(bool),
+			Prebindings:              data["prebindings"].(bool),
+			Permissions:              data["permissions"].(bool),
+			Byhost:                   data["byhost"].(bool),
+			SystemCache:              data["system_cache"].(bool),
+			UserCache:                data["user_cache"].(bool),
+			Verify:                   data["verify"].(bool),
+		}
+
+		payload = append(payload, newObj)
+	}
+
+	outBlock = &payload[0]
+	resource.Maintenance = outBlock
+
+	return nil
 }

@@ -73,7 +73,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Any other trigger for the policy.",
-				// TODO need a validation func here to make sure this cannot be provided as empty.
+				Default:     "",
 			},
 			"frequency": {
 				Type:        schema.TypeString,
@@ -132,6 +132,16 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Optional:    true,
 				Description: "Make policy available offline by caching the policy to the macOS device to ensure it runs when Jamf Pro is unavailable. Only used when execution policy is set to 'ongoing'. ",
 				Default:     false,
+			},
+			"network_requirements": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Network requirements for the policy.",
+				Default:     "Any",
+				ValidateFunc: validation.StringInSlice([]string{
+					"Any",
+					"Ethernet",
+				}, false),
 			},
 			"category_id": sharedschemas.GetSharedSchemaCategory(),
 			"site_id":     sharedschemas.GetSharedSchemaSite(),

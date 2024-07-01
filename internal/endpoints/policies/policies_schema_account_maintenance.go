@@ -69,6 +69,7 @@ func getPolicySchemaAccount() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Set a new account password. This does not update the account's login keychain password or FileVault 2 password.",
+				//Sensitive:   true,
 			},
 			"archive_home_directory": {
 				Type:        schema.TypeBool,
@@ -122,8 +123,9 @@ func getPolicySchemaDirectoryBinding() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:        schema.TypeInt,
-							Required:    true,
+							Optional:    true,
 							Description: "The unique identifier of the binding.",
+							Default:     -1,
 						},
 						"name": {
 							Type:        schema.TypeString,

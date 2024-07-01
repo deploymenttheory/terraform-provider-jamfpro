@@ -354,6 +354,7 @@ func Provider() *schema.Provider {
 			"jamfpro_macos_configuration_profile_plist":         macosconfigurationprofilesplist.DataSourceJamfProMacOSConfigurationProfilesPlist(),
 			"jamfpro_mobile_device_configuration_profile_plist": mobiledeviceconfigurationprofilesplist.DataSourceJamfProMobileDeviceConfigurationProfilesPlist(),
 			"jamfpro_package":                                   packages.DataSourceJamfProPackages(),
+			"jamfpro_policy":                                    policies.DataSourceJamfProPolicies(),
 			"jamfpro_printer":                                   printers.DataSourceJamfProPrinters(),
 			"jamfpro_script":                                    scripts.DataSourceJamfProScripts(),
 			"jamfpro_site":                                      sites.DataSourceJamfProSites(),
