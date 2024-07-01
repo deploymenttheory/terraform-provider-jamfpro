@@ -418,6 +418,7 @@ func constructPayloadPrinters(d *schema.ResourceData, resource *jamfpro.Resource
 	for _, v := range hcl.([]interface{}) {
 		newObj := jamfpro.PolicySubsetPrinter{
 			ID:          v.(map[string]interface{})["id"].(int),
+			Name:        v.(map[string]interface{})["name"].(string),
 			Action:      v.(map[string]interface{})["action"].(string),
 			MakeDefault: v.(map[string]interface{})["make_default"].(bool),
 		}

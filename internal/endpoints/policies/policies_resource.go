@@ -73,11 +73,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Any other trigger for the policy.",
-				Default:     "EVENT",
-				ValidateFunc: validation.StringInSlice([]string{
-					"EVENT",
-					"USER_INITIATED",
-				}, false),
+				Default:     "",
 			},
 			"frequency": {
 				Type:        schema.TypeString,

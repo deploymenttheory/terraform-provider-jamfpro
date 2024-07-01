@@ -479,6 +479,9 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 	// Scripts
 	prepStatePayloadScripts(&out, resp)
 
+	// Printers
+	prepStatePayloadPrinters(&out, resp)
+
 	// Account Maintenance
 	prepStatePayloadAccountMaintenance(&out, resp)
 
@@ -636,6 +639,35 @@ func prepStatePayloadScripts(out *[]map[string]interface{}, resp *jamfpro.Resour
 	}
 
 	log.Printf("Final state scripts: %+v\n", (*out)[0]["scripts"])
+}
+
+// prepStatePayloadPrinters reads response and preps printer payload items for stating
+func prepStatePayloadPrinters(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
+	if resp.Printers.Printer == nil {
+		log.Println("No printers found")
+		return
+	}
+
+	// Ensure the map is initialized before setting values
+	if len((*out)[0]) == 0 {
+		(*out)[0] = make(map[string]interface{})
+	}
+
+	log.Println("Initializing printers in state")
+	(*out)[0]["printers"] = make([]map[string]interface{}, 0)
+
+	for _, v := range *resp.Printers.Printer {
+		outMap := make(map[string]interface{})
+		outMap["id"] = v.ID
+		outMap["name"] = v.Name
+		outMap["action"] = v.Action
+		outMap["make_default"] = v.MakeDefault
+
+		log.Printf("Adding printer to state: %+v\n", outMap)
+		(*out)[0]["printers"] = append((*out)[0]["printers"].([]map[string]interface{}), outMap)
+	}
+
+	log.Printf("Final state printers: %+v\n", (*out)[0]["printers"])
 }
 
 // Reads response and preps account maintenance payload items

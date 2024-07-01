@@ -13,6 +13,11 @@ func getPolicySchemaPrinter() *schema.Resource {
 				Required:    true,
 				Description: "Unique identifier of the printer.",
 			},
+			"name": { // Name + ID required to successfully request. do not remove.
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Name of the printer.",
+			},
 			"action": {
 				Type:         schema.TypeString,
 				Required:     true,
