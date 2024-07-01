@@ -540,54 +540,52 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 	}
 }
 
-// Reads response and preps disk encryption payload items
+// prepStatePayloadDiskEncryption reads response and preps disk encryption payload items for stating
 func prepStatePayloadDiskEncryption(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	if resp.DiskEncryption == nil {
+		log.Println("No disk encryption configuration found")
 		return
 	}
 
-	// Check if all values are at their default (false, empty string, or specific defaults)
-	v := reflect.ValueOf(*resp.DiskEncryption)
-	allDefault := true
+	// Define default values
+	defaults := map[string]interface{}{
+		"action":                           "none",
+		"disk_encryption_configuration_id": 0,
+		"auth_restart":                     false,
+		"remediate_key_type":               "",
+		"remediate_disk_encryption_configuration_id": 0,
+	}
 
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		switch field.Kind() {
-		case reflect.Bool:
-			if field.Bool() {
-				allDefault = false
-			}
-		case reflect.String:
-			if field.String() != "" && field.String() != "none" {
-				allDefault = false
-			}
-		case reflect.Int:
-			if field.Int() != 0 {
-				allDefault = false
-			}
-		}
-		if !allDefault {
+	diskEncryptionBlock := map[string]interface{}{
+		"action":                           resp.DiskEncryption.Action,
+		"disk_encryption_configuration_id": resp.DiskEncryption.DiskEncryptionConfigurationID,
+		"auth_restart":                     resp.DiskEncryption.AuthRestart,
+		"remediate_key_type":               resp.DiskEncryption.RemediateKeyType,
+		"remediate_disk_encryption_configuration_id": resp.DiskEncryption.RemediateDiskEncryptionConfigurationID,
+	}
+
+	// Check if all values are default
+	allDefault := true
+	for key, value := range diskEncryptionBlock {
+		if value != defaults[key] {
+			allDefault = false
 			break
 		}
 	}
 
 	if allDefault {
+		log.Println("All disk encryption values are default, skipping state")
 		return
 	}
 
-	// Otherwise, proceed to set the disk_encryption block
-	(*out)[0]["disk_encryption"] = make([]map[string]interface{}, 0)
-	outMap := make(map[string]interface{})
-	outMap["action"] = resp.DiskEncryption.Action
-	outMap["disk_encryption_configuration_id"] = resp.DiskEncryption.DiskEncryptionConfigurationID
-	outMap["auth_restart"] = resp.DiskEncryption.AuthRestart
-	if resp.DiskEncryption.RemediateKeyType != "" {
-		outMap["remediate_key_type"] = resp.DiskEncryption.RemediateKeyType
+	// Ensure the map is initialized before setting values
+	if len((*out)[0]) == 0 {
+		(*out)[0] = make(map[string]interface{})
 	}
-	if resp.DiskEncryption.RemediateDiskEncryptionConfigurationID != 0 {
-		outMap["remediate_disk_encryption_configuration_id"] = resp.DiskEncryption.RemediateDiskEncryptionConfigurationID
-	}
-	(*out)[0]["disk_encryption"] = append((*out)[0]["disk_encryption"].([]map[string]interface{}), outMap)
+
+	log.Println("Initializing disk encryption in state")
+	(*out)[0]["disk_encryption"] = []map[string]interface{}{diskEncryptionBlock}
+	log.Printf("Final state disk encryption: %+v\n", diskEncryptionBlock)
 }
 
 // Reads response and preps package payload items
@@ -828,105 +826,112 @@ func prepStatePayloadAccountMaintenance(out *[]map[string]interface{}, resp *jam
 	}
 }
 
-// Reads response and preps files and processes payload items
+// prepStatePayloadFilesProcesses reads response and preps files and processes payload items.
 func prepStatePayloadFilesProcesses(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	if resp.FilesProcesses == nil {
+		log.Println("No files and processes configuration found")
 		return
 	}
 
-	// Do not set the files_processes block if all values are default (false or empty string)
-	v := reflect.ValueOf(*resp.FilesProcesses)
-	allDefault := true
+	// Define default values
+	defaults := map[string]interface{}{
+		"search_by_path":         "",
+		"delete_file":            "",
+		"locate_file":            "",
+		"update_locate_database": false,
+		"spotlight_search":       "",
+		"search_for_process":     "",
+		"kill_process":           "",
+		"run_command":            "",
+	}
 
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		switch field.Kind() {
-		case reflect.Bool:
-			if field.Bool() {
-				allDefault = false
-				break
-			}
-		case reflect.String:
-			if field.String() != "" {
-				allDefault = false
-				break
-			}
-		}
-		if !allDefault {
+	filesProcessesBlock := map[string]interface{}{
+		"search_by_path":         resp.FilesProcesses.SearchByPath,
+		"delete_file":            resp.FilesProcesses.DeleteFile,
+		"locate_file":            resp.FilesProcesses.LocateFile,
+		"update_locate_database": resp.FilesProcesses.UpdateLocateDatabase,
+		"spotlight_search":       resp.FilesProcesses.SpotlightSearch,
+		"search_for_process":     resp.FilesProcesses.SearchForProcess,
+		"kill_process":           resp.FilesProcesses.KillProcess,
+		"run_command":            resp.FilesProcesses.RunCommand,
+	}
+
+	// Check if all values are default
+	allDefault := true
+	for key, value := range filesProcessesBlock {
+		if value != defaults[key] {
+			allDefault = false
 			break
 		}
 	}
 
 	if allDefault {
+		log.Println("All files and processes values are default, skipping state")
 		return
 	}
 
-	// Otherwise, proceed to set the files_processes block
-	(*out)[0]["files_processes"] = make([]map[string]interface{}, 0)
-	outMap := make(map[string]interface{})
-	outMap["search_by_path"] = resp.FilesProcesses.SearchByPath
-	outMap["delete_file"] = resp.FilesProcesses.DeleteFile
-	outMap["locate_file"] = resp.FilesProcesses.LocateFile
-	outMap["update_locate_database"] = resp.FilesProcesses.UpdateLocateDatabase
-	outMap["spotlight_search"] = resp.FilesProcesses.SpotlightSearch
-	outMap["search_for_process"] = resp.FilesProcesses.SearchForProcess
-	outMap["kill_process"] = resp.FilesProcesses.KillProcess
-	outMap["run_command"] = resp.FilesProcesses.RunCommand
-	(*out)[0]["files_processes"] = append((*out)[0]["files_processes"].([]map[string]interface{}), outMap)
+	// Ensure the map is initialized before setting values
+	if len((*out)[0]) == 0 {
+		(*out)[0] = make(map[string]interface{})
+	}
+
+	log.Println("Initializing files and processes in state")
+	(*out)[0]["files_processes"] = []map[string]interface{}{filesProcessesBlock}
+	log.Printf("Final state files and processes: %+v\n", filesProcessesBlock)
 }
 
-// Reads response and preps user interaction payload items. If all values are default, do not set the user_interaction block
+// prepStatePayloadUserInteraction Reads response and preps user interaction payload items. If all values are default, do not set the user_interaction block
 func prepStatePayloadUserInteraction(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	if resp.UserInteraction == nil {
+		log.Println("No user interaction configuration found")
 		return
 	}
 
-	// Do not set the user_interaction block if all values are default (false, empty string, or 0)
-	v := reflect.ValueOf(*resp.UserInteraction)
-	allDefault := true
+	// Define default values
+	defaults := map[string]interface{}{
+		"message_start":            "",
+		"allow_user_to_defer":      false,
+		"allow_deferral_until_utc": "",
+		"allow_deferral_minutes":   0,
+		"message_finish":           "",
+	}
 
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		switch field.Kind() {
-		case reflect.Bool:
-			if field.Bool() {
-				allDefault = false
-				break
-			}
-		case reflect.String:
-			if field.String() != "" {
-				allDefault = false
-				break
-			}
-		case reflect.Int:
-			if field.Int() != 0 {
-				allDefault = false
-				break
-			}
-		}
-		if !allDefault {
+	userInteractionBlock := map[string]interface{}{
+		"message_start":            resp.UserInteraction.MessageStart,
+		"allow_user_to_defer":      resp.UserInteraction.AllowUserToDefer,
+		"allow_deferral_until_utc": resp.UserInteraction.AllowDeferralUntilUtc,
+		"allow_deferral_minutes":   resp.UserInteraction.AllowDeferralMinutes,
+		"message_finish":           resp.UserInteraction.MessageFinish,
+	}
+
+	// Check if all values are default
+	allDefault := true
+	for key, value := range userInteractionBlock {
+		if value != defaults[key] {
+			allDefault = false
 			break
 		}
 	}
 
 	if allDefault {
+		log.Println("All user interaction values are default, skipping state")
 		return
 	}
 
-	// Otherwise, proceed to set the user_interaction block
-	(*out)[0]["user_interaction"] = make([]map[string]interface{}, 0)
-	outMap := make(map[string]interface{})
-	outMap["message_start"] = resp.UserInteraction.MessageStart
-	outMap["allow_user_to_defer"] = resp.UserInteraction.AllowUserToDefer
-	outMap["allow_deferral_until_utc"] = resp.UserInteraction.AllowDeferralUntilUtc
-	outMap["allow_deferral_minutes"] = resp.UserInteraction.AllowDeferralMinutes
-	outMap["message_finish"] = resp.UserInteraction.MessageFinish
-	(*out)[0]["user_interaction"] = append((*out)[0]["user_interaction"].([]map[string]interface{}), outMap)
+	// Ensure the map is initialized before setting values
+	if len((*out)[0]) == 0 {
+		(*out)[0] = make(map[string]interface{})
+	}
+
+	log.Println("Initializing user interaction in state")
+	(*out)[0]["user_interaction"] = []map[string]interface{}{userInteractionBlock}
+	log.Printf("Final state user interaction: %+v\n", userInteractionBlock)
 }
 
 // Reads response and preps reboot payload items
 func prepStatePayloadReboot(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	if resp.Reboot == nil {
+		log.Println("No reboot configuration found")
 		return
 	}
 
@@ -942,67 +947,39 @@ func prepStatePayloadReboot(out *[]map[string]interface{}, resp *jamfpro.Resourc
 		"FileVault2Reboot":            false,
 	}
 
+	rebootBlock := map[string]interface{}{
+		"message":                        resp.Reboot.Message,
+		"specify_startup":                resp.Reboot.SpecifyStartup,
+		"startup_disk":                   resp.Reboot.StartupDisk,
+		"no_user_logged_in":              resp.Reboot.NoUserLoggedIn,
+		"user_logged_in":                 resp.Reboot.UserLoggedIn,
+		"minutes_until_reboot":           resp.Reboot.MinutesUntilReboot,
+		"start_reboot_timer_immediately": resp.Reboot.StartRebootTimerImmediately,
+		"file_vault_2_reboot":            resp.Reboot.FileVault2Reboot,
+	}
+
 	// Check if all values are default
-	v := reflect.ValueOf(*resp.Reboot)
 	allDefault := true
-
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		fieldName := v.Type().Field(i).Name
-
-		switch field.Kind() {
-		case reflect.String:
-			if field.String() != defaults[fieldName].(string) {
-				allDefault = false
-			}
-		case reflect.Int:
-			if field.Int() != int64(defaults[fieldName].(int)) {
-				allDefault = false
-			}
-		case reflect.Bool:
-			if field.Bool() != defaults[fieldName].(bool) {
-				allDefault = false
-			}
-		}
-		if !allDefault {
+	for key, value := range rebootBlock {
+		if value != defaults[key] {
+			allDefault = false
 			break
 		}
 	}
 
 	if allDefault {
+		log.Println("All reboot configuration values are default, skipping state")
 		return
 	}
 
-	// Otherwise, proceed to set the reboot block
-	rebootBlock := make(map[string]interface{})
-	if resp.Reboot.Message != defaults["Message"].(string) {
-		rebootBlock["message"] = resp.Reboot.Message
-	}
-	if resp.Reboot.SpecifyStartup != defaults["SpecifyStartup"].(string) {
-		rebootBlock["specify_startup"] = resp.Reboot.SpecifyStartup
-	}
-	if resp.Reboot.StartupDisk != defaults["StartupDisk"].(string) {
-		rebootBlock["startup_disk"] = resp.Reboot.StartupDisk
-	}
-	if resp.Reboot.NoUserLoggedIn != defaults["NoUserLoggedIn"].(string) {
-		rebootBlock["no_user_logged_in"] = resp.Reboot.NoUserLoggedIn
-	}
-	if resp.Reboot.UserLoggedIn != defaults["UserLoggedIn"].(string) {
-		rebootBlock["user_logged_in"] = resp.Reboot.UserLoggedIn
-	}
-	if resp.Reboot.MinutesUntilReboot != defaults["MinutesUntilReboot"].(int) {
-		rebootBlock["minutes_until_reboot"] = resp.Reboot.MinutesUntilReboot
-	}
-	if resp.Reboot.StartRebootTimerImmediately != defaults["StartRebootTimerImmediately"].(bool) {
-		rebootBlock["start_reboot_timer_immediately"] = resp.Reboot.StartRebootTimerImmediately
-	}
-	if resp.Reboot.FileVault2Reboot != defaults["FileVault2Reboot"].(bool) {
-		rebootBlock["file_vault_2_reboot"] = resp.Reboot.FileVault2Reboot
+	// Ensure the map is initialized before setting values
+	if len((*out)[0]) == 0 {
+		(*out)[0] = make(map[string]interface{})
 	}
 
-	if len(rebootBlock) > 0 {
-		(*out)[0]["reboot"] = []map[string]interface{}{rebootBlock}
-	}
+	log.Println("Initializing reboot in state")
+	(*out)[0]["reboot"] = []map[string]interface{}{rebootBlock}
+	log.Printf("Final state reboot: %+v\n", rebootBlock)
 }
 
 // prepStatePayloadMaintenance Reads response and preps maintenance payload items. If all values are default, do not set the maintenance block
