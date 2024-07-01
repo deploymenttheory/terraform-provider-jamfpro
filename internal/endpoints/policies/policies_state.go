@@ -590,10 +590,18 @@ func prepStatePayloadPackages(out *[]map[string]interface{}, resp *jamfpro.Resou
 // Reads response and preps script payload items
 func prepStatePayloadScripts(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	if resp.Scripts.Script == nil {
+		log.Println("No scripts found")
 		return
 	}
 
+	// Ensure the map is initialized before setting values
+	if len((*out)[0]) == 0 {
+		(*out)[0] = make(map[string]interface{})
+	}
+
+	log.Println("Initializing scripts in state")
 	(*out)[0]["scripts"] = make([]map[string]interface{}, 0)
+
 	for _, v := range *resp.Scripts.Script {
 		outMap := make(map[string]interface{})
 		outMap["id"] = v.ID
@@ -623,10 +631,11 @@ func prepStatePayloadScripts(out *[]map[string]interface{}, resp *jamfpro.Resour
 		if v.Parameter11 != "" {
 			outMap["parameter11"] = v.Parameter11
 		}
+		log.Printf("Adding script to state: %+v\n", outMap)
 		(*out)[0]["scripts"] = append((*out)[0]["scripts"].([]map[string]interface{}), outMap)
-		log.Println("LOGHERE-SCRIPT OUT")
-		log.Println(outMap)
 	}
+
+	log.Printf("Final state scripts: %+v\n", (*out)[0]["scripts"])
 }
 
 // Reads response and preps account maintenance payload items

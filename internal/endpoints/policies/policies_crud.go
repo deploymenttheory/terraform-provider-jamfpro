@@ -38,11 +38,7 @@ func resourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, 
 	})
 
 	if err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Warning,
-			Summary:  "failed to create",
-			Detail:   fmt.Sprintf("error: %v", err),
-		})
+		return append(diags, diag.FromErr(fmt.Errorf("failed to create Jamf Pro Policy '%s' after retries: %v", resource.General.Name, err))...)
 	}
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
