@@ -20,12 +20,12 @@ func getPolicySchemaNetworkLimitations() *schema.Resource {
 				Description: "Whether the policy applies to any IP address.",
 				Default:     true,
 			},
-			"network_segments": { // surely this has been moved to scope now?
-				Type:        schema.TypeString,
-				Description: "Network segment limitations for the policy.",
-				Optional:    true,
-				Default:     "",
-			},
+			// "network_segments": { // surely this has been moved to scope now?
+			// 	Type:        schema.TypeString,
+			// 	Description: "Network segment limitations for the policy.",
+			// 	Optional:    true,
+			// 	Default:     "",
+			// },
 		},
 	}
 
