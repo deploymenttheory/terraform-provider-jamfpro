@@ -64,9 +64,6 @@ func constructGeneral(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) 
 	// Network Limitations
 	setNetworkLimitations(d, resource)
 
-	// Override Default Settings
-	//setOverrideDefaultSettings(d, resource)
-
 	// Site
 	resource.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 }
@@ -100,28 +97,10 @@ func setNetworkLimitations(d *schema.ResourceData, resource *jamfpro.ResourcePol
 			resource.General.NetworkLimitations = &jamfpro.PolicySubsetGeneralNetworkLimitations{
 				MinimumNetworkConnection: networkLimitationsMap["minimum_network_connection"].(string),
 				AnyIPAddress:             networkLimitationsMap["any_ip_address"].(bool),
-				//NetworkSegments:          networkLimitationsMap["network_segments"].(string),
 			}
 		}
 	}
 }
-
-// Helper function to set Override Default Settings
-// func setOverrideDefaultSettings(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
-// 	if overrideSettings, ok := d.GetOk("override_default_settings"); ok {
-// 		overrideSettingsList := overrideSettings.([]interface{})
-// 		if len(overrideSettingsList) > 0 {
-// 			overrideSettingsMap := overrideSettingsList[0].(map[string]interface{})
-// 			resource.General.OverrideDefaultSettings = &jamfpro.PolicySubsetGeneralOverrideSettings{
-// 				TargetDrive:       overrideSettingsMap["target_drive"].(string),
-// 				DistributionPoint: overrideSettingsMap["distribution_point"].(string),
-// 				ForceAfpSmb:       overrideSettingsMap["force_afp_smb"].(bool),
-// 				SUS:               overrideSettingsMap["sus"].(string),
-// 				NetbootServer:     overrideSettingsMap["netboot_server"].(string),
-// 			}
-// 		}
-// 	}
-// }
 
 // Pulls "scope" settings from HCL and packages into object
 func constructScope(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) error {
