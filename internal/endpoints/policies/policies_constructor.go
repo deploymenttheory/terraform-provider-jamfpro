@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// Returns ResourcePolicy required for client to marshal into api req
+// constructPolicy builds the policy object from the HCL. It's composed of several sub-objects, each with their own schema.
 func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	var err error
 	resource := &jamfpro.ResourcePolicy{}
@@ -29,15 +29,13 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 		return nil, err
 	}
 
-	// DEBUG
-	log.Println("LOGHERE-CONSTRUCTED")
 	policyXML, _ := xml.MarshalIndent(resource, "", "  ")
 	log.Println(string(policyXML))
 
 	return resource, nil
 }
 
-// Pulls "general" settings from HCL and packages into object
+// constructGeneral builds the general settings of the jamf pro policy from the HCL.
 func constructGeneral(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
 	resource.General = jamfpro.PolicySubsetGeneral{
 		Name:                       d.Get("name").(string),
@@ -54,13 +52,61 @@ func constructGeneral(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) 
 		NotifyOnEachFailedRetry:    d.Get("notify_on_each_failed_retry").(bool),
 		TargetDrive:                d.Get("target_drive").(string),
 		Offline:                    d.Get("offline").(bool),
+		NetworkRequirements:        d.Get("network_requirements").(string),
 	}
 
 	// Category
 	resource.General.Category = sharedschemas.ConstructSharedResourceCategory(d.Get("category_id").(int))
 
+	// DateTime Limitations
+	if dateTimeLimitations, ok := d.GetOk("date_time_limitations"); ok {
+		dateTimeLimitationsList := dateTimeLimitations.([]interface{})
+		if len(dateTimeLimitationsList) > 0 {
+			dateTimeLimitationsMap := dateTimeLimitationsList[0].(map[string]interface{})
+			resource.General.DateTimeLimitations = &jamfpro.PolicySubsetGeneralDateTimeLimitations{
+				ActivationDate:      dateTimeLimitationsMap["activation_date"].(string),
+				ActivationDateEpoch: dateTimeLimitationsMap["activation_date_epoch"].(int),
+				ActivationDateUTC:   dateTimeLimitationsMap["activation_date_utc"].(string),
+				ExpirationDate:      dateTimeLimitationsMap["expiration_date"].(string),
+				ExpirationDateEpoch: dateTimeLimitationsMap["expiration_date_epoch"].(int),
+				ExpirationDateUTC:   dateTimeLimitationsMap["expiration_date_utc"].(string),
+				NoExecuteStart:      dateTimeLimitationsMap["no_execute_start"].(string),
+				NoExecuteEnd:        dateTimeLimitationsMap["no_execute_end"].(string),
+			}
+		}
+	}
+
+	// Network Limitations
+	if networkLimitations, ok := d.GetOk("network_limitations"); ok {
+		networkLimitationsList := networkLimitations.([]interface{})
+		if len(networkLimitationsList) > 0 {
+			networkLimitationsMap := networkLimitationsList[0].(map[string]interface{})
+			resource.General.NetworkLimitations = &jamfpro.PolicySubsetGeneralNetworkLimitations{
+				MinimumNetworkConnection: networkLimitationsMap["minimum_network_connection"].(string),
+				AnyIPAddress:             networkLimitationsMap["any_ip_address"].(bool),
+				NetworkSegments:          networkLimitationsMap["network_segments"].(string),
+			}
+		}
+	}
+
+	// Override Default Settings
+	if overrideSettings, ok := d.GetOk("override_default_settings"); ok {
+		overrideSettingsList := overrideSettings.([]interface{})
+		if len(overrideSettingsList) > 0 {
+			overrideSettingsMap := overrideSettingsList[0].(map[string]interface{})
+			resource.General.OverrideDefaultSettings = &jamfpro.PolicySubsetGeneralOverrideSettings{
+				TargetDrive:       overrideSettingsMap["target_drive"].(string),
+				DistributionPoint: overrideSettingsMap["distribution_point"].(string),
+				ForceAfpSmb:       overrideSettingsMap["force_afp_smb"].(bool),
+				SUS:               overrideSettingsMap["sus"].(string),
+				NetbootServer:     overrideSettingsMap["netboot_server"].(string),
+			}
+		}
+	}
+
 	// Site
 	resource.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
+
 }
 
 // Pulls "scope" settings from HCL and packages into object

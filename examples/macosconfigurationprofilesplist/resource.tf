@@ -14,15 +14,11 @@ resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuratio
   user_removable    = false
 
   // Optional Block
-   site {
-    id = 967
-  }
-
-// Optional Block
-  category {
-    id = 5
-  }
-
+  site_id = 967
+  
+  // Optional Block
+  category_id = 5
+  
 // Optional Block
   scope {
     all_computers = false

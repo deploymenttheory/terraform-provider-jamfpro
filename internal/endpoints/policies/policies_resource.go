@@ -133,6 +133,16 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Description: "Make policy available offline by caching the policy to the macOS device to ensure it runs when Jamf Pro is unavailable. Only used when execution policy is set to 'ongoing'. ",
 				Default:     false,
 			},
+			"network_requirements": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Network requirements for the policy.",
+				Default:     "Any",
+				ValidateFunc: validation.StringInSlice([]string{
+					"Any",
+					"Ethernet",
+				}, false),
+			},
 			"category_id": sharedschemas.GetSharedSchemaCategory(),
 			"site_id":     sharedschemas.GetSharedSchemaSite(),
 			"date_time_limitations": {

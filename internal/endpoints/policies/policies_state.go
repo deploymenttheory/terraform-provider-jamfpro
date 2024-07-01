@@ -5,6 +5,7 @@ package policies
 
 import (
 	"log"
+	"reflect"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -388,11 +389,48 @@ func prepStatePayloadDiskEncryption(out *[]map[string]interface{}, resp *jamfpro
 	if resp.DiskEncryption == nil {
 		return
 	}
+
+	// Check if all values are at their default (false, empty string, or specific defaults)
+	v := reflect.ValueOf(*resp.DiskEncryption)
+	allDefault := true
+
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		switch field.Kind() {
+		case reflect.Bool:
+			if field.Bool() {
+				allDefault = false
+			}
+		case reflect.String:
+			if field.String() != "" && field.String() != "none" {
+				allDefault = false
+			}
+		case reflect.Int:
+			if field.Int() != 0 {
+				allDefault = false
+			}
+		}
+		if !allDefault {
+			break
+		}
+	}
+
+	if allDefault {
+		return
+	}
+
+	// Otherwise, proceed to set the disk_encryption block
 	(*out)[0]["disk_encryption"] = make([]map[string]interface{}, 0)
 	outMap := make(map[string]interface{})
 	outMap["action"] = resp.DiskEncryption.Action
 	outMap["disk_encryption_configuration_id"] = resp.DiskEncryption.DiskEncryptionConfigurationID
 	outMap["auth_restart"] = resp.DiskEncryption.AuthRestart
+	if resp.DiskEncryption.RemediateKeyType != "" {
+		outMap["remediate_key_type"] = resp.DiskEncryption.RemediateKeyType
+	}
+	if resp.DiskEncryption.RemediateDiskEncryptionConfigurationID != 0 {
+		outMap["remediate_disk_encryption_configuration_id"] = resp.DiskEncryption.RemediateDiskEncryptionConfigurationID
+	}
 	(*out)[0]["disk_encryption"] = append((*out)[0]["disk_encryption"].([]map[string]interface{}), outMap)
 }
 
@@ -491,6 +529,34 @@ func prepStatePayloadFilesProcesses(out *[]map[string]interface{}, resp *jamfpro
 		return
 	}
 
+	// Do not set the files_processes block if all values are default (false or empty string)
+	v := reflect.ValueOf(*resp.FilesProcesses)
+	allDefault := true
+
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		switch field.Kind() {
+		case reflect.Bool:
+			if field.Bool() {
+				allDefault = false
+				break
+			}
+		case reflect.String:
+			if field.String() != "" {
+				allDefault = false
+				break
+			}
+		}
+		if !allDefault {
+			break
+		}
+	}
+
+	if allDefault {
+		return
+	}
+
+	// Otherwise, proceed to set the files_processes block
 	(*out)[0]["files_processes"] = make([]map[string]interface{}, 0)
 	outMap := make(map[string]interface{})
 	outMap["search_by_path"] = resp.FilesProcesses.SearchByPath
@@ -504,12 +570,45 @@ func prepStatePayloadFilesProcesses(out *[]map[string]interface{}, resp *jamfpro
 	(*out)[0]["files_processes"] = append((*out)[0]["files_processes"].([]map[string]interface{}), outMap)
 }
 
-// Reads response and preps user interaction payload items
+// Reads response and preps user interaction payload items. If all values are default, do not set the user_interaction block
 func prepStatePayloadUserInteraction(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	if resp.UserInteraction == nil {
 		return
 	}
 
+	// Do not set the user_interaction block if all values are default (false, empty string, or 0)
+	v := reflect.ValueOf(*resp.UserInteraction)
+	allDefault := true
+
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		switch field.Kind() {
+		case reflect.Bool:
+			if field.Bool() {
+				allDefault = false
+				break
+			}
+		case reflect.String:
+			if field.String() != "" {
+				allDefault = false
+				break
+			}
+		case reflect.Int:
+			if field.Int() != 0 {
+				allDefault = false
+				break
+			}
+		}
+		if !allDefault {
+			break
+		}
+	}
+
+	if allDefault {
+		return
+	}
+
+	// Otherwise, proceed to set the user_interaction block
 	(*out)[0]["user_interaction"] = make([]map[string]interface{}, 0)
 	outMap := make(map[string]interface{})
 	outMap["message_start"] = resp.UserInteraction.MessageStart
@@ -539,12 +638,27 @@ func prepStatePayloadReboot(out *[]map[string]interface{}, resp *jamfpro.Resourc
 	(*out)[0]["reboot"] = append((*out)[0]["reboot"].([]map[string]interface{}), outMap)
 }
 
-// Reads response and preps maintenance payload items
+// Reads response and preps maintenance payload items. If all values are default, do not set the maintenance block
 func prepStatePayloadMaintenance(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	if resp.Maintenance == nil {
 		return
 	}
 
+	// Do not set the maintenance block if all values are default (false)
+	v := reflect.ValueOf(*resp.Maintenance)
+	allDefault := true
+
+	for i := 0; i < v.NumField(); i++ {
+		if v.Field(i).Bool() {
+			allDefault = false
+			break
+		}
+	}
+
+	if allDefault {
+		return
+	}
+	// Else, set the maintenance block
 	(*out)[0]["maintenance"] = make([]map[string]interface{}, 0)
 	outMap := make(map[string]interface{})
 	outMap["recon"] = resp.Maintenance.Recon

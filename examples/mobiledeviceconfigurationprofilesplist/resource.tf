@@ -6,13 +6,11 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_device_conf
   level             = "Device Level"
   payloads          = file("${path.module}/path/to/your.mobileconfig")
 
-   site {
-    id = 1
-  }
-
-  category {
-    id = 2
-  }
+  // Optional Block
+  site_id = 967
+  
+  // Optional Block
+  category_id = 5
 
   scope {
     all_mobile_devices = true
