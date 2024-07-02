@@ -43,7 +43,7 @@ This documentation provides a detailed explanation of the configuration options 
 
 ## Configuration Schema
 
-### `instance_domain`
+### `jamfpro_instance_fqdn`
 - **Type:** String
 - **Required:** Yes
 - **Default:** Fetched from environment variable `envKeyJamfProUrlRoot` if not provided
@@ -84,43 +84,18 @@ This documentation provides a detailed explanation of the configuration options 
 - **Default:** Fetched from environment variable `envKeyBasicAuthPassword` if not provided
 - **Description:** The password for basic authentication with Jamf Pro. This field is sensitive and required if `auth_method` is `basic`.
 
-### `log_level`
-- **Type:** String
-- **Optional:** Yes
-- **Default:** `warning`
-- **Description:** The logging level for the provider. Determines the verbosity of logs.
-- **Valid Values:** 
-  - `debug`: Detailed debugging information.
-  - `info`: General information about the operations.
-  - `warning`: Warnings that do not cause the operation to fail.
-  - `none`: No logging.
-- **Validation:** Ensures the value is one of the specified valid values.
 
-### `log_output_format`
-- **Type:** String
+### `enable_client_sdk_logs`
+- **Type:** bool
 - **Optional:** Yes
-- **Default:** `pretty`
-- **Description:** The format for log output. Determines how logs are presented.
-  - `JSON`: Logs in JSON format.
-  - `console`: Human-readable, console-friendly format.
-
-### `log_console_separator`
-- **Type:** String
-- **Optional:** Yes
-- **Default:** `" "`
-- **Description:** The character used to separate log entries in the console output. Useful for customizing the readability of logs.
+- **Default:** false
+- **Description:** Enables Client and SDK logs to appear in the tf output.
 
 ### `log_export_path`
 - **Type:** String
 - **Optional:** Yes
 - **Default:** `""`
-- **Description:** The file path to export HTTP client logs to. If specified, logs will be saved to this path.
-
-### `export_logs`
-- **Type:** Boolean
-- **Optional:** Yes
-- **Default:** `false`
-- **Description:** Enables or disables exporting logs to a file. When set to true, logs will be written to the specified `log_export_path`.
+- **Description:** The file path to export HTTP client logs to. If set, logs will be saved to this path. If omitted, logs will not be exported.
 
 ### `hide_sensitive_data`
 - **Type:** Boolean
