@@ -21,6 +21,7 @@ description: |-
 
 ### Optional
 
+- `assigned_user_ids` (List of Number) assigned computer by ids
 - `criteria` (Block List) The criteria used for defining the smart user group. (see [below for nested schema](#nestedblock--criteria))
 - `is_notify_on_change` (Boolean) Indicates if notifications are sent on change.
 - `is_smart` (Boolean) Indicates if the user group is a smart group.
@@ -28,7 +29,6 @@ description: |-
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 - `user_additions` (Block List) Users added to the user group. (see [below for nested schema](#nestedblock--user_additions))
 - `user_deletions` (Block List) Users removed from the user group. (see [below for nested schema](#nestedblock--user_deletions))
-- `users` (Block List, Max: 1) A block representing the users belonging to the user group. (see [below for nested schema](#nestedblock--users))
 
 ### Read-Only
 
@@ -87,11 +87,3 @@ Read-Only:
 - `email_address` (String) The email address of the user.
 - `full_name` (String) The full name of the user.
 - `phone_number` (String) The phone number of the user.
-
-
-<a id="nestedblock--users"></a>
-### Nested Schema for `users`
-
-Required:
-
-- `id` (List of String) A list of jamf pro user object ID's for use within a static group.

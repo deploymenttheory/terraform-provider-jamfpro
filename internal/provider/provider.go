@@ -78,7 +78,7 @@ Returns:
 	an error diagnostic is appended to diags and an empty string is returned.
 */
 func GetJamfFqdn(d *schema.ResourceData, diags *diag.Diagnostics) string {
-	jamf_fqdn, ok := d.GetOk("jamf_instance_fqdn")
+	jamf_fqdn, ok := d.GetOk("jamfpro_instance_fqdn")
 	if jamf_fqdn.(string) == "" || !ok {
 		*diags = append(*diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -499,7 +499,7 @@ func Provider() *schema.Provider {
 
 		// Cookies
 		var cookiesList []*http.Cookie
-		load_balancer_lock_enabled := d.Get("jamf_load_balancer_lock").(bool)
+		load_balancer_lock_enabled := d.Get("jamfpro_load_balancer_lock").(bool)
 		customCookies := d.Get("custom_cookies")
 
 		if load_balancer_lock_enabled {
