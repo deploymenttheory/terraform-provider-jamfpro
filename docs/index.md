@@ -18,10 +18,10 @@ description: |-
 ### Optional
 
 - `auth_method` (String) Auth method chosen for Jamf.
-- `basic_auth_password` (String, Sensitive) The Jamf Pro password used for authentication.
-- `basic_auth_username` (String) The Jamf Pro username used for authentication.
-- `client_id` (String) The Jamf Pro Client ID for authentication.
-- `client_secret` (String, Sensitive) The Jamf Pro Client secret for authentication.
+- `basic_auth_password` (String, Sensitive) The Jamf Pro password used for authentication when auth_method is 'basic'.
+- `basic_auth_username` (String) The Jamf Pro username used for authentication when auth_method is 'basic'.
+- `client_id` (String) The Jamf Pro Client ID for authentication when auth_method is 'oauth2'.
+- `client_secret` (String, Sensitive) The Jamf Pro Client secret for authentication when auth_method is 'oauth2'.
 - `custom_cookies` (Block List) Persistent custom cookies used by HTTP Client in all requests. (see [below for nested schema](#nestedblock--custom_cookies))
 - `export_logs` (Boolean) Enables exporting logs to a file
 - `hide_sensitive_data` (Boolean) Define whether sensitive fields should be hidden in logs. Default to hiding sensitive data in logs

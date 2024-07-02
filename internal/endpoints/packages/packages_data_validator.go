@@ -9,12 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// customValidateFilePath is a custom validation function for the package_file_path field.
-// It ensures that the package_file_path field ends with .dmg if fill_user_template or fill_existing_users are set to true.
+// customValidateFilePath is a custom validation function for the package_file_source field.
+// It ensures that the package_file_source field ends with .dmg if fill_user_template or fill_existing_users are set to true.
 func customValidateFilePath(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-	filePath, ok := d.Get("package_file_path").(string)
+	filePath, ok := d.Get("package_file_source").(string)
 	if !ok {
-		return fmt.Errorf("invalid type for package_file_path")
+		return fmt.Errorf("invalid type for package_file_sourceh")
 	}
 
 	// Check if the file path ends with .dmg
@@ -28,11 +28,11 @@ func customValidateFilePath(ctx context.Context, d *schema.ResourceDiff, meta in
 	fillExistingUsers, fillExistingUsersOk := d.GetOk("fill_existing_users")
 
 	if fillUserTemplateOk && fillUserTemplate.(bool) {
-		return fmt.Errorf("fill_user_template can only be set to true if the package defined in package_file_path ends with .dmg")
+		return fmt.Errorf("fill_user_template can only be set to true if the package defined in package_file_source ends with .dmg")
 	}
 
 	if fillExistingUsersOk && fillExistingUsers.(bool) {
-		return fmt.Errorf("fill_existing_users can only be set to true if the package defined in package_file_path ends with .dmg")
+		return fmt.Errorf("fill_existing_users can only be set to true if the package defined in package_file_source ends with .dmg")
 	}
 
 	return nil

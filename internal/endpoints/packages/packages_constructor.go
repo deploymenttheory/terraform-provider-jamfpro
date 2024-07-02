@@ -4,8 +4,13 @@ package packages
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"mime"
+	"net/http"
+	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -13,12 +18,26 @@ import (
 
 // constructJamfProPackageCreate constructs a ResourcePackage object from the provided schema data.
 // It extracts the filename from the full path provided in the schema and uses it for the FileName field.
-// constructJamfProPackageCreate constructs a ResourcePackage object from the provided schema data.
-// It extracts the filename from the full path provided in the schema and uses it for the FileName field.
-func constructJamfProPackageCreate(d *schema.ResourceData) (*jamfpro.ResourcePackage, error) {
-	// Use filepath.Base to extract just the filename from the full path
-	fullPath := d.Get("package_file_path").(string)
-	fileName := filepath.Base(fullPath)
+// If the full path is a URL, it downloads the file and uses the downloaded file path.
+// The function returns the constructed ResourcePackage, the local file path, and an error if any.
+func constructJamfProPackageCreate(d *schema.ResourceData) (*jamfpro.ResourcePackage, string, error) {
+	fullPath := d.Get("package_file_source").(string)
+	var fileName string
+	var localFilePath string
+	var err error
+
+	if strings.HasPrefix(fullPath, "http") {
+		log.Printf("[INFO] URL detected: %s. Attempting to download.", fullPath)
+		localFilePath, err = downloadFile(fullPath)
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to download file: %v", err)
+		}
+		fileName = filepath.Base(localFilePath)
+		log.Printf("[INFO] Successfully downloaded file from URL: %s", fullPath)
+	} else {
+		fileName = filepath.Base(fullPath)
+		localFilePath = fullPath
+	}
 
 	// Construct the ResourcePackage struct from the Terraform schema data
 	resource := &jamfpro.ResourcePackage{
@@ -54,15 +73,75 @@ func constructJamfProPackageCreate(d *schema.ResourceData) (*jamfpro.ResourcePac
 	// Serialize and pretty-print the Network Segment object as JSON for logging
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Package '%s' to JSON: %v", resource.FileName, err)
+		return nil, "", fmt.Errorf("failed to marshal Jamf Pro Package '%s' to JSON: %v", resource.FileName, err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro Package JSON:\n%s\n", string(resourceJSON))
 
-	return resource, nil
+	return resource, localFilePath, nil
 }
 
 // BoolPtr is a helper function to create a pointer to a bool.
 func BoolPtr(b bool) *bool {
 	return &b
+}
+
+// downloadFile downloads a file from the given URL and saves it to a temporary file.
+// If the Content-Disposition header is present in the response, it uses the filename
+// from the header. Otherwise, if no filename is provided in the headers, it uses the
+// final URL after any redirects to determine the filename. It also replaces any '%' characters
+// in the filename with '_'.
+func downloadFile(url string) (string, error) {
+	tmpFile, err := os.CreateTemp("", "downloaded-*")
+	if err != nil {
+		return "", fmt.Errorf("failed to create temporary file: %v", err)
+	}
+	defer tmpFile.Close()
+
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) >= 10 {
+				return fmt.Errorf("too many redirects when attempting to download file from %s", url)
+			}
+			return nil
+		},
+	}
+
+	resp, err := client.Get(url)
+	if err != nil {
+		return "", fmt.Errorf("failed to download file from %s: %v", url, err)
+	}
+	defer resp.Body.Close()
+
+	_, err = io.Copy(tmpFile, resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to write to temporary file: %v", err)
+	}
+
+	// Get the file name from the Content-Disposition header if available
+	_, params, err := mime.ParseMediaType(resp.Header.Get("Content-Disposition"))
+	if err == nil {
+		if filename, ok := params["filename"]; ok {
+			filename = strings.ReplaceAll(filename, "%", "_")
+			finalPath := filepath.Join(os.TempDir(), filename)
+			err = os.Rename(tmpFile.Name(), finalPath)
+			if err != nil {
+				return "", fmt.Errorf("failed to rename temporary file to final destination: %v", err)
+			}
+			log.Printf("[INFO] File downloaded to: %s", finalPath)
+			return finalPath, nil
+		}
+	}
+
+	// If no filename is provided in headers, use the final URL
+	finalURL := resp.Request.URL.String()
+	fileName := filepath.Base(finalURL)
+	fileName = strings.ReplaceAll(fileName, "%", "_")
+	finalPath := filepath.Join(os.TempDir(), fileName)
+	err = os.Rename(tmpFile.Name(), finalPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to rename temporary file to final destination: %v", err)
+	}
+	log.Printf("[INFO] File downloaded to: %s", finalPath)
+	return finalPath, nil
 }

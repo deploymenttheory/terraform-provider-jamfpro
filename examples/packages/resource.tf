@@ -1,7 +1,7 @@
 // Definition a Jamf Pro Package Resource
 resource "jamfpro_package" "jamfpro_package_002" {
   package_name                  = "your-package-name" // Required
-  package_file_path             = "/path/to/your/package/file/.pkg or .dmg" // Required
+  package_file_source           = "/path/to/your/package/file/.pkg or .dmg , or http(s)://path/to/file" // Required
   category_id                   = "your-category-id" // Required /  jamfpro_category.jamfpro_category_001.id
   info                          = "tf package deployment for demonstration" // Optional
   notes                         = "Uploaded by: terraform-provider-jamfpro plugin." // Optional

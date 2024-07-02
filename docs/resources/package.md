@@ -19,7 +19,7 @@ description: |-
 
 - `fill_user_template` (Boolean) Define whether to fill new home directories with the contents of the home directory in the package's Users folder. Applies to DMGs only. This setting can be changed when deploying or uninstalling the package using a policy.
 - `os_install` (Boolean) Whether the package is an OS install.
-- `package_file_path` (String) The file path of the Jamf Pro package to be uploaded.
+- `package_file_source` (String) The file path or the URL source of the Jamf Pro package to be uploaded. Supports HTTP/HTTPS URLs, and local filepaths.
 - `package_name` (String) The unique name of the Jamf Pro package.This doesn't have to match the filename of the package.
 - `priority` (Number) The package priority to use for deploying or uninstalling the package (e.g., A package with a priority of '1' is deployed or uninstalled before other packages)
 - `reboot_required` (Boolean) Defines whether a computer must be restarted after installing the package

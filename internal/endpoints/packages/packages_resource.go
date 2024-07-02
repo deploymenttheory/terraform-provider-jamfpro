@@ -40,10 +40,10 @@ func ResourceJamfProPackages() *schema.Resource {
 				Computed:    true,
 				Description: "The package filename reference of the Jamf Pro package. This is used to associate the package metadata with the file uploaded to the Jamf Pro server.",
 			},
-			"package_file_path": {
+			"package_file_source": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The file path of the Jamf Pro package to be uploaded.",
+				Description: "The file path or the URL source of the Jamf Pro package to be uploaded. Supports HTTP/HTTPS URLs, and local filepaths.",
 			},
 			"category_id": {
 				Type:        schema.TypeString,
