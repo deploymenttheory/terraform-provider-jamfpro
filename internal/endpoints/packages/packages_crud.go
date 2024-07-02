@@ -17,14 +17,13 @@ import (
 // resourceJamfProPackagesCreate is responsible for creating a new Jamf Pro Package in the remote system.
 // The function:
 // 1. Constructs the attribute data using the provided Terraform configuration.
-// 2. Calls the API to create the attribute in Jamf Pro.
-// 3. Updates the Terraform state with the ID of the newly created attribute.
-// 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
+// 2. Calls the API to create the package metadata in jamfpro.
+// 3. Uploads the package file to the Jamf Pro server.
 func resourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := constructJamfProPackageCreate(d)
+	resource, localFilePath, err := constructJamfProPackageCreate(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package: %v", err))
 	}
@@ -40,13 +39,11 @@ func resourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 
 		log.Printf("[DEBUG] Jamf Pro Package Metadata created: %+v", creationResponse)
 
-		filePath := d.Get("package_file_path").(string)
-		fullFilePath, _ := filepath.Abs(filePath)
+		fullFilePath := localFilePath
 
 		_, apiErr = client.UploadPackage(creationResponse.ID, []string{fullFilePath})
 		if apiErr != nil {
 			log.Printf("[ERROR] Failed to upload package file for package '%s': %v", creationResponse.ID, apiErr)
-
 			return retry.NonRetryableError(apiErr)
 		}
 
@@ -106,7 +103,8 @@ func resourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, 
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	resource, err := constructJamfProPackageCreate(d)
+	// Use the updated constructJamfProPackageCreate function to get the resource and local file path
+	resource, localFilePath, err := constructJamfProPackageCreate(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package for update: %v", err))
 	}
@@ -123,10 +121,10 @@ func resourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Package '%s' (ID: %s) after retries: %v", resource.PackageName, resourceID, err))
 	}
 
-	filePath := d.Get("package_file_path").(string)
-	newFileHash, err := generateMD5FileHash(filePath)
+	// Use the local file path for generating the file hash
+	newFileHash, err := generateMD5FileHash(localFilePath)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to generate file hash for %s: %v", filePath, err))
+		return diag.FromErr(fmt.Errorf("failed to generate file hash for %s: %v", localFilePath, err))
 	}
 
 	oldFileHash, _ := d.Get("md5_file_hash").(string)
@@ -134,7 +132,7 @@ func resourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, 
 	log.Printf("[DEBUG] Comparing MD5 hashes for package update: oldFileHash=%s, newFileHash=%s", oldFileHash, newFileHash)
 
 	if newFileHash != oldFileHash {
-		_, err = client.UploadPackage(resourceID, []string{filePath})
+		_, err = client.UploadPackage(resourceID, []string{localFilePath})
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to upload package file for package '%s': %v", resourceID, err))
 		}
@@ -143,7 +141,7 @@ func resourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, 
 		// this is done here while jamf JCDS hashes the file and updates the package metadata
 		// to ensure that any runs during this window doesnt trigger another file upload.
 		d.Set("md5_file_hash", newFileHash)
-		d.Set("filename", filepath.Base(filePath))
+		d.Set("filename", filepath.Base(localFilePath))
 	}
 
 	return append(diags, resourceJamfProPackagesReadWithCleanup(ctx, d, meta)...)
