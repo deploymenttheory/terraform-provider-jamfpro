@@ -53,12 +53,12 @@ import (
 // any API requests made by the provider.
 const (
 	terraformProviderProductUserAgent = "terraform-provider-jamfpro"
-	envKeyOAuthClientId               = "JAMFPRO_CLIENT_ID"
-	envKeyOAuthClientSecret           = "JAMFPRO_CLIENT_SECRET"
-	envKeyBasicAuthUsername           = "JAMFPRO_BASIC_USERNAME"
-	envKeyBasicAuthPassword           = "JAMFPRO_BASIC_PASSWORD"
-	envKeyJamfProUrlRoot              = "JAMFPRO_URL_ROOT"
-	envKeyJamfProAuthMethod           = "JAMFPRO_AUTH_METHOD"
+	envVarOAuthClientId               = "JAMFPRO_CLIENT_ID"
+	envVarOAuthClientSecret           = "JAMFPRO_CLIENT_SECRET"
+	envVarBasicAuthUsername           = "JAMFPRO_BASIC_USERNAME"
+	envVarBasicAuthPassword           = "JAMFPRO_BASIC_PASSWORD"
+	envVarJamfProFQDN                 = "JAMFPRO_INSTANCE_FQDN"
+	envVarJamfProAuthMethod           = "JAMFPRO_AUTH_METHOD"
 	jamfLoadBalancerCookieName        = "jpro-ingress"
 )
 
@@ -236,16 +236,16 @@ func Provider() *schema.Provider {
 
 	provider := &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"jamf_instance_fqdn": {
+			"jamfpro_instance_fqdn": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc(envKeyJamfProUrlRoot, ""),
+				DefaultFunc: schema.EnvDefaultFunc(envVarJamfProFQDN, ""),
 				Description: "The Jamf Pro FQDN (fully qualified domain name). example: https://mycompany.jamfcloud.com",
 			},
 			"auth_method": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc(envKeyJamfProAuthMethod, ""),
+				DefaultFunc: schema.EnvDefaultFunc(envVarJamfProAuthMethod, ""),
 				Description: "Auth method chosen for Jamf.",
 				ValidateFunc: validation.StringInSlice([]string{
 					"basic", "oauth2",
@@ -254,27 +254,27 @@ func Provider() *schema.Provider {
 			"client_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc(envKeyOAuthClientSecret, ""),
+				DefaultFunc: schema.EnvDefaultFunc(envVarOAuthClientId, ""),
 				Description: "The Jamf Pro Client ID for authentication.",
 			},
 			"client_secret": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
-				DefaultFunc: schema.EnvDefaultFunc(envKeyOAuthClientSecret, ""),
+				DefaultFunc: schema.EnvDefaultFunc(envVarOAuthClientSecret, ""),
 				Description: "The Jamf Pro Client secret for authentication.",
 			},
 			"basic_auth_username": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc(envKeyBasicAuthUsername, ""),
+				DefaultFunc: schema.EnvDefaultFunc(envVarBasicAuthUsername, ""),
 				Description: "The Jamf Pro username used for authentication.",
 			},
 			"basic_auth_password": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
-				DefaultFunc: schema.EnvDefaultFunc(envKeyBasicAuthPassword, ""),
+				DefaultFunc: schema.EnvDefaultFunc(envVarBasicAuthPassword, ""),
 				Description: "The Jamf Pro password used for authentication.",
 			},
 			"log_level": {
@@ -336,7 +336,7 @@ func Provider() *schema.Provider {
 					},
 				},
 			},
-			"jamf_load_balancer_lock": {
+			"jamfpro_load_balancer_lock": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
