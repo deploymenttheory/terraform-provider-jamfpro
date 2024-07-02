@@ -5,7 +5,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
@@ -19,6 +21,9 @@ import (
 // 1. Constructs the attribute data using the provided Terraform configuration.
 // 2. Calls the API to create the package metadata in jamfpro.
 // 3. Uploads the package file to the Jamf Pro server.
+// 4. Sets the ID of the created package in the Terraform state.
+// 5. Perform cleanup of downloaded package if it was from an HTTP(s) source
+// 6. Reads the created package to ensure the Terraform state is up-to-date.
 func resourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
@@ -54,6 +59,15 @@ func resourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to create and upload Jamf Pro Package '%s' after retries: %v", resource.PackageName, err))
+	}
+
+	if strings.HasPrefix(d.Get("package_file_source").(string), "http") {
+		err := os.Remove(localFilePath)
+		if err != nil {
+			log.Printf("[WARN] Failed to remove downloaded package file '%s': %v", localFilePath, err)
+		} else {
+			log.Printf("[INFO] Successfully removed downloaded package file '%s'", localFilePath)
+		}
 	}
 
 	return append(diags, resourceJamfProPackagesReadNoCleanup(ctx, d, meta)...)
@@ -98,12 +112,15 @@ func resourceJamfProPackagesReadNoCleanup(ctx context.Context, d *schema.Resourc
 }
 
 // resourceJamfProPackagesUpdate is responsible for updating an existing Jamf Pro Package on the remote system.
+// 1. Constructs the attribute data using the provided Terraform configuration.
+// 2. Calls the API to update the package metadata in jamfpro.
+// 3. Uploads the package file to the Jamf Pro server if the file has changed based on the MD5 hash.
+// 4. Perform cleanup of downloaded package if it was from an HTTP(s) source
 func resourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	// Use the updated constructJamfProPackageCreate function to get the resource and local file path
 	resource, localFilePath, err := constructJamfProPackageCreate(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package for update: %v", err))
@@ -142,6 +159,15 @@ func resourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, 
 		// to ensure that any runs during this window doesnt trigger another file upload.
 		d.Set("md5_file_hash", newFileHash)
 		d.Set("filename", filepath.Base(localFilePath))
+	}
+
+	if strings.HasPrefix(d.Get("package_file_source").(string), "http") {
+		err := os.Remove(localFilePath)
+		if err != nil {
+			log.Printf("[WARN] Failed to remove downloaded package file '%s': %v", localFilePath, err)
+		} else {
+			log.Printf("[INFO] Successfully removed downloaded package file '%s'", localFilePath)
+		}
 	}
 
 	return append(diags, resourceJamfProPackagesReadWithCleanup(ctx, d, meta)...)
