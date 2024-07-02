@@ -164,19 +164,16 @@ Returns:
 	an error diagnostic is appended to diags and an empty string is returned.
 */
 func GetBasicAuthUsername(d *schema.ResourceData, diags *diag.Diagnostics) string {
-	username := d.Get("username").(string)
-	if username == "" {
-
+	username, ok := d.GetOk("basic_auth_username")
+	if !ok || username.(string) == "" {
 		*diags = append(*diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  "Error getting basic auth username",
-			Detail:   "username must be provided either as an environment variable (JAMFPRO_USERNAME) or in the Terraform configuration",
+			Detail:   "basic_auth_username must be provided either as an environment variable (JAMFPRO_BASIC_USERNAME) or in the Terraform configuration",
 		})
-
 		return ""
-
 	}
-	return username
+	return username.(string)
 }
 
 /*
@@ -194,18 +191,16 @@ Returns:
 	an error diagnostic is appended to diags and an empty string is returned.
 */
 func GetBasicAuthPassword(d *schema.ResourceData, diags *diag.Diagnostics) string {
-	password := d.Get("password").(string)
-	if password == "" {
+	password, ok := d.GetOk("basic_auth_password")
+	if !ok || password.(string) == "" {
 		*diags = append(*diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  "Error getting basic auth password",
-			Detail:   "password must be provided either as an environment variable (JAMFPRO_PASSWORD) or in the Terraform configuration",
+			Detail:   "basic_auth_password must be provided either as an environment variable (JAMFPRO_BASIC_PASSWORD) or in the Terraform configuration",
 		})
-
 		return ""
-
 	}
-	return password
+	return password.(string)
 }
 
 // Schema defines the configuration attributes for the  within the JamfPro provider.
