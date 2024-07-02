@@ -28,6 +28,7 @@ description: |-
 - `date_time_limitations` (Block List, Max: 1) Server-side limitations use your Jamf Pro host server's time zone and settings. The Jamf Pro host service is in UTC time. (see [below for nested schema](#nestedblock--date_time_limitations))
 - `frequency` (String) Frequency of policy execution.
 - `network_limitations` (Block List, Max: 1) Network limitations for the policy. (see [below for nested schema](#nestedblock--network_limitations))
+- `network_requirements` (String) Network requirements for the policy.
 - `notify_on_each_failed_retry` (Boolean) Send notifications for each failed policy retry attempt.
 - `offline` (Boolean) Make policy available offline by caching the policy to the macOS device to ensure it runs when Jamf Pro is unavailable. Only used when execution policy is set to 'ongoing'.
 - `package_distribution_point` (String) repository of which packages are collected from
@@ -58,13 +59,16 @@ Optional:
 - `dock_items` (Block List) Dock items settings of the policy. (see [below for nested schema](#nestedblock--payloads--dock_items))
 - `files_processes` (Block List) Files and processes settings of the policy. Use this section to search for and log specific files and processes. Also use this section to execute a command. (see [below for nested schema](#nestedblock--payloads--files_processes))
 - `maintenance` (Block List) Maintenance settings of the policy. Use this section to update inventory, reset computer names, install all cached packages, and run common maintenance tasks. (see [below for nested schema](#nestedblock--payloads--maintenance))
-- `network_requirements` (String) Network requirements for the policy.
 - `override_default_settings` (Block List) Settings to override default configurations. (see [below for nested schema](#nestedblock--payloads--override_default_settings))
 - `packages` (Block List) Package configuration settings of the policy. (see [below for nested schema](#nestedblock--payloads--packages))
 - `printers` (Block List) Printers settings of the policy. (see [below for nested schema](#nestedblock--payloads--printers))
 - `reboot` (Block Set) Use this section to restart computers and specify the disk to boot them to (see [below for nested schema](#nestedblock--payloads--reboot))
 - `scripts` (Block List) Scripts settings of the policy. (see [below for nested schema](#nestedblock--payloads--scripts))
 - `user_interaction` (Block List) User interaction settings of the policy. (see [below for nested schema](#nestedblock--payloads--user_interaction))
+
+Read-Only:
+
+- `network_requirements` (String) Network requirements for the policy.
 
 <a id="nestedblock--payloads--account_maintenance"></a>
 ### Nested Schema for `payloads.account_maintenance`
@@ -86,7 +90,7 @@ Optional:
 <a id="nestedblock--payloads--account_maintenance--directory_bindings--binding"></a>
 ### Nested Schema for `payloads.account_maintenance.directory_bindings.binding`
 
-Required:
+Optional:
 
 - `id` (Number) The unique identifier of the binding.
 
@@ -160,6 +164,7 @@ Optional:
 Required:
 
 - `id` (Number) Unique identifier of the dock item.
+- `name` (String) Name of the dock item.
 
 Optional:
 
@@ -205,11 +210,18 @@ Optional:
 
 - `any_ip_address` (Boolean) Whether the policy applies to any IP address.
 - `minimum_network_connection` (String) Minimum network connection required for the policy.
-- `network_segments` (String) Network segment limitations for the policy.
 
 
 <a id="nestedblock--payloads--packages"></a>
 ### Nested Schema for `payloads.packages`
+
+Required:
+
+- `distribution_point` (String) Distribution point for the package.
+- `package` (Block List, Min: 1) List of packages. (see [below for nested schema](#nestedblock--payloads--packages--package))
+
+<a id="nestedblock--payloads--packages--package"></a>
+### Nested Schema for `payloads.packages.package`
 
 Required:
 
@@ -222,6 +234,7 @@ Optional:
 - `fill_user_template` (Boolean) Fill User Template (FUT).
 
 
+
 <a id="nestedblock--payloads--printers"></a>
 ### Nested Schema for `payloads.printers`
 
@@ -229,6 +242,7 @@ Required:
 
 - `action` (String) Action to be performed for the printer (e.g., install, uninstall).
 - `id` (Number) Unique identifier of the printer.
+- `name` (String) Name of the printer.
 
 Optional:
 
@@ -350,7 +364,6 @@ Optional:
 
 - `any_ip_address` (Boolean) Whether the policy applies to any IP address.
 - `minimum_network_connection` (String) Minimum network connection required for the policy.
-- `network_segments` (String) Network segment limitations for the policy.
 
 
 <a id="nestedblock--self_service"></a>
