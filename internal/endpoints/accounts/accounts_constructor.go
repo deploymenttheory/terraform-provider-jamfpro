@@ -2,9 +2,6 @@
 package accounts
 
 import (
-	"encoding/json"
-	"log"
-
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -30,10 +27,6 @@ func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, 
 		},
 		Privileges: constructAccountSubsetPrivileges(d),
 	}
-
-	log.Println("LOGHERE-OUT")
-	jsonData, _ := json.MarshalIndent(resource, " ", "    ")
-	log.Println(string(jsonData))
 
 	return resource, nil
 }
