@@ -8,6 +8,45 @@
 
 This repository hosts the Jamf Pro Community Provider, built to integrate Jamf Pro's robust configuration management capabilities with Terraform's Infrastructure as Code (IaC) approach. Utilizing a comprehensive JAMF Pro SDK [go-api-sdk-jamfpro](https://github.com/deploymenttheory/go-api-sdk-jamfpro), which serves as a cohesive abstraction layer over both Jamf Pro and Jamf Pro Classic APIs, this provider ensures seamless API interactions and brings a wide array of resources under Terraform's management umbrella. The jamfpro provider is engineered to enrich your CI/CD workflows with Jamf Pro's extensive device management functionalities, encompassing device enrollment, inventory tracking, security compliance, and streamlined software deployment. Its primary goal is to enhance the efficiency of managing, deploying, and maintaining Apple devices across your infrastructure, fostering a synchronized and effective IT ecosystem.
 
+## Quick Start Guide
+
+- Minimum Requirements:
+
+```hcl
+provider "jamfpro" {
+  jamfpro_instance_fqdn = "https://yourserver.jamfcloud.com"
+  auth_method     = "oauth2"
+  client_id       = "your client id"
+  client_secret   = "your client secret"
+  jamfpro_load_balancer_lock = true
+}
+```
+
+- Full Configuration:
+
+```hcl
+
+provider "jamfpro" {
+  jamfpro_instance_fqdn = "https://yourserver.jamfcloud.com"
+  auth_method     = "oauth2"
+  client_id       = "your client id"
+  client_secret   = "your client secret"
+  enable_client_sdk_logs = false
+  log_export_path = "/path/to/logfile.json"
+  hide_sensitive_data = true
+  custom_cookies {
+    // Cookie URL is set to jamfpro_instance_fqdn
+    name = "cookie name"
+    value = "cookie value"
+  }
+  jamfpro_load_balancer_lock = true
+  token_refresh_buffer_period_seconds = 300
+  mandatory_request_delay_milliseconds = 100
+  
+}
+
+```
+
 The provider contains:
 
 - Resources and data sources for Jamf Pro entities (`internal/provider/`),
