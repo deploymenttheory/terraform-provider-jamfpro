@@ -4,8 +4,12 @@ package packages
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
+	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -13,12 +17,22 @@ import (
 
 // constructJamfProPackageCreate constructs a ResourcePackage object from the provided schema data.
 // It extracts the filename from the full path provided in the schema and uses it for the FileName field.
-// constructJamfProPackageCreate constructs a ResourcePackage object from the provided schema data.
-// It extracts the filename from the full path provided in the schema and uses it for the FileName field.
+// If the full path is a URL, it downloads the file and uses the downloaded file path.
 func constructJamfProPackageCreate(d *schema.ResourceData) (*jamfpro.ResourcePackage, error) {
-	// Use filepath.Base to extract just the filename from the full path
 	fullPath := d.Get("package_file_path").(string)
-	fileName := filepath.Base(fullPath)
+	var fileName string
+	var err error
+
+	if strings.HasPrefix(fullPath, "http") {
+		log.Printf("[INFO] URL detected: %s. Attempting to download.", fullPath)
+		fileName, err = downloadFile(fullPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to download file: %v", err)
+		}
+		log.Printf("[INFO] Successfully downloaded file from URL: %s", fullPath)
+	} else {
+		fileName = filepath.Base(fullPath)
+	}
 
 	// Construct the ResourcePackage struct from the Terraform schema data
 	resource := &jamfpro.ResourcePackage{
@@ -65,4 +79,30 @@ func constructJamfProPackageCreate(d *schema.ResourceData) (*jamfpro.ResourcePac
 // BoolPtr is a helper function to create a pointer to a bool.
 func BoolPtr(b bool) *bool {
 	return &b
+}
+
+// downloadFile downloads a file from the given URL and saves it to the specified path.
+// It returns the local file path or an error if the download fails.
+func downloadFile(url string) (string, error) {
+	fileName := filepath.Base(url)
+
+	out, err := os.Create(fileName)
+	if err != nil {
+		return "", fmt.Errorf("failed to create file %s: %v", fileName, err)
+	}
+	defer out.Close()
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", fmt.Errorf("failed to download file from %s: %v", url, err)
+	}
+	defer resp.Body.Close()
+
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to write to file %s: %v", fileName, err)
+	}
+
+	// Return the local file path
+	return fileName, nil
 }
