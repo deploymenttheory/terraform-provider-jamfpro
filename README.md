@@ -32,7 +32,7 @@ provider "jamfpro" {
   client_id       = "your client id"
   client_secret   = "your client secret"
   enable_client_sdk_logs = false
-  log_export_path = "/path/to/logfile.json"
+  client_sdk_log_export_path = "/path/to/logfile.json"
   hide_sensitive_data = true
   custom_cookies {
     // Cookie URL is set to jamfpro_instance_fqdn
@@ -130,7 +130,7 @@ This documentation provides a detailed explanation of the configuration options 
 - **Default:** false
 - **Description:** Enables Client and SDK logs to appear in the tf output.
 
-### `log_export_path`
+### `client_sdk_log_export_path`
 - **Type:** String
 - **Optional:** Yes
 - **Default:** `""`
