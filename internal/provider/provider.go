@@ -57,7 +57,8 @@ const (
 	envKeyOAuthClientSecret           = "JAMFPRO_CLIENT_SECRET"
 	envKeyBasicAuthUsername           = "JAMFPRO_BASIC_USERNAME"
 	envKeyBasicAuthPassword           = "JAMFPRO_BASIC_PASSWORD"
-	envKeyJamfProUrlRoot              = "JAMFPRO_URL_ROOT" // e.g https://yourcompany.jamfcloud.com
+	envKeyJamfProUrlRoot              = "JAMFPRO_URL_ROOT"
+	envKeyJamfProAuthMethod           = "JAMFPRO_AUTH_METHOD"
 	jamfLoadBalancerCookieName        = "jpro-ingress"
 )
 
@@ -203,6 +204,33 @@ func GetBasicAuthPassword(d *schema.ResourceData, diags *diag.Diagnostics) strin
 	return password.(string)
 }
 
+/*
+GetAuthMethod retrieves the auth method from the provided schema resource data.
+If the auth method is not found, it appends an error diagnostic to the diagnostics slice.
+
+Parameters:
+
+	d      - A pointer to the schema.ResourceData object which contains the resource data.
+	diags  - A pointer to a slice of diag.Diagnostics where error messages will be appended.
+
+Returns:
+
+	A string representing the auth method. If the auth method is not provided,
+	an error diagnostic is appended to diags and an empty string is returned.
+*/
+func GetAuthMethod(d *schema.ResourceData, diags *diag.Diagnostics) string {
+	authMethod, ok := d.GetOk("auth_method")
+	if !ok || authMethod.(string) == "" {
+		*diags = append(*diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Error getting auth method",
+			Detail:   "auth_method must be provided either as an environment variable (JAMFPRO_AUTH_METHOD) or in the Terraform configuration",
+		})
+		return ""
+	}
+	return authMethod.(string)
+}
+
 // Schema defines the configuration attributes for the  within the JamfPro provider.
 func Provider() *schema.Provider {
 
@@ -217,6 +245,7 @@ func Provider() *schema.Provider {
 			"auth_method": {
 				Type:        schema.TypeString,
 				Required:    true,
+				DefaultFunc: schema.EnvDefaultFunc(envKeyJamfProAuthMethod, ""),
 				Description: "Auth method chosen for Jamf.",
 				ValidateFunc: validation.StringInSlice([]string{
 					"basic", "oauth2",
@@ -400,7 +429,7 @@ func Provider() *schema.Provider {
 		var diags diag.Diagnostics
 		var sharedLogger logger.Logger
 		var jamfIntegration *jamfprointegration.Integration
-		var jamfDomain,
+		var jamfFQDN,
 			clientId,
 			clientSecret,
 			basicAuthUsername,
@@ -424,15 +453,16 @@ func Provider() *schema.Provider {
 		// newLogger := log.New(os.Stderr, "None", 3)
 
 		// Auth
-		jamfDomain = GetJamfFqdn(d, &diags)
+		jamfFQDN = GetJamfFqdn(d, &diags)
+		authMethod := GetAuthMethod(d, &diags)
 		tokenRefrshBufferPeriod := time.Duration(d.Get("token_refresh_buffer_period_seconds").(int)) * time.Second
 
-		switch d.Get("auth_method").(string) {
+		switch authMethod {
 		case "oauth2":
 			clientId = GetClientID(d, &diags)
 			clientSecret = GetClientSecret(d, &diags)
 			jamfIntegration, err = jamfprointegration.BuildIntegrationWithOAuth(
-				jamfDomain,
+				jamfFQDN,
 				sharedLogger,
 				tokenRefrshBufferPeriod,
 				clientId,
@@ -443,7 +473,7 @@ func Provider() *schema.Provider {
 			basicAuthUsername = GetBasicAuthUsername(d, &diags)
 			basicAuthPassword = GetBasicAuthPassword(d, &diags)
 			jamfIntegration, err = jamfprointegration.BuildIntegrationWithBasicAuth(
-				jamfDomain,
+				jamfFQDN,
 				sharedLogger,
 				tokenRefrshBufferPeriod,
 				basicAuthUsername,
