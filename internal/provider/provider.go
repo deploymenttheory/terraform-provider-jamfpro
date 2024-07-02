@@ -423,8 +423,8 @@ func Provider() *schema.Provider {
 		if !enableClientLogs && logFilePath != "" {
 			return nil, append(diags, diag.Diagnostic{
 				Severity: diag.Error,
-				Summary:  "Bad Combination",
-				Detail:   "Cannot have exported logs and client logs disabled",
+				Summary:  "Bad configuration",
+				Detail:   "Cannot have enable_client_sdk_logs disabled with client_sdk_log_export_path set",
 			})
 		}
 
