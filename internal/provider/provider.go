@@ -284,7 +284,7 @@ func Provider() *schema.Provider {
 				Default:     false,
 				Description: "Debug option to propogate logs from the SDK and HttpClient",
 			},
-			"log_export_path": {
+			"client_sdk_log_export_path": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "",
@@ -416,13 +416,18 @@ func Provider() *schema.Provider {
 
 		// Logger
 		enableClientLogs := d.Get("enable_client_sdk_logs").(bool)
-		logFilePath := d.Get("log_export_path").(string)
-
-		if _, err := os.Stat(logFilePath); err != nil {
-			return nil, append(diags, diag.FromErr(err)...)
-		}
+		logFilePath := d.Get("client_sdk_log_export_path").(string)
 
 		defaultLoggerConfig := zap.NewProductionConfig()
+
+		if !enableClientLogs && logFilePath != "" {
+			return nil, append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Bad Combination",
+				Detail:   "Cannot have exported logs and client logs disabled",
+			})
+		}
+
 		var logLevel zap.AtomicLevel
 		if enableClientLogs {
 			logLevel = zap.NewAtomicLevelAt(zap.DebugLevel)
@@ -431,6 +436,9 @@ func Provider() *schema.Provider {
 		}
 
 		if logFilePath != "" {
+			if _, err := os.Stat(logFilePath); err != nil {
+				return nil, append(diags, diag.FromErr(err)...)
+			}
 			defaultLoggerConfig.OutputPaths = append(defaultLoggerConfig.OutputPaths, logFilePath)
 		}
 
