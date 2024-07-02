@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/deploymenttheory/go-api-http-client-integrations/jamf/jamfprointegration"
@@ -417,8 +418,11 @@ func Provider() *schema.Provider {
 		enableClientLogs := d.Get("enable_client_sdk_logs").(bool)
 		logFilePath := d.Get("log_export_path").(string)
 
-		defaultLoggerConfig := zap.NewProductionConfig()
+		if _, err := os.Stat(logFilePath); err != nil {
+			return nil, append(diags, diag.FromErr(err)...)
+		}
 
+		defaultLoggerConfig := zap.NewProductionConfig()
 		var logLevel zap.AtomicLevel
 		if enableClientLogs {
 			logLevel = zap.NewAtomicLevelAt(zap.DebugLevel)
