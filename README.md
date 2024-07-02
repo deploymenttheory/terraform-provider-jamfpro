@@ -8,6 +8,45 @@
 
 This repository hosts the Jamf Pro Community Provider, built to integrate Jamf Pro's robust configuration management capabilities with Terraform's Infrastructure as Code (IaC) approach. Utilizing a comprehensive JAMF Pro SDK [go-api-sdk-jamfpro](https://github.com/deploymenttheory/go-api-sdk-jamfpro), which serves as a cohesive abstraction layer over both Jamf Pro and Jamf Pro Classic APIs, this provider ensures seamless API interactions and brings a wide array of resources under Terraform's management umbrella. The jamfpro provider is engineered to enrich your CI/CD workflows with Jamf Pro's extensive device management functionalities, encompassing device enrollment, inventory tracking, security compliance, and streamlined software deployment. Its primary goal is to enhance the efficiency of managing, deploying, and maintaining Apple devices across your infrastructure, fostering a synchronized and effective IT ecosystem.
 
+## Quick Start Guide
+
+- Minimum Requirements:
+
+```hcl
+provider "jamfpro" {
+  jamfpro_instance_fqdn = "https://yourserver.jamfcloud.com"
+  auth_method     = "oauth2"
+  client_id       = "your client id"
+  client_secret   = "your client secret"
+  jamfpro_load_balancer_lock = true
+}
+```
+
+- Full Configuration:
+
+```hcl
+
+provider "jamfpro" {
+  jamfpro_instance_fqdn = "https://yourserver.jamfcloud.com"
+  auth_method     = "oauth2"
+  client_id       = "your client id"
+  client_secret   = "your client secret"
+  enable_client_sdk_logs = false
+  client_sdk_log_export_path = "/path/to/logfile.json"
+  hide_sensitive_data = true
+  custom_cookies {
+    // Cookie URL is set to jamfpro_instance_fqdn
+    name = "cookie name"
+    value = "cookie value"
+  }
+  jamfpro_load_balancer_lock = true
+  token_refresh_buffer_period_seconds = 300
+  mandatory_request_delay_milliseconds = 100
+  
+}
+
+```
+
 The provider contains:
 
 - Resources and data sources for Jamf Pro entities (`internal/provider/`),
@@ -43,7 +82,7 @@ This documentation provides a detailed explanation of the configuration options 
 
 ## Configuration Schema
 
-### `instance_domain`
+### `jamfpro_instance_fqdn`
 - **Type:** String
 - **Required:** Yes
 - **Default:** Fetched from environment variable `envKeyJamfProUrlRoot` if not provided
@@ -84,43 +123,18 @@ This documentation provides a detailed explanation of the configuration options 
 - **Default:** Fetched from environment variable `envKeyBasicAuthPassword` if not provided
 - **Description:** The password for basic authentication with Jamf Pro. This field is sensitive and required if `auth_method` is `basic`.
 
-### `log_level`
-- **Type:** String
-- **Optional:** Yes
-- **Default:** `warning`
-- **Description:** The logging level for the provider. Determines the verbosity of logs.
-- **Valid Values:** 
-  - `debug`: Detailed debugging information.
-  - `info`: General information about the operations.
-  - `warning`: Warnings that do not cause the operation to fail.
-  - `none`: No logging.
-- **Validation:** Ensures the value is one of the specified valid values.
 
-### `log_output_format`
-- **Type:** String
+### `enable_client_sdk_logs`
+- **Type:** bool
 - **Optional:** Yes
-- **Default:** `pretty`
-- **Description:** The format for log output. Determines how logs are presented.
-  - `JSON`: Logs in JSON format.
-  - `console`: Human-readable, console-friendly format.
+- **Default:** false
+- **Description:** Enables Client and SDK logs to appear in the tf output.
 
-### `log_console_separator`
-- **Type:** String
-- **Optional:** Yes
-- **Default:** `" "`
-- **Description:** The character used to separate log entries in the console output. Useful for customizing the readability of logs.
-
-### `log_export_path`
+### `client_sdk_log_export_path`
 - **Type:** String
 - **Optional:** Yes
 - **Default:** `""`
-- **Description:** The file path to export HTTP client logs to. If specified, logs will be saved to this path.
-
-### `export_logs`
-- **Type:** Boolean
-- **Optional:** Yes
-- **Default:** `false`
-- **Description:** Enables or disables exporting logs to a file. When set to true, logs will be written to the specified `log_export_path`.
+- **Description:** The file path to export HTTP client logs to. If set, logs will be saved to this path. If omitted, logs will not be exported.
 
 ### `hide_sensitive_data`
 - **Type:** Boolean

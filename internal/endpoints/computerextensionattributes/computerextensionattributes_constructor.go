@@ -13,7 +13,6 @@ import (
 // constructJamfProComputerExtensionAttribute constructs a ResourceComputerExtensionAttribute object from the provided schema data.
 func constructJamfProComputerExtensionAttribute(d *schema.ResourceData) (*jamfpro.ResourceComputerExtensionAttribute, error) {
 	var resource *jamfpro.ResourceComputerExtensionAttribute
-	log.Println("LOGHERE")
 
 	resource = &jamfpro.ResourceComputerExtensionAttribute{
 		Name:             d.Get("name").(string),
@@ -42,8 +41,6 @@ func constructJamfProComputerExtensionAttribute(d *schema.ResourceData) (*jamfpr
 		}
 	}
 	if boolCount > 1 {
-		log.Println(inputList)
-		log.Println(boolCount)
 		return nil, fmt.Errorf("multiple input types selected, please adjust your configuratuon")
 	}
 

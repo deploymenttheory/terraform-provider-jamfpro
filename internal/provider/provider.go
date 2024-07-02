@@ -5,11 +5,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/deploymenttheory/go-api-http-client-integrations/jamf/jamfprointegration"
 	"github.com/deploymenttheory/go-api-http-client/httpclient"
-	"github.com/deploymenttheory/go-api-http-client/logger"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accountgroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/accounts"
@@ -47,6 +47,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"go.uber.org/zap"
 )
 
 // TerraformProviderProductUserAgent is included in the User-Agent header for
@@ -277,38 +278,17 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc(envVarBasicAuthPassword, ""),
 				Description: "The Jamf Pro password used for authentication when auth_method is 'basic'.",
 			},
-			"log_level": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "warning",
-				ValidateFunc: validation.StringInSlice([]string{
-					"debug", "info", "warning", "none",
-				}, false),
-				Description: "The logging level: debug, info, warning, or none",
-			},
-			"log_output_format": {
-				Type:        schema.TypeString,
+			"enable_client_sdk_logs": {
+				Type:        schema.TypeBool,
 				Optional:    true,
-				Default:     "pretty",
-				Description: "The output format of the logs. Use 'JSON' for JSON format, 'pretty' for human-readable format. Defaults to console if no value is supplied.",
+				Default:     false,
+				Description: "Debug option to propogate logs from the SDK and HttpClient",
 			},
-			"log_console_separator": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     " ",
-				Description: "The separator character used in console log output.",
-			},
-			"log_export_path": {
+			"client_sdk_log_export_path": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "",
 				Description: "Specify the path to export http client logs to.",
-			},
-			"export_logs": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Enables exporting logs to a file",
 			},
 			"hide_sensitive_data": {
 				Type:        schema.TypeBool,
@@ -424,10 +404,9 @@ func Provider() *schema.Provider {
 		},
 	}
 
-	provider.ConfigureContextFunc = func(_ context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 		var err error
 		var diags diag.Diagnostics
-		var sharedLogger logger.Logger
 		var jamfIntegration *jamfprointegration.Integration
 		var jamfFQDN,
 			clientId,
@@ -436,48 +415,66 @@ func Provider() *schema.Provider {
 			basicAuthPassword string
 
 		// Logger
-		parsedLogLevel := logger.ParseLogLevelFromString(d.Get("log_level").(string))
-		logOutputFormat := d.Get("log_output_format").(string)
-		logConsoleSeparator := d.Get("log_console_separator").(string)
-		logFilePath := d.Get("log_export_path").(string)
-		exportLogs := d.Get("export_logs").(bool)
+		enableClientLogs := d.Get("enable_client_sdk_logs").(bool)
+		logFilePath := d.Get("client_sdk_log_export_path").(string)
 
-		sharedLogger = logger.BuildLogger(
-			parsedLogLevel,
-			logOutputFormat,
-			logConsoleSeparator,
-			logFilePath,
-			exportLogs,
-		)
+		defaultLoggerConfig := zap.NewProductionConfig()
 
-		// newLogger := log.New(os.Stderr, "None", 3)
+		if !enableClientLogs && logFilePath != "" {
+			return nil, append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Bad configuration",
+				Detail:   "Cannot have enable_client_sdk_logs disabled with client_sdk_log_export_path set",
+			})
+		}
+
+		var logLevel zap.AtomicLevel
+		if enableClientLogs {
+			logLevel = zap.NewAtomicLevelAt(zap.DebugLevel)
+		} else {
+			logLevel = zap.NewAtomicLevelAt(zap.FatalLevel)
+		}
+
+		if logFilePath != "" {
+			if _, err := os.Stat(logFilePath); err != nil {
+				return nil, append(diags, diag.FromErr(err)...)
+			}
+			defaultLoggerConfig.OutputPaths = append(defaultLoggerConfig.OutputPaths, logFilePath)
+		}
+
+		defaultLoggerConfig.Level = logLevel
+		defaultLogger, err := defaultLoggerConfig.Build()
+		sugaredLogger := defaultLogger.Sugar()
 
 		// Auth
 		jamfFQDN = GetJamfFqdn(d, &diags)
 		authMethod := GetAuthMethod(d, &diags)
 		tokenRefrshBufferPeriod := time.Duration(d.Get("token_refresh_buffer_period_seconds").(int)) * time.Second
 
+		hide_sensitive_data := d.Get("hide_sensitive_data").(bool)
 		switch authMethod {
 		case "oauth2":
 			clientId = GetClientID(d, &diags)
 			clientSecret = GetClientSecret(d, &diags)
-			jamfIntegration, err = jamfprointegration.BuildIntegrationWithOAuth(
+			jamfIntegration, err = jamfprointegration.BuildWithOAuth(
 				jamfFQDN,
-				sharedLogger,
+				sugaredLogger,
 				tokenRefrshBufferPeriod,
 				clientId,
 				clientSecret,
+				hide_sensitive_data,
 			)
 
 		case "basic":
 			basicAuthUsername = GetBasicAuthUsername(d, &diags)
 			basicAuthPassword = GetBasicAuthPassword(d, &diags)
-			jamfIntegration, err = jamfprointegration.BuildIntegrationWithBasicAuth(
+			jamfIntegration, err = jamfprointegration.BuildWithBasicAuth(
 				jamfFQDN,
-				sharedLogger,
+				sugaredLogger,
 				tokenRefrshBufferPeriod,
 				basicAuthUsername,
 				basicAuthPassword,
+				hide_sensitive_data,
 			)
 
 		default:
@@ -552,6 +549,7 @@ func Provider() *schema.Provider {
 		// Packaging
 		config := httpclient.ClientConfig{
 			Integration:              jamfIntegration,
+			Sugar:                    sugaredLogger,
 			HideSensitiveData:        d.Get("hide_sensitive_data").(bool),
 			TokenRefreshBufferPeriod: tokenRefrshBufferPeriod,
 			CustomCookies:            cookiesList,
@@ -559,7 +557,7 @@ func Provider() *schema.Provider {
 			RetryEligiableRequests:   false, // Forced off for now
 		}
 
-		goHttpClient, err := httpclient.BuildClient(config, false, sharedLogger)
+		goHttpClient, err := config.Build()
 		if err != nil {
 			return nil, append(diags, diag.FromErr(err)...)
 		}
