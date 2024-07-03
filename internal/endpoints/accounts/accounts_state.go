@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/utilities"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -48,21 +47,20 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceAccount)
 		d.Set("site_id", -1)
 	}
 
-	// TODO review this.
-	privilegeAttributes := map[string][]string{
-		"jss_objects_privileges":  resp.Privileges.JSSObjects,
-		"jss_settings_privileges": resp.Privileges.JSSSettings,
-		"jss_actions_privileges":  resp.Privileges.JSSActions,
-		// "casper_admin_privileges":   resp.Privileges.CasperAdmin,
-		// "casper_remote_privileges":  resp.Privileges.CasperRemote,
-		// "casper_imaging_privileges": resp.Privileges.CasperImaging,
-		"recon_privileges": resp.Privileges.Recon,
+	if err := d.Set("jss_actions_privileges", resp.Privileges.JSSActions); err != nil {
+		return append(diags, diag.FromErr(err)...)
 	}
 
-	for attrName, privileges := range privilegeAttributes {
-		if err := d.Set(attrName, schema.NewSet(schema.HashString, utilities.ConvertToStringInterface(privileges))); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+	if err := d.Set("jss_objects_privileges", resp.Privileges.JSSObjects); err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("jss_settings_privileges", resp.Privileges.JSSSettings); err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("recon_privileges", resp.Privileges.Recon); err != nil {
+		return append(diags, diag.FromErr(err)...)
 	}
 
 	return diags
