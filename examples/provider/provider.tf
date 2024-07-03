@@ -18,8 +18,8 @@ provider "jamfpro" {
   jamfpro_load_balancer_lock           = var.jamfpro_jamf_load_balancer_lock
   token_refresh_buffer_period_seconds  = var.jamfpro_token_refresh_buffer_period_seconds
   mandatory_request_delay_milliseconds = var.jamfpro_mandatory_request_delay_milliseconds
-  # basic_auth_username           = "bearer-test"
-  # basic_auth_password           = "bearer-test"
+  # basic_auth_username           = var.jamfpro_basic_auth_username
+  # basic_auth_password           = var.jamfpro_basic_auth_password
 }
 
 variable "jamfpro_instance_fqdn" {
