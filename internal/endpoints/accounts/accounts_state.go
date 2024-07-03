@@ -16,19 +16,23 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceAccount)
 	if err := d.Set("id", strconv.Itoa(resp.ID)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+
 	if err := d.Set("name", resp.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+
 	if err := d.Set("directory_user", resp.DirectoryUser); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+
 	if err := d.Set("full_name", resp.FullName); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
-
 	}
+
 	if err := d.Set("email", resp.Email); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+
 	if err := d.Set("enabled", resp.Enabled); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
