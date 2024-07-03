@@ -1,6 +1,0 @@
-package sharedschemas
-
-func GetSharedSchemaNAME() *schema.Resource {
-    out := &schema.Schema{}
-    return out
-}
