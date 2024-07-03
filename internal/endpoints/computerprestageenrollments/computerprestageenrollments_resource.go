@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -405,7 +404,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 				Optional:    true,
 				Description: "The recovery lock password type.",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := util.GetString(val)
+					v := val.(string)
 					validTypes := map[string]bool{
 						"MANUAL": true,
 						"RANDOM": true,
@@ -487,7 +486,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 							Optional:    true,
 							Description: "Type of user account (ADMINISTRATOR, STANDARD, SKIP).",
 							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-								v := util.GetString(val)
+								v := val.(string)
 								validTypes := map[string]bool{
 									"ADMINISTRATOR": true,
 									"STANDARD":      true,
@@ -514,7 +513,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 							Optional:    true,
 							Description: "Type of prefill (CUSTOM, DEVICE_OWNER).",
 							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-								v := util.GetString(val)
+								v := val.(string)
 								validTypes := map[string]bool{
 									"CUSTOM":       true,
 									"DEVICE_OWNER": true,

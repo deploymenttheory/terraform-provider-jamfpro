@@ -8,8 +8,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/jamfprivileges"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
 
-	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -65,7 +63,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 				Required:    true,
 				Description: "Access status of the account (“enabled” or “disabled”).",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := util.GetString(val)
+					v := val.(string)
 					if v == "Enabled" || v == "Disabled" {
 						return
 					}

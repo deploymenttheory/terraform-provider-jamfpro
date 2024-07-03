@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -69,7 +67,7 @@ func ResourceJamfProFileShareDistributionPoints() *schema.Resource {
 				Required:    true,
 				Description: "The type of connection protocol to the distribution point. Can be either 'AFP', or 'SMB'.",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := util.GetString(val)
+					v := val.(string)
 					validTypes := map[string]bool{
 						"SMB": true,
 						"AFP": true,

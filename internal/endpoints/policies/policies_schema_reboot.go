@@ -3,7 +3,6 @@ package policies
 import (
 	"fmt"
 
-	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -22,7 +21,7 @@ func getPolicySchemaReboot() *schema.Resource {
 				Description: "Reboot Method",
 				Default:     "",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := util.GetString(val)
+					v := val.(string)
 					validMethods := []string{"", "Standard Restart", "MDM Restart with Kernel Cache Rebuild"}
 					for _, method := range validMethods {
 						if v == method {
@@ -39,7 +38,7 @@ func getPolicySchemaReboot() *schema.Resource {
 				Description: "Disk to boot computers to",
 				Default:     "Current Startup Disk",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := util.GetString(val)
+					v := val.(string)
 					validDisks := []string{"Current Startup Disk", "Currently Selected Startup Disk (No Bless)", "macOS Installer", "Specify Local Startup Disk"}
 					for _, disk := range validDisks {
 						if v == disk {
@@ -56,7 +55,7 @@ func getPolicySchemaReboot() *schema.Resource {
 				Description: "Action to take if no user is logged in to the computer",
 				Default:     "Do not restart",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := util.GetString(val)
+					v := val.(string)
 					validOptions := []string{"Restart if a package or update requires it", "Restart Immediately", "Do not restart"}
 					for _, option := range validOptions {
 						if v == option {
@@ -73,7 +72,7 @@ func getPolicySchemaReboot() *schema.Resource {
 				Default:     "Do not restart",
 				Description: "Action to take if a user is logged in to the computer",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := util.GetString(val)
+					v := val.(string)
 					validOptions := []string{"Restart if a package or update requires it", "Restart Immediately", "Restart", "Do not restart"}
 					for _, option := range validOptions {
 						if v == option {
