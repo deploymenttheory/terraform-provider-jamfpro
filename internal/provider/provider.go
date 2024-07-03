@@ -415,6 +415,7 @@ func Provider() *schema.Provider {
 			basicAuthPassword string
 
 		// Logger
+		// Probably should move this into it's own function.
 
 		enableClientLogs := d.Get("enable_client_sdk_logs").(bool)
 		logFilePath := d.Get("client_sdk_log_export_path").(string)
