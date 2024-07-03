@@ -24,6 +24,7 @@ provider "jamfpro" {
 
 variable "jamfpro_instance_fqdn" {
   description = "The Jamf Pro FQDN (fully qualified domain name). Example: https://mycompany.jamfcloud.com"
+  sensitive   = true
   default     = ""
 }
 
