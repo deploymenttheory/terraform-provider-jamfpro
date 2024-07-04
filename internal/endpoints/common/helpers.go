@@ -1,6 +1,6 @@
 // hash.go
 // This package contains shared / common hash functions
-package helpers
+package common
 
 import (
 	"crypto/sha256"

@@ -4,8 +4,8 @@ package mobiledeviceconfigurationprofilesplist
 import (
 	"log"
 
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles/plist"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -25,8 +25,8 @@ func DiffSuppressPayloads(k, old, new string, d *schema.ResourceData) bool {
 		return false
 	}
 
-	oldHash := helpers.HashString(processedOldPayload)
-	newHash := helpers.HashString(processedNewPayload)
+	oldHash := common.HashString(processedOldPayload)
+	newHash := common.HashString(processedNewPayload)
 
 	log.Printf("Old payload hash: %s, New payload hash: %s", oldHash, newHash)
 

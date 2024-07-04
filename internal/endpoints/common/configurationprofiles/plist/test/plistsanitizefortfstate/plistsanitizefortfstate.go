@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles/plist"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers"
 )
 
 // plistPreJamfProUpload is the plist data for the configuration profile prior to being uploaded into Jamf Pro.
@@ -187,11 +187,11 @@ func TestProcessAndCompareConfigurationProfiles() {
 	log.Printf("Processed second profile payload:\n%s\n", processedProfile2)
 
 	log.Println("Hashing the first processed profile payload...")
-	hash1 := helpers.HashString(processedProfile1)
+	hash1 := common.HashString(processedProfile1)
 	log.Printf("Hash of the first profile payload: %s\n", hash1)
 
 	log.Println("Hashing the second processed profile payload...")
-	hash2 := helpers.HashString(processedProfile2)
+	hash2 := common.HashString(processedProfile2)
 	log.Printf("Hash of the second profile payload: %s\n", hash2)
 
 	log.Println("Comparing the hashes...")
