@@ -16,7 +16,7 @@ To Do:
 - Remove Get by name fallback in all occurances.
 - Line 306 macosconfigurationprofiles.state
 - Finish Policies
-- Remove wrapped "GetXfromX" logic used in a lot of validation funcs.
+- Adjust Account/Account Group privileges to be pulled from an automatically updated json file
 
 Known Issues:
 1. Declarative resource redeployment fails if: 
