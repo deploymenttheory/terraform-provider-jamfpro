@@ -104,27 +104,18 @@ func prepStatePayloadDiskEncryption(out *[]map[string]interface{}, resp *jamfpro
 
 // Reads response and preps package payload items
 func prepStatePayloadPackages(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	if resp.PackageConfiguration == nil {
+	if resp.PackageConfiguration == nil || resp.PackageConfiguration.Packages == nil {
 		log.Println("No package configuration found")
 		return
 	}
-	// Packages can be nil but deployment state default
-	if resp.PackageConfiguration.Packages == nil {
-		log.Println("No packages found in package configuration")
-		return
-	}
-
-	// Ensure the map is initialized before setting values
-	if len((*out)[0]) == 0 {
-		(*out)[0] = make(map[string]interface{})
-	}
 
 	log.Println("Initializing packages in state")
+
 	packagesMap := make(map[string]interface{})
 	packagesMap["distribution_point"] = resp.PackageConfiguration.DistributionPoint
 	packagesMap["package"] = make([]map[string]interface{}, 0)
 
-	for _, v := range *resp.PackageConfiguration.Packages {
+	for _, v := range resp.PackageConfiguration.Packages {
 		outMap := make(map[string]interface{})
 		outMap["id"] = v.ID
 		outMap["action"] = v.Action

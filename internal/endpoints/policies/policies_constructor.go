@@ -304,32 +304,27 @@ func constructPayloads(d *schema.ResourceData, resource *jamfpro.ResourcePolicy)
 
 // constructPayloadPackages builds the packages payload settings of the policy.
 func constructPayloadPackages(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
-	hcl := d.Get("payloads.0.packages")
+	hcl := d.Get("payloads.0.packages.0")
 
 	if hcl == nil || len(hcl.([]interface{})) == 0 {
 		return
 	}
 
-	outBlock := new(jamfpro.PolicySubsetPackageConfiguration)
-	packageConfig := hcl.([]interface{})[0].(map[string]interface{})
-	outBlock.DistributionPoint = packageConfig["distribution_point"].(string)
-	outBlock.Packages = &[]jamfpro.PolicySubsetPackageConfigurationPackage{}
-	payload := *outBlock.Packages
+	var payload *jamfpro.PolicySubsetPackageConfiguration
+	payload.DistributionPoint = hcl.(map[string]interface{})["distribution_point"].(string)
+	packageList := hcl.(map[string]interface{})["package"].([]interface{})
 
-	packageList := packageConfig["package"].([]interface{})
 	for _, v := range packageList {
-		packageData := v.(map[string]interface{})
 		newObj := jamfpro.PolicySubsetPackageConfigurationPackage{
-			ID:                packageData["id"].(int),
-			Action:            packageData["action"].(string),
-			FillUserTemplate:  packageData["fill_user_template"].(bool),
-			FillExistingUsers: packageData["fill_existing_user_template"].(bool),
+			ID:                v.(map[string]interface{})["id"].(int),
+			Action:            v.(map[string]interface{})["action"].(string),
+			FillUserTemplate:  v.(map[string]interface{})["fill_user_template"].(bool),
+			FillExistingUsers: v.(map[string]interface{})["fill_existing_user_template"].(bool),
 		}
-		payload = append(payload, newObj)
+		payload.Packages = append(payload.Packages, newObj)
 	}
 
-	outBlock.Packages = &payload
-	resource.PackageConfiguration = outBlock
+	resource.PackageConfiguration = payload
 }
 
 // Pulls "script" settings from HCL and packages them into the resource.
