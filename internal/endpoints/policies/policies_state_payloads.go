@@ -108,15 +108,14 @@ func prepStatePayloadPackages(out *[]map[string]interface{}, resp *jamfpro.Resou
 
 	packagesMap := make(map[string]interface{})
 	packagesMap["distribution_point"] = resp.PackageConfiguration.DistributionPoint
-	packagesMap["package"] = make([]map[string]interface{}, 0)
 
+	packagesMap["package"] = make([]map[string]interface{}, 0)
 	for _, v := range resp.PackageConfiguration.Packages {
 		outMap := make(map[string]interface{})
 		outMap["id"] = v.ID
 		outMap["action"] = v.Action
 		outMap["fill_user_template"] = v.FillUserTemplate
 		outMap["fill_existing_user_template"] = v.FillExistingUsers
-		log.Printf("Adding package to state: %+v\n", outMap)
 		packagesMap["package"] = append(packagesMap["package"].([]map[string]interface{}), outMap)
 	}
 
