@@ -51,7 +51,7 @@ func getPolicySchemaPayloads() *schema.Resource {
 				Elem:        getPolicySchemaAccountMaintenance(),
 			},
 			"reboot": {
-				Type:        schema.TypeSet,
+				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Use this section to restart computers and specify the disk to boot them to",
 				Elem:        getPolicySchemaReboot(),

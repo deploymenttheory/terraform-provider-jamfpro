@@ -306,11 +306,11 @@ func constructPayloads(d *schema.ResourceData, resource *jamfpro.ResourcePolicy)
 func constructPayloadPackages(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
 	hcl := d.Get("payloads.0.packages.0")
 
-	if hcl == nil || len(hcl.([]interface{})) == 0 {
+	if hcl == nil {
 		return
 	}
 
-	var payload *jamfpro.PolicySubsetPackageConfiguration
+	var payload jamfpro.PolicySubsetPackageConfiguration
 	payload.DistributionPoint = hcl.(map[string]interface{})["distribution_point"].(string)
 	packageList := hcl.(map[string]interface{})["package"].([]interface{})
 
@@ -324,7 +324,7 @@ func constructPayloadPackages(d *schema.ResourceData, resource *jamfpro.Resource
 		payload.Packages = append(payload.Packages, newObj)
 	}
 
-	resource.PackageConfiguration = payload
+	resource.PackageConfiguration = &payload
 }
 
 // Pulls "script" settings from HCL and packages them into the resource.
@@ -568,24 +568,25 @@ func constructPayloadUserInteraction(d *schema.ResourceData, resource *jamfpro.R
 
 // constructPayloadReboot builds the reboot payload settings of the policy.
 func constructPayloadReboot(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
-	hcl := d.Get("payloads.0.reboot")
-	if hcl == nil || len(hcl.(*schema.Set).List()) == 0 {
+	hcl := d.Get("payloads.0.reboot.0")
+	log.Println("LOGHERE")
+	log.Println(hcl)
+	if len(hcl.(map[string]interface{})) == 0 {
 		return
 	}
 
-	outBlock := new(jamfpro.PolicySubsetReboot)
-	data := hcl.(*schema.Set).List()[0].(map[string]interface{})
+	var payload jamfpro.PolicySubsetReboot
 
-	outBlock.Message = data["message"].(string)
-	outBlock.SpecifyStartup = data["specify_startup"].(string)
-	outBlock.StartupDisk = data["startup_disk"].(string)
-	outBlock.NoUserLoggedIn = data["no_user_logged_in"].(string)
-	outBlock.UserLoggedIn = data["user_logged_in"].(string)
-	outBlock.MinutesUntilReboot = data["minutes_until_reboot"].(int)
-	outBlock.StartRebootTimerImmediately = data["start_reboot_timer_immediately"].(bool)
-	outBlock.FileVault2Reboot = data["file_vault_2_reboot"].(bool)
+	payload.Message = hcl.(map[string]interface{})["message"].(string)
+	payload.SpecifyStartup = hcl.(map[string]interface{})["specify_startup"].(string)
+	payload.StartupDisk = hcl.(map[string]interface{})["startup_disk"].(string)
+	payload.NoUserLoggedIn = hcl.(map[string]interface{})["no_user_logged_in"].(string)
+	payload.UserLoggedIn = hcl.(map[string]interface{})["user_logged_in"].(string)
+	payload.MinutesUntilReboot = hcl.(map[string]interface{})["minutes_until_reboot"].(int)
+	payload.StartRebootTimerImmediately = hcl.(map[string]interface{})["start_reboot_timer_immediately"].(bool)
+	payload.FileVault2Reboot = hcl.(map[string]interface{})["file_vault_2_reboot"].(bool)
 
-	resource.Reboot = outBlock
+	resource.Reboot = &payload
 
 }
 

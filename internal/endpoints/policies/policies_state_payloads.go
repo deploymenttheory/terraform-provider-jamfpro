@@ -92,11 +92,6 @@ func prepStatePayloadDiskEncryption(out *[]map[string]interface{}, resp *jamfpro
 		return
 	}
 
-	// Ensure the map is initialized before setting values
-	if len((*out)[0]) == 0 {
-		(*out)[0] = make(map[string]interface{})
-	}
-
 	log.Println("Initializing disk encryption in state")
 	(*out)[0]["disk_encryption"] = []map[string]interface{}{diskEncryptionBlock}
 	log.Printf("Final state disk encryption: %+v\n", diskEncryptionBlock)
@@ -134,11 +129,6 @@ func prepStatePayloadScripts(out *[]map[string]interface{}, resp *jamfpro.Resour
 	if resp.Scripts == nil {
 		log.Println("No scripts found")
 		return
-	}
-
-	// Ensure the map is initialized before setting values
-	if len((*out)[0]) == 0 {
-		(*out)[0] = make(map[string]interface{})
 	}
 
 	log.Println("Initializing scripts in state")
@@ -187,11 +177,6 @@ func prepStatePayloadPrinters(out *[]map[string]interface{}, resp *jamfpro.Resou
 		return
 	}
 
-	// Ensure the map is initialized before setting values
-	if len((*out)[0]) == 0 {
-		(*out)[0] = make(map[string]interface{})
-	}
-
 	log.Println("Initializing printers in state")
 	(*out)[0]["printers"] = make([]map[string]interface{}, 0)
 
@@ -216,11 +201,6 @@ func prepStatePayloadDockItems(out *[]map[string]interface{}, resp *jamfpro.Reso
 		return
 	}
 
-	// Ensure the map is initialized before setting values
-	if len((*out)[0]) == 0 {
-		(*out)[0] = make(map[string]interface{})
-	}
-
 	log.Println("Initializing dock items in state")
 	(*out)[0]["dock_items"] = make([]map[string]interface{}, 0)
 
@@ -243,11 +223,6 @@ func prepStatePayloadAccountMaintenance(out *[]map[string]interface{}, resp *jam
 	if resp.AccountMaintenance == nil {
 		log.Println("No account maintenance configuration found")
 		return
-	}
-
-	// Ensure the map is initialized before setting values
-	if len((*out)[0]) == 0 {
-		(*out)[0] = make(map[string]interface{})
 	}
 
 	log.Println("Initializing account maintenance in state")
@@ -375,11 +350,6 @@ func prepStatePayloadFilesProcesses(out *[]map[string]interface{}, resp *jamfpro
 		return
 	}
 
-	// Ensure the map is initialized before setting values
-	if len((*out)[0]) == 0 {
-		(*out)[0] = make(map[string]interface{})
-	}
-
 	log.Println("Initializing files and processes in state")
 	(*out)[0]["files_processes"] = []map[string]interface{}{filesProcessesBlock}
 	log.Printf("Final state files and processes: %+v\n", filesProcessesBlock)
@@ -423,11 +393,6 @@ func prepStatePayloadUserInteraction(out *[]map[string]interface{}, resp *jamfpr
 		return
 	}
 
-	// Ensure the map is initialized before setting values
-	if len((*out)[0]) == 0 {
-		(*out)[0] = make(map[string]interface{})
-	}
-
 	log.Println("Initializing user interaction in state")
 	(*out)[0]["user_interaction"] = []map[string]interface{}{userInteractionBlock}
 	log.Printf("Final state user interaction: %+v\n", userInteractionBlock)
@@ -440,18 +405,6 @@ func prepStatePayloadReboot(out *[]map[string]interface{}, resp *jamfpro.Resourc
 		return
 	}
 
-	// Define default values
-	defaults := map[string]interface{}{
-		"Message":                     "This computer will restart in 5 minutes. Please save anything you are working on and log out by choosing Log Out from the bottom of the Apple menu.",
-		"SpecifyStartup":              "",
-		"StartupDisk":                 "Current Startup Disk",
-		"NoUserLoggedIn":              "Do not restart",
-		"UserLoggedIn":                "Do not restart",
-		"MinutesUntilReboot":          5,
-		"StartRebootTimerImmediately": false,
-		"FileVault2Reboot":            false,
-	}
-
 	rebootBlock := map[string]interface{}{
 		"message":                        resp.Reboot.Message,
 		"specify_startup":                resp.Reboot.SpecifyStartup,
@@ -461,25 +414,6 @@ func prepStatePayloadReboot(out *[]map[string]interface{}, resp *jamfpro.Resourc
 		"minutes_until_reboot":           resp.Reboot.MinutesUntilReboot,
 		"start_reboot_timer_immediately": resp.Reboot.StartRebootTimerImmediately,
 		"file_vault_2_reboot":            resp.Reboot.FileVault2Reboot,
-	}
-
-	// Check if all values are default
-	allDefault := true
-	for key, value := range rebootBlock {
-		if value != defaults[key] {
-			allDefault = false
-			break
-		}
-	}
-
-	if allDefault {
-		log.Println("All reboot configuration values are default, skipping state")
-		return
-	}
-
-	// Ensure the map is initialized before setting values
-	if len((*out)[0]) == 0 {
-		(*out)[0] = make(map[string]interface{})
 	}
 
 	log.Println("Initializing reboot in state")
