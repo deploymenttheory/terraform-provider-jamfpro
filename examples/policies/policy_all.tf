@@ -95,16 +95,18 @@ resource "jamfpro_policy" "jamfpro_policy_001" {
       remediate_disk_encryption_configuration_id = 2
     }
 
-    printers {
-      id           = 1
-      action       = "install"
-      make_default = true
-    }
+    # printers {
+    #   name = ""
+    #   id           = 1
+    #   action       = "install"
+    #   make_default = true
+    # }
 
-    dock_items {
-      id     = 1
-      action = "Add To End"
-    }
+    # dock_items {
+    #   name = ""
+    #   id     = 1
+    #   action = "Add To End"
+    # }
 
     account_maintenance {
       local_accounts {
