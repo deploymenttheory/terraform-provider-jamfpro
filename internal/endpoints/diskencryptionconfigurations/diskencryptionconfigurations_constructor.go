@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/constructobject"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -29,7 +29,7 @@ func constructJamfProDiskEncryptionConfiguration(d *schema.ResourceData) (*jamfp
 		}
 	}
 
-	xmlOutput, err := constructobject.SerializeAndRedactXML(resource, []string{"Password"})
+	xmlOutput, err := common.SerializeAndRedactXML(resource, []string{"Password"})
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}

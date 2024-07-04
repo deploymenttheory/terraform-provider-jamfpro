@@ -12,7 +12,6 @@ func ValidateJSSObjectsPrivileges(val interface{}, key string) (warns []string, 
 		return warns, errs
 	}
 
-	// Check if the value is in the list of valid privileges
 	for _, validPrivilege := range ValidJSSObjectsPrivileges {
 		if v == validPrivilege {
 			return warns, errs
@@ -32,14 +31,12 @@ func ValidateJSSSettingsPrivileges(val interface{}, key string) (warns []string,
 		return warns, errs
 	}
 
-	// Check if the value is in the list of valid JSS Settings Privileges
 	for _, validPrivilege := range ValidJSSSettingsPrivileges {
 		if v == validPrivilege {
 			return warns, errs
 		}
 	}
 
-	// Add an error if the value is not found in the valid privileges list
 	errs = append(errs, fmt.Errorf("invalid value '%s' for %s: not a recognized JSS Setting Privilege", v, key))
 	return warns, errs
 }
@@ -53,14 +50,12 @@ func ValidateJSSActionsPrivileges(val interface{}, key string) (warns []string, 
 		return warns, errs
 	}
 
-	// Check if the value is in the list of valid JSS Actions Privileges
 	for _, validPrivilege := range ValidJSSActionsPrivileges {
 		if v == validPrivilege {
 			return warns, errs
 		}
 	}
 
-	// Add an error if the value is not found in the valid privileges list
 	errs = append(errs, fmt.Errorf("invalid value '%s' for %s: not a recognized JSS Action Privilege", v, key))
 	return warns, errs
 }
@@ -74,14 +69,12 @@ func ValidateCasperAdminPrivileges(val interface{}, key string) (warns []string,
 		return warns, errs
 	}
 
-	// Check if the value is in the list of valid Casper Admin Privileges
 	for _, validPrivilege := range ValidCasperAdminPrivileges {
 		if v == validPrivilege {
 			return warns, errs
 		}
 	}
 
-	// Add an error if the value is not found in the valid privileges list
 	errs = append(errs, fmt.Errorf("invalid value '%s' for %s: not a recognized Casper Admin Privilege", v, key))
 	return warns, errs
 }

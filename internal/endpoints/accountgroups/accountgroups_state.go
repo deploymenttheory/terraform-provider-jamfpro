@@ -3,7 +3,6 @@ package accountgroups
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/utilities"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -28,17 +27,20 @@ func updateTerraformState(d *schema.ResourceData, response *jamfpro.ResourceAcco
 
 	d.Set("site_id", response.Site.ID)
 
-	privilegeAttributes := map[string][]string{
-		"jss_objects_privileges":  response.Privileges.JSSObjects,
-		"jss_settings_privileges": response.Privileges.JSSSettings,
-		"jss_actions_privileges":  response.Privileges.JSSActions,
-		"casper_admin_privileges": response.Privileges.CasperAdmin,
+	if err := d.Set("jss_actions_privileges", response.Privileges.JSSActions); err != nil {
+		return append(diags, diag.FromErr(err)...)
 	}
 
-	for attrName, privileges := range privilegeAttributes {
-		if err := d.Set(attrName, schema.NewSet(schema.HashString, utilities.ConvertToStringInterface(privileges))); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+	if err := d.Set("jss_objects_privileges", response.Privileges.JSSObjects); err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("jss_settings_privileges", response.Privileges.JSSSettings); err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+
+	if err := d.Set("casper_admin_privileges", response.Privileges.CasperAdmin); err != nil {
+		return append(diags, diag.FromErr(err)...)
 	}
 
 	if len(response.Members) > 0 {

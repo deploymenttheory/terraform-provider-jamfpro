@@ -7,7 +7,6 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles/plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/sharedschemas"
-	util "github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/type_assertion"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -49,7 +48,7 @@ func ResourceJamfProMobileDeviceConfigurationProfilesPlist() *schema.Resource {
 				Optional:    true,
 				Description: "The level at which the mobile device configuration profile is applied, can be either 'Device Level' or 'User Level'.",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := util.GetString(val)
+					v := val.(string)
 					if v == "Device Level" || v == "User Level" {
 						return
 					}
@@ -69,7 +68,7 @@ func ResourceJamfProMobileDeviceConfigurationProfilesPlist() *schema.Resource {
 				Optional:    true,
 				Description: "The deployment method for the mobile device configuration profile, can be either 'Install Automatically' or 'Make Available in Self Service'.",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := util.GetString(val)
+					v := val.(string)
 					if v == "Install Automatically" || v == "Make Available in Self Service" {
 						return
 					}
@@ -83,7 +82,7 @@ func ResourceJamfProMobileDeviceConfigurationProfilesPlist() *schema.Resource {
 				Default:     "Newly Assigned", // This is always "Newly Assigned" on existing profile objects, but may be set "All" on profile update requests and in TF state.
 				Description: "Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := util.GetString(val)
+					v := val.(string)
 					if v == "All" || v == "Newly Assigned" {
 						return
 					}

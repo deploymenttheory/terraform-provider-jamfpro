@@ -415,10 +415,10 @@ func Provider() *schema.Provider {
 			basicAuthPassword string
 
 		// Logger
+		// Probably should move this into it's own function.
+
 		enableClientLogs := d.Get("enable_client_sdk_logs").(bool)
 		logFilePath := d.Get("client_sdk_log_export_path").(string)
-
-		defaultLoggerConfig := zap.NewProductionConfig()
 
 		if !enableClientLogs && logFilePath != "" {
 			return nil, append(diags, diag.Diagnostic{
@@ -428,6 +428,7 @@ func Provider() *schema.Provider {
 			})
 		}
 
+		defaultLoggerConfig := zap.NewProductionConfig()
 		var logLevel zap.AtomicLevel
 		if enableClientLogs {
 			logLevel = zap.NewAtomicLevelAt(zap.DebugLevel)
@@ -444,6 +445,11 @@ func Provider() *schema.Provider {
 
 		defaultLoggerConfig.Level = logLevel
 		defaultLogger, err := defaultLoggerConfig.Build()
+
+		if err != nil {
+			return nil, append(diags, diag.FromErr(err)...)
+		}
+
 		sugaredLogger := defaultLogger.Sugar()
 
 		// Auth
