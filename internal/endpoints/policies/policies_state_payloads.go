@@ -140,7 +140,7 @@ func prepStatePayloadPackages(out *[]map[string]interface{}, resp *jamfpro.Resou
 
 // Reads response and preps script payload items
 func prepStatePayloadScripts(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	if resp.Scripts.Script == nil {
+	if resp.Scripts == nil {
 		log.Println("No scripts found")
 		return
 	}
@@ -153,7 +153,7 @@ func prepStatePayloadScripts(out *[]map[string]interface{}, resp *jamfpro.Resour
 	log.Println("Initializing scripts in state")
 	(*out)[0]["scripts"] = make([]map[string]interface{}, 0)
 
-	for _, v := range *resp.Scripts.Script {
+	for _, v := range *resp.Scripts {
 		outMap := make(map[string]interface{})
 		outMap["id"] = v.ID
 		outMap["priority"] = v.Priority
