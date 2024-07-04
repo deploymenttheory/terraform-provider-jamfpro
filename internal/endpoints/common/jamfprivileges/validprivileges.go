@@ -2,6 +2,8 @@
 // This package contains shared / common resource variables
 package jamfprivileges
 
+// TODO this should be in a JSON file and updated automatically
+
 // ValidJSSObjectsPrivileges contains a list of all valid values for JSS Object Priviledges field. Used by
 // accounts and account groups. Privileges are reflectively of jamf pro up to version 11.3.0
 var ValidJSSObjectsPrivileges = []string{

@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/configurationprofiles/plist"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/hash"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -25,8 +25,8 @@ func DiffSuppressPayloads(k, old, new string, d *schema.ResourceData) bool {
 		return false
 	}
 
-	oldHash := hash.HashString(processedOldPayload)
-	newHash := hash.HashString(processedNewPayload)
+	oldHash := helpers.HashString(processedOldPayload)
+	newHash := helpers.HashString(processedNewPayload)
 
 	log.Printf("Old payload hash (Terraform state): %s\nOld payload (processed): %s", oldHash, processedOldPayload)
 	log.Printf("New payload hash (Jamf Pro server): %s\nNew payload (processed): %s", newHash, processedNewPayload)

@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common/constructobject"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/endpoints/common"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -38,7 +38,7 @@ func constructJamfProFileShareDistributionPoint(d *schema.ResourceData) (*jamfpr
 		HTTPURL:                  d.Get("http_url").(string),
 	}
 
-	resourceXML, err := constructobject.SerializeAndRedactXML(resource, []string{"ReadOnlyPassword", "ReadWritePassword", "HTTPPassword"})
+	resourceXML, err := common.SerializeAndRedactXML(resource, []string{"ReadOnlyPassword", "ReadWritePassword", "HTTPPassword"})
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}
