@@ -21,6 +21,7 @@ func HandleResourceNotFoundError(err error, d *schema.ResourceData, cleanup bool
 			Severity: diag.Warning,
 			Summary:  "Resource not found and will be redeployed",
 		})
+
 	} else {
 		diags = append(diags, diag.FromErr(err)...)
 	}
