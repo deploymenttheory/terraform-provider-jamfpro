@@ -262,7 +262,6 @@ func constructScope(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) er
 
 // Pulls "self service" settings from HCL and packages into object
 func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
-
 	if len(d.Get("self_service").([]interface{})) > 0 {
 		out.SelfService = &jamfpro.PolicySubsetSelfService{
 			UseForSelfService:      d.Get("self_service.0.use_for_self_service").(bool),
@@ -305,11 +304,6 @@ func constructPayloads(d *schema.ResourceData, resource *jamfpro.ResourcePolicy)
 // constructPayloadPackages builds the packages payload settings of the policy.
 func constructPayloadPackages(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
 	hcl := d.Get("payloads.0.packages.0")
-
-	if hcl == nil {
-		return
-	}
-
 	var payload jamfpro.PolicySubsetPackageConfiguration
 	payload.DistributionPoint = hcl.(map[string]interface{})["distribution_point"].(string)
 	packageList := hcl.(map[string]interface{})["package"].([]interface{})
@@ -517,7 +511,7 @@ func constructPayloadFilesProcesses(d *schema.ResourceData, resource *jamfpro.Re
 
 	for _, v := range hcl.([]interface{}) {
 		data := v.(map[string]interface{})
-		newObj := jamfpro.PolicySubsetFilesProcesses{
+		payload = append(payload, jamfpro.PolicySubsetFilesProcesses{
 			SearchByPath:         data["search_by_path"].(string),
 			DeleteFile:           data["delete_file"].(bool),
 			LocateFile:           data["locate_file"].(string),
@@ -526,8 +520,7 @@ func constructPayloadFilesProcesses(d *schema.ResourceData, resource *jamfpro.Re
 			SearchForProcess:     data["search_for_process"].(string),
 			KillProcess:          data["kill_process"].(bool),
 			RunCommand:           data["run_command"].(string),
-		}
-		payload = append(payload, newObj)
+		})
 	}
 
 	if len(payload) > 0 {
@@ -549,16 +542,13 @@ func constructPayloadUserInteraction(d *schema.ResourceData, resource *jamfpro.R
 
 	for _, v := range hcl.([]interface{}) {
 		data := v.(map[string]interface{})
-
-		newObj := jamfpro.PolicySubsetUserInteraction{
+		payload = append(payload, jamfpro.PolicySubsetUserInteraction{
 			MessageStart:          data["message_start"].(string),
 			AllowUserToDefer:      data["allow_user_to_defer"].(bool),
 			AllowDeferralUntilUtc: data["allow_deferral_until_utc"].(string),
 			AllowDeferralMinutes:  data["allow_deferral_minutes"].(int),
 			MessageFinish:         data["message_finish"].(string),
-		}
-
-		payload = append(payload, newObj)
+		})
 	}
 
 	outBlock = &payload[0]
@@ -569,8 +559,6 @@ func constructPayloadUserInteraction(d *schema.ResourceData, resource *jamfpro.R
 // constructPayloadReboot builds the reboot payload settings of the policy.
 func constructPayloadReboot(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
 	hcl := d.Get("payloads.0.reboot.0")
-	log.Println("LOGHERE")
-	log.Println(hcl)
 	if len(hcl.(map[string]interface{})) == 0 {
 		return
 	}
@@ -602,8 +590,7 @@ func constructPayloadMaintenance(d *schema.ResourceData, resource *jamfpro.Resou
 
 	for _, v := range hcl.([]interface{}) {
 		data := v.(map[string]interface{})
-
-		newObj := jamfpro.PolicySubsetMaintenance{
+		payload = append(payload, jamfpro.PolicySubsetMaintenance{
 			Recon:                    data["recon"].(bool),
 			ResetName:                data["reset_name"].(bool),
 			InstallAllCachedPackages: data["install_all_cached_packages"].(bool),
@@ -614,9 +601,7 @@ func constructPayloadMaintenance(d *schema.ResourceData, resource *jamfpro.Resou
 			SystemCache:              data["system_cache"].(bool),
 			UserCache:                data["user_cache"].(bool),
 			Verify:                   data["verify"].(bool),
-		}
-
-		payload = append(payload, newObj)
+		})
 	}
 
 	outBlock = &payload[0]

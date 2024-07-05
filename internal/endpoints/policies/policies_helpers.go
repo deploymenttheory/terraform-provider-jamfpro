@@ -11,25 +11,15 @@ import (
 // GetAttrsListFromHCLForPointers is a helper function that takes a path to a list of items in HCL and a target field to set in the list of pointers.
 func GetAttrsListFromHCLForPointers[NestedObjectType any, ListItemPrimitiveType any](path string, target_field string, d *schema.ResourceData, home *[]NestedObjectType) (err error) {
 	getAttr, ok := d.GetOk(path)
-	log.Println("START")
-	log.Println(getAttr)
-	log.Println(ok)
 
 	if len(getAttr.([]interface{})) == 0 {
-		log.Println("MARKER-1")
 		return nil
 	}
 
-	log.Println("MARKER-2")
-
 	if ok {
-		log.Println("MARKER-3")
 		*home = []NestedObjectType{}
-		log.Println("MARKER-4")
 		outList := make([]NestedObjectType, 0)
-		log.Println("MARKER-5")
 		for _, v := range getAttr.([]interface{}) {
-			log.Println("MARKER-6")
 			var newObj NestedObjectType
 			newObjReflect := reflect.ValueOf(&newObj).Elem()
 			idField := newObjReflect.FieldByName(target_field)
