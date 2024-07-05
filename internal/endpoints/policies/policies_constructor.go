@@ -26,6 +26,7 @@ func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 
 	constructPayloads(d, resource)
 
+	// Debug
 	policyXML, _ := xml.MarshalIndent(resource, "", "  ")
 	log.Println(string(policyXML))
 
@@ -309,13 +310,12 @@ func constructPayloadPackages(d *schema.ResourceData, resource *jamfpro.Resource
 	packageList := hcl.(map[string]interface{})["package"].([]interface{})
 
 	for _, v := range packageList {
-		newObj := jamfpro.PolicySubsetPackageConfigurationPackage{
+		payload.Packages = append(payload.Packages, jamfpro.PolicySubsetPackageConfigurationPackage{
 			ID:                v.(map[string]interface{})["id"].(int),
 			Action:            v.(map[string]interface{})["action"].(string),
 			FillUserTemplate:  v.(map[string]interface{})["fill_user_template"].(bool),
 			FillExistingUsers: v.(map[string]interface{})["fill_existing_user_template"].(bool),
-		}
-		payload.Packages = append(payload.Packages, newObj)
+		})
 	}
 
 	resource.PackageConfiguration = &payload
@@ -377,15 +377,13 @@ func constructPayloadPrinters(d *schema.ResourceData, resource *jamfpro.Resource
 	outBlock := new(jamfpro.PolicySubsetPrinters)
 	outBlock.Printer = &[]jamfpro.PolicySubsetPrinter{}
 	payload := *outBlock.Printer
-
 	for _, v := range hcl.([]interface{}) {
-		newObj := jamfpro.PolicySubsetPrinter{
+		payload = append(payload, jamfpro.PolicySubsetPrinter{
 			ID:          v.(map[string]interface{})["id"].(int),
 			Name:        v.(map[string]interface{})["name"].(string),
 			Action:      v.(map[string]interface{})["action"].(string),
 			MakeDefault: v.(map[string]interface{})["make_default"].(bool),
-		}
-		payload = append(payload, newObj)
+		})
 	}
 
 	outBlock.Printer = &payload
