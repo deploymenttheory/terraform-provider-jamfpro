@@ -53,16 +53,12 @@ func constructGeneral(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) 
 		NetworkRequirements:        d.Get("network_requirements").(string),
 	}
 
-	// Category
 	resource.General.Category = sharedschemas.ConstructSharedResourceCategory(d.Get("category_id").(int))
 
-	// DateTime Limitations
 	setDateTimeLimitations(d, resource)
 
-	// Network Limitations
 	setNetworkLimitations(d, resource)
 
-	// Site
 	resource.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 }
 
