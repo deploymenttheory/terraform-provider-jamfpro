@@ -17,9 +17,7 @@ func customValidateFilePath(ctx context.Context, d *schema.ResourceDiff, meta in
 		return fmt.Errorf("invalid type for package_file_sourceh")
 	}
 
-	// Check if the file path ends with .dmg
 	if strings.HasSuffix(filePath, ".dmg") {
-		// File path ends with .dmg, allow fill_user_template and fill_existing_users to be true
 		return nil
 	}
 

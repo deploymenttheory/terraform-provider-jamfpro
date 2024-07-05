@@ -81,7 +81,7 @@ func constructJamfProPackageCreate(d *schema.ResourceData) (*jamfpro.ResourcePac
 	return resource, localFilePath, nil
 }
 
-// BoolPtr is a helper function to create a pointer to a bool.
+// BoolPtr is a helper function to return the pointer to a bool.
 func BoolPtr(b bool) *bool {
 	return &b
 }
@@ -133,7 +133,6 @@ func downloadFile(url string) (string, error) {
 		}
 	}
 
-	// If no filename is provided in headers, use the final URL
 	finalURL := resp.Request.URL.String()
 	fileName := filepath.Base(finalURL)
 	fileName = strings.ReplaceAll(fileName, "%", "_")
