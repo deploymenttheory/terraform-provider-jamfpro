@@ -10,7 +10,7 @@ import (
 // resourceJamfProBuildings defines the schema and CRUD operations for managing buildings in Terraform.
 func ResourceJamfProBuildings() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProBuildingCreate,
+		CreateContext: create,
 		ReadContext:   resourceJamfProBuildingReadWithCleanup,
 		UpdateContext: resourceJamfProBuildingUpdate,
 		DeleteContext: resourceJamfProBuildingDelete,
