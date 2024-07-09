@@ -554,14 +554,13 @@ func Provider() *schema.Provider {
 
 		// Packaging
 		config := httpclient.ClientConfig{
-			Integration:               jamfIntegration,
-			Sugar:                     sugaredLogger,
-			HideSensitiveData:         d.Get("hide_sensitive_data").(bool),
-			TokenRefreshBufferPeriod:  tokenRefrshBufferPeriod,
-			CustomCookies:             cookiesList,
-			MandatoryRequestDelay:     time.Duration(d.Get("mandatory_request_delay_milliseconds").(int)) * time.Millisecond,
-			RetryEligiableRequests:    false, // Forced off for now
-			EnableCustomRedirectLogic: true,
+			Integration:              jamfIntegration,
+			Sugar:                    sugaredLogger,
+			HideSensitiveData:        d.Get("hide_sensitive_data").(bool),
+			TokenRefreshBufferPeriod: tokenRefrshBufferPeriod,
+			CustomCookies:            cookiesList,
+			MandatoryRequestDelay:    time.Duration(d.Get("mandatory_request_delay_milliseconds").(int)) * time.Millisecond,
+			RetryEligiableRequests:   false, // Forced off for now
 		}
 
 		goHttpClient, err := config.Build()
