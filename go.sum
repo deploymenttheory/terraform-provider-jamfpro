@@ -50,12 +50,12 @@ github.com/bufbuild/protocompile v0.4.0/go.mod h1:3v93+mbWn/v3xzN+31nwkJfrEpAUwp
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/deploymenttheory/go-api-http-client v0.2.7-0.20240709151232-a91aad71be93 h1:y4UbJFa2cIB8L+Lqx1eZIKNcMHKx4llRZBfr151T0xs=
-github.com/deploymenttheory/go-api-http-client v0.2.7-0.20240709151232-a91aad71be93/go.mod h1:IAuMavznzbKFKQmMXg9t55uJmFjW5T0tgbv06Rd8YRs=
+github.com/deploymenttheory/go-api-http-client v0.2.7-0.20240709152650-dca16145c82a h1:e0xSTQuA7OQe8J2ObGtrjBalJ3GG+pIWoqgoj4sR8nQ=
+github.com/deploymenttheory/go-api-http-client v0.2.7-0.20240709152650-dca16145c82a/go.mod h1:IAuMavznzbKFKQmMXg9t55uJmFjW5T0tgbv06Rd8YRs=
 github.com/deploymenttheory/go-api-http-client-integrations v0.0.8-0.20240709151431-dcf2d5f12c21 h1:FbRppzVS8wZ8qyh3fGMo+3CW/7UR00T9WrY/zuZb1RE=
 github.com/deploymenttheory/go-api-http-client-integrations v0.0.8-0.20240709151431-dcf2d5f12c21/go.mod h1:m9XNzP2pNsw8eg+Bdqjrnmn/QK1vrGsDDboabc//IdQ=
-github.com/deploymenttheory/go-api-sdk-jamfpro v1.8.1-0.20240709151504-793c2c7f0284 h1:xoFzNC+EOhcoUI9S4DxqlcVzT7F6Roeu8d9spYcFwos=
-github.com/deploymenttheory/go-api-sdk-jamfpro v1.8.1-0.20240709151504-793c2c7f0284/go.mod h1:eBafIbJlzE/tZO4axobIMl61Jsh9EIq8SJxyMIoaeoE=
+github.com/deploymenttheory/go-api-sdk-jamfpro v1.8.1-0.20240709152004-baca3f6d36fa h1:XqqPSUEbZv5t+kFnfubLPUAoXIB3hSEYCVAim6vy1yU=
+github.com/deploymenttheory/go-api-sdk-jamfpro v1.8.1-0.20240709152004-baca3f6d36fa/go.mod h1:4Nxjaqg4MmoOqnn7T+QxztbFNf/BrHzRcnHkVpmzVok=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=
 github.com/fatih/color v1.16.0 h1:zmkK9Ngbjj+K0yRhTVONQh1p/HknKYSlNT+vZCzyokM=
 github.com/fatih/color v1.16.0/go.mod h1:fL2Sau1YI5c0pdGEVCbKQbLXB6edEj1ZgiY4NijnWvE=
