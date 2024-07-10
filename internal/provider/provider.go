@@ -84,7 +84,7 @@ func GetJamfFqdn(d *schema.ResourceData, diags *diag.Diagnostics) string {
 		*diags = append(*diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  "Error getting instance name",
-			Detail:   "instance_name must be provided either as an environment variable (JAMFPRO_INSTANCE_NAME) or in the Terraform configuration",
+			Detail:   "instance_name must be provided either as an environment variable (JAMFPRO_INSTANCE_FQDN) or in the Terraform configuration",
 		})
 		return ""
 	}
