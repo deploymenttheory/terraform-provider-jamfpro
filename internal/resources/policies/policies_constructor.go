@@ -276,25 +276,15 @@ func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 
 // constructPayloads builds the policy payload(s) from the HCL
 func constructPayloads(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
-
 	constructPayloadPackages(d, resource)
-
 	constructPayloadScripts(d, resource)
-
 	constructPayloadDiskEncryption(d, resource)
-
 	constructPayloadPrinters(d, resource)
-
 	constructPayloadDockItems(d, resource)
-
 	constructPayloadAccountMaintenance(d, resource)
-
 	constructPayloadFilesProcesses(d, resource)
-
 	constructPayloadUserInteraction(d, resource)
-
 	constructPayloadReboot(d, resource)
-
 	constructPayloadMaintenance(d, resource)
 }
 
