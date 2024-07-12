@@ -301,6 +301,11 @@ func constructPayloads(d *schema.ResourceData, resource *jamfpro.ResourcePolicy)
 // constructPayloadPackages builds the packages payload settings of the policy.
 func constructPayloadPackages(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
 	hcl := d.Get("payloads.0.packages.0")
+	if len(hcl.(map[string]interface{})) == 0 {
+		return
+	}
+	log.Println("LOGHERE")
+	log.Println(hcl)
 	var payload jamfpro.PolicySubsetPackageConfiguration
 	payload.DistributionPoint = hcl.(map[string]interface{})["distribution_point"].(string)
 	packageList := hcl.(map[string]interface{})["package"].([]interface{})

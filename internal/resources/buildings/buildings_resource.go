@@ -11,7 +11,7 @@ import (
 func ResourceJamfProBuildings() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,
-		ReadContext:   resourceJamfProBuildingReadWithCleanup,
+		ReadContext:   readWithCleanup,
 		UpdateContext: resourceJamfProBuildingUpdate,
 		DeleteContext: resourceJamfProBuildingDelete,
 		Timeouts: &schema.ResourceTimeout{
