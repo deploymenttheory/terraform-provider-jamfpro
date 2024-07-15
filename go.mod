@@ -6,9 +6,9 @@ go 1.22.4
 
 // Deploymenttheory
 require (
-	github.com/deploymenttheory/go-api-http-client v0.2.6
-	github.com/deploymenttheory/go-api-http-client-integrations v0.0.7
-	github.com/deploymenttheory/go-api-sdk-jamfpro v1.8.0
+	github.com/deploymenttheory/go-api-http-client v0.2.7
+	github.com/deploymenttheory/go-api-http-client-integrations v0.0.8
+	github.com/deploymenttheory/go-api-sdk-jamfpro v1.8.1
 
 )
 
