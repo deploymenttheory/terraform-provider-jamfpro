@@ -6,8 +6,9 @@ go 1.22.4
 
 // Deploymenttheory
 require (
-	github.com/deploymenttheory/go-api-http-client v0.2.7
+	github.com/deploymenttheory/go-api-http-client v0.2.8-0.20240715130731-e3fdfc860d3e
 	github.com/deploymenttheory/go-api-http-client-integrations v0.0.8
+	github.com/deploymenttheory/go-api-sdk-jamfpro v1.8.2-0.20240715143547-dee0867b6703
 
 )
 
@@ -21,10 +22,7 @@ require (
 	howett.net/plist v1.0.1
 )
 
-require (
-	github.com/deploymenttheory/go-api-sdk-jamfpro v1.7.11
-	go.uber.org/zap v1.27.0
-)
+require go.uber.org/zap v1.27.0
 
 require (
 	github.com/agext/levenshtein v1.2.3 // indirect
