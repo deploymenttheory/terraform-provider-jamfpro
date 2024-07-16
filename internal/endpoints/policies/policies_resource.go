@@ -17,6 +17,9 @@ func ResourceJamfProPolicies() *schema.Resource {
 		ReadContext:   resourceJamfProPoliciesReadWithCleanup,
 		UpdateContext: resourceJamfProPoliciesUpdate,
 		DeleteContext: resourceJamfProPoliciesDelete,
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Second),
 			Read:   schema.DefaultTimeout(15 * time.Second),
