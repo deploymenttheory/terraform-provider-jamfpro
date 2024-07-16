@@ -96,7 +96,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 									},
 									"payload_enabled_root": {
 										Type:        schema.TypeBool,
-										Computed:    true,
+										Required:    true,
 										Description: "Whether the payload is enabled.",
 									},
 									"payload_identifier_root": {
