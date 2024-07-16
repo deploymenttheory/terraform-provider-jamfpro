@@ -1,3 +1,5 @@
+// common/configurationprofiles/plist/payload.go
+// Description: This file contains the ConfigurationProfile and PayloadContent structs, as well as functions for unmarshalling, marshalling, and validating plist payloads.
 package plist
 
 import (
@@ -14,24 +16,28 @@ import (
 type ConfigurationProfile struct {
 	PayloadDescription       string                 `mapstructure:"PayloadDescription"`
 	PayloadDisplayName       string                 `mapstructure:"PayloadDisplayName" validate:"required"`
+	PayloadEnabled           bool                   `mapstructure:"PayloadEnabled" validate:"required"`
 	PayloadIdentifier        string                 `mapstructure:"PayloadIdentifier" validate:"required"`
 	PayloadOrganization      string                 `mapstructure:"PayloadOrganization" validate:"required"`
-	PayloadRemovalDisallowed bool                   `mapstructe:"PayloadRemovalDisallowed" validate:"required"`
+	PayloadRemovalDisallowed bool                   `mapstructure:"PayloadRemovalDisallowed" validate:"required"`
 	PayloadScope             string                 `mapstructure:"PayloadScope" validate:"required,oneof=System User Computer"`
 	PayloadType              string                 `mapstructure:"PayloadType" validate:"required,eq=Configuration"`
 	PayloadUUID              string                 `mapstructure:"PayloadUUID" validate:"required"`
 	PayloadVersion           int                    `mapstructure:"PayloadVersion" validate:"required,eq=1"`
-	PayloadContent           []ConfigurationPayload `mapstructure:"PayloadContent"`
+	PayloadContent           []PayloadContent       `mapstructure:"PayloadContent"`
 	AdditionalFields         map[string]interface{} `mapstructure:",remain"`
 }
 
 // ConfigurationPayload represents a nested MacOS configuration profile.
-type ConfigurationPayload struct {
-	ConfigurationProfile
-	payloadIdentifier   string                 `mapstructure:"PayloadIdentifier,-"`
-	PayloadOrganization string                 `mapstructure:"PayloadOrganization" validate:"required"`
-	PayloadType         string                 `mapstructure:"PayloadType" validate:"required"`
-	payloadUUID         string                 `mapstructure:"PayloadUUID,-"`
+type PayloadContent struct {
+	PayloadDescription  string                 `mapstructure:"PayloadDescription"`
+	PayloadDisplayName  string                 `mapstructure:"PayloadDisplayName"`
+	PayloadEnabled      bool                   `mapstructure:"PayloadEnabled"`
+	PayloadIdentifier   string                 `mapstructure:"PayloadIdentifier"`
+	PayloadOrganization string                 `mapstructure:"PayloadOrganization"`
+	PayloadType         string                 `mapstructure:"PayloadType"`
+	PayloadUUID         string                 `mapstructure:"PayloadUUID"`
+	PayloadVersion      int                    `mapstructure:"PayloadVersion"`
 	AdditionalFields    map[string]interface{} `mapstructure:",remain"`
 }
 
@@ -92,7 +98,7 @@ func MergeConfigurationProfileFieldsIntoMap(profile *ConfigurationProfile) map[s
 
 	mergedPayloads := make([]map[string]interface{}, len(profile.PayloadContent))
 	for k, v := range profile.PayloadContent {
-		mergedPayloads[k] = MergeCongfigurationPayloadFieldsIntoMap(&v)
+		mergedPayloads[k] = MergeConfigurationPayloadFieldsIntoMap(&v)
 	}
 
 	merged["PayloadContent"] = mergedPayloads
@@ -100,8 +106,8 @@ func MergeConfigurationProfileFieldsIntoMap(profile *ConfigurationProfile) map[s
 	return merged
 }
 
-// MergeCongfigurationPayloadFieldsIntoMap merges the fields of a ConfigurationPayload struct into a map.
-func MergeCongfigurationPayloadFieldsIntoMap(payload *ConfigurationPayload) map[string]interface{} {
+// MergeConfigurationPayloadFieldsIntoMap merges the fields of a ConfigurationPayload struct into a map.
+func MergeConfigurationPayloadFieldsIntoMap(payload *PayloadContent) map[string]interface{} {
 	merged := make(map[string]interface{}, len(payload.AdditionalFields))
 	for k, v := range payload.AdditionalFields {
 		merged[k] = v
