@@ -116,7 +116,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 									},
 									"payload_scope_root": {
 										Type:        schema.TypeString,
-										Computed:    true,
+										Optional:    true,
 										Description: "Scope of the payload. Computed by what is set by level. 'System' or 'User'.",
 									},
 									"payload_type_root": {

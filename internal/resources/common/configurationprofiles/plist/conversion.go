@@ -52,6 +52,7 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 			PayloadType:         pcMap["payload_type"].(string),
 			PayloadUUID:         uuidStr,
 			PayloadVersion:      pcMap["payload_version"].(int),
+			PayloadScope:        pcMap["payload_scope"].(string),
 		}
 	}
 
