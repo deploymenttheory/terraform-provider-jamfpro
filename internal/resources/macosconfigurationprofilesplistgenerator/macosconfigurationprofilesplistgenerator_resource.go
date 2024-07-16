@@ -164,6 +164,41 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 											},
 										},
 									},
+									"nested_configuration": {
+										Type:             schema.TypeList,
+										Optional:         true,
+										StateFunc:        plist.NormalizePayloadState,
+										DiffSuppressFunc: DiffSuppressPayloads,
+										Description:      "A list of nested key-value pairs for the macOS configuration profile payload.Used when there is nested arrays of dictionaries.",
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"key": {
+													Type:        schema.TypeString,
+													Required:    true,
+													Description: "The key for the plist entry.",
+												},
+												"value": {
+													Type:        schema.TypeList,
+													Required:    true,
+													Description: "The value for the plist entry.",
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"key": {
+																Type:        schema.TypeString,
+																Optional:    true,
+																Description: "The key for the nested plist entry.",
+															},
+															"value": {
+																Type:        schema.TypeString,
+																Optional:    true,
+																Description: "The value for the nested plist entry.",
+															},
+														},
+													},
+												},
+											},
+										},
+									},
 									"payload_description": {
 										Type:        schema.TypeString,
 										Optional:    true,
