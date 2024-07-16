@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// Func Definitions
 type sdkStructPayoadConstructorFunc[T any] func(*schema.ResourceData) (*T, error)
 
 type sdkCreateUpdateFunc[PayloadType any, ResponseType any] func(Payload *PayloadType) (*ResponseType, error)
@@ -22,6 +23,7 @@ type providerStateFunc[resourceType any] func(d *schema.ResourceData, resource *
 
 type providerReadFunc func(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics
 
+// Create Update
 func CreateUpdate[sdkPayloadType any, sdkResponseType any](
 	ctx context.Context,
 	d *schema.ResourceData,
@@ -34,10 +36,10 @@ func CreateUpdate[sdkPayloadType any, sdkResponseType any](
 	var diags diag.Diagnostics
 
 	payload, err := construct(d)
-	loggingTypeName := reflect.TypeOf(payload).Name()
+	payloadtypeName := reflect.TypeOf(payload).Name()
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct %s: %v", loggingTypeName, err))
+		return diag.FromErr(fmt.Errorf("failed to construct %s: %v", payloadtypeName, err))
 	}
 
 	var outcomeResponse *sdkResponseType
@@ -51,26 +53,27 @@ func CreateUpdate[sdkPayloadType any, sdkResponseType any](
 	})
 
 	if err != nil {
-		return append(diags, diag.FromErr(fmt.Errorf("failed to create %s after retries: %v", loggingTypeName, err))...)
+		return append(diags, diag.FromErr(fmt.Errorf("failed to create %s after retries: %v", payloadtypeName, err))...)
 	}
 
-	IdField, err := getIDField(outcomeResponse)
+	idField, err := getIDField(outcomeResponse)
 	if err != nil {
 		return append(diags, diag.FromErr(fmt.Errorf("Error getting ID field from response: %v", err))...)
 	}
 
-	d.SetId(IdField)
+	d.SetId(idField)
 
 	return append(diags, reader(ctx, d, meta)...)
 }
 
+// Read
 func Read[sdkResponseType any](
 	ctx context.Context,
 	d *schema.ResourceData,
 	meta interface{},
 	cleanup bool,
-	getter sdkGetFunc[sdkResponseType],
-	stator providerStateFunc[sdkResponseType],
+	sdkGetFunc sdkGetFunc[sdkResponseType],
+	providerStateFunc providerStateFunc[sdkResponseType],
 ) diag.Diagnostics {
 
 	var diags diag.Diagnostics
@@ -79,7 +82,7 @@ func Read[sdkResponseType any](
 	var response *sdkResponseType
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		response, apiErr = getter(resourceID)
+		response, apiErr = sdkGetFunc(resourceID)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -90,23 +93,17 @@ func Read[sdkResponseType any](
 		return append(diags, HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
-	return append(diags, stator(d, response)...)
+	return append(diags, providerStateFunc(d, response)...)
 }
 
-func Delete(
-	ctx context.Context,
-	d *schema.ResourceData,
-	meta interface{},
-	deleter sdkDeleteFunc,
-
-) diag.Diagnostics {
-
+// Delete
+func Delete(ctx context.Context, d *schema.ResourceData, meta interface{}, sdkDeleteFunc sdkDeleteFunc) diag.Diagnostics {
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		var apiErr error
-		apiErr = deleter(resourceID)
+		apiErr = sdkDeleteFunc(resourceID)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -114,7 +111,7 @@ func Delete(
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Building '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro resourcse '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
 	}
 
 	d.SetId("")
