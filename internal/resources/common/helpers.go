@@ -70,3 +70,14 @@ func SerializeAndRedactJSON(resource interface{}, redactFields []string) (string
 
 	return string(marshaledJSON), nil
 }
+
+func getIDField(response interface{}) (string, error) {
+	v := reflect.ValueOf(response).Elem()
+
+	idField := v.FieldByName("ID")
+	if !idField.IsValid() {
+		return "", fmt.Errorf("ID field not found in response")
+	}
+
+	return idField.Interface().(string), nil
+}
