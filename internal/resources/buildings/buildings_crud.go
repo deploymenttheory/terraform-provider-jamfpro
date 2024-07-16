@@ -37,7 +37,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Building '%s' after retries: %v", resource.Name, err))
+		return append(diags, diag.FromErr(fmt.Errorf("failed to create Jamf Pro Building '%s' after retries: %v", resource.Name, err))...)
 	}
 
 	d.SetId(creationResponse.ID)
