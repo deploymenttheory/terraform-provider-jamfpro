@@ -52,6 +52,7 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 			PayloadType:         pcMap["payload_type"].(string),
 			PayloadUUID:         uuidStr,
 			PayloadVersion:      pcMap["payload_version"].(int),
+			PayloadScope:        pcMap["payload_scope"].(string),
 		}
 	}
 
@@ -154,6 +155,7 @@ func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
 			"payload_type":         configurationPayload.PayloadType,
 			"payload_uuid":         configurationPayload.PayloadUUID,
 			"payload_version":      configurationPayload.PayloadVersion,
+			"payload_scope":        configurationPayload.PayloadScope,
 			"configuration":        reorderedConfigurations,
 		}
 

@@ -38,6 +38,7 @@ type PayloadContent struct {
 	PayloadType         string                 `mapstructure:"PayloadType"`
 	PayloadUUID         string                 `mapstructure:"PayloadUUID"`
 	PayloadVersion      int                    `mapstructure:"PayloadVersion"`
+	PayloadScope        string                 `mapstructure:"PayloadScope"`
 	AdditionalFields    map[string]interface{} `mapstructure:",remain"`
 }
 
