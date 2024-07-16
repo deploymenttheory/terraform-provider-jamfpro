@@ -12,7 +12,7 @@ import (
 )
 
 // constructJamfProAccountGroup constructs an AccountGroup object from the provided schema data.
-func constructJamfProAccountGroup(d *schema.ResourceData) (*jamfpro.ResourceAccountGroup, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourceAccountGroup, error) {
 	var resource *jamfpro.ResourceAccountGroup
 
 	resource = &jamfpro.ResourceAccountGroup{

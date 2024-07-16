@@ -71,7 +71,7 @@ func Read[sdkResponseType any](
 	ctx context.Context,
 	d *schema.ResourceData,
 	meta interface{},
-	cleanup bool,
+	removeDeleteResourcesFromState bool,
 	sdkGetFunc sdkGetFunc[sdkResponseType],
 	providerStateFunc providerStateFunc[sdkResponseType],
 ) diag.Diagnostics {
@@ -90,7 +90,7 @@ func Read[sdkResponseType any](
 	})
 
 	if err != nil {
-		return append(diags, HandleResourceNotFoundError(err, d, cleanup)...)
+		return append(diags, HandleResourceNotFoundError(err, d, removeDeleteResourcesFromState)...)
 	}
 
 	return append(diags, providerStateFunc(d, response)...)

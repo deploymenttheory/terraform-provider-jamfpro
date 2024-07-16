@@ -17,7 +17,7 @@ func resourceJamfProAccountGroupCreate(ctx context.Context, d *schema.ResourceDa
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := constructJamfProAccountGroup(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account Group: %v", err))
 	}
@@ -90,7 +90,7 @@ func resourceJamfProAccountGroupUpdate(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	resource, err := constructJamfProAccountGroup(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account Group for update: %v", err))
 	}
