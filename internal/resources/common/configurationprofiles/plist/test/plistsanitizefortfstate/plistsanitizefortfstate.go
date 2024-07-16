@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/helpers/hash"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/plist"
 )
 
@@ -187,11 +187,11 @@ func TestProcessAndCompareConfigurationProfiles() {
 	log.Printf("Processed second profile payload:\n%s\n", processedProfile2)
 
 	log.Println("Hashing the first processed profile payload...")
-	hash1 := hash.HashString(processedProfile1)
+	hash1 := common.HashString(processedProfile1)
 	log.Printf("Hash of the first profile payload: %s\n", hash1)
 
 	log.Println("Hashing the second processed profile payload...")
-	hash2 := hash.HashString(processedProfile2)
+	hash2 := common.HashString(processedProfile2)
 	log.Printf("Hash of the second profile payload: %s\n", hash2)
 
 	log.Println("Comparing the hashes...")
