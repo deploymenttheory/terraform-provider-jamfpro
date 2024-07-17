@@ -17,7 +17,7 @@ func resourceJamfProAccountCreate(ctx context.Context, d *schema.ResourceData, m
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := constructJamfProAccount(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account: %v", err))
 	}
@@ -118,7 +118,7 @@ func resourceJamfProAccountUpdate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	resource, err := constructJamfProAccount(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account for update: %v", err))
 	}

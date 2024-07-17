@@ -19,7 +19,7 @@ func resourceJamfProComputerInventoryCollectionCreate(ctx context.Context, d *sc
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := constructJamfProComputerInventoryCollection(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Inventory Collection for update: %v", err))
 	}
@@ -80,7 +80,7 @@ func resourceJamfProComputerInventoryCollectionUpdate(ctx context.Context, d *sc
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	inventoryCollectionConfig, err := constructJamfProComputerInventoryCollection(d)
+	inventoryCollectionConfig, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Inventory Collection for update: %v", err))
 	}

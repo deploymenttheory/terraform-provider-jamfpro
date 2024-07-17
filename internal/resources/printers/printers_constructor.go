@@ -11,7 +11,7 @@ import (
 )
 
 // constructJamfProPrinter constructs a ResourcePrinter object from the provided schema data.
-func constructJamfProPrinter(d *schema.ResourceData) (*jamfpro.ResourcePrinter, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourcePrinter, error) {
 	var resource *jamfpro.ResourcePrinter
 
 	resource = &jamfpro.ResourcePrinter{

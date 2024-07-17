@@ -13,7 +13,7 @@ import (
 )
 
 // constructJamfProAdvancedComputerSearch constructs an advanced computer search object for create and update operations.
-func constructJamfProAdvancedComputerSearch(d *schema.ResourceData) (*jamfpro.ResourceAdvancedComputerSearch, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourceAdvancedComputerSearch, error) {
 	var resource *jamfpro.ResourceAdvancedComputerSearch
 
 	resource = &jamfpro.ResourceAdvancedComputerSearch{

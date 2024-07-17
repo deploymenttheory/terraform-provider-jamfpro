@@ -10,7 +10,7 @@ import (
 )
 
 // constructJamfProWebhook constructs a ResourceWebhook object from the provided schema data.
-func constructJamfProWebhook(d *schema.ResourceData) (*jamfpro.ResourceWebhook, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourceWebhook, error) {
 	var resource *jamfpro.ResourceWebhook
 
 	resource = &jamfpro.ResourceWebhook{

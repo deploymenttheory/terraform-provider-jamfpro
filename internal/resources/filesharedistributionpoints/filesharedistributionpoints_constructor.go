@@ -10,7 +10,7 @@ import (
 )
 
 // cconstructJamfProFileShareDistributionPoint constructs a ResourceDockItem object from the provided schema data.
-func constructJamfProFileShareDistributionPoint(d *schema.ResourceData) (*jamfpro.ResourceFileShareDistributionPoint, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourceFileShareDistributionPoint, error) {
 	var resource *jamfpro.ResourceFileShareDistributionPoint
 
 	resource = &jamfpro.ResourceFileShareDistributionPoint{

@@ -11,7 +11,7 @@ import (
 )
 
 // constructJamfProApiIntegration constructs a ResourceApiIntegration object from the provided schema data and serializes it to JSON.
-func constructJamfProApiIntegration(d *schema.ResourceData) (*jamfpro.ResourceApiIntegration, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourceApiIntegration, error) {
 	var resource *jamfpro.ResourceApiIntegration
 
 	resource = &jamfpro.ResourceApiIntegration{

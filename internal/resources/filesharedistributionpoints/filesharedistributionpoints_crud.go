@@ -27,7 +27,7 @@ func resourceJamfProFileShareDistributionPointsCreate(ctx context.Context, d *sc
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := constructJamfProFileShareDistributionPoint(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Fileshare Distribution Point: %v", err))
 	}
@@ -105,7 +105,7 @@ func resourceJamfProFileShareDistributionPointsUpdate(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	resource, err := constructJamfProFileShareDistributionPoint(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro file share distribution point for update: %v", err))
 	}

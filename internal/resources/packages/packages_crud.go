@@ -28,7 +28,7 @@ func resourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, localFilePath, err := constructJamfProPackageCreate(d)
+	resource, localFilePath, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package: %v", err))
 	}
@@ -121,7 +121,7 @@ func resourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, 
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	resource, localFilePath, err := constructJamfProPackageCreate(d)
+	resource, localFilePath, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package for update: %v", err))
 	}

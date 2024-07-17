@@ -17,7 +17,7 @@ func resourceJamfProApiIntegrationsCreate(ctx context.Context, d *schema.Resourc
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := constructJamfProApiIntegration(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro API Integration: %v", err))
 	}
@@ -85,7 +85,7 @@ func resourceJamfProApiIntegrationsUpdate(ctx context.Context, d *schema.Resourc
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	resource, err := constructJamfProApiIntegration(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro API Integration for update: %v", err))
 	}

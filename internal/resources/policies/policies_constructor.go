@@ -11,7 +11,7 @@ import (
 )
 
 // constructPolicy builds the policy object from the HCL. It's composed of several sub-objects, each with their own schema.
-func constructPolicy(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	var err error
 	resource := &jamfpro.ResourcePolicy{}
 

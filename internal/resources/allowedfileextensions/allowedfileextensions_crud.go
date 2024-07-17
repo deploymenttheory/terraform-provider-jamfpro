@@ -17,7 +17,7 @@ func resourceJamfProAllowedFileExtensionCreate(ctx context.Context, d *schema.Re
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := constructJamfProAllowedFileExtension(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Allowed File Extension: %v", err))
 	}

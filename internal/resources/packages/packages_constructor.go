@@ -20,7 +20,7 @@ import (
 // It extracts the filename from the full path provided in the schema and uses it for the FileName field.
 // If the full path is a URL, it downloads the file and uses the downloaded file path.
 // The function returns the constructed ResourcePackage, the local file path, and an error if any.
-func constructJamfProPackageCreate(d *schema.ResourceData) (*jamfpro.ResourcePackage, string, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourcePackage, string, error) {
 	fullPath := d.Get("package_file_source").(string)
 	var fileName string
 	var localFilePath string

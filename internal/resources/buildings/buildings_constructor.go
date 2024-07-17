@@ -11,7 +11,7 @@ import (
 )
 
 // constructJamfProBuilding constructs a Building object from the provided schema data.
-func constructJamfProBuilding(d *schema.ResourceData) (*jamfpro.ResourceBuilding, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourceBuilding, error) {
 	var resource *jamfpro.ResourceBuilding
 
 	resource = &jamfpro.ResourceBuilding{

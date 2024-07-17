@@ -12,7 +12,7 @@ import (
 )
 
 // constructJamfProSmartComputerGroup constructs a ResourceComputerGroup object from the provided schema data.
-func constructJamfProSmartComputerGroup(d *schema.ResourceData) (*jamfpro.ResourceComputerGroup, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourceComputerGroup, error) {
 	var resource *jamfpro.ResourceComputerGroup
 
 	resource = &jamfpro.ResourceComputerGroup{

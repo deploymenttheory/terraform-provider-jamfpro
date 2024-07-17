@@ -12,7 +12,7 @@ import (
 )
 
 // constructJamfProUserGroup constructs a ResourceUserGroup object from the provided schema data.
-func constructJamfProUserGroup(d *schema.ResourceData) (*jamfpro.ResourceUserGroup, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourceUserGroup, error) {
 	var resource *jamfpro.ResourceUserGroup
 
 	resource = &jamfpro.ResourceUserGroup{

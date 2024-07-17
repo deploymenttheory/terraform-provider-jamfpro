@@ -8,7 +8,7 @@ import (
 )
 
 // constructJamfProAccount constructs an Account object from the provided schema data.
-func constructJamfProAccount(d *schema.ResourceData) (*jamfpro.ResourceAccount, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourceAccount, error) {
 	var resource *jamfpro.ResourceAccount
 
 	resource = &jamfpro.ResourceAccount{

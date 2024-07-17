@@ -11,7 +11,7 @@ import (
 )
 
 // constructJamfProNetworkSegment constructs a ResourceNetworkSegment object from the provided schema data.
-func constructJamfProNetworkSegment(d *schema.ResourceData) (*jamfpro.ResourceNetworkSegment, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourceNetworkSegment, error) {
 	var resource *jamfpro.ResourceNetworkSegment
 
 	resource = &jamfpro.ResourceNetworkSegment{

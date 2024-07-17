@@ -14,7 +14,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		ctx,
 		d,
 		meta,
-		constructJamfProBuilding,
+		construct,
 		meta.(*jamfpro.Client).CreateBuilding,
 		readNoCleanup,
 	)
@@ -44,7 +44,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		ctx,
 		d,
 		meta,
-		constructJamfProBuilding,
+		construct,
 		meta.(*jamfpro.Client).CreateBuilding,
 		readNoCleanup,
 	)

@@ -11,7 +11,7 @@ import (
 )
 
 // constructJamfProComputerCheckin constructs a ResourceComputerCheckin object from the provided schema data and logs its XML representation.
-func constructJamfProComputerCheckin(d *schema.ResourceData) (*jamfpro.ResourceComputerCheckin, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourceComputerCheckin, error) {
 	var resource *jamfpro.ResourceComputerCheckin
 
 	resource = &jamfpro.ResourceComputerCheckin{

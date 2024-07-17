@@ -22,7 +22,7 @@ func resourceJamfProDiskEncryptionConfigurationsCreate(ctx context.Context, d *s
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := constructJamfProDiskEncryptionConfiguration(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Disk Encryption Configuration: %v", err))
 	}
@@ -95,7 +95,7 @@ func resourceJamfProDiskEncryptionConfigurationsUpdate(ctx context.Context, d *s
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	resource, err := constructJamfProDiskEncryptionConfiguration(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Disk Encryption Configuration for update: %v", err))
 	}

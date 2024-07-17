@@ -11,7 +11,7 @@ import (
 )
 
 // constructJamfProComputerExtensionAttribute constructs a ResourceComputerExtensionAttribute object from the provided schema data.
-func constructJamfProComputerExtensionAttribute(d *schema.ResourceData) (*jamfpro.ResourceComputerExtensionAttribute, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourceComputerExtensionAttribute, error) {
 	var resource *jamfpro.ResourceComputerExtensionAttribute
 
 	resource = &jamfpro.ResourceComputerExtensionAttribute{

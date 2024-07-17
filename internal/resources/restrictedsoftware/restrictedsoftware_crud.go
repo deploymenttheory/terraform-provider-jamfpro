@@ -22,7 +22,7 @@ func resourceJamfProRestrictedSoftwareCreate(ctx context.Context, d *schema.Reso
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := constructJamfProRestrictedSoftware(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Restricted Software: %v", err))
 	}
@@ -99,7 +99,7 @@ func resourceJamfProRestrictedSoftwareUpdate(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	resource, err := constructJamfProRestrictedSoftware(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Restricted Software for update: %v", err))
 	}

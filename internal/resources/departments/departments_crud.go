@@ -22,7 +22,7 @@ func resourceJamfProDepartmentsCreate(ctx context.Context, d *schema.ResourceDat
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := constructJamfProDepartment(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Department: %v", err))
 	}
@@ -91,7 +91,7 @@ func resourceJamfProDepartmentsUpdate(ctx context.Context, d *schema.ResourceDat
 	resourceID := d.Id()
 	resourceName := d.Get("name").(string)
 
-	department, err := constructJamfProDepartment(d)
+	department, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error constructing Jamf Pro Department '%s': %v", resourceName, err))
 	}

@@ -22,7 +22,7 @@ func resourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 
 	var diags diag.Diagnostics
 
-	resource, err := constructJamfProScript(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Script: %v", err))
 	}
@@ -89,7 +89,7 @@ func resourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, m
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	resource, err := constructJamfProScript(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Script for update: %v", err))
 	}

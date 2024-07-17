@@ -22,7 +22,7 @@ func resourceJamfProComputerExtensionAttributesCreate(ctx context.Context, d *sc
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := constructJamfProComputerExtensionAttribute(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Extension Attribute: %v", err))
 	}
@@ -99,7 +99,7 @@ func resourceJamfProComputerExtensionAttributesUpdate(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	resource, err := constructJamfProComputerExtensionAttribute(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Extension Attribute for update: %v", err))
 	}

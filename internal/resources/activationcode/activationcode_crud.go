@@ -15,7 +15,7 @@ func resourceJamfProActivationCodeCreate(ctx context.Context, d *schema.Resource
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	activationCodeConfig, err := constructJamfProActivationCode(d)
+	activationCodeConfig, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Activation Code for update: %v", err))
 	}
@@ -66,7 +66,7 @@ func resourceJamfProActivationCodeUpdate(ctx context.Context, d *schema.Resource
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	activationCodeConfig, err := constructJamfProActivationCode(d)
+	activationCodeConfig, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Activation Code for update: %v", err))
 	}

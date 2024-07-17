@@ -17,7 +17,7 @@ func resourceJamfProAdvancedUserSearchCreate(ctx context.Context, d *schema.Reso
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := constructJamfProAdvancedUserSearch(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Advanced User Search: %v", err))
 	}
@@ -90,7 +90,7 @@ func resourceJamfProAdvancedUserSearchUpdate(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	resource, err := constructJamfProAdvancedUserSearch(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Advanced User Search for update: %v", err))
 	}

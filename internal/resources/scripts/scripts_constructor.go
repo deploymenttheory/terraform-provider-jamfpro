@@ -11,7 +11,7 @@ import (
 )
 
 // constructJamfProScript constructs a ResourceScript object from the provided schema data.
-func constructJamfProScript(d *schema.ResourceData) (*jamfpro.ResourceScript, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourceScript, error) {
 	var resource *jamfpro.ResourceScript
 
 	resource = &jamfpro.ResourceScript{

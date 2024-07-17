@@ -11,7 +11,7 @@ import (
 )
 
 // constructJamfProSite constructs a SharedResourceSite object from the provided schema data.
-func constructJamfProSite(d *schema.ResourceData) (*jamfpro.SharedResourceSite, error) {
+func construct(d *schema.ResourceData) (*jamfpro.SharedResourceSite, error) {
 	var resource *jamfpro.SharedResourceSite
 
 	resource = &jamfpro.SharedResourceSite{

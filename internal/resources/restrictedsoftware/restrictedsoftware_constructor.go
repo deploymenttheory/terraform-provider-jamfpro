@@ -12,7 +12,7 @@ import (
 )
 
 // constructJamfProRestrictedSoftware constructs a RestrictedSoftware object from the provided schema data.
-func constructJamfProRestrictedSoftware(d *schema.ResourceData) (*jamfpro.ResourceRestrictedSoftware, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourceRestrictedSoftware, error) {
 	var resource *jamfpro.ResourceRestrictedSoftware
 
 	resource = &jamfpro.ResourceRestrictedSoftware{

@@ -11,7 +11,7 @@ import (
 )
 
 // Func Definitions
-type sdkStructPayoadConstructorFunc[T any] func(*schema.ResourceData) (*T, error)
+type payoadConstructorFunc[T any] func(*schema.ResourceData) (*T, error)
 
 type sdkCreateUpdateFunc[PayloadType any, ResponseType any] func(Payload *PayloadType) (*ResponseType, error)
 
@@ -28,7 +28,7 @@ func CreateUpdate[sdkPayloadType any, sdkResponseType any](
 	ctx context.Context,
 	d *schema.ResourceData,
 	meta interface{},
-	construct sdkStructPayoadConstructorFunc[sdkPayloadType],
+	construct payoadConstructorFunc[sdkPayloadType],
 	serverOutcomeFunc sdkCreateUpdateFunc[sdkPayloadType, sdkResponseType],
 	reader providerReadFunc,
 ) diag.Diagnostics {
@@ -72,7 +72,7 @@ func Read[sdkResponseType any](
 	d *schema.ResourceData,
 	meta interface{},
 	removeDeleteResourcesFromState bool,
-	sdkGetFunc sdkGetFunc[sdkResponseType],
+	serverOutcomeFunc sdkGetFunc[sdkResponseType],
 	providerStateFunc providerStateFunc[sdkResponseType],
 ) diag.Diagnostics {
 
@@ -82,7 +82,7 @@ func Read[sdkResponseType any](
 	var response *sdkResponseType
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		response, apiErr = sdkGetFunc(resourceID)
+		response, apiErr = serverOutcomeFunc(resourceID)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -97,13 +97,13 @@ func Read[sdkResponseType any](
 }
 
 // Delete
-func Delete(ctx context.Context, d *schema.ResourceData, meta interface{}, sdkDeleteFunc sdkDeleteFunc) diag.Diagnostics {
+func Delete(ctx context.Context, d *schema.ResourceData, meta interface{}, serverOutcomeFunc sdkDeleteFunc) diag.Diagnostics {
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		var apiErr error
-		apiErr = sdkDeleteFunc(resourceID)
+		apiErr = serverOutcomeFunc(resourceID)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -111,7 +111,7 @@ func Delete(ctx context.Context, d *schema.ResourceData, meta interface{}, sdkDe
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro resourcse '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro resource '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
 	}
 
 	d.SetId("")

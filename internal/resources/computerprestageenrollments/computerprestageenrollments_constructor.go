@@ -11,7 +11,7 @@ import (
 )
 
 // constructJamfProComputerPrestageEnrollment constructs a ResourceComputerPrestage object from the provided schema data.
-func constructJamfProComputerPrestageEnrollment(d *schema.ResourceData) (*jamfpro.ResourceComputerPrestage, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourceComputerPrestage, error) {
 	var resource *jamfpro.ResourceComputerPrestage
 
 	resource = &jamfpro.ResourceComputerPrestage{

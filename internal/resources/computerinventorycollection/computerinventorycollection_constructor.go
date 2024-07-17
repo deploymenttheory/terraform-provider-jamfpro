@@ -11,7 +11,7 @@ import (
 )
 
 // constructJamfProComputerInventoryCollection constructs a ResourceComputerInventoryCollection object from the provided schema data and logs its XML representation.
-func constructJamfProComputerInventoryCollection(d *schema.ResourceData) (*jamfpro.ResourceComputerInventoryCollection, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourceComputerInventoryCollection, error) {
 	var resource *jamfpro.ResourceComputerInventoryCollection
 
 	resource = &jamfpro.ResourceComputerInventoryCollection{

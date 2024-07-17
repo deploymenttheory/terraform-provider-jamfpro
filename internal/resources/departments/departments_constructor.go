@@ -11,7 +11,7 @@ import (
 )
 
 // constructJamfProDepartment constructs a Jamf Pro Department struct from Terraform resource data.
-func constructJamfProDepartment(d *schema.ResourceData) (*jamfpro.ResourceDepartment, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourceDepartment, error) {
 	var resource *jamfpro.ResourceDepartment
 
 	resource = &jamfpro.ResourceDepartment{

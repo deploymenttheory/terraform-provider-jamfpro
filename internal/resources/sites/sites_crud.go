@@ -22,7 +22,7 @@ func resourceJamfProSitesCreate(ctx context.Context, d *schema.ResourceData, met
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := constructJamfProSite(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Site: %v", err))
 	}
@@ -99,7 +99,7 @@ func resourceJamfProSitesUpdate(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	resource, err := constructJamfProSite(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Site for update: %v", err))
 	}

@@ -17,7 +17,7 @@ func resourceJamfProAdvancedMobileDeviceSearchCreate(ctx context.Context, d *sch
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := constructJamfProAdvancedMobileDeviceSearch(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Advanced Mobile Device Search: %v", err))
 	}
@@ -90,7 +90,7 @@ func resourceJamfProAdvancedMobileDeviceSearchUpdate(ctx context.Context, d *sch
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	resource, err := constructJamfProAdvancedMobileDeviceSearch(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Advanced Mobile Device Search for update: %v", err))
 	}

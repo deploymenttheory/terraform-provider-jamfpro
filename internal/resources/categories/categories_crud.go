@@ -16,7 +16,7 @@ func resourceJamfProCategoriesCreate(ctx context.Context, d *schema.ResourceData
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := constructJamfProCategory(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Category Group: %v", err))
 	}
@@ -81,7 +81,7 @@ func resourceJamfProCategoriesUpdate(ctx context.Context, d *schema.ResourceData
 	resourceID := d.Id()
 	resourceName := d.Get("name").(string)
 
-	Category, err := constructJamfProCategory(d)
+	Category, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error constructing Jamf Pro Category '%s': %v", resourceName, err))
 	}

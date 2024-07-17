@@ -22,7 +22,7 @@ func resourceJamfProWebhookCreate(ctx context.Context, d *schema.ResourceData, m
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := constructJamfProWebhook(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Webhook: %v", err))
 	}
@@ -99,7 +99,7 @@ func resourceJamfProWebhookUpdate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	resource, err := constructJamfProWebhook(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Webhook for update: %v", err))
 	}

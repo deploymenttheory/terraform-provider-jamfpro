@@ -12,7 +12,7 @@ import (
 )
 
 // constructJamfProAdvancedUserSearch constructs an advanced user search object for create and update operations.
-func constructJamfProAdvancedUserSearch(d *schema.ResourceData) (*jamfpro.ResourceAdvancedUserSearch, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourceAdvancedUserSearch, error) {
 	var resource *jamfpro.ResourceAdvancedUserSearch
 
 	resource = &jamfpro.ResourceAdvancedUserSearch{

@@ -11,7 +11,7 @@ import (
 )
 
 // constructJamfProDockItem constructs a ResourceDockItem object from the provided schema data.
-func constructJamfProDockItem(d *schema.ResourceData) (*jamfpro.ResourceDockItem, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourceDockItem, error) {
 	var resource *jamfpro.ResourceDockItem
 
 	resource = &jamfpro.ResourceDockItem{

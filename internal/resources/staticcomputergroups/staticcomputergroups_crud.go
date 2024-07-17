@@ -18,7 +18,7 @@ func resourceJamfProStaticComputerGroupsCreate(ctx context.Context, d *schema.Re
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := constructJamfProStaticComputerGroup(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Static Computer Group: %v", err))
 	}
@@ -91,7 +91,7 @@ func resourceJamfProStaticComputerGroupsUpdate(ctx context.Context, d *schema.Re
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	resource, err := constructJamfProStaticComputerGroup(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Static Computer Group for update: %v", err))
 	}

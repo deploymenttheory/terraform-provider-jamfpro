@@ -19,7 +19,7 @@ func resourceJamfProComputerCheckinCreate(ctx context.Context, d *schema.Resourc
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := constructJamfProComputerCheckin(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Check-In for update: %v", err))
 	}
@@ -80,7 +80,7 @@ func resourceJamfProComputerCheckinUpdate(ctx context.Context, d *schema.Resourc
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	checkinConfig, err := constructJamfProComputerCheckin(d)
+	checkinConfig, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Check-In for update: %v", err))
 	}

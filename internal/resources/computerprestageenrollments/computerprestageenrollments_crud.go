@@ -21,7 +21,7 @@ func resourceJamfProComputerPrestageEnrollmentCreate(ctx context.Context, d *sch
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := constructJamfProComputerPrestageEnrollment(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Prestage Enrollment: %v", err))
 	}
@@ -88,7 +88,7 @@ func resourceJamfProComputerPrestageEnrollmentUpdate(ctx context.Context, d *sch
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	resource, err := constructJamfProComputerPrestageEnrollment(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Disk Computer Prestage for update: %v", err))
 	}

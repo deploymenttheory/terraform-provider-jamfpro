@@ -11,7 +11,7 @@ import (
 )
 
 // constructJamfProActivationCode constructs a ResourceActivationCode object from the provided schema data and logs its XML representation.
-func constructJamfProActivationCode(d *schema.ResourceData) (*jamfpro.ResourceActivationCode, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourceActivationCode, error) {
 	var resource *jamfpro.ResourceActivationCode
 
 	resource = &jamfpro.ResourceActivationCode{

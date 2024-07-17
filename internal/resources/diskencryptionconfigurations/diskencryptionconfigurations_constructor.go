@@ -10,7 +10,7 @@ import (
 )
 
 // constructJamfProDiskEncryptionConfiguration constructs a ResourceDiskEncryptionConfiguration object from the provided schema data.
-func constructJamfProDiskEncryptionConfiguration(d *schema.ResourceData) (*jamfpro.ResourceDiskEncryptionConfiguration, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourceDiskEncryptionConfiguration, error) {
 	var resource *jamfpro.ResourceDiskEncryptionConfiguration
 
 	resource = &jamfpro.ResourceDiskEncryptionConfiguration{

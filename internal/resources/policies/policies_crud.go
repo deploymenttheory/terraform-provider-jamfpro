@@ -22,7 +22,7 @@ func resourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, 
 	var diags diag.Diagnostics
 	client := meta.(*jamfpro.Client)
 
-	resource, err := constructPolicy(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Policy: %v", err))
 	}
@@ -100,7 +100,7 @@ func resourceJamfProPoliciesUpdate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	resource, err := constructPolicy(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Policy for update: %v", err))
 	}

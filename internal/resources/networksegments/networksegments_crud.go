@@ -22,7 +22,7 @@ func resourceJamfProNetworkSegmentsCreate(ctx context.Context, d *schema.Resourc
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := constructJamfProNetworkSegment(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Network Segment: %v", err))
 	}
@@ -99,7 +99,7 @@ func resourceJamfProNetworkSegmentsUpdate(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
 	}
 
-	resource, err := constructJamfProNetworkSegment(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Network Segment for update: %v", err))
 	}

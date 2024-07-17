@@ -11,7 +11,7 @@ import (
 )
 
 // constructJamfProAllowedFileExtension creates a new ResourceAllowedFileExtension instance from Terraform data and serializes it to XML.
-func constructJamfProAllowedFileExtension(d *schema.ResourceData) (*jamfpro.ResourceAllowedFileExtension, error) {
+func construct(d *schema.ResourceData) (*jamfpro.ResourceAllowedFileExtension, error) {
 	var resource *jamfpro.ResourceAllowedFileExtension
 
 	resource = &jamfpro.ResourceAllowedFileExtension{
