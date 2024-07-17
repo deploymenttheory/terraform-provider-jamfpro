@@ -40,6 +40,9 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 			configMap := config.(map[string]interface{})
 			key := configMap["key"].(string)
 			value := GetTypedValue(configMap["value"])
+			if dictionaries, ok := configMap["dictionary"]; ok {
+				value = ExtractNestedDictionary(dictionaries.([]interface{}))
+			}
 			additionalFields[key] = value
 		}
 		payloadContent[i] = PayloadContent{
@@ -105,6 +108,21 @@ func GetTypedValue(value interface{}) interface{} {
 	return strValue
 }
 
+// ExtractNestedDictionary recursively extracts nested dictionaries from the given data.
+func ExtractNestedDictionary(data []interface{}) map[string]interface{} {
+	nestedDict := make(map[string]interface{})
+	for _, item := range data {
+		itemMap := item.(map[string]interface{})
+		key := itemMap["key"].(string)
+		value := GetTypedValue(itemMap["value"])
+		if subDicts, ok := itemMap["dictionary"]; ok {
+			value = ExtractNestedDictionary(subDicts.([]interface{}))
+		}
+		nestedDict[key] = value
+	}
+	return nestedDict
+}
+
 // ConvertPlistToHCL converts a plist XML string to HCL data. Used for stating the configuration profile data.
 func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
 	// Unmarshal the plist XML into a ConfigurationProfile struct
@@ -135,12 +153,15 @@ func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
 	for _, configurationPayload := range profile.PayloadContent {
 		configurations := make([]interface{}, 0, len(configurationPayload.AdditionalFields))
 		for key, value := range configurationPayload.AdditionalFields {
-			// Ensure all values are converted to strings for storage in the state
-			strValue := fmt.Sprintf("%v", value)
-			configurations = append(configurations, map[string]interface{}{
-				"key":   key,
-				"value": strValue,
-			})
+			configMap := map[string]interface{}{
+				"key": key,
+			}
+			if nestedDict, ok := value.(map[string]interface{}); ok {
+				configMap["dictionary"] = FlattenNestedDictionary(nestedDict)
+			} else {
+				configMap["value"] = fmt.Sprintf("%v", value)
+			}
+			configurations = append(configurations, configMap)
 		}
 
 		// Reorder configurations based on the jamf pro server logic
@@ -171,4 +192,21 @@ func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
 	payloadsList = append(payloadsList, payloadsMap)
 
 	return payloadsList, nil
+}
+
+// FlattenNestedDictionary flattens the nested dictionary structure into a format suitable for HCL.
+func FlattenNestedDictionary(data map[string]interface{}) []interface{} {
+	flattened := make([]interface{}, 0, len(data))
+	for key, value := range data {
+		item := map[string]interface{}{
+			"key": key,
+		}
+		if nestedDict, ok := value.(map[string]interface{}); ok {
+			item["dictionary"] = FlattenNestedDictionary(nestedDict)
+		} else {
+			item["value"] = fmt.Sprintf("%v", value)
+		}
+		flattened = append(flattened, item)
+	}
+	return flattened
 }
