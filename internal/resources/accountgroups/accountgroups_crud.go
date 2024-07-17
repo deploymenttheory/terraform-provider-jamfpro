@@ -14,31 +14,14 @@ import (
 
 // resourceJamfProAccountGroupCreate is responsible for creating a new Jamf Pro Script in the remote system.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
-
-	resource, err := construct(d)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account Group: %v", err))
-	}
-
-	var creationResponse *jamfpro.ResponseAccountGroupCreated
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		var apiErr error
-		creationResponse, apiErr = client.CreateAccountGroup(resource)
-		if apiErr != nil {
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	if err != nil {
-		return append(diags, diag.FromErr(fmt.Errorf("failed to create Jamf Pro Account Group '%s' after retries: %v", resource.Name, err))...)
-	}
-
-	d.SetId(strconv.Itoa(creationResponse.ID))
-
-	return append(diags, readNoCleanup(ctx, d, meta)...)
+	return common.CreateUpdate[jamfpro.ResourceAccountGroup, jamfpro.ResponseAccountGroupCreated](
+		ctx,
+		d,
+		meta,
+		construct,
+		meta.(*jamfpro.Client).CreateAccountGroup,
+		readNoCleanup,
+	)
 }
 
 // resourceJamfProAccountGroupRead is responsible for reading the current state of a Jamf Pro Account Group Resource from the remote system.
@@ -67,6 +50,17 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 	}
 
 	return updateTerraformState(d, response)
+}
+
+func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+	return common.Read[jamfpro.ResourceAccountGroup](
+		ctx,
+		d,
+		meta,
+		cleanup,
+		meta.(*jamfpro.Client).GetAccountGroupByID,
+		updateTerraformState,
+	)
 }
 
 // resourceJamfProAccountGroupReadWithCleanup reads the resource with cleanup enabled
