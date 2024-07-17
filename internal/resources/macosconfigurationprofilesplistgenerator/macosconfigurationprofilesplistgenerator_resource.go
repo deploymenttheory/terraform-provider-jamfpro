@@ -161,48 +161,42 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 													Optional:    true,
 													Description: "The value for the plist entry.",
 												},
-											},
-										},
-									},
-									"nested_configuration": {
-										Type:             schema.TypeList,
-										Optional:         true,
-										StateFunc:        plist.NormalizePayloadState,
-										DiffSuppressFunc: DiffSuppressPayloads,
-										Description:      "A list of nested key-value pairs for the macOS configuration profile payload. Used when there are nested arrays of dictionaries.",
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"key": {
-													Type:        schema.TypeString,
-													Required:    true,
-													Description: "The key for the plist entry.",
-												},
-												"value": {
+												"dictionary": {
 													Type:        schema.TypeList,
-													Required:    true,
-													Description: "The value for the plist entry.",
+													Optional:    true,
+													Description: "A nested dictionary structure within a plist. Use this when you need to define a plist key with a value that itself is a dictionary containing further nested key-value pairs.",
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"key": {
 																Type:        schema.TypeString,
-																Required:    true,
-																Description: "The key for the nested plist entry.",
+																Optional:    true,
+																Description: "The key for the dictionary entry.",
 															},
 															"value": {
+																Type:        schema.TypeString,
+																Optional:    true,
+																Description: "The value for the plist entry.",
+															},
+															"dictionary": {
 																Type:        schema.TypeList,
-																Required:    true,
-																Description: "The value for the nested plist entry.",
+																Optional:    true,
+																Description: "The value for the dictionary entry. This can be further nested dictionaries or final values.",
 																Elem: &schema.Resource{
 																	Schema: map[string]*schema.Schema{
 																		"key": {
 																			Type:        schema.TypeString,
-																			Required:    true,
-																			Description: "The key for the inner nested plist entry.",
+																			Optional:    true,
+																			Description: "The key for the nested plist entry.",
 																		},
 																		"value": {
+																			Type:        schema.TypeString,
+																			Optional:    true,
+																			Description: "The value for the plist entry.",
+																		},
+																		"dictionary": {
 																			Type:        schema.TypeList,
-																			Required:    true,
-																			Description: "The value for the inner nested plist entry.",
+																			Optional:    true,
+																			Description: "The value for the nested plist entry. This can be another dictionary or a final value.",
 																			Elem: &schema.Resource{
 																				Schema: map[string]*schema.Schema{
 																					"key": {
@@ -214,6 +208,63 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 																						Type:        schema.TypeString,
 																						Optional:    true,
 																						Description: "The value for the innermost plist entry.",
+																					},
+																					"dictionary": {
+																						Type:        schema.TypeList,
+																						Optional:    true,
+																						Description: "The value for the nested plist entry. This can be another dictionary or a final value.",
+																						Elem: &schema.Resource{
+																							Schema: map[string]*schema.Schema{
+																								"key": {
+																									Type:        schema.TypeString,
+																									Optional:    true,
+																									Description: "The key for the innermost plist entry.",
+																								},
+																								"value": {
+																									Type:        schema.TypeString,
+																									Optional:    true,
+																									Description: "The value for the innermost plist entry.",
+																								},
+																								"dictionary": {
+																									Type:        schema.TypeList,
+																									Optional:    true,
+																									Description: "The value for the nested plist entry. This can be another dictionary or a final value.",
+																									Elem: &schema.Resource{
+																										Schema: map[string]*schema.Schema{
+																											"key": {
+																												Type:        schema.TypeString,
+																												Optional:    true,
+																												Description: "The key for the innermost plist entry.",
+																											},
+																											"value": {
+																												Type:        schema.TypeString,
+																												Optional:    true,
+																												Description: "The value for the innermost plist entry.",
+																											},
+																											"dictionary": {
+																												Type:        schema.TypeList,
+																												Optional:    true,
+																												Description: "The value for the nested plist entry. This can be another dictionary or a final value.",
+																												Elem: &schema.Resource{
+																													Schema: map[string]*schema.Schema{
+																														"key": {
+																															Type:        schema.TypeString,
+																															Optional:    true,
+																															Description: "The key for the innermost plist entry.",
+																														},
+																														"value": {
+																															Type:        schema.TypeString,
+																															Optional:    true,
+																															Description: "The value for the innermost plist entry.",
+																														},
+																													},
+																												},
+																											},
+																										},
+																									},
+																								},
+																							},
+																						},
 																					},
 																				},
 																			},
