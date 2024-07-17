@@ -45,7 +45,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		d,
 		meta,
 		construct,
-		meta.(*jamfpro.Client).CreateBuilding,
+		meta.(*jamfpro.Client).UpdateBuildingByID,
 		readNoCleanup,
 	)
 }

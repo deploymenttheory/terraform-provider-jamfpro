@@ -15,6 +15,8 @@ type payoadConstructorFunc[T any] func(*schema.ResourceData) (*T, error)
 
 type sdkCreateUpdateFunc[PayloadType any, ResponseType any] func(Payload *PayloadType) (*ResponseType, error)
 
+type sdkUpdateFunc[PayloadType any, ResponseType any] func(resourceID string, Payload *PayloadType) (*ResponseType, error)
+
 type sdkGetFunc[responseType any] func(resourceID string) (*responseType, error)
 
 type sdkDeleteFunc func(resourceID string) error
