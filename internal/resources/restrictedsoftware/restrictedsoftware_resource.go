@@ -11,10 +11,10 @@ import (
 // resourceJamfProRestrictedSoftwares defines the schema and CRUD operations for managing Jamf Pro Restricted Software in Terraform.
 func ResourceJamfProRestrictedSoftwares() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProRestrictedSoftwareCreate,
-		ReadContext:   resourceJamfProRestrictedSoftwareReadWithCleanup,
-		UpdateContext: resourceJamfProRestrictedSoftwareUpdate,
-		DeleteContext: resourceJamfProRestrictedSoftwareDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(15 * time.Second),

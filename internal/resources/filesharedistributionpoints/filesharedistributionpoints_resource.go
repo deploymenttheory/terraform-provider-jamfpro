@@ -11,10 +11,10 @@ import (
 // resourceJamfProFileShareDistributionPoints defines the schema and CRUD operations for managing Jamf Pro Distribution Point in Terraform.
 func ResourceJamfProFileShareDistributionPoints() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProFileShareDistributionPointsCreate,
-		ReadContext:   resourceJamfProFileShareDistributionPointsReadWithCleanup,
-		UpdateContext: resourceJamfProFileShareDistributionPointsUpdate,
-		DeleteContext: resourceJamfProFileShareDistributionPointsDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),

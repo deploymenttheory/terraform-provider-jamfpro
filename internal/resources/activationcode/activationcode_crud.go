@@ -11,7 +11,7 @@ import (
 )
 
 // resourceJamfProActivationCodeCreate is responsible for initializing the Jamf Pro computer check-in configuration in Terraform.
-func resourceJamfProActivationCodeCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -34,11 +34,11 @@ func resourceJamfProActivationCodeCreate(ctx context.Context, d *schema.Resource
 
 	d.SetId("jamfpro_activation_code_singleton")
 
-	return append(diags, resourceJamfProActivationCodeRead(ctx, d, meta)...)
+	return append(diags, read(ctx, d, meta)...)
 }
 
 // resourceJamfProActivationCodeRead is responsible for reading the current state of the Jamf Pro computer check-in configuration.
-func resourceJamfProActivationCodeRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -62,7 +62,7 @@ func resourceJamfProActivationCodeRead(ctx context.Context, d *schema.ResourceDa
 }
 
 // resourceJamfProActivationCodeUpdate is responsible for updating the Jamf Pro computer check-in configuration.
-func resourceJamfProActivationCodeUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -85,13 +85,13 @@ func resourceJamfProActivationCodeUpdate(ctx context.Context, d *schema.Resource
 
 	d.SetId("jamfpro_activation_code_singleton")
 
-	return append(diags, resourceJamfProActivationCodeRead(ctx, d, meta)...)
+	return append(diags, read(ctx, d, meta)...)
 }
 
 // resourceJamfProActivationCodeDelete is responsible for 'deleting' the Jamf Pro computer check-in configuration.
 // Since this resource represents a configuration and not an actual entity that can be deleted,
 // this function will simply remove it from the Terraform state.
-func resourceJamfProActivationCodeDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	d.SetId("")
 
 	return nil

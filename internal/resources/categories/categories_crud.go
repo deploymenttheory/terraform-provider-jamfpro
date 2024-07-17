@@ -12,7 +12,7 @@ import (
 )
 
 // resourceJamfProCategoriesCreate is responsible for creating a new Jamf Pro Category in the remote system.
-func resourceJamfProCategoriesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -38,11 +38,11 @@ func resourceJamfProCategoriesCreate(ctx context.Context, d *schema.ResourceData
 
 	d.SetId(creationResponse.ID)
 
-	return append(diags, resourceJamfProCategoriesReadNoCleanup(ctx, d, meta)...)
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProCategoriesRead is responsible for reading the current state of a Jamf Pro Category Resource from the remote system.
-func resourceJamfProCategoriesRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -65,17 +65,17 @@ func resourceJamfProCategoriesRead(ctx context.Context, d *schema.ResourceData, 
 }
 
 // resourceJamfProCategoriesReadWithCleanup reads the resource with cleanup enabled
-func resourceJamfProCategoriesReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProCategoriesRead(ctx, d, meta, true)
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, true)
 }
 
 // resourceJamfProAccountGroupReadWithCleanup reads the resource with cleanup disabled
-func resourceJamfProCategoriesReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProCategoriesRead(ctx, d, meta, false)
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, false)
 }
 
 // resourceJamfProCategoriesUpdate is responsible for updating an existing Jamf Pro Category on the remote system.
-func resourceJamfProCategoriesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -105,11 +105,11 @@ func resourceJamfProCategoriesUpdate(ctx context.Context, d *schema.ResourceData
 		return append(diags, diag.FromErr(fmt.Errorf("final attempt to update Category '%s' failed: %v", resourceName, err))...)
 	}
 
-	return append(diags, resourceJamfProCategoriesReadNoCleanup(ctx, d, meta)...)
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProCategoriesDelete is responsible for deleting a Jamf Pro Category.
-func resourceJamfProCategoriesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()

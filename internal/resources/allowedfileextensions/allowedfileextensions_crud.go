@@ -13,7 +13,7 @@ import (
 )
 
 // resourceJamfProAllowedFileExtensionCreate is responsible for creating a new AllowedFileExtension in the remote system.
-func resourceJamfProAllowedFileExtensionCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -38,11 +38,11 @@ func resourceJamfProAllowedFileExtensionCreate(ctx context.Context, d *schema.Re
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	return append(diags, resourceJamfProAllowedFileExtensionReadNoCleanup(ctx, d, meta)...)
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProAllowedFileExtensionRead is responsible for reading the current state of an Allowed File Extension Resource from the remote system.
-func resourceJamfProAllowedFileExtensionRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -70,31 +70,31 @@ func resourceJamfProAllowedFileExtensionRead(ctx context.Context, d *schema.Reso
 }
 
 // resourceJamfProAllowedFileExtensionReadWithCleanup reads the resource with cleanup enabled
-func resourceJamfProAllowedFileExtensionReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProAllowedFileExtensionRead(ctx, d, meta, true)
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, true)
 }
 
 // resourceJamfProAllowedFileExtensionReadNoCleanup reads the resource with cleanup disabled
-func resourceJamfProAllowedFileExtensionReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProAllowedFileExtensionRead(ctx, d, meta, false)
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, false)
 }
 
 // resourceJamfProAllowedFileExtensionUpdate handles the update operation for an AllowedFileExtension resource in Terraform.
 // Since there is no direct update API endpoint, this function will delete the existing AllowedFileExtension and create a new one.
 // This approach simulates an update operation from the user's perspective in Terraform.
-func resourceJamfProAllowedFileExtensionUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	deleteDiags := resourceJamfProAllowedFileExtensionDelete(ctx, d, meta)
+func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	deleteDiags := delete(ctx, d, meta)
 	if deleteDiags.HasError() {
 		return deleteDiags
 	}
 
-	return resourceJamfProAllowedFileExtensionCreate(ctx, d, meta)
+	return create(ctx, d, meta)
 }
 
 // resourceJamfProAllowedFileExtensionDelete is responsible for deleting an Allowed File Extension in Jamf Pro.
 // This function will delete the resource based on its ID from the Terraform state.
 // If the resource cannot be found by ID, it will attempt to delete by the 'extension' attribute.
-func resourceJamfProAllowedFileExtensionDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()

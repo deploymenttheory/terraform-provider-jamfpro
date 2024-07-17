@@ -11,10 +11,10 @@ import (
 // resourceJamfProAdvancedUserSearches defines the schema for managing advanced user Searches in Terraform.
 func ResourceJamfProAdvancedUserSearches() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProAdvancedUserSearchCreate,
-		ReadContext:   resourceJamfProAdvancedUserSearchReadWithCleanup,
-		UpdateContext: resourceJamfProAdvancedUserSearchUpdate,
-		DeleteContext: resourceJamfProAdvancedUserSearchDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(15 * time.Second),

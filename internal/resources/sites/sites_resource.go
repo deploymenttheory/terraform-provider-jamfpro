@@ -10,10 +10,10 @@ import (
 // resourceJamfProSite defines the schema and CRUD operations for managing Jamf Pro Sites in Terraform.
 func ResourceJamfProSites() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProSitesCreate,
-		ReadContext:   resourceJamfProSitesReadWithCleanup,
-		UpdateContext: resourceJamfProSitesUpdate,
-		DeleteContext: resourceJamfProSitesDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(15 * time.Second),

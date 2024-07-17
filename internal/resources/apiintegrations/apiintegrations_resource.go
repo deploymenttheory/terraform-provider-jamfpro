@@ -10,10 +10,10 @@ import (
 // resourceJamfProApiIntegrations defines the schema and CRUD operations for managing Jamf Pro API Integrations in Terraform.
 func ResourceJamfProApiIntegrations() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProApiIntegrationsCreate,
-		ReadContext:   resourceJamfProApiIntegrationsReadWithCleanup,
-		UpdateContext: resourceJamfProApiIntegrationsUpdate,
-		DeleteContext: resourceJamfProApiIntegrationsDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		CustomizeDiff: validateResourceAPIIntegrationsDataFields,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),

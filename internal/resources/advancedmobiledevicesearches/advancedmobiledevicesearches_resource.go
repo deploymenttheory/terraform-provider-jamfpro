@@ -11,10 +11,10 @@ import (
 // resourceJamfProAdvancedMobileDeviceSearches defines the schema for managing mobile device Searches in Terraform.
 func ResourceJamfProAdvancedMobileDeviceSearches() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProAdvancedMobileDeviceSearchCreate,
-		ReadContext:   resourceJamfProAdvancedMobileDeviceSearchReadWithCleanup,
-		UpdateContext: resourceJamfProAdvancedMobileDeviceSearchUpdate,
-		DeleteContext: resourceJamfProAdvancedMobileDeviceSearchDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(15 * time.Second),

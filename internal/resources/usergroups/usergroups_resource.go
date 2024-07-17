@@ -28,10 +28,10 @@ type UserGroupAndOr string
 // resourceJamfProUserGroups defines the schema and CRUD operations for managing Jamf Pro Scripts in Terraform.
 func ResourceJamfProUserGroups() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProUserGroupCreate,
-		ReadContext:   resourceJamfProUserGroupReadWithCleanup,
-		UpdateContext: resourceJamfProUserGroupUpdate,
-		DeleteContext: resourceJamfProUserGroupDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),

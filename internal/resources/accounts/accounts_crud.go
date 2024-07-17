@@ -13,7 +13,7 @@ import (
 )
 
 // resourceJamfProAccountCreate is responsible for creating a new Jamf Pro Script in the remote system.
-func resourceJamfProAccountCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -38,11 +38,11 @@ func resourceJamfProAccountCreate(ctx context.Context, d *schema.ResourceData, m
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	return append(diags, resourceJamfProAccountReadFromCreate(ctx, d, meta)...)
+	return append(diags, readFromCreate(ctx, d, meta)...)
 }
 
 // resourceJamfProAccountRead is responsible for reading the current state of a Jamf Pro Account Group Resource from the remote system.
-func resourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -70,17 +70,17 @@ func resourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, met
 }
 
 // resourceJamfProAccountReadWithCleanup reads the resource with cleanup enabled
-func resourceJamfProAccountReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProAccountRead(ctx, d, meta, true)
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, true)
 }
 
 // resourceJamfProAccountReadNoCleanup reads the resource with cleanup disabled
-func resourceJamfProAccountReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProAccountRead(ctx, d, meta, false)
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, false)
 }
 
 // resourceJamfProAccountRead is responsible for reading the current state of a Jamf Pro Account Group Resource from the remote system.
-func resourceJamfProAccountReadFromCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func readFromCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -108,7 +108,7 @@ func resourceJamfProAccountReadFromCreate(ctx context.Context, d *schema.Resourc
 }
 
 // resourceJamfProAccountUpdate is responsible for updating an existing Jamf Pro Account Group on the remote system.
-func resourceJamfProAccountUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -135,7 +135,7 @@ func resourceJamfProAccountUpdate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Account '%s' (ID: %s) after retries: %v", resource.Name, resourceID, err))
 	}
 
-	return append(diags, resourceJamfProAccountReadNoCleanup(ctx, d, meta)...)
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProAccountDelete is responsible for deleting a Jamf Pro account .

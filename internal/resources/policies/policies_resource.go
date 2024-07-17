@@ -13,10 +13,10 @@ import (
 // resourceJamfProPolicies defines the schema and CRUD operations for managing Jamf Pro Policy in Terraform.
 func ResourceJamfProPolicies() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProPoliciesCreate,
-		ReadContext:   resourceJamfProPoliciesReadWithCleanup,
-		UpdateContext: resourceJamfProPoliciesUpdate,
-		DeleteContext: resourceJamfProPoliciesDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},

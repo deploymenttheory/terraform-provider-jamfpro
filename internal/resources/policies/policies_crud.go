@@ -18,7 +18,7 @@ import (
 // 2. Calls the API to create the attribute in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func resourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	client := meta.(*jamfpro.Client)
 
@@ -43,11 +43,11 @@ func resourceJamfProPoliciesCreate(ctx context.Context, d *schema.ResourceData, 
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	return append(diags, resourceJamfProPoliciesReadNoCleanup(ctx, d, meta)...)
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
 // Reads and states
-func resourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	var err error
 	client, ok := meta.(*jamfpro.Client)
 	if !ok {
@@ -80,17 +80,17 @@ func resourceJamfProPoliciesRead(ctx context.Context, d *schema.ResourceData, me
 }
 
 // resourceJamfProPoliciesReadWithCleanup reads the resource with cleanup enabled
-func resourceJamfProPoliciesReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProPoliciesRead(ctx, d, meta, true)
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, true)
 }
 
 // resourceJamfProPoliciesReadNoCleanup reads the resource with cleanup disabled
-func resourceJamfProPoliciesReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProPoliciesRead(ctx, d, meta, false)
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, false)
 }
 
 // Constructs, updates and reads
-func resourceJamfProPoliciesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -117,11 +117,11 @@ func resourceJamfProPoliciesUpdate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Policy '%s' (ID: %d) after retries: %v", resource.General.Name, resourceIDInt, err))
 	}
 
-	return append(diags, resourceJamfProPoliciesReadNoCleanup(ctx, d, meta)...)
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
 // Deletes and removes from state
-func resourceJamfProPoliciesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()

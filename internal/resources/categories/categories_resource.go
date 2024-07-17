@@ -10,10 +10,10 @@ import (
 // resourceJamfProCategories defines the schema and CRUD operations for managing Jamf Pro Categories in Terraform.
 func ResourceJamfProCategories() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProCategoriesCreate,
-		ReadContext:   resourceJamfProCategoriesReadWithCleanup,
-		UpdateContext: resourceJamfProCategoriesUpdate,
-		DeleteContext: resourceJamfProCategoriesDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(15 * time.Second),
 			Read:   schema.DefaultTimeout(15 * time.Second),

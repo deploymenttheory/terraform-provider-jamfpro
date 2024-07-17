@@ -14,9 +14,9 @@ import (
 // resourceJamfProAccount defines the schema and CRUD operations for managing buildings in Terraform.
 func ResourceJamfProAccounts() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProAccountCreate,
-		ReadContext:   resourceJamfProAccountReadWithCleanup,
-		UpdateContext: resourceJamfProAccountUpdate,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
 		DeleteContext: resourceJamfProAccountDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),

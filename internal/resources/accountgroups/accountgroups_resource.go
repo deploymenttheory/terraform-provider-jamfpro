@@ -14,10 +14,10 @@ import (
 // resourceJamfProAccountGroup defines the schema and CRUD operations for managing buildings in Terraform.
 func ResourceJamfProAccountGroups() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProAccountGroupCreate,
-		ReadContext:   resourceJamfProAccountGroupReadWithCleanup,
-		UpdateContext: resourceJamfProAccountGroupUpdate,
-		DeleteContext: resourceJamfProAccountGroupDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		CustomizeDiff: customDiffAccountGroups,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),

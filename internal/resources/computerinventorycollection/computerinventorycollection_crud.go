@@ -15,7 +15,7 @@ import (
 // Since this resource is a configuration set and not a resource that is 'created' in the traditional sense,
 // this function will simply set the initial state in Terraform.
 // resourceJamfProComputerInventoryCollectionCreate is responsible for initializing the Jamf Pro Computer Inventory Collection configuration in Terraform.
-func resourceJamfProComputerInventoryCollectionCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -38,11 +38,11 @@ func resourceJamfProComputerInventoryCollectionCreate(ctx context.Context, d *sc
 
 	d.SetId("jamfpro_computer_inventory_collection_singleton")
 
-	return append(diags, resourceJamfProComputerInventoryCollectionReadNoCleanup(ctx, d, meta)...)
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProComputerInventoryCollectionRead is responsible for reading the current state of the Jamf Pro Computer Inventory Collection configuration.
-func resourceJamfProComputerInventoryCollectionRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	var err error
@@ -66,17 +66,17 @@ func resourceJamfProComputerInventoryCollectionRead(ctx context.Context, d *sche
 }
 
 // resourceJamfProComputerInventoryCollectionReadWithCleanup reads the resource with cleanup enabled
-func resourceJamfProComputerInventoryCollectionReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProComputerInventoryCollectionRead(ctx, d, meta, true)
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, true)
 }
 
 // resourceJamfProComputerInventoryCollectionReadNoCleanup reads the resource with cleanup disabled
-func resourceJamfProComputerInventoryCollectionReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProComputerInventoryCollectionRead(ctx, d, meta, false)
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, false)
 }
 
 // resourceJamfProComputerInventoryCollectionUpdate is responsible for updating the Jamf Pro Computer Inventory Collection configuration.
-func resourceJamfProComputerInventoryCollectionUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -99,13 +99,13 @@ func resourceJamfProComputerInventoryCollectionUpdate(ctx context.Context, d *sc
 
 	d.SetId("jamfpro_computer_checkin_singleton")
 
-	return append(diags, resourceJamfProComputerInventoryCollectionReadNoCleanup(ctx, d, meta)...)
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProComputerInventoryCollectionDelete is responsible for 'deleting' the Jamf Pro Computer Inventory Collection configuration.
 // Since this resource represents a configuration and not an actual entity that can be deleted,
 // this function will simply remove it from the Terraform state.
-func resourceJamfProComputerInventoryCollectionDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	d.SetId("")
 
 	return nil

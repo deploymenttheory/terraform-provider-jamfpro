@@ -18,7 +18,7 @@ import (
 // 2. Calls the API to create the Webhook in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created Webhook.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func resourceJamfProWebhookCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -43,7 +43,7 @@ func resourceJamfProWebhookCreate(ctx context.Context, d *schema.ResourceData, m
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	return append(diags, resourceJamfProWebhookReadNoCleanup(ctx, d, meta)...)
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProWebhookRead is responsible for reading the current state of a Jamf Pro Webhook Resource from the remote system.
@@ -51,7 +51,7 @@ func resourceJamfProWebhookCreate(ctx context.Context, d *schema.ResourceData, m
 // 1. Fetches the user group's current state using its ID. If it fails, it tries to obtain the user group's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the user group being deleted outside of Terraform, to keep the Terraform state synchronized.
-func resourceJamfProWebhookRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -79,17 +79,17 @@ func resourceJamfProWebhookRead(ctx context.Context, d *schema.ResourceData, met
 }
 
 // resourceJamfProWebhookReadWithCleanup reads the resource with cleanup enabled
-func resourceJamfProWebhookReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProWebhookRead(ctx, d, meta, true)
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, true)
 }
 
 // resourceJamfProWebhookReadNoCleanup reads the resource with cleanup disabled
-func resourceJamfProWebhookReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProWebhookRead(ctx, d, meta, false)
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, false)
 }
 
 // resourceJamfProWebhookUpdate is responsible for updating an existing Jamf Pro Webhook on the remote system.
-func resourceJamfProWebhookUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -116,11 +116,11 @@ func resourceJamfProWebhookUpdate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Webhook '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
 	}
 
-	return append(diags, resourceJamfProWebhookReadNoCleanup(ctx, d, meta)...)
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProWebhookDelete is responsible for deleting a Jamf Pro Webhook.
-func resourceJamfProWebhookDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()

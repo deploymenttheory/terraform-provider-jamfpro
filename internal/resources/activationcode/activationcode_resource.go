@@ -10,10 +10,10 @@ import (
 // resourceJamfProActivationCode defines the schema and CRUD operations for managing Jamf Pro activation code configuration in Terraform.
 func ResourceJamfProActivationCode() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProActivationCodeCreate,
-		ReadContext:   resourceJamfProActivationCodeRead,
-		UpdateContext: resourceJamfProActivationCodeUpdate,
-		DeleteContext: resourceJamfProActivationCodeDelete,
+		CreateContext: create,
+		ReadContext:   read,
+		UpdateContext: update,
+		DeleteContext: delete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(15 * time.Second),

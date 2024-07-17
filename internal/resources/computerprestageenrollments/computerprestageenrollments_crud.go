@@ -17,7 +17,7 @@ import (
 // 2. Calls the API to create the computer prestage in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created computer prestage.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func resourceJamfProComputerPrestageEnrollmentCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -42,7 +42,7 @@ func resourceJamfProComputerPrestageEnrollmentCreate(ctx context.Context, d *sch
 
 	d.SetId(creationResponse.ID)
 
-	return append(diags, resourceJamfProComputerPrestageEnrollmentReadNoCleanup(ctx, d, meta)...)
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProComputerPrestageEnrollmentRead is responsible for reading the current state of a Building Resource from the remote system.
@@ -50,7 +50,7 @@ func resourceJamfProComputerPrestageEnrollmentCreate(ctx context.Context, d *sch
 // 1. Fetches the building's current state using its ID. If it fails, then obtain the building's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the building being deleted outside of Terraform, to keep the Terraform state synchronized.
-func resourceJamfProComputerPrestageEnrollmentRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -73,17 +73,17 @@ func resourceJamfProComputerPrestageEnrollmentRead(ctx context.Context, d *schem
 }
 
 // resourceJamfProComputerPrestageEnrollmentReadWithCleanup reads the resource with cleanup enabled
-func resourceJamfProComputerPrestageEnrollmentReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProComputerPrestageEnrollmentRead(ctx, d, meta, true)
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, true)
 }
 
 // resourceJamfProComputerPrestageEnrollmentReadNoCleanup reads the resource with cleanup disabled
-func resourceJamfProComputerPrestageEnrollmentReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProComputerPrestageEnrollmentRead(ctx, d, meta, false)
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, false)
 }
 
 // resourceJamfProComputerPrestageEnrollmentUpdate is responsible for updating an existing Jamf Pro Department on the remote system.
-func resourceJamfProComputerPrestageEnrollmentUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -105,11 +105,11 @@ func resourceJamfProComputerPrestageEnrollmentUpdate(ctx context.Context, d *sch
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Computer Prestage '%s' (ID: %s) after retries: %v", resource.DisplayName, resourceID, err))
 	}
 
-	return append(diags, resourceJamfProComputerPrestageEnrollmentReadNoCleanup(ctx, d, meta)...)
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProComputerPrestageEnrollmentDelete is responsible for deleting a Jamf Pro Computer Prestage.
-func resourceJamfProComputerPrestageEnrollmentDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()

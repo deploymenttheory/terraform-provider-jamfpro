@@ -12,10 +12,10 @@ import (
 // resourceJamfProWebhooks defines the schema and CRUD operations for managing Jamf Pro Webhooks in Terraform.
 func ResourceJamfProWebhooks() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProWebhookCreate,
-		ReadContext:   resourceJamfProWebhookReadWithCleanup,
-		UpdateContext: resourceJamfProWebhookUpdate,
-		DeleteContext: resourceJamfProWebhookDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Second),

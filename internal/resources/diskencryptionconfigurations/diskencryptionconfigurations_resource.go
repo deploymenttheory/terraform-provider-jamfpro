@@ -12,10 +12,10 @@ import (
 // resourceJamfProDiskEncryptionConfigurations defines the schema and CRUD operations for managing Jamf Pro Disk Encryption Configurations in Terraform.
 func ResourceJamfProDiskEncryptionConfigurations() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProDiskEncryptionConfigurationsCreate,
-		ReadContext:   resourceJamfProDiskEncryptionConfigurationsReadWithCleanup,
-		UpdateContext: resourceJamfProDiskEncryptionConfigurationsUpdate,
-		DeleteContext: resourceJamfProDiskEncryptionConfigurationsDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(15 * time.Second),

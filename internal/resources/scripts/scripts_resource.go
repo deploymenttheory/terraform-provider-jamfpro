@@ -11,10 +11,10 @@ import (
 // resourceJamfProScripts defines the schema and CRUD operations for managing Jamf Pro Scripts in Terraform.
 func ResourceJamfProScripts() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProScriptsCreate,
-		ReadContext:   resourceJamfProScriptsReadWithCleanup,
-		UpdateContext: resourceJamfProScriptsUpdate,
-		DeleteContext: resourceJamfProScriptsDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(15 * time.Second),

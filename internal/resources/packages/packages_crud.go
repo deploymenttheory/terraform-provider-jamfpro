@@ -24,7 +24,7 @@ import (
 // 4. Sets the ID of the created package in the Terraform state.
 // 5. Perform cleanup of downloaded package if it was from an HTTP(s) source
 // 6. Reads the created package to ensure the Terraform state is up-to-date.
-func resourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -70,7 +70,7 @@ func resourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 		}
 	}
 
-	return append(diags, resourceJamfProPackagesReadNoCleanup(ctx, d, meta)...)
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProPackagesRead is responsible for reading the current state of a Jamf Pro Site Resource from the remote system.
@@ -78,7 +78,7 @@ func resourceJamfProPackagesCreate(ctx context.Context, d *schema.ResourceData, 
 // 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
-func resourceJamfProPackagesRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	resourceID := d.Id()
 	var diags diag.Diagnostics
@@ -102,13 +102,13 @@ func resourceJamfProPackagesRead(ctx context.Context, d *schema.ResourceData, me
 }
 
 // resourceJamfProMacOSConfigurationProfilesPlistReadWithCleanup reads the resource with cleanup enabled
-func resourceJamfProPackagesReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProPackagesRead(ctx, d, meta, true)
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, true)
 }
 
 // resourceJamfProMacOSConfigurationProfilesPlistReadNoCleanup reads the resource with cleanup disabled
-func resourceJamfProPackagesReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProPackagesRead(ctx, d, meta, false)
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, false)
 }
 
 // resourceJamfProPackagesUpdate is responsible for updating an existing Jamf Pro Package on the remote system.
@@ -116,7 +116,7 @@ func resourceJamfProPackagesReadNoCleanup(ctx context.Context, d *schema.Resourc
 // 2. Calls the API to update the package metadata in jamfpro.
 // 3. Uploads the package file to the Jamf Pro server if the file has changed based on the MD5 hash.
 // 4. Perform cleanup of downloaded package if it was from an HTTP(s) source
-func resourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -170,11 +170,11 @@ func resourceJamfProPackagesUpdate(ctx context.Context, d *schema.ResourceData, 
 		}
 	}
 
-	return append(diags, resourceJamfProPackagesReadWithCleanup(ctx, d, meta)...)
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProPackagesDelete is responsible for deleting a Jamf Pro Package.
-func resourceJamfProPackagesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()

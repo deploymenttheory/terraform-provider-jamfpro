@@ -17,7 +17,7 @@ import (
 // 2. Calls the API to create the role in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created role.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func resourceJamfProAPIRolesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -42,7 +42,7 @@ func resourceJamfProAPIRolesCreate(ctx context.Context, d *schema.ResourceData, 
 
 	d.SetId(creationResponse.ID)
 
-	return append(diags, resourceJamfProAPIRolesReadNoCleanup(ctx, d, meta)...)
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProAPIRolesRead handles reading a Jamf Pro API Role from the remote system.
@@ -50,7 +50,7 @@ func resourceJamfProAPIRolesCreate(ctx context.Context, d *schema.ResourceData, 
 // 1. Tries to fetch the API role based on the ID from the Terraform state.
 // 2. If fetching by ID fails, attempts to fetch it by the display name.
 // 3. Updates the Terraform state with the fetched data.
-func resourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -73,13 +73,13 @@ func resourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, me
 }
 
 // resourceJamfProAPIRolesReadWithCleanup reads the resource with cleanup enabled
-func resourceJamfProAPIRolesReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProAPIRolesRead(ctx, d, meta, true)
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, true)
 }
 
 // resourceJamfProAPIRolesReadNoCleanup reads the resource with cleanup disabled
-func resourceJamfProAPIRolesReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProAPIRolesRead(ctx, d, meta, false)
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, false)
 }
 
 // resourceJamfProAPIRolesUpdate handles updating a Jamf Pro API Role.
@@ -87,7 +87,7 @@ func resourceJamfProAPIRolesReadNoCleanup(ctx context.Context, d *schema.Resourc
 // 1. Constructs the updated API role data using the provided Terraform configuration.
 // 2. Calls the API to update the role in Jamf Pro.
 // 3. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func resourceJamfProAPIRolesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -109,11 +109,11 @@ func resourceJamfProAPIRolesUpdate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro API Role '%s' (ID: %s) after retries: %v", resource.DisplayName, resourceID, err))
 	}
 
-	return append(diags, resourceJamfProAPIRolesReadNoCleanup(ctx, d, meta)...)
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProAPIRolesDelete handles the deletion of a Jamf Pro API Role.
-func resourceJamfProAPIRolesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()

@@ -12,10 +12,10 @@ import (
 // resourceJamfProComputerCheckindefines the schema and RU operations for managing Jamf Pro computer checkin configuration in Terraform.
 func ResourceJamfProComputerCheckin() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProComputerCheckinCreate,
-		ReadContext:   resourceJamfProComputerCheckinReadWithCleanup,
-		UpdateContext: resourceJamfProComputerCheckinUpdate,
-		DeleteContext: resourceJamfProComputerCheckinDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 			return validateComputerCheckinDependencies(d)
 		},

@@ -10,10 +10,10 @@ import (
 // resourceJamfProNetworkSegments defines the schema and CRUD operations for managing Jamf Pro NetworkSegments in Terraform.
 func ResourceJamfProNetworkSegments() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProNetworkSegmentsCreate,
-		ReadContext:   resourceJamfProNetworkSegmentsReadWithCleanup,
-		UpdateContext: resourceJamfProNetworkSegmentsUpdate,
-		DeleteContext: resourceJamfProNetworkSegmentsDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(15 * time.Second),

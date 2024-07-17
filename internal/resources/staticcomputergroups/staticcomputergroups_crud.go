@@ -14,7 +14,7 @@ import (
 )
 
 // resourceJamfProStaticComputerGroupsCreate is responsible for creating a new Jamf Pro Static Computer Group in the remote system.
-func resourceJamfProStaticComputerGroupsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -39,11 +39,11 @@ func resourceJamfProStaticComputerGroupsCreate(ctx context.Context, d *schema.Re
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	return append(diags, resourceJamfProStaticComputerGroupsReadNoCleanup(ctx, d, meta)...)
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProStaticComputerGroupsRead is responsible for reading the current state of a Jamf Pro Static Computer Group from the remote system.
-func resourceJamfProStaticComputerGroupsRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -71,17 +71,17 @@ func resourceJamfProStaticComputerGroupsRead(ctx context.Context, d *schema.Reso
 }
 
 // resourceJamfProStaticComputerGroupsReadWithCleanup reads the resource with cleanup enabled
-func resourceJamfProStaticComputerGroupsReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProStaticComputerGroupsRead(ctx, d, meta, true)
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, true)
 }
 
 // resourceJamfProStaticComputerGroupsReadNoCleanup reads the resource with cleanup disabled
-func resourceJamfProStaticComputerGroupsReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProStaticComputerGroupsRead(ctx, d, meta, false)
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, false)
 }
 
 // resourceJamfProStaticComputerGroupsUpdate is responsible for updating an existing Jamf Pro Static Computer Group on the remote system.
-func resourceJamfProStaticComputerGroupsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -109,11 +109,11 @@ func resourceJamfProStaticComputerGroupsUpdate(ctx context.Context, d *schema.Re
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Static Computer Group '%s' (ID: %d) after retries: %v", resource.Name, resourceIDInt, err))
 	}
 
-	return append(diags, resourceJamfProStaticComputerGroupsReadNoCleanup(ctx, d, meta)...)
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProStaticComputerGroupsDelete is responsible for deleting a Jamf Pro Static Computer Group.
-func resourceJamfProStaticComputerGroupsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()

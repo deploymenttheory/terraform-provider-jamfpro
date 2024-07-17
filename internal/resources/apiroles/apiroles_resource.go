@@ -10,10 +10,10 @@ import (
 // resourceJamfProAPIRoles defines the schema for managing Jamf Pro API Roles in Terraform.
 func ResourceJamfProAPIRoles() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProAPIRolesCreate,
-		ReadContext:   resourceJamfProAPIRolesReadWithCleanup,
-		UpdateContext: resourceJamfProAPIRolesUpdate,
-		DeleteContext: resourceJamfProAPIRolesDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(15 * time.Second),

@@ -11,10 +11,10 @@ import (
 // resourceJamfProAdvancedComputerSearches defines the schema for managing Advanced Computer Searches in Terraform.
 func ResourceJamfProAdvancedComputerSearches() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProAdvancedComputerSearchCreate,
-		ReadContext:   resourceJamfProAdvancedComputerSearchReadWithCleanup,
-		UpdateContext: resourceJamfProAdvancedComputerSearchUpdate,
-		DeleteContext: resourceJamfProAdvancedComputerSearchDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(15 * time.Second),

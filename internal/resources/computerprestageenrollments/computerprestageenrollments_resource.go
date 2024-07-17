@@ -11,10 +11,10 @@ import (
 // resourceJamfProComputerPrestageEnrollmentEnrollment defines the schema for managing Jamf Pro Computer Prestages in Terraform.
 func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProComputerPrestageEnrollmentCreate,
-		ReadContext:   resourceJamfProComputerPrestageEnrollmentReadWithCleanup,
-		UpdateContext: resourceJamfProComputerPrestageEnrollmentUpdate,
-		DeleteContext: resourceJamfProComputerPrestageEnrollmentDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(20 * time.Second),
 			Read:   schema.DefaultTimeout(15 * time.Second),

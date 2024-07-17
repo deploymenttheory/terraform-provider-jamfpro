@@ -37,10 +37,10 @@ const (
 // resourceJamfProSmartComputerGroups defines the schema and CRUD operations for managing Jamf Pro smart Computer Groups in Terraform.
 func ResourceJamfProSmartComputerGroups() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProSmartComputerGroupsCreate,
-		ReadContext:   resourceJamfProSmartComputerGroupsReadWithCleanup,
-		UpdateContext: resourceJamfProSmartComputerGroupsUpdate,
-		DeleteContext: resourceJamfProSmartComputerGroupsDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),

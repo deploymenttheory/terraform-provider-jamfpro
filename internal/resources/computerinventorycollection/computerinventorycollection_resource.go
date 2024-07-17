@@ -10,10 +10,10 @@ import (
 // resourceJamfProComputerInventoryCollection defines the schema and RU operations for managing Jamf Pro computer checkin configuration in Terraform.
 func ResourceJamfProComputerInventoryCollection() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProComputerInventoryCollectionCreate,
-		ReadContext:   resourceJamfProComputerInventoryCollectionReadWithCleanup,
-		UpdateContext: resourceJamfProComputerInventoryCollectionUpdate,
-		DeleteContext: resourceJamfProComputerInventoryCollectionDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(15 * time.Second),

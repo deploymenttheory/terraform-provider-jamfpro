@@ -17,7 +17,7 @@ import (
 // 2. Calls the API to create the script in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created script.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func resourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 
 	var diags diag.Diagnostics
@@ -43,7 +43,7 @@ func resourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 
 	d.SetId(creationResponse.ID)
 
-	return append(diags, resourceJamfProScriptsReadNoCleanup(ctx, d, meta)...)
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProScriptsRead is responsible for reading the current state of a Jamf Pro Script Resource from the remote system.
@@ -51,7 +51,7 @@ func resourceJamfProScriptsCreate(ctx context.Context, d *schema.ResourceData, m
 // 1. Fetches the script's current state using its ID. If it fails then obtain script's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the script being deleted outside of Terraform, to keep the Terraform state synchronized.
-func resourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	resourceID := d.Id()
 	var diags diag.Diagnostics
@@ -74,17 +74,17 @@ func resourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, met
 }
 
 // resourceJamfProScriptsReadWithCleanup reads the resource with cleanup enabled
-func resourceJamfProScriptsReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProScriptsRead(ctx, d, meta, true)
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, true)
 }
 
 // resourceJamfProScriptsReadNoCleanup reads the resource with cleanup disabled
-func resourceJamfProScriptsReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProScriptsRead(ctx, d, meta, false)
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, false)
 }
 
 // resourceJamfProScriptsUpdate is responsible for updating an existing Jamf Pro Department on the remote system.
-func resourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -110,11 +110,11 @@ func resourceJamfProScriptsUpdate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Script '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
 	}
 
-	return append(diags, resourceJamfProScriptsReadNoCleanup(ctx, d, meta)...)
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
 // resourceJamfProScriptsDelete is responsible for deleting a Jamf Pro Department.
-func resourceJamfProScriptsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()

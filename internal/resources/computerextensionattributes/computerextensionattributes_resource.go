@@ -12,10 +12,10 @@ import (
 // for managing Jamf Pro Computer Extension Attributes in Terraform.
 func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProComputerExtensionAttributesCreate,
-		ReadContext:   resourceJamfProComputerExtensionAttributesReadWithCleanup,
-		UpdateContext: resourceJamfProComputerExtensionAttributesUpdate,
-		DeleteContext: resourceJamfProComputerExtensionAttributesDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(15 * time.Second),

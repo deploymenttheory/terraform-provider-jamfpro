@@ -10,10 +10,10 @@ import (
 // resourceJamfProPrinters defines the schema and CRUD operations for managing Jamf Pro Printers in Terraform.
 func ResourceJamfProPrinters() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProPrintersCreate,
-		ReadContext:   resourceJamfProPrintersReadWithCleanup,
-		UpdateContext: resourceJamfProPrintersUpdate,
-		DeleteContext: resourceJamfProPrintersDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
