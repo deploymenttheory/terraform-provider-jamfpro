@@ -26,7 +26,7 @@ type providerStateFunc[resourceType any] func(d *schema.ResourceData, resource *
 type providerReadFunc func(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics
 
 // Create Update
-func CreateUpdate[sdkPayloadType any, sdkResponseType any](
+func Create[sdkPayloadType any, sdkResponseType any](
 	ctx context.Context,
 	d *schema.ResourceData,
 	meta interface{},
@@ -60,10 +60,45 @@ func CreateUpdate[sdkPayloadType any, sdkResponseType any](
 
 	idField, err := getIDField(outcomeResponse)
 	if err != nil {
-		return append(diags, diag.FromErr(fmt.Errorf("Error getting ID field from response: %v", err))...)
+		return append(diags, diag.FromErr(fmt.Errorf("error getting ID field from response: %v", err))...)
 	}
 
 	d.SetId(idField)
+
+	return append(diags, reader(ctx, d, meta)...)
+}
+
+func Update[sdkPayloadType any, sdkResponseType any](
+	ctx context.Context,
+	d *schema.ResourceData,
+	meta interface{},
+	constructor payoadConstructorFunc[sdkPayloadType],
+	outcomeFunc sdkUpdateFunc[sdkPayloadType, sdkResponseType],
+	reader providerReadFunc,
+
+) diag.Diagnostics {
+
+	var diags diag.Diagnostics
+	resourceID := d.Id()
+
+	payload, err := constructor(d)
+	payloadtypeName := reflect.TypeOf(payload).Name()
+
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Building for update: %v", err))
+	}
+
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+		_, apiErr := outcomeFunc(resourceID, payload)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to update Jamf pro %s (ID: %s) after retries: %v", payloadtypeName, resourceID, err))
+	}
 
 	return append(diags, reader(ctx, d, meta)...)
 }
@@ -104,8 +139,7 @@ func Delete(ctx context.Context, d *schema.ResourceData, meta interface{}, serve
 	resourceID := d.Id()
 
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		var apiErr error
-		apiErr = serverOutcomeFunc(resourceID)
+		apiErr := serverOutcomeFunc(resourceID)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}

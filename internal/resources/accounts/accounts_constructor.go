@@ -9,9 +9,7 @@ import (
 
 // constructJamfProAccount constructs an Account object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceAccount, error) {
-	var resource *jamfpro.ResourceAccount
-
-	resource = &jamfpro.ResourceAccount{
+	resource := &jamfpro.ResourceAccount{
 		Name:                d.Get("name").(string),
 		DirectoryUser:       d.Get("directory_user").(bool),
 		FullName:            d.Get("full_name").(string),

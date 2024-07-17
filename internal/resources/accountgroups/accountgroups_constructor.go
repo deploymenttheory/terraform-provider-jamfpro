@@ -13,9 +13,7 @@ import (
 
 // constructJamfProAccountGroup constructs an AccountGroup object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceAccountGroup, error) {
-	var resource *jamfpro.ResourceAccountGroup
-
-	resource = &jamfpro.ResourceAccountGroup{
+	resource := &jamfpro.ResourceAccountGroup{
 		Name:         d.Get("name").(string),
 		AccessLevel:  d.Get("access_level").(string),
 		PrivilegeSet: d.Get("privilege_set").(string),

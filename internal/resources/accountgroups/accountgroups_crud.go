@@ -2,19 +2,16 @@ package accountgroups
 
 import (
 	"context"
-	"fmt"
-	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // resourceJamfProAccountGroupCreate is responsible for creating a new Jamf Pro Script in the remote system.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return common.CreateUpdate[jamfpro.ResourceAccountGroup, jamfpro.ResponseAccountGroupCreated](
+	return common.Create[jamfpro.ResourceAccountGroup, jamfpro.ResponseAccountGroupCreated](
 		ctx,
 		d,
 		meta,
@@ -47,39 +44,8 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 }
 
 // resourceJamfProAccountGroupUpdate is responsible for updating an existing Jamf Pro Account Group on the remote system.
-// func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-// 	client := meta.(*jamfpro.Client)
-// 	var diags diag.Diagnostics
-// 	resourceID := d.Id()
-
-// 	resourceIDInt, err := strconv.Atoi(resourceID)
-// 	if err != nil {
-// 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-// 	}
-
-// 	resource, err := construct(d)
-// 	if err != nil {
-// 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account Group for update: %v", err))
-// 	}
-
-// 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-// 		_, apiErr := client.UpdateAccountGroupByID(resourceIDInt, resource)
-// 		if apiErr != nil {
-// 			return retry.RetryableError(apiErr)
-// 		}
-
-// 		return nil
-// 	})
-
-// 	if err != nil {
-// 		return append(diags, diag.FromErr(fmt.Errorf("failed to update Jamf Pro Account Group '%s' (ID: %s) after retries: %v", resource.Name, resourceID, err))...)
-// 	}
-
-// 	return append(diags, readNoCleanup(ctx, d, meta)...)
-// }
-
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return common.CreateUpdate[jamfpro.ResourceAccountGroup, jamfpro.ResourceAccountGroup](
+	return common.Update[jamfpro.ResourceAccountGroup, jamfpro.ResourceAccountGroup](
 		ctx,
 		d,
 		meta,
@@ -91,32 +57,10 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 // resourceJamfProAccountGroupDelete is responsible for deleting a Jamf Pro account group.
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
-	resourceID := d.Id()
-
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
-
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		apiErr := client.DeleteAccountGroupByID(resourceIDInt)
-		if apiErr != nil {
-			resourceName := d.Get("name").(string)
-			apiErrByName := client.DeleteAccountGroupByName(resourceName)
-			if apiErrByName != nil {
-				return retry.RetryableError(apiErrByName)
-			}
-		}
-		return nil
-	})
-
-	if err != nil {
-		diags = append(diags, diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Account Group '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))...)
-	}
-
-	d.SetId("")
-
-	return diags
+	return common.Delete(
+		ctx,
+		d,
+		meta,
+		meta.(*jamfpro.Client).DeleteAccountGroupByID,
+	)
 }

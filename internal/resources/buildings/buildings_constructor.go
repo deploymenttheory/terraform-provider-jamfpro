@@ -12,9 +12,7 @@ import (
 
 // constructJamfProBuilding constructs a Building object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceBuilding, error) {
-	var resource *jamfpro.ResourceBuilding
-
-	resource = &jamfpro.ResourceBuilding{
+	resource := &jamfpro.ResourceBuilding{
 		Name:           d.Get("name").(string),
 		StreetAddress1: d.Get("street_address1").(string),
 		StreetAddress2: d.Get("street_address2").(string),
