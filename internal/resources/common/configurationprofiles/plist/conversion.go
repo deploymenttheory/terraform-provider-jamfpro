@@ -32,7 +32,6 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 
 	payloadContent := make([]PayloadContent, len(payloadContentData))
 
-	// Handle plist configuration
 	for i, pc := range payloadContentData {
 		pcMap := pc.(map[string]interface{})
 		configurations := pcMap["configuration"].([]interface{})
@@ -43,26 +42,6 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 			value := GetTypedValue(configMap["value"])
 			additionalFields[key] = value
 		}
-
-		// Handle nested array plist configuration
-		if nestedConfigs, ok := pcMap["nested_configuration"].([]interface{}); ok {
-			for _, nestedConfig := range nestedConfigs {
-				nestedConfigMap := nestedConfig.(map[string]interface{})
-				nestedKey := nestedConfigMap["key"].(string)
-				nestedValue := nestedConfigMap["value"].([]interface{})
-				nestedFields := make([]map[string]interface{}, len(nestedValue))
-				for j, nv := range nestedValue {
-					nvMap := nv.(map[string]interface{})
-					nestedField := make(map[string]interface{})
-					for nk, nv := range nvMap {
-						nestedField[nk] = nv
-					}
-					nestedFields[j] = nestedField
-				}
-				additionalFields[nestedKey] = nestedFields
-			}
-		}
-
 		payloadContent[i] = PayloadContent{
 			AdditionalFields:    additionalFields,
 			PayloadDescription:  pcMap["payload_description"].(string),
@@ -128,14 +107,16 @@ func GetTypedValue(value interface{}) interface{} {
 
 // ConvertPlistToHCL converts a plist XML string to HCL data. Used for stating the configuration profile data.
 func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
-
+	// Unmarshal the plist XML into a ConfigurationProfile struct
 	profile, err := UnmarshalPayload(plistXML)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal plist: %w", err)
 	}
 
+	// Convert the ConfigurationProfile struct to the format required by Terraform state
 	var payloadsList []interface{}
 
+	// Create a map for root-level fields
 	profileRootMap := map[string]interface{}{
 		"payload_description_root":        profile.PayloadDescription,
 		"payload_display_name_root":       profile.PayloadDisplayName,
@@ -149,35 +130,17 @@ func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
 		"payload_version_root":            profile.PayloadVersion,
 	}
 
+	// Convert each PayloadContent to the appropriate format
 	var payloadContentList []interface{}
 	for _, configurationPayload := range profile.PayloadContent {
-		configurations := make([]interface{}, 0)
-		nestedConfigurations := make([]interface{}, 0)
-
+		configurations := make([]interface{}, 0, len(configurationPayload.AdditionalFields))
 		for key, value := range configurationPayload.AdditionalFields {
 			// Ensure all values are converted to strings for storage in the state
-			switch val := value.(type) {
-			case []map[string]interface{}:
-				// Handle nested configuration
-				nestedConfigList := make([]interface{}, len(val))
-				for i, nestedMap := range val {
-					nestedConfig := make(map[string]interface{})
-					for nestedKey, nestedValue := range nestedMap {
-						nestedConfig[nestedKey] = fmt.Sprintf("%v", nestedValue)
-					}
-					nestedConfigList[i] = nestedConfig
-				}
-				nestedConfigurations = append(nestedConfigurations, map[string]interface{}{
-					"key":   key,
-					"value": nestedConfigList,
-				})
-			default:
-				strValue := fmt.Sprintf("%v", value)
-				configurations = append(configurations, map[string]interface{}{
-					"key":   key,
-					"value": strValue,
-				})
-			}
+			strValue := fmt.Sprintf("%v", value)
+			configurations = append(configurations, map[string]interface{}{
+				"key":   key,
+				"value": strValue,
+			})
 		}
 
 		// Reorder configurations based on the jamf pro server logic
@@ -196,13 +159,10 @@ func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
 			"configuration":        reorderedConfigurations,
 		}
 
-		if len(nestedConfigurations) > 0 {
-			payloadMap["nested_configuration"] = nestedConfigurations
-		}
-
 		payloadContentList = append(payloadContentList, payloadMap)
 	}
 
+	// Create the full payloads map
 	payloadsMap := map[string]interface{}{
 		"payload_root":    []interface{}{profileRootMap},
 		"payload_content": payloadContentList,
