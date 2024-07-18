@@ -4,6 +4,7 @@
 package plist
 
 import (
+	"encoding/json"
 	"fmt"
 	"html"
 	"log"
@@ -123,70 +124,95 @@ func GetTypedValue(value interface{}) interface{} {
 	return strValue
 }
 
-// ConvertPlistToHCL converts a plist XML string to HCL data. Used for stating the configuration profile data.
+// ConvertPlistToHCL converts a plist string back to the HCL format used in the Terraform state.
 func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
 	// Unmarshal the plist XML into a ConfigurationProfile struct
 	profile, err := UnmarshalPayload(plistXML)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal plist: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal plist XML: %w", err)
 	}
 
-	// Convert the ConfigurationProfile struct to the format required by Terraform state
-	var payloadsList []interface{}
-
-	// Create a map for root-level fields
-	profileRootMap := map[string]interface{}{
-		"payload_description_root":        profile.PayloadDescription,
-		"payload_display_name_root":       profile.PayloadDisplayName,
-		"payload_enabled_root":            profile.PayloadEnabled,
-		"payload_identifier_root":         profile.PayloadIdentifier,
-		"payload_organization_root":       profile.PayloadOrganization,
-		"payload_removal_disallowed_root": profile.PayloadRemovalDisallowed,
-		"payload_scope_root":              profile.PayloadScope,
-		"payload_type_root":               profile.PayloadType,
-		"payload_uuid_root":               profile.PayloadUUID,
-		"payload_version_root":            profile.PayloadVersion,
+	// Map ConfigurationProfile struct to HCL format
+	hclPayload := map[string]interface{}{
+		"payload_description_header":        profile.PayloadDescription,
+		"payload_display_name_header":       profile.PayloadDisplayName,
+		"payload_enabled_header":            profile.PayloadEnabled,
+		"payload_identifier_header":         profile.PayloadIdentifier,
+		"payload_organization_header":       profile.PayloadOrganization,
+		"payload_removal_disallowed_header": profile.PayloadRemovalDisallowed,
+		"payload_scope_header":              profile.PayloadScope,
+		"payload_type_header":               profile.PayloadType,
+		"payload_uuid_header":               profile.PayloadUUID,
+		"payload_version_header":            profile.PayloadVersion,
 	}
 
-	// Convert each PayloadContent to the appropriate format
-	var payloadContentList []interface{}
-	for _, configurationPayload := range profile.PayloadContent {
-		configurations := make([]interface{}, 0, len(configurationPayload.ConfigurationItems))
-		for key, value := range configurationPayload.ConfigurationItems {
-			// Ensure all values are converted to strings for storage in the state
-			strValue := fmt.Sprintf("%v", value)
-			configurations = append(configurations, map[string]interface{}{
-				"key":   key,
-				"value": strValue,
-			})
+	// Convert payload content
+	var payloadContents []interface{}
+	for _, payload := range profile.PayloadContent {
+		hclContent := map[string]interface{}{
+			"payload_description":  payload.PayloadDescription,
+			"payload_display_name": payload.PayloadDisplayName,
+			"payload_enabled":      payload.PayloadEnabled,
+			"payload_identifier":   payload.PayloadIdentifier,
+			"payload_organization": payload.PayloadOrganization,
+			"payload_type":         payload.PayloadType,
+			"payload_uuid":         payload.PayloadUUID,
+			"payload_version":      payload.PayloadVersion,
+			"payload_scope":        payload.PayloadScope,
 		}
 
-		// Reorder configurations based on the jamf pro server logic
-		reorderedConfigurations := reorderConfigurationKeys(configurations)
+		// Convert settings
+		var settings []interface{}
+		for key, value := range payload.ConfigurationItems {
+			setting := map[string]interface{}{
+				"key": key,
+			}
 
-		payloadMap := map[string]interface{}{
-			"payload_description":  configurationPayload.PayloadDescription,
-			"payload_display_name": configurationPayload.PayloadDisplayName,
-			"payload_enabled":      configurationPayload.PayloadEnabled,
-			"payload_identifier":   configurationPayload.PayloadIdentifier,
-			"payload_organization": configurationPayload.PayloadOrganization,
-			"payload_type":         configurationPayload.PayloadType,
-			"payload_uuid":         configurationPayload.PayloadUUID,
-			"payload_version":      configurationPayload.PayloadVersion,
-			"payload_scope":        configurationPayload.PayloadScope,
-			"configuration":        reorderedConfigurations,
+			// If the value is a dictionary, handle nested dictionaries
+			if dict, ok := value.(map[string]interface{}); ok {
+				setting["dictionary"] = convertNestedDictionaryToHCL(dict)
+				setting["value"] = ""
+			} else {
+				setting["value"] = GetTypedValue(value)
+			}
+
+			settings = append(settings, setting)
 		}
 
-		payloadContentList = append(payloadContentList, payloadMap)
+		hclContent["setting"] = settings
+		payloadContents = append(payloadContents, hclContent)
 	}
 
-	// Create the full payloads map
-	payloadsMap := map[string]interface{}{
-		"payload_root":    []interface{}{profileRootMap},
-		"payload_content": payloadContentList,
+	hclPayload["payload_content"] = payloadContents
+
+	// Print the structure in JSON format
+	hclPayloadJSON, err := json.MarshalIndent(hclPayload, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal HCL payload to JSON: %w", err)
 	}
+	fmt.Println(string(hclPayloadJSON))
 
-	payloadsList = append(payloadsList, payloadsMap)
+	return []interface{}{hclPayload}, nil
+}
 
-	return payloadsList, nil
+// convertNestedDictionaryToHCL converts a nested dictionary to HCL format.
+func convertNestedDictionaryToHCL(dict map[string]interface{}) []map[string]interface{} {
+	var result []map[string]interface{}
+	for key, value := range dict {
+		entry := map[string]interface{}{
+			"key": key,
+		}
+
+		// If the value is another nested dictionary, recursively convert it
+		if nestedDict, ok := value.(map[string]interface{}); ok {
+			entry["dictionary"] = convertNestedDictionaryToHCL(nestedDict)
+			entry["value"] = ""
+		} else {
+			entry["value"] = GetTypedValue(value)
+			entry["dictionary"] = []map[string]interface{}{}
+		}
+
+		result = append(result, entry)
+	}
+	return result
 }
