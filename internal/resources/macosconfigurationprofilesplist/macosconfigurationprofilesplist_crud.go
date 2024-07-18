@@ -56,15 +56,10 @@ func resourceJamfProMacOSConfigurationProfilesPlistRead(ctx context.Context, d *
 	resourceID := d.Id()
 	var diags diag.Diagnostics
 
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
-
 	var response *jamfpro.ResourceMacOSConfigurationProfile
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		response, apiErr = client.GetMacOSConfigurationProfileByID(resourceIDInt)
+		response, apiErr = client.GetMacOSConfigurationProfileByID(resourceID)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -94,18 +89,13 @@ func resourceJamfProMacOSConfigurationProfilesPlistUpdate(ctx context.Context, d
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
-
 	resource, err := constructJamfProMacOSConfigurationProfilePlist(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro macOS Configuration Profile for update: %v", err))
 	}
 
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := client.UpdateMacOSConfigurationProfileByID(resourceIDInt, resource)
+		_, apiErr := client.UpdateMacOSConfigurationProfileByID(resourceID, resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -113,7 +103,7 @@ func resourceJamfProMacOSConfigurationProfilesPlistUpdate(ctx context.Context, d
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro macOS Configuration Profile '%s' (ID: %d) after retries: %v", resource.General.Name, resourceIDInt, err))
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro macOS Configuration Profile '%s' (ID: %s) after retries: %v", resource.General.Name, resourceID, err))
 	}
 
 	return append(diags, resourceJamfProMacOSConfigurationProfilesPlistReadNoCleanup(ctx, d, meta)...)
@@ -125,15 +115,10 @@ func resourceJamfProMacOSConfigurationProfilesPlistDelete(ctx context.Context, d
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
-
 	resourceName := d.Get("name").(string)
 
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		apiErr := client.DeleteMacOSConfigurationProfileByID(resourceIDInt)
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
+		apiErr := client.DeleteMacOSConfigurationProfileByID(resourceID)
 		if apiErr != nil {
 			apiErrByName := client.DeleteMacOSConfigurationProfileByName(resourceName)
 			if apiErrByName != nil {
@@ -144,7 +129,7 @@ func resourceJamfProMacOSConfigurationProfilesPlistDelete(ctx context.Context, d
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro macOS Configuration Profile '%s' (ID: %d) after retries: %v", resourceName, resourceIDInt, err))
+		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro macOS Configuration Profile '%s' (ID: %s) after retries: %v", resourceName, resourceID, err))
 	}
 
 	d.SetId("")

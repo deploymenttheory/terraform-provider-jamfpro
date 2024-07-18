@@ -56,15 +56,10 @@ func resourceJamfProMobileDeviceConfigurationProfilePlistRead(ctx context.Contex
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
-
 	var response *jamfpro.ResourceMobileDeviceConfigurationProfile
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		response, apiErr = client.GetMobileDeviceConfigurationProfileByID(resourceIDInt)
+		response, apiErr = client.GetMobileDeviceConfigurationProfileByID(resourceID)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -94,18 +89,13 @@ func resourceJamfProMobileDeviceConfigurationProfilePlistUpdate(ctx context.Cont
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
-
 	resource, err := constructJamfProMobileDeviceConfigurationProfilePlist(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Mobile Device Configuration Profile for update: %v", err))
 	}
 
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := client.UpdateMobileDeviceConfigurationProfileByID(resourceIDInt, resource)
+		_, apiErr := client.UpdateMobileDeviceConfigurationProfileByID(resourceID, resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -125,13 +115,8 @@ func resourceJamfProMobileDeviceConfigurationProfilePlistDelete(ctx context.Cont
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
-
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		apiErr := client.DeleteMobileDeviceConfigurationProfileByID(resourceIDInt)
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
+		apiErr := client.DeleteMobileDeviceConfigurationProfileByID(resourceID)
 		if apiErr != nil {
 			resourceName := d.Get("name").(string)
 			apiErrByName := client.DeleteMobileDeviceConfigurationProfileByName(resourceName)

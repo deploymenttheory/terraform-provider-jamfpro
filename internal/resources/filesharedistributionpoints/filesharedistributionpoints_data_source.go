@@ -4,7 +4,6 @@ package filesharedistributionpoints
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -50,15 +49,10 @@ func DataSourceJamfProFileShareDistributionPointsRead(ctx context.Context, d *sc
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)
 
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
-
 	var resource *jamfpro.ResourceFileShareDistributionPoint
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		resource, apiErr = client.GetDistributionPointByID(resourceIDInt)
+		resource, apiErr = client.GetDistributionPointByID(resourceID)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
