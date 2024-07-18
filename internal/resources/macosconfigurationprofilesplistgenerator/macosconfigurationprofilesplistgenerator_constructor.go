@@ -23,7 +23,6 @@ func constructJamfProMacOSConfigurationProfilesPlistGenerator(d *schema.Resource
 	}
 	log.Println("LOGHERE-PLIST")
 	log.Println(plistXML)
-	return nil, fmt.Errorf("False error to stop execution")
 
 	resource = &jamfpro.ResourceMacOSConfigurationProfile{
 		General: jamfpro.MacOSConfigurationProfileSubsetGeneral{
