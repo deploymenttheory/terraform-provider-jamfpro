@@ -1,5 +1,5 @@
-// common/configurationprofiles/plist/conversion.go
-// Description: This file contains the functions to convert the HCL data to a plist XML string and vice versa.
+// // common/configurationprofiles/plist/conversion.go
+// // Description: This file contains the functions to convert the HCL data to a plist XML string and vice versa.
 
 package plist
 
@@ -14,69 +14,15 @@ import (
 	"howett.net/plist"
 )
 
-// ConvertHCLToPlist converts the HCL data and serializes it to a plist XML string.
-// A UUID is generated for the payload identifier and payload UUID for each payload.
-// This is required for a successful POST request to the Jamf Pro API.
+// ConvertHCLToPlist builds a plist from the Terraform HCL schema data
 func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
-	uuidStr := GenerateUUID()
-	// Extracting HCL data
-	payloads := d.Get("payloads").([]interface{})
-	if len(payloads) == 0 {
-		return "", fmt.Errorf("no payloads found in the provided HCL")
-	}
-
-	payloadData := payloads[0].(map[string]interface{})
-
-	payloadRootData := payloadData["payload_root"].([]interface{})[0].(map[string]interface{})
-	payloadContentData := payloadData["payload_content"].([]interface{})
-
-	payloadContent := make([]PayloadContent, len(payloadContentData))
-
-	for i, pc := range payloadContentData {
-		pcMap := pc.(map[string]interface{})
-		configurations := pcMap["configuration"].([]interface{})
-		additionalFields := make(map[string]interface{})
-		for _, config := range configurations {
-			configMap := config.(map[string]interface{})
-			key := configMap["key"].(string)
-			value := GetTypedValue(configMap["value"])
-			additionalFields[key] = value
-		}
-		payloadContent[i] = PayloadContent{
-			AdditionalFields:    additionalFields,
-			PayloadDescription:  pcMap["payload_description"].(string),
-			PayloadDisplayName:  pcMap["payload_display_name"].(string),
-			PayloadEnabled:      pcMap["payload_enabled"].(bool),
-			PayloadIdentifier:   uuidStr,
-			PayloadOrganization: pcMap["payload_organization"].(string),
-			PayloadType:         pcMap["payload_type"].(string),
-			PayloadUUID:         uuidStr,
-			PayloadVersion:      pcMap["payload_version"].(int),
-			PayloadScope:        pcMap["payload_scope"].(string),
-		}
-	}
-
-	// Creating a ConfigurationProfile struct from the extracted data
-	profile := &ConfigurationProfile{
-		PayloadDescription:       payloadRootData["payload_description_root"].(string),
-		PayloadDisplayName:       payloadRootData["payload_display_name_root"].(string),
-		PayloadEnabled:           payloadRootData["payload_enabled_root"].(bool),
-		PayloadIdentifier:        uuidStr,
-		PayloadOrganization:      payloadRootData["payload_organization_root"].(string),
-		PayloadRemovalDisallowed: payloadRootData["payload_removal_disallowed_root"].(bool),
-		PayloadScope:             payloadRootData["payload_scope_root"].(string),
-		PayloadType:              payloadRootData["payload_type_root"].(string),
-		PayloadUUID:              uuidStr,
-		PayloadVersion:           payloadRootData["payload_version_root"].(int),
-		PayloadContent:           payloadContent,
-	}
-
-	plistXML, err := MarshalPayload(profile)
+	profile := mapSchemaToProfile(d)
+	plistData, err := MarshalPayload(profile)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal profile to plist: %v", err)
+		return "", fmt.Errorf("failed to marshal plist: %w", err)
 	}
 
-	prettyPlistXML, err := plist.MarshalIndent(plistXML, plist.XMLFormat, "  ")
+	prettyPlistXML, err := plist.MarshalIndent(plistData, plist.XMLFormat, "  ")
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal profile to pretty plist: %v", err)
 	}
@@ -84,13 +30,91 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 
 	log.Printf("[DEBUG] Constructed Plist XML from HCL serialization:\n%s\n", unescapedPrettyPlistXML)
 
-	return plistXML, nil
+	return string(plistData), nil
+}
+
+// mapSchemaToProfile maps the Terraform schema data to the ConfigurationProfile struct
+func mapSchemaToProfile(d *schema.ResourceData) *ConfigurationProfile {
+	uuidStr := GenerateUUID()
+
+	// Initialize the profile with header level information
+	profile := &ConfigurationProfile{
+		PayloadDescription:       d.Get("payload_description_header").(string),
+		PayloadDisplayName:       d.Get("payload_display_name_header").(string),
+		PayloadEnabled:           d.Get("payload_enabled_header").(bool),
+		PayloadIdentifier:        uuidStr,
+		PayloadOrganization:      d.Get("payload_organization_header").(string),
+		PayloadRemovalDisallowed: d.Get("payload_removal_disallowed_header").(bool),
+		PayloadScope:             d.Get("payload_scope_header").(string),
+		PayloadType:              d.Get("payload_type_header").(string),
+		PayloadUUID:              uuidStr,
+		PayloadVersion:           d.Get("payload_version_header").(int),
+		PayloadContent:           []PayloadContent{},
+	}
+
+	// Retrieve the payloads from the schema
+	payloads := d.Get("payloads").([]interface{})
+	for _, p := range payloads {
+		payload := p.(map[string]interface{})
+		profilePayload := PayloadContent{
+			PayloadDescription:  payload["payload_description"].(string),
+			PayloadDisplayName:  payload["payload_display_name"].(string),
+			PayloadEnabled:      payload["payload_enabled"].(bool),
+			PayloadIdentifier:   uuidStr,
+			PayloadOrganization: payload["payload_organization"].(string),
+			PayloadType:         payload["payload_type"].(string),
+			PayloadUUID:         uuidStr,
+			PayloadVersion:      payload["payload_version"].(int),
+			PayloadScope:        payload["payload_scope"].(string),
+			AdditionalFields:    make(map[string]interface{}),
+		}
+
+		// Retrieve the payload contents
+		payloadContents := payload["payload_content"].([]interface{})
+		for _, c := range payloadContents {
+			content := c.(map[string]interface{})
+			settings := content["setting"].([]interface{})
+			for _, s := range settings {
+				settingMap := s.(map[string]interface{})
+				dictionary := parseNestedDictionary(settingMap["dictionary"])
+				payloadContent := map[string]interface{}{
+					"key":        settingMap["key"].(string),
+					"value":      GetTypedValue(settingMap["value"]),
+					"dictionary": dictionary,
+				}
+				profilePayload.AdditionalFields[settingMap["key"].(string)] = payloadContent
+			}
+		}
+		profile.PayloadContent = append(profile.PayloadContent, profilePayload)
+	}
+
+	return profile
+}
+
+// parseNestedDictionary recursively parses the nested dictionary structure
+func parseNestedDictionary(dict interface{}) map[string]interface{} {
+	if dict == nil {
+		return nil
+	}
+
+	result := make(map[string]interface{})
+	dictionary := dict.([]interface{})
+	for _, item := range dictionary {
+		entry := item.(map[string]interface{})
+		key := entry["key"].(string)
+		value := GetTypedValue(entry["value"])
+		if nestedDict, ok := entry["dictionary"].([]interface{}); ok {
+			value = parseNestedDictionary(nestedDict)
+		}
+		result[key] = value
+	}
+
+	return result
 }
 
 // GenerateUUID generates a new UUID string
 func GenerateUUID() string {
-	uuid := uuid.New()
-	return uuid.String()
+	return uuid.New().String()
 }
 
 // GetTypedValue converts the value from the HCL always stored as string into the appropriate type for plist serialization.

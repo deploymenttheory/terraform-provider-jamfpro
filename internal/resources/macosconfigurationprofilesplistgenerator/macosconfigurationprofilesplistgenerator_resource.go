@@ -5,11 +5,111 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
+
+/* --------- A mapping of how terraform schema correlates to plist structure ---------
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <!-- PayloadContent corresponds to payload_content in the schema -->
+        <key>PayloadContent</key>
+        <array>
+            <dict>
+                <!-- Example payload 1 -->
+                <key>AllowUserOverrides</key> <!-- hcl schema: payload_content.setting.key -->
+                <true/> <!-- hcl schema: payload_content.setting.value -->
+                <key>AllowedSystemExtensions</key> <!-- hcl schema: payload_content.setting.key -->
+                <dict> <!-- hcl schema: payload_content.setting.dictionary -->
+                    <key>H8P3P53Q9W</key> <!-- hcl schema: payload_content.setting.key -->
+                    <array>
+                        <string>com.axissecurity.client.com-axissecurity-client-SystemNetworkExtension</string> <!-- hcl schema: payload_content.setting.value -->
+                    </array>
+                </dict>
+                <!-- Payload-level metadata fields in the plist -->
+                <key>PayloadDescription</key> <!-- hcl schema: payload_description -->
+                <string/>
+                <key>PayloadDisplayName</key> <!-- hcl schema: payload_display_name -->
+                <string>System Extension Policy</string>
+                <key>PayloadEnabled</key> <!-- hcl schema: payload_enabled -->
+                <true/>
+                <key>PayloadIdentifier</key> <!-- hcl schema: payload_identifier -->
+                <string>com.apple.system-extension-policy.70B93937-265D-431B-9DF6-A7E031A368EF</string>
+                <key>PayloadOrganization</key> <!-- hcl schema: payload_organization -->
+                <string>Deployment Theory</string>
+                <key>PayloadType</key> <!-- hcl schema: payload_type -->
+                <string>com.apple.system-extension-policy</string>
+                <key>PayloadUUID</key> <!-- hcl schema: payload_uuid -->
+                <string>EF513BF0-9C22-4FBE-9559-7EE838CE7AFC</string>
+                <key>PayloadVersion</key> <!-- hcl schema: payload_version -->
+                <integer>1</integer>
+            </dict>
+            <dict>
+                <!-- Example payload 2 -->
+                <key>NotificationSettings</key> <!-- hcl schema: payload_content.setting.key -->
+                <array>
+                    <dict>
+                        <key>AlertType</key> <!-- hcl schema: payload_content.setting.key -->
+                        <integer>2</integer> <!-- hcl schema: payload_content.setting.value -->
+                        <key>BadgesEnabled</key> <!-- hcl schema: payload_content.setting.key -->
+                        <true/> <!-- hcl schema: payload_content.setting.value -->
+                        <key>BundleIdentifier</key> <!-- hcl schema: payload_content.setting.key -->
+                        <string>com.axissecurity.client.ui</string> <!-- hcl schema: payload_content.setting.value -->
+                        <key>CriticalAlertEnabled</key> <!-- hcl schema: payload_content.setting.key -->
+                        <true/> <!-- hcl schema: payload_content.setting.value -->
+                        <key>NotificationsEnabled</key> <!-- hcl schema: payload_content.setting.key -->
+                        <true/> <!-- hcl schema: payload_content.setting.value -->
+                        <key>ShowInLockScreen</key> <!-- hcl schema: payload_content.setting.key -->
+                        <true/> <!-- hcl schema: payload_content.setting.value -->
+                        <key>ShowInNotificationCenter</key> <!-- hcl schema: payload_content.setting.key -->
+                        <true/> <!-- hcl schema: payload_content.setting.value -->
+                        <key>SoundsEnabled</key> <!-- hcl schema: payload_content.setting.key -->
+                        <true/> <!-- hcl schema: payload_content.setting.value -->
+                    </dict>
+                </array>
+                <!-- Payload-level metadata fields in the plist -->
+                <key>PayloadDisplayName</key> <!-- hcl schema: payload_display_name -->
+                <string>Notifications Payload</string>
+                <key>PayloadIdentifier</key> <!-- hcl schema: payload_identifier -->
+                <string>BFA5BB51-886B-4DB9-9A3C-AF67FB627F7A</string>
+                <key>PayloadOrganization</key> <!-- hcl schema: payload_organization -->
+                <string>JAMF Software</string>
+                <key>PayloadType</key> <!-- hcl schema: payload_type -->
+                <string>com.apple.notificationsettings</string>
+                <key>PayloadUUID</key> <!-- hcl schema: payload_uuid -->
+                <string>531AC0A1-87CE-498B-8AFC-14898BEC84B3</string>
+                <key>PayloadVersion</key> <!-- hcl schema: payload_version -->
+                <integer>1</integer>
+            </dict>
+        </array>
+        <!-- Root-level 'header' metadata fields in the plist -->
+        <key>PayloadDescription</key> <!-- hcl schema: payload_description_header -->
+        <string/>
+        <key>PayloadDisplayName</key> <!-- hcl schema: payload_display_name_header -->
+        <string>mcp-deploy-axis_security_ext-0.0.1-prod-eu-0-0</string>
+        <key>PayloadEnabled</key> <!-- hcl schema: payload_enabled_header -->
+        <true/>
+        <key>PayloadIdentifier</key> <!-- hcl schema: payload_identifier_header -->
+        <string>com.axissecurity.client.profile</string>
+        <key>PayloadOrganization</key> <!-- hcl schema: payload_organization_header -->
+        <string>Deployment Theory</string>
+        <key>PayloadRemovalDisallowed</key> <!-- hcl schema: payload_removal_disallowed_header -->
+        <true/>
+        <key>PayloadScope</key> <!-- hcl schema: payload_scope_header -->
+        <string>System</string>
+        <key>PayloadType</key> <!-- hcl schema: payload_type_header -->
+        <string>Configuration</string>
+        <key>PayloadUUID</key> <!-- hcl schema: payload_uuid_header -->
+        <string>1A803CC7-58DB-43DC-A783-D20C4D9A033A</string>
+        <key>PayloadVersion</key> <!-- hcl schema: payload_version_header -->
+        <integer>1</integer>
+    </dict>
+</plist>
+*/
 
 // resourceJamfProMacOSConfigurationProfilesPlistGenerator defines the schema and CRUD operations for managing Jamf Pro macOS Configuration Profiles in Terraform.
 func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource {
@@ -78,90 +178,68 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 				Description: "A list of payloads for the macOS configuration profile.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"payload_root": {
-							Type:        schema.TypeList,
+						"payload_description_header": {
+							Type:        schema.TypeString,
 							Required:    true,
-							Description: "The root level of the payloads.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"payload_description_root": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "Description of the payload.",
-									},
-									"payload_display_name_root": {
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: "Display name of the payload.",
-									},
-									"payload_enabled_root": {
-										Type:        schema.TypeBool,
-										Required:    true,
-										Description: "Whether the payload is enabled.",
-									},
-									"payload_identifier_root": {
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: "Identifier for the payload.",
-									},
-									"payload_organization_root": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "Organization associated with the payload.",
-									},
-									"payload_removal_disallowed_root": {
-										Type:        schema.TypeBool,
-										Optional:    true,
-										Description: "Whether the payload removal is disallowed.",
-									},
-									"payload_scope_root": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "Scope of the payload. Computed by what is set by level. 'System' or 'User'.",
-									},
-									"payload_type_root": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "Type of the config profile payload.",
-									},
-									"payload_uuid_root": {
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: "UUID of the payload.",
-									},
-									"payload_version_root": {
-										Type:        schema.TypeInt,
-										Required:    true,
-										Description: "Version of the payload.",
-									},
-								},
-							},
+							Description: "Description of the payload at the header level of the plist. This provides a human-readable explanation of what the overall profile is intended to do or configure.",
+						},
+						"payload_display_name_header": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "The display name of the payload at the header level of the plist. This is shown in user interfaces to identify the overall profile to users and administrators. Jamf Pro matches this to the name of the configuation profile, 'name' at the top of the schema.",
+						},
+						"payload_enabled_header": {
+							Type:        schema.TypeBool,
+							Required:    true,
+							Description: "Indicates whether the payload is enabled at the header level of the plist. If set to false, the overall profile will be disabled.",
+						},
+						"payload_identifier_header": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "A unique identifier for the payload within the MDM profile at the header level of the plist. This identifier is used to track and reference the overall profile uniquely.",
+						},
+						"payload_organization_header": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The organization associated with the payload at the header level of the plist. This represents the entity that created or is responsible for the overall profile.",
+						},
+						"payload_type_header": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The type of the config profile payload at the header level of the plist. This indicates what kind of settings or configurations the overall profile applies.",
+						},
+						"payload_uuid_header": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The UUID for the payload within the MDM profile at the header level of the plist. This ensures the uniqueness of the overall profile.",
+						},
+						"payload_version_header": {
+							Type:        schema.TypeInt,
+							Required:    true,
+							Description: "The version of the payload at the header level of the plist. This helps in identifying the version of the overall profile settings or configurations being applied.",
+						},
+						"payload_removal_disallowed_header": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Indicates whether the removal of the payload is disallowed. If set to true, the MDM profile cannot be removed by users.",
+						},
+						"payload_scope_header": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "The scope of the payload at the header level of the plist. This defines the context in which the overall profile settings are applied, can be either 'System' or 'User'.",
 						},
 						"payload_content": {
 							Type:        schema.TypeList,
-							Optional:    true,
-							Description: "Content of the payload.",
+							Required:    true,
+							Description: "The payload content of the macOS configuration profile plist. Multiple payloads can be defined as needed.Defined as key value pairs and supports nested dictionaries.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"configuration": {
-										Type:             schema.TypeList,
-										Optional:         true,
-										StateFunc:        plist.NormalizePayloadState,
-										DiffSuppressFunc: DiffSuppressPayloads,
-										Description:      "A list of key-value pairs for the macOS configuration profile payload.",
+									"setting": {
+										Type:        schema.TypeList,
+										Optional:    true,
+										Description: "The key and value setting items of the macOS configuration profile plist",
 										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"key": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "The key for the plist entry.",
-												},
-												"value": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "The value for the plist entry.",
-												},
-											},
+											Schema: payloadContentSchema().Schema,
 										},
 									},
 									"payload_description": {
@@ -182,27 +260,12 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 									"payload_identifier": {
 										Type:        schema.TypeString,
 										Computed:    true,
-										Description: "Unique identifier for the payload within the mdm profile. Required for a valid request to be sent but then overwritten by the Jamf Pro server. This key changes every time a profile is updated.",
+										Description: "Identifier for the payload.A GUID.",
 									},
 									"payload_organization": {
 										Type:        schema.TypeString,
 										Required:    true,
 										Description: "Organization associated with the payload.",
-									},
-									"payload_type": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "Type of the config profile payload.",
-									},
-									"payload_uuid": {
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: "payload UUID for the payload within the mdm profile. Required for a valid request to be sent but then overwritten by the Jamf Pro server. This key changes every time a profile is updated.",
-									},
-									"payload_version": {
-										Type:        schema.TypeInt,
-										Required:    true,
-										Description: "Version of the payload.",
 									},
 									"payload_removal_disallowed": {
 										Type:        schema.TypeBool,
@@ -213,6 +276,21 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 										Type:        schema.TypeString,
 										Optional:    true,
 										Description: "Scope of the payload. Computed by what is set by level. 'System' or 'User'.",
+									},
+									"payload_type": {
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: "Type of the config profile payload.",
+									},
+									"payload_uuid": {
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: "UUID of the payload.",
+									},
+									"payload_version": {
+										Type:        schema.TypeInt,
+										Required:    true,
+										Description: "Version of the payload.",
 									},
 								},
 							},
@@ -340,6 +418,57 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 					},
 				},
 			},
+		},
+	}
+}
+
+// Define a finite level of nested dictionaries
+func nestedDictionarySchema(level int) *schema.Schema {
+	if level <= 0 {
+		return &schema.Schema{
+			Type:        schema.TypeMap,
+			Optional:    true,
+			Description: "A nested dictionary structure for xml plist definition.",
+			Elem:        schema.TypeString,
+		}
+	}
+	return &schema.Schema{
+		Type:        schema.TypeList,
+		Optional:    true,
+		Description: "A nested dictionary structure.",
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"key": {
+					Type:        schema.TypeString,
+					Required:    true,
+					Description: "The key for the dictionary entry.",
+				},
+				"value": {
+					Type:        schema.TypeString,
+					Optional:    true,
+					Description: "The value for the dictionary entry.",
+				},
+				"dictionary": nestedDictionarySchema(level - 1),
+			},
+		},
+	}
+}
+
+// Define the payload content schema with limited depth
+func payloadContentSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"key": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The key for the xml plist entry.",
+			},
+			"value": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The value for the xml plist entry.",
+			},
+			"dictionary": nestedDictionarySchema(6),
 		},
 	}
 }
