@@ -18,7 +18,9 @@ import (
 // A UUID is generated for the payload identifier and payload UUID for each payload.
 // This is required for a successful POST request to the Jamf Pro API.
 func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
+	// Generate UUID for root and payloads
 	uuidStr := GenerateUUID()
+
 	// Extracting HCL data
 	payloads := d.Get("payloads").([]interface{})
 	if len(payloads) == 0 {
@@ -27,19 +29,19 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 
 	payloadData := payloads[0].(map[string]interface{})
 
-	payloadRootData := payloadData["payload_root"].([]interface{})[0].(map[string]interface{})
+	// Extract payload content data
 	payloadContentData := payloadData["payload_content"].([]interface{})
 
+	// Convert payload content data
 	payloadContent := make([]PayloadContent, len(payloadContentData))
-
 	for i, pc := range payloadContentData {
 		pcMap := pc.(map[string]interface{})
-		configurations := pcMap["configuration"].([]interface{})
+		settingData := pcMap["setting"].([]interface{})
 		additionalFields := make(map[string]interface{})
-		for _, config := range configurations {
-			configMap := config.(map[string]interface{})
-			key := configMap["key"].(string)
-			value := GetTypedValue(configMap["value"])
+		for _, setting := range settingData {
+			settingMap := setting.(map[string]interface{})
+			key := settingMap["key"].(string)
+			value := extractAndParseValue(settingMap["value"])
 			additionalFields[key] = value
 		}
 		payloadContent[i] = PayloadContent{
@@ -58,16 +60,16 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 
 	// Creating a ConfigurationProfile struct from the extracted data
 	profile := &ConfigurationProfile{
-		PayloadDescription:       payloadRootData["payload_description_root"].(string),
-		PayloadDisplayName:       payloadRootData["payload_display_name_root"].(string),
-		PayloadEnabled:           payloadRootData["payload_enabled_root"].(bool),
+		PayloadDescription:       d.Get("payload_description_header").(string),
+		PayloadDisplayName:       d.Get("payload_display_name_header").(string),
+		PayloadEnabled:           d.Get("payload_enabled_header").(bool),
 		PayloadIdentifier:        uuidStr,
-		PayloadOrganization:      payloadRootData["payload_organization_root"].(string),
-		PayloadRemovalDisallowed: payloadRootData["payload_removal_disallowed_root"].(bool),
-		PayloadScope:             payloadRootData["payload_scope_root"].(string),
-		PayloadType:              payloadRootData["payload_type_root"].(string),
+		PayloadOrganization:      d.Get("payload_organization_header").(string),
+		PayloadRemovalDisallowed: d.Get("payload_removal_disallowed_header").(bool),
+		PayloadScope:             d.Get("payload_scope_header").(string),
+		PayloadType:              d.Get("payload_type_header").(string),
 		PayloadUUID:              uuidStr,
-		PayloadVersion:           payloadRootData["payload_version_root"].(int),
+		PayloadVersion:           d.Get("payload_version_header").(int),
 		PayloadContent:           payloadContent,
 	}
 
@@ -85,6 +87,33 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 	log.Printf("[DEBUG] Constructed Plist XML from HCL serialization:\n%s\n", unescapedPrettyPlistXML)
 
 	return plistXML, nil
+}
+
+// extractAndParseValue recursively retrieves nested values from a schema structure and parses them.
+func extractAndParseValue(value interface{}) interface{} {
+	switch v := value.(type) {
+	case []interface{}:
+		if len(v) > 0 {
+			firstElem := v[0].(map[string]interface{})
+			nestedValue := extractAndParseValue(firstElem["value"])
+			if dictionary, ok := firstElem["dictionary"].([]interface{}); ok && len(dictionary) > 0 {
+				return map[string]interface{}{
+					"key":        firstElem["key"].(string),
+					"value":      nestedValue,
+					"dictionary": extractAndParseValue(dictionary),
+				}
+			}
+			return map[string]interface{}{
+				"key":   firstElem["key"].(string),
+				"value": nestedValue,
+			}
+		}
+		return nil
+	case map[string]interface{}:
+		return extractAndParseValue(v["value"])
+	default:
+		return GetTypedValue(value)
+	}
 }
 
 // GenerateUUID generates a new UUID string
