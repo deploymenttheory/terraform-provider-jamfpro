@@ -22,7 +22,10 @@ require (
 	howett.net/plist v1.0.1
 )
 
-require go.uber.org/zap v1.27.0
+require (
+	github.com/google/uuid v1.6.0
+	go.uber.org/zap v1.27.0
+)
 
 require (
 	github.com/agext/levenshtein v1.2.3 // indirect
@@ -53,7 +56,6 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/go-plugin v1.6.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/hashicorp/go-version v1.7.0 // indirect

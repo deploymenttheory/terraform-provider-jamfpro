@@ -35,60 +35,59 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 
 // mapSchemaToProfile maps the Terraform schema data to the ConfigurationProfile struct
 func mapSchemaToProfile(d *schema.ResourceData) *ConfigurationProfile {
-	uuidStr := GenerateUUID()
+	uuidStr := uuid.New().String()
 
-	// Initialize the profile with header level information
-	profile := &ConfigurationProfile{
-		PayloadDescription:       d.Get("payload_description_header").(string),
-		PayloadDisplayName:       d.Get("payload_display_name_header").(string),
-		PayloadEnabled:           d.Get("payload_enabled_header").(bool),
+	// Root Level
+	out := &ConfigurationProfile{
+		PayloadDescription:       d.Get("payloads.0.payload_description_header").(string),
+		PayloadDisplayName:       d.Get("payloads.0.payload_display_name_header").(string),
+		PayloadEnabled:           d.Get("payloads.0.payload_enabled_header").(bool),
 		PayloadIdentifier:        uuidStr,
-		PayloadOrganization:      d.Get("payload_organization_header").(string),
-		PayloadRemovalDisallowed: d.Get("payload_removal_disallowed_header").(bool),
-		PayloadScope:             d.Get("payload_scope_header").(string),
-		PayloadType:              d.Get("payload_type_header").(string),
+		PayloadOrganization:      d.Get("payloads.0.payload_organization_header").(string),
+		PayloadRemovalDisallowed: d.Get("payloads.0.payload_removal_disallowed_header").(bool),
+		PayloadScope:             d.Get("payloads.0.payload_scope_header").(string),
+		PayloadType:              d.Get("payloads.0.payload_type_header").(string),
 		PayloadUUID:              uuidStr,
-		PayloadVersion:           d.Get("payload_version_header").(int),
-		PayloadContent:           []PayloadContent{},
+		PayloadVersion:           d.Get("payloads.0.payload_version_header").(int),
 	}
 
-	// Retrieve the payloads from the schema
-	payloads := d.Get("payloads").([]interface{})
-	for _, p := range payloads {
-		payload := p.(map[string]interface{})
-		profilePayload := PayloadContent{
-			PayloadDescription:  payload["payload_description"].(string),
-			PayloadDisplayName:  payload["payload_display_name"].(string),
-			PayloadEnabled:      payload["payload_enabled"].(bool),
-			PayloadIdentifier:   uuidStr,
-			PayloadOrganization: payload["payload_organization"].(string),
-			PayloadType:         payload["payload_type"].(string),
-			PayloadUUID:         uuidStr,
-			PayloadVersion:      payload["payload_version"].(int),
-			PayloadScope:        payload["payload_scope"].(string),
-			AdditionalFields:    make(map[string]interface{}),
+	// Contents
+	payloadContents := d.Get("payloads.0.payload_content").([]interface{})
+	for _, v := range payloadContents {
+		val := v.(map[string]interface{})
+		payloadContentStruct := PayloadContent{
+			PayloadDescription:  val["payload_description"].(string),
+			PayloadDisplayName:  val["payload_display_name"].(string),
+			PayloadEnabled:      val["payload_enabled"].(bool),
+			PayloadIdentifier:   val["payload_identifier"].(string),
+			PayloadOrganization: val["payload_organization"].(string),
+			PayloadType:         val["payload_type"].(string),
+			PayloadUUID:         val["payload_uuid"].(string),
+			PayloadVersion:      val["payload_version"].(int),
+			PayloadScope:        val["payload_scope"].(string),
 		}
 
-		// Retrieve the payload contents
-		payloadContents := payload["payload_content"].([]interface{})
-		for _, c := range payloadContents {
-			content := c.(map[string]interface{})
-			settings := content["setting"].([]interface{})
-			for _, s := range settings {
-				settingMap := s.(map[string]interface{})
-				dictionary := parseNestedDictionary(settingMap["dictionary"])
-				payloadContent := map[string]interface{}{
-					"key":        settingMap["key"].(string),
-					"value":      GetTypedValue(settingMap["value"]),
-					"dictionary": dictionary,
-				}
-				profilePayload.AdditionalFields[settingMap["key"].(string)] = payloadContent
+		settings := val["setting"].([]interface{})
+		if len(settings) == 0 {
+			return out
+		}
+
+		payloadContentStruct.ConfigurationItems = make(map[string]interface{}, 0)
+		for _, s := range settings {
+			settingMap := s.(map[string]interface{})
+			dictionary := parseNestedDictionary(settingMap["dictionary"])
+			payloadContent := map[string]interface{}{
+				"key":        settingMap["key"].(string),
+				"value":      GetTypedValue(settingMap["value"]),
+				"dictionary": dictionary,
 			}
+			payloadContentStruct.ConfigurationItems[settingMap["key"].(string)] = payloadContent
 		}
-		profile.PayloadContent = append(profile.PayloadContent, profilePayload)
+
+		out.PayloadContent = append(out.PayloadContent, payloadContentStruct)
 	}
 
-	return profile
+	return out
 }
 
 // parseNestedDictionary recursively parses the nested dictionary structure
@@ -112,11 +111,6 @@ func parseNestedDictionary(dict interface{}) map[string]interface{} {
 	return result
 }
 
-// GenerateUUID generates a new UUID string
-func GenerateUUID() string {
-	return uuid.New().String()
-}
-
 // GetTypedValue converts the value from the HCL always stored as string into the appropriate type for plist serialization.
 func GetTypedValue(value interface{}) interface{} {
 	strValue := fmt.Sprintf("%v", value)
@@ -129,70 +123,93 @@ func GetTypedValue(value interface{}) interface{} {
 	return strValue
 }
 
-// ConvertPlistToHCL converts a plist XML string to HCL data. Used for stating the configuration profile data.
+// ConvertPlistToHCL converts a plist XML string to Terraform HCL schema data
 func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
-	// Unmarshal the plist XML into a ConfigurationProfile struct
-	profile, err := UnmarshalPayload(plistXML)
-	if err != nil {
+	var profile ConfigurationProfile
+	if _, err := plist.Unmarshal([]byte(plistXML), &profile); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal plist: %w", err)
 	}
 
-	// Convert the ConfigurationProfile struct to the format required by Terraform state
-	var payloadsList []interface{}
-
-	// Create a map for root-level fields
-	profileRootMap := map[string]interface{}{
-		"payload_description_root":        profile.PayloadDescription,
-		"payload_display_name_root":       profile.PayloadDisplayName,
-		"payload_enabled_root":            profile.PayloadEnabled,
-		"payload_identifier_root":         profile.PayloadIdentifier,
-		"payload_organization_root":       profile.PayloadOrganization,
-		"payload_removal_disallowed_root": profile.PayloadRemovalDisallowed,
-		"payload_scope_root":              profile.PayloadScope,
-		"payload_type_root":               profile.PayloadType,
-		"payload_uuid_root":               profile.PayloadUUID,
-		"payload_version_root":            profile.PayloadVersion,
+	payloadsList, err := mapProfileToSchema(&profile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to map profile to schema: %w", err)
 	}
 
-	// Convert each PayloadContent to the appropriate format
-	var payloadContentList []interface{}
-	for _, configurationPayload := range profile.PayloadContent {
-		configurations := make([]interface{}, 0, len(configurationPayload.AdditionalFields))
-		for key, value := range configurationPayload.AdditionalFields {
-			// Ensure all values are converted to strings for storage in the state
-			strValue := fmt.Sprintf("%v", value)
-			configurations = append(configurations, map[string]interface{}{
-				"key":   key,
-				"value": strValue,
-			})
-		}
-
-		// Reorder configurations based on the jamf pro server logic
-		reorderedConfigurations := reorderConfigurationKeys(configurations)
-
-		payloadMap := map[string]interface{}{
-			"payload_description":  configurationPayload.PayloadDescription,
-			"payload_display_name": configurationPayload.PayloadDisplayName,
-			"payload_enabled":      configurationPayload.PayloadEnabled,
-			"payload_identifier":   configurationPayload.PayloadIdentifier,
-			"payload_organization": configurationPayload.PayloadOrganization,
-			"payload_type":         configurationPayload.PayloadType,
-			"payload_uuid":         configurationPayload.PayloadUUID,
-			"payload_version":      configurationPayload.PayloadVersion,
-			"payload_scope":        configurationPayload.PayloadScope,
-			"configuration":        reorderedConfigurations,
-		}
-
-		payloadContentList = append(payloadContentList, payloadMap)
-	}
-
-	// Create the full payloads map
-	payloadsMap := map[string]interface{}{
-		"payload_root":    []interface{}{profileRootMap},
-		"payload_content": payloadContentList,
-	}
-
-	payloadsList = append(payloadsList, payloadsMap)
+	log.Printf("[DEBUG] Constructed HCL schema from plist:\n%+v\n", payloadsList)
 
 	return payloadsList, nil
+}
+
+// mapProfileToSchema maps the ConfigurationProfile struct data to the Terraform schema
+func mapProfileToSchema(profile *ConfigurationProfile) ([]interface{}, error) {
+	payloadHeader := map[string]interface{}{
+		"payload_description_header":        profile.PayloadDescription,
+		"payload_display_name_header":       profile.PayloadDisplayName,
+		"payload_enabled_header":            profile.PayloadEnabled,
+		"payload_identifier_header":         profile.PayloadIdentifier,
+		"payload_organization_header":       profile.PayloadOrganization,
+		"payload_removal_disallowed_header": profile.PayloadRemovalDisallowed,
+		"payload_scope_header":              profile.PayloadScope,
+		"payload_type_header":               profile.PayloadType,
+		"payload_uuid_header":               profile.PayloadUUID,
+		"payload_version_header":            profile.PayloadVersion,
+	}
+
+	payloadContentList := []interface{}{}
+	for _, content := range profile.PayloadContent {
+		payloadContent := map[string]interface{}{
+			"payload_description":  content.PayloadDescription,
+			"payload_display_name": content.PayloadDisplayName,
+			"payload_enabled":      content.PayloadEnabled,
+			"payload_identifier":   content.PayloadIdentifier,
+			"payload_organization": content.PayloadOrganization,
+			"payload_type":         content.PayloadType,
+			"payload_uuid":         content.PayloadUUID,
+			"payload_version":      content.PayloadVersion,
+			"payload_scope":        content.PayloadScope,
+		}
+
+		settingsList := []interface{}{}
+		for _, itemInterface := range content.ConfigurationItems {
+			item, ok := itemInterface.(map[string]interface{})
+			if !ok {
+				return nil, fmt.Errorf("invalid configuration item format")
+			}
+			settingMap := map[string]interface{}{
+				"key":        item["key"],
+				"value":      item["value"],
+				"dictionary": marshalNestedDictionary(item["dictionary"]),
+			}
+			settingsList = append(settingsList, settingMap)
+		}
+
+		payloadContent["setting"] = settingsList
+		payloadContentList = append(payloadContentList, payloadContent)
+	}
+
+	payloadHeader["payload_content"] = payloadContentList
+
+	return []interface{}{payloadHeader}, nil
+}
+
+// marshalNestedDictionary converts the nested dictionary structure back to an appropriate format
+func marshalNestedDictionary(dict interface{}) []interface{} {
+	if dict == nil {
+		return nil
+	}
+
+	result := []interface{}{}
+	dictionary := dict.(map[string]interface{})
+	for key, value := range dictionary {
+		entry := map[string]interface{}{
+			"key":   key,
+			"value": value,
+		}
+		if nestedDict, ok := value.(map[string]interface{}); ok {
+			entry["dictionary"] = marshalNestedDictionary(nestedDict)
+		}
+		result = append(result, entry)
+	}
+
+	return result
 }
