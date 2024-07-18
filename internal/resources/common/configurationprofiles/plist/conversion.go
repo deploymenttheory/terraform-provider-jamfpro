@@ -4,7 +4,6 @@
 package plist
 
 import (
-	"encoding/json"
 	"fmt"
 	"html"
 	"log"
@@ -124,16 +123,26 @@ func GetTypedValue(value interface{}) interface{} {
 	return strValue
 }
 
-// ConvertPlistToHCL converts a plist string back to the HCL format used in the Terraform state.
+// ConvertPlistToHCL converts a plist XML string to Terraform HCL schema data
 func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
-	// Unmarshal the plist XML into a ConfigurationProfile struct
-	profile, err := UnmarshalPayload(plistXML)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal plist XML: %w", err)
+	var profile ConfigurationProfile
+	if _, err := plist.Unmarshal([]byte(plistXML), &profile); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal plist: %w", err)
 	}
 
-	// Map ConfigurationProfile struct to HCL format
-	hclPayload := map[string]interface{}{
+	payloadsList, err := mapProfileToSchema(&profile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to map profile to schema: %w", err)
+	}
+
+	log.Printf("[DEBUG] Constructed HCL schema from plist:\n%+v\n", payloadsList)
+
+	return payloadsList, nil
+}
+
+// mapProfileToSchema maps the ConfigurationProfile struct data to the Terraform schema
+func mapProfileToSchema(profile *ConfigurationProfile) ([]interface{}, error) {
+	payloadHeader := map[string]interface{}{
 		"payload_description_header":        profile.PayloadDescription,
 		"payload_display_name_header":       profile.PayloadDisplayName,
 		"payload_enabled_header":            profile.PayloadEnabled,
@@ -146,73 +155,61 @@ func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
 		"payload_version_header":            profile.PayloadVersion,
 	}
 
-	// Convert payload content
-	var payloadContents []interface{}
-	for _, payload := range profile.PayloadContent {
-		hclContent := map[string]interface{}{
-			"payload_description":  payload.PayloadDescription,
-			"payload_display_name": payload.PayloadDisplayName,
-			"payload_enabled":      payload.PayloadEnabled,
-			"payload_identifier":   payload.PayloadIdentifier,
-			"payload_organization": payload.PayloadOrganization,
-			"payload_type":         payload.PayloadType,
-			"payload_uuid":         payload.PayloadUUID,
-			"payload_version":      payload.PayloadVersion,
-			"payload_scope":        payload.PayloadScope,
+	payloadContentList := []interface{}{}
+	for _, content := range profile.PayloadContent {
+		payloadContent := map[string]interface{}{
+			"payload_description":  content.PayloadDescription,
+			"payload_display_name": content.PayloadDisplayName,
+			"payload_enabled":      content.PayloadEnabled,
+			"payload_identifier":   content.PayloadIdentifier,
+			"payload_organization": content.PayloadOrganization,
+			"payload_type":         content.PayloadType,
+			"payload_uuid":         content.PayloadUUID,
+			"payload_version":      content.PayloadVersion,
+			"payload_scope":        content.PayloadScope,
 		}
 
-		// Convert settings
-		var settings []interface{}
-		for key, value := range payload.ConfigurationItems {
-			setting := map[string]interface{}{
-				"key": key,
+		settingsList := []interface{}{}
+		for _, itemInterface := range content.ConfigurationItems {
+			item, ok := itemInterface.(map[string]interface{})
+			if !ok {
+				return nil, fmt.Errorf("invalid configuration item format")
 			}
-
-			// If the value is a dictionary, handle nested dictionaries
-			if dict, ok := value.(map[string]interface{}); ok {
-				setting["dictionary"] = convertNestedDictionaryToHCL(dict)
-				setting["value"] = ""
-			} else {
-				setting["value"] = GetTypedValue(value)
+			settingMap := map[string]interface{}{
+				"key":        item["key"],
+				"value":      item["value"],
+				"dictionary": marshalNestedDictionary(item["dictionary"]),
 			}
-
-			settings = append(settings, setting)
+			settingsList = append(settingsList, settingMap)
 		}
 
-		hclContent["setting"] = settings
-		payloadContents = append(payloadContents, hclContent)
+		payloadContent["setting"] = settingsList
+		payloadContentList = append(payloadContentList, payloadContent)
 	}
 
-	hclPayload["payload_content"] = payloadContents
+	payloadHeader["payload_content"] = payloadContentList
 
-	// Print the structure in JSON format
-	hclPayloadJSON, err := json.MarshalIndent(hclPayload, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal HCL payload to JSON: %w", err)
-	}
-	fmt.Println(string(hclPayloadJSON))
-
-	return []interface{}{hclPayload}, nil
+	return []interface{}{payloadHeader}, nil
 }
 
-// convertNestedDictionaryToHCL converts a nested dictionary to HCL format.
-func convertNestedDictionaryToHCL(dict map[string]interface{}) []interface{} {
-	var result []interface{}
-	for key, value := range dict {
+// marshalNestedDictionary converts the nested dictionary structure back to an appropriate format
+func marshalNestedDictionary(dict interface{}) []interface{} {
+	if dict == nil {
+		return nil
+	}
+
+	result := []interface{}{}
+	dictionary := dict.(map[string]interface{})
+	for key, value := range dictionary {
 		entry := map[string]interface{}{
-			"key": key,
+			"key":   key,
+			"value": value,
 		}
-
-		// If the value is another nested dictionary, recursively convert it
 		if nestedDict, ok := value.(map[string]interface{}); ok {
-			entry["dictionary"] = convertNestedDictionaryToHCL(nestedDict)
-			entry["value"] = ""
-		} else {
-			entry["value"] = value
-			entry["dictionary"] = []interface{}{}
+			entry["dictionary"] = marshalNestedDictionary(nestedDict)
 		}
-
 		result = append(result, entry)
 	}
+
 	return result
 }
