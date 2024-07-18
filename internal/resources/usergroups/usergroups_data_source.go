@@ -4,7 +4,6 @@ package usergroups
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -53,15 +52,10 @@ func DataSourceJamfProUserGroupsRead(ctx context.Context, d *schema.ResourceData
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)
 
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
-
 	var resource *jamfpro.ResourceUserGroup
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		resource, apiErr = client.GetUserGroupByID(resourceIDInt)
+		resource, apiErr = client.GetUserGroupByID(resourceID)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -73,7 +67,7 @@ func DataSourceJamfProUserGroupsRead(ctx context.Context, d *schema.ResourceData
 	}
 
 	if resource != nil {
-		d.SetId(fmt.Sprintf("%d", resourceIDInt))
+		d.SetId(resourceID)
 		if err := d.Set("name", resource.Name); err != nil {
 			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro User Group with ID '%s': %v", resourceID, err))...)
 		}
