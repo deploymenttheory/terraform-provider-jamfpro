@@ -16,7 +16,6 @@ import (
 func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfigurationProfile) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// Create a map to hold the resource data
 	resourceData := map[string]interface{}{
 		"name":                resp.General.Name,
 		"description":         resp.General.Description,
@@ -65,7 +64,9 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSCon
 				diags = append(diags, diag.FromErr(err)...)
 			}
 		}
+
 	} else {
+		// TODO why?
 		// If self_service block is not provided, set it to an empty array
 		if err := d.Set("self_service", []interface{}{}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)

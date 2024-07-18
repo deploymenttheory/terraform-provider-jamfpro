@@ -176,6 +176,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 				Type:        schema.TypeList,
 				Required:    true,
 				Description: "A list of payloads for the macOS configuration profile.",
+				MaxItems:    1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"payload_description_header": {
@@ -232,6 +233,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 							Type:        schema.TypeList,
 							Required:    true,
 							Description: "The payload content of the macOS configuration profile plist. Multiple payloads can be defined as needed.Defined as key value pairs and supports nested dictionaries.",
+							MaxItems:    1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"setting": {

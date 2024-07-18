@@ -35,60 +35,59 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 
 // mapSchemaToProfile maps the Terraform schema data to the ConfigurationProfile struct
 func mapSchemaToProfile(d *schema.ResourceData) *ConfigurationProfile {
-	uuidStr := GenerateUUID()
+	uuidStr := uuid.New().String()
 
-	// Initialize the profile with header level information
-	profile := &ConfigurationProfile{
-		PayloadDescription:       d.Get("payload_description_header").(string),
-		PayloadDisplayName:       d.Get("payload_display_name_header").(string),
-		PayloadEnabled:           d.Get("payload_enabled_header").(bool),
+	// Root Level
+	out := &ConfigurationProfile{
+		PayloadDescription:       d.Get("payloads.0.payload_description_header").(string),
+		PayloadDisplayName:       d.Get("payloads.0.payload_display_name_header").(string),
+		PayloadEnabled:           d.Get("payloads.0.payload_enabled_header").(bool),
 		PayloadIdentifier:        uuidStr,
-		PayloadOrganization:      d.Get("payload_organization_header").(string),
-		PayloadRemovalDisallowed: d.Get("payload_removal_disallowed_header").(bool),
-		PayloadScope:             d.Get("payload_scope_header").(string),
-		PayloadType:              d.Get("payload_type_header").(string),
+		PayloadOrganization:      d.Get("payloads.0.payload_organization_header").(string),
+		PayloadRemovalDisallowed: d.Get("payloads.0.payload_removal_disallowed_header").(bool),
+		PayloadScope:             d.Get("payloads.0.payload_scope_header").(string),
+		PayloadType:              d.Get("payloads.0.payload_type_header").(string),
 		PayloadUUID:              uuidStr,
-		PayloadVersion:           d.Get("payload_version_header").(int),
-		PayloadContent:           []PayloadContent{},
+		PayloadVersion:           d.Get("payloads.0.payload_version_header").(int),
 	}
 
-	// Retrieve the payloads from the schema
-	payloads := d.Get("payloads").([]interface{})
-	for _, p := range payloads {
-		payload := p.(map[string]interface{})
-		profilePayload := PayloadContent{
-			PayloadDescription:  payload["payload_description"].(string),
-			PayloadDisplayName:  payload["payload_display_name"].(string),
-			PayloadEnabled:      payload["payload_enabled"].(bool),
-			PayloadIdentifier:   uuidStr,
-			PayloadOrganization: payload["payload_organization"].(string),
-			PayloadType:         payload["payload_type"].(string),
-			PayloadUUID:         uuidStr,
-			PayloadVersion:      payload["payload_version"].(int),
-			PayloadScope:        payload["payload_scope"].(string),
-			AdditionalFields:    make(map[string]interface{}),
+	// Contents
+	payloadContents := d.Get("payloads.0.payload_content").([]interface{})
+	for _, v := range payloadContents {
+		val := v.(map[string]interface{})
+		payloadContentStruct := PayloadContent{
+			PayloadDescription:  val["payload_description"].(string),
+			PayloadDisplayName:  val["payload_display_name"].(string),
+			PayloadEnabled:      val["payload_enabled"].(bool),
+			PayloadIdentifier:   val["payload_identifier"].(string),
+			PayloadOrganization: val["payload_organization"].(string),
+			PayloadType:         val["payload_type"].(string),
+			PayloadUUID:         val["payload_uuid"].(string),
+			PayloadVersion:      val["payload_version"].(int),
+			PayloadScope:        val["payload_scope"].(string),
 		}
 
-		// Retrieve the payload contents
-		payloadContents := payload["payload_content"].([]interface{})
-		for _, c := range payloadContents {
-			content := c.(map[string]interface{})
-			settings := content["setting"].([]interface{})
-			for _, s := range settings {
-				settingMap := s.(map[string]interface{})
-				dictionary := parseNestedDictionary(settingMap["dictionary"])
-				payloadContent := map[string]interface{}{
-					"key":        settingMap["key"].(string),
-					"value":      GetTypedValue(settingMap["value"]),
-					"dictionary": dictionary,
-				}
-				profilePayload.AdditionalFields[settingMap["key"].(string)] = payloadContent
+		settings := val["setting"].([]interface{})
+		if len(settings) == 0 {
+			return out
+		}
+
+		payloadContentStruct.ConfigurationItems = make(map[string]interface{}, 0)
+		for _, s := range settings {
+			settingMap := s.(map[string]interface{})
+			dictionary := parseNestedDictionary(settingMap["dictionary"])
+			payloadContent := map[string]interface{}{
+				"key":        settingMap["key"].(string),
+				"value":      GetTypedValue(settingMap["value"]),
+				"dictionary": dictionary,
 			}
+			payloadContentStruct.ConfigurationItems[settingMap["key"].(string)] = payloadContent
 		}
-		profile.PayloadContent = append(profile.PayloadContent, profilePayload)
+
+		out.PayloadContent = append(out.PayloadContent, payloadContentStruct)
 	}
 
-	return profile
+	return out
 }
 
 // parseNestedDictionary recursively parses the nested dictionary structure
@@ -110,11 +109,6 @@ func parseNestedDictionary(dict interface{}) map[string]interface{} {
 	}
 
 	return result
-}
-
-// GenerateUUID generates a new UUID string
-func GenerateUUID() string {
-	return uuid.New().String()
 }
 
 // GetTypedValue converts the value from the HCL always stored as string into the appropriate type for plist serialization.
@@ -157,8 +151,8 @@ func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
 	// Convert each PayloadContent to the appropriate format
 	var payloadContentList []interface{}
 	for _, configurationPayload := range profile.PayloadContent {
-		configurations := make([]interface{}, 0, len(configurationPayload.AdditionalFields))
-		for key, value := range configurationPayload.AdditionalFields {
+		configurations := make([]interface{}, 0, len(configurationPayload.ConfigurationItems))
+		for key, value := range configurationPayload.ConfigurationItems {
 			// Ensure all values are converted to strings for storage in the state
 			strValue := fmt.Sprintf("%v", value)
 			configurations = append(configurations, map[string]interface{}{
