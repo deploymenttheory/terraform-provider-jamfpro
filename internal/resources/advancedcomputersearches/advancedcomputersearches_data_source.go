@@ -4,7 +4,6 @@ package advancedcomputersearches
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -48,16 +47,11 @@ func DataSourceJamfProAdvancedComputerSearchesRead(ctx context.Context, d *schem
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)
 
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
-
 	var resource *jamfpro.ResourceAdvancedComputerSearch
 
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		resource, apiErr = client.GetAdvancedComputerSearchByID(resourceIDInt)
+		resource, apiErr = client.GetAdvancedComputerSearchByID(resourceID)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
