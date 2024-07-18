@@ -196,8 +196,8 @@ func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
 }
 
 // convertNestedDictionaryToHCL converts a nested dictionary to HCL format.
-func convertNestedDictionaryToHCL(dict map[string]interface{}) []map[string]interface{} {
-	var result []map[string]interface{}
+func convertNestedDictionaryToHCL(dict map[string]interface{}) []interface{} {
+	var result []interface{}
 	for key, value := range dict {
 		entry := map[string]interface{}{
 			"key": key,
@@ -208,8 +208,8 @@ func convertNestedDictionaryToHCL(dict map[string]interface{}) []map[string]inte
 			entry["dictionary"] = convertNestedDictionaryToHCL(nestedDict)
 			entry["value"] = ""
 		} else {
-			entry["value"] = GetTypedValue(value)
-			entry["dictionary"] = []map[string]interface{}{}
+			entry["value"] = value
+			entry["dictionary"] = []interface{}{}
 		}
 
 		result = append(result, entry)
