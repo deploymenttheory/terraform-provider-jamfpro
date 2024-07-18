@@ -10,7 +10,7 @@ import (
 )
 
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return common.Create[jamfpro.ResourceBuilding, jamfpro.ResponseBuildingCreate](
+	return common.Create(
 		ctx,
 		d,
 		meta,
@@ -21,7 +21,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 }
 
 func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
-	return common.Read[jamfpro.ResourceBuilding](
+	return common.Read(
 		ctx,
 		d,
 		meta,
@@ -40,7 +40,7 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 }
 
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return common.Update[jamfpro.ResourceBuilding, jamfpro.ResourceBuilding](
+	return common.Update(
 		ctx,
 		d,
 		meta,

@@ -11,7 +11,7 @@ import (
 
 // resourceJamfProAdvancedUserSearchCreate is responsible for creating a new Jamf Pro advanced user Search in the remote system.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return common.Create[jamfpro.ResourceAdvancedUserSearch, jamfpro.ResponseAdvancedUserSearchCreatedAndUpdated](
+	return common.Create(
 		ctx,
 		d,
 		meta,
@@ -23,7 +23,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 // resourceJamfProAdvancedUserSearchRead is responsible for reading the current state of a Jamf Pro advanced user Search from the remote system.
 func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
-	return common.Read[jamfpro.ResourceAdvancedUserSearch](
+	return common.Read(
 		ctx,
 		d,
 		meta,
@@ -45,7 +45,7 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 
 // resourceJamfProAdvancedUserSearchUpdate is responsible for updating an existing Jamf Pro advanced user Search on the remote system.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return common.Update[jamfpro.ResourceAdvancedUserSearch, jamfpro.ResponseAdvancedUserSearchCreatedAndUpdated](
+	return common.Update(
 		ctx,
 		d,
 		meta,
