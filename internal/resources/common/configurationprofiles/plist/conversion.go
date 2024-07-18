@@ -53,29 +53,34 @@ func mapSchemaToProfile(d *schema.ResourceData) *ConfigurationProfile {
 
 	// Make payloads list here
 	payloadContents := d.Get("payloads.0.payload_content").([]map[string]interface{})
-	for i, v := range payloadContents {
-		keyStringRoot := fmt.Sprintf("payloads.0.payload_content")
+	for _, v := range payloadContents {
+
 		payloadContentStruct := PayloadContent{
-			PayloadDescription: d.Get("payload_description"),
+			PayloadDescription:  v["payload_description"].(string),
+			PayloadDisplayName:  v["payload_display_name"].(string),
+			PayloadEnabled:      v["payload_enabled"].(bool),
+			PayloadIdentifier:   v["payload_identifier"].(string),
+			PayloadOrganization: v["payload_organisation"].(string),
+			PayloadType:         v["payload_type"].(string),
+			PayloadUUID:         v["payload_uuid"].(string),
+			PayloadVersion:      v["payload_version"].(int),
+			PayloadScope:        v["payload_scope"].(string),
 		}
 
 		// Retrieve the payload contents
-		payloadContents := payload["payload_content"].([]interface{})
-		for _, c := range payloadContents {
-			content := c.(map[string]interface{})
-			settings := content["setting"].([]interface{})
-			for _, s := range settings {
-				settingMap := s.(map[string]interface{})
-				dictionary := parseNestedDictionary(settingMap["dictionary"])
-				payloadContent := map[string]interface{}{
-					"key":        settingMap["key"].(string),
-					"value":      GetTypedValue(settingMap["value"]),
-					"dictionary": dictionary,
-				}
-				profilePayload.AdditionalFields[settingMap["key"].(string)] = payloadContent
+		settings := v["settings"].(map[string]interface{})
+		for _, s := range settings {
+			settingMap := s.(map[string]interface{})
+			dictionary := parseNestedDictionary(settingMap["dictionary"])
+			payloadContent := map[string]interface{}{
+				"key":        settingMap["key"].(string),
+				"value":      GetTypedValue(settingMap["value"]),
+				"dictionary": dictionary,
 			}
+			payloadContentStruct.ConfigurationItems[settingMap["key"].(string)] = payloadContent
 		}
-		out.PayloadContent = append(out.PayloadContent, profilePayload)
+
+		out.PayloadContent = append(out.PayloadContent, payloadContentStruct)
 	}
 
 	return out
@@ -142,8 +147,8 @@ func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
 	// Convert each PayloadContent to the appropriate format
 	var payloadContentList []interface{}
 	for _, configurationPayload := range profile.PayloadContent {
-		configurations := make([]interface{}, 0, len(configurationPayload.AdditionalFields))
-		for key, value := range configurationPayload.AdditionalFields {
+		configurations := make([]interface{}, 0, len(configurationPayload.ConfigurationItems))
+		for key, value := range configurationPayload.ConfigurationItems {
 			// Ensure all values are converted to strings for storage in the state
 			strValue := fmt.Sprintf("%v", value)
 			configurations = append(configurations, map[string]interface{}{
