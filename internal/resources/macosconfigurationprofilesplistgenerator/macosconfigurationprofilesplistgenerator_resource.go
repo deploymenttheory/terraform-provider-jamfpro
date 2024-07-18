@@ -178,76 +178,9 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 				Description: "A list of payloads for the macOS configuration profile.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"payload_content": {
-							Type:        schema.TypeList,
-							Required:    true,
-							Description: "The payload content of the macOS configuration profile plist. Multiple payloads can be defined as needed.Defined as key value pairs and supports nested dictionaries.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"setting": {
-										Type:        schema.TypeList,
-										Optional:    true,
-										Description: "The key and value setting items of the macOS configuration profile plist",
-										Elem: &schema.Resource{
-											Schema: payloadContentSchema().Schema,
-										},
-									},
-									"payload_description": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "Description of the payload.",
-									},
-									"payload_display_name": {
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: "Display name of the payload.",
-									},
-									"payload_enabled": {
-										Type:        schema.TypeBool,
-										Required:    true,
-										Description: "Whether the payload is enabled.",
-									},
-									"payload_identifier": {
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: "Identifier for the payload.A GUID.",
-									},
-									"payload_organization": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "Organization associated with the payload.",
-									},
-									"payload_removal_disallowed": {
-										Type:        schema.TypeBool,
-										Optional:    true,
-										Description: "Whether the payload removal is disallowed.",
-									},
-									"payload_scope": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "Scope of the payload. Computed by what is set by level. 'System' or 'User'.",
-									},
-									"payload_type": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "Type of the config profile payload.",
-									},
-									"payload_uuid": {
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: "UUID of the payload.",
-									},
-									"payload_version": {
-										Type:        schema.TypeInt,
-										Required:    true,
-										Description: "Version of the payload.",
-									},
-								},
-							},
-						},
 						"payload_description_header": {
 							Type:        schema.TypeString,
-							Optional:    true,
+							Required:    true,
 							Description: "Description of the payload at the header level of the plist. This provides a human-readable explanation of what the overall profile is intended to do or configure.",
 						},
 						"payload_display_name_header": {
@@ -294,6 +227,73 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "The scope of the payload at the header level of the plist. This defines the context in which the overall profile settings are applied, can be either 'System' or 'User'.",
+						},
+						"payload_content": {
+							Type:        schema.TypeList,
+							Required:    true,
+							Description: "The payload content of the macOS configuration profile plist. Multiple payloads can be defined as needed.Defined as key value pairs and supports nested dictionaries.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"setting": {
+										Type:        schema.TypeList,
+										Optional:    true,
+										Description: "The key and value setting items of the macOS configuration profile plist",
+										Elem: &schema.Resource{
+											Schema: payloadContentSchema().Schema,
+										},
+									},
+									"payload_description": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "Description of the payload.",
+									},
+									"payload_display_name": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "Display name of the payload.",
+									},
+									"payload_enabled": {
+										Type:        schema.TypeBool,
+										Required:    true,
+										Description: "Whether the payload is enabled.",
+									},
+									"payload_identifier": {
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: "Identifier for the payload.A GUID.",
+									},
+									"payload_organization": {
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: "Organization associated with the payload.",
+									},
+									"payload_removal_disallowed": {
+										Type:        schema.TypeBool,
+										Optional:    true,
+										Description: "Whether the payload removal is disallowed.",
+									},
+									"payload_scope": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "Scope of the payload. Computed by what is set by level. 'System' or 'User'.",
+									},
+									"payload_type": {
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: "Type of the config profile payload.",
+									},
+									"payload_uuid": {
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: "UUID of the payload.",
+									},
+									"payload_version": {
+										Type:        schema.TypeInt,
+										Required:    true,
+										Description: "Version of the payload.",
+									},
+								},
+							},
 						},
 					},
 				},
