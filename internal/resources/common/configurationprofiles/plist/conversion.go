@@ -52,23 +52,27 @@ func mapSchemaToProfile(d *schema.ResourceData) *ConfigurationProfile {
 	}
 
 	// Make payloads list here
-	payloadContents := d.Get("payloads.0.payload_content").([]map[string]interface{})
+	payloadContents := d.Get("payloads.0.payload_content").([]interface{})
 	for _, v := range payloadContents {
-
+		val := v.(map[string]interface{})
 		payloadContentStruct := PayloadContent{
-			PayloadDescription:  v["payload_description"].(string),
-			PayloadDisplayName:  v["payload_display_name"].(string),
-			PayloadEnabled:      v["payload_enabled"].(bool),
-			PayloadIdentifier:   v["payload_identifier"].(string),
-			PayloadOrganization: v["payload_organisation"].(string),
-			PayloadType:         v["payload_type"].(string),
-			PayloadUUID:         v["payload_uuid"].(string),
-			PayloadVersion:      v["payload_version"].(int),
-			PayloadScope:        v["payload_scope"].(string),
+			PayloadDescription:  val["payload_description"].(string),
+			PayloadDisplayName:  val["payload_display_name"].(string),
+			PayloadEnabled:      val["payload_enabled"].(bool),
+			PayloadIdentifier:   val["payload_identifier"].(string),
+			PayloadOrganization: val["payload_organization"].(string),
+			PayloadType:         val["payload_type"].(string),
+			PayloadUUID:         val["payload_uuid"].(string),
+			PayloadVersion:      val["payload_version"].(int),
+			PayloadScope:        val["payload_scope"].(string),
 		}
 
 		// Retrieve the payload contents
-		settings := v["settings"].(map[string]interface{})
+		settings := val["setting"].([]interface{})
+		if len(settings) == 0 {
+			return out
+		}
+		payloadContentStruct.ConfigurationItems = make(map[string]interface{}, 0)
 		for _, s := range settings {
 			settingMap := s.(map[string]interface{})
 			dictionary := parseNestedDictionary(settingMap["dictionary"])
