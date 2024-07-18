@@ -4,7 +4,6 @@ package dockitems
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -42,15 +41,10 @@ func dataSourceJamfProDockItemsRead(ctx context.Context, d *schema.ResourceData,
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)
 
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
-
 	var resource *jamfpro.ResourceDockItem
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		resource, apiErr = client.GetDockItemByID(resourceIDInt)
+		resource, apiErr = client.GetDockItemByID(resourceID)
 		if apiErr != nil {
 
 			return retry.RetryableError(apiErr)

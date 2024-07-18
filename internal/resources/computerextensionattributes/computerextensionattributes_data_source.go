@@ -4,7 +4,6 @@ package computerextensionattributes
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 
@@ -49,15 +48,10 @@ func dataSourceJamfProComputerExtensionAttributesRead(ctx context.Context, d *sc
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)
 
-	resourceIDInt, err := strconv.Atoi(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-	}
-
 	var resource *jamfpro.ResourceComputerExtensionAttribute
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		resource, apiErr = client.GetComputerExtensionAttributeByID(resourceIDInt)
+		resource, apiErr = client.GetComputerExtensionAttributeByID(resourceID)
 		if apiErr != nil {
 
 			return retry.RetryableError(apiErr)
