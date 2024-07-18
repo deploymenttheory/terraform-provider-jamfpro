@@ -35,38 +35,28 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 
 // mapSchemaToProfile maps the Terraform schema data to the ConfigurationProfile struct
 func mapSchemaToProfile(d *schema.ResourceData) *ConfigurationProfile {
-	uuidStr := GenerateUUID()
+	uuidStr := uuid.New().String()
 
-	// Initialize the profile with header level information
-	profile := &ConfigurationProfile{
-		PayloadDescription:       d.Get("payload_description_header").(string),
-		PayloadDisplayName:       d.Get("payload_display_name_header").(string),
-		PayloadEnabled:           d.Get("payload_enabled_header").(bool),
+	// Root Level
+	out := &ConfigurationProfile{
+		PayloadDescription:       d.Get("payloads.0.payload_description_header").(string),
+		PayloadDisplayName:       d.Get("payloads.0.payload_display_name_header").(string),
+		PayloadEnabled:           d.Get("payloads.0.payload_enabled_header").(bool),
 		PayloadIdentifier:        uuidStr,
-		PayloadOrganization:      d.Get("payload_organization_header").(string),
-		PayloadRemovalDisallowed: d.Get("payload_removal_disallowed_header").(bool),
-		PayloadScope:             d.Get("payload_scope_header").(string),
-		PayloadType:              d.Get("payload_type_header").(string),
+		PayloadOrganization:      d.Get("payloads.0.payload_organization_header").(string),
+		PayloadRemovalDisallowed: d.Get("payloads.0.payload_removal_disallowed_header").(bool),
+		PayloadScope:             d.Get("payloads.0.payload_scope_header").(string),
+		PayloadType:              d.Get("payloads.0.payload_type_header").(string),
 		PayloadUUID:              uuidStr,
-		PayloadVersion:           d.Get("payload_version_header").(int),
-		PayloadContent:           []PayloadContent{},
+		PayloadVersion:           d.Get("payloads.0.payload_version_header").(int),
 	}
 
-	// Retrieve the payloads from the schema
-	payloads := d.Get("payloads").([]interface{})
-	for _, p := range payloads {
-		payload := p.(map[string]interface{})
-		profilePayload := PayloadContent{
-			PayloadDescription:  payload["payload_description"].(string),
-			PayloadDisplayName:  payload["payload_display_name"].(string),
-			PayloadEnabled:      payload["payload_enabled"].(bool),
-			PayloadIdentifier:   uuidStr,
-			PayloadOrganization: payload["payload_organization"].(string),
-			PayloadType:         payload["payload_type"].(string),
-			PayloadUUID:         uuidStr,
-			PayloadVersion:      payload["payload_version"].(int),
-			PayloadScope:        payload["payload_scope"].(string),
-			AdditionalFields:    make(map[string]interface{}),
+	// Make payloads list here
+	payloadContents := d.Get("payloads.0.payload_content").([]map[string]interface{})
+	for i, v := range payloadContents {
+		keyStringRoot := fmt.Sprintf("payloads.0.payload_content")
+		payloadContentStruct := PayloadContent{
+			PayloadDescription: d.Get("payload_description"),
 		}
 
 		// Retrieve the payload contents
@@ -85,10 +75,10 @@ func mapSchemaToProfile(d *schema.ResourceData) *ConfigurationProfile {
 				profilePayload.AdditionalFields[settingMap["key"].(string)] = payloadContent
 			}
 		}
-		profile.PayloadContent = append(profile.PayloadContent, profilePayload)
+		out.PayloadContent = append(out.PayloadContent, profilePayload)
 	}
 
-	return profile
+	return out
 }
 
 // parseNestedDictionary recursively parses the nested dictionary structure
@@ -110,11 +100,6 @@ func parseNestedDictionary(dict interface{}) map[string]interface{} {
 	}
 
 	return result
-}
-
-// GenerateUUID generates a new UUID string
-func GenerateUUID() string {
-	return uuid.New().String()
 }
 
 // GetTypedValue converts the value from the HCL always stored as string into the appropriate type for plist serialization.
