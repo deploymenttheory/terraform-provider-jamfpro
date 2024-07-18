@@ -51,7 +51,7 @@ func mapSchemaToProfile(d *schema.ResourceData) *ConfigurationProfile {
 		PayloadVersion:           d.Get("payloads.0.payload_version_header").(int),
 	}
 
-	// Make payloads list here
+	// Contents
 	payloadContents := d.Get("payloads.0.payload_content").([]interface{})
 	for _, v := range payloadContents {
 		val := v.(map[string]interface{})
@@ -67,11 +67,11 @@ func mapSchemaToProfile(d *schema.ResourceData) *ConfigurationProfile {
 			PayloadScope:        val["payload_scope"].(string),
 		}
 
-		// Retrieve the payload contents
 		settings := val["setting"].([]interface{})
 		if len(settings) == 0 {
 			return out
 		}
+
 		payloadContentStruct.ConfigurationItems = make(map[string]interface{}, 0)
 		for _, s := range settings {
 			settingMap := s.(map[string]interface{})
