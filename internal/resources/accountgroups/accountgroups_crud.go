@@ -11,7 +11,7 @@ import (
 
 // resourceJamfProAccountGroupCreate is responsible for creating a new Jamf Pro Script in the remote system.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return common.Create[jamfpro.ResourceAccountGroup, jamfpro.ResponseAccountGroupCreated](
+	return common.Create(
 		ctx,
 		d,
 		meta,
@@ -23,7 +23,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 // resourceJamfProAccountGroupRead is responsible for reading the current state of a Jamf Pro Account Group Resource from the remote system.
 func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
-	return common.Read[jamfpro.ResourceAccountGroup](
+	return common.Read(
 		ctx,
 		d,
 		meta,
@@ -45,7 +45,7 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 
 // resourceJamfProAccountGroupUpdate is responsible for updating an existing Jamf Pro Account Group on the remote system.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return common.Update[jamfpro.ResourceAccountGroup, jamfpro.ResourceAccountGroup](
+	return common.Update(
 		ctx,
 		d,
 		meta,

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"strconv"
 )
 
 // HashString calculates the SHA-256 hash of a string and returns it as a hexadecimal string.
@@ -71,7 +72,7 @@ func SerializeAndRedactJSON(resource interface{}, redactFields []string) (string
 	return string(marshaledJSON), nil
 }
 
-func getIDField(response interface{}) (string, error) {
+func getIDField(response interface{}) (any, error) {
 	v := reflect.ValueOf(response).Elem()
 
 	idField := v.FieldByName("ID")
@@ -79,5 +80,15 @@ func getIDField(response interface{}) (string, error) {
 		return "", fmt.Errorf("ID field not found in response")
 	}
 
-	return idField.Interface().(string), nil
+	str, ok := idField.Interface().(string)
+	if ok {
+		return str, nil
+	}
+
+	integer, ok := idField.Interface().(int)
+	if ok {
+		return strconv.Itoa(integer), nil
+	}
+
+	return nil, fmt.Errorf("unsupported type")
 }

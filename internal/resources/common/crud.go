@@ -63,7 +63,7 @@ func Create[sdkPayloadType any, sdkResponseType any](
 		return append(diags, diag.FromErr(fmt.Errorf("error getting ID field from response: %v", err))...)
 	}
 
-	d.SetId(idField)
+	d.SetId(idField.(string))
 
 	return append(diags, reader(ctx, d, meta)...)
 }
