@@ -220,9 +220,25 @@ func extractNestedConfigurationSettings(items map[string]interface{}, settingsLi
 
 		switch v := value.(type) {
 		case map[string]interface{}:
-			nestedSettings := []interface{}{}
-			extractNestedConfigurationSettings(v, &nestedSettings)
-			settingMap["dictionary"] = nestedSettings
+			if len(v) > 0 {
+				nestedSettings := []interface{}{}
+				extractNestedConfigurationSettings(v, &nestedSettings)
+				settingMap["dictionary"] = nestedSettings
+			} else {
+				settingMap["value"] = "{}"
+			}
+		case []interface{}:
+			if len(v) > 0 {
+				var nestedSettings []interface{}
+				for _, item := range v {
+					if nestedItem, ok := item.(map[string]interface{}); ok {
+						nestedSettings = append(nestedSettings, nestedItem)
+					}
+				}
+				settingMap["dictionary"] = nestedSettings
+			} else {
+				settingMap["value"] = "[]"
+			}
 		case bool, int, float64, string:
 			settingMap["value"] = fmt.Sprintf("%v", v)
 		default:
