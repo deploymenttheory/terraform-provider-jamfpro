@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// resourceJamfProStaticComputerGroupsCreate is responsible for creating a new Jamf Pro Static Computer Group in the remote system.
+// create is responsible for creating a new Jamf Pro Static Computer Group in the remote system.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return common.Create(
 		ctx,

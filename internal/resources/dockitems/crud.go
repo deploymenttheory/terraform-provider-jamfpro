@@ -9,12 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// resourceJamfProDockItemsCreate is responsible for creating a new Jamf Pro Dock Item in the remote system.
-// The function:
-// 1. Constructs the dock item data using the provided Terraform configuration.
-// 2. Calls the API to create the dock item in Jamf Pro.
-// 3. Updates the Terraform state with the ID of the newly created dock item.
-// 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
+// create is responsible for creating a new Jamf Pro Dock Item in the remote system.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return common.Create(
 		ctx,

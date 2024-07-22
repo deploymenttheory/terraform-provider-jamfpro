@@ -9,12 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// resourceJamfProNetworkSegmentsCreate is responsible for creating a new Jamf Network segment in the remote system.
-// The function:
-// 1. Constructs the Network Segment data using the provided Terraform configuration.
-// 2. Calls the API to create the Network Segment in Jamf Pro.
-// 3. Updates the Terraform state with the ID of the newly created Network Segment.
-// 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
+// create is responsible for creating a new Jamf Network segment in the remote system.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return common.Create(
 		ctx,

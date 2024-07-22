@@ -9,12 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// resourceJamfProAPIRolesCreate handles the creation of a Jamf Pro API Role.
-// The function:
-// 1. Constructs the API role data using the provided Terraform configuration.
-// 2. Calls the API to create the role in Jamf Pro.
-// 3. Updates the Terraform state with the ID of the newly created role.
-// 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
+// create handles the creation of a Jamf Pro API Role.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return common.Create(
 		ctx,
