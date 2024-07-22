@@ -6,5 +6,5 @@ resource "jamfpro_static_computer_group" "jamfpro_static_computer_group_001" {
   site_id = 1
 
   # Optional: Specify computers for static groups
-  assigned_computer_ids = [1,2,3]
+  assigned_computer_ids = [1, 2, 3]
 }

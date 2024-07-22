@@ -25,6 +25,6 @@ resource "jamfpro_webhook" "jamfpro_webhook_001" {
   authentication_type = "BASIC"
   username            = "exampleUser"
   password            = "examplePassword"
-  smart_group_id = jamfpro_smart_group.jamfpro_smart_group_001.id
+  smart_group_id      = jamfpro_smart_group.jamfpro_smart_group_001.id
 
 }

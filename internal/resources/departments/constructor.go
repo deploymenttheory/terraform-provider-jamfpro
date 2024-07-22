@@ -2,6 +2,7 @@
 package departments
 
 import (
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"log"
@@ -15,6 +16,12 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceDepartment, error) {
 	resource := &jamfpro.ResourceDepartment{
 		Name: d.Get("name").(string),
 	}
+	log.Println("LOGHERE")
+	jsonData, e := json.MarshalIndent(d, " ", "		")
+	if e != nil {
+		return nil, e
+	}
+	log.Printf("HERE: %+v", string(jsonData))
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {

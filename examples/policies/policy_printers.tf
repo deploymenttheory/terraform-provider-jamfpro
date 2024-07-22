@@ -33,7 +33,7 @@ resource "jamfpro_policy" "jamfpro_printer_policy_001" {
       action       = "install"
       make_default = true
     }
-     files_processes {
+    files_processes {
       search_by_path         = "/Applications/SomeApp.app"
       delete_file            = true
       locate_file            = "SomeFile.txt"
