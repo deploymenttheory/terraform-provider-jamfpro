@@ -12,9 +12,7 @@ import (
 
 // constructJamfProPrinter constructs a ResourcePrinter object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourcePrinter, error) {
-	var resource *jamfpro.ResourcePrinter
-
-	resource = &jamfpro.ResourcePrinter{
+	resource := &jamfpro.ResourcePrinter{
 		Name:        d.Get("name").(string),
 		Category:    d.Get("category_name").(string),
 		URI:         d.Get("uri").(string),

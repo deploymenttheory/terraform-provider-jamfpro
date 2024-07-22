@@ -11,9 +11,7 @@ import (
 
 // constructJamfProWebhook constructs a ResourceWebhook object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceWebhook, error) {
-	var resource *jamfpro.ResourceWebhook
-
-	resource = &jamfpro.ResourceWebhook{
+	resource := &jamfpro.ResourceWebhook{
 		Name:                        d.Get("name").(string),
 		Enabled:                     d.Get("enabled").(bool),
 		URL:                         d.Get("url").(string),

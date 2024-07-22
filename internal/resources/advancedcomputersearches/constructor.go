@@ -14,9 +14,7 @@ import (
 
 // constructJamfProAdvancedComputerSearch constructs an advanced computer search object for create and update operations.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceAdvancedComputerSearch, error) {
-	var resource *jamfpro.ResourceAdvancedComputerSearch
-
-	resource = &jamfpro.ResourceAdvancedComputerSearch{
+	resource := &jamfpro.ResourceAdvancedComputerSearch{
 		Name:   d.Get("name").(string),
 		ViewAs: d.Get("view_as").(string),
 		Sort1:  d.Get("sort1").(string),

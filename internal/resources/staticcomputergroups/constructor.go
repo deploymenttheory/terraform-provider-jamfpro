@@ -13,9 +13,7 @@ import (
 
 // constructJamfProStaticComputerGroup constructs a ResourceComputerGroup object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceComputerGroup, error) {
-	var resource *jamfpro.ResourceComputerGroup
-
-	resource = &jamfpro.ResourceComputerGroup{
+	resource := &jamfpro.ResourceComputerGroup{
 		Name:    d.Get("name").(string),
 		IsSmart: false,
 	}

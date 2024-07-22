@@ -11,9 +11,7 @@ import (
 
 // constructJamfProDiskEncryptionConfiguration constructs a ResourceDiskEncryptionConfiguration object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceDiskEncryptionConfiguration, error) {
-	var resource *jamfpro.ResourceDiskEncryptionConfiguration
-
-	resource = &jamfpro.ResourceDiskEncryptionConfiguration{
+	resource := &jamfpro.ResourceDiskEncryptionConfiguration{
 		Name:                  d.Get("name").(string),
 		KeyType:               d.Get("key_type").(string),
 		FileVaultEnabledUsers: d.Get("file_vault_enabled_users").(string),

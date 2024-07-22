@@ -11,9 +11,7 @@ import (
 
 // cconstructJamfProFileShareDistributionPoint constructs a ResourceDockItem object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceFileShareDistributionPoint, error) {
-	var resource *jamfpro.ResourceFileShareDistributionPoint
-
-	resource = &jamfpro.ResourceFileShareDistributionPoint{
+	resource := &jamfpro.ResourceFileShareDistributionPoint{
 		Name:                     d.Get("name").(string),
 		IP_Address:               d.Get("ip_address").(string),
 		IsMaster:                 d.Get("is_master").(bool),

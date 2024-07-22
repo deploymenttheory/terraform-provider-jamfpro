@@ -12,9 +12,7 @@ import (
 
 // constructJamfProComputerExtensionAttribute constructs a ResourceComputerExtensionAttribute object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceComputerExtensionAttribute, error) {
-	var resource *jamfpro.ResourceComputerExtensionAttribute
-
-	resource = &jamfpro.ResourceComputerExtensionAttribute{
+	resource := &jamfpro.ResourceComputerExtensionAttribute{
 		Name:             d.Get("name").(string),
 		Enabled:          d.Get("enabled").(bool),
 		Description:      d.Get("description").(string),

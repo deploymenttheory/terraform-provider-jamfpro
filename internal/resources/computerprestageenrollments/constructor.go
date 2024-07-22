@@ -12,9 +12,7 @@ import (
 
 // constructJamfProComputerPrestageEnrollment constructs a ResourceComputerPrestage object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceComputerPrestage, error) {
-	var resource *jamfpro.ResourceComputerPrestage
-
-	resource = &jamfpro.ResourceComputerPrestage{
+	resource := &jamfpro.ResourceComputerPrestage{
 		DisplayName:                     d.Get("display_name").(string),
 		Mandatory:                       d.Get("mandatory").(bool),
 		MDMRemovable:                    d.Get("mdm_removable").(bool),

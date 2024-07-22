@@ -13,9 +13,7 @@ import (
 
 // constructJamfProUserGroup constructs a ResourceUserGroup object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceUserGroup, error) {
-	var resource *jamfpro.ResourceUserGroup
-
-	resource = &jamfpro.ResourceUserGroup{
+	resource := &jamfpro.ResourceUserGroup{
 		Name:             d.Get("name").(string),
 		IsSmart:          d.Get("is_smart").(bool),
 		IsNotifyOnChange: d.Get("is_notify_on_change").(bool),

@@ -13,9 +13,7 @@ import (
 
 // constructJamfProAdvancedMobileDeviceSearch constructs a mobile device search object for create and update operations.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceAdvancedMobileDeviceSearch, error) {
-	var resource *jamfpro.ResourceAdvancedMobileDeviceSearch
-
-	resource = &jamfpro.ResourceAdvancedMobileDeviceSearch{
+	resource := &jamfpro.ResourceAdvancedMobileDeviceSearch{
 		Name:   d.Get("name").(string),
 		ViewAs: d.Get("view_as").(string),
 		Sort1:  d.Get("sort1").(string),

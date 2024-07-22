@@ -11,9 +11,7 @@ import (
 
 // constructJamfProApiRole constructs an ResourceAPIRole object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceAPIRole, error) {
-	var resource *jamfpro.ResourceAPIRole
-
-	resource = &jamfpro.ResourceAPIRole{
+	resource := &jamfpro.ResourceAPIRole{
 		DisplayName: d.Get("display_name").(string),
 	}
 

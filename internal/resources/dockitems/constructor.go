@@ -12,9 +12,7 @@ import (
 
 // constructJamfProDockItem constructs a ResourceDockItem object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceDockItem, error) {
-	var resource *jamfpro.ResourceDockItem
-
-	resource = &jamfpro.ResourceDockItem{
+	resource := &jamfpro.ResourceDockItem{
 		Name:     d.Get("name").(string),
 		Type:     d.Get("type").(string),
 		Path:     d.Get("path").(string),

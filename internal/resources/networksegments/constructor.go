@@ -12,9 +12,7 @@ import (
 
 // constructJamfProNetworkSegment constructs a ResourceNetworkSegment object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceNetworkSegment, error) {
-	var resource *jamfpro.ResourceNetworkSegment
-
-	resource = &jamfpro.ResourceNetworkSegment{
+	resource := &jamfpro.ResourceNetworkSegment{
 		Name:                d.Get("name").(string),
 		StartingAddress:     d.Get("starting_address").(string),
 		EndingAddress:       d.Get("ending_address").(string),

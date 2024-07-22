@@ -12,9 +12,7 @@ import (
 
 // constructJamfProComputerCheckin constructs a ResourceComputerCheckin object from the provided schema data and logs its XML representation.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceComputerCheckin, error) {
-	var resource *jamfpro.ResourceComputerCheckin
-
-	resource = &jamfpro.ResourceComputerCheckin{
+	resource := &jamfpro.ResourceComputerCheckin{
 		CheckInFrequency:          d.Get("check_in_frequency").(int),
 		CreateStartupScript:       d.Get("create_startup_script").(bool),
 		LogStartupEvent:           d.Get("log_startup_event").(bool),

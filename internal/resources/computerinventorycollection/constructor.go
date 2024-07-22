@@ -12,9 +12,7 @@ import (
 
 // constructJamfProComputerInventoryCollection constructs a ResourceComputerInventoryCollection object from the provided schema data and logs its XML representation.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceComputerInventoryCollection, error) {
-	var resource *jamfpro.ResourceComputerInventoryCollection
-
-	resource = &jamfpro.ResourceComputerInventoryCollection{
+	resource := &jamfpro.ResourceComputerInventoryCollection{
 		LocalUserAccounts:             d.Get("local_user_accounts").(bool),
 		HomeDirectorySizes:            d.Get("home_directory_sizes").(bool),
 		HiddenAccounts:                d.Get("hidden_accounts").(bool),

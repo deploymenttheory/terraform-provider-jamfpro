@@ -13,9 +13,7 @@ import (
 
 // constructJamfProRestrictedSoftware constructs a RestrictedSoftware object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceRestrictedSoftware, error) {
-	var resource *jamfpro.ResourceRestrictedSoftware
-
-	resource = &jamfpro.ResourceRestrictedSoftware{
+	resource := &jamfpro.ResourceRestrictedSoftware{
 		General: jamfpro.RestrictedSoftwareSubsetGeneral{
 			Name:                  d.Get("name").(string),
 			ProcessName:           d.Get("process_name").(string),

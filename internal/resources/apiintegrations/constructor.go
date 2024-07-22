@@ -12,9 +12,7 @@ import (
 
 // constructJamfProApiIntegration constructs a ResourceApiIntegration object from the provided schema data and serializes it to JSON.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceApiIntegration, error) {
-	var resource *jamfpro.ResourceApiIntegration
-
-	resource = &jamfpro.ResourceApiIntegration{
+	resource := &jamfpro.ResourceApiIntegration{
 		DisplayName:                d.Get("display_name").(string),
 		Enabled:                    d.Get("enabled").(bool),
 		AccessTokenLifetimeSeconds: d.Get("access_token_lifetime_seconds").(int),

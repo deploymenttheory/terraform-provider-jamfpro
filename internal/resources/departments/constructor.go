@@ -12,9 +12,7 @@ import (
 
 // constructJamfProDepartment constructs a Jamf Pro Department struct from Terraform resource data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceDepartment, error) {
-	var resource *jamfpro.ResourceDepartment
-
-	resource = &jamfpro.ResourceDepartment{
+	resource := &jamfpro.ResourceDepartment{
 		Name: d.Get("name").(string),
 	}
 

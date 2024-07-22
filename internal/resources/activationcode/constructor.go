@@ -12,9 +12,7 @@ import (
 
 // constructJamfProActivationCode constructs a ResourceActivationCode object from the provided schema data and logs its XML representation.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceActivationCode, error) {
-	var resource *jamfpro.ResourceActivationCode
-
-	resource = &jamfpro.ResourceActivationCode{
+	resource := &jamfpro.ResourceActivationCode{
 		OrganizationName: d.Get("organization_name").(string),
 		Code:             d.Get("code").(string),
 	}

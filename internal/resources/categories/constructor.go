@@ -12,9 +12,7 @@ import (
 
 // constructJamfProCategory constructs a Jamf Pro Category struct from Terraform resource data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceCategory, error) {
-	var resource *jamfpro.ResourceCategory
-
-	resource = &jamfpro.ResourceCategory{
+	resource := &jamfpro.ResourceCategory{
 		Name:     d.Get("name").(string),
 		Priority: d.Get("priority").(int),
 	}
