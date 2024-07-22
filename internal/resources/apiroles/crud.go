@@ -43,11 +43,7 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 	return read(ctx, d, meta, false)
 }
 
-// resourceJamfProAPIRolesUpdate handles updating a Jamf Pro API Role.
-// The function:
-// 1. Constructs the updated API role data using the provided Terraform configuration.
-// 2. Calls the API to update the role in Jamf Pro.
-// 3. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
+// update handles updating a Jamf Pro API Role.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return common.Update(
 		ctx,

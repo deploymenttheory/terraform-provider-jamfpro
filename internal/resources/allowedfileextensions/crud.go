@@ -43,9 +43,7 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 	return read(ctx, d, meta, false)
 }
 
-// resourceJamfProAllowedFileExtensionUpdate handles the update operation for an AllowedFileExtension resource in Terraform.
-// Since there is no direct update API endpoint, this function will delete the existing AllowedFileExtension and create a new one.
-// This approach simulates an update operation from the user's perspective in Terraform.
+// update handles the update operation for an AllowedFileExtension resource in Terraform.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	deleteDiags := delete(ctx, d, meta)
 	if deleteDiags.HasError() {

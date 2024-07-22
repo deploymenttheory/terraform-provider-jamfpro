@@ -61,7 +61,7 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Di
 	return append(diags, updateTerraformState(d, response)...)
 }
 
-// resourceJamfProActivationCodeUpdate is responsible for updating the Jamf Pro computer check-in configuration.
+// update is responsible for updating the Jamf Pro computer check-in configuration.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics

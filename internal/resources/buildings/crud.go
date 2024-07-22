@@ -41,6 +41,7 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 	return read(ctx, d, meta, false)
 }
 
+// update updates a jamfpro building
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return common.Update(
 		ctx,

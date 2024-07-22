@@ -107,11 +107,7 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 	return read(ctx, d, meta, false)
 }
 
-// resourceJamfProPackagesUpdate is responsible for updating an existing Jamf Pro Package on the remote system.
-// 1. Constructs the attribute data using the provided Terraform configuration.
-// 2. Calls the API to update the package metadata in jamfpro.
-// 3. Uploads the package file to the Jamf Pro server if the file has changed based on the MD5 hash.
-// 4. Perform cleanup of downloaded package if it was from an HTTP(s) source
+// update is responsible for updating an existing Jamf Pro Package on the remote system.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics

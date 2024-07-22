@@ -43,7 +43,7 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 	return read(ctx, d, meta, false)
 }
 
-// Constructs, updates and reads
+// update connstructs, updates and reads
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return common.Update(
 		ctx,

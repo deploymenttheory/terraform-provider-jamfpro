@@ -43,7 +43,7 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 	return read(ctx, d, meta, true)
 }
 
-// resourceJamfProDockItemsUpdate is responsible for updating a Jamf Pro dock item.
+// update is responsible for updating a Jamf Pro dock item.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return common.Update(
 		ctx,
