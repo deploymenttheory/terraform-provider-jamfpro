@@ -15,7 +15,7 @@ import (
 // DataSourceJamfProComputerPrestageEnrollmentEnrollment provides information about a specific department in Jamf Pro.
 func DataSourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceJamfProComputerPrestageEnrollmentEnrollmentRead,
+		ReadContext: dataSourceRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(30 * time.Second),
 		},
@@ -34,8 +34,8 @@ func DataSourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 	}
 }
 
-// DataSourceJamfProComputerPrestageEnrollmentEnrollmentRead fetches the details of a specific department from Jamf Pro using its unique ID.
-func DataSourceJamfProComputerPrestageEnrollmentEnrollmentRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// dataSourceRead fetches the details of a specific department from Jamf Pro using its unique ID.
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)

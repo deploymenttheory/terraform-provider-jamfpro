@@ -16,7 +16,7 @@ import (
 // DataSourceJamfProUserGroups provides information about a specific Jamf Pro User Group by its ID or Name.
 func DataSourceJamfProUserGroups() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceJamfProUserGroupsRead,
+		ReadContext: dataSourceRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(30 * time.Second),
 		},
@@ -35,7 +35,7 @@ func DataSourceJamfProUserGroups() *schema.Resource {
 	}
 }
 
-// DataSourceJamfProUserGroupsRead fetches the details of a specific Jamf Pro user group
+// dataSourceRead fetches the details of a specific Jamf Pro user group
 // from Jamf Pro using either its unique Name or its Id. The function prioritizes the 'name' attribute over the 'id'
 // attribute for fetching details. If neither 'name' nor 'id' is provided, it returns an error.
 // Once the details are fetched, they are set in the data source's state.
@@ -47,7 +47,7 @@ func DataSourceJamfProUserGroups() *schema.Resource {
 //
 // Returns:
 // - diag.Diagnostics: Returns any diagnostics (errors or warnings) encountered during the function's execution.
-func DataSourceJamfProUserGroupsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)

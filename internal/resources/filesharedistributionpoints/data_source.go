@@ -16,7 +16,7 @@ import (
 // DataSourceJamfProFileShareDistributionPoints defines the schema and CRUD operations for managing Jamf Pro Distribution Point in Terraform.
 func DataSourceJamfProFileShareDistributionPoints() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceJamfProFileShareDistributionPointsRead,
+		ReadContext: dataSourceRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(30 * time.Second),
 		},
@@ -38,13 +38,13 @@ func DataSourceJamfProFileShareDistributionPoints() *schema.Resource {
 	}
 }
 
-// DataSourceJamfProFileShareDistributionPointsRead is responsible for reading the current state of a
+// dataSourceReading the current state of a
 // Jamf Pro File Share Distribution Point Resource from the remote system.
 // The function:
 // 1. Fetches the dock item's current state using its ID. If it fails then obtain dock item's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the dock item being deleted outside of Terraform, to keep the Terraform state synchronized.
-func DataSourceJamfProFileShareDistributionPointsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)

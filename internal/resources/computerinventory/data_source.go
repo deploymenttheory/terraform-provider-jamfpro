@@ -13,7 +13,7 @@ import (
 // DataSourceJamfProMacOSComputerInventory provides information about a specific computer's inventory by its ID or Name.
 func DataSourceJamfProComputerInventory() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceJamfProComputerInventoryRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:     schema.TypeString,
@@ -1327,11 +1327,11 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 	}
 }
 
-// dataSourceJamfProComputerInventoryRead fetches the details of a specific macOS Configuration Profile
+// dataSourceRead fetches the details of a specific macOS Configuration Profile
 // from Jamf Pro using either its unique Name or its ID. The function prioritizes the 'name' attribute over the 'id'
 // attribute for fetching details. If neither 'name' nor 'id' is provided, it returns an error.
 // Once the details are fetched, they are set in the data source's state.
-func dataSourceJamfProComputerInventoryRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Asserts 'meta' as '*client.client'
 	client, ok := meta.(*jamfpro.Client)
 	if !ok {

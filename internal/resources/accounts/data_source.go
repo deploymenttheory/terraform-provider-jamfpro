@@ -16,7 +16,7 @@ import (
 // DataSourceJamfProAccounts provides information about specific Jamf Pro Dock Items by their ID or Name.
 func DataSourceJamfProAccounts() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceJamfProAccountRead,
+		ReadContext: dataSourceRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(30 * time.Second),
 		},
@@ -35,8 +35,8 @@ func DataSourceJamfProAccounts() *schema.Resource {
 	}
 }
 
-// DataSourceJamfProAccountRead fetches the details of specific account from Jamf Pro using either their unique Name or Id.
-func DataSourceJamfProAccountRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// dataSourceRead fetches the details of specific account from Jamf Pro using either their unique Name or Id.
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)

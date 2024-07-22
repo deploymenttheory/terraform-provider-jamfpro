@@ -16,7 +16,7 @@ import (
 // DataSourceJamfProScripts provides information about a specific Jamf Pro script by its ID or Name.
 func DataSourceJamfProScripts() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceJamfProScriptsRead,
+		ReadContext: dataSourceRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(30 * time.Second),
 		},
@@ -35,9 +35,9 @@ func DataSourceJamfProScripts() *schema.Resource {
 	}
 }
 
-// DataSourceJamfProScriptsRead fetches the details of a specific Jamf Pro script
+// dataSourceRead fetches the details of a specific Jamf Pro script
 // from Jamf Pro using either its unique Name or its Id.
-func DataSourceJamfProScriptsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Initialize API client
 	client, ok := meta.(*jamfpro.Client)
 	if !ok {

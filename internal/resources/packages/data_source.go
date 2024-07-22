@@ -16,7 +16,7 @@ import (
 // DataSourceJamfProPackages provides information about a specific Jamf Pro site by its ID or Name.
 func DataSourceJamfProPackages() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceJamfProPackagesRead,
+		ReadContext: dataSourceRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(30 * time.Second),
 		},
@@ -35,7 +35,7 @@ func DataSourceJamfProPackages() *schema.Resource {
 	}
 }
 
-// DataSourceJamfProPackagesRead fetches the details of a specific Jamf Pro package
+// dataSourceRead fetches the details of a specific Jamf Pro package
 // from Jamf Pro using either its unique Name or its Id. The function prioritizes the 'name' attribute over the 'id'
 // attribute for fetching details. If neither 'name' nor 'id' is provided, it returns an error.
 // Once the details are fetched, they are set in the data source's state.
@@ -47,7 +47,7 @@ func DataSourceJamfProPackages() *schema.Resource {
 //
 // Returns:
 // - diag.Diagnostics: Returns any diagnostics (errors or warnings) encountered during the function's execution.
-func DataSourceJamfProPackagesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client, ok := meta.(*jamfpro.Client)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.client")

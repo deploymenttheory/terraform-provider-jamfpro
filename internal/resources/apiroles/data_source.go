@@ -15,7 +15,7 @@ import (
 // DataSourceJamfProAPIRoles provides information about a specific Jamf Pro API role by its ID or Name.
 func DataSourceJamfProAPIRoles() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceJamfProAPIRolesRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
@@ -31,10 +31,10 @@ func DataSourceJamfProAPIRoles() *schema.Resource {
 	}
 }
 
-// DataSourceJamfProAPIRolesRead fetches the details of a specific API role from Jamf Pro using either its unique Name or its Id.
+// dataSourceRead fetches the details of a specific API role from Jamf Pro using either its unique Name or its Id.
 // The function prioritizes the 'name' attribute over the 'id' attribute for fetching details. If neither 'name' nor 'id' is provided,
 // it returns an error. Once the details are fetched, they are set in the data source's state.
-func DataSourceJamfProAPIRolesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)

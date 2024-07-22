@@ -16,7 +16,7 @@ import (
 // DataSourceJamfProDiskEncryptionConfigurations defines the schema and CRUD operations for managing Jamf Pro Disk Encryption Configurations in Terraform.
 func DataSourceJamfProDiskEncryptionConfigurations() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceJamfProDiskEncryptionConfigurationsRead,
+		ReadContext: dataSourceRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(30 * time.Second),
 		},
@@ -38,9 +38,9 @@ func DataSourceJamfProDiskEncryptionConfigurations() *schema.Resource {
 	}
 }
 
-// DataSourceJamfProDiskEncryptionConfigurationsRead fetches the details of a specific Jamf Pro disk encryption configuration
+// dataSourceRead fetches the details of a specific Jamf Pro disk encryption configuration
 // from Jamf Pro and returns the details of the disk encryption configuration in the Terraform state.
-func DataSourceJamfProDiskEncryptionConfigurationsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)

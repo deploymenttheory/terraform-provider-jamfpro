@@ -13,7 +13,7 @@ import (
 // DataSourceJamfProCategories provides information about a specific Category in Jamf Pro.
 func DataSourceJamfProCategories() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceJamfProCategoriesRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
@@ -29,8 +29,8 @@ func DataSourceJamfProCategories() *schema.Resource {
 	}
 }
 
-// DataSourceJamfProCategoriesRead fetches the details of a specific category from Jamf Pro using its unique ID.
-func DataSourceJamfProCategoriesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// dataSourceRead fetches the details of a specific category from Jamf Pro using its unique ID.
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)

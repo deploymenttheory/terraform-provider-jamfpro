@@ -15,7 +15,7 @@ import (
 // DataSourceJamfProMacOSConfigurationProfilesPlist provides information about a specific department in Jamf Pro.
 func DataSourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceJamfProMacOSConfigurationProfilePlistRead,
+		ReadContext: dataSourceRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(30 * time.Second),
 		},
@@ -34,8 +34,8 @@ func DataSourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 	}
 }
 
-// DataSourceJamfProMacOSConfigurationProfilePlistRead fetches the details of a macOS configuration profile.
-func DataSourceJamfProMacOSConfigurationProfilePlistRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// dataSourceRead fetches the details of a macOS configuration profile.
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)

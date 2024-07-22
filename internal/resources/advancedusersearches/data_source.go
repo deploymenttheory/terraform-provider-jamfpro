@@ -14,7 +14,7 @@ import (
 // DataSourceJamfProAdvancedUserSearches provides information about a specific API integration by its ID or Name.
 func DataSourceJamfProAdvancedUserSearches() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceJamfProAdvancedUserSearchesRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
@@ -30,7 +30,7 @@ func DataSourceJamfProAdvancedUserSearches() *schema.Resource {
 	}
 }
 
-// DataSourceJamfProAdvancedUserSearchesRead fetches the details of a specific API integration
+// dataSourceRead fetches the details of a specific API integration
 // from Jamf Pro using either its unique Name or its Id. The function prioritizes the 'display_name' attribute over the 'id'
 // attribute for fetching details. If neither 'display_name' nor 'id' is provided, it returns an error.
 // Once the details are fetched, they are set in the data source's state.
@@ -42,7 +42,7 @@ func DataSourceJamfProAdvancedUserSearches() *schema.Resource {
 //
 // Returns:
 // - diag.Diagnostics: Returns any diagnostics (errors or warnings) encountered during the function's execution.
-func DataSourceJamfProAdvancedUserSearchesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client, ok := meta.(*jamfpro.Client)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.client")

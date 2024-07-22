@@ -15,7 +15,7 @@ import (
 // DataSourceJamfProBuildings provides information about a specific building in Jamf Pro.
 func DataSourceJamfProBuildings() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceBuildingRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
@@ -31,8 +31,8 @@ func DataSourceJamfProBuildings() *schema.Resource {
 	}
 }
 
-// DataSourceBuildingRead fetches the details of a specific building from Jamf Pro using either its unique Name or its Id.
-func DataSourceBuildingRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// dataSourceRead fetches the details of a specific building from Jamf Pro using either its unique Name or its Id.
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)

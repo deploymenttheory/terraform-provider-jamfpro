@@ -16,7 +16,7 @@ import (
 // DataSourceJamfProPrinters provides information about a specific Jamf Pro printer by its ID or Name.
 func DataSourceJamfProPrinters() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceJamfProPrintersRead,
+		ReadContext: dataSourceRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(30 * time.Second),
 		},
@@ -35,8 +35,8 @@ func DataSourceJamfProPrinters() *schema.Resource {
 	}
 }
 
-// DataSourceJamfProPrintersRead fetches the details of a specific printer from Jamf Pro using either its unique Name or its Id.
-func DataSourceJamfProPrintersRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// dataSourceRead fetches the details of a specific printer from Jamf Pro using either its unique Name or its Id.
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)

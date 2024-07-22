@@ -15,7 +15,7 @@ import (
 // DataSourceJamfProMobileDeviceConfigurationProfiles provides information about a specific department in Jamf Pro.
 func DataSourceJamfProMobileDeviceConfigurationProfilesPlist() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceJamfProMobileDeviceConfigurationProfileRead,
+		ReadContext: dataSourceRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(30 * time.Second),
 		},
@@ -34,8 +34,8 @@ func DataSourceJamfProMobileDeviceConfigurationProfilesPlist() *schema.Resource 
 	}
 }
 
-// DataSourceJamfProMobileDeviceConfigurationProfileRead fetches the details of a specific department from Jamf Pro using its unique ID.
-func DataSourceJamfProMobileDeviceConfigurationProfileRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// dataSourceRead fetches the details of a specific department from Jamf Pro using its unique ID.
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)

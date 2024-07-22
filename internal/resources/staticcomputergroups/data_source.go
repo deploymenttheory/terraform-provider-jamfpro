@@ -14,7 +14,7 @@ import (
 // DataSourceJamfProStaticComputerGroups provides information about a specific computer group in Jamf Pro.
 func DataSourceJamfProStaticComputerGroups() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceJamfProStaticComputerGroupsRead,
+		ReadContext: dataSourceRead,
 
 		Schema: map[string]*schema.Schema{
 			"id": {
@@ -31,7 +31,7 @@ func DataSourceJamfProStaticComputerGroups() *schema.Resource {
 	}
 }
 
-// DataSourceJamfProStaticComputerGroupsRead fetches the details of a specific computer group
+// dataSourceRead fetches the details of a specific computer group
 // from Jamf Pro using either its unique Name or its Id. The function prioritizes the 'name' attribute over the 'id'
 // attribute for fetching details. If neither 'name' nor 'id' is provided, it returns an error.
 // Once the details are fetched, they are set in the data source's state.
@@ -43,7 +43,7 @@ func DataSourceJamfProStaticComputerGroups() *schema.Resource {
 //
 // Returns:
 // - diag.Diagnostics: Returns any diagnostics (errors or warnings) encountered during the function's execution.
-func DataSourceJamfProStaticComputerGroupsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)
