@@ -2,12 +2,10 @@ package departments
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -19,31 +17,14 @@ import (
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 // resourceJamfProDepartmentsCreate is responsible for creating a new Jamf Pro Department in the remote system.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
-
-	resource, err := construct(d)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Department: %v", err))
-	}
-
-	var creationResponse *jamfpro.ResponseDepartmentCreate
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		var apiErr error
-		creationResponse, apiErr = client.CreateDepartment(resource)
-		if apiErr != nil {
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Department '%s' after retries: %v", resource.Name, err))
-	}
-
-	d.SetId(creationResponse.ID)
-
-	return append(diags, readNoCleanup(ctx, d, meta)...)
+	return common.Create(
+		ctx,
+		d,
+		meta,
+		construct,
+		meta.(*jamfpro.Client).CreateDepartment,
+		readNoCleanup,
+	)
 }
 
 // resourceJamfProDepartmentsRead is responsible for reading the current state of a Jamf Pro Department Resource from the remote system.
@@ -53,25 +34,14 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
 // resourceJamfProDepartmentsRead is responsible for reading the current state of a Jamf Pro Department Resource from the remote system.
 func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
-	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
-	resourceID := d.Id()
-
-	var response *jamfpro.ResourceDepartment
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
-		response, apiErr = client.GetDepartmentByID(resourceID)
-		if apiErr != nil {
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	if err != nil {
-		return append(diags, common.HandleResourceNotFoundError(err, d, cleanup)...)
-	}
-
-	return append(diags, updateTerraformState(d, response)...)
+	return common.Read(
+		ctx,
+		d,
+		meta,
+		cleanup,
+		meta.(*jamfpro.Client).GetDepartmentByID,
+		updateTerraformState,
+	)
 }
 
 // resourceJamfProDepartmentsReadWithCleanup reads the resource with cleanup enabled
@@ -86,60 +56,22 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 
 // resourceJamfProDepartmentsUpdate is responsible for updating an existing Jamf Pro Department on the remote system.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
-	resourceID := d.Id()
-	resourceName := d.Get("name").(string)
-
-	department, err := construct(d)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error constructing Jamf Pro Department '%s': %v", resourceName, err))
-	}
-
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := client.UpdateDepartmentByID(resourceID, department)
-		if apiErr == nil {
-			return nil
-		}
-
-		_, apiErrByName := client.UpdateDepartmentByName(resourceName, department)
-		if apiErrByName != nil {
-			return retry.RetryableError(fmt.Errorf("failed to update department '%s' by ID '%s' and by name due to errors: %v, %v", resourceName, resourceID, apiErr, apiErrByName))
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return append(diags, diag.FromErr(fmt.Errorf("final attempt to update department '%s' failed: %v", resourceName, err))...)
-	}
-
-	return append(diags, readNoCleanup(ctx, d, meta)...)
+	return common.Update(
+		ctx,
+		d,
+		meta,
+		construct,
+		meta.(*jamfpro.Client).UpdateDepartmentByID,
+		readNoCleanup,
+	)
 }
 
 // resourceJamfProDepartmentsDelete is responsible for deleting a Jamf Pro Department.
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
-	resourceID := d.Id()
-	resourceName := d.Get("name").(string)
-
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		apiErr := client.DeleteDepartmentByID(resourceID)
-		if apiErr != nil {
-			apiErrByName := client.DeleteDepartmentByName(resourceName)
-			if apiErrByName != nil {
-				return retry.RetryableError(fmt.Errorf("failed to delete department '%s' by ID '%s' and by name due to errors: %v, %v", resourceName, resourceID, apiErr, apiErrByName))
-			}
-		}
-		return nil
-	})
-
-	if err != nil {
-		return append(diags, diag.FromErr(fmt.Errorf("final attempt to delete department '%s' failed: %v", resourceName, err))...)
-	}
-
-	d.SetId("")
-
-	return diags
+	return common.Delete(
+		ctx,
+		d,
+		meta,
+		meta.(*jamfpro.Client).DeleteDepartmentByID,
+	)
 }

@@ -43,34 +43,6 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 	return read(ctx, d, meta, false)
 }
 
-// resourceJamfProAccountRead is responsible for reading the current state of a Jamf Pro Account Group Resource from the remote system.
-// func readFromCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-// 	client := meta.(*jamfpro.Client)
-// 	var diags diag.Diagnostics
-// 	resourceID := d.Id()
-
-// 	resourceIDInt, err := strconv.Atoi(resourceID)
-// 	if err != nil {
-// 		return diag.FromErr(fmt.Errorf("error converting resource ID '%s' to int: %v", resourceID, err))
-// 	}
-
-// 	var response *jamfpro.ResourceAccount
-// 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-// 		var apiErr error
-// 		response, apiErr = client.GetAccountByID(resourceIDInt)
-// 		if apiErr != nil {
-// 			return retry.RetryableError(apiErr)
-// 		}
-// 		return nil
-// 	})
-
-// 	if err != nil {
-// 		return diag.FromErr(err)
-// 	}
-
-// 	return append(diags, updateTerraformState(d, response)...)
-// }
-
 // resourceJamfProAccountUpdate is responsible for updating an existing Jamf Pro Account Group on the remote system.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return common.Update(

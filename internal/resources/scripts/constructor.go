@@ -12,9 +12,7 @@ import (
 
 // constructJamfProScript constructs a ResourceScript object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceScript, error) {
-	var resource *jamfpro.ResourceScript
-
-	resource = &jamfpro.ResourceScript{
+	resource := &jamfpro.ResourceScript{
 		Name:           d.Get("name").(string),
 		Info:           d.Get("info").(string),
 		Notes:          d.Get("notes").(string),
