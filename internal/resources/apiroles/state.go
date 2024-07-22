@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// updateTerraformState updates the Terraform state with the latest API Role information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceAPIRole) diag.Diagnostics {
+// updateState updates the Terraform state with the latest API Role information from the Jamf Pro API.
+func updateState(d *schema.ResourceData, resp *jamfpro.ResourceAPIRole) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	apiRoleData := map[string]interface{}{

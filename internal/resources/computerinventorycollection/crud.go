@@ -59,7 +59,7 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 		return append(diags, common.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
-	return append(diags, updateTerraformState(d, response)...)
+	return append(diags, updateState(d, response)...)
 }
 
 // readWithCleanup reads the resource with cleanup enabled

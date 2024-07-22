@@ -8,7 +8,7 @@ import (
 )
 
 // Helper function to update Terraform state
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourcePackage) diag.Diagnostics {
+func updateState(d *schema.ResourceData, resource *jamfpro.ResourcePackage) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if err := d.Set("package_name", resource.PackageName); err != nil {

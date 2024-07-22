@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// updateTerraformState updates the Terraform state with the latest ResourceMacOSConfigurationProfile
+// updateState updates the Terraform state with the latest ResourceMacOSConfigurationProfile
 // information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfigurationProfile) diag.Diagnostics {
+func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfigurationProfile) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// TODO review this and remove. the. comments.!

@@ -7,8 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// updateTerraformState updates the Terraform state with the latest Activation Code information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resource *jamfpro.ResourceActivationCode) diag.Diagnostics {
+// updateState updates the Terraform state with the latest Activation Code information from the Jamf Pro API.
+func updateState(d *schema.ResourceData, resource *jamfpro.ResourceActivationCode) diag.Diagnostics {
 	var diags diag.Diagnostics
 	var err error
 

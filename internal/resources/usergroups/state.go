@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// updateTerraformState updates the Terraform state with the latest UserGroup information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceUserGroup) diag.Diagnostics {
+// updateState updates the Terraform state with the latest UserGroup information from the Jamf Pro API.
+func updateState(d *schema.ResourceData, resp *jamfpro.ResourceUserGroup) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if err := d.Set("id", strconv.Itoa(resp.ID)); err != nil {

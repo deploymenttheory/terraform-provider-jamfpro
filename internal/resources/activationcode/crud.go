@@ -58,7 +58,7 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Di
 		diag.FromErr(err)
 	}
 
-	return append(diags, updateTerraformState(d, response)...)
+	return append(diags, updateState(d, response)...)
 }
 
 // update is responsible for updating the Jamf Pro computer check-in configuration.

@@ -30,7 +30,7 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 		meta,
 		cleanup,
 		meta.(*jamfpro.Client).GetComputerGroupByID,
-		updateTerraformState,
+		updateState,
 	)
 }
 

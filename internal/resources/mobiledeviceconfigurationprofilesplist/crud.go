@@ -70,7 +70,7 @@ func resourceJamfProMobileDeviceConfigurationProfilePlistRead(ctx context.Contex
 		return append(diags, common.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
-	return append(diags, updateTerraformState(d, response)...)
+	return append(diags, updateState(d, response)...)
 }
 
 // resourceJamfProMobileDeviceConfigurationProfilePlistReadWithCleanup reads the resource with cleanup enabled

@@ -12,7 +12,7 @@ import (
 )
 
 // Parent func for invdividual stating functions
-func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy) diag.Diagnostics {
+func updateState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if err := d.Set("id", resp.General.ID); err != nil {

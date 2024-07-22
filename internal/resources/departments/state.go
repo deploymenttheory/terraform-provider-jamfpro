@@ -7,8 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// updateTerraformState updates the Terraform state with the latest Department information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceDepartment) diag.Diagnostics {
+// updateState updates the Terraform state with the latest Department information from the Jamf Pro API.
+func updateState(d *schema.ResourceData, resp *jamfpro.ResourceDepartment) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if err := d.Set("id", resp.ID); err != nil {
