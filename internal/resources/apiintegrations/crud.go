@@ -33,17 +33,17 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 	)
 }
 
-// resourceJamfProApiIntegrationsReadWithCleanup reads the resource with cleanup enabled
+// readWithCleanup reads the resource with cleanup enabled
 func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return read(ctx, d, meta, true)
 }
 
-// resourceJamfProApiIntegrationsReadNoCleanup reads the resource with cleanup disabled
+// readNoCleanup reads the resource with cleanup disabled
 func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return read(ctx, d, meta, false)
 }
 
-// resourceJamfProApiIntegrationsUpdate is responsible for updating an existing Jamf Pro API Integration on the remote system.
+// update is responsible for updating an existing Jamf Pro API Integration on the remote system.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return common.Update(
 		ctx,
@@ -55,7 +55,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	)
 }
 
-// resourceJamfProApiIntegrationsDelete is responsible for deleting a Jamf Pro API Integration.
+// delete is responsible for deleting a Jamf Pro API Integration.
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return common.Delete(
 		ctx,

@@ -33,12 +33,12 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 	)
 }
 
-// resourceJamfProAccountReadWithCleanup reads the resource with cleanup enabled
+// readWithCleanup reads the resource with cleanup enabled
 func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return read(ctx, d, meta, true)
 }
 
-// resourceJamfProAccountReadNoCleanup reads the resource with cleanup disabled
+// readNoCleanup reads the resource with cleanup disabled
 func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return read(ctx, d, meta, false)
 }
@@ -55,7 +55,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	)
 }
 
-// resourceJamfProAccountDelete is responsible for deleting a Jamf Pro account .
+// delete is responsible for deleting a Jamf Pro account .
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return common.Delete(
 		ctx,

@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// resourceJamfProPackagesCreate is responsible for creating a new Jamf Pro Package in the remote system.
+// create is responsible for creating a new Jamf Pro Package in the remote system.
 // The function:
 // 1. Constructs the attribute data using the provided Terraform configuration.
 // 2. Calls the API to create the package metadata in jamfpro.
@@ -97,12 +97,12 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 	return append(diags, updateTerraformState(d, response)...)
 }
 
-// resourceJamfProMacOSConfigurationProfilesPlistReadWithCleanup reads the resource with cleanup enabled
+// readWithCleanup reads the resource with cleanup enabled
 func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return read(ctx, d, meta, true)
 }
 
-// resourceJamfProMacOSConfigurationProfilesPlistReadNoCleanup reads the resource with cleanup disabled
+// readNoCleanup reads the resource with cleanup disabled
 func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return read(ctx, d, meta, false)
 }
@@ -165,7 +165,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
-// resourceJamfProPackagesDelete is responsible for deleting a Jamf Pro Package.
+// delete is responsible for deleting a Jamf Pro Package.
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics

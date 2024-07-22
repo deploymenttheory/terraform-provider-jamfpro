@@ -88,7 +88,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	return append(diags, read(ctx, d, meta)...)
 }
 
-// resourceJamfProActivationCodeDelete is responsible for 'deleting' the Jamf Pro computer check-in configuration.
+// delete is responsible for 'deleting' the Jamf Pro computer check-in configuration.
 // Since this resource represents a configuration and not an actual entity that can be deleted,
 // this function will simply remove it from the Terraform state.
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

@@ -33,12 +33,12 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 	)
 }
 
-// resourceJamfProAllowedFileExtensionReadWithCleanup reads the resource with cleanup enabled
+// readWithCleanup reads the resource with cleanup enabled
 func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return read(ctx, d, meta, true)
 }
 
-// resourceJamfProAllowedFileExtensionReadNoCleanup reads the resource with cleanup disabled
+// readNoCleanup reads the resource with cleanup disabled
 func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return read(ctx, d, meta, false)
 }
@@ -53,7 +53,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	return create(ctx, d, meta)
 }
 
-// resourceJamfProAllowedFileExtensionDelete is responsible for deleting an Allowed File Extension in Jamf Pro.
+// delete is responsible for deleting an Allowed File Extension in Jamf Pro.
 // This function will delete the resource based on its ID from the Terraform state.
 // If the resource cannot be found by ID, it will attempt to delete by the 'extension' attribute.
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

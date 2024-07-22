@@ -34,12 +34,12 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 	)
 }
 
-// resourceJamfProStaticComputerGroupsReadWithCleanup reads the resource with cleanup enabled
+// readWithCleanup reads the resource with cleanup enabled
 func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return read(ctx, d, meta, true)
 }
 
-// resourceJamfProStaticComputerGroupsReadNoCleanup reads the resource with cleanup disabled
+// readNoCleanup reads the resource with cleanup disabled
 func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return read(ctx, d, meta, false)
 }
@@ -56,7 +56,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	)
 }
 
-// resourceJamfProStaticComputerGroupsDelete is responsible for deleting a Jamf Pro Static Computer Group.
+// delete is responsible for deleting a Jamf Pro Static Computer Group.
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return common.Delete(
 		ctx,

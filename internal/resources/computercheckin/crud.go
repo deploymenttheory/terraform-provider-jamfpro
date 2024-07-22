@@ -62,12 +62,12 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 	return append(diags, updateTerraformState(d, response)...)
 }
 
-// resourceJamfProComputerCheckinReadWithCleanup reads the resource with cleanup enabled
+// readWithCleanup reads the resource with cleanup enabled
 func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return read(ctx, d, meta, true)
 }
 
-// resourceJamfProComputerCheckinReadNoCleanup reads the resource with cleanup disabled
+// readNoCleanup reads the resource with cleanup disabled
 func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return read(ctx, d, meta, false)
 }
@@ -99,7 +99,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
-// resourceJamfProComputerCheckinDelete is responsible for 'deleting' the Jamf Pro computer check-in configuration.
+// delete is responsible for 'deleting' the Jamf Pro computer check-in configuration.
 // Since this resource represents a configuration and not an actual entity that can be deleted,
 // this function will simply remove it from the Terraform state.
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
