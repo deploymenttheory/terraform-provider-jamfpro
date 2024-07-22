@@ -21,11 +21,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	)
 }
 
-// resourceJamfProAPIRolesRead handles reading a Jamf Pro API Role from the remote system.
-// The function:
-// 1. Tries to fetch the API role based on the ID from the Terraform state.
-// 2. If fetching by ID fails, attempts to fetch it by the display name.
-// 3. Updates the Terraform state with the fetched data.
+// read handles reading a Jamf Pro API Role from the remote system.
 func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	return common.Read(
 		ctx,

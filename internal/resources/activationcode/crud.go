@@ -37,7 +37,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	return append(diags, read(ctx, d, meta)...)
 }
 
-// resourceJamfProActivationCodeRead is responsible for reading the current state of the Jamf Pro computer check-in configuration.
+// read is responsible for reading the current state of the Jamf Pro computer check-in configuration.
 func read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics

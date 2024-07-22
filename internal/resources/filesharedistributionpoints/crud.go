@@ -25,12 +25,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	)
 }
 
-// resourceJamfProFileShareDistributionPointsRead is responsible for reading the current state of a
-// Jamf Pro File Share Distribution Point Resource from the remote system.
-// The function:
-// 1. Fetches the dock item's current state using its ID. If it fails then obtain dock item's current state using its Name.
-// 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
-// 3. Handles any discrepancies, such as the dock item being deleted outside of Terraform, to keep the Terraform state synchronized.
+// read is responsible for reading the current state of a
 func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	return common.Read(
 		ctx,
