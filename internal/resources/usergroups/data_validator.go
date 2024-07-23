@@ -30,7 +30,7 @@ func validateIsSmartAttribute(_ context.Context, diff *schema.ResourceDiff, _ in
 		return nil
 	}
 
-	usersBlockExists := len(diff.Get("users").([]interface{})) > 0
+	usersBlockExists := len(diff.Get("assigned_user_ids").([]interface{})) > 0
 	criteriaBlockExists := len(diff.Get("criteria").([]interface{})) > 0
 
 	if isSmart.(bool) && usersBlockExists {
