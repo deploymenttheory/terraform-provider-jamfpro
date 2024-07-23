@@ -62,7 +62,7 @@ Optional:
 - `override_default_settings` (Block List) Settings to override default configurations. (see [below for nested schema](#nestedblock--payloads--override_default_settings))
 - `packages` (Block List) Package configuration settings of the policy. (see [below for nested schema](#nestedblock--payloads--packages))
 - `printers` (Block List) Printers settings of the policy. (see [below for nested schema](#nestedblock--payloads--printers))
-- `reboot` (Block Set) Use this section to restart computers and specify the disk to boot them to (see [below for nested schema](#nestedblock--payloads--reboot))
+- `reboot` (Block List) Use this section to restart computers and specify the disk to boot them to (see [below for nested schema](#nestedblock--payloads--reboot))
 - `scripts` (Block List) Scripts settings of the policy. (see [below for nested schema](#nestedblock--payloads--scripts))
 - `user_interaction` (Block List) User interaction settings of the policy. (see [below for nested schema](#nestedblock--payloads--user_interaction))
 

@@ -21,17 +21,14 @@ description: |-
 - `basic_auth_password` (String, Sensitive) The Jamf Pro password used for authentication when auth_method is 'basic'.
 - `basic_auth_username` (String) The Jamf Pro username used for authentication when auth_method is 'basic'.
 - `client_id` (String) The Jamf Pro Client ID for authentication when auth_method is 'oauth2'.
+- `client_sdk_log_export_path` (String) Specify the path to export http client logs to.
 - `client_secret` (String, Sensitive) The Jamf Pro Client secret for authentication when auth_method is 'oauth2'.
 - `custom_cookies` (Block List) Persistent custom cookies used by HTTP Client in all requests. (see [below for nested schema](#nestedblock--custom_cookies))
-- `export_logs` (Boolean) Enables exporting logs to a file
+- `enable_client_sdk_logs` (Boolean) Debug option to propogate logs from the SDK and HttpClient
 - `hide_sensitive_data` (Boolean) Define whether sensitive fields should be hidden in logs. Default to hiding sensitive data in logs
 - `jamfpro_instance_fqdn` (String) The Jamf Pro FQDN (fully qualified domain name). example: https://mycompany.jamfcloud.com
 - `jamfpro_load_balancer_lock` (Boolean) Programatically determines all available web app members in the load balance and locks all instances of httpclient to the app for faster executions. 
 TEMP SOLUTION UNTIL JAMF PROVIDES SOLUTION
-- `log_console_separator` (String) The separator character used in console log output.
-- `log_export_path` (String) Specify the path to export http client logs to.
-- `log_level` (String) The logging level: debug, info, warning, or none
-- `log_output_format` (String) The output format of the logs. Use 'JSON' for JSON format, 'pretty' for human-readable format. Defaults to console if no value is supplied.
 - `mandatory_request_delay_milliseconds` (Number) A mandatory delay after each request before returning to reduce high volume of requests in a short time
 - `token_refresh_buffer_period_seconds` (Number) The buffer period in seconds for token refresh.
 
