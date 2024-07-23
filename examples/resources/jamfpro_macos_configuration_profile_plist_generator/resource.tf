@@ -14,33 +14,33 @@ resource "jamfpro_macos_configuration_profile_plist_generator" "jamfpro_macos_co
 
   scope {
     all_computers = false
-    all_jss_users      = false
+    all_jss_users = false
 
-    computer_ids = [16, 20, 21]
+    computer_ids       = [16, 20, 21]
     computer_group_ids = sort([78, 1])
     building_ids       = ([1348, 1349])
     department_ids     = ([37287, 37288])
-    jss_user_ids = sort([2, 1])
+    jss_user_ids       = sort([2, 1])
     jss_user_group_ids = [4, 505]
 
     limitations {
-      network_segment_ids = [4,5]
-      ibeacon_ids = [3, 4]
-      directory_service_or_local_usernames     = ["Jane Smith","John Doe"]
-      directory_service_usergroup_ids = [3, 4]
+      network_segment_ids                  = [4, 5]
+      ibeacon_ids                          = [3, 4]
+      directory_service_or_local_usernames = ["Jane Smith", "John Doe"]
+      directory_service_usergroup_ids      = [3, 4]
     }
 
     exclusions {
-      computer_ids = [16, 20, 21]
-      computer_group_ids = sort([78, 1])
-      building_ids       = ([1348, 1349])
-      department_ids     = ([37287, 37288])
-      network_segment_ids = [4,5]
-      jss_user_ids = sort([2, 1])
-      jss_user_group_ids = [4, 505]
-      directory_service_or_local_usernames     = ["Jane Smith","John Doe"]
-      directory_service_usergroup_ids = [3, 4]
-      ibeacon_ids = [3, 4]
+      computer_ids                         = [16, 20, 21]
+      computer_group_ids                   = sort([78, 1])
+      building_ids                         = ([1348, 1349])
+      department_ids                       = ([37287, 37288])
+      network_segment_ids                  = [4, 5]
+      jss_user_ids                         = sort([2, 1])
+      jss_user_group_ids                   = [4, 505]
+      directory_service_or_local_usernames = ["Jane Smith", "John Doe"]
+      directory_service_usergroup_ids      = [3, 4]
+      ibeacon_ids                          = [3, 4]
     }
   }
 
@@ -52,7 +52,7 @@ resource "jamfpro_macos_configuration_profile_plist_generator" "jamfpro_macos_co
       payload_removal_disallowed_root = false
       payload_scope_root              = "System"
       payload_type_root               = "Configuration"
-      payload_version_root            = "${var.plist_version_number}"
+      payload_version_root            = var.plist_version_number
     }
 
     payload_content {
@@ -149,13 +149,13 @@ resource "jamfpro_macos_configuration_profile_plist_generator" "jamfpro_macos_co
         value = false
       }
 
-      payload_description        = ""
-      payload_display_name       = "Accessibility"
-      payload_enabled            = true
-      payload_organization       = "Deployment Theory"
-      payload_type               = "com.apple.universalaccess"
-      payload_version            = "${var.plist_version_number}"
-      payload_scope              = "System"
+      payload_description  = ""
+      payload_display_name = "Accessibility"
+      payload_enabled      = true
+      payload_organization = "Deployment Theory"
+      payload_type         = "com.apple.universalaccess"
+      payload_version      = var.plist_version_number
+      payload_scope        = "System"
     }
   }
 }
