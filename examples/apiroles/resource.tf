@@ -11,5 +11,5 @@ resource "jamfpro_api_role" "jamfpro_api_role_002" {
 
 resource "jamfpro_api_role" "jamfpro_api_role_003" {
   display_name = "tf-localtest-apirole-apiintegrations-crud"
-  privileges   = ["Create API Integrations","Update API Integrations", "Read API Integrations", "Delete API Integrations"]
+  privileges   = ["Create API Integrations", "Update API Integrations", "Read API Integrations", "Delete API Integrations"]
 }

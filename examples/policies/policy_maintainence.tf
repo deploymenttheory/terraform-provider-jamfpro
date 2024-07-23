@@ -32,7 +32,7 @@ resource "jamfpro_policy" "jamfpro_policy_mix_001" {
     install_button_text             = "Install"
     self_service_description        = ""
     force_users_to_view_description = false
-    feature_on_main_page = false
+    feature_on_main_page            = false
   }
 
   payloads {

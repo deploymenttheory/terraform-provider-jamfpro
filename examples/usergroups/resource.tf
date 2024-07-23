@@ -6,7 +6,7 @@ resource "jamfpro_user_group" "jamfpro_user_group_001" {
 
   site_id = 5
 
-  assigned_user_ids = [ 1 ]
+  assigned_user_ids = [1]
 }
 
 

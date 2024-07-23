@@ -1,16 +1,16 @@
 resource "jamfpro_computer_inventory_collection" "example" {
-  local_user_accounts             = true
-  home_directory_sizes            = true
-  hidden_accounts                 = true
-  printers                        = true
-  active_services                 = true
+  local_user_accounts               = true
+  home_directory_sizes              = true
+  hidden_accounts                   = true
+  printers                          = true
+  active_services                   = true
   mobile_device_app_purchasing_info = true
-  computer_location_information   = true
-  package_receipts                = true
-  available_software_updates      = true
-  include_applications            = true
-  include_fonts                   = true
-  include_plugins                 = true
+  computer_location_information     = true
+  package_receipts                  = true
+  available_software_updates        = true
+  include_applications              = true
+  include_fonts                     = true
+  include_plugins                   = true
 
   applications {
     path     = "/Applications/ExampleApp.app"
