@@ -1,8 +1,7 @@
 # Terraform Provider for Jamf Pro
 
-## Disclaimer
-
-**This project is under active development, and new releases may introduce changes that are not backward compatible with previous versions. Users should be aware that older implementations may break with updates. We recommend thoroughly reviewing release notes and testing new versions in a staging environment before deploying to production.**
+> [!WARNING]
+> This code is in preview and provided solely for evaluation purposes. It is **NOT** intended for production use and may contain bugs, incomplete features, or other issues. Use at your own risk, as it may undergo significant changes without notice until it reaches general availability, and no guarantees or support is provided. By using this code, you acknowledge and agree to these conditions. Consult the documentation or contact the maintainer if you have questions or concerns.
 
 ## Introduction
 
