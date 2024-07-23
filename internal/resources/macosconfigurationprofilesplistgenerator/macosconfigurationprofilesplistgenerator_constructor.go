@@ -21,8 +21,6 @@ func constructJamfProMacOSConfigurationProfilesPlistGenerator(d *schema.Resource
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate plist from payloads: %v", err)
 	}
-	log.Println("LOGHERE-PLIST")
-	log.Println(plistXML)
 
 	resource = &jamfpro.ResourceMacOSConfigurationProfile{
 		General: jamfpro.MacOSConfigurationProfileSubsetGeneral{

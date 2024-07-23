@@ -4,6 +4,7 @@
 package plist
 
 import (
+	"encoding/json"
 	"fmt"
 	"html"
 	"log"
@@ -125,17 +126,42 @@ func GetTypedValue(value interface{}) interface{} {
 
 // ConvertPlistToHCL converts a plist XML string to Terraform HCL schema data
 func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
-	var profile ConfigurationProfile
-	if _, err := plist.Unmarshal([]byte(plistXML), &profile); err != nil {
+	profile, err := UnmarshalPayload(plistXML)
+	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal plist: %w", err)
 	}
 
-	payloadsList, err := mapProfileToSchema(&profile)
+	// Log the entire profile to verify its contents
+	profileData, err := json.MarshalIndent(profile, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal profile to JSON: %w", err)
+	}
+	log.Printf("[DEBUG] Unmarshaled profile: %s", string(profileData))
+
+	if profile.PayloadContent != nil {
+		for i, content := range profile.PayloadContent {
+			contentData, err := json.MarshalIndent(content, "", "  ")
+			if err != nil {
+				return nil, fmt.Errorf("failed to marshal content to JSON: %w", err)
+			}
+			log.Printf("[DEBUG] PayloadContent %d: %s", i, string(contentData))
+		}
+	} else {
+		log.Printf("[DEBUG] PayloadContent is nil")
+	}
+
+	payloadsList, err := mapProfileToSchema(profile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to map profile to schema: %w", err)
 	}
 
-	log.Printf("[DEBUG] Constructed HCL schema from plist:\n%+v\n", payloadsList)
+	// Convert the payload list to JSON for pretty print
+	jsonData, err := json.MarshalIndent(payloadsList, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal JSON: %w", err)
+	}
+
+	log.Printf("[DEBUG] Constructed TF state structure from plist:\n%s\n", string(jsonData))
 
 	return payloadsList, nil
 }
@@ -169,19 +195,10 @@ func mapProfileToSchema(profile *ConfigurationProfile) ([]interface{}, error) {
 			"payload_scope":        content.PayloadScope,
 		}
 
+		log.Printf("[DEBUG] ConfigurationItems being passed: %v", content.ConfigurationItems)
 		settingsList := []interface{}{}
-		for _, itemInterface := range content.ConfigurationItems {
-			item, ok := itemInterface.(map[string]interface{})
-			if !ok {
-				return nil, fmt.Errorf("invalid configuration item format")
-			}
-			settingMap := map[string]interface{}{
-				"key":        item["key"],
-				"value":      item["value"],
-				"dictionary": marshalNestedDictionary(item["dictionary"]),
-			}
-			settingsList = append(settingsList, settingMap)
-		}
+		extractNestedConfigurationSettings(content.ConfigurationItems, &settingsList)
+		log.Printf("[DEBUG] Final settingsList: %v", settingsList)
 
 		payloadContent["setting"] = settingsList
 		payloadContentList = append(payloadContentList, payloadContent)
@@ -192,24 +209,43 @@ func mapProfileToSchema(profile *ConfigurationProfile) ([]interface{}, error) {
 	return []interface{}{payloadHeader}, nil
 }
 
-// marshalNestedDictionary converts the nested dictionary structure back to an appropriate format
-func marshalNestedDictionary(dict interface{}) []interface{} {
-	if dict == nil {
-		return nil
-	}
-
-	result := []interface{}{}
-	dictionary := dict.(map[string]interface{})
-	for key, value := range dictionary {
-		entry := map[string]interface{}{
-			"key":   key,
-			"value": value,
+// extractNestedConfigurationSettings recursively extracts key-value pairs from nested dictionaries and appends them to settingsList
+func extractNestedConfigurationSettings(items map[string]interface{}, settingsList *[]interface{}) {
+	log.Printf("[DEBUG] Raw data being processed: %v", items)
+	for key, value := range items {
+		log.Printf("[DEBUG] Processing configuration item key: %s, value: %v", key, value)
+		settingMap := map[string]interface{}{
+			"key": key,
 		}
-		if nestedDict, ok := value.(map[string]interface{}); ok {
-			entry["dictionary"] = marshalNestedDictionary(nestedDict)
-		}
-		result = append(result, entry)
-	}
 
-	return result
+		switch v := value.(type) {
+		case map[string]interface{}:
+			if len(v) > 0 {
+				nestedSettings := []interface{}{}
+				extractNestedConfigurationSettings(v, &nestedSettings)
+				settingMap["dictionary"] = nestedSettings
+			} else {
+				settingMap["value"] = "{}"
+			}
+		case []interface{}:
+			if len(v) > 0 {
+				var nestedSettings []interface{}
+				for _, item := range v {
+					if nestedItem, ok := item.(map[string]interface{}); ok {
+						nestedSettings = append(nestedSettings, nestedItem)
+					}
+				}
+				settingMap["dictionary"] = nestedSettings
+			} else {
+				settingMap["value"] = "[]"
+			}
+		case bool, int, float64, string:
+			settingMap["value"] = fmt.Sprintf("%v", v)
+		default:
+			settingMap["value"] = v
+		}
+
+		log.Printf("[DEBUG] Adding settingMap: %v", settingMap)
+		*settingsList = append(*settingsList, settingMap)
+	}
 }
