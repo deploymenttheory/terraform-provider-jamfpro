@@ -563,6 +563,7 @@ func Provider() *schema.Provider {
 			CustomCookies:            cookiesList,
 			MandatoryRequestDelay:    time.Duration(d.Get("mandatory_request_delay_milliseconds").(int)) * time.Millisecond,
 			RetryEligiableRequests:   false, // Forced off for now
+			HTTPExecutor:             &httpclient.ProdClient{Client: &http.Client{}},
 		}
 
 		goHttpClient, err := config.Build()
