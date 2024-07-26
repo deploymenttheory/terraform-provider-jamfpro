@@ -4,6 +4,7 @@ package macosconfigurationprofilesplist
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/datavalidators"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/plist"
@@ -43,7 +44,7 @@ func validateDistributionMethod(_ context.Context, diff *schema.ResourceDiff, _ 
 	}
 
 	if distributionMethod != "Make Available in Self Service" && selfServiceBlockExists {
-		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': 'self_service' block is not allowed when 'distribution_method' is set to '%s'", resourceName, distributionMethod)
+		log.Printf("[WARN] 'jamfpro_macos_configuration_profile.%s': 'self_service' block is not meaningful when 'distribution_method' is set to '%s'", resourceName, distributionMethod)
 	}
 
 	return nil
