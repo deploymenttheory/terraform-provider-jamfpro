@@ -180,14 +180,12 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 									},
 									"display_in": {
 										Type:        schema.TypeBool,
-										ForceNew:    true,
 										Description: "Display this profile in this category?",
 										Required:    true,
 									},
 									"feature_in": {
 										Type:        schema.TypeBool,
 										Description: "Feature this profile in this category?",
-										ForceNew:    true,
 										Required:    true,
 									},
 								},
