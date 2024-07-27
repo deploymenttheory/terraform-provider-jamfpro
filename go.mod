@@ -6,8 +6,6 @@ go 1.22.4
 
 // Deploymenttheory
 
-replace github.com/deploymenttheory/go-api-sdk-jamfpro => /Users/harry.seeber/src/go-api-sdk-jamfpro
-
 require (
 	github.com/deploymenttheory/go-api-http-client v0.2.8
 	github.com/deploymenttheory/go-api-http-client-integrations v0.0.8
