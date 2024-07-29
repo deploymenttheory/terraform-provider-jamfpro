@@ -460,6 +460,7 @@ func Provider() *schema.Provider {
 		tokenRefrshBufferPeriod := time.Duration(d.Get("token_refresh_buffer_period_seconds").(int)) * time.Second
 
 		hide_sensitive_data := d.Get("hide_sensitive_data").(bool)
+		bootstrapProdExecutor := &httpclient.ProdExecutor{Client: &http.Client{}}
 		switch authMethod {
 		case "oauth2":
 			clientId = GetClientID(d, &diags)
@@ -471,6 +472,7 @@ func Provider() *schema.Provider {
 				clientId,
 				clientSecret,
 				hide_sensitive_data,
+				bootstrapProdExecutor,
 			)
 
 		case "basic":
@@ -483,6 +485,7 @@ func Provider() *schema.Provider {
 				basicAuthUsername,
 				basicAuthPassword,
 				hide_sensitive_data,
+				bootstrapProdExecutor,
 			)
 
 		default:
@@ -563,7 +566,7 @@ func Provider() *schema.Provider {
 			CustomCookies:            cookiesList,
 			MandatoryRequestDelay:    time.Duration(d.Get("mandatory_request_delay_milliseconds").(int)) * time.Millisecond,
 			RetryEligiableRequests:   false, // Forced off for now
-			HTTPExecutor:             &httpclient.ProdClient{Client: &http.Client{}},
+			HTTPExecutor:             &httpclient.ProdExecutor{Client: &http.Client{}},
 		}
 
 		goHttpClient, err := config.Build()
