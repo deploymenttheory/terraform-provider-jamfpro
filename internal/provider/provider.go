@@ -241,13 +241,13 @@ func Provider() *schema.Provider {
 			"jamfpro_instance_fqdn": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc(envVarJamfProFQDN, ""),
+				DefaultFunc: schema.EnvDefaultFunc(envVarJamfProFQDN, nil),
 				Description: "The Jamf Pro FQDN (fully qualified domain name). example: https://mycompany.jamfcloud.com",
 			},
 			"auth_method": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc(envVarJamfProAuthMethod, ""),
+				DefaultFunc: schema.EnvDefaultFunc(envVarJamfProAuthMethod, nil),
 				Description: "Auth method chosen for Jamf.",
 				ValidateFunc: validation.StringInSlice([]string{
 					"basic", "oauth2",
@@ -256,27 +256,27 @@ func Provider() *schema.Provider {
 			"client_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc(envVarOAuthClientId, ""),
+				DefaultFunc: schema.EnvDefaultFunc(envVarOAuthClientId, nil),
 				Description: "The Jamf Pro Client ID for authentication when auth_method is 'oauth2'.",
 			},
 			"client_secret": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
-				DefaultFunc: schema.EnvDefaultFunc(envVarOAuthClientSecret, ""),
+				DefaultFunc: schema.EnvDefaultFunc(envVarOAuthClientSecret, nil),
 				Description: "The Jamf Pro Client secret for authentication when auth_method is 'oauth2'.",
 			},
 			"basic_auth_username": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc(envVarBasicAuthUsername, ""),
+				DefaultFunc: schema.EnvDefaultFunc(envVarBasicAuthUsername, nil),
 				Description: "The Jamf Pro username used for authentication when auth_method is 'basic'.",
 			},
 			"basic_auth_password": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
-				DefaultFunc: schema.EnvDefaultFunc(envVarBasicAuthPassword, ""),
+				DefaultFunc: schema.EnvDefaultFunc(envVarBasicAuthPassword, nil),
 				Description: "The Jamf Pro password used for authentication when auth_method is 'basic'.",
 			},
 			"enable_client_sdk_logs": {
