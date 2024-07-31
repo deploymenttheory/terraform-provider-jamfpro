@@ -51,7 +51,7 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "String",
-				Description: "Data type of the computer extension attribute. Can be String / Integer / Date (YYYY-MM-DD hh:mm:ss). Value defaults to `String`.",
+				Description: "Data type of the computer extension attribute. Can be string / integer / date (YYYY-MM-DD hh:mm:ss). Value defaults to `string`.",
 				StateFunc: func(val any) string {
 					return strings.ToLower(val.(string))
 				},
