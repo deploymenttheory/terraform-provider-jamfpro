@@ -13,9 +13,6 @@ To Do:
 - Standardise stating logic across all endpoints.
 - Move getStringSliceFromSet function out of accountgroups and into shared package.
 - Amend account privs for Jamf Pro 11.6+ (Removal of casper admin keys?)
-- Remove Get by name fallback in all occurances.
-- Line 306 macosconfigurationprofiles.state
-- Finish Policies
 - Adjust Account/Account Group privileges to be pulled from an automatically updated json file
 
 Known Issues:
