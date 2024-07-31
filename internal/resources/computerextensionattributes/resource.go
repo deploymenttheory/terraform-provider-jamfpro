@@ -2,6 +2,7 @@
 package computerextensionattributes
 
 import (
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -47,10 +48,16 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 				Description: "Description of the computer extension attribute.",
 			},
 			"data_type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "String",
-				Description:  "Data type of the computer extension attribute. Can be String / Integer / Date (YYYY-MM-DD hh:mm:ss). Value defaults to `String`.",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "String",
+				Description: "Data type of the computer extension attribute. Can be String / Integer / Date (YYYY-MM-DD hh:mm:ss). Value defaults to `String`.",
+				StateFunc: func(val any) string {
+					return strings.ToLower(val.(string))
+				},
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return strings.ToLower(old) == strings.ToLower(new)
+				},
 				ValidateFunc: validation.StringInSlice([]string{"string", "integer", "date"}, false),
 			},
 			"input_type": {
