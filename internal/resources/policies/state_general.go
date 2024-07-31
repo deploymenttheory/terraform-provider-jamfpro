@@ -5,6 +5,7 @@ package policies
 
 import (
 	"reflect"
+	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -15,7 +16,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if err := d.Set("id", resp.General.ID); err != nil {
+	if err := d.Set("id", strconv.Itoa(resp.General.ID)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
