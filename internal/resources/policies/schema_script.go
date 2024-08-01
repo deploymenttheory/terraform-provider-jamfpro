@@ -35,10 +35,7 @@ func getPolicySchemaScript() *schema.Resource {
 				Description: "Custom parameter 5 for the script.",
 				Optional:    true,
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					if old == new {
-						return true
-					}
-					return false
+					return old == new
 				},
 			},
 			"parameter6": {

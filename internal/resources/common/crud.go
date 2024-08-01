@@ -3,6 +3,7 @@ package common
 import (
 	"context"
 	"fmt"
+	"log"
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -44,15 +45,21 @@ func Create[sdkPayloadType any, sdkResponseType any](
 		return diag.FromErr(fmt.Errorf("failed to construct %s: %v", payloadtypeName, err))
 	}
 
+	log.Println("LOG-CREATE-START")
 	var outcomeResponse *sdkResponseType
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		log.Println("LOG-CREATE-1")
 		var apiErr error
 		outcomeResponse, apiErr = serverOutcomeFunc(payload)
+		log.Println("LOG-CREATE-2")
 		if apiErr != nil {
+			log.Println("LOG-CREATE-3-ERROR")
 			return retry.RetryableError(apiErr)
 		}
+		log.Println("LOG-CREATE-4")
 		return nil
 	})
+	log.Println("LOG-CREATE-END")
 
 	if err != nil {
 		return append(diags, diag.FromErr(fmt.Errorf("failed to create %s after retries: %v", payloadtypeName, err))...)
@@ -117,14 +124,20 @@ func Read[sdkResponseType any](
 	resourceID := d.Id()
 
 	var response *sdkResponseType
+	log.Println("LOG-READ-START")
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		log.Println("LOG-READ-1")
 		var apiErr error
 		response, apiErr = serverOutcomeFunc(resourceID)
+		log.Println("LOG-READ-2")
 		if apiErr != nil {
+			log.Println("LOG-READ-3 - INSIDE ERROR")
 			return retry.RetryableError(apiErr)
 		}
+		log.Println("LOG-READ-4")
 		return nil
 	})
+	log.Println("LOG-READ-END")
 
 	if err != nil {
 		return append(diags, HandleResourceNotFoundError(err, d, removeDeleteResourcesFromState)...)

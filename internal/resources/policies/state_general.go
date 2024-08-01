@@ -11,29 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// Parent func for invdividual stating functions
-func updateState(d *schema.ResourceData, resp *jamfpro.ResourcePolicy) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	if err := d.Set("id", resp.General.ID); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	// General/Root level
-	stateGeneral(d, resp, &diags)
-
-	// Scope
-	stateScope(d, resp, &diags)
-
-	// Self Service
-	stateSelfService(d, resp, &diags)
-
-	// Payloads
-	statePayloads(d, resp, &diags)
-
-	return diags
-}
-
 // stateGeneral Reads response and states general/root level item block
 func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
 	var err error

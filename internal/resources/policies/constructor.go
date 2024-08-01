@@ -27,6 +27,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	constructPayloads(d, resource)
 
 	// Debug
+	log.Println("LOG-SUCCESSFUL CONSTRUCT")
 	policyXML, _ := xml.MarshalIndent(resource, "", "  ")
 	log.Println(string(policyXML))
 
