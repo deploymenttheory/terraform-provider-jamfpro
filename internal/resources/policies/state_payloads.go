@@ -404,6 +404,17 @@ func prepStatePayloadReboot(out *[]map[string]interface{}, resp *jamfpro.Resourc
 		return
 	}
 
+	defaults := map[string]interface{}{
+		"message":                        "This computer will restart in 5 minutes. Please save anything you are working on and log out by choosing Log Out from the bottom of the Apple menu.",
+		"specify_startup":                "",
+		"startup_disk":                   "Current Startup Disk",
+		"no_user_logged_in":              "Do not restart",
+		"user_logged_in":                 "Do not restart",
+		"minutes_until_reboot":           5,
+		"start_reboot_timer_immediately": false,
+		"file_vault_2_reboot":            false,
+	}
+
 	rebootBlock := map[string]interface{}{
 		"message":                        resp.Reboot.Message,
 		"specify_startup":                resp.Reboot.SpecifyStartup,
@@ -413,6 +424,19 @@ func prepStatePayloadReboot(out *[]map[string]interface{}, resp *jamfpro.Resourc
 		"minutes_until_reboot":           resp.Reboot.MinutesUntilReboot,
 		"start_reboot_timer_immediately": resp.Reboot.StartRebootTimerImmediately,
 		"file_vault_2_reboot":            resp.Reboot.FileVault2Reboot,
+	}
+
+	allDefault := true
+	for key, value := range rebootBlock {
+		if value != defaults[key] {
+			allDefault = false
+			break
+		}
+	}
+
+	if allDefault {
+		log.Println("All user interaction values are default, skipping state")
+		return
 	}
 
 	log.Println("Initializing reboot in state")
