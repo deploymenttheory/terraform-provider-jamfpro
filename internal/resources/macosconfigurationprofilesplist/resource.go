@@ -2,7 +2,6 @@
 package macosconfigurationprofilesplist
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/plist"
@@ -29,7 +28,6 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
-
 			"id": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -37,18 +35,18 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Jamf UI name for configuration profile.",
+				Computed:    true,
+				Description: "Jamf UI name for configuration profile. Conforms to top-level PayloadDisplayName in payloads attribute's plist string. Modify there.",
 			},
 			"description": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Description of the configuration profile.",
+				Computed:    true,
+				Description: "Description of the configuration profile. Conforms to top-level PayloadDescription in payloads attribute's plist string. Modify there.",
 			},
 			"uuid": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The universally unique identifier for the profile.",
+				Description: "The universally unique identifier for the profile. Conforms to top-level PayloadIdentifier in payloads attribute's plist string. Modify there.",
 			},
 			"site_id":     sharedschemas.GetSharedSchemaSite(),
 			"category_id": sharedschemas.GetSharedSchemaCategory(),
@@ -81,18 +79,11 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 				Description:      "A MacOS configuration profile as a plist-formatted XML string.",
 			},
 			"redeploy_on_update": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     "Newly Assigned", // This is always "Newly Assigned" on existing profile objects, but may be set "All" on profile update requests and in TF state.
-				Description: "Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := val.(string)
-					if v == "All" || v == "Newly Assigned" {
-						return
-					}
-					errs = append(errs, fmt.Errorf("%q must be either 'All' or 'Newly Assigned', got: %s", key, v))
-					return warns, errs
-				},
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "Newly Assigned", // This is always "Newly Assigned" on existing profile objects, but may be set "All" on profile update requests and in TF state.
+				Description:  "Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state",
+				ValidateFunc: validation.StringInSlice([]string{"All", "Newly Assigned"}, false),
 			},
 			"scope": {
 				Type:        schema.TypeList,
@@ -180,14 +171,12 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 									},
 									"display_in": {
 										Type:        schema.TypeBool,
-										ForceNew:    true,
 										Description: "Display this profile in this category?",
 										Required:    true,
 									},
 									"feature_in": {
 										Type:        schema.TypeBool,
 										Description: "Feature this profile in this category?",
-										ForceNew:    true,
 										Required:    true,
 									},
 								},
