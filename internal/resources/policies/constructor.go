@@ -333,7 +333,7 @@ func constructPayloadScripts(d *schema.ResourceData, resource *jamfpro.ResourceP
 		})
 	}
 
-	resource.Scripts = &payloads
+	resource.Scripts = payloads
 }
 
 // Pulls "disk encryption" settings from HCL and packages them into the resource.
@@ -387,9 +387,7 @@ func constructPayloadDockItems(d *schema.ResourceData, resource *jamfpro.Resourc
 		return
 	}
 
-	outBlock := new(jamfpro.PolicySubsetDockItems)
-	outBlock.DockItem = &[]jamfpro.PolicySubsetDockItem{}
-	payload := *outBlock.DockItem
+	var payload []jamfpro.PolicySubsetDockItem
 
 	for _, v := range hcl.([]interface{}) {
 		newObj := jamfpro.PolicySubsetDockItem{
@@ -400,8 +398,7 @@ func constructPayloadDockItems(d *schema.ResourceData, resource *jamfpro.Resourc
 		payload = append(payload, newObj)
 	}
 
-	outBlock.DockItem = &payload
-	resource.DockItems = outBlock
+	resource.DockItems = payload
 
 }
 

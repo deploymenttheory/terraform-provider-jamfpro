@@ -133,7 +133,7 @@ func prepStatePayloadScripts(out *[]map[string]interface{}, resp *jamfpro.Resour
 	log.Println("Initializing scripts in state")
 	(*out)[0]["scripts"] = make([]map[string]interface{}, 0)
 
-	for _, v := range *resp.Scripts {
+	for _, v := range resp.Scripts {
 		outMap := make(map[string]interface{})
 		outMap["id"] = v.ID
 		outMap["priority"] = v.Priority
@@ -195,7 +195,7 @@ func prepStatePayloadPrinters(out *[]map[string]interface{}, resp *jamfpro.Resou
 
 // Reads response and preps dock items payload items
 func prepStatePayloadDockItems(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	if resp.DockItems.DockItem == nil {
+	if resp.DockItems == nil {
 		log.Println("No dock items found")
 		return
 	}
@@ -203,7 +203,7 @@ func prepStatePayloadDockItems(out *[]map[string]interface{}, resp *jamfpro.Reso
 	log.Println("Initializing dock items in state")
 	(*out)[0]["dock_items"] = make([]map[string]interface{}, 0)
 
-	for _, v := range *resp.DockItems.DockItem {
+	for _, v := range resp.DockItems {
 		outMap := make(map[string]interface{})
 		outMap["id"] = v.ID
 		outMap["name"] = v.Name
