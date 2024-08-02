@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	common "github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/plist"
+	common "github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/plist" // #FIXME This entire file should probably be refactored to better integrate with common/plist.
 	"howett.net/plist"
 )
 
