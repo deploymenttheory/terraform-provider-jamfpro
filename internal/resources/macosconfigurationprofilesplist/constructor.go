@@ -18,12 +18,9 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData) (*ja
 
 	resource = &jamfpro.ResourceMacOSConfigurationProfile{
 		General: jamfpro.MacOSConfigurationProfileSubsetGeneral{
-			Name:               d.Get("name").(string),
-			Description:        d.Get("description").(string),
 			DistributionMethod: d.Get("distribution_method").(string),
 			UserRemovable:      d.Get("user_removable").(bool),
 			Level:              d.Get("level").(string),
-			UUID:               d.Get("uuid").(string),
 			RedeployOnUpdate:   d.Get("redeploy_on_update").(string),
 			Payloads:           html.EscapeString(d.Get("payloads").(string)),
 		},
