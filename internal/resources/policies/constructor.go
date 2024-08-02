@@ -359,7 +359,7 @@ func constructPayloadDiskEncryption(d *schema.ResourceData, resource *jamfpro.Re
 // Pulls "printers" settings from HCL and packages them into the resource.
 func constructPayloadPrinters(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
 	hcl := d.Get("payloads.0.printers")
-	if len(hcl.([]interface{})) == 0 {
+	if hcl == nil || len(hcl.([]interface{})) == 0 {
 		return
 	}
 
@@ -383,7 +383,7 @@ func constructPayloadPrinters(d *schema.ResourceData, resource *jamfpro.Resource
 // constructPayloadDockItems builds the dock items payload settings of the policy.
 func constructPayloadDockItems(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
 	hcl := d.Get("payloads.0.dock_items")
-	if len(hcl.([]interface{})) == 0 {
+	if hcl == nil || len(hcl.([]interface{})) == 0 {
 		return
 	}
 
