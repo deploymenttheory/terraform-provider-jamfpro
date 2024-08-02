@@ -50,7 +50,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		d,
 		meta,
 		construct,
-		meta.(*jamfpro.Client).UpdateScriptByName,
+		meta.(*jamfpro.Client).UpdateScriptByID,
 		readNoCleanup,
 	)
 }

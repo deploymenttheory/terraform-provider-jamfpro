@@ -294,8 +294,6 @@ func constructPayloadPackages(d *schema.ResourceData, resource *jamfpro.Resource
 	if len(hcl.(map[string]interface{})) == 0 {
 		return
 	}
-	log.Println("LOGHERE")
-	log.Println(hcl)
 	var payload jamfpro.PolicySubsetPackageConfiguration
 	payload.DistributionPoint = hcl.(map[string]interface{})["distribution_point"].(string)
 	packageList := hcl.(map[string]interface{})["package"].([]interface{})
@@ -547,10 +545,14 @@ func constructPayloadUserInteraction(d *schema.ResourceData, resource *jamfpro.R
 
 // constructPayloadReboot builds the reboot payload settings of the policy.
 func constructPayloadReboot(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
-	hcl := d.Get("payloads.0.reboot.0")
-	if len(hcl.(map[string]interface{})) == 0 {
+	hcl := d.Get("payloads.0.reboot")
+	log.Println(hcl)
+	if len(hcl.([]interface{})) == 0 {
+		resource.Reboot = nil
 		return
 	}
+
+	hcl = d.Get("payloads.0.reboot.0")
 
 	var payload jamfpro.PolicySubsetReboot
 
