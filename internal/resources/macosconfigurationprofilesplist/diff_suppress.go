@@ -37,7 +37,7 @@ func DiffSuppressPayloads(k, old, new string, d *schema.ResourceData) bool {
 // processPayload processes the payload by comparing the old and new payloads. It removes specified fields and compares the hashes.
 func processPayload(payload string, source string) (string, error) {
 	log.Printf("Processing %s: %s", source, payload)
-	fieldsToRemove := []string{"PayloadUUID", "PayloadIdentifier", "PayloadOrganization", "PayloadDisplayName"}
+	fieldsToRemove := []string{"PayloadUUID"} // Suppress PayloadUUID differences: Jamf may (always?) sets PayloadContent items' PayloadUUID, ignoring input value.
 	processedPayload, err := plist.ProcessConfigurationProfileForDiffSuppression(payload, fieldsToRemove)
 	if err != nil {
 		return "", err
