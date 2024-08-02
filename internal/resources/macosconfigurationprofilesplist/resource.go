@@ -33,7 +33,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 				Computed:    true,
 				Description: "The unique identifier of the macOS configuration profile.",
 			},
-			"display_name": {
+			"name": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Jamf UI name for configuration profile. Conforms to top-level PayloadDisplayName in payloads attribute's plist string. Modify there.",
