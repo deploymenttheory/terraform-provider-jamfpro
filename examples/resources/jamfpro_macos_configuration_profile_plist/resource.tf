@@ -11,6 +11,7 @@ resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuratio
   level               = "User"                           // "User", "Device"
   distribution_method = "Make Available in Self Service" // "Make Available in Self Service", "Install Automatically"
   payloads            = file("${path.module}/path/to/your/file.mobileconfig")
+  payloadvalidate     = true
   user_removable      = false
 
   // Optional Block

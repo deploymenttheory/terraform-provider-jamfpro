@@ -12,18 +12,30 @@ import (
 
 // mainCustomDiffFunc orchestrates all custom diff validations.
 func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
-	if err := validateDistributionMethod(ctx, diff, i); err != nil {
-		return err
+	if diff.Get("payloadvalidate").(bool) {
+		if err := normalizePayloadState(ctx, diff, i); err != nil {
+			return err
+		}
+
+		if err := validateDistributionMethod(ctx, diff, i); err != nil {
+			return err
+		}
+
+		if err := validateMacOSConfigurationProfileLevel(ctx, diff, i); err != nil {
+			return err
+		}
+
+		if err := validateConfigurationProfileFormatting(ctx, diff, i); err != nil {
+			return err
+		}
+
 	}
 
-	if err := validateMacOSConfigurationProfileLevel(ctx, diff, i); err != nil {
-		return err
-	}
+	return nil
+}
 
-	if err := validateConfigurationProfileFormatting(ctx, diff, i); err != nil {
-		return err
-	}
-
+func normalizePayloadState(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+	diff.SetNew("payloads", plist.NormalizePayloadState(diff.Get("payloads").(string)))
 	return nil
 }
 
