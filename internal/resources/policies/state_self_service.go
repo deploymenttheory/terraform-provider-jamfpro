@@ -13,7 +13,7 @@ import (
 
 // stateSelfService Reads response and states self-service items and states only if non-default
 func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
-	if resp.SelfService == nil {
+	if &resp.SelfService == nil {
 		return
 	}
 

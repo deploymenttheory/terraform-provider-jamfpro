@@ -105,7 +105,7 @@ func constructScope(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) er
 	}
 
 	// Targets
-	resource.Scope = &jamfpro.PolicySubsetScope{
+	resource.Scope = jamfpro.PolicySubsetScope{
 		Computers:      &[]jamfpro.PolicySubsetComputer{},
 		ComputerGroups: &[]jamfpro.PolicySubsetComputerGroup{},
 		JSSUsers:       &[]jamfpro.PolicySubsetJSSUser{},
@@ -260,7 +260,7 @@ func constructScope(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) er
 // Pulls "self service" settings from HCL and packages into object
 func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	if len(d.Get("self_service").([]interface{})) > 0 {
-		out.SelfService = &jamfpro.PolicySubsetSelfService{
+		out.SelfService = jamfpro.PolicySubsetSelfService{
 			UseForSelfService:      d.Get("self_service.0.use_for_self_service").(bool),
 			SelfServiceDisplayName: d.Get("self_service.0.self_service_display_name").(string),
 			InstallButtonText:      d.Get("self_service.0.install_button_text").(string),
@@ -307,7 +307,7 @@ func constructPayloadPackages(d *schema.ResourceData, resource *jamfpro.Resource
 		})
 	}
 
-	resource.PackageConfiguration = &payload
+	resource.PackageConfiguration = payload
 }
 
 // Pulls "script" settings from HCL and packages them into the resource.
@@ -352,7 +352,7 @@ func constructPayloadDiskEncryption(d *schema.ResourceData, resource *jamfpro.Re
 	outBlock.RemediateKeyType = data["remediate_key_type"].(string)
 	outBlock.RemediateDiskEncryptionConfigurationID = data["remediate_disk_encryption_configuration_id"].(int)
 
-	resource.DiskEncryption = outBlock
+	resource.DiskEncryption = *outBlock
 
 }
 
@@ -376,7 +376,7 @@ func constructPayloadPrinters(d *schema.ResourceData, resource *jamfpro.Resource
 	}
 
 	outBlock.Printer = &payload
-	resource.Printers = outBlock
+	resource.Printers = *outBlock
 
 }
 
@@ -480,7 +480,7 @@ func constructPayloadAccountMaintenance(d *schema.ResourceData, resource *jamfpr
 		}
 	}
 
-	resource.AccountMaintenance = outBlock
+	resource.AccountMaintenance = *outBlock
 }
 
 // constructPayloadFilesProcesses builds the files and processes payload settings of the policy.
@@ -509,7 +509,7 @@ func constructPayloadFilesProcesses(d *schema.ResourceData, resource *jamfpro.Re
 
 	if len(payload) > 0 {
 		outBlock = &payload[0]
-		resource.FilesProcesses = outBlock
+		resource.FilesProcesses = *outBlock
 	}
 
 }
@@ -536,7 +536,7 @@ func constructPayloadUserInteraction(d *schema.ResourceData, resource *jamfpro.R
 	}
 
 	outBlock = &payload[0]
-	resource.UserInteraction = outBlock
+	resource.UserInteraction = *outBlock
 
 }
 
@@ -545,7 +545,6 @@ func constructPayloadReboot(d *schema.ResourceData, resource *jamfpro.ResourcePo
 	hcl := d.Get("payloads.0.reboot")
 	log.Println(hcl)
 	if len(hcl.([]interface{})) == 0 {
-		resource.Reboot = nil
 		return
 	}
 
@@ -562,7 +561,7 @@ func constructPayloadReboot(d *schema.ResourceData, resource *jamfpro.ResourcePo
 	payload.StartRebootTimerImmediately = hcl.(map[string]interface{})["start_reboot_timer_immediately"].(bool)
 	payload.FileVault2Reboot = hcl.(map[string]interface{})["file_vault_2_reboot"].(bool)
 
-	resource.Reboot = &payload
+	resource.Reboot = payload
 
 }
 
@@ -593,6 +592,6 @@ func constructPayloadMaintenance(d *schema.ResourceData, resource *jamfpro.Resou
 	}
 
 	outBlock = &payload[0]
-	resource.Maintenance = outBlock
+	resource.Maintenance = *outBlock
 
 }

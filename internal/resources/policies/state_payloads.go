@@ -56,7 +56,7 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 
 // prepStatePayloadDiskEncryption reads response and preps disk encryption payload items for stating
 func prepStatePayloadDiskEncryption(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	if resp.DiskEncryption == nil {
+	if &resp.DiskEncryption == nil {
 		log.Println("No disk encryption configuration found")
 		return
 	}
@@ -99,7 +99,7 @@ func prepStatePayloadDiskEncryption(out *[]map[string]interface{}, resp *jamfpro
 
 // Reads response and preps package payload items
 func prepStatePayloadPackages(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	if resp.PackageConfiguration == nil || resp.PackageConfiguration.Packages == nil {
+	if &resp.PackageConfiguration == nil || resp.PackageConfiguration.Packages == nil {
 		log.Println("No package configuration found")
 		return
 	}
@@ -219,7 +219,7 @@ func prepStatePayloadDockItems(out *[]map[string]interface{}, resp *jamfpro.Reso
 // prepStatePayloadAccountMaintenance reads response and preps account maintenance payload items.
 // If all values are default, do not set the account_maintenance block
 func prepStatePayloadAccountMaintenance(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	if resp.AccountMaintenance == nil {
+	if &resp.AccountMaintenance == nil {
 		log.Println("No account maintenance configuration found")
 		return
 	}
@@ -307,7 +307,7 @@ func prepStatePayloadAccountMaintenance(out *[]map[string]interface{}, resp *jam
 
 // prepStatePayloadFilesProcesses reads response and preps files and processes payload items.
 func prepStatePayloadFilesProcesses(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	if resp.FilesProcesses == nil {
+	if &resp.FilesProcesses == nil {
 		log.Println("No files and processes configuration found")
 		return
 	}
@@ -356,7 +356,7 @@ func prepStatePayloadFilesProcesses(out *[]map[string]interface{}, resp *jamfpro
 
 // prepStatePayloadUserInteraction Reads response and preps user interaction payload items. If all values are default, do not set the user_interaction block
 func prepStatePayloadUserInteraction(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	if resp.UserInteraction == nil {
+	if &resp.UserInteraction == nil {
 		log.Println("No user interaction configuration found")
 		return
 	}
@@ -399,7 +399,7 @@ func prepStatePayloadUserInteraction(out *[]map[string]interface{}, resp *jamfpr
 
 // Reads response and preps reboot payload items
 func prepStatePayloadReboot(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	if resp.Reboot == nil {
+	if &resp.Reboot == nil {
 		log.Println("No reboot configuration found")
 		return
 	}
@@ -446,12 +446,12 @@ func prepStatePayloadReboot(out *[]map[string]interface{}, resp *jamfpro.Resourc
 
 // prepStatePayloadMaintenance Reads response and preps maintenance payload items. If all values are default, do not set the maintenance block
 func prepStatePayloadMaintenance(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	if resp.Maintenance == nil {
+	if &resp.Maintenance == nil {
 		return
 	}
 
 	// Do not set the maintenance block if all values are default (false)
-	v := reflect.ValueOf(*resp.Maintenance)
+	v := reflect.ValueOf(resp.Maintenance)
 	allDefault := true
 
 	for i := 0; i < v.NumField(); i++ {
