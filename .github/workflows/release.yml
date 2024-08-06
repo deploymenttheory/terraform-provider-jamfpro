@@ -18,10 +18,9 @@ jobs:
       gpg-private-key-passphrase: '${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}'  # Passphrase for your GPG key, if applicable
     with:
       release-notes: false # Set to true if you have release notes to include
-      setup-go-version: '1.22.5' # Specify the Go version needed
+      setup-go-version: '1.22' # Specify the Go version needed
   release-notes:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
     steps:
       - uses: actions/checkout@v2
         with:
