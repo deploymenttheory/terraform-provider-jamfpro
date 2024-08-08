@@ -364,8 +364,8 @@ func constructPayloadPrinters(d *schema.ResourceData, resource *jamfpro.Resource
 	}
 
 	outBlock := new(jamfpro.PolicySubsetPrinters)
-	outBlock.Printer = &[]jamfpro.PolicySubsetPrinter{}
-	payload := *outBlock.Printer
+	outBlock.Printer = []jamfpro.PolicySubsetPrinter{}
+	payload := outBlock.Printer
 	for _, v := range hcl.([]interface{}) {
 		payload = append(payload, jamfpro.PolicySubsetPrinter{
 			ID:          v.(map[string]interface{})["id"].(int),
@@ -375,7 +375,7 @@ func constructPayloadPrinters(d *schema.ResourceData, resource *jamfpro.Resource
 		})
 	}
 
-	outBlock.Printer = &payload
+	outBlock.Printer = payload
 	resource.Printers = *outBlock
 
 }

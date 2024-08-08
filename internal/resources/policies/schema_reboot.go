@@ -36,7 +36,7 @@ func getPolicySchemaReboot() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Disk to boot computers to",
-				// Default:     "Current Startup Disk",
+				Default:     "Current Startup Disk",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := val.(string)
 					validDisks := []string{"Current Startup Disk", "Currently Selected Startup Disk (No Bless)", "macOS Installer", "Specify Local Startup Disk"}

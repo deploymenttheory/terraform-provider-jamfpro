@@ -56,12 +56,6 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 
 // prepStatePayloadDiskEncryption reads response and preps disk encryption payload items for stating
 func prepStatePayloadDiskEncryption(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	if &resp.DiskEncryption == nil {
-		log.Println("No disk encryption configuration found")
-		return
-	}
-
-	// Define default values
 	defaults := map[string]interface{}{
 		"action":                           "none",
 		"disk_encryption_configuration_id": 0,
@@ -70,7 +64,7 @@ func prepStatePayloadDiskEncryption(out *[]map[string]interface{}, resp *jamfpro
 		"remediate_disk_encryption_configuration_id": 0,
 	}
 
-	diskEncryptionBlock := map[string]interface{}{
+	diskEncryptionStatePayload := map[string]interface{}{
 		"action":                           resp.DiskEncryption.Action,
 		"disk_encryption_configuration_id": resp.DiskEncryption.DiskEncryptionConfigurationID,
 		"auth_restart":                     resp.DiskEncryption.AuthRestart,
@@ -78,9 +72,8 @@ func prepStatePayloadDiskEncryption(out *[]map[string]interface{}, resp *jamfpro
 		"remediate_disk_encryption_configuration_id": resp.DiskEncryption.RemediateDiskEncryptionConfigurationID,
 	}
 
-	// Check if all values are default
 	allDefault := true
-	for key, value := range diskEncryptionBlock {
+	for key, value := range diskEncryptionStatePayload {
 		if value != defaults[key] {
 			allDefault = false
 			break
@@ -88,28 +81,22 @@ func prepStatePayloadDiskEncryption(out *[]map[string]interface{}, resp *jamfpro
 	}
 
 	if allDefault {
-		log.Println("All disk encryption values are default, skipping state")
 		return
 	}
 
-	log.Println("Initializing disk encryption in state")
-	(*out)[0]["disk_encryption"] = []map[string]interface{}{diskEncryptionBlock}
-	log.Printf("Final state disk encryption: %+v\n", diskEncryptionBlock)
+	(*out)[0]["disk_encryption"] = []map[string]interface{}{diskEncryptionStatePayload}
 }
 
 // Reads response and preps package payload items
 func prepStatePayloadPackages(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	if &resp.PackageConfiguration == nil || resp.PackageConfiguration.Packages == nil {
-		log.Println("No package configuration found")
+	if len(resp.PackageConfiguration.Packages) == 0 {
 		return
 	}
 
-	log.Println("Initializing packages in state")
-
 	packagesMap := make(map[string]interface{})
 	packagesMap["distribution_point"] = resp.PackageConfiguration.DistributionPoint
-
 	packagesMap["package"] = make([]map[string]interface{}, 0)
+
 	for _, v := range resp.PackageConfiguration.Packages {
 		outMap := make(map[string]interface{})
 		outMap["id"] = v.ID
@@ -120,7 +107,6 @@ func prepStatePayloadPackages(out *[]map[string]interface{}, resp *jamfpro.Resou
 	}
 
 	(*out)[0]["packages"] = []map[string]interface{}{packagesMap}
-	log.Printf("Final state packages: %+v\n", (*out)[0]["packages"])
 }
 
 // Reads response and preps script payload items
@@ -172,14 +158,13 @@ func prepStatePayloadScripts(out *[]map[string]interface{}, resp *jamfpro.Resour
 // prepStatePayloadPrinters reads response and preps printer payload items for stating
 func prepStatePayloadPrinters(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	if resp.Printers.Printer == nil {
-		log.Println("No printers found")
 		return
 	}
 
 	log.Println("Initializing printers in state")
 	(*out)[0]["printers"] = make([]map[string]interface{}, 0)
 
-	for _, v := range *resp.Printers.Printer {
+	for _, v := range resp.Printers.Printer {
 		outMap := make(map[string]interface{})
 		outMap["id"] = v.ID
 		outMap["name"] = v.Name
@@ -190,17 +175,14 @@ func prepStatePayloadPrinters(out *[]map[string]interface{}, resp *jamfpro.Resou
 		(*out)[0]["printers"] = append((*out)[0]["printers"].([]map[string]interface{}), outMap)
 	}
 
-	log.Printf("Final state printers: %+v\n", (*out)[0]["printers"])
 }
 
 // Reads response and preps dock items payload items
 func prepStatePayloadDockItems(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	if resp.DockItems == nil {
-		log.Println("No dock items found")
 		return
 	}
 
-	log.Println("Initializing dock items in state")
 	(*out)[0]["dock_items"] = make([]map[string]interface{}, 0)
 
 	for _, v := range resp.DockItems {
@@ -209,25 +191,16 @@ func prepStatePayloadDockItems(out *[]map[string]interface{}, resp *jamfpro.Reso
 		outMap["name"] = v.Name
 		outMap["action"] = v.Action
 
-		log.Printf("Adding dock item to state: %+v\n", outMap)
 		(*out)[0]["dock_items"] = append((*out)[0]["dock_items"].([]map[string]interface{}), outMap)
 	}
 
-	log.Printf("Final state dock items: %+v\n", (*out)[0]["dock_items"])
 }
 
 // prepStatePayloadAccountMaintenance reads response and preps account maintenance payload items.
 // If all values are default, do not set the account_maintenance block
 func prepStatePayloadAccountMaintenance(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	if &resp.AccountMaintenance == nil {
-		log.Println("No account maintenance configuration found")
-		return
-	}
-
-	log.Println("Initializing account maintenance in state")
 	accountMaintenanceMap := make(map[string]interface{})
 
-	// Handle accounts
 	if resp.AccountMaintenance.Accounts != nil {
 		localAccounts := make([]map[string]interface{}, 0)
 		for _, v := range *resp.AccountMaintenance.Accounts {
@@ -244,7 +217,6 @@ func prepStatePayloadAccountMaintenance(out *[]map[string]interface{}, resp *jam
 			accountMap["admin"] = v.Admin
 			accountMap["filevault_enabled"] = v.FilevaultEnabled
 
-			log.Printf("Adding account to state: %+v\n", accountMap)
 			localAccounts = append(localAccounts, accountMap)
 		}
 
@@ -263,7 +235,6 @@ func prepStatePayloadAccountMaintenance(out *[]map[string]interface{}, resp *jam
 			bindingMap["id"] = v.ID
 			bindingMap["name"] = v.Name
 
-			log.Printf("Adding directory binding to state: %+v\n", bindingMap)
 			directoryBindings = append(directoryBindings, bindingMap)
 		}
 
@@ -282,7 +253,6 @@ func prepStatePayloadAccountMaintenance(out *[]map[string]interface{}, resp *jam
 			managementAccountMap["managed_password"] = resp.AccountMaintenance.ManagementAccount.ManagedPassword
 			managementAccountMap["managed_password_length"] = resp.AccountMaintenance.ManagementAccount.ManagedPasswordLength
 
-			log.Printf("Adding management account to state: %+v\n", managementAccountMap)
 			accountMaintenanceMap["management_account"] = []map[string]interface{}{managementAccountMap}
 		}
 	}
@@ -294,25 +264,17 @@ func prepStatePayloadAccountMaintenance(out *[]map[string]interface{}, resp *jam
 			openFirmwareMap["of_mode"] = resp.AccountMaintenance.OpenFirmwareEfiPassword.OfMode
 			openFirmwareMap["of_password"] = resp.AccountMaintenance.OpenFirmwareEfiPassword.OfPassword
 
-			log.Printf("Adding open firmware/EFI password to state: %+v\n", openFirmwareMap)
 			accountMaintenanceMap["open_firmware_efi_password"] = []map[string]interface{}{openFirmwareMap}
 		}
 	}
 
 	if len(accountMaintenanceMap) > 0 {
 		(*out)[0]["account_maintenance"] = []map[string]interface{}{accountMaintenanceMap}
-		log.Printf("Final state account maintenance: %+v\n", (*out)[0]["account_maintenance"])
 	}
 }
 
 // prepStatePayloadFilesProcesses reads response and preps files and processes payload items.
 func prepStatePayloadFilesProcesses(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	if &resp.FilesProcesses == nil {
-		log.Println("No files and processes configuration found")
-		return
-	}
-
-	// Define default values
 	defaults := map[string]interface{}{
 		"search_by_path":         "",
 		"delete_file":            false,
@@ -335,7 +297,6 @@ func prepStatePayloadFilesProcesses(out *[]map[string]interface{}, resp *jamfpro
 		"run_command":            resp.FilesProcesses.RunCommand,
 	}
 
-	// Check if all values are default
 	allDefault := true
 	for key, value := range filesProcessesBlock {
 		if value != defaults[key] {
@@ -345,23 +306,14 @@ func prepStatePayloadFilesProcesses(out *[]map[string]interface{}, resp *jamfpro
 	}
 
 	if allDefault {
-		log.Println("All files and processes values are default, skipping state")
 		return
 	}
 
-	log.Println("Initializing files and processes in state")
 	(*out)[0]["files_processes"] = []map[string]interface{}{filesProcessesBlock}
-	log.Printf("Final state files and processes: %+v\n", filesProcessesBlock)
 }
 
 // prepStatePayloadUserInteraction Reads response and preps user interaction payload items. If all values are default, do not set the user_interaction block
 func prepStatePayloadUserInteraction(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	if &resp.UserInteraction == nil {
-		log.Println("No user interaction configuration found")
-		return
-	}
-
-	// Define default values
 	defaults := map[string]interface{}{
 		"message_start":            "",
 		"allow_user_to_defer":      false,
@@ -378,7 +330,6 @@ func prepStatePayloadUserInteraction(out *[]map[string]interface{}, resp *jamfpr
 		"message_finish":           resp.UserInteraction.MessageFinish,
 	}
 
-	// Check if all values are default
 	allDefault := true
 	for key, value := range userInteractionBlock {
 		if value != defaults[key] {
@@ -388,22 +339,14 @@ func prepStatePayloadUserInteraction(out *[]map[string]interface{}, resp *jamfpr
 	}
 
 	if allDefault {
-		log.Println("All user interaction values are default, skipping state")
 		return
 	}
 
-	log.Println("Initializing user interaction in state")
 	(*out)[0]["user_interaction"] = []map[string]interface{}{userInteractionBlock}
-	log.Printf("Final state user interaction: %+v\n", userInteractionBlock)
 }
 
 // Reads response and preps reboot payload items
 func prepStatePayloadReboot(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	if &resp.Reboot == nil {
-		log.Println("No reboot configuration found")
-		return
-	}
-
 	defaults := map[string]interface{}{
 		"message":                        "This computer will restart in 5 minutes. Please save anything you are working on and log out by choosing Log Out from the bottom of the Apple menu.",
 		"specify_startup":                "",
@@ -435,25 +378,17 @@ func prepStatePayloadReboot(out *[]map[string]interface{}, resp *jamfpro.Resourc
 	}
 
 	if allDefault {
-		log.Println("All user interaction values are default, skipping state")
 		return
 	}
 
-	log.Println("Initializing reboot in state")
 	(*out)[0]["reboot"] = []map[string]interface{}{rebootBlock}
-	log.Printf("Final state reboot: %+v\n", rebootBlock)
 }
 
 // prepStatePayloadMaintenance Reads response and preps maintenance payload items. If all values are default, do not set the maintenance block
 func prepStatePayloadMaintenance(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	if &resp.Maintenance == nil {
-		return
-	}
-
-	// Do not set the maintenance block if all values are default (false)
 	v := reflect.ValueOf(resp.Maintenance)
-	allDefault := true
 
+	allDefault := true
 	for i := 0; i < v.NumField(); i++ {
 		if v.Field(i).Bool() {
 			allDefault = false
@@ -464,8 +399,9 @@ func prepStatePayloadMaintenance(out *[]map[string]interface{}, resp *jamfpro.Re
 	if allDefault {
 		return
 	}
-	// Else, set the maintenance block
+
 	(*out)[0]["maintenance"] = make([]map[string]interface{}, 0)
+
 	outMap := make(map[string]interface{})
 	outMap["recon"] = resp.Maintenance.Recon
 	outMap["reset_name"] = resp.Maintenance.ResetName
