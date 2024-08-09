@@ -7,6 +7,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/datavalidators"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/plist"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -40,7 +41,7 @@ func normalizePayloadState(_ context.Context, diff *schema.ResourceDiff, _ inter
 }
 
 // validateDistributionMethod checks that the 'self_service' block is only used when 'distribution_method' is "Make Available in Self Service".
-func validateDistributionMethod(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+func validateDistributionMethod(ctx context.Context, diff *schema.ResourceDiff, _ interface{}) error {
 	resourceName := diff.Get("name").(string)
 	distributionMethod, ok := diff.GetOk("distribution_method")
 
@@ -55,7 +56,7 @@ func validateDistributionMethod(_ context.Context, diff *schema.ResourceDiff, _ 
 	}
 
 	if distributionMethod != "Make Available in Self Service" && selfServiceBlockExists {
-		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': 'self_service' block is not allowed when 'distribution_method' is set to '%s'", resourceName, distributionMethod)
+		tflog.Warn(ctx, fmt.Sprintf("'jamfpro_macos_configuration_profile.%s': 'self_service' block is not meaningful when 'distribution_method' is set to '%s'", resourceName, distributionMethod))
 	}
 
 	return nil
