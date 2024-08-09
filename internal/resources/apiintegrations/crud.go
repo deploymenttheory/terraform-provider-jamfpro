@@ -61,6 +61,6 @@ func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		ctx,
 		d,
 		meta,
-		meta.(*jamfpro.Client).DeleteBuildingByID,
+		meta.(*jamfpro.Client).DeleteApiIntegrationByID,
 	)
 }
