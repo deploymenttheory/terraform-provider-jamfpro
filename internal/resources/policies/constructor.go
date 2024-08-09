@@ -271,6 +271,20 @@ func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 			FeatureOnMainPage: d.Get("self_service.0.feature_on_main_page").(bool),
 			// TODO Self service categories
 		}
+
+		categories := d.Get("self_service.0.self_service_category")
+		if categories != nil {
+			for _, v := range categories.([]interface{}) {
+				out.SelfService.SelfServiceCategories = append(out.SelfService.SelfServiceCategories, jamfpro.PolicySubsetSelfServiceCategory{
+					ID:        v.(map[string]interface{})["id"].(int),
+					FeatureIn: v.(map[string]interface{})["feature_in"].(bool),
+					DisplayIn: v.(map[string]interface{})["display_in"].(bool),
+				})
+			}
+		}
+
+		log.Println("LOGHERE")
+		log.Print(d.Get("self_service.0.self_service_category"))
 	}
 }
 

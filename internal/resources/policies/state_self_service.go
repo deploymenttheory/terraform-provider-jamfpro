@@ -51,6 +51,20 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 	out_ss[0]["force_users_to_view_description"] = resp.SelfService.ForceUsersToViewDescription
 	out_ss[0]["feature_on_main_page"] = resp.SelfService.FeatureOnMainPage
 
+	out_ss[0]["self_service_category"] = make([]map[string]interface{}, 0)
+	if resp.SelfService.SelfServiceCategories != nil {
+		for _, v := range resp.SelfService.SelfServiceCategories {
+			var categoryBlock []map[string]interface{}
+			categoryItem := map[string]interface{}{
+				"id":         v.ID,
+				"display_in": v.DisplayIn,
+				"feature_in": v.FeatureIn,
+			}
+			categoryBlock = append(categoryBlock, categoryItem)
+			out_ss[0]["self_service_category"] = categoryBlock
+		}
+	}
+
 	err := d.Set("self_service", out_ss)
 	if err != nil {
 		*diags = append(*diags, diag.FromErr(err)...)

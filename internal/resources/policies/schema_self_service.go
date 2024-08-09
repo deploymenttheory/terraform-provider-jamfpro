@@ -96,13 +96,11 @@ func getPolicySchemaSelfService() *schema.Resource {
 							Type:        schema.TypeBool,
 							Required:    true,
 							Description: "Whether to display the category in self-service.",
-							Default:     false,
 						},
 						"feature_in": {
 							Type:        schema.TypeBool,
 							Required:    true,
 							Description: "Whether to feature the category in self-service.",
-							Default:     false,
 						},
 					},
 				},
