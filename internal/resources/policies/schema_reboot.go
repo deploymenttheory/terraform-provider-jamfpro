@@ -53,7 +53,7 @@ func getPolicySchemaReboot() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Action to take if no user is logged in to the computer",
-				// Default:     "Do not restart",
+				Default:     "Do not restart",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := val.(string)
 					validOptions := []string{"Restart if a package or update requires it", "Restart Immediately", "Do not restart"}
@@ -67,9 +67,9 @@ func getPolicySchemaReboot() *schema.Resource {
 				},
 			},
 			"user_logged_in": {
-				Type:     schema.TypeString,
-				Optional: true,
-				// Default:     "Do not restart",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "Do not restart",
 				Description: "Action to take if a user is logged in to the computer",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := val.(string)
@@ -87,19 +87,19 @@ func getPolicySchemaReboot() *schema.Resource {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Description: "Amount of time to wait before the restart begins.",
-				// Default:     5,
+				Default:     5,
 			},
 			"start_reboot_timer_immediately": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Description: "Defines if the reboot timer should start immediately once the policy applies to a macOS device.",
-				// Default:     false,
+				Default:     false,
 			},
 			"file_vault_2_reboot": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Description: "Perform authenticated restart on computers with FileVault 2 enabled. Restart FileVault 2-encrypted computers without requiring an unlock during the next startup",
-				// Default:     false,
+				Default:     false,
 			},
 		}}
 	return out

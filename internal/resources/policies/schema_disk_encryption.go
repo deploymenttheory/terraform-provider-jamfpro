@@ -30,6 +30,7 @@ func getSharedSchemaDiskEncryption() *schema.Resource {
 			"remediate_key_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Default:      "Individual",
 				Description:  "Type of key to use for remediation (e.g., Individual, Institutional, Individual And Institutional).",
 				ValidateFunc: validation.StringInSlice([]string{"Individual", "Institutional", "Individual And Institutional"}, false),
 			},

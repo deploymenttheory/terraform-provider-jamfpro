@@ -2,7 +2,6 @@ package policies
 
 import (
 	"encoding/xml"
-	"fmt"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -247,12 +246,13 @@ func constructScope(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) er
 	}
 
 	// TODO make this better, it works for now
-	if resource.Scope.AllComputers && (resource.Scope.Computers != nil ||
-		resource.Scope.ComputerGroups != nil ||
-		resource.Scope.Departments != nil ||
-		resource.Scope.Buildings != nil) {
-		return fmt.Errorf("invalid combination - all computers with scoped endpoints")
-	}
+
+	// if resource.Scope.AllComputers && (resource.Scope.Computers != nil ||
+	// 	resource.Scope.ComputerGroups != nil ||
+	// 	resource.Scope.Departments != nil ||
+	// 	resource.Scope.Buildings != nil) {
+	// 	return fmt.Errorf("invalid combination - all computers with scoped endpoints")
+	// }
 
 	return nil
 }
@@ -340,6 +340,9 @@ func constructPayloadScripts(d *schema.ResourceData, resource *jamfpro.ResourceP
 func constructPayloadDiskEncryption(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
 	hcl := d.Get("payloads.0.disk_encryption")
 	if hcl == nil || len(hcl.([]interface{})) == 0 {
+		outBlock := new(jamfpro.PolicySubsetDiskEncryption)
+		outBlock.RemediateKeyType = "Individual"
+		resource.DiskEncryption = *outBlock
 		return
 	}
 
@@ -545,6 +548,7 @@ func constructPayloadReboot(d *schema.ResourceData, resource *jamfpro.ResourcePo
 	hcl := d.Get("payloads.0.reboot")
 	log.Println(hcl)
 	if len(hcl.([]interface{})) == 0 {
+		resource.Reboot = jamfpro.PolicySubsetReboot{StartupDisk: "Current Startup Disk"}
 		return
 	}
 

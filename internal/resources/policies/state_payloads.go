@@ -56,6 +56,8 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 
 // prepStatePayloadDiskEncryption reads response and preps disk encryption payload items for stating
 func prepStatePayloadDiskEncryption(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
+	log.Println("LOGHERE")
+	log.Printf("%+v", resp.DiskEncryption)
 	defaults := map[string]interface{}{
 		"action":                           "none",
 		"disk_encryption_configuration_id": 0,
@@ -127,27 +129,35 @@ func prepStatePayloadScripts(out *[]map[string]interface{}, resp *jamfpro.Resour
 		if v.Parameter4 != "" {
 			outMap["parameter4"] = v.Parameter4
 		}
+
 		if v.Parameter5 != "" {
 			outMap["parameter5"] = v.Parameter5
 		}
+
 		if v.Parameter6 != "" {
 			outMap["parameter6"] = v.Parameter6
 		}
+
 		if v.Parameter7 != "" {
 			outMap["parameter7"] = v.Parameter7
 		}
+
 		if v.Parameter8 != "" {
 			outMap["parameter8"] = v.Parameter8
 		}
+
 		if v.Parameter9 != "" {
 			outMap["parameter9"] = v.Parameter9
 		}
+
 		if v.Parameter10 != "" {
 			outMap["parameter10"] = v.Parameter10
 		}
+
 		if v.Parameter11 != "" {
 			outMap["parameter11"] = v.Parameter11
 		}
+
 		log.Printf("Adding script to state: %+v\n", outMap)
 		(*out)[0]["scripts"] = append((*out)[0]["scripts"].([]map[string]interface{}), outMap)
 	}
@@ -348,12 +358,12 @@ func prepStatePayloadUserInteraction(out *[]map[string]interface{}, resp *jamfpr
 // Reads response and preps reboot payload items
 func prepStatePayloadReboot(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	defaults := map[string]interface{}{
-		"message":                        "This computer will restart in 5 minutes. Please save anything you are working on and log out by choosing Log Out from the bottom of the Apple menu.",
+		"message":                        "",
 		"specify_startup":                "",
 		"startup_disk":                   "Current Startup Disk",
 		"no_user_logged_in":              "Do not restart",
 		"user_logged_in":                 "Do not restart",
-		"minutes_until_reboot":           5,
+		"minutes_until_reboot":           0,
 		"start_reboot_timer_immediately": false,
 		"file_vault_2_reboot":            false,
 	}
