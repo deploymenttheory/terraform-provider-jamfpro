@@ -247,7 +247,7 @@ func constructScope(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) er
 	}
 
 	// TODO make this better, it works for now
-	if resource.Scope.AllComputers && (resource.Scope.Computers != nil ||
+	if !resource.Scope.AllComputers && (resource.Scope.Computers != nil ||
 		resource.Scope.ComputerGroups != nil ||
 		resource.Scope.Departments != nil ||
 		resource.Scope.Buildings != nil) {
