@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"slices"
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
@@ -21,10 +22,10 @@ type ConfigurationProfile struct {
 	PayloadIdentifier        string           `mapstructure:"PayloadIdentifier" validate:"required"`
 	PayloadOrganization      string           `mapstructure:"PayloadOrganization" validate:"required"`
 	PayloadRemovalDisallowed bool             `mapstructure:"PayloadRemovalDisallowed" validate:"required"`
-	PayloadScope             string           `mapstructure:"PayloadScope" validate:"required,oneof=System User Computer"`
+	PayloadScope             string           `mapstructure:"PayloadScope" validate:"required,eq=System=User=Computer"`
 	PayloadType              string           `mapstructure:"PayloadType" validate:"required,eq=Configuration"`
 	PayloadUUID              string           `mapstructure:"PayloadUUID" validate:"required"`
-	PayloadVersion           int              `mapstructure:"PayloadVersion" validate:"required,eq=1"`
+	PayloadVersion           int              `mapstructure:"PayloadVersion" validate:"required"`
 	PayloadContent           []PayloadContent `mapstructure:"PayloadContent"`
 
 	// Catch all for unexpected fields
@@ -111,6 +112,11 @@ func MergeConfigurationProfileFieldsIntoMap(profile *ConfigurationProfile) map[s
 
 	merged["PayloadContent"] = mergedPayloads
 
+	// Anticipate Jamf's default PayloadDescription.
+	if profile.PayloadDescription == "" && len(profile.PayloadContent) >= 1 {
+		merged["PayloadDescription"] = fmt.Sprintf("Configuration settings for the %s preference domain.", mergedPayloads[0]["PayloadType"])
+	}
+
 	return merged
 }
 
@@ -187,6 +193,15 @@ func ValidatePayloadFields(profile *ConfigurationProfile) []error {
 				}
 			}
 			// Additional validation rules can be added here
+			for _, tagField := range strings.Split(tag, ",") {
+				if strings.Contains(tagField, "eq=") {
+					value := val.Field(i).String()
+					reqValues := strings.Split(tagField, "=")[1:]
+					if !slices.Contains(reqValues, value) {
+						errs = append(errs, errors.New(fmt.Sprintf("Field '%s' must be one of %v. Is %v.", field.Name, reqValues, value)))
+					}
+				}
+			}
 		}
 	}
 
