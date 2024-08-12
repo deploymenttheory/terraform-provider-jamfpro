@@ -64,6 +64,7 @@ type PayloadContent struct {
 // Returns:
 //   - A string containing the normalized plist XML. If any error occurs during processing, an empty string is returned.
 func NormalizePayloadState(payload any) string {
+
 	var plistData map[string]interface{}
 	_, err := plist.Unmarshal([]byte(payload.(string)), &plistData)
 	if err != nil {
