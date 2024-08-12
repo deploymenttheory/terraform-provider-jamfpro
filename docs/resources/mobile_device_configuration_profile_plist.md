@@ -94,6 +94,7 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_device_conf
 - `deployment_method` (String) The deployment method for the mobile device configuration profile, can be either 'Install Automatically' or 'Make Available in Self Service'.
 - `description` (String) The description of the mobile device configuration profile.
 - `level` (String) The level at which the mobile device configuration profile is applied, can be either 'Device Level' or 'User Level'.
+- `payload_validate` (Boolean) Validates plist payload XML. Turn off to force malformed XML confguration. Required when the configuration profile is a non Jamf Pro source, e.g iMazing. Removing this may cause unexpected stating behaviour.
 - `redeploy_days_before_cert_expires` (Number) The number of days before certificate expiration when the profile should be redeployed.
 - `redeploy_on_update` (String) Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state
 - `site_id` (Number) Jamf Pro Site-related settings of the policy.

@@ -135,7 +135,7 @@ resource "jamfpro_account_group" "jamf_pro_account_group_004" {
 
 ### Optional
 
-- `casper_admin_privileges` (Set of String) Privileges related to Casper Admin.
+- `casper_admin_privileges` (Set of String) Privileges related to Casper Admin.(DEPRECATED)
 - `identity_server_id` (Number) The Id of the identity server
 - `jss_actions_privileges` (Set of String) Privileges related to JSS Actions.
 - `jss_objects_privileges` (Set of String) Privileges related to JSS Objects.

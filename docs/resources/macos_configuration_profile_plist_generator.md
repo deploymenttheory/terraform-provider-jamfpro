@@ -6,6 +6,7 @@ description: |-
 
 # jamfpro_macos_configuration_profile_plist_generator (Resource)
 
+
 ## Example Usage
 ```terraform
 variable "version_number" {

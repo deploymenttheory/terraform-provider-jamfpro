@@ -54,7 +54,7 @@ resource "jamfpro_computer_extension_attribute" "computer_extension_attribute_sc
 
 ### Optional
 
-- `data_type` (String) Data type of the computer extension attribute. Can be String / Integer / Date (YYYY-MM-DD hh:mm:ss). Value defaults to `String`.
+- `data_type` (String) Data type of the computer extension attribute. Can be string / integer / date (YYYY-MM-DD hh:mm:ss). Value defaults to `String`.
 - `description` (String) Description of the computer extension attribute.
 - `input_popup` (List of String) List of popup choices
 - `input_script` (String) Script to populate extension attribute
