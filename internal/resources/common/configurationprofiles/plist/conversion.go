@@ -16,6 +16,7 @@ import (
 )
 
 // ConvertHCLToPlist builds a plist from the Terraform HCL schema data
+// Used by plist generator resource to convert HCL data to plist
 func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 	profile := mapSchemaToProfile(d)
 	plistData, err := MarshalPayload(profile)
@@ -124,6 +125,7 @@ func GetTypedValue(value interface{}) interface{} {
 }
 
 // ConvertPlistToHCL converts a plist XML string to Terraform HCL schema data
+// Used by plist generator resource
 func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
 	profile, err := UnmarshalPayload(plistXML)
 	if err != nil {
