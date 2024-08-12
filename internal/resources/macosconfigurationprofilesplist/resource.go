@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -75,16 +74,14 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 			"payloads": {
 				Type:             schema.TypeString,
 				Required:         true,
-				StateFunc:        nil, //set by CustomizeDiff logic
-				ValidateFunc:     plist.ValidatePayload,
 				DiffSuppressFunc: DiffSuppressPayloads,
 				Description:      "A MacOS configuration profile as a plist-formatted XML string.",
 			},
-			"payloadvalidate": {
+			"payload_validate": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     true,
-				Description: "Validate payload XML. Turn off for computed values or forcing badly-formed XML to config",
+				Description: "Validates plist payload XML. Turn off to force malformed XML confguration. Required when the configuration profile is a non Jamf Pro source, e.g iMazing. Removing this may cause unexpected stating behaviour.",
 			},
 			"redeploy_on_update": {
 				Type:        schema.TypeString,

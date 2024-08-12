@@ -65,7 +65,6 @@ func mapSchemaToProfile(d *schema.ResourceData) *ConfigurationProfile {
 			PayloadType:         val["payload_type"].(string),
 			PayloadUUID:         val["payload_uuid"].(string),
 			PayloadVersion:      val["payload_version"].(int),
-			PayloadScope:        val["payload_scope"].(string),
 		}
 
 		settings := val["setting"].([]interface{})
@@ -192,7 +191,6 @@ func mapProfileToSchema(profile *ConfigurationProfile) ([]interface{}, error) {
 			"payload_type":         content.PayloadType,
 			"payload_uuid":         content.PayloadUUID,
 			"payload_version":      content.PayloadVersion,
-			"payload_scope":        content.PayloadScope,
 		}
 
 		log.Printf("[DEBUG] ConfigurationItems being passed: %v", content.ConfigurationItems)
