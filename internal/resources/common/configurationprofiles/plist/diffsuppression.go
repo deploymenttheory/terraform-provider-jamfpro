@@ -3,6 +3,7 @@
 package plist
 
 import (
+	"html"
 	"log"
 	"strconv"
 	"strings"
@@ -21,11 +22,14 @@ func ProcessConfigurationProfileForDiffSuppression(plistData string, fieldsToRem
 		return "", err
 	}
 
-	sortedData := SortPlistKeys(cleanedData)
+	// Normalize XML content in the plist
+	normalizedData := normalizeXMLInPlist(cleanedData)
 
-	log.Printf("Sorted plist data: %v\n", sortedData)
+	sortedData := SortPlistKeys(normalizedData.(map[string]interface{}))
 
-	// Encode the cleaned and sorted data back to plist XML format
+	log.Printf("Sorted and normalized plist data: %v\n", sortedData)
+
+	// Encode the cleaned, normalized, and sorted data back to plist XML format
 	encodedPlist, err := EncodePlist(sortedData)
 	if err != nil {
 		log.Printf("Error encoding cleaned data to plist: %v\n", err)
@@ -101,4 +105,40 @@ func trimTrailingWhitespace(plist string) string {
 		lines[i] = strings.TrimRight(line, " \t")
 	}
 	return strings.Join(lines, "\n")
+}
+
+// normalizeXMLContent decodes XML entities and normalizes special characters
+func normalizeXMLContent(content string) string {
+	// Decode HTML entities
+	decoded := html.UnescapeString(content)
+
+	// Replace XML entities with their actual characters
+	replacer := strings.NewReplacer(
+		"&quot;", "\"",
+		"&#34;", "\"",
+		"&amp;", "&",
+		"&lt;", "<",
+		"&gt;", ">",
+		"&#39;", "'",
+	)
+	normalized := replacer.Replace(decoded)
+
+	return normalized
+}
+
+// normalizeXMLInPlist recursively normalizes XML content within a plist structure
+func normalizeXMLInPlist(data interface{}) interface{} {
+	switch v := data.(type) {
+	case string:
+		return normalizeXMLContent(v)
+	case map[string]interface{}:
+		for key, value := range v {
+			v[key] = normalizeXMLInPlist(value)
+		}
+	case []interface{}:
+		for i, item := range v {
+			v[i] = normalizeXMLInPlist(item)
+		}
+	}
+	return data
 }
