@@ -34,7 +34,6 @@ func ValidatePayload(payload interface{}, key string) (warns []string, errs []er
 // It checks for specific validation rules, such as ensuring that required fields are not empty.
 // Additional custom validation rules can be added within this function to enforce other constraints
 // based on the `validate` tags associated with the struct fields.
-
 func ValidatePayloadFields(profile *ConfigurationProfile) []error {
 	var errs []error
 
@@ -79,32 +78,6 @@ func ValidatePayloadFields(profile *ConfigurationProfile) []error {
 
 	return errs
 }
-
-/*
-func ValidatePayloadFields(profile *ConfigurationProfile) []error {
-	var errs []error
-
-	// Iterate over struct fields
-	val := reflect.ValueOf(profile).Elem()
-	typ := val.Type()
-	for i := 0; i < val.NumField(); i++ {
-		field := typ.Field(i)
-		tag := field.Tag.Get("validate")
-		if tag != "" {
-			// Check for required fields
-			if strings.Contains(tag, "required") {
-				value := val.Field(i).Interface()
-				if value == "" {
-					errs = append(errs, fmt.Errorf(fmt.Sprintf("Field '%s' is required", field.Name)))
-				}
-			}
-			// Additional validation rules can be added here
-		}
-	}
-
-	return errs
-}
-*/
 
 // Helper function to check if a string is a valid UUID
 func isValidUUID(u string) bool {
