@@ -59,6 +59,7 @@ func constructGeneral(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) 
 	setNetworkLimitations(d, resource)
 
 	resource.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
+
 }
 
 // Helper function to set DateTime Limitations
@@ -245,7 +246,7 @@ func constructScope(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) er
 		return err
 	}
 
-	// TODO make this better, it works for now
+	// TODO put this back
 
 	// if resource.Scope.AllComputers && (resource.Scope.Computers != nil ||
 	// 	resource.Scope.ComputerGroups != nil ||
@@ -261,15 +262,18 @@ func constructScope(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) er
 func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	if len(d.Get("self_service").([]interface{})) > 0 {
 		out.SelfService = jamfpro.PolicySubsetSelfService{
-			UseForSelfService:      d.Get("self_service.0.use_for_self_service").(bool),
-			SelfServiceDisplayName: d.Get("self_service.0.self_service_display_name").(string),
-			InstallButtonText:      d.Get("self_service.0.install_button_text").(string),
-			// ReinstallButtonText:         d.Get("self_service.0.reinstall_button_text").(string),
+			UseForSelfService:           d.Get("self_service.0.use_for_self_service").(bool),
+			SelfServiceDisplayName:      d.Get("self_service.0.self_service_display_name").(string),
+			InstallButtonText:           d.Get("self_service.0.install_button_text").(string),
 			SelfServiceDescription:      d.Get("self_service.0.self_service_description").(string),
 			ForceUsersToViewDescription: d.Get("self_service.0.force_users_to_view_description").(bool),
-			// TODO self service icon
+			SelfServiceIcon: &jamfpro.SharedResourceSelfServiceIcon{
+				ID: d.Get("self_service.0.self_service_icon_id").(int),
+			},
 			FeatureOnMainPage: d.Get("self_service.0.feature_on_main_page").(bool),
-			// TODO Self service categories
+
+			// Not in the UI:
+			// ReinstallButtonText:         d.Get("self_service.0.reinstall_button_text").(string),
 		}
 
 		categories := d.Get("self_service.0.self_service_category")
