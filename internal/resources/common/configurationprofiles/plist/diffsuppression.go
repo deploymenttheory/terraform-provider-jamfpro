@@ -14,7 +14,6 @@ import (
 func ProcessConfigurationProfileForDiffSuppression(plistData string, fieldsToRemove []string) (string, error) {
 	log.Println("Starting ProcessConfigurationProfile")
 
-	// Decode and clean the plist data
 	plistBytes := []byte(plistData)
 	cleanedData, err := decodeAndCleanPlist(plistBytes, fieldsToRemove)
 	if err != nil {
@@ -22,7 +21,6 @@ func ProcessConfigurationProfileForDiffSuppression(plistData string, fieldsToRem
 		return "", err
 	}
 
-	// Sort keys for consistent order
 	sortedData := SortPlistKeys(cleanedData)
 
 	log.Printf("Sorted plist data: %v\n", sortedData)
@@ -34,7 +32,9 @@ func ProcessConfigurationProfileForDiffSuppression(plistData string, fieldsToRem
 		return "", err
 	}
 
-	return encodedPlist, nil
+	trimmedPlist := trimTrailingWhitespace(encodedPlist)
+
+	return trimmedPlist, nil
 }
 
 // Function to decode a plist into a map and remove specified fields
@@ -61,7 +61,6 @@ func RemoveFields(data map[string]interface{}, fieldsToRemove []string, path str
 		fieldsToRemoveSet[field] = struct{}{}
 	}
 
-	// Recursively remove fields
 	recursivelyRemoveFields(data, fieldsToRemoveSet, path)
 }
 
@@ -93,4 +92,13 @@ func recursivelyRemoveFields(data map[string]interface{}, fieldsToRemoveSet map[
 			data[key] = v
 		}
 	}
+}
+
+// trimTrailingWhitespace removes trailing whitespace from each line of the plist
+func trimTrailingWhitespace(plist string) string {
+	lines := strings.Split(plist, "\n")
+	for i, line := range lines {
+		lines[i] = strings.TrimRight(line, " \t")
+	}
+	return strings.Join(lines, "\n")
 }

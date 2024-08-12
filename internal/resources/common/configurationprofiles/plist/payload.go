@@ -3,7 +3,6 @@
 package plist
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -41,7 +40,6 @@ type PayloadContent struct {
 	PayloadType         string `mapstructure:"PayloadType"`
 	PayloadUUID         string `mapstructure:"PayloadUUID"`
 	PayloadVersion      int    `mapstructure:"PayloadVersion"`
-	PayloadScope        string `mapstructure:"PayloadScope" validate:"oneof=System User Computer"`
 	// Variable
 	ConfigurationItems map[string]interface{} `mapstructure:",remain"`
 }
@@ -145,47 +143,4 @@ func NormalizePayloadState(payload any) string {
 	}
 
 	return xml
-}
-
-// ValidatePayload validates a payload by unmarshalling it and checking for required fields.
-func ValidatePayload(payload interface{}, key string) (warns []string, errs []error) {
-	profile, err := UnmarshalPayload(payload.(string))
-	if err != nil {
-		errs = append(errs, err)
-		return warns, errs
-	}
-
-	if profile.PayloadIdentifier != profile.PayloadUUID {
-		warns = append(warns, "Top-level PayloadIdentifier should match top-level PayloadUUID")
-	}
-
-	// Custom validation
-	errs = ValidatePayloadFields(profile)
-
-	return warns, errs
-}
-
-// ValidatePayloadFields validates the fields of a ConfigurationProfile struct.
-func ValidatePayloadFields(profile *ConfigurationProfile) []error {
-	var errs []error
-
-	// Iterate over struct fields
-	val := reflect.ValueOf(profile).Elem()
-	typ := val.Type()
-	for i := 0; i < val.NumField(); i++ {
-		field := typ.Field(i)
-		tag := field.Tag.Get("validate")
-		if tag != "" {
-			// Check for required fields
-			if strings.Contains(tag, "required") {
-				value := val.Field(i).Interface()
-				if value == "" {
-					errs = append(errs, errors.New(fmt.Sprintf("Field '%s' is required", field.Name)))
-				}
-			}
-			// Additional validation rules can be added here
-		}
-	}
-
-	return errs
 }
