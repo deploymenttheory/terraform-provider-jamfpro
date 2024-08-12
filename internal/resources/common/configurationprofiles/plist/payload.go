@@ -24,16 +24,14 @@ type ConfigurationProfile struct {
 	PayloadScope             string           `mapstructure:"PayloadScope" validate:"required,oneof=System User Computer"`
 	PayloadType              string           `mapstructure:"PayloadType" validate:"required,eq=Configuration"`
 	PayloadUUID              string           `mapstructure:"PayloadUUID" validate:"required"`
-	PayloadVersion           int              `mapstructure:"PayloadVersion" validate:"required,eq=1"`
+	PayloadVersion           int              `mapstructure:"PayloadVersion" validate:"required"`
 	PayloadContent           []PayloadContent `mapstructure:"PayloadContent"`
-
 	// Catch all for unexpected fields
 	Unexpected map[string]interface{} `mapstructure:",remain"`
 }
 
 // ConfigurationPayload represents a nested MacOS configuration profile.
 type PayloadContent struct {
-
 	// Standard / Expected
 	PayloadDescription  string `mapstructure:"PayloadDescription"`
 	PayloadDisplayName  string `mapstructure:"PayloadDisplayName"`
@@ -43,8 +41,7 @@ type PayloadContent struct {
 	PayloadType         string `mapstructure:"PayloadType"`
 	PayloadUUID         string `mapstructure:"PayloadUUID"`
 	PayloadVersion      int    `mapstructure:"PayloadVersion"`
-	PayloadScope        string `mapstructure:"PayloadScope"`
-
+	PayloadScope        string `mapstructure:"PayloadScope" validate:"oneof=System User Computer"`
 	// Variable
 	ConfigurationItems map[string]interface{} `mapstructure:",remain"`
 }
