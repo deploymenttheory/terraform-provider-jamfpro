@@ -12,12 +12,39 @@ import (
 
 // mainCustomDiffFunc orchestrates all custom diff validations.
 func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
-	if err := validateMobileDeviceConfigurationProfileLevel(ctx, diff, i); err != nil {
-		return err
+	if diff.Get("payload_validate").(bool) {
+		if err := validatePayload(ctx, diff, i); err != nil {
+			return err
+		}
+		if err := validateMobileDeviceConfigurationProfileLevel(ctx, diff, i); err != nil {
+			return err
+		}
+
+		if err := validateConfigurationProfileFormatting(ctx, diff, i); err != nil {
+			return err
+		}
 	}
 
-	if err := validateConfigurationProfileFormatting(ctx, diff, i); err != nil {
-		return err
+	return nil
+}
+
+// validatePayload performs the payload validation that was previously in the ValidateFunc.
+func validatePayload(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+	resourceName := diff.Get("name").(string)
+	payload := diff.Get("payloads").(string)
+
+	profile, err := plist.UnmarshalPayload(payload)
+	if err != nil {
+		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile_plist.%s': error unmarshalling payload: %v", resourceName, err)
+	}
+
+	if profile.PayloadIdentifier != profile.PayloadUUID {
+		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile_plist.%s': Top-level PayloadIdentifier should match top-level PayloadUUID", resourceName)
+	}
+
+	errs := plist.ValidatePayloadFields(profile)
+	if len(errs) > 0 {
+		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile_plist.%s': %v", resourceName, errs)
 	}
 
 	return nil

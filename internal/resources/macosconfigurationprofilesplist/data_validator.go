@@ -50,16 +50,16 @@ func validatePayload(_ context.Context, diff *schema.ResourceDiff, _ interface{}
 
 	profile, err := plist.UnmarshalPayload(payload)
 	if err != nil {
-		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': error unmarshalling payload: %v", resourceName, err)
+		return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': error unmarshalling payload: %v", resourceName, err)
 	}
 
 	if profile.PayloadIdentifier != profile.PayloadUUID {
-		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': Top-level PayloadIdentifier should match top-level PayloadUUID", resourceName)
+		return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': Top-level PayloadIdentifier should match top-level PayloadUUID", resourceName)
 	}
 
 	errs := plist.ValidatePayloadFields(profile)
 	if len(errs) > 0 {
-		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': %v", resourceName, errs)
+		return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': %v", resourceName, errs)
 	}
 
 	return nil
