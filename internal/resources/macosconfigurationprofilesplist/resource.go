@@ -80,11 +80,11 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 				DiffSuppressFunc: DiffSuppressPayloads,
 				Description:      "A MacOS configuration profile as a plist-formatted XML string.",
 			},
-			"payloadvalidate": {
+			"payload_validate": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     true,
-				Description: "Validate payload XML. Turn off for computed values or forcing badly-formed XML to config",
+				Description: "Validate plist payload XML. Turn off for computed values or forcing badly-formed XML to config",
 			},
 			"redeploy_on_update": {
 				Type:        schema.TypeString,

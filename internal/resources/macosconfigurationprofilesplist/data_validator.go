@@ -12,7 +12,7 @@ import (
 
 // mainCustomDiffFunc orchestrates all custom diff validations.
 func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
-	if diff.Get("payloadvalidate").(bool) {
+	if diff.Get("payload_validate").(bool) {
 		if err := normalizePayloadState(ctx, diff, i); err != nil {
 			return err
 		}

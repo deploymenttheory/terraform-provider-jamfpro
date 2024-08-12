@@ -126,7 +126,6 @@ func normalizePlistPayloadContent(data map[string]interface{}) {
 	if payloadContent, ok := data["PayloadContent"].([]interface{}); ok {
 		for i, content := range payloadContent {
 			if contentMap, ok := content.(map[string]interface{}); ok {
-				// Recursively normalize nested PayloadContent
 				if nestedContent, exists := contentMap["PayloadContent"]; exists {
 					if nestedMap, ok := nestedContent.(map[string]interface{}); ok {
 						normalizePlistPayloadContent(nestedMap)
