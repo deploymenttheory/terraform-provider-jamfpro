@@ -12,7 +12,7 @@ import (
 // DiffSuppressPayloads is a custom diff suppression function for the payloads attribute.
 func DiffSuppressPayloads(k, old, new string, d *schema.ResourceData) bool {
 
-	if d.Get("payloadvalidate").(bool) {
+	if d.Get("payload_validate").(bool) {
 		log.Printf("Suppressing diff for key: %s", k)
 
 		processedOldPayload, err := processPayload(old, "Terraform state payload")
