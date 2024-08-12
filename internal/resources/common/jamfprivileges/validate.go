@@ -1,5 +1,33 @@
 // common/jamfprivileges/validate.go
-// This package contains shared / common resource functions
+// This package is used to validate the privileges fields in the Jamf Pro configuration.
+// Whilst there is an api to return the api priviledge set, they are not categorised in
+// the same way as the Jamf Pro UI. There it's required to export the priviledge set from
+// the Jamf Pro UI and use this to validate the fields. There is a JSON file for each of
+// the priviledge types that are used to validate the fields and these are exported using
+// a recipe from the Jamf Pro SDK,
+// 'recipes/privileges/Export_All_Available_Privileges_By_Type_To_Json'.
+
+// To update the JSON files, export the priviledge using this recipe and then copy the
+// JSON file to the appropriate version folder in the privileges folder within this provider.
+// The version folders are named after the Jamf Pro version, e.g. 11.7.1, 11.7.0, 11.6.0 etc.
+// The intention is to keep only the latest 3 versions of the JSON files in the provider. So
+// when a new version is added, the oldest version should be removed.
+
+// The folder name for the privileges folder is 'privileges' and this should be in the same
+// directory as the validate.go file. Beneath this folder are the version folders and the JSON
+// files for the priviledge types.
+
+// jamfprivileges
+// ├── validate.go
+// ├── 11.7.1
+// │   ├── jss_actions_privileges.json
+// │   ├── jss_objects_privileges.json
+// │   └── jss_settings_privileges.json
+// ├── 11.7.0
+// │   ├── jss_actions_privileges.json
+// │   ├── jss_objects_privileges.json
+// │   └── jss_settings_privileges.json
+
 package jamfprivileges
 
 import (
@@ -89,28 +117,6 @@ func ValidateJSSActionsPrivileges(val interface{}, key string) (warns []string, 
 	}
 
 	errs = append(errs, fmt.Errorf("invalid value '%s' for %s: not a recognized JSS Action Privilege", v, key))
-	return warns, errs
-}
-
-// ValidateCasperAdminPrivileges checks if each value in the casper_admin_privileges field
-// matches a value from a predefined list of valid Casper Admin Privileges.
-func ValidateCasperAdminPrivileges(val interface{}, key string) (warns []string, errs []error) {
-	v, ok := val.(string)
-	if !ok {
-		errs = append(errs, fmt.Errorf("expected type of %s to be string", key))
-		return warns, errs
-	}
-
-	// Note: As there's no JSON file specified for Casper Admin Privileges,
-	// we're keeping the original logic here. If you want to add a JSON file
-	// for this as well, you can modify this function similar to the others.
-	for _, validPrivilege := range ValidCasperAdminPrivileges {
-		if v == validPrivilege {
-			return warns, errs
-		}
-	}
-
-	errs = append(errs, fmt.Errorf("invalid value '%s' for %s: not a recognized Casper Admin Privilege", v, key))
 	return warns, errs
 }
 
