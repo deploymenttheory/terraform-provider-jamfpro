@@ -78,7 +78,7 @@ func validateMacOSConfigurationProfileLevel(_ context.Context, diff *schema.Reso
 	}
 
 	if payloadScope != level {
-		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': 'level' attribute (%s) does not match the 'PayloadScope' in the plist (%s)", resourceName, level, payloadScope)
+		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': hcl 'level' attribute (%s) does not match the 'PayloadScope' in the root dict of the plist (%s); the values must be identical", resourceName, level, payloadScope)
 	}
 
 	return nil
