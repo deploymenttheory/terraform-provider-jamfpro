@@ -54,7 +54,7 @@ func validatePayload(_ context.Context, diff *schema.ResourceDiff, _ interface{}
 	}
 
 	if profile.PayloadIdentifier != profile.PayloadUUID {
-		return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': Top-level PayloadIdentifier should match top-level PayloadUUID", resourceName)
+		return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': root-level PayloadIdentifier and PayloadUUID within the plist do not match. Expected PayloadIdentifier to be '%s', but got '%s'", resourceName, profile.PayloadUUID, profile.PayloadIdentifier)
 	}
 
 	errs := plist.ValidatePayloadFields(profile)
