@@ -16,7 +16,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		d,
 		meta,
 		construct,
-		meta.(*jamfpro.Client).CreateDockItem,
+		meta.(*jamfpro.Client).UploadIcon,
 		readNoCleanup,
 	)
 }
@@ -28,7 +28,7 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 		d,
 		meta,
 		cleanup,
-		meta.(*jamfpro.Client).GetDockItemByID,
+		meta.(*jamfpro.Client).Icon,
 		updateState,
 	)
 }
