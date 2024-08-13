@@ -8,7 +8,7 @@ go 1.22.4
 require (
 	github.com/deploymenttheory/go-api-http-client v0.2.11-0.20240801155241-3504d44ae1ef
 	github.com/deploymenttheory/go-api-http-client-integrations v0.0.9-0.20240813093612-60356b3bf69a
-	github.com/deploymenttheory/go-api-sdk-jamfpro v1.8.4-0.20240813093708-bfd478f697b4
+	github.com/deploymenttheory/go-api-sdk-jamfpro v1.8.4-0.20240813094702-f92f3fdcbdf2
 
 )
 
