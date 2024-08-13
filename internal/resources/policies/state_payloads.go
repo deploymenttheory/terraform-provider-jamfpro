@@ -56,8 +56,6 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 
 // prepStatePayloadDiskEncryption reads response and preps disk encryption payload items for stating
 func prepStatePayloadDiskEncryption(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	log.Println("LOGHERE")
-	log.Printf("%+v", resp.DiskEncryption)
 	defaults := map[string]interface{}{
 		"action":                           "none",
 		"disk_encryption_configuration_id": 0,

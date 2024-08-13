@@ -1,9 +1,6 @@
 package policies
 
 import (
-	"encoding/xml"
-	"log"
-
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -24,10 +21,6 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	constructSelfService(d, resource)
 
 	constructPayloads(d, resource)
-
-	// Debug
-	policyXML, _ := xml.MarshalIndent(resource, "", "  ")
-	log.Println(string(policyXML))
 
 	return resource, nil
 }
@@ -277,9 +270,6 @@ func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 				})
 			}
 		}
-
-		log.Println("LOGHERE")
-		log.Print(d.Get("self_service.0.self_service_category"))
 	}
 }
 
@@ -555,7 +545,6 @@ func constructPayloadUserInteraction(d *schema.ResourceData, resource *jamfpro.R
 // constructPayloadReboot builds the reboot payload settings of the policy.
 func constructPayloadReboot(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
 	hcl := d.Get("payloads.0.reboot")
-	log.Println(hcl)
 	if len(hcl.([]interface{})) == 0 {
 		resource.Reboot = jamfpro.PolicySubsetReboot{StartupDisk: "Current Startup Disk"}
 		return
