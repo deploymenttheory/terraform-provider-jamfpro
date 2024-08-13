@@ -156,11 +156,9 @@ func prepStatePayloadScripts(out *[]map[string]interface{}, resp *jamfpro.Resour
 			outMap["parameter11"] = v.Parameter11
 		}
 
-		log.Printf("Adding script to state: %+v\n", outMap)
 		(*out)[0]["scripts"] = append((*out)[0]["scripts"].([]map[string]interface{}), outMap)
 	}
 
-	log.Printf("Final state scripts: %+v\n", (*out)[0]["scripts"])
 }
 
 // prepStatePayloadPrinters reads response and preps printer payload items for stating
@@ -179,7 +177,6 @@ func prepStatePayloadPrinters(out *[]map[string]interface{}, resp *jamfpro.Resou
 		outMap["action"] = v.Action
 		outMap["make_default"] = v.MakeDefault
 
-		log.Printf("Adding printer to state: %+v\n", outMap)
 		(*out)[0]["printers"] = append((*out)[0]["printers"].([]map[string]interface{}), outMap)
 	}
 
