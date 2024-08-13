@@ -20,7 +20,7 @@ func getPolicySchemaDockItems() *schema.Resource {
 			},
 			"action": {
 				Type:         schema.TypeString,
-				Optional:     true,
+				Required:     true,
 				Description:  "Action to be performed for the dock item (e.g., Add To Beginning, Add To End, Remove).",
 				ValidateFunc: validation.StringInSlice([]string{"Add To Beginning", "Add To End", "Remove"}, false),
 			},

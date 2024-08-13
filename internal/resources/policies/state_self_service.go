@@ -4,8 +4,6 @@ package policies
 // TODO maybe review error handling here too?
 
 import (
-	"log"
-
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -13,10 +11,6 @@ import (
 
 // stateSelfService Reads response and states self-service items and states only if non-default
 func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
-	if resp.SelfService == nil {
-		return
-	}
-
 	defaults := map[string]interface{}{
 		"use_for_self_service":            false,
 		"self_service_display_name":       "",
@@ -35,20 +29,18 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 		"feature_on_main_page":            resp.SelfService.FeatureOnMainPage,
 	}
 
-	nonDefault := false
+	allDefault := false
 	for key, value := range current {
 		if value != defaults[key] {
-			nonDefault = true
+			allDefault = true
 			break
 		}
 	}
 
-	if !nonDefault {
-		log.Println("[DEBUG] Self-service block has only default values, skipping state")
+	if allDefault {
 		return
 	}
 
-	log.Println("[DEBUG] Initializing self-service block in state")
 	out_ss := make([]map[string]interface{}, 0)
 	out_ss = append(out_ss, make(map[string]interface{}, 1))
 
@@ -58,6 +50,20 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 	out_ss[0]["self_service_description"] = resp.SelfService.SelfServiceDescription
 	out_ss[0]["force_users_to_view_description"] = resp.SelfService.ForceUsersToViewDescription
 	out_ss[0]["feature_on_main_page"] = resp.SelfService.FeatureOnMainPage
+
+	out_ss[0]["self_service_category"] = make([]map[string]interface{}, 0)
+	if resp.SelfService.SelfServiceCategories != nil {
+		for _, v := range resp.SelfService.SelfServiceCategories {
+			var categoryBlock []map[string]interface{}
+			categoryItem := map[string]interface{}{
+				"id":         v.ID,
+				"display_in": v.DisplayIn,
+				"feature_in": v.FeatureIn,
+			}
+			categoryBlock = append(categoryBlock, categoryItem)
+			out_ss[0]["self_service_category"] = categoryBlock
+		}
+	}
 
 	err := d.Set("self_service", out_ss)
 	if err != nil {

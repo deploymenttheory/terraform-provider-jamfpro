@@ -1,10 +1,6 @@
 package policies
 
 import (
-	"encoding/xml"
-	"fmt"
-	"log"
-
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -25,10 +21,6 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	constructSelfService(d, resource)
 
 	constructPayloads(d, resource)
-
-	// Debug
-	policyXML, _ := xml.MarshalIndent(resource, "", "  ")
-	log.Println(string(policyXML))
 
 	return resource, nil
 }
@@ -60,6 +52,7 @@ func constructGeneral(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) 
 	setNetworkLimitations(d, resource)
 
 	resource.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
+
 }
 
 // Helper function to set DateTime Limitations
@@ -105,7 +98,7 @@ func constructScope(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) er
 	}
 
 	// Targets
-	resource.Scope = &jamfpro.PolicySubsetScope{
+	resource.Scope = jamfpro.PolicySubsetScope{
 		Computers:      &[]jamfpro.PolicySubsetComputer{},
 		ComputerGroups: &[]jamfpro.PolicySubsetComputerGroup{},
 		JSSUsers:       &[]jamfpro.PolicySubsetJSSUser{},
@@ -246,30 +239,36 @@ func constructScope(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) er
 		return err
 	}
 
-	// TODO make this better, it works for now
-	if !resource.Scope.AllComputers && (resource.Scope.Computers != nil ||
-		resource.Scope.ComputerGroups != nil ||
-		resource.Scope.Departments != nil ||
-		resource.Scope.Buildings != nil) {
-		return fmt.Errorf("invalid combination - all computers with scoped endpoints")
-	}
-
 	return nil
 }
 
 // Pulls "self service" settings from HCL and packages into object
 func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	if len(d.Get("self_service").([]interface{})) > 0 {
-		out.SelfService = &jamfpro.PolicySubsetSelfService{
-			UseForSelfService:      d.Get("self_service.0.use_for_self_service").(bool),
-			SelfServiceDisplayName: d.Get("self_service.0.self_service_display_name").(string),
-			InstallButtonText:      d.Get("self_service.0.install_button_text").(string),
-			// ReinstallButtonText:         d.Get("self_service.0.reinstall_button_text").(string),
+		out.SelfService = jamfpro.PolicySubsetSelfService{
+			UseForSelfService:           d.Get("self_service.0.use_for_self_service").(bool),
+			SelfServiceDisplayName:      d.Get("self_service.0.self_service_display_name").(string),
+			InstallButtonText:           d.Get("self_service.0.install_button_text").(string),
 			SelfServiceDescription:      d.Get("self_service.0.self_service_description").(string),
 			ForceUsersToViewDescription: d.Get("self_service.0.force_users_to_view_description").(bool),
-			// TODO self service icon
+			SelfServiceIcon: &jamfpro.SharedResourceSelfServiceIcon{
+				ID: d.Get("self_service.0.self_service_icon_id").(int),
+			},
 			FeatureOnMainPage: d.Get("self_service.0.feature_on_main_page").(bool),
-			// TODO Self service categories
+
+			// Not in the UI:
+			// ReinstallButtonText:         d.Get("self_service.0.reinstall_button_text").(string),
+		}
+
+		categories := d.Get("self_service.0.self_service_category")
+		if categories != nil {
+			for _, v := range categories.([]interface{}) {
+				out.SelfService.SelfServiceCategories = append(out.SelfService.SelfServiceCategories, jamfpro.PolicySubsetSelfServiceCategory{
+					ID:        v.(map[string]interface{})["id"].(int),
+					FeatureIn: v.(map[string]interface{})["feature_in"].(bool),
+					DisplayIn: v.(map[string]interface{})["display_in"].(bool),
+				})
+			}
 		}
 	}
 }
@@ -307,7 +306,7 @@ func constructPayloadPackages(d *schema.ResourceData, resource *jamfpro.Resource
 		})
 	}
 
-	resource.PackageConfiguration = &payload
+	resource.PackageConfiguration = payload
 }
 
 // Pulls "script" settings from HCL and packages them into the resource.
@@ -333,13 +332,16 @@ func constructPayloadScripts(d *schema.ResourceData, resource *jamfpro.ResourceP
 		})
 	}
 
-	resource.Scripts = &payloads
+	resource.Scripts = payloads
 }
 
 // Pulls "disk encryption" settings from HCL and packages them into the resource.
 func constructPayloadDiskEncryption(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
 	hcl := d.Get("payloads.0.disk_encryption")
 	if hcl == nil || len(hcl.([]interface{})) == 0 {
+		outBlock := new(jamfpro.PolicySubsetDiskEncryption)
+		outBlock.RemediateKeyType = "Individual"
+		resource.DiskEncryption = *outBlock
 		return
 	}
 
@@ -352,20 +354,20 @@ func constructPayloadDiskEncryption(d *schema.ResourceData, resource *jamfpro.Re
 	outBlock.RemediateKeyType = data["remediate_key_type"].(string)
 	outBlock.RemediateDiskEncryptionConfigurationID = data["remediate_disk_encryption_configuration_id"].(int)
 
-	resource.DiskEncryption = outBlock
+	resource.DiskEncryption = *outBlock
 
 }
 
 // Pulls "printers" settings from HCL and packages them into the resource.
 func constructPayloadPrinters(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
 	hcl := d.Get("payloads.0.printers")
-	if len(hcl.([]interface{})) == 0 {
+	if hcl == nil || len(hcl.([]interface{})) == 0 {
 		return
 	}
 
 	outBlock := new(jamfpro.PolicySubsetPrinters)
-	outBlock.Printer = &[]jamfpro.PolicySubsetPrinter{}
-	payload := *outBlock.Printer
+	outBlock.Printer = []jamfpro.PolicySubsetPrinter{}
+	payload := outBlock.Printer
 	for _, v := range hcl.([]interface{}) {
 		payload = append(payload, jamfpro.PolicySubsetPrinter{
 			ID:          v.(map[string]interface{})["id"].(int),
@@ -375,21 +377,19 @@ func constructPayloadPrinters(d *schema.ResourceData, resource *jamfpro.Resource
 		})
 	}
 
-	outBlock.Printer = &payload
-	resource.Printers = outBlock
+	outBlock.Printer = payload
+	resource.Printers = *outBlock
 
 }
 
 // constructPayloadDockItems builds the dock items payload settings of the policy.
 func constructPayloadDockItems(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
 	hcl := d.Get("payloads.0.dock_items")
-	if len(hcl.([]interface{})) == 0 {
+	if hcl == nil || len(hcl.([]interface{})) == 0 {
 		return
 	}
 
-	outBlock := new(jamfpro.PolicySubsetDockItems)
-	outBlock.DockItem = &[]jamfpro.PolicySubsetDockItem{}
-	payload := *outBlock.DockItem
+	var payload []jamfpro.PolicySubsetDockItem
 
 	for _, v := range hcl.([]interface{}) {
 		newObj := jamfpro.PolicySubsetDockItem{
@@ -400,8 +400,7 @@ func constructPayloadDockItems(d *schema.ResourceData, resource *jamfpro.Resourc
 		payload = append(payload, newObj)
 	}
 
-	outBlock.DockItem = &payload
-	resource.DockItems = outBlock
+	resource.DockItems = payload
 
 }
 
@@ -483,7 +482,7 @@ func constructPayloadAccountMaintenance(d *schema.ResourceData, resource *jamfpr
 		}
 	}
 
-	resource.AccountMaintenance = outBlock
+	resource.AccountMaintenance = *outBlock
 }
 
 // constructPayloadFilesProcesses builds the files and processes payload settings of the policy.
@@ -512,7 +511,7 @@ func constructPayloadFilesProcesses(d *schema.ResourceData, resource *jamfpro.Re
 
 	if len(payload) > 0 {
 		outBlock = &payload[0]
-		resource.FilesProcesses = outBlock
+		resource.FilesProcesses = *outBlock
 	}
 
 }
@@ -539,16 +538,15 @@ func constructPayloadUserInteraction(d *schema.ResourceData, resource *jamfpro.R
 	}
 
 	outBlock = &payload[0]
-	resource.UserInteraction = outBlock
+	resource.UserInteraction = *outBlock
 
 }
 
 // constructPayloadReboot builds the reboot payload settings of the policy.
 func constructPayloadReboot(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
 	hcl := d.Get("payloads.0.reboot")
-	log.Println(hcl)
 	if len(hcl.([]interface{})) == 0 {
-		resource.Reboot = nil
+		resource.Reboot = jamfpro.PolicySubsetReboot{StartupDisk: "Current Startup Disk"}
 		return
 	}
 
@@ -565,7 +563,7 @@ func constructPayloadReboot(d *schema.ResourceData, resource *jamfpro.ResourcePo
 	payload.StartRebootTimerImmediately = hcl.(map[string]interface{})["start_reboot_timer_immediately"].(bool)
 	payload.FileVault2Reboot = hcl.(map[string]interface{})["file_vault_2_reboot"].(bool)
 
-	resource.Reboot = &payload
+	resource.Reboot = payload
 
 }
 
@@ -596,6 +594,6 @@ func constructPayloadMaintenance(d *schema.ResourceData, resource *jamfpro.Resou
 	}
 
 	outBlock = &payload[0]
-	resource.Maintenance = outBlock
+	resource.Maintenance = *outBlock
 
 }
