@@ -246,15 +246,6 @@ func constructScope(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) er
 		return err
 	}
 
-	// TODO put this back
-
-	// if resource.Scope.AllComputers && (resource.Scope.Computers != nil ||
-	// 	resource.Scope.ComputerGroups != nil ||
-	// 	resource.Scope.Departments != nil ||
-	// 	resource.Scope.Buildings != nil) {
-	// 	return fmt.Errorf("invalid combination - all computers with scoped endpoints")
-	// }
-
 	return nil
 }
 

@@ -100,11 +100,10 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 			"casper_admin_privileges": {
 				Type:        schema.TypeSet,
 				Optional:    true,
-				Description: "Privileges related to Casper Admin.",
+				Description: "Privileges related to Casper Admin.(DEPRECATED)",
 				Computed:    true,
 				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: jamfprivileges.ValidateCasperAdminPrivileges,
+					Type: schema.TypeString,
 				},
 			},
 			"member_ids": {

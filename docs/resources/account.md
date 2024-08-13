@@ -106,8 +106,8 @@ resource "jamfpro_account" "jamf_pro_account_003" {
 
 ### Optional
 
-- `casper_admin_privileges` (Set of String) Privileges related to Casper Admin.
-- `casper_imaging_privileges` (Set of String) Privileges related to Casper Imaging.
+- `casper_admin_privileges` (Set of String) Privileges related to Casper Admin.(DEPRECATED)
+- `casper_imaging_privileges` (Set of String) Privileges related to Casper Imaging.(DEPRECATED)
 - `casper_remote_privileges` (Set of String) Privileges related to Casper Remote.
 - `directory_user` (Boolean) Indicates if the user is a directory user.
 - `email` (String) The email of the account user.

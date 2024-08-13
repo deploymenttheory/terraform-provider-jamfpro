@@ -15,8 +15,6 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfigurationProfile) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// TODO review this and remove. the. comments.!
-
 	resourceData := map[string]interface{}{
 		"name":                resp.General.Name,
 		"description":         resp.General.Description,
@@ -36,7 +34,6 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfiguratio
 
 	d.Set("site_id", resp.General.Site.ID)
 
-	// Process and set the payloads using the plist processor function
 	profile := plist.NormalizePayloadState(resp.General.Payloads)
 	if err := d.Set("payloads", profile); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
@@ -44,14 +41,12 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfiguratio
 
 	d.Set("category_id", resp.General.Category.ID)
 
-	// Preparing and setting scope data
 	if scopeData, err := setScope(resp); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	} else if err := d.Set("scope", []interface{}{scopeData}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Check if the self_service block is provided and set it in the state accordingly
 	defaultSelfService := jamfpro.MacOSConfigurationProfileSubsetSelfService{}
 	if !compareSelfService(resp.SelfService, defaultSelfService) {
 		if selfServiceData, err := setSelfService(resp.SelfService); err != nil {
@@ -62,13 +57,11 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfiguratio
 			}
 		}
 	} else {
-		// If self_service block is not provided, set it to an empty array
 		if err := d.Set("self_service", []interface{}{}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	// Update the resource data
 	for k, v := range resourceData {
 		if err := d.Set(k, v); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
@@ -85,7 +78,6 @@ func setScope(resp *jamfpro.ResourceMacOSConfigurationProfile) (map[string]inter
 		"all_jss_users": resp.Scope.AllJSSUsers,
 	}
 
-	// Gather computers, groups, etc.
 	scopeData["computer_ids"] = flattenAndSortComputerIds(resp.Scope.Computers)
 	scopeData["computer_group_ids"] = flattenAndSortScopeEntityIds(resp.Scope.ComputerGroups)
 	scopeData["jss_user_ids"] = flattenAndSortScopeEntityIds(resp.Scope.JSSUsers)
@@ -93,7 +85,6 @@ func setScope(resp *jamfpro.ResourceMacOSConfigurationProfile) (map[string]inter
 	scopeData["building_ids"] = flattenAndSortScopeEntityIds(resp.Scope.Buildings)
 	scopeData["department_ids"] = flattenAndSortScopeEntityIds(resp.Scope.Departments)
 
-	// Gather limitations
 	limitationsData, err := setLimitations(resp.Scope.Limitations)
 	if err != nil {
 		return nil, err
@@ -102,7 +93,6 @@ func setScope(resp *jamfpro.ResourceMacOSConfigurationProfile) (map[string]inter
 		scopeData["limitations"] = limitationsData
 	}
 
-	// Gather exclusions
 	exclusionsData, err := setExclusions(resp.Scope.Exclusions)
 	if err != nil {
 		return nil, err
@@ -296,7 +286,6 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 		selfServiceData["self_service_categories"] = categories
 	}
 
-	// Return nil map if there are no real values to avoid setting the self_service block
 	if len(selfServiceData) == 0 {
 		return nil, nil
 	}

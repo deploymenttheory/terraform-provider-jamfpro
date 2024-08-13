@@ -145,10 +145,9 @@ func ResourceJamfProAccounts() *schema.Resource {
 			"casper_admin_privileges": {
 				Type:        schema.TypeSet,
 				Optional:    true,
-				Description: "Privileges related to Casper Admin.",
+				Description: "Privileges related to Casper Admin.(DEPRECATED)",
 				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: jamfprivileges.ValidateCasperAdminPrivileges,
+					Type: schema.TypeString,
 				},
 			},
 			"casper_remote_privileges": {
@@ -162,7 +161,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 			"casper_imaging_privileges": {
 				Type:        schema.TypeSet,
 				Optional:    true,
-				Description: "Privileges related to Casper Imaging.",
+				Description: "Privileges related to Casper Imaging.(DEPRECATED)",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},

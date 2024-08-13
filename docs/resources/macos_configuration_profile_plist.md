@@ -22,6 +22,7 @@ resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuratio
   level               = "User"                           // "User", "Device"
   distribution_method = "Make Available in Self Service" // "Make Available in Self Service", "Install Automatically"
   payloads            = file("${path.module}/path/to/your/file.mobileconfig")
+  payloadvalidate     = true
   user_removable      = false
 
   // Optional Block
@@ -152,6 +153,7 @@ resource "jamfpro_macos_configuration_profile" "jamfpro_macos_configuration_prof
 - `description` (String) Description of the configuration profile.
 - `distribution_method` (String) The distribution method for the configuration profile. ['Make Available in Self Service','Install Automatically']
 - `level` (String) The deployment level of the configuration profile. Available options are: 'User' or 'System'. Note: 'System' is mapped to 'Computer Level' in the Jamf Pro GUI.
+- `payload_validate` (Boolean) Validates plist payload XML. Turn off to force malformed XML confguration. Required when the configuration profile is a non Jamf Pro source, e.g iMazing. Removing this may cause unexpected stating behaviour.
 - `redeploy_on_update` (String) Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state
 - `self_service` (Block List, Max: 1) Self Service Configuration (see [below for nested schema](#nestedblock--self_service))
 - `site_id` (Number) Jamf Pro Site-related settings of the policy.

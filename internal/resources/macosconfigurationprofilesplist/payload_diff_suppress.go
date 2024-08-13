@@ -11,27 +11,33 @@ import (
 
 // DiffSuppressPayloads is a custom diff suppression function for the payloads attribute.
 func DiffSuppressPayloads(k, old, new string, d *schema.ResourceData) bool {
-	log.Printf("Suppressing diff for key: %s", k)
 
-	processedOldPayload, err := processPayload(old, "Terraform state payload")
-	if err != nil {
-		log.Printf("Error processing old payload (Terraform state): %v", err)
-		return false
+	if d.Get("payload_validate").(bool) {
+		log.Printf("Suppressing diff for key: %s", k)
+
+		processedOldPayload, err := processPayload(old, "Terraform state payload")
+		if err != nil {
+			log.Printf("Error processing old payload (Terraform state): %v", err)
+			return false
+		}
+
+		processedNewPayload, err := processPayload(new, "Jamf Pro server payload")
+		if err != nil {
+			log.Printf("Error processing new payload (Jamf Pro server): %v", err)
+			return false
+		}
+
+		oldHash := common.HashString(processedOldPayload)
+		newHash := common.HashString(processedNewPayload)
+
+		log.Printf("Old payload hash (Terraform state): %s\nOld payload (processed): %s", oldHash, processedOldPayload)
+		log.Printf("New payload hash (Jamf Pro server): %s\nNew payload (processed): %s", newHash, processedNewPayload)
+
+		return oldHash == newHash
+	} else {
+		return false //retain any drift on format (as we are not validating in this block)
 	}
 
-	processedNewPayload, err := processPayload(new, "Jamf Pro server payload")
-	if err != nil {
-		log.Printf("Error processing new payload (Jamf Pro server): %v", err)
-		return false
-	}
-
-	oldHash := common.HashString(processedOldPayload)
-	newHash := common.HashString(processedNewPayload)
-
-	log.Printf("Old payload hash (Terraform state): %s\nOld payload (processed): %s", oldHash, processedOldPayload)
-	log.Printf("New payload hash (Jamf Pro server): %s\nNew payload (processed): %s", newHash, processedNewPayload)
-
-	return oldHash == newHash
 }
 
 // processPayload processes the payload by comparing the old and new payloads. It removes specified fields and compares the hashes.

@@ -12,16 +12,54 @@ import (
 
 // mainCustomDiffFunc orchestrates all custom diff validations.
 func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
-	if err := validateDistributionMethod(ctx, diff, i); err != nil {
-		return err
+	if diff.Get("payload_validate").(bool) {
+		if err := validatePayload(ctx, diff, i); err != nil {
+			return err
+		}
+
+		if err := normalizePayloadState(ctx, diff, i); err != nil {
+			return err
+		}
+
+		if err := validateDistributionMethod(ctx, diff, i); err != nil {
+			return err
+		}
+
+		if err := validateMacOSConfigurationProfileLevel(ctx, diff, i); err != nil {
+			return err
+		}
+
+		if err := validateConfigurationProfileFormatting(ctx, diff, i); err != nil {
+			return err
+		}
+
 	}
 
-	if err := validateMacOSConfigurationProfileLevel(ctx, diff, i); err != nil {
-		return err
+	return nil
+}
+
+func normalizePayloadState(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+	diff.SetNew("payloads", plist.NormalizePayloadState(diff.Get("payloads").(string)))
+	return nil
+}
+
+// validatePayload performs the payload validation that was previously in the ValidateFunc.
+func validatePayload(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+	resourceName := diff.Get("name").(string)
+	payload := diff.Get("payloads").(string)
+
+	profile, err := plist.UnmarshalPayload(payload)
+	if err != nil {
+		return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': error unmarshalling payload: %v", resourceName, err)
 	}
 
-	if err := validateConfigurationProfileFormatting(ctx, diff, i); err != nil {
-		return err
+	if profile.PayloadIdentifier != profile.PayloadUUID {
+		return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': root-level PayloadIdentifier and PayloadUUID within the plist do not match. Expected PayloadIdentifier to be '%s', but got '%s'", resourceName, profile.PayloadUUID, profile.PayloadIdentifier)
+	}
+
+	errs := plist.ValidatePayloadFields(profile)
+	if len(errs) > 0 {
+		return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': %v", resourceName, errs)
 	}
 
 	return nil
@@ -66,7 +104,7 @@ func validateMacOSConfigurationProfileLevel(_ context.Context, diff *schema.Reso
 	}
 
 	if payloadScope != level {
-		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': 'level' attribute (%s) does not match the 'PayloadScope' in the plist (%s)", resourceName, level, payloadScope)
+		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': hcl 'level' attribute (%s) does not match the 'PayloadScope' in the root dict of the plist (%s); the values must be identical", resourceName, level, payloadScope)
 	}
 
 	return nil

@@ -99,9 +99,14 @@ func ResourceJamfProMobileDeviceConfigurationProfilesPlist() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				StateFunc:        plist.NormalizePayloadState,
-				ValidateFunc:     plist.ValidatePayload,
 				DiffSuppressFunc: DiffSuppressPayloads,
 				Description:      "The iOS / iPadOS / tvOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist.",
+			},
+			"payload_validate": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     true,
+				Description: "Validates plist payload XML. Turn off to force malformed XML confguration. Required when the configuration profile is a non Jamf Pro source, e.g iMazing. Removing this may cause unexpected stating behaviour.",
 			},
 			// Scope
 			"scope": {

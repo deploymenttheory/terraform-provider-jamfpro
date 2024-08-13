@@ -3,6 +3,7 @@
 package plist
 
 import (
+	"html"
 	"log"
 	"strconv"
 	"strings"
@@ -14,7 +15,6 @@ import (
 func ProcessConfigurationProfileForDiffSuppression(plistData string, fieldsToRemove []string) (string, error) {
 	log.Println("Starting ProcessConfigurationProfile")
 
-	// Decode and clean the plist data
 	plistBytes := []byte(plistData)
 	cleanedData, err := decodeAndCleanPlist(plistBytes, fieldsToRemove)
 	if err != nil {
@@ -22,19 +22,23 @@ func ProcessConfigurationProfileForDiffSuppression(plistData string, fieldsToRem
 		return "", err
 	}
 
-	// Sort keys for consistent order
-	sortedData := SortPlistKeys(cleanedData)
+	// Normalize XML content in the plist
+	normalizedData := normalizeXMLInPlist(cleanedData)
 
-	log.Printf("Sorted plist data: %v\n", sortedData)
+	sortedData := SortPlistKeys(normalizedData.(map[string]interface{}))
 
-	// Encode the cleaned and sorted data back to plist XML format
+	log.Printf("Sorted and normalized plist data: %v\n", sortedData)
+
+	// Encode the cleaned, normalized, and sorted data back to plist XML format
 	encodedPlist, err := EncodePlist(sortedData)
 	if err != nil {
 		log.Printf("Error encoding cleaned data to plist: %v\n", err)
 		return "", err
 	}
 
-	return encodedPlist, nil
+	trimmedPlist := trimTrailingWhitespace(encodedPlist)
+
+	return trimmedPlist, nil
 }
 
 // Function to decode a plist into a map and remove specified fields
@@ -61,7 +65,6 @@ func RemoveFields(data map[string]interface{}, fieldsToRemove []string, path str
 		fieldsToRemoveSet[field] = struct{}{}
 	}
 
-	// Recursively remove fields
 	recursivelyRemoveFields(data, fieldsToRemoveSet, path)
 }
 
@@ -93,4 +96,49 @@ func recursivelyRemoveFields(data map[string]interface{}, fieldsToRemoveSet map[
 			data[key] = v
 		}
 	}
+}
+
+// trimTrailingWhitespace removes trailing whitespace from each line of the plist
+func trimTrailingWhitespace(plist string) string {
+	lines := strings.Split(plist, "\n")
+	for i, line := range lines {
+		lines[i] = strings.TrimRight(line, " \t")
+	}
+	return strings.Join(lines, "\n")
+}
+
+// normalizeXMLInPlist recursively normalizes XML content within a plist structure
+func normalizeXMLInPlist(data interface{}) interface{} {
+	switch v := data.(type) {
+	case string:
+		return normalizeXMLContent(v)
+	case map[string]interface{}:
+		for key, value := range v {
+			v[key] = normalizeXMLInPlist(value)
+		}
+	case []interface{}:
+		for i, item := range v {
+			v[i] = normalizeXMLInPlist(item)
+		}
+	}
+	return data
+}
+
+// normalizeXMLContent decodes XML entities and normalizes special characters
+func normalizeXMLContent(content string) string {
+	// Decode HTML entities
+	decoded := html.UnescapeString(content)
+
+	// Replace XML entities with their actual characters
+	replacer := strings.NewReplacer(
+		"&quot;", "\"",
+		"&#34;", "\"",
+		"&amp;", "&",
+		"&lt;", "<",
+		"&gt;", ">",
+		"&#39;", "'",
+	)
+	normalized := replacer.Replace(decoded)
+
+	return normalized
 }

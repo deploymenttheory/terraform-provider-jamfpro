@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
@@ -32,6 +33,16 @@ func resourceJamfProMacOSConfigurationProfilesPlistCreate(ctx context.Context, d
 		var apiErr error
 		creationResponse, apiErr = client.CreateMacOSConfigurationProfile(resource)
 		if apiErr != nil {
+			// Check if the error is due to a conflict (resource already exists)
+			if strings.Contains(apiErr.Error(), "Conflict") || strings.Contains(apiErr.Error(), "Duplicate name") {
+				// Try to get the existing resource again
+				existingResource, getErr := client.GetMacOSConfigurationProfileByName(resource.General.Name)
+				if getErr == nil && existingResource != nil {
+					// Resource was created in the meantime
+					d.SetId(strconv.Itoa(existingResource.General.ID))
+					return nil
+				}
+			}
 			return retry.RetryableError(apiErr)
 		}
 		return nil
@@ -41,7 +52,9 @@ func resourceJamfProMacOSConfigurationProfilesPlistCreate(ctx context.Context, d
 		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro macOS Configuration Profile '%s' after retries: %v", resource.General.Name, err))
 	}
 
-	d.SetId(strconv.Itoa(creationResponse.ID))
+	if creationResponse != nil {
+		d.SetId(strconv.Itoa(creationResponse.ID))
+	}
 
 	return append(diags, resourceJamfProMacOSConfigurationProfilesPlistReadNoCleanup(ctx, d, meta)...)
 }
