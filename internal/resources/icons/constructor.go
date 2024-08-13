@@ -1,3 +1,7 @@
 package icons
 
-func construct() {}
+import "github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+
+func construct() *jamfpro.ResourceIcon {
+	return &jamfpro.ResourceIcon{}
+}
