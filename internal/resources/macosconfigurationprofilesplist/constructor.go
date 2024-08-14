@@ -13,7 +13,6 @@ import (
 )
 
 // constructJamfProMacOSConfigurationProfilePlist constructs a ResourceMacOSConfigurationProfile object from the provided schema data.
-// constructJamfProMacOSConfigurationProfilePlist constructs a ResourceMacOSConfigurationProfile object from the provided schema data.
 func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData) (*jamfpro.ResourceMacOSConfigurationProfile, error) {
 	resource := &jamfpro.ResourceMacOSConfigurationProfile{
 		General: jamfpro.MacOSConfigurationProfileSubsetGeneral{
@@ -179,6 +178,12 @@ func constructMacOSConfigurationProfileSubsetSelfService(data map[string]interfa
 		FeatureOnMainPage:           data["feature_on_main_page"].(bool),
 		NotificationSubject:         data["notification_subject"].(string),
 		NotificationMessage:         data["notification_message"].(string),
+	}
+
+	if iconID, ok := data["self_service_icon_id"].(int); ok && iconID != 0 {
+		selfService.SelfServiceIcon = jamfpro.SharedResourceSelfServiceIcon{
+			ID: iconID,
+		}
 	}
 
 	if categories, ok := data["self_service_category"]; ok {
