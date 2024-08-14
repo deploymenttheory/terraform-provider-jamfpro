@@ -33,6 +33,10 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 			return err
 		}
 
+		if err := validateSelfServiceCategories(ctx, diff, i); err != nil {
+			return err
+		}
+
 	}
 
 	return nil
@@ -117,6 +121,33 @@ func validateConfigurationProfileFormatting(_ context.Context, diff *schema.Reso
 
 	if err := datavalidators.CheckPlistIndentationAndWhiteSpace(payloads); err != nil {
 		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': %v", resourceName, err)
+	}
+
+	return nil
+}
+
+// validateSelfServiceCategories validates the 'self_service_category' block.
+func validateSelfServiceCategories(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+	resourceName := diff.Get("name").(string)
+	selfServiceRaw, ok := diff.GetOk("self_service")
+	if !ok {
+		return nil
+	}
+
+	selfService := selfServiceRaw.([]interface{})[0].(map[string]interface{})
+	categories, ok := selfService["self_service_category"].([]interface{})
+	if !ok {
+		return nil
+	}
+
+	for i, catRaw := range categories {
+		cat := catRaw.(map[string]interface{})
+		displayIn, displayOk := cat["display_in"].(bool)
+		featureIn, featureOk := cat["feature_in"].(bool)
+
+		if displayOk && featureOk && featureIn && !displayIn {
+			return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': self_service_category[%d]: feature_in can only be true if display_in is also true", resourceName, i)
+		}
 	}
 
 	return nil

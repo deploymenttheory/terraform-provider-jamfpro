@@ -238,8 +238,9 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 		"notification":                    false,
 		"notification_subject":            "",
 		"notification_message":            "",
+		"self_service_icon_id":            0,
 		"self_service_icon":               nil,
-		"self_service_categories":         nil,
+		"self_service_category":           nil,
 	}
 
 	selfServiceBlock := map[string]interface{}{
@@ -249,6 +250,19 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 		"feature_on_main_page":            selfService.FeatureOnMainPage,
 		"notification_subject":            selfService.NotificationSubject,
 		"notification_message":            selfService.NotificationMessage,
+	}
+
+	// Handle self service icon
+	if selfService.SelfServiceIcon.ID != 0 {
+		selfServiceBlock["self_service_icon_id"] = selfService.SelfServiceIcon.ID
+		selfServiceBlock["self_service_icon"] = []interface{}{
+			map[string]interface{}{
+				"id":       selfService.SelfServiceIcon.ID,
+				"uri":      selfService.SelfServiceIcon.URI,
+				"data":     selfService.SelfServiceIcon.Data,
+				"filename": selfService.SelfServiceIcon.Filename,
+			},
+		}
 	}
 
 	// Handle notification field
@@ -285,7 +299,7 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 				"feature_in": category.FeatureIn,
 			}
 		}
-		selfServiceBlock["self_service_categories"] = categories
+		selfServiceBlock["self_service_category"] = categories
 	}
 
 	// Check if all values are default

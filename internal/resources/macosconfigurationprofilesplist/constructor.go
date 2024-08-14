@@ -14,9 +14,7 @@ import (
 
 // constructJamfProMacOSConfigurationProfilePlist constructs a ResourceMacOSConfigurationProfile object from the provided schema data.
 func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData) (*jamfpro.ResourceMacOSConfigurationProfile, error) {
-	var resource *jamfpro.ResourceMacOSConfigurationProfile
-
-	resource = &jamfpro.ResourceMacOSConfigurationProfile{
+	resource := &jamfpro.ResourceMacOSConfigurationProfile{
 		General: jamfpro.MacOSConfigurationProfileSubsetGeneral{
 			Name:               d.Get("name").(string),
 			Description:        d.Get("description").(string),
@@ -182,7 +180,13 @@ func constructMacOSConfigurationProfileSubsetSelfService(data map[string]interfa
 		NotificationMessage:         data["notification_message"].(string),
 	}
 
-	if categories, ok := data["self_service_categories"]; ok {
+	if iconID, ok := data["self_service_icon_id"].(int); ok && iconID != 0 {
+		selfService.SelfServiceIcon = jamfpro.SharedResourceSelfServiceIcon{
+			ID: iconID,
+		}
+	}
+
+	if categories, ok := data["self_service_category"]; ok {
 		selfService.SelfServiceCategories = constructSelfServiceCategories(categories.([]interface{}))
 	}
 
@@ -196,7 +200,6 @@ func constructSelfServiceCategories(categories []interface{}) []jamfpro.MacOSCon
 		catData := category.(map[string]interface{})
 		selfServiceCategories[i] = jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory{
 			ID:        catData["id"].(int),
-			Name:      catData["name"].(string),
 			DisplayIn: catData["display_in"].(bool),
 			FeatureIn: catData["feature_in"].(bool),
 		}

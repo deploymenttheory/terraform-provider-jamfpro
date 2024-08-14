@@ -15,6 +15,24 @@ variable "version_number" {
   default     = "v1.0"
 }
 
+// Minimum viable example of creating a macOS configuration profile in Jamf Pro for automatic installation using a plist source file
+
+resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuration_profile_064" {
+  name                = "your-name-${var.version_number}"
+  description         = "An example mobile device configuration profile."
+  level               = "System"
+  distribution_method = "Install Automatically" // "Make Available in Self Service", "Install Automatically"
+  payloads            = file("${path.module}/path/to/your/file.mobileconfig")
+  payload_validate    = true
+  user_removable      = false
+
+  scope {
+    all_computers = true
+    all_jss_users = false
+  }
+
+}
+
 // Example of creating a macOS configuration profile in Jamf Pro for self service using a plist source file
 resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuration_profile_001" {
   name                = "your-name-${var.version_number}"
@@ -22,7 +40,7 @@ resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuratio
   level               = "User"                           // "User", "Device"
   distribution_method = "Make Available in Self Service" // "Make Available in Self Service", "Install Automatically"
   payloads            = file("${path.module}/path/to/your/file.mobileconfig")
-  payloadvalidate     = true
+  payload_validate     = true
   user_removable      = false
 
   // Optional Block
@@ -31,8 +49,6 @@ resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuratio
 
   // Optional Block
   category_id = 5
-
-  // Optional Block
   scope {
     all_computers = false
     all_jss_users = false
@@ -44,6 +60,7 @@ resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuratio
     jss_user_ids       = sort([2, 1])
     jss_user_group_ids = [4, 505]
 
+    // Optional Block
     limitations {
       network_segment_ids                  = [4, 5]
       ibeacon_ids                          = [3, 4]
@@ -51,6 +68,7 @@ resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuratio
       directory_service_usergroup_ids      = [3, 4]
     }
 
+    // Optional Block
     exclusions {
       computer_ids                         = [16, 20, 21]
       computer_group_ids                   = sort([78, 1])
@@ -96,14 +114,13 @@ resource "jamfpro_macos_configuration_profile" "jamfpro_macos_configuration_prof
   distribution_method = "Install Automatically" // "Make Available in Self Service", "Install Automatically"
   payloads            = file("${path.module}/path/to/your/file.mobileconfig")
   user_removable      = false
+  payload_validate     = true
 
   // Optional Block
   site_id = 1
 
   // Optional Block
   category_id = 1
-
-  // Optional Block
   scope {
     all_computers = false
     all_jss_users = false
@@ -115,13 +132,14 @@ resource "jamfpro_macos_configuration_profile" "jamfpro_macos_configuration_prof
     jss_user_ids       = sort([2, 1])
     jss_user_group_ids = [4, 505]
 
+    // Optional Block
     limitations {
       network_segment_ids                  = [4, 5]
       ibeacon_ids                          = [3, 4]
       directory_service_or_local_usernames = ["Jane Smith", "John Doe"]
       directory_service_usergroup_ids      = [3, 4]
     }
-
+    // Optional Block
     exclusions {
       computer_ids                         = [16, 20, 21]
       computer_group_ids                   = sort([78, 1])
@@ -154,7 +172,6 @@ resource "jamfpro_macos_configuration_profile" "jamfpro_macos_configuration_prof
 - `distribution_method` (String) The distribution method for the configuration profile. ['Make Available in Self Service','Install Automatically']
 - `level` (String) The deployment level of the configuration profile. Available options are: 'User' or 'System'. Note: 'System' is mapped to 'Computer Level' in the Jamf Pro GUI.
 - `payload_validate` (Boolean) Validates plist payload XML. Turn off to force malformed XML confguration. Required when the configuration profile is a non Jamf Pro source, e.g iMazing. Removing this may cause unexpected stating behaviour.
-- `redeploy_on_update` (String) Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state
 - `self_service` (Block List, Max: 1) Self Service Configuration (see [below for nested schema](#nestedblock--self_service))
 - `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
@@ -163,6 +180,7 @@ resource "jamfpro_macos_configuration_profile" "jamfpro_macos_configuration_prof
 ### Read-Only
 
 - `id` (String) The unique identifier of the macOS configuration profile.
+- `redeploy_on_update` (String) Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state
 - `uuid` (String) The universally unique identifier for the profile.
 
 <a id="nestedblock--scope"></a>
@@ -224,21 +242,22 @@ Optional:
 - `notification` (Boolean) Enables Notification for this profile in self service
 - `notification_message` (String) Message body
 - `notification_subject` (String) Message Subject
-- `self_service_categories` (Block List) Self Service category options (see [below for nested schema](#nestedblock--self_service--self_service_categories))
+- `self_service_category` (Block List) Self Service category options (see [below for nested schema](#nestedblock--self_service--self_service_category))
 - `self_service_description` (String) Description shown in Self Service
+- `self_service_icon_id` (Number) Icon for policy to use in self-service
 
-<a id="nestedblock--self_service--self_service_categories"></a>
-### Nested Schema for `self_service.self_service_categories`
+<a id="nestedblock--self_service--self_service_category"></a>
+### Nested Schema for `self_service.self_service_category`
 
 Required:
 
 - `display_in` (Boolean) Display this profile in this category?
 - `feature_in` (Boolean) Feature this profile in this category?
+- `id` (Number) ID of category. Both ID and Name are required
 
-Optional:
+Read-Only:
 
-- `id` (Number) ID of category
-- `name` (String) Name of category
+- `name` (String) Name of category. Both ID and Name are required
 
 
 
