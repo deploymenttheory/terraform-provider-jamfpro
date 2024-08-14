@@ -239,7 +239,7 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 		"notification_subject":            "",
 		"notification_message":            "",
 		"self_service_icon":               nil,
-		"self_service_categories":         nil,
+		"self_service_category":           nil,
 	}
 
 	selfServiceBlock := map[string]interface{}{
@@ -285,7 +285,7 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 				"feature_in": category.FeatureIn,
 			}
 		}
-		selfServiceBlock["self_service_categories"] = categories
+		selfServiceBlock["self_service_category"] = categories
 	}
 
 	// Check if all values are default

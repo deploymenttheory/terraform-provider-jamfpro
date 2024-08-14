@@ -182,7 +182,7 @@ func constructMacOSConfigurationProfileSubsetSelfService(data map[string]interfa
 		NotificationMessage:         data["notification_message"].(string),
 	}
 
-	if categories, ok := data["self_service_categories"]; ok {
+	if categories, ok := data["self_service_category"]; ok {
 		selfService.SelfServiceCategories = constructSelfServiceCategories(categories.([]interface{}))
 	}
 
