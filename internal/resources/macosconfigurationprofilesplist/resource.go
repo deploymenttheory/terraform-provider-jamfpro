@@ -146,20 +146,12 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 							Optional:    true,
 							Description: "Message body",
 						},
-						// "self_service_icon": {
-						// 	Type:        schema.TypeList,
-						// 	MaxItems:    1,
-						// 	Description: "Self Service icon settings",
-						// 	Optional:    true,
-						// 	Elem: &schema.Resource{
-						// 		Schema: map[string]*schema.Schema{
-						// 			"id":       {},
-						// 			"uri":      {},
-						// 			"data":     {},
-						// 			"filename": {},
-						// 		},
-						// 	},
-						// },
+						// TODO
+						"self_service_icon_id": {
+							Type:        schema.TypeInt,
+							Optional:    true,
+							Description: "Icon for policy to use in self-service",
+						},
 						"self_service_categories": {
 							Type:        schema.TypeList,
 							Description: "Self Service category options",
@@ -174,7 +166,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 									"name": {
 										Type:        schema.TypeString,
 										Description: "Name of category. Both ID and Name are required",
-										Required:    true,
+										Computed:    true,
 									},
 									"display_in": {
 										Type:        schema.TypeBool,
