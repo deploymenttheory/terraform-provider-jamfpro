@@ -49,7 +49,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfiguratio
 	}
 
 	defaultSelfService := jamfpro.MacOSConfigurationProfileSubsetSelfService{}
-	if !compareSelfService(resp.SelfService, defaultSelfService) {
+	if !reflect.DeepEqual(resp.SelfService, defaultSelfService) {
 		if selfServiceData, err := setSelfService(resp.SelfService); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		} else if selfServiceData != nil {
@@ -311,20 +311,6 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 	log.Printf("Final state self service: %+v\n", selfServiceBlock)
 
 	return selfServiceBlock, nil
-}
-
-// TODO what is going on here?
-// compareSelfService compares two MacOSConfigurationProfileSubsetSelfService structs
-func compareSelfService(a, b jamfpro.MacOSConfigurationProfileSubsetSelfService) bool {
-	return a.InstallButtonText == b.InstallButtonText &&
-		a.SelfServiceDescription == b.SelfServiceDescription &&
-		a.ForceUsersToViewDescription == b.ForceUsersToViewDescription &&
-		reflect.DeepEqual(a.SelfServiceIcon, b.SelfServiceIcon) &&
-		a.FeatureOnMainPage == b.FeatureOnMainPage &&
-		reflect.DeepEqual(a.SelfServiceCategories, b.SelfServiceCategories) &&
-		a.Notification == b.Notification &&
-		a.NotificationSubject == b.NotificationSubject &&
-		a.NotificationMessage == b.NotificationMessage
 }
 
 // helper functions
