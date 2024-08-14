@@ -2,7 +2,6 @@
 package macosconfigurationprofilesplist
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
@@ -85,17 +84,8 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 			},
 			"redeploy_on_update": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     "Newly Assigned", // This is always "Newly Assigned" on existing profile objects, but may be set "All" on profile update requests and in TF state.
-				Description: "Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := val.(string)
-					if v == "All" || v == "Newly Assigned" {
-						return
-					}
-					errs = append(errs, fmt.Errorf("%q must be either 'All' or 'Newly Assigned', got: %s", key, v))
-					return warns, errs
-				},
+				Computed:    true,
+				Description: "Defines the redeployment behaviour when a macOS config profile update occurs.This is always 'Newly Assigned' on new profile objects,pre jamf pro 11.7 it was possible be set behaviour to 'All' on profile update requests.",
 			},
 			"scope": {
 				Type:        schema.TypeList,
