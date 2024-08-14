@@ -49,7 +49,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfiguratio
 	}
 
 	defaultSelfService := jamfpro.MacOSConfigurationProfileSubsetSelfService{}
-	if !reflect.DeepEqual(resp.SelfService, defaultSelfService) {
+	removeSelfService := reflect.DeepEqual(resp.SelfService, defaultSelfService) || resp.General.DistributionMethod == "Install Automatically"
+	if !removeSelfService {
 		if selfServiceData, err := setSelfService(resp.SelfService); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		} else if selfServiceData != nil {
@@ -58,6 +59,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfiguratio
 			}
 		}
 	} else {
+		log.Println("Self-service block is empty, default, or set to 'Install Automatically', removing from state")
 		if err := d.Set("self_service", []interface{}{}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}

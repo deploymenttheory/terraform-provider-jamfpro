@@ -85,7 +85,16 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 			"redeploy_on_update": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "Defines the redeployment behaviour when a macOS config profile update occurs.This is always 'Newly Assigned' on new profile objects,pre jamf pro 11.7 it was possible be set behaviour to 'All' on profile update requests.",
+				Default:     "Newly Assigned", // This is always "Newly Assigned" on existing profile objects, but may be set "All" on profile update requests and in TF state.
+				Description: "Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state",
+				// ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				// 	v := val.(string)
+				// 	if v == "All" || v == "Newly Assigned" {
+				// 		return
+				// 	}
+				// 	errs = append(errs, fmt.Errorf("%q must be either 'All' or 'Newly Assigned', got: %s", key, v))
+				// 	return warns, errs
+				// },
 			},
 			"scope": {
 				Type:        schema.TypeList,
@@ -106,13 +115,11 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Text shown on Self Service install button",
-							Default:     "Install",
 						},
 						"self_service_description": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Description shown in Self Service",
-							Default:     nil,
 						},
 						"force_users_to_view_description": {
 							Type:        schema.TypeBool,
@@ -132,13 +139,11 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 						"notification_subject": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Default:     "no message subject set",
 							Description: "Message Subject",
 						},
 						"notification_message": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Default:     "",
 							Description: "Message body",
 						},
 						// "self_service_icon": {
@@ -163,24 +168,22 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"id": {
 										Type:        schema.TypeInt,
-										Description: "ID of category. Request requires both the ID and name to be set.",
+										Description: "ID of category. Both ID and Name are required",
 										Required:    true,
 									},
 									"name": {
 										Type:        schema.TypeString,
-										Description: "Name of category. Request requires both the ID and name to be set.",
+										Description: "Name of category. Both ID and Name are required",
 										Required:    true,
 									},
 									"display_in": {
 										Type:        schema.TypeBool,
-										ForceNew:    true,
 										Description: "Display this profile in this category?",
 										Required:    true,
 									},
 									"feature_in": {
 										Type:        schema.TypeBool,
 										Description: "Feature this profile in this category?",
-										ForceNew:    true,
 										Required:    true,
 									},
 								},
