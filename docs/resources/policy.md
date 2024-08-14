@@ -158,12 +158,9 @@ Optional:
 
 Required:
 
+- `action` (String) Action to be performed for the dock item (e.g., Add To Beginning, Add To End, Remove).
 - `id` (Number) Unique identifier of the dock item.
 - `name` (String) Name of the dock item.
-
-Optional:
-
-- `action` (String) Action to be performed for the dock item (e.g., Add To Beginning, Add To End, Remove).
 
 
 <a id="nestedblock--payloads--files_processes"></a>
@@ -369,9 +366,21 @@ Optional:
 - `feature_on_main_page` (Boolean) Whether to feature the policy on the main page of self-service.
 - `force_users_to_view_description` (Boolean) Whether to force users to view the policy description in self-service.
 - `install_button_text` (String) Text displayed on the install button in self-service.
+- `self_service_category` (Block List) Category settings for the policy in self-service. (see [below for nested schema](#nestedblock--self_service--self_service_category))
 - `self_service_description` (String) Description of the policy displayed in self-service.
 - `self_service_display_name` (String) Display name of the policy in self-service.
+- `self_service_icon_id` (Number) Icon for policy to use in self-service
 - `use_for_self_service` (Boolean) Whether the policy is available for self-service.
+
+<a id="nestedblock--self_service--self_service_category"></a>
+### Nested Schema for `self_service.self_service_category`
+
+Required:
+
+- `display_in` (Boolean) Whether to display the category in self-service.
+- `feature_in` (Boolean) Whether to feature the category in self-service.
+- `id` (Number) Category ID for the policy in self-service.
+
 
 
 <a id="nestedblock--timeouts"></a>
