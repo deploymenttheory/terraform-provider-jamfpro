@@ -37,6 +37,14 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 			return err
 		}
 
+		if err := validateAllComputersScope(ctx, diff, i); err != nil {
+			return err
+		}
+
+		if err := validateAllUsersScope(ctx, diff, i); err != nil {
+			return err
+		}
+
 	}
 
 	return nil
@@ -147,6 +155,50 @@ func validateSelfServiceCategories(_ context.Context, diff *schema.ResourceDiff,
 
 		if displayOk && featureOk && featureIn && !displayIn {
 			return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': self_service_category[%d]: feature_in can only be true if display_in is also true", resourceName, i)
+		}
+	}
+
+	return nil
+}
+
+func validateAllComputersScope(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+	resourceName := diff.Get("name").(string)
+	scopeRaw, ok := diff.GetOk("scope")
+	if !ok {
+		return nil // No scope block, so nothing to validate
+	}
+
+	scope := scopeRaw.([]interface{})[0].(map[string]interface{})
+	allComputers := scope["all_computers"].(bool)
+
+	if allComputers {
+		fieldsToCheck := []string{"computer_ids", "computer_group_ids"}
+		for _, field := range fieldsToCheck {
+			if value, exists := scope[field]; exists && len(value.([]interface{})) > 0 {
+				return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': when 'all_computers' scope is set to true, '%s' should not be set", resourceName, field)
+			}
+		}
+	}
+
+	return nil
+}
+
+func validateAllUsersScope(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+	resourceName := diff.Get("name").(string)
+	scopeRaw, ok := diff.GetOk("scope")
+	if !ok {
+		return nil // No scope block, so nothing to validate
+	}
+
+	scope := scopeRaw.([]interface{})[0].(map[string]interface{})
+	allComputers := scope["all_jss_users"].(bool)
+
+	if allComputers {
+		fieldsToCheck := []string{"jss_user_ids", "jss_user_group_ids", "building_ids", "department_ids"}
+		for _, field := range fieldsToCheck {
+			if value, exists := scope[field]; exists && len(value.([]interface{})) > 0 {
+				return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': when 'all_jss_users' scope is set to true, '%s' should not be set", resourceName, field)
+			}
 		}
 	}
 
