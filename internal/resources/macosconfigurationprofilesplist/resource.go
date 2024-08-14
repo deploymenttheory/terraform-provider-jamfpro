@@ -83,9 +83,9 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 				Description: "Validates plist payload XML. Turn off to force malformed XML confguration. Required when the configuration profile is a non Jamf Pro source, e.g iMazing. Removing this may cause unexpected stating behaviour.",
 			},
 			"redeploy_on_update": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Default:     "Newly Assigned", // This is always "Newly Assigned" on existing profile objects, but may be set "All" on profile update requests and in TF state.
+				Type:     schema.TypeString,
+				Computed: true,
+				//Default:     "Newly Assigned", // This is always "Newly Assigned" on existing profile objects, but may be set "All" on profile update requests and in TF state.
 				Description: "Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state",
 				// ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 				// 	v := val.(string)
