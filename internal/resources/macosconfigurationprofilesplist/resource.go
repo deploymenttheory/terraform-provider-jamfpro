@@ -163,13 +163,13 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"id": {
 										Type:        schema.TypeInt,
-										Description: "ID of category",
-										Optional:    true,
+										Description: "ID of category. Request requires both the ID and name to be set.",
+										Required:    true,
 									},
 									"name": {
 										Type:        schema.TypeString,
-										Description: "Name of category",
-										Optional:    true,
+										Description: "Name of category. Request requires both the ID and name to be set.",
+										Required:    true,
 									},
 									"display_in": {
 										Type:        schema.TypeBool,
