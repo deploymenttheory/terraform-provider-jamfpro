@@ -1,6 +1,7 @@
 package macosconfigurationprofilesplist
 
 import (
+	"log"
 	"reflect"
 	"sort"
 
@@ -48,7 +49,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfiguratio
 	}
 
 	defaultSelfService := jamfpro.MacOSConfigurationProfileSubsetSelfService{}
-	if !compareSelfService(resp.SelfService, defaultSelfService) {
+	removeSelfService := reflect.DeepEqual(resp.SelfService, defaultSelfService) || resp.General.DistributionMethod == "Install Automatically"
+	if !removeSelfService {
 		if selfServiceData, err := setSelfService(resp.SelfService); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		} else if selfServiceData != nil {
@@ -57,6 +59,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfiguratio
 			}
 		}
 	} else {
+		log.Println("Self-service block is empty, default, or set to 'Install Automatically', removing from state")
 		if err := d.Set("self_service", []interface{}{}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
@@ -226,29 +229,29 @@ func setExclusions(exclusions jamfpro.MacOSConfigurationProfileSubsetExclusions)
 
 // setSelfService converts the self-service structure into a format suitable for setting in the Terraform state.
 func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfService) (map[string]interface{}, error) {
-	selfServiceData := make(map[string]interface{})
-
-	// Set real values only, avoiding defaults
-	if selfService.InstallButtonText != "" && selfService.InstallButtonText != "Install" {
-		selfServiceData["install_button_text"] = selfService.InstallButtonText
-	}
-	if selfService.SelfServiceDescription != "" && selfService.SelfServiceDescription != "no description set" {
-		selfServiceData["self_service_description"] = selfService.SelfServiceDescription
-	}
-	if selfService.ForceUsersToViewDescription {
-		selfServiceData["force_users_to_view_description"] = selfService.ForceUsersToViewDescription
-	}
-	if selfService.FeatureOnMainPage {
-		selfServiceData["feature_on_main_page"] = selfService.FeatureOnMainPage
-	}
-	if selfService.NotificationSubject != "" && selfService.NotificationSubject != "no message subject set" {
-		selfServiceData["notification_subject"] = selfService.NotificationSubject
-	}
-	if selfService.NotificationMessage != "" {
-		selfServiceData["notification_message"] = selfService.NotificationMessage
+	// Define default values
+	defaults := map[string]interface{}{
+		"install_button_text":             "Install",
+		"self_service_description":        "",
+		"force_users_to_view_description": false,
+		"feature_on_main_page":            false,
+		"notification":                    false,
+		"notification_subject":            "",
+		"notification_message":            "",
+		"self_service_icon":               nil,
+		"self_service_categories":         nil,
 	}
 
-	// Fix the notification field
+	selfServiceBlock := map[string]interface{}{
+		"install_button_text":             selfService.InstallButtonText,
+		"self_service_description":        selfService.SelfServiceDescription,
+		"force_users_to_view_description": selfService.ForceUsersToViewDescription,
+		"feature_on_main_page":            selfService.FeatureOnMainPage,
+		"notification_subject":            selfService.NotificationSubject,
+		"notification_message":            selfService.NotificationMessage,
+	}
+
+	// Handle notification field
 	if len(selfService.Notification) > 0 {
 		correctNotifValue, err := FixDuplicateNotificationKey(&jamfpro.ResourceMacOSConfigurationProfile{
 			SelfService: selfService,
@@ -256,14 +259,12 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 		if err != nil {
 			return nil, err
 		}
-		// Only set notification if it's true
-		if correctNotifValue {
-			selfServiceData["notification"] = correctNotifValue
-		}
+		selfServiceBlock["notification"] = correctNotifValue
 	}
 
+	// Handle self service icon
 	if selfService.SelfServiceIcon.ID != 0 {
-		selfServiceData["self_service_icon"] = []interface{}{
+		selfServiceBlock["self_service_icon"] = []interface{}{
 			map[string]interface{}{
 				"id":       selfService.SelfServiceIcon.ID,
 				"uri":      selfService.SelfServiceIcon.URI,
@@ -273,38 +274,45 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 		}
 	}
 
+	// Handle self service categories
 	if len(selfService.SelfServiceCategories) > 0 {
-		categories := []interface{}{}
-		for _, category := range selfService.SelfServiceCategories {
-			categories = append(categories, map[string]interface{}{
+		categories := make([]interface{}, len(selfService.SelfServiceCategories))
+		for i, category := range selfService.SelfServiceCategories {
+			categories[i] = map[string]interface{}{
 				"id":         category.ID,
 				"name":       category.Name,
 				"display_in": category.DisplayIn,
 				"feature_in": category.FeatureIn,
-			})
+			}
 		}
-		selfServiceData["self_service_categories"] = categories
+		selfServiceBlock["self_service_categories"] = categories
 	}
 
-	if len(selfServiceData) == 0 {
+	// Check if all values are default
+	allDefault := true
+	for key, value := range selfServiceBlock {
+		if !reflect.DeepEqual(value, defaults[key]) {
+			allDefault = false
+			break
+		}
+	}
+
+	if allDefault {
+		log.Println("All self service values are default, skipping state")
 		return nil, nil
 	}
 
-	return selfServiceData, nil
-}
+	// Remove default values
+	for key, value := range selfServiceBlock {
+		if reflect.DeepEqual(value, defaults[key]) {
+			delete(selfServiceBlock, key)
+		}
+	}
 
-// TODO what is going on here?
-// compareSelfService compares two MacOSConfigurationProfileSubsetSelfService structs
-func compareSelfService(a, b jamfpro.MacOSConfigurationProfileSubsetSelfService) bool {
-	return a.InstallButtonText == b.InstallButtonText &&
-		a.SelfServiceDescription == b.SelfServiceDescription &&
-		a.ForceUsersToViewDescription == b.ForceUsersToViewDescription &&
-		reflect.DeepEqual(a.SelfServiceIcon, b.SelfServiceIcon) &&
-		a.FeatureOnMainPage == b.FeatureOnMainPage &&
-		reflect.DeepEqual(a.SelfServiceCategories, b.SelfServiceCategories) &&
-		a.Notification == b.Notification &&
-		a.NotificationSubject == b.NotificationSubject &&
-		a.NotificationMessage == b.NotificationMessage
+	log.Println("Initializing self service in state")
+	log.Printf("Final state self service: %+v\n", selfServiceBlock)
+
+	return selfServiceBlock, nil
 }
 
 // helper functions

@@ -108,10 +108,11 @@ func trimTrailingWhitespace(plist string) string {
 }
 
 // normalizeXMLInPlist recursively normalizes XML content within a plist structure
+// and unescapes HTML entities in string values to ensure consistent comparison.
 func normalizeXMLInPlist(data interface{}) interface{} {
 	switch v := data.(type) {
 	case string:
-		return normalizeXMLContent(v)
+		return html.UnescapeString(v)
 	case map[string]interface{}:
 		for key, value := range v {
 			v[key] = normalizeXMLInPlist(value)
@@ -122,23 +123,4 @@ func normalizeXMLInPlist(data interface{}) interface{} {
 		}
 	}
 	return data
-}
-
-// normalizeXMLContent decodes XML entities and normalizes special characters
-func normalizeXMLContent(content string) string {
-	// Decode HTML entities
-	decoded := html.UnescapeString(content)
-
-	// Replace XML entities with their actual characters
-	replacer := strings.NewReplacer(
-		"&quot;", "\"",
-		"&#34;", "\"",
-		"&amp;", "&",
-		"&lt;", "<",
-		"&gt;", ">",
-		"&#39;", "'",
-	)
-	normalized := replacer.Replace(decoded)
-
-	return normalized
 }

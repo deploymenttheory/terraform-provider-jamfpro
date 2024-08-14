@@ -84,8 +84,10 @@ func constructMacOSConfigurationProfileSubsetScope(data map[string]interface{}) 
 	}
 
 	if exclusions, ok := data["exclusions"]; ok && len(exclusions.([]interface{})) > 0 {
-		exclusionData := exclusions.([]interface{})[0].(map[string]interface{})
-		scope.Exclusions = constructExclusions(exclusionData)
+		exclusionData := exclusions.([]interface{})[0]
+		if exclusionMap, ok := exclusionData.(map[string]interface{}); ok {
+			scope.Exclusions = constructExclusions(exclusionMap)
+		}
 	}
 
 	return scope
@@ -115,28 +117,28 @@ func constructLimitations(data map[string]interface{}) jamfpro.MacOSConfiguratio
 func constructExclusions(data map[string]interface{}) jamfpro.MacOSConfigurationProfileSubsetExclusions {
 	exclusions := jamfpro.MacOSConfigurationProfileSubsetExclusions{}
 
-	if computerIDs, ok := data["computer_ids"]; ok {
+	if computerIDs, ok := data["computer_ids"]; ok && len(computerIDs.([]interface{})) > 0 {
 		exclusions.Computers = constructComputers(computerIDs.([]interface{}))
 	}
-	if computerGroupIDs, ok := data["computer_group_ids"]; ok {
+	if computerGroupIDs, ok := data["computer_group_ids"]; ok && len(computerGroupIDs.([]interface{})) > 0 {
 		exclusions.ComputerGroups = constructScopeEntitiesFromIds(computerGroupIDs.([]interface{}))
 	}
-	if userIDs, ok := data["jss_user_ids"]; ok {
+	if userIDs, ok := data["jss_user_ids"]; ok && len(userIDs.([]interface{})) > 0 {
 		exclusions.JSSUsers = constructScopeEntitiesFromIds(userIDs.([]interface{}))
 	}
-	if userGroupIDs, ok := data["jss_user_group_ids"]; ok {
+	if userGroupIDs, ok := data["jss_user_group_ids"]; ok && len(userGroupIDs.([]interface{})) > 0 {
 		exclusions.JSSUserGroups = constructScopeEntitiesFromIds(userGroupIDs.([]interface{}))
 	}
-	if buildingIDs, ok := data["building_ids"]; ok {
+	if buildingIDs, ok := data["building_ids"]; ok && len(buildingIDs.([]interface{})) > 0 {
 		exclusions.Buildings = constructScopeEntitiesFromIds(buildingIDs.([]interface{}))
 	}
-	if departmentIDs, ok := data["department_ids"]; ok {
+	if departmentIDs, ok := data["department_ids"]; ok && len(departmentIDs.([]interface{})) > 0 {
 		exclusions.Departments = constructScopeEntitiesFromIds(departmentIDs.([]interface{}))
 	}
-	if networkSegmentIDs, ok := data["network_segment_ids"]; ok {
+	if networkSegmentIDs, ok := data["network_segment_ids"]; ok && len(networkSegmentIDs.([]interface{})) > 0 {
 		exclusions.NetworkSegments = constructNetworkSegments(networkSegmentIDs.([]interface{}))
 	}
-	if ibeaconIDs, ok := data["ibeacon_ids"]; ok {
+	if ibeaconIDs, ok := data["ibeacon_ids"]; ok && len(ibeaconIDs.([]interface{})) > 0 {
 		exclusions.IBeacons = constructScopeEntitiesFromIds(ibeaconIDs.([]interface{}))
 	}
 

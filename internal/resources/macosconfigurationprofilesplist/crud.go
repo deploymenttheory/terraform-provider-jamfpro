@@ -14,11 +14,19 @@ import (
 )
 
 // resourceJamfProMacOSConfigurationProfilesPlistCreate is responsible for creating a new Jamf Pro macOS Configuration Profile in the remote system.
-// The function:
+// The function follows these steps:
 // 1. Constructs the attribute data using the provided Terraform configuration.
-// 2. Calls the API to create the attribute in Jamf Pro.
-// 3. Updates the Terraform state with the ID of the newly created attribute.
-// 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
+// 2. Checks if a resource with the same name already exists in Jamf Pro.
+//   - If it exists, it uses the existing resource and returns a warning.
+//
+// 3. If no existing resource is found, it attempts to create the resource in Jamf Pro.
+// 4. Implements a retry mechanism with conflict detection:
+//   - If a conflict error occurs during creation, it rechecks for the resource's existence.
+//   - If found after a conflict, it uses the existing resource.
+//
+// 5. For successful creations, it updates the Terraform state with the ID of the newly created or found resource.
+// 6. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
+// This approach helps mitigate race conditions in concurrent operations and handles pre-existing resources gracefully.
 func resourceJamfProMacOSConfigurationProfilesPlistCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
@@ -28,17 +36,29 @@ func resourceJamfProMacOSConfigurationProfilesPlistCreate(ctx context.Context, d
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro macOS Configuration Profile: %v", err))
 	}
 
+	existingResource, err := client.GetMacOSConfigurationProfileByName(resource.General.Name)
+	if err == nil && existingResource != nil {
+		d.SetId(strconv.Itoa(existingResource.General.ID))
+
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "Resource already exists",
+			Detail:   fmt.Sprintf("A macOS Configuration Profile with name '%s' already exists. Using existing resource.", resource.General.Name),
+		})
+		return append(diags, resourceJamfProMacOSConfigurationProfilesPlistReadNoCleanup(ctx, d, meta)...)
+	}
+
 	var creationResponse *jamfpro.ResponseMacOSConfigurationProfileCreationUpdate
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
 		creationResponse, apiErr = client.CreateMacOSConfigurationProfile(resource)
 		if apiErr != nil {
-			// Check if the error is due to a conflict (resource already exists)
+
 			if strings.Contains(apiErr.Error(), "Conflict") || strings.Contains(apiErr.Error(), "Duplicate name") {
-				// Try to get the existing resource again
+
 				existingResource, getErr := client.GetMacOSConfigurationProfileByName(resource.General.Name)
 				if getErr == nil && existingResource != nil {
-					// Resource was created in the meantime
+
 					d.SetId(strconv.Itoa(existingResource.General.ID))
 					return nil
 				}
