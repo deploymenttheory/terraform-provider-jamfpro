@@ -13,10 +13,9 @@ import (
 )
 
 // constructJamfProMacOSConfigurationProfilePlist constructs a ResourceMacOSConfigurationProfile object from the provided schema data.
+// constructJamfProMacOSConfigurationProfilePlist constructs a ResourceMacOSConfigurationProfile object from the provided schema data.
 func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData) (*jamfpro.ResourceMacOSConfigurationProfile, error) {
-	var resource *jamfpro.ResourceMacOSConfigurationProfile
-
-	resource = &jamfpro.ResourceMacOSConfigurationProfile{
+	resource := &jamfpro.ResourceMacOSConfigurationProfile{
 		General: jamfpro.MacOSConfigurationProfileSubsetGeneral{
 			Name:               d.Get("name").(string),
 			Description:        d.Get("description").(string),
