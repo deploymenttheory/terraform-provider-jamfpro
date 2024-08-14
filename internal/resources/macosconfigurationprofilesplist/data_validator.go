@@ -126,7 +126,7 @@ func validateConfigurationProfileFormatting(_ context.Context, diff *schema.Reso
 	return nil
 }
 
-// validateSelfServiceCategories validates the 'self_service_categories' block.
+// validateSelfServiceCategories validates the 'self_service_category' block.
 func validateSelfServiceCategories(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
 	resourceName := diff.Get("name").(string)
 	selfServiceRaw, ok := diff.GetOk("self_service")
@@ -135,7 +135,7 @@ func validateSelfServiceCategories(_ context.Context, diff *schema.ResourceDiff,
 	}
 
 	selfService := selfServiceRaw.([]interface{})[0].(map[string]interface{})
-	categories, ok := selfService["self_service_categories"].([]interface{})
+	categories, ok := selfService["self_service_category"].([]interface{})
 	if !ok {
 		return nil
 	}
@@ -146,7 +146,7 @@ func validateSelfServiceCategories(_ context.Context, diff *schema.ResourceDiff,
 		featureIn, featureOk := cat["feature_in"].(bool)
 
 		if displayOk && featureOk && featureIn && !displayIn {
-			return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': self_service_categories[%d]: feature_in can only be true if display_in is also true", resourceName, i)
+			return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': self_service_category[%d]: feature_in can only be true if display_in is also true", resourceName, i)
 		}
 	}
 

@@ -196,7 +196,6 @@ func constructSelfServiceCategories(categories []interface{}) []jamfpro.MacOSCon
 		catData := category.(map[string]interface{})
 		selfServiceCategories[i] = jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory{
 			ID:        catData["id"].(int),
-			Name:      catData["name"].(string),
 			DisplayIn: catData["display_in"].(bool),
 			FeatureIn: catData["feature_in"].(bool),
 		}
