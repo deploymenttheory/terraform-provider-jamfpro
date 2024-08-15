@@ -11,6 +11,7 @@ on:
       - 'v*'
     branches:
       - main
+      - development
 
 jobs:
   # bump the version if not manually tagged
@@ -25,13 +26,14 @@ jobs:
       default_bump: patch
       default_prerelease_bump: prepatch
       github_token: ${{ github.token }}
-      pre_release_branches: .*
+      pre_release_branches: development
       release_branches: main
       tag_prefix: v
+      custom_release_rules: 'fix:patch,bug:patch,bugfix:patch,patch:patch,feat:patch,feat:minor:new resource,minor:minor,feat:major:breaking change,feat:major:API change,major:major'
 
   # Release for Partner and Community Providers
   terraform-provider-release:
-    environment: 'Hashicorp Registry'
+    environment: 'terraform registry'
     name: 'Terraform Provider Release'
     uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/community.yml@v5.0.0
     secrets:
