@@ -66,9 +66,9 @@ For further community support and to engage with other users of the Jamf Pro Ter
 
 ## Development
 ### Releases
-* New releases are created and deployed to hashicorp's terraform registry on commit pushes to `main` branch (includes merges) or version tag (`v*`) pushes to any branch.
-* New prereleases are created and deployed to hashicorp's terraform registry on pushes to `development` branch.
-* Commit pushes have a bumped version tag automatically applied. The default semantic bump is `{pre}patch`. 
+* New releases are created and deployed to hashicorp's terraform registry on commit pushes to `release` branch (includes merges) or version tag (`v*`) pushes to any branch.
+* New prereleases are created and deployed to hashicorp's terraform registry on pushes to `main` branch.
+* Commit pushes have a bumped version tag automatically applied. The default semantic bump is `patch` (`prepatch` for pushes to `main`).
   * Commit message keywords can override this to minor or major with the following ruleset:
     - `fix:patch,bug:patch,bugfix:patch,patch:patch,feat:patch,feat:minor:new resource,minor:minor,feat:major:breaking change,feat:major:API change,major:major`
     - Rule format: `<keyword>:<release_type>:<changelog_section>`
