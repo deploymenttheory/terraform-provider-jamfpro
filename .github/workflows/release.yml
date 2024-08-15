@@ -17,7 +17,7 @@ jobs:
   version:
     id: version
     if: github.ref_type != 'tag'
-    uses: mathieudutour/github-tag-action@v6.2  
+    uses: mathieudutour/github-tag-action@v6.2
     permissions:
       contents: write  # Required push tags.
     with:
@@ -28,7 +28,7 @@ jobs:
       pre_release_branches: .*
       release_branches: main
       tag_prefix: v
-    
+
   # Release for Partner and Community Providers
   terraform-provider-release:
     environment: 'Hashicorp Registry'
