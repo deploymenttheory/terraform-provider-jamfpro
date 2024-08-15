@@ -4,13 +4,34 @@ name: Terraform Provider Release
 # This GitHub action creates a release when a tag that matches the pattern
 # "v*" (e.g. v0.1.0) is created.
 on:
+  # on pushes to either the specified branch or a version tag - see:
+  # https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#example-including-branches-and-tags
   push:
     tags:
       - 'v*'
+    branches:
+      - main
 
 jobs:
+  # bump the version if not manually tagged
+  version:
+    id: version
+    if: github.ref_type != 'tag'
+    uses: mathieudutour/github-tag-action@v6.2  
+    permissions:
+      contents: write  # Required push tags.
+    with:
+      create_annotated_tag: false
+      default_bump: patch
+      default_prerelease_bump: prepatch
+      github_token: ${{ github.token }}
+      pre_release_branches: .*
+      release_branches: main
+      tag_prefix: v
+    
   # Release for Partner and Community Providers
   terraform-provider-release:
+    environment: 'Hashicorp Registry'
     name: 'Terraform Provider Release'
     uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/community.yml@v5.0.0
     secrets:
