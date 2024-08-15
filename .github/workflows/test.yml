@@ -6,13 +6,17 @@ on:
   pull_request:
     branches:
       - main
+      - release
     paths-ignore:
       - 'README.md'
+      - '.github/workflows/*.yml'
   push:
     branches:
       - main
+      - release
     paths-ignore:
       - 'README.md'
+      - '.github/workflows/*.yml'
 
 # Testing only needs permissions to read the repository contents.
 permissions:

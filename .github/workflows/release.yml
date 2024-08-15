@@ -9,9 +9,14 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_run:
     branches:
       - main
       - release
+    workflows:
+      - 'Tests'
+    types:
+      - completed
 
 jobs:
   # bump the version if not manually tagged

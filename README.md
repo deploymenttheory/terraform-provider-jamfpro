@@ -75,8 +75,8 @@ For further community support and to engage with other users of the Jamf Pro Ter
     - [Docs](https://github.com/mathieudutour/github-tag-action?tab=readme-ov-file#customize-the-conventional-commit-messages--titles-of-changelog-sections)
 
 ### How to create a release
-* Open or merge a PR to `main` (creates release) or `development` (creates prerelease).
-* Push a version tag to any branch: `git tag "v0.0.1" && git push --tags` (creates release).
+* Open a PR, wait for tests, merge the PR, wait for tests. Applies to branches `main` (creates release) and `development` (creates prerelease).
+* Push a version tag to any protected branch: `git tag "v0.0.1" && git push --tags` (creates release).
 
 ## Getting Started with Examples
 
