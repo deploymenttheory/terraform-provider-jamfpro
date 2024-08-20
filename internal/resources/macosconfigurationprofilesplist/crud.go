@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
@@ -27,10 +28,16 @@ import (
 // 5. For successful creations, it updates the Terraform state with the ID of the newly created or found resource.
 // 6. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 // This approach helps mitigate race conditions in concurrent operations and handles pre-existing resources gracefully.
+
+// Create a mutex need to lock Create requests
+var mu sync.Mutex
+
 func resourceJamfProMacOSConfigurationProfilesPlistCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
-
+	// Lock the mutex to ensure only one profile plust create can run this function at a time
+	mu.Lock()
+	defer mu.Unlock()
 	resource, err := constructJamfProMacOSConfigurationProfilePlist(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro macOS Configuration Profile: %v", err))
