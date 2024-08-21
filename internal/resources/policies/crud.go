@@ -2,6 +2,7 @@ package policies
 
 import (
 	"context"
+	"sync"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
@@ -9,8 +10,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// Create a  mutex need to lock create requests
+var mu sync.Mutex
+
 // create is responsible for creating a new Jamf Pro Policy in the remote system.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	// Lock the mutex to ensure only one create can run this function at a time
+	mu.Lock()
+	defer mu.Unlock()
 	return common.Create(
 		ctx,
 		d,
