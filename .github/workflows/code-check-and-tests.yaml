@@ -63,7 +63,6 @@ jobs:
           cache: true
       - run: go vet ./...
   lint:
-    name: golangcli-lint
     needs: [build]
     runs-on: ubuntu-20.04
     steps:
@@ -77,6 +76,11 @@ jobs:
         with:
           args: --timeout=5m --config=/my/path/.golangci.yml
           version: v1.58
+      - name: yamllint
+        run: |
+          sudo apt-get install -y yamllint
+          yamllint --version
+          yamllint .
   generate:
     name: go generate
     needs: [build]

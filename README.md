@@ -64,6 +64,20 @@ For further community support and to engage with other users of the Jamf Pro Ter
 
 - [Mac Admins Slack Channel](https://macadmins.slack.com/archives/C06R172PUV6) - #terraform-provider-jamfpro
 
+## Development
+### Releases
+* New releases are created and deployed to hashicorp's terraform registry on commit pushes to `release` branch (includes merges) or version tag (`v*`) pushes to any branch.
+* New prereleases are created and deployed to hashicorp's terraform registry on pushes to `main` branch.
+* Commit pushes have a bumped version tag automatically applied. The default semantic bump is `patch` (`prepatch` for pushes to `main`).
+  * Commit message keywords can override this to minor or major with the following ruleset:
+    - `fix:patch,bug:patch,bugfix:patch,patch:patch,feat:patch,feat:minor:new resource,minor:minor,feat:major:breaking change,feat:major:API change,major:major`
+    - Rule format: `<keyword>:<release_type>:<changelog_section>`
+    - [Docs](https://github.com/mathieudutour/github-tag-action?tab=readme-ov-file#customize-the-conventional-commit-messages--titles-of-changelog-sections)
+
+### How to create a release
+* Open a PR, wait for tests, merge the PR, wait for tests. Applies to branches `main` (creates release) and `development` (creates prerelease).
+* Push a version tag to any protected branch: `git tag "v0.0.1" && git push --tags` (creates release).
+
 ## Getting Started with Examples
 
 # Provider Configuration for Jamf Pro in Terraform
