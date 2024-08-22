@@ -427,9 +427,11 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 				Description: "Configure how the Recovery Lock password is set on computers with macOS 11.5 or later.",
 			},
 			"recovery_lock_password_type": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Method to use to set Recovery Lock password.'MANUAL' results in user having to enter a password. (Applies to all users) 'RANDOM' results in automatic generation of a random password being set for the device.",
+				Type:     schema.TypeString,
+				Optional: true,
+				Description: "Method to use to set Recovery Lock password.'MANUAL' results in " +
+					"user having to enter a password. (Applies to all users) 'RANDOM' results in" +
+					"automatic generation of a random password being set for the device. 'MANUAL' is the default.",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := val.(string)
 					validTypes := map[string]bool{
@@ -461,7 +463,6 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The site ID.",
-				Default:     "-1",
 			},
 			"version_lock": {
 				Type:     schema.TypeInt,
@@ -547,16 +548,17 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 						},
 						"prefill_type": {
 							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Type of prefill (CUSTOM, DEVICE_OWNER).",
+							Required:    true,
+							Description: "Pre-fill primary account information type (CUSTOM, DEVICE_OWNER, or UNKNOWN). Set as UNKNOWN if you wish to leave it unconfigured.",
 							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 								v := val.(string)
 								validTypes := map[string]bool{
 									"CUSTOM":       true,
 									"DEVICE_OWNER": true,
+									"UNKNOWN":      true,
 								}
 								if _, valid := validTypes[v]; !valid {
-									errs = append(errs, fmt.Errorf("%q must be one of 'CUSTOM', 'DEVICE_OWNER', got: %s", key, v))
+									errs = append(errs, fmt.Errorf("%q must be one of 'CUSTOM', 'DEVICE_OWNER', 'UNKNOWN' got: %s", key, v))
 								}
 								return warns, errs
 							},
@@ -564,17 +566,17 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 						"prefill_account_full_name": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "Full name for the account to prefill.",
+							Description: "Type of information to use to pre-fill the primary account full name with.",
 						},
 						"prefill_account_user_name": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "Username for the account to prefill.",
+							Description: "Type of information to use to pre-fill the primary account user name with.",
 						},
 						"prevent_prefill_info_from_modification": {
 							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Indicates if prefill info is prevented from modification.",
+							Required:    true,
+							Description: "Lock prefill primary account information from modification.",
 						},
 					},
 				},

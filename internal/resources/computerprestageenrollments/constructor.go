@@ -132,6 +132,7 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 	return resource, nil
 }
 
+// constructSkipSetupItems constructs the SkipSetupItems subset of a Computer Prestage resource.
 func constructSkipSetupItems(data map[string]interface{}) jamfpro.ComputerPrestageSubsetSkipSetupItems {
 	return jamfpro.ComputerPrestageSubsetSkipSetupItems{
 		Biometric:         jamfpro.BoolPtr(data["biometric"].(bool)),
@@ -155,6 +156,7 @@ func constructSkipSetupItems(data map[string]interface{}) jamfpro.ComputerPresta
 	}
 }
 
+// constructLocationInformation constructs the LocationInformation subset of a Computer Prestage resource.
 func constructLocationInformation(data map[string]interface{}, isUpdate bool) jamfpro.ComputerPrestageSubsetLocationInformation {
 	d := &schema.ResourceData{}
 	for k, v := range data {
@@ -181,6 +183,7 @@ func constructLocationInformation(data map[string]interface{}, isUpdate bool) ja
 	}
 }
 
+// constructPurchasingInformation constructs the PurchasingInformation subset of a Computer Prestage resource.
 func constructPurchasingInformation(data map[string]interface{}, isUpdate bool) jamfpro.ComputerPrestageSubsetPurchasingInformation {
 	d := &schema.ResourceData{}
 	for k, v := range data {
@@ -205,12 +208,13 @@ func constructPurchasingInformation(data map[string]interface{}, isUpdate bool) 
 		LifeExpectancy:    data["life_expectancy"].(int),
 		PurchasingAccount: data["purchasing_account"].(string),
 		PurchasingContact: data["purchasing_contact"].(string),
-		LeaseDate:         getStringOrDefaultInteger(d, "lease_date"),
-		PODate:            getStringOrDefaultInteger(d, "po_date"),
-		WarrantyDate:      getStringOrDefaultInteger(d, "warranty_date"),
+		LeaseDate:         getDateOrDefaultDate(d, "lease_date"),
+		PODate:            getDateOrDefaultDate(d, "po_date"),
+		WarrantyDate:      getDateOrDefaultDate(d, "warranty_date"),
 	}
 }
 
+// constructAccountSettings constructs the AccountSettings subset of a Computer Prestage resource.
 func constructAccountSettings(data map[string]interface{}, isUpdate bool) jamfpro.ComputerPrestageSubsetAccountSettings {
 	newID := handleID(data["id"].(string), isUpdate)
 	log.Printf("[DEBUG] constructAccountSettings: Using ID '%s'", newID)
@@ -356,11 +360,11 @@ func getStringOrDefaultInteger(d *schema.ResourceData, key string) string {
 	return "-1"
 }
 
-// getStringOrDefault returns the string value from the ResourceData if it exists,
-// otherwise it returns the default value "-1".
-func getStringOrDefault(d *schema.ResourceData, key string) string {
-	if v, ok := d.GetOk(key); ok {
+// getDateOrDefaultDate returns the date string if it exists and is not empty,
+// otherwise it returns the default date "1970-01-01".
+func getDateOrDefaultDate(d *schema.ResourceData, key string) string {
+	if v, ok := d.GetOk(key); ok && v.(string) != "" {
 		return v.(string)
 	}
-	return "-1"
+	return "1970-01-01"
 }
