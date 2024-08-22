@@ -21,7 +21,7 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 		SupportEmailAddress:               d.Get("support_email_address").(string),
 		Department:                        d.Get("department").(string),
 		DefaultPrestage:                   jamfpro.BoolPtr(d.Get("default_prestage").(bool)),
-		EnrollmentSiteId:                  d.Get("enrollment_site_id").(string),
+		EnrollmentSiteId:                  getStringOrDefaultInteger(d, "enrollment_site_id"),
 		KeepExistingSiteMembership:        jamfpro.BoolPtr(d.Get("keep_existing_site_membership").(bool)),
 		KeepExistingLocationInformation:   jamfpro.BoolPtr(d.Get("keep_existing_location_information").(bool)),
 		RequireAuthentication:             jamfpro.BoolPtr(d.Get("require_authentication").(bool)),
@@ -36,7 +36,7 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 		ProfileUuid:                       d.Get("profile_uuid").(string),
 		SiteId:                            d.Get("site_id").(string),
 		VersionLock:                       d.Get("version_lock").(int),
-		CustomPackageDistributionPointId:  d.Get("custom_package_distribution_point_id").(string),
+		CustomPackageDistributionPointId:  getStringOrDefaultInteger(d, "custom_package_distribution_point_id"),
 		EnrollmentCustomizationId:         d.Get("enrollment_customization_id").(string),
 		Language:                          d.Get("language").(string),
 		Region:                            d.Get("region").(string),
@@ -156,14 +156,18 @@ func constructSkipSetupItems(data map[string]interface{}) jamfpro.ComputerPresta
 }
 
 func constructLocationInformation(data map[string]interface{}, isUpdate bool) jamfpro.ComputerPrestageSubsetLocationInformation {
-	newID := handleID(data["id"].(string), isUpdate)
-	log.Printf("[DEBUG] constructPurchasingInformation: Using ID '%s'", newID)
+	d := &schema.ResourceData{}
+	for k, v := range data {
+		d.Set(k, v)
+	}
+
+	newID := handleID(getStringOrDefaultInteger(d, "id"), isUpdate)
+	log.Printf("[DEBUG] constructLocationInformation: Using ID '%s'", newID)
 
 	newVersionLock := handleVersionLock(data["version_lock"], isUpdate)
-	log.Printf("[DEBUG] constructAccountSettings: Using Version Lock '%d'", newVersionLock)
+	log.Printf("[DEBUG] constructLocationInformation: Using Version Lock '%d'", newVersionLock)
 
 	return jamfpro.ComputerPrestageSubsetLocationInformation{
-
 		ID:           newID,
 		VersionLock:  newVersionLock,
 		Username:     data["username"].(string),
@@ -172,25 +176,22 @@ func constructLocationInformation(data map[string]interface{}, isUpdate bool) ja
 		Email:        data["email"].(string),
 		Room:         data["room"].(string),
 		Position:     data["position"].(string),
-		DepartmentId: data["department_id"].(string),
-		BuildingId:   data["building_id"].(string),
+		DepartmentId: getStringOrDefaultInteger(d, "department_id"),
+		BuildingId:   getStringOrDefaultInteger(d, "building_id"),
 	}
 }
 
 func constructPurchasingInformation(data map[string]interface{}, isUpdate bool) jamfpro.ComputerPrestageSubsetPurchasingInformation {
-	newID := handleID(data["id"].(string), isUpdate)
+	d := &schema.ResourceData{}
+	for k, v := range data {
+		d.Set(k, v)
+	}
+
+	newID := handleID(getStringOrDefaultInteger(d, "id"), isUpdate)
 	log.Printf("[DEBUG] constructPurchasingInformation: Using ID '%s'", newID)
 
 	newVersionLock := handleVersionLock(data["version_lock"], isUpdate)
 	log.Printf("[DEBUG] constructPurchasingInformation: Using Version Lock '%d'", newVersionLock)
-
-	// Helper function to get date or default
-	getDateOrDefault := func(key string) string {
-		if v, ok := data[key]; ok && v.(string) != "" {
-			return v.(string)
-		}
-		return "1970-01-01"
-	}
 
 	return jamfpro.ComputerPrestageSubsetPurchasingInformation{
 		ID:                newID,
@@ -204,9 +205,9 @@ func constructPurchasingInformation(data map[string]interface{}, isUpdate bool) 
 		LifeExpectancy:    data["life_expectancy"].(int),
 		PurchasingAccount: data["purchasing_account"].(string),
 		PurchasingContact: data["purchasing_contact"].(string),
-		LeaseDate:         getDateOrDefault("lease_date"),
-		PODate:            getDateOrDefault("po_date"),
-		WarrantyDate:      getDateOrDefault("warranty_date"),
+		LeaseDate:         getStringOrDefaultInteger(d, "lease_date"),
+		PODate:            getStringOrDefaultInteger(d, "po_date"),
+		WarrantyDate:      getStringOrDefaultInteger(d, "warranty_date"),
 	}
 }
 
@@ -344,4 +345,22 @@ func handleVersionLock(currentVersionLock interface{}, isUpdate bool) int {
 	newVersionLock := versionLock + 1
 	log.Printf("[DEBUG] Update operation: Incrementing version lock from '%d' to '%d'", versionLock, newVersionLock)
 	return newVersionLock
+}
+
+// getStringOrDefaultInteger returns the string value from the ResourceData if it exists,
+// otherwise it returns the default value "-1".
+func getStringOrDefaultInteger(d *schema.ResourceData, key string) string {
+	if v, ok := d.GetOk(key); ok {
+		return v.(string)
+	}
+	return "-1"
+}
+
+// getStringOrDefault returns the string value from the ResourceData if it exists,
+// otherwise it returns the default value "-1".
+func getStringOrDefault(d *schema.ResourceData, key string) string {
+	if v, ok := d.GetOk(key); ok {
+		return v.(string)
+	}
+	return "-1"
 }

@@ -402,18 +402,24 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
-				Description: "IDs of profiles installed during prestage.",
+				Description: "IDs of the macOS configuration profiles installed during PreStage enrollment.",
 			},
 			"custom_package_ids": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Description: "Custom package IDs.",
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Description: "Define the Enrollment Packages by their package ID to" +
+					"add an enrollment package to the PreStage enrollment. Compatible packages" +
+					"must be built as flat, distribution style .pkg files and be signed by a" +
+					"certificate that is trusted by managed computers",
 			},
 			"custom_package_distribution_point_id": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Custom package distribution point ID.",
+				Type:     schema.TypeString,
+				Optional: true,
+				Description: "Set the Enrollment Packages distribution point by it's ID." +
+					"Valid values are: None using '-1', Cloud Distribution Point (Jamf Cloud)" +
+					"by using '-2', else all other valid valid values correspond to the" +
+					"ID of the distribution point.",
 			},
 			"enable_recovery_lock": {
 				Type:        schema.TypeBool,
