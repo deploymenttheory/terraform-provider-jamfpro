@@ -196,6 +196,9 @@ func constructAccountSettings(data map[string]interface{}, isUpdate bool) jamfpr
 	newID := handleID(data["id"].(string), isUpdate)
 	log.Printf("[DEBUG] constructAccountSettings: Using ID '%s'", newID)
 
+	newVersionLock := handleVersionLock(data["version_lock"], isUpdate)
+	log.Printf("[DEBUG] constructAccountSettings: Using Version Lock '%d'", newVersionLock)
+
 	return jamfpro.ComputerPrestageSubsetAccountSettings{
 		ID:                                      newID,
 		PayloadConfigured:                       jamfpro.BoolPtr(data["payload_configured"].(bool)),
@@ -205,7 +208,7 @@ func constructAccountSettings(data map[string]interface{}, isUpdate bool) jamfpr
 		HiddenAdminAccount:                      jamfpro.BoolPtr(data["hidden_admin_account"].(bool)),
 		LocalUserManaged:                        jamfpro.BoolPtr(data["local_user_managed"].(bool)),
 		UserAccountType:                         data["user_account_type"].(string),
-		VersionLock:                             data["version_lock"].(int),
+		VersionLock:                             newVersionLock,
 		PrefillPrimaryAccountInfoFeatureEnabled: jamfpro.BoolPtr(data["prefill_primary_account_info_feature_enabled"].(bool)),
 		PrefillType:                             data["prefill_type"].(string),
 		PrefillAccountFullName:                  data["prefill_account_full_name"].(string),

@@ -456,8 +456,13 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:        schema.TypeString,
-							Optional:    true,
+							Computed:    true,
 							Description: "ID of Account Settings.",
+						},
+						"version_lock": {
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: "The version lock for account settings.",
 						},
 						"payload_configured": {
 							Type:        schema.TypeBool,
@@ -505,11 +510,6 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 								}
 								return warns, errs
 							},
-						},
-						"version_lock": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "The version lock for account settings.",
 						},
 						"prefill_primary_account_info_feature_enabled": {
 							Type:        schema.TypeBool,
