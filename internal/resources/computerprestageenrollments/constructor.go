@@ -265,12 +265,11 @@ func constructAccountSettings(data map[string]interface{}, isUpdate bool) jamfpr
 func handleID(id string, isUpdate bool) string {
 	if !isUpdate {
 		log.Printf("[DEBUG] Create operation: Using default ID '-1'")
-		return "-1" // Always use "-1" for create operations
+		return "-1"
 	}
 
 	log.Printf("[DEBUG] Update operation: Current ID is '%s'", id)
 
-	// For update operations, increment the existing ID
 	currentID, err := strconv.Atoi(id)
 	if err != nil {
 		log.Printf("[WARN] Failed to convert ID '%s' to integer: %v. Using original ID.", id, err)
@@ -280,4 +279,48 @@ func handleID(id string, isUpdate bool) string {
 	newID := strconv.Itoa(currentID + 1)
 	log.Printf("[DEBUG] Update operation: Incrementing ID from '%s' to '%s'", id, newID)
 	return newID
+}
+
+// handleVersionLock manages the VersionLock field for Jamf Pro Computer Prestage resources during update operations.
+//
+// Parameters:
+//   - currentVersionLock: The current version lock value as an interface{}.
+//   - isUpdate: A boolean flag indicating whether this is an update operation.
+//
+// Returns:
+//   - An integer representing the version lock to be used in the API request.
+//     For create operations (isUpdate == false), this will be 0.
+//     For update operations (isUpdate == true), this will be the incremented version lock.
+//
+// Behavior:
+//   - Create operations (isUpdate == false):
+//   - Returns 0, as version lock is not needed for create operations.
+//   - Update operations (isUpdate == true):
+//   - Attempts to convert the currentVersionLock to an integer and increment it by 1.
+//   - If conversion fails, logs a warning and returns 0.
+//
+// Error Handling:
+//   - If the currentVersionLock cannot be converted to an integer during an update operation,
+//     the function logs a warning and returns 0.
+//
+// Usage:
+//   - This function should be called for each structure within a Computer Prestage
+//     resource that requires version lock handling.
+func handleVersionLock(currentVersionLock interface{}, isUpdate bool) int {
+	if !isUpdate {
+		log.Printf("[DEBUG] Create operation: Version lock not required, using 0")
+		return 0
+	}
+
+	log.Printf("[DEBUG] Update operation: Current version lock is '%v'", currentVersionLock)
+
+	versionLock, ok := currentVersionLock.(int)
+	if !ok {
+		log.Printf("[WARN] Failed to convert version lock '%v' to integer. Using 0.", currentVersionLock)
+		return 0
+	}
+
+	newVersionLock := versionLock + 1
+	log.Printf("[DEBUG] Update operation: Incrementing version lock from '%d' to '%d'", versionLock, newVersionLock)
+	return newVersionLock
 }
