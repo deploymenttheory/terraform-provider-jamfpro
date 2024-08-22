@@ -124,92 +124,92 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"biometric": {
 							Type:        schema.TypeBool,
-							Optional:    true,
+							Required:    true,
 							Description: "Skip biometric setup.",
 						},
 						"terms_of_address": {
 							Type:        schema.TypeBool,
-							Optional:    true,
+							Required:    true,
 							Description: "Skip terms of address setup.",
 						},
 						"file_vault": {
 							Type:        schema.TypeBool,
-							Optional:    true,
+							Required:    true,
 							Description: "Skip FileVault setup.",
 						},
 						"icloud_diagnostics": {
 							Type:        schema.TypeBool,
-							Optional:    true,
+							Required:    true,
 							Description: "Skip iCloud diagnostics setup.",
 						},
 						"diagnostics": {
 							Type:        schema.TypeBool,
-							Optional:    true,
+							Required:    true,
 							Description: "Skip diagnostics setup.",
 						},
 						"accessibility": {
 							Type:        schema.TypeBool,
-							Optional:    true,
+							Required:    true,
 							Description: "Skip accessibility setup.",
 						},
 						"apple_id": {
 							Type:        schema.TypeBool,
-							Optional:    true,
+							Required:    true,
 							Description: "Skip Apple ID setup.",
 						},
 						"screen_time": {
 							Type:        schema.TypeBool,
-							Optional:    true,
+							Required:    true,
 							Description: "Skip Screen Time setup.",
 						},
 						"siri": {
 							Type:        schema.TypeBool,
-							Optional:    true,
+							Required:    true,
 							Description: "Skip Siri setup.",
 						},
 						"display_tone": {
 							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Skip Display Tone setup.",
+							Required:    true,
+							Description: "Skip Display Tone setup. (Deprecated)",
 						},
 						"restore": {
 							Type:        schema.TypeBool,
-							Optional:    true,
+							Required:    true,
 							Description: "Skip Restore setup.",
 						},
 						"appearance": {
 							Type:        schema.TypeBool,
-							Optional:    true,
+							Required:    true,
 							Description: "Skip Appearance setup.",
 						},
 						"privacy": {
 							Type:        schema.TypeBool,
-							Optional:    true,
+							Required:    true,
 							Description: "Skip Privacy setup.",
 						},
 						"payment": {
 							Type:        schema.TypeBool,
-							Optional:    true,
+							Required:    true,
 							Description: "Skip Payment setup.",
 						},
 						"registration": {
 							Type:        schema.TypeBool,
-							Optional:    true,
+							Required:    true,
 							Description: "Skip Registration setup.",
 						},
 						"tos": {
 							Type:        schema.TypeBool,
-							Optional:    true,
+							Required:    true,
 							Description: "Skip Terms of Service setup.",
 						},
 						"icloud_storage": {
 							Type:        schema.TypeBool,
-							Optional:    true,
+							Required:    true,
 							Description: "Skip iCloud Storage setup.",
 						},
 						"location": {
 							Type:        schema.TypeBool,
-							Optional:    true,
+							Required:    true,
 							Description: "Skip Location setup.",
 						},
 					},
@@ -217,68 +217,66 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 			},
 			"location_information": {
 				Type:        schema.TypeList,
-				Required:    true,
+				Optional:    true,
 				Description: "Location information associated with the Jamf Pro computer prestage.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "The ID of the location information.",
+						},
+						"version_lock": {
+							Type:        schema.TypeInt,
+							Optional:    true,
+							Description: "The version lock of the location information.",
+						},
 						"username": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Description: "The username for the location information.",
 						},
 						"realname": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Description: "The real name associated with this location.",
 						},
 						"phone": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Description: "The phone number associated with this location.",
 						},
 						"email": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Description: "The email address associated with this location.",
 						},
 						"room": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Description: "The room associated with this location.",
 						},
 						"position": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Description: "The position associated with this location.",
 						},
 						"department_id": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "The computerPrestage ID associated with this location.",
-							Default:     "-1",
 						},
 						"building_id": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "The building ID associated with this location.",
-							Default:     "-1",
-						},
-						"id": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "The ID of the location information.",
-						},
-						"version_lock": {
-							Type:        schema.TypeInt,
-							Required:    true,
-							Description: "The version lock of the location information.",
 						},
 					},
 				},
 			},
 			"purchasing_information": {
 				Type:        schema.TypeList,
-				Required:    true,
+				Optional:    true,
 				Description: "Purchasing information associated with the computer prestage.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
