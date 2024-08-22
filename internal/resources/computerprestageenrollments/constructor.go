@@ -156,8 +156,16 @@ func constructSkipSetupItems(data map[string]interface{}) jamfpro.ComputerPresta
 }
 
 func constructLocationInformation(data map[string]interface{}, isUpdate bool) jamfpro.ComputerPrestageSubsetLocationInformation {
+	newID := handleID(data["id"].(string), isUpdate)
+	log.Printf("[DEBUG] constructPurchasingInformation: Using ID '%s'", newID)
+
+	newVersionLock := handleVersionLock(data["version_lock"], isUpdate)
+	log.Printf("[DEBUG] constructAccountSettings: Using Version Lock '%d'", newVersionLock)
+
 	return jamfpro.ComputerPrestageSubsetLocationInformation{
-		ID:           handleID(data["id"].(string), isUpdate),
+
+		ID:           newID,
+		VersionLock:  newVersionLock,
 		Username:     data["username"].(string),
 		Realname:     data["realname"].(string),
 		Phone:        data["phone"].(string),
@@ -166,7 +174,6 @@ func constructLocationInformation(data map[string]interface{}, isUpdate bool) ja
 		Position:     data["position"].(string),
 		DepartmentId: data["department_id"].(string),
 		BuildingId:   data["building_id"].(string),
-		VersionLock:  data["version_lock"].(int),
 	}
 }
 
@@ -174,8 +181,20 @@ func constructPurchasingInformation(data map[string]interface{}, isUpdate bool) 
 	newID := handleID(data["id"].(string), isUpdate)
 	log.Printf("[DEBUG] constructPurchasingInformation: Using ID '%s'", newID)
 
+	newVersionLock := handleVersionLock(data["version_lock"], isUpdate)
+	log.Printf("[DEBUG] constructPurchasingInformation: Using Version Lock '%d'", newVersionLock)
+
+	// Helper function to get date or default
+	getDateOrDefault := func(key string) string {
+		if v, ok := data[key]; ok && v.(string) != "" {
+			return v.(string)
+		}
+		return "1970-01-01"
+	}
+
 	return jamfpro.ComputerPrestageSubsetPurchasingInformation{
 		ID:                newID,
+		VersionLock:       newVersionLock,
 		Leased:            jamfpro.BoolPtr(data["leased"].(bool)),
 		Purchased:         jamfpro.BoolPtr(data["purchased"].(bool)),
 		AppleCareId:       data["apple_care_id"].(string),
@@ -185,10 +204,9 @@ func constructPurchasingInformation(data map[string]interface{}, isUpdate bool) 
 		LifeExpectancy:    data["life_expectancy"].(int),
 		PurchasingAccount: data["purchasing_account"].(string),
 		PurchasingContact: data["purchasing_contact"].(string),
-		LeaseDate:         data["lease_date"].(string),
-		PODate:            data["po_date"].(string),
-		WarrantyDate:      data["warranty_date"].(string),
-		VersionLock:       data["version_lock"].(int),
+		LeaseDate:         getDateOrDefault("lease_date"),
+		PODate:            getDateOrDefault("po_date"),
+		WarrantyDate:      getDateOrDefault("warranty_date"),
 	}
 }
 

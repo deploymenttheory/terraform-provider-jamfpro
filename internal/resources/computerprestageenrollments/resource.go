@@ -227,9 +227,14 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 							Description: "The ID of the location information.",
 						},
 						"version_lock": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "The version lock of the location information.",
+							Type:     schema.TypeInt,
+							Optional: true,
+							Description: "The version lock of the location information. Optimistic locking" +
+								"is a mechanism that prevents concurrent operations from taking place on a given" +
+								"resource. Jamf Pro does this to safeguard resources and workflows that are" +
+								"sensitive to frequent updates, ensuring that one update has completed before" +
+								"any additional requests can be processed. Valid request handling is managed by" +
+								"the construct function.",
 						},
 						"username": {
 							Type:        schema.TypeString,
@@ -285,6 +290,16 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 							Required:    true,
 							Description: "The ID of the purchasing information.",
 						},
+						"version_lock": {
+							Type:     schema.TypeInt,
+							Required: true,
+							Description: "The version lock value of the purchasing_information. Optimistic locking" +
+								"is a mechanism that prevents concurrent operations from taking place on a given" +
+								"resource. Jamf Pro does this to safeguard resources and workflows that are" +
+								"sensitive to frequent updates, ensuring that one update has completed before" +
+								"any additional requests can be processed. Valid request handling is managed by" +
+								"the construct function.",
+						},
 						"leased": {
 							Type:        schema.TypeBool,
 							Required:    true,
@@ -297,7 +312,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 						},
 						"apple_care_id": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Description: "The AppleCare ID.",
 						},
 						"po_number": {
@@ -307,22 +322,22 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 						},
 						"vendor": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Description: "The vendor name.",
 						},
 						"purchase_price": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Description: "The purchase price.",
 						},
 						"life_expectancy": {
 							Type:        schema.TypeInt,
-							Required:    true,
+							Optional:    true,
 							Description: "The life expectancy in years.",
 						},
 						"purchasing_account": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Description: "The purchasing account.",
 						},
 						"purchasing_contact": {
@@ -331,24 +346,22 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 							Description: "The purchasing contact.",
 						},
 						"lease_date": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "The lease date.",
+							Type:         schema.TypeString,
+							Optional:     true,
+							Description:  "The lease date in YYYY-MM-DD format.",
+							ValidateFunc: validateDateFormat,
 						},
 						"po_date": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "The purchase order date.",
+							Type:         schema.TypeString,
+							Optional:     true,
+							Description:  "The purchase order date in YYYY-MM-DD format.",
+							ValidateFunc: validateDateFormat,
 						},
 						"warranty_date": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "The warranty date.",
-						},
-						"version_lock": {
-							Type:        schema.TypeInt,
-							Required:    true,
-							Description: "The version lock.",
+							Type:         schema.TypeString,
+							Optional:     true,
+							Description:  "The warranty date in YYYY-MM-DD format.",
+							ValidateFunc: validateDateFormat,
 						},
 					},
 				},
@@ -445,9 +458,14 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 				Default:     "-1",
 			},
 			"version_lock": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Description: "The version lock.",
+				Type:     schema.TypeInt,
+				Required: true,
+				Description: "The version lock value of the purchasing_information. Optimistic locking" +
+					"is a mechanism that prevents concurrent operations from taking place on a given" +
+					"resource. Jamf Pro does this to safeguard resources and workflows that are" +
+					"sensitive to frequent updates, ensuring that one update has completed before" +
+					"any additional requests can be processed. Valid request handling is managed by" +
+					"the construct function.",
 			},
 			"account_settings": {
 				Type:     schema.TypeList,
@@ -460,9 +478,14 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 							Description: "ID of Account Settings.",
 						},
 						"version_lock": {
-							Type:        schema.TypeInt,
-							Computed:    true,
-							Description: "The version lock for account settings.",
+							Type:     schema.TypeInt,
+							Required: true,
+							Description: "The version lock value of the account settings block. Optimistic locking" +
+								"is a mechanism that prevents concurrent operations from taking place on a given" +
+								"resource. Jamf Pro does this to safeguard resources and workflows that are" +
+								"sensitive to frequent updates, ensuring that one update has completed before" +
+								"any additional requests can be processed. Valid request handling is managed by" +
+								"the construct function.",
 						},
 						"payload_configured": {
 							Type:        schema.TypeBool,

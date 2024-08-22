@@ -4,6 +4,7 @@ package computerprestageenrollments
 import (
 	"context"
 	"fmt"
+	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -69,6 +70,7 @@ func validateRecoveryLockPassword(_ context.Context, diff *schema.ResourceDiff, 
 }
 
 // validateRotateRecoveryLockPassword checks that 'rotate_recovery_lock_password' is only set when 'recovery_lock_password_type' is 'RANDOM'.
+// Not part of the mainCustomDiffFunc as it is not comparing different schema values.
 func validateRotateRecoveryLockPassword(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
 	resourceName := diff.Get("name").(string)
 	passwordType, passwordTypeOk := diff.GetOk("recovery_lock_password_type")
@@ -87,4 +89,17 @@ func validateRotateRecoveryLockPassword(_ context.Context, diff *schema.Resource
 	}
 
 	return nil
+}
+
+// validateDateFormat checks that the date is in the format YYYY-MM-DD.
+func validateDateFormat(v interface{}, k string) (ws []string, errors []error) {
+	dateString := v.(string)
+	datePattern := `^\d{4}-\d{2}-\d{2}$`
+	match, _ := regexp.MatchString(datePattern, dateString)
+
+	if !match {
+		errors = append(errors, fmt.Errorf("%q must be in the format YYYY-MM-DD, got: %s", k, dateString))
+	}
+
+	return
 }
