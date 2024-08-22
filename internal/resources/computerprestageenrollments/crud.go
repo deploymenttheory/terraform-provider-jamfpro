@@ -2,23 +2,43 @@ package computerprestageenrollments
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// create is responsible for creating a new compu
+// create is responsible for creating a new computer prestage enrollment in the remote system.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return common.Create(
-		ctx,
-		d,
-		meta,
-		construct,
-		meta.(*jamfpro.Client).CreateComputerPrestage,
-		readNoCleanup,
-	)
+	client := meta.(*jamfpro.Client)
+	var diags diag.Diagnostics
+	isUpdate := false
+
+	resource, err := construct(d, isUpdate)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Prestage Enrollment: %v", err))
+	}
+
+	var creationResponse *jamfpro.ResponseComputerPrestageCreate
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		var apiErr error
+		creationResponse, apiErr = client.CreateComputerPrestage(resource)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Computer Prestage Enrollment '%s' after retries: %v", resource.DisplayName, err))
+	}
+
+	d.SetId(creationResponse.ID)
+
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
 // read is responsible for reading the current state of a Building Resource from the remote system.
@@ -45,14 +65,29 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 
 // update is responsible for updating an existing Jamf Pro Department on the remote system.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return common.Update(
-		ctx,
-		d,
-		meta,
-		construct,
-		meta.(*jamfpro.Client).UpdateComputerPrestageByID,
-		readNoCleanup,
-	)
+	client := meta.(*jamfpro.Client)
+	var diags diag.Diagnostics
+	resourceID := d.Id()
+	isUpdate := true
+
+	resource, err := construct(d, isUpdate)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro macOS Computer Prestage Enrollment for update: %v", err))
+	}
+
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+		_, apiErr := client.UpdateComputerPrestageByID(resourceID, resource)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Computer Prestage Enrollment '%s' (ID: %s) after retries: %v", resource.DisplayName, resourceID, err))
+	}
+
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
 // delete is responsible for deleting a Jamf Pro Computer Prestage.

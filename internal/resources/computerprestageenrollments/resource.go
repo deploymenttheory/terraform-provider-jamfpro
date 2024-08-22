@@ -3,9 +3,11 @@ package computerprestageenrollments
 
 import (
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 // resourceJamfProComputerPrestageEnrollmentEnrollment defines the schema for managing Jamf Pro Computer Prestages in Terraform.
@@ -15,6 +17,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 		ReadContext:   readWithCleanup,
 		UpdateContext: update,
 		DeleteContext: delete,
+		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(20 * time.Second),
 			Read:   schema.DefaultTimeout(15 * time.Second),
@@ -33,21 +36,21 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 			"display_name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The display name of the computer prestage.",
+				Description: "The display name of the computer prestage enrollment.",
 			},
 			"mandatory": {
 				Type:        schema.TypeBool,
 				Required:    true,
-				Description: "Indicates whether the computer prestage is mandatory.",
+				Description: "Make MDM Profile Mandatory and require the user to apply the MDM profile. Computers with macOS 10.15 or later automatically require the user to apply the MDM profile",
 			},
 			"mdm_removable": {
 				Type:        schema.TypeBool,
 				Required:    true,
-				Description: "Indicates if the MDM profile is removable.",
+				Description: "Allow MDM Profile Removal and allow the user to remove the MDM profile.",
 			},
 			"support_phone_number": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "The Support phone number for the organization.",
 			},
 			"support_email_address": {
@@ -57,7 +60,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 			},
 			"department": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "The department the computer prestage is assigned to.",
 			},
 			"default_prestage": {
@@ -67,33 +70,33 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 			},
 			"enrollment_site_id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "The jamf pro Site ID that computers will be added to during enrollment. Default is -1, aka not used.",
 			},
 			"keep_existing_site_membership": {
 				Type:        schema.TypeBool,
 				Required:    true,
-				Description: "Indicates if existing device site membership should be retained.",
+				Description: "Indicates if enrolled should use existing site membership, if applicable",
 			},
 			"keep_existing_location_information": {
 				Type:        schema.TypeBool,
 				Required:    true,
-				Description: "Indicates if existing device location information should be retained.",
+				Description: "Indicates if enrolled should use existing location information, if applicable",
 			},
 			"require_authentication": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Required:    true,
 				Description: "Indicates if the user is required to provide username and password on computers with macOS 10.10 or later.",
 			},
 			"authentication_prompt": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The authentication prompt message displayed to the user during enrollment.",
+				Optional:    true,
+				Description: "Authentication Message to display to the user. Used when Require Authentication is enabled.",
 			},
 			"prevent_activation_lock": {
 				Type:        schema.TypeBool,
 				Required:    true,
-				Description: "Indicates if activation lock should be prevented.",
+				Description: "Prevent user from enabling Activation Lock.",
 			},
 			"enable_device_based_activation_lock": {
 				Type:        schema.TypeBool,
@@ -103,7 +106,14 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 			"device_enrollment_program_instance_id": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The device enrollment program instance ID.",
+				Description: "The Automated Device Enrollment instance ID to associate with the PreStage enrollment. Devices associated with the selected Automated Device Enrollment instance can be assigned the PreStage enrollment",
+				ValidateFunc: validation.All(
+					validation.StringLenBetween(32, 32),
+					validation.StringMatch(
+						regexp.MustCompile(`^[0-9A-F]{32}$`),
+						"must be a 32-character string containing only hexadecimal characters (0-9, A-F)",
+					),
+				),
 			},
 			"skip_setup_items": {
 				Type:        schema.TypeList,
@@ -397,12 +407,12 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 			"enable_recovery_lock": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Indicates if recovery lock should be enabled.",
+				Description: "Configure how the Recovery Lock password is set on computers with macOS 11.5 or later.",
 			},
 			"recovery_lock_password_type": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The recovery lock password type.",
+				Description: "Method to use to set Recovery Lock password.'MANUAL' results in user having to enter a password. (Applies to all users) 'RANDOM' results in automatic generation of a random password being set for the device.",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := val.(string)
 					validTypes := map[string]bool{
@@ -418,7 +428,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 			"recovery_lock_password": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The recovery lock password.",
+				Description: "Generate new Recovery Lock password 60 minutes after the password is viewed in Jamf Pro.",
 			},
 			"rotate_recovery_lock_password": {
 				Type:        schema.TypeBool,
