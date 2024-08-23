@@ -28,7 +28,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 		"prevent_activation_lock":               resp.PreventActivationLock,
 		"enable_device_based_activation_lock":   resp.EnableDeviceBasedActivationLock,
 		"device_enrollment_program_instance_id": resp.DeviceEnrollmentProgramInstanceId,
-		"skip_setup_items":                      []interface{}{resp.SkipSetupItems},
+		"skip_setup_items":                      []interface{}{skipSetupItems(resp.SkipSetupItems)},
 		"anchor_certificates":                   resp.AnchorCertificates,
 		"enrollment_customization_id":           resp.EnrollmentCustomizationId,
 		"language":                              resp.Language,
@@ -45,25 +45,25 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 		"profile_uuid":                          resp.ProfileUuid,
 		"site_id":                               resp.SiteId,
 		"version_lock":                          resp.VersionLock,
-		"enabled":                               resp.Enabled,
-		"sso_for_enrollment_enabled":            resp.SsoForEnrollmentEnabled,
-		"sso_bypass_allowed":                    resp.SsoBypassAllowed,
-		"sso_enabled":                           resp.SsoEnabled,
-		"sso_for_mac_os_self_service_enabled":   resp.SsoForMacOsSelfServiceEnabled,
-		"token_expiration_disabled":             resp.TokenExpirationDisabled,
-		"user_attribute_enabled":                resp.UserAttributeEnabled,
-		"user_attribute_name":                   resp.UserAttributeName,
-		"user_mapping":                          resp.UserMapping,
-		"enrollment_sso_for_account_driven_enrollment_enabled": resp.EnrollmentSsoForAccountDrivenEnrollmentEnabled,
-		"group_enrollment_access_enabled":                      resp.GroupEnrollmentAccessEnabled,
-		"group_attribute_name":                                 resp.GroupAttributeName,
-		"group_rdn_key":                                        resp.GroupRdnKey,
-		"group_enrollment_access_name":                         resp.GroupEnrollmentAccessName,
-		"idp_provider_type":                                    resp.IdpProviderType,
-		"other_provider_type_name":                             resp.OtherProviderTypeName,
-		"metadata_source":                                      resp.MetadataSource,
-		"session_timeout":                                      resp.SessionTimeout,
-		"device_type":                                          resp.DeviceType,
+		// "enabled":                               resp.Enabled,
+		// "sso_for_enrollment_enabled":            resp.SsoForEnrollmentEnabled,
+		// "sso_bypass_allowed":                    resp.SsoBypassAllowed,
+		// "sso_enabled":                           resp.SsoEnabled,
+		// "sso_for_mac_os_self_service_enabled":   resp.SsoForMacOsSelfServiceEnabled,
+		// "token_expiration_disabled":             resp.TokenExpirationDisabled,
+		// "user_attribute_enabled":                resp.UserAttributeEnabled,
+		// "user_attribute_name":                   resp.UserAttributeName,
+		// "user_mapping":                          resp.UserMapping,
+		// "enrollment_sso_for_account_driven_enrollment_enabled": resp.EnrollmentSsoForAccountDrivenEnrollmentEnabled,
+		// "group_enrollment_access_enabled":                      resp.GroupEnrollmentAccessEnabled,
+		// "group_attribute_name":                                 resp.GroupAttributeName,
+		// "group_rdn_key":                                        resp.GroupRdnKey,
+		// "group_enrollment_access_name":                         resp.GroupEnrollmentAccessName,
+		// "idp_provider_type":                                    resp.IdpProviderType,
+		// "other_provider_type_name":                             resp.OtherProviderTypeName,
+		// "metadata_source":                                      resp.MetadataSource,
+		// "session_timeout":                                      resp.SessionTimeout,
+		// "device_type":                                          resp.DeviceType,
 	}
 
 	if locationInformation := resp.LocationInformation; locationInformation != (jamfpro.ComputerPrestageSubsetLocationInformation{}) {
@@ -145,4 +145,28 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 	}
 
 	return diags
+}
+
+// skipSetupItems converts the ComputerPrestageSubsetSkipSetupItems struct to a map
+func skipSetupItems(skipSetupItems jamfpro.ComputerPrestageSubsetSkipSetupItems) map[string]interface{} {
+	return map[string]interface{}{
+		"biometric":          *skipSetupItems.Biometric,
+		"terms_of_address":   *skipSetupItems.TermsOfAddress,
+		"file_vault":         *skipSetupItems.FileVault,
+		"icloud_diagnostics": *skipSetupItems.ICloudDiagnostics,
+		"diagnostics":        *skipSetupItems.Diagnostics,
+		"accessibility":      *skipSetupItems.Accessibility,
+		"apple_id":           *skipSetupItems.AppleID,
+		"screen_time":        *skipSetupItems.ScreenTime,
+		"siri":               *skipSetupItems.Siri,
+		"display_tone":       *skipSetupItems.DisplayTone,
+		"restore":            *skipSetupItems.Restore,
+		"appearance":         *skipSetupItems.Appearance,
+		"privacy":            *skipSetupItems.Privacy,
+		"payment":            *skipSetupItems.Payment,
+		"registration":       *skipSetupItems.Registration,
+		"tos":                *skipSetupItems.TOS,
+		"icloud_storage":     *skipSetupItems.ICloudStorage,
+		"location":           *skipSetupItems.Location,
+	}
 }

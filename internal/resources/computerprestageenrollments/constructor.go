@@ -93,20 +93,18 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 		resource.AnchorCertificates = anchorCertificates
 	}
 
+	resource.PrestageInstalledProfileIds = make([]string, 0)
 	if v, ok := d.GetOk("prestage_installed_profile_ids"); ok {
-		profileIDs := make([]string, len(v.([]interface{})))
-		for i, id := range v.([]interface{}) {
-			profileIDs[i] = id.(string)
+		for _, id := range v.([]interface{}) {
+			resource.PrestageInstalledProfileIds = append(resource.PrestageInstalledProfileIds, id.(string))
 		}
-		resource.PrestageInstalledProfileIds = profileIDs
 	}
 
+	resource.CustomPackageIds = make([]string, 0)
 	if v, ok := d.GetOk("custom_package_ids"); ok {
-		packageIDs := make([]string, len(v.([]interface{})))
-		for i, id := range v.([]interface{}) {
-			packageIDs[i] = id.(string)
+		for _, id := range v.([]interface{}) {
+			resource.CustomPackageIds = append(resource.CustomPackageIds, id.(string))
 		}
-		resource.CustomPackageIds = packageIDs
 	}
 
 	if v, ok := d.GetOk("onboarding_items"); ok {

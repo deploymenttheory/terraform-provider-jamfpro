@@ -43,11 +43,6 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 				Required:    true,
 				Description: "Make MDM Profile Mandatory and require the user to apply the MDM profile. Computers with macOS 10.15 or later automatically require the user to apply the MDM profile",
 			},
-			"enabled": {
-				Type:        schema.TypeBool,
-				Required:    true,
-				Description: "The enablement status of the computer prestage enrollment.",
-			},
 			"mdm_removable": {
 				Type:        schema.TypeBool,
 				Required:    true,
@@ -221,7 +216,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:        schema.TypeString,
-							Optional:    true,
+							Computed:    true,
 							Description: "The ID of the location information.",
 						},
 						"version_lock": {
@@ -285,7 +280,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Computed:    true,
 							Description: "The ID of the purchasing information.",
 						},
 						"version_lock": {

@@ -15,10 +15,6 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 		return err
 	}
 
-	if err := validateRecoveryLockPassword(ctx, diff, i); err != nil {
-		return err
-	}
-
 	if err := validateRotateRecoveryLockPassword(ctx, diff, i); err != nil {
 		return err
 	}
@@ -43,27 +39,6 @@ func validateAuthenticationPrompt(_ context.Context, diff *schema.ResourceDiff, 
 
 	if !requireAuth.(bool) && authPromptOk && authPrompt.(string) != "" {
 		return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'authentication_prompt' is not allowed when 'require_authentication' is set to false", resourceName)
-	}
-
-	return nil
-}
-
-// validateRecoveryLockPassword checks that 'recovery_lock_password' is only set when 'recovery_lock_password_type' is 'MANUAL'.
-func validateRecoveryLockPassword(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
-	resourceName := diff.Get("display_name").(string)
-	passwordType, passwordTypeOk := diff.GetOk("recovery_lock_password_type")
-	password, passwordOk := diff.GetOk("recovery_lock_password")
-
-	if !passwordTypeOk {
-		return nil
-	}
-
-	if passwordType.(string) == "MANUAL" && !passwordOk {
-		return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'recovery_lock_password' is required when 'recovery_lock_password_type' is set to 'MANUAL'", resourceName)
-	}
-
-	if passwordType.(string) != "MANUAL" && passwordOk && password.(string) != "" {
-		return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'recovery_lock_password' is not allowed when 'recovery_lock_password_type' is not set to 'MANUAL'", resourceName)
 	}
 
 	return nil
