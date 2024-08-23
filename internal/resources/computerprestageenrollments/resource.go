@@ -43,6 +43,11 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 				Required:    true,
 				Description: "Make MDM Profile Mandatory and require the user to apply the MDM profile. Computers with macOS 10.15 or later automatically require the user to apply the MDM profile",
 			},
+			"enabled": {
+				Type:        schema.TypeBool,
+				Required:    true,
+				Description: "The enablement status of the computer prestage enrollment.",
+			},
 			"mdm_removable": {
 				Type:        schema.TypeBool,
 				Required:    true,
@@ -107,13 +112,6 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The Automated Device Enrollment instance ID to associate with the PreStage enrollment. Devices associated with the selected Automated Device Enrollment instance can be assigned the PreStage enrollment",
-				ValidateFunc: validation.All(
-					validation.StringLenBetween(32, 32),
-					validation.StringMatch(
-						regexp.MustCompile(`^[0-9A-F]{32}$`),
-						"must be a 32-character string containing only hexadecimal characters (0-9, A-F)",
-					),
-				),
 			},
 			"skip_setup_items": {
 				Type:        schema.TypeList,
@@ -456,8 +454,15 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 			},
 			"profile_uuid": {
 				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The profile UUID.",
+				Required:    true,
+				Description: "The profile UUID of the Automated Device Enrollment instance to associate with the PreStage enrollment. Devices associated with the selected Automated Device Enrollment instance can be assigned the PreStage enrollment",
+				ValidateFunc: validation.All(
+					validation.StringLenBetween(32, 32),
+					validation.StringMatch(
+						regexp.MustCompile(`^[0-9A-F]{32}$`),
+						"must be a 32-character string containing only hexadecimal characters (0-9, A-F)",
+					),
+				),
 			},
 			"site_id": {
 				Type:        schema.TypeString,

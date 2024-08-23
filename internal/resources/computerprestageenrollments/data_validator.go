@@ -28,7 +28,7 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 
 // validateAuthenticationPrompt checks that the 'authentication_prompt' is only set when 'require_authentication' is true.
 func validateAuthenticationPrompt(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
-	resourceName := diff.Get("name").(string)
+	resourceName := diff.Get("display_name").(string)
 	requireAuth, ok := diff.GetOk("require_authentication")
 
 	if !ok {
@@ -50,7 +50,7 @@ func validateAuthenticationPrompt(_ context.Context, diff *schema.ResourceDiff, 
 
 // validateRecoveryLockPassword checks that 'recovery_lock_password' is only set when 'recovery_lock_password_type' is 'MANUAL'.
 func validateRecoveryLockPassword(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
-	resourceName := diff.Get("name").(string)
+	resourceName := diff.Get("display_name").(string)
 	passwordType, passwordTypeOk := diff.GetOk("recovery_lock_password_type")
 	password, passwordOk := diff.GetOk("recovery_lock_password")
 
@@ -72,7 +72,7 @@ func validateRecoveryLockPassword(_ context.Context, diff *schema.ResourceDiff, 
 // validateRotateRecoveryLockPassword checks that 'rotate_recovery_lock_password' is only set when 'recovery_lock_password_type' is 'RANDOM'.
 // Not part of the mainCustomDiffFunc as it is not comparing different schema values.
 func validateRotateRecoveryLockPassword(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
-	resourceName := diff.Get("name").(string)
+	resourceName := diff.Get("display_name").(string)
 	passwordType, passwordTypeOk := diff.GetOk("recovery_lock_password_type")
 	rotate, rotateOk := diff.GetOk("rotate_recovery_lock_password")
 
