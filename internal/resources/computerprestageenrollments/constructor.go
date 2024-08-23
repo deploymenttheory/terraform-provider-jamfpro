@@ -13,7 +13,7 @@ import (
 
 func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputerPrestage, error) {
 	resource := &jamfpro.ResourceComputerPrestage{
-		ID:                                d.Get("id").(string),
+		VersionLock:                       handleVersionLock(d.Get("version_lock"), isUpdate),
 		DisplayName:                       d.Get("display_name").(string),
 		Mandatory:                         jamfpro.BoolPtr(d.Get("mandatory").(bool)),
 		MDMRemovable:                      jamfpro.BoolPtr(d.Get("mdm_removable").(bool)),
@@ -35,15 +35,15 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 		RotateRecoveryLockPassword:        jamfpro.BoolPtr(d.Get("rotate_recovery_lock_password").(bool)),
 		ProfileUuid:                       d.Get("profile_uuid").(string),
 		SiteId:                            d.Get("site_id").(string),
-		VersionLock:                       d.Get("version_lock").(int),
-		CustomPackageDistributionPointId:  getStringOrDefaultInteger(d, "custom_package_distribution_point_id"),
-		EnrollmentCustomizationId:         d.Get("enrollment_customization_id").(string),
-		Language:                          d.Get("language").(string),
-		Region:                            d.Get("region").(string),
-		AutoAdvanceSetup:                  jamfpro.BoolPtr(d.Get("auto_advance_setup").(bool)),
-		InstallProfilesDuringSetup:        jamfpro.BoolPtr(d.Get("install_profiles_during_setup").(bool)),
-		Enabled:                           jamfpro.BoolPtr(d.Get("enabled").(bool)),
+
+		CustomPackageDistributionPointId: getStringOrDefaultInteger(d, "custom_package_distribution_point_id"),
+		EnrollmentCustomizationId:        d.Get("enrollment_customization_id").(string),
+		Language:                         d.Get("language").(string),
+		Region:                           d.Get("region").(string),
+		AutoAdvanceSetup:                 jamfpro.BoolPtr(d.Get("auto_advance_setup").(bool)),
+		InstallProfilesDuringSetup:       jamfpro.BoolPtr(d.Get("install_profiles_during_setup").(bool)),
 		// TODO: Add remaining fields - requires additional schema definitions
+		// Enabled:                           jamfpro.BoolPtr(d.Get("enabled").(bool)),
 		// SsoForEnrollmentEnabled:           jamfpro.BoolPtr(d.Get("sso_for_enrollment_enabled").(bool)),
 		// SsoBypassAllowed:                  jamfpro.BoolPtr(d.Get("sso_bypass_allowed").(bool)),
 		// SsoEnabled:                        jamfpro.BoolPtr(d.Get("sso_enabled").(bool)),
@@ -123,12 +123,12 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 	}
 
 	// Serialize and pretty-print the inventory collection object as JSON for logging
-	resourceXML, err := json.MarshalIndent(resource, "", "  ")
+	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Prestage to JSON: %v", err)
 	}
 
-	log.Printf("[DEBUG] Constructed Jamf Pro Computer Computer Prestage JSON:\n%s\n", string(resourceXML))
+	log.Printf("[DEBUG] Constructed Jamf Pro Computer Computer Prestage JSON:\n%s\n", string(resourceJSON))
 
 	return resource, nil
 }
