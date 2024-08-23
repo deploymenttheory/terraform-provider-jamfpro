@@ -226,7 +226,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 						},
 						"version_lock": {
 							Type:     schema.TypeInt,
-							Optional: true,
+							Computed: true,
 							Description: "The version lock of the location information. Optimistic locking" +
 								"is a mechanism that prevents concurrent operations from taking place on a given" +
 								"resource. Jamf Pro does this to safeguard resources and workflows that are" +
@@ -290,7 +290,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 						},
 						"version_lock": {
 							Type:     schema.TypeInt,
-							Required: true,
+							Computed: true,
 							Description: "The version lock value of the purchasing_information. Optimistic locking" +
 								"is a mechanism that prevents concurrent operations from taking place on a given" +
 								"resource. Jamf Pro does this to safeguard resources and workflows that are" +
@@ -471,7 +471,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 			},
 			"version_lock": {
 				Type:     schema.TypeInt,
-				Required: true,
+				Computed: true,
 				Description: "The version lock value of the purchasing_information. Optimistic locking" +
 					"is a mechanism that prevents concurrent operations from taking place on a given" +
 					"resource. Jamf Pro does this to safeguard resources and workflows that are" +
@@ -491,7 +491,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 						},
 						"version_lock": {
 							Type:     schema.TypeInt,
-							Required: true,
+							Computed: true,
 							Description: "The version lock value of the account settings block. Optimistic locking" +
 								"is a mechanism that prevents concurrent operations from taking place on a given" +
 								"resource. Jamf Pro does this to safeguard resources and workflows that are" +

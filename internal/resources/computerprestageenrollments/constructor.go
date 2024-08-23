@@ -12,8 +12,10 @@ import (
 )
 
 func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputerPrestage, error) {
+	versionLock := handleVersionLock(d.Get("version_lock"), isUpdate)
+
 	resource := &jamfpro.ResourceComputerPrestage{
-		VersionLock:                       handleVersionLock(d.Get("version_lock"), isUpdate),
+		VersionLock:                       versionLock,
 		DisplayName:                       d.Get("display_name").(string),
 		Mandatory:                         jamfpro.BoolPtr(d.Get("mandatory").(bool)),
 		MDMRemovable:                      jamfpro.BoolPtr(d.Get("mdm_removable").(bool)),
@@ -35,13 +37,12 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 		RotateRecoveryLockPassword:        jamfpro.BoolPtr(d.Get("rotate_recovery_lock_password").(bool)),
 		ProfileUuid:                       d.Get("profile_uuid").(string),
 		SiteId:                            d.Get("site_id").(string),
-
-		CustomPackageDistributionPointId: getStringOrDefaultInteger(d, "custom_package_distribution_point_id"),
-		EnrollmentCustomizationId:        d.Get("enrollment_customization_id").(string),
-		Language:                         d.Get("language").(string),
-		Region:                           d.Get("region").(string),
-		AutoAdvanceSetup:                 jamfpro.BoolPtr(d.Get("auto_advance_setup").(bool)),
-		InstallProfilesDuringSetup:       jamfpro.BoolPtr(d.Get("install_profiles_during_setup").(bool)),
+		CustomPackageDistributionPointId:  getStringOrDefaultInteger(d, "custom_package_distribution_point_id"),
+		EnrollmentCustomizationId:         d.Get("enrollment_customization_id").(string),
+		Language:                          d.Get("language").(string),
+		Region:                            d.Get("region").(string),
+		AutoAdvanceSetup:                  jamfpro.BoolPtr(d.Get("auto_advance_setup").(bool)),
+		InstallProfilesDuringSetup:        jamfpro.BoolPtr(d.Get("install_profiles_during_setup").(bool)),
 		// TODO: Add remaining fields - requires additional schema definitions
 		// Enabled:                           jamfpro.BoolPtr(d.Get("enabled").(bool)),
 		// SsoForEnrollmentEnabled:           jamfpro.BoolPtr(d.Get("sso_for_enrollment_enabled").(bool)),
@@ -71,17 +72,17 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 
 	if v, ok := d.GetOk("location_information"); ok && len(v.([]interface{})) > 0 {
 		locationData := v.([]interface{})[0].(map[string]interface{})
-		resource.LocationInformation = constructLocationInformation(locationData, isUpdate)
+		resource.LocationInformation = constructLocationInformation(locationData, isUpdate, versionLock)
 	}
 
 	if v, ok := d.GetOk("purchasing_information"); ok && len(v.([]interface{})) > 0 {
 		purchasingData := v.([]interface{})[0].(map[string]interface{})
-		resource.PurchasingInformation = constructPurchasingInformation(purchasingData, isUpdate)
+		resource.PurchasingInformation = constructPurchasingInformation(purchasingData, isUpdate, versionLock)
 	}
 
 	if v, ok := d.GetOk("account_settings"); ok && len(v.([]interface{})) > 0 {
 		accountData := v.([]interface{})[0].(map[string]interface{})
-		resource.AccountSettings = constructAccountSettings(accountData, isUpdate)
+		resource.AccountSettings = constructAccountSettings(accountData, isUpdate, versionLock)
 	}
 
 	if v, ok := d.GetOk("anchor_certificates"); ok {
@@ -158,7 +159,7 @@ func constructSkipSetupItems(data map[string]interface{}) jamfpro.ComputerPresta
 }
 
 // constructLocationInformation constructs the LocationInformation subset of a Computer Prestage resource.
-func constructLocationInformation(data map[string]interface{}, isUpdate bool) jamfpro.ComputerPrestageSubsetLocationInformation {
+func constructLocationInformation(data map[string]interface{}, isUpdate bool, versionLock int) jamfpro.ComputerPrestageSubsetLocationInformation {
 	d := &schema.ResourceData{}
 	for k, v := range data {
 		d.Set(k, v)
@@ -167,12 +168,9 @@ func constructLocationInformation(data map[string]interface{}, isUpdate bool) ja
 	newID := handleID(getStringOrDefaultInteger(d, "id"), isUpdate)
 	log.Printf("[DEBUG] constructLocationInformation: Using ID '%s'", newID)
 
-	newVersionLock := handleVersionLock(data["version_lock"], isUpdate)
-	log.Printf("[DEBUG] constructLocationInformation: Using Version Lock '%d'", newVersionLock)
-
 	return jamfpro.ComputerPrestageSubsetLocationInformation{
 		ID:           newID,
-		VersionLock:  newVersionLock,
+		VersionLock:  versionLock,
 		Username:     data["username"].(string),
 		Realname:     data["realname"].(string),
 		Phone:        data["phone"].(string),
@@ -185,7 +183,7 @@ func constructLocationInformation(data map[string]interface{}, isUpdate bool) ja
 }
 
 // constructPurchasingInformation constructs the PurchasingInformation subset of a Computer Prestage resource.
-func constructPurchasingInformation(data map[string]interface{}, isUpdate bool) jamfpro.ComputerPrestageSubsetPurchasingInformation {
+func constructPurchasingInformation(data map[string]interface{}, isUpdate bool, versionLock int) jamfpro.ComputerPrestageSubsetPurchasingInformation {
 	d := &schema.ResourceData{}
 	for k, v := range data {
 		d.Set(k, v)
@@ -194,12 +192,9 @@ func constructPurchasingInformation(data map[string]interface{}, isUpdate bool) 
 	newID := handleID(getStringOrDefaultInteger(d, "id"), isUpdate)
 	log.Printf("[DEBUG] constructPurchasingInformation: Using ID '%s'", newID)
 
-	newVersionLock := handleVersionLock(data["version_lock"], isUpdate)
-	log.Printf("[DEBUG] constructPurchasingInformation: Using Version Lock '%d'", newVersionLock)
-
 	return jamfpro.ComputerPrestageSubsetPurchasingInformation{
 		ID:                newID,
-		VersionLock:       newVersionLock,
+		VersionLock:       versionLock,
 		Leased:            jamfpro.BoolPtr(data["leased"].(bool)),
 		Purchased:         jamfpro.BoolPtr(data["purchased"].(bool)),
 		AppleCareId:       data["apple_care_id"].(string),
@@ -216,15 +211,13 @@ func constructPurchasingInformation(data map[string]interface{}, isUpdate bool) 
 }
 
 // constructAccountSettings constructs the AccountSettings subset of a Computer Prestage resource.
-func constructAccountSettings(data map[string]interface{}, isUpdate bool) jamfpro.ComputerPrestageSubsetAccountSettings {
+func constructAccountSettings(data map[string]interface{}, isUpdate bool, versionLock int) jamfpro.ComputerPrestageSubsetAccountSettings {
 	newID := handleID(data["id"].(string), isUpdate)
 	log.Printf("[DEBUG] constructAccountSettings: Using ID '%s'", newID)
 
-	newVersionLock := handleVersionLock(data["version_lock"], isUpdate)
-	log.Printf("[DEBUG] constructAccountSettings: Using Version Lock '%d'", newVersionLock)
-
 	return jamfpro.ComputerPrestageSubsetAccountSettings{
 		ID:                                      newID,
+		VersionLock:                             versionLock,
 		PayloadConfigured:                       jamfpro.BoolPtr(data["payload_configured"].(bool)),
 		LocalAdminAccountEnabled:                jamfpro.BoolPtr(data["local_admin_account_enabled"].(bool)),
 		AdminUsername:                           data["admin_username"].(string),
@@ -232,7 +225,6 @@ func constructAccountSettings(data map[string]interface{}, isUpdate bool) jamfpr
 		HiddenAdminAccount:                      jamfpro.BoolPtr(data["hidden_admin_account"].(bool)),
 		LocalUserManaged:                        jamfpro.BoolPtr(data["local_user_managed"].(bool)),
 		UserAccountType:                         data["user_account_type"].(string),
-		VersionLock:                             newVersionLock,
 		PrefillPrimaryAccountInfoFeatureEnabled: jamfpro.BoolPtr(data["prefill_primary_account_info_feature_enabled"].(bool)),
 		PrefillType:                             data["prefill_type"].(string),
 		PrefillAccountFullName:                  data["prefill_account_full_name"].(string),
