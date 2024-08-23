@@ -1,4 +1,4 @@
-resource "jamf_pro_computer_prestage_enrollment" "example" {
+resource "jamfpro_computer_prestage_enrollment" "example" {
   display_name                            = "Example Prestage Enrollment"
   mandatory                               = true
   mdm_removable                           = false
