@@ -42,7 +42,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 		"recovery_lock_password_type":           resp.RecoveryLockPasswordType,
 		"recovery_lock_password":                resp.RecoveryLockPassword,
 		"rotate_recovery_lock_password":         resp.RotateRecoveryLockPassword,
-		"profile_uuid":                          resp.ProfileUuid,
+		"profile_uuid":                          getHCLValue(d, "profile_uuid"), // this value is not returned by the API
 		"site_id":                               resp.SiteId,
 		"version_lock":                          resp.VersionLock,
 		// "enabled":                               resp.Enabled,
@@ -169,4 +169,13 @@ func skipSetupItems(skipSetupItems jamfpro.ComputerPrestageSubsetSkipSetupItems)
 		"icloud_storage":     *skipSetupItems.ICloudStorage,
 		"location":           *skipSetupItems.Location,
 	}
+}
+
+// getHCLValue gets the value of a key from the ResourceData, either from the current state or the config.
+func getHCLValue(d *schema.ResourceData, key string) interface{} {
+	value, exists := d.GetOk(key)
+	if !exists {
+		value = d.Get(key)
+	}
+	return value
 }
