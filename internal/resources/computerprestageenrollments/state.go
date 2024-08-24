@@ -13,6 +13,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 
 	prestageAttributes := map[string]interface{}{
 		"id":                                    resp.ID,
+		"version_lock":                          resp.VersionLock,
 		"display_name":                          resp.DisplayName,
 		"mandatory":                             resp.Mandatory,
 		"mdm_removable":                         resp.MDMRemovable,
@@ -44,7 +45,6 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 		"rotate_recovery_lock_password":         resp.RotateRecoveryLockPassword,
 		"profile_uuid":                          getHCLValue(d, "profile_uuid"), // this value is not returned by the API
 		"site_id":                               resp.SiteId,
-		"version_lock":                          resp.VersionLock,
 		// "enabled":                               resp.Enabled,
 		// "sso_for_enrollment_enabled":            resp.SsoForEnrollmentEnabled,
 		// "sso_bypass_allowed":                    resp.SsoBypassAllowed,

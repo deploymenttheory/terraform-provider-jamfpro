@@ -15,7 +15,7 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 	versionLock := handleVersionLock(d.Get("version_lock"), isUpdate)
 
 	resource := &jamfpro.ResourceComputerPrestage{
-		VersionLock:                       versionLock,
+		VersionLock:                       d.Get("version_lock").(int), // for some reason, this is not incremented. weird.
 		DisplayName:                       d.Get("display_name").(string),
 		Mandatory:                         jamfpro.BoolPtr(d.Get("mandatory").(bool)),
 		MDMRemovable:                      jamfpro.BoolPtr(d.Get("mdm_removable").(bool)),
@@ -23,7 +23,7 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 		SupportEmailAddress:               d.Get("support_email_address").(string),
 		Department:                        d.Get("department").(string),
 		DefaultPrestage:                   jamfpro.BoolPtr(d.Get("default_prestage").(bool)),
-		EnrollmentSiteId:                  getStringOrDefaultInteger(d, "enrollment_site_id"),
+		EnrollmentSiteId:                  getHCLStringOrDefaultInteger(d, "enrollment_site_id"),
 		KeepExistingSiteMembership:        jamfpro.BoolPtr(d.Get("keep_existing_site_membership").(bool)),
 		KeepExistingLocationInformation:   jamfpro.BoolPtr(d.Get("keep_existing_location_information").(bool)),
 		RequireAuthentication:             jamfpro.BoolPtr(d.Get("require_authentication").(bool)),
@@ -37,7 +37,7 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 		RotateRecoveryLockPassword:        jamfpro.BoolPtr(d.Get("rotate_recovery_lock_password").(bool)),
 		ProfileUuid:                       d.Get("profile_uuid").(string),
 		SiteId:                            d.Get("site_id").(string),
-		CustomPackageDistributionPointId:  getStringOrDefaultInteger(d, "custom_package_distribution_point_id"),
+		CustomPackageDistributionPointId:  getHCLStringOrDefaultInteger(d, "custom_package_distribution_point_id"),
 		EnrollmentCustomizationId:         d.Get("enrollment_customization_id").(string),
 		Language:                          d.Get("language").(string),
 		Region:                            d.Get("region").(string),
@@ -163,7 +163,7 @@ func constructLocationInformation(data map[string]interface{}, isUpdate bool, ve
 		d.Set(k, v)
 	}
 
-	newID := handleID(getStringOrDefaultInteger(d, "id"), isUpdate)
+	newID := handleNestedID(data, isUpdate)
 	log.Printf("[DEBUG] constructLocationInformation: Using ID '%s'", newID)
 
 	return jamfpro.ComputerPrestageSubsetLocationInformation{
@@ -175,8 +175,8 @@ func constructLocationInformation(data map[string]interface{}, isUpdate bool, ve
 		Email:        data["email"].(string),
 		Room:         data["room"].(string),
 		Position:     data["position"].(string),
-		DepartmentId: getStringOrDefaultInteger(d, "department_id"),
-		BuildingId:   getStringOrDefaultInteger(d, "building_id"),
+		DepartmentId: getHCLStringOrDefaultInteger(d, "department_id"),
+		BuildingId:   getHCLStringOrDefaultInteger(d, "building_id"),
 	}
 }
 
@@ -187,7 +187,7 @@ func constructPurchasingInformation(data map[string]interface{}, isUpdate bool, 
 		d.Set(k, v)
 	}
 
-	newID := handleID(getStringOrDefaultInteger(d, "id"), isUpdate)
+	newID := handleNestedID(data, isUpdate)
 	log.Printf("[DEBUG] constructPurchasingInformation: Using ID '%s'", newID)
 
 	return jamfpro.ComputerPrestageSubsetPurchasingInformation{
@@ -210,7 +210,7 @@ func constructPurchasingInformation(data map[string]interface{}, isUpdate bool, 
 
 // constructAccountSettings constructs the AccountSettings subset of a Computer Prestage resource.
 func constructAccountSettings(data map[string]interface{}, isUpdate bool, versionLock int) jamfpro.ComputerPrestageSubsetAccountSettings {
-	newID := handleID(data["id"].(string), isUpdate)
+	newID := handleNestedID(data, isUpdate)
 	log.Printf("[DEBUG] constructAccountSettings: Using ID '%s'", newID)
 
 	return jamfpro.ComputerPrestageSubsetAccountSettings{
@@ -229,73 +229,6 @@ func constructAccountSettings(data map[string]interface{}, isUpdate bool, versio
 		PrefillAccountUserName:                  data["prefill_account_user_name"].(string),
 		PreventPrefillInfoFromModification:      jamfpro.BoolPtr(data["prevent_prefill_info_from_modification"].(bool)),
 	}
-}
-
-// handleID manages the ID field for Jamf Pro Computer Prestage resources during create and update operations.
-//
-// For create operations, it always returns "-1" as required by the Jamf Pro API.
-// For update operations, it increments the existing ID by 1.
-//
-// Parameters:
-//
-//   - id: A string representing the current ID of the resource.
-//     For create operations, this value is ignored.
-//     For update operations, this should be the existing ID of the resource.
-//
-//   - isUpdate: A boolean flag indicating whether this is an update operation.
-//     true for update operations, false for create operations.
-//
-// Returns:
-//   - A string representing the ID to be used in the API request.
-//     For create operations, this will always be "-1".
-//     For update operations, this will be the incremented ID.
-//
-// Behavior:
-//
-//   - Create operations (isUpdate == false):
-//
-//   - Always returns "-1", regardless of the input id.
-//
-//   - Logs a debug message indicating the use of the default ID.
-//
-//   - Update operations (isUpdate == true):
-//
-//   - Attempts to convert the input id to an integer and increment it by 1.
-//
-//   - If conversion succeeds, returns the incremented ID as a string.
-//
-//   - If conversion fails, logs a warning and returns the original id unchanged.
-//
-//   - Logs debug messages showing the original and new IDs.
-//
-// Error Handling:
-//   - If the input id cannot be converted to an integer during an update operation,
-//     the function logs a warning and returns the original id unchanged.
-//   - This approach ensures that the function always returns a valid string,
-//     even in error scenarios.
-//
-// Usage:
-//   - This function should be called for each nested structure within a Computer Prestage
-//     resource that requires ID handling (e.g., LocationInformation, PurchasingInformation).
-//   - It ensures correct ID handling for both create and update operations in accordance
-//     with Jamf Pro API requirements.
-func handleID(id string, isUpdate bool) string {
-	if !isUpdate {
-		log.Printf("[DEBUG] Create operation: Using default ID '-1'")
-		return "-1"
-	}
-
-	log.Printf("[DEBUG] Update operation: Current ID is '%s'", id)
-
-	currentID, err := strconv.Atoi(id)
-	if err != nil {
-		log.Printf("[WARN] Failed to convert ID '%s' to integer: %v. Using original ID.", id, err)
-		return id
-	}
-
-	newID := strconv.Itoa(currentID + 1)
-	log.Printf("[DEBUG] Update operation: Incrementing ID from '%s' to '%s'", id, newID)
-	return newID
 }
 
 // handleVersionLock manages the VersionLock field for Jamf Pro Computer Prestage resources during update operations.
@@ -342,11 +275,27 @@ func handleVersionLock(currentVersionLock interface{}, isUpdate bool) int {
 	return newVersionLock
 }
 
-// getStringOrDefaultInteger returns the string value from the ResourceData if it exists,
+// getHCLStringOrDefaultInteger returns the string value from the ResourceData if it exists,
 // otherwise it returns the default value "-1".
-func getStringOrDefaultInteger(d *schema.ResourceData, key string) string {
+func getHCLStringOrDefaultInteger(d *schema.ResourceData, key string) string {
 	if v, ok := d.GetOk(key); ok {
 		return v.(string)
+	}
+	return "-1"
+}
+
+// handleNestedID manages the ID field for nested structures within a Computer Prestage resource.
+func handleNestedID(data map[string]interface{}, isUpdate bool) string {
+	if id, ok := data["id"]; ok && id.(string) != "" {
+		if isUpdate {
+			currentID, err := strconv.Atoi(id.(string))
+			if err != nil {
+				log.Printf("[WARN] Failed to convert ID '%s' to integer: %v. Using original value.", id.(string), err)
+				return id.(string)
+			}
+			return strconv.Itoa(currentID + 1)
+		}
+		return id.(string)
 	}
 	return "-1"
 }
