@@ -1,9 +1,15 @@
+# Description: This workflow is used to fetch data sets from jamf pro that change over time. The export is then used
+# for various purposes including valid data look ups for valid values for HCL fields within the provider.
 name: Jamf Pro Provider Maintenance
 
 on:
   schedule:
     - cron: '0 0 * * 0'  # Run every Sunday at midnight UTC
-  workflow_dispatch:  # Allow manual triggering
+  workflow_dispatch:     # Allow manual triggering
+
+permissions:
+  contents: write
+  pull-requests: write   # Needed to create a pull request
 
 jobs:
   update-app-catalog-app-installer-titles:
@@ -15,7 +21,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5.0.2
       with:
-        go-version: '1.22.4'  # Specify the Go version you need
+        go-version: '1.22.4'  # current version used by the go-api-sdk-jamfpro package
 
     - name: Harden Runner
       uses: step-security/harden-runner@v2.9.1
