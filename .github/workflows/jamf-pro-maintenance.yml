@@ -29,12 +29,13 @@ jobs:
 
     - name: Run App Catalog App Installer Title Fetcher
       env:
-        LOG_LEVEL: "warning"
+        LOG_LEVEL: "debug"
         HIDE_SENSITIVE_DATA: "true"
         INSTANCE_DOMAIN: ${{ secrets.MAINTAINENCE_INSTANCE_DOMAIN }}
         AUTH_METHOD: "oauth2"
         CLIENT_ID: ${{ secrets.MAINTAINENCE_CLIENT_ID }}
         CLIENT_SECRET: ${{ secrets.MAINTAINENCE_CLIENT_SECRET }}
+        EXPORT_LOGS: "false"
         JAMF_LOAD_BALANCER_LOCK: "true"
         MAX_RETRY_ATTEMPTS: "3"
         ENABLE_DYNAMIC_RATE_LIMITING: "false"
