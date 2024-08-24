@@ -11,8 +11,9 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// TODO update this logic
 	prestageAttributes := map[string]interface{}{
+		"id":                                    resp.ID,
+		"version_lock":                          resp.VersionLock,
 		"display_name":                          resp.DisplayName,
 		"mandatory":                             resp.Mandatory,
 		"mdm_removable":                         resp.MDMRemovable,
@@ -23,13 +24,12 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 		"enrollment_site_id":                    resp.EnrollmentSiteId,
 		"keep_existing_site_membership":         resp.KeepExistingSiteMembership,
 		"keep_existing_location_information":    resp.KeepExistingLocationInformation,
+		"require_authentication":                resp.RequireAuthentication,
 		"authentication_prompt":                 resp.AuthenticationPrompt,
 		"prevent_activation_lock":               resp.PreventActivationLock,
 		"enable_device_based_activation_lock":   resp.EnableDeviceBasedActivationLock,
 		"device_enrollment_program_instance_id": resp.DeviceEnrollmentProgramInstanceId,
-		"skip_setup_items":                      resp.SkipSetupItems,
-		"location_information":                  resp.LocationInformation,
-		"purchasing_information":                resp.PurchasingInformation,
+		"skip_setup_items":                      []interface{}{skipSetupItems(resp.SkipSetupItems)},
 		"anchor_certificates":                   resp.AnchorCertificates,
 		"enrollment_customization_id":           resp.EnrollmentCustomizationId,
 		"language":                              resp.Language,
@@ -43,15 +43,33 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 		"recovery_lock_password_type":           resp.RecoveryLockPasswordType,
 		"recovery_lock_password":                resp.RecoveryLockPassword,
 		"rotate_recovery_lock_password":         resp.RotateRecoveryLockPassword,
-		"profile_uuid":                          resp.ProfileUuid,
+		"profile_uuid":                          getHCLValue(d, "profile_uuid"), // this value is not returned by the API
 		"site_id":                               resp.SiteId,
-		"version_lock":                          resp.VersionLock,
-		"account_settings":                      resp.AccountSettings,
+		// "enabled":                               resp.Enabled,
+		// "sso_for_enrollment_enabled":            resp.SsoForEnrollmentEnabled,
+		// "sso_bypass_allowed":                    resp.SsoBypassAllowed,
+		// "sso_enabled":                           resp.SsoEnabled,
+		// "sso_for_mac_os_self_service_enabled":   resp.SsoForMacOsSelfServiceEnabled,
+		// "token_expiration_disabled":             resp.TokenExpirationDisabled,
+		// "user_attribute_enabled":                resp.UserAttributeEnabled,
+		// "user_attribute_name":                   resp.UserAttributeName,
+		// "user_mapping":                          resp.UserMapping,
+		// "enrollment_sso_for_account_driven_enrollment_enabled": resp.EnrollmentSsoForAccountDrivenEnrollmentEnabled,
+		// "group_enrollment_access_enabled":                      resp.GroupEnrollmentAccessEnabled,
+		// "group_attribute_name":                                 resp.GroupAttributeName,
+		// "group_rdn_key":                                        resp.GroupRdnKey,
+		// "group_enrollment_access_name":                         resp.GroupEnrollmentAccessName,
+		// "idp_provider_type":                                    resp.IdpProviderType,
+		// "other_provider_type_name":                             resp.OtherProviderTypeName,
+		// "metadata_source":                                      resp.MetadataSource,
+		// "session_timeout":                                      resp.SessionTimeout,
+		// "device_type":                                          resp.DeviceType,
 	}
 
 	if locationInformation := resp.LocationInformation; locationInformation != (jamfpro.ComputerPrestageSubsetLocationInformation{}) {
 		prestageAttributes["location_information"] = []interface{}{
 			map[string]interface{}{
+				"id":            locationInformation.ID,
 				"username":      locationInformation.Username,
 				"realname":      locationInformation.Realname,
 				"phone":         locationInformation.Phone,
@@ -60,11 +78,11 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 				"position":      locationInformation.Position,
 				"department_id": locationInformation.DepartmentId,
 				"building_id":   locationInformation.BuildingId,
-				"id":            locationInformation.ID,
 				"version_lock":  locationInformation.VersionLock,
 			},
 		}
 	}
+
 	if purchasingInformation := resp.PurchasingInformation; purchasingInformation != (jamfpro.ComputerPrestageSubsetPurchasingInformation{}) {
 		prestageAttributes["purchasing_information"] = []interface{}{
 			map[string]interface{}{
@@ -85,22 +103,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 			},
 		}
 	}
-	prestageAttributes["anchor_certificates"] = resp.AnchorCertificates
-	prestageAttributes["enrollment_customization_id"] = resp.EnrollmentCustomizationId
-	prestageAttributes["language"] = resp.Language
-	prestageAttributes["region"] = resp.Region
-	prestageAttributes["auto_advance_setup"] = resp.AutoAdvanceSetup
-	prestageAttributes["install_profiles_during_setup"] = resp.InstallProfilesDuringSetup
-	prestageAttributes["prestage_installed_profile_ids"] = resp.PrestageInstalledProfileIds
-	prestageAttributes["custom_package_ids"] = resp.CustomPackageIds
-	prestageAttributes["custom_package_distribution_point_id"] = resp.CustomPackageDistributionPointId
-	prestageAttributes["enable_recovery_lock"] = resp.EnableRecoveryLock
-	prestageAttributes["recovery_lock_password_type"] = resp.RecoveryLockPasswordType
-	prestageAttributes["recovery_lock_password"] = resp.RecoveryLockPassword
-	prestageAttributes["rotate_recovery_lock_password"] = resp.RotateRecoveryLockPassword
-	prestageAttributes["profile_uuid"] = resp.ProfileUuid
-	prestageAttributes["site_id"] = resp.SiteId
-	prestageAttributes["version_lock"] = resp.VersionLock
+
 	if accountSettings := resp.AccountSettings; accountSettings != (jamfpro.ComputerPrestageSubsetAccountSettings{}) {
 		prestageAttributes["account_settings"] = []interface{}{
 			map[string]interface{}{
@@ -122,6 +125,19 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 		}
 	}
 
+	if resp.OnboardingItems != nil {
+		onboardingItems := make([]interface{}, len(resp.OnboardingItems))
+		for i, item := range resp.OnboardingItems {
+			onboardingItems[i] = map[string]interface{}{
+				"self_service_entity_type": item.SelfServiceEntityType,
+				"id":                       item.ID,
+				"entity_id":                item.EntityId,
+				"priority":                 item.Priority,
+			}
+		}
+		prestageAttributes["onboarding_items"] = onboardingItems
+	}
+
 	for key, val := range prestageAttributes {
 		if err := d.Set(key, val); err != nil {
 			return diag.FromErr(err)
@@ -129,4 +145,37 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 	}
 
 	return diags
+}
+
+// skipSetupItems converts the ComputerPrestageSubsetSkipSetupItems struct to a map
+func skipSetupItems(skipSetupItems jamfpro.ComputerPrestageSubsetSkipSetupItems) map[string]interface{} {
+	return map[string]interface{}{
+		"biometric":          *skipSetupItems.Biometric,
+		"terms_of_address":   *skipSetupItems.TermsOfAddress,
+		"file_vault":         *skipSetupItems.FileVault,
+		"icloud_diagnostics": *skipSetupItems.ICloudDiagnostics,
+		"diagnostics":        *skipSetupItems.Diagnostics,
+		"accessibility":      *skipSetupItems.Accessibility,
+		"apple_id":           *skipSetupItems.AppleID,
+		"screen_time":        *skipSetupItems.ScreenTime,
+		"siri":               *skipSetupItems.Siri,
+		"display_tone":       *skipSetupItems.DisplayTone,
+		"restore":            *skipSetupItems.Restore,
+		"appearance":         *skipSetupItems.Appearance,
+		"privacy":            *skipSetupItems.Privacy,
+		"payment":            *skipSetupItems.Payment,
+		"registration":       *skipSetupItems.Registration,
+		"tos":                *skipSetupItems.TOS,
+		"icloud_storage":     *skipSetupItems.ICloudStorage,
+		"location":           *skipSetupItems.Location,
+	}
+}
+
+// getHCLValue gets the value of a key from the ResourceData, either from the current state or the config.
+func getHCLValue(d *schema.ResourceData, key string) interface{} {
+	value, exists := d.GetOk(key)
+	if !exists {
+		value = d.Get(key)
+	}
+	return value
 }
