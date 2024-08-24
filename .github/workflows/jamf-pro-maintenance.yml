@@ -86,8 +86,8 @@ jobs:
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v6.1.0
       with:
-        commit-message: Update App Catalog data
-        title: '[Automated] Update App Catalog data'
+        commit-message: Update App Catalog Installer Title data
+        title: '[Automated] Update App Catalog installer title data'
         body: |
           This is an automated PR to update the App Catalog data.
           Please review the changes in the app_catalog_app_installer_titles.json file.
