@@ -3,11 +3,9 @@ package computerprestageenrollments
 
 import (
 	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 // resourceJamfProComputerPrestageEnrollmentEnrollment defines the schema for managing Jamf Pro Computer Prestages in Terraform.
@@ -449,15 +447,15 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 			},
 			"profile_uuid": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Computed:    true,
 				Description: "The profile UUID of the Automated Device Enrollment instance to associate with the PreStage enrollment. Devices associated with the selected Automated Device Enrollment instance can be assigned the PreStage enrollment",
-				ValidateFunc: validation.All(
-					validation.StringLenBetween(32, 32),
-					validation.StringMatch(
-						regexp.MustCompile(`^[0-9A-F]{32}$`),
-						"must be a 32-character string containing only hexadecimal characters (0-9, A-F)",
-					),
-				),
+				// ValidateFunc: validation.All(
+				// 	validation.StringLenBetween(32, 32),
+				// 	validation.StringMatch(
+				// 		regexp.MustCompile(`^[0-9A-F]{32}$`),
+				// 		"must be a 32-character string containing only hexadecimal characters (0-9, A-F)",
+				// 	),
+				// ),
 			},
 			"site_id": {
 				Type:        schema.TypeString,

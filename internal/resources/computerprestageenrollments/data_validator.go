@@ -66,9 +66,17 @@ func validateRotateRecoveryLockPassword(_ context.Context, diff *schema.Resource
 	return nil
 }
 
-// validateDateFormat checks that the date is in the format YYYY-MM-DD.
+// validateDateFormat checks that the date is in the format YYYY-MM-DD, but only if the value is not null or empty.
 func validateDateFormat(v interface{}, k string) (ws []string, errors []error) {
-	dateString := v.(string)
+	dateString, ok := v.(string)
+	if !ok {
+		return
+	}
+
+	if dateString == "" {
+		return
+	}
+
 	datePattern := `^\d{4}-\d{2}-\d{2}$`
 	match, _ := regexp.MatchString(datePattern, dateString)
 
