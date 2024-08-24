@@ -1,0 +1,64 @@
+name: Jamf Pro Provider Maintenance
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Run every Sunday at midnight UTC
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  update-app-catalog:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4.1.7
+
+    - name: Set up Go
+      uses: actions/setup-go@v5.0.2
+      with:
+        go-version: '1.20'  # Specify the Go version you need
+
+    - name: Harden Runner
+      uses: step-security/harden-runner@v2.9.1
+      with:
+        egress-policy: audit
+
+    - name: Install dependencies
+      run: |
+        go mod download
+        go get github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro
+
+        - name: Run App Catalog App Installer Title Fetcher
+        env:
+          LOG_LEVEL: "warning"
+          HIDE_SENSITIVE_DATA: "true"
+          INSTANCE_DOMAIN: ${{ secrets.MAINTAINENCE_INSTANCE_DOMAIN }}
+          AUTH_METHOD: "oauth2"
+          CLIENT_ID: ${{ secrets.MAINTAINENCE_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.MAINTAINENCE_CLIENT_SECRET }}
+          JAMF_LOAD_BALANCER_LOCK: "true"
+          MAX_RETRY_ATTEMPTS: "3"
+          ENABLE_DYNAMIC_RATE_LIMITING: "false"
+          MAX_CONCURRENT_REQUESTS: "1"
+          TOKEN_REFRESH_BUFFER_PERIOD_SECONDS: "300"
+          TOTAL_RETRY_DURATION_SECONDS: "60"
+          CUSTOM_TIMEOUT_SECONDS: "60"
+          FOLLOW_REDIRECTS: "true"
+          MAX_REDIRECTS: "5"
+          ENABLE_CONCURRENCY_MANAGEMENT: "true"
+          CUSTOM_COOKIES: ""
+          MANDATORY_REQUEST_DELAY_MILLISECONDS: "0"
+          RETRY_ELIGIABLE_REQUESTS: "true"
+        run: |
+          cd ./scripts/maintenance/GetJamfAppCatalogAppInstallerTitles
+          go run GetJamfAppCatalogAppInstallerTitles.go
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v6.1.0
+      with:
+        commit-message: Update App Catalog data
+        title: '[Automated] Update App Catalog data'
+        body: |
+          This is an automated PR to update the App Catalog data.
+          Please review the changes in the app_catalog_app_installer_titles.json file.
+        branch: update-app-catalog-app-installer-titles
+        delete-branch: true
