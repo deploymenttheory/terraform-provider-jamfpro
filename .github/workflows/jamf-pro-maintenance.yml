@@ -29,7 +29,7 @@ jobs:
 
     - name: Run App Catalog App Installer Title Fetcher
       env:
-        LOG_LEVEL: "warning"
+        LOG_LEVEL: "debug"
         HIDE_SENSITIVE_DATA: "true"
         INSTANCE_DOMAIN: ${{ secrets.MAINTAINENCE_INSTANCE_DOMAIN }}
         AUTH_METHOD: "oauth2"
