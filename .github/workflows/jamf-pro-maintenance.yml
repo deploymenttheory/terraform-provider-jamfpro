@@ -49,21 +49,40 @@ jobs:
         MANDATORY_REQUEST_DELAY_MILLISECONDS: "0"
         RETRY_ELIGIABLE_REQUESTS: "true"
       run: |
-        cd $GITHUB_WORKSPACE/scripts/maintenance
-        go run GetJamfAppCatalogAppInstallerTitles.go
+        echo "Current working directory: $(pwd)"
+        echo "Contents of $GITHUB_WORKSPACE:"
+        ls -R $GITHUB_WORKSPACE
         
-        # Check if the directory exists, create it only if it doesn't
-        if [ ! -d "$GITHUB_WORKSPACE/internal/resources/common/appinstallers" ]; then
-          mkdir -p $GITHUB_WORKSPACE/internal/resources/common/appinstallers
-          echo "Created directory: $GITHUB_WORKSPACE/internal/resources/common/appinstallers"
+        SCRIPT_DIR="$GITHUB_WORKSPACE/scripts/maintenance"
+        if [ -d "$SCRIPT_DIR" ]; then
+          cd "$SCRIPT_DIR"
+          echo "Changed directory to: $(pwd)"
+          if [ -f "GetJamfAppCatalogAppInstallerTitles.go" ]; then
+            go run GetJamfAppCatalogAppInstallerTitles.go
+          else
+            echo "Error: GetJamfAppCatalogAppInstallerTitles.go not found in $SCRIPT_DIR"
+            exit 1
+          fi
         else
-          echo "Directory already exists: $GITHUB_WORKSPACE/internal/resources/common/appinstallers"
+          echo "Error: Directory $SCRIPT_DIR does not exist"
+          exit 1
         fi
         
-        # Move the JSON file to the specified directory
-        mv app_catalog_app_installer_titles.json ../../internal/resources/common/appinstallers/
+        TARGET_DIR="$GITHUB_WORKSPACE/internal/resources/common/appinstallers"
+        if [ ! -d "$TARGET_DIR" ]; then
+          mkdir -p "$TARGET_DIR"
+          echo "Created directory: $TARGET_DIR"
+        else
+          echo "Directory already exists: $TARGET_DIR"
+        fi
         
-        echo "JSON file moved to ./internal/resources/common/appinstallers/app_catalog_app_installer_titles.json"
+        if [ -f "app_catalog_app_installer_titles.json" ]; then
+          mv app_catalog_app_installer_titles.json "$TARGET_DIR/"
+          echo "JSON file moved to $TARGET_DIR/app_catalog_app_installer_titles.json"
+        else
+          echo "Error: app_catalog_app_installer_titles.json not found"
+          exit 1
+        fi
 
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v6.1.0
