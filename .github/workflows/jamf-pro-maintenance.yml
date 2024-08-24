@@ -6,7 +6,7 @@ on:
   workflow_dispatch:  # Allow manual triggering
 
 jobs:
-  update-app-catalog:
+  update-app-catalog-app-installer-titles:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
@@ -15,7 +15,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5.0.2
       with:
-        go-version: '1.20'  # Specify the Go version you need
+        go-version: '1.22.4'  # Specify the Go version you need
 
     - name: Harden Runner
       uses: step-security/harden-runner@v2.9.1
