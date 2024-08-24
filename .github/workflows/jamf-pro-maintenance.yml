@@ -52,6 +52,14 @@ jobs:
         cd ./scripts/maintenance/GetJamfAppCatalogAppInstallerTitles
         go run GetJamfAppCatalogAppInstallerTitles.go
 
+        # Ensure the destination directory exists
+        mkdir -p ../../internal/resources/common/appinstallers
+        
+        # Move the JSON file to the specified directory
+        mv app_catalog_app_installer_titles.json ../../internal/resources/common/appinstallers/
+        
+        echo "JSON file moved to ./internal/resources/common/appinstallers/app_catalog_app_installer_titles.json"
+
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v6.1.0
       with:
