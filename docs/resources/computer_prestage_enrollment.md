@@ -12,68 +12,95 @@ description: |-
 
 ### Required
 
-- `authentication_prompt` (String) The authentication prompt message displayed to the user during enrollment.
 - `auto_advance_setup` (Boolean) Indicates if setup should auto-advance.
 - `default_prestage` (Boolean) Indicates if this is the default computer prestage enrollment configuration. If yes then new devices will be automatically assigned to this PreStage enrollment
-- `department` (String) The department the computer prestage is assigned to.
-- `device_enrollment_program_instance_id` (String) The device enrollment program instance ID.
-- `display_name` (String) The display name of the computer prestage.
+- `device_enrollment_program_instance_id` (String) The Automated Device Enrollment instance ID to associate with the PreStage enrollment. Devices associated with the selected Automated Device Enrollment instance can be assigned the PreStage enrollment
+- `display_name` (String) The display name of the computer prestage enrollment.
 - `enable_device_based_activation_lock` (Boolean) Indicates if device-based activation lock should be enabled.
-- `enrollment_site_id` (String) The jamf pro Site ID that computers will be added to during enrollment. Default is -1, aka not used.
 - `install_profiles_during_setup` (Boolean) Indicates if profiles should be installed during setup.
-- `keep_existing_location_information` (Boolean) Indicates if existing device location information should be retained.
-- `keep_existing_site_membership` (Boolean) Indicates if existing device site membership should be retained.
-- `location_information` (Block List, Min: 1) Location information associated with the Jamf Pro computer prestage. (see [below for nested schema](#nestedblock--location_information))
-- `mandatory` (Boolean) Indicates whether the computer prestage is mandatory.
-- `mdm_removable` (Boolean) Indicates if the MDM profile is removable.
-- `prevent_activation_lock` (Boolean) Indicates if activation lock should be prevented.
-- `purchasing_information` (Block List, Min: 1) Purchasing information associated with the computer prestage. (see [below for nested schema](#nestedblock--purchasing_information))
-- `support_phone_number` (String) The Support phone number for the organization.
+- `keep_existing_location_information` (Boolean) Indicates if enrolled should use existing location information, if applicable
+- `keep_existing_site_membership` (Boolean) Indicates if enrolled should use existing site membership, if applicable
+- `mandatory` (Boolean) Make MDM Profile Mandatory and require the user to apply the MDM profile. Computers with macOS 10.15 or later automatically require the user to apply the MDM profile
+- `mdm_removable` (Boolean) Allow MDM Profile Removal and allow the user to remove the MDM profile.
+- `prevent_activation_lock` (Boolean) Prevent user from enabling Activation Lock.
+- `require_authentication` (Boolean) Indicates if the user is required to provide username and password on computers with macOS 10.10 or later.
 
 ### Optional
 
 - `account_settings` (Block List) (see [below for nested schema](#nestedblock--account_settings))
 - `anchor_certificates` (List of String) List of Base64 encoded PEM Certificates.
-- `custom_package_distribution_point_id` (String) Custom package distribution point ID.
-- `custom_package_ids` (List of String) Custom package IDs.
-- `enable_recovery_lock` (Boolean) Indicates if recovery lock should be enabled.
+- `authentication_prompt` (String) Authentication Message to display to the user. Used when Require Authentication is enabled.
+- `custom_package_distribution_point_id` (String) Set the Enrollment Packages distribution point by it's ID.Valid values are: None using '-1', Cloud Distribution Point (Jamf Cloud)by using '-2', else all other valid valid values correspond to theID of the distribution point.
+- `custom_package_ids` (List of String) Define the Enrollment Packages by their package ID toadd an enrollment package to the PreStage enrollment. Compatible packagesmust be built as flat, distribution style .pkg files and be signed by acertificate that is trusted by managed computers
+- `department` (String) The department the computer prestage is assigned to.
+- `enable_recovery_lock` (Boolean) Configure how the Recovery Lock password is set on computers with macOS 11.5 or later.
 - `enrollment_customization_id` (String) The enrollment customization ID.
+- `enrollment_site_id` (String) The jamf pro Site ID that computers will be added to during enrollment. Default is -1, aka not used.
 - `language` (String) The language setting.
-- `prestage_installed_profile_ids` (List of String) IDs of profiles installed during prestage.
-- `recovery_lock_password` (String) The recovery lock password.
-- `recovery_lock_password_type` (String) The recovery lock password type.
+- `location_information` (Block List) Location information associated with the Jamf Pro computer prestage. (see [below for nested schema](#nestedblock--location_information))
+- `prestage_installed_profile_ids` (List of String) IDs of the macOS configuration profiles installed during PreStage enrollment.
+- `purchasing_information` (Block List) Purchasing information associated with the computer prestage. (see [below for nested schema](#nestedblock--purchasing_information))
+- `recovery_lock_password` (String) Generate new Recovery Lock password 60 minutes after the password is viewed in Jamf Pro.
+- `recovery_lock_password_type` (String) Method to use to set Recovery Lock password.'MANUAL' results in user having to enter a password. (Applies to all users) 'RANDOM' results inautomatic generation of a random password being set for the device. 'MANUAL' is the default.
 - `region` (String) The region setting.
-- `require_authentication` (Boolean) Indicates if the user is required to provide username and password on computers with macOS 10.10 or later.
 - `rotate_recovery_lock_password` (Boolean) Indicates if the recovery lock password should be rotated.
 - `site_id` (String) The site ID.
 - `skip_setup_items` (Block List, Max: 1) Selected items are not displayed in the Setup Assistant during macOS device setup within Apple Device Enrollment (ADE). (see [below for nested schema](#nestedblock--skip_setup_items))
 - `support_email_address` (String) The Support email address for the organization.
+- `support_phone_number` (String) The Support phone number for the organization.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
-- `version_lock` (Number) The version lock.
 
 ### Read-Only
 
 - `id` (String) The unique identifier of the computer prestage.
-- `profile_uuid` (String) The profile UUID.
+- `profile_uuid` (String) The profile UUID of the Automated Device Enrollment instance to associate with the PreStage enrollment. Devices associated with the selected Automated Device Enrollment instance can be assigned the PreStage enrollment
+- `version_lock` (Number) The version lock value of the purchasing_information. Optimistic lockingis a mechanism that prevents concurrent operations from taking place on a givenresource. Jamf Pro does this to safeguard resources and workflows that aresensitive to frequent updates, ensuring that one update has completed beforeany additional requests can be processed. Valid request handling is managed bythe construct function.
 
-<a id="nestedblock--location_information"></a>
-### Nested Schema for `location_information`
+<a id="nestedblock--account_settings"></a>
+### Nested Schema for `account_settings`
 
 Required:
 
-- `email` (String) The email address associated with this location.
-- `id` (String) The ID of the location information.
-- `phone` (String) The phone number associated with this location.
-- `position` (String) The position associated with this location.
-- `realname` (String) The real name associated with this location.
-- `room` (String) The room associated with this location.
-- `username` (String) The username for the location information.
-- `version_lock` (Number) The version lock of the location information.
+- `prefill_type` (String) Pre-fill primary account information type (CUSTOM, DEVICE_OWNER, or UNKNOWN). Set as UNKNOWN if you wish to leave it unconfigured.
+- `prevent_prefill_info_from_modification` (Boolean) Lock prefill primary account information from modification.
+
+Optional:
+
+- `admin_password` (String) The admin password.
+- `admin_username` (String) The admin username.
+- `hidden_admin_account` (Boolean) Indicates if the admin account is hidden.
+- `local_admin_account_enabled` (Boolean) Indicates if the local admin account is enabled.
+- `local_user_managed` (Boolean) Indicates if the local user is managed.
+- `payload_configured` (Boolean) Indicates if the payload is configured.
+- `prefill_account_full_name` (String) Type of information to use to pre-fill the primary account full name with.
+- `prefill_account_user_name` (String) Type of information to use to pre-fill the primary account user name with.
+- `prefill_primary_account_info_feature_enabled` (Boolean) Indicates if prefilling primary account info feature is enabled.
+- `user_account_type` (String) Type of user account (ADMINISTRATOR, STANDARD, SKIP).
+
+Read-Only:
+
+- `id` (String) ID of Account Settings.
+- `version_lock` (Number) The version lock value of the account settings block. Optimistic lockingis a mechanism that prevents concurrent operations from taking place on a givenresource. Jamf Pro does this to safeguard resources and workflows that aresensitive to frequent updates, ensuring that one update has completed beforeany additional requests can be processed. Valid request handling is managed bythe construct function.
+
+
+<a id="nestedblock--location_information"></a>
+### Nested Schema for `location_information`
 
 Optional:
 
 - `building_id` (String) The building ID associated with this location.
 - `department_id` (String) The computerPrestage ID associated with this location.
+- `email` (String) The email address associated with this location.
+- `phone` (String) The phone number associated with this location.
+- `position` (String) The position associated with this location.
+- `realname` (String) The real name associated with this location.
+- `room` (String) The room associated with this location.
+- `username` (String) The username for the location information.
+
+Read-Only:
+
+- `id` (String) The ID of the location information.
+- `version_lock` (Number) The version lock of the location information. Optimistic lockingis a mechanism that prevents concurrent operations from taking place on a givenresource. Jamf Pro does this to safeguard resources and workflows that aresensitive to frequent updates, ensuring that one update has completed beforeany additional requests can be processed. Valid request handling is managed bythe construct function.
 
 
 <a id="nestedblock--purchasing_information"></a>
@@ -81,54 +108,39 @@ Optional:
 
 Required:
 
-- `apple_care_id` (String) The AppleCare ID.
-- `id` (String) The ID of the purchasing information.
-- `lease_date` (String) The lease date.
 - `leased` (Boolean) Indicates if the item is leased.
-- `life_expectancy` (Number) The life expectancy in years.
-- `po_date` (String) The purchase order date.
 - `po_number` (String) The purchase order number.
-- `purchase_price` (String) The purchase price.
 - `purchased` (Boolean) Indicates if the item is purchased.
-- `purchasing_account` (String) The purchasing account.
 - `purchasing_contact` (String) The purchasing contact.
-- `vendor` (String) The vendor name.
-- `version_lock` (Number) The version lock.
-- `warranty_date` (String) The warranty date.
-
-
-<a id="nestedblock--account_settings"></a>
-### Nested Schema for `account_settings`
 
 Optional:
 
-- `admin_password` (String) The admin password.
-- `admin_username` (String) The admin username.
-- `hidden_admin_account` (Boolean) Indicates if the admin account is hidden.
-- `id` (String) ID of Account Settings.
-- `local_admin_account_enabled` (Boolean) Indicates if the local admin account is enabled.
-- `local_user_managed` (Boolean) Indicates if the local user is managed.
-- `payload_configured` (Boolean) Indicates if the payload is configured.
-- `prefill_account_full_name` (String) Full name for the account to prefill.
-- `prefill_account_user_name` (String) Username for the account to prefill.
-- `prefill_primary_account_info_feature_enabled` (Boolean) Indicates if prefilling primary account info feature is enabled.
-- `prefill_type` (String) Type of prefill (CUSTOM, DEVICE_OWNER).
-- `prevent_prefill_info_from_modification` (Boolean) Indicates if prefill info is prevented from modification.
-- `user_account_type` (String) Type of user account (ADMINISTRATOR, STANDARD, SKIP).
-- `version_lock` (Number) The version lock for account settings.
+- `apple_care_id` (String) The AppleCare ID.
+- `lease_date` (String) The lease date in YYYY-MM-DD format.
+- `life_expectancy` (Number) The life expectancy in years.
+- `po_date` (String) The purchase order date in YYYY-MM-DD format.
+- `purchase_price` (String) The purchase price.
+- `purchasing_account` (String) The purchasing account.
+- `vendor` (String) The vendor name.
+- `warranty_date` (String) The warranty date in YYYY-MM-DD format.
+
+Read-Only:
+
+- `id` (String) The ID of the purchasing information.
+- `version_lock` (Number) The version lock value of the purchasing_information. Optimistic lockingis a mechanism that prevents concurrent operations from taking place on a givenresource. Jamf Pro does this to safeguard resources and workflows that aresensitive to frequent updates, ensuring that one update has completed beforeany additional requests can be processed. Valid request handling is managed bythe construct function.
 
 
 <a id="nestedblock--skip_setup_items"></a>
 ### Nested Schema for `skip_setup_items`
 
-Optional:
+Required:
 
 - `accessibility` (Boolean) Skip accessibility setup.
 - `appearance` (Boolean) Skip Appearance setup.
 - `apple_id` (Boolean) Skip Apple ID setup.
 - `biometric` (Boolean) Skip biometric setup.
 - `diagnostics` (Boolean) Skip diagnostics setup.
-- `display_tone` (Boolean) Skip Display Tone setup.
+- `display_tone` (Boolean) Skip Display Tone setup. (Deprecated)
 - `file_vault` (Boolean) Skip FileVault setup.
 - `icloud_diagnostics` (Boolean) Skip iCloud diagnostics setup.
 - `icloud_storage` (Boolean) Skip iCloud Storage setup.
