@@ -27,30 +27,30 @@ jobs:
         go mod download
         go get github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro
 
-        - name: Run App Catalog App Installer Title Fetcher
-        env:
-          LOG_LEVEL: "warning"
-          HIDE_SENSITIVE_DATA: "true"
-          INSTANCE_DOMAIN: ${{ secrets.MAINTAINENCE_INSTANCE_DOMAIN }}
-          AUTH_METHOD: "oauth2"
-          CLIENT_ID: ${{ secrets.MAINTAINENCE_CLIENT_ID }}
-          CLIENT_SECRET: ${{ secrets.MAINTAINENCE_CLIENT_SECRET }}
-          JAMF_LOAD_BALANCER_LOCK: "true"
-          MAX_RETRY_ATTEMPTS: "3"
-          ENABLE_DYNAMIC_RATE_LIMITING: "false"
-          MAX_CONCURRENT_REQUESTS: "1"
-          TOKEN_REFRESH_BUFFER_PERIOD_SECONDS: "300"
-          TOTAL_RETRY_DURATION_SECONDS: "60"
-          CUSTOM_TIMEOUT_SECONDS: "60"
-          FOLLOW_REDIRECTS: "true"
-          MAX_REDIRECTS: "5"
-          ENABLE_CONCURRENCY_MANAGEMENT: "true"
-          CUSTOM_COOKIES: ""
-          MANDATORY_REQUEST_DELAY_MILLISECONDS: "0"
-          RETRY_ELIGIABLE_REQUESTS: "true"
-        run: |
-          cd ./scripts/maintenance/GetJamfAppCatalogAppInstallerTitles
-          go run GetJamfAppCatalogAppInstallerTitles.go
+    - name: Run App Catalog App Installer Title Fetcher
+      env:
+        LOG_LEVEL: "warning"
+        HIDE_SENSITIVE_DATA: "true"
+        INSTANCE_DOMAIN: ${{ secrets.MAINTAINENCE_INSTANCE_DOMAIN }}
+        AUTH_METHOD: "oauth2"
+        CLIENT_ID: ${{ secrets.MAINTAINENCE_CLIENT_ID }}
+        CLIENT_SECRET: ${{ secrets.MAINTAINENCE_CLIENT_SECRET }}
+        JAMF_LOAD_BALANCER_LOCK: "true"
+        MAX_RETRY_ATTEMPTS: "3"
+        ENABLE_DYNAMIC_RATE_LIMITING: "false"
+        MAX_CONCURRENT_REQUESTS: "1"
+        TOKEN_REFRESH_BUFFER_PERIOD_SECONDS: "300"
+        TOTAL_RETRY_DURATION_SECONDS: "60"
+        CUSTOM_TIMEOUT_SECONDS: "60"
+        FOLLOW_REDIRECTS: "true"
+        MAX_REDIRECTS: "5"
+        ENABLE_CONCURRENCY_MANAGEMENT: "true"
+        CUSTOM_COOKIES: ""
+        MANDATORY_REQUEST_DELAY_MILLISECONDS: "0"
+        RETRY_ELIGIABLE_REQUESTS: "true"
+      run: |
+        cd ./scripts/maintenance/GetJamfAppCatalogAppInstallerTitles
+        go run GetJamfAppCatalogAppInstallerTitles.go
 
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v6.1.0
