@@ -50,10 +50,8 @@ jobs:
         RETRY_ELIGIABLE_REQUESTS: "true"
       run: |
         echo "Current working directory: $(pwd)"
-        echo "Contents of $GITHUB_WORKSPACE:"
-        ls -R $GITHUB_WORKSPACE
-        
-        SCRIPT_DIR="$GITHUB_WORKSPACE/scripts/maintenance"
+    
+        SCRIPT_DIR="$GITHUB_WORKSPACE/scripts/maintainence/GetJamfAppCatalogAppInstallerTitles"
         if [ -d "$SCRIPT_DIR" ]; then
           cd "$SCRIPT_DIR"
           echo "Changed directory to: $(pwd)"
