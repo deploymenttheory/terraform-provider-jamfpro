@@ -20,15 +20,15 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceComputerGroup, error) {
 
 	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 
-	if resource.Computers != nil {
-		assignedComputers := d.Get("assigned_computer_ids").([]interface{})
-		if len(assignedComputers) > 0 {
-			for _, v := range assignedComputers {
-				*resource.Computers = append(*resource.Computers, jamfpro.ComputerGroupSubsetComputer{
-					ID: v.(int),
-				})
-			}
+	assignedComputers := d.Get("assigned_computer_ids").([]interface{})
+	if len(assignedComputers) > 0 {
+		computers := []jamfpro.ComputerGroupSubsetComputer{}
+		for _, v := range assignedComputers {
+			computers = append(computers, jamfpro.ComputerGroupSubsetComputer{
+				ID: v.(int),
+			})
 		}
+		resource.Computers = &computers
 	}
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
