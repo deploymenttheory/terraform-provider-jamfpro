@@ -90,7 +90,7 @@ import (
         <key>PayloadDescription</key> <!-- hcl schema: payload_description_header -->
         <string/>
         <key>PayloadDisplayName</key> <!-- hcl schema: payload_display_name_header -->
-        <string>mcp-deploy-axis_security_ext-0.0.1-prod-eu-0-0</string>
+        <string>dt-mcp-axis_security_ext-0.0.1-prod-eu-0-0</string>
         <key>PayloadEnabled</key> <!-- hcl schema: payload_enabled_header -->
         <true/>
         <key>PayloadIdentifier</key> <!-- hcl schema: payload_identifier_header -->
