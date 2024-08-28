@@ -9,6 +9,7 @@ resource "jamfpro_macos_configuration_profile_plist_generator" "jamfpro_macos_co
   name                = "tf-localtest-generator-accessibility-seeing-${var.plist_version_number}"
   description         = "Base Level Accessibility settings for vision"
   distribution_method = "Install Automatically"
+  redeploy_on_update  = "Newly Assigned"
   user_removable      = false
   level               = "System"
 

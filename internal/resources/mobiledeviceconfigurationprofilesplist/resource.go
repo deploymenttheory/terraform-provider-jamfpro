@@ -79,7 +79,6 @@ func ResourceJamfProMobileDeviceConfigurationProfilesPlist() *schema.Resource {
 			"redeploy_on_update": {
 				Type:     schema.TypeString,
 				Required: true,
-				Default:  "Newly Assigned",
 				Description: "Defines the redeployment behaviour when an update to a mobile device config profile" +
 					"occurs. This is always 'Newly Assigned' on new profile objects, but may be set to 'All'" +
 					"on profile update requests once the configuration profile has been deployed to at least" +
