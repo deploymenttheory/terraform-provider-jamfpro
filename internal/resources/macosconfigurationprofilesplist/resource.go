@@ -2,6 +2,7 @@
 package macosconfigurationprofilesplist
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
@@ -77,24 +78,33 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 				Description:      "A MacOS configuration profile as a plist-formatted XML string.",
 			},
 			"payload_validate": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     true,
-				Description: "Validates plist payload XML. Turn off to force malformed XML confguration. Required when the configuration profile is a non Jamf Pro source, e.g iMazing. Removing this may cause unexpected stating behaviour.",
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+				Description: "Validates plist payload XML. Turn off to force malformed XML confguration." +
+					"Required when the configuration profile is a non Jamf Pro source, e.g iMazing. Removing" +
+					"this may cause unexpected stating behaviour.",
 			},
 			"redeploy_on_update": {
 				Type:     schema.TypeString,
-				Computed: true,
-				//Default:     "Newly Assigned", // This is always "Newly Assigned" on existing profile objects, but may be set "All" on profile update requests and in TF state.
-				Description: "Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state",
-				// ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-				// 	v := val.(string)
-				// 	if v == "All" || v == "Newly Assigned" {
-				// 		return
-				// 	}
-				// 	errs = append(errs, fmt.Errorf("%q must be either 'All' or 'Newly Assigned', got: %s", key, v))
-				// 	return warns, errs
-				// },
+				Required: true,
+				Default:  "Newly Assigned",
+				Description: "Defines the redeployment behaviour when an update to a macOS config profile" +
+					"occurs. This is always 'Newly Assigned' on new profile objects, but may be set to 'All'" +
+					"on profile update requests once the configuration profile has been deployed to at least" +
+					" one device.",
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v, ok := val.(string)
+					if !ok {
+						errs = append(errs, fmt.Errorf("%q must be a string, got: %T", key, val))
+						return warns, errs
+					}
+					if v == "All" || v == "Newly Assigned" {
+						return
+					}
+					errs = append(errs, fmt.Errorf("%q must be either 'All' or 'Newly Assigned', got: %s", key, v))
+					return warns, errs
+				},
 			},
 			"scope": {
 				Type:        schema.TypeList,

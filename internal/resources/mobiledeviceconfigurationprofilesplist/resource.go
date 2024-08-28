@@ -77,12 +77,19 @@ func ResourceJamfProMobileDeviceConfigurationProfilesPlist() *schema.Resource {
 				},
 			},
 			"redeploy_on_update": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     "Newly Assigned", // This is always "Newly Assigned" on existing profile objects, but may be set "All" on profile update requests and in TF state.
-				Description: "Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state",
+				Type:     schema.TypeString,
+				Required: true,
+				Default:  "Newly Assigned",
+				Description: "Defines the redeployment behaviour when an update to a mobile device config profile" +
+					"occurs. This is always 'Newly Assigned' on new profile objects, but may be set to 'All'" +
+					"on profile update requests once the configuration profile has been deployed to at least" +
+					" one device.",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := val.(string)
+					v, ok := val.(string)
+					if !ok {
+						errs = append(errs, fmt.Errorf("%q must be a string, got: %T", key, val))
+						return warns, errs
+					}
 					if v == "All" || v == "Newly Assigned" {
 						return
 					}
