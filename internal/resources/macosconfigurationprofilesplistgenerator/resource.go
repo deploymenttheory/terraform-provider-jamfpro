@@ -90,7 +90,7 @@ import (
         <key>PayloadDescription</key> <!-- hcl schema: payload_description_header -->
         <string/>
         <key>PayloadDisplayName</key> <!-- hcl schema: payload_display_name_header -->
-        <string>mcp-deploy-axis_security_ext-0.0.1-prod-eu-0-0</string>
+        <string>dt-mcp-axis_security_ext-0.0.1-prod-eu-0-0</string>
         <key>PayloadEnabled</key> <!-- hcl schema: payload_enabled_header -->
         <true/>
         <key>PayloadIdentifier</key> <!-- hcl schema: payload_identifier_header -->
@@ -301,10 +301,12 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 				},
 			},
 			"redeploy_on_update": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     "Newly Assigned",
-				Description: "Defines the redeployment behaviour when a mobile device config profile update occurs. This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state.",
+				Type:     schema.TypeString,
+				Required: true,
+				Description: "Defines the redeployment behaviour when an update to a macOS config profile" +
+					"occurs. This is always 'Newly Assigned' on new profile objects, but may be set to 'All'" +
+					"on profile update requests once the configuration profile has been deployed to at least" +
+					" one device.",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v, ok := val.(string)
 					if !ok {

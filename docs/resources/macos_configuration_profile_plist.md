@@ -163,6 +163,7 @@ resource "jamfpro_macos_configuration_profile" "jamfpro_macos_configuration_prof
 
 - `name` (String) Jamf UI name for configuration profile.
 - `payloads` (String) A MacOS configuration profile as a plist-formatted XML string.
+- `redeploy_on_update` (String) Defines the redeployment behaviour when an update to a macOS config profileoccurs. This is always 'Newly Assigned' on new profile objects, but may be set to 'All'on profile update requests once the configuration profile has been deployed to at least one device.
 - `scope` (Block List, Min: 1, Max: 1) The scope of the configuration profile. (see [below for nested schema](#nestedblock--scope))
 
 ### Optional
@@ -171,7 +172,7 @@ resource "jamfpro_macos_configuration_profile" "jamfpro_macos_configuration_prof
 - `description` (String) Description of the configuration profile.
 - `distribution_method` (String) The distribution method for the configuration profile. ['Make Available in Self Service','Install Automatically']
 - `level` (String) The deployment level of the configuration profile. Available options are: 'User' or 'System'. Note: 'System' is mapped to 'Computer Level' in the Jamf Pro GUI.
-- `payload_validate` (Boolean) Validates plist payload XML. Turn off to force malformed XML confguration. Required when the configuration profile is a non Jamf Pro source, e.g iMazing. Removing this may cause unexpected stating behaviour.
+- `payload_validate` (Boolean) Validates plist payload XML. Turn off to force malformed XML confguration.Required when the configuration profile is a non Jamf Pro source, e.g iMazing. Removingthis may cause unexpected stating behaviour.
 - `self_service` (Block List, Max: 1) Self Service Configuration (see [below for nested schema](#nestedblock--self_service))
 - `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
@@ -180,7 +181,6 @@ resource "jamfpro_macos_configuration_profile" "jamfpro_macos_configuration_prof
 ### Read-Only
 
 - `id` (String) The unique identifier of the macOS configuration profile.
-- `redeploy_on_update` (String) Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state
 - `uuid` (String) The universally unique identifier for the profile.
 
 <a id="nestedblock--scope"></a>

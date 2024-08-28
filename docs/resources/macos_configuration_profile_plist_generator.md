@@ -20,6 +20,7 @@ resource "jamfpro_macos_configuration_profile_plist_generator" "jamfpro_macos_co
   name                = "tf-localtest-generator-accessibility-seeing-${var.plist_version_number}"
   description         = "Base Level Accessibility settings for vision"
   distribution_method = "Install Automatically"
+  redeploy_on_update  = "Newly Assigned"
   user_removable      = false
   level               = "System"
 
@@ -179,6 +180,7 @@ resource "jamfpro_macos_configuration_profile_plist_generator" "jamfpro_macos_co
 
 - `name` (String) Jamf UI name for configuration profile.
 - `payloads` (Block List, Min: 1, Max: 1) A list of payloads for the macOS configuration profile. (see [below for nested schema](#nestedblock--payloads))
+- `redeploy_on_update` (String) Defines the redeployment behaviour when an update to a macOS config profileoccurs. This is always 'Newly Assigned' on new profile objects, but may be set to 'All'on profile update requests once the configuration profile has been deployed to at least one device.
 - `scope` (Block List, Min: 1, Max: 1) The scope of the configuration profile. (see [below for nested schema](#nestedblock--scope))
 
 ### Optional
@@ -187,7 +189,6 @@ resource "jamfpro_macos_configuration_profile_plist_generator" "jamfpro_macos_co
 - `description` (String) Description of the configuration profile.
 - `distribution_method` (String) The distribution method for the configuration profile. ['Make Available in Self Service','Install Automatically']
 - `level` (String) The deployment level of the configuration profile. Available options are: 'User' or 'System'. Note: 'System' is mapped to 'Computer Level' in the Jamf Pro GUI.
-- `redeploy_on_update` (String) Defines the redeployment behaviour when a mobile device config profile update occurs. This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state.
 - `self_service` (Block List, Max: 1) Self Service Configuration (see [below for nested schema](#nestedblock--self_service))
 - `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))

@@ -55,7 +55,7 @@ func TestProcessAndCompareConfigurationProfiles() {
 					<key>PayloadIdentifier</key>
 					<string>CC8EF85E-7C43-44BD-9736-7D1748FF1D9F</string>
 					<key>PayloadOrganization</key>
-					<string>Lloyds Bank</string>
+					<string>Deployment Theory</string>
 					<key>PayloadType</key>
 					<string>com.apple.AssetCache.managed</string>
 					<key>PayloadUUID</key>
@@ -77,7 +77,7 @@ func TestProcessAndCompareConfigurationProfiles() {
 			<key>PayloadIdentifier</key>
 			<string>8F5784BA-1A97-4F54-AB90-FCA5FA051194</string>
 			<key>PayloadOrganization</key>
-			<string>Lloyds Bank</string>
+			<string>Deployment Theory</string>
 			<key>PayloadRemovalDisallowed</key>
 			<true/>
 			<key>PayloadScope</key>
@@ -134,7 +134,7 @@ func TestProcessAndCompareConfigurationProfiles() {
 					<key>PayloadIdentifier</key>
 					<string>CC8EF85E-7C43-44BD-9736-7D1748FF1D9F</string>
 					<key>PayloadOrganization</key>
-					<string>Lloyds Bank</string>
+					<string>Deployment Theory</string>
 					<key>PayloadType</key>
 					<string>com.apple.AssetCache.managed</string>
 					<key>PayloadUUID</key>
@@ -156,7 +156,7 @@ func TestProcessAndCompareConfigurationProfiles() {
 			<key>PayloadIdentifier</key>
 			<string>8F5784BA-1A97-4F54-AB90-FCA5FA051194</string>
 			<key>PayloadOrganization</key>
-			<string>Lloyds Bank</string>
+			<string>Deployment Theory</string>
 			<key>PayloadRemovalDisallowed</key>
 			<true/>
 			<key>PayloadScope</key>

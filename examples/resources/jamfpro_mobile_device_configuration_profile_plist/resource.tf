@@ -1,10 +1,11 @@
 // Example of creating a mobie device configuration profile in Jamf Pro for self service using a plist source file
 resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_device_configuration_profile_001" {
-  name              = "your-mobile_device_configuration_profile-name"
-  description       = "An example mobile device configuration profile."
-  deployment_method = "Install Automatically"
-  level             = "Device Level"
-  payloads          = file("${path.module}/path/to/your.mobileconfig")
+  name               = "your-mobile_device_configuration_profile-name"
+  description        = "An example mobile device configuration profile."
+  deployment_method  = "Install Automatically"
+  level              = "Device Level"
+  redeploy_on_update = "Newly Assigned"
+  payloads           = file("${path.module}/path/to/your.mobileconfig")
 
   // Optional Block
 
@@ -12,8 +13,6 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_device_conf
 
   // Optional Block
   category_id = 5
-
-  // Optional Block
   scope {
     all_mobile_devices = true
     all_jss_users      = false

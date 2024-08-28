@@ -11,11 +11,12 @@ description: |-
 ```terraform
 // Example of creating a mobie device configuration profile in Jamf Pro for self service using a plist source file
 resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_device_configuration_profile_001" {
-  name              = "your-mobile_device_configuration_profile-name"
-  description       = "An example mobile device configuration profile."
-  deployment_method = "Install Automatically"
-  level             = "Device Level"
-  payloads          = file("${path.module}/path/to/your.mobileconfig")
+  name               = "your-mobile_device_configuration_profile-name"
+  description        = "An example mobile device configuration profile."
+  deployment_method  = "Install Automatically"
+  level              = "Device Level"
+  redeploy_on_update = "Newly Assigned"
+  payloads           = file("${path.module}/path/to/your.mobileconfig")
 
   // Optional Block
 
@@ -23,8 +24,6 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_device_conf
 
   // Optional Block
   category_id = 5
-
-  // Optional Block
   scope {
     all_mobile_devices = true
     all_jss_users      = false
@@ -86,6 +85,7 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_device_conf
 
 - `name` (String) The name of the mobile device configuration profile.
 - `payloads` (String) The iOS / iPadOS / tvOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist.
+- `redeploy_on_update` (String) Defines the redeployment behaviour when an update to a mobile device config profileoccurs. This is always 'Newly Assigned' on new profile objects, but may be set to 'All'on profile update requests once the configuration profile has been deployed to at least one device.
 - `scope` (Block List, Min: 1, Max: 1) The scope of the configuration profile. (see [below for nested schema](#nestedblock--scope))
 
 ### Optional
@@ -96,7 +96,6 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_device_conf
 - `level` (String) The level at which the mobile device configuration profile is applied, can be either 'Device Level' or 'User Level'.
 - `payload_validate` (Boolean) Validates plist payload XML. Turn off to force malformed XML confguration. Required when the configuration profile is a non Jamf Pro source, e.g iMazing. Removing this may cause unexpected stating behaviour.
 - `redeploy_days_before_cert_expires` (Number) The number of days before certificate expiration when the profile should be redeployed.
-- `redeploy_on_update` (String) Defines the redeployment behaviour when a mobile device config profile update occurs.This is always 'Newly Assigned' on new profile objects, but may be set 'All' on profile update requests and in TF state
 - `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
