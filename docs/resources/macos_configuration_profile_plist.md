@@ -22,6 +22,7 @@ resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuratio
   description         = "An example mobile device configuration profile."
   level               = "System"
   distribution_method = "Install Automatically" // "Make Available in Self Service", "Install Automatically"
+  redeploy_on_update  = "Newly Assigned"
   payloads            = file("${path.module}/path/to/your/file.mobileconfig")
   payload_validate    = true
   user_removable      = false
@@ -39,6 +40,7 @@ resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuratio
   description         = "An example mobile device configuration profile."
   level               = "User"                           // "User", "Device"
   distribution_method = "Make Available in Self Service" // "Make Available in Self Service", "Install Automatically"
+  redeploy_on_update  = "Newly Assigned"
   payloads            = file("${path.module}/path/to/your/file.mobileconfig")
   payload_validate     = true
   user_removable      = false
@@ -92,13 +94,13 @@ resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuratio
     notification_subject            = "New Profile Available"
     notification_message            = "A new profile is available for installation."
 
-    self_service_categories {
+    self_service_category {
       id         = 10
       display_in = true
       feature_in = true
     }
 
-    self_service_categories {
+    self_service_category {
       id         = 5
       display_in = false
       feature_in = true
@@ -112,6 +114,7 @@ resource "jamfpro_macos_configuration_profile" "jamfpro_macos_configuration_prof
   description         = "An example mobile device configuration profile."
   level               = "User"                  // "User", "Device"
   distribution_method = "Install Automatically" // "Make Available in Self Service", "Install Automatically"
+  redeploy_on_update  = "Newly Assigned"
   payloads            = file("${path.module}/path/to/your/file.mobileconfig")
   user_removable      = false
   payload_validate     = true
