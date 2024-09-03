@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"sync"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
@@ -13,7 +14,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// resourceJamfProMacOSConfigurationProfilesPlistGeneratorCreate is responsible for creating a new Jamf Pro macOS Configuration Profile in the remote system.
+// Create requires a mutex need to lock Create requests during parallel runs
+var mu sync.Mutex
+
+// resourceJamfProMacOSConfigurationProfilesPlistCreate is responsible for creating a new Jamf Pro macOS Configuration Profile in the remote system.
 // The function:
 // 1. Constructs the attribute data using the provided Terraform configuration.
 // 2. Calls the API to create the attribute in Jamf Pro.
@@ -23,6 +27,9 @@ func resourceJamfProMacOSConfigurationProfilesPlistGeneratorCreate(ctx context.C
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
+	// Lock the mutex to ensure only one profile plust create can run this function at a time
+	mu.Lock()
+	defer mu.Unlock()
 	resource, err := constructJamfProMacOSConfigurationProfilesPlistGenerator(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro macOS Configuration Profile: %v", err))
