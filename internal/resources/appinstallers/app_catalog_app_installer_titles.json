@@ -1,5 +1,5 @@
 {
-    "totalCount": 180,
+    "totalCount": 179,
     "results": [
         {
             "id": "027",
@@ -7,7 +7,7 @@
             "titleName": "Adobe Lightroom Classic",
             "publisher": "Adobe",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/027.png",
-            "version": "13.5",
+            "version": "13.5.1",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -183,7 +183,7 @@
             "titleName": "Google Chrome",
             "publisher": "Google",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/0BC.png",
-            "version": "128.0.6613.114",
+            "version": "128.0.6613.120",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -447,7 +447,7 @@
             "titleName": "Evernote",
             "publisher": "Evernote",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/10C.png",
-            "version": "10.103.4",
+            "version": "10.104.2",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -656,7 +656,7 @@
             "titleName": "DBeaver Community Edition",
             "publisher": "DBeaver Corporation",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/1C5.png",
-            "version": "24.1.5",
+            "version": "24.2.0",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -700,7 +700,7 @@
             "titleName": "JetBrains CLion",
             "publisher": "JetBrains",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/206.png",
-            "version": "2024.2.0.1",
+            "version": "2024.2.1",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -932,17 +932,6 @@
             "publisher": "Adobe",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/39C.png",
             "version": "3.0.3",
-            "launchDaemonIncluded": null,
-            "notificationAvailable": null,
-            "suppressAutoUpdate": null
-        },
-        {
-            "id": "420",
-            "bundleId": "com.adobe.AfterEffects",
-            "titleName": "Adobe After Effects 2022",
-            "publisher": "Adobe",
-            "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/420.png",
-            "version": "22.6.5",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1228,7 +1217,7 @@
             "titleName": "VMware Fusion 13",
             "publisher": "VMware",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/547.png",
-            "version": "13.5.2",
+            "version": "13.6.0",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1426,7 +1415,7 @@
             "titleName": "Microsoft Teams",
             "publisher": "Microsoft",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/5E3.png",
-            "version": "24193.1707.3028.4282",
+            "version": "24215.1002.3039.5089",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
