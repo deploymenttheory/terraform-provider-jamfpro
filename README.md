@@ -207,4 +207,4 @@ This repository is specifically designed to kickstart your Terraform projects by
 
 # Supported Jamf Pro Resources
 
-[Supported Resources](docs/support-resources/README.md)
+[Supported Resources](docs/supported-resources/README.md)

@@ -3,7 +3,6 @@ package appinstallers
 import (
 	"context"
 	"embed"
-
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -11,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-//go:embed ../../internal/resources/common/appinstallers/app_catalog_app_installer_titles.json
+//go:embed app_catalog_app_installer_titles.json
 var files embed.FS
 
 type AppTitle struct {
@@ -26,7 +25,7 @@ var validTitleNames []string
 
 func init() {
 	// Read the embedded JSON file
-	data, err := files.ReadFile("internal/resources/common/appinstallers/app_catalog_app_installer_titles.json")
+	data, err := files.ReadFile("app_catalog_app_installer_titles.json")
 	if err != nil {
 		panic(fmt.Sprintf("Error reading embedded JSON file: %v", err))
 	}

@@ -1,0 +1,101 @@
+# Description: This workflow is used to fetch data sets from jamf pro that change over time. The export is then used
+# for various purposes including valid data look ups for valid values for HCL fields within the provider.
+name: Jamf Pro App Installers Maintenance
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Run every Sunday at midnight UTC
+  workflow_dispatch:     # Allow manual triggering
+
+permissions:
+  contents: write
+  pull-requests: write   # Needed to create a pull request
+
+jobs:
+  update-app-catalog-app-installer-titles:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4.1.7
+
+    - name: Set up Go
+      uses: actions/setup-go@v5.0.2
+      with:
+        go-version: '1.22.4'  # current version used by the go-api-sdk-jamfpro package
+
+    - name: Harden Runner
+      uses: step-security/harden-runner@v2.9.1
+      with:
+        egress-policy: audit
+
+    - name: Install dependencies
+      run: |
+        go mod download
+        go get github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro
+
+    - name: Run App Catalog App Installer Title Fetcher
+      env:
+        LOG_LEVEL: "debug"
+        HIDE_SENSITIVE_DATA: "true"
+        INSTANCE_DOMAIN: ${{ secrets.MAINTAINENCE_INSTANCE_DOMAIN }}
+        AUTH_METHOD: "oauth2"
+        CLIENT_ID: ${{ secrets.MAINTAINENCE_CLIENT_ID }}
+        CLIENT_SECRET: ${{ secrets.MAINTAINENCE_CLIENT_SECRET }}
+        EXPORT_LOGS: "false"
+        JAMF_LOAD_BALANCER_LOCK: "true"
+        MAX_RETRY_ATTEMPTS: "3"
+        ENABLE_DYNAMIC_RATE_LIMITING: "false"
+        MAX_CONCURRENT_REQUESTS: "1"
+        TOKEN_REFRESH_BUFFER_PERIOD_SECONDS: "300"
+        TOTAL_RETRY_DURATION_SECONDS: "60"
+        CUSTOM_TIMEOUT_SECONDS: "60"
+        FOLLOW_REDIRECTS: "true"
+        MAX_REDIRECTS: "5"
+        ENABLE_CONCURRENCY_MANAGEMENT: "true"
+        CUSTOM_COOKIES: ""
+        MANDATORY_REQUEST_DELAY_MILLISECONDS: "0"
+        RETRY_ELIGIABLE_REQUESTS: "true"
+      run: |
+        echo "Current working directory: $(pwd)"
+    
+        SCRIPT_DIR="$GITHUB_WORKSPACE/scripts/maintainence/GetJamfAppCatalogAppInstallerTitles"
+        if [ -d "$SCRIPT_DIR" ]; then
+          cd "$SCRIPT_DIR"
+          echo "Changed directory to: $(pwd)"
+          if [ -f "GetJamfAppCatalogAppInstallerTitles.go" ]; then
+            go run GetJamfAppCatalogAppInstallerTitles.go
+          else
+            echo "Error: GetJamfAppCatalogAppInstallerTitles.go not found in $SCRIPT_DIR"
+            exit 1
+          fi
+        else
+          echo "Error: Directory $SCRIPT_DIR does not exist"
+          exit 1
+        fi
+
+        TARGET_DIR="$GITHUB_WORKSPACE/internal/resources/appinstallers"
+        if [ ! -d "$TARGET_DIR" ]; then
+          mkdir -p "$TARGET_DIR"
+          echo "Created directory: $TARGET_DIR"
+        else
+          echo "Directory already exists: $TARGET_DIR"
+        fi
+        
+        if [ -f "app_catalog_app_installer_titles.json" ]; then
+          mv app_catalog_app_installer_titles.json "$TARGET_DIR/"
+          echo "JSON file moved to $TARGET_DIR/app_catalog_app_installer_titles.json"
+        else
+          echo "Error: app_catalog_app_installer_titles.json not found"
+          exit 1
+        fi
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v6.1.0
+      with:
+        commit-message: Update App Catalog Installer Title data
+        title: '[Automated] Update App Catalog installer title data'
+        body: |
+          This is an automated PR to update the App Catalog data.
+          Please review the changes in the app_catalog_app_installer_titles.json file.
+        branch: update-app-catalog-app-installer-titles
+        delete-branch: true
