@@ -20,6 +20,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/allowedfileextensions"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiintegrations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiroles"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/appinstallers"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/buildings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/categories"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computercheckin"
@@ -379,6 +380,7 @@ func Provider() *schema.Provider {
 			"jamfpro_allowed_file_extension":                      allowedfileextensions.ResourceJamfProAllowedFileExtensions(),
 			"jamfpro_api_integration":                             apiintegrations.ResourceJamfProApiIntegrations(),
 			"jamfpro_api_role":                                    apiroles.ResourceJamfProAPIRoles(),
+			"jamfpro_app_installer":                               appinstallers.ResourceJamfProAppInstallers(),
 			"jamfpro_building":                                    buildings.ResourceJamfProBuildings(),
 			"jamfpro_category":                                    categories.ResourceJamfProCategories(),
 			"jamfpro_computer_checkin":                            computercheckin.ResourceJamfProComputerCheckin(),

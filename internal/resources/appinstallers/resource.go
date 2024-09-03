@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func ResourceJamfProAppCatalogDeployment() *schema.Resource {
+func ResourceJamfProAppInstallers() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,
 		ReadContext:   readWithCleanup,
@@ -28,19 +28,19 @@ func ResourceJamfProAppCatalogDeployment() *schema.Resource {
 			"id": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The unique identifier of the app catalog deployment.",
+				Description: "The unique identifier of the app installer deployment.",
 			},
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The name of the app catalog deployment. This name cannot be freeform text like in the gui as the name is used to infur the automatically appTitleId field.",
+				Description: "The name of the app installer deployment. This name cannot be freeform text like in the gui as the name is used to infur the automatically appTitleId field.",
 			},
 			"enabled": {
 				Type:        schema.TypeBool,
 				Required:    true,
 				Description: "Whether the deployment is enabled.",
 			},
-			"app_title_id": { //TODO will probably handle this within the constructor
+			"app_title_id": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The jamf pro app installer ID of the app title.",
