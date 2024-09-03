@@ -28,6 +28,13 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	// Lock the mutex to ensure only one profile plust create can run this function at a time
 	mu.Lock()
 	defer mu.Unlock()
+
+	// Check and accept the Jamf App Catalog App Installer terms and conditions
+	err := checkJamfAppCatalogAppInstallerTermsAndConditions(ctx, client)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to ensure Jamf Pro App Installer terms and conditions are accepted: %v", err))
+	}
+
 	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro App Installer: %v", err))
@@ -54,14 +61,25 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 // read reads and states a jamfpro building
 func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
-	return common.Read(
-		ctx,
-		d,
-		meta,
-		cleanup,
-		meta.(*jamfpro.Client).GetJamfAppCatalogAppInstallerTitleByID,
-		updateState,
-	)
+	client := meta.(*jamfpro.Client)
+	resourceID := d.Id()
+	var diags diag.Diagnostics
+
+	var response *jamfpro.ResourceJamfAppCatalogDeployment
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		response, apiErr = client.GetJamfAppCatalogAppInstallerDeploymentByID(resourceID)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return append(diags, common.HandleResourceNotFoundError(err, d, cleanup)...)
+	}
+
+	return append(diags, updateState(d, response)...)
 }
 
 // readWithCleanup reads a resources and states with cleanup
