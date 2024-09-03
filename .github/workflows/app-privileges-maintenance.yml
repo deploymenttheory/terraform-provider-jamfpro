@@ -12,7 +12,7 @@ permissions:
   pull-requests: write   # Needed to create a pull request
 
 jobs:
-  update-app-catalog-app-installer-titles:
+  update-api-privileges:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
@@ -33,7 +33,7 @@ jobs:
         go mod download
         go get github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro
 
-    - name: Run App Catalog App Installer Title Fetcher
+    - name: Run Api Privileges Fetcher
       env:
         LOG_LEVEL: "debug"
         HIDE_SENSITIVE_DATA: "true"
