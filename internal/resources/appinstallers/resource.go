@@ -22,6 +22,7 @@ func ResourceJamfProAppCatalogDeployment() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
+		CustomizeDiff: validateAppCatalogDeploymentName,
 
 		Schema: map[string]*schema.Schema{
 			"id": {
@@ -32,7 +33,7 @@ func ResourceJamfProAppCatalogDeployment() *schema.Resource {
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The name of the app catalog deployment.",
+				Description: "The name of the app catalog deployment. This name cannot be freeform text like in the gui as the name is used to infur the automatically appTitleId field.",
 			},
 			"enabled": {
 				Type:        schema.TypeBool,
@@ -69,7 +70,7 @@ func ResourceJamfProAppCatalogDeployment() *schema.Resource {
 			"smart_group_id": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The ID of the smart group to scope the Jamf Pro App installer. Use -1 if not required.",
+				Description: "The ID of the smart group to scope the Jamf Pro App installer. Default is '1' - All Managed Clients. -1 is not an option.",
 			},
 			"install_predefined_config_profiles": {
 				Type:        schema.TypeBool,
