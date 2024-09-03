@@ -73,22 +73,22 @@ func ResourceJamfProAppCatalogDeployment() *schema.Resource {
 			},
 			"install_predefined_config_profiles": {
 				Type:        schema.TypeBool,
-				Required:    true,
+				Optional:    true,
 				Description: "Whether to install predefined configuration profiles.",
 			},
 			"title_available_in_ais": {
 				Type:        schema.TypeBool,
-				Computed:    true,
+				Optional:    true,
 				Description: "Whether the title is available in AIS.",
 			},
 			"trigger_admin_notifications": {
 				Type:        schema.TypeBool,
-				Required:    true,
+				Optional:    true,
 				Description: "Whether to trigger admin notifications.",
 			},
 			"notification_settings": {
 				Type:        schema.TypeList,
-				Required:    true,
+				Optional:    true,
 				MaxItems:    1,
 				Description: "Notification settings for the deployment.",
 				Elem: &schema.Resource{
@@ -100,7 +100,7 @@ func ResourceJamfProAppCatalogDeployment() *schema.Resource {
 						},
 						"notification_interval": {
 							Type:        schema.TypeInt,
-							Required:    true,
+							Optional:    true,
 							Description: "The interval for notifications.",
 						},
 						"deadline_message": {
@@ -110,12 +110,12 @@ func ResourceJamfProAppCatalogDeployment() *schema.Resource {
 						},
 						"deadline": {
 							Type:        schema.TypeInt,
-							Required:    true,
+							Optional:    true,
 							Description: "The deadline in minutes.",
 						},
 						"quit_delay": {
 							Type:        schema.TypeInt,
-							Required:    true,
+							Optional:    true,
 							Description: "The quit delay in minutes.",
 						},
 						"complete_message": {
@@ -125,12 +125,12 @@ func ResourceJamfProAppCatalogDeployment() *schema.Resource {
 						},
 						"relaunch": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
 							Description: "Whether to relaunch after installation.",
 						},
 						"suppress": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Description: "Suppression settings.",
 						},
 					},
@@ -138,29 +138,29 @@ func ResourceJamfProAppCatalogDeployment() *schema.Resource {
 			},
 			"self_service_settings": {
 				Type:        schema.TypeList,
-				Required:    true,
+				Optional:    true,
 				MaxItems:    1,
 				Description: "Self-service settings for the deployment.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"include_in_featured_category": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
 							Description: "Whether to include in the featured category.",
 						},
 						"include_in_compliance_category": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
 							Description: "Whether to include in the compliance category.",
 						},
 						"force_view_description": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
 							Description: "Whether to force viewing the description.",
 						},
 						"description": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Description: "The self-service description.",
 						},
 						"categories": {
@@ -176,7 +176,7 @@ func ResourceJamfProAppCatalogDeployment() *schema.Resource {
 									},
 									"featured": {
 										Type:        schema.TypeBool,
-										Required:    true,
+										Optional:    true,
 										Description: "Whether the category is featured.",
 									},
 								},
@@ -187,7 +187,7 @@ func ResourceJamfProAppCatalogDeployment() *schema.Resource {
 			},
 			"selected_version": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "The selected version of the app.",
 			},
 			"latest_available_version": {
@@ -197,7 +197,7 @@ func ResourceJamfProAppCatalogDeployment() *schema.Resource {
 			},
 			"version_removed": {
 				Type:        schema.TypeBool,
-				Required:    true,
+				Optional:    true,
 				Description: "Whether the version has been removed.",
 			},
 		},
