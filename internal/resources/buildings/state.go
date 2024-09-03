@@ -1,4 +1,4 @@
-// buildings_state.go
+// state.go
 package buildings
 
 import (
