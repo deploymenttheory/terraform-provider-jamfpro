@@ -92,8 +92,8 @@ jobs:
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v6.1.0
       with:
-        commit-message: Update App Catalog Installer Title data
-        title: '[Automated] Update App Catalog installer title data'
+        commit-message: Update Api Privileges data
+        title: '[Automated] Update Api Privileges data'
         body: |
           This is an automated PR to update the App Installer titles data.
           Please review the changes in the api_privileges.json file.
