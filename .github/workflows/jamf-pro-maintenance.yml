@@ -72,8 +72,8 @@ jobs:
           echo "Error: Directory $SCRIPT_DIR does not exist"
           exit 1
         fi
-        
-        TARGET_DIR="$GITHUB_WORKSPACE/internal/resources/common/appinstallers"
+
+        TARGET_DIR="$GITHUB_WORKSPACE/internal/resources/appinstallers"
         if [ ! -d "$TARGET_DIR" ]; then
           mkdir -p "$TARGET_DIR"
           echo "Created directory: $TARGET_DIR"
