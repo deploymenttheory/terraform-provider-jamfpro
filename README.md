@@ -7,6 +7,10 @@
 
 This repository hosts the Jamf Pro Community Provider, built to integrate Jamf Pro's robust configuration management capabilities with Terraform's Infrastructure as Code (IaC) approach. Utilizing a comprehensive JAMF Pro SDK [go-api-sdk-jamfpro](https://github.com/deploymenttheory/go-api-sdk-jamfpro), which serves as a cohesive abstraction layer over both Jamf Pro and Jamf Pro Classic APIs, this provider ensures seamless API interactions and brings a wide array of resources under Terraform's management umbrella. The jamfpro provider is engineered to enrich your CI/CD workflows with Jamf Pro's extensive device management functionalities, encompassing device enrollment, inventory tracking, security compliance, and streamlined software deployment. Its primary goal is to enhance the efficiency of managing, deploying, and maintaining Apple devices across your infrastructure, fostering a synchronized and effective IT ecosystem.
 
+- **Demo Repository**: [Terraform Demo Jamf Pro](https://github.com/deploymenttheory/terraform-demo-jamfpro)
+
+Feel free to explore this repository to better understand the implementation and to get your infrastructure (configuration)-as-code initiatives up and running with an example gitlab-flow based example of this provider with Jamf Pro and terraform cloud.
+
 ## Quick Start Guide
 
 - Minimum Requirements:
@@ -183,9 +187,7 @@ For those new to using Terraform with Jamf Pro, we provide a comprehensive demo 
 
 This repository is specifically designed to kickstart your Terraform projects by providing practical, easy-to-follow examples of how to configure and deploy resources within Jamf Pro using Terraform.
 
-- **Demo Repository**: [Terraform Demo Jamf Pro](https://github.com/deploymenttheory/terraform-demo-jamfpro)
 
-Feel free to explore this repository to better understand the implementation and to get your infrastructure (configuration)-as-code initiatives up and running smoothly.
 
 ## Resource Completion Status
 
