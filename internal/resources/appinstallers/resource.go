@@ -176,8 +176,7 @@ func ResourceJamfProAppCatalogDeployment() *schema.Resource {
 									},
 									"featured": {
 										Type:        schema.TypeBool,
-										Optional:    true,
-										Default:     false,
+										Required:    true,
 										Description: "Whether the category is featured.",
 									},
 								},
@@ -188,7 +187,7 @@ func ResourceJamfProAppCatalogDeployment() *schema.Resource {
 			},
 			"selected_version": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "The selected version of the app.",
 			},
 			"latest_available_version": {
@@ -198,7 +197,7 @@ func ResourceJamfProAppCatalogDeployment() *schema.Resource {
 			},
 			"version_removed": {
 				Type:        schema.TypeBool,
-				Computed:    true,
+				Required:    true,
 				Description: "Whether the version has been removed.",
 			},
 		},

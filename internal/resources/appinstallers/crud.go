@@ -28,7 +28,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	// Lock the mutex to ensure only one profile plust create can run this function at a time
 	mu.Lock()
 	defer mu.Unlock()
-	resource, err := constructJamfProAppInstaller(d)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro App Installer: %v", err))
 	}
@@ -44,7 +44,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro App Installer '%s' after retries: %v", resource.General.Name, err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro App Installer '%s' after retries: %v", resource.Name, err))
 	}
 
 	d.SetId(creationResponse.ID)
