@@ -1,6 +1,6 @@
 # Description: This workflow is used to fetch data sets from jamf pro that change over time. The export is then used
 # for various purposes including valid data look ups for valid values for HCL fields within the provider.
-name: Jamf Pro Provider Maintenance
+name: Jamf Pro Api Privileges Maintenance
 
 on:
   schedule:
@@ -58,14 +58,14 @@ jobs:
       run: |
         echo "Current working directory: $(pwd)"
     
-        SCRIPT_DIR="$GITHUB_WORKSPACE/scripts/maintainence/GetJamfAppCatalogAppInstallerTitles"
+        SCRIPT_DIR="$GITHUB_WORKSPACE/scripts/maintainence/GetJamfAPIPrivileges"
         if [ -d "$SCRIPT_DIR" ]; then
           cd "$SCRIPT_DIR"
           echo "Changed directory to: $(pwd)"
-          if [ -f "GetJamfAppCatalogAppInstallerTitles.go" ]; then
-            go run GetJamfAppCatalogAppInstallerTitles.go
+          if [ -f "GetJamfAPIPrivileges.go" ]; then
+            go run GetJamfAPIPrivileges.go
           else
-            echo "Error: GetJamfAppCatalogAppInstallerTitles.go not found in $SCRIPT_DIR"
+            echo "Error: GetJamfAPIPrivileges.go not found in $SCRIPT_DIR"
             exit 1
           fi
         else
@@ -73,7 +73,7 @@ jobs:
           exit 1
         fi
 
-        TARGET_DIR="$GITHUB_WORKSPACE/internal/resources/appinstallers"
+        TARGET_DIR="$GITHUB_WORKSPACE/internal/resources/apiroles"
         if [ ! -d "$TARGET_DIR" ]; then
           mkdir -p "$TARGET_DIR"
           echo "Created directory: $TARGET_DIR"
@@ -81,11 +81,11 @@ jobs:
           echo "Directory already exists: $TARGET_DIR"
         fi
         
-        if [ -f "app_catalog_app_installer_titles.json" ]; then
-          mv app_catalog_app_installer_titles.json "$TARGET_DIR/"
-          echo "JSON file moved to $TARGET_DIR/app_catalog_app_installer_titles.json"
+        if [ -f "api_privileges.json" ]; then
+          mv api_privileges.json "$TARGET_DIR/"
+          echo "JSON file moved to $TARGET_DIR/api_privileges.json"
         else
-          echo "Error: app_catalog_app_installer_titles.json not found"
+          echo "Error: api_privileges.json not found"
           exit 1
         fi
 
@@ -95,7 +95,7 @@ jobs:
         commit-message: Update App Catalog Installer Title data
         title: '[Automated] Update App Catalog installer title data'
         body: |
-          This is an automated PR to update the App Catalog data.
-          Please review the changes in the app_catalog_app_installer_titles.json file.
-        branch: update-app-catalog-app-installer-titles
+          This is an automated PR to update the App Installer titles data.
+          Please review the changes in the api_privileges.json file.
+        branch: update-api-privileges
         delete-branch: true
