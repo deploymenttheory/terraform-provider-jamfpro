@@ -130,7 +130,7 @@ func ResourceJamfProAppInstallers() *schema.Resource {
 							Description: "Whether to Automatically open app after installation.",
 						},
 						"suppress": {
-							Type:        schema.TypeString,
+							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Suppressing notifications.",
 						},
