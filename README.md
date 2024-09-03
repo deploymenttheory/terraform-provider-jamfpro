@@ -7,9 +7,27 @@
 
 This repository hosts the Jamf Pro Community Provider, built to integrate Jamf Pro's robust configuration management capabilities with Terraform's Infrastructure as Code (IaC) approach. Utilizing a comprehensive JAMF Pro SDK [go-api-sdk-jamfpro](https://github.com/deploymenttheory/go-api-sdk-jamfpro), which serves as a cohesive abstraction layer over both Jamf Pro and Jamf Pro Classic APIs, this provider ensures seamless API interactions and brings a wide array of resources under Terraform's management umbrella. The jamfpro provider is engineered to enrich your CI/CD workflows with Jamf Pro's extensive device management functionalities, encompassing device enrollment, inventory tracking, security compliance, and streamlined software deployment. Its primary goal is to enhance the efficiency of managing, deploying, and maintaining Apple devices across your infrastructure, fostering a synchronized and effective IT ecosystem.
 
+## Demo Implementation
+
+To help you get started and understand the practical implementation of this provider, we've created a comprehensive demo repository:
+
 - **Demo Repository**: [Terraform Demo Jamf Pro](https://github.com/deploymenttheory/terraform-demo-jamfpro)
 
-Feel free to explore this repository to better understand the implementation and to get your infrastructure (configuration)-as-code initiatives up and running with an example gitlab-flow based example of this provider with Jamf Pro and terraform cloud.
+This demo repository showcases a real-world implementation of the Jamf Pro Terraform provider. It's designed to:
+
+1. Illustrate best practices for integrating Jamf Pro with Terraform.
+2. Demonstrate a GitLab-flow based workflow for multi environment setups, integrating with Terraform Cloud.
+3. Provide practical examples of managing Jamf Pro resources as code.
+4. Offer a starting point for your own infrastructure-as-code initiatives with Jamf Pro.
+
+We encourage you to explore this repository to:
+
+- Understand how to structure your Terraform configurations for Jamf Pro.
+- See examples of defining and managing various Jamf Pro resources.
+- Learn how to integrate Terraform workflows with your CI/CD pipeline.
+- Get insights into version control strategies for your Jamf Pro configurations.
+
+Whether you're new to Terraform or looking to enhance your existing Jamf Pro management, this demo repository serves as a valuable resource to kickstart your infrastructure-as-code journey with Jamf Pro.
 
 ## Quick Start Guide
 
