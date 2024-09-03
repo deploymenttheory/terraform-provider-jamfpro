@@ -41,40 +41,40 @@ func ResourceJamfProAppCatalogDeployment() *schema.Resource {
 			},
 			"app_title_id": { //TODO will probably handle this within the constructor
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The ID of the app title.",
+				Computed:    true,
+				Description: "The jamf pro app installer ID of the app title.",
 			},
 			"deployment_type": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{"AUTOMATIC", "SELF_SERVICE"}, false),
-				Description:  "The type of deployment (AUTOMATIC or SELF_SERVICE).",
+				ValidateFunc: validation.StringInSlice([]string{"INSTALL_AUTOMATICALLY", "SELF_SERVICE"}, false),
+				Description:  "Initial distribution method to use for distributing the app to a computer for the initial installation. (INSTALL_AUTOMATICALLY or SELF_SERVICE).",
 			},
 			"update_behavior": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringInSlice([]string{"AUTOMATIC", "MANUAL"}, false),
-				Description:  "The update behavior (AUTOMATIC or MANUAL).",
+				Description:  "The method to use for all future app updates, regardless of the initial distribution method. (AUTOMATIC or MANUAL).",
 			},
 			"category_id": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The ID of the category.",
+				Description: "The ID of the category to assign to the app installer. Use -1 if not required.",
 			},
 			"site_id": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The ID of the site.",
+				Description: "The ID of the site. Use -1 if not required.",
 			},
 			"smart_group_id": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The ID of the smart group.",
+				Description: "The ID of the smart group to scope the Jamf Pro App installer. Use -1 if not required.",
 			},
 			"install_predefined_config_profiles": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Whether to install predefined configuration profiles.",
+				Description: "Allows Jamf to automatically install necessary configuration profiles to support this App Installer. When unselected, you may need to create configuration profiles for some software titles. https://learn.jamf.com/en-US/bundle/technical-articles/page/Configuration_Profiles_for_Additional_App_Installers_Settings.html",
 			},
 			"title_available_in_ais": {
 				Type:        schema.TypeBool,
@@ -84,13 +84,13 @@ func ResourceJamfProAppCatalogDeployment() *schema.Resource {
 			"trigger_admin_notifications": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Whether to trigger admin notifications.",
+				Description: "Log event notifications for this app. Opt in to receiving notifications for certain events including app updates and installation failures. Account Notification settings. https://your-instance.jamfcloud.com/notifications.html?id=0&o=r",
 			},
 			"notification_settings": {
 				Type:        schema.TypeList,
 				Optional:    true,
 				MaxItems:    1,
-				Description: "Notification settings for the deployment.",
+				Description: "End User Experience notification settings for the deployment.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"notification_message": {
@@ -111,27 +111,27 @@ func ResourceJamfProAppCatalogDeployment() *schema.Resource {
 						"deadline": {
 							Type:        schema.TypeInt,
 							Optional:    true,
-							Description: "The deadline in minutes.",
+							Description: "The Update deadline in hours.",
 						},
 						"quit_delay": {
 							Type:        schema.TypeInt,
 							Optional:    true,
-							Description: "The quit delay in minutes.",
+							Description: "Force quit grace period in minutes.",
 						},
 						"complete_message": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "The completion message.",
+							Description: "The Update complete message.",
 						},
 						"relaunch": {
 							Type:        schema.TypeBool,
 							Optional:    true,
-							Description: "Whether to relaunch after installation.",
+							Description: "Whether to Automatically open app after installation.",
 						},
 						"suppress": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "Suppression settings.",
+							Description: "Suppressing notifications.",
 						},
 					},
 				},
@@ -151,22 +151,22 @@ func ResourceJamfProAppCatalogDeployment() *schema.Resource {
 						"include_in_compliance_category": {
 							Type:        schema.TypeBool,
 							Optional:    true,
-							Description: "Whether to include in the compliance category.",
+							Description: "Include the app in the Featured category.Jamf Pro must be integrated with Microsoft Intune to include the app in the Compliance category. Confirm the integration is enabled. If you previously integrated Microsoft Intune using Conditional Access, disregard this alert.",
 						},
 						"force_view_description": {
 							Type:        schema.TypeBool,
 							Optional:    true,
-							Description: "Whether to force viewing the description.",
+							Description: "Force users to view the description before installing the app.",
 						},
 						"description": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "The self-service description.",
+							Description: "Description (up to 4000 characters) to display for the app in Self Service.",
 						},
 						"categories": {
 							Type:        schema.TypeSet,
 							Optional:    true,
-							Description: "Categories for the self-service deployment.",
+							Description: "Categories in which to display or feature the app in Self Service.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
@@ -187,7 +187,7 @@ func ResourceJamfProAppCatalogDeployment() *schema.Resource {
 			},
 			"selected_version": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "The selected version of the app.",
 			},
 			"latest_available_version": {
@@ -197,7 +197,7 @@ func ResourceJamfProAppCatalogDeployment() *schema.Resource {
 			},
 			"version_removed": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Computed:    true,
 				Description: "Whether the version has been removed.",
 			},
 		},
