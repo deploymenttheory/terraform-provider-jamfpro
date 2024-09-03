@@ -72,7 +72,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceJamfAppCatalogDeploymen
 			QuitDelay:            ns["quit_delay"].(int),
 			CompleteMessage:      ns["complete_message"].(string),
 			Relaunch:             jamfpro.BoolPtr(ns["relaunch"].(bool)),
-			Suppress:             ns["suppress"].(string),
+			Suppress:             jamfpro.BoolPtr(ns["suppress"].(bool)),
 		}
 	}
 
