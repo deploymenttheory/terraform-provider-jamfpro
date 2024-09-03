@@ -1,7 +1,7 @@
-// constructor.go
 package appinstallers
 
 import (
+	"embed"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -10,12 +10,47 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+//go:embed app_catalog_app_installer_titles.json
+var appTitlesFS embed.FS
+
+var appTitles struct {
+	TotalCount int                                          `json:"totalCount"`
+	Results    []jamfpro.ResourceJamfAppCatalogAppInstaller `json:"results"`
+}
+
+func init() {
+	// Read the embedded JSON file
+	data, err := appTitlesFS.ReadFile("app_catalog_app_installer_titles.json")
+	if err != nil {
+		log.Fatalf("Failed to read app_catalog_app_installer_titles.json: %v", err)
+	}
+
+	if err := json.Unmarshal(data, &appTitles); err != nil {
+		log.Fatalf("Failed to unmarshal app titles data: %v", err)
+	}
+}
+
+func getAppTitleID(name string) (string, error) {
+	for _, result := range appTitles.Results {
+		if result.TitleName == name {
+			return result.ID, nil
+		}
+	}
+	return "", fmt.Errorf("no matching app title found for name: %s", name)
+}
+
 // construct constructs an AppCatalogDeployment object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceJamfAppCatalogDeployment, error) {
+	name := d.Get("name").(string)
+	appTitleID, err := getAppTitleID(name)
+	if err != nil {
+		return nil, err
+	}
+
 	resource := &jamfpro.ResourceJamfAppCatalogDeployment{
-		Name:                            d.Get("name").(string),
+		Name:                            name,
 		Enabled:                         jamfpro.BoolPtr(d.Get("enabled").(bool)),
-		AppTitleId:                      d.Get("app_title_id").(string),
+		AppTitleId:                      appTitleID,
 		DeploymentType:                  d.Get("deployment_type").(string),
 		UpdateBehavior:                  d.Get("update_behavior").(string),
 		CategoryId:                      d.Get("category_id").(string),
