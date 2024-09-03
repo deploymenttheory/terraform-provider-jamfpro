@@ -79,7 +79,7 @@ func ResourceJamfProAppInstallers() *schema.Resource {
 			},
 			"title_available_in_ais": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Computed:    true,
 				Description: "Whether the title is available in AIS.",
 			},
 			"trigger_admin_notifications": {

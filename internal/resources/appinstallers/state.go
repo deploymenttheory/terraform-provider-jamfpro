@@ -61,8 +61,10 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceJamfAppCatalogDep
 	var categories []interface{}
 	for _, cat := range resp.SelfServiceSettings.Categories {
 		category := map[string]interface{}{
-			"id":       cat.ID,
-			"featured": cat.Featured,
+			"id": cat.ID,
+		}
+		if cat.Featured != nil {
+			category["featured"] = *cat.Featured
 		}
 		categories = append(categories, category)
 	}

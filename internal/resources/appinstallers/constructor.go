@@ -57,7 +57,6 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceJamfAppCatalogDeploymen
 		SiteId:                          d.Get("site_id").(string),
 		SmartGroupId:                    d.Get("smart_group_id").(string),
 		InstallPredefinedConfigProfiles: jamfpro.BoolPtr(d.Get("install_predefined_config_profiles").(bool)),
-		TitleAvailableInAis:             jamfpro.BoolPtr(d.Get("title_available_in_ais").(bool)),
 		TriggerAdminNotifications:       jamfpro.BoolPtr(d.Get("trigger_admin_notifications").(bool)),
 		SelectedVersion:                 d.Get("selected_version").(string),
 	}
