@@ -172,7 +172,7 @@
             "titleName": "Mozilla Firefox",
             "publisher": "Mozilla",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/0B3.png",
-            "version": "129.0.2",
+            "version": "130.0",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -271,7 +271,7 @@
             "titleName": "Mozilla Thunderbird",
             "publisher": "Mozilla",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/0E1.png",
-            "version": "128.1.1",
+            "version": "128.2.0",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -447,7 +447,7 @@
             "titleName": "Evernote",
             "publisher": "Evernote",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/10C.png",
-            "version": "10.104.2",
+            "version": "10.104.3",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -469,7 +469,7 @@
             "titleName": "Postman",
             "publisher": "Postman",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/11E.png",
-            "version": "11.10.0",
+            "version": "11.11.0",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -579,7 +579,7 @@
             "titleName": "Microsoft Minecraft Education Edition",
             "publisher": "Microsoft",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/1B5.png",
-            "version": "1.21.03",
+            "version": "1.21.05",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -590,7 +590,7 @@
             "titleName": "Brave Browser",
             "publisher": "Brave",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/1B7.png",
-            "version": "128.1.69.160",
+            "version": "128.1.69.162",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -667,7 +667,7 @@
             "titleName": "Microsoft Edge",
             "publisher": "Microsoft",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/1D4.png",
-            "version": "128.0.2739.54",
+            "version": "128.0.2739.63",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -975,7 +975,7 @@
             "titleName": "Grammarly Desktop",
             "publisher": "Grammarly",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/4D4.png",
-            "version": "1.84.1",
+            "version": "1.85.1",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1008,7 +1008,7 @@
             "titleName": "1Password 8",
             "publisher": "AgileBits",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/50F.png",
-            "version": "8.10.40",
+            "version": "8.10.44",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1360,7 +1360,7 @@
             "titleName": "Jamf Composer",
             "publisher": "Jamf",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/Composer.png",
-            "version": "11.7.1",
+            "version": "11.9.0",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1382,7 +1382,7 @@
             "titleName": "Cypress",
             "publisher": "Cypress.io",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/54C.png",
-            "version": "13.14.1",
+            "version": "13.14.2",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1690,7 +1690,7 @@
             "titleName": "ClickShare",
             "publisher": "Barco",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/4D8.png",
-            "version": "4.39.0-b8",
+            "version": "4.40.0-b12",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1899,7 +1899,7 @@
             "titleName": "TechSmith Camtasia 2024",
             "publisher": "TechSmith",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/64D.png",
-            "version": "2024.0.6",
+            "version": "2024.0.7",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
