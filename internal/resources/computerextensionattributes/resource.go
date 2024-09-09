@@ -75,6 +75,9 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 				Type:        schema.TypeString,
 				Description: "Script to populate extension attribute",
 				Optional:    true,
+				DiffSuppressFunc: func(_, old, new string, _ *schema.ResourceData) bool {
+					return old == strings.TrimSuffix(new, "\n")
+				},
 			},
 			// "input_directory_mapping": {
 			// 	Type:        schema.TypeString,
