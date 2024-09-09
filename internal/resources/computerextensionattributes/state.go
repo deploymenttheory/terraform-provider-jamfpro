@@ -19,7 +19,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerExtension
 	d.Set("data_type", strings.ToLower(resp.DataType))
 	d.Set("inventory_display", resp.InventoryDisplay)
 	d.Set("recon_display", resp.ReconDisplay)
-	d.Set("input_type", resp.InputType)
+	d.Set("input_script", normalizeScript(resp.InputType.Script))
 	d.Set("input_popup", resp.InputType.Choices)
 	d.Set("input_script", resp.InputType.Script)
 
