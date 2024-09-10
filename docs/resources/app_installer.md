@@ -88,7 +88,7 @@ Optional:
 - `notification_message` (String) The notification message.
 - `quit_delay` (Number) Force quit grace period in minutes.
 - `relaunch` (Boolean) Whether to Automatically open app after installation.
-- `suppress` (String) Suppressing notifications.
+- `suppress` (Boolean) Suppressing notifications.
 
 
 <a id="nestedblock--self_service_settings"></a>
