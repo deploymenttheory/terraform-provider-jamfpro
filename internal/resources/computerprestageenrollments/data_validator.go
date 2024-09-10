@@ -19,6 +19,10 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 		return err
 	}
 
+	if err := validateMinimumOSSpecificVersion(ctx, diff, i); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -85,4 +89,28 @@ func validateDateFormat(v interface{}, k string) (ws []string, errors []error) {
 	}
 
 	return
+}
+
+func validateMinimumOSSpecificVersion(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+	resourceName := diff.Get("display_name").(string)
+	versionType := diff.Get("prestate_minimum_os_target_version_type").(string)
+	specificVersion := diff.Get("minimum_os_specific_version").(string)
+
+	if versionType == "MINIMUM_OS_SPECIFIC_VERSION" {
+		if specificVersion == "" {
+			return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'minimum_os_specific_version' must be set when 'prestate_minimum_os_target_version_type' is MINIMUM_OS_SPECIFIC_VERSION", resourceName)
+		}
+
+		validVersions := map[string]bool{
+			"14.5":   true,
+			"14.6":   true,
+			"14.6.1": true,
+		}
+
+		if !validVersions[specificVersion] {
+			return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'minimum_os_specific_version' must be one of '14.5', '14.6', or '14.6.1', got: %s", resourceName, specificVersion)
+		}
+	}
+
+	return nil
 }

@@ -203,6 +203,26 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 							Required:    true,
 							Description: "Skip Location setup.",
 						},
+						"intelligence": {
+							Type:        schema.TypeBool,
+							Required:    true,
+							Description: "Skip Apple Intelligence setup.",
+						},
+						"enable_lockdown_mode": {
+							Type:        schema.TypeBool,
+							Required:    true,
+							Description: "Skip lockdown mode setup.",
+						},
+						"welcome": {
+							Type:        schema.TypeBool,
+							Required:    true,
+							Description: "Skip welcome setup.",
+						},
+						"wallpaper": {
+							Type:        schema.TypeBool,
+							Required:    true,
+							Description: "Skip wallpaper setup.",
+						},
 					},
 				},
 			},
@@ -443,6 +463,30 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 				Type:        schema.TypeBool,
 				Required:    true,
 				Description: "Indicates if the recovery lock password should be rotated.",
+			},
+			"prestate_minimum_os_target_version_type": {
+				Type:        schema.TypeBool,
+				Required:    true,
+				Description: "Enforce a minimum macOS target version type for the prestage enrollment.",
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := val.(string)
+					validTypes := map[string]bool{
+						"NO_ENFORCEMENT":                  true,
+						"MINIMUM_OS_LATEST_VERSION":       true,
+						"MINIMUM_OS_LATEST_MAJOR_VERSION": true,
+						"MINIMUM_OS_LATEST_MINOR_VERSION": true,
+						"MINIMUM_OS_SPECIFIC_VERSION":     true,
+					}
+					if _, valid := validTypes[v]; !valid {
+						errs = append(errs, fmt.Errorf("%q must be one of 'NO_ENFORCEMENT', 'MINIMUM_OS_LATEST_VERSION', 'MINIMUM_OS_LATEST_MAJOR_VERSION', 'MINIMUM_OS_LATEST_MINOR_VERSION', 'MINIMUM_OS_SPECIFIC_VERSION', got: %s", key, v))
+					}
+					return warns, errs
+				},
+			},
+			"minimum_os_specific_version": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The minimum macOS version to enforce for the prestage enrollment. Only used if prestate_minimum_os_target_version_type is set to MINIMUM_OS_SPECIFIC_VERSION.",
 			},
 			"profile_uuid": {
 				Type:        schema.TypeString,
