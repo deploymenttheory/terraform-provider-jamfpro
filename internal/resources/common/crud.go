@@ -85,7 +85,7 @@ func Update[sdkPayloadType any, sdkResponseType any](
 	payloadtypeName := reflect.TypeOf(payload).Name()
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Building for update: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro %s for update: %v", payloadtypeName, err))
 	}
 
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
