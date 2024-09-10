@@ -34,20 +34,20 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerExtension
 
 	// Handle input type specific fields
 	switch resp.InputType {
-	case "Script":
+	case "SCRIPT":
 		normalizedScript := normalizeScript(resp.ScriptContents)
 		if err := d.Set("script_contents", normalizedScript); err != nil {
 			return diag.FromErr(err)
 		}
-	case "Pop-up Menu":
+	case "POPUP":
 		if err := d.Set("popup_menu_choices", resp.PopupMenuChoices); err != nil {
 			return diag.FromErr(err)
 		}
-	case "LDAP Mapping":
+	case "DIRECTORY_SERVICE_ATTRIBUTE_MAPPING":
 		if err := d.Set("ldap_attribute_mapping", resp.LDAPAttributeMapping); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := d.Set("ldap_extension_attribute_allowed", resp.LDAPExtensionAttributeAllowed); err != nil {
+		if err := d.Set("ldap_extension_attribute_allowed", resp.LDAPExtensionAttributeAllowed != nil && *resp.LDAPExtensionAttributeAllowed); err != nil {
 			return diag.FromErr(err)
 		}
 	}

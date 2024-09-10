@@ -78,6 +78,12 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "When we run this script it returns a data value each time a computer submits inventory to Jamf Pro. Provide scriptContents only when inputType is 'SCRIPT'.",
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return normalizeScript(old) == normalizeScript(new)
+				},
+				StateFunc: func(v interface{}) string {
+					return normalizeScript(v.(string))
+				},
 			},
 			"popup_menu_choices": {
 				Type:        schema.TypeList,
