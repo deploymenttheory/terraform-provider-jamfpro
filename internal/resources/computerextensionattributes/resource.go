@@ -2,7 +2,6 @@
 package computerextensionattributes
 
 import (
-	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -23,6 +22,14 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 			Update: schema.DefaultTimeout(30 * time.Second),
 			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    resourceComputerExtensionAttributeV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: upgradeComputerExtensionAttributeV0toV1,
+				Version: 0,
+			},
+		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -37,65 +44,59 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 				Required:    true,
 				Description: "The unique name of the Jamf Pro computer extension attribute.",
 			},
-			"enabled": {
-				Type:        schema.TypeBool,
-				Required:    true,
-				Description: "Indicates if the computer extension attribute is enabled.",
-			},
 			"description": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Description of the computer extension attribute.",
 			},
 			"data_type": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     "string",
-				Description: "Data type of the computer extension attribute. Can be string / integer / date (YYYY-MM-DD hh:mm:ss). Value defaults to `String`.",
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					return strings.ToLower(old) == strings.ToLower(new)
-				},
-				ValidateFunc: validation.StringInSlice([]string{"string", "integer", "date"}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "String",
+				Description:  "Data type of the computer extension attribute. Can be String, Integer, or Date.",
+				ValidateFunc: validation.StringInSlice([]string{"STRING", "INTEGER", "DATE"}, false),
+			},
+			"enabled": {
+				Type:        schema.TypeBool,
+				Required:    true,
+				Description: "Enabled by default, but for inputType Script we can disable it as well.Possible values are: false or true.",
+			},
+			"inventory_display_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "Extension Attributes",
+				Description:  "Category in which to display the extension attribute in Jamf Pro.",
+				ValidateFunc: validation.StringInSlice([]string{"GENERAL", "HARDWARE", "OPERATING_SYSTEM", "USER_AND_LOCATION", "PURCHASING", "EXTENSION_ATTRIBUTES"}, false),
 			},
 			"input_type": {
 				Type:         schema.TypeString,
 				Required:     true,
-				Description:  "Extension Attribute Input Type",
-				ValidateFunc: validation.StringInSlice([]string{"script", "Text Field", "Pop-up Menu"}, true),
+				Description:  "Extension attributes collect inventory data by using an input type.The type of the Input used to populate the extension attribute.",
+				ValidateFunc: validation.StringInSlice([]string{"SCRIPT", "TEXT", "POPUP", "DIRECTORY_SERVICE_ATTRIBUTE_MAPPING"}, false),
 			},
-			"input_popup": {
-				Type:        schema.TypeList,
-				Description: "List of popup choices",
+			"script_contents": {
+				Type:        schema.TypeString,
 				Optional:    true,
+				Description: "When we run this script it returns a data value each time a computer submits inventory to Jamf Pro. Provide scriptContents only when inputType is 'SCRIPT'.",
+			},
+			"popup_menu_choices": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "When added with list of choices while creating computer extension attributes these Pop-up menu can be displayed in inventory information. User can choose a value from the pop-up menu list when enrolling a computer any time using Jamf Pro. Provide popupMenuChoices only when inputType is 'POPUP'.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
-			"input_script": {
-				Type:        schema.TypeString,
-				Description: "Script to populate extension attribute",
-				Optional:    true,
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					return normalizeScript(old) == normalizeScript(new)
-				},
-			},
-			// "input_directory_mapping": {
-			// 	Type:        schema.TypeString,
-			// 	Description: "Script to populate extension attribute",
-			// 	Optional:    true,
-			// },
-			"inventory_display": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "General",
-				Description:  "Display details for inventory for the computer extension attribute. Value defaults to `General`.",
-				ValidateFunc: validation.StringInSlice([]string{"General", "Hardware", "Operating System", "User and Location", "Purchasing", "Extension Attributes"}, false),
-			},
-			"recon_display": {
+			"ldap_attribute_mapping": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Computed:    true,
-				Description: "Display details for recon for the computer extension attribute.",
+				Description: "Directory Service attribute use to populate the extension attribute.Required when inputType is 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING'.",
+			},
+			"ldap_extension_attribute_allowed": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Collect multiple values for this extension attribute. ldapExtensionAttributeAllowed is disabled by default, only for inputType 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING' it can be enabled. It's value cannot be modified during edit operation.Possible values are:true or false.",
 			},
 		},
 	}
