@@ -456,7 +456,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 			},
 			"recovery_lock_password": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "Generate new Recovery Lock password 60 minutes after the password is viewed in Jamf Pro. Can be left blank.",
 			},
 			"rotate_recovery_lock_password": {
@@ -464,10 +464,10 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 				Required:    true,
 				Description: "Indicates if the recovery lock password should be rotated.",
 			},
-			"prestate_minimum_os_target_version_type": {
-				Type:        schema.TypeBool,
+			"prestage_minimum_os_target_version_type": {
+				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Enforce a minimum macOS target version type for the prestage enrollment.",
+				Description: "Enforce a minimum macOS target version type for the prestage enrollment. Required.",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := val.(string)
 					validTypes := map[string]bool{
@@ -485,7 +485,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 			},
 			"minimum_os_specific_version": {
 				Type:        schema.TypeString,
-				Computed:    true,
+				Optional:    true,
 				Description: "The minimum macOS version to enforce for the prestage enrollment. Only used if prestate_minimum_os_target_version_type is set to MINIMUM_OS_SPECIFIC_VERSION.",
 			},
 			"profile_uuid": {

@@ -15,7 +15,7 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 		return err
 	}
 
-	if err := validateRotateRecoveryLockPassword(ctx, diff, i); err != nil {
+	if err := validateRecoveryLockPasswordType(ctx, diff, i); err != nil {
 		return err
 	}
 
@@ -48,23 +48,49 @@ func validateAuthenticationPrompt(_ context.Context, diff *schema.ResourceDiff, 
 	return nil
 }
 
-// validateRotateRecoveryLockPassword checks that 'rotate_recovery_lock_password' is only set when 'recovery_lock_password_type' is 'RANDOM'.
-// Not part of the mainCustomDiffFunc as it is not comparing different schema values.
-func validateRotateRecoveryLockPassword(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+func validateRecoveryLockPasswordType(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
 	resourceName := diff.Get("display_name").(string)
+	enableRecoveryLock, enableRecoveryLockOk := diff.GetOk("enable_recovery_lock")
 	passwordType, passwordTypeOk := diff.GetOk("recovery_lock_password_type")
+	password, passwordOk := diff.GetOk("recovery_lock_password")
 	rotate, rotateOk := diff.GetOk("rotate_recovery_lock_password")
 
-	if !passwordTypeOk {
+	// Scenario 1: When enable_recovery_lock is false
+	if !enableRecoveryLockOk || !enableRecoveryLock.(bool) {
+		if rotateOk && rotate.(bool) {
+			return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'rotate_recovery_lock_password' must be false when 'enable_recovery_lock' is false", resourceName)
+		}
+		if passwordOk && password.(string) != "" {
+			return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'recovery_lock_password' must be empty when 'enable_recovery_lock' is false", resourceName)
+		}
+		if passwordTypeOk && passwordType.(string) != "MANUAL" {
+			return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'recovery_lock_password_type' must be 'MANUAL' when 'enable_recovery_lock' is false (this is the default value)", resourceName)
+		}
 		return nil
 	}
 
-	if passwordType.(string) == "RANDOM" && !rotateOk {
-		return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'rotate_recovery_lock_password' is required when 'recovery_lock_password_type' is set to 'RANDOM'", resourceName)
+	// For scenarios where enable_recovery_lock is true
+	if !passwordTypeOk {
+		return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'recovery_lock_password_type' must be set when 'enable_recovery_lock' is true", resourceName)
 	}
 
-	if passwordType.(string) != "RANDOM" && rotateOk && rotate.(bool) {
-		return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'rotate_recovery_lock_password' is not allowed when 'recovery_lock_password_type' is not set to 'RANDOM'", resourceName)
+	switch passwordType.(string) {
+	case "RANDOM":
+		// Scenario 2: Random password with rotation
+		if passwordOk && password.(string) != "" {
+			return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'recovery_lock_password' must be empty when 'recovery_lock_password_type' is 'RANDOM'", resourceName)
+		}
+		// Note: rotate_recovery_lock_password can be either true or false for RANDOM
+	case "MANUAL":
+		// Scenario 3: Manual password without rotation
+		if !passwordOk || password.(string) == "" {
+			return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'recovery_lock_password' must be set and non-empty when 'recovery_lock_password_type' is 'MANUAL'", resourceName)
+		}
+		if rotateOk && rotate.(bool) {
+			return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'rotate_recovery_lock_password' must be false when 'recovery_lock_password_type' is 'MANUAL'", resourceName)
+		}
+	default:
+		return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'recovery_lock_password_type' must be either 'MANUAL' or 'RANDOM'", resourceName)
 	}
 
 	return nil
@@ -93,7 +119,7 @@ func validateDateFormat(v interface{}, k string) (ws []string, errors []error) {
 
 func validateMinimumOSSpecificVersion(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
 	resourceName := diff.Get("display_name").(string)
-	versionType := diff.Get("prestate_minimum_os_target_version_type").(string)
+	versionType := diff.Get("prestage_minimum_os_target_version_type").(string)
 	specificVersion := diff.Get("minimum_os_specific_version").(string)
 
 	if versionType == "MINIMUM_OS_SPECIFIC_VERSION" {

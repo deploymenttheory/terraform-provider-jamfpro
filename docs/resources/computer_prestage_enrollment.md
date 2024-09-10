@@ -33,9 +33,9 @@ description: |-
 - `mandatory` (Boolean) Make MDM Profile Mandatory and require the user to apply the MDM profile. Computers with macOS 10.15 or later automatically require the user to apply the MDM profile
 - `mdm_removable` (Boolean) Allow MDM Profile Removal and allow the user to remove the MDM profile.
 - `prestage_installed_profile_ids` (List of String) IDs of the macOS configuration profiles installed during PreStage enrollment. requires decending order of profile IDs. can be left blank.
+- `prestage_minimum_os_target_version_type` (String) Enforce a minimum macOS target version type for the prestage enrollment. Required.
 - `prevent_activation_lock` (Boolean) Prevent user from enabling Activation Lock.
 - `purchasing_information` (Block List, Min: 1) Purchasing information associated with the computer prestage. (see [below for nested schema](#nestedblock--purchasing_information))
-- `recovery_lock_password` (String) Generate new Recovery Lock password 60 minutes after the password is viewed in Jamf Pro. Can be left blank.
 - `recovery_lock_password_type` (String) Method to use to set Recovery Lock password.'MANUAL' results in user having to enter a password. (Applies to all users) 'RANDOM' results inautomatic generation of a random password being set for the device. 'MANUAL' is the default.
 - `region` (String) The region setting defined for the computer prestage. Leverages ISO 3166-1 alpha-2 (two-letter country codes): https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2 . Ensure you define a code supported by jamf pro. Can be left blank.
 - `require_authentication` (Boolean) Indicates if the user is required to provide username and password on computers with macOS 10.10 or later.
@@ -48,6 +48,8 @@ description: |-
 ### Optional
 
 - `anchor_certificates` (List of String) List of Base64 encoded PEM Certificates.
+- `minimum_os_specific_version` (String) The minimum macOS version to enforce for the prestage enrollment. Only used if prestate_minimum_os_target_version_type is set to MINIMUM_OS_SPECIFIC_VERSION.
+- `recovery_lock_password` (String) Generate new Recovery Lock password 60 minutes after the password is viewed in Jamf Pro. Can be left blank.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
@@ -138,9 +140,11 @@ Required:
 - `biometric` (Boolean) Skip biometric setup.
 - `diagnostics` (Boolean) Skip diagnostics setup.
 - `display_tone` (Boolean) Skip Display Tone setup. (Deprecated)
+- `enable_lockdown_mode` (Boolean) Skip lockdown mode setup.
 - `file_vault` (Boolean) Skip FileVault setup.
 - `icloud_diagnostics` (Boolean) Skip iCloud diagnostics setup.
 - `icloud_storage` (Boolean) Skip iCloud Storage setup.
+- `intelligence` (Boolean) Skip Apple Intelligence setup.
 - `location` (Boolean) Skip Location setup.
 - `payment` (Boolean) Skip Payment setup.
 - `privacy` (Boolean) Skip Privacy setup.
@@ -150,6 +154,8 @@ Required:
 - `siri` (Boolean) Skip Siri setup.
 - `terms_of_address` (Boolean) Skip terms of address setup.
 - `tos` (Boolean) Skip Terms of Service setup.
+- `wallpaper` (Boolean) Skip wallpaper setup.
+- `welcome` (Boolean) Skip welcome setup.
 
 
 <a id="nestedblock--timeouts"></a>

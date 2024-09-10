@@ -48,18 +48,19 @@ resource "jamfpro_computer_extension_attribute" "computer_extension_attribute_sc
 
 ### Required
 
-- `enabled` (Boolean) Indicates if the computer extension attribute is enabled.
-- `input_type` (String) Extension Attribute Input Type
+- `enabled` (Boolean) Enabled by default, but for inputType Script we can disable it as well.Possible values are: false or true.
+- `input_type` (String) Extension attributes collect inventory data by using an input type.The type of the Input used to populate the extension attribute.
 - `name` (String) The unique name of the Jamf Pro computer extension attribute.
 
 ### Optional
 
-- `data_type` (String) Data type of the computer extension attribute. Can be string / integer / date (YYYY-MM-DD hh:mm:ss). Value defaults to `String`.
+- `data_type` (String) Data type of the computer extension attribute. Can be String, Integer, or Date.
 - `description` (String) Description of the computer extension attribute.
-- `input_popup` (List of String) List of popup choices
-- `input_script` (String) Script to populate extension attribute
-- `inventory_display` (String) Display details for inventory for the computer extension attribute. Value defaults to `General`.
-- `recon_display` (String) Display details for recon for the computer extension attribute.
+- `inventory_display_type` (String) Category in which to display the extension attribute in Jamf Pro.
+- `ldap_attribute_mapping` (String) Directory Service attribute use to populate the extension attribute.Required when inputType is 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING'.
+- `ldap_extension_attribute_allowed` (Boolean) Collect multiple values for this extension attribute. ldapExtensionAttributeAllowed is disabled by default, only for inputType 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING' it can be enabled. It's value cannot be modified during edit operation.Possible values are:true or false.
+- `popup_menu_choices` (List of String) When added with list of choices while creating computer extension attributes these Pop-up menu can be displayed in inventory information. User can choose a value from the pop-up menu list when enrolling a computer any time using Jamf Pro. Provide popupMenuChoices only when inputType is 'POPUP'.
+- `script_contents` (String) When we run this script it returns a data value each time a computer submits inventory to Jamf Pro. Provide scriptContents only when inputType is 'SCRIPT'.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
