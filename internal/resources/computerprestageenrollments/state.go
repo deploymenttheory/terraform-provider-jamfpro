@@ -2,6 +2,8 @@
 package computerprestageenrollments
 
 import (
+	"sort"
+
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -36,7 +38,6 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 		"region":                                resp.Region,
 		"auto_advance_setup":                    resp.AutoAdvanceSetup,
 		"install_profiles_during_setup":         resp.InstallProfilesDuringSetup,
-		"prestage_installed_profile_ids":        resp.PrestageInstalledProfileIds,
 		"custom_package_ids":                    resp.CustomPackageIds,
 		"custom_package_distribution_point_id":  resp.CustomPackageDistributionPointId,
 		"enable_recovery_lock":                  resp.EnableRecoveryLock,
@@ -65,6 +66,10 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 		// "session_timeout":                                      resp.SessionTimeout,
 		// "device_type":                                          resp.DeviceType,
 	}
+
+	prestageInstalledProfileIds := resp.PrestageInstalledProfileIds
+	sort.Strings(prestageInstalledProfileIds)
+	prestageAttributes["prestage_installed_profile_ids"] = prestageInstalledProfileIds
 
 	if locationInformation := resp.LocationInformation; locationInformation != (jamfpro.ComputerPrestageSubsetLocationInformation{}) {
 		prestageAttributes["location_information"] = []interface{}{
