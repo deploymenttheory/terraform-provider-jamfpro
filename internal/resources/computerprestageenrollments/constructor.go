@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -163,11 +162,8 @@ func constructLocationInformation(data map[string]interface{}, isUpdate bool, ve
 		d.Set(k, v)
 	}
 
-	newID := handleNestedID(data, isUpdate)
-	log.Printf("[DEBUG] constructLocationInformation: Using ID '%s'", newID)
-
 	return jamfpro.ComputerPrestageSubsetLocationInformation{
-		ID:           newID,
+		ID:           "-1",
 		VersionLock:  versionLock,
 		Username:     data["username"].(string),
 		Realname:     data["realname"].(string),
@@ -187,11 +183,8 @@ func constructPurchasingInformation(data map[string]interface{}, isUpdate bool, 
 		d.Set(k, v)
 	}
 
-	newID := handleNestedID(data, isUpdate)
-	log.Printf("[DEBUG] constructPurchasingInformation: Using ID '%s'", newID)
-
 	return jamfpro.ComputerPrestageSubsetPurchasingInformation{
-		ID:                newID,
+		ID:                "-1",
 		VersionLock:       versionLock,
 		Leased:            jamfpro.BoolPtr(data["leased"].(bool)),
 		Purchased:         jamfpro.BoolPtr(data["purchased"].(bool)),
@@ -210,11 +203,8 @@ func constructPurchasingInformation(data map[string]interface{}, isUpdate bool, 
 
 // constructAccountSettings constructs the AccountSettings subset of a Computer Prestage resource.
 func constructAccountSettings(data map[string]interface{}, isUpdate bool, versionLock int) jamfpro.ComputerPrestageSubsetAccountSettings {
-	newID := handleNestedID(data, isUpdate)
-	log.Printf("[DEBUG] constructAccountSettings: Using ID '%s'", newID)
-
 	return jamfpro.ComputerPrestageSubsetAccountSettings{
-		ID:                                      newID,
+		ID:                                      "-1",
 		VersionLock:                             versionLock,
 		PayloadConfigured:                       jamfpro.BoolPtr(data["payload_configured"].(bool)),
 		LocalAdminAccountEnabled:                jamfpro.BoolPtr(data["local_admin_account_enabled"].(bool)),
@@ -280,22 +270,6 @@ func handleVersionLock(currentVersionLock interface{}, isUpdate bool) int {
 func getHCLStringOrDefaultInteger(d *schema.ResourceData, key string) string {
 	if v, ok := d.GetOk(key); ok {
 		return v.(string)
-	}
-	return "-1"
-}
-
-// handleNestedID manages the ID field for nested structures within a Computer Prestage resource.
-func handleNestedID(data map[string]interface{}, isUpdate bool) string {
-	if id, ok := data["id"]; ok && id.(string) != "" {
-		if isUpdate {
-			currentID, err := strconv.Atoi(id.(string))
-			if err != nil {
-				log.Printf("[WARN] Failed to convert ID '%s' to integer: %v. Using original value.", id.(string), err)
-				return id.(string)
-			}
-			return strconv.Itoa(currentID + 1)
-		}
-		return id.(string)
 	}
 	return "-1"
 }
