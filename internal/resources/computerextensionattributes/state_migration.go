@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 func resourceComputerExtensionAttributeV0() *schema.Resource {
@@ -33,37 +35,52 @@ func upgradeComputerExtensionAttributeV0toV1(ctx context.Context, rawState map[s
 	newState["description"] = rawState["description"]
 	newState["enabled"] = rawState["enabled"]
 
-	// Update data_type to use proper capitalization
+	// Update data_type to use proper capitalization and match new schema
 	if dataType, ok := rawState["data_type"]; ok {
-		newState["data_type"] = strings.Title(dataType.(string))
+		caser := cases.Title(language.English)
+		newDataType := caser.String(strings.ToLower(dataType.(string)))
+		switch newDataType {
+		case "String", "Integer", "Date":
+			newState["data_type"] = strings.ToUpper(newDataType)
+		default:
+			newState["data_type"] = "STRING" // Default value
+		}
 	} else {
-		newState["data_type"] = "String" // Default value
+		newState["data_type"] = "STRING" // Default value
 	}
 
-	// Map inventory_display to inventory_display_type
+	// Map inventory_display to inventory_display_type and match new schema
 	if inv, ok := rawState["inventory_display"]; ok {
-		newState["inventory_display_type"] = inv
+		invUpper := strings.ToUpper(inv.(string))
+		switch invUpper {
+		case "GENERAL", "HARDWARE", "OPERATING_SYSTEM", "USER_AND_LOCATION", "PURCHASING", "EXTENSION_ATTRIBUTES":
+			newState["inventory_display_type"] = invUpper
+		default:
+			newState["inventory_display_type"] = "EXTENSION_ATTRIBUTES" // Default value
+		}
 	} else {
-		newState["inventory_display_type"] = "Extension Attributes" // Default value
+		newState["inventory_display_type"] = "EXTENSION_ATTRIBUTES" // Default value
 	}
 
 	// Handle input_type and related fields
 	if inputType, ok := rawState["input_type"]; ok {
-		switch inputType {
-		case "script":
-			newState["input_type"] = "Script"
+		switch strings.ToUpper(inputType.(string)) {
+		case "SCRIPT":
+			newState["input_type"] = "SCRIPT"
 			if script, ok := rawState["input_script"]; ok {
 				newState["script_contents"] = normalizeScript(script.(string))
 			}
-		case "Pop-up Menu":
-			newState["input_type"] = "Pop-up Menu"
+		case "POPUP":
+			newState["input_type"] = "POPUP"
 			if popup, ok := rawState["input_popup"]; ok {
 				newState["popup_menu_choices"] = popup
 			}
-		case "Text Field":
-			newState["input_type"] = "Text Field"
+		case "TEXT":
+			newState["input_type"] = "TEXT"
+		case "DIRECTORY_SERVICE_ATTRIBUTE_MAPPING":
+			newState["input_type"] = "DIRECTORY_SERVICE_ATTRIBUTE_MAPPING"
 		default:
-			newState["input_type"] = inputType
+			newState["input_type"] = "TEXT" // Default to TEXT if unknown
 		}
 	}
 
