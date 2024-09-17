@@ -9,12 +9,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// construct constructs a ResourceManagedSoftwareUpdatePlan object from the provided schema data.
+// construct builds a ResourceManagedSoftwareUpdatePlan object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceManagedSoftwareUpdatePlan, error) {
 	resource := &jamfpro.ResourceManagedSoftwareUpdatePlan{
 		Config: jamfpro.ResourcManagedSoftwareUpdatePlanConfig{},
 	}
 
+	// Handle group
 	if v, ok := d.GetOk("group"); ok {
 		groupList := v.([]interface{})
 		if len(groupList) > 0 {
@@ -26,6 +27,21 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceManagedSoftwareUpdatePl
 		}
 	}
 
+	// Handle device
+	if v, ok := d.GetOk("device"); ok {
+		deviceList := v.([]interface{})
+		if len(deviceList) > 0 {
+			device := deviceList[0].(map[string]interface{})
+			resource.Devices = []jamfpro.ResourcManagedSoftwareUpdatePlanObject{
+				{
+					DeviceId:   device["device_id"].(string),
+					ObjectType: device["object_type"].(string),
+				},
+			}
+		}
+	}
+
+	// Handle config
 	if v, ok := d.GetOk("config"); ok {
 		configList := v.([]interface{})
 		if len(configList) > 0 {
@@ -41,20 +57,10 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceManagedSoftwareUpdatePl
 		}
 	}
 
-	// Validation
-	if resource.Config.VersionType == "SPECIFIC_VERSION" || resource.Config.VersionType == "CUSTOM_VERSION" {
-		if resource.Config.SpecificVersion == "" {
-			return nil, fmt.Errorf("specific_version is required when version_type is SPECIFIC_VERSION or CUSTOM_VERSION")
-		}
-	}
-
-	if resource.Config.UpdateAction == "DOWNLOAD_INSTALL_ALLOW_DEFERRAL" && resource.Config.MaxDeferrals == 0 {
-		return nil, fmt.Errorf("max_deferrals is required when update_action is DOWNLOAD_INSTALL_ALLOW_DEFERRAL")
-	}
-
+	// Debug logging
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro managed software update '%s' to JSON: %v", resource.Group.GroupId, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro managed software update to JSON: %v", err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro managed software update JSON:\n%s\n", string(resourceJSON))

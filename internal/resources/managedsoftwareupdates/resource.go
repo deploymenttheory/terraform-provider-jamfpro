@@ -91,7 +91,7 @@ func ResourceJamfProManagedSoftwareUpdate() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
-							Description:  "Required when the provided updateAction is DOWNLOAD_INSTALL_ALLOW_DEFERRAL, not applicable to all managed software update plans",
+							Description:  "Required when the provided update_action is DOWNLOAD_INSTALL_ALLOW_DEFERRAL, not applicable to all managed software update plans",
 						},
 						"force_install_local_date_time": {
 							Type:        schema.TypeString,
