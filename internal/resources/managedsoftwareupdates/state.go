@@ -11,12 +11,11 @@ import (
 
 // updateState updates the Terraform state with the latest ResponseManagedSoftwareUpdatePlan
 // information from the Jamf Pro API.
-func updateState(d *schema.ResourceData, response *jamfpro.ResponseManagedSoftwareUpdatePlanList) diag.Diagnostics {
-	if response == nil || len(response.Results) == 0 {
+func updateState(d *schema.ResourceData, plan *jamfpro.ResponseManagedSoftwareUpdatePlan) diag.Diagnostics {
+	if plan == nil {
 		return diag.Errorf("no managed software update plan found in the response")
 	}
 
-	plan := response.Results[0]
 	d.SetId(plan.PlanUuid)
 	if err := d.Set("plan_uuid", plan.PlanUuid); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting plan_uuid: %v", err))

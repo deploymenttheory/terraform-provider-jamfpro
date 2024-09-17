@@ -79,27 +79,14 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
-	resourceUUID := d.Id()
 	var diags diag.Diagnostics
+	resourceUUID := d.Id()
 
-	var response *jamfpro.ResponseManagedSoftwareUpdatePlanList
+	var response *jamfpro.ResponseManagedSoftwareUpdatePlan
+
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		groupId := d.Get("group.0.group_id").(string)
-		objectType := d.Get("group.0.object_type").(string)
-		if groupId != "" && objectType != "" {
-			response, apiErr = client.GetManagedSoftwareUpdatePlansByGroupID(groupId, objectType)
-		} else {
-			// Assuming there's a method to get a single plan by UUID
-			var singlePlan *jamfpro.ResponseManagedSoftwareUpdatePlan
-			singlePlan, apiErr = client.GetManagedSoftwareUpdatePlanByUUID(resourceUUID)
-			if singlePlan != nil {
-				response = &jamfpro.ResponseManagedSoftwareUpdatePlanList{
-					TotalCount: 1,
-					Results:    []jamfpro.ResponseManagedSoftwareUpdatePlan{*singlePlan},
-				}
-			}
-		}
+		response, apiErr = client.GetManagedSoftwareUpdatePlanByUUID(resourceUUID)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
