@@ -56,6 +56,13 @@ This section outlines the resources and data sources provided by our Terraform p
 - **Status**: Community Preview
 - **Availability**: Introduced in version `v0.0.44.`
 
+### APP Installers
+
+- **Resource & Data Source**: Facilitates the management of App Installers in Jamf Pro from the Jamf Pro app catalog. This includes the creation, update, and deletion of app installer entities, along with the ability to specify app installer properties and associated payloads.
+
+- **Status**: Community Preview
+- **Availability**: Introduced in version `v0.2.0.`
+
 ### Buildings
 
 - **Resource & Data Source**: Provides the ability to manage Buildings within Jamf Pro. This resource allows for the specification of building names and addresses, facilitating better organization and segmentation of devices within different physical locations.
