@@ -48,42 +48,45 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceManagedSoftwareUpdatePl
 			config := configList[0].(map[string]interface{})
 
 			// Set common required fields
-			resource.Config = jamfpro.ResourcManagedSoftwareUpdatePlanConfig{
-				UpdateAction: config["update_action"].(string),
-				VersionType:  config["version_type"].(string),
-			}
+			resource.Config.UpdateAction = config["update_action"].(string)
+			resource.Config.VersionType = config["version_type"].(string)
 
-			// Conditionally set specificVersion
-			if config["version_type"].(string) == "SPECIFIC_VERSION" || config["version_type"].(string) == "CUSTOM_VERSION" {
-				resource.Config.SpecificVersion = config["specific_version"].(string)
+			// Set SpecificVersion, default to "NO_SPECIFIC_VERSION"
+			if v, ok := config["specific_version"]; ok && v.(string) != "" {
+				resource.Config.SpecificVersion = v.(string)
 			} else {
 				resource.Config.SpecificVersion = "NO_SPECIFIC_VERSION"
 			}
 
-			// Conditionally set buildVersion if version_type is CUSTOM_VERSION
-			if config["version_type"].(string) == "CUSTOM_VERSION" {
-				resource.Config.BuildVersion = config["build_version"].(string)
+			// Set BuildVersion, default to empty string if not present
+			if v, ok := config["build_version"]; ok && v.(string) != "" {
+				resource.Config.BuildVersion = v.(string)
+			} else {
+				resource.Config.BuildVersion = ""
 			}
 
-			// Conditionally set maxDeferrals if update_action is DOWNLOAD_INSTALL_ALLOW_DEFERRAL
-			if config["update_action"].(string) == "DOWNLOAD_INSTALL_ALLOW_DEFERRAL" {
-				resource.Config.MaxDeferrals = config["max_deferrals"].(int)
+			// Set MaxDeferrals, default to 0 if not applicable
+			if v, ok := config["max_deferrals"]; ok {
+				resource.Config.MaxDeferrals = v.(int)
+			} else {
+				resource.Config.MaxDeferrals = 0
 			}
 
-			// Conditionally set forceInstallLocalDateTime if provided
+			// Set ForceInstallLocalDateTime, default to empty string if not present
 			if v, ok := config["force_install_local_date_time"]; ok && v.(string) != "" {
 				resource.Config.ForceInstallLocalDateTime = v.(string)
+			} else {
+				resource.Config.ForceInstallLocalDateTime = ""
 			}
 		}
 	}
 
-	// Debug logging
-	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
+	// Debug logging for config specifically
+	configJSON, err := json.MarshalIndent(resource.Config, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro managed software update to JSON: %v", err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro managed software update config to JSON: %v", err)
 	}
-
-	log.Printf("[DEBUG] Constructed Jamf Pro managed software update JSON:\n%s\n", string(resourceJSON))
+	log.Printf("[DEBUG] Constructed Jamf Pro managed software update config JSON:\n%s\n", string(configJSON))
 
 	return resource, nil
 }

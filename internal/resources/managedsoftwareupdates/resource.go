@@ -85,6 +85,7 @@ func ResourceJamfProManagedSoftwareUpdate() *schema.Resource {
 						"build_version": {
 							Type:        schema.TypeString,
 							Optional:    true,
+							Default:     "",
 							Description: "Optional. Indicates the build version to update to. Only available when the version type is set to CUSTOM_VERSION.",
 						},
 						"max_deferrals": {
@@ -96,6 +97,7 @@ func ResourceJamfProManagedSoftwareUpdate() *schema.Resource {
 						"force_install_local_date_time": {
 							Type:        schema.TypeString,
 							Optional:    true,
+							Default:     "",
 							Description: "Optional. Indicates the local date and time of the device to force update by.",
 						},
 					},
