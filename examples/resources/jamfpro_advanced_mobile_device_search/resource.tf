@@ -1,0 +1,60 @@
+resource "jamfpro_advanced_mobile_device_search" "advanced_mobile_device_search_001" {
+  name    = "tf - Example Advanced mobile device Search"
+  view_as = "Standard Web Page"
+
+  sort1 = "Serial Number"
+  sort2 = "Username"
+  sort3 = "Department"
+
+  criteria {
+    name          = "Building"
+    priority      = 0
+    and_or        = "and"
+    search_type   = "is"
+    value         = "square"
+    opening_paren = true
+    closing_paren = false
+  }
+
+  criteria {
+    name          = "Model"
+    priority      = 1
+    and_or        = "and"
+    search_type   = "is"
+    value         = "macbook air"
+    opening_paren = false
+    closing_paren = true
+  }
+
+  criteria {
+    name          = "iOS Build"
+    priority      = 2
+    and_or        = "or"
+    search_type   = "matches regex"
+    value         = "thing"
+    opening_paren = true
+    closing_paren = false
+  }
+
+  criteria {
+    name          = "iOS Version"
+    priority      = 3
+    and_or        = "and"
+    search_type   = "has"
+    value         = "17"
+    opening_paren = false
+    closing_paren = true
+  }
+
+    site_id = "1"
+
+  display_fields = [
+    "AirPlay Password",
+    "App Analytics Enabled",
+    "Building",
+    "Department"
+  ]
+
+
+
+}
