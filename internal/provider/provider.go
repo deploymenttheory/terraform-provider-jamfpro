@@ -395,7 +395,7 @@ func Provider() *schema.Provider {
 			"jamfpro_network_segment":                             networksegments.ResourceJamfProNetworkSegments(),
 			"jamfpro_macos_configuration_profile_plist":           macosconfigurationprofilesplist.ResourceJamfProMacOSConfigurationProfilesPlist(),
 			"jamfpro_macos_configuration_profile_plist_generator": macosconfigurationprofilesplistgenerator.ResourceJamfProMacOSConfigurationProfilesPlistGenerator(),
-			"jamfpro_managed_software_updates":                    managedsoftwareupdates.ResourceJamfProManagedSoftwareUpdate(),
+			"jamfpro_managed_software_update":                     managedsoftwareupdates.ResourceJamfProManagedSoftwareUpdate(),
 			"jamfpro_mobile_device_configuration_profile_plist":   mobiledeviceconfigurationprofilesplist.ResourceJamfProMobileDeviceConfigurationProfilesPlist(),
 			"jamfpro_package":                                     packages.ResourceJamfProPackages(),
 			"jamfpro_policy":                                      policies.ResourceJamfProPolicies(),
@@ -549,11 +549,26 @@ func Provider() *schema.Provider {
 			}
 		}
 
-		// Amend timeouts
-		// TODO make this exclusions list a lot prettier.
-		// excludedResource := []string{"jamfpro_package"}
+		// Initialize standard timeout behaviour
 		for key, r := range provider.ResourcesMap {
 			if key != "jamfpro_package" && key != "jamfpro_static_computer_group" && key != "jamfpro_smart_computer_group" {
+				if r.Timeouts == nil {
+					r.Timeouts = &schema.ResourceTimeout{}
+				}
+
+				if r.Timeouts.Create == nil {
+					r.Timeouts.Create = schema.DefaultTimeout(GetDefaultContextTimeoutCreate(load_balancer_lock_enabled))
+				}
+				if r.Timeouts.Read == nil {
+					r.Timeouts.Read = schema.DefaultTimeout(GetDefaultContextTimeoutRead(load_balancer_lock_enabled))
+				}
+				if r.Timeouts.Update == nil {
+					r.Timeouts.Update = schema.DefaultTimeout(GetDefaultContextTimeoutUpdate(load_balancer_lock_enabled))
+				}
+				if r.Timeouts.Delete == nil {
+					r.Timeouts.Delete = schema.DefaultTimeout(GetDefaultContextTimeoutDelete(load_balancer_lock_enabled))
+				}
+
 				*r.Timeouts.Create = GetDefaultContextTimeoutCreate(load_balancer_lock_enabled)
 				*r.Timeouts.Read = GetDefaultContextTimeoutRead(load_balancer_lock_enabled)
 				*r.Timeouts.Update = GetDefaultContextTimeoutUpdate(load_balancer_lock_enabled)

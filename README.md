@@ -78,7 +78,7 @@ The provider contains:
 
 - [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.0
 - [Go](https://golang.org/doc/install) >= 1.22.4
-- [Jamf Pro](https://www.jamf.com/) >= 11.5.1
+- [Jamf Pro](https://www.jamf.com/) >= 11.9.1
 
 ## Community & Support
 
@@ -92,13 +92,17 @@ For further community support and to engage with other users of the Jamf Pro Ter
 
 This documentation provides a detailed explanation of the configuration options available in the `provider.tf` file for setting up the Jamf Pro provider in Terraform.
 
+
+### Jamf Cloud Load Balancing and Cookies
+
+- Jamf Cloud uses a load balancer to distribute traffic across multiple web app members. This abstraction can cause issues with Terraform's http client when multiple instances are running in parallel. Where freqently the client will be communicating with different web app members, causing stating unfound resource issues.
+- To mitigate this please use the `jamfpro_load_balancer_lock` (which enforces a single cookie across all parallel instances of Terraform operations) which extracts the correct cookie on first run from Jamf Pro and utilises it thereafter across all other sessions. This is eqivalent to a sticky session.
+- For non Jamf Cloud customers, with load balanced configurations please use `custom_cookies` and configure a custom cookie to be used in all requests instead.
+
 ### Concurrency
+
 - You can adjust paralellism by setting the Terraform parallelism count using `terraform apply -parallelism=X` (the default is 10). [HashiCorp Docs](https://developer.hashicorp.com/terraform/cli/commands/apply#parallelism-n)
 - The provider remains stable using paralellism of up to 50, going beyond is at your own risk!
-
-### Cookie Jar
-- The cookie jar has been removed as it is redundant with Terraform's parallelism.
-- Please use the cookie lock (which enforces a single cookie across all parallel instances of Terraform) or set a custom cookie (also remains consistent across all instances of Terraform).
 
 
 ## Configuration Schema
