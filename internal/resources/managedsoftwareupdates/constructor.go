@@ -31,21 +31,12 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceManagedSoftwareUpdatePl
 		if len(configList) > 0 {
 			config := configList[0].(map[string]interface{})
 			resource.Config = jamfpro.ResourcManagedSoftwareUpdatePlanConfig{
-				UpdateAction: config["update_action"].(string),
-				VersionType:  config["version_type"].(string),
-			}
-
-			if v, ok := config["specific_version"]; ok {
-				resource.Config.SpecificVersion = v.(string)
-			}
-			if v, ok := config["build_version"]; ok {
-				resource.Config.BuildVersion = v.(string)
-			}
-			if v, ok := config["max_deferrals"]; ok {
-				resource.Config.MaxDeferrals = v.(int)
-			}
-			if v, ok := config["force_install_local_date_time"]; ok {
-				resource.Config.ForceInstallLocalDateTime = v.(string)
+				UpdateAction:              config["update_action"].(string),
+				VersionType:               config["version_type"].(string),
+				SpecificVersion:           config["specific_version"].(string),
+				BuildVersion:              config["build_version"].(string),
+				MaxDeferrals:              config["max_deferrals"].(int),
+				ForceInstallLocalDateTime: config["force_install_local_date_time"].(string),
 			}
 		}
 	}
