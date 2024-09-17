@@ -11,6 +11,7 @@ func ResourceJamfProManagedSoftwareUpdate() *schema.Resource {
 		ReadContext:   readWithCleanup,
 		UpdateContext: update,
 		DeleteContext: delete,
+		CustomizeDiff: mainCustomDiffFunc,
 		Schema: map[string]*schema.Schema{
 			"plan_uuid": {
 				Type:        schema.TypeString,
@@ -19,20 +20,40 @@ func ResourceJamfProManagedSoftwareUpdate() *schema.Resource {
 			},
 			"group": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"group_id": {
 							Type:        schema.TypeString,
 							Required:    true,
-							Description: "The ID of the jamf pro device group for the update plan.",
+							Description: "The ID of the Jamf Pro device group for the update plan.",
 						},
 						"object_type": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringInSlice([]string{"COMPUTER_GROUP", "MOBILE_DEVICE_GROUP"}, false),
 							Description:  "The type of the group (COMPUTER_GROUP or MOBILE_DEVICE_GROUP).",
+						},
+					},
+				},
+			},
+			"device": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"device_id": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The ID of the individual device for the update plan.",
+						},
+						"object_type": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice([]string{"COMPUTER", "MOBILE_DEVICE", "APPLE_TV"}, false),
+							Description:  "The device type that the device_id refers to (COMPUTER, MOBILE_DEVICE, or APPLE_TV).",
 						},
 					},
 				},
@@ -59,7 +80,7 @@ func ResourceJamfProManagedSoftwareUpdate() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringInSlice([]string{"15.0", "14.7", "14.6.1", "14.6", "14.5", "13.7", "13.6.9", "13.6.8", "13.6.7", "12.7.6", "12.7.5", "11.7.10", "NO_SPECIFIC_VERSION"}, false),
-							Description:  "Optional. Indicates the specific version to update to. Only available when the version type is set to specific version or custom version, otherwise defaults to NO_SPECIFIC_VERSION..",
+							Description:  "Optional. Indicates the specific version to update to. Only available when the version type is set to specific version or custom version, otherwise defaults to NO_SPECIFIC_VERSION.",
 						},
 						"build_version": {
 							Type:        schema.TypeString,
@@ -75,7 +96,7 @@ func ResourceJamfProManagedSoftwareUpdate() *schema.Resource {
 						"force_install_local_date_time": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "Optional. Indicates the local date and time of the device to force update by..",
+							Description: "Optional. Indicates the local date and time of the device to force update by.",
 						},
 					},
 				},

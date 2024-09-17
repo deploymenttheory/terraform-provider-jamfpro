@@ -25,11 +25,9 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	// Lock the mutex to ensure only one create operation can run this function at a time
 	mu.Lock()
 	defer mu.Unlock()
 
-	// Check and accept the Jamf Managed Software Update terms and conditions
 	err := checkAndEnableManagedSoftwareUpdateFeatureToggle(ctx, client)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to ensure Jamf Pro Managed Software Update toggle is enabled: %v", err))
@@ -43,7 +41,11 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	var creationResponse *jamfpro.ResponseManagedSoftwareUpdatePlanCreate
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-		creationResponse, apiErr = client.CreateManagedSoftwareUpdatePlanByGroupID(resource)
+		if resource.Group.GroupId != "" {
+			creationResponse, apiErr = client.CreateManagedSoftwareUpdatePlanByGroupID(resource)
+		} else {
+			creationResponse, apiErr = client.CreateManagedSoftwareUpdatePlanByDeviceID(resource)
+		}
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -51,24 +53,53 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Managed Software Update '%s' after retries: %v", resource.Group.GroupId, err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Managed Software Update after retries: %v", err))
 	}
 
-	d.SetId(creationResponse.Plans[0].PlanID)
+	if len(creationResponse.Plans) > 0 {
+		planUUID := creationResponse.Plans[0].PlanID
+		d.SetId(planUUID)
+		if err := d.Set("plan_uuid", planUUID); err != nil {
+			return diag.FromErr(fmt.Errorf("error setting planID as plan_uuid: %v", err))
+		}
+
+		// Set group and object_type
+		if resource.Group.GroupId != "" {
+			if err := d.Set("group_id", resource.Group.GroupId); err != nil {
+				return diag.FromErr(fmt.Errorf("error setting group_id: %v", err))
+			}
+			if err := d.Set("object_type", resource.Group.ObjectType); err != nil {
+				return diag.FromErr(fmt.Errorf("error setting object_type: %v", err))
+			}
+		}
+	}
 
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
-// read reads and states a jamfpro managed software update plan
 func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	resourceUUID := d.Id()
 	var diags diag.Diagnostics
 
-	var response *jamfpro.ResponseManagedSoftwareUpdatePlan
+	var response *jamfpro.ResponseManagedSoftwareUpdatePlanList
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		response, apiErr = client.GetManagedSoftwareUpdatePlanByUUID(resourceUUID)
+		groupId := d.Get("group.0.group_id").(string)
+		objectType := d.Get("group.0.object_type").(string)
+		if groupId != "" && objectType != "" {
+			response, apiErr = client.GetManagedSoftwareUpdatePlansByGroupID(groupId, objectType)
+		} else {
+			// Assuming there's a method to get a single plan by UUID
+			var singlePlan *jamfpro.ResponseManagedSoftwareUpdatePlan
+			singlePlan, apiErr = client.GetManagedSoftwareUpdatePlanByUUID(resourceUUID)
+			if singlePlan != nil {
+				response = &jamfpro.ResponseManagedSoftwareUpdatePlanList{
+					TotalCount: 1,
+					Results:    []jamfpro.ResponseManagedSoftwareUpdatePlan{*singlePlan},
+				}
+			}
+		}
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
