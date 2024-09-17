@@ -80,8 +80,8 @@ github.com/deploymenttheory/go-api-http-client v0.2.12 h1:ZPnxbF9/S3EBTx8aFzRcof
 github.com/deploymenttheory/go-api-http-client v0.2.12/go.mod h1:LKDnBcieS6CyikZjTKPpziVdxnTwzBHE6Hx1cuWRcuU=
 github.com/deploymenttheory/go-api-http-client-integrations v0.0.11 h1:1jRrAeD6iGXw7DDccoYTre0XS9bVbCAk3lmFCO43Z28=
 github.com/deploymenttheory/go-api-http-client-integrations v0.0.11/go.mod h1:FQPNu+QaAyq9XWSjItJo82ABvkiGwdOlt73Qm6vp3MU=
-github.com/deploymenttheory/go-api-sdk-jamfpro v1.11.2 h1:ByesWMSSPXffJEpoqK9cKLlsIj0fvfnC+7sfPv6fd5o=
-github.com/deploymenttheory/go-api-sdk-jamfpro v1.11.2/go.mod h1:O/OX63ngU0NrEpPw6cZdMQL3eODLjJrEG4BlN/BoOUI=
+github.com/deploymenttheory/go-api-sdk-jamfpro v1.11.3 h1:jlSSYT8b1le1oUh6JBaEg4Ft7JNq1eW4G0xFxPp7tAM=
+github.com/deploymenttheory/go-api-sdk-jamfpro v1.11.3/go.mod h1:O/OX63ngU0NrEpPw6cZdMQL3eODLjJrEG4BlN/BoOUI=
 github.com/emirpasic/gods v1.18.1 h1:FXtiHYKDGKCW2KzwZKx0iC0PQmdlorYgdFG9jPXJ1Bc=
 github.com/emirpasic/gods v1.18.1/go.mod h1:8tpGGwCnJ5H4r6BWwaV6OrWmMoPhUl5jm/FMNAnJvWQ=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=
