@@ -2,6 +2,8 @@
 package managedsoftwareupdates
 
 import (
+	"fmt"
+
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -9,47 +11,48 @@ import (
 
 // updateState updates the Terraform state with the latest ResponseManagedSoftwareUpdatePlan
 // information from the Jamf Pro API.
-func updateState(d *schema.ResourceData, resp *jamfpro.ResponseManagedSoftwareUpdatePlan) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	resourceData := map[string]interface{}{
-		"plan_uuid": resp.PlanUuid,
+func updateState(d *schema.ResourceData, plan *jamfpro.ResponseManagedSoftwareUpdatePlan) diag.Diagnostics {
+	if plan == nil {
+		return diag.Errorf("no managed software update plan found in the response")
 	}
 
-	// Set group information if present
-	if resp.Device.DeviceId != "" {
-		group := []map[string]interface{}{
-			{
-				"group_id":    resp.Device.DeviceId, // Using DeviceId as GroupId
-				"object_type": resp.Device.ObjectType,
-			},
+	d.SetId(plan.PlanUuid)
+	if err := d.Set("plan_uuid", plan.PlanUuid); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting plan_uuid: %v", err))
+	}
+
+	// Set config fields
+	config := map[string]interface{}{
+		"update_action":                 plan.UpdateAction,
+		"version_type":                  plan.VersionType,
+		"specific_version":              plan.SpecificVersion,
+		"max_deferrals":                 plan.MaxDeferrals,
+		"force_install_local_date_time": plan.ForceInstallLocalDateTime,
+	}
+	if err := d.Set("config", []interface{}{config}); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting config: %v", err))
+	}
+
+	// Set group or device based on the object type
+	if plan.Device.ObjectType == "COMPUTER_GROUP" || plan.Device.ObjectType == "MOBILE_DEVICE_GROUP" {
+		group := map[string]interface{}{
+			"group_id":    plan.Device.DeviceId,
+			"object_type": plan.Device.ObjectType,
 		}
-		if err := d.Set("group", group); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+		if err := d.Set("group", []interface{}{group}); err != nil {
+			return diag.FromErr(fmt.Errorf("error setting group: %v", err))
 		}
-	}
-
-	// Set config information
-	config := []map[string]interface{}{
-		{
-			"update_action":                 resp.UpdateAction,
-			"version_type":                  resp.VersionType,
-			"specific_version":              resp.SpecificVersion,
-			"build_version":                 resp.BuildVersion,
-			"max_deferrals":                 resp.MaxDeferrals,
-			"force_install_local_date_time": resp.ForceInstallLocalDateTime,
-		},
-	}
-	if err := d.Set("config", config); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	// Set other top-level attributes
-	for k, v := range resourceData {
-		if err := d.Set(k, v); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+	} else if plan.Device.ObjectType == "COMPUTER" || plan.Device.ObjectType == "MOBILE_DEVICE" {
+		device := map[string]interface{}{
+			"device_id":   plan.Device.DeviceId,
+			"object_type": plan.Device.ObjectType,
 		}
+		if err := d.Set("device", []interface{}{device}); err != nil {
+			return diag.FromErr(fmt.Errorf("error setting device: %v", err))
+		}
+	} else {
+		return diag.FromErr(fmt.Errorf("unknown object type: %s", plan.Device.ObjectType))
 	}
 
-	return diags
+	return nil
 }
