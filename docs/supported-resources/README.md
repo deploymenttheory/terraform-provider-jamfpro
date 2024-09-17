@@ -35,6 +35,13 @@ This section outlines the resources and data sources provided by our Terraform p
 - **Status**: Community Preview
 - **Availability**: Introduced in version `v0.0.57.`
 
+### Allowed File Extensions
+
+- **Resource & Data Source**: Enables the management of the Allowed File Extensions within Jamf Pro.
+
+- **Status**: Community Preview
+- **Availability**: Introduced in version `v0.0.57.`
+
 ### API Roles
 
 - **Resource & Data Source**: Enables the management of API roles within Jamf Pro, allowing for the configuration of role names, privileges, and other details. these can be assigned to api integrations.
@@ -49,6 +56,13 @@ This section outlines the resources and data sources provided by our Terraform p
 - **Status**: Community Preview
 - **Availability**: Introduced in version `v0.0.44.`
 
+### APP Installers
+
+- **Resource & Data Source**: Facilitates the management of App Installers in Jamf Pro from the Jamf Pro app catalog. This includes the creation, update, and deletion of app installer entities, along with the ability to specify app installer properties and associated payloads.
+
+- **Status**: Community Preview
+- **Availability**: Introduced in version `v0.2.0.`
+
 ### Buildings
 
 - **Resource & Data Source**: Provides the ability to manage Buildings within Jamf Pro. This resource allows for the specification of building names and addresses, facilitating better organization and segmentation of devices within different physical locations.
@@ -62,6 +76,34 @@ This section outlines the resources and data sources provided by our Terraform p
 
 - **Status**: Finished
 - **Availability**: Introduced in version `v0.0.36.`
+
+### Computer Checkin Settings
+
+- **Resource**: Enables the management of Recurring Check-In Frequency which defines check-in behaviour for computers.
+
+- **Status**: Finished
+- **Availability**: Introduced in version `v0.0.50.`
+
+### Computer Extension Attributes
+
+- **Resource**: Create custom inventory attributes for to collect from macOS computer objects.
+
+- **Status**: Finished
+- **Availability**: Introduced in version `v0.3.0.`
+
+### Computer Inventory Collection
+
+- **Resource**: Configure the inventory collection settings for computers.
+
+- **Status**: Finished
+- **Availability**: Introduced in version `v0.0.50.`
+
+### Computer Prestage Enrollments
+
+- **Resource**: Create Computer PreStage enrollment thats allows for creation enrollment configurations and sync them to Apple. This enables you to enroll new computers with Jamf Pro, reducing the amount of time and interaction it takes to prepare computers for use.
+
+- **Status**: Community Preview
+- **Availability**: Introduced in version `v0.2.0.`
 
 ### Departments
 
@@ -99,6 +141,27 @@ package metadata in Jamf Pro.
 - **Status**: Community Preview
 - **Availability**: Introduced in version  `v0.0.34.`
 
+### Policies
+
+- **Resource & Data Source**: Policies allow you to remotely automate common management tasks on managed computers. Using a policy, you can run scripts, manage accounts, and distribute software. 
+
+- **Status**: Community Preview
+- **Availability**: Introduced in version  `v0.1.0.`
+
+### Printers
+
+- **Resource & Data Source**: Printers allow you to manage printer objects in Jamf Pro. This includes the creation, update, and deletion of printer entities, along with the ability to specify printer properties and associated payloads.
+
+- **Status**: Community Preview
+- **Availability**: Introduced in version  `v0.0.50.`
+
+### Restricted Software
+
+- **Resource & Data Source**: Restricted Software allows you to manage software objects in Jamf Pro. This includes the creation, update, and deletion of software entities, along with the ability to specify software properties and associated payloads.
+
+- **Status**: Finished
+- **Availability**: Introduced in version  `v0.0.50.`
+
 ### Scripts
 
 - **Resource & Data Source**: Facilitates the management of Scripts in Jamf Pro. This includes the creation, update, and deletion of script entities, along with the ability to specify script contents and associated properties.
@@ -113,12 +176,19 @@ package metadata in Jamf Pro.
 - **Status**: Finished
 - **Availability**: Introduced in version `v0.0.42.`
 
-### Restricted Software
+### Smart Computer Groups
 
-- **Resource & Data Source**: Facilitates the management of Restricted Software in Jamf Pro. This includes the creation, update, and deletion of restricted software entities, along with the ability to specify software properties and associated payloads.
+- **Resource & Data Source**: Facilitates the management of Smart Computer Groups in Jamf Pro. This includes the creation, update, and deletion of smart computer group entities, along with the ability to specify group criteria and associated properties.
 
 - **Status**: Finished
-- **Availability**: Introduced in version `v0.0.53.`
+- **Availability**: Introduced in version `v0.0.45.`
+
+### Static Computer Groups
+
+- **Resource & Data Source**: Facilitates the management of Static Computer Groups in Jamf Pro. This includes the creation, update, and deletion of smart computer group entities, along with the ability to specify group criteria and associated properties.
+
+- **Status**: Finished
+- **Availability**: Introduced in version `v0.0.45.`
 
 ### User Groups
 
@@ -126,3 +196,10 @@ package metadata in Jamf Pro.
 
 - **Status**: Finished
 - **Availability**: Introduced in version `v0.0.38`.
+
+### Webhooks
+
+- **Resource & Data Source**: Enables the management of Webhooks within Jamf Pro, allowing for the configuration of webhook names, URLs, and other details. Webhooks provide a way to receive real-time notifications from Jamf Pro when specific events occur.
+
+- **Status**: Finished
+- **Availability**: Introduced in version `v0.0.46.`
