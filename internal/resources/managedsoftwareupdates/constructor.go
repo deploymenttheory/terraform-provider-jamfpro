@@ -46,13 +46,33 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceManagedSoftwareUpdatePl
 		configList := v.([]interface{})
 		if len(configList) > 0 {
 			config := configList[0].(map[string]interface{})
+
+			// Set common required fields
 			resource.Config = jamfpro.ResourcManagedSoftwareUpdatePlanConfig{
-				UpdateAction:              config["update_action"].(string),
-				VersionType:               config["version_type"].(string),
-				SpecificVersion:           config["specific_version"].(string),
-				BuildVersion:              config["build_version"].(string),
-				MaxDeferrals:              config["max_deferrals"].(int),
-				ForceInstallLocalDateTime: config["force_install_local_date_time"].(string),
+				UpdateAction: config["update_action"].(string),
+				VersionType:  config["version_type"].(string),
+			}
+
+			// Conditionally set specificVersion
+			if config["version_type"].(string) == "SPECIFIC_VERSION" || config["version_type"].(string) == "CUSTOM_VERSION" {
+				resource.Config.SpecificVersion = config["specific_version"].(string)
+			} else {
+				resource.Config.SpecificVersion = "NO_SPECIFIC_VERSION"
+			}
+
+			// Conditionally set buildVersion if version_type is CUSTOM_VERSION
+			if config["version_type"].(string) == "CUSTOM_VERSION" {
+				resource.Config.BuildVersion = config["build_version"].(string)
+			}
+
+			// Conditionally set maxDeferrals if update_action is DOWNLOAD_INSTALL_ALLOW_DEFERRAL
+			if config["update_action"].(string) == "DOWNLOAD_INSTALL_ALLOW_DEFERRAL" {
+				resource.Config.MaxDeferrals = config["max_deferrals"].(int)
+			}
+
+			// Conditionally set forceInstallLocalDateTime if provided
+			if v, ok := config["force_install_local_date_time"]; ok && v.(string) != "" {
+				resource.Config.ForceInstallLocalDateTime = v.(string)
 			}
 		}
 	}
