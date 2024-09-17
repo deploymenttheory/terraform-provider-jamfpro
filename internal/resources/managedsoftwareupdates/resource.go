@@ -17,26 +17,6 @@ func ResourceJamfProManagedSoftwareUpdate() *schema.Resource {
 				Computed:    true,
 				Description: "The UUID of the managed software update plan.",
 			},
-			"devices": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"device_id": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "The ID of the device for the update plan.",
-						},
-						"object_type": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"COMPUTER", "MOBILE_DEVICE", "APPLE_TV"}, false),
-							Description:  "The type of the device (COMPUTER, MOBILE_DEVICE, or APPLE_TV).",
-						},
-					},
-				},
-			},
 			"group": {
 				Type:     schema.TypeList,
 				Optional: true,

@@ -29,7 +29,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	mu.Lock()
 	defer mu.Unlock()
 
-	// Check and accept the Jamf App Catalog Managed Software Update terms and conditions
+	// Check and accept the Jamf Managed Software Update terms and conditions
 	err := checkAndEnableManagedSoftwareUpdateFeatureToggle(ctx, client)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to ensure Jamf Pro Managed Software Update toggle is enabled: %v", err))
@@ -43,29 +43,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	var creationResponse *jamfpro.ResponseManagedSoftwareUpdatePlanCreate
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		var apiErr error
-
-		// Check if device_id and object_type are provided
-		if deviceID, ok := d.GetOk("devices.0.device_id"); ok {
-			objectType := d.Get("devices.0.object_type").(string)
-			resource.Devices = []jamfpro.ManagedSoftwareUpdatePlanObject{
-				{
-					DeviceId:   deviceID.(string),
-					ObjectType: objectType,
-				},
-			}
-			creationResponse, apiErr = client.CreateManagedSoftwareUpdatePlanByDeviceID(resource)
-		} else if groupID, ok := d.GetOk("group.0.group_id"); ok {
-			// Check if group_id and object_type are provided
-			objectType := d.Get("group.0.object_type").(string)
-			resource.Group = jamfpro.ManagedSoftwareUpdatePlanObject{
-				GroupId:    groupID.(string),
-				ObjectType: objectType,
-			}
-			creationResponse, apiErr = client.CreateManagedSoftwareUpdatePlanByGroupID(resource)
-		} else {
-			return retry.NonRetryableError(fmt.Errorf("either device_id or group_id must be provided"))
-		}
-
+		creationResponse, apiErr = client.CreateManagedSoftwareUpdatePlanByGroupID(resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -73,15 +51,10 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Managed Software Update after retries: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Managed Software Update '%s' after retries: %v", resource.Group.GroupId, err))
 	}
 
-	// Assuming the creation response contains a PlanID for the first plan
-	if len(creationResponse.Plans) > 0 {
-		d.SetId(creationResponse.Plans[0].PlanID)
-	} else {
-		return diag.FromErr(fmt.Errorf("no plan ID returned in the creation response"))
-	}
+	d.SetId(creationResponse.Plans[0].PlanID)
 
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
@@ -92,7 +65,7 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 	resourceUUID := d.Id()
 	var diags diag.Diagnostics
 
-	var response *jamfpro.ResourceManagedSoftwareUpdatePlan
+	var response *jamfpro.ResponseManagedSoftwareUpdatePlan
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
 		response, apiErr = client.GetManagedSoftwareUpdatePlanByUUID(resourceUUID)

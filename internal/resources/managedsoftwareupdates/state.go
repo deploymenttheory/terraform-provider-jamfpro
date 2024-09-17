@@ -7,44 +7,24 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// updateState updates the Terraform state with the latest ResourceManagedSoftwareUpdatePlan
+// updateState updates the Terraform state with the latest ResponseManagedSoftwareUpdatePlan
 // information from the Jamf Pro API.
-func updateState(d *schema.ResourceData, resp *jamfpro.ResourceManagedSoftwareUpdatePlan) diag.Diagnostics {
+func updateState(d *schema.ResourceData, resp *jamfpro.ResponseManagedSoftwareUpdatePlan) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	resourceData := map[string]interface{}{
-		"plan_uuid":                     resp.PlanUuid,
-		"recipe_id":                     resp.RecipeId,
-		"update_action":                 resp.UpdateAction,
-		"version_type":                  resp.VersionType,
-		"specific_version":              resp.SpecificVersion,
-		"build_version":                 resp.BuildVersion,
-		"max_deferrals":                 resp.MaxDeferrals,
-		"force_install_local_date_time": resp.ForceInstallLocalDateTime,
+		"plan_uuid": resp.PlanUuid,
 	}
 
-	// Set device information
+	// Set group information if present
 	if resp.Device.DeviceId != "" {
-		device := []map[string]interface{}{
+		group := []map[string]interface{}{
 			{
-				"device_id":   resp.Device.DeviceId,
+				"group_id":    resp.Device.DeviceId, // Using DeviceId as GroupId
 				"object_type": resp.Device.ObjectType,
 			},
 		}
-		if err := d.Set("devices", device); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	}
-
-	// Set status information
-	if resp.Status.State != "" {
-		status := []map[string]interface{}{
-			{
-				"state":         resp.Status.State,
-				"error_reasons": resp.Status.ErrorReasons,
-			},
-		}
-		if err := d.Set("status", status); err != nil {
+		if err := d.Set("group", group); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
@@ -64,6 +44,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceManagedSoftwareUp
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	// Set other top-level attributes
 	for k, v := range resourceData {
 		if err := d.Set(k, v); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
