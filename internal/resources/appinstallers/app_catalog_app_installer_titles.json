@@ -1,5 +1,5 @@
 {
-    "totalCount": 179,
+    "totalCount": 182,
     "results": [
         {
             "id": "027",
@@ -95,7 +95,7 @@
             "titleName": "Microsoft Outlook 365",
             "publisher": "Microsoft",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/0A1.png",
-            "version": "16.89.24091630",
+            "version": "16.89.24092212",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -183,7 +183,7 @@
             "titleName": "Google Chrome",
             "publisher": "Google",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/0BC.png",
-            "version": "129.0.6668.59",
+            "version": "129.0.6668.71",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -205,7 +205,7 @@
             "titleName": "Microsoft Skype",
             "publisher": "Microsoft",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/0BF.png",
-            "version": "8.128.0.207",
+            "version": "8.129.0.201",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -282,7 +282,7 @@
             "titleName": "Spotify",
             "publisher": "Spotify",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/0E8.png",
-            "version": "1.2.45.454",
+            "version": "1.2.47.364",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -304,7 +304,7 @@
             "titleName": "JetBrains IntelliJ IDEA Community",
             "publisher": "JetBrains",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/0EA.png",
-            "version": "2024.2.2",
+            "version": "2024.2.3",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -315,7 +315,7 @@
             "titleName": "JetBrains IntelliJ IDEA Ultimate",
             "publisher": "JetBrains",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/0EB.png",
-            "version": "2024.2.2",
+            "version": "2024.2.3",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -326,7 +326,7 @@
             "titleName": "JetBrains PhpStorm",
             "publisher": "JetBrains",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/0EC.png",
-            "version": "2024.2.1",
+            "version": "2024.2.3",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -337,7 +337,7 @@
             "titleName": "JetBrains PyCharm Community",
             "publisher": "JetBrains",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/0ED.png",
-            "version": "2024.2.2",
+            "version": "2024.2.3",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -348,7 +348,7 @@
             "titleName": "JetBrains PyCharm Professional",
             "publisher": "JetBrains",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/0EE.png",
-            "version": "2024.2.2",
+            "version": "2024.2.3",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -359,7 +359,7 @@
             "titleName": "JetBrains RubyMine",
             "publisher": "JetBrains",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/0EF.png",
-            "version": "2024.2.2",
+            "version": "2024.2.3",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -370,7 +370,7 @@
             "titleName": "JetBrains WebStorm",
             "publisher": "JetBrains",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/0F0.png",
-            "version": "2024.2.2",
+            "version": "2024.2.3",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -392,7 +392,7 @@
             "titleName": "Zoom Client for Meetings",
             "publisher": "Zoom Video Communications",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/0F9.png",
-            "version": "6.2.0 (40111)",
+            "version": "6.2.2 (40571)",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -447,7 +447,7 @@
             "titleName": "Evernote",
             "publisher": "Evernote",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/10C.png",
-            "version": "10.106.4",
+            "version": "10.107.3",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -469,7 +469,7 @@
             "titleName": "Postman",
             "publisher": "Postman",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/11E.png",
-            "version": "11.13.0",
+            "version": "11.14.0",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -590,7 +590,7 @@
             "titleName": "Brave Browser",
             "publisher": "Brave",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/1B7.png",
-            "version": "129.1.70.117",
+            "version": "129.1.70.119",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -601,7 +601,7 @@
             "titleName": "JetBrains GoLand",
             "publisher": "JetBrains",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/1BB.png",
-            "version": "2024.2.2",
+            "version": "2024.2.3",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -623,7 +623,7 @@
             "titleName": "TeamViewer 15",
             "publisher": "TeamViewer",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/1C2.png",
-            "version": "15.57.5",
+            "version": "15.58.4",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -634,7 +634,7 @@
             "titleName": "TeamViewer 15 Host",
             "publisher": "TeamViewer",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/1C3.png",
-            "version": "15.57.5",
+            "version": "15.58.4",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -645,7 +645,7 @@
             "titleName": "TeamViewer 15 QuickSupport",
             "publisher": "TeamViewer",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/1C4.png",
-            "version": "15.57.5",
+            "version": "15.58.4",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -656,7 +656,7 @@
             "titleName": "DBeaver Community Edition",
             "publisher": "DBeaver Corporation",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/1C5.png",
-            "version": "24.2.0",
+            "version": "24.2.1",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -667,7 +667,7 @@
             "titleName": "Microsoft Edge",
             "publisher": "Microsoft",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/1D4.png",
-            "version": "129.0.2792.52",
+            "version": "129.0.2792.65",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -722,7 +722,7 @@
             "titleName": "Discord",
             "publisher": "Discord",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/22D.png",
-            "version": "0.0.319",
+            "version": "0.0.320",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -744,7 +744,7 @@
             "titleName": "Microsoft Defender",
             "publisher": "Microsoft",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/256.png",
-            "version": "101.24072.0006",
+            "version": "101.24072.0007",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -854,7 +854,7 @@
             "titleName": "TeamViewer 15 QuickJoin",
             "publisher": "TeamViewer",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/341.png",
-            "version": "15.57.5",
+            "version": "15.58.4",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -898,7 +898,7 @@
             "titleName": "Adobe Substance 3D Designer",
             "publisher": "Adobe",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/399.png",
-            "version": "14.0.0",
+            "version": "14.0.1",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -975,7 +975,7 @@
             "titleName": "Grammarly Desktop",
             "publisher": "Grammarly",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/4D4.png",
-            "version": "1.87.1",
+            "version": "1.88.0",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1294,7 +1294,7 @@
             "titleName": "IBM Notifier",
             "publisher": "IBM",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/5AF.png",
-            "version": "3.2.0",
+            "version": "3.2.1",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1349,7 +1349,7 @@
             "titleName": "Cloudflare WARP",
             "publisher": "Cloudflare",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/621.png",
-            "version": "2024.6.474.0",
+            "version": "2024.8.457.0",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1360,7 +1360,7 @@
             "titleName": "Jamf Composer",
             "publisher": "Jamf",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/Composer.png",
-            "version": "11.9.1",
+            "version": "11.9.2",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1382,7 +1382,7 @@
             "titleName": "Cypress",
             "publisher": "Cypress.io",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/54C.png",
-            "version": "13.14.2",
+            "version": "13.15.0",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1536,7 +1536,7 @@
             "titleName": "Keeper Password Manager",
             "publisher": "Keeper Security",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/272.png",
-            "version": "16.11.2",
+            "version": "16.11.3",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1646,7 +1646,7 @@
             "titleName": "Sequel Ace",
             "publisher": "Moballo, LLC",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/5F5.png",
-            "version": "4.1.2",
+            "version": "4.1.3",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1701,7 +1701,7 @@
             "titleName": "Alfred 5",
             "publisher": "Running with Crayons",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/51D.png",
-            "version": "5.5",
+            "version": "5.5.1",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1734,7 +1734,7 @@
             "titleName": "pgAdmin 4",
             "publisher": "The pgAdmin Development Team",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/16D.png",
-            "version": "8.11",
+            "version": "8.12",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1778,7 +1778,7 @@
             "titleName": "Arc",
             "publisher": "The Browser Company",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/5C6.png",
-            "version": "1.61.0",
+            "version": "1.61.2",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1811,7 +1811,7 @@
             "titleName": "Jetbrains Aqua",
             "publisher": "JetBrains",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/640.png",
-            "version": "2024.2",
+            "version": "2024.2.1",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1822,7 +1822,7 @@
             "titleName": "Jetbrains RustRover",
             "publisher": "Jetbrains",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/641.png",
-            "version": "2024.2.1",
+            "version": "2024.2.2",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1844,7 +1844,7 @@
             "titleName": "LibreOffice",
             "publisher": "The Document Foundation",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/0F2.png",
-            "version": "24.8.1.2",
+            "version": "24.8.2.1",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1855,7 +1855,7 @@
             "titleName": "Dialpad",
             "publisher": "Dialpad",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/202.png",
-            "version": "2409.3.1",
+            "version": "2409.4.0",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1877,7 +1877,7 @@
             "titleName": "NordLayer",
             "publisher": "Nord Security",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/646.png",
-            "version": "3.5.1",
+            "version": "3.5.2",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1888,7 +1888,7 @@
             "titleName": "RingCentral App",
             "publisher": "RingCentral",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/246.png",
-            "version": "24.3.260.11854",
+            "version": "24.3.302.12076",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1966,6 +1966,39 @@
             "publisher": "SUSE",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/55F.png",
             "version": "1.16.0",
+            "launchDaemonIncluded": null,
+            "notificationAvailable": null,
+            "suppressAutoUpdate": null
+        },
+        {
+            "id": "67E",
+            "bundleId": "com.microsoft.rdc.macos",
+            "titleName": "Microsoft Windows App",
+            "publisher": "Microsoft",
+            "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/67E.png",
+            "version": "11.0.1",
+            "launchDaemonIncluded": null,
+            "notificationAvailable": null,
+            "suppressAutoUpdate": null
+        },
+        {
+            "id": "680",
+            "bundleId": "com.parallels.desktop.console",
+            "titleName": "Parallels Desktop 20",
+            "publisher": "Parallels International",
+            "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/680.png",
+            "version": "20.0.1",
+            "launchDaemonIncluded": null,
+            "notificationAvailable": null,
+            "suppressAutoUpdate": null
+        },
+        {
+            "id": "4EB",
+            "bundleId": "com.cricut.design",
+            "titleName": "Cricut Design Space",
+            "publisher": "Cricut",
+            "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/4EB.png",
+            "version": "8.49.58",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
