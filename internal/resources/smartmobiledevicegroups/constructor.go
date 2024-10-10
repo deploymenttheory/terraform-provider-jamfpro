@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// constructJamfProSmartComputerGroup constructs a ResourceMobileDeviceGroup object from the provided schema data.
+// constructJamfProSmartMobileGroup constructs a ResourceMobileDeviceGroup object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceGroup, error) {
 	resource := &jamfpro.ResourceMobileDeviceGroup{
 		Name:    d.Get("name").(string),
@@ -28,7 +28,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceGroup, erro
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Group '%s' to XML: %v", resource.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Mobile Group '%s' to XML: %v", resource.Name, err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro Mobile Device Group XML:\n%s\n", string(resourceXML))
