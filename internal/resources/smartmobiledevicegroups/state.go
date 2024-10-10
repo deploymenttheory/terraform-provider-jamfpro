@@ -13,11 +13,10 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceGroup
 	if err := d.Set("name", resp.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-	if err := d.Set("is_smart", resp.IsSmart); err != nil {
+
+	if err := d.Set("site_id", resp.Site.ID); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-
-	d.Set("site_id", resp.Site.ID)
 
 	if resp.Criteria.Size != 0 && resp.Criteria.Criterion != nil {
 		criteria := setMobileSmartGroupSubsetContainerCriteria(resp.Criteria)
