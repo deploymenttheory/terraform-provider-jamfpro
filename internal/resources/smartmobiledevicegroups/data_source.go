@@ -1,5 +1,4 @@
-// smartmobilegroup_data_source.go
-package smartmobilegroups
+package smartmobiledevicegroups
 
 import (
 	"context"

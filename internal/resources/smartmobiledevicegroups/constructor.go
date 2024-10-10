@@ -1,5 +1,4 @@
-// smartcomputergroup_object.go
-package smartmobilegroups
+package smartmobiledevicegroups
 
 import (
 	"encoding/xml"
@@ -16,28 +15,32 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceGroup, erro
 		Name:    d.Get("name").(string),
 		IsSmart: true,
 	}
-	/*
-		resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
+	if (d.Get("site_id").(int)) == 0 || (d.Get("site_id").(int)) == -1 {
+		resource.Site = jamfpro.SharedResourceSite{ID: -1, Name: ""}
 
-		if v, ok := d.GetOk("criteria"); ok {
-			resource.Criteria = constructMobileGroupSubsetContainerCriteria(v.([]interface{}))
-		}
-	*/
+	} else {
+		resource.Site = jamfpro.SharedResourceSite{ID: (d.Get("site_id").(int))}
+	}
+
+	if v, ok := d.GetOk("criteria"); ok {
+		resource.Criteria = constructMobileGroupSubsetContainerCriteria(v.([]interface{}))
+	}
+
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Group '%s' to XML: %v", resource.Name, err)
 	}
 
-	log.Printf("[DEBUG] Constructed Jamf Pro Computer Group XML:\n%s\n", string(resourceXML))
+	log.Printf("[DEBUG] Constructed Jamf Pro Mobile Device Group XML:\n%s\n", string(resourceXML))
 
 	return resource, nil
 }
 
-// constructComputerGroupSubsetContainerCriteria constructs a ComputerGroupSubsetContainerCriteria object from the provided schema data.
-func constructMobileGroupSubsetContainerCriteria(criteriaList []interface{}) *jamfpro.ComputerGroupSubsetContainerCriteria {
-	criteria := &jamfpro.ComputerGroupSubsetContainerCriteria{
+// constructMobileGroupSubsetContainerCriteria constructs a constructMobileGroupSubsetContainerCriteria object from the provided schema data.
+func constructMobileGroupSubsetContainerCriteria(criteriaList []interface{}) jamfpro.SharedContainerCriteria {
+	criteria := jamfpro.SharedContainerCriteria{
 		Size:      len(criteriaList),
-		Criterion: &[]jamfpro.SharedSubsetCriteria{},
+		Criterion: []jamfpro.SharedSubsetCriteria{},
 	}
 
 	for _, item := range criteriaList {
@@ -51,7 +54,7 @@ func constructMobileGroupSubsetContainerCriteria(criteriaList []interface{}) *ja
 			OpeningParen: criterionData["opening_paren"].(bool),
 			ClosingParen: criterionData["closing_paren"].(bool),
 		}
-		*criteria.Criterion = append(*criteria.Criterion, criterion)
+		criteria.Criterion = append(criteria.Criterion, criterion)
 	}
 
 	return criteria

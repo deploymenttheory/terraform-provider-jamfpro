@@ -1,5 +1,4 @@
-// smartmobilegroup_resource.go
-package smartmobilegroups
+package smartmobiledevicegroups
 
 import (
 	"fmt"
@@ -61,11 +60,6 @@ func ResourceJamfProSmartMobileGroups() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The unique name of the Jamf Pro mobile group.",
-			},
-			"is_smart": {
-				Type:        schema.TypeBool,
-				Computed:    true,
-				Description: "Boolean selection to state if the group is a Smart group or not. If false then the group is a static group.",
 			},
 			"site_id": sharedschemas.GetSharedSchemaSite(),
 			"criteria": {

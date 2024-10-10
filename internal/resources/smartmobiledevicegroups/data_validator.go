@@ -1,5 +1,4 @@
-// smartmobilegroup_data_validator.go
-package smartmobilegroups
+package smartmobiledevicegroups
 
 import (
 	"context"

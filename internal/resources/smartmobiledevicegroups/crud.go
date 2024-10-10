@@ -1,5 +1,4 @@
-// smartcomputergroup_crud.go
-package smartmobilegroups
+package smartmobiledevicegroups
 
 import (
 	"context"

@@ -1,5 +1,4 @@
-// smartmobilegroup_state.go
-package smartmobilegroups
+package smartmobiledevicegroups
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -20,7 +19,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceGroup
 
 	d.Set("site_id", resp.Site.ID)
 
-	/*if 1 == 0 {
+	if resp.Criteria.Size != 0 && resp.Criteria.Criterion != nil {
 		criteria := setMobileSmartGroupSubsetContainerCriteria(resp.Criteria)
 		if err := d.Set("criteria", criteria); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
@@ -29,21 +28,20 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceGroup
 		if err := d.Set("criteria", []interface{}{}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
-	}*/
+	}
 
 	return diags
 }
 
-/*
 // setMobileSmartGroupSubsetContainerCriteria flattens a MobileGroupSubsetContainerCriteria object into a format suitable for Terraform state.
-func setMobileSmartGroupSubsetContainerCriteria(criteria *jamfpro.SharedContainerCriteria) []interface{} {
+func setMobileSmartGroupSubsetContainerCriteria(criteria jamfpro.SharedContainerCriteria) []interface{} {
 	// TODO Review this!
-	if criteria == nil || criteria.Criterion == nil {
+	if criteria.Size == 0 || criteria.Criterion == nil {
 		return []interface{}{}
 	}
 
 	var criteriaList []interface{}
-	for _, criterion := range *criteria.Criterion {
+	for _, criterion := range criteria.Criterion {
 		criterionMap := map[string]interface{}{
 			"name":          criterion.Name,
 			"priority":      criterion.Priority,
@@ -58,4 +56,3 @@ func setMobileSmartGroupSubsetContainerCriteria(criteria *jamfpro.SharedContaine
 
 	return criteriaList
 }
-*/
