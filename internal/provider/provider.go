@@ -43,6 +43,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/scripts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/sites"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/smartcomputergroups"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/smartmobilegroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/staticcomputergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/usergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/webhooks"
@@ -365,6 +366,7 @@ func Provider() *schema.Provider {
 			"jamfpro_script":                                    scripts.DataSourceJamfProScripts(),
 			"jamfpro_site":                                      sites.DataSourceJamfProSites(),
 			"jamfpro_smart_computer_group":                      smartcomputergroups.DataSourceJamfProSmartComputerGroups(),
+			"jamfpro_smart_mobile_group":                        smartmobilegroups.DataSourceJamfProSmartMobileGroups(),
 			"jamfpro_static_computer_group":                     staticcomputergroups.DataSourceJamfProStaticComputerGroups(),
 			"jamfpro_restricted_software":                       restrictedsoftware.DataSourceJamfProRestrictedSoftwares(),
 			"jamfpro_user_group":                                usergroups.DataSourceJamfProUserGroups(),
@@ -402,6 +404,7 @@ func Provider() *schema.Provider {
 			"jamfpro_script":                scripts.ResourceJamfProScripts(),
 			"jamfpro_site":                  sites.ResourceJamfProSites(),
 			"jamfpro_smart_computer_group":  smartcomputergroups.ResourceJamfProSmartComputerGroups(),
+			"jamfpro_smart_mobile_group":    smartmobilegroups.ResourceJamfProSmartMobileGroups(),
 			"jamfpro_static_computer_group": staticcomputergroups.ResourceJamfProStaticComputerGroups(),
 			"jamfpro_restricted_software":   restrictedsoftware.ResourceJamfProRestrictedSoftwares(),
 			"jamfpro_user_group":            usergroups.ResourceJamfProUserGroups(),
