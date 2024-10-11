@@ -1,4 +1,4 @@
-package mobileextensionattributes
+package mobiledeviceextensionattributes
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"golang.org/x/text/language"
 )
 
-func resourceMobileExtensionAttributeV0() *schema.Resource {
+func resourceMobileDeviceExtensionAttributeV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"id":                {Type: schema.TypeString, Computed: true},
@@ -26,7 +26,7 @@ func resourceMobileExtensionAttributeV0() *schema.Resource {
 	}
 }
 
-func upgradeMobileExtensionAttributeV0toV1(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func upgradeMobileDeviceExtensionAttributeV0toV1(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	newState := make(map[string]interface{})
 
 	// Map existing fields

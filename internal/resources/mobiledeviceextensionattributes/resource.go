@@ -1,5 +1,5 @@
-// mobileextensionattributes_resource.go
-package mobileextensionattributes
+// mobiledeviceextensionattributes_resource.go
+package mobiledeviceextensionattributes
 
 import (
 	"time"
@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-// resourceJamfProMobileExtensionAttributes defines the schema and CRUD operations (Create, Read, Update, Delete)
-// for managing Jamf Pro Mobile Extension Attributes in Terraform.
-func ResourceJamfProMobileExtensionAttributes() *schema.Resource {
+// resourceJamfProMobileDeviceExtensionAttributes defines the schema and CRUD operations (Create, Read, Update, Delete)
+// for managing Jamf Pro MobileDevice Extension Attributes in Terraform.
+func ResourceJamfProMobileDeviceExtensionAttributes() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,
 		ReadContext:   readWithCleanup,
@@ -25,8 +25,8 @@ func ResourceJamfProMobileExtensionAttributes() *schema.Resource {
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
 			{
-				Type:    resourceMobileExtensionAttributeV0().CoreConfigSchema().ImpliedType(),
-				Upgrade: upgradeMobileExtensionAttributeV0toV1,
+				Type:    resourceMobileDeviceExtensionAttributeV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: upgradeMobileDeviceExtensionAttributeV0toV1,
 				Version: 0,
 			},
 		},
@@ -37,23 +37,23 @@ func ResourceJamfProMobileExtensionAttributes() *schema.Resource {
 			"id": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The unique identifier of the mobile extension attribute.",
+				Description: "The unique identifier of the mobiledevice extension attribute.",
 			},
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The unique name of the Jamf Pro mobile extension attribute.",
+				Description: "The unique name of the Jamf Pro mobiledevice extension attribute.",
 			},
 			"description": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Description of the mobile extension attribute.",
+				Description: "Description of the mobiledevice extension attribute.",
 			},
 			"data_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "String",
-				Description:  "Data type of the mobile extension attribute. Can be String, Integer, or Date.",
+				Description:  "Data type of the mobiledevice extension attribute. Can be String, Integer, or Date.",
 				ValidateFunc: validation.StringInSlice([]string{"STRING", "INTEGER", "DATE"}, false),
 			},
 			"enabled": {
@@ -77,7 +77,7 @@ func ResourceJamfProMobileExtensionAttributes() *schema.Resource {
 			"script_contents": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "When we run this script it returns a data value each time a mobile submits inventory to Jamf Pro. Provide scriptContents only when inputType is 'SCRIPT'.",
+				Description: "When we run this script it returns a data value each time a mobiledevice submits inventory to Jamf Pro. Provide scriptContents only when inputType is 'SCRIPT'.",
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					return normalizeScript(old) == normalizeScript(new)
 				},
@@ -88,7 +88,7 @@ func ResourceJamfProMobileExtensionAttributes() *schema.Resource {
 			"popup_menu_choices": {
 				Type:        schema.TypeList,
 				Optional:    true,
-				Description: "When added with list of choices while creating mobile extension attributes these Pop-up menu can be displayed in inventory information. User can choose a value from the pop-up menu list when enrolling a mobile any time using Jamf Pro. Provide popupMenuChoices only when inputType is 'POPUP'.",
+				Description: "When added with list of choices while creating mobiledevice extension attributes these Pop-up menu can be displayed in inventory information. User can choose a value from the pop-up menu list when enrolling a mobiledevice any time using Jamf Pro. Provide popupMenuChoices only when inputType is 'POPUP'.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},

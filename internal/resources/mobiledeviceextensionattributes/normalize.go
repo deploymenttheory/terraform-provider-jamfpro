@@ -1,4 +1,4 @@
-package mobileextensionattributes
+package mobiledeviceextensionattributes
 
 import "strings"
 

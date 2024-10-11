@@ -1,4 +1,4 @@
-package mobileDeviceextensionattributes
+package mobiledeviceextensionattributes
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// create is responsible for creating a new Jamf Pro Mobile Extension Attribute in the remote system.
+// create is responsible for creating a new Jamf Pro MobileDevice Extension Attribute in the remote system.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return common.Create(
 		ctx,
@@ -21,7 +21,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	)
 }
 
-// read is responsible for reading the current state of a Jamf Pro Mobile Extension Attribute from the remote system.
+// read is responsible for reading the current state of a Jamf Pro MobileDevice Extension Attribute from the remote system.
 func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	return common.Read(
 		ctx,
@@ -43,7 +43,7 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 	return read(ctx, d, meta, false)
 }
 
-// update is responsible for updating an existing Jamf Pro Mobile Extension Attribute on the remote system.
+// update is responsible for updating an existing Jamf Pro MobileDevice Extension Attribute on the remote system.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return common.Update(
 		ctx,
@@ -55,7 +55,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	)
 }
 
-// delete is responsible for deleting a Jamf Pro Mobile Extension Attribute.
+// delete is responsible for deleting a Jamf Pro MobileDevice Extension Attribute.
 
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return common.Delete(
