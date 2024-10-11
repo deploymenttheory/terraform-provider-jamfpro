@@ -35,6 +35,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macosconfigurationprofilesplist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macosconfigurationprofilesplistgenerator"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mobiledeviceconfigurationprofilesplist"
+
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/networksegments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/packages"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/policies"
@@ -360,6 +361,7 @@ func Provider() *schema.Provider {
 			"jamfpro_network_segment":                           networksegments.DataSourceJamfProNetworkSegments(),
 			"jamfpro_macos_configuration_profile_plist":         macosconfigurationprofilesplist.DataSourceJamfProMacOSConfigurationProfilesPlist(),
 			"jamfpro_mobile_device_configuration_profile_plist": mobiledeviceconfigurationprofilesplist.DataSourceJamfProMobileDeviceConfigurationProfilesPlist(),
+			"jamfpro_mobile_extension_attribute":                mobileextensionattribute.DataSourceJamfProMobileDeviceExtensionAttributes(),
 			"jamfpro_package":                                   packages.DataSourceJamfProPackages(),
 			"jamfpro_policy":                                    policies.DataSourceJamfProPolicies(),
 			"jamfpro_printer":                                   printers.DataSourceJamfProPrinters(),
@@ -398,17 +400,18 @@ func Provider() *schema.Provider {
 			"jamfpro_macos_configuration_profile_plist_generator": macosconfigurationprofilesplistgenerator.ResourceJamfProMacOSConfigurationProfilesPlistGenerator(),
 			//"jamfpro_managed_software_update":                     managedsoftwareupdates.ResourceJamfProManagedSoftwareUpdate(),
 			"jamfpro_mobile_device_configuration_profile_plist": mobiledeviceconfigurationprofilesplist.ResourceJamfProMobileDeviceConfigurationProfilesPlist(),
-			"jamfpro_package":                   packages.ResourceJamfProPackages(),
-			"jamfpro_policy":                    policies.ResourceJamfProPolicies(),
-			"jamfpro_printer":                   printers.ResourceJamfProPrinters(),
-			"jamfpro_script":                    scripts.ResourceJamfProScripts(),
-			"jamfpro_site":                      sites.ResourceJamfProSites(),
-			"jamfpro_smart_computer_group":      smartcomputergroups.ResourceJamfProSmartComputerGroups(),
-			"jamfpro_smart_mobile_device_group": smartmobiledevicegroups.ResourceJamfProSmartMobileGroups(),
-			"jamfpro_static_computer_group":     staticcomputergroups.ResourceJamfProStaticComputerGroups(),
-			"jamfpro_restricted_software":       restrictedsoftware.ResourceJamfProRestrictedSoftwares(),
-			"jamfpro_user_group":                usergroups.ResourceJamfProUserGroups(),
-			"jamfpro_webhook":                   webhooks.ResourceJamfProWebhooks(),
+			"jamfpro_mobile_extension_attribute":                mobileextensionattributes.ResourceJamfProMobileExtensionAttributes(),
+			"jamfpro_package":                                   packages.ResourceJamfProPackages(),
+			"jamfpro_policy":                                    policies.ResourceJamfProPolicies(),
+			"jamfpro_printer":                                   printers.ResourceJamfProPrinters(),
+			"jamfpro_script":                                    scripts.ResourceJamfProScripts(),
+			"jamfpro_site":                                      sites.ResourceJamfProSites(),
+			"jamfpro_smart_computer_group":                      smartcomputergroups.ResourceJamfProSmartComputerGroups(),
+			"jamfpro_smart_mobile_device_group":                 smartmobiledevicegroups.ResourceJamfProSmartMobileGroups(),
+			"jamfpro_static_computer_group":                     staticcomputergroups.ResourceJamfProStaticComputerGroups(),
+			"jamfpro_restricted_software":                       restrictedsoftware.ResourceJamfProRestrictedSoftwares(),
+			"jamfpro_user_group":                                usergroups.ResourceJamfProUserGroups(),
+			"jamfpro_webhook":                                   webhooks.ResourceJamfProWebhooks(),
 		},
 	}
 
