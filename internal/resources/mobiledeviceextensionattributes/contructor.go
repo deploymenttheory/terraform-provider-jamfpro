@@ -31,7 +31,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileExtensionAttribut
 		dataTypeChange = "String"
 	}
 
-	switch d.Get("inventory_display").(string) {
+	switch d.Get("inventory_display_type").(string) {
 	case "GENERAL":
 		inventoryDisplayChange = "General"
 	case "HARDWARE":

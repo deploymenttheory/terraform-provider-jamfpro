@@ -56,7 +56,7 @@ func ResourceJamfProMobileDeviceExtensionAttributes() *schema.Resource {
 				Description:  "Data type of the mobiledevice extension attribute. Can be String, Integer, or Date.",
 				ValidateFunc: validation.StringInSlice([]string{"STRING", "INTEGER", "DATE", "String", "Integer", "Date"}, false),
 			},
-			"inventory_display": {
+			"inventory_display_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "EXTENSION_ATTRIBUTES",
