@@ -24,7 +24,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileExtensionAttribut
 	// Serialize and pretty-print the inventory collection object as JSON for logging
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro MobileDevice Extension Attribute to JSON: %v", err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Mobile Device Extension Attribute to JSON: %v", err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro MobileDevice Extension Attribute JSON:\n%s\n", string(resourceJSON))
