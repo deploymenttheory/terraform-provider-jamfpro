@@ -11,12 +11,57 @@ import (
 
 // construct builds a ResourceMobileDeviceExtensionAttribute object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileExtensionAttribute, error) {
+	var dataTypeChange string
+	var inventoryDisplayChange string
+
+	switch d.Get("data_type").(string) {
+	case "STRING":
+		dataTypeChange = "String"
+	case "INTEGER":
+		dataTypeChange = "Integer"
+	case "DATE":
+		dataTypeChange = "Date"
+	case "String":
+		dataTypeChange = "String"
+	case "Integer":
+		dataTypeChange = "Integer"
+	case "Date":
+		dataTypeChange = "Date"
+	default:
+		dataTypeChange = "String"
+	}
+
+	switch d.Get("inventory_display").(string) {
+	case "GENERAL":
+		inventoryDisplayChange = "General"
+	case "HARDWARE":
+		inventoryDisplayChange = "Hardware"
+	case "USER_AND_LOCATION":
+		inventoryDisplayChange = "User and Location"
+	case "PURCHASING":
+		inventoryDisplayChange = "Purchasing"
+	case "EXTENSION_ATTRIBUTES":
+		inventoryDisplayChange = "Extension Attributes"
+	case "General":
+		inventoryDisplayChange = "General"
+	case "Hardware":
+		inventoryDisplayChange = "Hardware"
+	case "User and Location":
+		inventoryDisplayChange = "User and Location"
+	case "Purchasing":
+		inventoryDisplayChange = "Purchasing"
+	case "Extension Attributes":
+		inventoryDisplayChange = "Extension Attributes"
+	default:
+		inventoryDisplayChange = "Extension Attributes"
+	}
+
 	resource := &jamfpro.ResourceMobileExtensionAttribute{
 		Name:             d.Get("name").(string),
 		Description:      d.Get("description").(string),
-		DataType:         d.Get("data_type").(string),
-		InputType:        jamfpro.MobileExtensionAttributeSubsetInputType{Type: (d.Get("input_type").(string))},
-		InventoryDisplay: d.Get("inventory_display").(string),
+		DataType:         jamfpro.MobileExtensionAttributeSubsetDataType{Type: dataTypeChange},
+		InputType:        jamfpro.MobileExtensionAttributeSubsetInputType{Type: "Text Field"},
+		InventoryDisplay: jamfpro.MobileExtensionAttributeSubsetInventoryDisplay{Type: inventoryDisplayChange},
 	}
 
 	// resource.InputType = jamfpro.MobileExtensionAttributeSubsetInputType{Type: (d.Get("input_type").(string))}

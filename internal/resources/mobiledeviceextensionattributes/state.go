@@ -10,21 +10,21 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileExtensionAttribute) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if err := d.Set("id", resp.ID); err != nil {
-		return diag.FromErr(err)
-	}
+	// if err := d.Set("id", resp.ID); err != nil {
+	// 	return diag.FromErr(err)
+	// }
 	if err := d.Set("name", resp.Name); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("description", resp.Description); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("data_type", resp.DataType); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("input_type", resp.InputType); err != nil {
-		return diag.FromErr(err)
-	}
+	// if err := d.Set("data_type", resp.DataType); err != nil {
+	// 	return diag.FromErr(err)
+	// }
+	// if err := d.Set("input_type", resp.InputType); err != nil {
+	// 	return diag.FromErr(err)
+	// }
 
 	// Handle input type specific fields
 	// switch resp.InputType {

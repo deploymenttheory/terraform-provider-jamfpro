@@ -52,24 +52,24 @@ func ResourceJamfProMobileDeviceExtensionAttributes() *schema.Resource {
 			"data_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "String",
+				Default:      "STRING",
 				Description:  "Data type of the mobiledevice extension attribute. Can be String, Integer, or Date.",
-				ValidateFunc: validation.StringInSlice([]string{"String", "Integer", "Date"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"STRING", "INTEGER", "DATE", "String", "Integer", "Date"}, false),
 			},
 			"inventory_display": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "Extension Attributes",
+				Default:      "EXTENSION_ATTRIBUTES",
 				Description:  "Category in which to display the extension attribute in Jamf Pro.",
-				ValidateFunc: validation.StringInSlice([]string{"General", "Hardware", "User and Location", "Purchasing", "Extension Attributes"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"GENERAL", "HARDWARE", "USER_AND_LOCATION", "PURCHASING", "EXTENSION_ATTRIBUTES", "General", "Hardware", "User and Location", "Purchasing", "Extension Attributes"}, false),
 			},
-			"input_type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "Text Field",
-				Description:  "Input type for the Extension Attribute.",
-				ValidateFunc: validation.StringInSlice([]string{"Text Field"}, false),
-			},
+			// "input_type": {
+			// 	Type:         schema.TypeString,
+			// 	Optional:     true,
+			// 	Default:      "Text Field",
+			// 	Description:  "Input type for the Extension Attribute.",
+			// 	ValidateFunc: validation.StringInSlice([]string{"Text Field"}, false),
+			// },
 		},
 	}
 }
