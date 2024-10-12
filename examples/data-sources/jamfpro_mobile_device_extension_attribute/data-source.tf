@@ -1,0 +1,11 @@
+data "jamfpro_mobile_device_extension_attribute" "jamfpro_mobile_device_extension_attribute_001_data" {
+  id = jamfpro_mobile_device_extension_attribute.jamfpro_mobile_device_extension_attribute_001.id
+}
+
+output "jamfpro_mobile_device_extension_attribute_001_data_id" {
+  value = data.jamfpro_mobile_device_extension_attribute.jamfpro_mobile_device_extension_attribute_001_data.id
+}
+
+output "jamfpro_mobile_device_extension_attribute_001_data_name" {
+  value = data.jamfpro_mobile_device_extension_attribute.jamfpro_mobile_device_extension_attribute_001_data.name
+}
