@@ -47,7 +47,7 @@ func ResourceJamfProMobileDeviceExtensionAttributes() *schema.Resource {
 				Description:  "Data type of the mobile device extension attribute. Can be String, Integer, or Date.",
 				ValidateFunc: validation.StringInSlice([]string{"String", "Integer", "Date"}, false),
 			},
-			"inventory_display_type": {
+			"inventory_display": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "Category in which to display the extension attribute in Jamf Pro.",
@@ -71,7 +71,8 @@ func ResourceJamfProMobileDeviceExtensionAttributes() *schema.Resource {
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
-							Description: "List of choices for Pop-up Menu input type.",
+							Description:      "List of choices for Pop-up Menu input type.",
+							DiffSuppressFunc: suppressPopupChoicesDiff,
 						},
 					},
 				},

@@ -1,6 +1,8 @@
 package mobiledeviceextensionattributes
 
 import (
+	"strconv"
+
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -10,7 +12,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileExtensionAttribute) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if err := d.Set("id", resp.ID); err != nil {
+	if err := d.Set("id", strconv.Itoa(resp.ID)); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("name", resp.Name); err != nil {

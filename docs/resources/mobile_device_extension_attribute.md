@@ -9,12 +9,34 @@ description: |-
 
 ## Example Usage
 ```terraform
+# Pop-up menu Example
+resource "jamfpro_mobile_device_extension_attribute" "popup_menu_example" {
+  name               = "Device Location"
+  description        = "The primary location where this device is used"
+  data_type          = "String"
+  inventory_display  = "User and Location"
+  
+  input_type {
+    type = "Pop-up Menu"
+    popup_choices = [
+      "Head Office",
+      "Branch Office",
+      "Home Office",
+      "Client Site"
+    ]
+  }
+}
+
 # Text Field Example
-resource "jamfpro_mobile_device_extension_attribute" "mobile_device_extension_attribute_text_field_1" {
-  name                   = "tf-example-text-field-ea"
-  description            = "An attribute collected from a text field."
-  data_type              = "STRING"
-  inventory_display_type = "EXTENSION_ATTRIBUTES"
+resource "jamfpro_mobile_device_extension_attribute" "text_field_example" {
+  name               = "User Department"
+  description        = "The department to which the device user belongs"
+  data_type          = "String"
+  inventory_display  = "General"
+  
+  input_type {
+    type = "Text Field"
+  }
 }
 ```
 
@@ -23,18 +45,31 @@ resource "jamfpro_mobile_device_extension_attribute" "mobile_device_extension_at
 
 ### Required
 
+- `data_type` (String) Data type of the mobile device extension attribute. Can be String, Integer, or Date.
+- `input_type` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--input_type))
+- `inventory_display` (String) Category in which to display the extension attribute in Jamf Pro.
 - `name` (String) The unique name of the Jamf Pro mobiledevice extension attribute.
 
 ### Optional
 
-- `data_type` (String) Data type of the mobiledevice extension attribute. Can be String, Integer, or Date.
 - `description` (String) Description of the mobiledevice extension attribute.
-- `inventory_display_type` (String) Category in which to display the extension attribute in Jamf Pro.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
 
 - `id` (String) The unique identifier of the mobile device extension attribute.
+
+<a id="nestedblock--input_type"></a>
+### Nested Schema for `input_type`
+
+Required:
+
+- `type` (String) Input type for the Extension Attribute.
+
+Optional:
+
+- `popup_choices` (List of String) List of choices for Pop-up Menu input type.
+
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`
