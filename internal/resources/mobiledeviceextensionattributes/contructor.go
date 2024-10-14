@@ -9,111 +9,49 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// construct builds a ResourceMobileDeviceExtensionAttribute object from the provided schema data.
+// construct builds a ResourceMobileExtensionAttribute object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileExtensionAttribute, error) {
-	var dataTypeChange string
-	var inventoryDisplayChange string
-
-	switch d.Get("data_type").(string) {
-	case "STRING":
-		dataTypeChange = "String"
-	case "INTEGER":
-		dataTypeChange = "Integer"
-	case "DATE":
-		dataTypeChange = "Date"
-	case "String":
-		dataTypeChange = "String"
-	case "Integer":
-		dataTypeChange = "Integer"
-	case "Date":
-		dataTypeChange = "Date"
-	default:
-		dataTypeChange = "String"
-	}
-
-	switch d.Get("inventory_display_type").(string) {
-	case "GENERAL":
-		inventoryDisplayChange = "General"
-	case "HARDWARE":
-		inventoryDisplayChange = "Hardware"
-	case "USER_AND_LOCATION":
-		inventoryDisplayChange = "User and Location"
-	case "PURCHASING":
-		inventoryDisplayChange = "Purchasing"
-	case "EXTENSION_ATTRIBUTES":
-		inventoryDisplayChange = "Extension Attributes"
-	case "General":
-		inventoryDisplayChange = "General"
-	case "Hardware":
-		inventoryDisplayChange = "Hardware"
-	case "User and Location":
-		inventoryDisplayChange = "User and Location"
-	case "Purchasing":
-		inventoryDisplayChange = "Purchasing"
-	case "Extension Attributes":
-		inventoryDisplayChange = "Extension Attributes"
-	default:
-		inventoryDisplayChange = "Extension Attributes"
-	}
-
 	resource := &jamfpro.ResourceMobileExtensionAttribute{
 		Name:             d.Get("name").(string),
 		Description:      d.Get("description").(string),
-		DataType:         jamfpro.MobileExtensionAttributeSubsetDataType{Type: dataTypeChange},
-		InputType:        jamfpro.MobileExtensionAttributeSubsetInputType{Type: "Text Field"},
-		InventoryDisplay: jamfpro.MobileExtensionAttributeSubsetInventoryDisplay{Type: inventoryDisplayChange},
+		DataType:         d.Get("data_type").(string),
+		InventoryDisplay: d.Get("inventory_display").(string),
 	}
 
-	// resource.InputType = jamfpro.MobileExtensionAttributeSubsetInputType{Type: (d.Get("input_type").(string))}
+	// Handle the nested input_type structure
+	if v, ok := d.GetOk("input_type"); ok {
+		inputTypeList := v.([]interface{})
+		if len(inputTypeList) > 0 {
+			inputTypeMap := inputTypeList[0].(map[string]interface{})
+			resource.InputType = jamfpro.MobileExtensionAttributeSubsetInputType{
+				Type: inputTypeMap["type"].(string),
+			}
 
-	// Serialize and pretty-print the inventory collection object as JSON for logging
+			// Handle popup choices
+			if choices, ok := inputTypeMap["popup_choices"]; ok {
+				choicesList := choices.([]interface{})
+				resource.InputType.PopupChoices = jamfpro.PopupChoices{
+					Choice: make([]string, len(choicesList)),
+				}
+				for i, choice := range choicesList {
+					resource.InputType.PopupChoices.Choice[i] = choice.(string)
+				}
+			}
+		}
+	}
+
+	// Validate the input type
+	if err := ValidateInputType(resource); err != nil {
+		return nil, fmt.Errorf("failed to construct: %v", err)
+	}
+
+	// Serialize and pretty-print the mobile device extension attribute object as JSON for logging
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Mobile Device Extension Attribute to JSON: %v", err)
 	}
 
-	log.Printf("[DEBUG] Constructed Jamf Pro MobileDevice Extension Attribute JSON:\n%s\n", string(resourceJSON))
+	log.Printf("[DEBUG] Constructed Jamf Pro Mobile Device Extension Attribute JSON:\n%s\n", string(resourceJSON))
 
 	return resource, nil
 }
-
-// Validate the input type
-// if err := validateInputType(resource); err != nil {
-// 	return nil, fmt.Errorf("failed to construct : %v", err)
-// }
-
-// validateInputType ensures that the appropriate fields are set based on the input type
-// func validateInputType(resource *jamfpro.ResourceMobileExtensionAttribute) error {
-// 	switch resource.InputType {
-// 	case "SCRIPT":
-// 		if resource.ScriptContents == "" {
-// 			return fmt.Errorf("script_contents must be set when input_type is 'SCRIPT' (current value: '%s')", resource.ScriptContents)
-// 		}
-// 		if len(resource.PopupMenuChoices) > 0 || resource.LDAPAttributeMapping != "" {
-// 			return fmt.Errorf("popup_menu_choices and ldap_attribute_mapping should not be set when input_type is 'SCRIPT'")
-// 		}
-// 	case "POPUP":
-// 		if len(resource.PopupMenuChoices) == 0 {
-// 			return fmt.Errorf("popup_menu_choices must be set when input_type is 'POPUP'")
-// 		}
-// 		if resource.ScriptContents != "" || resource.LDAPAttributeMapping != "" {
-// 			return fmt.Errorf("script_contents and ldap_attribute_mapping should not be set when input_type is 'POPUP'")
-// 		}
-// 	case "DIRECTORY_SERVICE_ATTRIBUTE_MAPPING":
-// 		if resource.LDAPAttributeMapping == "" {
-// 			return fmt.Errorf("ldap_attribute_mapping must be set when input_type is 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING'")
-// 		}
-// 		if resource.ScriptContents != "" || len(resource.PopupMenuChoices) > 0 {
-// 			return fmt.Errorf("script_contents and popup_menu_choices should not be set when input_type is 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING'")
-// 		}
-// 		// Note: ldap_extension_attribute_allowed is handled by the schema's default value
-// 	case "TEXT":
-// 		if resource.ScriptContents != "" || len(resource.PopupMenuChoices) > 0 || resource.LDAPAttributeMapping != "" {
-// 			return fmt.Errorf("script_contents, popup_menu_choices, and ldap_attribute_mapping should not be set when input_type is 'TEXT'")
-// 		}
-// 	default:
-// 		return fmt.Errorf("invalid input_type: %s", resource.InputType)
-// 	}
-
-// 	return nil
-// }

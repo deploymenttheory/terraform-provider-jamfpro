@@ -22,14 +22,6 @@ func ResourceJamfProMobileDeviceExtensionAttributes() *schema.Resource {
 			Update: schema.DefaultTimeout(30 * time.Second),
 			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
-		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    resourceMobileDeviceExtensionAttributeV0().CoreConfigSchema().ImpliedType(),
-				Upgrade: upgradeMobileDeviceExtensionAttributeV0toV1,
-				Version: 0,
-			},
-		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -51,25 +43,39 @@ func ResourceJamfProMobileDeviceExtensionAttributes() *schema.Resource {
 			},
 			"data_type": {
 				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "STRING",
-				Description:  "Data type of the mobiledevice extension attribute. Can be String, Integer, or Date.",
-				ValidateFunc: validation.StringInSlice([]string{"STRING", "INTEGER", "DATE", "String", "Integer", "Date"}, false),
+				Required:     true,
+				Description:  "Data type of the mobile device extension attribute. Can be String, Integer, or Date.",
+				ValidateFunc: validation.StringInSlice([]string{"String", "Integer", "Date"}, false),
 			},
 			"inventory_display_type": {
 				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "EXTENSION_ATTRIBUTES",
+				Required:     true,
 				Description:  "Category in which to display the extension attribute in Jamf Pro.",
 				ValidateFunc: validation.StringInSlice([]string{"GENERAL", "HARDWARE", "USER_AND_LOCATION", "PURCHASING", "EXTENSION_ATTRIBUTES", "General", "Hardware", "User and Location", "Purchasing", "Extension Attributes"}, false),
 			},
-			// "input_type": {
-			// 	Type:         schema.TypeString,
-			// 	Optional:     true,
-			// 	Default:      "Text Field",
-			// 	Description:  "Input type for the Extension Attribute.",
-			// 	ValidateFunc: validation.StringInSlice([]string{"Text Field"}, false),
-			// },
+			"input_type": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Required: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:         schema.TypeString,
+							Required:     true,
+							Description:  "Input type for the Extension Attribute.",
+							ValidateFunc: validation.StringInSlice([]string{"Text Field", "Pop-up Menu"}, false),
+						},
+						"popup_choices": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Description: "List of choices for Pop-up Menu input type.",
+						},
+					},
+				},
+			},
 		},
 	}
 }
