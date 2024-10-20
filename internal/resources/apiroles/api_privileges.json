@@ -335,6 +335,7 @@
         "Send Inventory Requests to Mobile Devices",
         "Send Local Admin Password Command",
         "Send MDM Check In Command",
+        "Send MDM command information in Jamf Pro API",
         "Send Messages to Self Service Mobile",
         "Send Mobile Device Bluetooth Command",
         "Send Mobile Device Diagnostics and Usage Reporting and App Analytics Commands",
