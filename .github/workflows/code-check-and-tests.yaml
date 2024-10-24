@@ -78,8 +78,6 @@ jobs:
           version: v1.58
       - name: yamllint
         run: |
-          sudo apt-get install -y yamllint
-          yamllint --version
           yamllint .
   generate:
     name: go generate
