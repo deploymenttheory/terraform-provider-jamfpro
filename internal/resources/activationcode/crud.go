@@ -42,7 +42,7 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Di
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	d.SetId("jamfpro_computer_checkin_singleton")
+	d.SetId("jamfpro_activation_code_singleton")
 
 	var response *jamfpro.ResourceActivationCode
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
