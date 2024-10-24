@@ -92,6 +92,7 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+				DiffSuppressFunc: diffSuppressPopupMenuChoices,
 			},
 			"ldap_attribute_mapping": {
 				Type:        schema.TypeString,
