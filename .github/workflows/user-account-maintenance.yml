@@ -1,0 +1,125 @@
+# Description: This workflow is used to fetch data sets from jamf pro that change over time. The export is then used
+# for various purposes including valid data look ups for valid values for HCL fields within the provider.
+name: Jamf Pro User Accounts Privileges Maintenance
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Run every Sunday at midnight UTC
+  workflow_dispatch:     # Allow manual triggering
+
+permissions:
+  contents: write
+  pull-requests: write   # Needed to create a pull request
+
+jobs:
+  update-user-account-privileges:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4.1.7
+
+    - name: Set up Go
+      uses: actions/setup-go@v5.0.2
+      with:
+        go-version: '1.22.4'  # current version used by the go-api-sdk-jamfpro package
+
+    - name: Harden Runner
+      uses: step-security/harden-runner@v2.10.1
+      with:
+        egress-policy: audit
+
+    - name: Install dependencies
+      run: |
+        go mod download
+        go get github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro
+
+    - name: Run User Account Privileges Fetcher
+      env:
+        LOG_LEVEL: "debug"
+        HIDE_SENSITIVE_DATA: "true"
+        INSTANCE_DOMAIN: ${{ secrets.MAINTAINENCE_INSTANCE_DOMAIN }}
+        AUTH_METHOD: "oauth2"
+        CLIENT_ID: ${{ secrets.MAINTAINENCE_CLIENT_ID }}
+        CLIENT_SECRET: ${{ secrets.MAINTAINENCE_CLIENT_SECRET }}
+        EXPORT_LOGS: "false"
+        JAMF_LOAD_BALANCER_LOCK: "true"
+        MAX_RETRY_ATTEMPTS: "3"
+        ENABLE_DYNAMIC_RATE_LIMITING: "false"
+        MAX_CONCURRENT_REQUESTS: "1"
+        TOKEN_REFRESH_BUFFER_PERIOD_SECONDS: "300"
+        TOTAL_RETRY_DURATION_SECONDS: "60"
+        CUSTOM_TIMEOUT_SECONDS: "60"
+        FOLLOW_REDIRECTS: "true"
+        MAX_REDIRECTS: "5"
+        ENABLE_CONCURRENCY_MANAGEMENT: "true"
+        CUSTOM_COOKIES: ""
+        MANDATORY_REQUEST_DELAY_MILLISECONDS: "0"
+        RETRY_ELIGIABLE_REQUESTS: "true"
+      run: |
+        echo "Current working directory: $(pwd)"
+    
+        SCRIPT_DIR="$GITHUB_WORKSPACE/scripts/maintainence/GetUserAccountPrivileges"
+        if [ -d "$SCRIPT_DIR" ]; then
+          cd "$SCRIPT_DIR"
+          echo "Changed directory to: $(pwd)"
+          if [ -f "GetUserAccountPrivileges.go" ]; then
+            go run GetUserAccountPrivileges.go
+          else
+            echo "Error: GetUserAccountPrivileges.go not found in $SCRIPT_DIR"
+            exit 1
+          fi
+        else
+          echo "Error: Directory $SCRIPT_DIR does not exist"
+          exit 1
+        fi
+
+        # Get the Jamf Pro version number from the created directory
+        VERSION_DIR=$(find . -maxdepth 1 -type d -name "[0-9]*" -printf "%f\n" | head -n 1)
+        if [ -z "$VERSION_DIR" ]; then
+          echo "Error: Could not find version directory"
+          exit 1
+        fi
+        echo "Found version directory: $VERSION_DIR"
+
+        # Create target directory structure
+        TARGET_BASE_DIR="$GITHUB_WORKSPACE/internal/resources/common/jamfprivileges/privileges"
+        TARGET_VERSION_DIR="$TARGET_BASE_DIR/$VERSION_DIR"
+        if [ ! -d "$TARGET_VERSION_DIR" ]; then
+          mkdir -p "$TARGET_VERSION_DIR"
+          echo "Created directory: $TARGET_VERSION_DIR"
+        else
+          echo "Directory already exists: $TARGET_VERSION_DIR"
+        fi
+        
+        # Move all JSON files to the target directory
+        for json_file in "$VERSION_DIR"/*.json; do
+          if [ -f "$json_file" ]; then
+            mv "$json_file" "$TARGET_VERSION_DIR/"
+            echo "Moved $json_file to $TARGET_VERSION_DIR/"
+          fi
+        done
+
+        # Verify files were moved successfully
+        if [ ! -f "$TARGET_VERSION_DIR/jss_objects_privileges.json" ] || \
+           [ ! -f "$TARGET_VERSION_DIR/jss_settings_privileges.json" ] || \
+           [ ! -f "$TARGET_VERSION_DIR/jss_actions_privileges.json" ]; then
+          echo "Error: Not all JSON files were moved successfully"
+          exit 1
+        fi
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v7.0.5
+      with:
+        commit-message: Update Api Privileges data for version ${{ env.VERSION_DIR }}
+        title: '[Automated] Update Api Privileges data for Jamf Pro'
+        body: |
+          This is an automated PR to update the Jamf Pro API Privileges data.
+          
+          Changes include:
+          - Updated JSS Objects Privileges
+          - Updated JSS Settings Privileges
+          - Updated JSS Actions Privileges
+          
+          Please review the changes in the privileges JSON files.
+        branch: update-api-privileges
+        delete-branch: true
