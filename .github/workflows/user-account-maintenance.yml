@@ -159,11 +159,11 @@ jobs:
       uses: peter-evans/create-pull-request@v7.0.5
       with:
         commit-message: |
-          Update Api Privileges data for Jamf Pro ${{ env.VERSION_DIR }}
+          Update User Account Privileges data for Jamf Pro ${{ env.VERSION_DIR }}
           
           - Added privileges for version ${{ env.VERSION_DIR }}
           - Updated version constants in validate.go
-        title: '[Automated] Update Api Privileges data for Jamf Pro ${{ env.VERSION_DIR }}'
+        title: '[Automated] Update User Account Privileges data for Jamf Pro ${{ env.VERSION_DIR }}'
         body: |
           This is an automated PR to update the Jamf Pro API Privileges data for version ${{ env.VERSION_DIR }}.
           
