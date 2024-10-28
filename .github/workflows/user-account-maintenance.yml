@@ -178,5 +178,5 @@ jobs:
             - NMinus2Version: Previous N-1
           
           Please review the changes in the privileges JSON files and validate.go file.
-        branch: update-api-privileges
+        branch: update-user-account-privileges-${{ env.VERSION_DIR }}
         delete-branch: true

@@ -97,5 +97,5 @@ jobs:
         body: |
           This is an automated PR to update the Api privileges for Jamf Pro Version ${{ env.VERSION_DIR }}.
           Please review the changes in the api_privileges.json file.
-        branch: update-api-privileges
+        branch: update-api-privileges-${{ env.VERSION_DIR }}
         delete-branch: true
