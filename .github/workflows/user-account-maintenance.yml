@@ -125,39 +125,43 @@ jobs:
         fi
 
     - name: Update Version Constants
-      run: |
-        VALIDATE_FILE="$GITHUB_WORKSPACE/internal/resources/common/jamfprivileges/validate.go"
+      run: >
+        VALIDATE_FILE="$GITHUB_WORKSPACE/internal/resources/common/jamfprivileges/validate.go";
         if [ ! -f "$VALIDATE_FILE" ]; then
-          echo "Error: validate.go not found at $VALIDATE_FILE"
-          exit 1
-        fi
+          echo "Error: validate.go not found at $VALIDATE_FILE";
+          exit 1;
+        fi;
         
-        # Get current versions from the file
-        CURRENT_LATEST=$(grep 'LatestVersion.*=.*"' "$VALIDATE_FILE" | grep -o '"[^"]*"' | tr -d '"')
-        CURRENT_NMINUS1=$(grep 'NMinus1Version.*=.*"' "$VALIDATE_FILE" | grep -o '"[^"]*"' | tr -d '"')
+        CURRENT_LATEST=$(grep 'LatestVersion.*=.*"' "$VALIDATE_FILE" | grep -o '"[^"]*"' | tr -d '"');
+        CURRENT_NMINUS1=$(grep 'NMinus1Version.*=.*"' "$VALIDATE_FILE" | grep -o '"[^"]*"' | tr -d '"');
+        CURRENT_NMINUS2=$(grep 'NMinus2Version.*=.*"' "$VALIDATE_FILE" | grep -o '"[^"]*"' | tr -d '"');
         
-        echo "Current versions:"
-        echo "Latest: $CURRENT_LATEST"
-        echo "N-1: $CURRENT_NMINUS1"
-        echo "New version: $VERSION_DIR"
+        echo "Current versions:";
+        echo "Latest: $CURRENT_LATEST";
+        echo "N-1: $CURRENT_NMINUS1";
+        echo "N-2: $CURRENT_NMINUS2";
+        echo "New version: $VERSION_DIR";
         
-        tmp_file=$(mktemp)
+        if [ "$VERSION_DIR" = "$CURRENT_LATEST" ] || [ "$VERSION_DIR" = "$CURRENT_NMINUS1" ] || [ "$VERSION_DIR" = "$CURRENT_NMINUS2" ]; then
+          echo "Version $VERSION_DIR already exists in version constants. Skipping update.";
+          exit 0;
+        fi;
         
-        # Update the versions, shifting them down
-        sed -E "s/(LatestVersion[[:space:]]*=[[:space:]]*\")[^\"]*(\")$/\1$VERSION_DIR\2/" "$VALIDATE_FILE" | \
-        sed -E "s/(NMinus1Version[[:space:]]*=[[:space:]]*\")[^\"]*(\")$/\1$CURRENT_LATEST\2/" | \
-        sed -E "s/(NMinus2Version[[:space:]]*=[[:space:]]*\")[^\"]*(\")$/\1$CURRENT_NMINUS1\2/" > "$tmp_file"
+        tmp_file=$(mktemp);
+        
+        sed -E "s/(LatestVersion[[:space:]]*=[[:space:]]*\")[^\"]*(\")$/\1$VERSION_DIR\2/" "$VALIDATE_FILE" |
+        sed -E "s/(NMinus1Version[[:space:]]*=[[:space:]]*\")[^\"]*(\")$/\1$CURRENT_LATEST\2/" |
+        sed -E "s/(NMinus2Version[[:space:]]*=[[:space:]]*\")[^\"]*(\")$/\1$CURRENT_NMINUS1\2/" > "$tmp_file";
         
         if [ $? -ne 0 ]; then
-          echo "Error: Failed to update version constants"
-          rm "$tmp_file"
-          exit 1
-        fi
+          echo "Error: Failed to update version constants";
+          rm "$tmp_file";
+          exit 1;
+        fi;
         
-        # Move temp file back to original
-        mv "$tmp_file" "$VALIDATE_FILE"
+        mv "$tmp_file" "$VALIDATE_FILE";
         
-        echo "Updated versions in validate.go:"
+        echo "Updated versions in validate.go:";
         grep 'Version.*=.*"' "$VALIDATE_FILE"
 
     - name: Create Pull Request
