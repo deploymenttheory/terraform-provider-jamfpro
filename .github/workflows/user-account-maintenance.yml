@@ -99,10 +99,8 @@ jobs:
         fi
         echo "Extracted version: $VERSION_DIR from $FULL_VERSION_DIR"
         
-        # Export version for use in PR
         echo "VERSION_DIR=$VERSION_DIR" >> $GITHUB_ENV
 
-        # Create target directory structure
         TARGET_BASE_DIR="$GITHUB_WORKSPACE/internal/resources/common/jamfprivileges/privileges"
         TARGET_VERSION_DIR="$TARGET_BASE_DIR/$VERSION_DIR"
         if [ ! -d "$TARGET_VERSION_DIR" ]; then
