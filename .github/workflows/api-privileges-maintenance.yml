@@ -92,10 +92,10 @@ jobs:
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v7.0.5
       with:
-        commit-message: Update Api Privileges data
-        title: '[Automated] Update Api Privileges data'
+        commit-message: Update Api Privileges data for Jamf Pro Version ${{ env.VERSION_DIR }}
+        title: '[Automated] Update Api Privileges data for Jamf Pro Version ${{ env.VERSION_DIR }}'
         body: |
-          This is an automated PR to update the App Installer titles data.
+          This is an automated PR to update the Api privileges for Jamf Pro Version ${{ env.VERSION_DIR }}.
           Please review the changes in the api_privileges.json file.
         branch: update-api-privileges
         delete-branch: true
