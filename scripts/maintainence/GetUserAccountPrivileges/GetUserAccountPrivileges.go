@@ -17,7 +17,6 @@ func main() {
 		log.Fatalf("Failed to initialize Jamf Pro client: %v", err)
 	}
 
-	// Get Jamf Pro version
 	versionInfo, err := client.GetJamfProVersion()
 	if err != nil {
 		log.Fatalf("Error getting Jamf Pro version: %v", err)
@@ -29,7 +28,6 @@ func main() {
 
 	versionDir := *versionInfo.Version
 
-	// Create directory with version number
 	err = os.MkdirAll(versionDir, 0755)
 	if err != nil {
 		log.Fatalf("Error creating directory: %v", err)
@@ -54,13 +52,11 @@ func main() {
 
 	fmt.Printf("Created Full Access account with ID: %d\n", createdAccount.ID)
 
-	// Now let's retrieve the full account details
 	fullAccountDetails, err := client.GetAccountByID(fmt.Sprintf("%d", createdAccount.ID))
 	if err != nil {
 		log.Fatalf("Error retrieving account details: %v", err)
 	}
 
-	// Print full account details for debugging
 	accountXML, err := xml.MarshalIndent(fullAccountDetails, "", "    ")
 	if err != nil {
 		log.Fatalf("Error marshaling account details: %v", err)
@@ -73,10 +69,8 @@ func main() {
 		log.Println("Warning: All privilege fields are nil")
 	}
 
-	// Export privileges to JSON files
 	exportPrivilegesToJSON(fullAccountDetails.Privileges, versionDir)
 
-	// Delete the account
 	err = client.DeleteAccountByID(fmt.Sprintf("%d", createdAccount.ID))
 	if err != nil {
 		log.Fatalf("Error deleting account: %v", err)
