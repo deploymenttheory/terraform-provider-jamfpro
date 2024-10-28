@@ -4,14 +4,14 @@
 // the same way as the Jamf Pro UI. There it's required to export the priviledge set from
 // the Jamf Pro UI and use this to validate the fields. There is a JSON file for each of
 // the priviledge types that are used to validate the fields and these are exported using
-// a recipe from the Jamf Pro SDK,
-// 'recipes/privileges/Export_All_Available_Privileges_By_Type_To_Json'.
+// a recipe from the scripts folder in the provider. Based upon the jamf pro sdk recipes
+// implementation.
 
-// To update the JSON files, export the priviledge using this recipe and then copy the
-// JSON file to the appropriate version folder in the privileges folder within this provider.
-// The version folders are named after the Jamf Pro version, e.g. 11.7.1, 11.7.0, 11.6.0 etc.
-// The intention is to keep only the latest 3 versions of the JSON files in the provider. So
-// when a new version is added, the oldest version should be removed.
+// The json files are updated when a new version of Jamf Pro is released and the provider
+// via a pipeline, which will update the provider and the JSON files. The JSON files are
+// stored in the privileges folder in the jamfprivileges package. The JSON files are named
+// jss_objects_privileges.json, jss_settings_privileges.json and jss_actions_privileges.json.
+// Broken down by jamf pro version.
 
 // The folder name for the privileges folder is 'privileges' and this should be in the same
 // directory as the validate.go file. Beneath this folder are the version folders and the JSON
@@ -31,12 +31,16 @@
 package jamfprivileges
 
 import (
+	"embed"
 	"encoding/json"
 	"fmt"
-	"os"
-	"path/filepath"
-	"runtime"
+	"path"
+	"sort"
+	"strings"
 )
+
+//go:embed privileges/*/*.json
+var privilegesFS embed.FS
 
 const (
 	LatestVersion  = "11.10.1"
@@ -46,6 +50,78 @@ const (
 
 var validVersions = []string{LatestVersion, NMinus1Version, NMinus2Version}
 
+// PrivilegeSupport tracks which versions support a privilege
+type PrivilegeSupport struct {
+	Name             string
+	SupportedVersion string
+}
+
+// loadJSONPrivilegesWithVersion loads privileges from JSON files and tracks which version they're from
+func loadJSONPrivilegesWithVersion(filename string) (map[string]PrivilegeSupport, error) {
+	privilegeMap := make(map[string]PrivilegeSupport)
+
+	for _, version := range validVersions {
+		filePath := path.Join("privileges", version, filename)
+		data, err := privilegesFS.ReadFile(filePath)
+		if err != nil {
+			continue
+		}
+
+		var privileges []string
+		if err := json.Unmarshal(data, &privileges); err != nil {
+			return nil, fmt.Errorf("error unmarshaling JSON from %s: %w", filePath, err)
+		}
+
+		// Add or update privileges with their version information
+		for _, priv := range privileges {
+			// Only store the oldest version where the privilege appears
+			if _, exists := privilegeMap[priv]; !exists {
+				privilegeMap[priv] = PrivilegeSupport{
+					Name:             priv,
+					SupportedVersion: version,
+				}
+			}
+		}
+	}
+
+	if len(privilegeMap) == 0 {
+		return nil, fmt.Errorf("no valid privileges found for any version")
+	}
+
+	return privilegeMap, nil
+}
+
+// formatPrivilegesError creates a detailed error message with version information
+func formatPrivilegesError(invalidValue, key string, privileges map[string]PrivilegeSupport) error {
+	// Sort privileges by version and then alphabetically
+	var sortedPrivileges []PrivilegeSupport
+	for _, p := range privileges {
+		sortedPrivileges = append(sortedPrivileges, p)
+	}
+	sort.Slice(sortedPrivileges, func(i, j int) bool {
+		if sortedPrivileges[i].SupportedVersion != sortedPrivileges[j].SupportedVersion {
+			return sortedPrivileges[i].SupportedVersion > sortedPrivileges[j].SupportedVersion
+		}
+		return sortedPrivileges[i].Name < sortedPrivileges[j].Name
+	})
+
+	// Build the error message
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("Invalid value '%s' for %s.\n\n", invalidValue, key))
+	sb.WriteString("Valid privileges by version:\n\n")
+
+	currentVersion := ""
+	for _, priv := range sortedPrivileges {
+		if currentVersion != priv.SupportedVersion {
+			currentVersion = priv.SupportedVersion
+			sb.WriteString(fmt.Sprintf("\nJamf Pro %s:\n", currentVersion))
+		}
+		sb.WriteString(fmt.Sprintf("- %s\n", priv.Name))
+	}
+
+	return fmt.Errorf(sb.String())
+}
+
 // ValidateJSSObjectsPrivileges ensures that each privilege in the list is valid.
 func ValidateJSSObjectsPrivileges(val interface{}, key string) (warns []string, errs []error) {
 	v, ok := val.(string)
@@ -54,24 +130,25 @@ func ValidateJSSObjectsPrivileges(val interface{}, key string) (warns []string, 
 		return warns, errs
 	}
 
-	validPrivileges, err := loadJSONPrivileges("jss_objects_privileges.json")
+	privileges, err := loadJSONPrivilegesWithVersion("jss_objects_privileges.json")
 	if err != nil {
 		errs = append(errs, fmt.Errorf("failed to load JSS Object Privileges: %v", err))
 		return warns, errs
 	}
 
-	for _, validPrivilege := range validPrivileges {
-		if v == validPrivilege {
-			return warns, errs
+	if privilege, exists := privileges[v]; exists {
+		if privilege.SupportedVersion != LatestVersion {
+			warns = append(warns, fmt.Sprintf("Privilege '%s' is supported in Jamf Pro %s but may not be available in newer versions",
+				v, privilege.SupportedVersion))
 		}
+		return warns, errs
 	}
 
-	errs = append(errs, fmt.Errorf("invalid value '%s' for %s: not a recognized JSS Object Privilege", v, key))
+	errs = append(errs, formatPrivilegesError(v, key, privileges))
 	return warns, errs
 }
 
 // ValidateJSSSettingsPrivileges checks if each value in the jss_settings_privileges field
-// matches a value from a predefined list of valid JSS Setting Privileges.
 func ValidateJSSSettingsPrivileges(val interface{}, key string) (warns []string, errs []error) {
 	v, ok := val.(string)
 	if !ok {
@@ -79,24 +156,25 @@ func ValidateJSSSettingsPrivileges(val interface{}, key string) (warns []string,
 		return warns, errs
 	}
 
-	validPrivileges, err := loadJSONPrivileges("jss_settings_privileges.json")
+	privileges, err := loadJSONPrivilegesWithVersion("jss_settings_privileges.json")
 	if err != nil {
 		errs = append(errs, fmt.Errorf("failed to load JSS Settings Privileges: %w", err))
 		return warns, errs
 	}
 
-	for _, validPrivilege := range validPrivileges {
-		if v == validPrivilege {
-			return warns, errs
+	if privilege, exists := privileges[v]; exists {
+		if privilege.SupportedVersion != LatestVersion {
+			warns = append(warns, fmt.Sprintf("Privilege '%s' is supported in Jamf Pro %s but may not be available in newer versions",
+				v, privilege.SupportedVersion))
 		}
+		return warns, errs
 	}
 
-	errs = append(errs, fmt.Errorf("invalid value '%s' for %s: not a recognized JSS Setting Privilege", v, key))
+	errs = append(errs, formatPrivilegesError(v, key, privileges))
 	return warns, errs
 }
 
 // ValidateJSSActionsPrivileges checks if each value in the jss_actions_privileges field
-// matches a value from a predefined list of valid JSS Actions Privileges.
 func ValidateJSSActionsPrivileges(val interface{}, key string) (warns []string, errs []error) {
 	v, ok := val.(string)
 	if !ok {
@@ -104,71 +182,20 @@ func ValidateJSSActionsPrivileges(val interface{}, key string) (warns []string, 
 		return warns, errs
 	}
 
-	validPrivileges, err := loadJSONPrivileges("jss_actions_privileges.json")
+	privileges, err := loadJSONPrivilegesWithVersion("jss_actions_privileges.json")
 	if err != nil {
 		errs = append(errs, fmt.Errorf("failed to load JSS Actions Privileges: %w", err))
 		return warns, errs
 	}
 
-	for _, validPrivilege := range validPrivileges {
-		if v == validPrivilege {
-			return warns, errs
+	if privilege, exists := privileges[v]; exists {
+		if privilege.SupportedVersion != LatestVersion {
+			warns = append(warns, fmt.Sprintf("Privilege '%s' is supported in Jamf Pro %s but may not be available in newer versions",
+				v, privilege.SupportedVersion))
 		}
+		return warns, errs
 	}
 
-	errs = append(errs, fmt.Errorf("invalid value '%s' for %s: not a recognized JSS Action Privilege", v, key))
+	errs = append(errs, formatPrivilegesError(v, key, privileges))
 	return warns, errs
-}
-
-// loadJSONPrivileges loads privileges from a JSON file in the appropriate version folder
-func loadJSONPrivileges(filename string) ([]string, error) {
-	var privileges []string
-
-	privilegesFolder, err := findPrivilegesFolder()
-	if err != nil {
-		return nil, fmt.Errorf("error finding privileges folder: %w", err)
-	}
-
-	for _, version := range validVersions {
-		filePath := filepath.Join(privilegesFolder, version, filename)
-		data, err := os.ReadFile(filePath)
-		if err != nil {
-			if os.IsNotExist(err) {
-				continue // Try the next version
-			}
-			return nil, fmt.Errorf("error reading file %s: %w", filePath, err)
-		}
-
-		err = json.Unmarshal(data, &privileges)
-		if err != nil {
-			return nil, fmt.Errorf("error unmarshaling JSON from %s: %w", filePath, err)
-		}
-
-		return privileges, nil
-	}
-
-	return nil, fmt.Errorf("no valid privileges file found for any version in %s", privilegesFolder)
-}
-
-// findPrivilegesFolder searches for the "privileges" folder starting from the current file's directory
-// and moving up the directory tree.
-func findPrivilegesFolder() (string, error) {
-	_, filename, _, ok := runtime.Caller(0)
-	if !ok {
-		return "", fmt.Errorf("unable to get the current file path")
-	}
-
-	dir := filepath.Dir(filename)
-	for {
-		privilegesPath := filepath.Join(dir, "privileges")
-		if _, err := os.Stat(privilegesPath); err == nil {
-			return privilegesPath, nil
-		}
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			break
-		}
-		dir = parent
-	}
-	return "", fmt.Errorf("privileges folder not found")
 }
