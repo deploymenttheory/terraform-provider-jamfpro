@@ -1,5 +1,16 @@
-# Description: This workflow is used to fetch data sets from jamf pro that change over time. The export is then used
-# for various purposes including valid data look ups for valid values for HCL fields within the provider.
+# Description: This pipeline maintains accurate Jamf Pro User Account privilege data across different versions.
+# It automatically fetches and validates the complete set of available User Account privileges from a running
+# Jamf Pro instance by:
+# 1. Creating a temporary admin account to export all possible privileges (JSS Objects, JSS Settings, JSS Actions)
+# 2. Removes the temporary admin account
+# 3. Organizing privileges by Jamf Pro version (maintaining N, N-1, N-2 versions) in go consts.
+# 4. Stores results as structured data as JSON for the Terraform provider's validation logic
+#
+# This automation ensures that:
+# - The Terraform provider can accurately validate privilege assignments
+# - Privilege validation stays in sync with Jamf Pro version updates
+# - Breaking changes in privileges between versions are tracked
+# - Administrators can confidently assign correct privileges through Terraform
 name: Jamf Pro User Accounts Privileges Maintenance
 
 on:

@@ -1,5 +1,15 @@
-# Description: This workflow is used to fetch data sets from jamf pro that change over time. The export is then used
-# for various purposes including valid data look ups for valid values for HCL fields within the provider.
+# Description: This pipeline maintains accurate Jamf Pro API privilege data across different versions.
+# It automatically fetches and validates the complete set of available API privileges from a running
+# Jamf Pro instance by:
+# 1. Fetching the complete list of API privileges using the Jamf Pro API
+# 2. Storing these privileges within the apirole tf resource as a JSON file for lookup.
+#
+# This automation ensures that:
+# - The Terraform provider can accurately validate API privilege assignments
+# - API privilege validation stays in sync with Jamf Pro version updates
+# - Breaking changes in API privileges between versions are tracked
+# - Administrators can confidently assign correct API privileges through Terraform
+# - API privilege changes are documented through version control
 name: Jamf Pro Api Privileges Maintenance
 
 on:
