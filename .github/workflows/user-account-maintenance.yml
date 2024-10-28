@@ -73,13 +73,23 @@ jobs:
           exit 1
         fi
 
-        # Get the Jamf Pro version number from the created directory
-        VERSION_DIR=$(find . -maxdepth 1 -type d -name "[0-9]*" -printf "%f\n" | head -n 1)
-        if [ -z "$VERSION_DIR" ]; then
+        # Get the full version directory name and extract semantic version
+        FULL_VERSION_DIR=$(find . -maxdepth 1 -type d -name "[0-9]*" -printf "%f\n" | head -n 1)
+        if [ -z "$FULL_VERSION_DIR" ]; then
           echo "Error: Could not find version directory"
           exit 1
         fi
-        echo "Found version directory: $VERSION_DIR"
+        
+        # Extract semantic version (e.g., 11.10.1 from 11.10.1-t1728656858)
+        VERSION_DIR=$(echo "$FULL_VERSION_DIR" | grep -o '^[0-9]*\.[0-9]*\.[0-9]*')
+        if [ -z "$VERSION_DIR" ]; then
+          echo "Error: Could not extract semantic version from directory name"
+          exit 1
+        fi
+        echo "Extracted version: $VERSION_DIR from $FULL_VERSION_DIR"
+        
+        # Export version for use in PR
+        echo "VERSION_DIR=$VERSION_DIR" >> $GITHUB_ENV
 
         # Create target directory structure
         TARGET_BASE_DIR="$GITHUB_WORKSPACE/internal/resources/common/jamfprivileges/privileges"
@@ -91,8 +101,8 @@ jobs:
           echo "Directory already exists: $TARGET_VERSION_DIR"
         fi
         
-        # Move all JSON files to the target directory
-        for json_file in "$VERSION_DIR"/*.json; do
+        # Move all JSON files from the full version directory to the target directory
+        for json_file in "$FULL_VERSION_DIR"/*.json; do
           if [ -f "$json_file" ]; then
             mv "$json_file" "$TARGET_VERSION_DIR/"
             echo "Moved $json_file to $TARGET_VERSION_DIR/"
@@ -110,10 +120,12 @@ jobs:
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v7.0.5
       with:
-        commit-message: Update Api Privileges data for version ${{ env.VERSION_DIR }}
-        title: '[Automated] Update Api Privileges data for Jamf Pro'
+        commit-message: Update User Account Privileges data for version ${{ env.VERSION_DIR }}
+        title: '[Automated] Update User Account Privileges data for Jamf Pro'
         body: |
-          This is an automated PR to update the Jamf Pro API Privileges data.
+          This is an automated PR to update the Jamf Pro User Account Privileges data.
+
+          Update User Account Privileges data for version ${{ env.VERSION_DIR }}
           
           Changes include:
           - Updated JSS Objects Privileges
