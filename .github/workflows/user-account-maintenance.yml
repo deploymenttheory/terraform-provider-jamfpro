@@ -112,7 +112,6 @@ jobs:
           echo "Directory already exists: $TARGET_VERSION_DIR"
         fi
         
-        # Move all JSON files from the full version directory to the target directory
         for json_file in "$FULL_VERSION_DIR"/*.json; do
           if [ -f "$json_file" ]; then
             mv "$json_file" "$TARGET_VERSION_DIR/"
@@ -120,7 +119,6 @@ jobs:
           fi
         done
 
-        # Verify files were moved successfully
         if [ ! -f "$TARGET_VERSION_DIR/jss_objects_privileges.json" ] || \
            [ ! -f "$TARGET_VERSION_DIR/jss_settings_privileges.json" ] || \
            [ ! -f "$TARGET_VERSION_DIR/jss_actions_privileges.json" ]; then
@@ -145,7 +143,6 @@ jobs:
         echo "N-1: $CURRENT_NMINUS1"
         echo "New version: $VERSION_DIR"
         
-        # Create temp file
         tmp_file=$(mktemp)
         
         # Update the versions, shifting them down
@@ -153,7 +150,6 @@ jobs:
         sed -E "s/(NMinus1Version[[:space:]]*=[[:space:]]*\")[^\"]*(\")$/\1$CURRENT_LATEST\2/" | \
         sed -E "s/(NMinus2Version[[:space:]]*=[[:space:]]*\")[^\"]*(\")$/\1$CURRENT_NMINUS1\2/" > "$tmp_file"
         
-        # Check if sed commands succeeded
         if [ $? -ne 0 ]; then
           echo "Error: Failed to update version constants"
           rm "$tmp_file"
