@@ -249,15 +249,13 @@ func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 			UseForSelfService:           d.Get("self_service.0.use_for_self_service").(bool),
 			SelfServiceDisplayName:      d.Get("self_service.0.self_service_display_name").(string),
 			InstallButtonText:           d.Get("self_service.0.install_button_text").(string),
+			ReinstallButtonText:         d.Get("self_service.0.reinstall_button_text").(string),
 			SelfServiceDescription:      d.Get("self_service.0.self_service_description").(string),
 			ForceUsersToViewDescription: d.Get("self_service.0.force_users_to_view_description").(bool),
 			SelfServiceIcon: &jamfpro.SharedResourceSelfServiceIcon{
 				ID: d.Get("self_service.0.self_service_icon_id").(int),
 			},
 			FeatureOnMainPage: d.Get("self_service.0.feature_on_main_page").(bool),
-
-			// Not in the UI:
-			// ReinstallButtonText:         d.Get("self_service.0.reinstall_button_text").(string),
 		}
 
 		categories := d.Get("self_service.0.self_service_category")

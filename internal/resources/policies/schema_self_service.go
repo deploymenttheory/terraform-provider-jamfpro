@@ -27,12 +27,12 @@ func getPolicySchemaSelfService() *schema.Resource {
 				Description: "Text displayed on the install button in self-service.",
 				Default:     "Install",
 			},
-			// "reinstall_button_text": {
-			// 	Type:        schema.TypeString,
-			// 	Optional:    true,
-			// 	Description: "Text displayed on the re-install button in self-service.",
-			// 	Default:     "REINSTALL",
-			// }, // TODO not in the ui, investigation required
+			"reinstall_button_text": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Text displayed on the re-install button in self-service.",
+				Default:     "REINSTALL",
+			},
 			"self_service_description": {
 				Type:        schema.TypeString,
 				Optional:    true,
