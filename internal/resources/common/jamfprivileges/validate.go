@@ -43,9 +43,9 @@ import (
 var privilegesFS embed.FS
 
 const (
-	LatestVersion  = "11.10.1"
-	NMinus1Version = "11.7.1"
-	NMinus2Version = "11.7.0"
+	LatestVersion  = "11.10.2"
+	NMinus1Version = "11.10.1"
+	NMinus2Version = "11.7.1"
 )
 
 var validVersions = []string{LatestVersion, NMinus1Version, NMinus2Version}
