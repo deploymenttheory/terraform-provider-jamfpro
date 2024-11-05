@@ -46,7 +46,7 @@ resource "jamfpro_advanced_computer_search" "advanced_computer_search_001" {
     opening_paren = false
     closing_paren = true
   }
-  
+
   site_id = "1"
 
   display_fields = [
