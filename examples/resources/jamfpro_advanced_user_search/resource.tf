@@ -1,6 +1,6 @@
 
 resource "jamfpro_advanced_user_search" "advanced_user_search_001" {
-  name          = "advanced search name"
+  name = "advanced search name"
 
   criteria {
     name          = "Email Address"
@@ -12,7 +12,7 @@ resource "jamfpro_advanced_user_search" "advanced_user_search_001" {
     closing_paren = false
   }
 
-  display_fields =[
+  display_fields = [
     "Content ID",
     "Email Address",
     "Managed Apple ID",

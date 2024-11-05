@@ -366,6 +366,7 @@ Optional:
 - `feature_on_main_page` (Boolean) Whether to feature the policy on the main page of self-service.
 - `force_users_to_view_description` (Boolean) Whether to force users to view the policy description in self-service.
 - `install_button_text` (String) Text displayed on the install button in self-service.
+- `reinstall_button_text` (String) Text displayed on the re-install button in self-service.
 - `self_service_category` (Block List) Category settings for the policy in self-service. (see [below for nested schema](#nestedblock--self_service--self_service_category))
 - `self_service_description` (String) Description of the policy displayed in self-service.
 - `self_service_display_name` (String) Display name of the policy in self-service.

@@ -57,7 +57,7 @@ resource "jamfpro_advanced_mobile_device_search" "advanced_mobile_device_search_
     closing_paren = true
   }
 
-    site_id = "1"
+  site_id = "1"
 
   display_fields = [
     "AirPlay Password",

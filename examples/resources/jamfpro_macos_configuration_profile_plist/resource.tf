@@ -31,7 +31,7 @@ resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuratio
   distribution_method = "Make Available in Self Service" // "Make Available in Self Service", "Install Automatically"
   redeploy_on_update  = "Newly Assigned"
   payloads            = file("${path.module}/path/to/your/file.mobileconfig")
-  payload_validate     = true
+  payload_validate    = true
   user_removable      = false
 
   // Optional Block
@@ -106,7 +106,7 @@ resource "jamfpro_macos_configuration_profile" "jamfpro_macos_configuration_prof
   redeploy_on_update  = "Newly Assigned"
   payloads            = file("${path.module}/path/to/your/file.mobileconfig")
   user_removable      = false
-  payload_validate     = true
+  payload_validate    = true
 
   // Optional Block
   site_id = 1
