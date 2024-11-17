@@ -43,9 +43,9 @@ import (
 var privilegesFS embed.FS
 
 const (
-	LatestVersion  = "11.10.2"
-	NMinus1Version = "11.10.1"
-	NMinus2Version = "11.7.1"
+	LatestVersion  = "11.11.1"
+	NMinus1Version = "11.10.2"
+	NMinus2Version = "11.10.1"
 )
 
 // PrivilegeSupport tracks which versions support a privilege
