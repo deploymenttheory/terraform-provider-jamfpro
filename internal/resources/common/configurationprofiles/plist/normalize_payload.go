@@ -64,21 +64,23 @@ type PayloadContent struct {
 // Returns:
 //   - A string containing the normalized plist XML. If any error occurs during processing, an empty string is returned.
 func NormalizePayloadState(payload any) string {
-
 	var plistData map[string]interface{}
 	_, err := plist.Unmarshal([]byte(payload.(string)), &plistData)
 	if err != nil {
 		return ""
 	}
 
+	// Normalize Base64 content and XML formatting
 	normalizePlistPayloadContent(plistData)
 
+	// Marshal back to plist
 	xml, err := plist.MarshalIndent(plistData, plist.XMLFormat, "\t")
 	if err != nil {
 		return ""
 	}
 
-	return string(xml)
+	// Trim trailing whitespace for consistency
+	return trimTrailingWhitespace(string(xml))
 }
 
 // UnmarshalPayload unmarshals a plist payload into a ConfigurationProfile struct using mapstructure.
