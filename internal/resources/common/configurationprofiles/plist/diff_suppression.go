@@ -112,6 +112,7 @@ func normalizeBase64Content(data interface{}) interface{} {
 
 // normalizeXMLTags standardizes XML tag formatting for malformed config profile xml
 // handles the following cases:
+// < true/>
 // <true />
 // <true    />
 // <true  \t />
@@ -122,7 +123,8 @@ func normalizeXMLTags(data interface{}) interface{} {
 	case string:
 		if strings.Contains(v, "/") {
 			trimmed := strings.TrimSpace(v)
-			return regexp.MustCompile(`\s+/>`).ReplaceAllString(trimmed, "/>")
+			normalized := regexp.MustCompile(`<\s*(\w+)\s*/>`).ReplaceAllString(trimmed, "<$1/>")
+			return normalized
 		}
 		return v
 	case map[string]interface{}:
