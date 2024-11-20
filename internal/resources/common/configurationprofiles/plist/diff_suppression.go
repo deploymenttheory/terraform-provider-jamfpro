@@ -95,6 +95,7 @@ func removeSpecifiedXMLFields(data map[string]interface{}, fieldsToRemove []stri
 }
 
 // normalizeBase64Content normalizes base64 data by removing all whitespace
+// normalizeBase64Content normalizes base64 data by removing all whitespace
 func normalizeBase64Content(data interface{}) interface{} {
 	switch v := data.(type) {
 	case string:
@@ -102,13 +103,13 @@ func normalizeBase64Content(data interface{}) interface{} {
 			re := regexp.MustCompile(`<data>\s*([\s\S]*?)\s*</data>`)
 			return re.ReplaceAllStringFunc(v, func(match string) string {
 				content := re.FindStringSubmatch(match)[1]
+				// Remove ALL whitespace characters of any kind
 				normalized := strings.Map(func(r rune) rune {
 					if unicode.IsSpace(r) {
-						return -1
+						return -1 // Drop the character
 					}
 					return r
 				}, content)
-				// Always return as single line
 				return "<data>" + normalized + "</data>"
 			})
 		}
