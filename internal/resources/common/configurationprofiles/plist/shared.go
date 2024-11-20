@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"log"
 	"sort"
-	"strings"
 
 	"howett.net/plist"
 )
@@ -36,16 +35,6 @@ func EncodePlist(cleanedData map[string]interface{}) (string, error) {
 	encodedString := buffer.String()
 
 	return encodedString, nil
-}
-
-func NormalizeBase64(input string) string {
-	// Removes all whitespace (newlines, tabs, spaces) from the Base64 string
-	return strings.Map(func(r rune) rune {
-		if r == '\n' || r == '\r' || r == '\t' || r == ' ' {
-			return -1 // Remove whitespace
-		}
-		return r
-	}, strings.TrimSpace(input))
 }
 
 // SortPlistKeys recursively sorts the keys of a nested map in alphabetical order,

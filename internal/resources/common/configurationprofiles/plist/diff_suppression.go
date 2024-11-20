@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"howett.net/plist"
 )
@@ -34,20 +35,23 @@ func ProcessConfigurationProfileForDiffSuppression(plistData string, fieldsToRem
 	// Step 4: Normalize XML tags
 	normalizedXML := normalizeXMLTags(normalizedBase64)
 
-	// Step 5: Unescape HTML Entities
-	normalizedData := unescapeHTMLEntities(normalizedXML)
+	// Step 5: Normalize empty strings
+	normalizedStrings := normalizeEmptyStrings(normalizedXML)
 
-	// Step 5: Sort keys
+	// Step 6: Unescape HTML Entities
+	normalizedData := unescapeHTMLEntities(normalizedStrings)
+
+	// Step 7: Sort keys
 	sortedData := SortPlistKeys(normalizedData.(map[string]interface{}))
 
-	// Step 6: Encode back to plist
+	// Step 8: Encode back to plist
 	encodedPlist, err := EncodePlist(sortedData)
 	if err != nil {
 		log.Printf("Error encoding plist data: %v\n", err)
 		return "", err
 	}
 
-	// Step 7: Remove trailing whitespace
+	// Step 9: Remove trailing whitespace
 	return trimTrailingWhitespace(encodedPlist), nil
 }
 
@@ -94,20 +98,55 @@ func removeSpecifiedXMLFields(data map[string]interface{}, fieldsToRemove []stri
 func normalizeBase64Content(data interface{}) interface{} {
 	switch v := data.(type) {
 	case string:
-		return NormalizeBase64(v) // Normalize Base64 string
+		if strings.Contains(v, "<data>") {
+			re := regexp.MustCompile(`<data>\s*([\s\S]*?)\s*</data>`)
+			return re.ReplaceAllStringFunc(v, func(match string) string {
+				content := re.FindStringSubmatch(match)[1]
+				normalized := strings.Map(func(r rune) rune {
+					if unicode.IsSpace(r) {
+						return -1
+					}
+					return r
+				}, content)
+				// Always return as single line
+				return "<data>" + normalized + "</data>"
+			})
+		}
+		return v
 	case map[string]interface{}:
+		result := make(map[string]interface{})
 		for key, value := range v {
-			v[key] = normalizeBase64Content(value) // Recursively normalize
+			result[key] = normalizeBase64Content(value)
 		}
-		return v
+		return result
 	case []interface{}:
+		result := make([]interface{}, len(v))
 		for i, item := range v {
-			v[i] = normalizeBase64Content(item) // Recursively normalize
+			result[i] = normalizeBase64Content(item)
 		}
-		return v
+		return result
 	default:
-		return data // Unsupported types remain unchanged
+		return data
 	}
+}
+
+// NormalizeBase64 normalizes base64 content by removing whitespace
+func NormalizeBase64(input string) string {
+	// Check if the input contains XML tags and remove them first
+	input = strings.TrimSpace(input)
+
+	// If the content has XML tags, don't process it as base64
+	if strings.Contains(input, "<") && strings.Contains(input, ">") {
+		return input
+	}
+
+	// Remove all whitespace characters from potential base64 content
+	return strings.Map(func(r rune) rune {
+		if r == '\n' || r == '\r' || r == '\t' || r == ' ' {
+			return -1
+		}
+		return r
+	}, input)
 }
 
 // normalizeXMLTags standardizes XML tag formatting for malformed config profile xml
@@ -137,6 +176,31 @@ func normalizeXMLTags(data interface{}) interface{} {
 		}
 	}
 	return data
+}
+
+// normalizeEmptyStrings standardizes empty and whitespace-only strings
+func normalizeEmptyStrings(data interface{}) interface{} {
+	switch v := data.(type) {
+	case string:
+		if strings.TrimSpace(v) == "" {
+			return ""
+		}
+		return v
+	case map[string]interface{}:
+		result := make(map[string]interface{})
+		for key, value := range v {
+			result[key] = normalizeEmptyStrings(value)
+		}
+		return result
+	case []interface{}:
+		result := make([]interface{}, len(v))
+		for i, item := range v {
+			result[i] = normalizeEmptyStrings(item)
+		}
+		return result
+	default:
+		return data
+	}
 }
 
 // unescapeHTMLEntities applies html.UnescapeString recursively
