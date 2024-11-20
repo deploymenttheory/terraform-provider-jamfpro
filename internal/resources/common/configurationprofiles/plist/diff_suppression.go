@@ -3,6 +3,7 @@
 package plist
 
 import (
+	"encoding/base64"
 	"html"
 	"log"
 	"regexp"
@@ -67,7 +68,7 @@ func removeSpecifiedXMLFields(data map[string]interface{}, fieldsToRemove []stri
 	// Iterate over the map and remove fields if they exist
 	for field := range fieldsToRemoveSet {
 		if _, exists := data[field]; exists {
-			log.Printf("Removing field: %s from path: %s\n", field, path)
+			log.Printf("[DEBUG] Removing field: %s from path: %s\n", field, path)
 			delete(data, field)
 		}
 	}
@@ -77,12 +78,12 @@ func removeSpecifiedXMLFields(data map[string]interface{}, fieldsToRemove []stri
 		newPath := path + "/" + key
 		switch v := value.(type) {
 		case map[string]interface{}:
-			log.Printf("Recursively removing fields in nested map at path: %s\n", newPath)
+			log.Printf("[DEBUG] Recursively removing fields in nested map at path: %s\n", newPath)
 			removeSpecifiedXMLFields(v, fieldsToRemove, newPath)
 		case []interface{}:
 			for i, item := range v {
 				if nestedMap, ok := item.(map[string]interface{}); ok {
-					log.Printf("Recursively removing fields in array at path: %s[%d]\n", newPath, i)
+					log.Printf("[DEBUG] Recursively removing fields in array at path: %s[%d]\n", newPath, i)
 					removeSpecifiedXMLFields(nestedMap, fieldsToRemove, newPath+strings.ReplaceAll(key, "/", "_")+strconv.Itoa(i))
 				}
 			}
@@ -94,60 +95,66 @@ func removeSpecifiedXMLFields(data map[string]interface{}, fieldsToRemove []stri
 	return data
 }
 
-// normalizeBase64Content normalizes base64 data by removing all whitespace
-// normalizeBase64Content normalizes base64 data by removing all whitespace
 func normalizeBase64Content(data interface{}) interface{} {
+	// Helper to check and normalize potential base64 string values
+	normalizeString := func(s string) string {
+		// If string has no spaces/newlines, leave it alone
+		if !strings.ContainsAny(s, " \n\t\r") {
+			return s
+		}
+
+		// Remove all whitespace and try to decode
+		clean := strings.Join(strings.Fields(s), "")
+		_, err := base64.StdEncoding.DecodeString(clean)
+		if err == nil {
+			return clean
+		}
+		return s
+	}
+
 	switch v := data.(type) {
 	case string:
-		if strings.Contains(v, "<data>") {
-			re := regexp.MustCompile(`<data>\s*([\s\S]*?)\s*</data>`)
-			return re.ReplaceAllStringFunc(v, func(match string) string {
-				content := re.FindStringSubmatch(match)[1]
-				// Remove ALL whitespace characters of any kind
-				normalized := strings.Map(func(r rune) rune {
-					if unicode.IsSpace(r) {
-						return -1 // Drop the character
-					}
-					return r
-				}, content)
-				return "<data>" + normalized + "</data>"
-			})
-		}
-		return v
+		return normalizeString(v)
+
 	case map[string]interface{}:
 		result := make(map[string]interface{})
 		for key, value := range v {
 			result[key] = normalizeBase64Content(value)
 		}
 		return result
+
 	case []interface{}:
 		result := make([]interface{}, len(v))
 		for i, item := range v {
 			result[i] = normalizeBase64Content(item)
 		}
 		return result
+
 	default:
 		return data
 	}
 }
 
-// NormalizeBase64 normalizes base64 content by removing whitespace
+// NormalizeBase64 normalizes base64 content by removing all whitespace characters
+// Returns normalized base64 string with all spacing/formatting removed for comparison
+// Base64 uses characters A-Z, a-z, 0-9, +, /, and = for padding
 func NormalizeBase64(input string) string {
-	// Check if the input contains XML tags and remove them first
-	input = strings.TrimSpace(input)
-
-	// If the content has XML tags, don't process it as base64
-	if strings.Contains(input, "<") && strings.Contains(input, ">") {
-		return input
-	}
-
-	// Remove all whitespace characters from potential base64 content
-	return strings.Map(func(r rune) rune {
-		if r == '\n' || r == '\r' || r == '\t' || r == ' ' {
-			return -1
+	// First remove all whitespace
+	trimmed := strings.Map(func(r rune) rune {
+		if unicode.IsSpace(r) {
+			return -1 // Drop ALL whitespace (spaces, tabs, newlines, etc)
 		}
 		return r
 	}, input)
+
+	// Check if the result is a valid base64 string
+	isBase64 := regexp.MustCompile(`^[A-Za-z0-9+/]*={0,2}$`).MatchString(trimmed)
+
+	if !isBase64 {
+		return input // Not base64, return original
+	}
+
+	return trimmed
 }
 
 // normalizeXMLTags standardizes XML tag formatting for malformed config profile xml
