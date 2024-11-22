@@ -27,7 +27,7 @@ func resourceJamfProMacOSConfigurationProfilesPlistGeneratorCreate(ctx context.C
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	// Lock the mutex to ensure only one profile plust create can run this function at a time
+	// Lock the mutex to ensure only one profile plist create can run this function at a time
 	mu.Lock()
 	defer mu.Unlock()
 	resource, err := constructJamfProMacOSConfigurationProfilesPlistGenerator(d)
