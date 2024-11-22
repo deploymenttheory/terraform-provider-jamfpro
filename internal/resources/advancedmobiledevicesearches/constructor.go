@@ -27,12 +27,12 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceAdvancedMobileDeviceSea
 
 			criteria[i] = jamfpro.SharedSubsetCriteriaJamfProAPI{
 				Name:         criterionMap["name"].(string),
-				priority  criterionMap["priority"].(int),
+				Priority:     criterionMap["priority"].(int),
 				AndOr:        criterionMap["and_or"].(string),
 				SearchType:   criterionMap["search_type"].(string),
 				Value:        criterionMap["value"].(string),
-				OpeningParen: criterionMap["opening_paren"].(bool),
-				ClosingParen: criterionMap["closing_paren"].(bool),
+				OpeningParen: jamfpro.BoolPtr(criterionMap["opening_paren"].(bool)),
+				ClosingParen: jamfpro.BoolPtr(criterionMap["closing_paren"].(bool)),
 			}
 		}
 		resource.Criteria = criteria
