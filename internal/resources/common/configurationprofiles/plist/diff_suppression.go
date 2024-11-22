@@ -212,6 +212,8 @@ func normalizeEmptyStrings(data interface{}) interface{} {
 }
 
 // unescapeHTMLEntities applies html.UnescapeString recursively
+// jamfpro configuration profiles contain html entities that need
+// to be unescaped for comparison
 func unescapeHTMLEntities(data interface{}) interface{} {
 	switch v := data.(type) {
 	case string:
