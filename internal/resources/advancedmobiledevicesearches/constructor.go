@@ -2,33 +2,32 @@
 package advancedmobiledevicesearches
 
 import (
-	"encoding/xml"
+	"encoding/json"
 	"fmt"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // constructJamfProAdvancedMobileDeviceSearch constructs a mobile device search object for create and update operations.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceAdvancedMobileDeviceSearch, error) {
+	siteId := d.Get("site_id").(string)
+
 	resource := &jamfpro.ResourceAdvancedMobileDeviceSearch{
 		Name:   d.Get("name").(string),
-		ViewAs: d.Get("view_as").(string),
-		Sort1:  d.Get("sort1").(string),
-		Sort2:  d.Get("sort2").(string),
-		Sort3:  d.Get("sort3").(string),
+		SiteId: &siteId,
 	}
 
 	if v, ok := d.GetOk("criteria"); ok {
 		criteriaList := v.([]interface{})
-		criteria := make([]jamfpro.SharedSubsetCriteria, len(criteriaList))
+		criteria := make([]jamfpro.SharedSubsetCriteriaJamfProAPI, len(criteriaList))
 		for i, crit := range criteriaList {
 			criterionMap := crit.(map[string]interface{})
-			criteria[i] = jamfpro.SharedSubsetCriteria{
+
+			criteria[i] = jamfpro.SharedSubsetCriteriaJamfProAPI{
 				Name:         criterionMap["name"].(string),
-				Priority:     criterionMap["priority"].(int),
+				priority  criterionMap["priority"].(int),
 				AndOr:        criterionMap["and_or"].(string),
 				SearchType:   criterionMap["search_type"].(string),
 				Value:        criterionMap["value"].(string),
@@ -36,24 +35,24 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceAdvancedMobileDeviceSea
 				ClosingParen: criterionMap["closing_paren"].(bool),
 			}
 		}
-		resource.Criteria.Criterion = criteria
+		resource.Criteria = criteria
 	}
 
-	displayFieldsHcl := d.Get("display_fields").([]interface{})
-	if len(displayFieldsHcl) > 0 {
-		for _, v := range displayFieldsHcl {
-			resource.DisplayFields = append(resource.DisplayFields, jamfpro.DisplayField{Name: v.(string)})
+	if v, ok := d.GetOk("display_fields"); ok {
+		displayFieldsList := v.([]interface{})
+		displayFields := make([]string, len(displayFieldsList))
+		for i, field := range displayFieldsList {
+			displayFields[i] = field.(string)
 		}
+		resource.DisplayFields = displayFields
 	}
 
-	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
-
-	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
+	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Advanced Mobile Device Search '%s' to XML: %v", resource.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Advanced Mobile Searches '%s' to JSON: %v", resource.Name, err)
 	}
 
-	log.Printf("[DEBUG] Constructed Jamf Pro Advanced Mobile Device Search XML:\n%s\n", string(resourceXML))
+	log.Printf("[DEBUG] Constructed Jamf Pro Advanced Mobile Searches JSON:\n%s\n", string(resourceJSON))
 
 	return resource, nil
 }

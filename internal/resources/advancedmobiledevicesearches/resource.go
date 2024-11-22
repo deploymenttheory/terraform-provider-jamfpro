@@ -4,11 +4,10 @@ package advancedmobiledevicesearches
 import (
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// resourceJamfProAdvancedMobileDeviceSearches defines the schema for managing mobile device Searches in Terraform.
+// resourceJamfProAdvancedMobileDeviceSearches defines the schema for managing advanced mobile device searches in Terraform.
 func ResourceJamfProAdvancedMobileDeviceSearches() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,
@@ -35,71 +34,65 @@ func ResourceJamfProAdvancedMobileDeviceSearches() *schema.Resource {
 				Required:    true,
 				Description: "The unique name of the advanced mobile device search",
 			},
-			"view_as": {
+			"site_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "View type of the mobile device search",
-			},
-			"sort1": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "First sorting criteria for the mobile device search",
-			},
-			"sort2": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Second sorting criteria for the mobile device search",
-			},
-			"sort3": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Third sorting criteria for the mobile device search",
+				Default:     "-1",
+				Description: "The ID of the site to associate the search with",
 			},
 			"criteria": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Type:        schema.TypeList,
+				Required:    true,
+				Description: "List of search criteria",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Name of the search criteria field",
 						},
 						"priority": {
-							Type:     schema.TypeInt,
-							Optional: true,
+							Type:        schema.TypeInt,
+							Optional:    true,
+							Default:     0,
+							Description: "Priority order of the criteria. Default is 0, 0 is always used for the first criterion.",
 						},
 						"and_or": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Logical operator (and/or) for the criteria",
 						},
 						"search_type": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Type of search to perform",
 						},
 						"value": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Value to search for",
 						},
 						"opening_paren": {
-							Type:     schema.TypeBool,
-							Optional: true,
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Whether this criterion has an opening parenthesis",
 						},
 						"closing_paren": {
-							Type:     schema.TypeBool,
-							Optional: true,
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Whether this criterion has a closing parenthesis",
 						},
 					},
 				},
 			},
 			"display_fields": {
 				Type:        schema.TypeList,
-				Description: "List of displayfields",
 				Optional:    true,
+				Description: "List of fields to display in the search results",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
-			"site_id": sharedschemas.GetSharedSchemaSite(),
 		},
 	}
 }
