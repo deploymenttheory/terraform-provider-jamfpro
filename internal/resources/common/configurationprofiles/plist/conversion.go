@@ -8,10 +8,13 @@ import (
 	"fmt"
 	"html"
 	"log"
+	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mitchellh/mapstructure"
 	"howett.net/plist"
 )
 
@@ -248,4 +251,90 @@ func extractNestedConfigurationSettings(items map[string]interface{}, settingsLi
 		log.Printf("[DEBUG] Adding settingMap: %v", settingMap)
 		*settingsList = append(*settingsList, settingMap)
 	}
+}
+
+// UnmarshalPayload unmarshals a plist payload into a ConfigurationProfile struct using mapstructure.
+func UnmarshalPayload(payload string) (*ConfigurationProfile, error) {
+	var profile map[string]interface{}
+	_, err := plist.Unmarshal([]byte(payload), &profile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal plist: %w", err)
+	}
+
+	var out ConfigurationProfile
+	config := &mapstructure.DecoderConfig{
+		Metadata:         nil,
+		Result:           &out,
+		TagName:          "mapstructure",
+		WeaklyTypedInput: true,
+	}
+	decoder, err := mapstructure.NewDecoder(config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create decoder: %w", err)
+	}
+	err = decoder.Decode(profile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode profile: %w", err)
+	}
+
+	return &out, nil
+}
+
+// MarshalPayload marshals a ConfigurationProfile struct into a plist payload using mapstructure.
+func MarshalPayload(profile *ConfigurationProfile) (string, error) {
+	mergedPayload := MergeConfigurationProfileFieldsIntoMap(profile)
+	xml, err := plist.MarshalIndent(mergedPayload, plist.XMLFormat, "\t")
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal payload: %w", err)
+	}
+	return string(xml), nil
+}
+
+// MergeConfigurationProfileFieldsIntoMap merges the fields of a ConfigurationProfile struct into a map.
+func MergeConfigurationProfileFieldsIntoMap(profile *ConfigurationProfile) map[string]interface{} {
+	merged := make(map[string]interface{}, len(profile.Unexpected))
+	for k, v := range profile.Unexpected {
+		merged[k] = v
+	}
+
+	val := reflect.ValueOf(profile).Elem()
+	typ := val.Type()
+
+	for i := 0; i < val.NumField(); i++ {
+		field := typ.Field(i)
+		mapKey := field.Tag.Get("mapstructure")
+		if mapKey != "" && mapKey != ",remain" {
+			merged[mapKey] = val.Field(i).Interface()
+		}
+	}
+
+	mergedPayloads := make([]map[string]interface{}, len(profile.PayloadContent))
+	for k, v := range profile.PayloadContent {
+		mergedPayloads[k] = MergeConfigurationPayloadFieldsIntoMap(&v)
+	}
+
+	merged["PayloadContent"] = mergedPayloads
+
+	return merged
+}
+
+// MergeConfigurationPayloadFieldsIntoMap merges the fields of a ConfigurationPayload struct into a map.
+func MergeConfigurationPayloadFieldsIntoMap(payload *PayloadContent) map[string]interface{} {
+	merged := make(map[string]interface{}, len(payload.ConfigurationItems))
+	for k, v := range payload.ConfigurationItems {
+		merged[k] = v
+	}
+
+	val := reflect.ValueOf(payload).Elem()
+	typ := val.Type()
+
+	for i := 0; i < val.NumField(); i++ {
+		field := typ.Field(i)
+		mapKey := field.Tag.Get("mapstructure")
+		if mapKey != "" && mapKey != ",remain" && !strings.Contains(mapKey, ",-") {
+			merged[mapKey] = val.Field(i).Interface()
+		}
+	}
+
+	return merged
 }

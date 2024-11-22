@@ -37,51 +37,57 @@ func EncodePlist(cleanedData map[string]interface{}) (string, error) {
 	return encodedString, nil
 }
 
-// SortPlistKeys recursively sorts the keys of a nested map in alphabetical order,
-// and sorts elements within arrays if they are strings or dictionaries.
+// SortPlistKeys recursively sorts the config profile xml keys of a nested map
+// into alphabetical order,and sorts elements within arrays if they are strings or dictionaries.
+// This function is used to prepare the xml plist keys for diff suppression and since
+// there's no guranatee what keys will be present within the XML, nor their order presented,
+// this function is used to ensure that the keys are in a consistent order for comparison.
 func SortPlistKeys(data map[string]interface{}) map[string]interface{} {
 	sortedData := make(map[string]interface{})
 	keys := make([]string, 0, len(data))
 	for k := range data {
 		keys = append(keys, k)
 	}
-	log.Printf("Unsorted keys: %v\n", keys)
+	log.Printf("[DEBUG] Unsorted keys: %v\n", keys)
 	sort.Strings(keys)
-	log.Printf("Sorted keys: %v\n", keys)
+	log.Printf("[DEBUG] Sorted keys: %v\n", keys)
 	for _, k := range keys {
-		log.Printf("Processing key: %s\n", k)
+		log.Printf("[DEBUG] Processing key: %s\n", k)
 		switch v := data[k].(type) {
 		case map[string]interface{}:
-			log.Printf("Key %s is a nested map, sorting nested keys...\n", k)
+			log.Printf("[DEBUG] Key %s is a nested map, sorting nested keys...\n", k)
 			sortedData[k] = SortPlistKeys(v)
 		case []interface{}:
-			log.Printf("Key %s is an array, processing items...\n", k)
+			log.Printf("[DEBUG] Key %s is an array, processing items...\n", k)
 			sortedArray := make([]interface{}, len(v))
-			for i, item := range v {
-				log.Printf("Processing item %d of array %s\n", i, k)
-				if nestedMap, ok := item.(map[string]interface{}); ok {
-					sortedArray[i] = SortPlistKeys(nestedMap)
-				} else {
-					sortedArray[i] = item
+
+			// First check if all elements are strings
+			allStrings := true
+			for _, item := range v {
+				if _, ok := item.(string); !ok {
+					allStrings = false
+					break
 				}
 			}
-			// Check if the array elements are strings and sort them
-			if len(sortedArray) > 0 {
-				switch sortedArray[0].(type) {
-				case string:
-					stringArray := make([]string, len(sortedArray))
-					for i, item := range sortedArray {
-						stringArray[i] = item.(string)
-					}
-					sort.Strings(stringArray)
-					for i, item := range stringArray {
+
+			if allStrings {
+				// If all strings, create string array and sort
+				stringArray := make([]string, len(v))
+				for i, item := range v {
+					stringArray[i] = item.(string)
+				}
+				sort.Strings(stringArray)
+				for i, item := range stringArray {
+					sortedArray[i] = item
+				}
+			} else {
+				// Handle non-string arrays
+				for i, item := range v {
+					log.Printf("[DEBUG] Processing item %d of array %s\n", i, k)
+					if nestedMap, ok := item.(map[string]interface{}); ok {
+						sortedArray[i] = SortPlistKeys(nestedMap)
+					} else {
 						sortedArray[i] = item
-					}
-				case map[string]interface{}:
-					for i, item := range sortedArray {
-						if nestedMap, ok := item.(map[string]interface{}); ok {
-							sortedArray[i] = SortPlistKeys(nestedMap)
-						}
 					}
 				}
 			}

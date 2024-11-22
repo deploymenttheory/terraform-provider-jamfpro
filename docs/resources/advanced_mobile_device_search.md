@@ -10,64 +10,31 @@ description: |-
 ## Example Usage
 ```terraform
 resource "jamfpro_advanced_mobile_device_search" "advanced_mobile_device_search_001" {
-  name    = "tf - Example Advanced mobile device Search"
-  view_as = "Standard Web Page"
-
-  sort1 = "Serial Number"
-  sort2 = "Username"
-  sort3 = "Department"
+  name    = "tf - Example Advanced mobile device Search 2"
+  site_id = "-1" # Optional, defaults to "-1" for None
 
   criteria {
     name          = "Building"
     priority      = 0
     and_or        = "and"
     search_type   = "is"
-    value         = "square"
+    value         = "test"
     opening_paren = true
     closing_paren = false
   }
 
   criteria {
-    name          = "Model"
-    priority      = 1
+    name          = "iTunes Store Account"
+    priority      = 0
     and_or        = "and"
     search_type   = "is"
-    value         = "macbook air"
+    value         = "Active"
     opening_paren = false
     closing_paren = true
   }
-
-  criteria {
-    name          = "iOS Build"
-    priority      = 2
-    and_or        = "or"
-    search_type   = "matches regex"
-    value         = "thing"
-    opening_paren = true
-    closing_paren = false
-  }
-
-  criteria {
-    name          = "iOS Version"
-    priority      = 3
-    and_or        = "and"
-    search_type   = "has"
-    value         = "17"
-    opening_paren = false
-    closing_paren = true
-  }
-
-  site_id = "1"
 
   display_fields = [
-    "AirPlay Password",
-    "App Analytics Enabled",
-    "Building",
-    "Department"
-  ]
-
-
-
+  "Wi-Fi MAC Address", "Building", "iTunes Store Account", "Managed", "UDID"]
 }
 ```
 
@@ -76,18 +43,14 @@ resource "jamfpro_advanced_mobile_device_search" "advanced_mobile_device_search_
 
 ### Required
 
+- `criteria` (Block List, Min: 1) List of search criteria (see [below for nested schema](#nestedblock--criteria))
 - `name` (String) The unique name of the advanced mobile device search
 
 ### Optional
 
-- `criteria` (Block List) (see [below for nested schema](#nestedblock--criteria))
-- `display_fields` (List of String) List of displayfields
-- `site_id` (Number) Jamf Pro Site-related settings of the policy.
-- `sort1` (String) First sorting criteria for the mobile device search
-- `sort2` (String) Second sorting criteria for the mobile device search
-- `sort3` (String) Third sorting criteria for the mobile device search
+- `display_fields` (Set of String) List of fields to display in the search results
+- `site_id` (String) The ID of the site to associate the search with
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
-- `view_as` (String) View type of the mobile device search
 
 ### Read-Only
 
@@ -98,16 +61,16 @@ resource "jamfpro_advanced_mobile_device_search" "advanced_mobile_device_search_
 
 Required:
 
-- `name` (String)
-- `search_type` (String)
-- `value` (String)
+- `and_or` (String) Logical operator (and/or) for the criteria
+- `name` (String) Name of the search criteria field
+- `search_type` (String) Type of search to perform
+- `value` (String) Value to search for
 
 Optional:
 
-- `and_or` (String)
-- `closing_paren` (Boolean)
-- `opening_paren` (Boolean)
-- `priority` (Number)
+- `closing_paren` (Boolean) Whether this criterion has a closing parenthesis
+- `opening_paren` (Boolean) Whether this criterion has an opening parenthesis
+- `priority` (Number) Priority order of the criteria. Default is 0, 0 is always used for the first criterion.
 
 
 <a id="nestedblock--timeouts"></a>
