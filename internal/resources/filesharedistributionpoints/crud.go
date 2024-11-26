@@ -2,6 +2,7 @@ package filesharedistributionpoints
 
 import (
 	"context"
+	"sync"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
@@ -13,8 +14,13 @@ const (
 	JamfProResourceDistributionPoint = "Distribution Point"
 )
 
+// Create requires a mutex need to lock Create requests during parallel runs
+var mu sync.Mutex
+
 // create is responsible for creating a new file share
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	mu.Lock()
+	defer mu.Unlock()
 	return common.Create(
 		ctx,
 		d,

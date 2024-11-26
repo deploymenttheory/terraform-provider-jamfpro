@@ -3,6 +3,7 @@ package computerprestageenrollments
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
@@ -11,10 +12,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// Create requires a mutex need to lock Create requests during parallel runs
+var mu sync.Mutex
+
 // create is responsible for creating a new computer prestage enrollment in the remote system.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
+
+	mu.Lock()
+	defer mu.Unlock()
+
 	isUpdate := false
 
 	resource, err := construct(d, isUpdate)

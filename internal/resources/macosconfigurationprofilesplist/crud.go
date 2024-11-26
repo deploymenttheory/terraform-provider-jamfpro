@@ -26,9 +26,9 @@ func resourceJamfProMacOSConfigurationProfilesPlistCreate(ctx context.Context, d
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	// Lock the mutex to ensure only one profile plist create can run this function at a time
 	mu.Lock()
 	defer mu.Unlock()
+
 	resource, err := constructJamfProMacOSConfigurationProfilePlist(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro macOS Configuration Profile: %v", err))

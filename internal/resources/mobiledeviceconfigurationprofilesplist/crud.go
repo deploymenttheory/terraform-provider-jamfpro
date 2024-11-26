@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"sync"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
@@ -11,6 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
+
+// Create requires a mutex need to lock Create requests during parallel runs
+var mu sync.Mutex
 
 // resourceJamfProMobileDeviceConfigurationProfileCreate is responsible for creating a new Jamf Pro Mobile Device Configuration Profile in the remote system.
 // The function:
@@ -21,6 +25,9 @@ import (
 func resourceJamfProMobileDeviceConfigurationProfilePlistCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
+
+	mu.Lock()
+	defer mu.Unlock()
 
 	resource, err := constructJamfProMobileDeviceConfigurationProfilePlist(d)
 	if err != nil {
