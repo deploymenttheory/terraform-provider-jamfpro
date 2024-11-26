@@ -14,10 +14,10 @@ func ResourceJamfProAppInstallers() *schema.Resource {
 		UpdateContext: update,
 		DeleteContext: delete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(1 * time.Minute),
-			Read:   schema.DefaultTimeout(1 * time.Minute),
-			Update: schema.DefaultTimeout(1 * time.Minute),
-			Delete: schema.DefaultTimeout(1 * time.Minute),
+			Create: schema.DefaultTimeout(120 * time.Second),
+			Read:   schema.DefaultTimeout(15 * time.Second),
+			Update: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,

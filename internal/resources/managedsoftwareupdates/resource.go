@@ -1,10 +1,13 @@
 package managedsoftwareupdates
 
 import (
+	"time"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
+// ResourceJamfProManagedSoftwareUpdate defines the schema and CRUD operations for managing Jamf Pro managed software updates in Terraform.
 func ResourceJamfProManagedSoftwareUpdate() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,
@@ -12,6 +15,12 @@ func ResourceJamfProManagedSoftwareUpdate() *schema.Resource {
 		UpdateContext: update,
 		DeleteContext: delete,
 		CustomizeDiff: mainCustomDiffFunc,
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(120 * time.Second),
+			Read:   schema.DefaultTimeout(15 * time.Second),
+			Update: schema.DefaultTimeout(30 * time.Second),
+			Delete: schema.DefaultTimeout(15 * time.Second),
+		},
 		Schema: map[string]*schema.Schema{
 			"plan_uuid": {
 				Type:        schema.TypeString,
