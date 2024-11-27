@@ -167,9 +167,9 @@ resource "jamfpro_computer_prestage_enrollment" "configured_example_1" {
   region                                  = ""
   auto_advance_setup                      = false
   install_profiles_during_setup           = true
-  prestage_installed_profile_ids          = reverse(sort([3114, 3800])) // requires decending order
-  custom_package_ids                      = sort([1, 2])                // requires ascending order
-  custom_package_distribution_point_id    = "-2"                        // "-1" - not used / "-2" - Cloud Distribution Point (Jamf Cloud) / "any other number" - Distribution Point ID
+  prestage_installed_profile_ids          = [3114, jamfpro_macos_configuration_profile_plist.jamfpro_macos_configuration_profile_001.id]
+  custom_package_ids                      = [1, 2]        
+  custom_package_distribution_point_id    = "-2"     // "-1" - not used / "-2" - Cloud Distribution Point (Jamf Cloud) / "any other number" - Distribution Point ID
   enable_recovery_lock                    = true
   recovery_lock_password_type             = "MANUAL" // "MANUAL" / "RANDOM"
   recovery_lock_password                  = "thing"

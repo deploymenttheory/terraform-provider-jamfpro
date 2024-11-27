@@ -409,19 +409,19 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 				Description: "Indicates if profiles should be installed during setup.",
 			},
 			"prestage_installed_profile_ids": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Required:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
-				Description: "IDs of the macOS configuration profiles installed during PreStage enrollment. requires decending order of profile IDs. can be left blank.",
+				Description: "IDs of the macOS configuration profiles installed during PreStage enrollment. requires decending order of profile IDs so uses a set rather than a list. can be left blank.",
 			},
 			"custom_package_ids": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Description: "Define the Enrollment Packages by their package ID to" +
-					"add an enrollment package to the PreStage enrollment. Compatible packages" +
-					"must be built as flat, distribution style .pkg files and be signed by a" +
-					"certificate that is trusted by managed computers. requires ascending order of package IDs. Can be left blank.",
+				Description: "Define the Enrollment Packages by their package ID to " +
+					"add an enrollment package to the PreStage enrollment. Compatible packages " +
+					"must be built as flat, distribution style .pkg files and be signed by a " +
+					"certificate that is trusted by managed computers. requires ascending order of package IDs so uses a set rather than a lsit. Can be left blank.",
 			},
 			"custom_package_distribution_point_id": {
 				Type:     schema.TypeString,
