@@ -106,12 +106,12 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 					"   - Removes trailing whitespace from each line\n" +
 					"   - Example: 'value    ' vs 'value'\n\n" +
 					"This normalization approach ensures that functionally identical profiles are " +
-					"recognized as equivalent despite superficial formatting differences." +
-
-					"NOTE - This provider only supports plists generated from Jamf Pro. It does not support" +
+					"recognized as equivalent despite superficial formatting differences. " +
+					"\n" +
+					"NOTE - This provider only supports plists generated from Jamf Pro. It does not support " +
 					"importing plists from other sources. If you need to import a plist from an external source," +
-					"(e.g. iMazing, Apple Configurator, etc.)" +
-					"you must first import it into Jamf Pro, then export it from Jamf Pro to generate a compatible plist." +
+					"(e.g. iMazing, Apple Configurator, etc.) " +
+					"you must first import it into Jamf Pro, then export it from Jamf Pro to generate a compatible plist. " +
 					"This provider cannot diff suppress plists generated from external sources.",
 			},
 			"payload_validate": {
@@ -138,7 +138,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 					"strictly conform to Jamf Pro's plist requirements. Disabling validation " +
 					"bypasses these checks but may result in deployment issues if the profile " +
 					"structure is incompatible with Jamf Pro, or triggers jamf pro plist processing " +
-					"not handled by 'payloads' diff suppression.",
+					"not handled by 'payloads' diff suppression. Switch off at your own risk.",
 			},
 			"redeploy_on_update": {
 				Type:     schema.TypeString,
