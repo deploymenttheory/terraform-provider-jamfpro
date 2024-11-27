@@ -75,15 +75,70 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				DiffSuppressFunc: DiffSuppressPayloads,
-				Description:      "A MacOS configuration profile as a plist-formatted XML string.",
+				Description: "A MacOS configuration profile as a plist-formatted XML string. " +
+					"Jamf Pro stores configuration profiles as XML property lists (plists). When profiles are uploaded, " +
+					"Jamf Pro processes and reformats them for consistency. This means the XML that is considered valid " +
+					"for an upload may look different from what Jamf Pro returns. To handle these differences, the provider " +
+					"implements comprehensive diff suppression for the following cases:\n\n" +
+					"Differences are suppressed in the following cases:\n\n" +
+					"1. Base64 Content Normalization:\n" +
+					"   - Removes whitespace, newlines, and tabs from base64 encoded strings\n" +
+					"   - Example: 'SGVs bG8g V29y bGQ=' vs 'SGVsbG8gV29ybGQ='\n\n" +
+					"2. XML Tag Formatting:\n" +
+					"   - Standardizes self-closing tag formats\n" +
+					"   - Examples: '<true/>' vs '< true/>' vs '<true />' vs '<true    />' vs '<true  \\t />'\n\n" +
+					"3. Empty String Standardization:\n" +
+					"   - Normalizes various representations of empty strings\n" +
+					"   - Converts strings containing only whitespace to empty strings\n" +
+					"   - Example: '' vs '    ' vs '\\n\\t'\n\n" +
+					"4. HTML Entity Decoding:\n" +
+					"   - Unescapes HTML entities for comparison\n" +
+					"   - Example: '&lt;string&gt;' vs '<string>'\n" +
+					"   - Example: '&quot;text&quot;' vs '\"text\"'\n\n" +
+					"5. Key Ordering:\n" +
+					"   - Sorts dictionary keys alphabetically for consistent comparison\n" +
+					"   - Example: '{\"b\":1,\"a\":2}' vs '{\"a\":2,\"b\":1}'\n\n" +
+					"6. Field Exclusions:\n" +
+					"   - Ignores Jamf Pro-managed identifiers that may change between environments\n" +
+					"   - Excluded fields: PayloadUUID, PayloadIdentifier, PayloadOrganization, PayloadDisplayName\n" +
+					"   - These fields are removed from comparison as they are managed by Jamf Pro\n\n" +
+					"7. Trailing Whitespace:\n" +
+					"   - Removes trailing whitespace from each line\n" +
+					"   - Example: 'value    ' vs 'value'\n\n" +
+					"This normalization approach ensures that functionally identical profiles are " +
+					"recognized as equivalent despite superficial formatting differences." +
+
+					"NOTE - This provider only supports plists generated from Jamf Pro. It does not support" +
+					"importing plists from other sources. If you need to import a plist from an external source," +
+					"(e.g. iMazing, Apple Configurator, etc.)" +
+					"you must first import it into Jamf Pro, then export it from Jamf Pro to generate a compatible plist." +
+					"This provider cannot diff suppress plists generated from external sources.",
 			},
 			"payload_validate": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
-				Description: "Validates plist payload XML. Turn off to force malformed XML confguration." +
-					"Required when the configuration profile is a non Jamf Pro source, e.g iMazing. Removing" +
-					"this may cause unexpected stating behaviour.",
+				Description: "Controls validation of the MacOS configuration profile plist. When enabled (default), " +
+					"performs the following validations:\n\n" +
+					"1. Profile Structure Validation (validatePayload):\n" +
+					"   - Verifies valid plist XML format\n" +
+					"   - Validates PayloadIdentifier matches PayloadUUID\n" +
+					"   - Checks required profile fields\n\n" +
+					"2. Payload State Normalization (normalizePayloadState):\n" +
+					"   - Normalizes the payload structure for consistent state management\n" +
+					"   - Ensures profile format matches Jamf Pro's expected structure\n\n" +
+					"3. Distribution Method Validation (validateDistributionMethod):\n" +
+					"   - Verifies self-service configuration matches distribution method\n" +
+					"   - Example: 'Make Available in Self Service' requires self_service block\n" +
+					"   - Example: 'Install Automatically' must not have self_service block\n\n" +
+					"4. Profile Level Validation (validateMacOSConfigurationProfileLevel):\n" +
+					"   - Ensures PayloadScope in plist matches the 'level' attribute\n" +
+					"   - Example: If level is 'System', PayloadScope must be 'System'\n\n" +
+					"Set to false when importing profiles from external sources that may not " +
+					"strictly conform to Jamf Pro's plist requirements. Disabling validation " +
+					"bypasses these checks but may result in deployment issues if the profile " +
+					"structure is incompatible with Jamf Pro, or triggers jamf pro plist processing " +
+					"not handled by 'payloads' diff suppression.",
 			},
 			"redeploy_on_update": {
 				Type:     schema.TypeString,
