@@ -389,7 +389,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 						// 	},
 						// }, // TODO fix this broken crap later
 						"self_service_categories": {
-							Type:        schema.TypeList,
+							Type:        schema.TypeSet,
 							Description: "Self Service category options",
 							Optional:    true,
 							Elem: &schema.Resource{
