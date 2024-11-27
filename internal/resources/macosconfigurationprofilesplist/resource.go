@@ -162,7 +162,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 							Description: "Icon for policy to use in self-service",
 						},
 						"self_service_category": {
-							Type:        schema.TypeList,
+							Type:        schema.TypeSet,
 							Description: "Self Service category options",
 							Optional:    true,
 							Elem: &schema.Resource{
