@@ -421,7 +421,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 				Description: "Define the Enrollment Packages by their package ID to " +
 					"add an enrollment package to the PreStage enrollment. Compatible packages " +
 					"must be built as flat, distribution style .pkg files and be signed by a " +
-					"certificate that is trusted by managed computers. requires ascending order of package IDs so uses a set rather than a lsit. Can be left blank.",
+					"certificate that is trusted by managed computers. Can be left blank.",
 			},
 			"custom_package_distribution_point_id": {
 				Type:     schema.TypeString,

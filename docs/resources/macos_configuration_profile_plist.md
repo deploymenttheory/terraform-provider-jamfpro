@@ -165,7 +165,42 @@ resource "jamfpro_macos_configuration_profile" "jamfpro_macos_configuration_prof
 ### Required
 
 - `name` (String) Jamf UI name for configuration profile.
-- `payloads` (String) A MacOS configuration profile as a plist-formatted XML string.
+- `payloads` (String) A MacOS configuration profile as a plist-formatted XML string. Jamf Pro stores configuration profiles as XML property lists (plists). When profiles are uploaded, Jamf Pro processes and reformats them for consistency. This means the XML that is considered valid for an upload may look different from what Jamf Pro returns. To handle these differences, the provider implements comprehensive diff suppression for the following cases:
+
+Differences are suppressed in the following cases:
+
+1. Base64 Content Normalization:
+   - Removes whitespace, newlines, and tabs from base64 encoded strings
+   - Example: 'SGVs bG8g V29y bGQ=' vs 'SGVsbG8gV29ybGQ='
+
+2. XML Tag Formatting:
+   - Standardizes self-closing tag formats
+   - Examples: '<true/>' vs '< true/>' vs '<true />' vs '<true    />' vs '<true  \t />'
+
+3. Empty String Standardization:
+   - Normalizes various representations of empty strings
+   - Converts strings containing only whitespace to empty strings
+   - Example: '' vs '    ' vs '\n\t'
+
+4. HTML Entity Decoding:
+   - Unescapes HTML entities for comparison
+   - Example: '&lt;string&gt;' vs '<string>'
+   - Example: '&quot;text&quot;' vs '"text"'
+
+5. Key Ordering:
+   - Sorts dictionary keys alphabetically for consistent comparison
+   - Example: '{"b":1,"a":2}' vs '{"a":2,"b":1}'
+
+6. Field Exclusions:
+   - Ignores Jamf Pro-managed identifiers that may change between environments
+   - Excluded fields: PayloadUUID, PayloadIdentifier, PayloadOrganization, PayloadDisplayName
+   - These fields are removed from comparison as they are managed by Jamf Pro
+
+7. Trailing Whitespace:
+   - Removes trailing whitespace from each line
+   - Example: 'value    ' vs 'value'
+
+This normalization approach ensures that functionally identical profiles are recognized as equivalent despite superficial formatting differences.NOTE - This provider only supports plists generated from Jamf Pro. It does not supportimporting plists from other sources. If you need to import a plist from an external source,(e.g. iMazing, Apple Configurator, etc.)you must first import it into Jamf Pro, then export it from Jamf Pro to generate a compatible plist.This provider cannot diff suppress plists generated from external sources.
 - `redeploy_on_update` (String) Defines the redeployment behaviour when an update to a macOS config profileoccurs. This is always 'Newly Assigned' on new profile objects, but may be set to 'All'on profile update requests once the configuration profile has been deployed to at least one device.
 - `scope` (Block List, Min: 1, Max: 1) The scope of the configuration profile. (see [below for nested schema](#nestedblock--scope))
 
@@ -175,7 +210,27 @@ resource "jamfpro_macos_configuration_profile" "jamfpro_macos_configuration_prof
 - `description` (String) Description of the configuration profile.
 - `distribution_method` (String) The distribution method for the configuration profile. ['Make Available in Self Service','Install Automatically']
 - `level` (String) The deployment level of the configuration profile. Available options are: 'User' or 'System'. Note: 'System' is mapped to 'Computer Level' in the Jamf Pro GUI.
-- `payload_validate` (Boolean) Validates plist payload XML. Turn off to force malformed XML confguration.Required when the configuration profile is a non Jamf Pro source, e.g iMazing. Removingthis may cause unexpected stating behaviour.
+- `payload_validate` (Boolean) Controls validation of the MacOS configuration profile plist. When enabled (default), performs the following validations:
+
+1. Profile Structure Validation (validatePayload):
+   - Verifies valid plist XML format
+   - Validates PayloadIdentifier matches PayloadUUID
+   - Checks required profile fields
+
+2. Payload State Normalization (normalizePayloadState):
+   - Normalizes the payload structure for consistent state management
+   - Ensures profile format matches Jamf Pro's expected structure
+
+3. Distribution Method Validation (validateDistributionMethod):
+   - Verifies self-service configuration matches distribution method
+   - Example: 'Make Available in Self Service' requires self_service block
+   - Example: 'Install Automatically' must not have self_service block
+
+4. Profile Level Validation (validateMacOSConfigurationProfileLevel):
+   - Ensures PayloadScope in plist matches the 'level' attribute
+   - Example: If level is 'System', PayloadScope must be 'System'
+
+Set to false when importing profiles from external sources that may not strictly conform to Jamf Pro's plist requirements. Disabling validation bypasses these checks but may result in deployment issues if the profile structure is incompatible with Jamf Pro, or triggers jamf pro plist processing not handled by 'payloads' diff suppression.
 - `self_service` (Block List, Max: 1) Self Service Configuration (see [below for nested schema](#nestedblock--self_service))
 - `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
@@ -245,7 +300,7 @@ Optional:
 - `notification` (Boolean) Enables Notification for this profile in self service
 - `notification_message` (String) Message body
 - `notification_subject` (String) Message Subject
-- `self_service_category` (Block List) Self Service category options (see [below for nested schema](#nestedblock--self_service--self_service_category))
+- `self_service_category` (Block Set) Self Service category options (see [below for nested schema](#nestedblock--self_service--self_service_category))
 - `self_service_description` (String) Description shown in Self Service
 - `self_service_icon_id` (Number) Icon for policy to use in self-service
 

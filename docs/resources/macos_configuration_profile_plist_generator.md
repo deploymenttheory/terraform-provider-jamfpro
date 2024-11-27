@@ -397,7 +397,7 @@ Optional:
 - `notification` (Boolean) Enables Notification for this profile in self service
 - `notification_message` (String) Message body
 - `notification_subject` (String) Message Subject
-- `self_service_categories` (Block List) Self Service category options (see [below for nested schema](#nestedblock--self_service--self_service_categories))
+- `self_service_categories` (Block Set) Self Service category options (see [below for nested schema](#nestedblock--self_service--self_service_categories))
 - `self_service_description` (String) Description shown in Self Service
 
 <a id="nestedblock--self_service--self_service_categories"></a>
