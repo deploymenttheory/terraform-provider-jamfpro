@@ -2,7 +2,7 @@
 package mobiledeviceconfigurationprofilesplist
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/plist"
@@ -11,36 +11,37 @@ import (
 
 // DiffSuppressPayloads is a custom diff suppression function for the payloads attribute.
 func DiffSuppressPayloads(k, old, new string, d *schema.ResourceData) bool {
-	log.Printf("Suppressing diff for key: %s", k)
+	fmt.Printf("[DIFFSUPPRESS] Checking diff for key: %s\n", k)
 
-	processedOldPayload, err := processPayload(old)
+	processedOldPayload, err := processPayload(old, "Terraform state payload")
 	if err != nil {
-		log.Printf("Error processing old payload: %v", err)
+		fmt.Printf("[DIFFSUPPRESS] Error processing old payload (Terraform state): %v\n", err)
 		return false
 	}
 
-	processedNewPayload, err := processPayload(new)
+	processedNewPayload, err := processPayload(new, "Jamf Pro server payload")
 	if err != nil {
-		log.Printf("Error processing new payload: %v", err)
+		fmt.Printf("[DIFFSUPPRESS] Error processing new payload (Jamf Pro server): %v\n", err)
 		return false
 	}
 
 	oldHash := common.HashString(processedOldPayload)
 	newHash := common.HashString(processedNewPayload)
 
-	log.Printf("Old payload hash: %s, New payload hash: %s", oldHash, newHash)
+	fmt.Printf("[DIFFSUPPRESS] Old payload hash: %s\n", oldHash)
+	fmt.Printf("[DIFFSUPPRESS] New payload hash: %s\n", newHash)
 
 	return oldHash == newHash
 }
 
 // processPayload processes the payload by comparing the old and new payloads. It removes specified fields and compares the hashes.
-func processPayload(payload string) (string, error) {
-	log.Printf("Processing payload: %s", payload)
+func processPayload(payload string, source string) (string, error) {
+	fmt.Printf("Processing %s: %s", source, payload)
 	fieldsToRemove := []string{"PayloadUUID", "PayloadIdentifier", "PayloadOrganization", "PayloadDisplayName"}
 	processedPayload, err := plist.ProcessConfigurationProfileForDiffSuppression(payload, fieldsToRemove)
 	if err != nil {
 		return "", err
 	}
-	log.Printf("Processed payload: %s", processedPayload)
+	fmt.Printf("Processed %s: %s", source, processedPayload)
 	return processedPayload, nil
 }

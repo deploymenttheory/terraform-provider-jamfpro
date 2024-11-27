@@ -16,7 +16,7 @@ description: |-
 - `authentication_prompt` (String) Authentication Message to display to the user. Used when Require Authentication is enabled. Can be left blank.
 - `auto_advance_setup` (Boolean) Indicates if setup should auto-advance.
 - `custom_package_distribution_point_id` (String) Set the Enrollment Packages distribution point by it's ID.Valid values are: None using '-1', Cloud Distribution Point (Jamf Cloud)by using '-2', else all other valid valid values correspond to theID of the distribution point.
-- `custom_package_ids` (List of String) Define the Enrollment Packages by their package ID toadd an enrollment package to the PreStage enrollment. Compatible packagesmust be built as flat, distribution style .pkg files and be signed by acertificate that is trusted by managed computers. requires ascending order of package IDs. Can be left blank.
+- `custom_package_ids` (Set of String) Define the Enrollment Packages by their package ID to add an enrollment package to the PreStage enrollment. Compatible packages must be built as flat, distribution style .pkg files and be signed by a certificate that is trusted by managed computers. Can be left blank.
 - `default_prestage` (Boolean) Indicates if this is the default computer prestage enrollment configuration. If yes then new devices will be automatically assigned to this PreStage enrollment
 - `department` (String) The department the computer prestage is assigned to. Can be left blank.
 - `device_enrollment_program_instance_id` (String) The Automated Device Enrollment instance ID to associate with the PreStage enrollment. Devices associated with the selected Automated Device Enrollment instance can be assigned the PreStage enrollment
@@ -32,7 +32,7 @@ description: |-
 - `location_information` (Block List, Min: 1) Location information associated with the Jamf Pro computer prestage. (see [below for nested schema](#nestedblock--location_information))
 - `mandatory` (Boolean) Make MDM Profile Mandatory and require the user to apply the MDM profile. Computers with macOS 10.15 or later automatically require the user to apply the MDM profile
 - `mdm_removable` (Boolean) Allow MDM Profile Removal and allow the user to remove the MDM profile.
-- `prestage_installed_profile_ids` (List of String) IDs of the macOS configuration profiles installed during PreStage enrollment. requires decending order of profile IDs. can be left blank.
+- `prestage_installed_profile_ids` (Set of String) IDs of the macOS configuration profiles installed during PreStage enrollment. requires decending order of profile IDs so uses a set rather than a list. can be left blank.
 - `prestage_minimum_os_target_version_type` (String) Enforce a minimum macOS target version type for the prestage enrollment. Required.
 - `prevent_activation_lock` (Boolean) Prevent user from enabling Activation Lock.
 - `purchasing_information` (Block List, Min: 1) Purchasing information associated with the computer prestage. (see [below for nested schema](#nestedblock--purchasing_information))

@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// mainCustomDiffFunc orchestrates all custom diff validations.
+// mainCustomDiffFunc orchestrates all custom diff validations for macOS config profiles.
 func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
 	if diff.Get("payload_validate").(bool) {
 		if err := validatePayload(ctx, diff, i); err != nil {
@@ -28,23 +28,18 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 		if err := validateMacOSConfigurationProfileLevel(ctx, diff, i); err != nil {
 			return err
 		}
+	}
 
-		if err := validateConfigurationProfileFormatting(ctx, diff, i); err != nil {
-			return err
-		}
+	if err := validateSelfServiceCategories(ctx, diff, i); err != nil {
+		return err
+	}
 
-		if err := validateSelfServiceCategories(ctx, diff, i); err != nil {
-			return err
-		}
+	if err := validateAllComputersScope(ctx, diff, i); err != nil {
+		return err
+	}
 
-		if err := validateAllComputersScope(ctx, diff, i); err != nil {
-			return err
-		}
-
-		if err := validateAllUsersScope(ctx, diff, i); err != nil {
-			return err
-		}
-
+	if err := validateAllUsersScope(ctx, diff, i); err != nil {
+		return err
 	}
 
 	return nil
@@ -117,18 +112,6 @@ func validateMacOSConfigurationProfileLevel(_ context.Context, diff *schema.Reso
 
 	if payloadScope != level {
 		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': hcl 'level' attribute (%s) does not match the 'PayloadScope' in the root dict of the plist (%s); the values must be identical", resourceName, level, payloadScope)
-	}
-
-	return nil
-}
-
-// validateConfigurationProfileFormatting validates the indentation of the plist XML.
-func validateConfigurationProfileFormatting(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
-	resourceName := diff.Get("name").(string)
-	payloads := diff.Get("payloads").(string)
-
-	if err := datavalidators.CheckPlistIndentationAndWhiteSpace(payloads); err != nil {
-		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': %v", resourceName, err)
 	}
 
 	return nil

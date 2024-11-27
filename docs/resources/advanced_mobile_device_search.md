@@ -61,7 +61,7 @@ resource "jamfpro_advanced_mobile_device_search" "advanced_mobile_device_search_
 
 Required:
 
-- `and_or` (String) Logical operator (and/or) for the criteria
+- `and_or` (String) Logical operator (and/or) for the search criteria
 - `name` (String) Name of the search criteria field
 - `search_type` (String) Type of search to perform
 - `value` (String) Value to search for
