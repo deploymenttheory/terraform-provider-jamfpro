@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 // resourceJamfProAdvancedMobileDeviceSearches defines the schema for managing advanced mobile device searches in Terraform.
@@ -52,25 +53,32 @@ func ResourceJamfProAdvancedMobileDeviceSearches() *schema.Resource {
 							Description: "Name of the search criteria field",
 						},
 						"priority": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Default:     0,
-							Description: "Priority order of the criteria. Default is 0, 0 is always used for the first criterion.",
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      0,
+							ValidateFunc: validation.IntBetween(0, 100),
+							Description:  "Priority order of the criteria. Default is 0, 0 is always used for the first criterion.",
 						},
 						"and_or": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "Logical operator (and/or) for the criteria",
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice([]string{"and", "or"}, false),
+							Description:  "Logical operator (and/or) for the search criteria",
 						},
 						"search_type": {
-							Type:        schema.TypeString,
-							Required:    true,
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"is", "is not", "like", "not like", "has", "does not have",
+								"greater than", "less than", "greater than or equal", "less than or equal", "matches regex", "does not match regex",
+							}, false),
 							Description: "Type of search to perform",
 						},
 						"value": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "Value to search for",
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+							Description:  "Value to search for",
 						},
 						"opening_paren": {
 							Type:        schema.TypeBool,
