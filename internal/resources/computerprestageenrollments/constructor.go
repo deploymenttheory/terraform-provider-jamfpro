@@ -96,14 +96,16 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 
 	resource.PrestageInstalledProfileIds = make([]string, 0)
 	if v, ok := d.GetOk("prestage_installed_profile_ids"); ok {
-		for _, id := range v.([]interface{}) {
+		profileSet := v.(*schema.Set)
+		for _, id := range profileSet.List() {
 			resource.PrestageInstalledProfileIds = append(resource.PrestageInstalledProfileIds, id.(string))
 		}
 	}
 
 	resource.CustomPackageIds = make([]string, 0)
 	if v, ok := d.GetOk("custom_package_ids"); ok {
-		for _, id := range v.([]interface{}) {
+		packageSet := v.(*schema.Set)
+		for _, id := range packageSet.List() {
 			resource.CustomPackageIds = append(resource.CustomPackageIds, id.(string))
 		}
 	}

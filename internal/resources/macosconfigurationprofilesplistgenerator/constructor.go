@@ -186,21 +186,21 @@ func constructMacOSConfigurationProfileSubsetSelfService(data map[string]interfa
 		NotificationMessage:         data["notification_message"].(string),
 	}
 
-	if categories, ok := data["self_service_categories"]; ok {
-		selfService.SelfServiceCategories = constructSelfServiceCategories(categories.([]interface{}))
+	if categories, ok := data["self_service_category"]; ok {
+		selfService.SelfServiceCategories = constructSelfServiceCategories(categories.(*schema.Set))
 	}
 
 	return selfService
 }
 
 // constructSelfServiceCategories constructs a slice of MacOSConfigurationProfileSubsetSelfServiceCategory from the provided schema data.
-func constructSelfServiceCategories(categories []interface{}) []jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory {
-	selfServiceCategories := make([]jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory, len(categories))
-	for i, category := range categories {
+func constructSelfServiceCategories(categories *schema.Set) []jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory {
+	categoryList := categories.List()
+	selfServiceCategories := make([]jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory, len(categoryList))
+	for i, category := range categoryList {
 		catData := category.(map[string]interface{})
 		selfServiceCategories[i] = jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory{
 			ID:        catData["id"].(int),
-			Name:      catData["name"].(string),
 			DisplayIn: catData["display_in"].(bool),
 			FeatureIn: catData["feature_in"].(bool),
 		}
