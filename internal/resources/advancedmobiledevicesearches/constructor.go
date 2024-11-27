@@ -39,9 +39,10 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceAdvancedMobileDeviceSea
 	}
 
 	if v, ok := d.GetOk("display_fields"); ok {
-		displayFieldsList := v.([]interface{})
-		displayFields := make([]string, len(displayFieldsList))
-		for i, field := range displayFieldsList {
+		displayFieldsSet := v.(*schema.Set)
+		displayFields := make([]string, displayFieldsSet.Len())
+
+		for i, field := range displayFieldsSet.List() {
 			displayFields[i] = field.(string)
 		}
 		resource.DisplayFields = displayFields

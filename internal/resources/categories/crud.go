@@ -24,7 +24,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	resource, err := construct(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro macOS Configuration Profile: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Category: %v", err))
 	}
 
 	var creationResponse *jamfpro.ResponseCategoryCreateAndUpdate
