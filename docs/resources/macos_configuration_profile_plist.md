@@ -165,7 +165,7 @@ resource "jamfpro_macos_configuration_profile" "jamfpro_macos_configuration_prof
 ### Required
 
 - `name` (String) Jamf UI name for configuration profile.
-- `payloads` (String) A MacOS configuration profile as a plist-formatted XML string. Jamf Pro stores configuration profiles as XML property lists (plists). When profiles are uploaded, Jamf Pro processes and reformats them for consistency. This means the XML that is considered valid for an upload may look different from what Jamf Pro returns. To handle these differences, the provider implements comprehensive diff suppression for the following cases:
+- `payloads` (String) The macOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist.Jamf Pro stores configuration profiles as XML property lists (plists). When profiles are uploaded, Jamf Pro processes and reformats them for consistency. This means the XML that is considered valid for an upload may look different from what Jamf Pro returns. To handle these differences, the provider implements comprehensive diff suppression for the following cases:
 
 Differences are suppressed in the following cases:
 

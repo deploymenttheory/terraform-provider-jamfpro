@@ -106,7 +106,44 @@ func ResourceJamfProMobileDeviceConfigurationProfilesPlist() *schema.Resource {
 				Required:         true,
 				StateFunc:        plist.NormalizePayloadState,
 				DiffSuppressFunc: DiffSuppressPayloads,
-				Description:      "The iOS / iPadOS / tvOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist.",
+				Description: "The iOS / iPadOS / tvOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist." +
+					"Jamf Pro stores configuration profiles as XML property lists (plists). When profiles are uploaded, " +
+					"Jamf Pro processes and reformats them for consistency. This means the XML that is considered valid " +
+					"for an upload may look different from what Jamf Pro returns. To handle these differences, the provider " +
+					"implements comprehensive diff suppression for the following cases:\n\n" +
+					"Differences are suppressed in the following cases:\n\n" +
+					"1. Base64 Content Normalization:\n" +
+					"   - Removes whitespace, newlines, and tabs from base64 encoded strings\n" +
+					"   - Example: 'SGVs bG8g V29y bGQ=' vs 'SGVsbG8gV29ybGQ='\n\n" +
+					"2. XML Tag Formatting:\n" +
+					"   - Standardizes self-closing tag formats\n" +
+					"   - Examples: '<true/>' vs '< true/>' vs '<true />' vs '<true    />' vs '<true  \\t />'\n\n" +
+					"3. Empty String Standardization:\n" +
+					"   - Normalizes various representations of empty strings\n" +
+					"   - Converts strings containing only whitespace to empty strings\n" +
+					"   - Example: '' vs '    ' vs '\\n\\t'\n\n" +
+					"4. HTML Entity Decoding:\n" +
+					"   - Unescapes HTML entities for comparison\n" +
+					"   - Example: '&lt;string&gt;' vs '<string>'\n" +
+					"   - Example: '&quot;text&quot;' vs '\"text\"'\n\n" +
+					"5. Key Ordering:\n" +
+					"   - Sorts dictionary keys alphabetically for consistent comparison\n" +
+					"   - Example: '{\"b\":1,\"a\":2}' vs '{\"a\":2,\"b\":1}'\n\n" +
+					"6. Field Exclusions:\n" +
+					"   - Ignores Jamf Pro-managed identifiers that may change between environments\n" +
+					"   - Excluded fields: PayloadUUID, PayloadIdentifier, PayloadOrganization, PayloadDisplayName\n" +
+					"   - These fields are removed from comparison as they are managed by Jamf Pro\n\n" +
+					"7. Trailing Whitespace:\n" +
+					"   - Removes trailing whitespace from each line\n" +
+					"   - Example: 'value    ' vs 'value'\n\n" +
+					"This normalization approach ensures that functionally identical profiles are " +
+					"recognized as equivalent despite superficial formatting differences. " +
+					"\n" +
+					"NOTE - This provider only supports plists generated from Jamf Pro. It does not support " +
+					"importing plists from other sources. If you need to import a plist from an external source," +
+					"(e.g. iMazing, Apple Configurator, etc.) " +
+					"you must first import it into Jamf Pro, then export it from Jamf Pro to generate a compatible plist. " +
+					"This provider cannot diff suppress plists generated from external sources.",
 			},
 			"payload_validate": {
 				Type:        schema.TypeBool,

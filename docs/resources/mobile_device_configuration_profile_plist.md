@@ -84,7 +84,43 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_device_conf
 ### Required
 
 - `name` (String) The name of the mobile device configuration profile.
-- `payloads` (String) The iOS / iPadOS / tvOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist.
+- `payloads` (String) The iOS / iPadOS / tvOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist.Jamf Pro stores configuration profiles as XML property lists (plists). When profiles are uploaded, Jamf Pro processes and reformats them for consistency. This means the XML that is considered valid for an upload may look different from what Jamf Pro returns. To handle these differences, the provider implements comprehensive diff suppression for the following cases:
+
+Differences are suppressed in the following cases:
+
+1. Base64 Content Normalization:
+   - Removes whitespace, newlines, and tabs from base64 encoded strings
+   - Example: 'SGVs bG8g V29y bGQ=' vs 'SGVsbG8gV29ybGQ='
+
+2. XML Tag Formatting:
+   - Standardizes self-closing tag formats
+   - Examples: '<true/>' vs '< true/>' vs '<true />' vs '<true    />' vs '<true  \t />'
+
+3. Empty String Standardization:
+   - Normalizes various representations of empty strings
+   - Converts strings containing only whitespace to empty strings
+   - Example: '' vs '    ' vs '\n\t'
+
+4. HTML Entity Decoding:
+   - Unescapes HTML entities for comparison
+   - Example: '&lt;string&gt;' vs '<string>'
+   - Example: '&quot;text&quot;' vs '"text"'
+
+5. Key Ordering:
+   - Sorts dictionary keys alphabetically for consistent comparison
+   - Example: '{"b":1,"a":2}' vs '{"a":2,"b":1}'
+
+6. Field Exclusions:
+   - Ignores Jamf Pro-managed identifiers that may change between environments
+   - Excluded fields: PayloadUUID, PayloadIdentifier, PayloadOrganization, PayloadDisplayName
+   - These fields are removed from comparison as they are managed by Jamf Pro
+
+7. Trailing Whitespace:
+   - Removes trailing whitespace from each line
+   - Example: 'value    ' vs 'value'
+
+This normalization approach ensures that functionally identical profiles are recognized as equivalent despite superficial formatting differences. 
+NOTE - This provider only supports plists generated from Jamf Pro. It does not support importing plists from other sources. If you need to import a plist from an external source,(e.g. iMazing, Apple Configurator, etc.) you must first import it into Jamf Pro, then export it from Jamf Pro to generate a compatible plist. This provider cannot diff suppress plists generated from external sources.
 - `redeploy_on_update` (String) Defines the redeployment behaviour when an update to a mobile device config profileoccurs. This is always 'Newly Assigned' on new profile objects, but may be set to 'All'on profile update requests once the configuration profile has been deployed to at least one device.
 - `scope` (Block List, Min: 1, Max: 1) The scope of the configuration profile. (see [below for nested schema](#nestedblock--scope))
 

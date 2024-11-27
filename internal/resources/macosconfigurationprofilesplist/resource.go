@@ -75,7 +75,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				DiffSuppressFunc: DiffSuppressPayloads,
-				Description: "A MacOS configuration profile as a plist-formatted XML string. " +
+				Description: "The macOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist." +
 					"Jamf Pro stores configuration profiles as XML property lists (plists). When profiles are uploaded, " +
 					"Jamf Pro processes and reformats them for consistency. This means the XML that is considered valid " +
 					"for an upload may look different from what Jamf Pro returns. To handle these differences, the provider " +
