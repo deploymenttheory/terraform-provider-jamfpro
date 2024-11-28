@@ -1,16 +1,16 @@
 # Test Description: 
-# - Create Indepedent computer extension attributes with no dependencies
-# - Create Indepedent sites with no dependencies
-# - Create Indepedent categories with no dependencies
-# - Create Indepedent scripts with categories as dependencies
-# - Create Indepedent policies with scripts and categories as dependencies
+# - Create Independent computer extension attributes with no dependencies
+# - Create Independent sites with no dependencies
+# - Create Independent categories with no dependencies
+# - Create Dependent scripts with categories as dependencies
+# - Create Dependent policies with scripts and categories as dependencies
 
 locals {
   count     = 10
   base_name = "tf-mutex"
 }
 
-# Create extension attributes separate from the policies
+# Create extension attributes separate in isolation from policies. No interdependancies
 resource "jamfpro_computer_extension_attribute" "computer_extension_attribute_array" {
   count                  = local.count
   name                   = "${local.base_name}-ea-${format("%03d", count.index + 1)}"
@@ -69,7 +69,7 @@ resource "jamfpro_policy" "jamfpro_policy_array" {
   target_drive                  = "/"
   offline                       = false
   category_id                   = jamfpro_category.jamfpro_category_array[count.index].id
-  site_id                       = jamfpro_site.jamfpro_site_array[count.index].id # Reference the corresponding site
+  site_id                       = jamfpro_site.jamfpro_site_array[count.index].id
 
   network_limitations {
     minimum_network_connection = "No Minimum"
