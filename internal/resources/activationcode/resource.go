@@ -32,6 +32,7 @@ func ResourceJamfProActivationCode() *schema.Resource {
 			"code": {
 				Type:        schema.TypeString,
 				Required:    true,
+				Sensitive:   true,
 				Description: "The activation code.",
 			},
 		},
