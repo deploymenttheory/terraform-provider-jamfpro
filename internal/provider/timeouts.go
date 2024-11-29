@@ -3,15 +3,15 @@ package provider
 import "time"
 
 const (
-	DefaultContextTimeoutCreate = 65 * time.Second
-	DefaultContextTimeoutRead   = 65 * time.Second
-	DefaultContextTimeoutUpdate = 65 * time.Second
-	DefaultContextTimeoutDelete = 65 * time.Second
+	DefaultContextTimeoutCreate = 75 * time.Second
+	DefaultContextTimeoutRead   = 75 * time.Second
+	DefaultContextTimeoutUpdate = 75 * time.Second
+	DefaultContextTimeoutDelete = 75 * time.Second
 
-	LoadBalancedContextTimeoutCreate = 15 * time.Second
-	LoadBalancedContextTimeoutRead   = 10 * time.Second
-	LoadBalancedContextTimeoutUpdate = 15 * time.Second
-	LoadBalancedContextTimeoutDelete = 10 * time.Second
+	LoadBalancedContextTimeoutCreate = 75 * time.Second
+	LoadBalancedContextTimeoutRead   = 75 * time.Second
+	LoadBalancedContextTimeoutUpdate = 75 * time.Second
+	LoadBalancedContextTimeoutDelete = 75 * time.Second
 )
 
 // GetDefaultContextTimeoutCreate returns the appropriate timeout duration for resource creation.
