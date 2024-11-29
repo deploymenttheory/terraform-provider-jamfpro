@@ -3,6 +3,7 @@ package common
 import (
 	"context"
 	"fmt"
+	"log"
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -190,14 +191,20 @@ func Read[sdkResponseType any](
 // Returns:
 // - diag.Diagnostics containing any errors or warnings from the operation
 func Delete(ctx context.Context, d *schema.ResourceData, meta interface{}, serverOutcomeFunc sdkDeleteFunc) diag.Diagnostics {
+	log.Println("LOGHERE - DELETING")
+
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		apiErr := serverOutcomeFunc(resourceID)
+
 		if apiErr != nil {
+			log.Printf("ERROR FOUND - %v", apiErr)
 			return retry.RetryableError(apiErr)
 		}
+
+		log.Printf("NO ERROR FOUND - %v", apiErr)
 		return nil
 	})
 

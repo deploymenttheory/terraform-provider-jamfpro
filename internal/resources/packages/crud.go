@@ -175,7 +175,7 @@ func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		apiErr := client.DeletePackageByID(resourceID)
 		if apiErr != nil {
 			resourceName := d.Get("name").(string)
-			apiErrByName := client.DeleteScriptByName(resourceName)
+			_, apiErrByName := client.DeleteScriptByName(resourceName)
 			if apiErrByName != nil {
 				return retry.RetryableError(apiErrByName)
 			}
