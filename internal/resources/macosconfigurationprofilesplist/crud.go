@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"sync"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
@@ -14,7 +13,7 @@ import (
 )
 
 // Create requires a mutex need to lock Create requests during parallel runs
-var mu sync.Mutex
+// var mu sync.Mutex
 
 // resourceJamfProMacOSConfigurationProfilesPlistCreate is responsible for creating a new Jamf Pro macOS Configuration Profile in the remote system.
 // The function:
@@ -26,8 +25,8 @@ func resourceJamfProMacOSConfigurationProfilesPlistCreate(ctx context.Context, d
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	mu.Lock()
-	defer mu.Unlock()
+	// mu.Lock()
+	// defer mu.Unlock()
 
 	resource, err := constructJamfProMacOSConfigurationProfilePlist(d)
 	if err != nil {
