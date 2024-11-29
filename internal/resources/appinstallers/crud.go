@@ -3,7 +3,6 @@ package appinstallers
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
@@ -13,7 +12,7 @@ import (
 )
 
 // Create requires a mutex need to lock Create requests during parallel runs
-var mu sync.Mutex
+// var mu sync.Mutex
 
 // resourceJamfProAppInstallersCreate is responsible for creating a new Jamf Pro App Installer in the remote system.
 // The function:
@@ -25,8 +24,8 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	mu.Lock()
-	defer mu.Unlock()
+	// mu.Lock()
+	// defer mu.Unlock()
 
 	// Check and accept the Jamf App Catalog App Installer terms and conditions
 	err := checkJamfAppCatalogAppInstallerTermsAndConditions(ctx, client)

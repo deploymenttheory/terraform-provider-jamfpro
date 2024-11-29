@@ -3,7 +3,6 @@ package managedsoftwareupdates
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
@@ -13,7 +12,7 @@ import (
 )
 
 // Create requires a mutex need to lock Create requests during parallel runs
-var mu sync.Mutex
+// var mu sync.Mutex
 
 // create is responsible for creating a new Jamf Pro Managed Software Update in the remote system.
 // The function:
@@ -25,8 +24,8 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	mu.Lock()
-	defer mu.Unlock()
+	// mu.Lock()
+	// defer mu.Unlock()
 
 	err := checkAndEnableManagedSoftwareUpdateFeatureToggle(ctx, client)
 	if err != nil {
