@@ -1,6 +1,10 @@
 package policies
 
 import (
+	"encoding/xml"
+	"fmt"
+	"log"
+
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -21,6 +25,13 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error) {
 	constructSelfService(d, resource)
 
 	constructPayloads(d, resource)
+
+	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Policy '%s' to XML: %v", resource.General.Name, err)
+	}
+
+	log.Printf("[DEBUG] Constructed Jamf Pro Policy XML:\n%s\n", string(resourceXML))
 
 	return resource, nil
 }
@@ -528,7 +539,7 @@ func constructPayloadUserInteraction(d *schema.ResourceData, resource *jamfpro.R
 		data := v.(map[string]interface{})
 		payload = append(payload, jamfpro.PolicySubsetUserInteraction{
 			MessageStart:          data["message_start"].(string),
-			AllowUserToDefer:      data["allow_user_to_defer"].(bool),
+			AllowUsersToDefer:     data["allow_user_to_defer"].(bool),
 			AllowDeferralUntilUtc: data["allow_deferral_until_utc"].(string),
 			AllowDeferralMinutes:  data["allow_deferral_minutes"].(int),
 			MessageFinish:         data["message_finish"].(string),

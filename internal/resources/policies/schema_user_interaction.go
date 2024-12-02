@@ -1,6 +1,8 @@
 package policies
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -12,7 +14,7 @@ func getPolicySchemaUserInteraction() *schema.Resource {
 				Optional:    true,
 				Description: "Message to display before the policy runs",
 			},
-			"allow_user_to_defer": {
+			"allow_users_to_defer": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Description: "Allow user deferral and configure deferral type. A deferral limit must be specified for this to work.",
@@ -26,8 +28,15 @@ func getPolicySchemaUserInteraction() *schema.Resource {
 			"allow_deferral_minutes": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Description: "Number of minutes after the user was first prompted by the policy at which the policy runs and deferrals are prohibited",
-				Default:     "0",
+				Description: "Number of minutes after the user was first prompted by the policy at which the policy runs and deferrals are prohibited. Must be a multiple of 1440 (minutes in day)",
+				Default:     0,
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := val.(int)
+					if v%1440 != 0 {
+						errs = append(errs, fmt.Errorf("%q must be a multiple of 1440 (minutes in day), got: %d", key, v))
+					}
+					return
+				},
 			},
 			"message_finish": {
 				Type:        schema.TypeString,
