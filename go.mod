@@ -8,9 +8,9 @@ toolchain go1.22.9
 
 // Deploymenttheory
 require (
-	github.com/deploymenttheory/go-api-http-client v0.2.12
+	github.com/deploymenttheory/go-api-http-client v0.2.16
 	github.com/deploymenttheory/go-api-http-client-integrations v0.0.11
-	github.com/deploymenttheory/go-api-sdk-jamfpro v1.14.2
+	github.com/deploymenttheory/go-api-sdk-jamfpro v1.15.0
 
 )
 
@@ -40,8 +40,8 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
 	github.com/ProtonMail/go-crypto v1.1.0-alpha.2 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
-	github.com/antchfx/xmlquery v1.4.1 // indirect
-	github.com/antchfx/xpath v1.3.1 // indirect
+	github.com/antchfx/xmlquery v1.4.2 // indirect
+	github.com/antchfx/xpath v1.3.2 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.32.6 // indirect
@@ -112,12 +112,12 @@ require (
 	github.com/zclconf/go-cty v1.15.0 // indirect
 	go.abhg.dev/goldmark/frontmatter v0.2.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.28.0 // indirect
+	golang.org/x/crypto v0.29.0 // indirect
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df // indirect
 	golang.org/x/mod v0.21.0 // indirect
-	golang.org/x/net v0.28.0 // indirect
+	golang.org/x/net v0.31.0 // indirect
 	golang.org/x/sync v0.9.0 // indirect
-	golang.org/x/sys v0.26.0 // indirect
+	golang.org/x/sys v0.27.0 // indirect
 	golang.org/x/tools v0.22.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240814211410-ddb44dafa142 // indirect
