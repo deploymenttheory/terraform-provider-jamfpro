@@ -329,7 +329,7 @@ func prepStatePayloadUserInteraction(out *[]map[string]interface{}, resp *jamfpr
 
 	userInteractionBlock := map[string]interface{}{
 		"message_start":            resp.UserInteraction.MessageStart,
-		"allow_user_to_defer":      resp.UserInteraction.AllowUserToDefer,
+		"allow_user_to_defer":      resp.UserInteraction.AllowUsersToDefer,
 		"allow_deferral_until_utc": resp.UserInteraction.AllowDeferralUntilUtc,
 		"allow_deferral_minutes":   resp.UserInteraction.AllowDeferralMinutes,
 		"message_finish":           resp.UserInteraction.MessageFinish,
