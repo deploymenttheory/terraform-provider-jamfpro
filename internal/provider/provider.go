@@ -352,6 +352,7 @@ func Provider() *schema.Provider {
 			"jamfpro_building":                                  buildings.DataSourceJamfProBuildings(),
 			"jamfpro_category":                                  categories.DataSourceJamfProCategories(),
 			"jamfpro_computer_extension_attribute":              computerextensionattributes.DataSourceJamfProComputerExtensionAttributes(),
+			"jamfpro_computer_extension_attribute_list":         computerextensionattributes.DataSourceJamfProComputerExtensionAttributesList(),
 			"jamfpro_computer_inventory":                        computerinventory.DataSourceJamfProComputerInventory(),
 			"jamfpro_computer_prestage_enrollment":              computerprestageenrollments.DataSourceJamfProComputerPrestageEnrollmentEnrollment(),
 			"jamfpro_department":                                departments.DataSourceJamfProDepartments(),
@@ -366,6 +367,7 @@ func Provider() *schema.Provider {
 			"jamfpro_policy":                    policies.DataSourceJamfProPolicies(),
 			"jamfpro_printer":                   printers.DataSourceJamfProPrinters(),
 			"jamfpro_script":                    scripts.DataSourceJamfProScripts(),
+			"jamfpro_script_list":               scripts.DataSourceJamfProScriptsList(),
 			"jamfpro_site":                      sites.DataSourceJamfProSites(),
 			"jamfpro_smart_computer_group":      smartcomputergroups.DataSourceJamfProSmartComputerGroups(),
 			"jamfpro_smart_mobile_device_group": smartmobiledevicegroups.DataSourceJamfProSmartMobileGroups(),
@@ -373,6 +375,7 @@ func Provider() *schema.Provider {
 			"jamfpro_restricted_software":       restrictedsoftware.DataSourceJamfProRestrictedSoftwares(),
 			"jamfpro_user_group":                usergroups.DataSourceJamfProUserGroups(),
 			"jamfpro_webhook":                   webhooks.DataSourceJamfProWebhooks(),
+			"jamfpro_webhook_list":              webhooks.DataSourceJamfProWebhooksList(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"jamfpro_account":                                     accounts.ResourceJamfProAccounts(),

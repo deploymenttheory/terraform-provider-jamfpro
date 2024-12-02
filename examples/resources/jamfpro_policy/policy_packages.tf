@@ -29,9 +29,10 @@ resource "jamfpro_policy" "jamfpro_package_policy_001" {
 
   self_service {
     use_for_self_service            = true
-    self_service_display_name       = ""
+    self_service_display_name       = "some display name"
     install_button_text             = "Install"
-    self_service_description        = ""
+    reinstall_button_text           = "Reinstall"
+    self_service_description        = "a description by tf"
     force_users_to_view_description = false
 
     feature_on_main_page = false

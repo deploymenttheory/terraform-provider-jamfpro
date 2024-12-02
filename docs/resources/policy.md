@@ -278,9 +278,9 @@ Optional:
 
 Optional:
 
-- `allow_deferral_minutes` (Number) Number of minutes after the user was first prompted by the policy at which the policy runs and deferrals are prohibited
+- `allow_deferral_minutes` (Number) Number of minutes after the user was first prompted by the policy at which the policy runs and deferrals are prohibited. Must be a multiple of 1440 (minutes in day)
 - `allow_deferral_until_utc` (String) Date/time at which deferrals are prohibited and the policy runs. Uses time zone settings of your hosting server. Standard environments hosted in Jamf Cloud use Coordinated Universal Time (UTC)
-- `allow_user_to_defer` (Boolean) Allow user deferral and configure deferral type. A deferral limit must be specified for this to work.
+- `allow_users_to_defer` (Boolean) Allow user deferral and configure deferral type. A deferral limit must be specified for this to work.
 - `message_finish` (String) Message to display when the policy is complete.
 - `message_start` (String) Message to display before the policy runs
 
