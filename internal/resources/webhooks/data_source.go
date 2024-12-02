@@ -4,6 +4,7 @@ package webhooks
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -75,6 +76,79 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	} else {
 		d.SetId("")
 	}
+
+	return diags
+}
+
+// DataSourceJamfProWebhooks List provides a list of all Jamf Pro Webhooks
+func DataSourceJamfProWebhooksList() *schema.Resource {
+	return &schema.Resource{
+		ReadContext: dataSourceReadList,
+		Schema: map[string]*schema.Schema{
+			"webhooks": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"ids": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+		},
+	}
+}
+
+// dataSourceReadList retrieves a list of all Jamf Pro Webhooks
+// and maps the data into the Terraform state.
+//
+// Parameters:
+// - ctx: The context within which the function is called. Used for timeouts and cancellation.
+// - d: The current state of the data source.
+// - meta: The meta object that provides the API client connection.
+//
+// Returns:
+// - diag.Diagnostics: Returns any diagnostics (errors or warnings) encountered during the function's execution.
+func dataSourceReadList(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	client := meta.(*jamfpro.Client)
+
+	var diags diag.Diagnostics
+
+	response, err := client.GetWebhooks()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to retrieve Jamf Pro Webhooks: %v", err))
+	}
+
+	var webhooks []map[string]interface{}
+	var ids []string
+
+	for _, webhook := range response.Webhooks {
+		webhooks = append(webhooks, map[string]interface{}{
+			"id":   strconv.Itoa(webhook.ID),
+			"name": webhook.Name,
+		})
+		ids = append(ids, strconv.Itoa(webhook.ID))
+	}
+
+	if err := d.Set("webhooks", webhooks); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting 'webhooks' attribute: %v", err))
+	}
+	if err := d.Set("ids", ids); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting 'ids' attribute: %v", err))
+	}
+
+	d.SetId(fmt.Sprintf("datasource-webhooks-list-%d", time.Now().Unix()))
 
 	return diags
 }

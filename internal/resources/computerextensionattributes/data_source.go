@@ -4,6 +4,7 @@ package computerextensionattributes
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 
@@ -71,6 +72,80 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	} else {
 		d.SetId("")
 	}
+
+	return diags
+}
+
+// DataSourceJamfProComputerExtensionAttributesList provides a list of all Jamf Pro computer extension attributes.
+func DataSourceJamfProComputerExtensionAttributesList() *schema.Resource {
+	return &schema.Resource{
+		ReadContext: dataSourceReadList,
+		Schema: map[string]*schema.Schema{
+			"attributes": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"description": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"ids": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+		},
+	}
+}
+
+// dataSourceReadList fetches a list of all Jamf Pro computer extension attributes
+// and maps them into the Terraform state.
+func dataSourceReadList(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	client := meta.(*jamfpro.Client)
+
+	var diags diag.Diagnostics
+
+	// Fetch the list of computer extension attributes
+	response, err := client.GetComputerExtensionAttributes("")
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to retrieve Jamf Pro computer extension attributes: %v", err))
+	}
+
+	// Map the attributes to the Terraform state
+	var attributes []map[string]interface{}
+	var ids []string
+
+	for _, attr := range response.Results {
+		attributes = append(attributes, map[string]interface{}{
+			"id":          attr.ID,
+			"name":        attr.Name,
+			"description": attr.Description,
+		})
+		ids = append(ids, attr.ID)
+	}
+
+	// Set the computed attributes in Terraform state
+	if err := d.Set("attributes", attributes); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting 'attributes' attribute: %v", err))
+	}
+	if err := d.Set("ids", ids); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting 'ids' attribute: %v", err))
+	}
+
+	// Generate a unique ID for the resource
+	d.SetId(fmt.Sprintf("datasource-computer-extension-attributes-list-%d", time.Now().Unix()))
 
 	return diags
 }
