@@ -20,7 +20,7 @@ resource "jamfpro_activation_code" "activation_code_001" {
 
 ### Required
 
-- `code` (String) The activation code.
+- `code` (String, Sensitive) The activation code.
 - `organization_name` (String) The name of the organization associated with the activation code.
 
 ### Optional
