@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -82,12 +83,20 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		return diag.FromErr(fmt.Errorf("failed to create and upload Jamf Pro Package '%s': %v", resource.PackageName, err))
 	}
 
-	// Clean up downloaded file if it was from an HTTP source
-	if strings.HasPrefix(d.Get("package_file_source").(string), "http") {
+	// Only clean up if we downloaded from web source and verify the path is what we expect
+	if regexp.MustCompile(`^(http|https)://`).MatchString(d.Get("package_file_source").(string)) {
+		if !strings.HasPrefix(localFilePath, os.TempDir()) {
+			log.Printf("[WARN] Refusing to remove file '%s' as it's not in the temporary directory: timestamp=%s",
+				localFilePath, time.Now().UTC().Format(time.RFC3339))
+			return diags
+		}
+
 		if err := os.Remove(localFilePath); err != nil {
-			log.Printf("[WARN] Failed to remove downloaded package file '%s': %v", localFilePath, err)
+			log.Printf("[WARN] Failed to remove downloaded package file '%s': %v: timestamp=%s",
+				localFilePath, err, time.Now().UTC().Format(time.RFC3339))
 		} else {
-			log.Printf("[INFO] Successfully removed downloaded package file '%s'", localFilePath)
+			log.Printf("[INFO] Successfully removed downloaded package file '%s': timestamp=%s",
+				localFilePath, time.Now().UTC().Format(time.RFC3339))
 		}
 	}
 
@@ -192,11 +201,20 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Package '%s' (ID: %s): %v", resource.PackageName, resourceID, err))
 	}
 
-	if strings.HasPrefix(d.Get("package_file_source").(string), "http") {
+	// Only clean up if we downloaded from web source and verify the path is what we expect
+	if regexp.MustCompile(`^(http|https)://`).MatchString(d.Get("package_file_source").(string)) {
+		if !strings.HasPrefix(localFilePath, os.TempDir()) {
+			log.Printf("[WARN] Refusing to remove file '%s' as it's not in the temporary directory: timestamp=%s",
+				localFilePath, time.Now().UTC().Format(time.RFC3339))
+			return diags
+		}
+
 		if err := os.Remove(localFilePath); err != nil {
-			log.Printf("[WARN] Failed to remove downloaded package file '%s': %v", localFilePath, err)
+			log.Printf("[WARN] Failed to remove downloaded package file '%s': %v: timestamp=%s",
+				localFilePath, err, time.Now().UTC().Format(time.RFC3339))
 		} else {
-			log.Printf("[INFO] Successfully removed downloaded package file '%s'", localFilePath)
+			log.Printf("[INFO] Successfully removed downloaded package file '%s': timestamp=%s",
+				localFilePath, time.Now().UTC().Format(time.RFC3339))
 		}
 	}
 
