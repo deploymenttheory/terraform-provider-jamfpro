@@ -8,15 +8,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// construct constructs a ResourceIcon object from the provided schema data.
 func construct(d *schema.ResourceData) (string, error) {
-	// Check if we have a local file path
-	if filePath := d.Get("icon_file_path").(string); filePath != "" {
+	filePath := d.Get("icon_file_path").(string)
+	webSource := d.Get("icon_file_web_source").(string)
+
+	if filePath != "" && webSource != "" {
+		return "", fmt.Errorf("cannot specify both icon_file_path and icon_file_web_source, choose one source only")
+	}
+
+	if filePath != "" {
 		return filePath, nil
 	}
 
-	// Check if we have a web source
-	if webSource := d.Get("icon_file_web_source").(string); webSource != "" {
-		// Download the file and return the local path
+	if webSource != "" {
 		localPath, err := common.DownloadFile(webSource)
 		if err != nil {
 			return "", fmt.Errorf("failed to download icon from %s: %v", webSource, err)
