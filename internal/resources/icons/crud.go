@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
@@ -14,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// create is responsible for initializing the Jamf Pro computer check-in configuration in Terraform.
+// create is responsible for initializing the Jamf Pro Icon configuration in Terraform.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
@@ -40,18 +42,27 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	d.SetId(fmt.Sprintf("%d", uploadResponse.ID))
 
-	if d.Get("icon_file_web_source").(string) != "" {
+	// Only clean up if we downloaded from web source and verify the path is what we expect
+	if webSource := d.Get("icon_file_web_source").(string); webSource != "" {
+		if !strings.HasPrefix(filePath, os.TempDir()) {
+			log.Printf("[WARN] Refusing to remove file '%s' as it's not in the temporary directory: timestamp=%s",
+				filePath, time.Now().UTC().Format(time.RFC3339))
+			return diags
+		}
+
 		if err := os.Remove(filePath); err != nil {
-			log.Printf("[WARN] Failed to remove downloaded icon file '%s': %v", filePath, err)
+			log.Printf("[WARN] Failed to remove downloaded icon file '%s': %v: timestamp=%s",
+				filePath, err, time.Now().UTC().Format(time.RFC3339))
 		} else {
-			log.Printf("[INFO] Successfully removed downloaded icon file '%s'", filePath)
+			log.Printf("[INFO] Successfully removed downloaded icon file '%s': timestamp=%s",
+				filePath, time.Now().UTC().Format(time.RFC3339))
 		}
 	}
 
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
-// read is responsible for reading the current state of the Jamf Pro computer check-in configuration.
+// read is responsible for reading the current state of the Jamf Pro Icon configuration.
 func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
@@ -89,6 +100,7 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 	return read(ctx, d, meta, false)
 }
 
+// update is responsible for updating the Jamf Pro Icon configuration.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
@@ -114,12 +126,20 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 			return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Icon after retries: %v", err))
 		}
 
-		// Clean up downloaded file if it was from a web source
-		if d.Get("icon_file_web_source").(string) != "" {
+		// Only clean up if we downloaded from web source and verify the path is what we expect
+		if webSource := d.Get("icon_file_web_source").(string); webSource != "" {
+			if !strings.HasPrefix(filePath, os.TempDir()) {
+				log.Printf("[WARN] Refusing to remove file '%s' as it's not in the temporary directory: timestamp=%s",
+					filePath, time.Now().UTC().Format(time.RFC3339))
+				return diags
+			}
+
 			if err := os.Remove(filePath); err != nil {
-				log.Printf("[WARN] Failed to remove downloaded icon file '%s': %v", filePath, err)
+				log.Printf("[WARN] Failed to remove downloaded icon file '%s': %v: timestamp=%s",
+					filePath, err, time.Now().UTC().Format(time.RFC3339))
 			} else {
-				log.Printf("[INFO] Successfully removed downloaded icon file '%s'", filePath)
+				log.Printf("[INFO] Successfully removed downloaded icon file '%s': timestamp=%s",
+					filePath, time.Now().UTC().Format(time.RFC3339))
 			}
 		}
 	}
@@ -127,7 +147,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
-// delete is responsible for 'deleting' the Jamf Pro computer check-in configuration.
+// delete is responsible for 'deleting' the Jamf Pro Icon configuration.
 // Since this resource represents a configuration and not an actual entity that can be deleted,
 // this function will simply remove it from the Terraform state.
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
