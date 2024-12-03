@@ -4,15 +4,12 @@ package packages
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
-	"mime"
-	"net/http"
-	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -28,7 +25,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourcePackage, string, error)
 
 	if strings.HasPrefix(fullPath, "http") {
 		log.Printf("[INFO] URL detected: %s. Attempting to download.", fullPath)
-		localFilePath, err = downloadFile(fullPath)
+		localFilePath, err = common.DownloadFile(fullPath)
 		if err != nil {
 			return nil, "", fmt.Errorf("failed to download file: %v", err)
 		}
@@ -48,22 +45,22 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourcePackage, string, error)
 		Notes:                d.Get("notes").(string),
 		Priority:             d.Get("priority").(int),
 		OSRequirements:       d.Get("os_requirements").(string),
-		FillUserTemplate:     BoolPtr(d.Get("fill_user_template").(bool)),
-		Indexed:              BoolPtr(d.Get("indexed").(bool)),
-		FillExistingUsers:    BoolPtr(d.Get("fill_existing_users").(bool)),
-		SWU:                  BoolPtr(d.Get("swu").(bool)),
-		RebootRequired:       BoolPtr(d.Get("reboot_required").(bool)),
-		SelfHealNotify:       BoolPtr(d.Get("self_heal_notify").(bool)),
+		FillUserTemplate:     jamfpro.BoolPtr(d.Get("fill_user_template").(bool)),
+		Indexed:              jamfpro.BoolPtr(d.Get("indexed").(bool)),
+		FillExistingUsers:    jamfpro.BoolPtr(d.Get("fill_existing_users").(bool)),
+		SWU:                  jamfpro.BoolPtr(d.Get("swu").(bool)),
+		RebootRequired:       jamfpro.BoolPtr(d.Get("reboot_required").(bool)),
+		SelfHealNotify:       jamfpro.BoolPtr(d.Get("self_heal_notify").(bool)),
 		SelfHealingAction:    d.Get("self_healing_action").(string),
-		OSInstall:            BoolPtr(d.Get("os_install").(bool)),
+		OSInstall:            jamfpro.BoolPtr(d.Get("os_install").(bool)),
 		SerialNumber:         d.Get("serial_number").(string),
 		ParentPackageID:      d.Get("parent_package_id").(string),
 		BasePath:             d.Get("base_path").(string),
-		SuppressUpdates:      BoolPtr(d.Get("suppress_updates").(bool)),
-		IgnoreConflicts:      BoolPtr(d.Get("ignore_conflicts").(bool)),
-		SuppressFromDock:     BoolPtr(d.Get("suppress_from_dock").(bool)),
-		SuppressEula:         BoolPtr(d.Get("suppress_eula").(bool)),
-		SuppressRegistration: BoolPtr(d.Get("suppress_registration").(bool)),
+		SuppressUpdates:      jamfpro.BoolPtr(d.Get("suppress_updates").(bool)),
+		IgnoreConflicts:      jamfpro.BoolPtr(d.Get("ignore_conflicts").(bool)),
+		SuppressFromDock:     jamfpro.BoolPtr(d.Get("suppress_from_dock").(bool)),
+		SuppressEula:         jamfpro.BoolPtr(d.Get("suppress_eula").(bool)),
+		SuppressRegistration: jamfpro.BoolPtr(d.Get("suppress_registration").(bool)),
 		InstallLanguage:      d.Get("install_language").(string),
 		OSInstallerVersion:   d.Get("os_installer_version").(string),
 		Manifest:             d.Get("manifest").(string),
@@ -79,68 +76,4 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourcePackage, string, error)
 	log.Printf("[DEBUG] Constructed Jamf Pro Package JSON:\n%s\n", string(resourceJSON))
 
 	return resource, localFilePath, nil
-}
-
-// BoolPtr is a helper function to return the pointer to a bool.
-func BoolPtr(b bool) *bool {
-	return &b
-}
-
-// downloadFile downloads a file from the given URL and saves it to a temporary file.
-// If the Content-Disposition header is present in the response, it uses the filename
-// from the header. Otherwise, if no filename is provided in the headers, it uses the
-// final URL after any redirects to determine the filename. It also replaces any '%' characters
-// in the filename with '_'.
-func downloadFile(url string) (string, error) {
-	tmpFile, err := os.CreateTemp("", "downloaded-*")
-	if err != nil {
-		return "", fmt.Errorf("failed to create temporary file: %v", err)
-	}
-	defer tmpFile.Close()
-
-	client := &http.Client{
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			if len(via) >= 10 {
-				return fmt.Errorf("too many redirects when attempting to download file from %s", url)
-			}
-			return nil
-		},
-	}
-
-	resp, err := client.Get(url)
-	if err != nil {
-		return "", fmt.Errorf("failed to download file from %s: %v", url, err)
-	}
-	defer resp.Body.Close()
-
-	_, err = io.Copy(tmpFile, resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("failed to write to temporary file: %v", err)
-	}
-
-	// Get the file name from the Content-Disposition header if available
-	_, params, err := mime.ParseMediaType(resp.Header.Get("Content-Disposition"))
-	if err == nil {
-		if filename, ok := params["filename"]; ok {
-			filename = strings.ReplaceAll(filename, "%", "_")
-			finalPath := filepath.Join(os.TempDir(), filename)
-			err = os.Rename(tmpFile.Name(), finalPath)
-			if err != nil {
-				return "", fmt.Errorf("failed to rename temporary file to final destination: %v", err)
-			}
-			log.Printf("[INFO] File downloaded to: %s", finalPath)
-			return finalPath, nil
-		}
-	}
-
-	finalURL := resp.Request.URL.String()
-	fileName := filepath.Base(finalURL)
-	fileName = strings.ReplaceAll(fileName, "%", "_")
-	finalPath := filepath.Join(os.TempDir(), fileName)
-	err = os.Rename(tmpFile.Name(), finalPath)
-	if err != nil {
-		return "", fmt.Errorf("failed to rename temporary file to final destination: %v", err)
-	}
-	log.Printf("[INFO] File downloaded to: %s", finalPath)
-	return finalPath, nil
 }
