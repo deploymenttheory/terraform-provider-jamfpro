@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
@@ -21,9 +22,10 @@ import (
 // 1. Constructs the attribute data using the provided Terraform configuration.
 // 2. Calls the API to create the package metadata in jamfpro.
 // 3. Uploads the package file to the Jamf Pro server.
-// 4. Sets the ID of the created package in the Terraform state.
-// 5. Perform cleanup of downloaded package if it was from an HTTP(s) source
-// 6. Reads the created package to ensure the Terraform state is up-to-date.
+// 4. Verifes upload hash
+// 5. Sets the ID of the created package in the Terraform state.
+// 6. Perform cleanup of downloaded package if it was from an HTTP(s) source
+// 7. Reads the created package to ensure the Terraform state is up-to-date.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
@@ -33,37 +35,56 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package: %v", err))
 	}
 
+	// Set the filename in the resource based on the local file path
+	resource.FileName = filepath.Base(localFilePath)
+
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		var apiErr error
-		var creationResponse *jamfpro.ResponsePackageCreatedAndUpdated
-
-		creationResponse, apiErr = client.CreatePackage(*resource)
-		if apiErr != nil {
-			return retry.RetryableError(apiErr)
+		initialHash, err := jamfpro.CalculateSHA3_512(localFilePath)
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to calculate SHA3-512: %v", err))
 		}
 
-		log.Printf("[DEBUG] Jamf Pro Package Metadata created: %+v", creationResponse)
-
-		fullFilePath := localFilePath
-
-		_, apiErr = client.UploadPackage(creationResponse.ID, []string{fullFilePath})
-		if apiErr != nil {
-			log.Printf("[ERROR] Failed to upload package file for package '%s': %v", creationResponse.ID, apiErr)
-			return retry.NonRetryableError(apiErr)
+		creationResponse, err := client.CreatePackage(*resource)
+		if err != nil {
+			return retry.RetryableError(fmt.Errorf("failed to create package metadata in Jamf Pro: %v", err))
 		}
 
+		log.Printf("[INFO] Jamf Pro package metadata created successfully with package ID: %s", creationResponse.ID)
+
+		_, err = client.UploadPackage(creationResponse.ID, []string{localFilePath})
+		if err != nil {
+			log.Printf("[ERROR] Failed to upload package file '%s': %v", resource.FileName, err)
+			return retry.NonRetryableError(fmt.Errorf("failed to upload package file: %v", err))
+		}
+
+		log.Printf("[INFO] Package %s file uploaded successfully", resource.FileName)
+
+		// Wait for JCDS to process the upload
+		time.Sleep(3 * time.Second)
+
+		uploadedPackage, err := client.GetPackageByID(creationResponse.ID)
+		if err != nil {
+			return retry.RetryableError(fmt.Errorf("failed to verify uploaded package: %v", err))
+		}
+
+		if uploadedPackage.HashType != "SHA3_512" || uploadedPackage.HashValue != initialHash {
+			return retry.NonRetryableError(fmt.Errorf("hash verification failed: initial=%s, uploaded=%s (type: %s)",
+				initialHash, uploadedPackage.HashValue, uploadedPackage.HashType))
+		}
+
+		log.Printf("[INFO] Package %s SHA3-512 verification successful with hash: %s", resource.FileName, uploadedPackage.HashValue)
 		d.SetId(creationResponse.ID)
 
 		return nil
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create and upload Jamf Pro Package '%s' after retries: %v", resource.PackageName, err))
+		return diag.FromErr(fmt.Errorf("failed to create and upload Jamf Pro Package '%s': %v", resource.PackageName, err))
 	}
 
+	// Clean up downloaded file if it was from an HTTP source
 	if strings.HasPrefix(d.Get("package_file_source").(string), "http") {
-		err := os.Remove(localFilePath)
-		if err != nil {
+		if err := os.Remove(localFilePath); err != nil {
 			log.Printf("[WARN] Failed to remove downloaded package file '%s': %v", localFilePath, err)
 		} else {
 			log.Printf("[INFO] Successfully removed downloaded package file '%s'", localFilePath)
@@ -108,6 +129,14 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 }
 
 // update is responsible for updating an existing Jamf Pro Package on the remote system.
+// The function:
+// 1. Constructs the attribute data using the provided Terraform configuration.
+// 2. calculates the SHA3-512 hash of the local file.
+// 3. Calls the API to update the package metadata in jamfpro.
+// 4. Uploads the package file to the Jamf Pro server.
+// 5. Verifes upload hash
+// 6. Reads the updated package to ensure the Terraform state is up-to-date.
+// 7. Perform cleanup of downloaded package if it was from an HTTP(s) source
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
@@ -118,44 +147,53 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package for update: %v", err))
 	}
 
+	newFileHash, err := jamfpro.CalculateSHA3_512(localFilePath)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to calculate SHA3-512 hash for %s: %v", localFilePath, err))
+	}
+
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		_, apiErr := client.UpdatePackageByID(resourceID, *resource)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
+
+		currentPackage, apiErr := client.GetPackageByID(resourceID)
+		if apiErr != nil {
+			return retry.RetryableError(fmt.Errorf("failed to get current package state: %v", apiErr))
+		}
+
+		if newFileHash != currentPackage.HashValue {
+			_, apiErr = client.UploadPackage(resourceID, []string{localFilePath})
+			if apiErr != nil {
+				return retry.RetryableError(fmt.Errorf("failed to upload package file: %v", apiErr))
+			}
+
+			time.Sleep(5 * time.Second)
+
+			uploadedPackage, apiErr := client.GetPackageByID(resourceID)
+			if apiErr != nil {
+				return retry.RetryableError(fmt.Errorf("failed to verify uploaded package: %v", apiErr))
+			}
+
+			if uploadedPackage.HashValue != newFileHash {
+				return retry.NonRetryableError(fmt.Errorf("hash verification failed after upload: expected=%s, got=%s",
+					newFileHash, uploadedPackage.HashValue))
+			}
+
+			log.Printf("[INFO] Package %s SHA3-512 verification successful with hash: %s",
+				filepath.Base(localFilePath), uploadedPackage.HashValue)
+		}
+
 		return nil
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Package '%s' (ID: %s) after retries: %v", resource.PackageName, resourceID, err))
-	}
-
-	// Use the local file path for generating the file hash
-	newFileHash, err := generateMD5FileHash(localFilePath)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to generate file hash for %s: %v", localFilePath, err))
-	}
-
-	oldFileHash, _ := d.Get("md5_file_hash").(string)
-
-	log.Printf("[DEBUG] Comparing MD5 hashes for package update: oldFileHash=%s, newFileHash=%s", oldFileHash, newFileHash)
-
-	if newFileHash != oldFileHash {
-		_, err = client.UploadPackage(resourceID, []string{localFilePath})
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to upload package file for package '%s': %v", resourceID, err))
-		}
-
-		// Update the filename and md5_file_hash in Terraform state to reflect the new file
-		// this is done here while jamf JCDS hashes the file and updates the package metadata
-		// to ensure that any runs during this window doesnt trigger another file upload.
-		d.Set("md5_file_hash", newFileHash)
-		d.Set("filename", filepath.Base(localFilePath))
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Package '%s' (ID: %s): %v", resource.PackageName, resourceID, err))
 	}
 
 	if strings.HasPrefix(d.Get("package_file_source").(string), "http") {
-		err := os.Remove(localFilePath)
-		if err != nil {
+		if err := os.Remove(localFilePath); err != nil {
 			log.Printf("[WARN] Failed to remove downloaded package file '%s': %v", localFilePath, err)
 		} else {
 			log.Printf("[INFO] Successfully removed downloaded package file '%s'", localFilePath)
