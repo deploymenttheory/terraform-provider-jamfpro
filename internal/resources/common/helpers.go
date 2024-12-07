@@ -101,13 +101,27 @@ func getIDField(response interface{}) (any, error) {
 	return nil, fmt.Errorf("unsupported type")
 }
 
-// DownloadFile downloads a file from the given URL and saves it to a temporary file.
-// This is used for resources such as packages and icons where we want to reference a
-// web source.
-// If the Content-Disposition header is present in the response, it uses the filename
-// from the header. Otherwise, if no filename is provided in the headers, it uses the
-// final URL after any redirects to determine the filename. It also replaces any '%' characters
-// in the filename with '_'.
+// DownloadFile downloads a file from a URL and saves it to a temporary directory with security validation.
+// It follows redirects up to a maximum of 10 times. The filename is determined in the following order:
+// 1. From Content-Disposition header if present and valid
+// 2. From the final URL after redirects if valid
+// 3. Falls back to a timestamp-based name if both sources are invalid
+//
+// The function implements several security measures:
+// - Validates filenames to prevent directory traversal
+// - Restricts filenames to alphanumeric characters, dots, hyphens, underscores, and spaces
+// - Replaces '%' characters with '_'
+// - Ensures final path remains within temporary directory
+// - Verifies path safety after normalization
+//
+// Returns the path to the downloaded file and any error encountered. Possible errors include:
+// - Failed to create temporary file
+// - Too many redirects
+// - Download failure
+// - Write failure
+// - Invalid filename
+// - Path traversal attempt
+// - Rename failure
 func DownloadFile(url string) (string, error) {
 	tmpFile, err := os.CreateTemp("", "downloaded-*")
 	if err != nil {
@@ -135,29 +149,52 @@ func DownloadFile(url string) (string, error) {
 		return "", fmt.Errorf("failed to write to temporary file: %v", err)
 	}
 
-	// Get the file name from the Content-Disposition header if available
+	validateFileName := func(name string) (string, error) {
+		name = filepath.Base(name)
+
+		if strings.Contains(name, "..") {
+			return "", fmt.Errorf("invalid filename '%s': contains parent directory reference", name)
+		}
+
+		name = strings.ReplaceAll(name, "%", "_")
+
+		if !regexp.MustCompile(`^[\w\-\. ]+$`).MatchString(name) {
+			return "", fmt.Errorf("invalid filename '%s': must only contain alphanumeric characters, dots, hyphens, underscores, and spaces", name)
+		}
+
+		return name, nil
+	}
+
+	var finalFileName string
+
 	_, params, err := mime.ParseMediaType(resp.Header.Get("Content-Disposition"))
-	if err == nil {
-		if filename, ok := params["filename"]; ok {
-			filename = strings.ReplaceAll(filename, "%", "_")
-			finalPath := filepath.Join(os.TempDir(), filename)
-			err = os.Rename(tmpFile.Name(), finalPath)
-			if err != nil {
-				return "", fmt.Errorf("failed to rename temporary file to final destination: %v", err)
-			}
-			log.Printf("[INFO] File downloaded to: %s", finalPath)
-			return finalPath, nil
+	if err == nil && params["filename"] != "" {
+		if validName, err := validateFileName(params["filename"]); err == nil {
+			finalFileName = validName
 		}
 	}
 
-	finalURL := resp.Request.URL.String()
-	fileName := filepath.Base(finalURL)
-	fileName = strings.ReplaceAll(fileName, "%", "_")
-	finalPath := filepath.Join(os.TempDir(), fileName)
+	if finalFileName == "" {
+		finalURL := resp.Request.URL.String()
+		urlFileName := filepath.Base(finalURL)
+		if validName, err := validateFileName(urlFileName); err == nil {
+			finalFileName = validName
+		} else {
+			finalFileName = fmt.Sprintf("downloaded-file-%d", time.Now().Unix())
+		}
+	}
+
+	finalPath := filepath.Join(os.TempDir(), finalFileName)
+
+	if !strings.HasPrefix(filepath.Clean(finalPath), os.TempDir()) {
+		return "", fmt.Errorf("security error: final path '%s' would be outside temporary directory", finalPath)
+	}
+
 	err = os.Rename(tmpFile.Name(), finalPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to rename temporary file to final destination: %v", err)
 	}
+
 	log.Printf("[INFO] File downloaded to: %s", finalPath)
 	return finalPath, nil
 }
