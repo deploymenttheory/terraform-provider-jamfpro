@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
-	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
@@ -15,70 +14,61 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// create is responsible for creating a new Jamf Pro Package in the remote system.
-// The function:
+// create handles the creation of a Jamf Pro package resource:
 // 1. Constructs the attribute data using the provided Terraform configuration.
-// 2. Calls the API to create the package metadata in jamfpro.
-// 3. Uploads the package file to the Jamf Pro server.
-// 4. Verifes upload hash
-// 5. Sets the ID of the created package in the Terraform state.
-// 6. Perform cleanup of downloaded package if it was from an HTTP(s) source
-// 7. Reads the created package to ensure the Terraform state is up-to-date.
+// 2. Calculates initial SHA3-512 hash of the package file.
+// 3. Calls the API to create the package metadata in Jamf Pro.
+// 4. Uploads the package file to the Jamf Pro server.
+// 5. Verifies the uploaded package hash matches the initial hash.
+// 6. If verification fails, deletes the package from Jamf Pro.
+// 7. If verification succeeds, sets the package ID in Terraform state.
+// 8. Performs cleanup of downloaded package if it was from an HTTP(s) source.
+// 9. Reads the created package to ensure the Terraform state is up-to-date.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
+	var packageID string
 
 	resource, localFilePath, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package: %v", err))
 	}
 
-	// Set the filename in the resource based on the local file path
 	resource.FileName = filepath.Base(localFilePath)
 
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		initialHash, err := jamfpro.CalculateSHA3_512(localFilePath)
-		if err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to calculate SHA3-512: %v", err))
-		}
+	initialHash, err := jamfpro.CalculateSHA3_512(localFilePath)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to calculate SHA3-512: %v", err))
+	}
 
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		creationResponse, err := client.CreatePackage(*resource)
 		if err != nil {
 			return retry.RetryableError(fmt.Errorf("failed to create package metadata in Jamf Pro: %v", err))
 		}
 
-		log.Printf("[INFO] Jamf Pro package metadata created successfully with package ID: %s", creationResponse.ID)
+		packageID = creationResponse.ID
+		log.Printf("[INFO] Jamf Pro package metadata created successfully with package ID: %s", packageID)
 
-		_, err = client.UploadPackage(creationResponse.ID, []string{localFilePath})
+		_, err = client.UploadPackage(packageID, []string{localFilePath})
 		if err != nil {
 			log.Printf("[ERROR] Failed to upload package file '%s': %v", resource.FileName, err)
 			return retry.NonRetryableError(fmt.Errorf("failed to upload package file: %v", err))
 		}
 
 		log.Printf("[INFO] Package %s file uploaded successfully", resource.FileName)
-
-		// Wait for JCDS to process the upload
-		time.Sleep(3 * time.Second)
-
-		uploadedPackage, err := client.GetPackageByID(creationResponse.ID)
-		if err != nil {
-			return retry.RetryableError(fmt.Errorf("failed to verify uploaded package: %v", err))
-		}
-
-		if uploadedPackage.HashType != "SHA3_512" || uploadedPackage.HashValue != initialHash {
-			return retry.NonRetryableError(fmt.Errorf("hash verification failed: initial=%s, uploaded=%s (type: %s)",
-				initialHash, uploadedPackage.HashValue, uploadedPackage.HashType))
-		}
-
-		log.Printf("[INFO] Package %s SHA3-512 verification successful with hash: %s", resource.FileName, uploadedPackage.HashValue)
-		d.SetId(creationResponse.ID)
-
 		return nil
 	})
-
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to create and upload Jamf Pro Package '%s': %v", resource.PackageName, err))
 	}
+
+	if err := verifyPackageUpload(ctx, client, packageID, resource.FileName, initialHash,
+		d.Timeout(schema.TimeoutCreate)); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to verify Jamf Pro Package '%s': %v", resource.PackageName, err))
+	}
+
+	d.SetId(packageID)
 
 	common.CleanupDownloadedPackage(d.Get("package_file_source").(string), localFilePath)
 
@@ -119,15 +109,16 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 	return read(ctx, d, meta, false)
 }
 
-// update is responsible for updating an existing Jamf Pro Package on the remote system.
-// The function:
-// 1. Constructs the attribute data using the provided Terraform configuration.
-// 2. calculates the SHA3-512 hash of the local file.
-// 3. Calls the API to update the package metadata in jamfpro.
-// 4. Uploads the package file to the Jamf Pro server.
-// 5. Verifes upload hash
-// 6. Reads the updated package to ensure the Terraform state is up-to-date.
-// 7. Perform cleanup of downloaded package if it was from an HTTP(s) source
+// update handles the updating of a Jamf Pro package resource:
+//  1. Constructs the updated attribute data from the Terraform configuration.
+//  2. Calculates SHA3-512 hash of the new package file.
+//  3. Updates the package metadata in Jamf Pro.
+//  4. If the file hash differs from current:
+//     a. Uploads the new package file.
+//     b. Verifies the uploaded package hash matches.
+//     c. If verification fails, attempts to revert metadata changes.
+//  5. Performs cleanup of downloaded package if it was from an HTTP(s) source.
+//  6. Reads the updated package to ensure the Terraform state is up-to-date.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
@@ -144,43 +135,53 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	}
 
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := client.UpdatePackageByID(resourceID, *resource)
-		if apiErr != nil {
-			return retry.RetryableError(apiErr)
+		_, err := client.UpdatePackageByID(resourceID, *resource)
+		if err != nil {
+			return retry.RetryableError(fmt.Errorf("failed to update package metadata: %v", err))
 		}
 
-		currentPackage, apiErr := client.GetPackageByID(resourceID)
-		if apiErr != nil {
-			return retry.RetryableError(fmt.Errorf("failed to get current package state: %v", apiErr))
+		currentPackage, err := client.GetPackageByID(resourceID)
+		if err != nil {
+			return retry.RetryableError(fmt.Errorf("failed to get current package state: %v", err))
 		}
 
-		if newFileHash != currentPackage.HashValue {
-			_, apiErr = client.UploadPackage(resourceID, []string{localFilePath})
-			if apiErr != nil {
-				return retry.RetryableError(fmt.Errorf("failed to upload package file: %v", apiErr))
-			}
-
-			time.Sleep(5 * time.Second)
-
-			uploadedPackage, apiErr := client.GetPackageByID(resourceID)
-			if apiErr != nil {
-				return retry.RetryableError(fmt.Errorf("failed to verify uploaded package: %v", apiErr))
-			}
-
-			if uploadedPackage.HashValue != newFileHash {
-				return retry.NonRetryableError(fmt.Errorf("hash verification failed after upload: expected=%s, got=%s",
-					newFileHash, uploadedPackage.HashValue))
-			}
-
-			log.Printf("[INFO] Package %s SHA3-512 verification successful with hash: %s",
-				filepath.Base(localFilePath), uploadedPackage.HashValue)
+		if newFileHash == currentPackage.HashValue {
+			log.Printf("[INFO] Package file unchanged, skipping upload")
+			return nil
 		}
 
 		return nil
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Package '%s' (ID: %s): %v", resource.PackageName, resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Package metadata '%s' (ID: %s): %v",
+			resource.PackageName, resourceID, err))
+	}
+
+	currentPackage, err := client.GetPackageByID(resourceID)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to get package state: %v", err))
+	}
+
+	if newFileHash != currentPackage.HashValue {
+		err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+			_, err := client.UploadPackage(resourceID, []string{localFilePath})
+			if err != nil {
+				return retry.RetryableError(fmt.Errorf("failed to upload package file: %v", err))
+			}
+
+			log.Printf("[INFO] Package file uploaded successfully")
+			return nil
+		})
+
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("failed to upload new package file: %v", err))
+		}
+
+		if err := verifyPackageUpload(ctx, client, resourceID, resource.FileName, newFileHash,
+			d.Timeout(schema.TimeoutUpdate)); err != nil {
+			return diag.FromErr(fmt.Errorf("failed to verify updated package file: %v", err))
+		}
 	}
 
 	common.CleanupDownloadedPackage(d.Get("package_file_source").(string), localFilePath)
