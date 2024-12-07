@@ -124,32 +124,21 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
+	// Check if this is a file-related update or metadata-only update
+	fileChanged := d.HasChange("package_file_source")
+
 	resource, localFilePath, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package for update: %v", err))
 	}
 
-	newFileHash, err := jamfpro.CalculateSHA3_512(localFilePath)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to calculate SHA3-512 hash for %s: %v", localFilePath, err))
-	}
-
+	// Handle metadata update
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		_, err := client.UpdatePackageByID(resourceID, *resource)
 		if err != nil {
 			return retry.RetryableError(fmt.Errorf("failed to update package metadata: %v", err))
 		}
-
-		currentPackage, err := client.GetPackageByID(resourceID)
-		if err != nil {
-			return retry.RetryableError(fmt.Errorf("failed to get current package state: %v", err))
-		}
-
-		if newFileHash == currentPackage.HashValue {
-			log.Printf("[INFO] Package file unchanged, skipping upload")
-			return nil
-		}
-
+		log.Printf("[INFO] Package metadata updated successfully")
 		return nil
 	})
 
@@ -158,12 +147,13 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 			resource.PackageName, resourceID, err))
 	}
 
-	currentPackage, err := client.GetPackageByID(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to get package state: %v", err))
-	}
+	// Only handle file operations if the package file has changed
+	if fileChanged {
+		newFileHash, err := jamfpro.CalculateSHA3_512(localFilePath)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("failed to calculate SHA3-512 hash for %s: %v", localFilePath, err))
+		}
 
-	if newFileHash != currentPackage.HashValue {
 		err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 			_, err := client.UploadPackage(resourceID, []string{localFilePath})
 			if err != nil {
@@ -184,7 +174,9 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		}
 	}
 
-	common.CleanupDownloadedPackage(d.Get("package_file_source").(string), localFilePath)
+	if fileChanged {
+		common.CleanupDownloadedPackage(d.Get("package_file_source").(string), localFilePath)
+	}
 
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
