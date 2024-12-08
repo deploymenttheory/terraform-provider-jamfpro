@@ -3,11 +3,7 @@ package icons
 import (
 	"context"
 	"fmt"
-	"log"
-	"os"
 	"strconv"
-	"strings"
-	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
@@ -43,21 +39,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	d.SetId(fmt.Sprintf("%d", uploadResponse.ID))
 
 	// Only clean up if we downloaded from web source and verify the path is what we expect
-	if webSource := d.Get("icon_file_web_source").(string); webSource != "" {
-		if !strings.HasPrefix(filePath, os.TempDir()) {
-			log.Printf("[WARN] Refusing to remove file '%s' as it's not in the temporary directory: timestamp=%s",
-				filePath, time.Now().UTC().Format(time.RFC3339))
-			return diags
-		}
-
-		if err := os.Remove(filePath); err != nil {
-			log.Printf("[WARN] Failed to remove downloaded icon file '%s': %v: timestamp=%s",
-				filePath, err, time.Now().UTC().Format(time.RFC3339))
-		} else {
-			log.Printf("[INFO] Successfully removed downloaded icon file '%s': timestamp=%s",
-				filePath, time.Now().UTC().Format(time.RFC3339))
-		}
-	}
+	common.CleanupDownloadedIcon(d.Get("icon_file_web_source").(string), filePath)
 
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
@@ -127,21 +109,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		}
 
 		// Only clean up if we downloaded from web source and verify the path is what we expect
-		if webSource := d.Get("icon_file_web_source").(string); webSource != "" {
-			if !strings.HasPrefix(filePath, os.TempDir()) {
-				log.Printf("[WARN] Refusing to remove file '%s' as it's not in the temporary directory: timestamp=%s",
-					filePath, time.Now().UTC().Format(time.RFC3339))
-				return diags
-			}
-
-			if err := os.Remove(filePath); err != nil {
-				log.Printf("[WARN] Failed to remove downloaded icon file '%s': %v: timestamp=%s",
-					filePath, err, time.Now().UTC().Format(time.RFC3339))
-			} else {
-				log.Printf("[INFO] Successfully removed downloaded icon file '%s': timestamp=%s",
-					filePath, time.Now().UTC().Format(time.RFC3339))
-			}
-		}
+		common.CleanupDownloadedIcon(d.Get("icon_file_web_source").(string), filePath)
 	}
 
 	return append(diags, readNoCleanup(ctx, d, meta)...)
