@@ -26,6 +26,14 @@ func ResourceJamfProPolicies() *schema.Resource {
 			Update: schema.DefaultTimeout(30 * time.Second),
 			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    resourcePolicyUserInteractionV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: upgradePolicyUserInteractionV0toV1,
+				Version: 0,
+			},
+		},
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,

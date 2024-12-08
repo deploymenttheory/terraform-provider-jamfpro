@@ -539,7 +539,7 @@ func constructPayloadUserInteraction(d *schema.ResourceData, resource *jamfpro.R
 		data := v.(map[string]interface{})
 		payload = append(payload, jamfpro.PolicySubsetUserInteraction{
 			MessageStart:          data["message_start"].(string),
-			AllowUsersToDefer:     data["allow_user_to_defer"].(bool),
+			AllowUsersToDefer:     data["allow_users_to_defer"].(bool),
 			AllowDeferralUntilUtc: data["allow_deferral_until_utc"].(string),
 			AllowDeferralMinutes:  data["allow_deferral_minutes"].(int),
 			MessageFinish:         data["message_finish"].(string),
