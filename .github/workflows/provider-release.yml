@@ -60,6 +60,7 @@ jobs:
   # https://goreleaser.com/cmd/goreleaser_release/#see-also
   terraform-provider-release:
     name: '📦 Terraform Provider Release'
+    needs: [pre-release-checks]
     uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/community.yml@v5.0.0
     secrets:
       gpg-private-key: '${{ secrets.GPG_PRIVATE_KEY }}'  # Your GPG private key
