@@ -7,11 +7,59 @@ on:
   push:
     tags:
       - 'v*'
-
 jobs:
+  pre-release-checks:
+    name: '🚦 Pre-release Validation'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@v2.10.2
+      with:
+        egress-policy: audit
+
+    - name: Check out code
+      uses: actions/checkout@v4.2.2
+      with:
+        fetch-depth: 2
+
+    - name: Set up Go
+      uses: actions/setup-go@v5.1.0
+      with:
+        cache: true
+        go-version-file: 'go.mod'
+      id: go
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v3.1.2
+      with:
+        terraform_version: '1.9.4'
+        terraform_wrapper: false
+
+    - name: Run 'go mod tidy' and check for differences
+      run: |
+        go mod tidy
+        git diff --exit-code -- go.mod go.sum || \
+        (echo; echo "Unexpected difference in go.mod/go.sum files. Run 'go mod tidy' command or revert any go.mod/go.sum changes and commit."; exit 1)
+
+    - name: Get go mod dependencies
+      run: |
+        go mod download
+
+    - name: Go build
+      run: |
+        go build -v .
+
+    - name: Generate and check docs
+      run: |
+        go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
+        tfplugindocs generate --examples-dir examples
+        git diff HEAD --exit-code -- docs/
+
   # Release for Partner and Community Providers
+  # https://goreleaser.com/cmd/goreleaser_release/#see-also
   terraform-provider-release:
-    name: 'Terraform Provider Release'
+    name: '📦 Terraform Provider Release'
     uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/community.yml@v5.0.0
     secrets:
       gpg-private-key: '${{ secrets.GPG_PRIVATE_KEY }}'  # Your GPG private key
