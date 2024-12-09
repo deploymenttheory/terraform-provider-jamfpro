@@ -74,6 +74,8 @@ resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuratio
     }
   }
 
+
+
   self_service {
     install_button_text             = "Install - ${var.version_number}"
     self_service_description        = "This is the self service description"
