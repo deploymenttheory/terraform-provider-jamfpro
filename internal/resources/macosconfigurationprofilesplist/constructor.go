@@ -176,6 +176,7 @@ func constructMacOSConfigurationProfileSubsetSelfService(data map[string]interfa
 		SelfServiceDescription:      data["self_service_description"].(string),
 		ForceUsersToViewDescription: data["force_users_to_view_description"].(bool),
 		FeatureOnMainPage:           data["feature_on_main_page"].(bool),
+		Notification:                data["notification"].(string),
 		NotificationSubject:         data["notification_subject"].(string),
 		NotificationMessage:         data["notification_message"].(string),
 	}
