@@ -72,6 +72,14 @@ func setDateTimeLimitations(d *schema.ResourceData, resource *jamfpro.ResourcePo
 		dateTimeLimitationsList := dateTimeLimitations.([]interface{})
 		if len(dateTimeLimitationsList) > 0 {
 			dateTimeLimitationsMap := dateTimeLimitationsList[0].(map[string]interface{})
+
+			var noExecuteOn []string
+			if v, ok := dateTimeLimitationsMap["no_execute_on"].(*schema.Set); ok {
+				for _, day := range v.List() {
+					noExecuteOn = append(noExecuteOn, day.(string))
+				}
+			}
+
 			resource.General.DateTimeLimitations = &jamfpro.PolicySubsetGeneralDateTimeLimitations{
 				ActivationDate:      dateTimeLimitationsMap["activation_date"].(string),
 				ActivationDateEpoch: dateTimeLimitationsMap["activation_date_epoch"].(int),
@@ -79,6 +87,7 @@ func setDateTimeLimitations(d *schema.ResourceData, resource *jamfpro.ResourcePo
 				ExpirationDate:      dateTimeLimitationsMap["expiration_date"].(string),
 				ExpirationDateEpoch: dateTimeLimitationsMap["expiration_date_epoch"].(int),
 				ExpirationDateUTC:   dateTimeLimitationsMap["expiration_date_utc"].(string),
+				NoExecuteOn:         noExecuteOn,
 				NoExecuteStart:      dateTimeLimitationsMap["no_execute_start"].(string),
 				NoExecuteEnd:        dateTimeLimitationsMap["no_execute_end"].(string),
 			}

@@ -23,9 +23,11 @@ resource "jamfpro_policy" "jamfpro_policy_001" {
     expiration_date       = "2028-04-01 16:02:00"
     expiration_date_epoch = 1838217720000
     expiration_date_utc   = "2028-04-01T16:02:00.000+0000"
-    no_execute_start      = "1:00 AM"
-    no_execute_end        = "1:03 PM"
+    no_execute_on         = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    no_execute_start      = "9:09 AM"
+    no_execute_end        = "10:10 PM"
   }
+
 
   network_limitations {
     minimum_network_connection = "No Minimum"
@@ -71,7 +73,7 @@ resource "jamfpro_policy" "jamfpro_policy_001" {
     reinstall_button_text           = "Reinstall"
     self_service_description        = ""
     force_users_to_view_description = false
-    feature_on_main_page = false
+    feature_on_main_page            = false
   }
 
   payloads {
