@@ -56,6 +56,28 @@ resource "jamfpro_macos_configuration_profile_plist_generator" "jamfpro_macos_co
     }
   }
 
+  self_service {
+    install_button_text             = "Install - ${var.version_number}"
+    self_service_description        = "This is the self service description"
+    force_users_to_view_description = true
+    feature_on_main_page            = true
+    notification                    = true
+    notification_subject            = "New Profile Available"
+    notification_message            = "A new profile is available for installation."
+
+    self_service_category {
+      id         = 10
+      display_in = true
+      feature_in = true
+    }
+
+    self_service_category {
+      id         = 5
+      display_in = false
+      feature_in = true
+    }
+  }
+
   payloads {
     payload_root {
       payload_description_root        = "Base Level Accessibility settings for vision"
