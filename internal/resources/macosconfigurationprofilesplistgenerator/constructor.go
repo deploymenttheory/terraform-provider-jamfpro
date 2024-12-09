@@ -178,12 +178,20 @@ func constructNetworkSegments(data []interface{}) []jamfpro.MacOSConfigurationPr
 // constructMacOSConfigurationProfileSubsetSelfService constructs a MacOSConfigurationProfileSubsetSelfService object from the provided schema data.
 func constructMacOSConfigurationProfileSubsetSelfService(data map[string]interface{}) jamfpro.MacOSConfigurationProfileSubsetSelfService {
 	selfService := jamfpro.MacOSConfigurationProfileSubsetSelfService{
+		SelfServiceDisplayName:      data["self_service_display_name"].(string),
 		InstallButtonText:           data["install_button_text"].(string),
 		SelfServiceDescription:      data["self_service_description"].(string),
 		ForceUsersToViewDescription: data["force_users_to_view_description"].(bool),
 		FeatureOnMainPage:           data["feature_on_main_page"].(bool),
+		Notification:                data["notification"].(string),
 		NotificationSubject:         data["notification_subject"].(string),
 		NotificationMessage:         data["notification_message"].(string),
+	}
+
+	if iconID, ok := data["self_service_icon_id"].(int); ok && iconID != 0 {
+		selfService.SelfServiceIcon = jamfpro.SharedResourceSelfServiceIcon{
+			ID: iconID,
+		}
 	}
 
 	if categories, ok := data["self_service_category"]; ok {

@@ -335,22 +335,25 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 				Default:     nil,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"self_service_display_name": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Display name for the profile in Self Service (Self Service 10.0.0 or later)",
+						},
 						"install_button_text": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "Text shown on Self Service install button",
-							Default:     "Install",
+							Description: "Name for the button that users click to install the profile",
 						},
 						"self_service_description": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "Description shown in Self Service",
-							Default:     nil,
+							Description: "Description to display for the profile in Self Service",
 						},
 						"force_users_to_view_description": {
 							Type:        schema.TypeBool,
 							Optional:    true,
-							Description: "Forces users to view the description",
+							Description: "Force users to view the description before the profile installs",
 						},
 						"feature_on_main_page": {
 							Type:        schema.TypeBool,
@@ -374,21 +377,13 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 							Default:     "",
 							Description: "Message body",
 						},
-						// "self_service_icon": {
-						// 	Type:        schema.TypeList,
-						// 	MaxItems:    1,
-						// 	Description: "Self Service icon settings",
-						// 	Optional:    true,
-						// 	Elem: &schema.Resource{
-						// 		Schema: map[string]*schema.Schema{
-						// 			"id":       {},
-						// 			"uri":      {},
-						// 			"data":     {},
-						// 			"filename": {},
-						// 		},
-						// 	},
-						// }, // TODO fix this broken crap later
-						"self_service_categories": {
+						"self_service_icon_id": {
+							Type:        schema.TypeInt,
+							Optional:    true,
+							Default:     0,
+							Description: "Icon for policy to use in self-service. Can be used in conjection with the icons resource",
+						},
+						"self_service_category": {
 							Type:        schema.TypeSet,
 							Description: "Self Service category options",
 							Optional:    true,
@@ -396,24 +391,22 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 								Schema: map[string]*schema.Schema{
 									"id": {
 										Type:        schema.TypeInt,
-										Description: "ID of category",
-										Optional:    true,
+										Description: "ID of category. Both ID and Name are required",
+										Required:    true,
 									},
 									"name": {
 										Type:        schema.TypeString,
-										Description: "Name of category",
-										Optional:    true,
+										Description: "Name of category. Both ID and Name are required",
+										Computed:    true,
 									},
 									"display_in": {
 										Type:        schema.TypeBool,
-										ForceNew:    true,
 										Description: "Display this profile in this category?",
 										Required:    true,
 									},
 									"feature_in": {
 										Type:        schema.TypeBool,
 										Description: "Feature this profile in this category?",
-										ForceNew:    true,
 										Required:    true,
 									},
 								},

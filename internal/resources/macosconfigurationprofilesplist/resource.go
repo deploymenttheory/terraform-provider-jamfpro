@@ -175,20 +175,25 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 				Default:     nil,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"self_service_display_name": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Display name for the profile in Self Service (Self Service 10.0.0 or later)",
+						},
 						"install_button_text": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "Text shown on Self Service install button",
+							Description: "Name for the button that users click to install the profile",
 						},
 						"self_service_description": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "Description shown in Self Service",
+							Description: "Description to display for the profile in Self Service",
 						},
 						"force_users_to_view_description": {
 							Type:        schema.TypeBool,
 							Optional:    true,
-							Description: "Forces users to view the description",
+							Description: "Force users to view the description before the profile installs",
 						},
 						"feature_on_main_page": {
 							Type:        schema.TypeBool,
@@ -210,12 +215,11 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 							Optional:    true,
 							Description: "Message body",
 						},
-						// TODO
 						"self_service_icon_id": {
 							Type:        schema.TypeInt,
 							Optional:    true,
 							Default:     0,
-							Description: "Icon for policy to use in self-service",
+							Description: "Icon for policy to use in self-service. Can be used in conjection with the icons resource",
 						},
 						"self_service_category": {
 							Type:        schema.TypeSet,

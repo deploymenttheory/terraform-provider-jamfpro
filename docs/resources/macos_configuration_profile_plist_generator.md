@@ -56,6 +56,28 @@ resource "jamfpro_macos_configuration_profile_plist_generator" "jamfpro_macos_co
     }
   }
 
+  self_service {
+    install_button_text             = "Install - ${var.version_number}"
+    self_service_description        = "This is the self service description"
+    force_users_to_view_description = true
+    feature_on_main_page            = true
+    notification                    = true
+    notification_subject            = "New Profile Available"
+    notification_message            = "A new profile is available for installation."
+
+    self_service_category {
+      id         = 10
+      display_in = true
+      feature_in = true
+    }
+
+    self_service_category {
+      id         = 5
+      display_in = false
+      feature_in = true
+    }
+  }
+
   payloads {
     payload_root {
       payload_description_root        = "Base Level Accessibility settings for vision"
@@ -392,26 +414,28 @@ Optional:
 Optional:
 
 - `feature_on_main_page` (Boolean) Shows Configuration Profile on Self Service main page
-- `force_users_to_view_description` (Boolean) Forces users to view the description
-- `install_button_text` (String) Text shown on Self Service install button
+- `force_users_to_view_description` (Boolean) Force users to view the description before the profile installs
+- `install_button_text` (String) Name for the button that users click to install the profile
 - `notification` (Boolean) Enables Notification for this profile in self service
 - `notification_message` (String) Message body
 - `notification_subject` (String) Message Subject
-- `self_service_categories` (Block Set) Self Service category options (see [below for nested schema](#nestedblock--self_service--self_service_categories))
-- `self_service_description` (String) Description shown in Self Service
+- `self_service_category` (Block Set) Self Service category options (see [below for nested schema](#nestedblock--self_service--self_service_category))
+- `self_service_description` (String) Description to display for the profile in Self Service
+- `self_service_display_name` (String) Display name for the profile in Self Service (Self Service 10.0.0 or later)
+- `self_service_icon_id` (Number) Icon for policy to use in self-service. Can be used in conjection with the icons resource
 
-<a id="nestedblock--self_service--self_service_categories"></a>
-### Nested Schema for `self_service.self_service_categories`
+<a id="nestedblock--self_service--self_service_category"></a>
+### Nested Schema for `self_service.self_service_category`
 
 Required:
 
 - `display_in` (Boolean) Display this profile in this category?
 - `feature_in` (Boolean) Feature this profile in this category?
+- `id` (Number) ID of category. Both ID and Name are required
 
-Optional:
+Read-Only:
 
-- `id` (Number) ID of category
-- `name` (String) Name of category
+- `name` (String) Name of category. Both ID and Name are required
 
 
 
