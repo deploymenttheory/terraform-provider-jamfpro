@@ -172,9 +172,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 			d.Timeout(schema.TimeoutUpdate)); err != nil {
 			return diag.FromErr(fmt.Errorf("failed to verify updated package file: %v", err))
 		}
-	}
 
-	if fileChanged {
 		common.CleanupDownloadedPackage(d.Get("package_file_source").(string), localFilePath)
 	}
 

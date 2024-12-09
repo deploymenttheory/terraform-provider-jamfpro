@@ -127,8 +127,10 @@ func DownloadFile(url string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to create temporary file: %v", err)
 	}
+
 	defer tmpFile.Close()
 
+	// Default is 10 anyway TODO remove this for now and test if it's needed to be specified
 	client := &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			if len(via) >= 10 {
@@ -142,6 +144,7 @@ func DownloadFile(url string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to download file from %s: %v", url, err)
 	}
+
 	defer resp.Body.Close()
 
 	_, err = io.Copy(tmpFile, resp.Body)
@@ -168,9 +171,10 @@ func DownloadFile(url string) (string, error) {
 	var finalFileName string
 
 	_, params, err := mime.ParseMediaType(resp.Header.Get("Content-Disposition"))
-	if err == nil && params["filename"] != "" {
-		if validName, err := validateFileName(params["filename"]); err == nil {
-			finalFileName = validName
+	filename := params["filename"]
+
+	if err == nil && filename != "" {
+		if finalFileName, err = validateFileName(filename); err == nil {
 		}
 	}
 
