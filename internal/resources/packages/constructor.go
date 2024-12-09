@@ -67,7 +67,6 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourcePackage, string, error)
 		ManifestFileName:     d.Get("manifest_file_name").(string),
 	}
 
-	// Serialize and pretty-print the Network Segment object as JSON for logging
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to marshal Jamf Pro Package '%s' to JSON: %v", resource.FileName, err)

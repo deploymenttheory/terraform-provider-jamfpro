@@ -1,105 +1,18 @@
-// hash.go
-// This package contains shared / common hash functions
 package common
 
 import (
-	"crypto/sha256"
-	"encoding/json"
-	"encoding/xml"
 	"fmt"
 	"io"
 	"log"
 	"mime"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
-	"reflect"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 )
-
-// HashString calculates the SHA-256 hash of a string and returns it as a hexadecimal string.
-func HashString(s string) string {
-	h := sha256.New()
-	h.Write([]byte(s))
-	hash := fmt.Sprintf("%x", h.Sum(nil))
-	log.Printf("Computed hash: %s", hash)
-	return hash
-}
-
-// SerializeAndRedactXML serializes a resource to XML and redacts specified fields.
-func SerializeAndRedactXML(resource interface{}, redactFields []string) (string, error) {
-	v := reflect.ValueOf(resource)
-	if v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Struct {
-		return "", fmt.Errorf("resource must be a pointer to a struct")
-	}
-
-	resourceCopy := reflect.New(v.Elem().Type()).Elem()
-	resourceCopy.Set(v.Elem())
-
-	for _, field := range redactFields {
-		if f := resourceCopy.FieldByName(field); f.IsValid() && f.CanSet() {
-			if f.Kind() == reflect.String {
-				f.SetString("***REDACTED***")
-			}
-		}
-	}
-
-	if marshaledXML, err := xml.MarshalIndent(resourceCopy.Interface(), "", "  "); err != nil {
-		return "", fmt.Errorf("failed to marshal %s to XML: %v", v.Elem().Type(), err)
-	} else {
-		return string(marshaledXML), nil
-	}
-}
-
-// SerializeAndRedactJSON serializes a resource to JSON and redacts specified fields.
-func SerializeAndRedactJSON(resource interface{}, redactFields []string) (string, error) {
-	v := reflect.ValueOf(resource)
-	if v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Struct {
-		return "", fmt.Errorf("resource must be a pointer to a struct")
-	}
-
-	resourceCopy := reflect.New(v.Elem().Type()).Elem()
-	resourceCopy.Set(v.Elem())
-
-	for _, field := range redactFields {
-		if f := resourceCopy.FieldByName(field); f.IsValid() && f.CanSet() {
-			if f.Kind() == reflect.String {
-				f.SetString("***REDACTED***")
-			}
-		}
-	}
-
-	marshaledJSON, err := json.MarshalIndent(resourceCopy.Interface(), "", "  ")
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal %s to JSON: %v", v.Elem().Type(), err)
-	}
-
-	return string(marshaledJSON), nil
-}
-
-func getIDField(response interface{}) (any, error) {
-	v := reflect.ValueOf(response).Elem()
-
-	idField := v.FieldByName("ID")
-	if !idField.IsValid() {
-		return "", fmt.Errorf("ID field not found in response")
-	}
-
-	str, ok := idField.Interface().(string)
-	if ok {
-		return str, nil
-	}
-
-	integer, ok := idField.Interface().(int)
-	if ok {
-		return strconv.Itoa(integer), nil
-	}
-
-	return nil, fmt.Errorf("unsupported type")
-}
 
 // DownloadFile downloads a file from a URL and saves it to a temporary directory with security validation.
 // It follows redirects up to a maximum of 10 times. The filename is determined in the following order:
@@ -127,10 +40,8 @@ func DownloadFile(url string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to create temporary file: %v", err)
 	}
-
 	defer tmpFile.Close()
 
-	// Default is 10 anyway TODO remove this for now and test if it's needed to be specified
 	client := &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			if len(via) >= 10 {
@@ -144,28 +55,11 @@ func DownloadFile(url string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to download file from %s: %v", url, err)
 	}
-
 	defer resp.Body.Close()
 
 	_, err = io.Copy(tmpFile, resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("failed to write to temporary file: %v", err)
-	}
-
-	validateFileName := func(name string) (string, error) {
-		name = filepath.Base(name)
-
-		if strings.Contains(name, "..") {
-			return "", fmt.Errorf("invalid filename '%s': contains parent directory reference", name)
-		}
-
-		name = strings.ReplaceAll(name, "%", "_")
-
-		if !regexp.MustCompile(`^[\w\-\. ]+$`).MatchString(name) {
-			return "", fmt.Errorf("invalid filename '%s': must only contain alphanumeric characters, dots, hyphens, underscores, and spaces", name)
-		}
-
-		return name, nil
 	}
 
 	var finalFileName string
@@ -174,14 +68,17 @@ func DownloadFile(url string) (string, error) {
 	filename := params["filename"]
 
 	if err == nil && filename != "" {
-		if finalFileName, err = validateFileName(filename); err == nil {
+		var sanitizeErr error
+		finalFileName, sanitizeErr = sanitizeFileName(filename)
+		if sanitizeErr != nil {
+			log.Printf("[WARN] Failed to sanitize filename from Content-Disposition: %v", sanitizeErr)
 		}
 	}
 
 	if finalFileName == "" {
 		finalURL := resp.Request.URL.String()
 		urlFileName := filepath.Base(finalURL)
-		if validName, err := validateFileName(urlFileName); err == nil {
+		if validName, err := sanitizeFileName(urlFileName); err == nil {
 			finalFileName = validName
 		} else {
 			finalFileName = fmt.Sprintf("downloaded-file-%d", time.Now().Unix())
@@ -201,6 +98,27 @@ func DownloadFile(url string) (string, error) {
 
 	log.Printf("[INFO] File downloaded to: %s", finalPath)
 	return finalPath, nil
+}
+
+// sanitizeFileName cleans and validates a filename for secure file operations
+func sanitizeFileName(name string) (string, error) {
+	name = filepath.Base(name)
+
+	if strings.Contains(name, "..") {
+		return "", fmt.Errorf("invalid filename: contains parent directory reference")
+	}
+
+	unescaped, unescapeErr := url.PathUnescape(name)
+	if unescapeErr != nil {
+		unescaped = name
+	}
+
+	cleaned := strings.TrimSpace(unescaped)
+	if cleaned == "" || cleaned == "." {
+		return "", fmt.Errorf("invalid filename: empty or invalid after cleaning")
+	}
+
+	return cleaned, nil
 }
 
 // CleanupDownloadedPackage handles the cleanup of downloaded package files from web sources.
