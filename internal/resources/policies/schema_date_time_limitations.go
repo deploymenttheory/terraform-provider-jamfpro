@@ -2,6 +2,7 @@ package policies
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func getPolicySchemaDateTimeLimitations() *schema.Resource {
@@ -57,16 +58,16 @@ func getPolicySchemaDateTimeLimitations() *schema.Resource {
 					"Example: '2028-04-01T16:02:00.000+0000'",
 				ValidateFunc: validateDateTimeUTC,
 			},
-			// "no_execute_on": {
-			// 	Type:     schema.TypeSet,
-			// 	Optional: true,
-			// 	Elem: &schema.Schema{
-			// 		Type:         schema.TypeString,
-			// 		ValidateFunc: validation.StringInSlice([]string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}, false),
-			// 	},
-			// 	Description: "Client-side limitations are enforced based on the settings on computers. This field sets specific days when the policy should not execute.",
-			// 	Computed:    true,
-			// },
+			"no_execute_on": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}, false),
+				},
+				Description: "Client-side limitations are enforced based on the settings on computers. This field sets specific days when the policy should not execute.",
+				Computed:    true,
+			},
 			"no_execute_start": {
 				Type:     schema.TypeString,
 				Optional: true,
