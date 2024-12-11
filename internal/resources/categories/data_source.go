@@ -16,14 +16,16 @@ func DataSourceJamfProCategories() *schema.Resource {
 		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The unique identifier of the Category.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"id", "name"},
+				Description:  "The unique identifier of the Category.",
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The unique name of the jamf pro Category.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"id", "name"},
+				Description:  "The unique name of the jamf pro Category.",
 			},
 		},
 	}
@@ -34,18 +36,31 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)
+	resourceName := d.Get("name").(string)
 
-	Category, err := client.GetCategoryByID(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Category with ID '%s': %v", resourceID, err))
+	var resource *jamfpro.ResourceCategory
+	var err error
+
+	if resourceID != "" {
+		resource, err = client.GetCategoryByID(resourceID)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Category with ID '%s': %v", resourceID, err))
+		}
+	} else if resourceName != "" {
+		resource, err = client.GetCategoryByName(resourceName)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Category with Name '%s': %v", resourceName, err))
+		}
+	} else {
+		return diag.FromErr(fmt.Errorf("either 'id' or 'name' must be provided"))
 	}
 
-	if Category != nil {
-		d.SetId(resourceID)
-		if err := d.Set("name", Category.Name); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Category with ID '%s': %v", resourceID, err))...)
+	if resource != nil {
+		// Set the ID from the Category object
+		d.SetId(resource.Id)
+		if err := d.Set("name", resource.Name); err != nil {
+			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Category with ID '%s': %v", resource.Id, err))...)
 		}
-
 	} else {
 		d.SetId("")
 	}
