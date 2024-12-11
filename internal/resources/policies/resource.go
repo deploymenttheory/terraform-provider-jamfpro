@@ -29,7 +29,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
 			{
-				Type:    resourcePolicyUserInteractionV0().CoreConfigSchema().ImpliedType(),
+				Type:    resourcePolicyV0().CoreConfigSchema().ImpliedType(),
 				Upgrade: upgradePolicyUserInteractionV0toV1,
 				Version: 0,
 			},

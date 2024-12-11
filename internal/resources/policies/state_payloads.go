@@ -321,7 +321,7 @@ func prepStatePayloadFilesProcesses(out *[]map[string]interface{}, resp *jamfpro
 func prepStatePayloadUserInteraction(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
 	defaults := map[string]interface{}{
 		"message_start":            "",
-		"allow_user_to_defer":      false,
+		"allow_users_to_defer":     false,
 		"allow_deferral_until_utc": "",
 		"allow_deferral_minutes":   0,
 		"message_finish":           "",
@@ -329,7 +329,7 @@ func prepStatePayloadUserInteraction(out *[]map[string]interface{}, resp *jamfpr
 
 	userInteractionBlock := map[string]interface{}{
 		"message_start":            resp.UserInteraction.MessageStart,
-		"allow_user_to_defer":      resp.UserInteraction.AllowUsersToDefer,
+		"allow_users_to_defer":     resp.UserInteraction.AllowUsersToDefer,
 		"allow_deferral_until_utc": resp.UserInteraction.AllowDeferralUntilUtc,
 		"allow_deferral_minutes":   resp.UserInteraction.AllowDeferralMinutes,
 		"message_finish":           resp.UserInteraction.MessageFinish,
