@@ -34,9 +34,11 @@ resource "jamfpro_policy" "jamfpro_policy_001" {
     expiration_date       = "2028-04-01 16:02:00"
     expiration_date_epoch = 1838217720000
     expiration_date_utc   = "2028-04-01T16:02:00.000+0000"
-    no_execute_start      = "1:00 AM"
-    no_execute_end        = "1:03 PM"
+    no_execute_on         = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    no_execute_start      = "9:09 AM"
+    no_execute_end        = "10:10 PM"
   }
+
 
   network_limitations {
     minimum_network_connection = "No Minimum"
@@ -82,7 +84,7 @@ resource "jamfpro_policy" "jamfpro_policy_001" {
     reinstall_button_text           = "Reinstall"
     self_service_description        = ""
     force_users_to_view_description = false
-    feature_on_main_page = false
+    feature_on_main_page            = false
   }
 
   payloads {
@@ -552,6 +554,7 @@ Optional:
 - `expiration_date_epoch` (Number) The epoch time (Unix timestamp) in milliseconds of the expiration date. This represents the number of milliseconds since January 1, 1970, 00:00:00 UTC. Example: 1838217720000 (represents April 1, 2028, 16:02:00)
 - `expiration_date_utc` (String) The UTC time of the expiration date in ISO 8601 format with timezone offset. Format: 'YYYY-MM-DDThh:mm:ss.sss+0000'. Example: '2028-04-01T16:02:00.000+0000'
 - `no_execute_end` (String) The daily end time when the policy should not execute, in '12-hour clock' format (h:mm AM/PM). This is part of client-side limitations enforced based on computer settings. Example: '1:03 PM'
+- `no_execute_on` (Set of String) Client-side limitations are enforced based on the settings on computers. This field sets specific days when the policy should not execute.
 - `no_execute_start` (String) The daily start time when the policy should not execute, in '12-hour clock' format (h:mm AM/PM). This is part of client-side limitations enforced based on computer settings. Example: '1:00 AM'
 
 
