@@ -14,5 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: googleapis/release-please-action@v4.1.3
+      id: release
       with:
         release-type: terraform-module
+        token: ${{ secrets.RELEASE_PLEASE_PAT }} # used to trigger the tf-registry action
