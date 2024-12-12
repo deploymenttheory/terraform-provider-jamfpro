@@ -17,4 +17,3 @@ jobs:
       id: release
       with:
         release-type: terraform-module
-        token: ${{ secrets.RELEASE_PLEASE_PAT }} # used to trigger the tf-registry action
