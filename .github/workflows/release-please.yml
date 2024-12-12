@@ -11,9 +11,11 @@ name: release-please
 
 jobs:
   release-please:
+    name: '🏷️ Release Please'
     runs-on: ubuntu-latest
     steps:
     - uses: googleapis/release-please-action@v4.1.3
       id: release
       with:
         release-type: terraform-module
+        token: ${{ secrets.PAT_TOKEN }}
