@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.7.0...v0.7.1) (2024-12-12)
+
+
+### Bug Fixes
+
+* release please with goreleaser ([#521](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/521)) ([1dcd6c0](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/1dcd6c0dd436514a838754a285ad13c4ed0c4b50))
+
 ## [0.7.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.6.1...v0.7.0) (2024-12-12)
 
 
