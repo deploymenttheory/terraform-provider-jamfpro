@@ -18,19 +18,22 @@ func DataSourceJamfProComputerExtensionAttributes() *schema.Resource {
 		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The unique identifier of the computer extension attribute.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"id", "name"},
+				Description:  "The unique identifier of the Jamf Pro computer extension attribute.",
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The unique name of the Jamf Pro computer extension attribute.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"id", "name"},
+				Description:  "The unique name of the Jamf Pro computer extension attribute.",
 			},
 		},
 	}
 }
 
+// GetComputerExtensionAttributeByName
 // dataSourceRead fetches the details of a specific computer extension attribute
 // from Jamf Pro using either its unique Name or its Id. The function prioritizes the 'name' attribute over the 'id'
 // attribute for fetching details. If neither 'name' nor 'id' is provided, it returns an error.
@@ -47,26 +50,33 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)
+	resourceName := d.Get("name").(string)
 
 	var resource *jamfpro.ResourceComputerExtensionAttribute
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		resource, apiErr = client.GetComputerExtensionAttributeByID(resourceID)
-		if apiErr != nil {
 
-			return retry.RetryableError(apiErr)
+		if resourceID != "" {
+			resource, apiErr = client.GetComputerExtensionAttributeByID(resourceID)
+			if apiErr != nil {
+				return retry.NonRetryableError(fmt.Errorf("failed to read Jamf Pro Computer Extension Attribute with ID '%s': %v", resourceID, apiErr))
+			}
+		} else if resourceName != "" {
+			resource, apiErr = client.GetComputerExtensionAttributeByName(resourceName)
+			if apiErr != nil {
+				return retry.NonRetryableError(fmt.Errorf("failed to read Jamf Pro Computer Extension Attribute with Name '%s': %v", resourceName, apiErr))
+			}
+		} else {
+			return retry.NonRetryableError(fmt.Errorf("either 'id' or 'name' must be provided"))
 		}
+
 		return nil
 	})
 
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Computer Extension Attribute with ID '%s' after retries: %v", resourceID, err))
-	}
-
 	if resource != nil {
-		d.SetId(resourceID)
+		d.SetId(resource.ID)
 		if err := d.Set("name", resource.Name); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Computer Extension Attribute with ID '%s': %v", resourceID, err))...)
+			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Computer Extension Attribute with ID '%s': %v", resource.ID, err))...)
 		}
 	} else {
 		d.SetId("")
