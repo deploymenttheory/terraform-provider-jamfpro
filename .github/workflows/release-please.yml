@@ -13,7 +13,6 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-    - uses: googleapis/release-please-action@v4v.1.3
+    - uses: googleapis/release-please-action@v4.1.3
       with:
         release-type: terraform-module
-        create-tags: true
