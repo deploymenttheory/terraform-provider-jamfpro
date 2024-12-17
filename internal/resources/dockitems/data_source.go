@@ -1,4 +1,3 @@
-// dockitems_data_source.go
 package dockitems
 
 import (
@@ -7,13 +6,12 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProDockItems provides information about specific Jamf Pro Dock Items by their ID or Name.
+// DataSourceJamfProDockItems provides information about specific Jamf Pro Dock Items
 func DataSourceJamfProDockItems() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceRead,
@@ -23,47 +21,95 @@ func DataSourceJamfProDockItems() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
+				Computed:    true,
 				Description: "The unique identifier of the dock item.",
 			},
 			"name": {
 				Type:        schema.TypeString,
+				Optional:    true,
 				Computed:    true,
 				Description: "The name of the dock item.",
+			},
+			"type": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The type of the dock item.",
+			},
+			"path": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The path of the dock item.",
+			},
+			"contents": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The contents of the dock item.",
 			},
 		},
 	}
 }
 
-// dataSourceRead fetches the details of specific dock items from Jamf Pro using either their unique Name or Id.
+// dataSourceRead fetches dock items details from Jamf Pro
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
-	resourceID := d.Get("id").(string)
 
-	var resource *jamfpro.ResourceDockItem
+	searchID := d.Get("id").(string)
+	searchName := d.Get("name").(string)
+
+	if searchID == "" && searchName == "" {
+		return diag.FromErr(fmt.Errorf("either 'id' or 'name' must be provided"))
+	}
+
+	var dockItemsList *jamfpro.ResponseDockItemsList
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		resource, apiErr = client.GetDockItemByID(resourceID)
+		dockItemsList, apiErr = client.GetDockItems()
 		if apiErr != nil {
-
 			return retry.RetryableError(apiErr)
 		}
 		return nil
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Dock Item with ID '%s' after retries: %v", resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to fetch list of dock items: %v", err))
 	}
 
-	if resource != nil {
-		d.SetId(resourceID)
-		if err := d.Set("name", resource.Name); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Dock Item with ID '%s': %v", resourceID, err))...)
+	var matchedID string
+	if searchID != "" {
+		for _, item := range dockItemsList.DockItems {
+			if fmt.Sprintf("%d", item.ID) == searchID {
+				matchedID = searchID
+				break
+			}
 		}
 	} else {
-		d.SetId("")
+		for _, item := range dockItemsList.DockItems {
+			if item.Name == searchName {
+				matchedID = fmt.Sprintf("%d", item.ID)
+				break
+			}
+		}
 	}
 
-	return diags
+	if matchedID == "" {
+		return diag.FromErr(fmt.Errorf("no dock item found matching the provided criteria"))
+	}
+
+	var resource *jamfpro.ResourceDockItem
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		resource, apiErr = client.GetDockItemByID(matchedID)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to read dock item with ID '%s': %v", matchedID, err))
+	}
+
+	d.SetId(matchedID)
+	return updateState(d, resource)
 }
