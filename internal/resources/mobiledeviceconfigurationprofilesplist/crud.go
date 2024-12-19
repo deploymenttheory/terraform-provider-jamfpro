@@ -12,9 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// Create requires a mutex need to lock Create requests during parallel runs
-// var mu sync.Mutex
-
 // resourceJamfProMobileDeviceConfigurationProfileCreate is responsible for creating a new Jamf Pro Mobile Device Configuration Profile in the remote system.
 // The function:
 // 1. Constructs the attribute data using the provided Terraform configuration.
@@ -24,9 +21,6 @@ import (
 func resourceJamfProMobileDeviceConfigurationProfilePlistCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
-
-	// mu.Lock()
-	// defer mu.Unlock()
 
 	resource, err := constructJamfProMobileDeviceConfigurationProfilePlist(d)
 	if err != nil {
