@@ -1,25 +1,54 @@
-// data source by id
-
-data "jamfpro_computer_extension_attribute" "jamfpro_computer_extension_attribute_001_data" {
-  id = jamfpro_computer_extension_attribute.jamfpro_computer_extension_attribute_001.id
+# Example using id
+data "jamfpro_computer_extension_attribute" "example_by_id" {
+  id = "123"
 }
 
-output "jamfpro_computer_extension_attribute_001_data_id" {
-  value = data.jamfpro_computer_extension_attribute.jamfpro_computer_extension_attribute_001_data.id
+# Example using name
+data "jamfpro_computer_extension_attribute" "example_by_name" {
+  name = "RAM_Usage"
 }
 
-output "jamfpro_computer_extension_attribute_001_data_name" {
-  value = data.jamfpro_computer_extension_attribute.jamfpro_computer_extension_attribute_001_data.name
+# Example outputs to show the data usage
+output "extension_attribute_id" {
+  value = data.jamfpro_computer_extension_attribute.example_by_name.id
 }
 
-// data source list
-
-data "jamfpro_computer_extension_attributes_list" "example" {}
-
-output "attribute_ids" {
-  value = data.jamfpro_computer_extension_attributes_list.example.ids
+output "extension_attribute_name" {
+  value = data.jamfpro_computer_extension_attribute.example_by_name.name
 }
 
-output "attributes" {
-  value = data.jamfpro_computer_extension_attributes_list.example.attributes
+output "extension_attribute_description" {
+  value = data.jamfpro_computer_extension_attribute.example_by_name.description
+}
+
+output "extension_attribute_data_type" {
+  value = data.jamfpro_computer_extension_attribute.example_by_name.data_type
+}
+
+output "extension_attribute_enabled" {
+  value = data.jamfpro_computer_extension_attribute.example_by_name.enabled
+}
+
+output "extension_attribute_inventory_display" {
+  value = data.jamfpro_computer_extension_attribute.example_by_name.inventory_display_type
+}
+
+output "extension_attribute_input_type" {
+  value = data.jamfpro_computer_extension_attribute.example_by_name.input_type
+}
+
+output "extension_attribute_script_contents" {
+  value = data.jamfpro_computer_extension_attribute.example_by_name.script_contents
+}
+
+output "extension_attribute_popup_choices" {
+  value = data.jamfpro_computer_extension_attribute.example_by_name.popup_menu_choices
+}
+
+output "extension_attribute_ldap_mapping" {
+  value = data.jamfpro_computer_extension_attribute.example_by_name.ldap_attribute_mapping
+}
+
+output "extension_attribute_ldap_allowed" {
+  value = data.jamfpro_computer_extension_attribute.example_by_name.ldap_extension_attribute_allowed
 }

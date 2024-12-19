@@ -14,8 +14,7 @@ import (
 
 // create creates and states a jamfpro building
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// mu.Lock()
-	// defer mu.Unlock()
+
 	return common.Create(
 		ctx,
 		d,

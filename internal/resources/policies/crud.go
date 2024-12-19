@@ -14,8 +14,7 @@ import (
 
 // create is responsible for creating a new Jamf Pro Policy in the remote system.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// mu.Lock()
-	// defer mu.Unlock()
+
 	return common.Create(
 		ctx,
 		d,

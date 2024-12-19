@@ -13,9 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// Create requires a mutex need to lock Create requests during parallel runs
-// var mu sync.Mutex
-
 // resourceJamfProMacOSConfigurationProfilesPlistCreate is responsible for creating a new Jamf Pro macOS Configuration Profile in the remote system.
 // The function:
 // 1. Constructs the attribute data using the provided Terraform configuration.
@@ -27,8 +24,7 @@ func resourceJamfProMacOSConfigurationProfilesPlistGeneratorCreate(ctx context.C
 	var diags diag.Diagnostics
 
 	// Lock the mutex to ensure only one profile plist create can run this function at a time
-	// mu.Lock()
-	// defer mu.Unlock()
+
 	resource, err := constructJamfProMacOSConfigurationProfilesPlistGenerator(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro macOS Configuration Profile: %v", err))

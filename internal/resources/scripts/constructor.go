@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// constructJamfProScript constructs a ResourceScript object from the provided schema data.
+// construct constructs a ResourceScript object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceScript, error) {
 	resource := &jamfpro.ResourceScript{
 		Name:           d.Get("name").(string),

@@ -35,7 +35,9 @@ type PayloadContent struct {
 	PayloadType         string `mapstructure:"PayloadType"`
 	PayloadUUID         string `mapstructure:"PayloadUUID"`
 	PayloadVersion      int    `mapstructure:"PayloadVersion"`
-	// Variable
+	// The actual payload content can be anything
+	PayloadContent map[string]interface{} `mapstructure:"PayloadContent"`
+	// variable
 	ConfigurationItems map[string]interface{} `mapstructure:",remain"`
 }
 
