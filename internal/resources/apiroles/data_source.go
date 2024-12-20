@@ -19,13 +19,24 @@ func DataSourceJamfProAPIRoles() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The unique identifier of the API role.",
+				Optional:    true,
+				Computed:    true,
+				Description: "The unique identifier of the Jamf API Role.",
 			},
 			"display_name": {
 				Type:        schema.TypeString,
+				Optional:    true,
 				Computed:    true,
-				Description: "The unique name of the Jamf Pro API role.",
+				Description: "The display name of the Jamf API Role.",
+			},
+			"privileges": {
+				Type:        schema.TypeSet,
+				Optional:    true,
+				Computed:    true,
+				Description: "List of privileges associated with the Jamf API Role.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}
@@ -36,13 +47,28 @@ func DataSourceJamfProAPIRoles() *schema.Resource {
 // it returns an error. Once the details are fetched, they are set in the data source's state.
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
+
+	// Get the id and display_name from schema
 	resourceID := d.Get("id").(string)
+	displayName := d.Get("display_name").(string)
+
+	// Validate that at least one identifier is provided
+	if resourceID == "" && displayName == "" {
+		return diag.FromErr(fmt.Errorf("either 'id' or 'display_name' must be provided"))
+	}
 
 	var resource *jamfpro.ResourceAPIRole
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		resource, apiErr = client.GetJamfApiRoleByID(resourceID)
+
+		// Try to get by display_name first if provided
+		if displayName != "" {
+			resource, apiErr = client.GetJamfApiRoleByName(displayName)
+		} else {
+			// Fall back to ID lookup
+			resource, apiErr = client.GetJamfApiRoleByID(resourceID)
+		}
+
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -50,17 +76,20 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro API Role with ID '%s' after retries: %v", resourceID, err))
-	}
-
-	if resource != nil {
-		d.SetId(resourceID)
-		if err := d.Set("display_name", resource.DisplayName); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'display_name' for Jamf Pro API Role with ID '%s': %v", resourceID, err))...)
+		lookupMethod := "ID"
+		lookupValue := resourceID
+		if displayName != "" {
+			lookupMethod = "display name"
+			lookupValue = displayName
 		}
-	} else {
-		d.SetId("")
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro API Role with %s '%s' after retries: %v", lookupMethod, lookupValue, err))
 	}
 
-	return diags
+	if resource == nil {
+		d.SetId("")
+		return diag.FromErr(fmt.Errorf("jamf Pro API Role not found"))
+	}
+
+	d.SetId(resource.ID)
+	return updateState(d, resource)
 }
