@@ -25,7 +25,16 @@
       runs-on: ubuntu-latest
       timeout-minutes: 5
       steps:
-        - uses: actions/checkout@v4
+
+        - name: Harden Runner
+          uses: step-security/harden-runner@v2.10.2
+          with:
+            egress-policy: audit
+
+        - uses: actions/checkout@v4.2.2
+          with:
+            fetch-depth: 0
+
         - uses: actions/setup-go@v5
           with:
             go-version-file: 'go.mod'
@@ -36,11 +45,21 @@
     generate:
       runs-on: ubuntu-latest
       steps:
-        - uses: actions/checkout@v4
+
+        - name: Harden Runner
+          uses: step-security/harden-runner@v2.10.2
+          with:
+            egress-policy: audit
+            
+        - uses: actions/checkout@v4.2.2
+          with:
+            fetch-depth: 0
+
         - uses: actions/setup-go@v5
           with:
             go-version-file: 'go.mod'
             cache: true
+
         - run: go generate ./...
         - name: git diff
           run: |

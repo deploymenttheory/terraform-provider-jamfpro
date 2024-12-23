@@ -18,6 +18,12 @@ jobs:
     name: '📚 Generate Go and TF Provider Docs'
     runs-on: ubuntu-latest
     steps:
+
+    - name: Harden Runner
+      uses: step-security/harden-runner@v2.10.2
+      with:
+        egress-policy: audit
+        
     - uses: actions/checkout@v4.2.2
       with:
         ref: ${{ github.event.pull_request.head.ref }}
