@@ -67,11 +67,9 @@ func DataSourceJamfProBuildings() *schema.Resource {
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 
-	// Get the id and name from schema
 	resourceID := d.Get("id").(string)
 	name := d.Get("name").(string)
 
-	// Validate that at least one identifier is provided
 	if resourceID == "" && name == "" {
 		return diag.FromErr(fmt.Errorf("either 'id' or 'name' must be provided"))
 	}
@@ -80,11 +78,9 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
 
-		// Try to get by name first if provided
 		if name != "" {
 			resource, apiErr = client.GetBuildingByName(name)
 		} else {
-			// Fall back to ID lookup
 			resource, apiErr = client.GetBuildingByID(resourceID)
 		}
 

@@ -1,74 +1,81 @@
-# Example 1: Look up extension attribute by ID
-data "jamfpro_computer_extension_attribute" "by_id" {
+# Example 1: Look up script by ID
+data "jamfpro_script" "by_id" {
   id = "1"
 }
 
-# Example 2: Look up extension attribute by name
-data "jamfpro_computer_extension_attribute" "custom_attribute" {
-  name = "Custom Hardware Attribute"
+# Example 2: Look up script by name
+data "jamfpro_script" "by_name" {
+  name = "Install Software"
 }
 
 # Example 3: Using variables
-variable "attribute_name" {
+variable "script_name" {
   type        = string
-  description = "Name of the computer extension attribute to look up"
-  default     = "Software Version"
+  description = "Name of the script to look up"
+  default     = "System Configuration"
 }
 
-data "jamfpro_computer_extension_attribute" "dynamic" {
-  name = var.attribute_name
+data "jamfpro_script" "dynamic" {
+  name = var.script_name
 }
 
 # Example 4: Output examples
-output "attribute_details" {
-  value = {
-    name        = data.jamfpro_computer_extension_attribute.custom_attribute.name
-    description = data.jamfpro_computer_extension_attribute.custom_attribute.description
-    data_type   = data.jamfpro_computer_extension_attribute.custom_attribute.data_type
-    input_type  = data.jamfpro_computer_extension_attribute.custom_attribute.input_type
-  }
+# Example data source outputs
+output "script_details" {
+ value = {
+   id              = data.jamfpro_script.example.id
+   name            = data.jamfpro_script.example.name
+   category_id     = data.jamfpro_script.example.category_id
+   info            = data.jamfpro_script.example.info 
+   notes           = data.jamfpro_script.example.notes
+   os_requirements = data.jamfpro_script.example.os_requirements
+   priority        = data.jamfpro_script.example.priority
+   script_contents = data.jamfpro_script.example.script_contents
+   parameter4      = data.jamfpro_script.example.parameter4
+   parameter5      = data.jamfpro_script.example.parameter5
+   parameter6      = data.jamfpro_script.example.parameter6
+   parameter7      = data.jamfpro_script.example.parameter7
+   parameter8      = data.jamfpro_script.example.parameter8
+   parameter9      = data.jamfpro_script.example.parameter9
+   parameter10     = data.jamfpro_script.example.parameter10
+   parameter11     = data.jamfpro_script.example.parameter11
+ }
 }
 
 # Example 5: Using with conditions
-data "jamfpro_computer_extension_attribute" "script_attribute" {
-  name = "Custom Script Attribute"
+data "jamfpro_script" "deployment_script" {
+  name = "Deployment Script"
 
   lifecycle {
     postcondition {
-      condition     = self.input_type == "SCRIPT" && self.enabled == true
-      error_message = "Script attribute must be enabled and of type SCRIPT"
+      condition     = self.priority == "BEFORE" && self.os_requirements != ""
+      error_message = "Script must have BEFORE priority and defined OS requirements"
     }
   }
 }
 
 # Example 6: Using in another resource
-resource "jamfpro_computer_group" "smart_group" {
-  name         = "Computers with Custom Attribute"
-  is_smart     = true
-  attribute_id = data.jamfpro_computer_extension_attribute.custom_attribute.id
-
-  criteria {
-    name     = data.jamfpro_computer_extension_attribute.custom_attribute.name
-    operator = "is"
-    value    = "specific_value"
-  }
+resource "jamfpro_policy" "software_policy" {
+  name        = "Software Installation Policy"
+  enabled     = true
+  script_id   = data.jamfpro_script.by_name.id
+  script_priority = data.jamfpro_script.by_name.priority
 }
 
-# Example 7: Working with LDAP attributes
-data "jamfpro_computer_extension_attribute" "ldap_attribute" {
-  name = "LDAP User Details"
-
-  lifecycle {
-    postcondition {
-      condition     = self.input_type == "DIRECTORY_SERVICE_ATTRIBUTE_MAPPING"
-      error_message = "Attribute must be of type DIRECTORY_SERVICE_ATTRIBUTE_MAPPING"
-    }
-  }
+# Example 7: Testing script parameters
+data "jamfpro_script" "parameterized_script" {
+  name = "Parameterized Installation"
 }
 
-output "ldap_mapping" {
+output "script_parameters" {
   value = {
-    attribute = data.jamfpro_computer_extension_attribute.ldap_attribute.ldap_attribute_mapping
-    allowed   = data.jamfpro_computer_extension_attribute.ldap_attribute.ldap_extension_attribute_allowed
+    param4  = data.jamfpro_script.parameterized_script.parameter4
+    param5  = data.jamfpro_script.parameterized_script.parameter5
+    param6  = data.jamfpro_script.parameterized_script.parameter6
+    param7  = data.jamfpro_script.parameterized_script.parameter7
+    param8  = data.jamfpro_script.parameterized_script.parameter8
+    param9  = data.jamfpro_script.parameterized_script.parameter9
+    param10 = data.jamfpro_script.parameterized_script.parameter10
+    param11 = data.jamfpro_script.parameterized_script.parameter11
   }
 }
