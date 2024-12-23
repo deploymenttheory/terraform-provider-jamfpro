@@ -32,27 +32,14 @@ jobs:
         terraform_version: '1.10.2'
         terraform_wrapper: true
     
-    # Creates provider documentation for godoc.org and pkg.go.dev
-    - name: 'go generate'
-      run: go generate ./...
-    
-    # Format all Terraform files
+      # Format all Terraform files
     - name: Format Terraform files
       run: |
         find . -type f -name "*.tf" -exec terraform fmt {} \;
-    
-    # Creates provider documentation for Terraform
-    - name: Render terraform docs and push changes back to PR
-      uses: terraform-docs/gh-actions@v1.3.0
-      with:
-        working-dir: examples/
-        git-push: "true"
-        output-format: markdown document
-        output-file: USAGE.md
-        output-method: replace
-        args: --sensitive=false --hide requirements --required=false
-        indention: 3
-        config-file: .terraform-docs.yml
+      
+    # Creates provider documentation for godoc.org and pkg.go.dev
+    - name: 'go generate'
+      run: go generate ./...
 
     - name: Check for changes in generated Go docs and formatted Terraform files
       id: go-gen-check
@@ -80,3 +67,16 @@ jobs:
         skip_dirty_check: false
         skip_fetch: true
         skip_checkout: true
+  
+    # Creates provider documentation for Terraform
+    - name: Render terraform docs and push changes back to PR
+      uses: terraform-docs/gh-actions@v1.3.0
+      with:
+        working-dir: examples/
+        git-push: "true"
+        output-format: markdown document
+        output-file: USAGE.md
+        output-method: replace
+        args: --sensitive=false --hide requirements --required=false
+        indention: 3
+        config-file: .terraform-docs.yml
