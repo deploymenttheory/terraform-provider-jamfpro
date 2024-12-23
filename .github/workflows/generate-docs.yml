@@ -54,11 +54,11 @@ jobs:
         indention: 3
         config-file: .terraform-docs.yml
 
-    # - name: Generate tf docs
-    #   run: |
-    #     go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
-    #     cd $GITHUB_WORKSPACE
-    #     tfplugindocs generate --examples-dir $GITHUB_WORKSPACE/examples
+    - name: Generate tf docs
+      run: |
+        go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
+        cd $GITHUB_WORKSPACE
+        tfplugindocs generate --examples-dir $GITHUB_WORKSPACE/examples
 
     - name: Check for changes in generated Go docs and formatted Terraform files
       id: go-gen-check
