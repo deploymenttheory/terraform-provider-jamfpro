@@ -49,7 +49,7 @@ jobs:
         go mod download
         go get github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro
 
-    - name: Run Api Privileges Fetcher
+    - name: '⚙️ Run Api Privileges Fetcher'
       env:
         LOG_LEVEL: "debug"
         HIDE_SENSITIVE_DATA: "true"

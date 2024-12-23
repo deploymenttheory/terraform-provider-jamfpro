@@ -39,7 +39,7 @@ jobs:
         go mod download
         go get github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro
 
-    - name: Run App Catalog App Installer Title Fetcher
+    - name: '⚙️ Run App Catalog App Installer Title Fetcher'
       env:
         LOG_LEVEL: "debug"
         HIDE_SENSITIVE_DATA: "true"
