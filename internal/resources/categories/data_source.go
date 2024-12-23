@@ -7,48 +7,76 @@ import (
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProCategories provides information about a specific Category in Jamf Pro.
 func DataSourceJamfProCategories() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The unique identifier of the Category.",
+				Optional:    true,
+				Computed:    true,
+				Description: "The unique identifier of the category.",
 			},
 			"name": {
 				Type:        schema.TypeString,
+				Optional:    true,
 				Computed:    true,
-				Description: "The unique name of the jamf pro Category.",
+				Description: "The unique name of the category.",
+			},
+			"priority": {
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: "The priority of the category.",
 			},
 		},
 	}
 }
 
-// dataSourceRead fetches the details of a specific category from Jamf Pro using its unique ID.
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
-	resourceID := d.Get("id").(string)
 
-	Category, err := client.GetCategoryByID(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Category with ID '%s': %v", resourceID, err))
+	resourceID := d.Get("id").(string)
+	name := d.Get("name").(string)
+
+	if resourceID == "" && name == "" {
+		return diag.FromErr(fmt.Errorf("either 'id' or 'name' must be provided"))
 	}
 
-	if Category != nil {
-		d.SetId(resourceID)
-		if err := d.Set("name", Category.Name); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Category with ID '%s': %v", resourceID, err))...)
+	var resource *jamfpro.ResourceCategory
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+
+		if name != "" {
+			resource, apiErr = client.GetCategoryByName(name)
+		} else {
+			resource, apiErr = client.GetCategoryByID(resourceID)
 		}
 
-	} else {
-		d.SetId("")
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
+		}
+		return nil
+	})
+
+	if err != nil {
+		lookupMethod := "ID"
+		lookupValue := resourceID
+		if name != "" {
+			lookupMethod = "name"
+			lookupValue = name
+		}
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Category with %s '%s' after retries: %v", lookupMethod, lookupValue, err))
 	}
 
-	return diags
+	if resource == nil {
+		d.SetId("")
+		return diag.FromErr(fmt.Errorf("the Jamf Pro Category was not found"))
+	}
+
+	d.SetId(resource.Id)
+	return updateState(d, resource)
 }

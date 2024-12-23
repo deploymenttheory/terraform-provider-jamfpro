@@ -351,6 +351,7 @@ func Provider() *schema.Provider {
 			"jamfpro_advanced_user_search":                      advancedusersearches.DataSourceJamfProAdvancedUserSearches(),
 			"jamfpro_api_integration":                           apiintegrations.DataSourceJamfProApiIntegrations(),
 			"jamfpro_api_role":                                  apiroles.DataSourceJamfProAPIRoles(),
+			"jamfpro_app_installer":                             appinstallers.DataSourceJamfProAppInstallers(),
 			"jamfpro_building":                                  buildings.DataSourceJamfProBuildings(),
 			"jamfpro_category":                                  categories.DataSourceJamfProCategories(),
 			"jamfpro_computer_extension_attribute":              computerextensionattributes.DataSourceJamfProComputerExtensionAttributes(),
