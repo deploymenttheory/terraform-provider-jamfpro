@@ -42,6 +42,18 @@ jobs:
         find . -type f -name "*.tf" -exec terraform fmt {} \;
     
     # Creates provider documentation for Terraform
+    - name: Render terraform docs and push changes back to PR
+      uses: terraform-docs/gh-actions@v1.3.0
+      with:
+        working-dir: examples/
+        git-push: "true"
+        output-format: markdown document
+        output-file: USAGE.md
+        output-method: replace
+        args: --sensitive=false --hide requirements --required=false
+        indention: 3
+        config-file: .terraform-docs.yml
+        
     - name: Generate tf docs
       run: |
         go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
