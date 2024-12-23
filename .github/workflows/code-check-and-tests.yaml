@@ -23,11 +23,21 @@ jobs:
     runs-on: ubuntu-20.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2.10.2
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+
       - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
           cache: true
+          
       - name: get dependencies
         run: |
           go mod tidy

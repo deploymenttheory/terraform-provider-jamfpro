@@ -1,0 +1,94 @@
+name: Generate Docs
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/**/*'
+      - 'scripts/**/*'
+  workflow_dispatch:
+
+permissions:
+  contents: write  # Required to update documentation in the repo
+  pull-requests: write
+  
+jobs:
+  provider-docs:
+    name: '📚 Generate Go and TF Provider Docs'
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Harden Runner
+      uses: step-security/harden-runner@v2.10.2
+      with:
+        egress-policy: audit
+        
+    - uses: actions/checkout@v4.2.2
+      with:
+        ref: ${{ github.event.pull_request.head.ref }}
+        
+    - uses: actions/setup-go@v5.2.0
+      with:
+        cache: true
+        go-version-file: 'go.mod'
+
+    - uses: hashicorp/setup-terraform@v3.1.2
+      with:
+        terraform_version: '1.10.2'
+        terraform_wrapper: true
+    
+    # Creates provider documentation for godoc.org and pkg.go.dev
+    - name: 'go generate'
+      run: go generate ./...
+    
+    # Format all Terraform files
+    - name: Format Terraform files
+      run: |
+        find . -type f -name "*.tf" -exec terraform fmt {} \;
+    
+    # Creates provider documentation for Terraform
+    - name: Render terraform docs and push changes back to PR
+      uses: terraform-docs/gh-actions@v1.3.0
+      with:
+        working-dir: examples/
+        git-push: "true"
+        output-format: markdown document
+        output-file: USAGE.md
+        output-method: replace
+        args: --sensitive=false --hide requirements --required=false
+        indention: 3
+        config-file: .terraform-docs.yml
+
+    - name: Generate tf docs
+      run: |
+        go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
+        cd $GITHUB_WORKSPACE
+        tfplugindocs generate --examples-dir $GITHUB_WORKSPACE/examples
+
+    - name: Check for changes in generated Go docs and formatted Terraform files
+      id: go-gen-check
+      run: |
+        if [[ -n $(git status --porcelain) ]]; then
+          echo "changes=true" >> $GITHUB_OUTPUT
+        else
+          echo "changes=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Commit changes in Go + provider docs and Terraform formatting
+      if: steps.go-gen-check.outputs.changes == 'true'
+      uses: stefanzweifel/git-auto-commit-action@v5.0.1
+      with:
+        commit_message: "chore: update go documentation, provider documentation and format terraform files"
+        file_pattern: '**/*.go **/*.tf docs/**/*'
+
+        commit_options: '--no-verify --signoff'
+        commit_user_name: "GitHub Actions Bot"
+        commit_user_email: "github-actions[bot]@users.noreply.github.com"
+        commit_author: "GitHub Actions Bot <github-actions[bot]@users.noreply.github.com>"
+        status_options: '--untracked-files=no'
+        add_options: '-u'
+        push_options: '--force'
+        skip_dirty_check: false
+        skip_fetch: true
+        skip_checkout: true

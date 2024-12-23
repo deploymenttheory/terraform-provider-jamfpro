@@ -1,0 +1,25 @@
+name: Auto-Merge Dependabot
+
+on:
+  pull_request:
+
+jobs:
+  auto-merge:
+    name: '🤖 Auto-Merge Dependabot'
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    steps:
+
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2.10.2
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+          
+      - uses: ahmadnassri/action-dependabot-auto-merge@v2.6.6
+        with:
+          target: minor
+          github-token: ${{ secrets.DEPENDABOT_PAT }}

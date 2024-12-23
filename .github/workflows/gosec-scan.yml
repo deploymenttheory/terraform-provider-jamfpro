@@ -16,8 +16,16 @@ jobs:
     env:
       GO111MODULE: on
     steps:
-      - name: Checkout Source
-        uses: actions/checkout@v4.1.7
+
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2.10.2
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+          
       - name: Run Gosec Security Scanner
         uses: securego/gosec@v2.21.4
         with:
