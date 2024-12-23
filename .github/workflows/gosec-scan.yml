@@ -1,4 +1,4 @@
-name: "Security Scan"
+name: "🛡️ Security Scan"
 
 # Run workflow each time code is pushed to your repository and on a schedule.
 # The scheduled workflow runs every at 00:00 on Sunday UTC time.
@@ -17,7 +17,7 @@ jobs:
       GO111MODULE: on
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.2
       - name: Run Gosec Security Scanner
         uses: securego/gosec@v2.21.4
         with:
