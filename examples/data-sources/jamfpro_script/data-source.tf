@@ -43,14 +43,14 @@ data "jamfpro_computer_extension_attribute" "script_attribute" {
 
 # Example 6: Using in another resource
 resource "jamfpro_computer_group" "smart_group" {
-  name        = "Computers with Custom Attribute"
-  is_smart    = true
+  name         = "Computers with Custom Attribute"
+  is_smart     = true
   attribute_id = data.jamfpro_computer_extension_attribute.custom_attribute.id
-  
+
   criteria {
-    name      = data.jamfpro_computer_extension_attribute.custom_attribute.name
-    operator  = "is"
-    value     = "specific_value"
+    name     = data.jamfpro_computer_extension_attribute.custom_attribute.name
+    operator = "is"
+    value    = "specific_value"
   }
 }
 

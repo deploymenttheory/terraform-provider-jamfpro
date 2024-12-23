@@ -40,7 +40,7 @@ data "jamfpro_building" "dynamic" {
 
 # Example 4: Using in another resource
 resource "jamfpro_computer" "office_computer" {
-  name         = "Office Workstation"
-  building_id  = data.jamfpro_building.by_name.id
-  description  = "Workstation located at ${data.jamfpro_building.by_name.name}"
+  name        = "Office Workstation"
+  building_id = data.jamfpro_building.by_name.id
+  description = "Workstation located at ${data.jamfpro_building.by_name.name}"
 }
