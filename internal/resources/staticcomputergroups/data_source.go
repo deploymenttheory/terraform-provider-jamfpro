@@ -11,47 +11,64 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProStaticComputerGroups provides information about a specific computer group in Jamf Pro.
 func DataSourceJamfProStaticComputerGroups() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceRead,
-
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The unique identifier of the Jamf Pro static computer group.",
+				Optional:    true,
+				Computed:    true,
+				Description: "The unique identifier of the static computer group.",
 			},
 			"name": {
 				Type:        schema.TypeString,
+				Optional:    true,
 				Computed:    true,
-				Description: "The unique name of the Jamf Pro static computer group.",
+				Description: "The name of the static computer group.",
+			},
+			"is_smart": {
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "Whether this is a smart group.",
+			},
+			"site_id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The site ID for the group.",
+			},
+			"assigned_computer_ids": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeInt,
+				},
+				Description: "List of assigned computer IDs.",
 			},
 		},
 	}
 }
 
-// dataSourceRead fetches the details of a specific computer group
-// from Jamf Pro using either its unique Name or its Id. The function prioritizes the 'name' attribute over the 'id'
-// attribute for fetching details. If neither 'name' nor 'id' is provided, it returns an error.
-// Once the details are fetched, they are set in the data source's state.
-//
-// Parameters:
-// - ctx: The context within which the function is called. It's used for timeouts and cancellation.
-// - d: The current state of the data source.
-// - meta: The meta object that can be used to retrieve the API client connection.
-//
-// Returns:
-// - diag.Diagnostics: Returns any diagnostics (errors or warnings) encountered during the function's execution.
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
+
 	resourceID := d.Get("id").(string)
+	name := d.Get("name").(string)
+
+	if resourceID == "" && name == "" {
+		return diag.FromErr(fmt.Errorf("either 'id' or 'name' must be provided"))
+	}
 
 	var resource *jamfpro.ResourceComputerGroup
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		resource, apiErr = client.GetComputerGroupByID(resourceID)
+
+		if name != "" {
+			resource, apiErr = client.GetComputerGroupByName(name)
+		} else {
+			resource, apiErr = client.GetComputerGroupByID(resourceID)
+		}
+
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -59,17 +76,20 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Jamf Pro Static Computer Group with ID '%s' after retries: %v", resourceID, err))
-	}
-
-	if resource != nil {
-		d.SetId(resourceID)
-		if err := d.Set("name", resource.Name); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Static Computer Group with ID '%s': %v", resourceID, err))...)
+		lookupMethod := "ID"
+		lookupValue := resourceID
+		if name != "" {
+			lookupMethod = "name"
+			lookupValue = name
 		}
-	} else {
-		d.SetId("")
+		return diag.FromErr(fmt.Errorf("failed to read Static Computer Group with %s '%s' after retries: %v", lookupMethod, lookupValue, err))
 	}
 
-	return diags
+	if resource == nil {
+		d.SetId("")
+		return diag.FromErr(fmt.Errorf("the Jamf Pro Static Computer Group was not found"))
+	}
+
+	d.SetId(fmt.Sprintf("%d", resource.ID))
+	return updateState(d, resource)
 }
