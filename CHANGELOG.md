@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.9.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.8.0...v0.9.0) (2024-12-23)
+
+
+### Features
+
+* add workflow_dispatch input for release version and update dependencies ([fe76925](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/fe769256ca701cc0c06a6068ade2f2d15039c35e))
+* enhance security by adding Harden Runner to workflows and updat… ([#549](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/549)) ([9a4cd52](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/9a4cd529ceb32959d7917cb6ebdfc464f51c8bb9))
+* enhance security by adding Harden Runner to workflows and update checkout action version ([9a4cd52](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/9a4cd529ceb32959d7917cb6ebdfc464f51c8bb9))
+* pattern for data sources by name or by id with examples ([#540](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/540)) ([5838861](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/5838861eddeb97bce39b9199ba9802d1032ad140))
+* update app installer retrieval method and add automated workflo… ([#544](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/544)) ([0d56b96](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/0d56b960ba9f3137a94028fb96ffbfb752f4cd94))
+* update app installer retrieval method and add automated workflows for dependency management and documentation generation ([0d56b96](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/0d56b960ba9f3137a94028fb96ffbfb752f4cd94))
+* updated data resources to support get by name with examples ([#553](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/553)) ([4049226](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/404922676b9dfe2ea8892b16db9e44e847237e2b))
+
+
+### Bug Fixes
+
+* added emoji's to runner titles for styling ([#551](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/551)) ([f41a421](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/f41a4216afa4b07a300234d24cce5ec40668b4ed))
+* harden runners ([#550](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/550)) ([f0638b1](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/f0638b15a11f106ef66de7c31a22352876073964))
+* pipeline testing for tf docs ([#546](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/546)) ([628b68b](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/628b68b790aab9561a391d85fbf2d6c8416a7fc0))
+
 ## [0.8.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.7.1...v0.8.0) (2024-12-12)
 
 
