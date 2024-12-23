@@ -21,7 +21,7 @@
   jobs:
     # Ensure project builds before running testing matrix
     build:
-      name: Build
+      name: '🏗️ Build'
       runs-on: ubuntu-latest
       timeout-minutes: 5
       steps:
@@ -43,6 +43,7 @@
         - run: go build -v .
   
     generate:
+      name: '🧬 Generate'
       runs-on: ubuntu-latest
       steps:
 
