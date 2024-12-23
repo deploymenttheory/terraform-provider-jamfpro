@@ -22,24 +22,24 @@ data "jamfpro_script" "dynamic" {
 # Example 4: Output examples
 # Example data source outputs
 output "script_details" {
- value = {
-   id              = data.jamfpro_script.example.id
-   name            = data.jamfpro_script.example.name
-   category_id     = data.jamfpro_script.example.category_id
-   info            = data.jamfpro_script.example.info 
-   notes           = data.jamfpro_script.example.notes
-   os_requirements = data.jamfpro_script.example.os_requirements
-   priority        = data.jamfpro_script.example.priority
-   script_contents = data.jamfpro_script.example.script_contents
-   parameter4      = data.jamfpro_script.example.parameter4
-   parameter5      = data.jamfpro_script.example.parameter5
-   parameter6      = data.jamfpro_script.example.parameter6
-   parameter7      = data.jamfpro_script.example.parameter7
-   parameter8      = data.jamfpro_script.example.parameter8
-   parameter9      = data.jamfpro_script.example.parameter9
-   parameter10     = data.jamfpro_script.example.parameter10
-   parameter11     = data.jamfpro_script.example.parameter11
- }
+  value = {
+    id              = data.jamfpro_script.example.id
+    name            = data.jamfpro_script.example.name
+    category_id     = data.jamfpro_script.example.category_id
+    info            = data.jamfpro_script.example.info
+    notes           = data.jamfpro_script.example.notes
+    os_requirements = data.jamfpro_script.example.os_requirements
+    priority        = data.jamfpro_script.example.priority
+    script_contents = data.jamfpro_script.example.script_contents
+    parameter4      = data.jamfpro_script.example.parameter4
+    parameter5      = data.jamfpro_script.example.parameter5
+    parameter6      = data.jamfpro_script.example.parameter6
+    parameter7      = data.jamfpro_script.example.parameter7
+    parameter8      = data.jamfpro_script.example.parameter8
+    parameter9      = data.jamfpro_script.example.parameter9
+    parameter10     = data.jamfpro_script.example.parameter10
+    parameter11     = data.jamfpro_script.example.parameter11
+  }
 }
 
 # Example 5: Using with conditions
@@ -56,9 +56,9 @@ data "jamfpro_script" "deployment_script" {
 
 # Example 6: Using in another resource
 resource "jamfpro_policy" "software_policy" {
-  name        = "Software Installation Policy"
-  enabled     = true
-  script_id   = data.jamfpro_script.by_name.id
+  name            = "Software Installation Policy"
+  enabled         = true
+  script_id       = data.jamfpro_script.by_name.id
   script_priority = data.jamfpro_script.by_name.priority
 }
 
