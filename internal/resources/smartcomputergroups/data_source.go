@@ -6,53 +6,106 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProSmartComputerGroups provides information about a specific computer group in Jamf Pro.
 func DataSourceJamfProSmartComputerGroups() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceRead,
-
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The unique identifier of the Jamf Pro Smart computer group.",
+				Optional:    true,
+				Computed:    true,
+				Description: "The unique identifier of the computer group.",
 			},
 			"name": {
 				Type:        schema.TypeString,
+				Optional:    true,
 				Computed:    true,
-				Description: "The unique name of the Jamf Pro Smart computer group.",
+				Description: "The unique name of the Jamf Pro computer group.",
+			},
+			"is_smart": {
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "Boolean selection to state if the group is a Smart group or not. If false then the group is a static group.",
+			},
+			"site_id": sharedschemas.GetSharedSchemaSite(),
+			"criteria": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The unique identifier of the smart computer group.",
+						},
+						"name": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The name of the smart computer group.",
+						},
+						"priority": {
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: "The priority of the criterion.",
+						},
+						"and_or": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Either 'and', 'or', or blank.",
+						},
+						"search_type": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: fmt.Sprintf("The type of smart group search operator. Allowed values are '%v'", getCriteriaOperators()),
+						},
+						"value": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Search value for the smart group criteria to match with.",
+						},
+						"opening_paren": {
+							Type:        schema.TypeBool,
+							Computed:    true,
+							Description: "Opening parenthesis flag used during smart group construction.",
+						},
+						"closing_paren": {
+							Type:        schema.TypeBool,
+							Computed:    true,
+							Description: "Closing parenthesis flag used during smart group construction.",
+						},
+					},
+				},
 			},
 		},
 	}
 }
 
-// dataSourceRead fetches the details of a specific computer group
-// from Jamf Pro using either its unique Name or its Id. The function prioritizes the 'name' attribute over the 'id'
-// attribute for fetching details. If neither 'name' nor 'id' is provided, it returns an error.
-// Once the details are fetched, they are set in the data source's state.
-//
-// Parameters:
-// - ctx: The context within which the function is called. It's used for timeouts and cancellation.
-// - d: The current state of the data source.
-// - meta: The meta object that can be used to retrieve the API client connection.
-//
-// Returns:
-// - diag.Diagnostics: Returns any diagnostics (errors or warnings) encountered during the function's execution.
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
+
 	resourceID := d.Get("id").(string)
+	name := d.Get("name").(string)
+
+	if resourceID == "" && name == "" {
+		return diag.FromErr(fmt.Errorf("either 'id' or 'name' must be provided"))
+	}
 
 	var resource *jamfpro.ResourceComputerGroup
-
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		resource, apiErr = client.GetComputerGroupByID(resourceID)
+
+		if name != "" {
+			resource, apiErr = client.GetComputerGroupByName(name)
+		} else {
+			resource, apiErr = client.GetComputerGroupByID(resourceID)
+		}
+
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -60,17 +113,20 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Jamf Pro Smart Computer Group with ID '%s' after retries: %v", resourceID, err))
-	}
-
-	if resource != nil {
-		d.SetId(resourceID)
-		if err := d.Set("name", resource.Name); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Smart Computer Group with ID '%s': %v", resourceID, err))...)
+		lookupMethod := "ID"
+		lookupValue := resourceID
+		if name != "" {
+			lookupMethod = "name"
+			lookupValue = name
 		}
-	} else {
-		d.SetId("")
+		return diag.FromErr(fmt.Errorf("failed to read Smart Computer Group with %s '%s' after retries: %v", lookupMethod, lookupValue, err))
 	}
 
-	return diags
+	if resource == nil {
+		d.SetId("")
+		return diag.FromErr(fmt.Errorf("the Jamf Pro Smart Computer Group wasnot found"))
+	}
+
+	d.SetId(fmt.Sprintf("%d", resource.ID))
+	return updateState(d, resource)
 }
