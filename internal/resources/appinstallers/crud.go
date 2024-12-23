@@ -66,7 +66,7 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 	var response *jamfpro.ResourceJamfAppCatalogDeployment
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		response, apiErr = client.GetJamfAppCatalogAppInstallerDeploymentByID(resourceID)
+		response, apiErr = client.GetJamfAppCatalogAppInstallerByID(resourceID)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
