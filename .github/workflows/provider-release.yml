@@ -7,12 +7,20 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'TF Provider Release version to publish. Requires an pre-existing repo release and the provided value must be formatted as a semver.'
+        required: true
+        default: 'v0.0.0-alpha'
+
 jobs:
   pre-release-checks:
     name: '🚦 Pre-release Validation'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
+
     - name: Harden Runner
       uses: step-security/harden-runner@v2.10.2
       with:
@@ -21,10 +29,11 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v4.2.2
       with:
-        fetch-depth: 2
+        fetch-depth: 0
+        ref: ${{ github.event.inputs.release_version || github.ref }}
 
     - name: Set up Go
-      uses: actions/setup-go@v5.1.0
+      uses: actions/setup-go@v5.2.0
       with:
         cache: true
         go-version-file: 'go.mod'
@@ -33,7 +42,7 @@ jobs:
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v3.1.2
       with:
-        terraform_version: '1.9.4'
+        terraform_version: '1.10.3'
         terraform_wrapper: false
 
     - name: Run 'go mod tidy' and check for differences
@@ -67,13 +76,21 @@ jobs:
       gpg-private-key-passphrase: '${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}'  # Passphrase for your GPG key, if applicable
     with:
       release-notes: false # Set to true if you have release notes to include
-      setup-go-version: '1.22' # Specify the Go version needed
+      setup-go-version: '1.22.5' # Specify the Go version needed
+
   release-notes:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4.1.7
+
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2.10.2
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0
+
       - name: Generate Release Notes
         run: sed -n -e "1{/# /d;}" -e "2{/^$/d;}" -e "/# $(git describe --abbrev=0 --exclude="$(git describe --abbrev=0 --match='v*.*.*' --tags)" --match='v*.*.*' --tags | tr -d v)/q;p" CHANGELOG.md > release-notes.txt
       - uses: actions/upload-artifact@v4

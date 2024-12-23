@@ -50,7 +50,7 @@ jobs:
         go mod download
         go get github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro
 
-    - name: Run User Account Privileges Fetcher
+    - name: '⚙️ Run User Account Privileges Fetcher'
       env:
         LOG_LEVEL: "debug"
         HIDE_SENSITIVE_DATA: "true"

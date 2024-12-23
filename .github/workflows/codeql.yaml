@@ -22,7 +22,7 @@ on:
 
 jobs:
   analyze:
-    name: Analyze
+    name: '🔬 Analyze'
     runs-on: ubuntu-20.04
     permissions:
       actions: read

@@ -21,7 +21,7 @@
   jobs:
     # Ensure project builds before running testing matrix
     build:
-      name: Build
+      name: '🏗️ Build'
       runs-on: ubuntu-latest
       timeout-minutes: 5
       steps:
@@ -35,7 +35,7 @@
           with:
             fetch-depth: 0
 
-        - uses: actions/setup-go@v5
+        - uses: actions/setup-go@v5.2.2
           with:
             go-version-file: 'go.mod'
             cache: true
@@ -43,6 +43,7 @@
         - run: go build -v .
   
     generate:
+      name: '🧬 Generate'
       runs-on: ubuntu-latest
       steps:
 
@@ -55,7 +56,7 @@
           with:
             fetch-depth: 0
 
-        - uses: actions/setup-go@v5
+        - uses: actions/setup-go@v5.2.0
           with:
             go-version-file: 'go.mod'
             cache: true
@@ -77,20 +78,29 @@
         matrix:
           # list whatever Terraform versions here you would like to support
           terraform:
-            - '1.6.*'
-            - '1.7.*'
-            - '1.8.*'
             - '1.9.*'
+            - '1.10.*'
+            - '1.11.*'
       steps:
-        - uses: actions/checkout@v4
-        - uses: actions/setup-go@v5
+
+        - name: Harden Runner
+          uses: step-security/harden-runner@v2.10.2
+          with:
+            egress-policy: audit
+
+        - name: Checkout repository
+          uses: actions/checkout@v4.2.2
+
+        - uses: actions/setup-go@v5.2.0
           with:
             go-version-file: 'go.mod'
             cache: true
-        - uses: hashicorp/setup-terraform@v3
+
+        - uses: hashicorp/setup-terraform@v3.1.2
           with:
             terraform_version: ${{ matrix.terraform }}
             terraform_wrapper: false
+
         - run: go mod download
         - env:
             TF_ACC: "1"
