@@ -11,7 +11,6 @@ require (
 	github.com/deploymenttheory/go-api-http-client v0.2.18
 	github.com/deploymenttheory/go-api-http-client-integrations v0.0.11
 	github.com/deploymenttheory/go-api-sdk-jamfpro v1.17.1
-
 )
 
 // Other
