@@ -276,18 +276,6 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 		selfServiceBlock["notification"] = correctNotifValue
 	}
 
-	// Handle self service icon
-	if selfService.SelfServiceIcon.ID != 0 {
-		selfServiceBlock["self_service_icon"] = []interface{}{
-			map[string]interface{}{
-				"id":       selfService.SelfServiceIcon.ID,
-				"uri":      selfService.SelfServiceIcon.URI,
-				"data":     selfService.SelfServiceIcon.Data,
-				"filename": selfService.SelfServiceIcon.Filename,
-			},
-		}
-	}
-
 	// Handle self service categories
 	if len(selfService.SelfServiceCategories) > 0 {
 		categories := make([]interface{}, len(selfService.SelfServiceCategories))
@@ -305,7 +293,7 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 	// Check if all values are default
 	allDefault := true
 	for key, value := range selfServiceBlock {
-		if !reflect.DeepEqual(value, defaults[key]) {
+		if defaultVal, ok := defaults[key]; ok && !reflect.DeepEqual(value, defaultVal) {
 			allDefault = false
 			break
 		}
@@ -314,13 +302,6 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 	if allDefault {
 		log.Println("All self service values are default, skipping state")
 		return nil, nil
-	}
-
-	// Remove default values
-	for key, value := range selfServiceBlock {
-		if reflect.DeepEqual(value, defaults[key]) {
-			delete(selfServiceBlock, key)
-		}
 	}
 
 	log.Println("Initializing self service in state")

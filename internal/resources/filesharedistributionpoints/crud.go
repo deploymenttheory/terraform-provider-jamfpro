@@ -13,13 +13,8 @@ const (
 	JamfProResourceDistributionPoint = "Distribution Point"
 )
 
-// Create requires a mutex need to lock Create requests during parallel runs
-// var mu sync.Mutex
-
 // create is responsible for creating a new file share
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// mu.Lock()
-	// defer mu.Unlock()
 	return common.Create(
 		ctx,
 		d,
@@ -64,7 +59,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	)
 }
 
-// deleteis responsible for deleting a Jamf Pro file share distribution point from the remote system.
+// delete is responsible for deleting a Jamf Pro file share distribution point from the remote system.
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return common.Delete(
 		ctx,

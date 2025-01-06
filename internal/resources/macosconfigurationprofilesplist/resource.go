@@ -13,10 +13,10 @@ import (
 // resourceJamfProMacOSConfigurationProfilesPlist defines the schema and CRUD operations for managing Jamf Pro macOS Configuration Profiles in Terraform.
 func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProMacOSConfigurationProfilesPlistCreate,
-		ReadContext:   resourceJamfProMacOSConfigurationProfilesPlistReadWithCleanup,
-		UpdateContext: resourceJamfProMacOSConfigurationProfilesPlistUpdate,
-		DeleteContext: resourceJamfProMacOSConfigurationProfilesPlistDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(120 * time.Second),
