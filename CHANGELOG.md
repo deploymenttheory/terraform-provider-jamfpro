@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.9.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.9.0...v0.9.1) (2025-01-06)
+
+
+### Bug Fixes
+
+* added computer_prestage_enrollment example ([#563](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/563)) ([b5fb211](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/b5fb2119276aae1e375ee191c840a97132512473))
+* downgrade actions/setup-go to v5.2.0 in workflow configuration ([#564](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/564)) ([054da7c](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/054da7c00a5e1ab8250c0d54a90696e825f9cdca))
+* macos plist handling for payloadUUID update operation ([#562](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/562)) ([a506164](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/a50616444e3335825ec082bafa57f4889d616f51))
+* migrated doc gen to github action ([#554](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/554)) ([b5740eb](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/b5740eb7217bb354af7d1fbb772098fca6e9ff28))
+
 ## [0.9.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.8.0...v0.9.0) (2024-12-23)
 
 
