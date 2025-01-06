@@ -2,18 +2,58 @@
 package macosconfigurationprofilesplist
 
 import (
+	"bytes"
 	"encoding/xml"
 	"fmt"
 	"html"
 	"log"
+	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"howett.net/plist"
 )
 
-// constructJamfProMacOSConfigurationProfilePlist constructs a ResourceMacOSConfigurationProfile object from the provided schema data.
-func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData) (*jamfpro.ResourceMacOSConfigurationProfile, error) {
+// constructJamfProMacOSConfigurationProfilePlist constructs a ResourceMacOSConfigurationProfile object from schema data.
+// It supports two modes:
+//   - create: Builds profile from schema data only
+//   - update: Fetches existing profile from Jamf Pro, extracts PayloadUUID/PayloadIdentifier values from existing plist,
+//     injects them into the new plist to maintain UUID continuity
+//
+// The function:
+// 1. For update mode:
+//   - Retrieves existing profile from Jamf Pro API
+//   - Decodes existing plist to extract UUIDs
+//
+// 2. Constructs base profile from schema data (name, description, etc)
+// 3. Builds scope and self-service sections if configured
+// 4. For update mode:
+//   - Maps existing UUIDs by PayloadDisplayName
+//   - Updates PayloadUUID/PayloadIdentifier in new plist to match existing
+//   - Re-encodes updated plist
+//
+// Parameters:
+// - d: Schema ResourceData containing configuration
+// - mode: "create" or "update" to control UUID handling
+// - meta: Provider meta containing client for API calls
+//
+// Returns:
+// - Constructed ResourceMacOSConfigurationProfile
+// - Error if construction or API calls fail
+func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode string, meta interface{}) (*jamfpro.ResourceMacOSConfigurationProfile, error) {
+	var existingProfile *jamfpro.ResourceMacOSConfigurationProfile
+
+	if mode == "update" {
+		client := meta.(*jamfpro.Client)
+		resourceID := d.Id()
+		var err error
+		existingProfile, err = client.GetMacOSConfigurationProfileByID(resourceID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get existing profile: %v", err)
+		}
+	}
+
 	resource := &jamfpro.ResourceMacOSConfigurationProfile{
 		General: jamfpro.MacOSConfigurationProfileSubsetGeneral{
 			Name:               d.Get("name").(string),
@@ -38,6 +78,35 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData) (*ja
 	if v, ok := d.GetOk("self_service"); ok {
 		selfServiceData := v.([]interface{})[0].(map[string]interface{})
 		resource.SelfService = constructMacOSConfigurationProfileSubsetSelfService(selfServiceData)
+	}
+
+	// Handle UUID injection for update operations
+	if mode == "update" && existingProfile != nil {
+		uuidMap := make(map[string]string)
+		var existingPlist map[string]interface{}
+		existingPayload := html.UnescapeString(existingProfile.General.Payloads)
+		if err := plist.NewDecoder(strings.NewReader(existingPayload)).Decode(&existingPlist); err != nil {
+			return nil, fmt.Errorf("failed to decode existing plist: %v", err)
+		}
+
+		extractUUIDs(existingPlist, uuidMap)
+
+		var newPlist map[string]interface{}
+		newPayload := html.UnescapeString(resource.General.Payloads)
+		if err := plist.NewDecoder(strings.NewReader(newPayload)).Decode(&newPlist); err != nil {
+			return nil, fmt.Errorf("failed to decode new plist: %v", err)
+		}
+
+		updateUUIDs(newPlist, uuidMap)
+
+		var buf bytes.Buffer
+		encoder := plist.NewEncoder(&buf)
+		encoder.Indent("    ")
+		if err := encoder.Encode(newPlist); err != nil {
+			return nil, fmt.Errorf("failed to encode updated plist: %v", err)
+		}
+
+		resource.General.Payloads = html.EscapeString(buf.String())
 	}
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
