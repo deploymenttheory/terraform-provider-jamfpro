@@ -282,7 +282,7 @@
             "titleName": "Spotify",
             "publisher": "Spotify",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/0E8.png",
-            "version": "1.2.53.438",
+            "version": "1.2.53.440",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -502,7 +502,7 @@
             "titleName": "Microsoft Intune Company Portal",
             "publisher": "Microsoft",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/13F.png",
-            "version": "5.2410.1",
+            "version": "5.2412.0",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1261,7 +1261,7 @@
             "titleName": "Aircall",
             "publisher": "Aircall",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/55A.png",
-            "version": "3.1.65",
+            "version": "3.1.66",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -1789,7 +1789,7 @@
             "titleName": "draw.io",
             "publisher": "JGraph",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/624.png",
-            "version": "25.0.2",
+            "version": "26.0.3",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
@@ -2064,7 +2064,7 @@
             "titleName": "Adobe Illustrator 2025",
             "publisher": "Adobe",
             "iconUrl": "https://appinstallers-packages.services.jamfcloud.com/icons/673.png",
-            "version": "29.1.0",
+            "version": "29.2.0",
             "launchDaemonIncluded": null,
             "notificationAvailable": null,
             "suppressAutoUpdate": null
