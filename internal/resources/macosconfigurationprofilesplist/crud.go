@@ -1,15 +1,20 @@
 package macosconfigurationprofilesplist
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"html"
 	"strconv"
+	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
+	pliststruct "github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/plist"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"howett.net/plist"
 )
 
 // Create requires a mutex need to lock Create requests during parallel runs
@@ -95,10 +100,66 @@ func resourceJamfProMacOSConfigurationProfilesPlistUpdate(ctx context.Context, d
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
+	// Get existing profile to get current UUIDs
+	existingProfile, err := client.GetMacOSConfigurationProfileByID(resourceID)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to get existing profile: %v", err))
+	}
+
+	// Extract existing UUIDs map from existing profile
+	existingUUIDs := make(map[string]string)
+	unescapedExistingPayload := html.UnescapeString(existingProfile.General.Payloads)
+	var existingConfig pliststruct.ConfigurationProfile
+	if err := plist.NewDecoder(strings.NewReader(unescapedExistingPayload)).Decode(&existingConfig); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to decode existing plist: %v", err))
+	}
+
+	// Store root UUID
+	existingUUIDs["root"] = existingConfig.PayloadUUID
+
+	// Store PayloadContent UUIDs
+	for _, content := range existingConfig.PayloadContent {
+		existingUUIDs[content.PayloadDisplayName] = content.PayloadUUID
+	}
+
+	// Construct new profile
 	resource, err := constructJamfProMacOSConfigurationProfilePlist(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro macOS Configuration Profile for update: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct profile for update: %v", err))
 	}
+
+	// Unescape the XML payload
+	unescapedPayload := html.UnescapeString(resource.General.Payloads)
+
+	// Parse new payload
+	var newConfig pliststruct.ConfigurationProfile
+	if err := plist.NewDecoder(strings.NewReader(unescapedPayload)).Decode(&newConfig); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to decode new plist: %v", err))
+	}
+
+	// Update root UUID
+	if rootUUID, exists := existingUUIDs["root"]; exists {
+		newConfig.PayloadUUID = rootUUID
+	}
+
+	// Update PayloadContent UUIDs
+	for i, content := range newConfig.PayloadContent {
+		if uuid, exists := existingUUIDs[content.PayloadDisplayName]; exists {
+			newConfig.PayloadContent[i].PayloadUUID = uuid
+			newConfig.PayloadContent[i].PayloadIdentifier = uuid
+		}
+	}
+
+	// Encode back to plist
+	var buf bytes.Buffer
+	encoder := plist.NewEncoder(&buf)
+	encoder.Indent("    ")
+	if err := encoder.Encode(newConfig); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to encode updated plist: %v", err))
+	}
+
+	// Escape special characters for XML
+	resource.General.Payloads = html.EscapeString(buf.String())
 
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		_, apiErr := client.UpdateMacOSConfigurationProfileByID(resourceID, resource)
@@ -109,7 +170,7 @@ func resourceJamfProMacOSConfigurationProfilesPlistUpdate(ctx context.Context, d
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro macOS Configuration Profile '%s' (ID: %s) after retries: %v", resource.General.Name, resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to update profile '%s' (ID: %s): %v", resource.General.Name, resourceID, err))
 	}
 
 	return append(diags, resourceJamfProMacOSConfigurationProfilesPlistReadNoCleanup(ctx, d, meta)...)
