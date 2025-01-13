@@ -71,7 +71,7 @@ jobs:
 
     - name: Commit changes in Go + provider docs and Terraform formatting
       if: steps.go-gen-check.outputs.changes == 'true'
-      uses: stefanzweifel/git-auto-commit-action@v5.0.1
+      uses: stefanzweifel/git-auto-commit-action@v5.1.0
       with:
         commit_message: "chore: update go documentation, provider documentation and format terraform files"
         file_pattern: '**/*.go **/*.tf docs/**/*'
