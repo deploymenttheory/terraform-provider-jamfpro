@@ -15,8 +15,8 @@ A typical provider configuration would look something like:
 terraform {
   required_providers {
     jamfpro = {
-      source  = "terraform.local/local/jamfpro"
-      version = "0.1.0"
+      source  = "deploymenttheory/jamfpro"
+      version = "~> 0.10.0"
     }
   }
 }
