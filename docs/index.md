@@ -16,7 +16,7 @@ terraform {
   required_providers {
     jamfpro = {
       source  = "deploymenttheory/jamfpro"
-      version = "~> 0.1.4"
+      version = "~> 0.10.0"
     }
   }
 }
@@ -32,8 +32,8 @@ provider "jamfpro" {
   jamfpro_load_balancer_lock           = var.jamfpro_jamf_load_balancer_lock
   token_refresh_buffer_period_seconds  = var.jamfpro_token_refresh_buffer_period_seconds
   mandatory_request_delay_milliseconds = var.jamfpro_mandatory_request_delay_milliseconds
-  # basic_auth_username           = var.jamfpro_basic_auth_username
-  # basic_auth_password           = var.jamfpro_basic_auth_password
+  basic_auth_username                  = var.jamfpro_basic_auth_username
+  basic_auth_password                  = var.jamfpro_basic_auth_password
 }
 
 variable "jamfpro_instance_fqdn" {
@@ -107,7 +107,7 @@ variable "jamfpro_token_refresh_buffer_period_seconds" {
 
 variable "jamfpro_mandatory_request_delay_milliseconds" {
   description = "A mandatory delay after each request before returning to reduce high volume of requests in a short time."
-  default     = 100
+  default     = 1000
 }
 ```
 
