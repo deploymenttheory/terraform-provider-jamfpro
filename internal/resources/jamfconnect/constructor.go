@@ -16,7 +16,6 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceJamfConnectConfigProfil
 		AutoDeploymentType: d.Get("auto_deployment_type").(string),
 	}
 
-	// Serialize and pretty-print the resource as JSON for logging
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Connect Config Profile to JSON: %v", err)

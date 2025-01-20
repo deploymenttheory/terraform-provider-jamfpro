@@ -12,6 +12,8 @@ import (
 )
 
 // create is responsible for initializing the Jamf Pro Jamf Connect configuration in Terraform.
+// create doesn't follow standard crud pattern as this config is pre-existing in Jamf Pro and we must
+// reference the resource by it's pre-existing UUID to update the the jamf connect update config.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
@@ -55,12 +57,11 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 	var targetProfile *jamfpro.ResourceJamfConnectConfigProfile
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		response, apiErr := client.GetJamfConnectConfigProfiles("") // Empty string for no sorting
+		response, apiErr := client.GetJamfConnectConfigProfiles("")
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
 
-		// filter the list by matching UUID
 		for _, profile := range response.Results {
 			if profile.UUID == uuid {
 				targetProfile = &profile
