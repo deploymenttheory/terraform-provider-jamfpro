@@ -76,9 +76,9 @@ The provider contains:
 
 ## Requirements
 
-- [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.0
+- [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.10.0
 - [Go](https://golang.org/doc/install) >= 1.22.4
-- [Jamf Pro](https://www.jamf.com/) >= 11.9.1
+- [Jamf Pro](https://www.jamf.com/) >= 11.12.0
 
 ## Community & Support
 

@@ -1,4 +1,3 @@
-// computercheckin_object.go
 package computercheckin
 
 import (
