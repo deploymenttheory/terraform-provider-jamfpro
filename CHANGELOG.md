@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.9.1...v0.10.0) (2025-01-20)
+
+
+### Features
+
+* added jamf connect to provider with examples ([#568](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/568)) ([d66439a](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/d66439a034d40550d10c8dafba9d37cd05902885))
+
 ## [0.9.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.9.0...v0.9.1) (2025-01-06)
 
 
