@@ -17,7 +17,7 @@ jobs:
     steps:
       
     - name: Harden Runner
-      uses: step-security/harden-runner@v2.10.3
+      uses: step-security/harden-runner@v2.10.4
       with:
         egress-policy: audit
 
@@ -30,7 +30,7 @@ jobs:
         go-version: '1.22.4'  # current version used by the go-api-sdk-jamfpro package
 
     - name: Harden Runner
-      uses: step-security/harden-runner@v2.10.3
+      uses: step-security/harden-runner@v2.10.4
       with:
         egress-policy: audit
 
