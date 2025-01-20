@@ -20,7 +20,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	resource, err := construct(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Connect config profile for update: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Connect config profile for create: %v", err))
 	}
 
 	configProfileUUID := d.Get("config_profile_uuid").(string)
