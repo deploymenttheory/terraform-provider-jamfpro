@@ -9,16 +9,10 @@ import (
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/lithammer/fuzzysearch/fuzzy"
 )
 
-// scoredPrivilege is a helper struct for sorting privileges by similarity score
-type scoredPrivilege struct {
-	privilege string
-	score     float64
-}
-
-// construct builds an ResourceAPIRole object from the provided schema data.
-// It performs dynamic validation of the privileges against the Jamf Pro server.
+// construct builds an ResourceAPIRole object from the provided schema data
 func construct(d *schema.ResourceData, meta interface{}) (*jamfpro.ResourceAPIRole, error) {
 	client := meta.(*jamfpro.Client)
 
@@ -64,14 +58,13 @@ func validateApiRolePrivileges(client *jamfpro.Client, privileges []string) erro
 		return fmt.Errorf("failed to fetch API privileges for validation: %v", err)
 	}
 
+	// Create a map of valid privileges for O(1) lookup
 	validPrivileges := make(map[string]bool)
-	allPrivileges := privilegesList.Privileges
-	for _, privilege := range allPrivileges {
+	for _, privilege := range privilegesList.Privileges {
 		validPrivileges[privilege] = true
 	}
 
-	sort.Strings(allPrivileges)
-
+	// Collect invalid privileges
 	var invalidPrivileges []string
 	for _, privilege := range privileges {
 		if !validPrivileges[privilege] {
@@ -87,9 +80,9 @@ func validateApiRolePrivileges(client *jamfpro.Client, privileges []string) erro
 			msg.WriteString(fmt.Sprintf("- %s\n", p))
 		}
 
-		msg.WriteString("\nAvailable privileges that might be similar:\n")
+		msg.WriteString("\nSuggested similar privileges:\n")
 		for _, invalid := range invalidPrivileges {
-			similars := findSimilarPrivileges(invalid, allPrivileges)
+			similars := findSimilarPrivileges(invalid, privilegesList.Privileges)
 			if len(similars) > 0 {
 				msg.WriteString(fmt.Sprintf("Instead of '%s', did you mean:\n", invalid))
 				for _, s := range similars {
@@ -104,168 +97,66 @@ func validateApiRolePrivileges(client *jamfpro.Client, privileges []string) erro
 	return nil
 }
 
-// findSimilarPrivileges finds privileges similar to an invalid one by analyzing term matches
-// and similarity scores. It performs the following operations:
-//  1. Splits privileges into action (e.g Create/Read/Delete) and resource parts
-//  2. Matches only privileges with the same action type
-//  3. Calculates similarity scores based on sequence matches and term matches
-//  4. Returns only privileges with at least 70% similarity score
+// findSimilarPrivileges tries to suggest resource names similar to “invalidPrivilege”
+// using fuzzy matching across *all* validPrivileges from Jamf Pro.
 func findSimilarPrivileges(invalid string, validPrivileges []string) []string {
-	similar := make([]string, 0, len(validPrivileges))
-	scored := make([]scoredPrivilege, 0, len(validPrivileges))
+	// 1) Parse the invalid string into [action, resource].
+	parts := strings.SplitN(invalid, " ", 2)
+	var invalidAction, invalidResource string
 
-	action, resource, ok := splitPrivilegeIntoActionAndResource(invalid)
-	if !ok {
-		return similar
+	// If we detect exactly two parts (e.g. "Create Something"),
+	// we treat the first word as the action.
+	if len(parts) == 2 {
+		invalidAction = strings.ToLower(parts[0])
+		invalidResource = parts[1]
+	} else {
+		// If there's only one token, we can't reliably parse out the verb.
+		// So either treat the entire string as the resource,
+		// or skip action-based filtering altogether.
+		invalidResource = invalid
 	}
 
-	invalidTerms := strings.Fields(resource)
-	totalTerms := len(invalidTerms)
-
-	for _, valid := range validPrivileges {
-		validAction, validResource, ok := splitPrivilegeIntoActionAndResource(valid)
-		if !ok || validAction != action {
-			continue
-		}
-
-		validTerms := strings.Fields(validResource)
-		seqMatches, longestSequence := countConsecutiveTermMatches(invalidTerms, validTerms)
-		termMatches := calculateTermMatches(invalidTerms, validTerms)
-
-		score := float64(seqMatches+termMatches) / float64(totalTerms)
-		if longestSequence >= 2 {
-			score += float64(longestSequence) * 0.1
-		}
-
-		if score >= 0.7 {
-			scored = append(scored, scoredPrivilege{valid, score})
-		}
+	type candidate struct {
+		priv string
+		dist int
 	}
+	candidates := make([]candidate, 0, len(validPrivileges))
 
-	if len(scored) > 0 {
-		sort.Slice(scored, func(i, j int) bool {
-			return scored[i].score > scored[j].score
-		})
+	for _, vp := range validPrivileges {
+		// Split each valid privilege into [action, resource].
+		vparts := strings.SplitN(vp, " ", 2)
+		if len(vparts) == 2 {
+			vpAction := strings.ToLower(vparts[0])
+			vpResource := vparts[1]
 
-		similar = make([]string, len(scored))
-		for i, s := range scored {
-			similar[i] = s.privilege
+			// **Only** consider suggestions whose action matches the user’s typed action.
+			if vpAction == invalidAction {
+				dist := fuzzy.LevenshteinDistance(
+					strings.ToLower(invalidResource),
+					strings.ToLower(vpResource),
+				)
+				candidates = append(candidates, candidate{priv: vp, dist: dist})
+			}
 		}
 	}
 
-	return similar
-}
-
-// splitPrivilegeIntoActionAndResource splits a privilege into action and resource components
-func splitPrivilegeIntoActionAndResource(privilege string) (action, resource string, ok bool) {
-	parts := strings.SplitN(privilege, " ", 2)
-	if len(parts) != 2 {
-		return "", "", false
-	}
-	return strings.ToLower(parts[0]), strings.ToLower(parts[1]), true
-}
-
-// countConsecutiveTermMatches evaluates matching terms in sequence
-func countConsecutiveTermMatches(invalidTerms, validTerms []string) (matchedTerms, longestSequence int) {
-	currentSequence := 0
-	for i := 0; i < len(invalidTerms) && i < len(validTerms); i++ {
-		if termSimilarity(invalidTerms[i], validTerms[i]) >= 0.85 {
-			currentSequence++
-			matchedTerms++
-			continue
-		}
-
-		if currentSequence > longestSequence {
-			longestSequence = currentSequence
-		}
-		currentSequence = 0
-	}
-
-	if currentSequence > longestSequence {
-		longestSequence = currentSequence
-	}
-
-	return matchedTerms, longestSequence
-}
-
-// calculateTermMatches counts matching terms in any position with optimized matching
-// Sorts terms by length for better matching (try shorter terms first)
-func calculateTermMatches(invalidTerms, validTerms []string) int {
-	if len(invalidTerms) == 0 || len(validTerms) == 0 {
-		return 0
-	}
-
-	matchedValid := make(map[int]bool, len(validTerms))
-	matchedTerms := 0
-
-	sort.Slice(invalidTerms, func(i, j int) bool {
-		return len(invalidTerms[i]) < len(invalidTerms[j])
+	sort.Slice(candidates, func(i, j int) bool {
+		return candidates[i].dist < candidates[j].dist
 	})
 
-	for _, invalidTerm := range invalidTerms {
-		for j, validTerm := range validTerms {
-			if !matchedValid[j] && termSimilarity(invalidTerm, validTerm) >= 0.85 {
-				matchedValid[j] = true
-				matchedTerms++
-				break
-			}
-		}
+	// Keep top suggestion
+	maxSuggestions := 1
+	if len(candidates) > maxSuggestions {
+		candidates = candidates[:maxSuggestions]
 	}
 
-	return matchedTerms
-}
-
-// termSimilarity calculates a normalized similarity score between two strings using
-// their Longest Common Subsequence (LCS). It returns a float64 between 0 and 1, where:
-//   - 1.0 indicates identical strings
-//   - 0.0 indicates completely different strings
-//   - Values between 0 and 1 indicate the degree of similarity
-//
-// The score is calculated by finding the length of the LCS and dividing it by the
-// length of the longer string. For example, comparing "keystore" and "keystores":
-//   - LCS length = 8 ("keystore")
-//   - Max length = 9 ("keystores")
-//   - Score = 8/9 ≈ 0.89
-//
-// The comparison is case-insensitive and returns 0 if either string is empty.
-func termSimilarity(term1, term2 string) float64 {
-	if term1 == term2 {
-		return 1.0
+	suggestions := make([]string, 0, len(candidates))
+	for _, c := range candidates {
+		suggestions = append(suggestions, c.priv)
 	}
 
-	s1 := strings.ToLower(term1)
-	s2 := strings.ToLower(term2)
+	log.Printf("[DEBUG] findSimilarPrivileges: invalid='%s', action='%s', resource='%s', suggestions=%v",
+		invalid, invalidAction, invalidResource, suggestions)
 
-	if len(s1) == 0 || len(s2) == 0 {
-		return 0
-	}
-
-	m := len(s1)
-	n := len(s2)
-	curr := make([]int, n+1)
-	prev := make([]int, n+1)
-
-	for i := 1; i <= m; i++ {
-		prev, curr = curr, prev
-
-		for j := 1; j <= n; j++ {
-			if s1[i-1] == s2[j-1] {
-				curr[j] = prev[j-1] + 1
-			} else {
-				curr[j] = max(curr[j-1], prev[j])
-			}
-		}
-	}
-
-	matchLength := float64(curr[n])
-	maxLength := float64(max(len(s1), len(s2)))
-	return matchLength / maxLength
-}
-
-// max returns the larger of two integers
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
+	return suggestions
 }
