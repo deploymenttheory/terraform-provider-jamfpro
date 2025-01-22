@@ -5,7 +5,11 @@
 
 ## Introduction
 
-This repository hosts the Jamf Pro Community Provider, built to integrate Jamf Pro's robust configuration management capabilities with Terraform's Infrastructure as Code (IaC) approach. Utilizing a comprehensive JAMF Pro SDK [go-api-sdk-jamfpro](https://github.com/deploymenttheory/go-api-sdk-jamfpro), which serves as a cohesive abstraction layer over both Jamf Pro and Jamf Pro Classic APIs, this provider ensures seamless API interactions and brings a wide array of resources under Terraform's management umbrella. The jamfpro provider is engineered to enrich your CI/CD workflows with Jamf Pro's extensive device management functionalities, encompassing device enrollment, inventory tracking, security compliance, and streamlined software deployment. Its primary goal is to enhance the efficiency of managing, deploying, and maintaining Apple devices across your infrastructure, fostering a synchronized and effective IT ecosystem.
+This repository hosts the Community Jamf Pro terraform Provider, built to integrate Jamf Pro's robust configuration management capabilities with Terraform's Infrastructure as Code (IaC) approach to service life cycle management. Utilizing a comprehensive JAMF Pro SDK [go-api-sdk-jamfpro](https://github.com/deploymenttheory/go-api-sdk-jamfpro), which serves as a cohesive abstraction layer over both Jamf Pro and Jamf Pro Classic APIs, this provider ensures seamless API interactions and brings a wide array of resources under Terraform's management umbrella.
+
+The jamfpro provider is engineered to enrich your CI/CD workflows with Jamf Pro's extensive device management functionalities, encompassing device enrollment, inventory tracking, security compliance, and streamlined software deployment.
+
+Its primary goal is to enhance the efficiency of managing, deploying, and maintaining Apple devices across your infrastructure, fostering an 'everything-as-code' mindset.
 
 ## Demo Implementation
 
@@ -79,6 +83,8 @@ The provider contains:
 - [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.10.0
 - [Go](https://golang.org/doc/install) >= 1.22.4
 - [Jamf Pro](https://www.jamf.com/) >= 11.12.0
+
+(Tested with production Jamf Pro instances, with and without SSO integratioin with Microsoft Entra ID. We do not test against beta or preview versions of Jamf Pro due to potential data model changes.)
 
 ## Community & Support
 
@@ -199,15 +205,6 @@ This documentation provides a detailed explanation of the configuration options 
 - **Default:** `100`
 - **Description:** A mandatory delay after each request before returning to reduce high volume of requests in a short time.
 
-
-For those new to using Terraform with Jamf Pro, we provide a comprehensive demo example that serves as an excellent starting point. This demo implementation utilizes:
-
-- Terraform Cloud as the remote backend
-- GitHub Actions pipelines
-- A simple PR process for managing changes
-- Sample hcl files for creating and managing Jamf Pro resources
-
-This repository is specifically designed to kickstart your Terraform projects by providing practical, easy-to-follow examples of how to configure and deploy resources within Jamf Pro using Terraform.
 
 # Supported Jamf Pro Resources
 
