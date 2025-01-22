@@ -9,8 +9,8 @@ toolchain go1.22.9
 // Deploymenttheory
 require (
 	github.com/deploymenttheory/go-api-http-client v0.2.18
-	github.com/deploymenttheory/go-api-http-client-integrations v0.0.11
-	github.com/deploymenttheory/go-api-sdk-jamfpro v1.20.0
+	github.com/deploymenttheory/go-api-http-client-integrations v0.0.12
+	github.com/deploymenttheory/go-api-sdk-jamfpro v1.21.0
 )
 
 // Other
