@@ -1,6 +1,5 @@
-
-resource "jamfpro_api_role" "jamfpro_api_role_001" {
-  display_name = "tf-localtest-apirole-cicdpipeline1-crud"
+resource "jamfpro_api_role" "jamfpro_api_role_11-12" {
+  display_name = "all-jamf-pro-privileges-11.12"
   privileges = ["Allow User to Enroll",
     "Assign Users to Computers",
     "Assign Users to Mobile Devices",
@@ -39,7 +38,7 @@ resource "jamfpro_api_role" "jamfpro_api_role_001" {
     "Create Inventory Preload Records",
     "Create JSON Web Token Configuration",
     "Create Jamf Connect Deployments",
-    "Create Jamf Content Distribution Server Files",
+    "Create Jamf Cloud Distribution Service Files",
     "Create Jamf Protect Deployments",
     "Create Keystore",
     "Create LDAP Servers",
@@ -123,7 +122,7 @@ resource "jamfpro_api_role" "jamfpro_api_role_001" {
     "Delete Inventory Preload Records",
     "Delete JSON Web Token Configuration",
     "Delete Jamf Connect Deployments",
-    "Delete Jamf Content Distribution Server Files",
+    "Delete Jamf Cloud Distribution Service Files",
     "Delete Jamf Protect Deployments",
     "Delete Keystores",
     "Delete LDAP Servers",
@@ -239,7 +238,7 @@ resource "jamfpro_api_role" "jamfpro_api_role_001" {
     "Read JSS URL",
     "Read Jamf Connect Deployments",
     "Read Jamf Connect Settings",
-    "Read Jamf Content Distribution Server Files",
+    "Read Jamf Cloud Distribution Service Files",
     "Read Jamf Protect Deployments",
     "Read Jamf Protect Settings",
     "Read Keystores",
@@ -315,7 +314,6 @@ resource "jamfpro_api_role" "jamfpro_api_role_001" {
     "Remove restrictions set by Jamf Parent",
     "Renewal of the Built-in Certificate Authority",
     "Send Application Attributes Command",
-    "Send Apply Redemption Code Command",
     "Send Blank Pushes to Mobile Devices",
     "Send Command to Renew MDM Profile",
     "Send Computer Bluetooth Command",
@@ -503,14 +501,4 @@ resource "jamfpro_api_role" "jamfpro_api_role_001" {
     "View Mobile Device Lost Mode Location",
     "View Recovery Lock",
   "View Return To Service Configurations"]
-}
-
-resource "jamfpro_api_role" "jamfpro_api_role_002" {
-  display_name = "tf-localtest-apirole-apiroles-crud"
-  privileges   = ["Create API Roles", "Update API Roles", "Read API Roles", "Delete API Roles"]
-}
-
-resource "jamfpro_api_role" "jamfpro_api_role_003" {
-  display_name = "tf-localtest-apirole-apiintegrations-crud"
-  privileges   = ["Create API Integrations", "Update API Integrations", "Read API Integrations", "Delete API Integrations"]
 }

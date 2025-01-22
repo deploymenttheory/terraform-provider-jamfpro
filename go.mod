@@ -10,7 +10,7 @@ toolchain go1.22.9
 require (
 	github.com/deploymenttheory/go-api-http-client v0.2.18
 	github.com/deploymenttheory/go-api-http-client-integrations v0.0.11
-	github.com/deploymenttheory/go-api-sdk-jamfpro v1.19.0
+	github.com/deploymenttheory/go-api-sdk-jamfpro v1.20.0
 )
 
 // Other
@@ -26,6 +26,7 @@ require (
 require (
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/terraform-plugin-docs v0.20.1
+	github.com/lithammer/fuzzysearch v1.1.8
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/text v0.21.0
