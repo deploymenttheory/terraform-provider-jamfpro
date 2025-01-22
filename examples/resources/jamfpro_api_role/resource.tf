@@ -1,4 +1,4 @@
-resource "jamfpro_api_role" "jamfpro_api_role_11.12" {
+resource "jamfpro_api_role" "jamfpro_api_role_11-12" {
   display_name = "all-jamf-pro-privileges-11.12"
   privileges = ["Allow User to Enroll",
     "Assign Users to Computers",
