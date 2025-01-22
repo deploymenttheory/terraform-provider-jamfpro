@@ -7,6 +7,7 @@ import (
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -17,11 +18,13 @@ func DataSourceJamfProDepartments() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
+				Computed:    true,
 				Description: "The unique identifier of the department.",
 			},
 			"name": {
 				Type:        schema.TypeString,
+				Optional:    true,
 				Computed:    true,
 				Description: "The unique name of the jamf pro department.",
 			},
@@ -32,24 +35,51 @@ func DataSourceJamfProDepartments() *schema.Resource {
 // dataSourceRead fetches the details of a specific department from Jamf Pro using its unique ID.
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
 
-	resourceID := d.Get("id").(string)
+	id := d.Get("id").(string)
+	name := d.Get("name").(string)
 
-	department, err := client.GetDepartmentByID(resourceID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Department with ID '%s': %v", resourceID, err))
+	if id != "" && name != "" {
+		return diag.FromErr(fmt.Errorf("please provide either 'id' or 'name', not both"))
 	}
 
-	if department != nil {
-		d.SetId(resourceID)
-		if err := d.Set("name", department.Name); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Department with ID '%s': %v", resourceID, err))...)
+	var getFunc func() (*jamfpro.ResourceDepartment, error)
+	var identifier string
+
+	switch {
+	case id != "":
+		getFunc = func() (*jamfpro.ResourceDepartment, error) {
+			return client.GetDepartmentByID(id)
 		}
-
-	} else {
-		d.SetId("")
+		identifier = id
+	case name != "":
+		getFunc = func() (*jamfpro.ResourceDepartment, error) {
+			return client.GetDepartmentByName(name)
+		}
+		identifier = name
+	default:
+		return diag.FromErr(fmt.Errorf("either 'id' or 'name' must be provided"))
 	}
 
-	return diags
+	var resource *jamfpro.ResourceDepartment
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		resource, apiErr = getFunc()
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Department resource with identifier '%s' after retries: %v", identifier, err))
+	}
+
+	if resource == nil {
+		d.SetId("")
+		return diag.FromErr(fmt.Errorf("the Jamf Pro Department resource was not found using identifier '%s'", identifier))
+	}
+
+	d.SetId(resource.ID)
+	return updateState(d, resource)
 }

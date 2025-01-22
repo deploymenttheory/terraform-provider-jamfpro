@@ -123,12 +123,12 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Device Enrollment with identifier '%s' after retries: %v", identifier, err))
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Device Enrollment resource with identifier '%s' after retries: %v", identifier, err))
 	}
 
 	if resource == nil {
 		d.SetId("")
-		return diag.FromErr(fmt.Errorf("the Jamf Pro Device Enrollment was not found"))
+		return diag.FromErr(fmt.Errorf("the Jamf Pro Device Enrollment resource was not found using identifier '%s'", identifier))
 	}
 
 	d.SetId(resource.ID)
