@@ -11,7 +11,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// scoredPrivilege is a helper struct for sorting privileges by similarity score
+type scoredPrivilege struct {
+	privilege string
+	score     float64
+}
+
 // construct builds an ResourceAPIRole object from the provided schema data.
+// It performs dynamic validation of the privileges against the Jamf Pro server.
 func construct(d *schema.ResourceData, meta interface{}) (*jamfpro.ResourceAPIRole, error) {
 	client := meta.(*jamfpro.Client)
 
@@ -131,10 +138,6 @@ func findSimilarPrivileges(invalid string, validPrivileges []string) []string {
 	action := strings.ToLower(parts[0])
 	resource := strings.ToLower(parts[1])
 
-	type scoredPrivilege struct {
-		privilege string
-		score     float64
-	}
 	var scored []scoredPrivilege
 
 	for _, valid := range validPrivileges {
