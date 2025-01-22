@@ -60,7 +60,7 @@ Read-Only:
 - `feature_on_main_page` (Boolean)
 - `force_users_to_view_description` (Boolean)
 - `install_button_text` (String)
-- `notification` (String)
+- `notification` (Boolean)
 - `notification_message` (String)
 - `notification_subject` (String)
 - `self_service_category` (Set of Object) (see [below for nested schema](#nestedobjatt--self_service--self_service_category))
