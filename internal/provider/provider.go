@@ -29,6 +29,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerinventorycollection"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerprestageenrollments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/departments"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/deviceenrollments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/diskencryptionconfigurations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/dockitems"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/filesharedistributionpoints"
@@ -365,6 +366,7 @@ func Provider() *schema.Provider {
 			"jamfpro_network_segment":                           networksegments.DataSourceJamfProNetworkSegments(),
 			"jamfpro_macos_configuration_profile_plist":         macosconfigurationprofilesplist.DataSourceJamfProMacOSConfigurationProfilesPlist(),
 			"jamfpro_mobile_device_configuration_profile_plist": mobiledeviceconfigurationprofilesplist.DataSourceJamfProMobileDeviceConfigurationProfilesPlist(),
+			"jamfpro_device_enrollment":                         deviceenrollments.DataSourceJamfProDeviceEnrollments(),
 			/* "jamfpro_mobile_device_extension_attribute":         mobiledeviceextensionattribute.DataSourceJamfProMobileDeviceExtensionAttributes(), */
 			"jamfpro_package":                   packages.DataSourceJamfProPackages(),
 			"jamfpro_policy":                    policies.DataSourceJamfProPolicies(),
