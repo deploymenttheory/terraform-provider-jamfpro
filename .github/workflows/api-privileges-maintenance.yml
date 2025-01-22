@@ -1,3 +1,6 @@
+# removing from schedule to trial dynamic lookup approach within constructor. To be removed
+
+
 # Description: This pipeline maintains accurate Jamf Pro API privilege data across different versions.
 # It automatically fetches and validates the complete set of available API privileges from a running
 # Jamf Pro instance by:
@@ -13,8 +16,9 @@
 name: Jamf Pro Api Privileges Maintenance
 
 on:
-  schedule:
-    - cron: '0 0 * * 0'  # Run every Sunday at midnight UTC
+  
+  # schedule:
+  #   - cron: '0 0 * * 0'  # Run every Sunday at midnight UTC
   workflow_dispatch:     # Allow manual triggering
 
 permissions:
