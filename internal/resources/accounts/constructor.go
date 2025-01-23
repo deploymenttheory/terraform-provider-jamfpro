@@ -3,12 +3,21 @@ package accounts
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/jamfprivileges"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// constructJamfProAccount constructs an Account object from the provided schema data.
-func construct(d *schema.ResourceData) (*jamfpro.ResourceAccount, error) {
+// construct builds an Account object from schema data and validates privileges
+func construct(d *schema.ResourceData, meta interface{}) (*jamfpro.ResourceAccount, error) {
+	client := meta.(*jamfpro.Client)
+
+	privileges := constructAccountSubsetPrivileges(d)
+
+	if err := jamfprivileges.ValidateAccountPrivileges(client, privileges); err != nil {
+		return nil, err
+	}
+
 	resource := &jamfpro.ResourceAccount{
 		Name:                d.Get("name").(string),
 		DirectoryUser:       d.Get("directory_user").(bool),
@@ -23,7 +32,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceAccount, error) {
 		LdapServer: jamfpro.SharedResourceLdapServer{
 			ID: d.Get("identity_server_id").(int),
 		},
-		Privileges: constructAccountSubsetPrivileges(d),
+		Privileges: privileges,
 	}
 
 	return resource, nil

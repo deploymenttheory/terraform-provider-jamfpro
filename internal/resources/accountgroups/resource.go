@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/jamfprivileges"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -73,8 +72,7 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 				Description: "Privileges related to JSS Objects.",
 				Computed:    true,
 				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: jamfprivileges.ValidateJSSObjectsPrivileges,
+					Type: schema.TypeString,
 				},
 			},
 			"jss_settings_privileges": {
@@ -83,8 +81,7 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 				Description: "Privileges related to JSS Settings.",
 				Computed:    true,
 				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: jamfprivileges.ValidateJSSSettingsPrivileges,
+					Type: schema.TypeString,
 				},
 			},
 			"jss_actions_privileges": {
@@ -93,8 +90,7 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 				Description: "Privileges related to JSS Actions.",
 				Computed:    true,
 				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: jamfprivileges.ValidateJSSActionsPrivileges,
+					Type: schema.TypeString,
 				},
 			},
 			"casper_admin_privileges": {
