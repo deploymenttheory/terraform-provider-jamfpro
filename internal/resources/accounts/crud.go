@@ -67,6 +67,9 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 }
 
 // update is responsible for updating an existing Jamf Pro Account Group on the remote system.
+// it follows a non standard pattern to allow for the client to be passed
+// in as a parameter to the constructor to perform dynamic lookup for valid
+// account privileges.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics

@@ -15,7 +15,7 @@ import (
 // create is responsible for creating a new Jamf Pro account group in the remote system.
 // it follows a non standard pattern to allow for the client to be passed
 // in as a parameter to the constructor to perform dynamic lookup for valid
-// account privileges.
+// account group privileges.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
@@ -69,7 +69,7 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 // update is responsible for updating a new Jamf Pro account group in the remote system.
 // it follows a non standard pattern to allow for the client to be passed
 // in as a parameter to the constructor to perform dynamic lookup for valid
-// account privileges.
+// account group privileges.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics

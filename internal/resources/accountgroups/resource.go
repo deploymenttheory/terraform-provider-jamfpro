@@ -73,7 +73,6 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 				Computed:    true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
-					//ValidateFunc: jamfprivileges.ValidateJSSObjectsPrivileges,
 				},
 			},
 			"jss_settings_privileges": {
@@ -83,7 +82,6 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 				Computed:    true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
-					//ValidateFunc: jamfprivileges.ValidateJSSSettingsPrivileges,
 				},
 			},
 			"jss_actions_privileges": {
@@ -93,7 +91,6 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 				Computed:    true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
-					//ValidateFunc: jamfprivileges.ValidateJSSActionsPrivileges,
 				},
 			},
 			"casper_admin_privileges": {
