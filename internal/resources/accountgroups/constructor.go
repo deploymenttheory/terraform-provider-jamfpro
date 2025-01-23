@@ -7,12 +7,21 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/jamfprivileges"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// constructJamfProAccountGroup constructs an AccountGroup object from the provided schema data.
-func construct(d *schema.ResourceData) (*jamfpro.ResourceAccountGroup, error) {
+// construct constructs a jamf pro Account group object from the provided schema data.
+func construct(d *schema.ResourceData, meta interface{}) (*jamfpro.ResourceAccountGroup, error) {
+	client := meta.(*jamfpro.Client)
+
+	privileges := constructAccountSubsetPrivileges(d)
+
+	if err := jamfprivileges.ValidateAccountPrivileges(client, privileges); err != nil {
+		return nil, err
+	}
+
 	resource := &jamfpro.ResourceAccountGroup{
 		Name:         d.Get("name").(string),
 		AccessLevel:  d.Get("access_level").(string),
@@ -80,7 +89,7 @@ func getStringSliceFromSet(set *schema.Set) []string {
 	list := set.List()
 	slice := make([]string, len(list))
 	for i, item := range list {
-		slice[i] = item.(string) // Direct assertion to string, assuming all items are strings.
+		slice[i] = item.(string)
 	}
 	return slice
 }
