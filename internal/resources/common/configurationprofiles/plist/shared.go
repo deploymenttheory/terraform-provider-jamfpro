@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"log"
 	"sort"
+	"strings"
 
 	"howett.net/plist"
 )
@@ -33,6 +34,9 @@ func EncodePlist(cleanedData map[string]interface{}) (string, error) {
 	}
 
 	encodedString := buffer.String()
+
+	// Post-process to remove unnecessary escaped characters while keeping essential ones
+	encodedString = strings.ReplaceAll(encodedString, "&#34;", "\"") // Fix double quotes
 
 	return encodedString, nil
 }
