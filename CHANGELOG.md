@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.11.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.10.0...v0.11.0) (2025-01-24)
+
+
+### Features
+
+* add device enrollment data source for Jamf Pro ([eecd3f0](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/eecd3f0b36fc2b01954f57158770ad39b8ebc27f))
+* add device enrollment data source for Jamf Pro ([#575](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/575)) ([8b78239](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/8b782392db59edd37fa832b76aadf7f38c37617a))
+* enhance account and account group constructors with privilege validation and add fuzzy matching for invalid privileges ([465f85d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/465f85dbee488f4d356f2e484acf5f09bc3c1498))
+
+
+### Bug Fixes
+
+* implemented dynamic lookup of api privileges  ([#572](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/572)) ([858be90](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/858be907564fcdf2f76d307d4629220f7b0f2d15))
+* improve error messages and enhance example usage for Jamf Pro data sources ([5270fcc](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/5270fcc954aca36fab6689031499f1b919624dbc))
+* refactored logic to define new pattern for data sources ([36ada49](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/36ada493b1aea8f419a3aa25b4e04ceba38cb2be))
+
 ## [0.10.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.9.1...v0.10.0) (2025-01-20)
 
 
