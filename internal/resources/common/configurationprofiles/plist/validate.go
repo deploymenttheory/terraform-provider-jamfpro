@@ -1,5 +1,4 @@
 // common/configurationprofiles/plist/validate.go
-// Description: This file contains the Configuration Profile validation functions.
 package plist
 
 import (
@@ -27,7 +26,7 @@ func ValidatePayloadFields(profile *ConfigurationProfile) []error {
 			if strings.Contains(tag, "required") {
 				value := val.Field(i).Interface()
 				if value == "" {
-					errs = append(errs, fmt.Errorf(fmt.Sprintf("plist key '%s' is required", field.Name)))
+					errs = append(errs, fmt.Errorf("plist key '%s' is required", field.Name))
 				}
 			}
 			// Additional validation rules can be added here
