@@ -1,5 +1,4 @@
 // common/configurationprofiles/plist/validate.go
-// Description: This file contains the Configuration Profile validation functions.
 package plist
 
 import (

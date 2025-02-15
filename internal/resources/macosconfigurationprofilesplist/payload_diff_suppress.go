@@ -38,7 +38,7 @@ func DiffSuppressPayloads(k, old, new string, d *schema.ResourceData) bool {
 // and normalizes the base64 content, XML tags, empty strings, and HTML entities.
 func processPayload(payload string, source string) (string, error) {
 	fmt.Printf("Processing %s: %s", source, payload)
-	fieldsToRemove := []string{"PayloadUUID", "PayloadIdentifier", "PayloadOrganization", "PayloadDisplayName"}
+	fieldsToRemove := []string{"PayloadUUID", "PayloadIdentifier", "PayloadOrganization"}
 	processedPayload, err := plist.ProcessConfigurationProfileForDiffSuppression(payload, fieldsToRemove)
 	if err != nil {
 		return "", err
