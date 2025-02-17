@@ -29,6 +29,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerinventorycollection"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerprestageenrollments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/departments"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/devicecommunicationsettings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/deviceenrollments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/diskencryptionconfigurations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/dockitems"
@@ -398,6 +399,7 @@ func Provider() *schema.Provider {
 			"jamfpro_computer_inventory_collection":               computerinventorycollection.ResourceJamfProComputerInventoryCollection(),
 			"jamfpro_computer_prestage_enrollment":                computerprestageenrollments.ResourceJamfProComputerPrestageEnrollmentEnrollment(),
 			"jamfpro_department":                                  departments.ResourceJamfProDepartments(),
+			"jamfpro_device_communication_settings":               devicecommunicationsettings.ResourceJamfProDeviceCommunicationSettings(),
 			"jamfpro_disk_encryption_configuration":               diskencryptionconfigurations.ResourceJamfProDiskEncryptionConfigurations(),
 			"jamfpro_dock_item":                                   dockitems.ResourceJamfProDockItems(),
 			"jamfpro_file_share_distribution_point":               filesharedistributionpoints.ResourceJamfProFileShareDistributionPoints(),
