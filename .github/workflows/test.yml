@@ -27,7 +27,7 @@
       steps:
 
         - name: Harden Runner
-          uses: step-security/harden-runner@v2.10.4
+          uses: step-security/harden-runner@v2.11.0
           with:
             egress-policy: audit
 
@@ -48,7 +48,7 @@
       steps:
 
         - name: Harden Runner
-          uses: step-security/harden-runner@v2.10.4
+          uses: step-security/harden-runner@v2.11.0
           with:
             egress-policy: audit
             
@@ -84,7 +84,7 @@
       steps:
 
         - name: Harden Runner
-          uses: step-security/harden-runner@v2.10.4
+          uses: step-security/harden-runner@v2.11.0
           with:
             egress-policy: audit
 
