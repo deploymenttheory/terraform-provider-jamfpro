@@ -13,7 +13,7 @@ description: |-
 resource "jamfpro_smtp_server" "basic_auth" {
   enabled             = true
   authentication_type = "BASIC"
-  
+
   connection_settings {
     host               = "smtp.sendgrid.net"
     port               = 587
@@ -36,7 +36,7 @@ resource "jamfpro_smtp_server" "basic_auth" {
 resource "jamfpro_smtp_server" "graph_api" {
   enabled             = true
   authentication_type = "GRAPH_API"
-  
+
   sender_settings {
     email_address = "noreply@yourdomain.onmicrosoft.com"
   }
@@ -52,7 +52,7 @@ resource "jamfpro_smtp_server" "graph_api" {
 resource "jamfpro_smtp_server" "google_mail" {
   enabled             = true
   authentication_type = "GOOGLE_MAIL"
-  
+
   sender_settings {
     email_address = "exampleEmail@gmail.com"
   }
