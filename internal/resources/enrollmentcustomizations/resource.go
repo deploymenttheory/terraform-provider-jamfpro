@@ -41,12 +41,12 @@ func ResourceJamfProEnrollmentCustomization() *schema.Resource {
 			},
 			"description": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "The description of the enrollment customization.",
 			},
 			"enrollment_customization_image_source": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "The .png image source file for upload to the enrollment customization. Recommended: 180x180 pixels and GIF or PNG format",
 			},
 			"branding_settings": {
