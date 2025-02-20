@@ -81,7 +81,7 @@ func ResourceJamfProEnrollmentCustomization() *schema.Resource {
 						},
 						"icon_url": {
 							Type:        schema.TypeString,
-							Optional:    true,
+							Computed:    true,
 							Description: "The URL of the icon image. the format must be 'https://your_jamfUrl/api/v2/enrollment-customizations/images/1'",
 						},
 					},
