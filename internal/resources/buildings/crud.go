@@ -9,9 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// Create requires a mutex need to lock Create requests during parallel runs
-// var mu sync.Mutex
-
 // create creates and states a jamfpro building
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// mu.Lock()
