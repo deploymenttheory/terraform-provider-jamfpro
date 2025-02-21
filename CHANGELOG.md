@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.12.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.11.0...v0.12.0) (2025-02-21)
+
+
+### Features
+
+* added device communication settings resource ( ([507858b](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/507858bd700f61c436f3e03aa2e01b5007e60ab8))
+* added enrollment prestage panes to enrolment customizations ([ceb79d0](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/ceb79d0fc65df219a7619d669b1c70ea79247d8e))
+* added plist validation for PayloadName and PayloadDescription ([5709c85](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/5709c85ec991debcc44bdc077f59f5bfb67acac4))
+* added resource inventory collection settings ([b4d43ee](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/b4d43eea5ff6597b7a1db4b2dafaa86f22c2327d))
+* added SMTP server resource ([a21c0e0](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/a21c0e080729c0aeff40cf02805593062134c13c))
+* migrated computer_checkin resource to client_checkin, fixes for missing api calls and migrated from classic to jamf pro api ([76ab64e](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/76ab64edd66c9a69509873faac24528f4672f483))
+
+
+### Bug Fixes
+
+* added comments and refactored update func ([c084c2e](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/c084c2e88149a3b031c7818e0faadb3c90c33398))
+* added examples for enrollment customization ([83f87a4](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/83f87a4749613d8b5de0aa9934937e546dbbb23d))
+* added resizing of enrollment customization images ([0ef2808](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/0ef28089f1f7f0b1ce4f772bcbd490403ee37529))
+* removed redundant code ([f8d0af1](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/f8d0af15cd1c973da8bdd9b754c5bcc8f3acb3bf))
+* removed redundant fmt.Sprintf ([8da1fa3](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/8da1fa31a2751d3eac93fdfc4911d577561cbeee))
+
 ## [0.11.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.10.0...v0.11.0) (2025-01-24)
 
 
