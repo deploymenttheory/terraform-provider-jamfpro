@@ -1,35 +1,32 @@
 package enrollmentcustomizations
 
 import (
+	"encoding/json"
 	"fmt"
 	"image"
-	"image/gif"
-	_ "image/gif" // register GIF format
-	"image/png"
-	_ "image/png" // register PNG format
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/nfnt/resize"
 )
 
-// constructImageUpload loads and processes an image file for upload from Terraform configuration
+// constructImageUpload returns the path to an image suitable for upload from Terraform configuration
+// It validates the image source and calls resizeImage if needed
 func constructImageUpload(d *schema.ResourceData) (string, error) {
 	imagePath := d.Get("enrollment_customization_image_source").(string)
 	if imagePath == "" {
 		return "", fmt.Errorf("enrollment_customization_image_source cannot be empty when specified")
 	}
 
-	// Validate file extension
 	ext := strings.ToLower(filepath.Ext(imagePath))
 	if ext != ".png" && ext != ".gif" {
 		return "", fmt.Errorf("image file must be PNG or GIF format, got: %s", ext)
 	}
 
-	// Open and read the image file
 	file, err := os.Open(imagePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to open image file: %v", err)
@@ -49,58 +46,20 @@ func constructImageUpload(d *schema.ResourceData) (string, error) {
 
 	// Check if resizing is needed (if image is larger than 180x180)
 	if origWidth > 180 || origHeight > 180 {
-		// Calculate scaling to maintain aspect ratio while fitting within 180x180
-		ratio := float64(origWidth) / float64(origHeight)
-		var newWidth, newHeight uint
-		if ratio > 1 { // wider than tall
-			newWidth = 180
-			newHeight = uint(float64(180) / ratio)
-		} else { // taller than wide
-			newHeight = 180
-			newWidth = uint(float64(180) * ratio)
-		}
-
-		// Resize the image while preserving aspect ratio
-		resizedImg := resize.Resize(newWidth, newHeight, img, resize.Lanczos3)
-
-		tempDir := os.TempDir()
-		tempFilename := filepath.Join(tempDir, "resized_"+filepath.Base(imagePath))
-
-		tempFile, err := os.Create(tempFilename)
-		if err != nil {
-			return "", fmt.Errorf("failed to create temporary file for resized image: %v", err)
-		}
-		defer tempFile.Close()
-
-		// Encode the image back to the temporary file
-		if format == "png" || ext == ".png" {
-			err = png.Encode(tempFile, resizedImg)
-		} else if format == "gif" || ext == ".gif" {
-			err = gif.Encode(tempFile, resizedImg, nil)
-		} else {
-			err = png.Encode(tempFile, resizedImg)
-		}
-
-		if err != nil {
-			return "", fmt.Errorf("failed to encode processed image: %v", err)
-		}
-
-		return tempFilename, nil
+		return common.ResizeImage(img, format, imagePath, 180, 180)
 	}
 
 	return imagePath, nil
 }
 
-// construct creates a ResourceEnrollmentCustomization struct from Terraform configuration
-func construct(d *schema.ResourceData) (*jamfpro.ResourceEnrollmentCustomization, error) {
-	// Get branding settings from the schema
+// constructBaseResource creates a ResourceEnrollmentCustomization struct from Terraform configuration
+func constructBaseResource(d *schema.ResourceData) (*jamfpro.ResourceEnrollmentCustomization, error) {
 	brandingSettingsList := d.Get("branding_settings").([]interface{})
 	if len(brandingSettingsList) == 0 {
 		return nil, fmt.Errorf("branding_settings is required")
 	}
 	brandingSettingsData := brandingSettingsList[0].(map[string]interface{})
 
-	// Create branding settings
 	brandingSettings := jamfpro.EnrollmentCustomizationSubsetBrandingSettings{
 		TextColor:       brandingSettingsData["text_color"].(string),
 		ButtonColor:     brandingSettingsData["button_color"].(string),
@@ -109,7 +68,6 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceEnrollmentCustomization
 		IconUrl:         brandingSettingsData["icon_url"].(string),
 	}
 
-	// Create main resource
 	resource := &jamfpro.ResourceEnrollmentCustomization{
 		SiteID:           d.Get("site_id").(string),
 		DisplayName:      d.Get("display_name").(string),
@@ -117,10 +75,72 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceEnrollmentCustomization
 		BrandingSettings: brandingSettings,
 	}
 
-	// Include ID if it exists (for updates)
-	if id := d.Id(); id != "" {
-		resource.ID = id
+	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Dock Item '%s' to JSON: %v", resource.DisplayName, err)
 	}
 
+	log.Printf("[DEBUG] Constructed Jamf Pro Dock Item JSON:\n%s\n", string(resourceJSON))
+
 	return resource, nil
+}
+
+// constructTextPane creates a ResourceEnrollmentCustomizationTextPane struct from Terraform configuration
+func constructTextPane(data map[string]interface{}) (*jamfpro.ResourceEnrollmentCustomizationTextPane, error) {
+	textPane := &jamfpro.ResourceEnrollmentCustomizationTextPane{
+		Type:               "text",
+		DisplayName:        data["display_name"].(string),
+		Rank:               data["rank"].(int),
+		Title:              data["title"].(string),
+		Body:               data["body"].(string),
+		Subtext:            data["subtext"].(string),
+		BackButtonText:     data["back_button_text"].(string),
+		ContinueButtonText: data["continue_button_text"].(string),
+	}
+
+	return textPane, nil
+}
+
+// constructLDAPPane creates a ResourceEnrollmentCustomizationLDAPPane struct from Terraform configuration
+func constructLDAPPane(data map[string]interface{}) (*jamfpro.ResourceEnrollmentCustomizationLDAPPane, error) {
+	ldapPane := &jamfpro.ResourceEnrollmentCustomizationLDAPPane{
+		Type:               "ldap",
+		DisplayName:        data["display_name"].(string),
+		Rank:               data["rank"].(int),
+		Title:              data["title"].(string),
+		UsernameLabel:      data["username_label"].(string),
+		PasswordLabel:      data["password_label"].(string),
+		BackButtonText:     data["back_button_text"].(string),
+		ContinueButtonText: data["continue_button_text"].(string),
+	}
+
+	// Process LDAP group access settings if present
+	if groupsData, ok := data["ldap_group_access"].([]interface{}); ok && len(groupsData) > 0 {
+		for _, groupData := range groupsData {
+			group := groupData.(map[string]interface{})
+			ldapGroupAccess := jamfpro.EnrollmentCustomizationLDAPGroupAccess{
+				GroupName:    group["group_name"].(string),
+				LDAPServerID: group["ldap_server_id"].(int),
+			}
+			ldapPane.LDAPGroupAccess = append(ldapPane.LDAPGroupAccess, ldapGroupAccess)
+		}
+	}
+
+	return ldapPane, nil
+}
+
+// constructSSOPane creates a ResourceEnrollmentCustomizationSSOPane struct from Terraform configuration
+func constructSSOPane(data map[string]interface{}) (*jamfpro.ResourceEnrollmentCustomizationSSOPane, error) {
+	ssoPane := &jamfpro.ResourceEnrollmentCustomizationSSOPane{
+		Type:                           "sso",
+		DisplayName:                    data["display_name"].(string),
+		Rank:                           data["rank"].(int),
+		IsGroupEnrollmentAccessEnabled: data["is_group_enrollment_access_enabled"].(bool),
+		GroupEnrollmentAccessName:      data["group_enrollment_access_name"].(string),
+		IsUseJamfConnect:               data["is_use_jamf_connect"].(bool),
+		ShortNameAttribute:             data["short_name_attribute"].(string),
+		LongNameAttribute:              data["long_name_attribute"].(string),
+	}
+
+	return ssoPane, nil
 }

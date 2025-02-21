@@ -44,3 +44,55 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceEnrollmentCustomi
 
 	return diags
 }
+
+// stateTextPrestagePane converts API response to Terraform state format
+func stateTextPrestagePane(textPane *jamfpro.ResourceEnrollmentCustomizationTextPane) map[string]interface{} {
+	return map[string]interface{}{
+		"id":                   textPane.ID,
+		"display_name":         textPane.DisplayName,
+		"rank":                 textPane.Rank,
+		"title":                textPane.Title,
+		"body":                 textPane.Body,
+		"subtext":              textPane.Subtext,
+		"back_button_text":     textPane.BackButtonText,
+		"continue_button_text": textPane.ContinueButtonText,
+	}
+}
+
+// stateLDAPPrestagePane converts API response to Terraform state format
+func stateLDAPPrestagePane(ldapPane *jamfpro.ResourceEnrollmentCustomizationLDAPPane) map[string]interface{} {
+	ldapGroupAccess := make([]map[string]interface{}, 0)
+	for _, group := range ldapPane.LDAPGroupAccess {
+		groupMap := map[string]interface{}{
+			"group_name":     group.GroupName,
+			"ldap_server_id": group.LDAPServerID,
+		}
+		ldapGroupAccess = append(ldapGroupAccess, groupMap)
+	}
+
+	return map[string]interface{}{
+		"id":                   ldapPane.ID,
+		"display_name":         ldapPane.DisplayName,
+		"rank":                 ldapPane.Rank,
+		"title":                ldapPane.Title,
+		"username_label":       ldapPane.UsernameLabel,
+		"password_label":       ldapPane.PasswordLabel,
+		"back_button_text":     ldapPane.BackButtonText,
+		"continue_button_text": ldapPane.ContinueButtonText,
+		"ldap_group_access":    ldapGroupAccess,
+	}
+}
+
+// stateSSOPrestagePane converts API response to Terraform state format
+func stateSSOPrestagePane(ssoPane *jamfpro.ResourceEnrollmentCustomizationSSOPane) map[string]interface{} {
+	return map[string]interface{}{
+		"id":                                 ssoPane.ID,
+		"display_name":                       ssoPane.DisplayName,
+		"rank":                               ssoPane.Rank,
+		"is_group_enrollment_access_enabled": ssoPane.IsGroupEnrollmentAccessEnabled,
+		"group_enrollment_access_name":       ssoPane.GroupEnrollmentAccessName,
+		"is_use_jamf_connect":                ssoPane.IsUseJamfConnect,
+		"short_name_attribute":               ssoPane.ShortNameAttribute,
+		"long_name_attribute":                ssoPane.LongNameAttribute,
+	}
+}

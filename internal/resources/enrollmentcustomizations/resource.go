@@ -87,6 +87,174 @@ func ResourceJamfProEnrollmentCustomization() *schema.Resource {
 					},
 				},
 			},
+			"text_pane": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: "The unique identifier of the text pane.",
+						},
+						"display_name": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The display name of the text pane.",
+						},
+						"rank": {
+							Type:        schema.TypeInt,
+							Required:    true,
+							Description: "The rank/order of the text pane in the enrollment process.",
+						},
+						"title": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The title of the text pane.",
+						},
+						"body": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The main content text of the pane.",
+						},
+						"subtext": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "",
+							Description: "The subtext content of the pane.",
+						},
+						"back_button_text": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The text for the back button.",
+						},
+						"continue_button_text": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The text for the continue button.",
+						},
+					},
+				},
+			},
+			"ldap_pane": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: "The unique identifier of the LDAP pane.",
+						},
+						"display_name": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The display name of the LDAP pane.",
+						},
+						"rank": {
+							Type:        schema.TypeInt,
+							Required:    true,
+							Description: "The rank/order of the LDAP pane in the enrollment process.",
+						},
+						"title": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The title of the LDAP pane.",
+						},
+						"username_label": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The label for the username field.",
+						},
+						"password_label": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The label for the password field.",
+						},
+						"back_button_text": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The text for the back button.",
+						},
+						"continue_button_text": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The text for the continue button.",
+						},
+						"ldap_group_access": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"group_name": {
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: "The name of the LDAP group.",
+									},
+									"ldap_server_id": {
+										Type:        schema.TypeInt,
+										Required:    true,
+										Description: "The ID of the LDAP server.",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"sso_pane": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: "The unique identifier of the SSO pane.",
+						},
+						"display_name": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The display name of the SSO pane.",
+						},
+						"rank": {
+							Type:        schema.TypeInt,
+							Required:    true,
+							Description: "The rank/order of the SSO pane in the enrollment process.",
+						},
+						"is_group_enrollment_access_enabled": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Default:     false,
+							Description: "Whether group enrollment access is enabled.",
+						},
+						"group_enrollment_access_name": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "",
+							Description: "The name of the group for enrollment access.",
+						},
+						"is_use_jamf_connect": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Default:     false,
+							Description: "Whether to use Jamf Connect.",
+						},
+						"short_name_attribute": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "",
+							Description: "The attribute to use for short name.",
+						},
+						"long_name_attribute": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "",
+							Description: "The attribute to use for long name.",
+						},
+					},
+				},
+			},
 		},
 	}
 }
