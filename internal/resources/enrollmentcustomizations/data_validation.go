@@ -2,7 +2,21 @@ package enrollmentcustomizations
 
 import (
 	"fmt"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
+
+// validatePaneCombinations ensures that only valid combinations of pane types are configured
+func validatePaneCombinations(d *schema.ResourceData) error {
+	hasSSO := len(d.Get("sso_pane").([]interface{})) > 0
+	hasLDAP := len(d.Get("ldap_pane").([]interface{})) > 0
+
+	if hasSSO && hasLDAP {
+		return fmt.Errorf("invalid combination: SSO and LDAP panes cannot be used together")
+	}
+
+	return nil
+}
 
 // validateHexColor validates a hex color code without the # prefix
 func validateHexColor(val interface{}, key string) (warns []string, errs []error) {

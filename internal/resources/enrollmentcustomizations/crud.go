@@ -13,7 +13,6 @@ import (
 )
 
 // create is responsible for creating a new enrollment customization
-// create is responsible for creating a new enrollment customization
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
@@ -26,7 +25,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 			if apiErr != nil {
 				return retry.RetryableError(apiErr)
 			}
-			// Store the URL in the schema for the main resource construction
+
 			brandingSettings := d.Get("branding_settings").([]interface{})
 			if len(brandingSettings) > 0 {
 				settings := brandingSettings[0].(map[string]interface{})
@@ -64,7 +63,6 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	d.SetId(response.Id)
 
-	// Get the data for each pane type
 	textPanes := d.Get("text_pane").([]interface{})
 	ldapPanes := d.Get("ldap_pane").([]interface{})
 	ssoPanes := d.Get("sso_pane").([]interface{})
@@ -74,7 +72,6 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	hasLDAP := len(ldapPanes) > 0
 	hasText := len(textPanes) > 0
 
-	// Validate combinations
 	if hasSSO && hasLDAP {
 		return diag.FromErr(fmt.Errorf("invalid combination: SSO and LDAP panes cannot be used together"))
 	}
@@ -153,7 +150,6 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	// Get the base enrollment customization resource
 	var response *jamfpro.ResourceEnrollmentCustomization
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
@@ -322,7 +318,6 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 }
 
 // update is responsible for updating the enrollment customization
-// update is responsible for updating the enrollment customization
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
@@ -419,18 +414,6 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
-// validatePaneCombinations ensures that only valid combinations of pane types are configured
-func validatePaneCombinations(d *schema.ResourceData) error {
-	hasSSO := len(d.Get("sso_pane").([]interface{})) > 0
-	hasLDAP := len(d.Get("ldap_pane").([]interface{})) > 0
-
-	if hasSSO && hasLDAP {
-		return fmt.Errorf("invalid combination: SSO and LDAP panes cannot be used together")
-	}
-
-	return nil
-}
-
 // mapExistingPanesByType organizes existing panes by their type
 func mapExistingPanesByType(panesList *jamfpro.ResponsePrestagePanesList) map[string]map[int]jamfpro.PrestagePaneSummary {
 	result := map[string]map[int]jamfpro.PrestagePaneSummary{
@@ -495,13 +478,11 @@ func handleTextPaneChanges(ctx context.Context, d *schema.ResourceData, client *
 	for _, newPane := range newPanes {
 		newPaneMap := newPane.(map[string]interface{})
 
-		// Build the pane object
 		textPane, err := constructTextPane(newPaneMap)
 		if err != nil {
 			return fmt.Errorf("failed to construct text pane: %v", err)
 		}
 
-		// Check if this is an update or create
 		isUpdate := false
 		var paneID int
 
@@ -513,7 +494,6 @@ func handleTextPaneChanges(ctx context.Context, d *schema.ResourceData, client *
 		}
 
 		if isUpdate {
-			// Update existing pane
 			paneIDStr := fmt.Sprintf("%d", paneID)
 			err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 				_, apiErr := client.UpdateTextPrestagePaneByID(d.Id(), paneIDStr, *textPane)
@@ -527,7 +507,6 @@ func handleTextPaneChanges(ctx context.Context, d *schema.ResourceData, client *
 				return fmt.Errorf("failed to update text pane %d: %v", paneID, err)
 			}
 		} else {
-			// Create new pane
 			err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 				_, apiErr := client.CreateTextPrestagePane(d.Id(), *textPane)
 				if apiErr != nil {
@@ -592,13 +571,11 @@ func handleLDAPPaneChanges(ctx context.Context, d *schema.ResourceData, client *
 	for _, newPane := range newPanes {
 		newPaneMap := newPane.(map[string]interface{})
 
-		// Build the pane object
 		ldapPane, err := constructLDAPPane(newPaneMap)
 		if err != nil {
 			return fmt.Errorf("failed to construct LDAP pane: %v", err)
 		}
 
-		// Check if this is an update or create
 		isUpdate := false
 		var paneID int
 
@@ -610,7 +587,6 @@ func handleLDAPPaneChanges(ctx context.Context, d *schema.ResourceData, client *
 		}
 
 		if isUpdate {
-			// Update existing pane
 			paneIDStr := fmt.Sprintf("%d", paneID)
 			err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 				_, apiErr := client.UpdateLDAPPrestagePaneByID(d.Id(), paneIDStr, *ldapPane)
@@ -624,7 +600,6 @@ func handleLDAPPaneChanges(ctx context.Context, d *schema.ResourceData, client *
 				return fmt.Errorf("failed to update LDAP pane %d: %v", paneID, err)
 			}
 		} else {
-			// Create new pane
 			err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 				_, apiErr := client.CreateLDAPPrestagePane(d.Id(), *ldapPane)
 				if apiErr != nil {
