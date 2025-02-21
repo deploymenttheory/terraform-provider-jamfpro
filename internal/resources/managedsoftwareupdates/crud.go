@@ -11,9 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// Create requires a mutex need to lock Create requests during parallel runs
-// var mu sync.Mutex
-
 // create is responsible for creating a new Jamf Pro Managed Software Update in the remote system.
 // The function:
 // 1. Constructs the attribute data using the provided Terraform configuration.
@@ -23,9 +20,6 @@ import (
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
-
-	// mu.Lock()
-	// defer mu.Unlock()
 
 	err := checkAndEnableManagedSoftwareUpdateFeatureToggle(ctx, client)
 	if err != nil {
