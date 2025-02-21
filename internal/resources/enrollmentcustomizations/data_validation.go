@@ -1,6 +1,8 @@
 package enrollmentcustomizations
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // validateHexColor validates a hex color code without the # prefix
 func validateHexColor(val interface{}, key string) (warns []string, errs []error) {
