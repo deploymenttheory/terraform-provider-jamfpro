@@ -17,7 +17,7 @@ func GetSharedmacOSComputerSchemaScope() *schema.Resource {
 				Description: "Whether the configuration profile is scoped to all JSS users.",
 			},
 			"computer_ids": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Description: "The computers to which the configuration profile is scoped by Jamf ID",
 				Optional:    true,
 				Elem: &schema.Schema{
@@ -25,7 +25,7 @@ func GetSharedmacOSComputerSchemaScope() *schema.Resource {
 				},
 			},
 			"computer_group_ids": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Description: "The computer groups to which the configuration profile is scoped by Jamf ID",
 				Optional:    true,
 				Elem: &schema.Schema{
@@ -33,7 +33,7 @@ func GetSharedmacOSComputerSchemaScope() *schema.Resource {
 				},
 			},
 			"jss_user_ids": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Description: "The jss users to which the configuration profile is scoped by Jamf ID",
 				Optional:    true,
 				Elem: &schema.Schema{
@@ -41,7 +41,7 @@ func GetSharedmacOSComputerSchemaScope() *schema.Resource {
 				},
 			},
 			"jss_user_group_ids": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Description: "The jss user groups to which the configuration profile is scoped by Jamf ID",
 				Optional:    true,
 				Elem: &schema.Schema{
@@ -49,7 +49,7 @@ func GetSharedmacOSComputerSchemaScope() *schema.Resource {
 				},
 			},
 			"building_ids": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Description: "The buildings to which the configuration profile is scoped by Jamf ID",
 				Optional:    true,
 				Elem: &schema.Schema{
@@ -57,7 +57,7 @@ func GetSharedmacOSComputerSchemaScope() *schema.Resource {
 				},
 			},
 			"department_ids": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Description: "The departments to which the configuration profile is scoped by Jamf ID",
 				Optional:    true,
 				Elem: &schema.Schema{
@@ -72,25 +72,25 @@ func GetSharedmacOSComputerSchemaScope() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"network_segment_ids": {
-							Type:        schema.TypeList,
+							Type:        schema.TypeSet,
 							Optional:    true,
 							Description: "A list of network segment IDs for limitations.",
 							Elem:        &schema.Schema{Type: schema.TypeInt},
 						},
 						"directory_service_or_local_usernames": {
-							Type:        schema.TypeList,
+							Type:        schema.TypeSet,
 							Optional:    true,
 							Description: "A list of directory service / local usernames for scoping limitations.",
 							Elem:        &schema.Schema{Type: schema.TypeString},
 						},
 						"directory_service_usergroup_ids": {
-							Type:        schema.TypeList,
+							Type:        schema.TypeSet,
 							Optional:    true,
 							Description: "A list of directory service user group IDs for limitations.",
 							Elem:        &schema.Schema{Type: schema.TypeInt},
 						},
 						"ibeacon_ids": {
-							Type:        schema.TypeList,
+							Type:        schema.TypeSet,
 							Optional:    true,
 							Description: "A list of iBeacon IDs for limitations.",
 							Elem:        &schema.Schema{Type: schema.TypeInt},
@@ -107,7 +107,7 @@ func GetSharedmacOSComputerSchemaScope() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"computer_ids": {
-							Type:        schema.TypeList,
+							Type:        schema.TypeSet,
 							Description: "Computers excluded from scope by Jamf ID.",
 							Optional:    true,
 							Elem: &schema.Schema{
@@ -115,7 +115,7 @@ func GetSharedmacOSComputerSchemaScope() *schema.Resource {
 							},
 						},
 						"computer_group_ids": {
-							Type:        schema.TypeList,
+							Type:        schema.TypeSet,
 							Description: "Computer Groups excluded from scope by Jamf ID.",
 							Optional:    true,
 							Elem: &schema.Schema{
@@ -123,7 +123,7 @@ func GetSharedmacOSComputerSchemaScope() *schema.Resource {
 							},
 						},
 						"jss_user_ids": {
-							Type:        schema.TypeList,
+							Type:        schema.TypeSet,
 							Description: "JSS Users excluded from scope by Jamf ID.",
 							Optional:    true,
 							Elem: &schema.Schema{
@@ -131,7 +131,7 @@ func GetSharedmacOSComputerSchemaScope() *schema.Resource {
 							},
 						},
 						"jss_user_group_ids": {
-							Type:        schema.TypeList,
+							Type:        schema.TypeSet,
 							Description: "JSS User Groups excluded from scope by Jamf ID.",
 							Optional:    true,
 							Elem: &schema.Schema{
@@ -139,7 +139,7 @@ func GetSharedmacOSComputerSchemaScope() *schema.Resource {
 							},
 						},
 						"building_ids": {
-							Type:        schema.TypeList,
+							Type:        schema.TypeSet,
 							Description: "Buildings excluded from scope by Jamf ID.",
 							Optional:    true,
 							Elem: &schema.Schema{
@@ -147,7 +147,7 @@ func GetSharedmacOSComputerSchemaScope() *schema.Resource {
 							},
 						},
 						"department_ids": {
-							Type:        schema.TypeList,
+							Type:        schema.TypeSet,
 							Description: "Departments excluded from scope by Jamf ID.",
 							Optional:    true,
 							Elem: &schema.Schema{
@@ -155,7 +155,7 @@ func GetSharedmacOSComputerSchemaScope() *schema.Resource {
 							},
 						},
 						"network_segment_ids": {
-							Type:        schema.TypeList,
+							Type:        schema.TypeSet,
 							Description: "Network segments excluded from scope by Jamf ID.",
 							Optional:    true,
 							Elem: &schema.Schema{
@@ -163,19 +163,19 @@ func GetSharedmacOSComputerSchemaScope() *schema.Resource {
 							},
 						},
 						"directory_service_or_local_usernames": {
-							Type:        schema.TypeList,
+							Type:        schema.TypeSet,
 							Optional:    true,
 							Description: "A list of directory service / local usernames for scoping limitations.",
 							Elem:        &schema.Schema{Type: schema.TypeString},
 						},
 						"directory_service_usergroup_ids": {
-							Type:        schema.TypeList,
+							Type:        schema.TypeSet,
 							Optional:    true,
 							Description: "A list of directory service / local user group IDs for limitations.",
 							Elem:        &schema.Schema{Type: schema.TypeInt},
 						},
 						"ibeacon_ids": {
-							Type:        schema.TypeList,
+							Type:        schema.TypeSet,
 							Description: "Ibeacons excluded from scope by Jamf ID.",
 							Optional:    true,
 							Elem: &schema.Schema{
