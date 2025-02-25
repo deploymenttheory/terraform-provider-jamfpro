@@ -81,9 +81,18 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 
 	d.SetId(resourceID)
 
-	resp, err := client.RefreshClientCredentialsByApiRoleID(resourceID)
+	var resourceClientSecret *jamfpro.ResourceClientCredentials
+
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
+		resourceClientSecret, apiErr = client.RefreshClientCredentialsByApiRoleID(resourceID)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
+		}
+		return nil
+	})
 	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+		return diag.FromErr(fmt.Errorf("failed to create or rotate Client secret from Jamf Pro API Integration with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	if err = d.Set("display_name", resource.DisplayName); err != nil {
@@ -94,7 +103,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if err = d.Set("client_secret", resp.ClientSecret); err != nil {
+	if err = d.Set("client_secret", resourceClientSecret.ClientSecret); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
