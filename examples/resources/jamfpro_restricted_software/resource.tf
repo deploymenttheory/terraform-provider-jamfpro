@@ -1,4 +1,4 @@
-resource "jamfpro_restricted_software" "restricted_software_001" {
+resource "jamfpro_restricted_software" "restricted_software_high_sierra" {
   name                     = "tf-localtest-restrict-high-sierra"
   process_name             = "Install macOS High Sierra.app"
   match_exact_process_name = true
@@ -7,21 +7,22 @@ resource "jamfpro_restricted_software" "restricted_software_001" {
   delete_executable        = true
   display_message          = "This software is restricted and will be terminated."
 
-  # site {
-  #   id = 967
-  # }
+  # optional
+  site_id {
+    id = -1
+  }
 
-  scope { // scope entities will always be stated asending order. User sort() to sort the list if needed.
+  scope {
     all_computers      = false
-    computer_ids       = sort([21, 16])
-    computer_group_ids = ([55, 78])
-    building_ids       = ([1348, 1349])
-    department_ids     = ([37287, 37288])
+    computer_ids       = ([23, 22])
+    computer_group_ids = ([13, 12])
+    building_ids       = ([1536, 1534])
+    department_ids     = ([37501, 37503])
     exclusions {
       computer_ids                         = [14, 15]
-      computer_group_ids                   = [118]
-      building_ids                         = ([1348, 1349])
-      department_ids                       = ([37287, 37288])
+      computer_group_ids                   = ([13, 12])
+      building_ids                         = ([1536, 1534])
+      department_ids                       = ([37501, 37503])
       directory_service_or_local_usernames = ["Jane Smith", "John Doe"]
     }
   }
