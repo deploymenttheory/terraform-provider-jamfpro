@@ -9,7 +9,7 @@ description: |-
 
 ## Example Usage
 ```terraform
-resource "jamfpro_restricted_software" "restricted_software_001" {
+resource "jamfpro_restricted_software" "restricted_software_high_sierra" {
   name                     = "tf-localtest-restrict-high-sierra"
   process_name             = "Install macOS High Sierra.app"
   match_exact_process_name = true
@@ -18,21 +18,22 @@ resource "jamfpro_restricted_software" "restricted_software_001" {
   delete_executable        = true
   display_message          = "This software is restricted and will be terminated."
 
-  # site {
-  #   id = 967
-  # }
+  # optional
+  site_id {
+    id = -1
+  }
 
-  scope { // scope entities will always be stated asending order. User sort() to sort the list if needed.
+  scope {
     all_computers      = false
-    computer_ids       = sort([21, 16])
-    computer_group_ids = ([55, 78])
-    building_ids       = ([1348, 1349])
-    department_ids     = ([37287, 37288])
+    computer_ids       = ([23, 22])
+    computer_group_ids = ([13, 12])
+    building_ids       = ([1536, 1534])
+    department_ids     = ([37501, 37503])
     exclusions {
       computer_ids                         = [14, 15]
-      computer_group_ids                   = [118]
-      building_ids                         = ([1348, 1349])
-      department_ids                       = ([37287, 37288])
+      computer_group_ids                   = ([13, 12])
+      building_ids                         = ([1536, 1534])
+      department_ids                       = ([37501, 37503])
       directory_service_or_local_usernames = ["Jane Smith", "John Doe"]
     }
   }
@@ -68,10 +69,10 @@ resource "jamfpro_restricted_software" "restricted_software_001" {
 Optional:
 
 - `all_computers` (Boolean) Indicates if the restricted software applies to all computers.
-- `building_ids` (List of Number) A list of building IDs associated with the restricted software.
-- `computer_group_ids` (List of Number) A list of computer group IDs associated with the restricted software.
-- `computer_ids` (List of Number) A list of computer IDs associated with the restricted software.
-- `department_ids` (List of Number) A list of department IDs associated with the restricted software.
+- `building_ids` (Set of Number) A list of building IDs associated with the restricted software.
+- `computer_group_ids` (Set of Number) A list of computer group IDs associated with the restricted software.
+- `computer_ids` (Set of Number) A list of computer IDs associated with the restricted software.
+- `department_ids` (Set of Number) A list of department IDs associated with the restricted software.
 - `exclusions` (Block List, Max: 1) Exclusions for the restricted software. (see [below for nested schema](#nestedblock--scope--exclusions))
 - `limitations` (Block List, Max: 1) Limitations for the restricted software. (see [below for nested schema](#nestedblock--scope--limitations))
 
@@ -80,11 +81,11 @@ Optional:
 
 Optional:
 
-- `building_ids` (List of Number) A list of building IDs for exclusions.
-- `computer_group_ids` (List of Number) A list of computer group IDs for exclusions.
-- `computer_ids` (List of Number) A list of computer IDs for exclusions.
-- `department_ids` (List of Number) A list of department IDs for exclusions.
-- `directory_service_or_local_usernames` (List of String) A list of directory service / local usernames for scoping exclusions.
+- `building_ids` (Set of Number) A list of building IDs for exclusions.
+- `computer_group_ids` (Set of Number) A list of computer group IDs for exclusions.
+- `computer_ids` (Set of Number) A list of computer IDs for exclusions.
+- `department_ids` (Set of Number) A list of department IDs for exclusions.
+- `directory_service_or_local_usernames` (Set of String) A list of directory service / local usernames for scoping exclusions.
 
 
 <a id="nestedblock--scope--limitations"></a>
@@ -92,8 +93,8 @@ Optional:
 
 Optional:
 
-- `ibeacon_ids` (List of Number) A list of iBeacon IDs for limitations.
-- `network_segment_ids` (List of Number) A list of network segment IDs for limitations.
+- `ibeacon_ids` (Set of Number) A list of iBeacon IDs for limitations.
+- `network_segment_ids` (Set of Number) A list of network segment IDs for limitations.
 
 
 
