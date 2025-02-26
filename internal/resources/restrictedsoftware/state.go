@@ -2,7 +2,6 @@
 package restrictedsoftware
 
 import (
-	"sort"
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -52,20 +51,23 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftwar
 func flattenScope(scope jamfpro.RestrictedSoftwareSubsetScope) []interface{} {
 	scopeMap := map[string]interface{}{
 		"all_computers":      scope.AllComputers,
-		"computer_ids":       flattenAndSortScopeEntityIds(scope.Computers),
-		"computer_group_ids": flattenAndSortScopeEntityIds(scope.ComputerGroups),
-		"building_ids":       flattenAndSortScopeEntityIds(scope.Buildings),
-		"department_ids":     flattenAndSortScopeEntityIds(scope.Departments),
+		"computer_ids":       schema.NewSet(schema.HashInt, flattenScopeEntityIds(scope.Computers)),
+		"computer_group_ids": schema.NewSet(schema.HashInt, flattenScopeEntityIds(scope.ComputerGroups)),
+		"building_ids":       schema.NewSet(schema.HashInt, flattenScopeEntityIds(scope.Buildings)),
+		"department_ids":     schema.NewSet(schema.HashInt, flattenScopeEntityIds(scope.Departments)),
 	}
 
-	if len(scope.Exclusions.Computers) > 0 || len(scope.Exclusions.ComputerGroups) > 0 || len(scope.Exclusions.Buildings) > 0 || len(scope.Exclusions.Departments) > 0 || len(scope.Exclusions.Users) > 0 {
+	// Handle Exclusions
+	if len(scope.Exclusions.Computers) > 0 || len(scope.Exclusions.ComputerGroups) > 0 ||
+		len(scope.Exclusions.Buildings) > 0 || len(scope.Exclusions.Departments) > 0 ||
+		len(scope.Exclusions.Users) > 0 {
 		scopeMap["exclusions"] = []interface{}{
 			map[string]interface{}{
-				"computer_ids":                         flattenAndSortScopeEntityIds(scope.Exclusions.Computers),
-				"computer_group_ids":                   flattenAndSortScopeEntityIds(scope.Exclusions.ComputerGroups),
-				"building_ids":                         flattenAndSortScopeEntityIds(scope.Exclusions.Buildings),
-				"department_ids":                       flattenAndSortScopeEntityIds(scope.Exclusions.Departments),
-				"directory_service_or_local_usernames": flattenAndSortScopeEntityNames(scope.Exclusions.Users),
+				"computer_ids":                         schema.NewSet(schema.HashInt, flattenScopeEntityIds(scope.Exclusions.Computers)),
+				"computer_group_ids":                   schema.NewSet(schema.HashInt, flattenScopeEntityIds(scope.Exclusions.ComputerGroups)),
+				"building_ids":                         schema.NewSet(schema.HashInt, flattenScopeEntityIds(scope.Exclusions.Buildings)),
+				"department_ids":                       schema.NewSet(schema.HashInt, flattenScopeEntityIds(scope.Exclusions.Departments)),
+				"directory_service_or_local_usernames": schema.NewSet(schema.HashString, flattenScopeEntityNames(scope.Exclusions.Users)),
 			},
 		}
 	}
@@ -73,37 +75,20 @@ func flattenScope(scope jamfpro.RestrictedSoftwareSubsetScope) []interface{} {
 	return []interface{}{scopeMap}
 }
 
-// flattenAndSortScopeEntityIds converts a slice of RestrictedSoftwareSubsetScopeEntity into a sorted slice of integers.
-func flattenAndSortScopeEntityIds(entities []jamfpro.RestrictedSoftwareSubsetScopeEntity) []int {
-	var ids []int
+// flattenScopeEntityIds converts a slice of RestrictedSoftwareSubsetScopeEntity into a slice of interfaces containing IDs
+func flattenScopeEntityIds(entities []jamfpro.RestrictedSoftwareSubsetScopeEntity) []interface{} {
+	var ids []interface{}
 	for _, entity := range entities {
 		ids = append(ids, entity.ID)
 	}
-	sort.Ints(ids)
 	return ids
 }
 
-// flattenAndSortScopeEntityNames converts a slice of RestrictedSoftwareSubsetScopeEntity into a sorted slice of strings.
-func flattenAndSortScopeEntityNames(entities []jamfpro.RestrictedSoftwareSubsetScopeEntity) []string {
-	var names []string
+// flattenScopeEntityNames converts a slice of RestrictedSoftwareSubsetScopeEntity into a slice of interfaces containing names
+func flattenScopeEntityNames(entities []jamfpro.RestrictedSoftwareSubsetScopeEntity) []interface{} {
+	var names []interface{}
 	for _, entity := range entities {
 		names = append(names, entity.Name)
 	}
-	sort.Strings(names)
 	return names
-}
-
-// setScopeEntities converts a slice of jamfpro.RestrictedSoftwareSubsetScopeEntity structs into a slice of map[string]interface{} for Terraform.
-func setScopeEntities(scopeEntities []jamfpro.RestrictedSoftwareSubsetScopeEntity) []interface{} {
-	var tfScopeEntities []interface{}
-
-	for _, entity := range scopeEntities {
-		tfEntity := map[string]interface{}{
-			"id":   entity.ID,
-			"name": entity.Name,
-		}
-		tfScopeEntities = append(tfScopeEntities, tfEntity)
-	}
-
-	return tfScopeEntities
 }

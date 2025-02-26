@@ -35,16 +35,16 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceRestrictedSoftware, err
 		}
 
 		if computerIDs, ok := scopeData["computer_ids"]; ok {
-			scope.Computers = constructScopeEntitiesFromIds(computerIDs.([]interface{}))
+			scope.Computers = constructScopeEntitiesFromIdSet(computerIDs.(*schema.Set))
 		}
 		if computerGroupIDs, ok := scopeData["computer_group_ids"]; ok {
-			scope.ComputerGroups = constructScopeEntitiesFromIds(computerGroupIDs.([]interface{}))
+			scope.ComputerGroups = constructScopeEntitiesFromIdSet(computerGroupIDs.(*schema.Set))
 		}
 		if buildingIDs, ok := scopeData["building_ids"]; ok {
-			scope.Buildings = constructScopeEntitiesFromIds(buildingIDs.([]interface{}))
+			scope.Buildings = constructScopeEntitiesFromIdSet(buildingIDs.(*schema.Set))
 		}
 		if departmentIDs, ok := scopeData["department_ids"]; ok {
-			scope.Departments = constructScopeEntitiesFromIds(departmentIDs.([]interface{}))
+			scope.Departments = constructScopeEntitiesFromIdSet(departmentIDs.(*schema.Set))
 		}
 
 		// Handle Exclusions
@@ -53,19 +53,19 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceRestrictedSoftware, err
 			scope.Exclusions = jamfpro.RestrictedSoftwareSubsetScopeExclusions{}
 
 			if computerIDs, ok := exclusionData["computer_ids"]; ok {
-				scope.Exclusions.Computers = constructScopeEntitiesFromIds(computerIDs.([]interface{}))
+				scope.Exclusions.Computers = constructScopeEntitiesFromIdSet(computerIDs.(*schema.Set))
 			}
 			if computerGroupIDs, ok := exclusionData["computer_group_ids"]; ok {
-				scope.Exclusions.ComputerGroups = constructScopeEntitiesFromIds(computerGroupIDs.([]interface{}))
+				scope.Exclusions.ComputerGroups = constructScopeEntitiesFromIdSet(computerGroupIDs.(*schema.Set))
 			}
 			if buildingIDs, ok := exclusionData["building_ids"]; ok {
-				scope.Exclusions.Buildings = constructScopeEntitiesFromIds(buildingIDs.([]interface{}))
+				scope.Exclusions.Buildings = constructScopeEntitiesFromIdSet(buildingIDs.(*schema.Set))
 			}
 			if departmentIDs, ok := exclusionData["department_ids"]; ok {
-				scope.Exclusions.Departments = constructScopeEntitiesFromIds(departmentIDs.([]interface{}))
+				scope.Exclusions.Departments = constructScopeEntitiesFromIdSet(departmentIDs.(*schema.Set))
 			}
 			if userNames, ok := exclusionData["directory_service_or_local_usernames"]; ok {
-				scope.Exclusions.Users = constructScopeEntitiesFromNames(userNames.([]interface{}))
+				scope.Exclusions.Users = constructScopeEntitiesFromNameSet(userNames.(*schema.Set))
 			}
 		}
 
@@ -85,10 +85,15 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceRestrictedSoftware, err
 
 // Helper functions for nested structures
 
-// constructScopeEntitiesFromIds constructs a slice of RestrictedSoftwareSubsetScopeEntity from a list of IDs.
-func constructScopeEntitiesFromIds(ids []interface{}) []jamfpro.RestrictedSoftwareSubsetScopeEntity {
-	scopeEntities := make([]jamfpro.RestrictedSoftwareSubsetScopeEntity, len(ids))
-	for i, id := range ids {
+// constructScopeEntitiesFromIdSet constructs a slice of RestrictedSoftwareSubsetScopeEntity from a set of IDs.
+func constructScopeEntitiesFromIdSet(idSet *schema.Set) []jamfpro.RestrictedSoftwareSubsetScopeEntity {
+	if idSet == nil {
+		return []jamfpro.RestrictedSoftwareSubsetScopeEntity{}
+	}
+
+	list := idSet.List()
+	scopeEntities := make([]jamfpro.RestrictedSoftwareSubsetScopeEntity, len(list))
+	for i, id := range list {
 		scopeEntities[i] = jamfpro.RestrictedSoftwareSubsetScopeEntity{
 			ID: id.(int),
 		}
@@ -96,10 +101,15 @@ func constructScopeEntitiesFromIds(ids []interface{}) []jamfpro.RestrictedSoftwa
 	return scopeEntities
 }
 
-// constructScopeEntitiesFromNames constructs a slice of RestrictedSoftwareSubsetScopeEntity from a list of names.
-func constructScopeEntitiesFromNames(names []interface{}) []jamfpro.RestrictedSoftwareSubsetScopeEntity {
-	scopeEntities := make([]jamfpro.RestrictedSoftwareSubsetScopeEntity, len(names))
-	for i, name := range names {
+// constructScopeEntitiesFromNameSet constructs a slice of RestrictedSoftwareSubsetScopeEntity from a set of names.
+func constructScopeEntitiesFromNameSet(nameSet *schema.Set) []jamfpro.RestrictedSoftwareSubsetScopeEntity {
+	if nameSet == nil {
+		return []jamfpro.RestrictedSoftwareSubsetScopeEntity{}
+	}
+
+	list := nameSet.List()
+	scopeEntities := make([]jamfpro.RestrictedSoftwareSubsetScopeEntity, len(list))
+	for i, name := range list {
 		scopeEntities[i] = jamfpro.RestrictedSoftwareSubsetScopeEntity{
 			Name: name.(string),
 		}
