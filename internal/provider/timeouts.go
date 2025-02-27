@@ -8,10 +8,10 @@ const (
 	DefaultContextTimeoutUpdate = 75 * time.Second
 	DefaultContextTimeoutDelete = 75 * time.Second
 
-	LoadBalancedContextTimeoutCreate = 75 * time.Second
-	LoadBalancedContextTimeoutRead   = 75 * time.Second
-	LoadBalancedContextTimeoutUpdate = 75 * time.Second
-	LoadBalancedContextTimeoutDelete = 75 * time.Second
+	LoadBalancedContextTimeoutCreate = 15 * time.Second
+	LoadBalancedContextTimeoutRead   = 15 * time.Second
+	LoadBalancedContextTimeoutUpdate = 15 * time.Second
+	LoadBalancedContextTimeoutDelete = 15 * time.Second
 )
 
 // GetDefaultContextTimeoutCreate returns the appropriate timeout duration for resource creation.
