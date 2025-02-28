@@ -8,7 +8,7 @@ toolchain go1.22.9
 
 // Deploymenttheory
 require (
-	github.com/deploymenttheory/go-api-http-client v0.2.18
+	github.com/deploymenttheory/go-api-http-client v0.2.19-0.20250228125504-a99a2c87b5de
 	github.com/deploymenttheory/go-api-http-client-integrations v0.0.13-0.20250226151525-e94aa7c9280a
 	github.com/deploymenttheory/go-api-sdk-jamfpro v1.25.0
 )
@@ -41,8 +41,8 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
 	github.com/ProtonMail/go-crypto v1.1.3 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
-	github.com/antchfx/xmlquery v1.4.2 // indirect
-	github.com/antchfx/xpath v1.3.2 // indirect
+	github.com/antchfx/xmlquery v1.4.4 // indirect
+	github.com/antchfx/xpath v1.3.3 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.36.2 // indirect
