@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	helpers "github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"howett.net/plist"
@@ -89,7 +90,7 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 			return nil, fmt.Errorf("failed to decode existing plist: %v", err)
 		}
 
-		extractUUIDs(existingPlist, uuidMap)
+		helpers.ExtractUUIDs(existingPlist, uuidMap)
 
 		var newPlist map[string]interface{}
 		newPayload := html.UnescapeString(resource.General.Payloads)
@@ -97,7 +98,7 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 			return nil, fmt.Errorf("failed to decode new plist: %v", err)
 		}
 
-		updateUUIDs(newPlist, uuidMap)
+		helpers.UpdateUUIDs(newPlist, uuidMap)
 
 		var buf bytes.Buffer
 		encoder := plist.NewEncoder(&buf)
@@ -105,8 +106,7 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		if err := encoder.Encode(newPlist); err != nil {
 			return nil, fmt.Errorf("failed to encode updated plist: %v", err)
 		}
-
-		resource.General.Payloads = html.EscapeString(buf.String())
+		resource.General.Payloads = buf.String()
 	}
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")

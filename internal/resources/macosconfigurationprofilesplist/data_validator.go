@@ -28,14 +28,6 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 		if err := validatePlistPayloadScope(ctx, diff, i); err != nil {
 			return err
 		}
-
-		if err := validatePlistPayloadName(ctx, diff, i); err != nil {
-			return err
-		}
-
-		if err := validatePlistPayloadDescription(ctx, diff, i); err != nil {
-			return err
-		}
 	}
 
 	if err := validateSelfServiceCategories(ctx, diff, i); err != nil {
@@ -120,54 +112,6 @@ func validatePlistPayloadScope(_ context.Context, diff *schema.ResourceDiff, _ i
 
 	if payloadScope != level {
 		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': the hcl 'level' attribute (%s) does not match the 'PayloadScope' in the root dict of the plist (%s); the values must be identical", resourceName, level, payloadScope)
-	}
-
-	return nil
-}
-
-// validatePlistPayloadName validates that the root PayloadDisplayName in the plist matches the name field in HCL.
-func validatePlistPayloadName(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
-	resourceName := diff.Get("name").(string)
-	payload := diff.Get("payloads").(string)
-
-	profile, err := plist.UnmarshalPayload(payload)
-	if err != nil {
-		return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': error unmarshalling payload: %v", resourceName, err)
-	}
-
-	if profile.PayloadDisplayName != resourceName {
-		return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': the plist root PayloadDisplayName field is ('%s') which does not match the HCL 'name' attribute ('%s'); the values must be identical",
-			resourceName,
-			profile.PayloadDisplayName,
-			resourceName)
-	}
-
-	return nil
-}
-
-// validatePlistPayloadDescription performs the payload description validation that validates the root
-// PayloadDescription matches resource description in the HCL
-func validatePlistPayloadDescription(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
-	resourceName := diff.Get("name").(string)
-	resourceDesc := diff.Get("description").(string)
-	payload := diff.Get("payloads").(string)
-
-	// Only proceed if we have payload validation enabled
-	if !diff.Get("payload_validate").(bool) {
-		return nil
-	}
-
-	profile, err := plist.UnmarshalPayload(payload)
-	if err != nil {
-		return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': error unmarshalling payload: %v", resourceName, err)
-	}
-
-	// Compare PayloadDescription with resource description
-	if profile.PayloadDescription != resourceDesc {
-		return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': the plist root PayloadDescription field is ('%s') which does not match the HCL 'description' attribute ('%s'); the values must be identical",
-			resourceName,
-			profile.PayloadDescription,
-			resourceDesc)
 	}
 
 	return nil
