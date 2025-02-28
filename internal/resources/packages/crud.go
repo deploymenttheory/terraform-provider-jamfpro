@@ -181,28 +181,10 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 // delete is responsible for deleting a Jamf Pro Package.
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
-	resourceID := d.Id()
-
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		apiErr := client.DeletePackageByID(resourceID)
-		if apiErr != nil {
-			resourceName := d.Get("name").(string)
-			apiErrByName := client.DeleteScriptByName(resourceName)
-			if apiErrByName != nil {
-				return retry.RetryableError(apiErrByName)
-			}
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Package '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
-	}
-
-	d.SetId("")
-
-	return diags
+	return common.Delete(
+		ctx,
+		d,
+		meta,
+		meta.(*jamfpro.Client).DeletePackageByID,
+	)
 }

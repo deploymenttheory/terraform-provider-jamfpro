@@ -79,25 +79,25 @@ func ResourceJamfProRestrictedSoftwares() *schema.Resource {
 							Description: "Indicates if the restricted software applies to all computers.",
 						},
 						"computer_ids": {
-							Type:        schema.TypeList,
+							Type:        schema.TypeSet,
 							Optional:    true,
 							Elem:        &schema.Schema{Type: schema.TypeInt},
 							Description: "A list of computer IDs associated with the restricted software.",
 						},
 						"computer_group_ids": {
-							Type:        schema.TypeList,
+							Type:        schema.TypeSet,
 							Optional:    true,
 							Elem:        &schema.Schema{Type: schema.TypeInt},
 							Description: "A list of computer group IDs associated with the restricted software.",
 						},
 						"building_ids": {
-							Type:        schema.TypeList,
+							Type:        schema.TypeSet,
 							Optional:    true,
 							Elem:        &schema.Schema{Type: schema.TypeInt},
 							Description: "A list of building IDs associated with the restricted software.",
 						},
 						"department_ids": {
-							Type:        schema.TypeList,
+							Type:        schema.TypeSet,
 							Optional:    true,
 							Elem:        &schema.Schema{Type: schema.TypeInt},
 							Description: "A list of department IDs associated with the restricted software.",
@@ -110,13 +110,13 @@ func ResourceJamfProRestrictedSoftwares() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"network_segment_ids": {
-										Type:        schema.TypeList,
+										Type:        schema.TypeSet,
 										Optional:    true,
 										Elem:        &schema.Schema{Type: schema.TypeInt},
 										Description: "A list of network segment IDs for limitations.",
 									},
 									"ibeacon_ids": {
-										Type:        schema.TypeList,
+										Type:        schema.TypeSet,
 										Optional:    true,
 										Elem:        &schema.Schema{Type: schema.TypeInt},
 										Description: "A list of iBeacon IDs for limitations.",
@@ -132,31 +132,31 @@ func ResourceJamfProRestrictedSoftwares() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"computer_ids": {
-										Type:        schema.TypeList,
+										Type:        schema.TypeSet,
 										Optional:    true,
 										Elem:        &schema.Schema{Type: schema.TypeInt},
 										Description: "A list of computer IDs for exclusions.",
 									},
 									"computer_group_ids": {
-										Type:        schema.TypeList,
+										Type:        schema.TypeSet,
 										Optional:    true,
 										Elem:        &schema.Schema{Type: schema.TypeInt},
 										Description: "A list of computer group IDs for exclusions.",
 									},
 									"building_ids": {
-										Type:        schema.TypeList,
+										Type:        schema.TypeSet,
 										Optional:    true,
 										Elem:        &schema.Schema{Type: schema.TypeInt},
 										Description: "A list of building IDs for exclusions.",
 									},
 									"department_ids": {
-										Type:        schema.TypeList,
+										Type:        schema.TypeSet,
 										Optional:    true,
 										Elem:        &schema.Schema{Type: schema.TypeInt},
 										Description: "A list of department IDs for exclusions.",
 									},
 									"directory_service_or_local_usernames": {
-										Type:        schema.TypeList,
+										Type:        schema.TypeSet,
 										Optional:    true,
 										Elem:        &schema.Schema{Type: schema.TypeString},
 										Description: "A list of directory service / local usernames for scoping exclusions.",
