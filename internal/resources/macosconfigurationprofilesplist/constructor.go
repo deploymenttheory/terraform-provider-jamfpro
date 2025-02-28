@@ -105,8 +105,8 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		if err := encoder.Encode(newPlist); err != nil {
 			return nil, fmt.Errorf("failed to encode updated plist: %v", err)
 		}
-
 		resource.General.Payloads = buf.String()
+		//resource.General.Payloads = html.EscapeString(buf.String())
 	}
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")

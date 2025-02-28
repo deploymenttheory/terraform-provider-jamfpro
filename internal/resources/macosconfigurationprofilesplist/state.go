@@ -1,7 +1,6 @@
 package macosconfigurationprofilesplist
 
 import (
-	"html"
 	"log"
 	"reflect"
 	"sort"
@@ -36,13 +35,10 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfiguratio
 
 	d.Set("site_id", resp.General.Site.ID)
 
-	configProfilePayload := html.UnescapeString(resp.General.Payloads)
-	profile := plist.NormalizePayloadState(configProfilePayload)
+	profile := plist.NormalizePayloadState(resp.General.Payloads)
 	if err := d.Set("payloads", profile); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-
-	d.Set("category_id", resp.General.Category.ID)
 
 	d.Set("category_id", resp.General.Category.ID)
 
