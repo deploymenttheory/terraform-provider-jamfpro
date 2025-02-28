@@ -16,15 +16,22 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 		if err := validatePayload(ctx, diff, i); err != nil {
 			return err
 		}
+
+		if err := normalizePayloadState(ctx, diff, i); err != nil {
+			return err
+		}
+
 		if err := validateMobileDeviceConfigurationProfileLevel(ctx, diff, i); err != nil {
 			return err
 		}
 
-		if err := validateConfigurationProfileFormatting(ctx, diff, i); err != nil {
-			return err
-		}
 	}
 
+	return nil
+}
+
+func normalizePayloadState(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+	diff.SetNew("payloads", plist.NormalizePayloadState(diff.Get("payloads").(string)))
 	return nil
 }
 
@@ -77,19 +84,7 @@ func validateMobileDeviceConfigurationProfileLevel(_ context.Context, diff *sche
 	}
 
 	if payloadScope != expectedScope {
-		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile.%s': .hcl 'level' attribute (%s) does not match the 'PayloadScope' in the plist (%s). When .hcl 'level' attribute is 'Device Level', the payload value must be 'System'. When .hcl 'level' attribute is 'User Level', the payload value must be 'User'.", resourceName, level, payloadScope)
-	}
-
-	return nil
-}
-
-// validateConfigurationProfileFormatting validates the indentation of the plist XML.
-func validateConfigurationProfileFormatting(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
-	resourceName := diff.Get("name").(string)
-	payloads := diff.Get("payloads").(string)
-
-	if err := datavalidators.CheckPlistIndentationAndWhiteSpace(payloads); err != nil {
-		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile.%s': %v", resourceName, err)
+		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile.%s': .hcl 'level' attribute (%s) does not match the 'PayloadScope' in the plist (%s). When .hcl 'level' attribute is 'Device Level', the payload value must be 'System'. When .hcl 'level' attribute is 'User Level', the payload value must be 'User'", resourceName, level, payloadScope)
 	}
 
 	return nil

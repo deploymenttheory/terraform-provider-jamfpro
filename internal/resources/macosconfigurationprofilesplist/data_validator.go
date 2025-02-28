@@ -148,7 +148,7 @@ func validateAllComputersScope(_ context.Context, diff *schema.ResourceDiff, _ i
 	resourceName := diff.Get("name").(string)
 	scopeRaw, ok := diff.GetOk("scope")
 	if !ok {
-		return nil // No scope block, so nothing to validate
+		return nil
 	}
 
 	scope := scopeRaw.([]interface{})[0].(map[string]interface{})
@@ -170,7 +170,7 @@ func validateAllUsersScope(_ context.Context, diff *schema.ResourceDiff, _ inter
 	resourceName := diff.Get("name").(string)
 	scopeRaw, ok := diff.GetOk("scope")
 	if !ok {
-		return nil // No scope block, so nothing to validate
+		return nil
 	}
 
 	scope := scopeRaw.([]interface{})[0].(map[string]interface{})

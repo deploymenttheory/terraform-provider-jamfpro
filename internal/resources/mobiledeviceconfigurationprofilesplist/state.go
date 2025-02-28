@@ -15,9 +15,6 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceConfigurationProfile) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// TODO review this and remove. the. comments.!
-
-	// Create a map to hold the resource data
 	resourceData := map[string]interface{}{
 		"name":              resp.General.Name,
 		"description":       resp.General.Description,
@@ -38,23 +35,19 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceConfi
 
 	d.Set("site_id", resp.General.Site.ID)
 
-	// Sanitize and set the payloads using the plist processor function
 	profile := plist.NormalizePayloadState(resp.General.Payloads)
 	if err := d.Set("payloads", profile); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Set the 'category' attribute in the state only if it's not empty (i.e., not default values)
 	d.Set("category_id", resp.General.Category.ID)
 
-	// Preparing and setting scope data
 	if scopeData, err := setScope(resp); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	} else if err := d.Set("scope", []interface{}{scopeData}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Update the resp data
 	for k, v := range resourceData {
 		if err := d.Set(k, v); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
@@ -71,7 +64,6 @@ func setScope(resp *jamfpro.ResourceMobileDeviceConfigurationProfile) (map[strin
 		"all_jss_users":      resp.Scope.AllJSSUsers,
 	}
 
-	// Gather mobile devices, groups, etc.
 	scopeData["mobile_device_ids"] = flattenAndSortMobileDeviceIDs(resp.Scope.MobileDevices)
 	scopeData["mobile_device_group_ids"] = flattenAndSortScopeEntityIds(resp.Scope.MobileDeviceGroups)
 	scopeData["jss_user_ids"] = flattenAndSortScopeEntityIds(resp.Scope.JSSUsers)
@@ -79,7 +71,6 @@ func setScope(resp *jamfpro.ResourceMobileDeviceConfigurationProfile) (map[strin
 	scopeData["building_ids"] = flattenAndSortScopeEntityIds(resp.Scope.Buildings)
 	scopeData["department_ids"] = flattenAndSortScopeEntityIds(resp.Scope.Departments)
 
-	// Gather limitations
 	limitationsData, err := setLimitations(resp.Scope.Limitations)
 	if err != nil {
 		return nil, err
@@ -88,7 +79,6 @@ func setScope(resp *jamfpro.ResourceMobileDeviceConfigurationProfile) (map[strin
 		scopeData["limitations"] = limitationsData
 	}
 
-	// Gather exclusions
 	exclusionsData, err := setExclusions(resp.Scope.Exclusions)
 	if err != nil {
 		return nil, err

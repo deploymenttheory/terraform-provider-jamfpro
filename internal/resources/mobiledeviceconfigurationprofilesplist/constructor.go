@@ -2,20 +2,35 @@
 package mobiledeviceconfigurationprofilesplist
 
 import (
+	"bytes"
 	"encoding/xml"
 	"fmt"
 	"html"
 	"log"
+	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	helpers "github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"howett.net/plist"
 )
 
 // constructJamfProMobileDeviceConfigurationProfile constructs a ResourceMobileDeviceConfigurationProfile object from the provided schema data.
-func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceConfigurationProfile, error) {
+func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceData, mode string, meta interface{}) (*jamfpro.ResourceMobileDeviceConfigurationProfile, error) {
+	var existingProfile *jamfpro.ResourceMobileDeviceConfigurationProfile
 
-	profile := &jamfpro.ResourceMobileDeviceConfigurationProfile{
+	if mode == "update" {
+		client := meta.(*jamfpro.Client)
+		resourceID := d.Id()
+		var err error
+		existingProfile, err = client.GetMobileDeviceConfigurationProfileByID(resourceID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get existing profile: %v", err)
+		}
+	}
+
+	resource := &jamfpro.ResourceMobileDeviceConfigurationProfile{
 		General: jamfpro.MobileDeviceConfigurationProfileSubsetGeneral{
 			Name:             d.Get("name").(string),
 			Description:      d.Get("description").(string),
@@ -28,24 +43,51 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 		},
 	}
 
-	profile.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
-	profile.General.Category = sharedschemas.ConstructSharedResourceCategory(d.Get("category_id").(int))
+	resource.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
+	resource.General.Category = sharedschemas.ConstructSharedResourceCategory(d.Get("category_id").(int))
 
 	// Handle Scope
 	if v, ok := d.GetOk("scope"); ok {
 		scopeData := v.([]interface{})[0].(map[string]interface{})
-		profile.Scope = constructMobileDeviceConfigurationProfileSubsetScope(scopeData)
+		resource.Scope = constructMobileDeviceConfigurationProfileSubsetScope(scopeData)
 	}
 
-	// Serialize and pretty-print the Mobile Device Configuration Profile object as XML for logging
-	resourceXML, err := xml.MarshalIndent(profile, "", "  ")
+	// Handle UUID injection for update operations
+	if mode == "update" && existingProfile != nil {
+		uuidMap := make(map[string]string)
+		var existingPlist map[string]interface{}
+		existingPayload := html.UnescapeString(existingProfile.General.Payloads)
+		if err := plist.NewDecoder(strings.NewReader(existingPayload)).Decode(&existingPlist); err != nil {
+			return nil, fmt.Errorf("failed to decode existing plist: %v", err)
+		}
+
+		helpers.ExtractUUIDs(existingPlist, uuidMap)
+
+		var newPlist map[string]interface{}
+		newPayload := html.UnescapeString(resource.General.Payloads)
+		if err := plist.NewDecoder(strings.NewReader(newPayload)).Decode(&newPlist); err != nil {
+			return nil, fmt.Errorf("failed to decode new plist: %v", err)
+		}
+
+		helpers.UpdateUUIDs(newPlist, uuidMap)
+
+		var buf bytes.Buffer
+		encoder := plist.NewEncoder(&buf)
+		encoder.Indent("    ")
+		if err := encoder.Encode(newPlist); err != nil {
+			return nil, fmt.Errorf("failed to encode updated plist: %v", err)
+		}
+		resource.General.Payloads = buf.String()
+	}
+
+	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Mobile Device Configuration Profile '%s' to XML: %v", profile.General.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Mobile Device Configuration Profile '%s' to XML: %v", resource.General.Name, err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro Mobile Device Configuration Profile XML:\n%s\n", string(resourceXML))
 
-	return profile, nil
+	return resource, nil
 }
 
 // constructMobileDeviceConfigurationProfileSubsetScope constructs a MobileDeviceConfigurationProfileSubsetScope object from the provided schema data.
@@ -172,26 +214,6 @@ func constructNetworkSegments(data []interface{}) []jamfpro.MobileDeviceConfigur
 }
 
 // Helper functions for nested structures
-
-// getNestedMap retrieves a nested map from the provided data.
-func getNestedMap(data map[string]interface{}, key string) map[string]interface{} {
-	if v, ok := data[key]; ok {
-		if nestedMap, ok := v.(map[string]interface{}); ok {
-			return nestedMap
-		}
-	}
-	return map[string]interface{}{}
-}
-
-// getSlice retrieves a slice from the provided data.
-func getSlice(data map[string]interface{}, key string) []interface{} {
-	if v, ok := data[key]; ok {
-		if slice, ok := v.([]interface{}); ok {
-			return slice
-		}
-	}
-	return []interface{}{}
-}
 
 // constructScopeEntitiesFromIds constructs a slice of MobileDeviceConfigurationProfileSubsetScopeEntity from a list of IDs.
 func constructScopeEntitiesFromIds(ids []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity {

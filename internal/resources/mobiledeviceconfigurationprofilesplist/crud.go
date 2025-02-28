@@ -12,17 +12,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// resourceJamfProMobileDeviceConfigurationProfileCreate is responsible for creating a new Jamf Pro Mobile Device Configuration Profile in the remote system.
+// create is responsible for creating a new Jamf Pro Mobile Device Configuration Profile in the remote system.
 // The function:
 // 1. Constructs the attribute data using the provided Terraform configuration.
 // 2. Calls the API to create the attribute in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created attribute.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func resourceJamfProMobileDeviceConfigurationProfilePlistCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := constructJamfProMobileDeviceConfigurationProfilePlist(d)
+	resource, err := constructJamfProMobileDeviceConfigurationProfilePlist(d, "create", meta)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Mobile Device Configuration Profile: %v", err))
 	}
@@ -43,15 +43,15 @@ func resourceJamfProMobileDeviceConfigurationProfilePlistCreate(ctx context.Cont
 
 	d.SetId(strconv.Itoa(creationResponse.ID))
 
-	return append(diags, resourceJamfProMobileDeviceConfigurationProfilePlistReadNoCleanup(ctx, d, meta)...)
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
-// resourceJamfProMobileDeviceConfigurationProfilePlistRead is responsible for reading the current state of a Jamf Pro Mobile Device Configuration Profile Resource from the remote system.
+// read is responsible for reading the current state of a Jamf Pro Mobile Device Configuration Profile Resource from the remote system.
 // The function:
 // 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
-func resourceJamfProMobileDeviceConfigurationProfilePlistRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -73,23 +73,23 @@ func resourceJamfProMobileDeviceConfigurationProfilePlistRead(ctx context.Contex
 	return append(diags, updateState(d, response)...)
 }
 
-// resourceJamfProMobileDeviceConfigurationProfilePlistReadWithCleanup reads the resource with cleanup enabled
-func resourceJamfProMobileDeviceConfigurationProfilePlistReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProMobileDeviceConfigurationProfilePlistRead(ctx, d, meta, true)
+// readWithCleanup reads the resource with cleanup enabled
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, true)
 }
 
-// resourceJamfProMobileDeviceConfigurationProfilePlistReadNoCleanup reads the resource with cleanup disabled
-func resourceJamfProMobileDeviceConfigurationProfilePlistReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceJamfProMobileDeviceConfigurationProfilePlistRead(ctx, d, meta, false)
+// readNoCleanup reads the resource with cleanup disabled
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return read(ctx, d, meta, false)
 }
 
-// resourceJamfProMobileDeviceConfigurationProfilePlistUpdate is responsible for updating an existing Jamf Pro Mobile Device Configuration Profile on the remote system.
-func resourceJamfProMobileDeviceConfigurationProfilePlistUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// update is responsible for updating an existing Jamf Pro Mobile Device Configuration Profile on the remote system.
+func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	resource, err := constructJamfProMobileDeviceConfigurationProfilePlist(d)
+	resource, err := constructJamfProMobileDeviceConfigurationProfilePlist(d, "update", meta)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Mobile Device Configuration Profile for update: %v", err))
 	}
@@ -106,11 +106,11 @@ func resourceJamfProMobileDeviceConfigurationProfilePlistUpdate(ctx context.Cont
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Mobile Device Configuration Profile '%s' (ID: %s) after retries: %v", resource.General.Name, resourceID, err))
 	}
 
-	return append(diags, resourceJamfProMobileDeviceConfigurationProfilePlistReadNoCleanup(ctx, d, meta)...)
+	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
-// resourceJamfProMobileDeviceConfigurationProfilePlistDelete is responsible for deleting a Jamf Pro Mobile Device Configuration Profile.
-func resourceJamfProMobileDeviceConfigurationProfilePlistDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// delete is responsible for deleting a Jamf Pro Mobile Device Configuration Profile.
+func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
