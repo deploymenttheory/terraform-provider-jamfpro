@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.13.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.12.0...v0.13.0) (2025-02-28)
+
+
+### Features
+
+* centralized uuid handling ([9f9e10b](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/9f9e10bb1444a63440c2ddbda5d363369548807b))
+* migrated restricted software from scope lists to scope sets meaning order of id's no longer matters ([6d2a37a](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/6d2a37a7b2e0fe8d756e4e87ba19bbc0b7f1792d))
+* updated restricted software example ([fabd224](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/fabd2245645134a9eb919d70476468c48f3c02e4))
+
+
+### Bug Fixes
+
+* fix:  ([b8e180f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/b8e180f71c5b87aa7cc8f5321ba841249ce3a7cd))
+* for plists that inserted escaped html characters during updates. removed validators for PlistPayloadDescription and PlistPayloadName. not required ([03c4a05](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/03c4a05cf1504f58d36ccaa8dbd35a21e403731e))
+* reinstated PayloadDisplayName to diff suppression ([e613f80](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/e613f807e29b9f5e535cfe96d3022cf1eae51fdf))
+* removed deletebyscriptname from the packages crud ([3258409](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/3258409c3c40c651653993880d1f96debd8b6c23))
+* standardized mobile device plists with macos ([19ac8da](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/19ac8da4842179673e55fe31e27ca7aee2ab0483))
+
 ## [0.12.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.11.0...v0.12.0) (2025-02-21)
 
 
