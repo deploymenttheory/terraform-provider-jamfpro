@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -13,10 +12,10 @@ import (
 // resourceJamfProMobileDeviceConfigurationProfilesPlist defines the schema for mobile device configuration profiles in Terraform.
 func ResourceJamfProMobileDeviceConfigurationProfilesPlist() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceJamfProMobileDeviceConfigurationProfilePlistCreate,
-		ReadContext:   resourceJamfProMobileDeviceConfigurationProfilePlistReadWithCleanup,
-		UpdateContext: resourceJamfProMobileDeviceConfigurationProfilePlistUpdate,
-		DeleteContext: resourceJamfProMobileDeviceConfigurationProfilePlistDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(120 * time.Second),
@@ -104,7 +103,6 @@ func ResourceJamfProMobileDeviceConfigurationProfilesPlist() *schema.Resource {
 			"payloads": {
 				Type:             schema.TypeString,
 				Required:         true,
-				StateFunc:        plist.NormalizePayloadState,
 				DiffSuppressFunc: DiffSuppressPayloads,
 				Description: "The iOS / iPadOS / tvOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist." +
 					"Jamf Pro stores configuration profiles as XML property lists (plists). When profiles are uploaded, " +
@@ -146,10 +144,19 @@ func ResourceJamfProMobileDeviceConfigurationProfilesPlist() *schema.Resource {
 					"This provider cannot diff suppress plists generated from external sources.",
 			},
 			"payload_validate": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     true,
-				Description: "Validates plist payload XML. Turn off to force malformed XML confguration. Required when the configuration profile is a non Jamf Pro source, e.g iMazing. Removing this may cause unexpected stating behaviour.",
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+				Description: "Controls validation of the Mobile device  configuration profile plist. When enabled (default), " +
+					"performs the following validations:\n\n" +
+					"1. Payload State Normalization (normalizePayloadState):\n" +
+					"   - Normalizes the payload structure for consistent state management\n" +
+					"   - Ensures profile format matches Jamf Pro's expected structure\n\n" +
+					"Set to false when importing profiles from external sources that may not " +
+					"strictly conform to Jamf Pro's plist requirements. Disabling validation " +
+					"bypasses these checks but may result in deployment issues if the profile " +
+					"structure is incompatible with Jamf Pro, or triggers jamf pro plist processing " +
+					"not handled by 'payloads' diff suppression. Switch off at your own risk.",
 			},
 			// Scope
 			"scope": {

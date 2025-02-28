@@ -130,7 +130,13 @@ NOTE - This provider only supports plists generated from Jamf Pro. It does not s
 - `deployment_method` (String) The deployment method for the mobile device configuration profile, can be either 'Install Automatically' or 'Make Available in Self Service'.
 - `description` (String) The description of the mobile device configuration profile.
 - `level` (String) The level at which the mobile device configuration profile is applied, can be either 'Device Level' or 'User Level'.
-- `payload_validate` (Boolean) Validates plist payload XML. Turn off to force malformed XML confguration. Required when the configuration profile is a non Jamf Pro source, e.g iMazing. Removing this may cause unexpected stating behaviour.
+- `payload_validate` (Boolean) Controls validation of the Mobile device  configuration profile plist. When enabled (default), performs the following validations:
+
+1. Payload State Normalization (normalizePayloadState):
+   - Normalizes the payload structure for consistent state management
+   - Ensures profile format matches Jamf Pro's expected structure
+
+Set to false when importing profiles from external sources that may not strictly conform to Jamf Pro's plist requirements. Disabling validation bypasses these checks but may result in deployment issues if the profile structure is incompatible with Jamf Pro, or triggers jamf pro plist processing not handled by 'payloads' diff suppression. Switch off at your own risk.
 - `redeploy_days_before_cert_expires` (Number) The number of days before certificate expiration when the profile should be redeployed.
 - `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
