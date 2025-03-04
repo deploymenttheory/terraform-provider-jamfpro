@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.13.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.12.0...v0.13.0) (2025-03-04)
+
+
+### Features
+
+* API integration RefreshClientCredentialsByApiRoleID ([7fa1c2a](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/7fa1c2a53465a576bbaec2d5b71179ea8c020eab))
+* centralized uuid handling ([9f9e10b](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/9f9e10bb1444a63440c2ddbda5d363369548807b))
+* migrated restricted software from scope lists to scope sets meaning order of id's no longer matters ([6d2a37a](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/6d2a37a7b2e0fe8d756e4e87ba19bbc0b7f1792d))
+* standardized mobile device plist behaviour with tf operational flow of macos config profiles ([ee83b36](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/ee83b36f0a18eb5da9b4d5f1c69bd778e3549f1e))
+* updated restricted software example ([fabd224](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/fabd2245645134a9eb919d70476468c48f3c02e4))
+
+
+### Bug Fixes
+
+* fix:  ([b8e180f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/b8e180f71c5b87aa7cc8f5321ba841249ce3a7cd))
+* for plists that inserted escaped html characters during updates and removed validators for PlistPayloadDescription and PlistPayloadName. not required ([944b263](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/944b263d3e98e340ca74cb25f742f9db08e9a604))
+* for plists that inserted escaped html characters during updates. removed validators for PlistPayloadDescription and PlistPayloadName. not required ([03c4a05](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/03c4a05cf1504f58d36ccaa8dbd35a21e403731e))
+* migrated restricted software from scope lists to scope sets meaning the order of scope id's is no longer required to be ascending  in the hcl ([fc37373](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/fc373738c7deaf7a873c6c947e4cf4c915cce80c))
+* reinstated PayloadDisplayName to diff suppression ([e613f80](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/e613f807e29b9f5e535cfe96d3022cf1eae51fdf))
+* removed deletebyscriptname from the packages crud ([3258409](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/3258409c3c40c651653993880d1f96debd8b6c23))
+* script deletions are now sequential ([#612](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/612)) ([add019d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/add019de43121c5746bc00a43fce760eae74e8cd))
+* standardized mobile device plists with macos ([19ac8da](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/19ac8da4842179673e55fe31e27ca7aee2ab0483))
+
 ## [0.12.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.11.0...v0.12.0) (2025-02-21)
 
 
