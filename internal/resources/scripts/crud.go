@@ -2,6 +2,7 @@ package scripts
 
 import (
 	"context"
+	"sync"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
@@ -56,8 +57,12 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	)
 }
 
+var mu sync.Mutex
+
 // delete is responsible for deleting a Jamf Pro Department.
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	mu.Lock()
+	defer mu.Unlock()
 	return common.Delete(
 		ctx,
 		d,
