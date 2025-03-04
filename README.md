@@ -50,7 +50,6 @@ provider "jamfpro" {
 - Full Configuration:
 
 ```hcl
-
 provider "jamfpro" {
   jamfpro_instance_fqdn = "https://yourserver.jamfcloud.com"
   auth_method     = "oauth2"
@@ -69,7 +68,6 @@ provider "jamfpro" {
   mandatory_request_delay_milliseconds = 100
   
 }
-
 ```
 
 The provider contains:
@@ -82,7 +80,7 @@ The provider contains:
 
 - [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.10.0
 - [Go](https://golang.org/doc/install) >= 1.22.4
-- [Jamf Pro](https://www.jamf.com/) >= 11.12.0
+- [Jamf Pro](https://www.jamf.com/) >= 11.14.0
 
 (Tested with production Jamf Pro instances, with and without SSO integratioin with Microsoft Entra ID. We do not test against beta or preview versions of Jamf Pro due to potential data model changes.)
 
@@ -107,8 +105,8 @@ This documentation provides a detailed explanation of the configuration options 
 
 ### Concurrency
 
-- You can adjust paralellism by setting the Terraform parallelism count using `terraform apply -parallelism=X` (the default is 10). [HashiCorp Docs](https://developer.hashicorp.com/terraform/cli/commands/apply#parallelism-n)
-- The provider remains stable using paralellism of up to 50, going beyond is at your own risk!
+> [!WARNING]
+> Jamf Pro produces inconsistent behaviour when using the default parallelism setting of 10 with terraform. You can adjust paralellism by setting the Terraform parallelism count using `terraform apply -parallelism=X` to a setting of your choice. [HashiCorp Docs](https://developer.hashicorp.com/terraform/cli/commands/apply#parallelism-n) . It's recconmended to set parallelism to 1 to guarantee successful CRUD operations and resource stating, what this produces in a moderate performance hit is offset by reliability. Not using a `-parallelism=1` is at your own risk!
 
 
 ## Configuration Schema
