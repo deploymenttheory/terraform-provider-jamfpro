@@ -157,7 +157,7 @@ func validateAllComputersScope(_ context.Context, diff *schema.ResourceDiff, _ i
 	if allComputers {
 		fieldsToCheck := []string{"computer_ids", "computer_group_ids"}
 		for _, field := range fieldsToCheck {
-			if value, exists := scope[field]; exists && len(value.([]interface{})) > 0 {
+			if value, exists := scope[field]; exists && len(value.(*schema.Set).List()) > 0 {
 				return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': when 'all_computers' scope is set to true, '%s' should not be set", resourceName, field)
 			}
 		}
