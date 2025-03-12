@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.13.0...v0.13.1) (2025-03-12)
+
+
+### Bug Fixes
+
+* packages now have a custom 10 minute timeout ([#619](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/619)) ([8b49258](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/8b49258d57fe59542e4bc12b8bb433074bf39333))
+
 ## [0.13.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.12.0...v0.13.0) (2025-03-04)
 
 
