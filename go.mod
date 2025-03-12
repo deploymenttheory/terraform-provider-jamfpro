@@ -10,7 +10,7 @@ toolchain go1.23.3
 require (
 	github.com/deploymenttheory/go-api-http-client v0.3.1-0.20250312135758-6008e7c92a15
 	github.com/deploymenttheory/go-api-http-client-integrations v0.0.13
-	github.com/deploymenttheory/go-api-sdk-jamfpro v1.25.2-0.20250312135214-16886ed94225
+	github.com/deploymenttheory/go-api-sdk-jamfpro v1.25.2-0.20250312140143-bd3a21ae59d2
 )
 
 // Other
