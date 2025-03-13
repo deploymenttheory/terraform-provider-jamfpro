@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
+	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
@@ -13,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
+
+const PackagesHttpTimeout time.Duration = 60 * time.Minute
 
 // create handles the creation of a Jamf Pro package resource:
 // 1. Constructs the attribute data using the provided Terraform configuration.
@@ -41,6 +44,10 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		return diag.FromErr(fmt.Errorf("failed to calculate SHA3-512: %v", err))
 	}
 
+	client.HTTP.ModifyHttpTimeout(PackagesHttpTimeout)
+	defer client.HTTP.ResetTimeout()
+
+	// Meta
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		creationResponse, err := client.CreatePackage(*resource)
 		if err != nil {
@@ -49,7 +56,11 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 		packageID = creationResponse.ID
 		log.Printf("[INFO] Jamf Pro package metadata created successfully with package ID: %s", packageID)
+		return nil
+	})
 
+	// Package - Timeout temporarily hard coded
+	err = retry.RetryContext(ctx, 60*time.Minute, func() *retry.RetryError {
 		_, err = client.UploadPackage(packageID, []string{localFilePath})
 		if err != nil {
 			log.Printf("[ERROR] Failed to upload package file '%s': %v", resource.FileName, err)
@@ -59,7 +70,14 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		log.Printf("[INFO] Package %s file uploaded successfully", resource.FileName)
 		return nil
 	})
+
 	if err != nil {
+		// Cleanup the metadata so the next run doesn't hit an error trying to remake you
+		err = client.DeletePackageByID(packageID)
+		if err != nil {
+			log.Printf("Error cleaning up package metadata: %v", err)
+		}
+
 		return diag.FromErr(fmt.Errorf("failed to create and upload Jamf Pro Package '%s': %v", resource.PackageName, err))
 	}
 
