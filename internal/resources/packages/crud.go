@@ -59,6 +59,11 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		return nil
 	})
 
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to make the metadata, exiting: %v", err))
+
+	}
+
 	// Package - Timeout temporarily hard coded
 	err = retry.RetryContext(ctx, 60*time.Minute, func() *retry.RetryError {
 		_, err = client.UploadPackage(packageID, []string{localFilePath})
