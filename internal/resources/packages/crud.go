@@ -44,9 +44,6 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		return diag.FromErr(fmt.Errorf("failed to calculate SHA3-512: %v", err))
 	}
 
-	client.HTTP.ModifyHttpTimeout(PackagesHttpTimeout)
-	defer client.HTTP.ResetTimeout()
-
 	// Meta
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		creationResponse, err := client.CreatePackage(*resource)
@@ -63,6 +60,9 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		return diag.FromErr(fmt.Errorf("failed to make the metadata, exiting: %v", err))
 
 	}
+
+	client.HTTP.ModifyHttpTimeout(PackagesHttpTimeout)
+	defer client.HTTP.ResetTimeout()
 
 	// Package - Timeout temporarily hard coded
 	err = retry.RetryContext(ctx, 60*time.Minute, func() *retry.RetryError {
