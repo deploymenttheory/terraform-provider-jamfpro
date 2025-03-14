@@ -15,7 +15,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-const PackagesHttpTimeout time.Duration = 60 * time.Minute
+// A separate, shorter timeout for the metadata call which does not have a large payload
+const PackagesMetaTimeout time.Duration = 10 * time.Minute
 
 // create handles the creation of a Jamf Pro package resource:
 // 1. Constructs the attribute data using the provided Terraform configuration.
@@ -45,14 +46,17 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	}
 
 	// Meta
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+	err = retry.RetryContext(ctx, PackagesMetaTimeout, func() *retry.RetryError {
 		creationResponse, err := client.CreatePackage(*resource)
+
 		if err != nil {
 			return retry.RetryableError(fmt.Errorf("failed to create package metadata in Jamf Pro: %v", err))
 		}
 
 		packageID = creationResponse.ID
+
 		log.Printf("[INFO] Jamf Pro package metadata created successfully with package ID: %s", packageID)
+
 		return nil
 	})
 
@@ -61,29 +65,34 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	}
 
-	client.HTTP.ModifyHttpTimeout(PackagesHttpTimeout)
+	// Package
+	client.HTTP.ModifyHttpTimeout(d.Timeout(schema.TimeoutCreate))
 	defer client.HTTP.ResetTimeout()
 
-	// Package - Timeout temporarily hard coded
-	err = retry.RetryContext(ctx, 60*time.Minute, func() *retry.RetryError {
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		_, err = client.UploadPackage(packageID, []string{localFilePath})
+
 		if err != nil {
 			log.Printf("[ERROR] Failed to upload package file '%s': %v", resource.FileName, err)
+
 			return retry.NonRetryableError(fmt.Errorf("failed to upload package file: %v", err))
 		}
 
 		log.Printf("[INFO] Package %s file uploaded successfully", resource.FileName)
+
 		return nil
 	})
 
 	if err != nil {
+
 		// Cleanup the metadata so the next run doesn't hit an error trying to remake you
-		err = client.DeletePackageByID(packageID)
-		if err != nil {
-			log.Printf("Error cleaning up package metadata: %v", err)
+		cleanupErr := client.DeletePackageByID(packageID)
+
+		if cleanupErr != nil {
+			return diag.FromErr(fmt.Errorf("failed to upload package: %v and failed to delete metadata: %v", err, cleanupErr))
 		}
 
-		return diag.FromErr(fmt.Errorf("failed to create and upload Jamf Pro Package '%s': %v", resource.PackageName, err))
+		return diag.FromErr(fmt.Errorf("failed to upload Jamf Pro Package '%s': %v", resource.PackageName, err))
 	}
 
 	if err := verifyPackageUpload(ctx, client, packageID, resource.FileName, initialHash,
