@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.13.2](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.13.1...v0.13.2) (2025-03-14)
+
+
+### Bug Fixes
+
+* dep to full version ([93a21e4](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/93a21e4c5b3b3a8a18d765d1e2e03198db0b01da))
+* package uploads no longer timeout, metadata and upload are separate operations now. ([#621](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/621)) ([0058eaa](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/0058eaab4bc52f35fca73b1d0ca1343af755f28d))
+
 ## [0.13.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.13.0...v0.13.1) (2025-03-12)
 
 
