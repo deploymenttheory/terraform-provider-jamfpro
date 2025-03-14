@@ -85,7 +85,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	if err != nil {
 
-		// Cleanup the metadata so the next run doesn't hit an error trying to remake you
+		// Cleans up the metadata so the next run doesn't hit an error trying to remake it, duplicate names are not allowed
 		cleanupErr := client.DeletePackageByID(packageID)
 
 		if cleanupErr != nil {
