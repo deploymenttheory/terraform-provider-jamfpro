@@ -37,12 +37,12 @@ jobs:
         run: |
           cd ./terraform-provider-jamfpro/tests/terraform
           cat << EOF > terraform.tfvars
-          jamfpro_instance_fqdn="${{ vars.JAMFPRO_INSTANCE_FQDN }}"
-          jamfpro_auth_method="${{ vars.JAMFPRO_AUTH_METHOD }}"
-          jamfpro_client_id="${{ secrets.JAMFPRO_CLIENT_ID }}"
-          jamfpro_client_secret="${{ secrets.JAMFPRO_CLIENT_SECRET }}"
-          jamfpro_token_refresh_buffer_period_seconds=${{ vars.JAMFPRO_MANDATORY_REQUEST_DELAY_MILLISECONDS }}
-          jamfpro_mandatory_request_delay_milliseconds=${{ vars.JAMFPRO_TOKEN_REFRESH_BUFFER_PERIOD_SECONDS }}
+          jamfpro_instance_fqdn="${{ secrets.TESTING_JAMFPRO_INSTANCE_FQDN }}"
+          jamfpro_auth_method="oauth2"
+          jamfpro_client_id="${{ secrets.MAINTENANCE_CLIENT_ID }}"
+          jamfpro_client_secret="${{ secrets.MAINTENANCE_CLIENT_SECRET }}"
+          jamfpro_token_refresh_buffer_period_seconds="30"
+          jamfpro_mandatory_request_delay_milliseconds="100"
           EOF
           
       - name: Run Tests
