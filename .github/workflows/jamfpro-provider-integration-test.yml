@@ -2,6 +2,7 @@ name: "Terraform Integration Tests"
 run-name: "Terraform Integration Tests"
 on:
   workflow_dispatch:
+  push:
 
 jobs:
   Run-Integration-Test:
