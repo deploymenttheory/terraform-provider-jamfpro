@@ -45,6 +45,7 @@ jobs:
           jamfpro_mandatory_request_delay_milliseconds="100"
           EOF
           pwd
+          echo ${{ secrets.MAINTENANCE_CLIENT_ID }}
           ls
           
       - name: Run Tests
