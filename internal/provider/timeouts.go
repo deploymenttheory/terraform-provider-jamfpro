@@ -33,17 +33,5 @@ func TimeoutOverrides(lb_lock bool) map[string]resourceTimeout {
 			Update: 45 * time.Minute,
 			Delete: Timeout(lb_lock),
 		},
-		"jamfpro_smart_computer_group": {
-			Create: 75 * time.Second,
-			Read:   75 * time.Second,
-			Update: 75 * time.Second,
-			Delete: 75 * time.Second,
-		},
-		"jamfpro_static_computer_group": {
-			Create: 75 * time.Second,
-			Read:   75 * time.Second,
-			Update: 75 * time.Second,
-			Delete: 75 * time.Second,
-		},
 	}
 }
