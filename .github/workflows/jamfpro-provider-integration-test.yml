@@ -40,12 +40,12 @@ jobs:
           jamfpro_instance_fqdn="${{ secrets.TESTING_JAMFPRO_INSTANCE_FQDN }}"
           jamfpro_auth_method="oauth2"
           jamfpro_client_id="${{ secrets.MAINTENANCE_CLIENT_ID }}"
-          jamfpro_client_secret="${{ secrets.MAINTENANCE_CLIENT_SECRET }}"
+          jamfpro_client_secret=""
           jamfpro_token_refresh_buffer_period_seconds="30"
           jamfpro_mandatory_request_delay_milliseconds="100"
           EOF
           pwd
-          echo ${{ secrets.MAINTENANCE_CLIENT_ID }}
+          cat terraform.tfvars
           ls
           
       - name: Run Tests
