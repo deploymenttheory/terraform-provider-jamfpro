@@ -3,7 +3,6 @@ package macosconfigurationprofilesplistgenerator
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -119,12 +118,6 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 		UpdateContext: resourceJamfProMacOSConfigurationProfilesPlistGeneratorUpdate,
 		DeleteContext: resourceJamfProMacOSConfigurationProfilesPlistGeneratorDelete,
 		//CustomizeDiff: mainCustomDiffFunc,
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(120 * time.Second),
-			Read:   schema.DefaultTimeout(15 * time.Second),
-			Update: schema.DefaultTimeout(30 * time.Second),
-			Delete: schema.DefaultTimeout(15 * time.Second),
-		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},

@@ -431,7 +431,7 @@ func Provider() *schema.Provider {
 		},
 	}
 
-	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		var err error
 		var diags diag.Diagnostics
 		var jamfIntegration *jamfprointegration.Integration
@@ -443,7 +443,6 @@ func Provider() *schema.Provider {
 
 		// Logger
 		// Probably should move this into it's own function.
-
 		enableClientLogs := d.Get("enable_client_sdk_logs").(bool)
 		logFilePath := d.Get("client_sdk_log_export_path").(string)
 
@@ -549,10 +548,10 @@ func Provider() *schema.Provider {
 
 		}
 
-		if customCookies != nil && len(customCookies.([]interface{})) > 0 {
-			for _, v := range customCookies.([]interface{}) {
-				name := v.(map[string]interface{})["name"]
-				value := v.(map[string]interface{})["value"]
+		if customCookies != nil && len(customCookies.([]any)) > 0 {
+			for _, v := range customCookies.([]any) {
+				name := v.(map[string]any)["name"]
+				value := v.(map[string]any)["value"]
 
 				if name == jamfLoadBalancerCookieName && load_balancer_lock_enabled {
 					return nil, append(diags, diag.Diagnostic{
@@ -570,31 +569,30 @@ func Provider() *schema.Provider {
 			}
 		}
 
-		// Initialize standard timeout behaviour
-		for key, r := range provider.ResourcesMap {
-			if key != "jamfpro_package" && key != "jamfpro_static_computer_group" && key != "jamfpro_smart_computer_group" {
-				if r.Timeouts == nil {
-					r.Timeouts = &schema.ResourceTimeout{}
-				}
+		// Timeout overrides for resourccs which will take longer than the default ones.
+		// also adjusts for if the load balancer lock is on.
+		timeoutOverrides := TimeoutOverrides(load_balancer_lock_enabled)
 
-				if r.Timeouts.Create == nil {
-					r.Timeouts.Create = schema.DefaultTimeout(GetDefaultContextTimeoutCreate(load_balancer_lock_enabled))
-				}
-				if r.Timeouts.Read == nil {
-					r.Timeouts.Read = schema.DefaultTimeout(GetDefaultContextTimeoutRead(load_balancer_lock_enabled))
-				}
-				if r.Timeouts.Update == nil {
-					r.Timeouts.Update = schema.DefaultTimeout(GetDefaultContextTimeoutUpdate(load_balancer_lock_enabled))
-				}
-				if r.Timeouts.Delete == nil {
-					r.Timeouts.Delete = schema.DefaultTimeout(GetDefaultContextTimeoutDelete(load_balancer_lock_enabled))
-				}
+		for k, r := range provider.ResourcesMap {
 
-				*r.Timeouts.Create = GetDefaultContextTimeoutCreate(load_balancer_lock_enabled)
-				*r.Timeouts.Read = GetDefaultContextTimeoutRead(load_balancer_lock_enabled)
-				*r.Timeouts.Update = GetDefaultContextTimeoutUpdate(load_balancer_lock_enabled)
-				*r.Timeouts.Delete = GetDefaultContextTimeoutDelete(load_balancer_lock_enabled)
+			r.Timeouts = &schema.ResourceTimeout{}
+			r.Timeouts.Create = new(time.Duration)
+			r.Timeouts.Read = new(time.Duration)
+			r.Timeouts.Update = new(time.Duration)
+			r.Timeouts.Delete = new(time.Duration)
+
+			if override, ok := timeoutOverrides[k]; ok {
+				*r.Timeouts.Create = override.Create
+				*r.Timeouts.Read = override.Read
+				*r.Timeouts.Update = override.Update
+				*r.Timeouts.Delete = override.Delete
+				continue
 			}
+
+			*r.Timeouts.Create = Timeout(load_balancer_lock_enabled)
+			*r.Timeouts.Read = Timeout(load_balancer_lock_enabled)
+			*r.Timeouts.Update = Timeout(load_balancer_lock_enabled)
+			*r.Timeouts.Delete = Timeout(load_balancer_lock_enabled)
 		}
 
 		// Packaging
@@ -605,21 +603,26 @@ func Provider() *schema.Provider {
 			TokenRefreshBufferPeriod: tokenRefrshBufferPeriod,
 			CustomCookies:            cookiesList,
 			MandatoryRequestDelay:    time.Duration(d.Get("mandatory_request_delay_milliseconds").(int)) * time.Millisecond,
-			RetryEligiableRequests:   false, // Forced off for now
+			RetryEligiableRequests:   false, // Forced because terraform handles concurrency
 			HTTP:                     http.Client{},
 		}
 
-		goHttpClient, err := config.Build()
+		httpClient, err := config.Build()
 		if err != nil {
 			return nil, append(diags, diag.FromErr(err)...)
 		}
 
-		jamfClient := jamfpro.Client{
-			HTTP: goHttpClient,
+		jamfProSdk := jamfpro.Client{
+			HTTP: httpClient,
 		}
 
-		return &jamfClient, diags
+		return &jamfProSdk, diags
 	}
+
+	// for k, v := range provider.ResourcesMap {
+	// 	log.Printf("[DEBUG] |\n %v \v|", k)
+	// 	log.Printf("[DEBUG] |\nCreate: %v\nRead: %v\nUpdate: %v\nDelete: %v\n\n|", *v.Timeouts.Create, *v.Timeouts.Read, *v.Timeouts.Update, *v.Timeouts.Delete)
+	// }
 
 	return provider
 }

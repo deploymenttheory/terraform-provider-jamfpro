@@ -3,7 +3,6 @@ package accountgroups
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
 
@@ -18,12 +17,6 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 		UpdateContext: update,
 		DeleteContext: delete,
 		CustomizeDiff: customDiffAccountGroups,
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(120 * time.Second),
-			Read:   schema.DefaultTimeout(15 * time.Second),
-			Update: schema.DefaultTimeout(30 * time.Second),
-			Delete: schema.DefaultTimeout(15 * time.Second),
-		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},

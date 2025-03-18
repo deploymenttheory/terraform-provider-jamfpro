@@ -2,8 +2,6 @@
 package devicecommunicationsettings
 
 import (
-	"time"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -14,12 +12,6 @@ func ResourceJamfProDeviceCommunicationSettings() *schema.Resource {
 		ReadContext:   readWithCleanup,
 		UpdateContext: update,
 		DeleteContext: delete,
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(1 * time.Minute),
-			Read:   schema.DefaultTimeout(1 * time.Minute),
-			Update: schema.DefaultTimeout(1 * time.Minute),
-			Delete: schema.DefaultTimeout(1 * time.Minute),
-		},
 		Schema: map[string]*schema.Schema{
 			"auto_renew_mobile_device_mdm_profile_when_ca_renewed": {
 				Type:        schema.TypeBool,

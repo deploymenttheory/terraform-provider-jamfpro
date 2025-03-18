@@ -2,8 +2,6 @@
 package apiintegrations
 
 import (
-	"time"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -15,12 +13,6 @@ func ResourceJamfProApiIntegrations() *schema.Resource {
 		UpdateContext: update,
 		DeleteContext: delete,
 		CustomizeDiff: validateResourceAPIIntegrationsDataFields,
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(120 * time.Second),
-			Read:   schema.DefaultTimeout(15 * time.Second),
-			Update: schema.DefaultTimeout(30 * time.Second),
-			Delete: schema.DefaultTimeout(15 * time.Second),
-		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
