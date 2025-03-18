@@ -44,6 +44,7 @@ jobs:
           jamfpro_token_refresh_buffer_period_seconds="30"
           jamfpro_mandatory_request_delay_milliseconds="100"
           EOF
+          pwd 
           
       - name: Run Tests
         run: |  
