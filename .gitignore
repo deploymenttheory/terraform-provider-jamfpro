@@ -37,3 +37,4 @@ website/vendor
 # local testing
 *auth.json
 .localtesting/
+tests/terraform/terraform.tfvars
