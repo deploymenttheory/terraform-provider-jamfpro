@@ -39,3 +39,4 @@ website/vendor
 .localtesting/
 *terraform.tfvars
 .env
+*.venv
