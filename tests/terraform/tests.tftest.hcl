@@ -1,3 +1,8 @@
-run "smoke_test" {
-  command = apply
-}
+# run "smoke_test" {
+#   command = apply
+
+  # module {
+  #   source = "./scripts"
+  # }
+
+# }

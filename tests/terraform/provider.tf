@@ -1,23 +1,23 @@
-# terraform {
-# # for pipeline
-#   required_providers {
-#     jamfpro = {
-#       source  = "deploymenttheory/jamfpro"
-#       version = "~> 0.4.0"
-#     }
-#   }
-# }
-
 terraform {
-# for local
+# for pipeline
   required_providers {
     jamfpro = {
-      source  = "terraform.local/local/jamfpro"
-      # Specifically 0.1.0
-      version = "0.1.0"
+      source  = "deploymenttheory/jamfpro"
+      version = "~> 0.13.0"
     }
   }
 }
+
+# terraform {
+# # for local
+#   required_providers {
+#     jamfpro = {
+#       source  = "terraform.local/local/jamfpro"
+#       # Specifically 0.1.0
+#       version = "0.1.0"
+#     }
+#   }
+# }
 
 provider "jamfpro" {
   jamfpro_instance_fqdn                = var.jamfpro_instance_fqdn
