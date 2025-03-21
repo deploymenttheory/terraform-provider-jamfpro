@@ -42,6 +42,11 @@ import (
 // Returns:
 // - Constructed ResourceMacOSConfigurationProfile
 // - Error if construction or API calls fail
+//
+// Jamf Pro modifies the top-level PayloadUUID and PayloadIdentifier upon profile creation.
+// Nested payload identifiers and UUIDs remain unchanged from the original request.
+// Therefore, when performing profile updates, only top-level PayloadUUID and PayloadIdentifier
+// need to be synced from Jamf Pro's existing profile state.
 func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode string, meta interface{}) (*jamfpro.ResourceMacOSConfigurationProfile, error) {
 	var existingProfile *jamfpro.ResourceMacOSConfigurationProfile
 
@@ -81,31 +86,52 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		resource.SelfService = constructMacOSConfigurationProfileSubsetSelfService(selfServiceData)
 	}
 
-	// Handle UUID injection for update operations
 	if mode == "update" && existingProfile != nil {
-		uuidMap := make(map[string]string)
 		var existingPlist map[string]interface{}
-		existingPayload := html.UnescapeString(existingProfile.General.Payloads)
+		var newPlist map[string]interface{}
+
+		// Decode existing payload from Jamf Pro
+		existingPayload := existingProfile.General.Payloads
 		if err := plist.NewDecoder(strings.NewReader(existingPayload)).Decode(&existingPlist); err != nil {
 			return nil, fmt.Errorf("failed to decode existing plist: %v", err)
 		}
 
-		helpers.ExtractUUIDs(existingPlist, uuidMap)
-
-		var newPlist map[string]interface{}
+		// Decode new payload from Terraform
 		newPayload := html.UnescapeString(resource.General.Payloads)
 		if err := plist.NewDecoder(strings.NewReader(newPayload)).Decode(&newPlist); err != nil {
 			return nil, fmt.Errorf("failed to decode new plist: %v", err)
 		}
 
+		// Insight:
+		// Jamf Pro modifies only the top-level PayloadUUID and PayloadIdentifier upon profile creation.
+		// All nested payload UUIDs/identifiers remain unchanged.
+		// So we must copy Jamf Pro's top-level identifiers into the newPlist before validation.
+
+		// Copy top-level PayloadUUID and PayloadIdentifier from existing (Jamf Pro) to new (Terraform)
+		newPlist["PayloadUUID"] = existingPlist["PayloadUUID"]
+		newPlist["PayloadIdentifier"] = existingPlist["PayloadIdentifier"]
+
+		// Ensure nested UUIDs are also matched properly
+		uuidMap := make(map[string]string)
+		helpers.ExtractUUIDs(existingPlist, uuidMap)
 		helpers.UpdateUUIDs(newPlist, uuidMap)
 
+		// Validate the PayloadUUIDs match exactly now
+		var mismatches []string
+		helpers.ValidatePayloadUUIDsMatch(existingPlist, newPlist, "Payload", &mismatches)
+
+		if len(mismatches) > 0 {
+			return nil, fmt.Errorf("configuration profile UUID mismatch found:\n%s", strings.Join(mismatches, "\n"))
+		}
+
+		// Encode the correctly updated plist
 		var buf bytes.Buffer
 		encoder := plist.NewEncoder(&buf)
 		encoder.Indent("    ")
 		if err := encoder.Encode(newPlist); err != nil {
 			return nil, fmt.Errorf("failed to encode updated plist: %v", err)
 		}
+
 		resource.General.Payloads = buf.String()
 	}
 
