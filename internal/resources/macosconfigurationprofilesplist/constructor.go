@@ -69,7 +69,7 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 			Level:              d.Get("level").(string),
 			UUID:               d.Get("uuid").(string),
 			RedeployOnUpdate:   d.Get("redeploy_on_update").(string),
-			Payloads:           html.EscapeString(d.Get("payloads").(string)),
+			Payloads:           d.Get("payloads").(string),
 		},
 	}
 
@@ -96,7 +96,9 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 			return nil, fmt.Errorf("failed to decode existing plist: %v", err)
 		}
 
-		// Decode new payload from Terraform
+		// Decode new payload from Terraform state
+		// require html.UnescapeString because the payload XML stored in Terraform state has been HTML-escaped
+		// (e.g., &lt;, &gt;, &amp;) to safely store XML as a string within JSON-based Terraform state.
 		newPayload := html.UnescapeString(resource.General.Payloads)
 		if err := plist.NewDecoder(strings.NewReader(newPayload)).Decode(&newPlist); err != nil {
 			return nil, fmt.Errorf("failed to decode new plist: %v", err)
