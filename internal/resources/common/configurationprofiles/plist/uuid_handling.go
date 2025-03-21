@@ -2,8 +2,12 @@ package plist
 
 import "fmt"
 
-// extractUUIDs recursively extracts config profile UUIDs from a plist structure
-// and stores them in a map by PayloadDisplayName.
+// ExtractUUIDs recursively traverses a plist structure represented as nested maps and slices,
+// extracting all occurrences of `PayloadUUID` and associating them with their respective
+// `PayloadDisplayName`. It stores these key-value pairs in the provided `uuidMap`.
+// If a `PayloadDisplayName` is absent at the root level, it uses the special key "root".
+// This function is typically used to map existing UUIDs from a configuration profile
+// retrieved from Jamf Pro.
 func ExtractUUIDs(data interface{}, uuidMap map[string]string) {
 	switch v := data.(type) {
 	case map[string]interface{}:
@@ -28,8 +32,12 @@ func ExtractUUIDs(data interface{}, uuidMap map[string]string) {
 	}
 }
 
-// updateUUIDs recursively updates config profile UUIDs in a
-// plist structure
+// UpdateUUIDs recursively traverses a plist structure represented as nested maps and slices,
+// updating the values of `PayloadUUID` and `PayloadIdentifier` fields using the UUIDs
+// provided in `uuidMap`. It matches UUIDs based on `PayloadDisplayName`. If a `PayloadDisplayName`
+// is absent at the root level, it uses the special key "root" from the map.
+// This function ensures that configuration profile UUIDs remain consistent with Jamf Pro
+// expectations during Terraform update operations.
 func UpdateUUIDs(data interface{}, uuidMap map[string]string) {
 	switch v := data.(type) {
 	case map[string]interface{}:
@@ -57,6 +65,12 @@ func UpdateUUIDs(data interface{}, uuidMap map[string]string) {
 	}
 }
 
+// ValidatePayloadUUIDsMatch recursively compares UUID-related fields (`PayloadUUID` and
+// `PayloadIdentifier`) between two plist structures (`existingPlist` and `newPlist`) to
+// confirm they match exactly. It accumulates any differences found into the provided
+// `mismatches` slice, describing the exact path and mismatched values.
+// This validation step ensures Terraform updates maintain consistency with Jamf Pro’s
+// UUID requirements and detects unintended modifications.
 func ValidatePayloadUUIDsMatch(existingPlist, newPlist interface{}, path string, mismatches *[]string) {
 	existingMap, existingOk := existingPlist.(map[string]interface{})
 	newMap, newOk := newPlist.(map[string]interface{})
