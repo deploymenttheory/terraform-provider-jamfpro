@@ -53,6 +53,9 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 	}
 
 	if mode == "update" && existingProfile != nil {
+
+		log.Printf("[DEBUG] Configuration Profile update operation initiated.")
+
 		var existingPlist map[string]interface{}
 		var newPlist map[string]interface{}
 

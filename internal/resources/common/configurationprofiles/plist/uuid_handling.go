@@ -1,6 +1,9 @@
 package plist
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+)
 
 // ExtractUUIDs recursively traverses a plist structure represented as nested maps and slices,
 // extracting all occurrences of `PayloadUUID` and associating them with their respective
@@ -9,6 +12,8 @@ import "fmt"
 // This function is typically used to map existing UUIDs from a configuration profile
 // retrieved from Jamf Pro.
 func ExtractUUIDs(data interface{}, uuidMap map[string]string) {
+	log.Printf("[DEBUG] Extracting existing payload UUID's and PayloadDisplayName.")
+
 	switch v := data.(type) {
 	case map[string]interface{}:
 		displayName, hasDisplayName := v["PayloadDisplayName"].(string)
@@ -39,6 +44,8 @@ func ExtractUUIDs(data interface{}, uuidMap map[string]string) {
 // This function ensures that configuration profile UUIDs remain consistent with Jamf Pro
 // expectations during Terraform update operations.
 func UpdateUUIDs(data interface{}, uuidMap map[string]string) {
+	log.Printf("[DEBUG] Injecting Jamf Pro post creation configuration profile PayloadUUID and PayloadIdentifier.")
+
 	switch v := data.(type) {
 	case map[string]interface{}:
 		displayName, hasDisplayName := v["PayloadDisplayName"].(string)
@@ -69,7 +76,7 @@ func UpdateUUIDs(data interface{}, uuidMap map[string]string) {
 // `PayloadIdentifier`) between two plist structures (`existingPlist` and `newPlist`) to
 // confirm they match exactly. It accumulates any differences found into the provided
 // `mismatches` slice, describing the exact path and mismatched values.
-// This validation step ensures Terraform updates maintain consistency with Jamf Pro’s
+// This validation step ensures Terraform updates maintain consistency with Jamf Pro's
 // UUID requirements and detects unintended modifications.
 func ValidatePayloadUUIDsMatch(existingPlist, newPlist interface{}, path string, mismatches *[]string) {
 	existingMap, existingOk := existingPlist.(map[string]interface{})
@@ -108,5 +115,10 @@ func ValidatePayloadUUIDsMatch(existingPlist, newPlist interface{}, path string,
 				ValidatePayloadUUIDsMatch(existingSlice[i], newSlice[i], fmt.Sprintf("%s[%d]", path, i), mismatches)
 			}
 		}
+	}
+
+	// If this is the root level call (empty path indicates root) and no mismatches were found
+	if path == "Payload" && len(*mismatches) == 0 {
+		log.Printf("[DEBUG] No config profile UUID mismatches found between existing and new plist. Injection was successful.")
 	}
 }
