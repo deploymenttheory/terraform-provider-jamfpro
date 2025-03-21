@@ -69,7 +69,8 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 			Level:              d.Get("level").(string),
 			UUID:               d.Get("uuid").(string),
 			RedeployOnUpdate:   d.Get("redeploy_on_update").(string),
-			Payloads:           d.Get("payloads").(string),
+			// HTML escaping needed as plist payload may include special chars (e.g., & → &amp;)
+			Payloads: html.EscapeString(d.Get("payloads").(string)),
 		},
 	}
 
@@ -93,7 +94,7 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		// Decode existing payload from Jamf Pro
 		existingPayload := existingProfile.General.Payloads
 		if err := plist.NewDecoder(strings.NewReader(existingPayload)).Decode(&existingPlist); err != nil {
-			return nil, fmt.Errorf("failed to decode existing plist: %v", err)
+			return nil, fmt.Errorf("failed to decode existing plist payload stored in jamf pro for update operation: %v", err)
 		}
 
 		// Decode new payload from Terraform state
@@ -101,7 +102,7 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		// (e.g., &lt;, &gt;, &amp;) to safely store XML as a string within JSON-based Terraform state.
 		newPayload := html.UnescapeString(resource.General.Payloads)
 		if err := plist.NewDecoder(strings.NewReader(newPayload)).Decode(&newPlist); err != nil {
-			return nil, fmt.Errorf("failed to decode new plist: %v", err)
+			return nil, fmt.Errorf("failed to decode new plist payload from terraform state for update operation: %v", err)
 		}
 
 		// Insight:
@@ -131,7 +132,7 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		encoder := plist.NewEncoder(&buf)
 		encoder.Indent("    ")
 		if err := encoder.Encode(newPlist); err != nil {
-			return nil, fmt.Errorf("failed to encode updated plist: %v", err)
+			return nil, fmt.Errorf("failed to encode plist payload with injected PayloadUUID and PayloadIdentifier: %v", err)
 		}
 
 		resource.General.Payloads = buf.String()
