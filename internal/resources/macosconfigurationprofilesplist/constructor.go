@@ -50,16 +50,6 @@ import (
 func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode string, meta interface{}) (*jamfpro.ResourceMacOSConfigurationProfile, error) {
 	var existingProfile *jamfpro.ResourceMacOSConfigurationProfile
 
-	if mode == "update" {
-		client := meta.(*jamfpro.Client)
-		resourceID := d.Id()
-		var err error
-		existingProfile, err = client.GetMacOSConfigurationProfileByID(resourceID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get existing profile: %v", err)
-		}
-	}
-
 	resource := &jamfpro.ResourceMacOSConfigurationProfile{
 		General: jamfpro.MacOSConfigurationProfileSubsetGeneral{
 			Name:               d.Get("name").(string),
@@ -85,6 +75,16 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 	if v, ok := d.GetOk("self_service"); ok {
 		selfServiceData := v.([]interface{})[0].(map[string]interface{})
 		resource.SelfService = constructMacOSConfigurationProfileSubsetSelfService(selfServiceData)
+	}
+
+	if mode == "update" {
+		client := meta.(*jamfpro.Client)
+		resourceID := d.Id()
+		var err error
+		existingProfile, err = client.GetMacOSConfigurationProfileByID(resourceID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get existing configuration profile by ID for update operation: %v", err)
+		}
 	}
 
 	if mode == "update" && existingProfile != nil {
