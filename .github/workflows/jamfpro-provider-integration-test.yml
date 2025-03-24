@@ -35,7 +35,7 @@ jobs:
 
       - name: Build TFVARS File
         run: |
-          cd ./terraform-provider-jamfpro/tests/terraform
+          cd ./terraform-provider-jamfpro/testing
           cat << EOF > terraform.tfvars
           jamfpro_instance_fqdn="${{ secrets.TESTING_JAMFPRO_INSTANCE_FQDN }}"
           jamfpro_auth_method="oauth2"
@@ -50,7 +50,7 @@ jobs:
           
       - name: Run Tests
         run: |  
-          cd ./terraform-provider-jamfpro/tests/terraform
+          cd ./terraform-provider-jamfpro/testing
           terraform fmt
           terraform init
           terraform test
@@ -58,7 +58,7 @@ jobs:
       - name: Diff cascade - Terraform Plan (Pre-Apply)
         id: plan_pre
         run: |
-          cd ./terraform-provider-jamfpro/tests/terraform
+          cd ./terraform-provider-jamfpro/testing
           chmod +x ./diff_cascade_check.sh
           ./diff_cascade_check.sh
           
