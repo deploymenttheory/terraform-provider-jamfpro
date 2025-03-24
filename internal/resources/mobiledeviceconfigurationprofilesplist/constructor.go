@@ -16,19 +16,39 @@ import (
 	"howett.net/plist"
 )
 
-// constructJamfProMobileDeviceConfigurationProfile constructs a ResourceMobileDeviceConfigurationProfile object from the provided schema data.
+// constructJamfProMobileDeviceConfigurationProfilePlist constructs a ResourceMobileDeviceConfigurationProfile object from schema data.
+// It supports two modes:
+//   - create: Builds profile from schema data only
+//   - update: Fetches existing profile from Jamf Pro, extracts PayloadUUID/PayloadIdentifier values from existing plist,
+//     injects them into the new plist to maintain UUID continuity
+//
+// The function:
+// 1. For update mode:
+//   - Retrieves existing profile from Jamf Pro API
+//   - Decodes existing plist to extract UUIDs
+//
+// 2. Constructs base profile from schema data (name, description, etc)
+// 3. Builds scope and self-service sections if configured
+// 4. For update mode:
+//   - Maps existing UUIDs by PayloadDisplayName
+//   - Updates PayloadUUID/PayloadIdentifier in new plist to match existing
+//   - Re-encodes updated plist
+//
+// Parameters:
+// - d: Schema ResourceData containing configuration
+// - mode: "create" or "update" to control UUID handling
+// - meta: Provider meta containing client for API calls
+//
+// Returns:
+// - Constructed ResourceMacOSConfigurationProfile
+// - Error if construction or API calls fail
+//
+// Jamf Pro modifies the top-level PayloadUUID and PayloadIdentifier upon profile creation.
+// Nested payload identifiers and UUIDs remain unchanged from the original request.
+// Therefore, when performing profile updates, only top-level PayloadUUID and PayloadIdentifier
+// need to be synced from Jamf Pro's existing profile state.
 func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceData, mode string, meta interface{}) (*jamfpro.ResourceMobileDeviceConfigurationProfile, error) {
 	var existingProfile *jamfpro.ResourceMobileDeviceConfigurationProfile
-
-	if mode == "update" {
-		client := meta.(*jamfpro.Client)
-		resourceID := d.Id()
-		var err error
-		existingProfile, err = client.GetMobileDeviceConfigurationProfileByID(resourceID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get existing profile: %v", err)
-		}
-	}
 
 	resource := &jamfpro.ResourceMobileDeviceConfigurationProfile{
 		General: jamfpro.MobileDeviceConfigurationProfileSubsetGeneral{
@@ -38,8 +58,7 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 			UUID:             d.Get("uuid").(string),
 			DeploymentMethod: d.Get("deployment_method").(string),
 			RedeployOnUpdate: d.Get("redeploy_on_update").(string),
-			// Use html.EscapeString to escape the payloads content
-			Payloads: html.EscapeString(d.Get("payloads").(string)),
+			// We'll handle payloads att differently based on mode
 		},
 	}
 
@@ -52,30 +71,39 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 		resource.Scope = constructMobileDeviceConfigurationProfileSubsetScope(scopeData)
 	}
 
-	if mode == "update" && existingProfile != nil {
+	// if update get the existing config profile from jamf
+	if mode == "update" {
+		client := meta.(*jamfpro.Client)
+		resourceID := d.Id()
+		var err error
+		existingProfile, err = client.GetMobileDeviceConfigurationProfileByID(resourceID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get existing configuration profile by ID for update operation: %v", err)
+		}
+	}
 
-		log.Printf("[DEBUG] Configuration Profile update operation initiated.")
+	if mode != "update" {
 
+		resource.General.Payloads = html.EscapeString(d.Get("payloads").(string))
+
+	} else if mode == "update" && existingProfile != nil {
 		var existingPlist map[string]interface{}
 		var newPlist map[string]interface{}
 
-		// Decode existing payload from Jamf Pro
+		// Decode existing payload from Jamf Pro which has the jamf pro post processed uuid's etc
 		existingPayload := existingProfile.General.Payloads
 		if err := plist.NewDecoder(strings.NewReader(existingPayload)).Decode(&existingPlist); err != nil {
-			return nil, fmt.Errorf("failed to decode existing plist: %v", err)
+			return nil, fmt.Errorf("failed to decode existing plist payload stored in jamf pro for update operation: %v", err)
 		}
 
-		// Decode new payload from Terraform
-		newPayload := html.UnescapeString(resource.General.Payloads)
+		// Decode payloads field from Terraform state ready for injection
+		newPayload := d.Get("payloads").(string)
 		if err := plist.NewDecoder(strings.NewReader(newPayload)).Decode(&newPlist); err != nil {
-			return nil, fmt.Errorf("failed to decode new plist: %v", err)
+			return nil, fmt.Errorf("failed to decode new plist payload from terraform state for update operation: %v", err)
 		}
 
-		// Insight:
 		// Jamf Pro modifies only the top-level PayloadUUID and PayloadIdentifier upon profile creation.
 		// All nested payload UUIDs/identifiers remain unchanged.
-		// So we must copy Jamf Pro's top-level identifiers into the newPlist before validation.
-
 		// Copy top-level PayloadUUID and PayloadIdentifier from existing (Jamf Pro) to new (Terraform)
 		newPlist["PayloadUUID"] = existingPlist["PayloadUUID"]
 		newPlist["PayloadIdentifier"] = existingPlist["PayloadIdentifier"]
@@ -85,7 +113,6 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 		helpers.ExtractUUIDs(existingPlist, uuidMap, true)
 		helpers.UpdateUUIDs(newPlist, uuidMap, true)
 
-		// Validate the PayloadUUIDs match exactly now
 		var mismatches []string
 		helpers.ValidatePayloadUUIDsMatch(existingPlist, newPlist, "Payload", &mismatches)
 
@@ -93,23 +120,24 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 			return nil, fmt.Errorf("configuration profile UUID mismatch found:\n%s", strings.Join(mismatches, "\n"))
 		}
 
-		// Encode the correctly updated plist
+		// Encode the plist with injections
 		var buf bytes.Buffer
 		encoder := plist.NewEncoder(&buf)
 		encoder.Indent("    ")
 		if err := encoder.Encode(newPlist); err != nil {
-			return nil, fmt.Errorf("failed to encode updated plist: %v", err)
+			return nil, fmt.Errorf("failed to encode plist payload with injected PayloadUUID and PayloadIdentifier: %v", err)
 		}
 
+		// Since we're sending Plist formatted as xml (payload) inside XML (request), we need to HTML-escape for plist within xml once.
 		resource.General.Payloads = html.EscapeString(buf.String())
 	}
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Mobile Device Configuration Profile '%s' to XML: %v", resource.General.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro macOS Configuration Profile '%s' to XML: %v", resource.General.Name, err)
 	}
 
-	log.Printf("[DEBUG] Constructed Jamf Pro Mobile Device Configuration Profile XML:\n%s\n", string(resourceXML))
+	log.Printf("[DEBUG] Constructed Jamf Pro macOS Configuration Profile XML:\n%s\n", string(resourceXML))
 
 	return resource, nil
 }

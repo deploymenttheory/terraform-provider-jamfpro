@@ -4,7 +4,6 @@ package macosconfigurationprofilesplist
 import (
 	"context"
 	"fmt"
-	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/datavalidators"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/plist"
@@ -30,9 +29,6 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 			return err
 		}
 
-		if err := validatePlistStructure(ctx, diff, i); err != nil {
-			return err
-		}
 	}
 
 	if err := validateSelfServiceCategories(ctx, diff, i); err != nil {
@@ -117,25 +113,6 @@ func validatePlistPayloadScope(_ context.Context, diff *schema.ResourceDiff, _ i
 
 	if payloadScope != level {
 		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': the hcl 'level' attribute (%s) does not match the 'PayloadScope' in the root dict of the plist (%s); the values must be identical", resourceName, level, payloadScope)
-	}
-
-	return nil
-}
-
-// validatePlistStructure checks for common structural malformations in the raw payload XML.
-func validatePlistStructure(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
-	resourceName := diff.Get("name").(string)
-	payload := diff.Get("payloads").(string)
-
-	// Look for cases where <dict> appears before <plist>
-	plistTag := regexp.MustCompile(`(?i)<plist[^>]*>`)
-	dictTag := regexp.MustCompile(`(?i)<dict>`)
-
-	plistIndex := plistTag.FindStringIndex(payload)
-	dictIndex := dictTag.FindStringIndex(payload)
-
-	if dictIndex != nil && plistIndex != nil && dictIndex[0] < plistIndex[0] {
-		return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': malformed XML — <dict> appears before <plist>. The <plist> element must come first in the payload", resourceName)
 	}
 
 	return nil

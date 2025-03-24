@@ -76,7 +76,7 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		resource.SelfService = constructMacOSConfigurationProfileSubsetSelfService(selfServiceData)
 	}
 
-	// Add debug to see existing profile
+	// if update get the existing config profile from jamf
 	if mode == "update" {
 		client := meta.(*jamfpro.Client)
 		resourceID := d.Id()
@@ -85,11 +85,6 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		if err != nil {
 			return nil, fmt.Errorf("failed to get existing configuration profile by ID for update operation: %v", err)
 		}
-
-		// Debug: Print the stored payload from Jamf Pro
-		fmt.Println("====== JAMF PRO STORED PAYLOAD ======")
-		fmt.Println(existingProfile.General.Payloads)
-		fmt.Println("=====================================")
 	}
 
 	if mode != "update" {
@@ -140,11 +135,6 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 
 		// Since we're sending Plist formatted as xml (payload) inside XML (request), we need to HTML-escape for plist within xml once.
 		resource.General.Payloads = html.EscapeString(buf.String())
-
-		// 🔍 Debug: Print the final plist payload for inspection
-		fmt.Println("====== Final Payload Plist (after UUID injection) ======")
-		fmt.Println(resource.General.Payloads)
-		fmt.Println("========================================================")
 	}
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
