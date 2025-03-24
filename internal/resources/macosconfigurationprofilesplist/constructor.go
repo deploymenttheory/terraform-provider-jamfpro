@@ -49,6 +49,7 @@ import (
 // need to be synced from Jamf Pro's existing profile state.
 func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode string, meta interface{}) (*jamfpro.ResourceMacOSConfigurationProfile, error) {
 	var existingProfile *jamfpro.ResourceMacOSConfigurationProfile
+	var buf bytes.Buffer
 
 	resource := &jamfpro.ResourceMacOSConfigurationProfile{
 		General: jamfpro.MacOSConfigurationProfileSubsetGeneral{
@@ -126,16 +127,20 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		}
 
 		// Encode the plist with injections
-		var buf bytes.Buffer
+
 		encoder := plist.NewEncoder(&buf)
 		encoder.Indent("    ")
 		if err := encoder.Encode(newPlist); err != nil {
 			return nil, fmt.Errorf("failed to encode plist payload with injected PayloadUUID and PayloadIdentifier: %v", err)
 		}
 
-		// Since we're sending Plist formatted as xml (payload) inside XML (request), we need to HTML-escape for plist within xml once.
-		resource.General.Payloads = preMarshallingXMLPayloadEscaping(buf.String())
-
+		// Since we're embedding a Plist (which is XML) inside another XML document (the request),
+		// we need to properly escape XML special characters to maintain document validity.
+		// We first unescape any quotes to avoid double-escaping, then apply XML escape handling for &.
+		if buf.Len() > 0 {
+			unquotedContent := unescapeQuotes(buf.String())
+			resource.General.Payloads = preMarshallingXMLPayloadEscaping(unquotedContent)
+		}
 	}
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
@@ -150,8 +155,15 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 	return resource, nil
 }
 
+// unescapeQuotes unescapes only double quotes from XML content
+func unescapeQuotes(input string) string {
+	input = strings.ReplaceAll(input, "&quot;", "\"")
+	input = strings.ReplaceAll(input, "&#34;", "\"")
+	return input
+}
+
 // preMarshallingXMLPayloadEscaping ensures that the XML marshaller (used in xml.MarshalIndent)
-// doesn't choke on raw '&' characters inside the payload
+// doesn't choke on special XML characters (&) inside the payload
 func preMarshallingXMLPayloadEscaping(input string) string {
 	input = strings.ReplaceAll(input, "&", "&amp;")
 	return input
