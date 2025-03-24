@@ -11,28 +11,32 @@ import (
 // If a `PayloadDisplayName` is absent at the root level, it uses the special key "root".
 // This function is typically used to map existing UUIDs from a configuration profile
 // retrieved from Jamf Pro.
-func ExtractUUIDs(data interface{}, uuidMap map[string]string) {
-	log.Printf("[DEBUG] Extracting existing payload UUID's and PayloadDisplayName.")
+func ExtractUUIDs(data interface{}, uuidMap map[string]string, isRoot bool) {
+	log.Printf("[DEBUG] Extracting existing payload UUIDs and PayloadDisplayName.")
 
 	switch v := data.(type) {
 	case map[string]interface{}:
-		displayName, hasDisplayName := v["PayloadDisplayName"].(string)
 		uuid, hasUUID := v["PayloadUUID"].(string)
+		displayName, hasDisplayName := v["PayloadDisplayName"].(string)
 
-		if hasDisplayName && hasUUID {
-			uuidMap[displayName] = uuid
-		} else if hasUUID {
-			// For root level, use special key
-			uuidMap["root"] = uuid
+		if hasUUID {
+			if isRoot {
+				uuidMap["root"] = uuid
+				log.Printf("[DEBUG] Found root PayloadUUID: %s", uuid)
+			} else if hasDisplayName {
+				uuidMap[displayName] = uuid
+				log.Printf("[DEBUG] Found inner PayloadUUID for '%s': %s", displayName, uuid)
+			}
 		}
 
-		// Recursively process all values
+		// Recurse
 		for _, val := range v {
-			ExtractUUIDs(val, uuidMap)
+			ExtractUUIDs(val, uuidMap, false)
 		}
+
 	case []interface{}:
 		for _, item := range v {
-			ExtractUUIDs(item, uuidMap)
+			ExtractUUIDs(item, uuidMap, false)
 		}
 	}
 }
@@ -43,31 +47,32 @@ func ExtractUUIDs(data interface{}, uuidMap map[string]string) {
 // is absent at the root level, it uses the special key "root" from the map.
 // This function ensures that configuration profile UUIDs remain consistent with Jamf Pro
 // expectations during Terraform update operations.
-func UpdateUUIDs(data interface{}, uuidMap map[string]string) {
+func UpdateUUIDs(data interface{}, uuidMap map[string]string, isRoot bool) {
 	log.Printf("[DEBUG] Injecting Jamf Pro post creation configuration profile PayloadUUID and PayloadIdentifier.")
 
 	switch v := data.(type) {
 	case map[string]interface{}:
 		displayName, hasDisplayName := v["PayloadDisplayName"].(string)
-		if hasDisplayName {
-			if uuid, exists := uuidMap[displayName]; exists {
-				v["PayloadUUID"] = uuid
-				v["PayloadIdentifier"] = uuid // Also update identifier
-			}
-		} else {
-			// For root level
+
+		// Only update root-level UUID if explicitly present in the map as "root"
+		if isRoot {
 			if uuid, exists := uuidMap["root"]; exists {
 				v["PayloadUUID"] = uuid
+				v["PayloadIdentifier"] = uuid
+			}
+		} else if hasDisplayName {
+			if uuid, exists := uuidMap[displayName]; exists {
+				v["PayloadUUID"] = uuid
+				v["PayloadIdentifier"] = uuid
 			}
 		}
 
-		// Recursively process all values
 		for _, val := range v {
-			UpdateUUIDs(val, uuidMap)
+			UpdateUUIDs(val, uuidMap, false)
 		}
 	case []interface{}:
 		for _, item := range v {
-			UpdateUUIDs(item, uuidMap)
+			UpdateUUIDs(item, uuidMap, false)
 		}
 	}
 }

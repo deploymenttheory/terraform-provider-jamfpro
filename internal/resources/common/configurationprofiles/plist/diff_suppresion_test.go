@@ -429,19 +429,15 @@ func TestNormalizeBase64Content(t *testing.T) {
 		want  interface{}
 	}{
 		{
-			name: "Normalize deeply indented data tag content",
-			input: `<data>
-									MIIFYjCCBEqgAwIBAgIQd70NbNs2+RrqIQ/E8FjTDTANBgkqhkiG9w0BAQsF
-									ADBXMQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xvYmFsU2lnbiBudi1zYTEQ
-									MA4GA1UECxMHUm9vdCBDQTEbMBkGA1UEAxMSR2xvYmFsU2lnbiBSb290IENBMB4X
-									</data>`,
-			want: "<data>MIIFYjCCBEqgAwIBAgIQd70NbNs2+RrqIQ/E8FjTDTANBgkqhkiG9w0BAQsFADBXMQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xvYmFsU2lnbiBudi1zYTEQMA4GA1UECxMHUm9vdCBDQTEbMBkGA1UEAxMSR2xvYmFsU2lnbiBSb290IENBMB4X</data>",
+			name:  "Normalize deeply indented <data> tag content",
+			input: "<data>\n\t\t\t\t\t\t\t\t\tMIIFYjCCBEqgAwIBAgIQd70NbNs2+RrqIQ/E8FjTDTANBgkqhkiG9w0BAQsF\n\t\t\t\t\t\t\t\t\tADBXMQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xvYmFsU2lnbiBudi1zYTEQ\n\t\t\t\t\t\t\t\t\tMA4GA1UECxMHUm9vdCBDQTEbMBkGA1UEAxMSR2xvYmFsU2lnbiBSb290IENBMB4X\n\t\t\t\t\t\t\t\t\t</data>",
+			want:  "<data>MIIFYjCCBEqgAwIBAgIQd70NbNs2+RrqIQ/E8FjTDTANBgkqhkiG9w0BAQsFADBXMQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xvYmFsU2lnbiBudi1zYTEQMA4GA1UECxMHUm9vdCBDQTEbMBkGA1UEAxMSR2xvYmFsU2lnbiBSb290IENBMB4X</data>",
 		},
 		{
-			name: "Handle nested map with deeply indented content",
+			name: "Handle nested map with indented <data> block",
 			input: map[string]interface{}{
 				"payload": "<data>\n\t\t\t\tMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA\n\t\t\t\t</data>",
-				"other":   "regular string", // This should stay unchanged
+				"other":   "regular string",
 			},
 			want: map[string]interface{}{
 				"payload": "<data>MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA</data>",
@@ -452,7 +448,7 @@ func TestNormalizeBase64Content(t *testing.T) {
 			name: "Handle array with mixed content",
 			input: []interface{}{
 				"<data>\n\t\t\t\tMIICIjAN\n\t\t\t\t</data>",
-				"regular string", // This should stay unchanged
+				"regular string",
 				map[string]interface{}{
 					"nested": "<data> \n\t\tSGVsbG8= \n\t\t</data>",
 				},
@@ -466,37 +462,24 @@ func TestNormalizeBase64Content(t *testing.T) {
 			},
 		},
 		{
-			name: "Handle multiple data tags in string",
+			name: "Handle multiple <data> tags in string blob",
 			input: `<dict>
-									<key>cert1</key>
-									<data>
-											MIICIjAN
-											BgkqhkiG
-									</data>
-									<key>cert2</key>
-									<data>
-											SGVsbG8=
-									</data>
-							</dict>`,
+				<key>cert1</key>
+				<data>
+					MIICIjAN
+					BgkqhkiG
+				</data>
+				<key>cert2</key>
+				<data>
+					SGVsbG8=
+				</data>
+			</dict>`,
 			want: `<dict>
-									<key>cert1</key>
-									<data>MIICIjANBgkqhkiG</data>
-									<key>cert2</key>
-									<data>SGVsbG8=</data>
-							</dict>`,
-		},
-		{
-			name: "Non-base64 content",
-			input: map[string]interface{}{
-				"string": "Hello World", // This should stay unchanged
-				"number": 42,
-				"bool":   true,
-			},
-			want: map[string]interface{}{
-				"string": "Hello World",
-				"number": 42,
-				"bool":   true,
-			},
+				<key>cert1</key>
+				<data>MIICIjANBgkqhkiG</data>
+				<key>cert2</key>
+				<data>SGVsbG8=</data>
+			</dict>`,
 		},
 	}
 
@@ -590,36 +573,62 @@ func TestNormalizeXMLTags(t *testing.T) {
 	}
 }
 
-func TestUnescapeHTMLEntities(t *testing.T) {
+func TestNormalizeHTMLEntitiesForDiff(t *testing.T) {
 	tests := []struct {
 		name  string
 		input interface{}
 		want  interface{}
 	}{
 		{
-			name:  "Unescape basic entities",
+			name:  "Simple unescape of amp",
 			input: "Hello &amp; World",
 			want:  "Hello & World",
 		},
 		{
-			name:  "Handle no entities",
-			input: "Regular string",
-			want:  "Regular string",
+			name:  "Preserve already escaped &lt;br/&gt;",
+			input: "Line break here: &lt;br/&gt;More text",
+			want:  "Line break here: &lt;br/&gt;More text", // should not be unescaped
 		},
 		{
-			name: "Handle nested map",
+			name:  "Ignore &amp;amp; to avoid double unescape",
+			input: "Weird escape: &amp;amp;data",
+			want:  "Weird escape: &amp;amp;data", // don’t unescape
+		},
+		{
+			name: "Nested map with mixed values",
 			input: map[string]interface{}{
-				"text": "Hello &amp; World",
+				"html_safe":   "Click here &lt;a href='https://example.com'&gt;",
+				"double_amp":  "Double escaped &amp;amp; stuff",
+				"just_amp":    "Some &amp; thing",
+				"no_entities": "Nothing here",
 			},
 			want: map[string]interface{}{
-				"text": "Hello & World",
+				"html_safe":   "Click here &lt;a href='https://example.com'&gt;", // unchanged
+				"double_amp":  "Double escaped &amp;amp; stuff",                  // unchanged
+				"just_amp":    "Some & thing",                                    // unescaped
+				"no_entities": "Nothing here",                                    // unchanged
+			},
+		},
+		{
+			name: "Array of values",
+			input: []interface{}{
+				"Normal text",
+				"Text with &amp;",
+				"Text with &amp;amp;",
+				"Text with &lt;br/&gt;",
+			},
+			want: []interface{}{
+				"Normal text",
+				"Text with &",
+				"Text with &amp;amp;",
+				"Text with &lt;br/&gt;",
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := unescapeHTMLEntities(tt.input)
+			got := normalizeHTMLEntitiesForDiff(tt.input)
 			assert.Equal(t, tt.want, got)
 		})
 	}

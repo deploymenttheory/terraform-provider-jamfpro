@@ -59,8 +59,7 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 			Level:              d.Get("level").(string),
 			UUID:               d.Get("uuid").(string),
 			RedeployOnUpdate:   d.Get("redeploy_on_update").(string),
-			// HTML escaping needed as plist payload may include special chars (e.g., & → &amp;)
-			Payloads: html.EscapeString(d.Get("payloads").(string)),
+			// We'll handle payloads att differently based on mode
 		},
 	}
 
@@ -77,6 +76,7 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		resource.SelfService = constructMacOSConfigurationProfileSubsetSelfService(selfServiceData)
 	}
 
+	// Add debug to see existing profile
 	if mode == "update" {
 		client := meta.(*jamfpro.Client)
 		resourceID := d.Id()
@@ -85,41 +85,44 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		if err != nil {
 			return nil, fmt.Errorf("failed to get existing configuration profile by ID for update operation: %v", err)
 		}
+
+		// Debug: Print the stored payload from Jamf Pro
+		fmt.Println("====== JAMF PRO STORED PAYLOAD ======")
+		fmt.Println(existingProfile.General.Payloads)
+		fmt.Println("=====================================")
 	}
 
-	if mode == "update" && existingProfile != nil {
+	if mode != "update" {
+
+		resource.General.Payloads = html.EscapeString(d.Get("payloads").(string))
+
+	} else if mode == "update" && existingProfile != nil {
 		var existingPlist map[string]interface{}
 		var newPlist map[string]interface{}
 
-		// Decode existing payload from Jamf Pro
+		// Decode existing payload from Jamf Pro which has the jamf pro post processed uuid's etc
 		existingPayload := existingProfile.General.Payloads
 		if err := plist.NewDecoder(strings.NewReader(existingPayload)).Decode(&existingPlist); err != nil {
 			return nil, fmt.Errorf("failed to decode existing plist payload stored in jamf pro for update operation: %v", err)
 		}
 
-		// Decode new payload from Terraform state
-		// require html.UnescapeString because the payload XML stored in Terraform state has been HTML-escaped
-		// (e.g., &lt;, &gt;, &amp;) to safely store XML as a string within JSON-based Terraform state.
-		newPayload := html.UnescapeString(resource.General.Payloads)
+		// Decode payloads field from Terraform state ready for injection
+		newPayload := d.Get("payloads").(string)
 		if err := plist.NewDecoder(strings.NewReader(newPayload)).Decode(&newPlist); err != nil {
 			return nil, fmt.Errorf("failed to decode new plist payload from terraform state for update operation: %v", err)
 		}
 
-		// Insight:
 		// Jamf Pro modifies only the top-level PayloadUUID and PayloadIdentifier upon profile creation.
 		// All nested payload UUIDs/identifiers remain unchanged.
-		// So we must copy Jamf Pro's top-level identifiers into the newPlist before validation.
-
 		// Copy top-level PayloadUUID and PayloadIdentifier from existing (Jamf Pro) to new (Terraform)
 		newPlist["PayloadUUID"] = existingPlist["PayloadUUID"]
 		newPlist["PayloadIdentifier"] = existingPlist["PayloadIdentifier"]
 
 		// Ensure nested UUIDs are also matched properly
 		uuidMap := make(map[string]string)
-		helpers.ExtractUUIDs(existingPlist, uuidMap)
-		helpers.UpdateUUIDs(newPlist, uuidMap)
+		helpers.ExtractUUIDs(existingPlist, uuidMap, true)
+		helpers.UpdateUUIDs(newPlist, uuidMap, true)
 
-		// Validate the PayloadUUIDs match exactly now
 		var mismatches []string
 		helpers.ValidatePayloadUUIDsMatch(existingPlist, newPlist, "Payload", &mismatches)
 
@@ -127,7 +130,7 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 			return nil, fmt.Errorf("configuration profile UUID mismatch found:\n%s", strings.Join(mismatches, "\n"))
 		}
 
-		// Encode the correctly updated plist
+		// Encode the plist with injections
 		var buf bytes.Buffer
 		encoder := plist.NewEncoder(&buf)
 		encoder.Indent("    ")
@@ -135,7 +138,13 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 			return nil, fmt.Errorf("failed to encode plist payload with injected PayloadUUID and PayloadIdentifier: %v", err)
 		}
 
-		resource.General.Payloads = buf.String()
+		// Since we're sending Plist formatted as xml (payload) inside XML (request), we need to HTML-escape for plist within xml once.
+		resource.General.Payloads = html.EscapeString(buf.String())
+
+		// 🔍 Debug: Print the final plist payload for inspection
+		fmt.Println("====== Final Payload Plist (after UUID injection) ======")
+		fmt.Println(resource.General.Payloads)
+		fmt.Println("========================================================")
 	}
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")

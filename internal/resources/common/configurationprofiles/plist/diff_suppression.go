@@ -39,8 +39,8 @@ func ProcessConfigurationProfileForDiffSuppression(plistData string, fieldsToRem
 	// Step 5: Normalize empty strings
 	normalizedStrings := normalizeEmptyStrings(normalizedXML)
 
-	// Step 6: Unescape HTML Entities
-	normalizedData := unescapeHTMLEntities(normalizedStrings)
+	// Step 6: normalize HTML Entities
+	normalizedData := normalizeHTMLEntitiesForDiff(normalizedStrings)
 
 	// Step 7: Sort keys
 	sortedData := SortPlistKeys(normalizedData.(map[string]interface{}))
@@ -214,17 +214,54 @@ func normalizeEmptyStrings(data interface{}) interface{} {
 // unescapeHTMLEntities applies html.UnescapeString recursively
 // jamfpro configuration profiles contain html entities that need
 // to be unescaped for comparison
-func unescapeHTMLEntities(data interface{}) interface{} {
+//
+//	func unescapeHTMLEntities(data interface{}) interface{} {
+//		switch v := data.(type) {
+//		case string:
+//			return html.UnescapeString(v)
+//		case map[string]interface{}:
+//			for key, value := range v {
+//				v[key] = unescapeHTMLEntities(value)
+//			}
+//		case []interface{}:
+//			for i, item := range v {
+//				v[i] = unescapeHTMLEntities(item)
+//			}
+//		}
+//		return data
+//	}
+//
+// unescapeHTMLEntities applies html.UnescapeString recursively,
+// but avoids double-unescaping or unescaping intentionally escaped XML entities.
+// safeHTMLEntity is a regex to detect a single-level valid entity like &lt;, &amp;, etc.
+var safeHTMLEntity = regexp.MustCompile(`&[a-zA-Z]+;`)
+
+// normalizeHTMLEntitiesForDiff walks data and selectively unescapes ONLY if
+// doing so does not introduce double-unescaping or alter valid XML semantics.
+// This is used ONLY for diff suppression.
+func normalizeHTMLEntitiesForDiff(data interface{}) interface{} {
 	switch v := data.(type) {
 	case string:
-		return html.UnescapeString(v)
+		// Detect suspicious patterns that may have been double-escaped
+		if strings.Contains(v, "&amp;") && !strings.Contains(v, "&amp;amp;") {
+			// Try unescaping once
+			unescaped := html.UnescapeString(v)
+
+			// If unescaping results in removal of valid entities, keep original
+			if safeHTMLEntity.MatchString(unescaped) || strings.Contains(unescaped, "<") || strings.Contains(unescaped, ">") {
+				return v // leave as-is, probably a correct escape
+			}
+			return unescaped
+		}
+		return v
+
 	case map[string]interface{}:
-		for key, value := range v {
-			v[key] = unescapeHTMLEntities(value)
+		for key, val := range v {
+			v[key] = normalizeHTMLEntitiesForDiff(val)
 		}
 	case []interface{}:
-		for i, item := range v {
-			v[i] = unescapeHTMLEntities(item)
+		for i, val := range v {
+			v[i] = normalizeHTMLEntitiesForDiff(val)
 		}
 	}
 	return data

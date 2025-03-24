@@ -82,8 +82,8 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 
 		// Ensure nested UUIDs are also matched properly
 		uuidMap := make(map[string]string)
-		helpers.ExtractUUIDs(existingPlist, uuidMap)
-		helpers.UpdateUUIDs(newPlist, uuidMap)
+		helpers.ExtractUUIDs(existingPlist, uuidMap, true)
+		helpers.UpdateUUIDs(newPlist, uuidMap, true)
 
 		// Validate the PayloadUUIDs match exactly now
 		var mismatches []string
@@ -101,7 +101,7 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 			return nil, fmt.Errorf("failed to encode updated plist: %v", err)
 		}
 
-		resource.General.Payloads = buf.String()
+		resource.General.Payloads = html.EscapeString(buf.String())
 	}
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
