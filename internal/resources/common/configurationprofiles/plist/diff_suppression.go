@@ -236,24 +236,26 @@ func normalizeEmptyStrings(data interface{}) interface{} {
 // safeHTMLEntity is a regex to detect a single-level valid entity like &lt;, &amp;, etc.
 var safeHTMLEntity = regexp.MustCompile(`&[a-zA-Z]+;`)
 
-// normalizeHTMLEntitiesForDiff walks data and selectively unescapes ONLY if
-// doing so does not introduce double-unescaping or alter valid XML semantics.
-// This is used ONLY for diff suppression.
 func normalizeHTMLEntitiesForDiff(data interface{}) interface{} {
 	switch v := data.(type) {
 	case string:
-		// Detect suspicious patterns that may have been double-escaped
-		if strings.Contains(v, "&amp;") && !strings.Contains(v, "&amp;amp;") {
-			// Try unescaping once
-			unescaped := html.UnescapeString(v)
+		// If it's wrapped in <string> tags, strip them for evaluation, but preserve during output
+		str := strings.TrimSpace(v)
+		if strings.Contains(str, "&") {
+			// Unescape once
+			unescaped := html.UnescapeString(str)
 
-			// If unescaping results in removal of valid entities, keep original
-			if safeHTMLEntity.MatchString(unescaped) || strings.Contains(unescaped, "<") || strings.Contains(unescaped, ">") {
-				return v // leave as-is, probably a correct escape
+			// If unescaping results in a valid single-level entity, don't double-unescape
+			if strings.Contains(unescaped, "<") || strings.Contains(unescaped, ">") || safeHTMLEntity.MatchString(unescaped) {
+				return str
 			}
-			return unescaped
+
+			// Catch common double-escape: &amp;amp; -> &amp;
+			if strings.Contains(str, "&amp;") && !strings.Contains(str, "&amp;amp;") {
+				return unescaped
+			}
 		}
-		return v
+		return str
 
 	case map[string]interface{}:
 		for key, val := range v {
@@ -264,6 +266,7 @@ func normalizeHTMLEntitiesForDiff(data interface{}) interface{} {
 			v[i] = normalizeHTMLEntitiesForDiff(val)
 		}
 	}
+
 	return data
 }
 

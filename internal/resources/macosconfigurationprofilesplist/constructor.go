@@ -134,7 +134,8 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		}
 
 		// Since we're sending Plist formatted as xml (payload) inside XML (request), we need to HTML-escape for plist within xml once.
-		resource.General.Payloads = html.EscapeString(buf.String())
+		resource.General.Payloads = preMarshallingXMLPayloadEscaping(buf.String())
+
 	}
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
@@ -142,9 +143,24 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		return nil, fmt.Errorf("failed to marshal Jamf Pro macOS Configuration Profile '%s' to XML: %v", resource.General.Name, err)
 	}
 
-	log.Printf("[DEBUG] Constructed Jamf Pro macOS Configuration Profile XML:\n%s\n", string(resourceXML))
+	sanitized := postMarshallingXMLPayloadUnescaping(string(resourceXML))
+
+	log.Printf("[DEBUG] Constructed Jamf Pro macOS Configuration Profile XML:\n%s\n", sanitized)
 
 	return resource, nil
+}
+
+// preMarshallingXMLPayloadEscaping ensures that the XML marshaller (used in xml.MarshalIndent)
+// doesn't choke on raw '&' characters inside the payload
+func preMarshallingXMLPayloadEscaping(input string) string {
+	input = strings.ReplaceAll(input, "&", "&amp;")
+	return input
+}
+
+// revertEscapedQuotesInXML replaces XML-escaped quotes (&#34;) back to literal quotes (")
+// which are safe and expected inside Jamf Pro config profile payloads.
+func postMarshallingXMLPayloadUnescaping(input string) string {
+	return strings.ReplaceAll(input, "&#34;", "\"")
 }
 
 // constructMacOSConfigurationProfileSubsetScope constructs a MacOSConfigurationProfileSubsetScope object from the provided schema data.

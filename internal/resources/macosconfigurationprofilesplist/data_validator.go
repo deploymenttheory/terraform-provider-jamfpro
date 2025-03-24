@@ -4,6 +4,7 @@ package macosconfigurationprofilesplist
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/datavalidators"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/plist"
@@ -13,7 +14,7 @@ import (
 // mainCustomDiffFunc orchestrates all custom diff validations for macOS config profiles.
 func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
 	if diff.Get("payload_validate").(bool) {
-		if err := validatePayload(ctx, diff, i); err != nil {
+		if err := validatePayloadIdentifers(ctx, diff, i); err != nil {
 			return err
 		}
 
@@ -29,6 +30,9 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 			return err
 		}
 
+		if err := validateXMLescapedcharacters(ctx, diff, i); err != nil {
+			return err
+		}
 	}
 
 	if err := validateSelfServiceCategories(ctx, diff, i); err != nil {
@@ -51,8 +55,8 @@ func normalizePayloadState(_ context.Context, diff *schema.ResourceDiff, _ inter
 	return nil
 }
 
-// validatePayload performs the payload validation that was previously in the ValidateFunc.
-func validatePayload(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+// validatePayloadIdentifers performs the payload validation that was previously in the ValidateFunc.
+func validatePayloadIdentifers(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
 	resourceName := diff.Get("name").(string)
 	payload := diff.Get("payloads").(string)
 
@@ -113,6 +117,18 @@ func validatePlistPayloadScope(_ context.Context, diff *schema.ResourceDiff, _ i
 
 	if payloadScope != level {
 		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': the hcl 'level' attribute (%s) does not match the 'PayloadScope' in the root dict of the plist (%s); the values must be identical", resourceName, level, payloadScope)
+	}
+
+	return nil
+}
+
+// validateXMLescapedcharacters scans for common incorrectly escaped sequences like %2f and returns a warning.
+func validateXMLescapedcharacters(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+	resourceName := diff.Get("name").(string)
+	payload := diff.Get("payloads").(string)
+
+	if strings.Contains(strings.ToLower(payload), "%2f") {
+		return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': payload contains '%%2f' which should be a forward slash '/'", resourceName)
 	}
 
 	return nil
