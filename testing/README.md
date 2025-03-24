@@ -7,7 +7,7 @@ When adding new resource tests, please be sure that a symlink is correctly produ
 This can be achieved by inputting this command in the resource directory.
 
 
-` ln -s ../provider.tf provider.tf `
+` ln -s ../../provider.tf provider.tf `
 
 
 The same result can be achieved by copying the file into the directories, without the benefit of only needing to alter one file for changes.
