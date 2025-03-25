@@ -22,7 +22,7 @@ resource "jamfpro_script" "max_script" {
   parameter8 = "parameter8_field"
   parameter9 = "parameter9_field"
   parameter10 = "parameter10_field"
-  parameter11 = "parametee11_field"
+  parameter11 = "parameter11_field"
 }
 
 resource "jamfpro_script" "multiple_script_min" {
