@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.14.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.13.2...v0.14.0) (2025-03-25)
+
+
+### Features
+
+* added app installer global settings with example ([67021ed](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/67021ed10ad40e5211a5909a2919efb51f1610bb))
+* added app installer global settings with examples ([a36273d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/a36273da45d6d8ae1a0ac923a11a11405b19eb4e))
+
+
+### Bug Fixes
+
+* added debug logs ([6649eb6](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/6649eb653a7330f2bbb8b03faa9d41047806cf46))
+* added plist root level PayloadUUID and PayloadIdentifier validation checker ([aecf0a2](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/aecf0a2ba896e55b8d64a08e2b553f7ab902b8eb))
+* aligned mobile device config profiles with refined macos logic ([b0274f8](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/b0274f80fff9fedbefacc158af1ef9b6d0bbf6c7))
+* final tweaks for mobile device plist handling ([6029e0b](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/6029e0b0e4346f9a145205c96691e110dfb02958))
+* for '&' handling within plists for macos and mobile devices ([9704936](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/9704936df4019916e5eb4d13596f9b8e1ee523cd))
+* removed not required html escaping from payloads for create operation ([a02b2a2](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/a02b2a2933b631e173be2849a856e12fd4c8d5a0))
+* tidy up ([8eb572c](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/8eb572ca484a73d65b17f269dfee7b9d0d1f2e8f))
+* updated failing test bugs ([84bad4f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/84bad4f8ded71fda7e6e675cedcc3dfb1212f43b))
+
 ## [0.13.2](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.13.1...v0.13.2) (2025-03-14)
 
 
