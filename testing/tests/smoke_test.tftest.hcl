@@ -1,5 +1,3 @@
-
-
 run "apply_buildings" {
   command = apply
   
