@@ -77,8 +77,14 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		resource.SelfService = constructMacOSConfigurationProfileSubsetSelfService(selfServiceData)
 	}
 
-	// if update get the existing config profile from jamf
-	if mode == "update" {
+	if mode != "update" {
+
+		resource.General.Payloads = html.EscapeString(d.Get("payloads").(string))
+
+	} else if mode == "update" {
+		var existingPlist map[string]interface{}
+		var newPlist map[string]interface{}
+
 		client := meta.(*jamfpro.Client)
 		resourceID := d.Id()
 		var err error
@@ -86,15 +92,6 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		if err != nil {
 			return nil, fmt.Errorf("failed to get existing configuration profile by ID for update operation: %v", err)
 		}
-	}
-
-	if mode != "update" {
-
-		resource.General.Payloads = html.EscapeString(d.Get("payloads").(string))
-
-	} else if mode == "update" && existingProfile != nil {
-		var existingPlist map[string]interface{}
-		var newPlist map[string]interface{}
 
 		// Decode existing payload from Jamf Pro which has the jamf pro post processed uuid's etc
 		existingPayload := existingProfile.General.Payloads

@@ -71,8 +71,14 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 		resource.Scope = constructMobileDeviceConfigurationProfileSubsetScope(scopeData)
 	}
 
-	// if update get the existing config profile from jamf
-	if mode == "update" {
+	if mode != "update" {
+
+		resource.General.Payloads = html.EscapeString(d.Get("payloads").(string))
+
+	} else if mode == "update" {
+		var existingPlist map[string]interface{}
+		var newPlist map[string]interface{}
+
 		client := meta.(*jamfpro.Client)
 		resourceID := d.Id()
 		var err error
@@ -80,15 +86,6 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 		if err != nil {
 			return nil, fmt.Errorf("failed to get existing configuration profile by ID for update operation: %v", err)
 		}
-	}
-
-	if mode != "update" {
-
-		resource.General.Payloads = html.EscapeString(d.Get("payloads").(string))
-
-	} else if mode == "update" && existingProfile != nil {
-		var existingPlist map[string]interface{}
-		var newPlist map[string]interface{}
 
 		// Decode existing payload from Jamf Pro which has the jamf pro post processed uuid's etc
 		existingPayload := existingProfile.General.Payloads
@@ -128,8 +125,12 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 			return nil, fmt.Errorf("failed to encode plist payload with injected PayloadUUID and PayloadIdentifier: %v", err)
 		}
 
-		// Since we're sending Plist formatted as xml (payload) inside XML (request), we need to HTML-escape for plist within xml once.
-		resource.General.Payloads = html.EscapeString(buf.String())
+		// Since we're embedding a Plist (which is XML) inside another XML document (the request),
+		// we need to properly correctly normalize the XML for the xml.MarshalIndent and also for jamf pro.
+		if buf.Len() > 0 {
+			unquotedContent := preMarshallingXMLPayloadUnescaping(buf.String())
+			resource.General.Payloads = preMarshallingXMLPayloadEscaping(unquotedContent)
+		}
 	}
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
@@ -140,6 +141,19 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 	log.Printf("[DEBUG] Constructed Jamf Pro macOS Configuration Profile XML:\n%s\n", string(resourceXML))
 
 	return resource, nil
+}
+
+// preMarshallingXMLPayloadUnescaping unescapes content ready for jamf pro based on plist reqs
+func preMarshallingXMLPayloadUnescaping(input string) string {
+	input = strings.ReplaceAll(input, "&#34;", "\"")
+	return input
+}
+
+// preMarshallingXMLPayloadEscaping ensures that the XML marshaller (used in xml.MarshalIndent)
+// doesn't choke on special XML characters (&) inside the payload
+func preMarshallingXMLPayloadEscaping(input string) string {
+	input = strings.ReplaceAll(input, "&", "&amp;")
+	return input
 }
 
 // constructMobileDeviceConfigurationProfileSubsetScope constructs a MobileDeviceConfigurationProfileSubsetScope object from the provided schema data.
