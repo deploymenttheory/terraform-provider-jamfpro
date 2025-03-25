@@ -20,6 +20,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/allowedfileextensions"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiintegrations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiroles"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/appinstallerglobalsettings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/appinstallers"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/buildings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/categories"
@@ -364,13 +365,14 @@ func Provider() *schema.Provider {
 			"jamfpro_computer_inventory":                        computerinventory.DataSourceJamfProComputerInventory(),
 			"jamfpro_computer_prestage_enrollment":              computerprestageenrollments.DataSourceJamfProComputerPrestageEnrollmentEnrollment(),
 			"jamfpro_department":                                departments.DataSourceJamfProDepartments(),
+			"jamfpro_device_enrollments":                        deviceenrollments.DataSourceJamfProDeviceEnrollments(),
 			"jamfpro_disk_encryption_configuration":             diskencryptionconfigurations.DataSourceJamfProDiskEncryptionConfigurations(),
 			"jamfpro_dock_item":                                 dockitems.DataSourceJamfProDockItems(),
 			"jamfpro_file_share_distribution_point":             filesharedistributionpoints.DataSourceJamfProFileShareDistributionPoints(),
 			"jamfpro_network_segment":                           networksegments.DataSourceJamfProNetworkSegments(),
 			"jamfpro_macos_configuration_profile_plist":         macosconfigurationprofilesplist.DataSourceJamfProMacOSConfigurationProfilesPlist(),
 			"jamfpro_mobile_device_configuration_profile_plist": mobiledeviceconfigurationprofilesplist.DataSourceJamfProMobileDeviceConfigurationProfilesPlist(),
-			"jamfpro_device_enrollment":                         deviceenrollments.DataSourceJamfProDeviceEnrollments(),
+
 			/* "jamfpro_mobile_device_extension_attribute":         mobiledeviceextensionattribute.DataSourceJamfProMobileDeviceExtensionAttributes(), */
 			"jamfpro_package":                   packages.DataSourceJamfProPackages(),
 			"jamfpro_policy":                    policies.DataSourceJamfProPolicies(),
@@ -395,6 +397,7 @@ func Provider() *schema.Provider {
 			"jamfpro_api_integration":                             apiintegrations.ResourceJamfProApiIntegrations(),
 			"jamfpro_api_role":                                    apiroles.ResourceJamfProAPIRoles(),
 			"jamfpro_app_installer":                               appinstallers.ResourceJamfProAppInstallers(),
+			"jamfpro_app_installer_global_settings":               appinstallerglobalsettings.ResourceJamfProAppInstallerGlobalSettings(),
 			"jamfpro_building":                                    buildings.ResourceJamfProBuildings(),
 			"jamfpro_category":                                    categories.ResourceJamfProCategories(),
 			"jamfpro_client_checkin":                              computercheckin.ResourceJamfProClientCheckin(),
