@@ -429,23 +429,23 @@ func TestNormalizeBase64Content(t *testing.T) {
 		want  interface{}
 	}{
 		{
-			name:  "Normalize deeply indented <data> tag content",
+			name:  "Do not alter XML <data> tag wrapping — not valid base64",
 			input: "<data>\n\t\t\t\t\t\t\t\t\tMIIFYjCCBEqgAwIBAgIQd70NbNs2+RrqIQ/E8FjTDTANBgkqhkiG9w0BAQsF\n\t\t\t\t\t\t\t\t\tADBXMQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xvYmFsU2lnbiBudi1zYTEQ\n\t\t\t\t\t\t\t\t\tMA4GA1UECxMHUm9vdCBDQTEbMBkGA1UEAxMSR2xvYmFsU2lnbiBSb290IENBMB4X\n\t\t\t\t\t\t\t\t\t</data>",
-			want:  "<data>MIIFYjCCBEqgAwIBAgIQd70NbNs2+RrqIQ/E8FjTDTANBgkqhkiG9w0BAQsFADBXMQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xvYmFsU2lnbiBudi1zYTEQMA4GA1UECxMHUm9vdCBDQTEbMBkGA1UEAxMSR2xvYmFsU2lnbiBSb290IENBMB4X</data>",
+			want:  "<data>\n\t\t\t\t\t\t\t\t\tMIIFYjCCBEqgAwIBAgIQd70NbNs2+RrqIQ/E8FjTDTANBgkqhkiG9w0BAQsF\n\t\t\t\t\t\t\t\t\tADBXMQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xvYmFsU2lnbiBudi1zYTEQ\n\t\t\t\t\t\t\t\t\tMA4GA1UECxMHUm9vdCBDQTEbMBkGA1UEAxMSR2xvYmFsU2lnbiBSb290IENBMB4X\n\t\t\t\t\t\t\t\t\t</data>",
 		},
 		{
-			name: "Handle nested map with indented <data> block",
+			name: "Do not alter map with base64 in <data> tag",
 			input: map[string]interface{}{
 				"payload": "<data>\n\t\t\t\tMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA\n\t\t\t\t</data>",
 				"other":   "regular string",
 			},
 			want: map[string]interface{}{
-				"payload": "<data>MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA</data>",
+				"payload": "<data>\n\t\t\t\tMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA\n\t\t\t\t</data>",
 				"other":   "regular string",
 			},
 		},
 		{
-			name: "Handle array with mixed content",
+			name: "Do not alter array containing <data> tags",
 			input: []interface{}{
 				"<data>\n\t\t\t\tMIICIjAN\n\t\t\t\t</data>",
 				"regular string",
@@ -454,15 +454,15 @@ func TestNormalizeBase64Content(t *testing.T) {
 				},
 			},
 			want: []interface{}{
-				"<data>MIICIjAN</data>",
+				"<data>\n\t\t\t\tMIICIjAN\n\t\t\t\t</data>",
 				"regular string",
 				map[string]interface{}{
-					"nested": "<data>SGVsbG8=</data>",
+					"nested": "<data> \n\t\tSGVsbG8= \n\t\t</data>",
 				},
 			},
 		},
 		{
-			name: "Handle multiple <data> tags in string blob",
+			name: "Do not touch valid plist blob with <data> tags",
 			input: `<dict>
 				<key>cert1</key>
 				<data>
@@ -476,13 +476,17 @@ func TestNormalizeBase64Content(t *testing.T) {
 			</dict>`,
 			want: `<dict>
 				<key>cert1</key>
-				<data>MIICIjANBgkqhkiG</data>
+				<data>
+					MIICIjAN
+					BgkqhkiG
+				</data>
 				<key>cert2</key>
-				<data>SGVsbG8=</data>
+				<data>
+					SGVsbG8=
+				</data>
 			</dict>`,
 		},
 	}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := normalizeBase64Content(tt.input)

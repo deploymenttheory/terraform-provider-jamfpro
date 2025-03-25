@@ -4,7 +4,6 @@ package macosconfigurationprofilesplist
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/datavalidators"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/plist"
@@ -30,9 +29,6 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 			return err
 		}
 
-		if err := validateXMLescapedcharacters(ctx, diff, i); err != nil {
-			return err
-		}
 	}
 
 	if err := validateSelfServiceCategories(ctx, diff, i); err != nil {
@@ -117,18 +113,6 @@ func validatePlistPayloadScope(_ context.Context, diff *schema.ResourceDiff, _ i
 
 	if payloadScope != level {
 		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': the hcl 'level' attribute (%s) does not match the 'PayloadScope' in the root dict of the plist (%s); the values must be identical", resourceName, level, payloadScope)
-	}
-
-	return nil
-}
-
-// validateXMLescapedcharacters scans for common incorrectly escaped sequences like %2f and returns a warning.
-func validateXMLescapedcharacters(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
-	resourceName := diff.Get("name").(string)
-	payload := diff.Get("payloads").(string)
-
-	if strings.Contains(strings.ToLower(payload), "%2f") {
-		return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': payload contains '%%2f' which should be a forward slash '/'", resourceName)
 	}
 
 	return nil

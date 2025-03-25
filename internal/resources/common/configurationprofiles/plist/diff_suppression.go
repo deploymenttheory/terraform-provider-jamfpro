@@ -211,31 +211,11 @@ func normalizeEmptyStrings(data interface{}) interface{} {
 	}
 }
 
-// unescapeHTMLEntities applies html.UnescapeString recursively
-// jamfpro configuration profiles contain html entities that need
-// to be unescaped for comparison
-//
-//	func unescapeHTMLEntities(data interface{}) interface{} {
-//		switch v := data.(type) {
-//		case string:
-//			return html.UnescapeString(v)
-//		case map[string]interface{}:
-//			for key, value := range v {
-//				v[key] = unescapeHTMLEntities(value)
-//			}
-//		case []interface{}:
-//			for i, item := range v {
-//				v[i] = unescapeHTMLEntities(item)
-//			}
-//		}
-//		return data
-//	}
-//
-// unescapeHTMLEntities applies html.UnescapeString recursively,
-// but avoids double-unescaping or unescaping intentionally escaped XML entities.
 // safeHTMLEntity is a regex to detect a single-level valid entity like &lt;, &amp;, etc.
 var safeHTMLEntity = regexp.MustCompile(`&[a-zA-Z]+;`)
 
+// normalizeHTMLEntitiesForDiff applies html.UnescapeString recursively,
+// but avoids double-unescaping or unescaping intentionally escaped XML entities.
 func normalizeHTMLEntitiesForDiff(data interface{}) interface{} {
 	switch v := data.(type) {
 	case string:

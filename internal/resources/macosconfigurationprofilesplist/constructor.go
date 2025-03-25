@@ -135,10 +135,9 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		}
 
 		// Since we're embedding a Plist (which is XML) inside another XML document (the request),
-		// we need to properly escape XML special characters to maintain document validity.
-		// We first unescape any quotes to avoid double-escaping, then apply XML escape handling for &.
+		// we need to properly correctly normalize the XML for the xml.MarshalIndent and also for jamf pro.
 		if buf.Len() > 0 {
-			unquotedContent := unescapeQuotes(buf.String())
+			unquotedContent := preMarshallingXMLPayloadUnescaping(buf.String())
 			resource.General.Payloads = preMarshallingXMLPayloadEscaping(unquotedContent)
 		}
 	}
@@ -148,16 +147,13 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		return nil, fmt.Errorf("failed to marshal Jamf Pro macOS Configuration Profile '%s' to XML: %v", resource.General.Name, err)
 	}
 
-	sanitized := postMarshallingXMLPayloadUnescaping(string(resourceXML))
-
-	log.Printf("[DEBUG] Constructed Jamf Pro macOS Configuration Profile XML:\n%s\n", sanitized)
+	log.Printf("[DEBUG] Constructed Jamf Pro macOS Configuration Profile XML:\n%s\n", resourceXML)
 
 	return resource, nil
 }
 
-// unescapeQuotes unescapes only double quotes from XML content
-func unescapeQuotes(input string) string {
-	input = strings.ReplaceAll(input, "&quot;", "\"")
+// preMarshallingXMLPayloadUnescaping unescapes content ready for jamf pro based on plist reqs
+func preMarshallingXMLPayloadUnescaping(input string) string {
 	input = strings.ReplaceAll(input, "&#34;", "\"")
 	return input
 }
@@ -167,12 +163,6 @@ func unescapeQuotes(input string) string {
 func preMarshallingXMLPayloadEscaping(input string) string {
 	input = strings.ReplaceAll(input, "&", "&amp;")
 	return input
-}
-
-// revertEscapedQuotesInXML replaces XML-escaped quotes (&#34;) back to literal quotes (")
-// which are safe and expected inside Jamf Pro config profile payloads.
-func postMarshallingXMLPayloadUnescaping(input string) string {
-	return strings.ReplaceAll(input, "&#34;", "\"")
 }
 
 // constructMacOSConfigurationProfileSubsetScope constructs a MacOSConfigurationProfileSubsetScope object from the provided schema data.
