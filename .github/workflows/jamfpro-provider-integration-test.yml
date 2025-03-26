@@ -69,7 +69,7 @@ jobs:
           cd ./terraform-provider-jamfpro
           source ./.venv/bin/activate 
           cd ./testing/jamfpy
-          source .env
+          source ./.env
           python clean_up.py
 
       # - name: Run Tests
