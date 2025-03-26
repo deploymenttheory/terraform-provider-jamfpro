@@ -71,6 +71,7 @@ jobs:
           cd ./testing/jamfpy
           pwd
           ls
+          cat .env
           source ./.env
           python clean_up.py
 
