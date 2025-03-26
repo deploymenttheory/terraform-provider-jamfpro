@@ -47,7 +47,7 @@ jobs:
       - name: Build TFVARS File
         run: |
           cd ./terraform-provider-jamfpro/testing
-          cat << EOF > terraform.tfvars
+          cat <<EOF > terraform.tfvars
           jamfpro_instance_fqdn="${{ secrets.TESTING_JAMFPRO_INSTANCE_FQDN }}"
           jamfpro_auth_method="oauth2"
           jamfpro_client_id="${{ secrets.TESTING_CLIENT_ID }}"
@@ -61,7 +61,7 @@ jobs:
       - name: Build .env File
         run: |
           cd ./terraform-provider-jamfpro/testing/jamfpy
-          cat << EOF > .env
+          cat <<EOF > .env
           CLIENT_ID="${{ secrets.TESTING_CLIENT_ID }}"
           CLIENT_SEC="${{ secrets.TESTING_CLIENT_SECRET }}"
           EOF          
