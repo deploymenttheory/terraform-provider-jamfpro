@@ -31,7 +31,7 @@ jobs:
           cd ./terraform-provider-jamfpro
           python -m venv .venv
           source ./.venv/bin/activate 
-          cd ./terraform/testing/jamfpy
+          cd ./testing/jamfpy
           pip install -r requirements.txt
 
       - name: Compile Provider
