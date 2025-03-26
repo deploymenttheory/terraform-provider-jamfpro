@@ -17,11 +17,11 @@ jobs:
           ref: migrate-test-pipelines-and-infra
           path: terraform-provider-jamfpro
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
+      # - name: Set up Terraform
+      #   uses: hashicorp/setup-terraform@v3
 
-      - name: Set up Golang
-        uses: actions/setup-go@v5
+      # - name: Set up Golang
+      #   uses: actions/setup-go@v5
 
       - name: Set up Python
         uses: actions/setup-python@v5.5.0
@@ -55,6 +55,8 @@ jobs:
           jamfpro_token_refresh_buffer_period_seconds="30"
           jamfpro_mandatory_request_delay_milliseconds="100"
           EOF 
+
+          cat terraform.tfvars
       
       - name: Build .env File
         run: |
