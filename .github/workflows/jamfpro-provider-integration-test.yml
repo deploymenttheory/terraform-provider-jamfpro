@@ -30,7 +30,7 @@ jobs:
         run: |
           cd ./terraform-provider-jamfpro
           python -m venv .venv
-          source ./venv/bin/activate 
+          source ./.venv/bin/activate 
           cd ./terraform/testing/jamfpy
           pip install -r requirements.txt
 
@@ -67,7 +67,7 @@ jobs:
       - name: Pre-flight cleanup
         run: |
           cd ./terraform-provider-jampro
-          source ./venv/bin/activate 
+          source ./.venv/bin/activate 
           cd ./testing/jamfpy
           source .env
           python clean_up.py
