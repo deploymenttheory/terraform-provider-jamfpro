@@ -26,7 +26,7 @@ def testing_ids_from_resources(resources):
     return resource_ids
 
 def purge_classic_test_resources(resource_instance, resource_type_string):
-    print(f"######### Purging {resource_type_string} #########")
+    print(f"\n######### Purging {resource_type_string} #########")
 
     resp = resource_instance.get_all()
     resp.raise_for_status()

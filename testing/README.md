@@ -21,7 +21,7 @@ To begin the tests, from `/testing` run
 
 ## Adding tests
 
-Find the resource type you want to write tests for. It will be under testing/<resource-name>. If the resource type is not there...
+Find the resource type you want to write tests for. It will be under `testing/<resource-name>`. If the resource type is not there...
 
 1) Create a directory for the resource type and create a terraform configuration file. Write your test config in this file.
 2) Symlink the root provider.tf in the directory
