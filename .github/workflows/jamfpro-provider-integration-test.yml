@@ -17,11 +17,11 @@ jobs:
           ref: migrate-test-pipelines-and-infra
           path: terraform-provider-jamfpro
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
+      # - name: Set up Terraform
+      #   uses: hashicorp/setup-terraform@v3
 
-      - name: Set up Golang
-        uses: actions/setup-go@v5
+      # - name: Set up Golang
+      #   uses: actions/setup-go@v5
 
       - name: Set up Python
         uses: actions/setup-python@v5.5.0
@@ -34,15 +34,15 @@ jobs:
           cd ./testing/jamfpy
           pip install -r requirements.txt
 
-      - name: Compile Provider
-        run: |
-          cd ./terraform-provider-jamfpro
-          mkdir -p ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/
-          go build
-          mv ./terraform-provider-jamfpro ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/
-          chmod +x ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/terraform-provider-jamfpro
-          cd ~/.terraform.d 
-          terraform init
+      # - name: Compile Provider
+      #   run: |
+      #     cd ./terraform-provider-jamfpro
+      #     mkdir -p ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/
+      #     go build
+      #     mv ./terraform-provider-jamfpro ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/
+      #     chmod +x ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/terraform-provider-jamfpro
+      #     cd ~/.terraform.d 
+      #     terraform init
         
       - name: Build TFVARS File
         run: |
@@ -64,33 +64,34 @@ jobs:
           CLIENT_SEC="${{ secrets.TESTING_CLIENT_SECRET }}"
           EOF
 
-      # - name: Pre-flight cleanup
-      #   run: |
-      #     cd ./terraform-provider-jamfpro
-      #     source ./.venv/bin/activate 
-      #     cd ./testing/jamfpy
-      #     source ./.env
-      #     python clean_up.py
-
-      - name: Run Tests
-        run: |  
-          cd ./terraform-provider-jamfpro/testing
-          terraform fmt
-          terraform init
-          terraform test
-
-      # - name: Cleanup
-      #   run: |
-      #     cd ./terraform-provider-jampro
-      #     source ./venv/bin/activate 
-      #     cd ./testing/jamfpy
-      #     source .env
-      #     python clean_up.py
-
-      - name: Diff cascade - Terraform Plan (Pre-Apply)
-        id: plan_pre
+      - name: Pre-flight cleanup
         run: |
-          cd ./terraform-provider-jamfpro/testing
-          chmod +x ./diff_cascade_check.sh
-          ./diff_cascade_check.sh
+          cd ./terraform-provider-jamfpro
+          source ./.venv/bin/activate 
+          cd ./testing/jamfpy
+          source ./.env
+          echo $CLIENT_ID
+          python clean_up.py
+
+      # - name: Run Tests
+      #   run: |  
+      #     cd ./terraform-provider-jamfpro/testing
+      #     terraform fmt
+      #     terraform init
+      #     terraform test
+
+      - name: Cleanup
+        run: |
+          cd ./terraform-provider-jampro
+          source ./venv/bin/activate 
+          cd ./testing/jamfpy
+          source .env
+          python clean_up.py
+
+      # - name: Diff cascade - Terraform Plan (Pre-Apply)
+      #   id: plan_pre
+      #   run: |
+      #     cd ./terraform-provider-jamfpro/testing
+      #     chmod +x ./diff_cascade_check.sh
+      #     ./diff_cascade_check.sh
           
