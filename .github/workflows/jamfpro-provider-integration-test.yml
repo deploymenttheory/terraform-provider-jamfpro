@@ -70,7 +70,7 @@ jobs:
           source ./.venv/bin/activate 
           cd ./testing/jamfpy
           source ./.env
-          echo $CLIENT_ID
+          cat clean_up.py
           python clean_up.py
 
       # - name: Run Tests
@@ -86,7 +86,6 @@ jobs:
           source ./venv/bin/activate 
           cd ./testing/jamfpy
           source .env
-          cat clean_up.py
           python clean_up.py
 
       # - name: Diff cascade - Terraform Plan (Pre-Apply)
