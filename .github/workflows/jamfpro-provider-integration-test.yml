@@ -81,10 +81,10 @@ jobs:
 
       - name: Post-flight Cleanup
         run: |
-          cd ./terraform-provider-jampro
-          source ./venv/bin/activate 
+          cd ./terraform-provider-jamfpro
+          source ./.venv/bin/activate 
           cd ./testing/jamfpy
-          source .env
+          source ./.env
           python clean_up.py
 
       - name: Diff cascade - Terraform Plan (Pre-Apply)
