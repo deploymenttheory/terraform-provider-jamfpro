@@ -19,7 +19,7 @@ def testing_ids_from_resources(resources):
     resource_ids = []
     for resource in resources:
         name = resource["name"]
-        if name >= 10:
+        if len(name) >= 10:
             prefix = name[0:10]
             if prefix == "tf-testing":
                 resource_id = resource["id"]
