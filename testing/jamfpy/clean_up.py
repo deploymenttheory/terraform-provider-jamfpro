@@ -25,30 +25,20 @@ def testing_ids_from_resources(resources):
             resource_ids.append(resource_id)
     return resource_ids
 
-print("BEGIN PURGE")
-print("purging scripts")
-resp = instance.classic.scripts.get_all()
-resp.raise_for_status()
-resources = resp.json()["scripts"]
-resource_ids = testing_ids_from_resources(resources)
-for id in resource_ids:
-    del_resp = instance.classic.scripts.delete_by_id(id)
-    print(del_resp.text)
+def purge_classic_test_resources(resource_instance, resource_type_string):
+    print(f"######### Purging {resource_type_string} #########")
 
-print("purging computer extension attributes")
-resp = instance.classic.computer_extension_attributes.get_all()
-resp.raise_for_status()
-computer_extension_attributes = resp.json()["computer_extension_attributes"]
-resource_ids = testing_ids_from_resources(computer_extension_attributes)
-for id in resource_ids:
-    del_resp = instance.classic.computer_extension_attributes.delete_by_id(id)
-    print(del_resp.text)
+    resp = resource_instance.get_all()
+    resp.raise_for_status()
+    resources = resp.json()[resource_type_string]
+    resource_ids = testing_ids_from_resources(resources)
+    for id in resource_ids:
+        del_resp = resource_instance.delete_by_id(id)
+        print(del_resp.text)
 
-print("purging buildings")
-resp = instance.classic.buildings.get_all()
-resp.raise_for_status()
-buildings = resp.json()["buildings"]
-resource_ids = testing_ids_from_resources(buildings)
-for id in resource_ids:
-    del_resp = instance.classic.buildings.delete_by_id(id)
-    print(del_resp.text)
+# ============================================================================ #
+# Add resources to be deleted below
+
+purge_classic_test_resources(instance.classic.scripts, "scripts")
+purge_classic_test_resources(instance.classic.buildings, "buildings")
+purge_classic_test_resources(instance.classic.computer_extension_attributes, "computer_extension_attributes")
