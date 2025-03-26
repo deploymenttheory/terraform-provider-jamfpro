@@ -54,7 +54,7 @@ jobs:
           jamfpro_client_secret="${{ secrets.TESTING_CLIENT_SECRET }}"
           jamfpro_token_refresh_buffer_period_seconds="30"
           jamfpro_mandatory_request_delay_milliseconds="100"
-          EOF 
+          EOF
 
           cat terraform.tfvars
       
@@ -64,7 +64,7 @@ jobs:
           cat <<EOF > .env
           CLIENT_ID="${{ secrets.TESTING_CLIENT_ID }}"
           CLIENT_SEC="${{ secrets.TESTING_CLIENT_SECRET }}"
-          EOF          
+          EOF
 
       - name: Pre-flight cleanup
         run: |
