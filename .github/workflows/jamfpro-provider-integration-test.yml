@@ -61,7 +61,7 @@ jobs:
           CLIENT_SEC="${{ secrets.TESTING_CLIENT_SECRET }}"
           EOF
 
-      - name: Pre-flight cleanup
+      - name: Post-flight cleanup
         run: |
           cd ./terraform-provider-jamfpro/testing/jamfpy
           source ./.env
