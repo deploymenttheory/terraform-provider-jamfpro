@@ -18,12 +18,10 @@ instance = jamfpy.Tenant(
 def testing_ids_from_resources(resources):
     resource_ids = []
     for resource in resources:
-        name = resource["name"]
-        if len(name) >= 10:
-            prefix = name[0:10]
-            if prefix == "tf-testing":
-                resource_id = resource["id"]
-                resource_ids.append(resource_id)
+        name = str(resource["name"])
+        if name.startswith("tf-testing"):
+            resource_id = resource["id"]
+            resource_ids.append(resource_id)
     return resource_ids
 
 def purge_classic_test_resources(resource_instance, resource_type_string):

@@ -1,5 +1,5 @@
 terraform {
-# for pipeline
+  # for pipeline
   required_providers {
     jamfpro = {
       source  = "deploymenttheory/jamfpro"
