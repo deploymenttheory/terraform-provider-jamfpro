@@ -1,15 +1,4 @@
-# terraform {
-# # for pipeline
-#   required_providers {
-#     jamfpro = {
-#       source  = "deploymenttheory/jamfpro"
-#       version = "~> 0.13.0"
-#     }
-#   }
-# }
-
 terraform {
-# for local
   required_providers {
     jamfpro = {
       source  = "terraform.local/local/jamfpro"
