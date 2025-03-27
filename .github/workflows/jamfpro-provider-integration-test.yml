@@ -54,11 +54,13 @@ jobs:
       - name: Compile Provider
         run: |
           cd ./terraform-provider-jamfpro
+          pwd
           mkdir -p ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/
           go build
           mv ./terraform-provider-jamfpro ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/
           chmod +x ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/terraform-provider-jamfpro
           cd ~/terraform-provider-jamfpro/testing
+          pwd
           terraform init
         
       - name: Build TFVARS File
