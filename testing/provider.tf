@@ -8,17 +8,6 @@ terraform {
   }
 }
 
-# terraform {
-# # for local
-#   required_providers {
-#     jamfpro = {
-#       source  = "terraform.local/local/jamfpro"
-#       # Specifically 0.1.0
-#       version = "0.1.0"
-#     }
-#   }
-# }
-
 provider "jamfpro" {
   jamfpro_instance_fqdn                = var.jamfpro_instance_fqdn
   auth_method                          = var.jamfpro_auth_method
