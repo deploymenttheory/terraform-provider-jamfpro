@@ -3,7 +3,8 @@ run-name: "Terraform Integration Tests"
 on:
   pull_request:
     branches:
-      - main
+      #TODO change to main
+      - migrate-test-pipelines-and-infra
   workflow_dispatch:
 
 jobs:
