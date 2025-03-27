@@ -1,11 +1,12 @@
 name: "Terraform Integration Tests"
 run-name: "Terraform Integration Tests"
 on:
+  workflow_dispatch:
   pull_request:
     branches:
       #TODO change to main
       - migrate-test-pipelines-and-infra
-  workflow_dispatch:
+
 
 jobs:
   Run-Integration-Test:
