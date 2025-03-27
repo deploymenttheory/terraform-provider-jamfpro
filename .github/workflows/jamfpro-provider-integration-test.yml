@@ -1,12 +1,30 @@
+# name: "Terraform Integration Tests"
+# run-name: "Terraform Integration Tests"
+# on:
+#   pull_request:
+#     branches:
+#       - main
+#   workflow_dispatch:
+
+# jobs:
+#   Run-Integration-Test:
+#     environment: terraform-integration-testing
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout Terraform Repository
+#         uses: actions/checkout@v4
+#         with:
+#           repository: deploymenttheory/terraform-provider-jamfpro
+#           ref: ${{ github.event.pull_request.head.ref }}
+#           path: terraform-provider-jamfpro
+
 name: "Terraform Integration Tests"
 run-name: "Terraform Integration Tests"
 on:
-  workflow_dispatch:
-  pull_request:
+  push:
     branches:
-      #TODO change to main
       - migrate-test-pipelines-and-infra
-
+  workflow_dispatch:
 
 jobs:
   Run-Integration-Test:
@@ -17,7 +35,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: deploymenttheory/terraform-provider-jamfpro
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: migrate-test-pipelines-and-infra
           path: terraform-provider-jamfpro
 
       - name: Set up Terraform
