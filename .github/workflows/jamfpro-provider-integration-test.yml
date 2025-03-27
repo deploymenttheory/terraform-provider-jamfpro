@@ -29,11 +29,7 @@ jobs:
 
       - name: Set up Python Environment
         run: |
-          cd ./terraform-provider-jamfpro
-          python -m venv .venv
-          source ./.venv/bin/activate 
-          cd ./testing/jamfpy
-          pip install -r requirements.txt
+          pip install -r ./terraform-provider-jamfpro/testing/jamfpyrequirements.txt
 
       - name: Compile Provider
         run: |
@@ -67,9 +63,7 @@ jobs:
 
       - name: Pre-flight cleanup
         run: |
-          cd ./terraform-provider-jamfpro
-          source ./.venv/bin/activate 
-          cd ./testing/jamfpy
+          cd ./terraform-provider-jamfpro/testing/jamfpy
           source ./.env
           python clean_up.py
 
@@ -80,11 +74,9 @@ jobs:
           terraform init
           terraform test
 
-      - name: Post-flight Cleanup
+      - name: Pre-flight cleanup
         run: |
-          cd ./terraform-provider-jamfpro
-          source ./.venv/bin/activate 
-          cd ./testing/jamfpy
+          cd ./terraform-provider-jamfpro/testing/jamfpy
           source ./.env
           python clean_up.py
 
