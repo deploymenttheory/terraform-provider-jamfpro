@@ -47,3 +47,4 @@ def purge_classic_test_resources(resource_instance, resource_type_string):
 purge_classic_test_resources(instance.classic.scripts, "scripts")
 purge_classic_test_resources(instance.classic.buildings, "buildings")
 purge_classic_test_resources(instance.classic.computer_extension_attributes, "computer_extension_attributes")
+# TODO: Add categories to jamfpy and here
