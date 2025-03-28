@@ -5,9 +5,12 @@ terraform {
       # Specifically 0.1.0
       version = "0.1.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "3.4.3"
+    }
   }
 }
-
 provider "jamfpro" {
   jamfpro_instance_fqdn                = var.jamfpro_instance_fqdn
   auth_method                          = var.jamfpro_auth_method
@@ -91,4 +94,9 @@ variable "jamfpro_mandatory_request_delay_milliseconds" {
 }
 
 
-
+resource "random_id" "rng" {
+  keepers = {
+    first = "${timestamp()}"
+  }     
+  byte_length = 8
+}

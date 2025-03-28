@@ -10,7 +10,7 @@ resource "jamfpro_building" "building_min" {
 }
 
 resource "jamfpro_building" "building_max" {
-  name            = "tf-testing-max"
+  name            = "tf-testing-max-${random_id.rng.hex}"
   street_address1 = "unit 1"
   street_address2 = "1 example drive"
   city            = "Jamftown"
@@ -24,7 +24,7 @@ resource "jamfpro_building" "building_max" {
 
 resource "jamfpro_building" "building_multiple_max" {
   count           = 100
-  name            = "tf-testing-max-${count.index}"
+  name            = "tf-testing-max-${count.index}-${random_id.rng.hex}"
   street_address1 = "unit 1"
   street_address2 = "1 example drive"
   city            = "Jamftown"
@@ -35,5 +35,5 @@ resource "jamfpro_building" "building_multiple_max" {
 
 resource "jamfpro_building" "building_multiple_min" {
   count = 100
-  name  = "tf-testing-min-${count.index}"
+  name  = "tf-testing-min-${count.index}-${random_id.rng.hex}"
 }

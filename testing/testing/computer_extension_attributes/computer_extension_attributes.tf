@@ -10,7 +10,7 @@
 // Single extension attributes
 
 resource "jamfpro_computer_extension_attribute" "jamfpro_computer_extension_attribute_max_script" {
-  name                             = "tf-testing-max-script"
+  name                             = "tf-testing-max-script-${random_id.rng.hex}"
   description                      = "description"
   data_type                        = "STRING"
   enabled                          = true
@@ -20,7 +20,7 @@ resource "jamfpro_computer_extension_attribute" "jamfpro_computer_extension_attr
   ldap_extension_attribute_allowed = false
 }
 resource "jamfpro_computer_extension_attribute" "jamfpro_computer_extension_attribute_max_text" {
-  name                             = "tf-testing-max-text"
+  name                             = "tf-testing-max-text-${random_id.rng.hex}"
   description                      = "description"
   data_type                        = "STRING"
   enabled                          = true
@@ -29,7 +29,7 @@ resource "jamfpro_computer_extension_attribute" "jamfpro_computer_extension_attr
   ldap_extension_attribute_allowed = false
 }
 resource "jamfpro_computer_extension_attribute" "jamfpro_computer_extension_attribute_max_popup" {
-  name                             = "tf-testing-max-popup"
+  name                             = "tf-testing-max-popup-${random_id.rng.hex}"
   description                      = "description"
   data_type                        = "STRING"
   enabled                          = true
@@ -44,7 +44,7 @@ resource "jamfpro_computer_extension_attribute" "jamfpro_computer_extension_attr
 
 resource "jamfpro_computer_extension_attribute" "jamfpro_computer_extension_attribute_max_script_multiple" {
   count                            = 100
-  name                             = "tf-testing-max-script-${count.index}"
+  name                             = "tf-testing-max-script-${count.index}-${random_id.rng.hex}"
   description                      = "description"
   data_type                        = "STRING"
   enabled                          = true
@@ -55,7 +55,7 @@ resource "jamfpro_computer_extension_attribute" "jamfpro_computer_extension_attr
 }
 resource "jamfpro_computer_extension_attribute" "jamfpro_computer_extension_attribute_max_text_multiple" {
   count                            = 100
-  name                             = "tf-testing-max-text-${count.index}"
+  name                             = "tf-testing-max-text-${count.index}-${random_id.rng.hex}"
   description                      = "description"
   data_type                        = "STRING"
   enabled                          = true
@@ -65,7 +65,7 @@ resource "jamfpro_computer_extension_attribute" "jamfpro_computer_extension_attr
 }
 resource "jamfpro_computer_extension_attribute" "jamfpro_computer_extension_attribute_max_popup_multiple" {
   count                            = 100
-  name                             = "tf-testing-max-popup-${count.index}"
+  name                             = "tf-testing-max-popup-${count.index}-${random_id.rng.hex}"
   description                      = "description"
   data_type                        = "STRING"
   enabled                          = true
