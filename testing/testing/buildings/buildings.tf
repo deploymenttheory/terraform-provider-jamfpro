@@ -6,7 +6,7 @@
 // Single buildings
 
 resource "jamfpro_building" "building_min" {
-  name = "tf-testing-min"
+  name = "tf-testing-min-${random_id.rng.hex}"
 }
 
 resource "jamfpro_building" "building_max" {
