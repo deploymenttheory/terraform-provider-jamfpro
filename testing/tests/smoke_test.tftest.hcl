@@ -4,16 +4,22 @@ run "apply_buildings" {
   module {
     source = "./testing/buildings"
   }
-
 }
 
-run "apply_scripts" {
+run "apply_departments" {
   command = apply
 
   module {
-    source = "./testing/scripts"
+    source = "./testing/departments"
   }
+}
 
+run "apply_categories" {
+  command = apply
+
+  module {
+    source = "./testing/categories"
+  }
 }
 
 run "apply_computer_extension_attributes" {
@@ -23,10 +29,11 @@ run "apply_computer_extension_attributes" {
     source = "./testing/computer_extension_attributes"
   }
 }
-run "apply_categories" {
+
+run "apply_scripts" {
   command = apply
 
   module {
-    source = "./testing/categories"
+    source = "./testing/scripts"
   }
 }
