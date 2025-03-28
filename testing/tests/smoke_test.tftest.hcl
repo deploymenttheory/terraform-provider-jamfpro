@@ -22,5 +22,12 @@ run "apply_computer_extension_attributes" {
   module {
     source = "./testing/computer_extension_attributes"
   }
+}
+run "categories" {
+  command = apply
+  
+  module {
+    source = "./testing/categories"
+  }
 
 }
