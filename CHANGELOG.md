@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.14.0...v0.15.0) (2025-03-28)
+
+
+### Features
+
+* Add test harness. ([#632](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/632)) ([851ff5f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/851ff5f4ebdee2cae49d49d170e282b99685fb81))
+
 ## [0.14.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.13.2...v0.14.0) (2025-03-25)
 
 
