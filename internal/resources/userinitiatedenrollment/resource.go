@@ -9,10 +9,10 @@ import (
 
 func ResourceJamfProEnrollmentConfiguration() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceNotImplementedCreate,
-		ReadContext:   resourceEnrollmentRead,
-		UpdateContext: resourceEnrollmentUpdate,
-		DeleteContext: resourceNotImplementedDelete,
+		//CreateContext: resourceNotImplementedCreate,
+		//ReadContext:   resourceEnrollmentRead,
+		//UpdateContext: resourceEnrollmentUpdate,
+		//DeleteContext: resourceNotImplementedDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Second),
 			Read:   schema.DefaultTimeout(15 * time.Second),
