@@ -7,13 +7,13 @@
 // Single scripts
 
 resource "jamfpro_script" "min_script" {
-  name            = "tf-testing-script-min-${random_id.rng.hex}"
+  name            = "tf-testing-min-${random_id.rng.hex}"
   script_contents = "script_contents_field"
   priority        = "BEFORE"
 }
 
 resource "jamfpro_script" "max_script" {
-  name            = "tf-testing-bw-script-max-${random_id.rng.hex}"
+  name            = "tf-testing-bw-max-${random_id.rng.hex}"
   category_id     = "9"
   info            = "info_field"
   notes           = "notes_field"
