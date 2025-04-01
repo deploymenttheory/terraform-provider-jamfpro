@@ -1,39 +1,58 @@
-run "apply_buildings" {
+# run "apply_buildings" {
+#   command = apply
+
+#   module {
+#     source = "./testing/buildings"
+#   }
+# }
+
+# run "apply_departments" {
+#   command = apply
+
+#   module {
+#     source = "./testing/departments"
+#   }
+# }
+
+# run "apply_categories" {
+#   command = apply
+
+#   module {
+#     source = "./testing/categories"
+#   }
+# }
+
+# run "apply_computer_extension_attributes" {
+#   command = apply
+
+#   module {
+#     source = "./testing/computer_extension_attributes"
+#   }
+# }
+
+# run "apply_scripts" {
+#   command = apply
+
+#   module {
+#     source = "./testing/scripts"
+#   }
+# }
+
+run "setup_static_computer_groups" {
   command = apply
 
   module {
-    source = "./testing/buildings"
+    source = "./setup/static_computer_groups"
   }
 }
-
-run "apply_departments" {
+run "apply_static_computer_groups" {
   command = apply
 
-  module {
-    source = "./testing/departments"
+  variables {
+    site_id = run.setup_static_computer_groups.site_id
   }
-}
-
-run "apply_categories" {
-  command = apply
 
   module {
-    source = "./testing/categories"
-  }
-}
-
-run "apply_computer_extension_attributes" {
-  command = apply
-
-  module {
-    source = "./testing/computer_extension_attributes"
-  }
-}
-
-run "apply_scripts" {
-  command = apply
-
-  module {
-    source = "./testing/scripts"
+    source = "./testing/static_computer_groups"
   }
 }
