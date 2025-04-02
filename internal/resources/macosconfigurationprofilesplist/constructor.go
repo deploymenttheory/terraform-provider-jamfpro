@@ -74,6 +74,10 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 
 	if v, ok := d.GetOk("self_service"); ok {
 		selfServiceData := v.([]interface{})[0].(map[string]interface{})
+		if selfServiceData["notification"] != nil {
+			log.Println("[WARN] Self Service notification bool key is temporarily disabled, please review the docs.")
+
+		}
 		resource.SelfService = constructMacOSConfigurationProfileSubsetSelfService(selfServiceData)
 	}
 
