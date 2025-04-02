@@ -41,4 +41,5 @@ website/vendor
 .env
 *.venv
 testing/data_sources/*
+!testing/data_sources/.gitkeep
 .terraform.lock.hcl
