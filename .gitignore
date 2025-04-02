@@ -40,3 +40,4 @@ website/vendor
 *terraform.tfvars
 .env
 *.venv
+data_sources/*
