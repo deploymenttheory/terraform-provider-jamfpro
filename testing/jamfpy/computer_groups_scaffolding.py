@@ -128,6 +128,7 @@ def create_computers(site_id):
 
 
 def write_ids_to_data_source(site_id, computer_ids):
+    logger.info(f"Writing ids to /data_sources/site_and_computer_ids.json")
     data = {
         "computers":computer_ids,
             "site":site_id
