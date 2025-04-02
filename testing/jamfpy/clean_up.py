@@ -48,4 +48,6 @@ purge_classic_test_resources(instance.classic.scripts, "scripts")
 purge_classic_test_resources(instance.classic.buildings, "buildings")
 purge_classic_test_resources(instance.classic.computer_extension_attributes, "computer_extension_attributes")
 purge_classic_test_resources(instance.classic.categories, "categories")
+purge_classic_test_resources(instance.classic.sites, "sites")
+purge_classic_test_resources(instance.classic.computers, "computers")
 # TODO: Add departments to jamfpy and here

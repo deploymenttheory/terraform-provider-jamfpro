@@ -2,16 +2,12 @@
 // Static Computer Groups
 // ========================================================================== //
 
-# This test resource relies on a manually created test site. Sites are not yet
-# terraformed.
-
-# Site ID= 2859
-# Computer ID= 23
-variable "site_id" {
-  description = "site id used."
+data "local_file" "site_and_computer_ids"{
+    filename = "${path.module}/../../data_sources/site_and_computer_ids.json"
 }
+
 resource "jamfpro_static_computer_group" "name" {
   name="tf-testing-script-max-${random_id.rng.hex}"
-  site_id = var.site_id
-  assigned_computer_ids = [23]
+  site_id = jsondecode(data.local_file.site_and_computer_ids.content).site
+  assigned_computer_ids = jsondecode(data.local_file.site_and_computer_ids.content).computers
 }
