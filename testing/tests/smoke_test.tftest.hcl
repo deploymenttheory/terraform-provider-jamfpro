@@ -38,19 +38,15 @@
 #   }
 # }
 
-run "setup_static_computer_groups" {
-  command = apply
+# run "setup_static_computer_groups" {
+#   command = apply
 
-  module {
-    source = "./setup/static_computer_groups"
-  }
-}
+#   module {
+#     source = "./setup/static_computer_groups"
+#   }
+# }
 run "apply_static_computer_groups" {
   command = apply
-
-  variables {
-    site_id = run.setup_static_computer_groups.site_id
-  }
 
   module {
     source = "./testing/static_computer_groups"
