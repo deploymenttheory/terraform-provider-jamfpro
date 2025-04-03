@@ -65,7 +65,7 @@ import (
 )
 
 // TerraformProviderProductUserAgent is included in the User-Agent header for
-// any API requests made by the provider.
+// interface{} API requests made by the provider.
 const (
 	terraformProviderProductUserAgent = "terraform-provider-jamfpro"
 	envVarOAuthClientId               = "JAMFPRO_CLIENT_ID"
@@ -255,7 +255,7 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc(envVarJamfProFQDN, ""),
-				Description: "The Jamf Pro FQDN (fully qualified domain name). example: https://mycompany.jamfcloud.com",
+				Description: "The Jamf Pro FQDN (fully qualified domain name). example: https://mycompinterface{}.jamfcloud.com",
 			},
 			"auth_method": {
 				Type:        schema.TypeString,
@@ -436,7 +436,7 @@ func Provider() *schema.Provider {
 		},
 	}
 
-	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 		var err error
 		var diags diag.Diagnostics
 		var jamfIntegration *jamfprointegration.Integration
@@ -553,10 +553,10 @@ func Provider() *schema.Provider {
 
 		}
 
-		if customCookies != nil && len(customCookies.([]any)) > 0 {
-			for _, v := range customCookies.([]any) {
-				name := v.(map[string]any)["name"]
-				value := v.(map[string]any)["value"]
+		if customCookies != nil && len(customCookies.([]interface{})) > 0 {
+			for _, v := range customCookies.([]interface{}) {
+				name := v.(map[string]interface{})["name"]
+				value := v.(map[string]interface{})["value"]
 
 				if name == jamfLoadBalancerCookieName && load_balancer_lock_enabled {
 					return nil, append(diags, diag.Diagnostic{
