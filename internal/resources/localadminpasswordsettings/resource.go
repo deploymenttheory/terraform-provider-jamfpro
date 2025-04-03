@@ -29,7 +29,7 @@ func ResourceLocalAdminPasswordSettings() *schema.Resource {
 				Default:     false,
 				Description: "When enabled, all appropriate computers will have the SetAutoAdminPassword command sent to them automatically.",
 			},
-			"password_rotation_time": {
+			"password_rotation_time_seconds": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     3600,
@@ -41,7 +41,7 @@ func ResourceLocalAdminPasswordSettings() *schema.Resource {
 				Default:     false,
 				Description: "When enabled, all appropriate computers will automatically have their password expired and rotated after the configured autoRotateExpirationTime.",
 			},
-			"auto_rotate_expiration_time": {
+			"auto_rotate_expiration_time_seconds": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     7776000,
