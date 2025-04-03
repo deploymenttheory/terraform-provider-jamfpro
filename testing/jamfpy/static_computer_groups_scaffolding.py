@@ -100,7 +100,7 @@ def create_site_config(site_name):
 def parse_id_from_response(resp_text) -> str: 
     start = "<id>"
     end = "</id>"
-    return parse_tag_contents(start, end)
+    return parse_tag_contents(start, end, resp_text)
 
 def parse_tag_contents(start_tag, end_tag, resp_text):
     return resp_text[resp_text.index(start_tag) + len(start_tag): resp_text.index(end_tag)]
