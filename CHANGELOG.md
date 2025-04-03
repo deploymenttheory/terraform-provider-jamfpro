@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.15.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.14.0...v0.15.0) (2025-04-03)
+
+
+### Features
+
+* Add test harness. ([#632](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/632)) ([851ff5f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/851ff5f4ebdee2cae49d49d170e282b99685fb81))
+
+
+### Bug Fixes
+
+* Disabled "notification" key inside OSX configuraiton profile Self Service settings. ([8fa087d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/8fa087dd7517bb14a687b8e0423343240e71d529))
+* removed checkJamfAppCatalogAppInstallerTermsAndConditions until jamf fix it ([1defdee](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/1defdee34f891f4141095f6e0f95955f1294674e))
+* removed checkJamfAppCatalogAppInstallerTermsAndConditions until jamf fix it ([9b03439](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/9b03439d2cb54cb2b8f1150910edd0fa3c921dda))
+
 ## [0.14.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.13.2...v0.14.0) (2025-03-25)
 
 
