@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.16.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.15.0...v0.16.0) (2025-04-03)
+
+
+### Features
+
+* Dynamic Timeouts with Exceptions ([#639](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/639)) ([85bf8e2](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/85bf8e2dfd77202e7117766026f109b39c16df04))
+
+
+### Bug Fixes
+
+* reinstated bug and feat request templates ([962d3e2](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/962d3e2471a8ae52d8162c54ce66828ca230c24e))
+
 ## [0.15.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.14.0...v0.15.0) (2025-04-03)
 
 
