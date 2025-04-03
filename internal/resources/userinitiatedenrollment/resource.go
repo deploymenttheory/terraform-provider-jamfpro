@@ -458,44 +458,81 @@ func ResourceJamfProEnrollmentConfiguration() *schema.Resource {
 				Description: "Allow users to enroll iOS/iPadOS devicesby going to https://JAMF_PRO_URL.jamfcloud.com/enroll (hosted in Jamf Cloud) or https://JAMF_PRO_URL.com:8443/enroll (hosted on-premise)",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"enable_for_institutionally_owned_devices": {
-							Type:        schema.TypeBool,
+						"profile_driven_enrollment_via_url": {
+							Type:        schema.TypeSet,
 							Optional:    true,
-							Default:     false,
-							Description: "Whether user initiated device enrollment for iOS/iPadOS institutionally owned devices is enabled. Maps to request field 'iosEnterpriseEnrollmentEnabled'",
+							MaxItems:    1,
+							Description: "Configuration for the Profile-Driven Enrollment via URL",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enable_for_institutionally_owned_devices": {
+										Type:        schema.TypeBool,
+										Optional:    true,
+										Default:     false,
+										Description: "Whether user initiated device enrollment for iOS/iPadOS institutionally owned devices is enabled. Maps to request field 'iosEnterpriseEnrollmentEnabled'",
+									},
+									"enable_for_personally_owned_devices": {
+										Type:        schema.TypeBool,
+										Optional:    true,
+										Default:     false,
+										Description: "Whether user initiated device enrollment for iOS/iPadOS personally owned devices is enabled. Maps to request field 'iosPersonalEnrollmentEnabled'",
+									},
+									"personal_device_enrollment_type": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										Default:      "USERENROLLMENT",
+										Description:  "Enrollment type for user initiated device enrollment for iOS/iPadOS personally owned devices. Note: Personal data on devices enrolled via User Enrollment is retained when the MDM profile is removed. (iOS 13.1 or later, iPadOS 13.1 or later). Maps to request field 'personalDeviceEnrollmentType'",
+										ValidateFunc: validation.StringInSlice([]string{"USERENROLLMENT", "DEVICEENROLLMENT"}, false),
+									},
+								},
+							},
 						},
-						"enable_for_personally_owned_devices": {
-							Type:        schema.TypeBool,
+						"account_driven_user_enrollment": {
+							Type:        schema.TypeSet,
 							Optional:    true,
-							Default:     false,
-							Description: "Whether user initiated device enrollment for iOS/iPadOS personally owned devices is enabled. Maps to request field 'iosPersonalEnrollmentEnabled'",
+							MaxItems:    1,
+							Description: "Configuration for the Account-Driven User Enrollment",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enable_for_personally_owned_mobile_devices": {
+										Type:        schema.TypeBool,
+										Optional:    true,
+										Default:     false,
+										Description: "Whether user initiated device enrollment for iOS/iPadOS personally owned devices is enabled. Maps to request field 'accountDrivenUserEnrollmentEnabled'",
+									},
+									"enable_for_personally_owned_vision_pro_devices": {
+										Type:        schema.TypeBool,
+										Optional:    true,
+										Default:     false,
+										Description: "Whether user initiated device enrollment for visionOS personally owned devices is enabled. Maps to request field 'accountDrivenUserVisionosEnrollmentEnabled'",
+									},
+								},
+							},
 						},
-						"personal_device_enrollment_type": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Default:     "USERENROLLMENT",
-							Description: "Enrollment type for user initiated device enrollment for iOS/iPadOS personally owned devices. Note: Personal data on devices enrolled via User Enrollment is retained when the MDM profile is removed. (iOS 13.1 or later, iPadOS 13.1 or later). Maps to request field 'personalDeviceEnrollmentType'",
+						"account_driven_device_enrollment": {
+							Type:        schema.TypeSet,
+							Optional:    true,
+							MaxItems:    1,
+							Description: "Configuration for the Account-Driven Device Enrollment",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enable_for_institutionally_owned_mobile_devices": {
+										Type:        schema.TypeBool,
+										Optional:    true,
+										Default:     false,
+										Description: "Whether user initiated device enrollment for iOS/iPadOS institutionally owned devices is enabled. Maps to request field 'accountDrivenDeviceIosEnrollmentEnabled'",
+									},
+									"enable_for_personally_owned_vision_pro_devices": {
+										Type:        schema.TypeBool,
+										Optional:    true,
+										Default:     false,
+										Description: "Whether user initiated device enrollment for visionOS iOS/iPadOS institutionally owned devices is enabled. Maps to request field 'accountDrivenDeviceVisionosEnrollmentEnabled'",
+									},
+								},
+							},
 						},
 					},
 				},
-			},
-			"account_driven_device_ios_enrollment_enabled": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Whether account-driven device iOS enrollment is enabled",
-			},
-			"account_driven_user_visionos_enrollment_enabled": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Whether account-driven user visionOS enrollment is enabled",
-			},
-			"account_driven_device_visionos_enrollment_enabled": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Whether account-driven device visionOS enrollment is enabled",
 			},
 
 			// Flush settings
@@ -551,85 +588,63 @@ func ResourceJamfProEnrollmentConfiguration() *schema.Resource {
 					},
 				},
 			},
-
-			// Platform enrollment settings
-			"macos_enterprise_enrollment_enabled": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     true,
-				Description: "Whether macOS enterprise enrollment is enabled",
-			},
-
-			"ios_personal_enrollment_enabled": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Whether iOS personal enrollment is enabled",
-			},
-			"personal_device_enrollment_type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "USERENROLLMENT",
-				Description:  "Type of enrollment for personal devices",
-				ValidateFunc: validation.StringInSlice([]string{"USERENROLLMENT", "DEVICEENROLLMENT"}, false),
-			},
-			"account_driven_user_enrollment_enabled": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Whether account-driven user enrollment is enabled",
-			},
 			// api/v3/enrollment/access-groups
 			// Directory Service Groups
-			"directory_service_groups": {
+			"directory_service_group_enrollment_settings": {
 				Type:        schema.TypeSet,
 				Optional:    true,
-				Description: "Configuration for directory service groups allowed to enroll",
+				Description: "Directory Service groups to configure enrollment access for",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"account_driven_user_enrollment_enabled": {
+						"id": {
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: "The unique identifier of the directory_service_group_enrollment_setting.",
+						},
+						"allow_group_to_enroll_institutionally_owned_devices": {
 							Type:        schema.TypeBool,
 							Optional:    true,
-							Default:     true,
-							Description: "Whether account-driven user enrollment is enabled for this group",
+							Default:     false,
+							Description: "Whether directory group can perform user initiated device enrollment for iOS/iPadOS institutionally owned devices. Maps to request field 'enterpriseEnrollmentEnabled'",
 						},
-						"enterprise_enrollment_enabled": {
+						"allow_group_to_enroll_personally_owned_devices": {
 							Type:        schema.TypeBool,
 							Optional:    true,
-							Default:     true,
-							Description: "Whether enterprise enrollment is enabled for this group",
+							Default:     false,
+							Description: "Whether directory group can perform user initiated device enrollment for iOS/iPadOS personally owned devices. Maps to request field 'personalEnrollmentEnabled'",
 						},
-						"group_id": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "UUID of the directory service group",
+						"allow_group_to_enroll_personal_and_institutionally_owned_devices_via_ade": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Default:     false,
+							Description: "Whether directory group can perform user initiated device enrollment for iOS/iPadOS by signing in to their device using a Managed Apple ID with ade. Maps to request field 'accountDrivenUserEnrollmentEnabled'",
 						},
 						"ldap_server_id": {
 							Type:        schema.TypeString,
 							Required:    true,
-							Description: "ID of the LDAP server associated with this group",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "Name of the directory service group",
-						},
-						"personal_enrollment_enabled": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Default:     true,
-							Description: "Whether personal enrollment is enabled for this group",
+							Description: "The unique identifier of the Directory Service group id.",
 						},
 						"require_eula": {
 							Type:        schema.TypeBool,
 							Optional:    true,
-							Default:     false,
-							Description: "Whether to require accepting an EULA during enrollment for this group",
+							Default:     true,
+							Description: "Upon enrollment is the eula required to be accepted",
+						},
+						"directory_service_group_name": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Name of the Directory Service group to configure enrollment access for. Maps to request field 'name'",
+						},
+						"directory_service_group_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							Description:  "id of the Directory Service group to configure enrollment access for. Maps to request field 'groupId'",
+							ValidateFunc: validation.IsUUID,
 						},
 						"site_id": {
-							Type:        schema.TypeString,
+							Type:        schema.TypeInt,
 							Optional:    true,
-							Description: "ID of the site associated with this directory service group",
+							Description: "ID of the Site to allow this LDAP user group to select during enrollment",
 						},
 					},
 				},
