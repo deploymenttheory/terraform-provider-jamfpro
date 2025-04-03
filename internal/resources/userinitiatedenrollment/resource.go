@@ -7,12 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func ResourceJamfProEnrollmentConfiguration() *schema.Resource {
+func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 	return &schema.Resource{
-		//CreateContext: resourceNotImplementedCreate,
-		//ReadContext:   resourceEnrollmentRead,
-		//UpdateContext: resourceEnrollmentUpdate,
-		//DeleteContext: resourceNotImplementedDelete,
+		CreateContext: create,
+		ReadContext:   readWithCleanup,
+		UpdateContext: update,
+		DeleteContext: delete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Second),
 			Read:   schema.DefaultTimeout(15 * time.Second),
@@ -362,7 +362,6 @@ func ResourceJamfProEnrollmentConfiguration() *schema.Resource {
 						"enable_user_initiated_enrollment_for_computers": {
 							Type:        schema.TypeBool,
 							Required:    true,
-							Default:     false,
 							Description: "Allow users to enroll computers by going to https://JAMF_PRO_URL.jamfcloud.com/enroll (hosted in Jamf Cloud) or https://JAMF_PRO_URL.com:8443/enroll (hosted on-premise). Maps to request field 'macOsEnterpriseEnrollmentEnabled'",
 						},
 						// Managed Local Administrator Account block
@@ -381,7 +380,7 @@ func ResourceJamfProEnrollmentConfiguration() *schema.Resource {
 									},
 									"management_account_username": {
 										Type:        schema.TypeString,
-										Required:    true,
+										Optional:    true,
 										Default:     "jamfadmin",
 										Description: "Account username to be used for computers enrolled via PreStage enrollment or user-initiated enrollment. This account is created by the Jamf management framework. Maps to request field 'managementUsername'",
 									},

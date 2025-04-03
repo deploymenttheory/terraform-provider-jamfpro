@@ -27,7 +27,6 @@ import (
 	computercheckin "github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/clientcheckin"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerextensionattributes"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerinventory"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerinventorycollection"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerinventorycollectionsettings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerprestageenrollments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/departments"
@@ -56,6 +55,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/smtpserver"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/staticcomputergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/usergroups"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/userinitiatedenrollment"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/webhooks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -372,19 +372,17 @@ func Provider() *schema.Provider {
 			"jamfpro_network_segment":                           networksegments.DataSourceJamfProNetworkSegments(),
 			"jamfpro_macos_configuration_profile_plist":         macosconfigurationprofilesplist.DataSourceJamfProMacOSConfigurationProfilesPlist(),
 			"jamfpro_mobile_device_configuration_profile_plist": mobiledeviceconfigurationprofilesplist.DataSourceJamfProMobileDeviceConfigurationProfilesPlist(),
-
-			/* "jamfpro_mobile_device_extension_attribute":         mobiledeviceextensionattribute.DataSourceJamfProMobileDeviceExtensionAttributes(), */
-			"jamfpro_package":                   packages.DataSourceJamfProPackages(),
-			"jamfpro_policy":                    policies.DataSourceJamfProPolicies(),
-			"jamfpro_printer":                   printers.DataSourceJamfProPrinters(),
-			"jamfpro_script":                    scripts.DataSourceJamfProScripts(),
-			"jamfpro_site":                      sites.DataSourceJamfProSites(),
-			"jamfpro_smart_computer_group":      smartcomputergroups.DataSourceJamfProSmartComputerGroups(),
-			"jamfpro_smart_mobile_device_group": smartmobiledevicegroups.DataSourceJamfProSmartMobileGroups(),
-			"jamfpro_static_computer_group":     staticcomputergroups.DataSourceJamfProStaticComputerGroups(),
-			"jamfpro_restricted_software":       restrictedsoftware.DataSourceJamfProRestrictedSoftwares(),
-			"jamfpro_user_group":                usergroups.DataSourceJamfProUserGroups(),
-			"jamfpro_webhook":                   webhooks.DataSourceJamfProWebhooks(),
+			"jamfpro_package":                                   packages.DataSourceJamfProPackages(),
+			"jamfpro_policy":                                    policies.DataSourceJamfProPolicies(),
+			"jamfpro_printer":                                   printers.DataSourceJamfProPrinters(),
+			"jamfpro_script":                                    scripts.DataSourceJamfProScripts(),
+			"jamfpro_site":                                      sites.DataSourceJamfProSites(),
+			"jamfpro_smart_computer_group":                      smartcomputergroups.DataSourceJamfProSmartComputerGroups(),
+			"jamfpro_smart_mobile_device_group":                 smartmobiledevicegroups.DataSourceJamfProSmartMobileGroups(),
+			"jamfpro_static_computer_group":                     staticcomputergroups.DataSourceJamfProStaticComputerGroups(),
+			"jamfpro_restricted_software":                       restrictedsoftware.DataSourceJamfProRestrictedSoftwares(),
+			"jamfpro_user_group":                                usergroups.DataSourceJamfProUserGroups(),
+			"jamfpro_webhook":                                   webhooks.DataSourceJamfProWebhooks(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"jamfpro_account":                                     accounts.ResourceJamfProAccounts(),
@@ -402,7 +400,6 @@ func Provider() *schema.Provider {
 			"jamfpro_category":                                    categories.ResourceJamfProCategories(),
 			"jamfpro_client_checkin":                              computercheckin.ResourceJamfProClientCheckin(),
 			"jamfpro_computer_extension_attribute":                computerextensionattributes.ResourceJamfProComputerExtensionAttributes(),
-			"jamfpro_computer_inventory_collection":               computerinventorycollection.ResourceJamfProComputerInventoryCollection(),
 			"jamfpro_computer_inventory_collection_settings":      computerinventorycollectionsettings.ResourceJamfProComputerInventoryCollectionSettings(),
 			"jamfpro_computer_prestage_enrollment":                computerprestageenrollments.ResourceJamfProComputerPrestageEnrollmentEnrollment(),
 			"jamfpro_department":                                  departments.ResourceJamfProDepartments(),
@@ -429,6 +426,7 @@ func Provider() *schema.Provider {
 			"jamfpro_smart_mobile_device_group":                   smartmobiledevicegroups.ResourceJamfProSmartMobileGroups(),
 			"jamfpro_static_computer_group":                       staticcomputergroups.ResourceJamfProStaticComputerGroups(),
 			"jamfpro_restricted_software":                         restrictedsoftware.ResourceJamfProRestrictedSoftwares(),
+			"jamfpro_user_initiated_enrollment_settings":          userinitiatedenrollment.ResourceJamfProUserInitatedEnrollmentSettings(),
 			"jamfpro_user_group":                                  usergroups.ResourceJamfProUserGroups(),
 			"jamfpro_webhook":                                     webhooks.ResourceJamfProWebhooks(),
 		},
