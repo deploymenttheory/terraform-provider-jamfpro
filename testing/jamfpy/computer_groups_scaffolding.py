@@ -3,6 +3,7 @@ import jamfpy
 import random
 import uuid
 import json
+from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -128,13 +129,15 @@ def create_computers(site_id):
 
 
 def write_ids_to_data_source(site_id, computer_ids):
-    logger.info(f"Writing ids to /data_sources/site_and_computer_ids.json")
-    data = {
+    data_object = {
         "computers":computer_ids,
             "site":site_id
             }
-    with open("../data_sources/site_and_computer_ids.json", "w") as file:
-        json.dump(data, file)
+    full_path = "../data_sources/site_and_computer_ids.json"
+    file = Path(full_path)
+    file.parent.mkdir(parents=True, exist_ok=True)
+    data_json = json.dumps(data_object)
+    file.write_text(data_json)
 
 site_id = create_site(site_name)
 computer_ids = create_computers(site_id)
