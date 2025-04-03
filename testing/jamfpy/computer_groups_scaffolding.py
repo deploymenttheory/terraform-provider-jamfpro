@@ -104,11 +104,7 @@ def parse_id_from_response(resp_text) -> str:
 
 def create_site(site_name):
     site_config = create_site_config(site_name)
-    resp = instance.classic.sites.create(site_config)
-    resp.raise_for_status()
-    resp_text = resp.text
-    site_id = parse_id_from_response(resp_text)
-    logger.info(f"Sucessfully created site {site_name} id:{site_id}")
+    site_id = send_create(instance.classic.sites, site_config, "sites")
     return site_id
 
 
@@ -118,22 +114,27 @@ def create_computers(site_id, amount):
     for i in range (0, amount):
         computer_name = f"tf-testing-{random_number}-{i}"
         computer_config = create_computer_config(computer_name, site_id, SITE_NAME)
-        resp = instance.classic.computers.create(computer_config)
-        resp.raise_for_status()
-        response_text = resp.text
-        computer_id = parse_id_from_response(response_text)
-        logger.info(f"Sucessfully created computer id:{computer_id}")
+        computer_id = send_create(instance.classic.computers, computer_config, "computers")
         computer_ids.append(computer_id)
     return computer_ids
 
-
+def send_create(instance_object, payload, type_string):
+    resp = instance_object.create(payload)
+    resp.raise_for_status()
+    if resp.ok:
+        resp_text = resp.text
+        object_id = parse_id_from_response(resp_text)
+        logger.info(f"Successfully CREATED {type_string} id:{object_id}")
+    else:
+        logger.warning(f"FAILED to CREATE {type_string}")
+    return object_id
 
 
 def write_ids_to_data_source(site_id, computer_ids):
     data_object = {
         "computers":computer_ids,
             "site":site_id
-            }
+        }
     full_path = "../data_sources/site_and_computer_ids.json"
     file = Path(full_path)
     file.parent.mkdir(parents=True, exist_ok=True)

@@ -36,9 +36,9 @@ def purge_classic_test_resources(resource_instance, resource_type_string):
     for id in resource_ids:
         del_resp = resource_instance.delete_by_id(id)
         if del_resp.ok:
-            logger.info(f"Sucessfully deleted {resource_type_string} id:{id}")
+            logger.info(f"Successfully DELETED {resource_type_string} id:{id}")
         else:
-            logger.warning(f"FAILED to delete {resource_type_string} id:{id}")
+            logger.warning(f"FAILED to DELETE {resource_type_string} id:{id}")
 
 
 # ============================================================================ #
