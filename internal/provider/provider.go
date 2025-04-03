@@ -65,7 +65,7 @@ import (
 )
 
 // TerraformProviderProductUserAgent is included in the User-Agent header for
-// interface{} API requests made by the provider.
+// any API requests made by the provider.
 const (
 	terraformProviderProductUserAgent = "terraform-provider-jamfpro"
 	envVarOAuthClientId               = "JAMFPRO_CLIENT_ID"
@@ -255,7 +255,7 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc(envVarJamfProFQDN, ""),
-				Description: "The Jamf Pro FQDN (fully qualified domain name). example: https://mycompinterface{}.jamfcloud.com",
+				Description: "The Jamf Pro FQDN (fully qualified domain name). example: https://mycompany.jamfcloud.com",
 			},
 			"auth_method": {
 				Type:        schema.TypeString,
