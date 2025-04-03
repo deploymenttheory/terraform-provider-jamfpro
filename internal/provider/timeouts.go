@@ -45,8 +45,5 @@ func TimeoutOverrides(lb_lock bool) map[string]resourceTimeout {
 			Update: 75 * time.Second,
 			Delete: 75 * time.Second,
 		},
-		"jamfpro_policy": {
-			Create: 30 * time.Second,
-		},
 	}
 }
