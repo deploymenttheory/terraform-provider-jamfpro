@@ -363,7 +363,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 						"notification": {
 							Type:        schema.TypeBool,
 							Optional:    true,
-							Description: "Enables Notification for this profile in self service",
+							Description: "TEMPORARILY DISABLED\nEnables Notification for this profile in self service",
 						},
 						"notification_subject": {
 							Type:        schema.TypeString,
