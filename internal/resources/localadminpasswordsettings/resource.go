@@ -14,10 +14,10 @@ func ResourceLocalAdminPasswordSettings() *schema.Resource {
 		UpdateContext: update,
 		DeleteContext: delete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(120 * time.Second),
-			Read:   schema.DefaultTimeout(15 * time.Second),
-			Update: schema.DefaultTimeout(30 * time.Second),
-			Delete: schema.DefaultTimeout(15 * time.Second),
+			Create: schema.DefaultTimeout(70 * time.Second),
+			Read:   schema.DefaultTimeout(70 * time.Second),
+			Update: schema.DefaultTimeout(70 * time.Second),
+			Delete: schema.DefaultTimeout(70 * time.Second),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -29,7 +29,7 @@ func ResourceLocalAdminPasswordSettings() *schema.Resource {
 				Default:     false,
 				Description: "When enabled, all appropriate computers will have the SetAutoAdminPassword command sent to them automatically.",
 			},
-			"password_rotation_time": {
+			"password_rotation_time_seconds": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     3600,
@@ -41,7 +41,7 @@ func ResourceLocalAdminPasswordSettings() *schema.Resource {
 				Default:     false,
 				Description: "When enabled, all appropriate computers will automatically have their password expired and rotated after the configured autoRotateExpirationTime.",
 			},
-			"auto_rotate_expiration_time": {
+			"auto_rotate_expiration_time_seconds": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     7776000,
