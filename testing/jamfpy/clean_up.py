@@ -1,7 +1,10 @@
 import os
 import jamfpy
 from dotenv import load_dotenv
+from bs4 import BeautifulSoup
+
 load_dotenv()
+
 
 logger = jamfpy.get_logger(name="cleanup", level=20)
 TENTANT_FQDN = "https://lbgsandbox.jamfcloud.com"
@@ -16,6 +19,18 @@ instance = jamfpy.Tenant(
     client_secret=CLIENT_SEC,
     token_exp_threshold_mins=1
 )
+
+def parse_error_message(html_content):
+    soup = BeautifulSoup(html_content, 'html.parser')
+
+    p_tags = soup.find_all('p')
+
+    if len(p_tags) > 1:
+        target_paragraph = p_tags[1]
+        return target_paragraph.get_text()
+    else:
+        print("Issue parsing error response.")
+
 
 def testing_ids_from_resources(resources):
     resource_ids = []
@@ -38,7 +53,8 @@ def purge_classic_test_resources(resource_instance, resource_type_string):
         if del_resp.ok:
             logger.info(f"Successfully DELETED {resource_type_string} id:{id}")
         else:
-            logger.warning(f"FAILED to DELETE {resource_type_string} id:{id}")
+            error_response = parse_error_message(del_resp.text)
+            logger.warning(f"FAILED to DELETE {resource_type_string} id:{id}\n Reason: {error_response}")
 
 
 # ============================================================================ #
@@ -50,4 +66,6 @@ purge_classic_test_resources(instance.classic.computer_extension_attributes, "co
 purge_classic_test_resources(instance.classic.categories, "categories")
 purge_classic_test_resources(instance.classic.sites, "sites")
 purge_classic_test_resources(instance.classic.computers, "computers")
+purge_classic_test_resources(instance.classic.departments, "departments")
+
 # TODO: Add departments to jamfpy and here

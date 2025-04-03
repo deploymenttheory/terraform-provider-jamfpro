@@ -1,2 +1,6 @@
+# python-dotenv
+# jamfpy @ git+https://github.com/thejoeker12/jamfpy-python-sdk-jamfpro@create-interfacing-for-classic
+
 python-dotenv
-jamfpy @ git+https://github.com/thejoeker12/jamfpy-python-sdk-jamfpro@add_sites
+jamfpy @ git+https://github.com/thejoeker12/jamfpy-python-sdk-jamfpro@dev
+bs4
