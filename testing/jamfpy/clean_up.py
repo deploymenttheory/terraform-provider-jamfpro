@@ -42,6 +42,7 @@ def testing_ids_from_resources(resources):
     return resource_ids
 
 def purge_classic_test_resources(resource_instance, resource_type_string):
+    # Escape characters for underlining
     print(f"\n\033[4mPurging {resource_type_string}...\033[0m")
 
     resp = resource_instance.get_all()
