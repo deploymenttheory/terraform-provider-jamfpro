@@ -7,6 +7,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
 
+SITE_NAME = "tf-testing-site"
+COMPUTER_COUNT = 10
+
+
 logger = jamfpy.get_logger(name="site_computer_setup", level=20)
 TENTANT_FQDN = "https://lbgsandbox.jamfcloud.com"
 
@@ -20,8 +24,6 @@ instance = jamfpy.Tenant(
     client_secret=CLIENT_SEC,
     token_exp_threshold_mins=1
 )
-
-site_name = "tf-testing-site"
 
 def create_computer_config(computer_name,site_id, site_name):
     return f"""
@@ -109,22 +111,21 @@ def create_site(site_name):
     logger.info(f"Sucessfully created site {site_name} id:{site_id}")
     return site_id
 
-def create_computers(site_id):
+
+def create_computers(site_id, amount):
     computer_ids = []
     random_number = random.randint(0,9999)
-    computer_name_1 = f"tf-testing-{random_number}-1"
-    computer_name_2 = f"tf-testing-{random_number}-2"
-    computer_config_1 = create_computer_config(computer_name_1, site_id, site_name)
-    computer_config_2 = create_computer_config(computer_name_2, site_id, site_name)
-    computer_configs = [computer_config_1, computer_config_2]
-    for config in computer_configs:
-        resp = instance.classic.computers.create(config)
+    for i in range (0, amount):
+        computer_name = f"tf-testing-{random_number}-{i}"
+        computer_config = create_computer_config(computer_name, site_id, SITE_NAME)
+        resp = instance.classic.computers.create(computer_config)
         resp.raise_for_status()
         response_text = resp.text
         computer_id = parse_id_from_response(response_text)
         logger.info(f"Sucessfully created computer id:{computer_id}")
-        computer_ids.append(int(computer_id))
+        computer_ids.append(computer_id)
     return computer_ids
+
 
 
 
@@ -139,6 +140,6 @@ def write_ids_to_data_source(site_id, computer_ids):
     data_json = json.dumps(data_object)
     file.write_text(data_json)
 
-site_id = create_site(site_name)
-computer_ids = create_computers(site_id)
+site_id = create_site(SITE_NAME)
+computer_ids = create_computers(site_id, COMPUTER_COUNT)
 write_ids_to_data_source(site_id=site_id, computer_ids=computer_ids)
