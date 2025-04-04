@@ -206,7 +206,8 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 }
 
 // update is responsible for updating an existing Jamf Pro UIE settings on the remote system.
-// first it gets all existing enrollment messages, skips the built in english option and removes
+// first it updates base config items.
+// second it gets all existing enrollment messages, skips the built in english option and removes
 // all other language settings. It then reapplies as needed. The http method is PUT.
 // It then follows the same flow for LDAP Directory Service Groups.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
