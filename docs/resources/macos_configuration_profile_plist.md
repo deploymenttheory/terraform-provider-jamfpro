@@ -7,14 +7,7 @@ description: |-
 # jamfpro_macos_configuration_profile_plist (Resource)
 
 
-
-
 ## Example Usage
-
-> [!WARNING]
-> The "notification" key inside Self Service for this resource has been disabled and will no longer take any affect in Jamf Pro. 
-This is a temporary measure as the API does not work for this setting and the XML payload invalid, causing errors. The issue has been raised with Jamf and the functionaily will return as soon as the API allows. Thank you!
-
 ```terraform
 variable "version_number" {
   description = "The version number to include in the name and install button text."
@@ -257,7 +250,8 @@ Optional:
 - `feature_on_main_page` (Boolean) Shows Configuration Profile on Self Service main page
 - `force_users_to_view_description` (Boolean) Force users to view the description before the profile installs
 - `install_button_text` (String) Name for the button that users click to install the profile
-- `notification` (Boolean) Enables Notification for this profile in self service
+- `notification` (Boolean) TEMPORARILY DISABLED
+Enables Notification for this profile in self service
 - `notification_message` (String) Message body
 - `notification_subject` (String) Message Subject
 - `self_service_category` (Block Set) Self Service category options (see [below for nested schema](#nestedblock--self_service--self_service_category))
