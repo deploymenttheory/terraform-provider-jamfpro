@@ -2,7 +2,6 @@ import os
 import jamfpy
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
-
 load_dotenv()
 
 
@@ -11,6 +10,14 @@ TENTANT_FQDN = "https://lbgsandbox.jamfcloud.com"
 
 CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SEC = os.environ.get("CLIENT_SEC")
+TESTING_ID = os.environ.get("TESTING_ID")
+
+if TESTING_ID =="":
+    logger.error("Testing ID not set correctly")
+elif TESTING_ID == "local":
+    logger.warning("Testing ID set to local. If run in a pipeline, this can cause unstable behaviour for other simultaneous runs.")
+else:
+    logger.info("Cleanup with testing id {TESTING_ID}")
 
 instance = jamfpy.Tenant(
     fqdn=TENTANT_FQDN,
@@ -22,7 +29,6 @@ instance = jamfpy.Tenant(
 
 def parse_error_message(html_content):
     soup = BeautifulSoup(html_content, 'html.parser')
-
     p_tags = soup.find_all('p')
 
     if len(p_tags) > 1:
@@ -36,7 +42,7 @@ def testing_ids_from_resources(resources):
     resource_ids = []
     for resource in resources:
         name = str(resource["name"])
-        if name.startswith("tf-testing"):
+        if name.startswith(f"tf-testing-{TESTING_ID}"):
             resource_id = resource["id"]
             resource_ids.append(resource_id)
     return resource_ids

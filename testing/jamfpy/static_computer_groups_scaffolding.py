@@ -7,8 +7,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
 
-SITE_NAME = "tf-testing-site"
-COMPUTER_COUNT = 10
+logger = jamfpy.get_logger(name="cleanup", level=20)
 
 
 logger = jamfpy.get_logger(name="site_computer_setup", level=20)
@@ -16,6 +15,19 @@ TENTANT_FQDN = "https://lbgsandbox.jamfcloud.com"
 
 CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SEC = os.environ.get("CLIENT_SEC")
+TESTING_ID = os.environ.get("TESTING_ID")
+
+if TESTING_ID =="":
+    logger.error("Testing ID not set correctly")
+elif TESTING_ID == "local":
+    logger.warning("Testing ID set to local. If run in a pipeline, this can cause unstable behaviour for other simultaneous runs.")
+else:
+    logger.info("Cleanup with testing id {TESTING_ID}")
+
+
+RANDOM_NUMBER = random.randint(0,9999)
+COMPUTER_COUNT = 10
+SITE_NAME = f"tf-testing-{TESTING_ID}-site-{RANDOM_NUMBER}"
 
 instance = jamfpy.Tenant(
     fqdn=TENTANT_FQDN,
@@ -114,9 +126,8 @@ def create_site(site_name):
 
 def create_computers(site_id, amount):
     computer_ids = []
-    random_number = random.randint(0,9999)
     for i in range (0, amount):
-        computer_name = f"tf-testing-{random_number}-{i}"
+        computer_name = f"tf-testing-{TESTING_ID}-{RANDOM_NUMBER}-{i}"
         computer_config = create_computer_config(computer_name, site_id, SITE_NAME)
         computer_id = send_create(instance.classic.computers, computer_config, "computers")
         computer_ids.append(computer_id)
