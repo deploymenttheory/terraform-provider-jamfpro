@@ -8,7 +8,7 @@
 // Single department
 
 resource "jamfpro_department" "department" {
-  name = "tf-testing-${random_id.rng.hex}"
+  name = "tf-testing-${var.testing_id}-${random_id.rng.hex}"
 }
 
 // ========================================================================== //
@@ -16,5 +16,5 @@ resource "jamfpro_department" "department" {
 
 resource "jamfpro_department" "multiple_departments" {
   count = 100
-  name  = "tf-testing-${count.index}-${random_id.rng.hex}"
+  name  = "tf-testing-${var.testing_id}-${count.index}-${random_id.rng.hex}"
 }
