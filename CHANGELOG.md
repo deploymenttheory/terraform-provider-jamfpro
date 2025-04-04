@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.16.0...v0.16.1) (2025-04-04)
+
+
+### Bug Fixes
+
+* removed warning from docs, releaser failling. ([#644](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/644)) ([829d404](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/829d404e63fcc197c7e80a71e33b2f767f8533a0))
+
 ## [0.16.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.15.0...v0.16.0) (2025-04-03)
 
 
