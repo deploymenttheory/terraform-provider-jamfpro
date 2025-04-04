@@ -11,6 +11,7 @@ import (
 	"github.com/deploymenttheory/go-api-http-client-integrations/jamf/jamfprointegration"
 	"github.com/deploymenttheory/go-api-http-client/httpclient"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/accountdrivenuserenrollmentsettings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/accountgroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/accounts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/activationcode"
@@ -385,7 +386,8 @@ func Provider() *schema.Provider {
 			"jamfpro_webhook":                                   webhooks.DataSourceJamfProWebhooks(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"jamfpro_account":                                     accounts.ResourceJamfProAccounts(),
+			"jamfpro_account": accounts.ResourceJamfProAccounts(),
+			"jamfpro_account_driven_user_enrollment_settings":     accountdrivenuserenrollmentsettings.ResourceJamfProAccountDrivenUserEnrollmentSettings(),
 			"jamfpro_account_group":                               accountgroups.ResourceJamfProAccountGroups(),
 			"jamfpro_activation_code":                             activationcode.ResourceJamfProActivationCode(),
 			"jamfpro_advanced_computer_search":                    advancedcomputersearches.ResourceJamfProAdvancedComputerSearches(),
