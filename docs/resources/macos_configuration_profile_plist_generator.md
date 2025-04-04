@@ -8,11 +8,6 @@ description: |-
 
 
 ## Example Usage
-
-> [!WARNING]
-> The "notification" key inside Self Service for this resource has been disabled and will no longer take any affect in Jamf Pro. 
-This is a temporary measure as the API does not work for this setting and the XML payload invalid, causing errors. The issue has been raised with Jamf and the functionaily will return as soon as the API allows. Thank you!
-
 ```terraform
 variable "version_number" {
   description = "The version number to include in the name and install button text."
