@@ -1,9 +1,9 @@
 package userinitiatedenrollment
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -112,6 +112,13 @@ func constructEnrollmentSettings(d *schema.ResourceData) (*jamfpro.ResourceEnrol
 		}
 	}
 
+	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal Jamf Pro SMTP Server Settings to JSON: %v", err)
+	}
+
+	log.Printf("[DEBUG] Constructed Jamf Pro User-initiated enrollment Settings JSON:\n%s\n", string(resourceJSON))
+
 	return resource, nil
 }
 
@@ -146,7 +153,7 @@ func constructEnrollmentMessaging(d *schema.ResourceData, client *jamfpro.Client
 			log.Printf("[DEBUG] Mapping language name '%s' to code '%s'", langName, langCode)
 
 			// Create language message
-			message := jamfpro.ResourceEnrollmentLanguage{
+			resource := jamfpro.ResourceEnrollmentLanguage{
 				LanguageCode: langCode,
 				Name:         langName,
 				Title:        msg["page_title"].(string),
@@ -214,21 +221,30 @@ func constructEnrollmentMessaging(d *schema.ResourceData, client *jamfpro.Client
 			}
 
 			// Add an extra check to ensure we have a valid language code before proceeding
-			if message.LanguageCode == "" {
+			if resource.LanguageCode == "" {
 				log.Printf("[ERROR] Empty language code for language name '%s', skipping", langName)
 				continue
 			}
 
-			messages = append(messages, message)
+			messages = append(messages, resource)
 		}
+
 	}
+
+	messagesJSON, err := json.MarshalIndent(messages, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal Jamf Pro enrollment messaging to JSON: %v", err)
+	}
+
+	log.Printf("[DEBUG] Constructed Jamf Pro Enrollment Messaging JSON:\n%s\n", string(messagesJSON))
 
 	return messages, nil
 }
 
+// In the constructDirectoryServiceGroupSettings function
 // constructDirectoryServiceGroupSettings builds directory service group settings
 func constructDirectoryServiceGroupSettings(d *schema.ResourceData) ([]*jamfpro.ResourceAccountDrivenUserEnrollmentAccessGroup, error) {
-	var groups []*jamfpro.ResourceAccountDrivenUserEnrollmentAccessGroup
+	var resource []*jamfpro.ResourceAccountDrivenUserEnrollmentAccessGroup
 
 	if v, ok := d.GetOk("directory_service_group_enrollment_settings"); ok {
 		groupsSet := v.(*schema.Set).List()
@@ -236,29 +252,34 @@ func constructDirectoryServiceGroupSettings(d *schema.ResourceData) ([]*jamfpro.
 		for _, groupData := range groupsSet {
 			groupMap := groupData.(map[string]interface{})
 
-			// Convert optional site_id (int) to string only if > 0
-			siteID := ""
-			if v, ok := groupMap["site_id"]; ok {
-				if idInt, ok := v.(int); ok && idInt > 0 {
-					siteID = strconv.Itoa(idInt)
-				}
-			}
-
+			// Create the group with all values from config
 			group := &jamfpro.ResourceAccountDrivenUserEnrollmentAccessGroup{
-				ID:                                 groupMap["group_id"].(string),
 				GroupID:                            groupMap["directory_service_group_id"].(string),
 				LdapServerID:                       groupMap["ldap_server_id"].(string),
 				Name:                               groupMap["directory_service_group_name"].(string),
-				SiteID:                             siteID,
+				SiteID:                             groupMap["site_id"].(string),
 				EnterpriseEnrollmentEnabled:        groupMap["allow_group_to_enroll_institutionally_owned_devices"].(bool),
 				PersonalEnrollmentEnabled:          groupMap["allow_group_to_enroll_personally_owned_devices"].(bool),
 				AccountDrivenUserEnrollmentEnabled: groupMap["allow_group_to_enroll_personal_and_institutionally_owned_devices_via_ade"].(bool),
 				RequireEula:                        groupMap["require_eula"].(bool),
 			}
 
-			groups = append(groups, group)
+			// Preserve ID if it exists in state
+			if id, ok := groupMap["id"].(string); ok && id != "" {
+				group.ID = id
+				log.Printf("[DEBUG] Preserving existing ID '%s' for directory service group '%s'", id, group.Name)
+			}
+
+			resource = append(resource, group)
 		}
 	}
 
-	return groups, nil
+	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal Jamf Pro User-initiated enrollment Directory Service Groups to JSON: %v", err)
+	}
+
+	log.Printf("[DEBUG] Constructed Jamf Pro User-initiated enrollment Directory Service Groups JSON:\n%s\n", string(resourceJSON))
+
+	return resource, nil
 }

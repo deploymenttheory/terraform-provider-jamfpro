@@ -164,40 +164,42 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 		log.Printf("[DEBUG] Successfully fetched %d configured enrollment language messages.", len(enrollmentMessages))
 	}
 
-	// --- Step 3: Get directory service group enrollment settings ---
-	// (Keep this logic as is - fetching the full list is correct here)
+	// --- Step 3: Get all directory service group enrollment settings ---
 	var accessGroupsList []jamfpro.ResourceAccountDrivenUserEnrollmentAccessGroup
-	log.Print("[DEBUG] Reading directory service groups: Fetching list from API.")
+	log.Print("[DEBUG] Reading directory service groups: Fetching all groups from API.")
+
+	var currentGroups *jamfpro.ResponseAccountDrivenUserEnrollmentAccessGroupsList
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		accessGroupsResp, apiErr := client.GetAccountDrivenUserEnrollmentAccessGroups("")
+		currentGroups, apiErr = client.GetAccountDrivenUserEnrollmentAccessGroups("")
 		if apiErr != nil {
-			if strings.Contains(apiErr.Error(), "404") {
-				log.Printf("[WARN] Directory service groups endpoint returned 404. Assuming none exist.")
-				accessGroupsList = []jamfpro.ResourceAccountDrivenUserEnrollmentAccessGroup{}
-				return nil // Stop retry
-			}
-			log.Printf("[ERROR] Failed attempt get directory groups: %v. Retrying...", apiErr)
+			log.Printf("[ERROR] Failed to fetch directory service groups: %v. Retrying...", apiErr)
 			return retry.RetryableError(apiErr)
-		}
-		if accessGroupsResp != nil && len(accessGroupsResp.Results) > 0 {
-			accessGroupsList = accessGroupsResp.Results
-		} else {
-			accessGroupsList = []jamfpro.ResourceAccountDrivenUserEnrollmentAccessGroup{} // Ensure empty slice
 		}
 		return nil
 	})
 
 	if err != nil {
-		// Log warning but continue state update. Group state might be inaccurate.
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Warning,
-			Summary:  "Failed to retrieve directory service group enrollment settings",
-			Detail:   fmt.Sprintf("Error: %v", err),
+			Summary:  "Failed to fetch directory service groups",
+			Detail:   fmt.Sprintf("Error fetching all groups: %v", err),
 		})
-		accessGroupsList = []jamfpro.ResourceAccountDrivenUserEnrollmentAccessGroup{} // Ensure empty on error
+	} else if currentGroups != nil && len(currentGroups.Results) > 0 {
+		log.Printf("[DEBUG] Found %d directory service groups from API.", len(currentGroups.Results))
+
+		// When we have access groups from the API, filter out any built-in groups (ID "1")
+		for _, group := range currentGroups.Results {
+			if group.ID == "1" {
+				log.Printf("[DEBUG] Skipping built-in group with ID 1: %s", group.Name)
+				continue
+			}
+			accessGroupsList = append(accessGroupsList, group)
+		}
+		log.Printf("[DEBUG] Added %d groups to state (excluding built-in)", len(accessGroupsList))
+	} else {
+		log.Print("[DEBUG] No directory service groups found from API call.")
 	}
-	log.Printf("[DEBUG] Fetched %d directory service groups from API.", len(accessGroupsList))
 
 	// --- Step 4: Update state using the centralized function ---
 	log.Print("[DEBUG] Updating Terraform state based on fetched API data.")

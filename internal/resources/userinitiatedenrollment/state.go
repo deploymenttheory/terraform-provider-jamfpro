@@ -4,7 +4,7 @@ package userinitiatedenrollment
 import (
 	"fmt"
 	"log"
-	"strconv"
+	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -12,11 +12,11 @@ import (
 )
 
 // updateState updates the Terraform state with the latest enrollment settings from the Jamf Pro API
+// updateState updates the Terraform state with the latest enrollment settings from the Jamf Pro API
 func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment, messages []jamfpro.ResourceEnrollmentLanguage, accessGroups []jamfpro.ResourceAccountDrivenUserEnrollmentAccessGroup) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// --- Set General Settings, MDM Details, Third Party Cert ---
-	// (Keep this part as it is, it correctly uses d.Set for top-level fields and simple sets)
 	// General settings
 	generalSettings := map[string]interface{}{
 		"skip_certificate_installation_during_enrollment": !enrollment.InstallSingleProfile,
@@ -45,38 +45,47 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 		}
 	}
 	// Third-party signing certificate
-	if enrollment.SigningMdmProfileEnabled && enrollment.MdmSigningCertificate != nil {
-		// Retrieve sensitive values from prior state if API doesn't return them
-		// This requires careful handling - typically you don't get secrets back from the API.
-		// Assume for now the API DOES return them, which is unlikely for keystore/password.
-		// A better approach might be to only set this if the input config provided it,
-		// otherwise trust the state. But for a simple read, we map what the API gives.
-		// The API GET /v4/enrollment *doesn't* return identityKeystore or keystorePassword.
-		// We should only populate filename and enabled status from the API read.
-		// The sensitive values remain managed solely by Terraform config changes.
+	if enrollment.SigningMdmProfileEnabled {
+		// Start with an empty set
+		thirdPartyCertSet := []map[string]interface{}{}
 
-		// Let's adjust: Only set fields returned by the GET /v4/enrollment API call
-		thirdPartyCertSet := []map[string]interface{}{}              // Start empty
-		if v, ok := d.GetOk("third_party_signing_certificate"); ok { // Check existing state
-			if certList := v.(*schema.Set).List(); len(certList) > 0 {
-				if certMap, okMap := certList[0].(map[string]interface{}); okMap {
-					// Keep existing sensitive values, update only what API returns
-					thirdPartyCertSet = append(thirdPartyCertSet, map[string]interface{}{
-						"enabled":           enrollment.SigningMdmProfileEnabled,
-						"filename":          enrollment.MdmSigningCertificate.Filename, // Filename IS returned by API
-						"identity_keystore": certMap["identity_keystore"],              // Keep from state
-						"keystore_password": certMap["keystore_password"],              // Keep from state
-					})
+		// Retrieve sensitive values from prior state if API doesn't return them
+		if v, ok := d.GetOk("third_party_signing_certificate"); ok {
+			certList := v.(*schema.Set).List()
+			if len(certList) > 0 {
+				certMap := certList[0].(map[string]interface{})
+
+				// Create new map with updated non-sensitive values and preserved sensitive values
+				newCertMap := map[string]interface{}{
+					"enabled": enrollment.SigningMdmProfileEnabled,
 				}
+
+				// Add the filename from API if available
+				if enrollment.MdmSigningCertificate != nil {
+					newCertMap["filename"] = enrollment.MdmSigningCertificate.Filename
+				} else if filename, ok := certMap["filename"].(string); ok {
+					// Fallback to state value if API doesn't provide it
+					newCertMap["filename"] = filename
+				}
+
+				// Preserve sensitive values from state
+				if keystore, ok := certMap["identity_keystore"].(string); ok {
+					newCertMap["identity_keystore"] = keystore
+				}
+
+				if password, ok := certMap["keystore_password"].(string); ok {
+					newCertMap["keystore_password"] = password
+				}
+
+				thirdPartyCertSet = append(thirdPartyCertSet, newCertMap)
 			}
-		}
-		// If no prior state, just set the non-sensitive parts if enabled
-		if len(thirdPartyCertSet) == 0 && enrollment.SigningMdmProfileEnabled && enrollment.MdmSigningCertificate != nil {
+		} else if enrollment.MdmSigningCertificate != nil {
+			// No prior state, but cert is enabled in API, create with just what API returns
 			thirdPartyCertSet = append(thirdPartyCertSet, map[string]interface{}{
 				"enabled":           enrollment.SigningMdmProfileEnabled,
 				"filename":          enrollment.MdmSigningCertificate.Filename,
-				"identity_keystore": "", // Cannot get from API
-				"keystore_password": "", // Cannot get from API
+				"identity_keystore": "", // Can't get from API
+				"keystore_password": "", // Can't get from API
 			})
 		}
 
@@ -92,60 +101,88 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 	}
 
 	// --- Set Computer/Device Enrollment Settings ---
-	// (Keep this part as it is - handles nested structures correctly)
-	// Computer enrollment settings - Adjust QuickAdd similar to third-party cert above
+	// Computer enrollment settings
 	var computerEnrollment []map[string]interface{}
+
 	if enrollment.MacOsEnterpriseEnrollmentEnabled || enrollment.CreateManagementAccount || enrollment.EnsureSshRunning || enrollment.LaunchSelfService || enrollment.SignQuickAdd || enrollment.AccountDrivenDeviceMacosEnrollmentEnabled {
-		computerSettings := map[string]interface{}{
-			"enable_user_initiated_enrollment_for_computers": enrollment.MacOsEnterpriseEnrollmentEnabled,
-			"ensure_ssh_is_enabled":                          enrollment.EnsureSshRunning,
-			"launch_self_service_when_done":                  enrollment.LaunchSelfService,
-			"account_driven_device_enrollment":               enrollment.AccountDrivenDeviceMacosEnrollmentEnabled,
-		}
-		if enrollment.CreateManagementAccount || enrollment.ManagementUsername != "" {
-			adminAccount := []map[string]interface{}{{"create_managed_local_administrator_account": enrollment.CreateManagementAccount, "management_account_username": enrollment.ManagementUsername, "hide_managed_local_administrator_account": enrollment.HideManagementAccount, "allow_ssh_access_for_managed_local_administrator_account_only": enrollment.AllowSshOnlyManagementAccount}}
-			computerSettings["managed_local_administrator_account"] = adminAccount
-		}
-		// QuickAdd package settings - Handle sensitive data like third-party cert
-		if enrollment.SignQuickAdd { // Check the boolean flag from API
-			quickAddSettingsSet := []map[string]interface{}{}
-			// Get Filename from API (if available - check SDK struct/API docs)
-			apiFilename := ""
-			if enrollment.DeveloperCertificateIdentity != nil {
-				apiFilename = enrollment.DeveloperCertificateIdentity.Filename
-			}
-			// Try to preserve sensitive data from state
-			if v, ok := d.GetOk("user_initiated_enrollment_for_computers"); ok {
-				compList := v.(*schema.Set).List()
-				if len(compList) > 0 {
-					compMap := compList[0].(map[string]interface{})
-					if qa, qaOK := compMap["quickadd_package"]; qaOK {
-						qaList := qa.(*schema.Set).List()
-						if len(qaList) > 0 {
-							qaMap := qaList[0].(map[string]interface{})
-							quickAddSettingsSet = append(quickAddSettingsSet, map[string]interface{}{
-								"sign_quickadd_package": enrollment.SignQuickAdd,    // From API
-								"filename":              apiFilename,                // From API
-								"identity_keystore":     qaMap["identity_keystore"], // Keep from state
-								"keystore_password":     qaMap["keystore_password"], // Keep from state
-							})
+		// First, check if we have existing state to preserve sensitive values
+		var computerSettings map[string]interface{}
+
+		if v, ok := d.GetOk("user_initiated_enrollment_for_computers"); ok {
+			compList := v.(*schema.Set).List()
+			if len(compList) > 0 {
+				origCompMap := compList[0].(map[string]interface{})
+
+				// Create a new map with updated values from API
+				computerSettings = map[string]interface{}{
+					"enable_user_initiated_enrollment_for_computers": enrollment.MacOsEnterpriseEnrollmentEnabled,
+					"ensure_ssh_is_enabled":                          enrollment.EnsureSshRunning,
+					"launch_self_service_when_done":                  enrollment.LaunchSelfService,
+					"account_driven_device_enrollment":               enrollment.AccountDrivenDeviceMacosEnrollmentEnabled,
+				}
+
+				// Handle managed admin account
+				if enrollment.CreateManagementAccount || enrollment.ManagementUsername != "" {
+					adminAccount := []map[string]interface{}{
+						{
+							"create_managed_local_administrator_account":                    enrollment.CreateManagementAccount,
+							"management_account_username":                                   enrollment.ManagementUsername,
+							"hide_managed_local_administrator_account":                      enrollment.HideManagementAccount,
+							"allow_ssh_access_for_managed_local_administrator_account_only": enrollment.AllowSshOnlyManagementAccount,
+						},
+					}
+					computerSettings["managed_local_administrator_account"] = adminAccount
+				}
+
+				// Handle QuickAdd package (with sensitive fields)
+				if enrollment.SignQuickAdd {
+					if origQuickAddList, ok := origCompMap["quickadd_package"].(*schema.Set); ok && origQuickAddList.Len() > 0 {
+						quickAddList := origQuickAddList.List()
+						if len(quickAddList) > 0 {
+							origQuickAdd := quickAddList[0].(map[string]interface{})
+
+							// Set the filename based on API response
+							filename := ""
+							if enrollment.DeveloperCertificateIdentity != nil {
+								filename = enrollment.DeveloperCertificateIdentity.Filename
+							}
+
+							quickAddSettingsSet := []map[string]interface{}{
+								{
+									"sign_quickadd_package": enrollment.SignQuickAdd,
+									"filename":              filename,
+									// Preserve these sensitive fields from original state
+									"identity_keystore": origQuickAdd["identity_keystore"],
+									"keystore_password": origQuickAdd["keystore_password"],
+								},
+							}
+							computerSettings["quickadd_package"] = quickAddSettingsSet
 						}
+					} else if enrollment.DeveloperCertificateIdentity != nil {
+						// No existing state, create empty placeholders for sensitive fields
+						quickAddSettingsSet := []map[string]interface{}{
+							{
+								"sign_quickadd_package": enrollment.SignQuickAdd,
+								"filename":              enrollment.DeveloperCertificateIdentity.Filename,
+								"identity_keystore":     "",
+								"keystore_password":     "",
+							},
+						}
+						computerSettings["quickadd_package"] = quickAddSettingsSet
 					}
 				}
+			} else {
+				// No existing state item, create a new one with API values
+				computerSettings = createComputerEnrollmentMapFromAPI(enrollment)
 			}
-			// Fallback if no previous state
-			if len(quickAddSettingsSet) == 0 {
-				quickAddSettingsSet = append(quickAddSettingsSet, map[string]interface{}{
-					"sign_quickadd_package": enrollment.SignQuickAdd,
-					"filename":              apiFilename,
-					"identity_keystore":     "",
-					"keystore_password":     "",
-				})
-			}
-			computerSettings["quickadd_package"] = quickAddSettingsSet
+		} else {
+			// No existing state at all, create a new one with API values
+			computerSettings = createComputerEnrollmentMapFromAPI(enrollment)
 		}
+
 		computerEnrollment = []map[string]interface{}{computerSettings}
 	}
+
 	if err := d.Set("user_initiated_enrollment_for_computers", computerEnrollment); err != nil { // Set even if empty/nil
 		diags = append(diags, diag.Diagnostic{Severity: diag.Error, Summary: "Failed to set computer enrollment settings"})
 	}
@@ -244,42 +281,56 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 	return diags
 }
 
+// Helper function to create a new computer enrollment map from API values
+func createComputerEnrollmentMapFromAPI(enrollment *jamfpro.ResourceEnrollment) map[string]interface{} {
+	computerSettings := map[string]interface{}{
+		"enable_user_initiated_enrollment_for_computers": enrollment.MacOsEnterpriseEnrollmentEnabled,
+		"ensure_ssh_is_enabled":                          enrollment.EnsureSshRunning,
+		"launch_self_service_when_done":                  enrollment.LaunchSelfService,
+		"account_driven_device_enrollment":               enrollment.AccountDrivenDeviceMacosEnrollmentEnabled,
+	}
+
+	// Add managed admin account if enabled
+	if enrollment.CreateManagementAccount || enrollment.ManagementUsername != "" {
+		adminAccount := []map[string]interface{}{
+			{
+				"create_managed_local_administrator_account":                    enrollment.CreateManagementAccount,
+				"management_account_username":                                   enrollment.ManagementUsername,
+				"hide_managed_local_administrator_account":                      enrollment.HideManagementAccount,
+				"allow_ssh_access_for_managed_local_administrator_account_only": enrollment.AllowSshOnlyManagementAccount,
+			},
+		}
+		computerSettings["managed_local_administrator_account"] = adminAccount
+	}
+
+	// Add QuickAdd package if signing is enabled
+	if enrollment.SignQuickAdd && enrollment.DeveloperCertificateIdentity != nil {
+		quickAddSettingsSet := []map[string]interface{}{
+			{
+				"sign_quickadd_package": enrollment.SignQuickAdd,
+				"filename":              enrollment.DeveloperCertificateIdentity.Filename,
+				"identity_keystore":     "", // Cannot retrieve from API
+				"keystore_password":     "", // Cannot retrieve from API
+			},
+		}
+		computerSettings["quickadd_package"] = quickAddSettingsSet
+	}
+
+	return computerSettings
+}
+
 // flattenDirectoryServiceGroupEnrollmentSettings converts an API access group struct into a map for Terraform state.
 func flattenDirectoryServiceGroupEnrollmentSettings(group *jamfpro.ResourceAccountDrivenUserEnrollmentAccessGroup) (map[string]interface{}, error) {
 	if group == nil {
 		return nil, fmt.Errorf("cannot flatten nil access group")
 	}
 
-	// Convert API ID (string) to schema ID (int)
-	groupIDInt := 0 // Default to 0 if conversion fails or ID is empty
-	var convErr error
-	if group.ID != "" {
-		groupIDInt, convErr = strconv.Atoi(group.ID)
-		if convErr != nil {
-			// Log the error but don't fail the whole state update, just use 0 for the ID.
-			// This might indicate an unexpected non-integer ID from the API.
-			log.Printf("[WARN] Failed to convert access group API ID '%s' to integer: %v. Setting state ID to 0.", group.ID, convErr)
-			groupIDInt = 0 // Reset to 0 on error
-		}
-	}
-
-	// Convert API SiteID (string) to schema site_id (int)
-	siteIDInt := 0 // Default to 0 (no site) if empty or conversion fails
-	if group.SiteID != "" {
-		var siteConvErr error
-		siteIDInt, siteConvErr = strconv.Atoi(group.SiteID)
-		if siteConvErr != nil {
-			log.Printf("[WARN] Failed to convert access group SiteID '%s' to integer: %v. Setting state site_id to 0.", group.SiteID, siteConvErr)
-			siteIDInt = 0 // Reset to 0 on error
-		}
-	}
-
 	flatGroup := map[string]interface{}{
 		// --- Core Identification ---
-		"id":                           groupIDInt, // Use the converted integer ID (computed)
+		"id":                           group.ID,
 		"directory_service_group_name": group.Name,
-		"directory_service_group_id":   group.GroupID,      // This is the UUID from the directory service
-		"ldap_server_id":               group.LdapServerID, // This is the ID of the LDAP connection in Jamf
+		"directory_service_group_id":   group.GroupID,
+		"ldap_server_id":               group.LdapServerID,
 
 		// --- Permissions ---
 		"allow_group_to_enroll_institutionally_owned_devices":                      group.EnterpriseEnrollmentEnabled,
@@ -288,7 +339,7 @@ func flattenDirectoryServiceGroupEnrollmentSettings(group *jamfpro.ResourceAccou
 
 		// --- Other Settings ---
 		"require_eula": group.RequireEula,
-		"site_id":      siteIDInt, // Use the converted integer Site ID
+		"site_id":      group.SiteID,
 	}
 
 	return flatGroup, nil
@@ -300,11 +351,10 @@ func flattenEnrollmentMessage(message *jamfpro.ResourceEnrollmentLanguage) (map[
 		return nil, fmt.Errorf("cannot flatten nil enrollment message")
 	}
 
-	// Create the map corresponding to the schema definition for the 'messaging' set element.
 	flatMsg := map[string]interface{}{
 		// --- Core Identification ---
-		"language_code": message.LanguageCode, // This is computed and crucial for state
-		"language_name": message.Name,
+		"language_code": message.LanguageCode,
+		"language_name": strings.ToLower(message.Name),
 		"page_title":    message.Title,
 
 		// --- Login Page ---
@@ -322,7 +372,6 @@ func flattenEnrollmentMessage(message *jamfpro.ResourceEnrollmentLanguage) (map[
 		"enroll_device_button_name":                   message.DeviceClassButton,
 
 		// --- EULA ---
-		// Note the mapping difference between schema name and API field name
 		"eula_personal_devices":      message.EnterpriseEula,
 		"eula_institutional_devices": message.PersonalEula,
 		"accept_button_text":         message.EulaButton,
@@ -341,7 +390,7 @@ func flattenEnrollmentMessage(message *jamfpro.ResourceEnrollmentLanguage) (map[
 		"institutional_mdm_profile_name":                message.EnterpriseProfileName,
 		"institutional_mdm_profile_description":         message.EnterpriseProfileDescription,
 		"institutional_mdm_profile_pending_text":        message.EnterprisePending,
-		"institutional_mdm_profile_install_button_name": message.EnterpriseButton, // Corrected schema key name used here
+		"institutional_mdm_profile_install_button_name": message.EnterpriseButton,
 
 		// --- Personal MDM Profile ---
 		"personal_mdm_profile_installation_text":   message.PersonalText,
@@ -369,9 +418,6 @@ func flattenEnrollmentMessage(message *jamfpro.ResourceEnrollmentLanguage) (map[
 		"view_enrollment_status_text":        message.CheckEnrollmentMessage,
 		"log_out_button_name":                message.LogoutButton,
 	}
-
-	// Ensure optional fields that might be nil/empty in API map to appropriate Terraform zero values if necessary
-	// (string defaults to "", bool to false, handled okay by map structure)
 
 	return flatMsg, nil
 }

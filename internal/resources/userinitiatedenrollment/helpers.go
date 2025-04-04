@@ -31,39 +31,3 @@ func getLanguageCodesMap(client *jamfpro.Client) (map[string]string, error) {
 	log.Printf("[DEBUG] Loaded %d language codes from Jamf Pro API", len(languageCodes))
 	return codeMap, nil
 }
-
-// findLanguagesToDelete identifies language codes to delete
-func findLanguagesToDelete(oldMessaging, newMessaging []interface{}, client *jamfpro.Client) ([]string, error) {
-	var languagesToDelete []string
-
-	// Create a map of language names in the new set
-	newLanguageNames := make(map[string]bool)
-	for _, messaging := range newMessaging {
-		msg := messaging.(map[string]interface{})
-		langName := strings.ToLower(strings.TrimSpace(msg["language_name"].(string)))
-		newLanguageNames[langName] = true
-	}
-
-	// Find languages in old but not in new
-	for _, messaging := range oldMessaging {
-		msg := messaging.(map[string]interface{})
-		langName := strings.ToLower(strings.TrimSpace(msg["language_name"].(string)))
-
-		// Skip if this language is still in the new set
-		if newLanguageNames[langName] {
-			continue
-		}
-
-		// Get the language code from state
-		if code, ok := msg["language_code"].(string); ok && code != "" {
-			// Don't delete English - it's required by Jamf Pro
-			if code == "en" {
-				log.Printf("[WARN] Attempted to delete required English language (en), skipping")
-				continue
-			}
-			languagesToDelete = append(languagesToDelete, code)
-		}
-	}
-
-	return languagesToDelete, nil
-}

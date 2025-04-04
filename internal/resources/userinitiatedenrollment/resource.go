@@ -595,10 +595,32 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 				Description: "Directory Service groups to configure enrollment access for",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"group_id": {
+						"id": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The unique identifier of the Directory Service group enrollment setting id.",
+						},
+						"directory_service_group_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							Description:  "id of the Directory Service group to configure enrollment access for. Maps to request field 'groupId'",
+							ValidateFunc: validation.IsUUID,
+						},
+						"ldap_server_id": {
 							Type:        schema.TypeString,
 							Required:    true,
-							Description: "The unique identifier of the directory_service_group_enrollment_setting.",
+							Description: "The unique identifier of the Directory Service group id.",
+						},
+						"directory_service_group_name": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Name of the Directory Service group to configure enrollment access for. Maps to request field 'name'",
+						},
+						"site_id": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "-1",
+							Description: "ID of the Site to allow this LDAP user group to select during enrollment",
 						},
 						"allow_group_to_enroll_institutionally_owned_devices": {
 							Type:        schema.TypeBool,
@@ -618,32 +640,11 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 							Default:     false,
 							Description: "Whether directory group can perform user initiated device enrollment for iOS/iPadOS by signing in to their device using a Managed Apple ID with ade. Maps to request field 'accountDrivenUserEnrollmentEnabled'",
 						},
-						"ldap_server_id": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "The unique identifier of the Directory Service group id.",
-						},
 						"require_eula": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Default:     true,
 							Description: "Upon enrollment is the eula required to be accepted",
-						},
-						"directory_service_group_name": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "Name of the Directory Service group to configure enrollment access for. Maps to request field 'name'",
-						},
-						"directory_service_group_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							Description:  "id of the Directory Service group to configure enrollment access for. Maps to request field 'groupId'",
-							ValidateFunc: validation.IsUUID,
-						},
-						"site_id": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "ID of the Site to allow this LDAP user group to select during enrollment",
 						},
 					},
 				},
