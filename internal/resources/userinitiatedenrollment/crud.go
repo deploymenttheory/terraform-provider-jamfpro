@@ -18,12 +18,13 @@ const (
 	ResourceIDSingleton = "jamfpro_user_initiated_enrollment_settings_singleton"
 )
 
-// Updated create function in crud.go
+// create is responsible for creating jamf pro User-initiated enrollment base settings, enrollment languages
+// and ldap groups. It performs multiple api calls and therefore doesn't follow the function pattern
+// of simpler resource types.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	// Step 1: Construct main enrollment settings
 	enrollmentSettings, err := constructEnrollmentSettings(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct enrollment settings: %v", err))
@@ -93,10 +94,8 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		}
 	}
 
-	// Set ID to indicate resource was created successfully
 	d.SetId(ResourceIDSingleton)
 
-	// Read the resource to update the state with any computed values
 	readDiags := readNoCleanup(ctx, d, meta)
 	diags = append(diags, readDiags...)
 
@@ -117,26 +116,13 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 		var apiErr error
 		enrollment, apiErr = client.GetEnrollment()
 		if apiErr != nil {
-			// Check if main endpoint is gone during read
-			if strings.Contains(apiErr.Error(), "404") && cleanup {
-				log.Printf("[WARN] Main enrollment endpoint returned 404 during read. Resource seems gone.")
-				d.SetId("") // Remove from state if cleanup is enabled
-				return nil  // Stop retrying, treat as deleted
-			}
-			log.Printf("[ERROR] Failed attempt to get main enrollment config: %v", apiErr)
+			log.Printf("[ERROR] Failed attempt to get jamf pro User-initiated enrollment config: %v", apiErr)
 			return retry.RetryableError(apiErr)
 		}
 		return nil
 	})
-	// Handle final error after retries or if SetId was called for 404
 	if err != nil {
-		// Use the common handler which checks d.Id()
 		return append(diags, common.HandleResourceNotFoundError(err, d, cleanup)...)
-	}
-	// If d.Id() became empty due to 404 handling inside retry, return now.
-	if d.Id() == "" {
-		log.Printf("[INFO] Resource %s removed from state due to 404 during read.", ResourceIDSingleton)
-		return diags
 	}
 
 	// --- Step 2: Get all configured enrollment messages from API ---
@@ -219,10 +205,33 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 	return read(ctx, d, meta, false)
 }
 
-// Updated update function in crud.go
+// update is responsible for updating an existing Jamf Pro UIE settings on the remote system.
+// first it gets all existing enrollment messages, skips the built in english option and removes
+// all other language settings. It then reapplies as needed. The http method is PUT.
+// It then follows the same flow for LDAP Directory Service Groups.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
+
+	// Step 1: Update main enrollment settings
+	log.Print("[DEBUG] Updating base enrollment settings (Step 1)")
+	enrollmentSettings, err := constructEnrollmentSettings(d)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to construct updated enrollment settings: %v", err))
+	}
+
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+		_, apiErr := client.UpdateEnrollment(enrollmentSettings)
+		if apiErr != nil {
+			log.Printf("[ERROR] Failed to update base enrollment settings: %v", apiErr)
+			return retry.RetryableError(apiErr)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to update base enrollment settings: %v", err))
+	}
 
 	// Step 2: Process language messaging settings
 	if d.HasChange("messaging") {
@@ -393,7 +402,6 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 			})
 
 			if err != nil {
-				// Creation failed. Add error and stop.
 				diags = append(diags, diag.Diagnostic{
 					Severity: diag.Error,
 					Summary:  "Failed to create directory service group",
@@ -402,9 +410,8 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 				return diags
 			}
 		}
-	} // End of HasChange check for directory_service_group_enrollment_settings
+	}
 
-	// Read the resource to update the state with any computed values (like new IDs)
 	log.Print("[DEBUG] Update process complete, running readNoCleanup to refresh state.")
 	readDiags := readNoCleanup(ctx, d, meta)
 	diags = append(diags, readDiags...)
@@ -414,7 +421,6 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 // delete handles cleanup of specific sub-configurations in Jamf Pro
 // before removing the resource from Terraform state.
-// It does NOT reset main Jamf Pro enrollment settings (/v4/enrollment) to defaults.
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics

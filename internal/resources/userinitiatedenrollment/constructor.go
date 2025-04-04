@@ -137,19 +137,13 @@ func constructEnrollmentMessaging(d *schema.ResourceData, client *jamfpro.Client
 
 		for _, messaging := range messagingSet {
 			msg := messaging.(map[string]interface{})
-
-			// Get language name and normalize it for matching
 			langName := msg["language_name"].(string)
 			normalizedLangName := strings.ToLower(strings.TrimSpace(langName))
-
-			// Get language code using normalized name
 			langCode, ok := langCodes[normalizedLangName]
 			if !ok {
 				log.Printf("[WARN] No language code found for language name '%s', skipping", langName)
 				continue
 			}
-
-			// Log the language mapping for debugging
 			log.Printf("[DEBUG] Mapping language name '%s' to code '%s'", langName, langCode)
 
 			// Create language message
@@ -252,7 +246,6 @@ func constructDirectoryServiceGroupSettings(d *schema.ResourceData) ([]*jamfpro.
 		for _, groupData := range groupsSet {
 			groupMap := groupData.(map[string]interface{})
 
-			// Create the group with all values from config
 			group := &jamfpro.ResourceAccountDrivenUserEnrollmentAccessGroup{
 				GroupID:                            groupMap["directory_service_group_id"].(string),
 				LdapServerID:                       groupMap["ldap_server_id"].(string),
@@ -264,7 +257,6 @@ func constructDirectoryServiceGroupSettings(d *schema.ResourceData) ([]*jamfpro.
 				RequireEula:                        groupMap["require_eula"].(bool),
 			}
 
-			// Preserve ID if it exists in state
 			if id, ok := groupMap["id"].(string); ok && id != "" {
 				group.ID = id
 				log.Printf("[DEBUG] Preserving existing ID '%s' for directory service group '%s'", id, group.Name)
