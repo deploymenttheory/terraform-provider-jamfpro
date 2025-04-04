@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.17.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.16.1...v0.17.0) (2025-04-04)
+
+
+### Features
+
+* removed computerinventorycollection. replaced by computerinventorycollectionsettings ([9366f11](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/9366f1173bbec103e70063982ad6569c361fbc4f))
+
+
+### Bug Fixes
+
+* Run the docs generator ([#646](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/646)) ([ce3df40](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/ce3df40a51c8127394b80b25340ceab9b047d722))
+
 ## [0.16.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.16.0...v0.16.1) (2025-04-04)
 
 
