@@ -14,10 +14,10 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 		UpdateContext: update,
 		DeleteContext: delete,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Second),
-			Read:   schema.DefaultTimeout(15 * time.Second),
-			Update: schema.DefaultTimeout(30 * time.Second),
-			Delete: schema.DefaultTimeout(15 * time.Second),
+			Create: schema.DefaultTimeout(70 * time.Second),
+			Read:   schema.DefaultTimeout(70 * time.Second),
+			Update: schema.DefaultTimeout(70 * time.Second),
+			Delete: schema.DefaultTimeout(70 * time.Second),
 		},
 		Schema: map[string]*schema.Schema{
 			// General (page 1) Enrollment restrictions and settings
@@ -129,7 +129,7 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"language_code": {
 							Type:        schema.TypeString,
-							Computed:    true,
+							Required:    true,
 							Description: "Two letter ISO 639-1 Language 'set 1' code for this messaging configuration language (e.g., 'en') for the 'English' language. Ref. https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes. Maps to request field 'languageCode'",
 						},
 						"language_name": {
@@ -595,9 +595,9 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 				Description: "Directory Service groups to configure enrollment access for",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:        schema.TypeInt,
-							Computed:    true,
+						"group_id": {
+							Type:        schema.TypeString,
+							Required:    true,
 							Description: "The unique identifier of the directory_service_group_enrollment_setting.",
 						},
 						"allow_group_to_enroll_institutionally_owned_devices": {
