@@ -43,8 +43,9 @@ jobs:
       - name: Generate UUID
         id: generate-uuid
         run: |
-          echo "uuid=$(uuidgen)" >> $GITHUB_OUTPUT
-          echo "Run ID: ${{ steps.generate-uuid.outputs.uuid }}"
+          generated_uuid=$(uuidgen)
+          echo "uuid=$generated_uuid" >> $GITHUB_OUTPUT
+          echo "Run ID: $generated_uuid"
 
         
       - name: Build TFVARS File
