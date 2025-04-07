@@ -45,6 +45,7 @@ jobs:
         run: |
           echo "uuid=$(uuidgen)" >> $GITHUB_OUTPUT
           echo "Run ID: ${{ steps.generate-uuid.outputs.uuid }}"
+
         
       - name: Build TFVARS File
         run: |
@@ -78,6 +79,7 @@ jobs:
           cd ./terraform-provider-jamfpro/testing/setup
           ./cleanup.sh
 
+
       - name: Run Tests
         run: |  
           cd ./terraform-provider-jamfpro/testing
@@ -89,6 +91,7 @@ jobs:
         run: |
           cd ./terraform-provider-jamfpro/testing/setup
           ./cleanup.sh
+
 
       - name: Diff cascade - Terraform Plan (Pre-Apply)
         id: plan_pre

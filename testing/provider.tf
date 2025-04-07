@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     jamfpro = {
-      source = "terraform.local/local/jamfpro"
+      source  = "terraform.local/local/jamfpro"
       # Specifically 0.1.0
       version = "0.1.0"
     }
@@ -98,10 +98,10 @@ variable "testing_id" {
   type        = string
 }
 
+
 resource "random_id" "rng" {
   keepers = {
     first = "${timestamp()}"
-  }
+  }     
   byte_length = 8
 }
-

@@ -1,55 +1,49 @@
 package provider
 
-import "time"
+import (
+	"time"
+)
 
 const (
-	DefaultContextTimeoutCreate = 75 * time.Second
-	DefaultContextTimeoutRead   = 75 * time.Second
-	DefaultContextTimeoutUpdate = 75 * time.Second
-	DefaultContextTimeoutDelete = 75 * time.Second
-
-	LoadBalancedContextTimeoutCreate = 15 * time.Second
-	LoadBalancedContextTimeoutRead   = 15 * time.Second
-	LoadBalancedContextTimeoutUpdate = 15 * time.Second
-	LoadBalancedContextTimeoutDelete = 15 * time.Second
+	DefaultContextTimeout      = 75 * time.Second
+	LoadBalancedContextTimeout = 15 * time.Second
 )
 
 // GetDefaultContextTimeoutCreate returns the appropriate timeout duration for resource creation.
 // If load balancer lock is enabled, it returns the LoadBalancedContextTimeoutCreate,
 // otherwise it returns the DefaultContextTimeoutCreate.
-func GetDefaultContextTimeoutCreate(load_balancer_lock_enabled bool) time.Duration {
+func Timeout(load_balancer_lock_enabled bool) time.Duration {
 	if load_balancer_lock_enabled {
-		return LoadBalancedContextTimeoutCreate
+		return LoadBalancedContextTimeout
 	}
-	return DefaultContextTimeoutCreate
+	return DefaultContextTimeout
 }
 
-// GetDefaultContextTimeoutRead returns the appropriate timeout duration for resource reading.
-// If load balancer lock is enabled, it returns the LoadBalancedContextTimeoutRead,
-// otherwise it returns the DefaultContextTimeoutRead.
-func GetDefaultContextTimeoutRead(load_balancer_lock_enabled bool) time.Duration {
-	if load_balancer_lock_enabled {
-		return LoadBalancedContextTimeoutRead
-	}
-	return DefaultContextTimeoutRead
+// resourceTimeout holds timeouts, used in overrides
+type resourceTimeout struct {
+	Create, Read, Update, Delete time.Duration
 }
 
-// GetDefaultContextTimeoutUpdate returns the appropriate timeout duration for resource updating.
-// If load balancer lock is enabled, it returns the LoadBalancedContextTimeoutUpdate,
-// otherwise it returns the DefaultContextTimeoutUpdate.
-func GetDefaultContextTimeoutUpdate(load_balancer_lock_enabled bool) time.Duration {
-	if load_balancer_lock_enabled {
-		return LoadBalancedContextTimeoutUpdate
+// Overrides returns a list of timeout overrides by their resource key
+func TimeoutOverrides(lb_lock bool) map[string]resourceTimeout {
+	return map[string]resourceTimeout{
+		"jamfpro_package": {
+			Create: 45 * time.Minute,
+			Read:   Timeout(lb_lock),
+			Update: 45 * time.Minute,
+			Delete: Timeout(lb_lock),
+		},
+		"jamfpro_smart_computer_group": {
+			Create: 75 * time.Second,
+			Read:   75 * time.Second,
+			Update: 75 * time.Second,
+			Delete: 75 * time.Second,
+		},
+		"jamfpro_static_computer_group": {
+			Create: 75 * time.Second,
+			Read:   75 * time.Second,
+			Update: 75 * time.Second,
+			Delete: 75 * time.Second,
+		},
 	}
-	return DefaultContextTimeoutUpdate
-}
-
-// GetDefaultContextTimeoutDelete returns the appropriate timeout duration for resource deletion.
-// If load balancer lock is enabled, it returns the LoadBalancedContextTimeoutDelete,
-// otherwise it returns the DefaultContextTimeoutDelete.
-func GetDefaultContextTimeoutDelete(load_balancer_lock_enabled bool) time.Duration {
-	if load_balancer_lock_enabled {
-		return LoadBalancedContextTimeoutDelete
-	}
-	return DefaultContextTimeoutDelete
 }

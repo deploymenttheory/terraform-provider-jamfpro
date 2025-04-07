@@ -16,6 +16,7 @@ After this, run `run_tests.sh`. This will provision and run the tests.
 NOTE: running `terraform test` may fail due to missing resources. run the test script above instead.
 
 ### Symlinks
+
 In each tesing module, there is a symlink to the testing root provider.tf. This is required for the tests to pass. 
 
 When adding new resource tests, please be sure that a symlink is correctly produced.

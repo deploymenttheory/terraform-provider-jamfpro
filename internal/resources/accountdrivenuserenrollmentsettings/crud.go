@@ -1,8 +1,9 @@
-package computerinventorycollection
+package accountdrivenuserenrollmentsettings
 
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
@@ -11,18 +12,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// create is responsible for initializing the Jamf Pro Computer Inventory Collection configuration in Terraform.
+// create is responsible for initializing the Jamf Pro Account Driven User Enrollment Settings in Terraform.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := construct(d)
+	settings, err := construct(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Inventory Collection for update: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account Driven User Enrollment Settings: %v", err))
 	}
 
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		apiErr := client.UpdateComputerInventoryCollectionInformation(resource)
+		_, apiErr := client.UpdateADUESessionTokenSettings(*settings)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -30,25 +31,24 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Computer Inventory Collection configuration after retries: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Account Driven User Enrollment Settings: %v", err))
 	}
 
-	d.SetId("jamfpro_computer_inventory_collection_singleton")
+	d.SetId("jamfpro_account_driven_user_enrollment_settings_singleton")
 
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
-// read is responsible for reading the current state of the Jamf Pro Computer Inventory Collection configuration.
+// read is responsible for reading the current state of the Jamf Pro Account Driven User Enrollment Settings.
 func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	var err error
 
-	d.SetId("jamfpro_computer_inventory_collection_singleton")
-	var response *jamfpro.ResourceComputerInventoryCollection
+	var response *jamfpro.ResourceADUETokenSettings
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		response, apiErr = client.GetComputerInventoryCollectionInformation()
+		response, apiErr = client.GetADUESessionTokenSettings()
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -72,38 +72,41 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 	return read(ctx, d, meta, false)
 }
 
-// update is responsible for updating the Jamf Pro Computer Inventory Collection configuration.
+// update is responsible for updating the Jamf Pro Account Driven User Enrollment Settings.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	inventoryCollectionConfig, err := construct(d)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Inventory Collection for update: %v", err))
-	}
-
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		apiErr := client.UpdateComputerInventoryCollectionInformation(inventoryCollectionConfig)
-		if apiErr != nil {
-			return retry.RetryableError(apiErr)
+	if d.HasChanges("enabled", "expiration_interval_days", "expiration_interval_seconds") {
+		settings, err := construct(d)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account Driven User Enrollment Settings: %v", err))
 		}
-		return nil
-	})
 
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Computer Inventory Collection configuration after retries: %v", err))
+		err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+			_, apiErr := client.UpdateADUESessionTokenSettings(*settings)
+			if apiErr != nil {
+				return retry.RetryableError(apiErr)
+			}
+			return nil
+		})
+
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Account Driven User Enrollment Settings: %v", err))
+		}
 	}
-
-	d.SetId("jamfpro_computer_checkin_singleton")
 
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
-// delete is responsible for 'deleting' the Jamf Pro Computer Inventory Collection configuration.
+// delete is responsible for 'deleting' the Jamf Pro Account Driven User Enrollment Settings.
 // Since this resource represents a configuration and not an actual entity that can be deleted,
 // this function will simply remove it from the Terraform state.
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	d.SetId("")
+	// No actual deletion operation needed as this is a singleton configuration resource
+	log.Printf("[DEBUG] Removing Account Driven User Enrollment Settings from state")
 
+	// Remove from state (settings aren't actually deletable)
+	d.SetId("")
 	return nil
 }
