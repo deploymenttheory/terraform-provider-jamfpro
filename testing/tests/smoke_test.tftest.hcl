@@ -45,11 +45,3 @@ run "apply_static_computer_groups" {
     source = "./testing/static_computer_groups"
   }
 }
-
-# run "apply_static_app_installers" {
-#   command = apply
-
-#   module {
-#     source = "./testing/app_installers"
-#   }
-# }
