@@ -178,6 +178,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 						"self_service_display_name": {
 							Type:        schema.TypeString,
 							Optional:    true,
+							Default:     "",
 							Description: "Display name for the profile in Self Service (Self Service 10.0.0 or later)",
 						},
 						"install_button_text": {

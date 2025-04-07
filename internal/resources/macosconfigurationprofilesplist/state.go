@@ -231,6 +231,7 @@ func setExclusions(exclusions jamfpro.MacOSConfigurationProfileSubsetExclusions)
 func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfService) (map[string]interface{}, error) {
 	// Define default values
 	defaults := map[string]interface{}{
+		"self_service_display_name":       "",
 		"install_button_text":             "Install",
 		"self_service_description":        "",
 		"force_users_to_view_description": false,
@@ -244,6 +245,7 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 	}
 
 	selfServiceBlock := map[string]interface{}{
+		"self_service_display_name":       selfService.SelfServiceDisplayName,
 		"install_button_text":             selfService.InstallButtonText,
 		"self_service_description":        selfService.SelfServiceDescription,
 		"force_users_to_view_description": selfService.ForceUsersToViewDescription,
@@ -319,7 +321,7 @@ func flattenAndSortScopeEntityIds(entities []jamfpro.MacOSConfigurationProfileSu
 
 // flattenAndSortScopeEntityNames converts a slice of RestrictedSoftwareSubsetScopeEntity into a sorted slice of strings.
 func flattenAndSortScopeEntityNames(entities []jamfpro.MacOSConfigurationProfileSubsetScopeEntity) []string {
-	var names []string
+	names := make([]string, 0, len(entities))
 	for _, entity := range entities {
 		if entity.Name != "" {
 			names = append(names, entity.Name)

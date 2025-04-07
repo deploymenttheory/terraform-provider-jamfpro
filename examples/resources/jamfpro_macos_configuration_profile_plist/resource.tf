@@ -45,10 +45,10 @@ resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuratio
     all_jss_users = false
 
     computer_ids       = [16, 20, 21]
-    computer_group_ids = sort([78, 1])
-    building_ids       = ([1348, 1349])
-    department_ids     = ([37287, 37288])
-    jss_user_ids       = sort([2, 1])
+    computer_group_ids = [78, 1]
+    building_ids       = [1348, 1349]
+    department_ids     = [37287, 37288]
+    jss_user_ids       = [2, 1]
     jss_user_group_ids = [4, 505]
 
     // Optional Block
@@ -62,11 +62,11 @@ resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuratio
     // Optional Block
     exclusions {
       computer_ids                         = [16, 20, 21]
-      computer_group_ids                   = sort([78, 1])
-      building_ids                         = ([1348, 1349])
-      department_ids                       = ([37287, 37288])
+      computer_group_ids                   = [78, 1]
+      building_ids                         = [1348, 1349]
+      department_ids                       = [37287, 37288]
       network_segment_ids                  = [4, 5]
-      jss_user_ids                         = sort([2, 1])
+      jss_user_ids                         = [2, 1]
       jss_user_group_ids                   = [4, 505]
       directory_service_or_local_usernames = ["Jane Smith", "John Doe"]
       directory_service_usergroup_ids      = [3, 4]
