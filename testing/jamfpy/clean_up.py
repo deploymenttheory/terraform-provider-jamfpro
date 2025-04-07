@@ -17,7 +17,7 @@ if TESTING_ID =="":
 elif TESTING_ID == "local":
     logger.warning("Testing ID set to local. If run in a pipeline, this can cause unstable behaviour for other simultaneous runs.")
 else:
-    logger.info("Cleanup with testing id {TESTING_ID}")
+    logger.info(f"Cleanup with testing id {TESTING_ID}")
 
 
 instance = jamfpy.Tenant(
