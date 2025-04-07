@@ -39,8 +39,8 @@ func ProcessConfigurationProfileForDiffSuppression(plistData string, fieldsToRem
 	// Step 5: Normalize empty strings
 	normalizedStrings := normalizeEmptyStrings(normalizedXML)
 
-	// Step 6: Unescape HTML Entities
-	normalizedData := unescapeHTMLEntities(normalizedStrings)
+	// Step 6: normalize HTML Entities
+	normalizedData := normalizeHTMLEntitiesForDiff(normalizedStrings)
 
 	// Step 7: Sort keys
 	sortedData := SortPlistKeys(normalizedData.(map[string]interface{}))
@@ -211,22 +211,42 @@ func normalizeEmptyStrings(data interface{}) interface{} {
 	}
 }
 
-// unescapeHTMLEntities applies html.UnescapeString recursively
-// jamfpro configuration profiles contain html entities that need
-// to be unescaped for comparison
-func unescapeHTMLEntities(data interface{}) interface{} {
+// safeHTMLEntity is a regex to detect a single-level valid entity like &lt;, &amp;, etc.
+var safeHTMLEntity = regexp.MustCompile(`&[a-zA-Z]+;`)
+
+// normalizeHTMLEntitiesForDiff applies html.UnescapeString recursively,
+// but avoids double-unescaping or unescaping intentionally escaped XML entities.
+func normalizeHTMLEntitiesForDiff(data interface{}) interface{} {
 	switch v := data.(type) {
 	case string:
-		return html.UnescapeString(v)
+		// If it's wrapped in <string> tags, strip them for evaluation, but preserve during output
+		str := strings.TrimSpace(v)
+		if strings.Contains(str, "&") {
+			// Unescape once
+			unescaped := html.UnescapeString(str)
+
+			// If unescaping results in a valid single-level entity, don't double-unescape
+			if strings.Contains(unescaped, "<") || strings.Contains(unescaped, ">") || safeHTMLEntity.MatchString(unescaped) {
+				return str
+			}
+
+			// Catch common double-escape: &amp;amp; -> &amp;
+			if strings.Contains(str, "&amp;") && !strings.Contains(str, "&amp;amp;") {
+				return unescaped
+			}
+		}
+		return str
+
 	case map[string]interface{}:
-		for key, value := range v {
-			v[key] = unescapeHTMLEntities(value)
+		for key, val := range v {
+			v[key] = normalizeHTMLEntitiesForDiff(val)
 		}
 	case []interface{}:
-		for i, item := range v {
-			v[i] = unescapeHTMLEntities(item)
+		for i, val := range v {
+			v[i] = normalizeHTMLEntitiesForDiff(val)
 		}
 	}
+
 	return data
 }
 

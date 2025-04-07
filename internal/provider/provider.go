@@ -11,6 +11,7 @@ import (
 	"github.com/deploymenttheory/go-api-http-client-integrations/jamf/jamfprointegration"
 	"github.com/deploymenttheory/go-api-http-client/httpclient"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/accountdrivenuserenrollmentsettings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/accountgroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/accounts"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/activationcode"
@@ -20,13 +21,13 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/allowedfileextensions"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiintegrations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/apiroles"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/appinstallerglobalsettings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/appinstallers"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/buildings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/categories"
 	computercheckin "github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/clientcheckin"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerextensionattributes"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerinventory"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerinventorycollection"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerinventorycollectionsettings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerprestageenrollments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/departments"
@@ -38,6 +39,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/filesharedistributionpoints"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/icons"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/jamfconnect"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/localadminpasswordsettings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macosconfigurationprofilesplist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macosconfigurationprofilesplistgenerator"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/managedsoftwareupdates"
@@ -55,6 +57,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/smtpserver"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/staticcomputergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/usergroups"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/userinitiatedenrollment"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/webhooks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -364,28 +367,28 @@ func Provider() *schema.Provider {
 			"jamfpro_computer_inventory":                        computerinventory.DataSourceJamfProComputerInventory(),
 			"jamfpro_computer_prestage_enrollment":              computerprestageenrollments.DataSourceJamfProComputerPrestageEnrollmentEnrollment(),
 			"jamfpro_department":                                departments.DataSourceJamfProDepartments(),
+			"jamfpro_device_enrollments":                        deviceenrollments.DataSourceJamfProDeviceEnrollments(),
 			"jamfpro_disk_encryption_configuration":             diskencryptionconfigurations.DataSourceJamfProDiskEncryptionConfigurations(),
 			"jamfpro_dock_item":                                 dockitems.DataSourceJamfProDockItems(),
 			"jamfpro_file_share_distribution_point":             filesharedistributionpoints.DataSourceJamfProFileShareDistributionPoints(),
 			"jamfpro_network_segment":                           networksegments.DataSourceJamfProNetworkSegments(),
 			"jamfpro_macos_configuration_profile_plist":         macosconfigurationprofilesplist.DataSourceJamfProMacOSConfigurationProfilesPlist(),
 			"jamfpro_mobile_device_configuration_profile_plist": mobiledeviceconfigurationprofilesplist.DataSourceJamfProMobileDeviceConfigurationProfilesPlist(),
-			"jamfpro_device_enrollment":                         deviceenrollments.DataSourceJamfProDeviceEnrollments(),
-			/* "jamfpro_mobile_device_extension_attribute":         mobiledeviceextensionattribute.DataSourceJamfProMobileDeviceExtensionAttributes(), */
-			"jamfpro_package":                   packages.DataSourceJamfProPackages(),
-			"jamfpro_policy":                    policies.DataSourceJamfProPolicies(),
-			"jamfpro_printer":                   printers.DataSourceJamfProPrinters(),
-			"jamfpro_script":                    scripts.DataSourceJamfProScripts(),
-			"jamfpro_site":                      sites.DataSourceJamfProSites(),
-			"jamfpro_smart_computer_group":      smartcomputergroups.DataSourceJamfProSmartComputerGroups(),
-			"jamfpro_smart_mobile_device_group": smartmobiledevicegroups.DataSourceJamfProSmartMobileGroups(),
-			"jamfpro_static_computer_group":     staticcomputergroups.DataSourceJamfProStaticComputerGroups(),
-			"jamfpro_restricted_software":       restrictedsoftware.DataSourceJamfProRestrictedSoftwares(),
-			"jamfpro_user_group":                usergroups.DataSourceJamfProUserGroups(),
-			"jamfpro_webhook":                   webhooks.DataSourceJamfProWebhooks(),
+			"jamfpro_package":                                   packages.DataSourceJamfProPackages(),
+			"jamfpro_policy":                                    policies.DataSourceJamfProPolicies(),
+			"jamfpro_printer":                                   printers.DataSourceJamfProPrinters(),
+			"jamfpro_script":                                    scripts.DataSourceJamfProScripts(),
+			"jamfpro_site":                                      sites.DataSourceJamfProSites(),
+			"jamfpro_smart_computer_group":                      smartcomputergroups.DataSourceJamfProSmartComputerGroups(),
+			"jamfpro_smart_mobile_device_group":                 smartmobiledevicegroups.DataSourceJamfProSmartMobileGroups(),
+			"jamfpro_static_computer_group":                     staticcomputergroups.DataSourceJamfProStaticComputerGroups(),
+			"jamfpro_restricted_software":                       restrictedsoftware.DataSourceJamfProRestrictedSoftwares(),
+			"jamfpro_user_group":                                usergroups.DataSourceJamfProUserGroups(),
+			"jamfpro_webhook":                                   webhooks.DataSourceJamfProWebhooks(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"jamfpro_account":                                     accounts.ResourceJamfProAccounts(),
+			"jamfpro_account": accounts.ResourceJamfProAccounts(),
+			"jamfpro_account_driven_user_enrollment_settings":     accountdrivenuserenrollmentsettings.ResourceJamfProAccountDrivenUserEnrollmentSettings(),
 			"jamfpro_account_group":                               accountgroups.ResourceJamfProAccountGroups(),
 			"jamfpro_activation_code":                             activationcode.ResourceJamfProActivationCode(),
 			"jamfpro_advanced_computer_search":                    advancedcomputersearches.ResourceJamfProAdvancedComputerSearches(),
@@ -395,11 +398,11 @@ func Provider() *schema.Provider {
 			"jamfpro_api_integration":                             apiintegrations.ResourceJamfProApiIntegrations(),
 			"jamfpro_api_role":                                    apiroles.ResourceJamfProAPIRoles(),
 			"jamfpro_app_installer":                               appinstallers.ResourceJamfProAppInstallers(),
+			"jamfpro_app_installer_global_settings":               appinstallerglobalsettings.ResourceJamfProAppInstallerGlobalSettings(),
 			"jamfpro_building":                                    buildings.ResourceJamfProBuildings(),
 			"jamfpro_category":                                    categories.ResourceJamfProCategories(),
 			"jamfpro_client_checkin":                              computercheckin.ResourceJamfProClientCheckin(),
 			"jamfpro_computer_extension_attribute":                computerextensionattributes.ResourceJamfProComputerExtensionAttributes(),
-			"jamfpro_computer_inventory_collection":               computerinventorycollection.ResourceJamfProComputerInventoryCollection(),
 			"jamfpro_computer_inventory_collection_settings":      computerinventorycollectionsettings.ResourceJamfProComputerInventoryCollectionSettings(),
 			"jamfpro_computer_prestage_enrollment":                computerprestageenrollments.ResourceJamfProComputerPrestageEnrollmentEnrollment(),
 			"jamfpro_department":                                  departments.ResourceJamfProDepartments(),
@@ -410,6 +413,7 @@ func Provider() *schema.Provider {
 			"jamfpro_file_share_distribution_point":               filesharedistributionpoints.ResourceJamfProFileShareDistributionPoints(),
 			"jamfpro_icon":                                        icons.ResourceJamfProIcons(),
 			"jamfpro_jamf_connect":                                jamfconnect.ResourceJamfConnectConfigProfile(),
+			"jamfpro_local_admin_password_settings":               localadminpasswordsettings.ResourceLocalAdminPasswordSettings(),
 			"jamfpro_network_segment":                             networksegments.ResourceJamfProNetworkSegments(),
 			"jamfpro_macos_configuration_profile_plist":           macosconfigurationprofilesplist.ResourceJamfProMacOSConfigurationProfilesPlist(),
 			"jamfpro_macos_configuration_profile_plist_generator": macosconfigurationprofilesplistgenerator.ResourceJamfProMacOSConfigurationProfilesPlistGenerator(),
@@ -426,6 +430,7 @@ func Provider() *schema.Provider {
 			"jamfpro_smart_mobile_device_group":                   smartmobiledevicegroups.ResourceJamfProSmartMobileGroups(),
 			"jamfpro_static_computer_group":                       staticcomputergroups.ResourceJamfProStaticComputerGroups(),
 			"jamfpro_restricted_software":                         restrictedsoftware.ResourceJamfProRestrictedSoftwares(),
+			"jamfpro_user_initiated_enrollment_settings":          userinitiatedenrollment.ResourceJamfProUserInitatedEnrollmentSettings(),
 			"jamfpro_user_group":                                  usergroups.ResourceJamfProUserGroups(),
 			"jamfpro_webhook":                                     webhooks.ResourceJamfProWebhooks(),
 		},
@@ -443,7 +448,6 @@ func Provider() *schema.Provider {
 
 		// Logger
 		// Probably should move this into it's own function.
-
 		enableClientLogs := d.Get("enable_client_sdk_logs").(bool)
 		logFilePath := d.Get("client_sdk_log_export_path").(string)
 
@@ -570,31 +574,43 @@ func Provider() *schema.Provider {
 			}
 		}
 
-		// Initialize standard timeout behaviour
-		for key, r := range provider.ResourcesMap {
-			if key != "jamfpro_package" && key != "jamfpro_static_computer_group" && key != "jamfpro_smart_computer_group" {
-				if r.Timeouts == nil {
-					r.Timeouts = &schema.ResourceTimeout{}
+		// Timeout overrides for resourccs which will take longer than the default ones.
+		// Adjusts for if the load balancer lock is on.
+		timeoutOverrides := TimeoutOverrides(load_balancer_lock_enabled)
+
+		for k, r := range provider.ResourcesMap {
+
+			r.Timeouts = &schema.ResourceTimeout{}
+			r.Timeouts.Create = new(time.Duration)
+			r.Timeouts.Read = new(time.Duration)
+			r.Timeouts.Update = new(time.Duration)
+			r.Timeouts.Delete = new(time.Duration)
+
+			if override, ok := timeoutOverrides[k]; ok {
+
+				if override.Create != 0 {
+					*r.Timeouts.Create = override.Create
 				}
 
-				if r.Timeouts.Create == nil {
-					r.Timeouts.Create = schema.DefaultTimeout(GetDefaultContextTimeoutCreate(load_balancer_lock_enabled))
-				}
-				if r.Timeouts.Read == nil {
-					r.Timeouts.Read = schema.DefaultTimeout(GetDefaultContextTimeoutRead(load_balancer_lock_enabled))
-				}
-				if r.Timeouts.Update == nil {
-					r.Timeouts.Update = schema.DefaultTimeout(GetDefaultContextTimeoutUpdate(load_balancer_lock_enabled))
-				}
-				if r.Timeouts.Delete == nil {
-					r.Timeouts.Delete = schema.DefaultTimeout(GetDefaultContextTimeoutDelete(load_balancer_lock_enabled))
+				if override.Read != 0 {
+					*r.Timeouts.Read = override.Read
 				}
 
-				*r.Timeouts.Create = GetDefaultContextTimeoutCreate(load_balancer_lock_enabled)
-				*r.Timeouts.Read = GetDefaultContextTimeoutRead(load_balancer_lock_enabled)
-				*r.Timeouts.Update = GetDefaultContextTimeoutUpdate(load_balancer_lock_enabled)
-				*r.Timeouts.Delete = GetDefaultContextTimeoutDelete(load_balancer_lock_enabled)
+				if override.Update != 0 {
+					*r.Timeouts.Update = override.Update
+				}
+
+				if override.Delete != 0 {
+					*r.Timeouts.Delete = override.Delete
+				}
+
+				continue
 			}
+
+			*r.Timeouts.Create = Timeout(load_balancer_lock_enabled)
+			*r.Timeouts.Read = Timeout(load_balancer_lock_enabled)
+			*r.Timeouts.Update = Timeout(load_balancer_lock_enabled)
+			*r.Timeouts.Delete = Timeout(load_balancer_lock_enabled)
 		}
 
 		// Packaging
@@ -605,20 +621,20 @@ func Provider() *schema.Provider {
 			TokenRefreshBufferPeriod: tokenRefrshBufferPeriod,
 			CustomCookies:            cookiesList,
 			MandatoryRequestDelay:    time.Duration(d.Get("mandatory_request_delay_milliseconds").(int)) * time.Millisecond,
-			RetryEligiableRequests:   false, // Forced off for now
+			RetryEligiableRequests:   false, // Forced because terraform handles concurrency
 			HTTP:                     http.Client{},
 		}
 
-		goHttpClient, err := config.Build()
+		httpClient, err := config.Build()
 		if err != nil {
 			return nil, append(diags, diag.FromErr(err)...)
 		}
 
-		jamfClient := jamfpro.Client{
-			HTTP: goHttpClient,
+		jamfProSdk := jamfpro.Client{
+			HTTP: httpClient,
 		}
 
-		return &jamfClient, diags
+		return &jamfProSdk, diags
 	}
 
 	return provider

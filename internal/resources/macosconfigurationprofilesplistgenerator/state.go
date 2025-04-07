@@ -263,19 +263,9 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 		selfServiceData["notification_message"] = selfService.NotificationMessage
 	}
 
-	// Fix the notification field
-	if len(selfService.Notification) > 0 {
-		correctNotifValue, err := FixDuplicateNotificationKey(&jamfpro.ResourceMacOSConfigurationProfile{
-			SelfService: selfService,
-		})
-		if err != nil {
-			return nil, err
-		}
-		// Only set notification if it's true
-		if correctNotifValue {
-			selfServiceData["notification"] = correctNotifValue
-		}
-	}
+	// Temporarily set to nil in all runs due to issues with the API.
+	// Will be reimplemented once those are fixed.
+	selfServiceData["notification"] = nil
 
 	if selfService.SelfServiceIcon.ID != 0 {
 		selfServiceData["self_service_icon"] = []interface{}{

@@ -19,6 +19,7 @@ elif TESTING_ID == "local":
 else:
     logger.info("Cleanup with testing id {TESTING_ID}")
 
+
 instance = jamfpy.Tenant(
     fqdn=TENTANT_FQDN,
     auth_method="oauth2",
@@ -38,11 +39,13 @@ def parse_error_message(html_content):
         print("Issue parsing error response.")
 
 
+
 def testing_ids_from_resources(resources):
     resource_ids = []
     for resource in resources:
         name = str(resource["name"])
         if name.startswith(f"tf-testing-{TESTING_ID}"):
+
             resource_id = resource["id"]
             resource_ids.append(resource_id)
     return resource_ids
@@ -50,6 +53,7 @@ def testing_ids_from_resources(resources):
 def purge_classic_test_resources(resource_instance, resource_type_string):
     # Escape characters for underlining
     print(f"\n\033[4mPurging {resource_type_string}...\033[0m")
+
 
     resp = resource_instance.get_all()
     resp.raise_for_status()
@@ -75,3 +79,4 @@ purge_classic_test_resources(instance.classic.computer_groups, "computer_groups"
 purge_classic_test_resources(instance.classic.sites, "sites")
 purge_classic_test_resources(instance.classic.computers, "computers")
 purge_classic_test_resources(instance.classic.departments, "departments")
+

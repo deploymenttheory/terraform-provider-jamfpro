@@ -39,6 +39,7 @@ website/vendor
 .localtesting/
 *terraform.tfvars
 .env
+
 *.venv
 testing/data_sources/*
 .terraform.lock.hcl

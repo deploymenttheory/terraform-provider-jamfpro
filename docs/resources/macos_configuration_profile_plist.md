@@ -250,7 +250,8 @@ Optional:
 - `feature_on_main_page` (Boolean) Shows Configuration Profile on Self Service main page
 - `force_users_to_view_description` (Boolean) Force users to view the description before the profile installs
 - `install_button_text` (String) Name for the button that users click to install the profile
-- `notification` (Boolean) Enables Notification for this profile in self service
+- `notification` (Boolean) TEMPORARILY DISABLED
+Enables Notification for this profile in self service
 - `notification_message` (String) Message body
 - `notification_subject` (String) Message Subject
 - `self_service_category` (Block Set) Self Service category options (see [below for nested schema](#nestedblock--self_service--self_service_category))

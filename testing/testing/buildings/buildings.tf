@@ -11,6 +11,7 @@ resource "jamfpro_building" "building_min" {
 
 resource "jamfpro_building" "building_max" {
   name            = "tf-testing-${var.testing_id}-max-${random_id.rng.hex}"
+
   street_address1 = "unit 1"
   street_address2 = "1 example drive"
   city            = "Jamftown"

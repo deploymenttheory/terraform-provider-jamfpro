@@ -45,6 +45,10 @@ func constructJamfProMacOSConfigurationProfilesPlistGenerator(d *schema.Resource
 
 	if v, ok := d.GetOk("self_service"); ok {
 		selfServiceData := v.([]interface{})[0].(map[string]interface{})
+		if selfServiceData["notification"] != nil {
+			log.Println("[WARN] Self Service notification bool key is temporarily disabled, please review the docs.")
+
+		}
 		resource.SelfService = constructMacOSConfigurationProfileSubsetSelfService(selfServiceData)
 	}
 
@@ -183,9 +187,12 @@ func constructMacOSConfigurationProfileSubsetSelfService(data map[string]interfa
 		SelfServiceDescription:      data["self_service_description"].(string),
 		ForceUsersToViewDescription: data["force_users_to_view_description"].(bool),
 		FeatureOnMainPage:           data["feature_on_main_page"].(bool),
-		Notification:                data["notification"].(string),
-		NotificationSubject:         data["notification_subject"].(string),
-		NotificationMessage:         data["notification_message"].(string),
+
+		// Removed because there are several issues with this payload in the API
+		// Will be reimplemented once those have been fixed.
+		// Notification:                data["notification"].(string),
+		NotificationSubject: data["notification_subject"].(string),
+		NotificationMessage: data["notification_message"].(string),
 	}
 
 	if iconID, ok := data["self_service_icon_id"].(int); ok && iconID != 0 {

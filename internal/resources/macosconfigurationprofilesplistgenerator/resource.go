@@ -120,10 +120,10 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 		DeleteContext: resourceJamfProMacOSConfigurationProfilesPlistGeneratorDelete,
 		//CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(120 * time.Second),
-			Read:   schema.DefaultTimeout(15 * time.Second),
-			Update: schema.DefaultTimeout(30 * time.Second),
-			Delete: schema.DefaultTimeout(15 * time.Second),
+			Create: schema.DefaultTimeout(70 * time.Second),
+			Read:   schema.DefaultTimeout(70 * time.Second),
+			Update: schema.DefaultTimeout(70 * time.Second),
+			Delete: schema.DefaultTimeout(70 * time.Second),
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -363,7 +363,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 						"notification": {
 							Type:        schema.TypeBool,
 							Optional:    true,
-							Description: "Enables Notification for this profile in self service",
+							Description: "TEMPORARILY DISABLED\nEnables Notification for this profile in self service",
 						},
 						"notification_subject": {
 							Type:        schema.TypeString,
