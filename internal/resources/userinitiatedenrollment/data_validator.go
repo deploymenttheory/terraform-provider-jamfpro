@@ -18,13 +18,14 @@ func customizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}
 	return nil
 }
 
-// Specific function for ensuring English language exists
+// customizeDiffForEnglishLanguage ensures that the English language exists
+// in the enrollment languages block
 func customizeDiffForEnglishLanguage(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-	// Check if messaging is defined at all
 	if v, ok := d.GetOk("messaging"); ok {
 		messagingSet := v.(*schema.Set).List()
 
-		// Check if English is included in the configuration
+		// Check if English is included in the configuration, it should exist.
+		// it can never be removed from the gui.
 		var hasEnglish bool
 		for _, messaging := range messagingSet {
 			msg := messaging.(map[string]interface{})
@@ -38,16 +39,13 @@ func customizeDiffForEnglishLanguage(ctx context.Context, d *schema.ResourceDiff
 			}
 		}
 
-		// If English is not in the config, return an error
 		if !hasEnglish {
 			return fmt.Errorf("english language enrollment messaging is required, please include an English enrollment messaging with 'en' and 'english'")
 		}
 	} else if d.Id() != "" {
-		// For existing resources, if messaging is being removed entirely, that's an error
-		old, _ := d.GetChange("messaging") // Removed unused 'new' variable
+		old, _ := d.GetChange("messaging")
 		oldSet := old.(*schema.Set)
 
-		// Only error if there was previously a messaging configuration
 		if oldSet != nil && oldSet.Len() > 0 {
 			return fmt.Errorf("cannot remove all messaging configurations as English language configuration is required")
 		}

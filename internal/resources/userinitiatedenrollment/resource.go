@@ -71,7 +71,6 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 			// /api/v3/enrollment/languages/ab <- Two letter ISO 639-1 Language Code
 			/*
 				Field Mapping Reference Table:
-				Field Mapping Reference Table:
 				+------------------------------------------+-----------------------------+----------+
 				| Terraform Schema Field (GUI Name)        | API Request Field           | Required |
 				+------------------------------------------+-----------------------------+----------+
