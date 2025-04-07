@@ -6,10 +6,11 @@ import (
 	"encoding/xml"
 	"fmt"
 	"html"
-	"log"
+	"log" // Import strconv for robust conversion
 	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/constructors"
 	helpers "github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -22,17 +23,7 @@ import (
 //   - update: Fetches existing profile from Jamf Pro, extracts PayloadUUID/PayloadIdentifier values from existing plist,
 //     injects them into the new plist to maintain UUID continuity
 //
-// The function:
-// 1. For update mode:
-//   - Retrieves existing profile from Jamf Pro API
-//   - Decodes existing plist to extract UUIDs
-//
-// 2. Constructs base profile from schema data (name, description, etc)
-// 3. Builds scope and self-service sections if configured
-// 4. For update mode:
-//   - Maps existing UUIDs by PayloadDisplayName
-//   - Updates PayloadUUID/PayloadIdentifier in new plist to match existing
-//   - Re-encodes updated plist
+// The function now reads scope data assuming TypeSet in the schema.
 //
 // Parameters:
 // - d: Schema ResourceData containing configuration
@@ -40,15 +31,11 @@ import (
 // - meta: Provider meta containing client for API calls
 //
 // Returns:
-// - Constructed ResourceMacOSConfigurationProfile
+// - Constructed ResourceMobileDeviceConfigurationProfile
 // - Error if construction or API calls fail
-//
-// Jamf Pro modifies the top-level PayloadUUID and PayloadIdentifier upon profile creation.
-// Nested payload identifiers and UUIDs remain unchanged from the original request.
-// Therefore, when performing profile updates, only top-level PayloadUUID and PayloadIdentifier
-// need to be synced from Jamf Pro's existing profile state.
 func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceData, mode string, meta interface{}) (*jamfpro.ResourceMobileDeviceConfigurationProfile, error) {
 	var existingProfile *jamfpro.ResourceMobileDeviceConfigurationProfile
+	var buf bytes.Buffer
 
 	resource := &jamfpro.ResourceMobileDeviceConfigurationProfile{
 		General: jamfpro.MobileDeviceConfigurationProfileSubsetGeneral{
@@ -58,23 +45,34 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 			UUID:             d.Get("uuid").(string),
 			DeploymentMethod: d.Get("deployment_method").(string),
 			RedeployOnUpdate: d.Get("redeploy_on_update").(string),
-			// We'll handle payloads att differently based on mode
+			// Payloads handled below based on mode
 		},
+	}
+
+	if v, ok := d.GetOk("redeploy_days_before_cert_expires"); ok {
+		resource.General.RedeployDaysBeforeCertExpires = v.(int)
 	}
 
 	resource.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 	resource.General.Category = sharedschemas.ConstructSharedResourceCategory(d.Get("category_id").(int))
 
-	// Handle Scope
 	if v, ok := d.GetOk("scope"); ok {
-		scopeData := v.([]interface{})[0].(map[string]interface{})
-		resource.Scope = constructMobileDeviceConfigurationProfileSubsetScope(scopeData)
+		scopeList := v.([]interface{})
+		if len(scopeList) > 0 && scopeList[0] != nil {
+			scopeData, mapOk := scopeList[0].(map[string]interface{})
+			if mapOk {
+				resource.Scope = constructMobileDeviceConfigurationProfileSubsetScope(scopeData)
+			} else {
+				log.Printf("[WARN] constructJamfProMobileDeviceConfigurationProfilePlist: Could not cast scope element to map.")
+			}
+		}
+	} else {
+		log.Printf("[DEBUG] constructJamfProMobileDeviceConfigurationProfilePlist: No scope block found or it's empty.")
 	}
 
+	// Handle Payloads based on mode
 	if mode != "update" {
-
 		resource.General.Payloads = html.EscapeString(d.Get("payloads").(string))
-
 	} else if mode == "update" {
 		var existingPlist map[string]interface{}
 		var newPlist map[string]interface{}
@@ -84,19 +82,18 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 		var err error
 		existingProfile, err = client.GetMobileDeviceConfigurationProfileByID(resourceID)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get existing configuration profile by ID for update operation: %v", err)
+			return nil, fmt.Errorf("failed to get existing mobile device configuration profile by ID %s for update: %v", resourceID, err)
 		}
 
-		// Decode existing payload from Jamf Pro which has the jamf pro post processed uuid's etc
 		existingPayload := existingProfile.General.Payloads
+		existingPayload = html.UnescapeString(existingPayload)
 		if err := plist.NewDecoder(strings.NewReader(existingPayload)).Decode(&existingPlist); err != nil {
-			return nil, fmt.Errorf("failed to decode existing plist payload stored in jamf pro for update operation: %v", err)
+			return nil, fmt.Errorf("failed to decode existing plist payload from Jamf Pro for update (ID: %s): %v\nPayload attempted:\n%s", resourceID, err, existingPayload)
 		}
 
-		// Decode payloads field from Terraform state ready for injection
 		newPayload := d.Get("payloads").(string)
 		if err := plist.NewDecoder(strings.NewReader(newPayload)).Decode(&newPlist); err != nil {
-			return nil, fmt.Errorf("failed to decode new plist payload from terraform state for update operation: %v", err)
+			return nil, fmt.Errorf("failed to decode new plist payload from Terraform state for update: %v", err)
 		}
 
 		// Jamf Pro modifies only the top-level PayloadUUID and PayloadIdentifier upon profile creation.
@@ -105,24 +102,22 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 		newPlist["PayloadUUID"] = existingPlist["PayloadUUID"]
 		newPlist["PayloadIdentifier"] = existingPlist["PayloadIdentifier"]
 
-		// Ensure nested UUIDs are also matched properly
 		uuidMap := make(map[string]string)
 		helpers.ExtractUUIDs(existingPlist, uuidMap, true)
 		helpers.UpdateUUIDs(newPlist, uuidMap, true)
 
 		var mismatches []string
 		helpers.ValidatePayloadUUIDsMatch(existingPlist, newPlist, "Payload", &mismatches)
-
 		if len(mismatches) > 0 {
-			return nil, fmt.Errorf("configuration profile UUID mismatch found:\n%s", strings.Join(mismatches, "\n"))
+			log.Printf("[WARN] Mobile device configuration profile (ID: %s) UUID mismatches found after update attempt:\n%s", resourceID, strings.Join(mismatches, "\n"))
 		}
 
 		// Encode the plist with injections
-		var buf bytes.Buffer
+
 		encoder := plist.NewEncoder(&buf)
 		encoder.Indent("    ")
 		if err := encoder.Encode(newPlist); err != nil {
-			return nil, fmt.Errorf("failed to encode plist payload with injected PayloadUUID and PayloadIdentifier: %v", err)
+			return nil, fmt.Errorf("failed to encode updated plist payload: %v", err)
 		}
 
 		// Since we're embedding a Plist (which is XML) inside another XML document (the request),
@@ -135,10 +130,10 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro macOS Configuration Profile '%s' to XML: %v", resource.General.Name, err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Mobile Device Configuration Profile '%s' to XML: %v", resource.General.Name, err)
 	}
 
-	log.Printf("[DEBUG] Constructed Jamf Pro macOS Configuration Profile XML:\n%s\n", string(resourceXML))
+	log.Printf("[DEBUG] Constructed Jamf Pro Mobile Device Configuration Profile XML:\n%s\n", string(resourceXML))
 
 	return resource, nil
 }
@@ -156,149 +151,185 @@ func preMarshallingXMLPayloadEscaping(input string) string {
 	return input
 }
 
-// constructMobileDeviceConfigurationProfileSubsetScope constructs a MobileDeviceConfigurationProfileSubsetScope object from the provided schema data.
+// constructMobileDeviceConfigurationProfileSubsetScope constructs the scope using TypeSet from schema.
 func constructMobileDeviceConfigurationProfileSubsetScope(data map[string]interface{}) jamfpro.MobileDeviceConfigurationProfileSubsetScope {
 	scope := jamfpro.MobileDeviceConfigurationProfileSubsetScope{
 		AllMobileDevices: data["all_mobile_devices"].(bool),
 		AllJSSUsers:      data["all_jss_users"].(bool),
 	}
 
-	if mobileDeviceIDs, ok := data["mobile_device_ids"]; ok {
-		scope.MobileDevices = constructMobileDevices(mobileDeviceIDs.([]interface{}))
+	// Use constructors.GetListFromSet for *Set fields
+	if mobileDeviceIDsList := constructors.GetListFromSet(data, "mobile_device_ids"); len(mobileDeviceIDsList) > 0 {
+		scope.MobileDevices = constructMobileDevices(mobileDeviceIDsList)
 	}
-	if mobileDeviceGroupIDs, ok := data["mobile_device_group_ids"]; ok {
-		scope.MobileDeviceGroups = constructScopeEntitiesFromIds(mobileDeviceGroupIDs.([]interface{}))
+	if mobileDeviceGroupIDsList := constructors.GetListFromSet(data, "mobile_device_group_ids"); len(mobileDeviceGroupIDsList) > 0 {
+		scope.MobileDeviceGroups = constructMobileDeviceScopeEntitiesFromIds(mobileDeviceGroupIDsList)
 	}
-	if buildingIDs, ok := data["building_ids"]; ok {
-		scope.Buildings = constructScopeEntitiesFromIds(buildingIDs.([]interface{}))
+	if buildingIDsList := constructors.GetListFromSet(data, "building_ids"); len(buildingIDsList) > 0 {
+		scope.Buildings = constructMobileDeviceScopeEntitiesFromIds(buildingIDsList)
 	}
-	if departmentIDs, ok := data["department_ids"]; ok {
-		scope.Departments = constructScopeEntitiesFromIds(departmentIDs.([]interface{}))
+	if departmentIDsList := constructors.GetListFromSet(data, "department_ids"); len(departmentIDsList) > 0 {
+		scope.Departments = constructMobileDeviceScopeEntitiesFromIds(departmentIDsList)
 	}
-	if jssUserIDs, ok := data["jss_user_ids"]; ok {
-		scope.JSSUsers = constructScopeEntitiesFromIds(jssUserIDs.([]interface{}))
+	if jssUserIDsList := constructors.GetListFromSet(data, "jss_user_ids"); len(jssUserIDsList) > 0 {
+		scope.JSSUsers = constructMobileDeviceScopeEntitiesFromIds(jssUserIDsList)
 	}
-	if jssUserGroupIDs, ok := data["jss_user_group_ids"]; ok {
-		scope.JSSUserGroups = constructScopeEntitiesFromIds(jssUserGroupIDs.([]interface{}))
-	}
-
-	// Handle Limitations
-	if limitations, ok := data["limitations"]; ok && len(limitations.([]interface{})) > 0 {
-		limitationData := limitations.([]interface{})[0].(map[string]interface{})
-		scope.Limitations = constructLimitations(limitationData)
+	if jssUserGroupIDsList := constructors.GetListFromSet(data, "jss_user_group_ids"); len(jssUserGroupIDsList) > 0 {
+		scope.JSSUserGroups = constructMobileDeviceScopeEntitiesFromIds(jssUserGroupIDsList)
 	}
 
-	// Handle Exclusions
-	if exclusions, ok := data["exclusions"]; ok && len(exclusions.([]interface{})) > 0 {
-		exclusionData := exclusions.([]interface{})[0].(map[string]interface{})
-		scope.Exclusions = constructExclusions(exclusionData)
+	// Handle Limitations Block (Outer TypeSet, Inner Map with TypeSet fields)
+	if limitationsSet := constructors.GetListFromSet(data, "limitations"); len(limitationsSet) > 0 {
+		// TypeSet with MaxItems: 1 means limitationsSet will have 0 or 1 element
+		if limitationsSet[0] != nil {
+			limitationData, mapOk := limitationsSet[0].(map[string]interface{})
+			if mapOk {
+				scope.Limitations = constructLimitations(limitationData)
+			} else {
+				log.Printf("[WARN] constructMobileDeviceConfigurationProfileSubsetScope: Could not cast limitations element to map.")
+			}
+		}
+	}
+
+	// Handle Exclusions Block (Outer TypeSet, Inner Map with TypeSet fields)
+	if exclusionsSet := constructors.GetListFromSet(data, "exclusions"); len(exclusionsSet) > 0 {
+		// TypeSet with MaxItems: 1 means exclusionsSet will have 0 or 1 element
+		if exclusionsSet[0] != nil {
+			exclusionData, mapOk := exclusionsSet[0].(map[string]interface{})
+			if mapOk {
+				scope.Exclusions = constructExclusions(exclusionData)
+			} else {
+				log.Printf("[WARN] constructMobileDeviceConfigurationProfileSubsetScope: Could not cast exclusions element to map.")
+			}
+		}
 	}
 
 	return scope
 }
 
-// constructLimitations constructs a MobileDeviceConfigurationProfileSubsetLimitation object from the provided schema data.
+// constructLimitations constructs limitations using TypeSet from schema.
 func constructLimitations(data map[string]interface{}) jamfpro.MobileDeviceConfigurationProfileSubsetLimitation {
 	limitations := jamfpro.MobileDeviceConfigurationProfileSubsetLimitation{}
 
-	if userNames, ok := data["directory_service_or_local_usernames"]; ok {
-		limitations.Users = constructScopeEntitiesFromIdsFromNames(userNames.([]interface{}))
+	// Use constructors.GetListFromSet for *Set fields inside the limitations map
+	if userNamesList := constructors.GetListFromSet(data, "directory_service_or_local_usernames"); len(userNamesList) > 0 {
+		limitations.Users = constructMobileDeviceScopeEntitiesFromNames(userNamesList)
 	}
-	if userGroupIDs, ok := data["user_group_ids"]; ok {
-		limitations.UserGroups = constructScopeEntitiesFromIds(userGroupIDs.([]interface{}))
+	if userGroupIDsList := constructors.GetListFromSet(data, "directory_service_usergroup_ids"); len(userGroupIDsList) > 0 {
+		limitations.UserGroups = constructMobileDeviceScopeEntitiesFromIds(userGroupIDsList)
 	}
-	if networkSegmentIDs, ok := data["network_segment_ids"]; ok {
-		limitations.NetworkSegments = constructNetworkSegments(networkSegmentIDs.([]interface{}))
+	if networkSegmentIDsList := constructors.GetListFromSet(data, "network_segment_ids"); len(networkSegmentIDsList) > 0 {
+		limitations.NetworkSegments = constructMobileDeviceNetworkSegments(networkSegmentIDsList)
 	}
-	if ibeaconIDs, ok := data["ibeacon_ids"]; ok {
-		limitations.Ibeacons = constructScopeEntitiesFromIds(ibeaconIDs.([]interface{}))
+	if ibeaconIDsList := constructors.GetListFromSet(data, "ibeacon_ids"); len(ibeaconIDsList) > 0 {
+		limitations.Ibeacons = constructMobileDeviceScopeEntitiesFromIds(ibeaconIDsList) // SDK uses 'Ibeacons' (lowercase b)
 	}
 
 	return limitations
 }
 
-// constructExclusions constructs a MobileDeviceConfigurationProfileSubsetExclusion object from the provided schema data.
+// constructExclusions constructs exclusions using TypeSet from schema.
 func constructExclusions(data map[string]interface{}) jamfpro.MobileDeviceConfigurationProfileSubsetExclusion {
 	exclusions := jamfpro.MobileDeviceConfigurationProfileSubsetExclusion{}
 
-	if mobileDeviceIDs, ok := data["mobile_device_ids"]; ok {
-		exclusions.MobileDevices = constructMobileDevices(mobileDeviceIDs.([]interface{}))
+	// Use constructors.GetListFromSet for *Set fields inside the exclusions map
+	if mobileDeviceIDsList := constructors.GetListFromSet(data, "mobile_device_ids"); len(mobileDeviceIDsList) > 0 {
+		exclusions.MobileDevices = constructMobileDevices(mobileDeviceIDsList)
 	}
-	if mobileDeviceGroupIDs, ok := data["mobile_device_group_ids"]; ok {
-		exclusions.MobileDeviceGroups = constructScopeEntitiesFromIds(mobileDeviceGroupIDs.([]interface{}))
+	if mobileDeviceGroupIDsList := constructors.GetListFromSet(data, "mobile_device_group_ids"); len(mobileDeviceGroupIDsList) > 0 {
+		exclusions.MobileDeviceGroups = constructMobileDeviceScopeEntitiesFromIds(mobileDeviceGroupIDsList)
 	}
-	if userIDs, ok := data["user_ids"]; ok {
-		exclusions.Users = constructScopeEntitiesFromIds(userIDs.([]interface{}))
+	if userNamesList := constructors.GetListFromSet(data, "directory_service_or_local_usernames"); len(userNamesList) > 0 {
+		exclusions.Users = constructMobileDeviceScopeEntitiesFromNames(userNamesList)
 	}
-	if userGroupIDs, ok := data["user_group_ids"]; ok {
-		exclusions.UserGroups = constructScopeEntitiesFromIds(userGroupIDs.([]interface{}))
+	if userGroupIDsList := constructors.GetListFromSet(data, "directory_service_usergroup_ids"); len(userGroupIDsList) > 0 {
+		exclusions.UserGroups = constructMobileDeviceScopeEntitiesFromIds(userGroupIDsList)
 	}
-	if buildingIDs, ok := data["building_ids"]; ok {
-		exclusions.Buildings = constructScopeEntitiesFromIds(buildingIDs.([]interface{}))
+	if buildingIDsList := constructors.GetListFromSet(data, "building_ids"); len(buildingIDsList) > 0 {
+		exclusions.Buildings = constructMobileDeviceScopeEntitiesFromIds(buildingIDsList)
 	}
-	if departmentIDs, ok := data["department_ids"]; ok {
-		exclusions.Departments = constructScopeEntitiesFromIds(departmentIDs.([]interface{}))
+	if departmentIDsList := constructors.GetListFromSet(data, "department_ids"); len(departmentIDsList) > 0 {
+		exclusions.Departments = constructMobileDeviceScopeEntitiesFromIds(departmentIDsList)
 	}
-	if networkSegmentIDs, ok := data["network_segment_ids"]; ok {
-		exclusions.NetworkSegments = constructNetworkSegments(networkSegmentIDs.([]interface{}))
+	if networkSegmentIDsList := constructors.GetListFromSet(data, "network_segment_ids"); len(networkSegmentIDsList) > 0 {
+		exclusions.NetworkSegments = constructMobileDeviceNetworkSegments(networkSegmentIDsList)
 	}
-	if ibeaconIDs, ok := data["ibeacon_ids"]; ok {
-		exclusions.IBeacons = constructScopeEntitiesFromIds(ibeaconIDs.([]interface{}))
+	if jssUserIDsList := constructors.GetListFromSet(data, "jss_user_ids"); len(jssUserIDsList) > 0 {
+		exclusions.JSSUsers = constructMobileDeviceScopeEntitiesFromIds(jssUserIDsList)
 	}
-	if jssUserIDs, ok := data["jss_user_ids"]; ok {
-		exclusions.JSSUsers = constructScopeEntitiesFromIds(jssUserIDs.([]interface{}))
+	if jssUserGroupIDsList := constructors.GetListFromSet(data, "jss_user_group_ids"); len(jssUserGroupIDsList) > 0 {
+		exclusions.JSSUserGroups = constructMobileDeviceScopeEntitiesFromIds(jssUserGroupIDsList)
 	}
-	if jssUserGroupIDs, ok := data["jss_user_group_ids"]; ok {
-		exclusions.JSSUserGroups = constructScopeEntitiesFromIds(jssUserGroupIDs.([]interface{}))
+	if ibeaconIDsList := constructors.GetListFromSet(data, "ibeacon_ids"); len(ibeaconIDsList) > 0 {
+		exclusions.IBeacons = constructMobileDeviceScopeEntitiesFromIds(ibeaconIDsList) // SDK uses 'IBeacons' (uppercase B)
 	}
 
 	return exclusions
 }
 
-// constructMobileDevices constructs a slice of MobileDeviceConfigurationProfileSubsetMobileDevice from the provided schema data.
+// --- Mobile Device Specific Helper Functions (Accepting []interface{}) ---
+// These functions remain the same as they accept the output of GetListFromSet
+
+// constructMobileDevices uses robust conversion from a list.
 func constructMobileDevices(ids []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice {
-	mobileDevices := make([]jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice, len(ids))
-	for i, id := range ids {
-		mobileDevices[i] = jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice{
-			ID: id.(int),
+	if ids == nil {
+		return nil
+	}
+	mobileDevices := make([]jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice, 0, len(ids))
+	for i, idRaw := range ids {
+		if intID, ok := constructors.ConvertToInt(idRaw, "mobile device", i); ok {
+			mobileDevices = append(mobileDevices, jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice{ID: intID})
 		}
 	}
+	log.Printf("[DEBUG] constructMobileDevices: Input count %d, Output count %d", len(ids), len(mobileDevices))
 	return mobileDevices
 }
 
-// constructNetworkSegments constructs a slice of MobileDeviceConfigurationProfileSubsetNetworkSegment from the provided schema data.
-func constructNetworkSegments(data []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment {
-	networkSegments := make([]jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment, len(data))
-	for i, id := range data {
-		networkSegments[i] = jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment{
-			MobileDeviceConfigurationProfileSubsetScopeEntity: jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity{
-				ID: id.(int),
-			},
+// constructMobileDeviceNetworkSegments uses robust conversion from a list.
+func constructMobileDeviceNetworkSegments(ids []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment {
+	if ids == nil {
+		return nil
+	}
+	networkSegments := make([]jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment, 0, len(ids))
+	for i, idRaw := range ids {
+		if intID, ok := constructors.ConvertToInt(idRaw, "network segment", i); ok {
+			networkSegments = append(networkSegments, jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment{
+				MobileDeviceConfigurationProfileSubsetScopeEntity: jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity{ID: intID},
+			})
 		}
 	}
+	log.Printf("[DEBUG] constructMobileDeviceNetworkSegments: Input count %d, Output count %d", len(ids), len(networkSegments))
 	return networkSegments
 }
 
-// Helper functions for nested structures
-
-// constructScopeEntitiesFromIds constructs a slice of MobileDeviceConfigurationProfileSubsetScopeEntity from a list of IDs.
-func constructScopeEntitiesFromIds(ids []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity {
-	scopeEntities := make([]jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, len(ids))
-	for i, id := range ids {
-		scopeEntities[i] = jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity{
-			ID: id.(int),
+// constructMobileDeviceScopeEntitiesFromIds uses robust conversion from a list for generic ID-based entities.
+func constructMobileDeviceScopeEntitiesFromIds(ids []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity {
+	if ids == nil {
+		return nil
+	}
+	scopeEntities := make([]jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, 0, len(ids))
+	for i, idRaw := range ids {
+		if intID, ok := constructors.ConvertToInt(idRaw, "scope entity (ID based)", i); ok {
+			scopeEntities = append(scopeEntities, jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity{ID: intID})
 		}
 	}
+	log.Printf("[DEBUG] constructMobileDeviceScopeEntitiesFromIds: Input count %d, Output count %d", len(ids), len(scopeEntities))
 	return scopeEntities
 }
 
-// constructScopeEntitiesFromIdsFromNames constructs a slice of MobileDeviceConfigurationProfileSubsetScopeEntity from a list of names.
-func constructScopeEntitiesFromIdsFromNames(names []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity {
-	scopeEntities := make([]jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, len(names))
-	for i, name := range names {
-		scopeEntities[i] = jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity{
-			Name: name.(string),
-		}
+// constructMobileDeviceScopeEntitiesFromNames uses robust conversion from a list for generic name-based entities.
+func constructMobileDeviceScopeEntitiesFromNames(names []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity {
+	if names == nil {
+		return nil
 	}
+	scopeEntities := make([]jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, 0, len(names))
+	for i, nameRaw := range names {
+		if strName, ok := nameRaw.(string); ok && strName != "" {
+			scopeEntities = append(scopeEntities, jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity{Name: strName})
+		} else if !ok {
+			log.Printf("[WARN] constructMobileDeviceScopeEntitiesFromNames: Unexpected type %T for scope entity name: %v at index %d. Skipping.", nameRaw, nameRaw, i)
+		} // Skip empty strings silently
+	}
+	log.Printf("[DEBUG] constructMobileDeviceScopeEntitiesFromNames: Input count %d, Output count %d", len(names), len(scopeEntities))
 	return scopeEntities
 }
