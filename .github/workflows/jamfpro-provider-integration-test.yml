@@ -69,16 +69,15 @@ jobs:
           TESTING_ID="${{ steps.generate-uuid.outputs.uuid }}"
           EOF
 
-      - name: Scaffolding
-        run: |
-          cd ./terraform-provider-jamfpro/testing/setup
-          ./scaffolding.sh
-
       - name: Pre-flight cleanup
         run: |
           cd ./terraform-provider-jamfpro/testing/setup
           ./cleanup.sh
 
+      - name: Scaffolding
+       run: |
+        cd ./terraform-provider-jamfpro/testing/setup
+        ./scaffolding.sh
 
       - name: Run Tests
         run: |  
