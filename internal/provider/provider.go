@@ -39,6 +39,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/filesharedistributionpoints"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/icons"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/jamfconnect"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/localadminpasswordsettings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macosconfigurationprofilesplist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macosconfigurationprofilesplistgenerator"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/managedsoftwareupdates"
@@ -412,6 +413,7 @@ func Provider() *schema.Provider {
 			"jamfpro_file_share_distribution_point":               filesharedistributionpoints.ResourceJamfProFileShareDistributionPoints(),
 			"jamfpro_icon":                                        icons.ResourceJamfProIcons(),
 			"jamfpro_jamf_connect":                                jamfconnect.ResourceJamfConnectConfigProfile(),
+			"jamfpro_local_admin_password_settings":               localadminpasswordsettings.ResourceLocalAdminPasswordSettings(),
 			"jamfpro_network_segment":                             networksegments.ResourceJamfProNetworkSegments(),
 			"jamfpro_macos_configuration_profile_plist":           macosconfigurationprofilesplist.ResourceJamfProMacOSConfigurationProfilesPlist(),
 			"jamfpro_macos_configuration_profile_plist_generator": macosconfigurationprofilesplistgenerator.ResourceJamfProMacOSConfigurationProfilesPlistGenerator(),
@@ -446,7 +448,6 @@ func Provider() *schema.Provider {
 
 		// Logger
 		// Probably should move this into it's own function.
-
 		enableClientLogs := d.Get("enable_client_sdk_logs").(bool)
 		logFilePath := d.Get("client_sdk_log_export_path").(string)
 
@@ -573,31 +574,43 @@ func Provider() *schema.Provider {
 			}
 		}
 
-		// Initialize standard timeout behaviour
-		for key, r := range provider.ResourcesMap {
-			if key != "jamfpro_package" && key != "jamfpro_static_computer_group" && key != "jamfpro_smart_computer_group" {
-				if r.Timeouts == nil {
-					r.Timeouts = &schema.ResourceTimeout{}
+		// Timeout overrides for resourccs which will take longer than the default ones.
+		// Adjusts for if the load balancer lock is on.
+		timeoutOverrides := TimeoutOverrides(load_balancer_lock_enabled)
+
+		for k, r := range provider.ResourcesMap {
+
+			r.Timeouts = &schema.ResourceTimeout{}
+			r.Timeouts.Create = new(time.Duration)
+			r.Timeouts.Read = new(time.Duration)
+			r.Timeouts.Update = new(time.Duration)
+			r.Timeouts.Delete = new(time.Duration)
+
+			if override, ok := timeoutOverrides[k]; ok {
+
+				if override.Create != 0 {
+					*r.Timeouts.Create = override.Create
 				}
 
-				if r.Timeouts.Create == nil {
-					r.Timeouts.Create = schema.DefaultTimeout(GetDefaultContextTimeoutCreate(load_balancer_lock_enabled))
-				}
-				if r.Timeouts.Read == nil {
-					r.Timeouts.Read = schema.DefaultTimeout(GetDefaultContextTimeoutRead(load_balancer_lock_enabled))
-				}
-				if r.Timeouts.Update == nil {
-					r.Timeouts.Update = schema.DefaultTimeout(GetDefaultContextTimeoutUpdate(load_balancer_lock_enabled))
-				}
-				if r.Timeouts.Delete == nil {
-					r.Timeouts.Delete = schema.DefaultTimeout(GetDefaultContextTimeoutDelete(load_balancer_lock_enabled))
+				if override.Read != 0 {
+					*r.Timeouts.Read = override.Read
 				}
 
-				*r.Timeouts.Create = GetDefaultContextTimeoutCreate(load_balancer_lock_enabled)
-				*r.Timeouts.Read = GetDefaultContextTimeoutRead(load_balancer_lock_enabled)
-				*r.Timeouts.Update = GetDefaultContextTimeoutUpdate(load_balancer_lock_enabled)
-				*r.Timeouts.Delete = GetDefaultContextTimeoutDelete(load_balancer_lock_enabled)
+				if override.Update != 0 {
+					*r.Timeouts.Update = override.Update
+				}
+
+				if override.Delete != 0 {
+					*r.Timeouts.Delete = override.Delete
+				}
+
+				continue
 			}
+
+			*r.Timeouts.Create = Timeout(load_balancer_lock_enabled)
+			*r.Timeouts.Read = Timeout(load_balancer_lock_enabled)
+			*r.Timeouts.Update = Timeout(load_balancer_lock_enabled)
+			*r.Timeouts.Delete = Timeout(load_balancer_lock_enabled)
 		}
 
 		// Packaging
@@ -608,20 +621,20 @@ func Provider() *schema.Provider {
 			TokenRefreshBufferPeriod: tokenRefrshBufferPeriod,
 			CustomCookies:            cookiesList,
 			MandatoryRequestDelay:    time.Duration(d.Get("mandatory_request_delay_milliseconds").(int)) * time.Millisecond,
-			RetryEligiableRequests:   false, // Forced off for now
+			RetryEligiableRequests:   false, // Forced because terraform handles concurrency
 			HTTP:                     http.Client{},
 		}
 
-		goHttpClient, err := config.Build()
+		httpClient, err := config.Build()
 		if err != nil {
 			return nil, append(diags, diag.FromErr(err)...)
 		}
 
-		jamfClient := jamfpro.Client{
-			HTTP: goHttpClient,
+		jamfProSdk := jamfpro.Client{
+			HTTP: httpClient,
 		}
 
-		return &jamfClient, diags
+		return &jamfProSdk, diags
 	}
 
 	return provider

@@ -13,7 +13,7 @@ import (
 // mainCustomDiffFunc orchestrates all custom diff validations for macOS config profiles.
 func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
 	if diff.Get("payload_validate").(bool) {
-		if err := validatePayload(ctx, diff, i); err != nil {
+		if err := validatePayloadIdentifers(ctx, diff, i); err != nil {
 			return err
 		}
 
@@ -28,6 +28,7 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 		if err := validatePlistPayloadScope(ctx, diff, i); err != nil {
 			return err
 		}
+
 	}
 
 	if err := validateSelfServiceCategories(ctx, diff, i); err != nil {
@@ -50,8 +51,8 @@ func normalizePayloadState(_ context.Context, diff *schema.ResourceDiff, _ inter
 	return nil
 }
 
-// validatePayload performs the payload validation that was previously in the ValidateFunc.
-func validatePayload(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+// validatePayloadIdentifers performs the payload validation that was previously in the ValidateFunc.
+func validatePayloadIdentifers(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
 	resourceName := diff.Get("name").(string)
 	payload := diff.Get("payloads").(string)
 

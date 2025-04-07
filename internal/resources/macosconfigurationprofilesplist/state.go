@@ -235,7 +235,7 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 		"self_service_description":        "",
 		"force_users_to_view_description": false,
 		"feature_on_main_page":            false,
-		"notification":                    false,
+		"notification":                    nil,
 		"notification_subject":            "",
 		"notification_message":            "",
 		"self_service_icon_id":            0,
@@ -265,16 +265,9 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 		}
 	}
 
-	// Handle notification field
-	if len(selfService.Notification) > 0 {
-		correctNotifValue, err := FixDuplicateNotificationKey(&jamfpro.ResourceMacOSConfigurationProfile{
-			SelfService: selfService,
-		})
-		if err != nil {
-			return nil, err
-		}
-		selfServiceBlock["notification"] = correctNotifValue
-	}
+	// Temporarily set to nil in all runs due to issues with the API.
+	// Will be reimplemented once those are fixed.
+	selfServiceBlock["notification"] = nil
 
 	// Handle self service categories
 	if len(selfService.SelfServiceCategories) > 0 {

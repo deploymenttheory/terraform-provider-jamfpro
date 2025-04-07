@@ -1,5 +1,70 @@
 # Changelog
 
+## [0.17.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.16.1...v0.17.0) (2025-04-04)
+
+
+### Features
+
+* removed computerinventorycollection. replaced by computerinventorycollectionsettings ([9366f11](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/9366f1173bbec103e70063982ad6569c361fbc4f))
+
+
+### Bug Fixes
+
+* Run the docs generator ([#646](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/646)) ([ce3df40](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/ce3df40a51c8127394b80b25340ceab9b047d722))
+
+## [0.16.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.16.0...v0.16.1) (2025-04-04)
+
+
+### Bug Fixes
+
+* removed warning from docs, releaser failling. ([#644](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/644)) ([829d404](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/829d404e63fcc197c7e80a71e33b2f767f8533a0))
+
+## [0.16.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.15.0...v0.16.0) (2025-04-03)
+
+
+### Features
+
+* Dynamic Timeouts with Exceptions ([#639](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/639)) ([85bf8e2](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/85bf8e2dfd77202e7117766026f109b39c16df04))
+
+
+### Bug Fixes
+
+* reinstated bug and feat request templates ([962d3e2](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/962d3e2471a8ae52d8162c54ce66828ca230c24e))
+
+## [0.15.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.14.0...v0.15.0) (2025-04-03)
+
+
+### Features
+
+* Add test harness. ([#632](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/632)) ([851ff5f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/851ff5f4ebdee2cae49d49d170e282b99685fb81))
+
+
+### Bug Fixes
+
+* Disabled "notification" key inside OSX configuraiton profile Self Service settings. ([8fa087d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/8fa087dd7517bb14a687b8e0423343240e71d529))
+* removed checkJamfAppCatalogAppInstallerTermsAndConditions until jamf fix it ([1defdee](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/1defdee34f891f4141095f6e0f95955f1294674e))
+* removed checkJamfAppCatalogAppInstallerTermsAndConditions until jamf fix it ([9b03439](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/9b03439d2cb54cb2b8f1150910edd0fa3c921dda))
+
+## [0.14.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.13.2...v0.14.0) (2025-03-25)
+
+
+### Features
+
+* added app installer global settings with example ([67021ed](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/67021ed10ad40e5211a5909a2919efb51f1610bb))
+* added app installer global settings with examples ([a36273d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/a36273da45d6d8ae1a0ac923a11a11405b19eb4e))
+
+
+### Bug Fixes
+
+* added debug logs ([6649eb6](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/6649eb653a7330f2bbb8b03faa9d41047806cf46))
+* added plist root level PayloadUUID and PayloadIdentifier validation checker ([aecf0a2](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/aecf0a2ba896e55b8d64a08e2b553f7ab902b8eb))
+* aligned mobile device config profiles with refined macos logic ([b0274f8](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/b0274f80fff9fedbefacc158af1ef9b6d0bbf6c7))
+* final tweaks for mobile device plist handling ([6029e0b](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/6029e0b0e4346f9a145205c96691e110dfb02958))
+* for '&' handling within plists for macos and mobile devices ([9704936](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/9704936df4019916e5eb4d13596f9b8e1ee523cd))
+* removed not required html escaping from payloads for create operation ([a02b2a2](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/a02b2a2933b631e173be2849a856e12fd4c8d5a0))
+* tidy up ([8eb572c](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/8eb572ca484a73d65b17f269dfee7b9d0d1f2e8f))
+* updated failing test bugs ([84bad4f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/84bad4f8ded71fda7e6e675cedcc3dfb1212f43b))
+
 ## [0.13.2](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.13.1...v0.13.2) (2025-03-14)
 
 
