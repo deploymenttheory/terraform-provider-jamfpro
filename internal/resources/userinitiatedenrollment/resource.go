@@ -13,6 +13,7 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 		ReadContext:   readWithCleanup,
 		UpdateContext: update,
 		DeleteContext: delete,
+		CustomizeDiff: customizeDiff,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(70 * time.Second),
@@ -35,7 +36,7 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 				Description: "Maps to payload field 'installSingleProfile'. Certificate installation step is skipped during enrollment if your environment has an SSL certificate that was obtained from an internal CA or a trusted third-party vendor.",
 			},
 			"third_party_signing_certificate": {
-				Type:        schema.TypeSet,
+				Type:        schema.TypeList,
 				Optional:    true,
 				MaxItems:    1,
 				Description: "Third-party signing certificate configuration to ensure that the certificate signs configuration profiles sent to computers and mobile devices, and appears as verified to users during user-initiated enrollment. Maps to 'mdmSigningCertificate'.",
@@ -69,7 +70,7 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 			// Messaging (page2)
 			// /api/v3/enrollment/languages/ab <- Two letter ISO 639-1 Language Code
 			/*
-							Field Mapping Reference Table:
+				Field Mapping Reference Table:
 				Field Mapping Reference Table:
 				+------------------------------------------+-----------------------------+----------+
 				| Terraform Schema Field (GUI Name)        | API Request Field           | Required |
@@ -408,7 +409,7 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 							Description: "Ensure that computers launch Self Service immediately after they are enrolled. Maps to request field 'launchSelfService'",
 						},
 						"quickadd_package": {
-							Type:        schema.TypeSet,
+							Type:        schema.TypeList,
 							Optional:    true,
 							MaxItems:    1,
 							Description: "Third-party signing certificate configuration to ensure that the certificate signs configuration profiles sent to computers and mobile devices, and appears as verified to users during user-initiated enrollment.Maps to 'developerCertificateIdentity'.",
@@ -425,15 +426,15 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 										Description: "Name of the certificate file in .p12 format. e.g 'my_test_certificate.p12'.",
 									},
 									"identity_keystore": {
-										Type:     schema.TypeString,
-										Required: true,
-										//Sensitive:   true,
+										Type:        schema.TypeString,
+										Required:    true,
+										Sensitive:   true,
 										Description: "Base64-encoded certificate in .p12 format.",
 									},
 									"keystore_password": {
-										Type:     schema.TypeString,
-										Required: true,
-										//Sensitive:   true,
+										Type:        schema.TypeString,
+										Required:    true,
+										Sensitive:   true,
 										Description: "Password for the certificate keystore",
 									},
 								},
@@ -447,7 +448,6 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 					},
 				},
 			},
-
 			// User Initiated Enrollment for Mobile Devices block
 			// /api/v4/enrollment
 			"user_initiated_enrollment_for_devices": {
@@ -533,7 +533,6 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 					},
 				},
 			},
-
 			// Flush settings
 			"flush_location_information": {
 				Type:        schema.TypeBool,
@@ -566,7 +565,6 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 				Description:  "Determines which MDM commands to flush during re-enrollment",
 				ValidateFunc: validation.StringInSlice([]string{"DELETE_EVERYTHING_EXCEPT_ACKNOWLEDGED", "DELETE_EVERYTHING", "DELETE_NOTHING", "DELETE_ERRORS"}, false),
 			},
-
 			// MDM Signing Certificate Details
 			"mdm_signing_certificate_details": {
 				Type:        schema.TypeSet,

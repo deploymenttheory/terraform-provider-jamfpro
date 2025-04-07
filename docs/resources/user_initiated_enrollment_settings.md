@@ -16,18 +16,18 @@ resource "jamfpro_user_initiated_enrollment_settings" "jamfpro_uie_settings" {
   skip_certificate_installation_during_enrollment = true
 
   # Flush Settings
-  flush_location_information         = false
-  flush_location_history_information = false
-  flush_policy_history               = false
-  flush_extension_attributes         = false
-  flush_mdm_commands_on_reenroll     = "DELETE_EVERYTHING_EXCEPT_ACKNOWLEDGED"
+  flush_location_information         = true
+  flush_location_history_information = true
+  flush_policy_history               = true
+  flush_extension_attributes         = true
+  flush_mdm_commands_on_reenroll     = "DELETE_EVERYTHING"
 
   # Third-party MDM signing certificate
   third_party_signing_certificate {
     enabled           = true
     filename          = "my_mdm_signing_cert.p12"
-    identity_keystore = filebase64("${path.module}/certs/mdm_signing_cert.p12")
-    keystore_password = var.mdm_cert_password
+    identity_keystore = filebase64("${path.module}/cert/path/test_certificate.p12")
+    keystore_password = "your-cert-password"
   }
 
   # Computer Enrollment Settings
@@ -49,8 +49,8 @@ resource "jamfpro_user_initiated_enrollment_settings" "jamfpro_uie_settings" {
     quickadd_package {
       sign_quickadd_package = true
       filename              = "quickadd_signing_cert.p12"
-      identity_keystore     = filebase64("${path.module}/certs/quickadd_signing_cert.p12")
-      keystore_password     = var.quickadd_cert_password
+      identity_keystore     = filebase64("${path.module}/cert/path/test_certificate.p12")
+      keystore_password     = "your-cert-password"
     }
   }
 
@@ -76,9 +76,10 @@ resource "jamfpro_user_initiated_enrollment_settings" "jamfpro_uie_settings" {
     }
   }
 
-  # Enrollment Messaging - English
+  # Enrollment Messaging - English (this block is always required. It's built into the jamf gui)
   messaging {
-    language_name                                   = "English"
+    language_code                                   = "en"
+    language_name                                   = "english"
     page_title                                      = "Welcome to Device Enrollment"
     username_text                                   = "Username"
     password_text                                   = "Password"
@@ -122,9 +123,10 @@ resource "jamfpro_user_initiated_enrollment_settings" "jamfpro_uie_settings" {
     log_out_button_name                             = "Log Out"
   }
 
-  # Enrollment Messaging - French
+  # Enrollment Messaging - French (All additional languages are optional)
   messaging {
-    language_name                                   = "French"
+    language_code                                   = "fr"
+    language_name                                   = "french"
     page_title                                      = "Welcome to Device Enrollment"
     username_text                                   = "Username"
     password_text                                   = "Password"
@@ -168,16 +170,16 @@ resource "jamfpro_user_initiated_enrollment_settings" "jamfpro_uie_settings" {
     log_out_button_name                             = "Log Out"
   }
 
-  # Directory Service Group Enrollment Settings
+  //Directory Service Group Enrollment Settings
   directory_service_group_enrollment_settings {
-    allow_group_to_enroll_institutionally_owned_devices                      = true
-    allow_group_to_enroll_personally_owned_devices                           = true
-    allow_group_to_enroll_personal_and_institutionally_owned_devices_via_ade = true
+    allow_group_to_enroll_institutionally_owned_devices                      = false
+    allow_group_to_enroll_personally_owned_devices                           = false
+    allow_group_to_enroll_personal_and_institutionally_owned_devices_via_ade = false
     require_eula                                                             = true
-    ldap_server_id                                                           = "1"
-    directory_service_group_name                                             = "IT Staff"
-    directory_service_group_id                                               = "a1b2c3d4-5678-90ab-cdef-ghijklmnopqr"
-    site_id                                                                  = 0
+    ldap_server_id                                                           = "1234" // LDAP or cloud idp
+    directory_service_group_name                                             = "Test M365 account"
+    directory_service_group_id                                               = "27230740-e063-4931-be75-f5e9b2e4ad53"
+    site_id                                                                  = "-1"
   }
 
   directory_service_group_enrollment_settings {
@@ -185,10 +187,10 @@ resource "jamfpro_user_initiated_enrollment_settings" "jamfpro_uie_settings" {
     allow_group_to_enroll_personally_owned_devices                           = false
     allow_group_to_enroll_personal_and_institutionally_owned_devices_via_ade = false
     require_eula                                                             = true
-    ldap_server_id                                                           = "1"
-    directory_service_group_name                                             = "Executives"
-    directory_service_group_id                                               = "b2c3d4e5-6789-01ab-cdef-ghijklmnopqr"
-    site_id                                                                  = 0
+    ldap_server_id                                                           = "1234" // LDAP or cloud idp
+    directory_service_group_name                                             = "Test Team"
+    directory_service_group_id                                               = "a2327741-8784-40bf-aa3b-7fb979ea8658"
+    site_id                                                                  = "-1"
   }
 }
 ```
@@ -207,7 +209,7 @@ resource "jamfpro_user_initiated_enrollment_settings" "jamfpro_uie_settings" {
 - `messaging` (Block Set) Localized text configuration for enrollment pages and messages (see [below for nested schema](#nestedblock--messaging))
 - `restrict_reenrollment_to_authorized_users_only` (Boolean) Maps to payload field 'restrictReenrollment'.Restrict re-enrollment to authorized users only by only allowing re-enrollment of mobile devices and computers if the user has the applicable privilege (“Mobile Devices” or “Computers”) or their username matches the Username field in User and Location information.
 - `skip_certificate_installation_during_enrollment` (Boolean) Maps to payload field 'installSingleProfile'. Certificate installation step is skipped during enrollment if your environment has an SSL certificate that was obtained from an internal CA or a trusted third-party vendor.
-- `third_party_signing_certificate` (Block Set, Max: 1) Third-party signing certificate configuration to ensure that the certificate signs configuration profiles sent to computers and mobile devices, and appears as verified to users during user-initiated enrollment. Maps to 'mdmSigningCertificate'. (see [below for nested schema](#nestedblock--third_party_signing_certificate))
+- `third_party_signing_certificate` (Block List, Max: 1) Third-party signing certificate configuration to ensure that the certificate signs configuration profiles sent to computers and mobile devices, and appears as verified to users during user-initiated enrollment. Maps to 'mdmSigningCertificate'. (see [below for nested schema](#nestedblock--third_party_signing_certificate))
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 - `user_initiated_enrollment_for_computers` (Block Set, Max: 1) Configuration for user initiated enrollment for computers (see [below for nested schema](#nestedblock--user_initiated_enrollment_for_computers))
 - `user_initiated_enrollment_for_devices` (Block Set, Max: 1) Allow users to enroll iOS/iPadOS devicesby going to https://JAMF_PRO_URL.jamfcloud.com/enroll (hosted in Jamf Cloud) or https://JAMF_PRO_URL.com:8443/enroll (hosted on-premise) (see [below for nested schema](#nestedblock--user_initiated_enrollment_for_devices))
@@ -232,11 +234,11 @@ Optional:
 - `allow_group_to_enroll_personal_and_institutionally_owned_devices_via_ade` (Boolean) Whether directory group can perform user initiated device enrollment for iOS/iPadOS by signing in to their device using a Managed Apple ID with ade. Maps to request field 'accountDrivenUserEnrollmentEnabled'
 - `allow_group_to_enroll_personally_owned_devices` (Boolean) Whether directory group can perform user initiated device enrollment for iOS/iPadOS personally owned devices. Maps to request field 'personalEnrollmentEnabled'
 - `require_eula` (Boolean) Upon enrollment is the eula required to be accepted
-- `site_id` (Number) ID of the Site to allow this LDAP user group to select during enrollment
+- `site_id` (String) ID of the Site to allow this LDAP user group to select during enrollment
 
 Read-Only:
 
-- `id` (Number) The unique identifier of the directory_service_group_enrollment_setting.
+- `id` (String) The unique identifier of the Directory Service group enrollment setting id.
 
 
 <a id="nestedblock--messaging"></a>
@@ -251,6 +253,7 @@ Required:
 - `institutional_mdm_profile_install_button_name` (String) Name for the button that users tap to install the MDM profile. Maps to request field 'enterpriseButton'
 - `institutional_mdm_profile_name` (String) Name to display for the MDM profile during enrollment of a institutionally owned device. Maps to request field 'enterpriseProfileName'
 - `institutional_ownership_button_name` (String) Name for the button that users tap to enroll an institutionally owned device. Maps to request field 'deviceClassEnterprise'
+- `language_code` (String) Two letter ISO 639-1 Language 'set 1' code for this messaging configuration language (e.g., 'en') for the 'English' language. Ref. https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes. Maps to request field 'languageCode'
 - `language_name` (String) The ISO 639 language name for this message configuration. (e.g., 'English'). Maps to request field 'name'
 - `log_out_button_name` (String) Name for the button that users tap/click to log out. Maps to request field 'logoutButton'
 - `login_button_text` (String) Name for the button that users tap/click to log in. Maps to request field 'loginButton'
@@ -291,10 +294,6 @@ Optional:
 - `view_enrollment_status_button_name` (String) Name for the button that users tap to view the enrollment status for the device. Maps to request field 'checkNowButton'
 - `view_enrollment_status_text` (String) Text to display during enrollment that prompts the user to view the enrollment status for the device. Maps to request field 'checkEnrollmentMessage'
 
-Read-Only:
-
-- `language_code` (String) Two letter ISO 639-1 Language 'set 1' code for this messaging configuration language (e.g., 'en') for the 'English' language. Ref. https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes. Maps to request field 'languageCode'
-
 
 <a id="nestedblock--third_party_signing_certificate"></a>
 ### Nested Schema for `third_party_signing_certificate`
@@ -331,7 +330,7 @@ Required:
 Optional:
 
 - `managed_local_administrator_account` (Block Set, Max: 1) Configuration for the managed local administrator account (see [below for nested schema](#nestedblock--user_initiated_enrollment_for_computers--managed_local_administrator_account))
-- `quickadd_package` (Block Set, Max: 1) Third-party signing certificate configuration to ensure that the certificate signs configuration profiles sent to computers and mobile devices, and appears as verified to users during user-initiated enrollment.Maps to 'developerCertificateIdentity'. (see [below for nested schema](#nestedblock--user_initiated_enrollment_for_computers--quickadd_package))
+- `quickadd_package` (Block List, Max: 1) Third-party signing certificate configuration to ensure that the certificate signs configuration profiles sent to computers and mobile devices, and appears as verified to users during user-initiated enrollment.Maps to 'developerCertificateIdentity'. (see [below for nested schema](#nestedblock--user_initiated_enrollment_for_computers--quickadd_package))
 
 <a id="nestedblock--user_initiated_enrollment_for_computers--managed_local_administrator_account"></a>
 ### Nested Schema for `user_initiated_enrollment_for_computers.managed_local_administrator_account`

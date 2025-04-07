@@ -14,7 +14,7 @@ import (
 func constructEnrollmentSettings(d *schema.ResourceData) (*jamfpro.ResourceEnrollment, error) {
 	resource := &jamfpro.ResourceEnrollment{
 		// General settings
-		InstallSingleProfile:            !d.Get("skip_certificate_installation_during_enrollment").(bool),
+		InstallSingleProfile:            d.Get("skip_certificate_installation_during_enrollment").(bool),
 		RestrictReenrollment:            d.Get("restrict_reenrollment_to_authorized_users_only").(bool),
 		FlushLocationInformation:        d.Get("flush_location_information").(bool),
 		FlushLocationHistoryInformation: d.Get("flush_location_history_information").(bool),
@@ -25,7 +25,7 @@ func constructEnrollmentSettings(d *schema.ResourceData) (*jamfpro.ResourceEnrol
 
 	// Set third-party signing certificate
 	if v, ok := d.GetOk("third_party_signing_certificate"); ok {
-		certList := v.(*schema.Set).List()
+		certList := v.([]interface{})
 		if len(certList) > 0 {
 			certMap := certList[0].(map[string]interface{})
 
@@ -63,16 +63,19 @@ func constructEnrollmentSettings(d *schema.ResourceData) (*jamfpro.ResourceEnrol
 			}
 
 			// QuickAdd package settings
-			if quickAdd, ok := computerSettings["quickadd_package"]; ok && len(quickAdd.(*schema.Set).List()) > 0 {
-				quickAddMap := quickAdd.(*schema.Set).List()[0].(map[string]interface{})
+			if quickAdd, ok := computerSettings["quickadd_package"]; ok {
+				quickAddList := quickAdd.([]interface{})
+				if len(quickAddList) > 0 {
+					quickAddMap := quickAddList[0].(map[string]interface{})
 
-				resource.SignQuickAdd = quickAddMap["sign_quickadd_package"].(bool)
+					resource.SignQuickAdd = quickAddMap["sign_quickadd_package"].(bool)
 
-				if resource.SignQuickAdd {
-					resource.DeveloperCertificateIdentity = &jamfpro.ResourceEnrollmentCertificate{
-						Filename:         quickAddMap["filename"].(string),
-						IdentityKeystore: quickAddMap["identity_keystore"].(string),
-						KeystorePassword: quickAddMap["keystore_password"].(string),
+					if resource.SignQuickAdd {
+						resource.DeveloperCertificateIdentity = &jamfpro.ResourceEnrollmentCertificate{
+							Filename:         quickAddMap["filename"].(string),
+							IdentityKeystore: quickAddMap["identity_keystore"].(string),
+							KeystorePassword: quickAddMap["keystore_password"].(string),
+						}
 					}
 				}
 			}

@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// Resource ID constants
 const (
 	ResourceIDSingleton = "jamfpro_user_initiated_enrollment_settings_singleton"
 )
@@ -25,12 +24,12 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
+	// Step 1: Update main enrollment settings (API doesn't have a true "create" operation)
 	enrollmentSettings, err := constructEnrollmentSettings(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct enrollment settings: %v", err))
 	}
 
-	// Step 2: Update main enrollment settings (API doesn't have a true "create" operation)
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		_, apiErr := client.UpdateEnrollment(enrollmentSettings)
 		if apiErr != nil {
@@ -43,18 +42,16 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		return diag.FromErr(fmt.Errorf("failed to update enrollment settings: %v", err))
 	}
 
-	// Step 3: Create language messaging configurations
-	messagingList, err := constructEnrollmentMessaging(d, client) // Updated to pass client
+	// Step 2: Create language messaging configurations
+	messagingList, err := constructEnrollmentMessaging(d, client)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct enrollment messaging: %v", err))
 	}
 
 	for i := range messagingList {
-		// Get a pointer to the message in the slice
 		message := &messagingList[i]
 		languageCode := message.LanguageCode
 
-		// Additional check to ensure language code is not empty
 		if languageCode == "" {
 			return diag.FromErr(fmt.Errorf("cannot update language message for '%s': empty language code", message.Name))
 		}
@@ -73,7 +70,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		}
 	}
 
-	// Step 4: Create directory service group enrollment settings
+	// Step 3: Create directory service group enrollment settings
 	accessGroups, err := constructDirectoryServiceGroupSettings(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct directory service group settings: %v", err))
@@ -107,10 +104,7 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	// Ensure consistent ID for singleton resource
-	d.SetId(ResourceIDSingleton)
-
-	// Step 1: Read main enrollment configuration
+	// --- Step 1: Read base enrollment configuration ---
 	var enrollment *jamfpro.ResourceEnrollment
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
@@ -152,8 +146,6 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 
 	// --- Step 3: Get all directory service group enrollment settings ---
 	var accessGroupsList []jamfpro.ResourceAccountDrivenUserEnrollmentAccessGroup
-	log.Print("[DEBUG] Reading directory service groups: Fetching all groups from API.")
-
 	var currentGroups *jamfpro.ResponseAccountDrivenUserEnrollmentAccessGroupsList
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
@@ -172,19 +164,13 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 			Detail:   fmt.Sprintf("Error fetching all groups: %v", err),
 		})
 	} else if currentGroups != nil && len(currentGroups.Results) > 0 {
-		log.Printf("[DEBUG] Found %d directory service groups from API.", len(currentGroups.Results))
-
 		// When we have access groups from the API, filter out any built-in groups (ID "1")
 		for _, group := range currentGroups.Results {
 			if group.ID == "1" {
-				log.Printf("[DEBUG] Skipping built-in group with ID 1: %s", group.Name)
 				continue
 			}
 			accessGroupsList = append(accessGroupsList, group)
 		}
-		log.Printf("[DEBUG] Added %d groups to state (excluding built-in)", len(accessGroupsList))
-	} else {
-		log.Print("[DEBUG] No directory service groups found from API call.")
 	}
 
 	// --- Step 4: Update state using the centralized function ---
@@ -215,7 +201,6 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	var diags diag.Diagnostics
 
 	// Step 1: Update main enrollment settings
-	log.Print("[DEBUG] Updating base enrollment settings (Step 1)")
 	enrollmentSettings, err := constructEnrollmentSettings(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct updated enrollment settings: %v", err))
@@ -281,8 +266,6 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 				return diag.FromErr(fmt.Errorf("failed to delete enrollment message for language '%s': %v", languageCode, deleteErr))
 			}
 		}
-
-		log.Print("[DEBUG] Completed cleanup of non-English enrollment messages.")
 
 		// Step 2.3: Reconstruct and reapply updated messaging config
 		messagingList, err := constructEnrollmentMessaging(d, client)
@@ -353,7 +336,6 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 					continue
 				}
 
-				log.Printf("[DEBUG] Deleting directory service group: API ID=%s, Name=%s", groupID, group.Name)
 				err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 					apiErr := client.DeleteAccountDrivenUserEnrollmentAccessGroupByID(groupID)
 					if apiErr != nil {
@@ -364,7 +346,6 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 						log.Printf("[ERROR] Failed attempt to delete directory service group with ID '%s': %v. Retrying...", groupID, apiErr)
 						return retry.RetryableError(apiErr)
 					}
-					log.Printf("[DEBUG] Successfully deleted directory service group: API ID=%s", groupID)
 					return nil
 				})
 
@@ -389,10 +370,10 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 		log.Printf("[DEBUG] Creating %d directory service groups from Terraform configuration.", len(groupsToCreate))
 		for i := range groupsToCreate {
-			group := groupsToCreate[i] // Operate on value copy or use pointer index: &groupsToCreate[i]
+			group := groupsToCreate[i]
 			log.Printf("[DEBUG] Creating directory service group: Name=%s, LDAP ID=%s, Group ID=%s", group.Name, group.LdapServerID, group.GroupID)
 
-			err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError { // Use Update timeout for create
+			err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 				_, apiErr := client.CreateAccountDrivenUserEnrollmentAccessGroup(group)
 				if apiErr != nil {
 					log.Printf("[ERROR] Failed attempt to create directory service group for group '%s': %v", group.Name, apiErr)
@@ -425,7 +406,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
-	log.Printf("[INFO] Starting deletion cleanup for resource %s.", ResourceIDSingleton)
+	log.Printf("[DEBUG] Starting deletion cleanup for resource %s.", ResourceIDSingleton)
 
 	// --- Step 1: Delete language messaging (except for English) ---
 	log.Print("[DEBUG] Fetching configured language messages to delete from Jamf Pro.")
@@ -500,7 +481,6 @@ func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 			group := &accessGroups.Results[i]
 			groupID := group.ID
 
-			// --- Add check to skip ID "1" ---
 			if groupID == "1" {
 				log.Printf("[INFO] Skipping deletion of directory service group with ID '1' (Name: %s) as it is considered built-in.", group.Name)
 				continue
@@ -537,8 +517,7 @@ func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		log.Print("[DEBUG] No directory service groups found in Jamf Pro to delete.")
 	}
 
-	// --- Step 3: Remove from state ---
-	log.Printf("[INFO] Deletion cleanup finished for resource %s. Removing from Terraform state.", ResourceIDSingleton)
+	log.Printf("[DEBUG] Deletion cleanup finished for resource %s. Removing from Terraform state.", ResourceIDSingleton)
 	d.SetId("")
 
 	return diags
