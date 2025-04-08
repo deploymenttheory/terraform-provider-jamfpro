@@ -29,8 +29,8 @@
           # list whatever Terraform versions here you would like to support
           terraform:
             - '1.9.*'
-            - '1.10.*'
-            - '1.11.*'
+            # - '1.10.*'
+            # - '1.11.*'
       steps:
         - name: Harden Runner
           uses: step-security/harden-runner@v2.11.0
@@ -48,9 +48,14 @@
             go-version-file: 'go.mod'
             cache: true
 
+        - name: Setup Terraform
+          uses: hashicorp/setup-terraform@v3.1.2
+          with:
+            terraform_version: ${{ matrix.terraform }}
+            terraform_wrapper: false
+            
         - run: go mod download
         - run: go build -v .
-
         - run: go generate ./...
 
         - name: git diff
