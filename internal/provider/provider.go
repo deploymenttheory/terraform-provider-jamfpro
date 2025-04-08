@@ -26,6 +26,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/buildings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/categories"
 	computercheckin "github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/clientcheckin"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/cloudidp"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerextensionattributes"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerinventory"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerinventorycollectionsettings"
@@ -363,6 +364,7 @@ func Provider() *schema.Provider {
 			"jamfpro_app_installer":                             appinstallers.DataSourceJamfProAppInstallers(),
 			"jamfpro_building":                                  buildings.DataSourceJamfProBuildings(),
 			"jamfpro_category":                                  categories.DataSourceJamfProCategories(),
+			"jamfpro_cloud_idp":                                 cloudidp.DataSourceJamfProCloudIdp(),
 			"jamfpro_computer_extension_attribute":              computerextensionattributes.DataSourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_inventory":                        computerinventory.DataSourceJamfProComputerInventory(),
 			"jamfpro_computer_prestage_enrollment":              computerprestageenrollments.DataSourceJamfProComputerPrestageEnrollmentEnrollment(),
