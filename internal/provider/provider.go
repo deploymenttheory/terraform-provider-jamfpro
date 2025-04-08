@@ -263,7 +263,7 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc(envVarJamfProAuthMethod, ""),
-				Description: "Auth method chosen for Jamf.",
+				Description: "The auth method chosen for interacting with Jamf Pro. Options are 'basic' for username/password or 'oauth2' for client id/secret.",
 				ValidateFunc: validation.StringInSlice([]string{
 					"basic", "oauth2",
 				}, true),
@@ -336,7 +336,7 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
-				Description: "Programatically determines all available web app members in the load balance and locks all instances of httpclient to the app for faster executions. \nTEMP SOLUTION UNTIL JAMF PROVIDES SOLUTION",
+				Description: "Programatically determines all available web app members in the load balancer and locks all instances of httpclient to the app for faster executions. \nTEMP SOLUTION UNTIL JAMF PROVIDES SOLUTION",
 			},
 			"token_refresh_buffer_period_seconds": {
 				Type:        schema.TypeInt,

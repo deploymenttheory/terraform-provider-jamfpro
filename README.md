@@ -78,9 +78,9 @@ The provider contains:
 
 ## Requirements
 
-- [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.10.0
+- [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.11.0
 - [Go](https://golang.org/doc/install) >= 1.22.4
-- [Jamf Pro](https://www.jamf.com/) >= 11.14.0
+- [Jamf Pro](https://www.jamf.com/) >= 11.15.0
 
 (Tested with production Jamf Pro instances, with and without SSO integratioin with Microsoft Entra ID. We do not test against beta or preview versions of Jamf Pro due to potential data model changes.)
 
@@ -92,15 +92,14 @@ For further community support and to engage with other users of the Jamf Pro Ter
 
 ## Getting Started with Examples
 
-# Provider Configuration for Jamf Pro in Terraform
+### Provider Configuration for Jamf Pro in Terraform
 
 This documentation provides a detailed explanation of the configuration options available in the `provider.tf` file for setting up the Jamf Pro provider in Terraform.
 
-
 ### Jamf Cloud Load Balancing and Cookies
 
-- Jamf Cloud uses a load balancer to distribute traffic across multiple web app members. This abstraction can cause issues with Terraform's http client when multiple instances are running in parallel. Where freqently the client will be communicating with different web app members, causing stating unfound resource issues.
-- To mitigate this please use the `jamfpro_load_balancer_lock` (which enforces a single cookie across all parallel instances of Terraform operations) which extracts the correct cookie on first run from Jamf Pro and utilises it thereafter across all other sessions. This is eqivalent to a sticky session.
+- Jamf Cloud uses a load balancer to distribute traffic across multiple web app members (typically 2). When resource's are manipulated on a given web app member, there is up to a 60 second time box until this resources changes are propagated and reflected onto the other web app(s). This architecture can cause issues with Terraform's http client default behaviour when multiple instances are running in parallel and also due to the speed terraform operates. This results in scenarios where it's very likely that a create by terraform, followed by a read (for stating) will freqently communicate with different web app members during a terraform run. This causes stating 'unfound' resource issues.
+- To mitigate this please use the `jamfpro_load_balancer_lock` (which enforces a single cookie across all parallel instances of Terraform operations). This feature on first run obtains all available web cookies (jpro-ingress) from Jamf Pro and selects and applies a single one to the http client for all subsequent api calls during the terraform run. This is eqivalent to a sticky session.
 - For non Jamf Cloud customers, with load balanced configurations please use `custom_cookies` and configure a custom cookie to be used in all requests instead.
 
 ### Concurrency
@@ -206,4 +205,4 @@ This documentation provides a detailed explanation of the configuration options 
 
 # Supported Jamf Pro Resources
 
-[Supported Resources](docs/supported-resources/README.md)
+[Supported Resources](https://registry.terraform.io/providers/deploymenttheory/jamfpro/latest/docs)
