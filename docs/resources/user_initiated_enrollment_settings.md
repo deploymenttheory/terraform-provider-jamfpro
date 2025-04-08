@@ -176,7 +176,7 @@ resource "jamfpro_user_initiated_enrollment_settings" "jamfpro_uie_settings" {
     allow_group_to_enroll_personally_owned_devices                           = false
     allow_group_to_enroll_personal_and_institutionally_owned_devices_via_ade = false
     require_eula                                                             = true
-    ldap_server_id                                                           = "1234" // LDAP or cloud idp
+    ldap_server_id                                                           = data.jamfpro_cloud_idp.by_name.id // LDAP or cloud idp
     directory_service_group_name                                             = "Test M365 account"
     directory_service_group_id                                               = "27230740-e063-4931-be75-f5e9b2e4ad53"
     site_id                                                                  = "-1"
@@ -187,7 +187,7 @@ resource "jamfpro_user_initiated_enrollment_settings" "jamfpro_uie_settings" {
     allow_group_to_enroll_personally_owned_devices                           = false
     allow_group_to_enroll_personal_and_institutionally_owned_devices_via_ade = false
     require_eula                                                             = true
-    ldap_server_id                                                           = "1234" // LDAP or cloud idp
+    ldap_server_id                                                           = data.jamfpro_cloud_idp.by_name.id // LDAP or cloud idp
     directory_service_group_name                                             = "Test Team"
     directory_service_group_id                                               = "a2327741-8784-40bf-aa3b-7fb979ea8658"
     site_id                                                                  = "-1"
