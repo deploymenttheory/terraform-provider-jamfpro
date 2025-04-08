@@ -57,7 +57,7 @@
         - run: go mod download
         - run: go build -v .
         - run: go generate ./...
-        
+
         - name: Setup Terraform
           uses: hashicorp/setup-terraform@v3.1.2
           with:
@@ -71,4 +71,4 @@
             TF_ACC: "1"
             JAMFPRO_TENANT_ID: ${{ secrets.JAMFPRO_TENANT_ID }}
             JAMFPRO_CLIENT_ID: ${{ secrets.JAMFPRO_CLIENT_ID }}
-          run: go test -v -cover ./internal/
+          run: go test -v -cover ./internal/...
