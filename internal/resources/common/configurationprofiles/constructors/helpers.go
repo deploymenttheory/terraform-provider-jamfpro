@@ -7,8 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// convertToInt attempts robust conversion to int. Returns value and success bool.
-func ConvertToInt(val interface{}, fieldName string, index int) (int, bool) {
+// ParseResourceID ensures a value can be safely used as an ID in Jamf Pro resources.
+// Handles int, float64, and string inputs with appropriate logging for conversion issues.
+// Returns the validated integer ID and a success boolean.
+func ParseResourceID(val interface{}, fieldName string, index int) (int, bool) {
 	switch v := val.(type) {
 	case int:
 		return v, true
@@ -31,7 +33,7 @@ func ConvertToInt(val interface{}, fieldName string, index int) (int, bool) {
 	}
 }
 
-// getListFromSet is a helper function to safely extract a list of interfaces
+// GetListFromSet is a helper function to safely extract a list of interfaces
 // from a *schema.Set stored within a map[string]interface{}.
 // It returns an empty slice if the key is not found or the value is not a *schema.Set.
 func GetListFromSet(data map[string]interface{}, key string) []interface{} {

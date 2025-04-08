@@ -1,4 +1,3 @@
-// macosconfigurationprofilesplist_object.go
 package macosconfigurationprofilesplist
 
 import (
@@ -6,7 +5,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"html"
-	"log" // Import strconv for robust conversion
+	"log"
 	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -292,7 +291,7 @@ func constructExclusions(data map[string]interface{}) jamfpro.MacOSConfiguration
 func constructComputers(ids []interface{}) []jamfpro.MacOSConfigurationProfileSubsetComputer {
 	computers := make([]jamfpro.MacOSConfigurationProfileSubsetComputer, 0, len(ids))
 	for i, idRaw := range ids {
-		if intID, ok := constructors.ConvertToInt(idRaw, "computer", i); ok {
+		if intID, ok := constructors.ParseResourceID(idRaw, "computer", i); ok {
 			computers = append(computers, jamfpro.MacOSConfigurationProfileSubsetComputer{
 				MacOSConfigurationProfileSubsetScopeEntity: jamfpro.MacOSConfigurationProfileSubsetScopeEntity{ID: intID},
 			})
@@ -306,7 +305,7 @@ func constructComputers(ids []interface{}) []jamfpro.MacOSConfigurationProfileSu
 func constructNetworkSegments(ids []interface{}) []jamfpro.MacOSConfigurationProfileSubsetNetworkSegment {
 	networkSegments := make([]jamfpro.MacOSConfigurationProfileSubsetNetworkSegment, 0, len(ids))
 	for i, idRaw := range ids {
-		if intID, ok := constructors.ConvertToInt(idRaw, "network segment", i); ok {
+		if intID, ok := constructors.ParseResourceID(idRaw, "network segment", i); ok {
 			networkSegments = append(networkSegments, jamfpro.MacOSConfigurationProfileSubsetNetworkSegment{
 				MacOSConfigurationProfileSubsetScopeEntity: jamfpro.MacOSConfigurationProfileSubsetScopeEntity{ID: intID},
 			})
@@ -320,7 +319,7 @@ func constructNetworkSegments(ids []interface{}) []jamfpro.MacOSConfigurationPro
 func constructScopeEntitiesFromIds(ids []interface{}) []jamfpro.MacOSConfigurationProfileSubsetScopeEntity {
 	scopeEntities := make([]jamfpro.MacOSConfigurationProfileSubsetScopeEntity, 0, len(ids))
 	for i, idRaw := range ids {
-		if intID, ok := constructors.ConvertToInt(idRaw, "scope entity", i); ok {
+		if intID, ok := constructors.ParseResourceID(idRaw, "scope entity", i); ok {
 			scopeEntities = append(scopeEntities, jamfpro.MacOSConfigurationProfileSubsetScopeEntity{ID: intID})
 		}
 	}
@@ -400,7 +399,7 @@ func constructSelfServiceCategories(categoryList []interface{}) []jamfpro.MacOSC
 		cat := jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory{}
 		idOk := false
 		if idVal, ok := catData["id"]; ok {
-			if cat.ID, idOk = constructors.ConvertToInt(idVal, "self service category", i); !idOk {
+			if cat.ID, idOk = constructors.ParseResourceID(idVal, "self service category", i); !idOk {
 				continue
 			}
 		} else {

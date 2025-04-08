@@ -1,4 +1,3 @@
-// macosconfigurationprofilesplist_diff_suppress.go
 package macosconfigurationprofilesplist
 
 import (

@@ -1,4 +1,3 @@
-// mobiledeviceconfigurationprofilesplist_object.go
 package mobiledeviceconfigurationprofilesplist
 
 import (
@@ -6,7 +5,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"html"
-	"log" // Import strconv for robust conversion
+	"log"
 	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -180,7 +179,6 @@ func constructMobileDeviceConfigurationProfileSubsetScope(data map[string]interf
 
 	// Handle Limitations Block (Outer TypeSet, Inner Map with TypeSet fields)
 	if limitationsSet := constructors.GetListFromSet(data, "limitations"); len(limitationsSet) > 0 {
-		// TypeSet with MaxItems: 1 means limitationsSet will have 0 or 1 element
 		if limitationsSet[0] != nil {
 			limitationData, mapOk := limitationsSet[0].(map[string]interface{})
 			if mapOk {
@@ -193,7 +191,6 @@ func constructMobileDeviceConfigurationProfileSubsetScope(data map[string]interf
 
 	// Handle Exclusions Block (Outer TypeSet, Inner Map with TypeSet fields)
 	if exclusionsSet := constructors.GetListFromSet(data, "exclusions"); len(exclusionsSet) > 0 {
-		// TypeSet with MaxItems: 1 means exclusionsSet will have 0 or 1 element
 		if exclusionsSet[0] != nil {
 			exclusionData, mapOk := exclusionsSet[0].(map[string]interface{})
 			if mapOk {
@@ -211,7 +208,6 @@ func constructMobileDeviceConfigurationProfileSubsetScope(data map[string]interf
 func constructLimitations(data map[string]interface{}) jamfpro.MobileDeviceConfigurationProfileSubsetLimitation {
 	limitations := jamfpro.MobileDeviceConfigurationProfileSubsetLimitation{}
 
-	// Use constructors.GetListFromSet for *Set fields inside the limitations map
 	if userNamesList := constructors.GetListFromSet(data, "directory_service_or_local_usernames"); len(userNamesList) > 0 {
 		limitations.Users = constructMobileDeviceScopeEntitiesFromNames(userNamesList)
 	}
@@ -232,7 +228,6 @@ func constructLimitations(data map[string]interface{}) jamfpro.MobileDeviceConfi
 func constructExclusions(data map[string]interface{}) jamfpro.MobileDeviceConfigurationProfileSubsetExclusion {
 	exclusions := jamfpro.MobileDeviceConfigurationProfileSubsetExclusion{}
 
-	// Use constructors.GetListFromSet for *Set fields inside the exclusions map
 	if mobileDeviceIDsList := constructors.GetListFromSet(data, "mobile_device_ids"); len(mobileDeviceIDsList) > 0 {
 		exclusions.MobileDevices = constructMobileDevices(mobileDeviceIDsList)
 	}
@@ -277,7 +272,7 @@ func constructMobileDevices(ids []interface{}) []jamfpro.MobileDeviceConfigurati
 	}
 	mobileDevices := make([]jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice, 0, len(ids))
 	for i, idRaw := range ids {
-		if intID, ok := constructors.ConvertToInt(idRaw, "mobile device", i); ok {
+		if intID, ok := constructors.ParseResourceID(idRaw, "mobile device", i); ok {
 			mobileDevices = append(mobileDevices, jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice{ID: intID})
 		}
 	}
@@ -292,7 +287,7 @@ func constructMobileDeviceNetworkSegments(ids []interface{}) []jamfpro.MobileDev
 	}
 	networkSegments := make([]jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment, 0, len(ids))
 	for i, idRaw := range ids {
-		if intID, ok := constructors.ConvertToInt(idRaw, "network segment", i); ok {
+		if intID, ok := constructors.ParseResourceID(idRaw, "network segment", i); ok {
 			networkSegments = append(networkSegments, jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment{
 				MobileDeviceConfigurationProfileSubsetScopeEntity: jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity{ID: intID},
 			})
@@ -309,7 +304,7 @@ func constructMobileDeviceScopeEntitiesFromIds(ids []interface{}) []jamfpro.Mobi
 	}
 	scopeEntities := make([]jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, 0, len(ids))
 	for i, idRaw := range ids {
-		if intID, ok := constructors.ConvertToInt(idRaw, "scope entity (ID based)", i); ok {
+		if intID, ok := constructors.ParseResourceID(idRaw, "scope entity (ID based)", i); ok {
 			scopeEntities = append(scopeEntities, jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity{ID: intID})
 		}
 	}

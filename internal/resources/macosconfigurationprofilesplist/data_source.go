@@ -1,4 +1,3 @@
-// macosconfigurationprofilesplist_data_source.go
 package macosconfigurationprofilesplist
 
 import (

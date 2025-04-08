@@ -1,4 +1,3 @@
-// macosconfigurationprofilesplist_data_validator.go
 package macosconfigurationprofilesplist
 
 import (
