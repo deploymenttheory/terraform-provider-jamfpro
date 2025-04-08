@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/constructors"
 	helpers "github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/plist"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"howett.net/plist"
@@ -55,16 +55,9 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 	resource.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 	resource.General.Category = sharedschemas.ConstructSharedResourceCategory(d.Get("category_id").(int))
 
-	if v, ok := d.GetOk("scope"); ok {
-		scopeList := v.([]interface{})
-		if len(scopeList) > 0 && scopeList[0] != nil {
-			scopeData, mapOk := scopeList[0].(map[string]interface{})
-			if mapOk {
-				resource.Scope = constructMobileDeviceConfigurationProfileSubsetScope(scopeData)
-			} else {
-				log.Printf("[WARN] constructJamfProMobileDeviceConfigurationProfilePlist: Could not cast scope element to map.")
-			}
-		}
+	if _, ok := d.GetOk("scope"); ok {
+		// Pass the ResourceData object directly instead of extracting the scope data
+		resource.Scope = constructMobileDeviceConfigurationProfileSubsetScope(d)
 	} else {
 		log.Printf("[DEBUG] constructJamfProMobileDeviceConfigurationProfilePlist: No scope block found or it's empty.")
 	}
@@ -151,180 +144,175 @@ func preMarshallingXMLPayloadEscaping(input string) string {
 }
 
 // constructMobileDeviceConfigurationProfileSubsetScope constructs the scope using TypeSet from schema.
-func constructMobileDeviceConfigurationProfileSubsetScope(data map[string]interface{}) jamfpro.MobileDeviceConfigurationProfileSubsetScope {
-	scope := jamfpro.MobileDeviceConfigurationProfileSubsetScope{
-		AllMobileDevices: data["all_mobile_devices"].(bool),
-		AllJSSUsers:      data["all_jss_users"].(bool),
+func constructMobileDeviceConfigurationProfileSubsetScope(d *schema.ResourceData) jamfpro.MobileDeviceConfigurationProfileSubsetScope {
+	scope := jamfpro.MobileDeviceConfigurationProfileSubsetScope{}
+	// Get the scope data from the resource data
+	scopeData := d.Get("scope").([]interface{})[0].(map[string]interface{})
+
+	scope.AllMobileDevices = scopeData["all_mobile_devices"].(bool)
+	scope.AllJSSUsers = scopeData["all_jss_users"].(bool)
+
+	// Use MapSetToStructs for mobile devices
+	var mobileDevices []jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice, int](
+		"scope.0.mobile_device_ids", "ID", d, &mobileDevices); err == nil {
+		scope.MobileDevices = mobileDevices
 	}
 
-	// Use constructors.GetListFromSet for *Set fields
-	if mobileDeviceIDsList := constructors.GetListFromSet(data, "mobile_device_ids"); len(mobileDeviceIDsList) > 0 {
-		scope.MobileDevices = constructMobileDevices(mobileDeviceIDsList)
-	}
-	if mobileDeviceGroupIDsList := constructors.GetListFromSet(data, "mobile_device_group_ids"); len(mobileDeviceGroupIDsList) > 0 {
-		scope.MobileDeviceGroups = constructMobileDeviceScopeEntitiesFromIds(mobileDeviceGroupIDsList)
-	}
-	if buildingIDsList := constructors.GetListFromSet(data, "building_ids"); len(buildingIDsList) > 0 {
-		scope.Buildings = constructMobileDeviceScopeEntitiesFromIds(buildingIDsList)
-	}
-	if departmentIDsList := constructors.GetListFromSet(data, "department_ids"); len(departmentIDsList) > 0 {
-		scope.Departments = constructMobileDeviceScopeEntitiesFromIds(departmentIDsList)
-	}
-	if jssUserIDsList := constructors.GetListFromSet(data, "jss_user_ids"); len(jssUserIDsList) > 0 {
-		scope.JSSUsers = constructMobileDeviceScopeEntitiesFromIds(jssUserIDsList)
-	}
-	if jssUserGroupIDsList := constructors.GetListFromSet(data, "jss_user_group_ids"); len(jssUserGroupIDsList) > 0 {
-		scope.JSSUserGroups = constructMobileDeviceScopeEntitiesFromIds(jssUserGroupIDsList)
+	// Use MapSetToStructs for mobile device groups
+	var mobileDeviceGroups []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, int](
+		"scope.0.mobile_device_group_ids", "ID", d, &mobileDeviceGroups); err == nil {
+		scope.MobileDeviceGroups = mobileDeviceGroups
 	}
 
-	// Handle Limitations Block (Outer TypeSet, Inner Map with TypeSet fields)
-	if limitationsSet := constructors.GetListFromSet(data, "limitations"); len(limitationsSet) > 0 {
-		if limitationsSet[0] != nil {
-			limitationData, mapOk := limitationsSet[0].(map[string]interface{})
-			if mapOk {
-				scope.Limitations = constructLimitations(limitationData)
-			} else {
-				log.Printf("[WARN] constructMobileDeviceConfigurationProfileSubsetScope: Could not cast limitations element to map.")
-			}
-		}
+	// Buildings
+	var buildings []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, int](
+		"scope.0.building_ids", "ID", d, &buildings); err == nil {
+		scope.Buildings = buildings
 	}
 
-	// Handle Exclusions Block (Outer TypeSet, Inner Map with TypeSet fields)
-	if exclusionsSet := constructors.GetListFromSet(data, "exclusions"); len(exclusionsSet) > 0 {
-		if exclusionsSet[0] != nil {
-			exclusionData, mapOk := exclusionsSet[0].(map[string]interface{})
-			if mapOk {
-				scope.Exclusions = constructExclusions(exclusionData)
-			} else {
-				log.Printf("[WARN] constructMobileDeviceConfigurationProfileSubsetScope: Could not cast exclusions element to map.")
-			}
-		}
+	// Departments
+	var departments []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, int](
+		"scope.0.department_ids", "ID", d, &departments); err == nil {
+		scope.Departments = departments
+	}
+
+	// JSS Users
+	var jssUsers []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, int](
+		"scope.0.jss_user_ids", "ID", d, &jssUsers); err == nil {
+		scope.JSSUsers = jssUsers
+	}
+
+	// JSS User Groups
+	var jssUserGroups []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, int](
+		"scope.0.jss_user_group_ids", "ID", d, &jssUserGroups); err == nil {
+		scope.JSSUserGroups = jssUserGroups
+	}
+
+	// Handle Limitations and Exclusions which may need special handling
+	if _, ok := d.GetOk("scope.0.limitations"); ok {
+		scope.Limitations = constructLimitations(d)
+	}
+
+	if _, ok := d.GetOk("scope.0.exclusions"); ok {
+		scope.Exclusions = constructExclusions(d)
 	}
 
 	return scope
 }
 
-// constructLimitations constructs limitations using TypeSet from schema.
-func constructLimitations(data map[string]interface{}) jamfpro.MobileDeviceConfigurationProfileSubsetLimitation {
+// Refactor constructLimitations to use MapSetToStructs
+func constructLimitations(d *schema.ResourceData) jamfpro.MobileDeviceConfigurationProfileSubsetLimitation {
 	limitations := jamfpro.MobileDeviceConfigurationProfileSubsetLimitation{}
 
-	if userNamesList := constructors.GetListFromSet(data, "directory_service_or_local_usernames"); len(userNamesList) > 0 {
-		limitations.Users = constructMobileDeviceScopeEntitiesFromNames(userNamesList)
+	// User names (strings)
+	var users []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, string](
+		"scope.0.limitations.0.directory_service_or_local_usernames", "Name", d, &users); err == nil {
+		limitations.Users = users
 	}
-	if userGroupIDsList := constructors.GetListFromSet(data, "directory_service_usergroup_ids"); len(userGroupIDsList) > 0 {
-		limitations.UserGroups = constructMobileDeviceScopeEntitiesFromIds(userGroupIDsList)
+
+	// User groups
+	var userGroups []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, int](
+		"scope.0.limitations.0.directory_service_usergroup_ids", "ID", d, &userGroups); err == nil {
+		limitations.UserGroups = userGroups
 	}
-	if networkSegmentIDsList := constructors.GetListFromSet(data, "network_segment_ids"); len(networkSegmentIDsList) > 0 {
-		limitations.NetworkSegments = constructMobileDeviceNetworkSegments(networkSegmentIDsList)
+
+	// Network segments
+	var networkSegments []jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment, int](
+		"scope.0.limitations.0.network_segment_ids", "ID", d, &networkSegments); err == nil {
+		limitations.NetworkSegments = networkSegments
 	}
-	if ibeaconIDsList := constructors.GetListFromSet(data, "ibeacon_ids"); len(ibeaconIDsList) > 0 {
-		limitations.Ibeacons = constructMobileDeviceScopeEntitiesFromIds(ibeaconIDsList) // SDK uses 'Ibeacons' (lowercase b)
+
+	// iBeacons
+	var ibeacons []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, int](
+		"scope.0.limitations.0.ibeacon_ids", "ID", d, &ibeacons); err == nil {
+		limitations.Ibeacons = ibeacons
 	}
 
 	return limitations
 }
 
-// constructExclusions constructs exclusions using TypeSet from schema.
-func constructExclusions(data map[string]interface{}) jamfpro.MobileDeviceConfigurationProfileSubsetExclusion {
+func constructExclusions(d *schema.ResourceData) jamfpro.MobileDeviceConfigurationProfileSubsetExclusion {
 	exclusions := jamfpro.MobileDeviceConfigurationProfileSubsetExclusion{}
 
-	if mobileDeviceIDsList := constructors.GetListFromSet(data, "mobile_device_ids"); len(mobileDeviceIDsList) > 0 {
-		exclusions.MobileDevices = constructMobileDevices(mobileDeviceIDsList)
+	// Mobile devices
+	var mobileDevices []jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice, int](
+		"scope.0.exclusions.0.mobile_device_ids", "ID", d, &mobileDevices); err == nil {
+		exclusions.MobileDevices = mobileDevices
 	}
-	if mobileDeviceGroupIDsList := constructors.GetListFromSet(data, "mobile_device_group_ids"); len(mobileDeviceGroupIDsList) > 0 {
-		exclusions.MobileDeviceGroups = constructMobileDeviceScopeEntitiesFromIds(mobileDeviceGroupIDsList)
+
+	// Mobile device groups
+	var mobileDeviceGroups []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, int](
+		"scope.0.exclusions.0.mobile_device_group_ids", "ID", d, &mobileDeviceGroups); err == nil {
+		exclusions.MobileDeviceGroups = mobileDeviceGroups
 	}
-	if userNamesList := constructors.GetListFromSet(data, "directory_service_or_local_usernames"); len(userNamesList) > 0 {
-		exclusions.Users = constructMobileDeviceScopeEntitiesFromNames(userNamesList)
+
+	// User names (strings)
+	var users []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, string](
+		"scope.0.exclusions.0.directory_service_or_local_usernames", "Name", d, &users); err == nil {
+		exclusions.Users = users
 	}
-	if userGroupIDsList := constructors.GetListFromSet(data, "directory_service_usergroup_ids"); len(userGroupIDsList) > 0 {
-		exclusions.UserGroups = constructMobileDeviceScopeEntitiesFromIds(userGroupIDsList)
+
+	// User groups
+	var userGroups []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, int](
+		"scope.0.exclusions.0.directory_service_usergroup_ids", "ID", d, &userGroups); err == nil {
+		exclusions.UserGroups = userGroups
 	}
-	if buildingIDsList := constructors.GetListFromSet(data, "building_ids"); len(buildingIDsList) > 0 {
-		exclusions.Buildings = constructMobileDeviceScopeEntitiesFromIds(buildingIDsList)
+
+	// Buildings
+	var buildings []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, int](
+		"scope.0.exclusions.0.building_ids", "ID", d, &buildings); err == nil {
+		exclusions.Buildings = buildings
 	}
-	if departmentIDsList := constructors.GetListFromSet(data, "department_ids"); len(departmentIDsList) > 0 {
-		exclusions.Departments = constructMobileDeviceScopeEntitiesFromIds(departmentIDsList)
+
+	// Departments
+	var departments []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, int](
+		"scope.0.exclusions.0.department_ids", "ID", d, &departments); err == nil {
+		exclusions.Departments = departments
 	}
-	if networkSegmentIDsList := constructors.GetListFromSet(data, "network_segment_ids"); len(networkSegmentIDsList) > 0 {
-		exclusions.NetworkSegments = constructMobileDeviceNetworkSegments(networkSegmentIDsList)
+
+	// Network segments
+	var networkSegments []jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment, int](
+		"scope.0.exclusions.0.network_segment_ids", "ID", d, &networkSegments); err == nil {
+		exclusions.NetworkSegments = networkSegments
 	}
-	if jssUserIDsList := constructors.GetListFromSet(data, "jss_user_ids"); len(jssUserIDsList) > 0 {
-		exclusions.JSSUsers = constructMobileDeviceScopeEntitiesFromIds(jssUserIDsList)
+
+	// JSS Users
+	var jssUsers []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, int](
+		"scope.0.exclusions.0.jss_user_ids", "ID", d, &jssUsers); err == nil {
+		exclusions.JSSUsers = jssUsers
 	}
-	if jssUserGroupIDsList := constructors.GetListFromSet(data, "jss_user_group_ids"); len(jssUserGroupIDsList) > 0 {
-		exclusions.JSSUserGroups = constructMobileDeviceScopeEntitiesFromIds(jssUserGroupIDsList)
+
+	// JSS User Groups
+	var jssUserGroups []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, int](
+		"scope.0.exclusions.0.jss_user_group_ids", "ID", d, &jssUserGroups); err == nil {
+		exclusions.JSSUserGroups = jssUserGroups
 	}
-	if ibeaconIDsList := constructors.GetListFromSet(data, "ibeacon_ids"); len(ibeaconIDsList) > 0 {
-		exclusions.IBeacons = constructMobileDeviceScopeEntitiesFromIds(ibeaconIDsList) // SDK uses 'IBeacons' (uppercase B)
+
+	// IBeacons
+	var iBeacons []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, int](
+		"scope.0.exclusions.0.ibeacon_ids", "ID", d, &iBeacons); err == nil {
+		exclusions.IBeacons = iBeacons
 	}
 
 	return exclusions
-}
-
-// --- Mobile Device Specific Helper Functions (Accepting []interface{}) ---
-// These functions remain the same as they accept the output of GetListFromSet
-
-// constructMobileDevices uses robust conversion from a list.
-func constructMobileDevices(ids []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice {
-	if ids == nil {
-		return nil
-	}
-	mobileDevices := make([]jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice, 0, len(ids))
-	for i, idRaw := range ids {
-		if intID, ok := constructors.ParseResourceID(idRaw, "mobile device", i); ok {
-			mobileDevices = append(mobileDevices, jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice{ID: intID})
-		}
-	}
-	log.Printf("[DEBUG] constructMobileDevices: Input count %d, Output count %d", len(ids), len(mobileDevices))
-	return mobileDevices
-}
-
-// constructMobileDeviceNetworkSegments uses robust conversion from a list.
-func constructMobileDeviceNetworkSegments(ids []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment {
-	if ids == nil {
-		return nil
-	}
-	networkSegments := make([]jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment, 0, len(ids))
-	for i, idRaw := range ids {
-		if intID, ok := constructors.ParseResourceID(idRaw, "network segment", i); ok {
-			networkSegments = append(networkSegments, jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment{
-				MobileDeviceConfigurationProfileSubsetScopeEntity: jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity{ID: intID},
-			})
-		}
-	}
-	log.Printf("[DEBUG] constructMobileDeviceNetworkSegments: Input count %d, Output count %d", len(ids), len(networkSegments))
-	return networkSegments
-}
-
-// constructMobileDeviceScopeEntitiesFromIds uses robust conversion from a list for generic ID-based entities.
-func constructMobileDeviceScopeEntitiesFromIds(ids []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity {
-	if ids == nil {
-		return nil
-	}
-	scopeEntities := make([]jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, 0, len(ids))
-	for i, idRaw := range ids {
-		if intID, ok := constructors.ParseResourceID(idRaw, "scope entity (ID based)", i); ok {
-			scopeEntities = append(scopeEntities, jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity{ID: intID})
-		}
-	}
-	log.Printf("[DEBUG] constructMobileDeviceScopeEntitiesFromIds: Input count %d, Output count %d", len(ids), len(scopeEntities))
-	return scopeEntities
-}
-
-// constructMobileDeviceScopeEntitiesFromNames uses robust conversion from a list for generic name-based entities.
-func constructMobileDeviceScopeEntitiesFromNames(names []interface{}) []jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity {
-	if names == nil {
-		return nil
-	}
-	scopeEntities := make([]jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity, 0, len(names))
-	for i, nameRaw := range names {
-		if strName, ok := nameRaw.(string); ok && strName != "" {
-			scopeEntities = append(scopeEntities, jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity{Name: strName})
-		} else if !ok {
-			log.Printf("[WARN] constructMobileDeviceScopeEntitiesFromNames: Unexpected type %T for scope entity name: %v at index %d. Skipping.", nameRaw, nameRaw, i)
-		} // Skip empty strings silently
-	}
-	log.Printf("[DEBUG] constructMobileDeviceScopeEntitiesFromNames: Input count %d, Output count %d", len(names), len(scopeEntities))
-	return scopeEntities
 }

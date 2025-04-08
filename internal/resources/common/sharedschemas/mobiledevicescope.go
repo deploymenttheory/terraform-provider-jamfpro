@@ -52,7 +52,7 @@ func GetSharedMobileDeviceSchemaScope() *schema.Resource {
 				Elem:        &schema.Schema{Type: schema.TypeInt},
 			},
 			"limitations": {
-				Type:        schema.TypeSet,
+				Type:        schema.TypeList,
 				Optional:    true,
 				MaxItems:    1,
 				Description: "The scope limitations from the mobile device configuration profile.",
@@ -86,7 +86,7 @@ func GetSharedMobileDeviceSchemaScope() *schema.Resource {
 				},
 			},
 			"exclusions": {
-				Type:        schema.TypeSet,
+				Type:        schema.TypeList,
 				Optional:    true,
 				MaxItems:    1,
 				Description: "The scope exclusions from the mobile device configuration profile.",
