@@ -132,37 +132,37 @@ func constructScope(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) er
 	resource.Scope.AllJSSUsers = d.Get("scope.0.all_jss_users").(bool)
 
 	// Computers
-	err = PopulateStructSliceFromSetField[jamfpro.PolicySubsetComputer, int]("scope.0.computer_ids", "ID", d, resource.Scope.Computers)
+	err = MapSetToStructs[jamfpro.PolicySubsetComputer, int]("scope.0.computer_ids", "ID", d, resource.Scope.Computers)
 	if err != nil {
 		return err
 	}
 
 	// Computer Groups
-	err = PopulateStructSliceFromSetField[jamfpro.PolicySubsetComputerGroup, int]("scope.0.computer_group_ids", "ID", d, resource.Scope.ComputerGroups)
+	err = MapSetToStructs[jamfpro.PolicySubsetComputerGroup, int]("scope.0.computer_group_ids", "ID", d, resource.Scope.ComputerGroups)
 	if err != nil {
 		return err
 	}
 
 	// JSS Users
-	err = PopulateStructSliceFromSetField[jamfpro.PolicySubsetJSSUser, int]("scope.0.jss_user_ids", "ID", d, resource.Scope.JSSUsers)
+	err = MapSetToStructs[jamfpro.PolicySubsetJSSUser, int]("scope.0.jss_user_ids", "ID", d, resource.Scope.JSSUsers)
 	if err != nil {
 		return err
 	}
 
 	// JSS User Groups
-	err = PopulateStructSliceFromSetField[jamfpro.PolicySubsetJSSUserGroup, int]("scope.0.jss_user_group_ids", "ID", d, resource.Scope.JSSUserGroups)
+	err = MapSetToStructs[jamfpro.PolicySubsetJSSUserGroup, int]("scope.0.jss_user_group_ids", "ID", d, resource.Scope.JSSUserGroups)
 	if err != nil {
 		return err
 	}
 
 	// Buildings
-	err = PopulateStructSliceFromSetField[jamfpro.PolicySubsetBuilding, int]("scope.0.building_ids", "ID", d, resource.Scope.Buildings)
+	err = MapSetToStructs[jamfpro.PolicySubsetBuilding, int]("scope.0.building_ids", "ID", d, resource.Scope.Buildings)
 	if err != nil {
 		return err
 	}
 
 	// Departments
-	err = PopulateStructSliceFromSetField[jamfpro.PolicySubsetDepartment, int]("scope.0.department_ids", "ID", d, resource.Scope.Departments)
+	err = MapSetToStructs[jamfpro.PolicySubsetDepartment, int]("scope.0.department_ids", "ID", d, resource.Scope.Departments)
 	if err != nil {
 		return err
 	}
@@ -176,19 +176,19 @@ func constructScope(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) er
 	}
 
 	// Network Segments
-	err = PopulateStructSliceFromSetField[jamfpro.PolicySubsetNetworkSegment, int]("scope.0.limitations.0.network_segment_ids", "ID", d, resource.Scope.Limitations.NetworkSegments)
+	err = MapSetToStructs[jamfpro.PolicySubsetNetworkSegment, int]("scope.0.limitations.0.network_segment_ids", "ID", d, resource.Scope.Limitations.NetworkSegments)
 	if err != nil {
 		return err
 	}
 
 	// IBeacons
-	err = PopulateStructSliceFromSetField[jamfpro.PolicySubsetIBeacon, int]("scope.0.limitations.0.ibeacon_ids", "ID", d, resource.Scope.Limitations.IBeacons)
+	err = MapSetToStructs[jamfpro.PolicySubsetIBeacon, int]("scope.0.limitations.0.ibeacon_ids", "ID", d, resource.Scope.Limitations.IBeacons)
 	if err != nil {
 		return err
 	}
 
 	// User Groups
-	err = PopulateStructSliceFromSetField[jamfpro.PolicySubsetUserGroup, int]("scope.0.limitations.0.directory_service_usergroup_ids", "ID", d, resource.Scope.Limitations.UserGroups)
+	err = MapSetToStructs[jamfpro.PolicySubsetUserGroup, int]("scope.0.limitations.0.directory_service_usergroup_ids", "ID", d, resource.Scope.Limitations.UserGroups)
 	if err != nil {
 		return err
 	}
@@ -212,49 +212,49 @@ func constructScope(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) er
 	}
 
 	// Computers
-	err = PopulateStructSliceFromSetField[jamfpro.PolicySubsetComputer, int]("scope.0.exclusions.0.computer_ids", "ID", d, resource.Scope.Exclusions.Computers)
+	err = MapSetToStructs[jamfpro.PolicySubsetComputer, int]("scope.0.exclusions.0.computer_ids", "ID", d, resource.Scope.Exclusions.Computers)
 	if err != nil {
 		return err
 	}
 
 	// Computer Groups
-	err = PopulateStructSliceFromSetField[jamfpro.PolicySubsetComputerGroup, int]("scope.0.exclusions.0.computer_group_ids", "ID", d, resource.Scope.Exclusions.ComputerGroups)
+	err = MapSetToStructs[jamfpro.PolicySubsetComputerGroup, int]("scope.0.exclusions.0.computer_group_ids", "ID", d, resource.Scope.Exclusions.ComputerGroups)
 	if err != nil {
 		return err
 	}
 
 	// Buildings
-	err = PopulateStructSliceFromSetField[jamfpro.PolicySubsetBuilding, int]("scope.0.exclusions.0.building_ids", "ID", d, resource.Scope.Exclusions.Buildings)
+	err = MapSetToStructs[jamfpro.PolicySubsetBuilding, int]("scope.0.exclusions.0.building_ids", "ID", d, resource.Scope.Exclusions.Buildings)
 	if err != nil {
 		return err
 	}
 
 	// Departments
-	err = PopulateStructSliceFromSetField[jamfpro.PolicySubsetDepartment, int]("scope.0.exclusions.0.department_ids", "ID", d, resource.Scope.Exclusions.Departments)
+	err = MapSetToStructs[jamfpro.PolicySubsetDepartment, int]("scope.0.exclusions.0.department_ids", "ID", d, resource.Scope.Exclusions.Departments)
 	if err != nil {
 		return err
 	}
 
 	// Network Segments
-	err = PopulateStructSliceFromSetField[jamfpro.PolicySubsetNetworkSegment, int]("scope.0.exclusions.0.network_segment_ids", "ID", d, resource.Scope.Exclusions.NetworkSegments)
+	err = MapSetToStructs[jamfpro.PolicySubsetNetworkSegment, int]("scope.0.exclusions.0.network_segment_ids", "ID", d, resource.Scope.Exclusions.NetworkSegments)
 	if err != nil {
 		return err
 	}
 
 	// JSS Users
-	err = PopulateStructSliceFromSetField[jamfpro.PolicySubsetJSSUser, int]("scope.0.exclusions.0.jss_user_ids", "ID", d, resource.Scope.Exclusions.JSSUsers)
+	err = MapSetToStructs[jamfpro.PolicySubsetJSSUser, int]("scope.0.exclusions.0.jss_user_ids", "ID", d, resource.Scope.Exclusions.JSSUsers)
 	if err != nil {
 		return err
 	}
 
 	// JSS User Groups
-	err = PopulateStructSliceFromSetField[jamfpro.PolicySubsetJSSUserGroup, int]("scope.0.exclusions.0.jss_user_group_ids", "ID", d, resource.Scope.Exclusions.JSSUserGroups)
+	err = MapSetToStructs[jamfpro.PolicySubsetJSSUserGroup, int]("scope.0.exclusions.0.jss_user_group_ids", "ID", d, resource.Scope.Exclusions.JSSUserGroups)
 	if err != nil {
 		return err
 	}
 
 	// IBeacons
-	err = PopulateStructSliceFromSetField[jamfpro.PolicySubsetIBeacon, int]("scope.0.exclusions.0.ibeacon_ids", "ID", d, resource.Scope.Exclusions.IBeacons)
+	err = MapSetToStructs[jamfpro.PolicySubsetIBeacon, int]("scope.0.exclusions.0.ibeacon_ids", "ID", d, resource.Scope.Exclusions.IBeacons)
 	if err != nil {
 		return err
 	}

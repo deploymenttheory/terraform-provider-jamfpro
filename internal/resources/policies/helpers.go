@@ -1,85 +1,47 @@
 package policies
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// PopulateStructSliceFromSetField transforms a Terraform schema.Set containing simple
-// primitive values (like IDs or names) into a standard Go slice of structs.
-// Its primary use case is converting configuration blocks like:
+// MapSetToStructs transforms a schema.Set of primitive values into a slice of structs
+// by mapping each value to a named field in a new struct instance.
 //
-//	 attribute_ids = [101, 102, 103]
+// This function uses Go generics to provide type safety while remaining flexible:
+// - T any: Represents the target struct type we're creating instances of
+// - V comparable: Represents the primitive value type from the schema.Set
 //
-//	into a Go slice suitable for API interaction, such as:
-//
-//	 []SomeStruct{ {ID: 101}, {ID: 102}, {ID: 103} }
-//
-// For each value of type `ListItemPrimitiveType` found in the `schema.Set` at the
-// specified `path`, it creates a new instance of `NestedObjectType` and assigns
-// the primitive value to the struct's field specified by `fieldName`.
-//
-// The function populates the slice pointed to by `outputSlice`. It guarantees
-// idempotency by *always* initializing or clearing the target slice at the start.
-// If the source path is not found, the attribute is nil, the set is empty, or an
-// error occurs, `outputSlice` will point to a valid, empty slice.
-func PopulateStructSliceFromSetField[NestedObjectType any, ListItemPrimitiveType comparable](path string, fieldName string, d *schema.ResourceData, outputSlice *[]NestedObjectType) error {
-	*outputSlice = []NestedObjectType{}
+// By using generics, the function can handle different combinations of struct types
+// and primitive values without duplicating code or sacrificing type safety.
+func MapSetToStructs[T any, V comparable](path string, fieldName string, d *schema.ResourceData, outputSlice *[]T) error {
+	*outputSlice = []T{}
 
-	getAttr, ok := d.GetOk(path)
-	if !ok || getAttr == nil {
+	setVal, ok := d.GetOk(path)
+	if !ok {
 		return nil
 	}
 
-	attrSet, isSet := getAttr.(*schema.Set)
-	if !isSet {
-		return fmt.Errorf("internal error: attribute at path %s was expected to be *schema.Set, but got %T", path, getAttr)
-	}
-
-	itemsList := attrSet.List()
-	if len(itemsList) == 0 {
+	set, ok := setVal.(*schema.Set)
+	if !ok || set.Len() == 0 {
 		return nil
 	}
 
-	result := make([]NestedObjectType, 0, len(itemsList))
+	// Pre-allocate slice with capacity matching input size for better performance
+	result := make([]T, 0, set.Len())
 
-	for i, v := range itemsList {
+	// Process each value in the set to build our struct objects
+	for _, v := range set.List() {
 		if v == nil {
-			continue
+			continue // Skip nil values to prevent reflection panics
 		}
 
-		value, ok := v.(ListItemPrimitiveType)
-		if !ok {
-			expectedTypeName := reflect.TypeOf((*ListItemPrimitiveType)(nil)).Elem().Name()
-			actualTypeName := reflect.TypeOf(v).Name()
-			if actualTypeName == "" {
-				actualTypeName = fmt.Sprintf("%T", v)
-			}
-			return fmt.Errorf("type assertion error at index %d (path %s): expected %s, got %s",
-				i, path, expectedTypeName, actualTypeName)
-		}
-
-		var obj NestedObjectType
+		var obj T
 		objVal := reflect.ValueOf(&obj).Elem()
 		field := objVal.FieldByName(fieldName)
 
-		if !field.IsValid() {
-			return fmt.Errorf("field '%s' not found in type %T", fieldName, obj)
-		}
-
-		if !field.CanSet() {
-			return fmt.Errorf("field '%s' cannot be set in type %T (unexported?)", fieldName, obj)
-		}
-
-		valueRefl := reflect.ValueOf(value)
-		if !valueRefl.Type().AssignableTo(field.Type()) {
-			return fmt.Errorf("cannot assign type %T (value: '%v') to field '%s' (type %s) in %T",
-				value, value, fieldName, field.Type(), obj)
-		}
-
-		field.Set(valueRefl)
+		field.Set(reflect.ValueOf(v))
 		result = append(result, obj)
 	}
 
