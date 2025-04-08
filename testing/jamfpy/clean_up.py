@@ -14,7 +14,9 @@ parser.add_option("-f", "--force", action="store_true", dest="force",
 parser.add_option("-r", "--runid", dest="runid",
                     help="ID associated with the tests to clean up")
 
+
 (options, args) = parser.parse_args()
+
 
 if options.force and options.runid:
     print("-f or --force overrides runid")
@@ -31,9 +33,9 @@ else:
 
 
 TENTANT_FQDN = "https://lbgsandbox.jamfcloud.com"
-
 CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SEC = os.environ.get("CLIENT_SEC")
+
 
 instance = jamfpy.Tenant(
     fqdn=TENTANT_FQDN,
@@ -42,6 +44,7 @@ instance = jamfpy.Tenant(
     client_secret=CLIENT_SEC,
     token_exp_threshold_mins=1
 )
+
 
 def parse_error_message(html_content):
     soup = BeautifulSoup(html_content, 'html.parser')
@@ -68,6 +71,7 @@ def testing_ids_from_resources(resources):
             resource_ids.append(resource_id)
     return resource_ids
 
+
 def purge_classic_test_resources(resource_instance, resource_type_string):
     # Escape characters for underlining
     logger.info(f"\033[4mPurging {resource_type_string}...\033[0m")
@@ -89,7 +93,6 @@ def purge_classic_test_resources(resource_instance, resource_type_string):
 
 # ============================================================================ #
 # Add resources to be deleted below
-
 purge_classic_test_resources(instance.classic.scripts, "scripts")
 purge_classic_test_resources(instance.classic.buildings, "buildings")
 purge_classic_test_resources(instance.classic.computer_extension_attributes, "computer_extension_attributes")

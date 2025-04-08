@@ -24,14 +24,12 @@ else:
 
 
 TENTANT_FQDN = "https://lbgsandbox.jamfcloud.com"
-
 CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SEC = os.environ.get("CLIENT_SEC")
-
-
 RANDOM_NUMBER = random.randint(0,9999)
 COMPUTER_COUNT = 10
 SITE_NAME = f"tf-testing-{TESTING_ID}-site-{RANDOM_NUMBER}"
+
 
 instance = jamfpy.Tenant(
     fqdn=TENTANT_FQDN,
@@ -40,6 +38,7 @@ instance = jamfpy.Tenant(
     client_secret=CLIENT_SEC,
     token_exp_threshold_mins=1
 )
+
 
 def create_computer_config(computer_name,site_id, site_name):
     return f"""
@@ -113,10 +112,12 @@ def create_site_config(site_name):
 </site>
     """
 
+
 def parse_id_from_response(resp_text) -> str: 
     start = "<id>"
     end = "</id>"
     return parse_tag_contents(start, end, resp_text)
+
 
 def parse_tag_contents(start_tag, end_tag, resp_text):
     return resp_text[resp_text.index(start_tag) + len(start_tag): resp_text.index(end_tag)]
@@ -136,6 +137,7 @@ def create_computers(site_id, amount):
         computer_id = send_create(instance.classic.computers, computer_config, "computers")
         computer_ids.append(computer_id)
     return computer_ids
+
 
 def send_create(instance_object, payload, type_string):
     resp = instance_object.create(payload)
@@ -160,6 +162,7 @@ def write_ids_to_data_source(site_id, computer_ids):
     file.parent.mkdir(parents=True, exist_ok=True)
     data_json = json.dumps(data_object)
     file.write_text(data_json)
+
 
 site_id = create_site(SITE_NAME)
 computer_ids = create_computers(site_id, COMPUTER_COUNT)
