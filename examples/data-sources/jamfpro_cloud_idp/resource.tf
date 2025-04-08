@@ -22,9 +22,9 @@ data "jamfpro_cloud_idp" "dynamic" {
 # Example 4: Output examples
 output "idp_details" {
   value = {
-    id           = data.jamfpro_cloud_idp.by_name.id
-    display_name = data.jamfpro_cloud_idp.by_name.display_name
-    enabled      = data.jamfpro_cloud_idp.by_name.enabled
+    id            = data.jamfpro_cloud_idp.by_name.id
+    display_name  = data.jamfpro_cloud_idp.by_name.display_name
+    enabled       = data.jamfpro_cloud_idp.by_name.enabled
     provider_name = data.jamfpro_cloud_idp.by_name.provider_name
   }
 }
@@ -43,10 +43,10 @@ data "jamfpro_cloud_idp" "active_provider" {
 
 # Example 6: Using in another resource (hypothetical)
 resource "jamfpro_sso_configuration" "example" {
-  name        = "SSO Configuration"
-  enabled     = true
-  idp_id      = data.jamfpro_cloud_idp.by_name.id
-  provider    = data.jamfpro_cloud_idp.by_name.provider_name
+  name     = "SSO Configuration"
+  enabled  = true
+  idp_id   = data.jamfpro_cloud_idp.by_name.id
+  provider = data.jamfpro_cloud_idp.by_name.provider_name
 }
 
 # Example 7: Testing multiple providers
