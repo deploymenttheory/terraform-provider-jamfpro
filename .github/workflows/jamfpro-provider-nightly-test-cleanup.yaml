@@ -1,0 +1,37 @@
+name: "Terraform Test Object Nightly Cleanup"
+run-name: "Terraform Test Object Nightly Cleanup"
+# on:
+#     schedule:
+#         - cron: "59 23 * * *"
+#     workflow_dispatch:
+
+on:
+    pull_request:
+        branches:
+        - main
+    workflow_dispatch:
+
+jobs:
+    Run-Nightly_Cleanup:
+        environment: terraform-integration-testing
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout Terraform Repository
+            uses: actions/checkout@v4
+            with:
+                repository: deploymenttheory/terraform-provider-jamfpro
+                # ref: main 
+                ref: add-resource-types-to-test-harness
+                path: terraform-provider-jamfpro
+
+          - name: Set up Python
+            uses: actions/setup-python@v5.5.0
+            
+          - name: Set up Python Environment
+            run: |
+                pip install -r ./terraform-provider-jamfpro/testing/requirements.txt
+            
+          - name: Run full cleanup
+            run: |
+                cd ./terraform-provider-jamfpro/testing/jamfpy
+                python clean_up.py -f
