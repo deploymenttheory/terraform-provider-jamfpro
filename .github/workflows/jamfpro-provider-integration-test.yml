@@ -84,6 +84,8 @@ jobs:
 
       - name: Post-flight cleanup
         run: |
+          # Waits 5 seconds to allow for deletes to properly apply after test.
+          sleep 5
           cd ./terraform-provider-jamfpro/testing/setup
           ./cleanup.sh -r ${{ steps.generate-uuid.outputs.uuid }}
 
