@@ -67,13 +67,13 @@ jobs:
           cat <<EOF > .env
           CLIENT_ID="${{ secrets.TESTING_CLIENT_ID }}"
           CLIENT_SEC="${{ secrets.TESTING_CLIENT_SECRET }}"
-          TESTING_ID="${{ steps.generate-uuid.outputs.uuid }}"
           EOF
 
       - name: Scaffolding
         run: |
+          echo "PLEASE NOTE at 23:59 a wipe job is performed on all testing objects. Tests run at this time will most likely fail."
           cd ./terraform-provider-jamfpro/testing/setup
-          ./scaffolding.sh
+          ./scaffolding.sh -r ${{ steps.generate-uuid.outputs.uuid }}
 
       - name: Run Tests
         run: |  
@@ -85,7 +85,7 @@ jobs:
       - name: Post-flight cleanup
         run: |
           cd ./terraform-provider-jamfpro/testing/setup
-          ./cleanup.sh
+          ./cleanup.sh -r ${{ steps.generate-uuid.outputs.uuid }}
 
 
       - name: Diff cascade - Terraform Plan (Pre-Apply)

@@ -3,26 +3,30 @@ import jamfpy
 import random
 import uuid
 import json
+from optparse import OptionParser
 from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
-
-logger = jamfpy.get_logger(name="cleanup", level=20)
-
-
 logger = jamfpy.get_logger(name="site_computer_setup", level=20)
+
+parser = OptionParser()
+parser.add_option("-r", "--runid", dest="runid",
+                    help="Create scaffolding objects with given ID")
+
+(options, args) = parser.parse_args()
+
+if options.runid:
+    TESTING_ID = options.runid
+    logger.info(f"Creating scaffolding objects with tf-testing-{TESTING_ID}*")
+else:
+    TESTING_ID = "local"
+    logger.warning(f"Creating scaffolding objects with tf-testing-{TESTING_ID}* If run in a pipeline, this script is being called incorrectly.")
+
+
 TENTANT_FQDN = "https://lbgsandbox.jamfcloud.com"
 
 CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SEC = os.environ.get("CLIENT_SEC")
-TESTING_ID = os.environ.get("TESTING_ID")
-
-if TESTING_ID =="":
-    logger.error("Testing ID not set correctly")
-elif TESTING_ID == "local":
-    logger.warning("Testing ID set to local. If run in a pipeline, this can cause unstable behaviour for other simultaneous runs.")
-else:
-    logger.info(f"Scaffolding with testing id {TESTING_ID}")
 
 
 RANDOM_NUMBER = random.randint(0,9999)
