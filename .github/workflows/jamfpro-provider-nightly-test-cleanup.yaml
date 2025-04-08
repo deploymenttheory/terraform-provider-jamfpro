@@ -10,6 +10,9 @@ jobs:
     Run-Nightly-Cleanup:
         environment: terraform-integration-testing
         runs-on: ubuntu-latest
+        concurrency:
+          group: sandbox_interfacing_testing_environment
+          cancel-in-progress: false
         steps:
           - name: Checkout Terraform Repository
             uses: actions/checkout@v4
