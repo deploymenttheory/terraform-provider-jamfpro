@@ -49,7 +49,7 @@ jobs:
     # Creates provider documentation for Terraform    
     - name: Generate tf docs
       run: |
-        go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@v0.x.y  # Replace with your version
+        go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
         cd $GITHUB_WORKSPACE
         tfplugindocs generate --examples-dir ./examples
 
