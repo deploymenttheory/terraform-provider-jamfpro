@@ -155,10 +155,10 @@ Optional:
 - `all_mobile_devices` (Boolean) If true, the profile is applied to all mobile devices.
 - `building_ids` (Set of Number) A list of building IDs associated with the profile.
 - `department_ids` (Set of Number) A list of department IDs associated with the profile.
-- `exclusions` (Block Set, Max: 1) The scope exclusions from the mobile device configuration profile. (see [below for nested schema](#nestedblock--scope--exclusions))
+- `exclusions` (Block List, Max: 1) The scope exclusions from the mobile device configuration profile. (see [below for nested schema](#nestedblock--scope--exclusions))
 - `jss_user_group_ids` (Set of Number) A list of JSS user group IDs associated with the profile.
 - `jss_user_ids` (Set of Number) A list of JSS user IDs associated with the profile.
-- `limitations` (Block Set, Max: 1) The scope limitations from the mobile device configuration profile. (see [below for nested schema](#nestedblock--scope--limitations))
+- `limitations` (Block List, Max: 1) The scope limitations from the mobile device configuration profile. (see [below for nested schema](#nestedblock--scope--limitations))
 - `mobile_device_group_ids` (Set of Number) A list of mobile device group IDs associated with the profile.
 - `mobile_device_ids` (Set of Number) A list of mobile device IDs associated with the profile.
 
