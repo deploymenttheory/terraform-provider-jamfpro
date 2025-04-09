@@ -11,10 +11,10 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceLocalAdminPasswor
 	var diags diag.Diagnostics
 
 	localAdminPasswordSettingsConfig := map[string]interface{}{
-		"auto_deploy_enabled":         resp.AutoDeployEnabled,
-		"password_rotation_time":      resp.PasswordRotationTime,
-		"auto_rotate_enabled":         resp.AutoRotateEnabled,
-		"auto_rotate_expiration_time": resp.AutoRotateExpirationTime,
+		"auto_deploy_enabled":                 resp.AutoDeployEnabled,
+		"password_rotation_time_seconds":      resp.PasswordRotationTime,
+		"auto_rotate_enabled":                 resp.AutoRotateEnabled,
+		"auto_rotate_expiration_time_seconds": resp.AutoRotateExpirationTime,
 	}
 
 	for key, val := range localAdminPasswordSettingsConfig {

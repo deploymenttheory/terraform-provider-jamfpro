@@ -18,9 +18,9 @@ import (
 func constructLocalAdminPasswordSettings(d *schema.ResourceData) (*jamfpro.ResourceLocalAdminPasswordSettings, error) {
 	resource := &jamfpro.ResourceLocalAdminPasswordSettings{
 		AutoDeployEnabled:        d.Get("auto_deploy_enabled").(bool),
-		PasswordRotationTime:     d.Get("password_rotation_time").(int),
+		PasswordRotationTime:     d.Get("password_rotation_time_seconds").(int),
 		AutoRotateEnabled:        d.Get("auto_rotate_enabled").(bool),
-		AutoRotateExpirationTime: d.Get("auto_rotate_expiration_time").(int),
+		AutoRotateExpirationTime: d.Get("auto_rotate_expiration_time_seconds").(int),
 	}
 
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
