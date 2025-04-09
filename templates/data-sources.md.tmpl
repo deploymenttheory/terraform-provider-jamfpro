@@ -8,6 +8,6 @@ description: |-
 {{ .Description }}
 {{ if eq .HasExample true }}
 ## Example Usage
-{{ tffile .ExampleFile }}
+{{ tffile (printf "examples/%s/%s.tf" .Type .Name) }}
 {{ end }}
 {{ .SchemaMarkdown | trimspace }}
