@@ -75,6 +75,12 @@ func DataSourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 					"on profile update requests once the configuration profile has been deployed to at least" +
 					" one device.",
 			},
+			"scope": {
+				Type:        schema.TypeList,
+				Description: "The scope of the configuration profile.",
+				Computed:    true,
+				Elem:        sharedschemas.GetSharedmacOSComputerSchemaScope(),
+			},
 			"self_service": {
 				Type:        schema.TypeList,
 				Description: "Self Service Configuration",
