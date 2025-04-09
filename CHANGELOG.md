@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.18.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.17.0...v0.18.0) (2025-04-09)
+
+
+### Features
+
+* added "jamfpro_user_initiated_enrollment_settings" & enrollment jamfpro_account_driven_user_enrollment_settings with examples ([836f3cb](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/836f3cbc704eb6932ae45228db277162a5050490))
+* added cloud idp as a data source ([539a9fa](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/539a9fa552a88250fe64d4770ab1f04b82e1894f))
+* added cloud idp as a data source ([04c89e7](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/04c89e7c82b74fda806efada358f614b58322560))
+* implemented uie ([7400f92](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/7400f928550c6673813324180cb245fbb787416d))
+* migrated mobile devices from list to set's for scoping ([c073a71](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/c073a716eea298c9e3aa292d414a96f05e984391))
+* migrated policies, macos plist, mobile device plist scoping to use sets from lists. this means scoping order within hcl is no longer forced to be ascending ([9f12c7e](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/9f12c7ee1b498170b5a89f7c39655e0855dd75ac))
+* moved plists from list to sets ([674275d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/674275dd549b393fe84582761acf578bf2a67d36))
+* updated policies to use sets rather than lists for scoping ([4da06b2](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/4da06b24d2938e999fae5f200c49318a9dc4f457))
+
+
+### Bug Fixes
+
+* added docs ([9f8910f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/9f8910f32e29ea234e35d10715bb3b8aaebc6cca))
+* attempt using generics for func MapSetToStructs ([0d27b4a](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/0d27b4ab1b910082e157a7478033f37eb006ad39))
+* bug fixing pipeline ([9588ce8](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/9588ce8e20b7b7b0e9c813a352339eb6b611a78f))
+* data source and resource tmpl's ([7ccf871](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/7ccf871fb2770b28e6abdc3a5500d30b2c5c20a0))
+* dock items tf example ([0995e97](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/0995e97167c46107dd8dd0f0797de3423e54c9a8))
+* feedback refinements ([305306a](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/305306a37134a3cbec70d899e85e4fb8da368972))
+* fixes for docs tmpl's ([e8a0d9e](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/e8a0d9efec39f354862e8a4e1e2d9d3746f5cf20))
+* for provider tmpl path ([8240b92](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/8240b9216bf2d1536e005d31808b63fece698583))
+* plugin doc path ([004700a](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/004700a88bb8943f95cd4597392ab3a44568cf3d))
+* refactored all handling for scope construction to align with policies pattern. centralized helper ([ac49e68](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/ac49e68dfbcc274509528b44e775d6dc9ee2daa9))
+* refined comments ([3a0c7fc](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/3a0c7fc587dba85b98a3a977757a3f128c0ad3ed))
+* to macos plist data source example ([0853412](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/0853412c54d442113e1daec0aed1d9665ad13ca6))
+* to macos plist data source example ([66333cc](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/66333cc0649449626f93983f123417e24d4155fb))
+* updated pr template and doc gen pipeline ([ee6869f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/ee6869f77bc7f67987b4f0495327d61ee560b7cd))
+* updated pr template and doc gen pipeline ([00defcc](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/00defcc0174e3a95704ee25c7b7d752730d77f56))
+
 ## [0.17.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.16.1...v0.17.0) (2025-04-04)
 
 
