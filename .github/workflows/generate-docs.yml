@@ -40,13 +40,18 @@ jobs:
     - name: Format Terraform files
       run: |
         find . -type f -name "*.tf" -exec terraform fmt {} \;
+  
+    - name: Debug directory structure
+      run: |
+        echo "Current directory: $(pwd)"
+        find . -type f -name "provider.tf" | sort
     
-    # Creates provider documentation for Terraform
+    # Creates provider documentation for Terraform    
     - name: Generate tf docs
       run: |
         go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
         cd $GITHUB_WORKSPACE
-        tfplugindocs generate --examples-dir $GITHUB_WORKSPACE/examples
+        tfplugindocs generate --examples-dir ./examples
 
     - name: Check for changes in generated Go docs and formatted Terraform files
       id: go-gen-check
