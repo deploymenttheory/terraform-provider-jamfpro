@@ -96,13 +96,13 @@ Read-Only:
 
 - `all_computers` (Boolean)
 - `all_jss_users` (Boolean)
-- `building_ids` (List of Number)
-- `computer_group_ids` (List of Number)
-- `computer_ids` (List of Number)
-- `department_ids` (List of Number)
+- `building_ids` (Set of Number)
+- `computer_group_ids` (Set of Number)
+- `computer_ids` (Set of Number)
+- `department_ids` (Set of Number)
 - `exclusions` (List of Object) (see [below for nested schema](#nestedobjatt--scope--exclusions))
-- `jss_user_group_ids` (List of Number)
-- `jss_user_ids` (List of Number)
+- `jss_user_group_ids` (Set of Number)
+- `jss_user_ids` (Set of Number)
 - `limitations` (List of Object) (see [below for nested schema](#nestedobjatt--scope--limitations))
 
 <a id="nestedobjatt--scope--exclusions"></a>
@@ -110,16 +110,16 @@ Read-Only:
 
 Read-Only:
 
-- `building_ids` (List of Number)
-- `computer_group_ids` (List of Number)
-- `computer_ids` (List of Number)
-- `department_ids` (List of Number)
-- `directory_service_or_local_usernames` (List of String)
-- `directory_service_usergroup_ids` (List of Number)
-- `ibeacon_ids` (List of Number)
-- `jss_user_group_ids` (List of Number)
-- `jss_user_ids` (List of Number)
-- `network_segment_ids` (List of Number)
+- `building_ids` (Set of Number)
+- `computer_group_ids` (Set of Number)
+- `computer_ids` (Set of Number)
+- `department_ids` (Set of Number)
+- `directory_service_or_local_usernames` (Set of String)
+- `directory_service_usergroup_ids` (Set of Number)
+- `ibeacon_ids` (Set of Number)
+- `jss_user_group_ids` (Set of Number)
+- `jss_user_ids` (Set of Number)
+- `network_segment_ids` (Set of Number)
 
 
 <a id="nestedobjatt--scope--limitations"></a>
@@ -127,10 +127,10 @@ Read-Only:
 
 Read-Only:
 
-- `directory_service_or_local_usernames` (List of String)
-- `directory_service_usergroup_ids` (List of Number)
-- `ibeacon_ids` (List of Number)
-- `network_segment_ids` (List of Number)
+- `directory_service_or_local_usernames` (Set of String)
+- `directory_service_usergroup_ids` (Set of Number)
+- `ibeacon_ids` (Set of Number)
+- `network_segment_ids` (Set of Number)
 
 
 
