@@ -46,12 +46,12 @@ jobs:
         echo "Current directory: $(pwd)"
         find . -type f -name "provider.tf" | sort
     
-    # Creates provider documentation for Terraform
+    # Creates provider documentation for Terraform    
     - name: Generate tf docs
       run: |
-        go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
+        go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@v0.x.y  # Replace with your version
         cd $GITHUB_WORKSPACE
-        tfplugindocs generate --examples-dir $GITHUB_WORKSPACE/examples
+        tfplugindocs generate --examples-dir ./examples
 
     - name: Check for changes in generated Go docs and formatted Terraform files
       id: go-gen-check
