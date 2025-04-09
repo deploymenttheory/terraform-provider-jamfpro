@@ -1,7 +1,9 @@
 // common/constructobject.go
 package sharedschemas
 
-import "github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+import (
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+)
 
 const (
 	// Values required to unset, not just empty values.

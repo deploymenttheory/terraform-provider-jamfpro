@@ -9,6 +9,7 @@ import (
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/configurationprofiles/plist"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -38,9 +39,8 @@ func constructJamfProMacOSConfigurationProfilesPlistGenerator(d *schema.Resource
 	resource.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 	resource.General.Category = sharedschemas.ConstructSharedResourceCategory(d.Get("category_id").(int))
 
-	if v, ok := d.GetOk("scope"); ok {
-		scopeData := v.([]interface{})[0].(map[string]interface{})
-		resource.Scope = constructMacOSConfigurationProfileSubsetScope(scopeData)
+	if _, ok := d.GetOk("scope"); ok {
+		resource.Scope = constructMacOSConfigurationProfileSubsetScope(d)
 	}
 
 	if v, ok := d.GetOk("self_service"); ok {
@@ -62,187 +62,276 @@ func constructJamfProMacOSConfigurationProfilesPlistGenerator(d *schema.Resource
 	return resource, nil
 }
 
-// constructMacOSConfigurationProfileSubsetScope constructs a MacOSConfigurationProfileSubsetScope object from the provided schema data.
-func constructMacOSConfigurationProfileSubsetScope(data map[string]interface{}) jamfpro.MacOSConfigurationProfileSubsetScope {
-	scope := jamfpro.MacOSConfigurationProfileSubsetScope{
-		AllComputers: data["all_computers"].(bool),
-		AllJSSUsers:  data["all_jss_users"].(bool),
+// --- Scope Construction Functions (Adapted for TypeSet) ---
+
+// constructMacOSConfigurationProfileSubsetScope reads the scope map and calls helpers
+func constructMacOSConfigurationProfileSubsetScope(d *schema.ResourceData) jamfpro.MacOSConfigurationProfileSubsetScope {
+	scope := jamfpro.MacOSConfigurationProfileSubsetScope{}
+
+	// Get the scope data from the resource data
+	scopeData := d.Get("scope").([]interface{})[0].(map[string]interface{})
+
+	// Set basic boolean fields
+	scope.AllComputers = scopeData["all_computers"].(bool)
+	scope.AllJSSUsers = scopeData["all_jss_users"].(bool)
+
+	// Use MapSetToStructs for computer IDs
+	var computers []jamfpro.MacOSConfigurationProfileSubsetComputer
+	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetComputer, int]("scope.0.computer_ids", "ID", d, &computers); err != nil {
+		log.Printf("[WARN] Error mapping computer IDs: %v", err)
+	}
+	scope.Computers = computers
+
+	// Computer groups
+	var computerGroups []jamfpro.MacOSConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.computer_group_ids", "ID", d, &computerGroups); err != nil {
+		log.Printf("[WARN] Error mapping computer group IDs: %v", err)
+	}
+	scope.ComputerGroups = computerGroups
+
+	// Buildings
+	var buildings []jamfpro.MacOSConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.building_ids", "ID", d, &buildings); err != nil {
+		log.Printf("[WARN] Error mapping building IDs: %v", err)
+	}
+	scope.Buildings = buildings
+
+	// Departments
+	var departments []jamfpro.MacOSConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.department_ids", "ID", d, &departments); err != nil {
+		log.Printf("[WARN] Error mapping department IDs: %v", err)
+	}
+	scope.Departments = departments
+
+	// JSS Users
+	var jssUsers []jamfpro.MacOSConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.jss_user_ids", "ID", d, &jssUsers); err != nil {
+		log.Printf("[WARN] Error mapping JSS user IDs: %v", err)
+	}
+	scope.JSSUsers = jssUsers
+
+	// JSS User Groups
+	var jssUserGroups []jamfpro.MacOSConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int]("scope.0.jss_user_group_ids", "ID", d, &jssUserGroups); err != nil {
+		log.Printf("[WARN] Error mapping JSS user group IDs: %v", err)
+	}
+	scope.JSSUserGroups = jssUserGroups
+
+	// Handle Limitations
+	if _, ok := d.GetOk("scope.0.limitations"); ok {
+		scope.Limitations = constructLimitations(d)
 	}
 
-	if computerIDs, ok := data["computer_ids"]; ok {
-		scope.Computers = constructComputers(computerIDs.([]interface{}))
-	}
-	if computerGroupIDs, ok := data["computer_group_ids"]; ok {
-		scope.ComputerGroups = constructScopeEntitiesFromIds(computerGroupIDs.([]interface{}))
-	}
-	if buildingIDs, ok := data["building_ids"]; ok {
-		scope.Buildings = constructScopeEntitiesFromIds(buildingIDs.([]interface{}))
-	}
-	if departmentIDs, ok := data["department_ids"]; ok {
-		scope.Departments = constructScopeEntitiesFromIds(departmentIDs.([]interface{}))
-	}
-	if jssUserIDs, ok := data["jss_user_ids"]; ok {
-		scope.JSSUsers = constructScopeEntitiesFromIds(jssUserIDs.([]interface{}))
-	}
-	if jssUserGroupIDs, ok := data["jss_user_group_ids"]; ok {
-		scope.JSSUserGroups = constructScopeEntitiesFromIds(jssUserGroupIDs.([]interface{}))
-	}
-
-	if limitations, ok := data["limitations"]; ok && len(limitations.([]interface{})) > 0 {
-		limitationData := limitations.([]interface{})[0].(map[string]interface{})
-		scope.Limitations = constructLimitations(limitationData)
-	}
-
-	if exclusions, ok := data["exclusions"]; ok && len(exclusions.([]interface{})) > 0 {
-		exclusionData := exclusions.([]interface{})[0].(map[string]interface{})
-		scope.Exclusions = constructExclusions(exclusionData)
+	// Handle Exclusions
+	if _, ok := d.GetOk("scope.0.exclusions"); ok {
+		scope.Exclusions = constructExclusions(d)
 	}
 
 	return scope
 }
 
-// constructLimitations constructs a MacOSConfigurationProfileSubsetLimitation object from the provided schema data.
-func constructLimitations(data map[string]interface{}) jamfpro.MacOSConfigurationProfileSubsetLimitations {
+// constructLimitations builds the limitations object using MapSetToStructs
+func constructLimitations(d *schema.ResourceData) jamfpro.MacOSConfigurationProfileSubsetLimitations {
 	limitations := jamfpro.MacOSConfigurationProfileSubsetLimitations{}
 
-	if userNames, ok := data["directory_service_or_local_usernames"]; ok {
-		limitations.Users = constructScopeEntitiesFromIdsFromNames(userNames.([]interface{}))
+	// Directory service users (strings)
+	var users []jamfpro.MacOSConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, string](
+		"scope.0.limitations.0.directory_service_or_local_usernames", "Name", d, &users); err != nil {
+		log.Printf("[WARN] Error mapping user names: %v", err)
 	}
-	if userGroupIDs, ok := data["directory_service_usergroup_ids"]; ok {
-		limitations.UserGroups = constructScopeEntitiesFromIds(userGroupIDs.([]interface{}))
+	limitations.Users = users
+
+	// Directory service user groups
+	var userGroups []jamfpro.MacOSConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int](
+		"scope.0.limitations.0.directory_service_usergroup_ids", "ID", d, &userGroups); err != nil {
+		log.Printf("[WARN] Error mapping user group IDs: %v", err)
 	}
-	if networkSegmentIDs, ok := data["network_segment_ids"]; ok {
-		limitations.NetworkSegments = constructNetworkSegments(networkSegmentIDs.([]interface{}))
+	limitations.UserGroups = userGroups
+
+	// Network segments
+	var networkSegments []jamfpro.MacOSConfigurationProfileSubsetNetworkSegment
+	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetNetworkSegment, int](
+		"scope.0.limitations.0.network_segment_ids", "ID", d, &networkSegments); err != nil {
+		log.Printf("[WARN] Error mapping network segment IDs: %v", err)
 	}
-	if ibeaconIDs, ok := data["ibeacon_ids"]; ok {
-		limitations.IBeacons = constructScopeEntitiesFromIds(ibeaconIDs.([]interface{}))
+	limitations.NetworkSegments = networkSegments
+
+	// iBeacons
+	var iBeacons []jamfpro.MacOSConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int](
+		"scope.0.limitations.0.ibeacon_ids", "ID", d, &iBeacons); err != nil {
+		log.Printf("[WARN] Error mapping iBeacon IDs: %v", err)
 	}
+	limitations.IBeacons = iBeacons
 
 	return limitations
 }
 
-// constructExclusions constructs a MacOSConfigurationProfileSubsetExclusion object from the provided schema data.
-func constructExclusions(data map[string]interface{}) jamfpro.MacOSConfigurationProfileSubsetExclusions {
+// constructExclusions builds the exclusions object using MapSetToStructs
+func constructExclusions(d *schema.ResourceData) jamfpro.MacOSConfigurationProfileSubsetExclusions {
 	exclusions := jamfpro.MacOSConfigurationProfileSubsetExclusions{}
 
-	if computerIDs, ok := data["computer_ids"]; ok {
-		exclusions.Computers = constructComputers(computerIDs.([]interface{}))
+	// Computers
+	var computers []jamfpro.MacOSConfigurationProfileSubsetComputer
+	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetComputer, int](
+		"scope.0.exclusions.0.computer_ids", "ID", d, &computers); err != nil {
+		log.Printf("[WARN] Error mapping excluded computer IDs: %v", err)
 	}
-	if computerGroupIDs, ok := data["computer_group_ids"]; ok {
-		exclusions.ComputerGroups = constructScopeEntitiesFromIds(computerGroupIDs.([]interface{}))
+	exclusions.Computers = computers
+
+	// Computer groups
+	var computerGroups []jamfpro.MacOSConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int](
+		"scope.0.exclusions.0.computer_group_ids", "ID", d, &computerGroups); err != nil {
+		log.Printf("[WARN] Error mapping excluded computer group IDs: %v", err)
 	}
-	if userIDs, ok := data["jss_user_ids"]; ok {
-		exclusions.JSSUsers = constructScopeEntitiesFromIds(userIDs.([]interface{}))
+	exclusions.ComputerGroups = computerGroups
+
+	// JSS Users
+	var jssUsers []jamfpro.MacOSConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int](
+		"scope.0.exclusions.0.jss_user_ids", "ID", d, &jssUsers); err != nil {
+		log.Printf("[WARN] Error mapping excluded JSS user IDs: %v", err)
 	}
-	if userGroupIDs, ok := data["jss_user_group_ids"]; ok {
-		exclusions.JSSUserGroups = constructScopeEntitiesFromIds(userGroupIDs.([]interface{}))
+	exclusions.JSSUsers = jssUsers
+
+	// JSS User Groups
+	var jssUserGroups []jamfpro.MacOSConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int](
+		"scope.0.exclusions.0.jss_user_group_ids", "ID", d, &jssUserGroups); err != nil {
+		log.Printf("[WARN] Error mapping excluded JSS user group IDs: %v", err)
 	}
-	if buildingIDs, ok := data["building_ids"]; ok {
-		exclusions.Buildings = constructScopeEntitiesFromIds(buildingIDs.([]interface{}))
+	exclusions.JSSUserGroups = jssUserGroups
+
+	// Buildings
+	var buildings []jamfpro.MacOSConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int](
+		"scope.0.exclusions.0.building_ids", "ID", d, &buildings); err != nil {
+		log.Printf("[WARN] Error mapping excluded building IDs: %v", err)
 	}
-	if departmentIDs, ok := data["department_ids"]; ok {
-		exclusions.Departments = constructScopeEntitiesFromIds(departmentIDs.([]interface{}))
+	exclusions.Buildings = buildings
+
+	// Departments
+	var departments []jamfpro.MacOSConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int](
+		"scope.0.exclusions.0.department_ids", "ID", d, &departments); err != nil {
+		log.Printf("[WARN] Error mapping excluded department IDs: %v", err)
 	}
-	if networkSegmentIDs, ok := data["network_segment_ids"]; ok {
-		exclusions.NetworkSegments = constructNetworkSegments(networkSegmentIDs.([]interface{}))
+	exclusions.Departments = departments
+
+	// Network segments
+	var networkSegments []jamfpro.MacOSConfigurationProfileSubsetNetworkSegment
+	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetNetworkSegment, int](
+		"scope.0.exclusions.0.network_segment_ids", "ID", d, &networkSegments); err != nil {
+		log.Printf("[WARN] Error mapping excluded network segment IDs: %v", err)
 	}
-	if ibeaconIDs, ok := data["ibeacon_ids"]; ok {
-		exclusions.IBeacons = constructScopeEntitiesFromIds(ibeaconIDs.([]interface{}))
+	exclusions.NetworkSegments = networkSegments
+
+	// User names (strings)
+	var users []jamfpro.MacOSConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, string](
+		"scope.0.exclusions.0.directory_service_or_local_usernames", "Name", d, &users); err != nil {
+		log.Printf("[WARN] Error mapping excluded user names: %v", err)
 	}
+	exclusions.Users = users
+
+	// User groups
+	var userGroups []jamfpro.MacOSConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int](
+		"scope.0.exclusions.0.directory_service_usergroup_ids", "ID", d, &userGroups); err != nil {
+		log.Printf("[WARN] Error mapping excluded user group IDs: %v", err)
+	}
+	exclusions.UserGroups = userGroups
+
+	// iBeacons
+	var iBeacons []jamfpro.MacOSConfigurationProfileSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int](
+		"scope.0.exclusions.0.ibeacon_ids", "ID", d, &iBeacons); err != nil {
+		log.Printf("[WARN] Error mapping excluded iBeacon IDs: %v", err)
+	}
+	exclusions.IBeacons = iBeacons
 
 	return exclusions
 }
 
-// constructComputers constructs a slice of MacOSConfigurationProfileSubsetComputer from the provided schema data.
-func constructComputers(ids []interface{}) []jamfpro.MacOSConfigurationProfileSubsetComputer {
-	computers := make([]jamfpro.MacOSConfigurationProfileSubsetComputer, len(ids))
-	for i, id := range ids {
-		computers[i] = jamfpro.MacOSConfigurationProfileSubsetComputer{
-			MacOSConfigurationProfileSubsetScopeEntity: jamfpro.MacOSConfigurationProfileSubsetScopeEntity{
-				ID: id.(int),
-			},
-		}
-	}
-	return computers
-}
+// --- Self Service Construction Functions (Adapted for TypeSet) ---
 
-// constructNetworkSegments constructs a slice of MacOSConfigurationProfileSubsetNetworkSegment from the provided schema data.
-func constructNetworkSegments(data []interface{}) []jamfpro.MacOSConfigurationProfileSubsetNetworkSegment {
-	networkSegments := make([]jamfpro.MacOSConfigurationProfileSubsetNetworkSegment, len(data))
-	for i, id := range data {
-		networkSegments[i] = jamfpro.MacOSConfigurationProfileSubsetNetworkSegment{
-			MacOSConfigurationProfileSubsetScopeEntity: jamfpro.MacOSConfigurationProfileSubsetScopeEntity{
-				ID: id.(int),
-			},
-		}
-	}
-	return networkSegments
-}
-
-// constructMacOSConfigurationProfileSubsetSelfService constructs a MacOSConfigurationProfileSubsetSelfService object from the provided schema data.
+// constructMacOSConfigurationProfileSubsetSelfService reads the self_service map.
 func constructMacOSConfigurationProfileSubsetSelfService(data map[string]interface{}) jamfpro.MacOSConfigurationProfileSubsetSelfService {
-	selfService := jamfpro.MacOSConfigurationProfileSubsetSelfService{
-		SelfServiceDisplayName:      data["self_service_display_name"].(string),
-		InstallButtonText:           data["install_button_text"].(string),
-		SelfServiceDescription:      data["self_service_description"].(string),
-		ForceUsersToViewDescription: data["force_users_to_view_description"].(bool),
-		FeatureOnMainPage:           data["feature_on_main_page"].(bool),
+	selfService := jamfpro.MacOSConfigurationProfileSubsetSelfService{}
 
-		// Removed because there are several issues with this payload in the API
-		// Will be reimplemented once those have been fixed.
-		// Notification:                data["notification"].(string),
-		NotificationSubject: data["notification_subject"].(string),
-		NotificationMessage: data["notification_message"].(string),
+	// Use type assertion with ok check for safety
+	if val, ok := data["self_service_display_name"].(string); ok {
+		selfService.SelfServiceDisplayName = val
+	}
+	if val, ok := data["install_button_text"].(string); ok {
+		selfService.InstallButtonText = val
+	}
+	if val, ok := data["self_service_description"].(string); ok {
+		selfService.SelfServiceDescription = val
+	}
+	if val, ok := data["force_users_to_view_description"].(bool); ok {
+		selfService.ForceUsersToViewDescription = val
+	}
+	if val, ok := data["feature_on_main_page"].(bool); ok {
+		selfService.FeatureOnMainPage = val
+	}
+	// Removed because there are several issues with this payload in the API
+	// Will be reimplemented once those have been fixed.
+	// if val, ok := data["notification"].(string); ok {
+	// 	selfService.NotificationSubject = val
+	// }
+	if val, ok := data["notification_subject"].(string); ok {
+		selfService.NotificationSubject = val
+	}
+	if val, ok := data["notification_message"].(string); ok {
+		selfService.NotificationMessage = val
 	}
 
 	if iconID, ok := data["self_service_icon_id"].(int); ok && iconID != 0 {
-		selfService.SelfServiceIcon = jamfpro.SharedResourceSelfServiceIcon{
-			ID: iconID,
-		}
+		selfService.SelfServiceIcon = jamfpro.SharedResourceSelfServiceIcon{ID: iconID}
 	}
 
-	if categories, ok := data["self_service_category"]; ok {
-		selfService.SelfServiceCategories = constructSelfServiceCategories(categories.(*schema.Set))
+	if categoriesList := constructors.GetListFromSet(data, "self_service_category"); len(categoriesList) > 0 {
+		selfService.SelfServiceCategories = constructSelfServiceCategories(categoriesList)
 	}
 
 	return selfService
 }
 
-// constructSelfServiceCategories constructs a slice of MacOSConfigurationProfileSubsetSelfServiceCategory from the provided schema data.
-func constructSelfServiceCategories(categories *schema.Set) []jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory {
-	categoryList := categories.List()
-	selfServiceCategories := make([]jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory, len(categoryList))
+// constructSelfServiceCategories processes the list from constructors.GetListFromSet.
+func constructSelfServiceCategories(categoryList []interface{}) []jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory {
+	selfServiceCategories := make([]jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory, 0, len(categoryList))
 	for i, category := range categoryList {
-		catData := category.(map[string]interface{})
-		selfServiceCategories[i] = jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory{
-			ID:        catData["id"].(int),
-			DisplayIn: catData["display_in"].(bool),
-			FeatureIn: catData["feature_in"].(bool),
+		catData, mapOk := category.(map[string]interface{})
+		if !mapOk {
+			log.Printf("[WARN] constructSelfServiceCategories: Could not cast category data to map at index %d. Skipping.", i)
+			continue
 		}
+
+		cat := jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory{}
+		idOk := false
+		if idVal, ok := catData["id"]; ok {
+			if cat.ID, idOk = constructors.ParseResourceID(idVal, "self service category", i); !idOk {
+				continue // Skip if ID conversion fails
+			}
+		} else {
+			log.Printf("[WARN] constructSelfServiceCategories: Missing 'id' key in category map at index %d. Skipping.", i)
+			continue // Skip if ID is missing
+		}
+
+		if displayInVal, ok := catData["display_in"].(bool); ok {
+			cat.DisplayIn = displayInVal
+		}
+		if featureInVal, ok := catData["feature_in"].(bool); ok {
+			cat.FeatureIn = featureInVal
+		}
+		// Name is read-only from API, not set here
+
+		selfServiceCategories = append(selfServiceCategories, cat)
 	}
+	log.Printf("[DEBUG] constructSelfServiceCategories: Input count %d, Output count %d", len(categoryList), len(selfServiceCategories))
 	return selfServiceCategories
-}
-
-// Helper functions for nested structures
-
-// constructScopeEntitiesFromIds constructs a slice of MacOSConfigurationProfileSubsetScopeEntity from a list of IDs.
-func constructScopeEntitiesFromIds(ids []interface{}) []jamfpro.MacOSConfigurationProfileSubsetScopeEntity {
-	scopeEntities := make([]jamfpro.MacOSConfigurationProfileSubsetScopeEntity, len(ids))
-	for i, id := range ids {
-		scopeEntities[i] = jamfpro.MacOSConfigurationProfileSubsetScopeEntity{
-			ID: id.(int),
-		}
-	}
-	return scopeEntities
-}
-
-// constructScopeEntitiesFromIdsFromNames constructs a slice of MacOSConfigurationProfileSubsetScopeEntity from a list of names.
-func constructScopeEntitiesFromIdsFromNames(names []interface{}) []jamfpro.MacOSConfigurationProfileSubsetScopeEntity {
-	scopeEntities := make([]jamfpro.MacOSConfigurationProfileSubsetScopeEntity, len(names))
-	for i, name := range names {
-		scopeEntities[i] = jamfpro.MacOSConfigurationProfileSubsetScopeEntity{
-			Name: name.(string),
-		}
-	}
-	return scopeEntities
 }

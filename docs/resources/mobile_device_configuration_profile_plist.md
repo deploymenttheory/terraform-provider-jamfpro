@@ -153,30 +153,30 @@ Optional:
 
 - `all_jss_users` (Boolean) If true, the profile is applied to all JSS users.
 - `all_mobile_devices` (Boolean) If true, the profile is applied to all mobile devices.
-- `building_ids` (List of Number) A list of building IDs associated with the profile.
-- `department_ids` (List of Number) A list of department IDs associated with the profile.
-- `exclusions` (Block List, Max: 1) The scope exclusions from the mobile device configuration profile. (see [below for nested schema](#nestedblock--scope--exclusions))
-- `jss_user_group_ids` (List of Number) A list of JSS user group IDs associated with the profile.
-- `jss_user_ids` (List of Number) A list of JSS user IDs associated with the profile.
-- `limitations` (Block List, Max: 1) The scope limitations from the mobile device configuration profile. (see [below for nested schema](#nestedblock--scope--limitations))
-- `mobile_device_group_ids` (List of Number) A list of mobile device group IDs associated with the profile.
-- `mobile_device_ids` (List of Number) A list of mobile device IDs associated with the profile.
+- `building_ids` (Set of Number) A list of building IDs associated with the profile.
+- `department_ids` (Set of Number) A list of department IDs associated with the profile.
+- `exclusions` (Block Set, Max: 1) The scope exclusions from the mobile device configuration profile. (see [below for nested schema](#nestedblock--scope--exclusions))
+- `jss_user_group_ids` (Set of Number) A list of JSS user group IDs associated with the profile.
+- `jss_user_ids` (Set of Number) A list of JSS user IDs associated with the profile.
+- `limitations` (Block Set, Max: 1) The scope limitations from the mobile device configuration profile. (see [below for nested schema](#nestedblock--scope--limitations))
+- `mobile_device_group_ids` (Set of Number) A list of mobile device group IDs associated with the profile.
+- `mobile_device_ids` (Set of Number) A list of mobile device IDs associated with the profile.
 
 <a id="nestedblock--scope--exclusions"></a>
 ### Nested Schema for `scope.exclusions`
 
 Optional:
 
-- `building_ids` (List of Number) A list of building IDs for exclusions.
-- `department_ids` (List of Number) A list of department IDs for exclusions.
-- `directory_service_or_local_usernames` (List of String) A list of directory service / local usernames for scoping limitations.
-- `directory_service_usergroup_ids` (List of Number) A list of directory service / local user group IDs for limitations.
-- `ibeacon_ids` (List of Number) A list of iBeacon IDs for exclusions.
-- `jss_user_group_ids` (List of Number) A list of JSS user group IDs for exclusions.
-- `jss_user_ids` (List of Number) A list of user names for exclusions.
-- `mobile_device_group_ids` (List of Number) A list of mobile device group IDs for exclusions.
-- `mobile_device_ids` (List of Number) A list of mobile device IDs for exclusions.
-- `network_segment_ids` (List of Number) A list of network segment IDs for exclusions.
+- `building_ids` (Set of Number) A list of building IDs for exclusions.
+- `department_ids` (Set of Number) A list of department IDs for exclusions.
+- `directory_service_or_local_usernames` (Set of String) A list of directory service / local usernames for scoping limitations.
+- `directory_service_usergroup_ids` (Set of Number) A list of directory service / local user group IDs for limitations.
+- `ibeacon_ids` (Set of Number) A list of iBeacon IDs for exclusions.
+- `jss_user_group_ids` (Set of Number) A list of JSS user group IDs for exclusions.
+- `jss_user_ids` (Set of Number) A list of user names for exclusions.
+- `mobile_device_group_ids` (Set of Number) A list of mobile device group IDs for exclusions.
+- `mobile_device_ids` (Set of Number) A list of mobile device IDs for exclusions.
+- `network_segment_ids` (Set of Number) A list of network segment IDs for exclusions.
 
 
 <a id="nestedblock--scope--limitations"></a>
@@ -184,10 +184,10 @@ Optional:
 
 Optional:
 
-- `directory_service_or_local_usernames` (List of String) A list of directory service / local usernames for scoping limitations.
-- `directory_service_usergroup_ids` (List of Number) A list of directory service user group IDs for limitations.
-- `ibeacon_ids` (List of Number) A list of iBeacon IDs for limitations.
-- `network_segment_ids` (List of Number) A list of network segment IDs for limitations.
+- `directory_service_or_local_usernames` (Set of String) A list of directory service / local usernames for scoping limitations.
+- `directory_service_usergroup_ids` (Set of Number) A list of directory service user group IDs for limitations.
+- `ibeacon_ids` (Set of Number) A list of iBeacon IDs for limitations.
+- `network_segment_ids` (Set of Number) A list of network segment IDs for limitations.
 
 
 

@@ -1,7 +1,7 @@
-// macosconfigurationprofilesplistgenerator_state.go
 package macosconfigurationprofilesplistgenerator
 
 import (
+	"log"
 	"reflect"
 	"sort"
 
@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// updateTerraformState updates the Terraform state with the latest ResourceMacOSConfigurationProfile
+// updateState updates the Terraform state with the latest ResourceMacOSConfigurationProfile
 // information from the Jamf Pro API.
-func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfigurationProfile) diag.Diagnostics {
+func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfigurationProfile) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	resourceData := map[string]interface{}{
@@ -35,28 +35,22 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSCon
 
 	d.Set("site_id", resp.General.Site.ID)
 
-	// Convert the plist payloads back to HCL format and set them in the state
-	payloadsList, err := plist.ConvertPlistToHCL(resp.General.Payloads)
-	if err != nil {
+	profile := plist.NormalizePayloadState(resp.General.Payloads)
+	if err := d.Set("payloads", profile); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
-	} else {
-		if err := d.Set("payloads", payloadsList); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
 	}
 
 	d.Set("category_id", resp.General.Category.ID)
 
-	// Preparing and setting scope data
 	if scopeData, err := setScope(resp); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	} else if err := d.Set("scope", []interface{}{scopeData}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Check if the self_service block is provided and set it in the state accordingly
 	defaultSelfService := jamfpro.MacOSConfigurationProfileSubsetSelfService{}
-	if !compareSelfService(resp.SelfService, defaultSelfService) {
+	removeSelfService := reflect.DeepEqual(resp.SelfService, defaultSelfService) || resp.General.DistributionMethod == "Install Automatically"
+	if !removeSelfService {
 		if selfServiceData, err := setSelfService(resp.SelfService); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		} else if selfServiceData != nil {
@@ -64,16 +58,13 @@ func updateTerraformState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSCon
 				diags = append(diags, diag.FromErr(err)...)
 			}
 		}
-
 	} else {
-		// TODO why?
-		// If self_service block is not provided, set it to an empty array
+		log.Println("Self-service block is empty, default, or set to 'Install Automatically', removing from state")
 		if err := d.Set("self_service", []interface{}{}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	// Update the resource data
 	for k, v := range resourceData {
 		if err := d.Set(k, v); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
@@ -90,7 +81,6 @@ func setScope(resp *jamfpro.ResourceMacOSConfigurationProfile) (map[string]inter
 		"all_jss_users": resp.Scope.AllJSSUsers,
 	}
 
-	// Gather computers, groups, etc.
 	scopeData["computer_ids"] = flattenAndSortComputerIds(resp.Scope.Computers)
 	scopeData["computer_group_ids"] = flattenAndSortScopeEntityIds(resp.Scope.ComputerGroups)
 	scopeData["jss_user_ids"] = flattenAndSortScopeEntityIds(resp.Scope.JSSUsers)
@@ -98,7 +88,6 @@ func setScope(resp *jamfpro.ResourceMacOSConfigurationProfile) (map[string]inter
 	scopeData["building_ids"] = flattenAndSortScopeEntityIds(resp.Scope.Buildings)
 	scopeData["department_ids"] = flattenAndSortScopeEntityIds(resp.Scope.Departments)
 
-	// Gather limitations
 	limitationsData, err := setLimitations(resp.Scope.Limitations)
 	if err != nil {
 		return nil, err
@@ -107,7 +96,6 @@ func setScope(resp *jamfpro.ResourceMacOSConfigurationProfile) (map[string]inter
 		scopeData["limitations"] = limitationsData
 	}
 
-	// Gather exclusions
 	exclusionsData, err := setExclusions(resp.Scope.Exclusions)
 	if err != nil {
 		return nil, err
@@ -241,34 +229,35 @@ func setExclusions(exclusions jamfpro.MacOSConfigurationProfileSubsetExclusions)
 
 // setSelfService converts the self-service structure into a format suitable for setting in the Terraform state.
 func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfService) (map[string]interface{}, error) {
-	selfServiceData := make(map[string]interface{})
-
-	// Set real values only, avoiding defaults
-	if selfService.InstallButtonText != "" && selfService.InstallButtonText != "Install" {
-		selfServiceData["install_button_text"] = selfService.InstallButtonText
-	}
-	if selfService.SelfServiceDescription != "" && selfService.SelfServiceDescription != "no description set" {
-		selfServiceData["self_service_description"] = selfService.SelfServiceDescription
-	}
-	if selfService.ForceUsersToViewDescription {
-		selfServiceData["force_users_to_view_description"] = selfService.ForceUsersToViewDescription
-	}
-	if selfService.FeatureOnMainPage {
-		selfServiceData["feature_on_main_page"] = selfService.FeatureOnMainPage
-	}
-	if selfService.NotificationSubject != "" && selfService.NotificationSubject != "no message subject set" {
-		selfServiceData["notification_subject"] = selfService.NotificationSubject
-	}
-	if selfService.NotificationMessage != "" {
-		selfServiceData["notification_message"] = selfService.NotificationMessage
+	// Define default values
+	defaults := map[string]interface{}{
+		"self_service_display_name":       "",
+		"install_button_text":             "Install",
+		"self_service_description":        "",
+		"force_users_to_view_description": false,
+		"feature_on_main_page":            false,
+		"notification":                    nil,
+		"notification_subject":            "",
+		"notification_message":            "",
+		"self_service_icon_id":            0,
+		"self_service_icon":               nil,
+		"self_service_category":           nil,
 	}
 
-	// Temporarily set to nil in all runs due to issues with the API.
-	// Will be reimplemented once those are fixed.
-	selfServiceData["notification"] = nil
+	selfServiceBlock := map[string]interface{}{
+		"self_service_display_name":       selfService.SelfServiceDisplayName,
+		"install_button_text":             selfService.InstallButtonText,
+		"self_service_description":        selfService.SelfServiceDescription,
+		"force_users_to_view_description": selfService.ForceUsersToViewDescription,
+		"feature_on_main_page":            selfService.FeatureOnMainPage,
+		"notification_subject":            selfService.NotificationSubject,
+		"notification_message":            selfService.NotificationMessage,
+	}
 
+	// Handle self service icon
 	if selfService.SelfServiceIcon.ID != 0 {
-		selfServiceData["self_service_icon"] = []interface{}{
+		selfServiceBlock["self_service_icon_id"] = selfService.SelfServiceIcon.ID
+		selfServiceBlock["self_service_icon"] = []interface{}{
 			map[string]interface{}{
 				"id":       selfService.SelfServiceIcon.ID,
 				"uri":      selfService.SelfServiceIcon.URI,
@@ -278,39 +267,42 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 		}
 	}
 
+	// Temporarily set to nil in all runs due to issues with the API.
+	// Will be reimplemented once those are fixed.
+	selfServiceBlock["notification"] = nil
+
+	// Handle self service categories
 	if len(selfService.SelfServiceCategories) > 0 {
-		categories := []interface{}{}
-		for _, category := range selfService.SelfServiceCategories {
-			categories = append(categories, map[string]interface{}{
+		categories := make([]interface{}, len(selfService.SelfServiceCategories))
+		for i, category := range selfService.SelfServiceCategories {
+			categories[i] = map[string]interface{}{
 				"id":         category.ID,
 				"name":       category.Name,
 				"display_in": category.DisplayIn,
 				"feature_in": category.FeatureIn,
-			})
+			}
 		}
-		selfServiceData["self_service_categories"] = categories
+		selfServiceBlock["self_service_category"] = categories
 	}
 
-	// Return nil map if there are no real values to avoid setting the self_service block
-	if len(selfServiceData) == 0 {
+	// Check if all values are default
+	allDefault := true
+	for key, value := range selfServiceBlock {
+		if defaultVal, ok := defaults[key]; ok && !reflect.DeepEqual(value, defaultVal) {
+			allDefault = false
+			break
+		}
+	}
+
+	if allDefault {
+		log.Println("All self service values are default, skipping state")
 		return nil, nil
 	}
 
-	return selfServiceData, nil
-}
+	log.Println("Initializing self service in state")
+	log.Printf("Final state self service: %+v\n", selfServiceBlock)
 
-// TODO what is going on here?
-// compareSelfService compares two MacOSConfigurationProfileSubsetSelfService structs
-func compareSelfService(a, b jamfpro.MacOSConfigurationProfileSubsetSelfService) bool {
-	return a.InstallButtonText == b.InstallButtonText &&
-		a.SelfServiceDescription == b.SelfServiceDescription &&
-		a.ForceUsersToViewDescription == b.ForceUsersToViewDescription &&
-		reflect.DeepEqual(a.SelfServiceIcon, b.SelfServiceIcon) &&
-		a.FeatureOnMainPage == b.FeatureOnMainPage &&
-		reflect.DeepEqual(a.SelfServiceCategories, b.SelfServiceCategories) &&
-		a.Notification == b.Notification &&
-		a.NotificationSubject == b.NotificationSubject &&
-		a.NotificationMessage == b.NotificationMessage
+	return selfServiceBlock, nil
 }
 
 // helper functions
@@ -329,7 +321,7 @@ func flattenAndSortScopeEntityIds(entities []jamfpro.MacOSConfigurationProfileSu
 
 // flattenAndSortScopeEntityNames converts a slice of RestrictedSoftwareSubsetScopeEntity into a sorted slice of strings.
 func flattenAndSortScopeEntityNames(entities []jamfpro.MacOSConfigurationProfileSubsetScopeEntity) []string {
-	var names []string
+	names := make([]string, 0, len(entities))
 	for _, entity := range entities {
 		if entity.Name != "" {
 			names = append(names, entity.Name)

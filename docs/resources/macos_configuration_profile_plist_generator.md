@@ -370,13 +370,13 @@ Required:
 Optional:
 
 - `all_jss_users` (Boolean) Whether the configuration profile is scoped to all JSS users.
-- `building_ids` (List of Number) The buildings to which the configuration profile is scoped by Jamf ID
-- `computer_group_ids` (List of Number) The computer groups to which the configuration profile is scoped by Jamf ID
-- `computer_ids` (List of Number) The computers to which the configuration profile is scoped by Jamf ID
-- `department_ids` (List of Number) The departments to which the configuration profile is scoped by Jamf ID
+- `building_ids` (Set of Number) The buildings to which the configuration profile is scoped by Jamf ID.
+- `computer_group_ids` (Set of Number) The computer groups to which the configuration profile is scoped by Jamf ID.
+- `computer_ids` (Set of Number) The computers to which the configuration profile is scoped by Jamf ID.
+- `department_ids` (Set of Number) The departments to which the configuration profile is scoped by Jamf ID.
 - `exclusions` (Block List, Max: 1) The scope exclusions from the macOS configuration profile. (see [below for nested schema](#nestedblock--scope--exclusions))
-- `jss_user_group_ids` (List of Number) The jss user groups to which the configuration profile is scoped by Jamf ID
-- `jss_user_ids` (List of Number) The jss users to which the configuration profile is scoped by Jamf ID
+- `jss_user_group_ids` (Set of Number) The JSS user groups to which the configuration profile is scoped by Jamf ID.
+- `jss_user_ids` (Set of Number) The JSS users to which the configuration profile is scoped by Jamf ID.
 - `limitations` (Block List, Max: 1) The scope limitations from the macOS configuration profile. (see [below for nested schema](#nestedblock--scope--limitations))
 
 <a id="nestedblock--scope--exclusions"></a>
@@ -384,16 +384,16 @@ Optional:
 
 Optional:
 
-- `building_ids` (List of Number) Buildings excluded from scope by Jamf ID.
-- `computer_group_ids` (List of Number) Computer Groups excluded from scope by Jamf ID.
-- `computer_ids` (List of Number) Computers excluded from scope by Jamf ID.
-- `department_ids` (List of Number) Departments excluded from scope by Jamf ID.
-- `directory_service_or_local_usernames` (List of String) A list of directory service / local usernames for scoping limitations.
-- `directory_service_usergroup_ids` (List of Number) A list of directory service / local user group IDs for limitations.
-- `ibeacon_ids` (List of Number) Ibeacons excluded from scope by Jamf ID.
-- `jss_user_group_ids` (List of Number) JSS User Groups excluded from scope by Jamf ID.
-- `jss_user_ids` (List of Number) JSS Users excluded from scope by Jamf ID.
-- `network_segment_ids` (List of Number) Network segments excluded from scope by Jamf ID.
+- `building_ids` (Set of Number) Buildings excluded from scope by Jamf ID.
+- `computer_group_ids` (Set of Number) Computer Groups excluded from scope by Jamf ID.
+- `computer_ids` (Set of Number) Computers excluded from scope by Jamf ID.
+- `department_ids` (Set of Number) Departments excluded from scope by Jamf ID.
+- `directory_service_or_local_usernames` (Set of String) A set of directory service / local usernames for scoping exclusions.
+- `directory_service_usergroup_ids` (Set of Number) A set of directory service / local user group IDs for exclusions.
+- `ibeacon_ids` (Set of Number) Ibeacons excluded from scope by Jamf ID.
+- `jss_user_group_ids` (Set of Number) JSS User Groups excluded from scope by Jamf ID.
+- `jss_user_ids` (Set of Number) JSS Users excluded from scope by Jamf ID.
+- `network_segment_ids` (Set of Number) Network segments excluded from scope by Jamf ID.
 
 
 <a id="nestedblock--scope--limitations"></a>
@@ -401,10 +401,10 @@ Optional:
 
 Optional:
 
-- `directory_service_or_local_usernames` (List of String) A list of directory service / local usernames for scoping limitations.
-- `directory_service_usergroup_ids` (List of Number) A list of directory service user group IDs for limitations.
-- `ibeacon_ids` (List of Number) A list of iBeacon IDs for limitations.
-- `network_segment_ids` (List of Number) A list of network segment IDs for limitations.
+- `directory_service_or_local_usernames` (Set of String) A set of directory service / local usernames for scoping limitations.
+- `directory_service_usergroup_ids` (Set of Number) A set of directory service user group IDs for limitations.
+- `ibeacon_ids` (Set of Number) A set of iBeacon IDs for limitations.
+- `network_segment_ids` (Set of Number) A set of network segment IDs for limitations.
 
 
 

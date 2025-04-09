@@ -10,18 +10,63 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// mainCustomDiffFunc orchestrates all custom diff validations.
+// mainCustomDiffFunc orchestrates all custom diff validations for macOS config profiles.
 func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
+	if diff.Get("payload_validate").(bool) {
+		if err := validatePayloadIdentifers(ctx, diff, i); err != nil {
+			return err
+		}
+
+		if err := normalizePayloadState(ctx, diff, i); err != nil {
+			return err
+		}
+
+		if err := validatePlistPayloadScope(ctx, diff, i); err != nil {
+			return err
+		}
+	}
+
 	if err := validateDistributionMethod(ctx, diff, i); err != nil {
 		return err
 	}
 
-	if err := validateMacOSConfigurationProfileLevel(ctx, diff, i); err != nil {
+	if err := validateSelfServiceCategories(ctx, diff, i); err != nil {
 		return err
 	}
 
-	if err := validateConfigurationProfileFormatting(ctx, diff, i); err != nil {
+	if err := validateAllComputersScope(ctx, diff, i); err != nil {
 		return err
+	}
+
+	if err := validateAllUsersScope(ctx, diff, i); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func normalizePayloadState(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+	diff.SetNew("payloads", plist.NormalizePayloadState(diff.Get("payloads").(string)))
+	return nil
+}
+
+// validatePayloadIdentifers performs the payload validation that was previously in the ValidateFunc.
+func validatePayloadIdentifers(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+	resourceName := diff.Get("name").(string)
+	payload := diff.Get("payloads").(string)
+
+	profile, err := plist.UnmarshalPayload(payload)
+	if err != nil {
+		return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': error unmarshalling payload: %v", resourceName, err)
+	}
+
+	if profile.PayloadIdentifier != profile.PayloadUUID {
+		return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': root-level PayloadIdentifier and PayloadUUID within the plist do not match. Expected PayloadIdentifier to be '%s', but got '%s'", resourceName, profile.PayloadUUID, profile.PayloadIdentifier)
+	}
+
+	errs := plist.ValidatePayloadFields(profile)
+	if len(errs) > 0 {
+		return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': %v", resourceName, errs)
 	}
 
 	return nil
@@ -49,8 +94,8 @@ func validateDistributionMethod(_ context.Context, diff *schema.ResourceDiff, _ 
 	return nil
 }
 
-// validateMacOSConfigurationProfileLevel validates that the 'PayloadScope' key in the payload matches the 'level' attribute.
-func validateMacOSConfigurationProfileLevel(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+// validatePlistPayloadScope validates that the 'PayloadScope' key in the payload matches the 'level' attribute in the HCL.
+func validatePlistPayloadScope(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
 	resourceName := diff.Get("name").(string)
 	level := diff.Get("level").(string)
 	payloads := diff.Get("payloads").(string)
@@ -66,19 +111,78 @@ func validateMacOSConfigurationProfileLevel(_ context.Context, diff *schema.Reso
 	}
 
 	if payloadScope != level {
-		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': 'level' attribute (%s) does not match the 'PayloadScope' in the plist (%s)", resourceName, level, payloadScope)
+		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': the hcl 'level' attribute (%s) does not match the 'PayloadScope' in the root dict of the plist (%s); the values must be identical", resourceName, level, payloadScope)
 	}
 
 	return nil
 }
 
-// validateConfigurationProfileFormatting validates the indentation of the plist XML.
-func validateConfigurationProfileFormatting(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+// validateSelfServiceCategories validates the 'self_service_category' block.
+func validateSelfServiceCategories(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
 	resourceName := diff.Get("name").(string)
-	payloads := diff.Get("payloads").(string)
+	selfServiceRaw, ok := diff.GetOk("self_service")
+	if !ok {
+		return nil
+	}
 
-	if err := datavalidators.CheckPlistIndentationAndWhiteSpace(payloads); err != nil {
-		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': %v", resourceName, err)
+	selfService := selfServiceRaw.([]interface{})[0].(map[string]interface{})
+	categories, ok := selfService["self_service_category"].([]interface{})
+	if !ok {
+		return nil
+	}
+
+	for i, catRaw := range categories {
+		cat := catRaw.(map[string]interface{})
+		displayIn, displayOk := cat["display_in"].(bool)
+		featureIn, featureOk := cat["feature_in"].(bool)
+
+		if displayOk && featureOk && featureIn && !displayIn {
+			return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': self_service_category[%d]: feature_in can only be true if display_in is also true", resourceName, i)
+		}
+	}
+
+	return nil
+}
+
+func validateAllComputersScope(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+	resourceName := diff.Get("name").(string)
+	scopeRaw, ok := diff.GetOk("scope")
+	if !ok {
+		return nil
+	}
+
+	scope := scopeRaw.([]interface{})[0].(map[string]interface{})
+	allComputers := scope["all_computers"].(bool)
+
+	if allComputers {
+		fieldsToCheck := []string{"computer_ids", "computer_group_ids"}
+		for _, field := range fieldsToCheck {
+			if value, exists := scope[field]; exists && len(value.([]interface{})) > 0 {
+				return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': when 'all_computers' scope is set to true, '%s' should not be set", resourceName, field)
+			}
+		}
+	}
+
+	return nil
+}
+
+func validateAllUsersScope(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+	resourceName := diff.Get("name").(string)
+	scopeRaw, ok := diff.GetOk("scope")
+	if !ok {
+		return nil
+	}
+
+	scope := scopeRaw.([]interface{})[0].(map[string]interface{})
+	allComputers := scope["all_jss_users"].(bool)
+
+	if allComputers {
+		fieldsToCheck := []string{"jss_user_ids", "jss_user_group_ids", "building_ids", "department_ids"}
+		for _, field := range fieldsToCheck {
+			if value, exists := scope[field]; exists && len(value.([]interface{})) > 0 {
+				return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': when 'all_jss_users' scope is set to true, '%s' should not be set", resourceName, field)
+			}
+		}
 	}
 
 	return nil
