@@ -120,7 +120,12 @@ def parse_id_from_response(resp_text) -> str:
 
 
 def parse_tag_contents(start_tag, end_tag, resp_text):
-    return resp_text[resp_text.index(start_tag) + len(start_tag): resp_text.index(end_tag)]
+    start_tag_length = len(start_tag)
+    start_tag_index = resp_text.index(start_tag)
+    end_tag_index = resp_text.index(end_tag)
+    offset_start_tag_index = start_tag_index + start_tag_length
+    
+    return resp_text[offset_start_tag_index : end_tag_index]
 
 
 def create_site(site_name):
