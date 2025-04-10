@@ -37,12 +37,10 @@ Please mark the relevant option with an `x`:
 - [ ] I have verified there are no other open Pull Requests for the same update/change
 - [ ] All CI/CD pipelines pass without errors or warnings
 - [ ] My code follows the established style guidelines of this project
+- [ ] My comments are used only when necessary, ideally where the codes purpose is not self explanatory (eg: necessary magic numbers)
 - [ ] I have added necessary documentation (if appropriate)
-- [ ] I have commented my code, particularly in complex areas
 - [ ] I have made corresponding changes to the README and other relevant documentation
 - [ ] My changes generate no new warnings
-- [ ] I have performed a self-review of my own code
-- [ ] My code is properly formatted according to project standards
 
 ## Screenshots/Recordings (if appropriate)
 [Add screenshots or recordings that demonstrate the changes]
