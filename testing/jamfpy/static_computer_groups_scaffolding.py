@@ -146,7 +146,6 @@ def create_computers(site_id, amount):
 
 def send_create(instance_object, payload, type_string):
     resp = instance_object.create(payload)
-    resp.raise_for_status()
     if resp.ok:
         resp_text = resp.text
         object_id = parse_id_from_response(resp_text)
