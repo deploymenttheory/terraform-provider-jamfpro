@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: deploymenttheory/terraform-provider-jamfpro
-          ref: refs/pull/${{ github.event.pull_request.number }}/head
+          ref: ${{ github.event.pull_request.head.ref }}
           path: terraform-provider-jamfpro
 
       - name: Set up Terraform
