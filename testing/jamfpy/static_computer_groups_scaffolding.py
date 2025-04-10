@@ -158,8 +158,8 @@ def send_create(instance_object, payload, type_string):
 
 def write_ids_to_data_source(site_id, computer_ids):
     data_object = {
-        "computers":computer_ids,
-            "site":site_id
+        "computers": computer_ids,
+            "site": site_id
         }
     full_path = "../data_sources/site_and_computer_ids.json"
     file = Path(full_path)
