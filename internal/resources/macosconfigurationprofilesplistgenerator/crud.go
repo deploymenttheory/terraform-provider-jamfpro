@@ -73,7 +73,7 @@ func resourceJamfProMacOSConfigurationProfilesPlistGeneratorRead(ctx context.Con
 		return append(diags, common.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
-	return append(diags, updateTerraformState(d, response)...)
+	return append(diags, updateState(d, response)...)
 }
 
 // resourceJamfProMacOSConfigurationProfilesPlistGeneratorReadWithCleanup reads the resource with cleanup enabled

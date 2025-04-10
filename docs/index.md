@@ -16,7 +16,7 @@ terraform {
   required_providers {
     jamfpro = {
       source  = "deploymenttheory/jamfpro"
-      version = "~> 0.13.0"
+      version = "~> 0.18.0"
     }
   }
 }
@@ -43,36 +43,36 @@ variable "jamfpro_instance_fqdn" {
 }
 
 variable "jamfpro_auth_method" {
-  description = "Auth method chosen for Jamf. Options are 'basic' or 'oauth2'."
+  description = "The auth method chosen for interacting with Jamf Pro. Options are 'basic' for username/password or 'oauth2' for client id/secret."
   sensitive   = true
   default     = ""
 }
 
 variable "jamfpro_client_id" {
-  description = "The Jamf Pro Client ID for authentication."
+  description = "The Jamf Pro Client ID for authentication when auth_method is 'oauth2'."
   sensitive   = true
   default     = ""
 }
 
 variable "jamfpro_client_secret" {
-  description = "The Jamf Pro Client Secret for authentication."
+  description = "The Jamf Pro Client secret for authentication when auth_method is 'oauth2'."
   sensitive   = true
   default     = ""
 }
 
 variable "jamfpro_basic_auth_username" {
-  description = "The Jamf Pro username used for authentication."
+  description = "The Jamf Pro username used for authentication when auth_method is 'basic'."
   default     = ""
 }
 
 variable "jamfpro_basic_auth_password" {
-  description = "The Jamf Pro password used for authentication."
+  description = "The Jamf Pro password used for authentication when auth_method is 'basic'."
   sensitive   = true
   default     = ""
 }
 
 variable "enable_client_sdk_logs" {
-  description = "Enable client SDK logs."
+  description = "Debug option to propogate logs from the SDK and HttpClient"
   default     = false
 }
 
@@ -82,12 +82,12 @@ variable "client_sdk_log_export_path" {
 }
 
 variable "jamfpro_hide_sensitive_data" {
-  description = "Define whether sensitive fields should be hidden in logs."
+  description = "Define whether sensitive fields should be hidden in logs. Default to hiding sensitive data in logs"
   default     = true
 }
 
 variable "jamfpro_custom_cookies" {
-  description = "Custom cookies for the HTTP client."
+  description = "Persistent custom cookies used by HTTP Client in all requests."
   type = list(object({
     name  = string
     value = string
@@ -96,7 +96,7 @@ variable "jamfpro_custom_cookies" {
 }
 
 variable "jamfpro_jamf_load_balancer_lock" {
-  description = "Programmatically determines all available web app members in the load balancer and locks all instances of httpclient to the app for faster executions."
+  description = "Programatically determines all available web app members in the load balancer and locks all instances of httpclient to the app for faster executions."
   default     = true
 }
 
@@ -116,7 +116,7 @@ variable "jamfpro_mandatory_request_delay_milliseconds" {
 
 ### Optional
 
-- `auth_method` (String) Auth method chosen for Jamf.
+- `auth_method` (String) The auth method chosen for interacting with Jamf Pro. Options are 'basic' for username/password or 'oauth2' for client id/secret.
 - `basic_auth_password` (String, Sensitive) The Jamf Pro password used for authentication when auth_method is 'basic'.
 - `basic_auth_username` (String) The Jamf Pro username used for authentication when auth_method is 'basic'.
 - `client_id` (String) The Jamf Pro Client ID for authentication when auth_method is 'oauth2'.
@@ -126,7 +126,7 @@ variable "jamfpro_mandatory_request_delay_milliseconds" {
 - `enable_client_sdk_logs` (Boolean) Debug option to propogate logs from the SDK and HttpClient
 - `hide_sensitive_data` (Boolean) Define whether sensitive fields should be hidden in logs. Default to hiding sensitive data in logs
 - `jamfpro_instance_fqdn` (String) The Jamf Pro FQDN (fully qualified domain name). example: https://mycompany.jamfcloud.com
-- `jamfpro_load_balancer_lock` (Boolean) Programatically determines all available web app members in the load balance and locks all instances of httpclient to the app for faster executions. 
+- `jamfpro_load_balancer_lock` (Boolean) Programatically determines all available web app members in the load balancer and locks all instances of httpclient to the app for faster executions. 
 TEMP SOLUTION UNTIL JAMF PROVIDES SOLUTION
 - `mandatory_request_delay_milliseconds` (Number) A mandatory delay after each request before returning to reduce high volume of requests in a short time
 - `token_refresh_buffer_period_seconds` (Number) The buffer period in seconds for token refresh.

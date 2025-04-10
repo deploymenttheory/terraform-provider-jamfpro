@@ -4,6 +4,8 @@ package policies
 // TODO maybe review error handling here too?
 
 import (
+	"fmt"
+	"log"
 	"reflect"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -112,43 +114,96 @@ func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *d
 
 }
 
-// setGeneralDateTimeLimitations is a helper function to set the date_time_limitations block under general
+// setGeneralDateTimeLimitations updates the Terraform state for date_time_limitations during Read.
+// it supports two scenarios with or without the hcl block defineds. if the block is not in hcl it will
+// ignore entirely. in scenario 2 it will state the block but, as usual, since there's an issue with the GET
+// on the api, for the fields "no_execute_start" , and "no_execute_end" , we have to extract these values from
+// the HCL directly and state those.
 func setGeneralDateTimeLimitations(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
-	if resp.General.DateTimeLimitations == nil {
-		return
-	}
+	// Check if the block is defined in the HCL configuration (current state)
+	hclBlockRaw, hclBlockExists := d.GetOk("date_time_limitations")
 
-	// Check if all values are at their default (empty string or zero value)
-	v := reflect.ValueOf(*resp.General.DateTimeLimitations)
-	allDefault := true
-
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		if (field.Kind() == reflect.String && field.String() != "") ||
-			(field.Kind() == reflect.Int && field.Int() != 0) {
-			allDefault = false
-			break
+	// --- Scenario 1: Block NOT defined in HCL ---
+	if !hclBlockExists {
+		log.Printf("[DEBUG] setGeneralDateTimeLimitations: Block 'date_time_limitations' not configured in HCL. Ensuring state is nil.")
+		if err := d.Set("date_time_limitations", nil); err != nil {
+			*diags = append(*diags, diag.FromErr(fmt.Errorf("failed to unset date_time_limitations in state: %w", err))...)
 		}
-	}
-
-	if allDefault {
 		return
 	}
 
-	// Otherwise, proceed to set the date_time_limitations block
-	dateTimeLimitations := make(map[string]interface{})
-	dateTimeLimitations["activation_date"] = resp.General.DateTimeLimitations.ActivationDate
-	dateTimeLimitations["activation_date_epoch"] = resp.General.DateTimeLimitations.ActivationDateEpoch
-	dateTimeLimitations["activation_date_utc"] = resp.General.DateTimeLimitations.ActivationDateUTC
-	dateTimeLimitations["expiration_date"] = resp.General.DateTimeLimitations.ExpirationDate
-	dateTimeLimitations["expiration_date_epoch"] = resp.General.DateTimeLimitations.ExpirationDateEpoch
-	dateTimeLimitations["expiration_date_utc"] = resp.General.DateTimeLimitations.ExpirationDateUTC
-	dateTimeLimitations["no_execute_start"] = resp.General.DateTimeLimitations.NoExecuteStart
-	dateTimeLimitations["no_execute_end"] = resp.General.DateTimeLimitations.NoExecuteEnd
+	// --- Scenario 2: Block IS defined in HCL ---
+	log.Printf("[DEBUG] setGeneralDateTimeLimitations: Block 'date_time_limitations' is configured in HCL. Populating state using API and HCL overrides.")
 
-	err := d.Set("date_time_limitations", []interface{}{dateTimeLimitations})
+	newStateMap := make(map[string]interface{})
+	apiBlock := resp.General.DateTimeLimitations
+
+	if apiBlock != nil {
+		newStateMap["activation_date"] = apiBlock.ActivationDate
+		newStateMap["activation_date_epoch"] = int(apiBlock.ActivationDateEpoch)
+		newStateMap["activation_date_utc"] = apiBlock.ActivationDateUTC
+		newStateMap["expiration_date"] = apiBlock.ExpirationDate
+		newStateMap["expiration_date_epoch"] = int(apiBlock.ExpirationDateEpoch)
+		newStateMap["expiration_date_utc"] = apiBlock.ExpirationDateUTC
+
+		var noExecuteOnItems []interface{}
+		if apiBlock.NoExecuteOn != nil {
+			noExecuteOnItems = make([]interface{}, len(apiBlock.NoExecuteOn))
+			for i, day := range apiBlock.NoExecuteOn {
+				noExecuteOnItems[i] = day
+			}
+		} else {
+			noExecuteOnItems = []interface{}{}
+		}
+
+		newStateMap["no_execute_on"] = schema.NewSet(schema.HashString, noExecuteOnItems)
+
+		// Set start/end from API initially (will be overwritten by HCL values next)
+		newStateMap["no_execute_start"] = apiBlock.NoExecuteStart
+		newStateMap["no_execute_end"] = apiBlock.NoExecuteEnd
+		log.Printf("[DEBUG] setGeneralDateTimeLimitations: Populated map with API data: %+v", newStateMap)
+
+	} else {
+		newStateMap["activation_date"] = ""
+		newStateMap["activation_date_epoch"] = 0
+		newStateMap["activation_date_utc"] = ""
+		newStateMap["expiration_date"] = ""
+		newStateMap["expiration_date_epoch"] = 0
+		newStateMap["expiration_date_utc"] = ""
+		newStateMap["no_execute_start"] = ""
+		newStateMap["no_execute_end"] = ""
+		newStateMap["no_execute_on"] = schema.NewSet(schema.HashString, []interface{}{})
+		log.Printf("[DEBUG] setGeneralDateTimeLimitations: API did not return date_time_limitations block. Initialized state map with defaults.")
+	}
+
+	var hclStartValue string = ""
+	var hclEndValue string = ""
+
+	hclList, listOk := hclBlockRaw.([]interface{})
+	if listOk && len(hclList) > 0 && hclList[0] != nil {
+		hclMap, mapOk := hclList[0].(map[string]interface{})
+		if mapOk {
+			if val, ok := hclMap["no_execute_start"].(string); ok {
+				hclStartValue = val
+			}
+			if val, ok := hclMap["no_execute_end"].(string); ok {
+				hclEndValue = val
+			}
+			log.Printf("[DEBUG] Extracted from HCL state: no_execute_start='%s', no_execute_end='%s'", hclStartValue, hclEndValue)
+		} else {
+			log.Printf("[WARN] Could not read HCL date_time_limitations block as map during state setting.")
+		}
+	} else {
+		log.Printf("[WARN] HCL date_time_limitations block exists but is not a valid list or is empty during state setting.")
+	}
+
+	newStateMap["no_execute_start"] = hclStartValue
+	newStateMap["no_execute_end"] = hclEndValue
+
+	log.Printf("[DEBUG] Setting final date_time_limitations state: %+v", newStateMap)
+	err := d.Set("date_time_limitations", []interface{}{newStateMap})
 	if err != nil {
-		*diags = append(*diags, diag.FromErr(err)...)
+		*diags = append(*diags, diag.Errorf("Failed to set date_time_limitations in state: %s", err)...)
 	}
 }
 

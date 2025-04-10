@@ -118,7 +118,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 		ReadContext:   resourceJamfProMacOSConfigurationProfilesPlistGeneratorReadWithCleanup,
 		UpdateContext: resourceJamfProMacOSConfigurationProfilesPlistGeneratorUpdate,
 		DeleteContext: resourceJamfProMacOSConfigurationProfilesPlistGeneratorDelete,
-		//CustomizeDiff: mainCustomDiffFunc,
+		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(70 * time.Second),

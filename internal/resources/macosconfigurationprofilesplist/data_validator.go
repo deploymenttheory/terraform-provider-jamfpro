@@ -1,4 +1,3 @@
-// macosconfigurationprofilesplist_data_validator.go
 package macosconfigurationprofilesplist
 
 import (
@@ -21,14 +20,13 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 			return err
 		}
 
-		if err := validateDistributionMethod(ctx, diff, i); err != nil {
-			return err
-		}
-
 		if err := validatePlistPayloadScope(ctx, diff, i); err != nil {
 			return err
 		}
+	}
 
+	if err := validateDistributionMethod(ctx, diff, i); err != nil {
+		return err
 	}
 
 	if err := validateSelfServiceCategories(ctx, diff, i); err != nil {

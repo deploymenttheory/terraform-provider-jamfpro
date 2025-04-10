@@ -1,4 +1,3 @@
-// macosconfigurationprofilesplist_data_source.go
 package macosconfigurationprofilesplist
 
 import (
@@ -74,6 +73,12 @@ func DataSourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 					"occurs. This is always 'Newly Assigned' on new profile objects, but may be set to 'All'" +
 					"on profile update requests once the configuration profile has been deployed to at least" +
 					" one device.",
+			},
+			"scope": {
+				Type:        schema.TypeList,
+				Description: "The scope of the configuration profile.",
+				Computed:    true,
+				Elem:        sharedschemas.GetSharedmacOSComputerSchemaScope(),
 			},
 			"self_service": {
 				Type:        schema.TypeList,

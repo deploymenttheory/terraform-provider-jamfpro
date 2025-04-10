@@ -9,16 +9,52 @@ description: |-
 
 ## Example Usage
 ```terraform
-data "jamfpro_macos_configuration_profile" "jamfpro_macos_configuration_profile_001_data" {
-  id = jamfpro_macos_configuration_profile.jamfpro_macos_configuration_profile_001.id
+# Test data source by ID
+data "jamfpro_macos_configuration_profile_plist" "test_by_id" {
+  id = jamfpro_macos_configuration_profile_plist.privacy_preferences_policy_control.id
 }
 
-output "jamfpro_macos_configuration_profile_001_data_id" {
-  value = data.jamfpro_macos_configuration_profile.jamfpro_macos_configuration_profile_001_data.id
+# Test data source by name
+data "jamfpro_macos_configuration_profile_plist" "test_by_name" {
+  name = jamfpro_macos_configuration_profile_plist.privacy_preferences_policy_control.name
 }
 
-output "jamfpro_macos_configuration_profile_001_data_name" {
-  value = data.jamfpro_macos_configuration_profile.jamfpro_macos_configuration_profile_001_data.name
+# Outputs for ID-based lookup
+output "profile_by_id" {
+  value = {
+    id                  = data.jamfpro_macos_configuration_profile_plist.test_by_id.id
+    name                = data.jamfpro_macos_configuration_profile_plist.test_by_id.name
+    description         = data.jamfpro_macos_configuration_profile_plist.test_by_id.description
+    uuid                = data.jamfpro_macos_configuration_profile_plist.test_by_id.uuid
+    site_id             = data.jamfpro_macos_configuration_profile_plist.test_by_id.site_id
+    category_id         = data.jamfpro_macos_configuration_profile_plist.test_by_id.category_id
+    distribution_method = data.jamfpro_macos_configuration_profile_plist.test_by_id.distribution_method
+    user_removable      = data.jamfpro_macos_configuration_profile_plist.test_by_id.user_removable
+    level               = data.jamfpro_macos_configuration_profile_plist.test_by_id.level
+    redeploy_on_update  = data.jamfpro_macos_configuration_profile_plist.test_by_id.redeploy_on_update
+    payloads            = data.jamfpro_macos_configuration_profile_plist.test_by_id.payloads
+    scope               = data.jamfpro_macos_configuration_profile_plist.test_by_id.scope
+    self_service        = length(data.jamfpro_macos_configuration_profile_plist.test_by_id.self_service) > 0 ? data.jamfpro_macos_configuration_profile_plist.test_by_id.self_service : null
+  }
+}
+
+# Outputs for name-based lookup
+output "profile_by_name" {
+  value = {
+    id                  = data.jamfpro_macos_configuration_profile_plist.test_by_name.id
+    name                = data.jamfpro_macos_configuration_profile_plist.test_by_name.name
+    description         = data.jamfpro_macos_configuration_profile_plist.test_by_name.description
+    uuid                = data.jamfpro_macos_configuration_profile_plist.test_by_name.uuid
+    site_id             = data.jamfpro_macos_configuration_profile_plist.test_by_name.site_id
+    category_id         = data.jamfpro_macos_configuration_profile_plist.test_by_name.category_id
+    distribution_method = data.jamfpro_macos_configuration_profile_plist.test_by_name.distribution_method
+    user_removable      = data.jamfpro_macos_configuration_profile_plist.test_by_name.user_removable
+    level               = data.jamfpro_macos_configuration_profile_plist.test_by_name.level
+    redeploy_on_update  = data.jamfpro_macos_configuration_profile_plist.test_by_name.redeploy_on_update
+    payloads            = data.jamfpro_macos_configuration_profile_plist.test_by_name.payloads
+    scope               = data.jamfpro_macos_configuration_profile_plist.test_by_name.scope
+    self_service        = length(data.jamfpro_macos_configuration_profile_plist.test_by_name.self_service) > 0 ? data.jamfpro_macos_configuration_profile_plist.test_by_name.self_service : null
+  }
 }
 ```
 
@@ -40,6 +76,7 @@ output "jamfpro_macos_configuration_profile_001_data_name" {
 - `level` (String) The deployment level of the configuration profile. Available options are: 'User' or 'System'. Note: 'System' is mapped to 'Computer Level' in the Jamf Pro GUI.
 - `payloads` (String) The macOS configuration profile payload. Can be a file path to a .mobileconfig or a string with an embedded mobileconfig plist.Jamf Pro stores configuration profiles as XML property lists (plists).
 - `redeploy_on_update` (String) Defines the redeployment behaviour when an update to a macOS config profileoccurs. This is always 'Newly Assigned' on new profile objects, but may be set to 'All'on profile update requests once the configuration profile has been deployed to at least one device.
+- `scope` (List of Object) The scope of the configuration profile. (see [below for nested schema](#nestedatt--scope))
 - `self_service` (List of Object) Self Service Configuration (see [below for nested schema](#nestedatt--self_service))
 - `user_removable` (Boolean) Whether the configuration profile is user removeable or not.
 - `uuid` (String) The universally unique identifier for the profile.
@@ -50,6 +87,51 @@ output "jamfpro_macos_configuration_profile_001_data_name" {
 Optional:
 
 - `read` (String)
+
+
+<a id="nestedatt--scope"></a>
+### Nested Schema for `scope`
+
+Read-Only:
+
+- `all_computers` (Boolean)
+- `all_jss_users` (Boolean)
+- `building_ids` (Set of Number)
+- `computer_group_ids` (Set of Number)
+- `computer_ids` (Set of Number)
+- `department_ids` (Set of Number)
+- `exclusions` (List of Object) (see [below for nested schema](#nestedobjatt--scope--exclusions))
+- `jss_user_group_ids` (Set of Number)
+- `jss_user_ids` (Set of Number)
+- `limitations` (List of Object) (see [below for nested schema](#nestedobjatt--scope--limitations))
+
+<a id="nestedobjatt--scope--exclusions"></a>
+### Nested Schema for `scope.exclusions`
+
+Read-Only:
+
+- `building_ids` (Set of Number)
+- `computer_group_ids` (Set of Number)
+- `computer_ids` (Set of Number)
+- `department_ids` (Set of Number)
+- `directory_service_or_local_usernames` (Set of String)
+- `directory_service_usergroup_ids` (Set of Number)
+- `ibeacon_ids` (Set of Number)
+- `jss_user_group_ids` (Set of Number)
+- `jss_user_ids` (Set of Number)
+- `network_segment_ids` (Set of Number)
+
+
+<a id="nestedobjatt--scope--limitations"></a>
+### Nested Schema for `scope.limitations`
+
+Read-Only:
+
+- `directory_service_or_local_usernames` (Set of String)
+- `directory_service_usergroup_ids` (Set of Number)
+- `ibeacon_ids` (Set of Number)
+- `network_segment_ids` (Set of Number)
+
 
 
 <a id="nestedatt--self_service"></a>
