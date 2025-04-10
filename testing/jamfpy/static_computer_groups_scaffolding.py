@@ -56,7 +56,7 @@ def create_computer_config(computer_name,site_id, site_name):
             <management_password>string</management_password>
         </remote_management>
         <site>
-            <id>-{site_id}</id>
+            <id>{site_id}</id>
             <name>{site_name}</name>
         </site>
     </general>
