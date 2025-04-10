@@ -7,6 +7,6 @@
 
 * @ShocOne
 
-.azuredevops/** @ShocOne
-.github/** @ShocOne
-.pipelines/** @ShocOne
+.azuredevops/** @provider-maintainers
+.github/** @provider-maintainers
+.pipelines/** @provider-maintainers
