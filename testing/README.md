@@ -1,5 +1,5 @@
 # Provider Testing
-
+**PLEASE NOTE at 23:59 a wipe job is performed on all testing objects. Tests run at this time will most likely fail.**
 ## Environment
 ### Running the tests
 
