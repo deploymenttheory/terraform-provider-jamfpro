@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths-ignore:
-      - '.github/**/*'
+      # - '.github/**/*'
       - 'scripts/**/*'
   workflow_dispatch:
 
@@ -20,7 +20,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4.2.2
       with:
-        ref: ${{ github.event.pull_request.head.ref }}
+        ref: refs/pull/${{ github.event.pull_request.number }}/head
         
     - uses: actions/setup-go@v5.4.0
       with:
