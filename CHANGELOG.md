@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.18.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.18.0...v0.18.1) (2025-04-11)
+
+
+### Features
+
+* Add departments, categories, and computer groups tests, Adding collision avoidance, Add scaffolding infra ([#652](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/652)) ([52f993a](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/52f993abd9248a861c9b554fb394213868f51f4a))
+
+
+### Bug Fixes
+
+* Add flushSoftwareUpdatePlans bool to jamfpro_user_initiated_enrollment_settings ([aed4a97](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/aed4a977a865719ec2d94da6b3863cd052dd06e5))
+* Add flushSoftwareUpdatePlans bool to jamfpro_user_initiated_enrollment_settings gh[#666](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/666) ([639a6f0](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/639a6f0103907b3b49e3bd152ff65f6be7aa2ba9))
+* broken ref for checking out forked prs in quality gate pipelines ([#668](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/668)) ([b0c716e](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/b0c716ee08620acddd4a8a2db1d3a63846827f43))
+* Correct schema item names in local_admin_password_settings resource ([#667](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/667)) ([4f13dad](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/4f13dad16066886dde6ead1343950b18eea23154))
+* hotfix. added comma in resource, slice syntax was invalid ([390eda4](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/390eda4470d76e3c56be7f7851fcff8b9ef15d35))
+* remove broken pipeline ([#671](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/671)) ([0684460](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/06844605d1a239b3e13b0f0fc777f56ea931fe02))
+* remove debug commented line ([#672](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/672)) ([56d3324](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/56d33240427d67ee178d0cc67fabcc9f0f745a9f))
+* resolved example. wrongly updating ([47ca1c5](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/47ca1c5e51d694da3ef9eb6c4d9b1a105b5d6b6e))
+* update code owners ([#676](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/676)) ([c25b720](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/c25b720460228299c5b022c9d491c11e7fdf0f05))
+* Update owners ([#675](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/675)) ([0c25b04](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/0c25b04d44806ad94637123ac72bafae3d6cf829))
+* updated advancedmobiledevicesearches/resource.go to support device group membership criteria ([44a2b2c](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/44a2b2c20324ccdaac067b0c08b540c324a33008))
+
 ## [0.18.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.17.0...v0.18.0) (2025-04-09)
 
 
