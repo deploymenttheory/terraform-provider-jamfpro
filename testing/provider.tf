@@ -93,6 +93,11 @@ variable "jamfpro_mandatory_request_delay_milliseconds" {
   default     = 100
 }
 
+variable "testing_id" {
+  description = "Unique runtime id to differentiate testing objects between runs to avoid conflicts during cleanup phase"
+  type        = string
+}
+
 
 resource "random_id" "rng" {
   keepers = {
