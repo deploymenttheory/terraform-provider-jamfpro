@@ -206,6 +206,7 @@ resource "jamfpro_user_initiated_enrollment_settings" "jamfpro_uie_settings" {
 - `flush_location_information` (Boolean) Whether to flush location information during re-enrollment
 - `flush_mdm_commands_on_reenroll` (String) Determines which MDM commands to flush during re-enrollment
 - `flush_policy_history` (Boolean) Whether to flush policy history during re-enrollment
+- `flush_software_update_plans` (Boolean) Whether to flush software update plans during re-enrollment
 - `messaging` (Block Set) Localized text configuration for enrollment pages and messages (see [below for nested schema](#nestedblock--messaging))
 - `restrict_reenrollment_to_authorized_users_only` (Boolean) Maps to payload field 'restrictReenrollment'.Restrict re-enrollment to authorized users only by only allowing re-enrollment of mobile devices and computers if the user has the applicable privilege (“Mobile Devices” or “Computers”) or their username matches the Username field in User and Location information.
 - `skip_certificate_installation_during_enrollment` (Boolean) Maps to payload field 'installSingleProfile'. Certificate installation step is skipped during enrollment if your environment has an SSL certificate that was obtained from an internal CA or a trusted third-party vendor.

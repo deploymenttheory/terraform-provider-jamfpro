@@ -20,6 +20,7 @@ func constructEnrollmentSettings(d *schema.ResourceData) (*jamfpro.ResourceEnrol
 		FlushLocationHistoryInformation: d.Get("flush_location_history_information").(bool),
 		FlushPolicyHistory:              d.Get("flush_policy_history").(bool),
 		FlushExtensionAttributes:        d.Get("flush_extension_attributes").(bool),
+		FlushSoftwareUpdatePlans:        d.Get("flush_software_update_plans").(bool),
 		FlushMdmCommandsOnReenroll:      d.Get("flush_mdm_commands_on_reenroll").(string),
 	}
 

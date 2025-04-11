@@ -24,6 +24,7 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 		"flush_location_history_information":              enrollment.FlushLocationHistoryInformation,
 		"flush_policy_history":                            enrollment.FlushPolicyHistory,
 		"flush_extension_attributes":                      enrollment.FlushExtensionAttributes,
+		"flush_software_update_plans":                     enrollment.FlushSoftwareUpdatePlans,
 		"flush_mdm_commands_on_reenroll":                  enrollment.FlushMdmCommandsOnReenroll,
 	}
 	for key, val := range generalSettings {
