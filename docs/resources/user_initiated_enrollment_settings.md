@@ -20,6 +20,7 @@ resource "jamfpro_user_initiated_enrollment_settings" "jamfpro_uie_settings" {
   flush_location_history_information = true
   flush_policy_history               = true
   flush_extension_attributes         = true
+  flush_software_update_plans        = true
   flush_mdm_commands_on_reenroll     = "DELETE_EVERYTHING"
 
   # Third-party MDM signing certificate
