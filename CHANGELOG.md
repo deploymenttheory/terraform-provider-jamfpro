@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.2](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.18.1...v0.18.2) (2025-04-11)
+
+
+### Bug Fixes
+
+* schedule not triggering cleanup pipeline ([#682](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/682)) ([0e5b5f9](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/0e5b5f9d23c480c5ef7e37d1df27a7c799694a1d))
+
 ## [0.18.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.18.0...v0.18.1) (2025-04-11)
 
 
