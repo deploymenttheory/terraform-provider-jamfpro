@@ -70,7 +70,8 @@ func ResourceJamfProAdvancedMobileDeviceSearches() *schema.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"is", "is not", "like", "not like", "has", "does not have",
-								"greater than", "less than", "greater than or equal", "less than or equal", "matches regex", "does not match regex",
+								"greater than", "less than", "greater than or equal", "less than or equal", 
+								"matches regex", "does not match regex", "member of", "not member of"
 							}, false),
 							Description: "Type of search to perform",
 						},
