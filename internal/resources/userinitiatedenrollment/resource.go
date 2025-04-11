@@ -557,6 +557,12 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 				Default:     false,
 				Description: "Whether to flush extension attributes during re-enrollment",
 			},
+			"flush_software_update_plans": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Whether to flush software update plans during re-enrollment",
+			},
 			"flush_mdm_commands_on_reenroll": {
 				Type:         schema.TypeString,
 				Optional:     true,
