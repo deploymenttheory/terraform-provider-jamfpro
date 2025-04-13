@@ -1,4 +1,4 @@
-module github.com/deploymenttheory/terraform-provider-jamfpro
+module github.com/neilmartin83/terraform-provider-jamfpro
 
 go 1.23.0
 
