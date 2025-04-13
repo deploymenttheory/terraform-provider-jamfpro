@@ -7,8 +7,8 @@ import (
 	"flag"
 	"log"
 
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/provider"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
-	"github.com/neilmartin83/terraform-provider-jamfpro/internal/provider"
 )
 
 // Run "go generate" to format example terraform files and generate the docs for the registry/website
