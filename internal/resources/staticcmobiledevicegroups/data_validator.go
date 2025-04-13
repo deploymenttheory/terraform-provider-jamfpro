@@ -1,0 +1,2 @@
+// staticmobiledevicegroup_data_validator.go
+package staticmobiledevicegroups
