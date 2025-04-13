@@ -2,6 +2,8 @@ module github.com/deploymenttheory/terraform-provider-jamfpro
 
 go 1.23.0
 
+replace github.com/deploymenttheory/terraform-provider-jamfpro => ./
+
 toolchain go1.23.3
 
 // Direct
