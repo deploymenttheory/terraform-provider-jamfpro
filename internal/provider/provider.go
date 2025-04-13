@@ -433,7 +433,7 @@ func Provider() *schema.Provider {
 			"jamfpro_smart_computer_group":                        smartcomputergroups.ResourceJamfProSmartComputerGroups(),
 			"jamfpro_smart_mobile_device_group":                   smartmobiledevicegroups.ResourceJamfProSmartMobileGroups(),
 			"jamfpro_static_computer_group":                       staticcomputergroups.ResourceJamfProStaticComputerGroups(),
-			"jamfpro_static_mobile_device_group":                  staticmobiledevicegroups.DataSourceJamfProStaticMobileDeviceGroups(),
+			"jamfpro_static_mobile_device_group":                  staticmobiledevicegroups.ResourceJamfProStaticMobileDeviceGroups(),
 			"jamfpro_restricted_software":                         restrictedsoftware.ResourceJamfProRestrictedSoftwares(),
 			"jamfpro_user_initiated_enrollment_settings":          userinitiatedenrollment.ResourceJamfProUserInitatedEnrollmentSettings(),
 			"jamfpro_user_group":                                  usergroups.ResourceJamfProUserGroups(),
