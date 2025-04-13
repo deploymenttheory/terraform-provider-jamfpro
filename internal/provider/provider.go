@@ -57,13 +57,13 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/smartmobiledevicegroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/smtpserver"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/staticcomputergroups"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/staticmobiledevicegroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/usergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/userinitiatedenrollment"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/webhooks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/neilmartin83/terraform-provider-jamfpro/internal/resources/staticmobiledevicegroups"
 	"go.uber.org/zap"
 )
 
