@@ -1,42 +1,42 @@
 name: "Terraform Test Object Nightly Cleanup"
 run-name: "Terraform Test Object Nightly Cleanup"
 on:
-    schedule:
-        - cron: "59 23 * * *"
-    workflow_dispatch:
+  schedule:
+    - cron: '59 23 * * *'
+  workflow_dispatch:
 
 
 jobs:
-    Run-Nightly-Cleanup:
-        environment: terraform-integration-testing
-        runs-on: ubuntu-latest
-        concurrency:
-          group: sandbox_interfacing_testing_environment
-          cancel-in-progress: false
-        steps:
-          - name: Checkout Terraform Repository
-            uses: actions/checkout@v4
-            with:
-                repository: deploymenttheory/terraform-provider-jamfpro
-                ref: main 
-                path: terraform-provider-jamfpro
+  Run-Nightly-Cleanup:
+    environment: terraform-integration-testing
+    runs-on: ubuntu-latest
+    concurrency:
+      group: sandbox_interfacing_testing_environment
+      cancel-in-progress: false
+    steps:
+      - name: Checkout Terraform Repository
+        uses: actions/checkout@v4
+        with:
+          repository: deploymenttheory/terraform-provider-jamfpro
+          ref: main 
+          path: terraform-provider-jamfpro
 
-          - name: Set up Python
-            uses: actions/setup-python@v5.5.0
-            
-          - name: Set up Python Environment
-            run: |
-                pip install -r ./terraform-provider-jamfpro/testing/requirements.txt
-          
-          - name: Build .env File
-            run: |
-                cd ./terraform-provider-jamfpro/testing/jamfpy
-                cat <<EOF > .env
-                CLIENT_ID="${{ secrets.TESTING_CLIENT_ID }}"
-                CLIENT_SEC="${{ secrets.TESTING_CLIENT_SECRET }}"
-                EOF
+      - name: Set up Python
+        uses: actions/setup-python@v5.5.0
+        
+      - name: Set up Python Environment
+        run: |
+          pip install -r ./terraform-provider-jamfpro/testing/requirements.txt
+      
+      - name: Build .env File
+        run: |
+          cd ./terraform-provider-jamfpro/testing/jamfpy
+          cat <<EOF > .env
+          CLIENT_ID="${{ secrets.TESTING_CLIENT_ID }}"
+          CLIENT_SEC="${{ secrets.TESTING_CLIENT_SECRET }}"
+          EOF
 
-          - name: Run full cleanup
-            run: |
-                cd ./terraform-provider-jamfpro/testing/jamfpy
-                python clean_up.py -f
+      - name: Run full cleanup
+        run: |
+          cd ./terraform-provider-jamfpro/testing/jamfpy
+          python clean_up.py -f
