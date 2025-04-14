@@ -68,12 +68,6 @@ jobs:
         
       - name: Build TFVARS File
         run: |
-          if [[ "x${{ secrets.TESTING_CLIENT_ID }}" == "xval" ]]; then
-            echo "Access to secrets"
-          else
-            echo "No access to secrets"
-            exit 1
-          fi
           cd ./terraform-provider-jamfpro/testing
           cat <<EOF > terraform.tfvars
           jamfpro_instance_fqdn="${{ secrets.TESTING_JAMFPRO_INSTANCE_FQDN }}"
