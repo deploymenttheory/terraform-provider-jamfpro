@@ -14,12 +14,25 @@ jobs:
       group: sandbox_interfacing_testing_environment
       cancel-in-progress: false
     steps:
-
+      - name: Get User Permission
+        id: checkAccess
+        uses: actions-cool/check-user-permission@v2
+        with:
+          require: write
+          username: ${{ github.triggering_actor }}
+      - name: Check User Permission
+        if: steps.checkAccess.outputs.require-result == 'false'
+        run: |
+          echo "${{ github.triggering_actor }} does not have permissions on this repo."
+          echo "Current permission level is ${{ steps.checkAccess.outputs.user-permission }}"
+          echo "Job originally triggered by ${{ github.actor }}"
+          exit 1
+          
       - name: Checkout Terraform Repository
         uses: actions/checkout@v4
         with:
           repository: deploymenttheory/terraform-provider-jamfpro
-          ref: ${{ github.event.inputs.pull_request_number }}
+          ref: ${{  github.event.pull_request.head.sha }}
           path: terraform-provider-jamfpro
 
       - name: Set up Terraform
