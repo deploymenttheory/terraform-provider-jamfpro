@@ -57,7 +57,7 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 	var targetProfile *jamfpro.ResourceJamfConnectConfigProfile
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		response, apiErr := client.GetJamfConnectConfigProfiles("")
+		response, apiErr := client.GetJamfConnectConfigProfiles(nil)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}

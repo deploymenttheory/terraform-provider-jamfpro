@@ -149,7 +149,7 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 	var currentGroups *jamfpro.ResponseAccountDrivenUserEnrollmentAccessGroupsList
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		currentGroups, apiErr = client.GetAccountDrivenUserEnrollmentAccessGroups("")
+		currentGroups, apiErr = client.GetAccountDrivenUserEnrollmentAccessGroups(nil)
 		if apiErr != nil {
 			log.Printf("[ERROR] Failed to fetch directory service groups: %v. Retrying...", apiErr)
 			return retry.RetryableError(apiErr)
@@ -303,7 +303,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		var currentGroups *jamfpro.ResponseAccountDrivenUserEnrollmentAccessGroupsList
 		err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 			var apiErr error
-			currentGroups, apiErr = client.GetAccountDrivenUserEnrollmentAccessGroups("")
+			currentGroups, apiErr = client.GetAccountDrivenUserEnrollmentAccessGroups(nil)
 			if apiErr != nil {
 				log.Printf("[WARN] Error fetching current directory service groups for deletion: %v. Retrying...", apiErr)
 				return retry.RetryableError(apiErr)
@@ -456,7 +456,7 @@ func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	var accessGroups *jamfpro.ResponseAccountDrivenUserEnrollmentAccessGroupsList
 	fetchErr := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		var apiErr error
-		accessGroups, apiErr = client.GetAccountDrivenUserEnrollmentAccessGroups("")
+		accessGroups, apiErr = client.GetAccountDrivenUserEnrollmentAccessGroups(nil)
 		if apiErr != nil {
 			if strings.Contains(apiErr.Error(), "404") {
 				log.Printf("[WARN] Received 404 fetching directory service groups. Assuming none exist.")
