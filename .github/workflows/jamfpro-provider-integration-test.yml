@@ -6,20 +6,21 @@ on:
       - main
   workflow_dispatch:
 
-    
-env: 
-  CLIENT_ID: ${{ secrets.TESTING_CLIENT_ID }}
-  CLIENT_SEC: ${{ secrets.TESTING_CLIENT_SECRET }}
-  CLIENT_FQDN: ${{ secrets.TESTING_JAMFPRO_INSTANCE_FQDN }}
-
-
 jobs:
   Run-Integration-Test:
+    
     environment: terraform-integration-testing
     runs-on: ubuntu-latest
+    
+    env: 
+      CLIENT_ID: ${{ secrets.TESTING_CLIENT_ID }}
+      CLIENT_SEC: ${{ secrets.TESTING_CLIENT_SECRET }}
+      CLIENT_FQDN: ${{ secrets.TESTING_JAMFPRO_INSTANCE_FQDN }}
+
     concurrency:
       group: sandbox_interfacing_testing_environment
       cancel-in-progress: false
+    
     steps:
       - name: Checkout Terraform Repository
         uses: actions/checkout@v4
