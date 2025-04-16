@@ -6,6 +6,13 @@ on:
       - main
   workflow_dispatch:
 
+    
+env: 
+  CLIENT_ID: ${{ secrets.TESTING_CLIENT_ID }}
+  CLIENT_SEC: ${{ secrets.TESTING_CLIENT_SECRET }}
+  CLIENT_FQDN: ${{ secrets.TESTING_JAMFPRO_INSTANCE_FQDN }}
+
+
 jobs:
   Run-Integration-Test:
     environment: terraform-integration-testing
@@ -55,22 +62,15 @@ jobs:
         run: |
           cd ./terraform-provider-jamfpro/testing
           cat <<EOF > terraform.tfvars
-          jamfpro_instance_fqdn="${{ secrets.TESTING_JAMFPRO_INSTANCE_FQDN }}"
+          jamfpro_instance_fqdn=$CLIENT_FQDN
           jamfpro_auth_method="oauth2"
-          jamfpro_client_id="${{ secrets.TESTING_CLIENT_ID }}"
-          jamfpro_client_secret="${{ secrets.TESTING_CLIENT_SECRET }}"
+          jamfpro_client_id=$CLIENT_ID
+          jamfpro_client_secret=$CLIENT_SEC
           jamfpro_token_refresh_buffer_period_seconds="30"
           jamfpro_mandatory_request_delay_milliseconds="100"
           testing_id="${{ steps.generate-uuid.outputs.uuid }}"
           EOF
-      
-      - name: Build .env File
-        run: |
-          cd ./terraform-provider-jamfpro/testing/jamfpy
-          cat <<EOF > .env
-          CLIENT_ID="${{ secrets.TESTING_CLIENT_ID }}"
-          CLIENT_SEC="${{ secrets.TESTING_CLIENT_SECRET }}"
-          EOF
+
 
       - name: Scaffolding
         run: |
