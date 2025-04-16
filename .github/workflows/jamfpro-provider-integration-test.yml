@@ -63,10 +63,10 @@ jobs:
         run: |
           cd ./terraform-provider-jamfpro/testing
           cat <<EOF > terraform.tfvars
-          jamfpro_instance_fqdn=$CLIENT_FQDN
+          jamfpro_instance_fqdn="$CLIENT_FQDN"
           jamfpro_auth_method="oauth2"
-          jamfpro_client_id=$CLIENT_ID
-          jamfpro_client_secret=$CLIENT_SEC
+          jamfpro_client_id="$CLIENT_ID"
+          jamfpro_client_secret="$CLIENT_SEC"
           jamfpro_token_refresh_buffer_period_seconds="30"
           jamfpro_mandatory_request_delay_milliseconds="100"
           testing_id="${{ steps.generate-uuid.outputs.uuid }}"
