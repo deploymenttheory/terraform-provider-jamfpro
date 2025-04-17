@@ -156,8 +156,10 @@ func validateAllComputersScope(_ context.Context, diff *schema.ResourceDiff, _ i
 	if allComputers {
 		fieldsToCheck := []string{"computer_ids", "computer_group_ids"}
 		for _, field := range fieldsToCheck {
-			if value, exists := scope[field]; exists && len(value.([]interface{})) > 0 {
-				return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': when 'all_computers' scope is set to true, '%s' should not be set", resourceName, field)
+			if value, exists := scope[field]; exists {
+				if setVal, ok := value.(*schema.Set); ok && setVal.Len() > 0 {
+					return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': when 'all_computers' scope is set to true, '%s' should not be set", resourceName, field)
+				}
 			}
 		}
 	}
@@ -173,13 +175,15 @@ func validateAllUsersScope(_ context.Context, diff *schema.ResourceDiff, _ inter
 	}
 
 	scope := scopeRaw.([]interface{})[0].(map[string]interface{})
-	allComputers := scope["all_jss_users"].(bool)
+	allJssUsers := scope["all_jss_users"].(bool)
 
-	if allComputers {
+	if allJssUsers {
 		fieldsToCheck := []string{"jss_user_ids", "jss_user_group_ids", "building_ids", "department_ids"}
 		for _, field := range fieldsToCheck {
-			if value, exists := scope[field]; exists && len(value.([]interface{})) > 0 {
-				return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': when 'all_jss_users' scope is set to true, '%s' should not be set", resourceName, field)
+			if value, exists := scope[field]; exists {
+				if setVal, ok := value.(*schema.Set); ok && setVal.Len() > 0 {
+					return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': when 'all_jss_users' scope is set to true, '%s' should not be set", resourceName, field)
+				}
 			}
 		}
 	}
