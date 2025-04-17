@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.19.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.18.1...v0.19.0) (2025-04-15)
+
+
+### Features
+
+* Resource for Static Mobile Device Groups ([#685](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/685)) ([6b636c5](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/6b636c5e2c16cd70493a4630316bfa78c14ff71d))
+
+
+### Bug Fixes
+
+* schedule not triggering cleanup pipeline ([#682](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/682)) ([0e5b5f9](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/0e5b5f9d23c480c5ef7e37d1df27a7c799694a1d))
+* SDK and other deps to latest ([#690](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/690)) ([9bb66d8](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/9bb66d8021c0304bff6cd3e46b30eb60708a21f7))
+
 ## [0.18.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.18.0...v0.18.1) (2025-04-11)
 
 
