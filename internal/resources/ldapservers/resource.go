@@ -26,6 +26,11 @@ func ResourceJamfProLDAPServers() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			// Connection fields
+			"id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The unique identifier of the LDAP server.",
+			},
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -71,7 +76,7 @@ func ResourceJamfProLDAPServers() *schema.Resource {
 						},
 						"password": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Sensitive:   true,
 							Description: "The password for the binding account.",
 						},
@@ -110,7 +115,7 @@ func ResourceJamfProLDAPServers() *schema.Resource {
 						"map_object_class_to_any_or_all": {
 							Type:        schema.TypeString,
 							Required:    true,
-							Description: "Whether objects must match any or all object classes ('Any' or 'All').",
+							Description: "Whether objects must match any or all object classes ('any' or 'all').",
 						},
 						"object_classes": {
 							Type:        schema.TypeString,
@@ -167,7 +172,7 @@ func ResourceJamfProLDAPServers() *schema.Resource {
 							Optional:    true,
 							Description: "The LDAP attribute that maps to the room.",
 						},
-						"map_telephone": {
+						"map_phone": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "The LDAP attribute that maps to the telephone number.",
@@ -197,7 +202,7 @@ func ResourceJamfProLDAPServers() *schema.Resource {
 						"map_object_class_to_any_or_all": {
 							Type:        schema.TypeString,
 							Required:    true,
-							Description: "Whether objects must match any or all object classes ('Any' or 'All').",
+							Description: "Whether objects must match any or all object classes ('any' or 'all').",
 						},
 						"object_classes": {
 							Type:        schema.TypeString,
@@ -244,7 +249,7 @@ func ResourceJamfProLDAPServers() *schema.Resource {
 						"user_group_membership_stored_in": {
 							Type:        schema.TypeString,
 							Required:    true,
-							Description: "Where group membership is stored ('User' or 'Group').",
+							Description: "Where group membership is stored ('user object' or 'group object').",
 						},
 						"map_group_membership_to_user_field": {
 							Type:        schema.TypeString,
@@ -266,10 +271,15 @@ func ResourceJamfProLDAPServers() *schema.Resource {
 							Optional:    true,
 							Description: "Whether to recursively look up nested group memberships.",
 						},
-						"map_user_membership_to_group_field": {
+						"group_membership_enabled_when_user_membership_selected": {
 							Type:        schema.TypeBool,
 							Optional:    true,
-							Description: "Whether to map user membership to a group field.",
+							Description: "Whether group membership is enabled when user membership is selected.",
+						},
+						"map_user_membership_to_group_field": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "The user attribute that contains group membership information.",
 						},
 						"map_user_membership_use_dn": {
 							Type:        schema.TypeBool,
@@ -283,12 +293,12 @@ func ResourceJamfProLDAPServers() *schema.Resource {
 						},
 						"object_classes": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Description: "The object classes used for membership mapping.",
 						},
 						"search_base": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
 							Description: "The base DN for membership searches.",
 						},
 						"search_scope": {

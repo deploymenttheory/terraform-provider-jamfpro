@@ -79,7 +79,7 @@ func constructUserMappings(d *schema.ResourceData) jamfpro.LDAPServerSubsetMappi
 			MapDepartment:            mappingMap["map_department"].(string),
 			MapBuilding:              mappingMap["map_building"].(string),
 			MapRoom:                  mappingMap["map_room"].(string),
-			MapTelephone:             mappingMap["map_telephone"].(string),
+			MapPhone:                 mappingMap["map_phone"].(string),
 			MapPosition:              mappingMap["map_position"].(string),
 			MapUserUUID:              mappingMap["map_user_uuid"].(string),
 		}
@@ -107,21 +107,22 @@ func constructUserGroupMembershipMappings(d *schema.ResourceData) jamfpro.LDAPSe
 	if v, ok := d.GetOk("user_group_membership_mappings"); ok && len(v.([]interface{})) > 0 {
 		mappingMap := v.([]interface{})[0].(map[string]interface{})
 		return jamfpro.LDAPServerSubsetMappingUserGroupMemberships{
-			UserGroupMembershipStoredIn:       mappingMap["user_group_membership_stored_in"].(string),
-			MapGroupMembershipToUserField:     mappingMap["map_group_membership_to_user_field"].(string),
-			AppendToUsername:                  mappingMap["append_to_username"].(string),
-			UseDN:                             mappingMap["use_dn"].(bool),
-			RecursiveLookups:                  mappingMap["recursive_lookups"].(bool),
-			MapUserMembershipToGroupField:     mappingMap["map_user_membership_to_group_field"].(bool),
-			MapUserMembershipUseDN:            mappingMap["map_user_membership_use_dn"].(bool),
-			MapObjectClassToAnyOrAll:          mappingMap["map_object_class_to_any_or_all"].(string),
-			ObjectClasses:                     mappingMap["object_classes"].(string),
-			SearchBase:                        mappingMap["search_base"].(string),
-			SearchScope:                       mappingMap["search_scope"].(string),
-			Username:                          mappingMap["username"].(string),
-			GroupID:                           mappingMap["group_id"].(string),
-			UserGroupMembershipUseLDAPCompare: mappingMap["user_group_membership_use_ldap_compare"].(bool),
-			//MembershipScopingOptimization:     mappingMap["membership_scoping_optimization"].(bool),
+			UserGroupMembershipStoredIn:   mappingMap["user_group_membership_stored_in"].(string),
+			MapGroupMembershipToUserField: mappingMap["map_group_membership_to_user_field"].(string),
+			AppendToUsername:              mappingMap["append_to_username"].(string),
+			UseDN:                         mappingMap["use_dn"].(bool),
+			RecursiveLookups:              mappingMap["recursive_lookups"].(bool),
+			GroupMembershipEnabledWhenUserMembershipSelected: mappingMap["group_membership_enabled_when_user_membership_selected"].(bool),
+			MapUserMembershipToGroupField:                    mappingMap["map_user_membership_to_group_field"].(string),
+			MapUserMembershipUseDN:                           mappingMap["map_user_membership_use_dn"].(bool),
+			MapObjectClassToAnyOrAll:                         mappingMap["map_object_class_to_any_or_all"].(string),
+			ObjectClasses:                                    mappingMap["object_classes"].(string),
+			SearchBase:                                       mappingMap["search_base"].(string),
+			SearchScope:                                      mappingMap["search_scope"].(string),
+			Username:                                         mappingMap["username"].(string),
+			GroupID:                                          mappingMap["group_id"].(string),
+			UserGroupMembershipUseLDAPCompare:                mappingMap["user_group_membership_use_ldap_compare"].(bool),
+			MembershipScopingOptimization:                    mappingMap["membership_scoping_optimization"].(bool),
 		}
 	}
 	return jamfpro.LDAPServerSubsetMappingUserGroupMemberships{}

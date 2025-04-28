@@ -2,6 +2,8 @@
 package ldapservers
 
 import (
+	"strconv"
+
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -12,6 +14,10 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceLDAPServers) diag
 	var diags diag.Diagnostics
 
 	// Update Connection fields
+
+	if err := d.Set("id", strconv.Itoa(resp.Connection.ID)); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 	if err := d.Set("name", resp.Connection.Name); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -69,7 +75,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceLDAPServers) diag
 			"map_department":                 resp.MappingsForUsers.UserMappings.MapDepartment,
 			"map_building":                   resp.MappingsForUsers.UserMappings.MapBuilding,
 			"map_room":                       resp.MappingsForUsers.UserMappings.MapRoom,
-			"map_telephone":                  resp.MappingsForUsers.UserMappings.MapTelephone,
+			"map_phone":                      resp.MappingsForUsers.UserMappings.MapPhone,
 			"map_position":                   resp.MappingsForUsers.UserMappings.MapPosition,
 			"map_user_uuid":                  resp.MappingsForUsers.UserMappings.MapUserUUID,
 		},
@@ -97,10 +103,11 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceLDAPServers) diag
 	// Update User Group Membership Mappings
 	membershipMappings := []interface{}{
 		map[string]interface{}{
-			"user_group_membership_stored_in":        resp.MappingsForUsers.UserGroupMembershipMappings.UserGroupMembershipStoredIn,
-			"map_group_membership_to_user_field":     resp.MappingsForUsers.UserGroupMembershipMappings.MapGroupMembershipToUserField,
-			"append_to_username":                     resp.MappingsForUsers.UserGroupMembershipMappings.AppendToUsername,
-			"use_dn":                                 resp.MappingsForUsers.UserGroupMembershipMappings.UseDN,
+			"user_group_membership_stored_in":    resp.MappingsForUsers.UserGroupMembershipMappings.UserGroupMembershipStoredIn,
+			"map_group_membership_to_user_field": resp.MappingsForUsers.UserGroupMembershipMappings.MapGroupMembershipToUserField,
+			"append_to_username":                 resp.MappingsForUsers.UserGroupMembershipMappings.AppendToUsername,
+			"use_dn":                             resp.MappingsForUsers.UserGroupMembershipMappings.UseDN,
+			"group_membership_enabled_when_user_membership_selected": resp.MappingsForUsers.UserGroupMembershipMappings.GroupMembershipEnabledWhenUserMembershipSelected,
 			"recursive_lookups":                      resp.MappingsForUsers.UserGroupMembershipMappings.RecursiveLookups,
 			"map_user_membership_to_group_field":     resp.MappingsForUsers.UserGroupMembershipMappings.MapUserMembershipToGroupField,
 			"map_user_membership_use_dn":             resp.MappingsForUsers.UserGroupMembershipMappings.MapUserMembershipUseDN,
@@ -111,7 +118,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceLDAPServers) diag
 			"username":                               resp.MappingsForUsers.UserGroupMembershipMappings.Username,
 			"group_id":                               resp.MappingsForUsers.UserGroupMembershipMappings.GroupID,
 			"user_group_membership_use_ldap_compare": resp.MappingsForUsers.UserGroupMembershipMappings.UserGroupMembershipUseLDAPCompare,
-			//"membership_scoping_optimization":        resp.MappingsForUsers.UserGroupMembershipMappings.MembershipScopingOptimization,
+			"membership_scoping_optimization":        resp.MappingsForUsers.UserGroupMembershipMappings.MembershipScopingOptimization,
 		},
 	}
 	if err := d.Set("user_group_membership_mappings", membershipMappings); err != nil {
