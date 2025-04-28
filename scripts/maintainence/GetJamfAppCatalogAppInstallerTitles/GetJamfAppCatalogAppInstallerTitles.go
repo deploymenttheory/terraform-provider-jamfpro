@@ -15,7 +15,7 @@ func main() {
 		log.Fatalf("Failed to initialize Jamf Pro client: %v", err)
 	}
 
-	appInstallers, err := client.GetJamfAppCatalogAppInstallerTitles("")
+	appInstallers, err := client.GetJamfAppCatalogAppInstallerTitles(nil)
 	if err != nil {
 		log.Fatalf("Error fetching Jamf App Catalog App Installer list: %v", err)
 	}
