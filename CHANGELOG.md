@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.19.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.19.0...v0.19.1) (2025-04-17)
+
+
+### Bug Fixes
+
+* Deps for SDK, small changes to support new pagination logic ([#695](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/695)) ([bccc16d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/bccc16da787203cf3081c4673351a1dc8443b010))
+* for plist data validator to support sets rather than lists ([#693](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/693)) ([b824cee](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/b824cee85d76be295d2ecd2079ab6d284951014c))
+
 ## [0.19.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.18.1...v0.19.0) (2025-04-15)
 
 
