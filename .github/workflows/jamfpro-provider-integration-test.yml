@@ -28,7 +28,7 @@ jobs:
         uses: actions/setup-go@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5.5.0
+        uses: actions/setup-python@v5.6.0
 
       - name: Set up Python Environment
         run: |
