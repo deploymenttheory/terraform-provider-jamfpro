@@ -176,12 +176,3 @@ func skipSetupItems(skipSetupItems jamfpro.MobileDevicePrestageSubsetSkipSetupIt
 		"tap_to_setup":            skipSetupItems.TapToSetup,
 	}
 }
-
-// getHCLValue gets the value of a key from the ResourceData, either from the current state or the config.
-func getHCLValue(d *schema.ResourceData, key string) interface{} {
-	value, exists := d.GetOk(key)
-	if !exists {
-		value = d.Get(key)
-	}
-	return value
-}

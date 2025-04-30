@@ -383,6 +383,7 @@ func ResourceJamfProMobileDevicePrestageEnrollment() *schema.Resource {
 			"purchasing_information": {
 				Type:        schema.TypeList,
 				Required:    true,
+				MaxItems:    1,
 				Description: "Purchasing information associated with the mobile device prestage.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{

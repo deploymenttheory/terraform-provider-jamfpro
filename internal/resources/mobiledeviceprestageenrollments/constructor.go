@@ -7,11 +7,12 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/constructors"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceMobileDevicePrestage, error) {
-	versionLock := handleVersionLock(d.Get("version_lock"), isUpdate)
+	versionLock := constructors.HandleVersionLock(d.Get("version_lock"), isUpdate)
 
 	resource := &jamfpro.ResourceMobileDevicePrestage{
 		DisplayName:                            d.Get("display_name").(string),
@@ -155,8 +156,8 @@ func constructLocationInformation(data map[string]interface{}, isUpdate bool, ve
 		Email:        data["email"].(string),
 		Room:         data["room"].(string),
 		Position:     data["position"].(string),
-		DepartmentId: getHCLStringOrDefaultInteger(d, "department_id"),
-		BuildingId:   getHCLStringOrDefaultInteger(d, "building_id"),
+		DepartmentId: constructors.GetHCLStringOrDefaultInteger(d, "department_id"),
+		BuildingId:   constructors.GetHCLStringOrDefaultInteger(d, "building_id"),
 		ID:           "-1",
 		VersionLock:  versionLock,
 	}
@@ -180,9 +181,9 @@ func constructPurchasingInformation(data map[string]interface{}, isUpdate bool, 
 		LifeExpectancy:    data["life_expectancy"].(int),
 		PurchasingAccount: data["purchasing_account"].(string),
 		PurchasingContact: data["purchasing_contact"].(string),
-		LeaseDate:         getDateOrDefaultDate(d, "lease_date"),
-		PoDate:            getDateOrDefaultDate(d, "po_date"),
-		WarrantyDate:      getDateOrDefaultDate(d, "warranty_date"),
+		LeaseDate:         constructors.GetDateOrDefaultDate(d, "lease_date"),
+		PoDate:            constructors.GetDateOrDefaultDate(d, "po_date"),
+		WarrantyDate:      constructors.GetDateOrDefaultDate(d, "warranty_date"),
 		VersionLock:       versionLock,
 	}
 }
@@ -213,66 +214,4 @@ func constructNames(data map[string]interface{}, isUpdate bool) jamfpro.MobileDe
 	}
 
 	return names
-}
-
-// handleVersionLock manages the VersionLock field for Jamf Pro Mobile Device Prestage resources during update operations.
-//
-// Parameters:
-//   - currentVersionLock: The current version lock value as an interface{}.
-//   - isUpdate: A boolean flag indicating whether this is an update operation.
-//
-// Returns:
-//   - An integer representing the version lock to be used in the API request.
-//     For create operations (isUpdate == false), this will be 0.
-//     For update operations (isUpdate == true), this will be the incremented version lock.
-//
-// Behavior:
-//   - Create operations (isUpdate == false):
-//   - Returns 0, as version lock is not needed for create operations.
-//   - Update operations (isUpdate == true):
-//   - Attempts to convert the currentVersionLock to an integer and increment it by 1.
-//   - If conversion fails, logs a warning and returns 0.
-//
-// Error Handling:
-//   - If the currentVersionLock cannot be converted to an integer during an update operation,
-//     the function logs a warning and returns 0.
-//
-// Usage:
-//   - This function should be called for each structure within a Mobile Device Prestage
-//     resource that requires version lock handling.
-func handleVersionLock(currentVersionLock interface{}, isUpdate bool) int {
-	if !isUpdate {
-		log.Printf("[DEBUG] Create operation: Version lock not required, using 0")
-		return 0
-	}
-
-	log.Printf("[DEBUG] Update operation: Current version lock is '%v'", currentVersionLock)
-
-	versionLock, ok := currentVersionLock.(int)
-	if !ok {
-		log.Printf("[WARN] Failed to convert version lock '%v' to integer. Using 0.", currentVersionLock)
-		return 0
-	}
-
-	newVersionLock := versionLock + 1
-	log.Printf("[DEBUG] Update operation: Incrementing version lock from '%d' to '%d'", versionLock, newVersionLock)
-	return newVersionLock
-}
-
-// getHCLStringOrDefaultInteger returns the string value from the ResourceData if it exists,
-// otherwise it returns the default value "-1".
-func getHCLStringOrDefaultInteger(d *schema.ResourceData, key string) string {
-	if v, ok := d.GetOk(key); ok {
-		return v.(string)
-	}
-	return "-1"
-}
-
-// getDateOrDefaultDate returns the date string if it exists and is not empty,
-// otherwise it returns the default date "1970-01-01".
-func getDateOrDefaultDate(d *schema.ResourceData, key string) string {
-	if v, ok := d.GetOk(key); ok && v.(string) != "" {
-		return v.(string)
-	}
-	return "1970-01-01"
 }
