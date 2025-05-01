@@ -40,6 +40,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/filesharedistributionpoints"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/icons"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/jamfconnect"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/ldapservers"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/localadminpasswordsettings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macosconfigurationprofilesplist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macosconfigurationprofilesplistgenerator"
@@ -374,6 +375,7 @@ func Provider() *schema.Provider {
 			"jamfpro_disk_encryption_configuration":             diskencryptionconfigurations.DataSourceJamfProDiskEncryptionConfigurations(),
 			"jamfpro_dock_item":                                 dockitems.DataSourceJamfProDockItems(),
 			"jamfpro_file_share_distribution_point":             filesharedistributionpoints.DataSourceJamfProFileShareDistributionPoints(),
+			"jamfpro_ldap_server":                               ldapservers.DataSourceJamfProLDAPServers(),
 			"jamfpro_network_segment":                           networksegments.DataSourceJamfProNetworkSegments(),
 			"jamfpro_macos_configuration_profile_plist":         macosconfigurationprofilesplist.DataSourceJamfProMacOSConfigurationProfilesPlist(),
 			"jamfpro_mobile_device_configuration_profile_plist": mobiledeviceconfigurationprofilesplist.DataSourceJamfProMobileDeviceConfigurationProfilesPlist(),
@@ -417,6 +419,7 @@ func Provider() *schema.Provider {
 			"jamfpro_file_share_distribution_point":               filesharedistributionpoints.ResourceJamfProFileShareDistributionPoints(),
 			"jamfpro_icon":                                        icons.ResourceJamfProIcons(),
 			"jamfpro_jamf_connect":                                jamfconnect.ResourceJamfConnectConfigProfile(),
+			"jamfpro_ldap_server":                                 ldapservers.ResourceJamfProLDAPServers(),
 			"jamfpro_local_admin_password_settings":               localadminpasswordsettings.ResourceLocalAdminPasswordSettings(),
 			"jamfpro_network_segment":                             networksegments.ResourceJamfProNetworkSegments(),
 			"jamfpro_macos_configuration_profile_plist":           macosconfigurationprofilesplist.ResourceJamfProMacOSConfigurationProfilesPlist(),
