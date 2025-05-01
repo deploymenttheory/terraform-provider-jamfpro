@@ -144,11 +144,6 @@ func constructSkipSetupItems(data map[string]interface{}) jamfpro.MobileDevicePr
 
 // constructLocationInformation constructs the LocationInformation subset of a Mobile Device Prestage resource.
 func constructLocationInformation(data map[string]interface{}, isUpdate bool, versionLock int) jamfpro.MobileDevicePrestageSubsetLocationInformation {
-	d := &schema.ResourceData{}
-	for k, v := range data {
-		d.Set(k, v)
-	}
-
 	return jamfpro.MobileDevicePrestageSubsetLocationInformation{
 		Username:     data["username"].(string),
 		Realname:     data["realname"].(string),
@@ -156,8 +151,8 @@ func constructLocationInformation(data map[string]interface{}, isUpdate bool, ve
 		Email:        data["email"].(string),
 		Room:         data["room"].(string),
 		Position:     data["position"].(string),
-		DepartmentId: constructors.GetHCLStringOrDefaultInteger(d, "department_id"),
-		BuildingId:   constructors.GetHCLStringOrDefaultInteger(d, "building_id"),
+		DepartmentId: data["department_id"].(string),
+		BuildingId:   data["building_id"].(string),
 		ID:           "-1",
 		VersionLock:  versionLock,
 	}
@@ -165,11 +160,6 @@ func constructLocationInformation(data map[string]interface{}, isUpdate bool, ve
 
 // constructPurchasingInformation constructs the PurchasingInformation subset of a Mobile Device Prestage resource.
 func constructPurchasingInformation(data map[string]interface{}, isUpdate bool, versionLock int) jamfpro.MobileDevicePrestageSubsetPurchasingInformation {
-	d := &schema.ResourceData{}
-	for k, v := range data {
-		d.Set(k, v)
-	}
-
 	return jamfpro.MobileDevicePrestageSubsetPurchasingInformation{
 		ID:                "-1",
 		Leased:            jamfpro.BoolPtr(data["leased"].(bool)),
@@ -181,9 +171,9 @@ func constructPurchasingInformation(data map[string]interface{}, isUpdate bool, 
 		LifeExpectancy:    data["life_expectancy"].(int),
 		PurchasingAccount: data["purchasing_account"].(string),
 		PurchasingContact: data["purchasing_contact"].(string),
-		LeaseDate:         constructors.GetDateOrDefaultDate(d, "lease_date"),
-		PoDate:            constructors.GetDateOrDefaultDate(d, "po_date"),
-		WarrantyDate:      constructors.GetDateOrDefaultDate(d, "warranty_date"),
+		LeaseDate:         data["lease_date"].(string),
+		PoDate:            data["po_date"].(string),
+		WarrantyDate:      data["warranty_date"].(string),
 		VersionLock:       versionLock,
 	}
 }
