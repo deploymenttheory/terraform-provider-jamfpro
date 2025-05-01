@@ -138,7 +138,6 @@ resource "jamfpro_mobile_device_prestage_enrollment" "example_prestage" {
 - `display_name` (String) The display name of the mobile device prestage enrollment.
 - `enable_device_based_activation_lock` (Boolean) Enable device-based Activation Lock.
 - `enrollment_customization_id` (String) The enrollment customization ID. Set to 0 if unused.
-- `enrollment_site_id` (String) Site ID for device enrollment.
 - `keep_existing_location_information` (Boolean) Maintain existing location information during enrollment.
 - `keep_existing_site_membership` (Boolean) Maintain existing site membership during enrollment.
 - `language` (String) The language setting defined for the mobile device prestage. Leverages ISO 639-1 (two-letter language codes): https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes . Ensure you define a code supported by jamf pro. Can be left blank.
@@ -151,10 +150,9 @@ resource "jamfpro_mobile_device_prestage_enrollment" "example_prestage" {
 - `prestage_minimum_os_target_version_type_ios` (String) The type of minimum OS version enforcement for iOS devices.
 - `prestage_minimum_os_target_version_type_ipad` (String) The type of minimum OS version enforcement for iPadOS devices.
 - `prevent_activation_lock` (Boolean) Prevent Activation Lock on the device.
-- `purchasing_information` (Block List, Min: 1) Purchasing information associated with the mobile device prestage. (see [below for nested schema](#nestedblock--purchasing_information))
+- `purchasing_information` (Block List, Min: 1, Max: 1) Purchasing information associated with the mobile device prestage. (see [below for nested schema](#nestedblock--purchasing_information))
 - `region` (String) The region setting defined for the mobile device prestage. Leverages ISO 3166-1 alpha-2 (two-letter country codes): https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2 . Ensure you define a code supported by jamf pro. Can be left blank.
 - `require_authentication` (Boolean) Require authentication during enrollment.
-- `site_id` (String) The jamf pro site ID. Set to -1 if not used.
 - `skip_setup_items` (Block List, Min: 1, Max: 1) Selected items are not displayed in the Setup Assistant during mobile device setup within Apple Device Enrollment (ADE). (see [below for nested schema](#nestedblock--skip_setup_items))
 - `supervised` (Boolean) Device is supervised.
 - `support_email_address` (String) Support email address for the organization.
@@ -166,10 +164,12 @@ resource "jamfpro_mobile_device_prestage_enrollment" "example_prestage" {
 - `anchor_certificates` (List of String) List of Base64 encoded PEM Certificates.
 - `enforce_temporary_session_timeout` (Boolean) Indicates if temporary session timeout should be enforced.
 - `enforce_user_session_timeout` (Boolean) Indicates if user session timeout should be enforced.
+- `enrollment_site_id` (String) Site ID for device enrollment.
 - `minimum_os_specific_version_ios` (String) The specific minimum OS version required for iOS devices when using MINIMUM_OS_SPECIFIC_VERSION type.
 - `minimum_os_specific_version_ipad` (String) The specific minimum OS version required for iPadOS devices when using MINIMUM_OS_SPECIFIC_VERSION type.
 - `rts_config_profile_id` (String) The ID of the RTS configuration profile.
 - `send_timezone` (Boolean) Indicates if timezone should be sent to the device.
+- `site_id` (String) The jamf pro site ID. Set to -1 if not used.
 - `storage_quota_size_megabytes` (Number) The storage quota size in megabytes.
 - `temporary_session_only` (Boolean) Indicates if the session should be temporary only.
 - `temporary_session_timeout_seconds` (Number) The timeout duration for temporary sessions in minutes.
@@ -188,7 +188,6 @@ resource "jamfpro_mobile_device_prestage_enrollment" "example_prestage" {
 
 Required:
 
-- `department_id` (String) The jamf pro department ID associated with this computer prestage. Set to -1 if not used.
 - `email` (String) The email address associated with this location. Can be left blank.
 - `phone` (String) The phone number associated with this location. Can be left blank.
 - `position` (String) The position associated with this location. Can be left blank.
@@ -199,6 +198,7 @@ Required:
 Optional:
 
 - `building_id` (String) The building ID associated with this computer prestage. Set to -1 if not used.
+- `department_id` (String) The jamf pro department ID associated with this computer prestage. Set to -1 if not used.
 
 Read-Only:
 
@@ -242,16 +242,19 @@ Read-Only:
 Required:
 
 - `apple_care_id` (String) The AppleCare ID. Can be left blank.
-- `lease_date` (String) The lease date in YYYY-MM-DD format. Use '1970-01-01' if unused.
 - `leased` (Boolean) Indicates if the item is leased. Default value to false if unused.
 - `life_expectancy` (Number) The life expectancy in years. Set to 0 if unused.
-- `po_date` (String) The purchase order date in YYYY-MM-DD format. Use '1970-01-01' if unused
 - `po_number` (String) The purchase order number. Can be left blank.
 - `purchase_price` (String) The purchase price. Can be left blank.
 - `purchased` (Boolean) Indicates if the item is purchased. Default value to true if unused.
 - `purchasing_account` (String) The purchasing account. Can be left blank.
 - `purchasing_contact` (String) The purchasing contact. Can be left blank.
 - `vendor` (String) The vendor name. Can be left blank.
+
+Optional:
+
+- `lease_date` (String) The lease date in YYYY-MM-DD format. Use '1970-01-01' if unused.
+- `po_date` (String) The purchase order date in YYYY-MM-DD format. Use '1970-01-01' if unused
 - `warranty_date` (String) The warranty date in YYYY-MM-DD format. Use '1970-01-01' if unused
 
 Read-Only:
