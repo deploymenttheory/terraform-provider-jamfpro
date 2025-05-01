@@ -68,7 +68,8 @@ func ResourceJamfProMobileDevicePrestageEnrollment() *schema.Resource {
 			},
 			"enrollment_site_id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
+				Default:     "-1",
 				Description: "Site ID for device enrollment.",
 			},
 			"keep_existing_site_membership": {
@@ -369,12 +370,14 @@ func ResourceJamfProMobileDevicePrestageEnrollment() *schema.Resource {
 						},
 						"department_id": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
+							Default:     "-1",
 							Description: "The jamf pro department ID associated with this computer prestage. Set to -1 if not used.",
 						},
 						"building_id": {
 							Type:        schema.TypeString,
 							Optional:    true,
+							Default:     "-1",
 							Description: "The building ID associated with this computer prestage. Set to -1 if not used.",
 						},
 					},
@@ -449,19 +452,22 @@ func ResourceJamfProMobileDevicePrestageEnrollment() *schema.Resource {
 						},
 						"lease_date": {
 							Type:         schema.TypeString,
-							Required:     true,
+							Optional:     true,
+							Default:      "1970-01-01",
 							Description:  "The lease date in YYYY-MM-DD format. Use '1970-01-01' if unused.",
 							ValidateFunc: validateDateFormat,
 						},
 						"po_date": {
 							Type:         schema.TypeString,
-							Required:     true,
+							Optional:     true,
+							Default:      "1970-01-01",
 							Description:  "The purchase order date in YYYY-MM-DD format. Use '1970-01-01' if unused",
 							ValidateFunc: validateDateFormat,
 						},
 						"warranty_date": {
 							Type:         schema.TypeString,
-							Required:     true,
+							Optional:     true,
+							Default:      "1970-01-01",
 							Description:  "The warranty date in YYYY-MM-DD format. Use '1970-01-01' if unused",
 							ValidateFunc: validateDateFormat,
 						},
@@ -640,7 +646,8 @@ func ResourceJamfProMobileDevicePrestageEnrollment() *schema.Resource {
 			},
 			"site_id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
+				Default:     "-1",
 				Description: "The jamf pro site ID. Set to -1 if not used.",
 			},
 			"version_lock": {
