@@ -106,7 +106,6 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDevicePrest
 			"device_naming_configured": names.DeviceNamingConfigured,
 		}
 
-		// Handle prestage device names if they exist
 		if len(names.PrestageDeviceNames) > 0 {
 			deviceNames := make([]interface{}, len(names.PrestageDeviceNames))
 			for i, name := range names.PrestageDeviceNames {
