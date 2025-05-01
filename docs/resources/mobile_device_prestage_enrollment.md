@@ -167,7 +167,6 @@ resource "jamfpro_mobile_device_prestage_enrollment" "example_prestage" {
 - `enrollment_site_id` (String) Site ID for device enrollment.
 - `minimum_os_specific_version_ios` (String) The specific minimum OS version required for iOS devices when using MINIMUM_OS_SPECIFIC_VERSION type.
 - `minimum_os_specific_version_ipad` (String) The specific minimum OS version required for iPadOS devices when using MINIMUM_OS_SPECIFIC_VERSION type.
-- `rts_config_profile_id` (String) The ID of the RTS configuration profile.
 - `send_timezone` (Boolean) Indicates if timezone should be sent to the device.
 - `site_id` (String) The jamf pro site ID. Set to -1 if not used.
 - `storage_quota_size_megabytes` (Number) The storage quota size in megabytes.
@@ -181,6 +180,7 @@ resource "jamfpro_mobile_device_prestage_enrollment" "example_prestage" {
 
 - `id` (String) The unique identifier of the mobile device prestage.
 - `profile_uuid` (String) The profile UUID of the Automated Device Enrollment instance to associate with the PreStage enrollment. Devices associated with the selected Automated Device Enrollment instance can be assigned the PreStage enrollment
+- `rts_config_profile_id` (String) The ID of the RTS configuration profile.
 - `version_lock` (Number) The version lock value of the purchasing_information. Optimistic lockingis a mechanism that prevents concurrent operations from taking place on a givenresource. Jamf Pro does this to safeguard resources and workflows that aresensitive to frequent updates, ensuring that one update has completed beforeany additional requests can be processed. Valid request handling is managed bythe construct function.
 
 <a id="nestedblock--location_information"></a>
