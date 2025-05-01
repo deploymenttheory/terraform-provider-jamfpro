@@ -9,15 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// mainCustomDiffFunc orchestrates all custom diff validations.
-func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
-	if err := validateAuthenticationPrompt(ctx, diff, i); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // validateAuthenticationPrompt checks that the 'authentication_prompt' is only set when 'require_authentication' is true.
 func validateAuthenticationPrompt(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
 	resourceName := diff.Get("display_name").(string)

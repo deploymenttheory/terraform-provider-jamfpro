@@ -15,7 +15,7 @@ func ResourceJamfProMobileDevicePrestageEnrollment() *schema.Resource {
 		ReadContext:   readWithCleanup,
 		UpdateContext: update,
 		DeleteContext: delete,
-		CustomizeDiff: mainCustomDiffFunc,
+		CustomizeDiff: validateAuthenticationPrompt,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Second),
 			Read:   schema.DefaultTimeout(30 * time.Second),
