@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.20.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.19.1...v0.20.0) (2025-05-02)
+
+
+### Features
+
+* New resource and data-source for jamfpro_mobile_device_prestage_enrollment ([#706](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/706)) ([36f6157](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/36f6157cae1464b2a85144911a3d8c5cabb08c1c))
+* New resource and data-source: jamfpro_ldap_server ([#703](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/703)) ([e0f6819](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/e0f68198f79c2c15ab8afd32a8dab76fb3c5e77a))
+
+
+### Bug Fixes
+
+* tweaked checkout to account for workflow_dispatch ([#708](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/708)) ([ef7f147](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/ef7f1478b18ab37842d70fddb792f0dc887e52dd))
+
 ## [0.19.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.19.0...v0.19.1) (2025-04-17)
 
 
