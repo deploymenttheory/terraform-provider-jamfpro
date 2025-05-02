@@ -88,3 +88,67 @@ func MapSetToStructs[NestedObjectType any, ListItemPrimitiveType comparable](pat
 	*outputSlice = result
 	return nil
 }
+
+// GetHCLStringOrDefaultInteger returns the string value from the ResourceData if it exists,
+// otherwise it returns the default value "-1".
+func GetHCLStringOrDefaultInteger(d *schema.ResourceData, key string) string {
+	if v, ok := d.GetOk(key); ok {
+		return v.(string)
+	}
+	return "-1"
+}
+
+// GetDateOrDefaultDate returns the date string if it exists and is not empty,
+// otherwise it returns the default date "1970-01-01".
+func GetDateOrDefaultDate(d *schema.ResourceData, key string) string {
+	if v, ok := d.GetOk(key); ok && v.(string) != "" {
+		return v.(string)
+	}
+	return "1970-01-01"
+}
+
+// HandleVersionLock manages the VersionLock field for Jamf Pro Prestage resources during update operations.
+//
+// https://developer.jamf.com/jamf-pro/docs/optimistic-locking
+//
+// Parameters:
+//   - currentVersionLock: The current version lock value as an interface{}.
+//   - isUpdate: A boolean flag indicating whether this is an update operation.
+//
+// Returns:
+//   - An integer representing the version lock to be used in the API request.
+//     For create operations (isUpdate == false), this will be 0.
+//     For update operations (isUpdate == true), this will be the incremented version lock.
+//
+// Behavior:
+//   - Create operations (isUpdate == false):
+//   - Returns 0, as version lock is not needed for create operations.
+//   - Update operations (isUpdate == true):
+//   - Attempts to convert the currentVersionLock to an integer and increment it by 1.
+//   - If conversion fails, logs a warning and returns 0.
+//
+// Error Handling:
+//   - If the currentVersionLock cannot be converted to an integer during an update operation,
+//     the function logs a warning and returns 0.
+//
+// Usage:
+//   - This function should be called for each structure within a resource that requires
+//     version lock handling.
+func HandleVersionLock(currentVersionLock interface{}, isUpdate bool) int {
+	if !isUpdate {
+		log.Printf("[DEBUG] Create operation: Version lock not required, using 0")
+		return 0
+	}
+
+	log.Printf("[DEBUG] Update operation: Current version lock is '%v'", currentVersionLock)
+
+	versionLock, ok := currentVersionLock.(int)
+	if !ok {
+		log.Printf("[WARN] Failed to convert version lock '%v' to integer. Using 0.", currentVersionLock)
+		return 0
+	}
+
+	newVersionLock := versionLock + 1
+	log.Printf("[DEBUG] Update operation: Incrementing version lock from '%d' to '%d'", versionLock, newVersionLock)
+	return newVersionLock
+}
