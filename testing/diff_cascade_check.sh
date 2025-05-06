@@ -13,3 +13,5 @@ exit 1
 else
 echo "No changes detected after apply - infrastructure is consistent"
 fi
+
+# Generate diff
