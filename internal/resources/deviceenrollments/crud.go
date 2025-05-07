@@ -11,7 +11,6 @@ import (
 
 // create is responsible for creating a new Jamf Pro Device Enrollment in the remote system.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// First create the enrollment with the token
 	tokenUpload := &jamfpro.ResourceDeviceEnrollmentTokenUpload{
 		EncodedToken: d.Get("encoded_token").(string),
 	}
@@ -24,7 +23,6 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	d.SetId(enrollment.ID)
 
-	// Wrap the update function to match the expected signature
 	wrappedUpdate := func(payload *jamfpro.ResourceDeviceEnrollmentUpdate) (*jamfpro.ResourceDeviceEnrollment, error) {
 		return client.UpdateDeviceEnrollmentMetadataByID(enrollment.ID, payload)
 	}
@@ -65,7 +63,6 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 
-	// If token is being updated
 	if d.HasChange("encoded_token") {
 		tokenUpload := &jamfpro.ResourceDeviceEnrollmentTokenUpload{
 			EncodedToken: d.Get("encoded_token").(string),
@@ -76,7 +73,6 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		}
 	}
 
-	// Update metadata
 	return common.Update(
 		ctx,
 		d,
