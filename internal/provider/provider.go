@@ -34,6 +34,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/departments"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/devicecommunicationsettings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/deviceenrollments"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/deviceenrollmentspublickey"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/diskencryptionconfigurations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/dockitems"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/enrollmentcustomizations"
@@ -373,6 +374,7 @@ func Provider() *schema.Provider {
 			"jamfpro_computer_prestage_enrollment":              computerprestageenrollments.DataSourceJamfProComputerPrestageEnrollmentEnrollment(),
 			"jamfpro_department":                                departments.DataSourceJamfProDepartments(),
 			"jamfpro_device_enrollments":                        deviceenrollments.DataSourceJamfProDeviceEnrollments(),
+			"jamfpro_device_enrollments_public_key":             deviceenrollmentspublickey.DataSourceJamfProDeviceEnrollmentsPublicKey(),
 			"jamfpro_disk_encryption_configuration":             diskencryptionconfigurations.DataSourceJamfProDiskEncryptionConfigurations(),
 			"jamfpro_dock_item":                                 dockitems.DataSourceJamfProDockItems(),
 			"jamfpro_file_share_distribution_point":             filesharedistributionpoints.DataSourceJamfProFileShareDistributionPoints(),
