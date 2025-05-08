@@ -15,11 +15,11 @@ jobs:
       - name: check-branch-location
         run: |
           echo "debug"
-  #         if [ "${{ github.event.pull_request.head.repo.fork }}" = "true" ]; then
-  #           echo "test-branch=${{ github.event_name == 'pull_request' && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}" >> $GITHUB_OUTPUT
-  #         else
-  #           echo "Create branch and send ref."
-  #         fi
+          if [ "${{ github.event.pull_request.head.repo.fork }}" = "true" ]; then
+            echo "test-branch=${{ github.event_name == 'pull_request' && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}" >> $GITHUB_OUTPUT
+          else
+            echo "Create branch and send ref."
+          fi
 
 
   # call-integration-tests:
