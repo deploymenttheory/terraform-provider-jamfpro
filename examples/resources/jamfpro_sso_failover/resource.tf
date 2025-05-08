@@ -1,6 +1,4 @@
-resource "jamfpro_sso_failover" "current" {
-  regenerate = false # Set to true when you want to regenerate the URL
-}
+resource "jamfpro_sso_failover" "current" {}
 
 output "failover_url" {
   value     = jamfpro_sso_failover.current.failover_url

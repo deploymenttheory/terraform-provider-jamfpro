@@ -72,32 +72,6 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 	return read(ctx, d, meta, false)
 }
 
-// update is responsible for updating an existing Jamf Pro SSO Failover URL on the remote system.
-func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
-
-	if d.Get("regenerate").(bool) {
-		err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-			response, apiErr := client.UpdateFailoverUrl()
-			if apiErr != nil {
-				return retry.RetryableError(apiErr)
-			}
-
-			d.Set("failover_url", response.FailoverURL)
-			d.Set("generation_time", response.GenerationTime)
-			d.Set("regenerate", false)
-			return nil
-		})
-
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to update SSO failover settings: %v", err))
-		}
-	}
-
-	return append(diags, readNoCleanup(ctx, d, meta)...)
-}
-
 // delete is responsible for deleting a Jamf Pro SSO Failover URL.
 // SSO Failover URL cannot be deleted, only regenerated
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

@@ -9,9 +9,7 @@ description: |-
 
 ## Example Usage
 ```terraform
-resource "jamfpro_sso_failover" "current" {
-  regenerate = false # Set to true when you want to regenerate the URL
-}
+resource "jamfpro_sso_failover" "current" {}
 
 output "failover_url" {
   value     = jamfpro_sso_failover.current.failover_url
@@ -24,7 +22,6 @@ output "failover_url" {
 
 ### Optional
 
-- `regenerate` (Boolean) Set to true to regenerate the failover URL
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
@@ -41,4 +38,3 @@ Optional:
 - `create` (String)
 - `delete` (String)
 - `read` (String)
-- `update` (String)

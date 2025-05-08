@@ -11,12 +11,10 @@ func ResourceJamfProSSOFailover() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,
 		ReadContext:   readWithCleanup,
-		UpdateContext: update,
 		DeleteContext: delete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(1 * time.Minute),
 			Read:   schema.DefaultTimeout(1 * time.Minute),
-			Update: schema.DefaultTimeout(1 * time.Minute),
 			Delete: schema.DefaultTimeout(1 * time.Minute),
 		},
 		Importer: &schema.ResourceImporter{
@@ -32,12 +30,6 @@ func ResourceJamfProSSOFailover() *schema.Resource {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "The timestamp when the failover URL was generated",
-			},
-			"regenerate": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Set to true to regenerate the failover URL",
 			},
 		},
 	}
