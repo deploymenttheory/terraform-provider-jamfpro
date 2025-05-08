@@ -52,7 +52,6 @@ jobs:
 
 
   call-integration-tests:
-    if: ${{always()}}
     needs: branch-preparation
     uses: ./.github/workflows/jamfpro-provider-integration-test-template.yml
     with:
