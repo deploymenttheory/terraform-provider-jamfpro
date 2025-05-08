@@ -16,7 +16,7 @@ jobs:
         run: |
           echo "debug"
           if [ "${{ github.event.pull_request.head.repo.fork }}" = "false" ]; then
-            computed-ref=${{ github.event_name == 'pull_request' && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}
+            computed-ref="${{ github.event_name == 'pull_request' && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}"
             echo "test-branch=$computed-ref" >> $GITHUB_OUTPUT
             
           else
@@ -24,12 +24,12 @@ jobs:
           fi
 
 
-  # call-integration-tests:
-  #   needs: determine-branch-location
-  #   uses: ./.github/workflows/terraform-integration-template.yml
-  #   with:
-  #     test-branch: ${{ needs.determine-branch-location.outputs.test-branch }}
-  #   secrets:
-  #     TESTING_JAMFPRO_INSTANCE_FQDN: ${{ secrets.TESTING_JAMFPRO_INSTANCE_FQDN }}
-  #     TESTING_CLIENT_ID: ${{ secrets.TESTING_CLIENT_ID }}
-  #     TESTING_CLIENT_SECRET: ${{ secrets.TESTING_CLIENT_SECRET }}
+  call-integration-tests:
+    needs: determine-branch-location
+    uses: ./.github/workflows/jamfpro-provider-integration-test-template.yml
+    with:
+      test-branch: ${{ needs.determine-branch-location.outputs.test-branch }}
+    secrets:
+      TESTING_JAMFPRO_INSTANCE_FQDN: ${{ secrets.TESTING_JAMFPRO_INSTANCE_FQDN }}
+      TESTING_CLIENT_ID: ${{ secrets.TESTING_CLIENT_ID }}
+      TESTING_CLIENT_SECRET: ${{ secrets.TESTING_CLIENT_SECRET }}
