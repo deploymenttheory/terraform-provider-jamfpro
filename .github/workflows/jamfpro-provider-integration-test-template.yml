@@ -19,7 +19,7 @@ jobs:
     environment: terraform-integration-testing
     runs-on: ubuntu-latest
     env:
-      REF_TO_CHECKOUT: ${{ github.event_name == 'pull_request' && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}
+      REF_TO_CHECKOUT: ${{inputs.test-branch}}
     concurrency:
       group: sandbox_interfacing_testing_environment
       cancel-in-progress: false
