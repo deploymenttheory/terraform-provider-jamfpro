@@ -17,6 +17,7 @@ jobs:
           echo "debug"
           if [ "${{ github.event.pull_request.head.repo.fork }}" = "false" ]; then
             echo "test-branch=${{ github.event_name == 'pull_request' && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}" >> $GITHUB_OUTPUT
+            echo ${{ needs.determine-branch-location.outputs.test-branch }}
           else
             echo "Create branch and send ref."
           fi
