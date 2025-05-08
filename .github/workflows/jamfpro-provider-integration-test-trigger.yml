@@ -1,0 +1,30 @@
+name: Trigger Terraform Integration Tests
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  determine-branch-location:
+    runs-on: ubuntu-latest
+    outputs:
+      test-branch: ${{ steps.set.outputs.test-branch}}
+    steps:
+      - name: check-branch-location
+        run: |
+          if [ "${{ github.event.pull_request.head.repo.fork }}" = "true" ]; then
+            echo "test-branch=${{ github.event_name == 'pull_request' && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}" >> $GITHUB_OUTPUT
+          else
+            echo "Create branch and send ref."
+          fi
+
+
+  call-integration-tests:
+    needs: determine-branch-location
+    uses: ./.github/workflows/terraform-integration-template.yml
+    with:
+      test-branch: ${{ needs.determine-branch-location.outputs.test-branch }}
+    secrets:
+      TESTING_JAMFPRO_INSTANCE_FQDN: ${{ secrets.TESTING_JAMFPRO_INSTANCE_FQDN }}
+      TESTING_CLIENT_ID: ${{ secrets.TESTING_CLIENT_ID }}
+      TESTING_CLIENT_SECRET: ${{ secrets.TESTING_CLIENT_SECRET }}
