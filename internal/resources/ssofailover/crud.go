@@ -23,8 +23,14 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		}
 
 		d.SetId("jamfpro_sso_failover_singleton")
-		d.Set("failover_url", response.FailoverURL)
-		d.Set("generation_time", response.GenerationTime)
+
+		if err := d.Set("failover_url", response.FailoverURL); err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to set failover_url: %v", err))
+		}
+		if err := d.Set("generation_time", response.GenerationTime); err != nil {
+			return retry.NonRetryableError(fmt.Errorf("failed to set generation_time: %v", err))
+		}
+
 		return nil
 	})
 
@@ -56,8 +62,13 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 		return append(diags, common.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
-	d.Set("failover_url", response.FailoverURL)
-	d.Set("generation_time", response.GenerationTime)
+	if err := d.Set("failover_url", response.FailoverURL); err != nil {
+		return append(diags, diag.FromErr(fmt.Errorf("error setting failover_url: %v", err))...)
+	}
+
+	if err := d.Set("generation_time", response.GenerationTime); err != nil {
+		return append(diags, diag.FromErr(fmt.Errorf("error setting generation_time: %v", err))...)
+	}
 
 	return append(diags, updateState(d, response)...)
 }
