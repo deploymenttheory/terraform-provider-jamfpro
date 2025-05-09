@@ -22,8 +22,6 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 			return retry.RetryableError(apiErr)
 		}
 
-		d.SetId("jamfpro_sso_certificate_singleton")
-
 		if err := setKeystoreData(d, response.Keystore); err != nil {
 			return retry.NonRetryableError(fmt.Errorf("failed to set keystore data: %v", err))
 		}
@@ -40,6 +38,8 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to create SSO certificate: %v", err))
 	}
+
+	d.SetId("jamfpro_sso_certificate_singleton")
 
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
