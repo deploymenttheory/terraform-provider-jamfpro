@@ -16,7 +16,6 @@ import (
 
 // constructSelfServiceSettings constructs a ResourceSelfServiceSettings object from the provided schema data
 func constructSelfServiceSettings(d *schema.ResourceData) (*jamfpro.ResourceSelfServiceSettings, error) {
-	// Get the install settings
 	installSettingsList := d.Get("install_settings").([]interface{})
 	var installSettings jamfpro.InstallSettings
 	if len(installSettingsList) > 0 {
@@ -27,7 +26,6 @@ func constructSelfServiceSettings(d *schema.ResourceData) (*jamfpro.ResourceSelf
 		}
 	}
 
-	// Get the login settings
 	loginSettingsList := d.Get("login_settings").([]interface{})
 	var loginSettings jamfpro.LoginSettings
 	if len(loginSettingsList) > 0 {
@@ -40,7 +38,6 @@ func constructSelfServiceSettings(d *schema.ResourceData) (*jamfpro.ResourceSelf
 		}
 	}
 
-	// Get the configuration settings
 	configSettingsList := d.Get("configuration_settings").([]interface{})
 	var configSettings jamfpro.ConfigurationSettings
 	if len(configSettingsList) > 0 {
@@ -54,14 +51,12 @@ func constructSelfServiceSettings(d *schema.ResourceData) (*jamfpro.ResourceSelf
 		}
 	}
 
-	// Construct the complete resource
 	resource := &jamfpro.ResourceSelfServiceSettings{
 		InstallSettings:       installSettings,
 		LoginSettings:         loginSettings,
 		ConfigurationSettings: configSettings,
 	}
 
-	// Debug logging
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Self Service Settings to JSON: %v", err)
