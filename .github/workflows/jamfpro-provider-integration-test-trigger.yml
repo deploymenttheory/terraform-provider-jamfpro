@@ -9,7 +9,7 @@ jobs:
   branch-preparation:
     runs-on: ubuntu-latest
     env:
-      REF_TO_CHECKOUT: ${{ format('refs/pull/{0}/head', github.event.pull_request.number) }}$
+      REF_TO_CHECKOUT: ${{ format('refs/pull/{0}/head', github.event.pull_request.number) }}
       PR_NUMBER: ${{github.event.pull_request.number}}
       NEW_BRANCH_NAME: test/${{github.event.pull_request.number}}/${{github.triggering_actor}}
   
