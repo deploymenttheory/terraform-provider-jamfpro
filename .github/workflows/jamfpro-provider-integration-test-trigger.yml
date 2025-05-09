@@ -1,0 +1,83 @@
+name: Trigger Terraform Integration Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  branch-preparation:
+    runs-on: ubuntu-latest
+    env:
+      REF_TO_CHECKOUT: ${{ format('refs/pull/{0}/head', github.event.pull_request.number) }}$
+      PR_NUMBER: ${{github.event.pull_request.number}}
+      NEW_BRANCH_NAME: test/${{github.event.pull_request.number}}/${{github.triggering_actor}}
+  
+    outputs:
+      test-branch: ${{ steps.set.outputs.test-branch }}
+      cleanup: ${{ steps.set.outputs.cleanup}}
+    
+    steps:
+      - name: branch local
+        if: ${{!github.event.pull_request.head.repo.fork}}
+        run: |
+          computed_ref="${{ env.REF_TO_CHECKOUT}}"
+          echo "test-branch=$computed_ref" >> $GITHUB_OUTPUT
+          echo "cleanup=False" >> $GITHUB_OUTPUT
+      
+
+      - name: checkout repo
+        if: github.event.pull_request.head.repo.fork
+        uses: actions/checkout@v4.2.2
+        with:
+          repository: deploymenttheory/terraform-provider-jamfpro
+          ref: ${{ env.REF_TO_CHECKOUT}}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+
+      - name: fetch pr and create new branch
+        if: github.event.pull_request.head.repo.fork  
+        run: |
+          git fetch origin pull/${{ env.PR_NUMBER }}/head:${{ env.NEW_BRANCH_NAME }}
+          git checkout ${{ env.NEW_BRANCH_NAME}}
+      
+
+      - name: push new branch to origin
+        if: github.event.pull_request.head.repo.fork
+        run: |
+          git push origin ${{ env.NEW_BRANCH_NAME }}
+          echo "test-branch=${{env.NEW_BRANCH_NAME}}" >> $GITHUB_OUTPUT
+          echo "cleanup=True" >> $GITHUB_OUTPUT
+
+
+  call-integration-tests:
+    needs: branch-preparation
+    uses: ./.github/workflows/jamfpro-provider-integration-test-template.yml
+    with:
+      test-branch: ${{ needs.branch-preparation.outputs.test-branch }}
+    secrets:
+      TESTING_JAMFPRO_INSTANCE_FQDN: ${{ secrets.TESTING_JAMFPRO_INSTANCE_FQDN }}
+      TESTING_CLIENT_ID: ${{ secrets.TESTING_CLIENT_ID }}
+      TESTING_CLIENT_SECRET: ${{ secrets.TESTING_CLIENT_SECRET }}
+
+
+  cleanup-temporary-branch:
+    needs: [call-integration-tests, branch-preparation]
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.head.repo.fork && needs.branch-preparation.outputs.cleanup == 'True'}}
+    steps:
+    
+      - name: checkout repo
+        uses: actions/checkout@v4.2.2
+        with:
+          repository: deploymenttheory/terraform-provider-jamfpro
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: delete branch
+        run: |
+          git push origin --delete ${{ needs.branch-preparation.outputs.test-branch}}
+
+
+    
