@@ -30,8 +30,7 @@ resource "jamfpro_sso_settings" "google_example" {
   }
 
   enrollment_sso_config {
-    hosts           = []
-    management_hint = ""
+    hosts = []
   }
 }
 
@@ -67,7 +66,6 @@ resource "jamfpro_sso_settings" "entra_id_example" {
   }
 
   enrollment_sso_config {
-    hosts           = []
-    management_hint = ""
+    hosts = []
   }
 }

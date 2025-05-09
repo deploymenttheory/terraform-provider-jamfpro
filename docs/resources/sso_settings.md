@@ -41,8 +41,7 @@ resource "jamfpro_sso_settings" "google_example" {
   }
 
   enrollment_sso_config {
-    hosts           = []
-    management_hint = ""
+    hosts = []
   }
 }
 
@@ -78,8 +77,7 @@ resource "jamfpro_sso_settings" "entra_id_example" {
   }
 
   enrollment_sso_config {
-    hosts           = []
-    management_hint = ""
+    hosts = []
   }
 }
 ```
@@ -90,11 +88,11 @@ resource "jamfpro_sso_settings" "entra_id_example" {
 ### Required
 
 - `configuration_type` (String) SSO configuration type. Supported values are 'SAML', 'OIDC', 'OIDC_WITH_SAML'
+- `enrollment_sso_config` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--enrollment_sso_config))
 - `sso_enabled` (Boolean) Enable or disable SSO
 
 ### Optional
 
-- `enrollment_sso_config` (Block List, Max: 1) (see [below for nested schema](#nestedblock--enrollment_sso_config))
 - `enrollment_sso_for_account_driven_enrollment_enabled` (Boolean) Enable enrollment SSO for account-driven enrollment
 - `group_enrollment_access_enabled` (Boolean) Enable group enrollment access
 - `group_enrollment_access_name` (String) Group enrollment access name
@@ -114,7 +112,7 @@ resource "jamfpro_sso_settings" "entra_id_example" {
 
 Required:
 
-- `hosts` (List of String) List of enrollment SSO hosts
+- `hosts` (List of String) List of enrollment SSO hosts. Must be set to '[]' if unused.
 
 Optional:
 

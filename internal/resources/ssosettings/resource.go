@@ -173,7 +173,7 @@ func ResourceJamfProSsoSettings() *schema.Resource {
 			},
 			"enrollment_sso_config": {
 				Type:     schema.TypeList,
-				Optional: true,
+				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -183,7 +183,7 @@ func ResourceJamfProSsoSettings() *schema.Resource {
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
-							Description: "List of enrollment SSO hosts",
+							Description: "List of enrollment SSO hosts. Must be set to '[]' if unused.",
 						},
 						"management_hint": {
 							Type:        schema.TypeString,

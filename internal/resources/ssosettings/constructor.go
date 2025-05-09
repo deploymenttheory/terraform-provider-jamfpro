@@ -42,36 +42,19 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceSsoSettings, error) {
 	}
 
 	var enrollmentSsoConfig jamfpro.EnrollmentSsoConfig
-	if v, ok := d.GetOk("enrollment_sso_config"); ok {
-		enrollmentList := v.([]interface{})
-		if len(enrollmentList) > 0 && enrollmentList[0] != nil {
-			if enrollmentMap, ok := enrollmentList[0].(map[string]interface{}); ok {
-				hosts := make([]string, 0)
-				if hostsRaw, ok := enrollmentMap["hosts"]; ok && hostsRaw != nil {
-					if hostsInterface, ok := hostsRaw.([]interface{}); ok {
-						for _, h := range hostsInterface {
-							if h != nil {
-								hosts = append(hosts, h.(string))
-							}
-						}
-					}
-				}
-
-				managementHint := ""
-				if hint, ok := enrollmentMap["management_hint"]; ok && hint != nil {
-					managementHint = hint.(string)
-				}
-
-				enrollmentSsoConfig = jamfpro.EnrollmentSsoConfig{
-					Hosts:          hosts,
-					ManagementHint: managementHint,
+	if v, ok := d.GetOk("enrollment_sso_config"); ok && len(v.([]interface{})) > 0 {
+		if enrollmentMap, ok := v.([]interface{})[0].(map[string]interface{}); ok && enrollmentMap != nil {
+			hosts := make([]string, 0)
+			if hostsRaw, ok := enrollmentMap["hosts"]; ok && hostsRaw != nil {
+				if hostsInterface, ok := hostsRaw.([]interface{}); ok {
+					hosts = expandStringList(hostsInterface)
 				}
 			}
-		}
-	} else {
-		enrollmentSsoConfig = jamfpro.EnrollmentSsoConfig{
-			Hosts:          make([]string, 0),
-			ManagementHint: "",
+
+			enrollmentSsoConfig = jamfpro.EnrollmentSsoConfig{
+				Hosts:          hosts,
+				ManagementHint: enrollmentMap["management_hint"].(string),
+			}
 		}
 	}
 
@@ -97,4 +80,15 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceSsoSettings, error) {
 	log.Printf("[DEBUG] Constructed Jamf Pro SSO Settings JSON:\n%s\n", string(resourceJSON))
 
 	return resource, nil
+}
+
+// expandStringList converts a list of interfaces to a list of strings.
+func expandStringList(list []interface{}) []string {
+	result := make([]string, 0, len(list))
+	for _, item := range list {
+		if item != nil {
+			result = append(result, item.(string))
+		}
+	}
+	return result
 }
