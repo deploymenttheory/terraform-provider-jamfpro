@@ -49,6 +49,7 @@ jobs:
       - name: push new branch to origin
         if: github.event.pull_request.head.repo.fork
         run: |
+          echo ${{ github.event.triggering_actor}}
           git push origin ${{ env.NEW_BRANCH_NAME }}
           echo "test-branch=${{env.NEW_BRANCH_NAME}}" >> $GITHUB_OUTPUT
           echo "cleanup=True" >> $GITHUB_OUTPUT
