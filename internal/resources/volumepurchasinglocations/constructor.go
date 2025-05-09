@@ -6,7 +6,7 @@ import (
 )
 
 // construct creates a VolumePurchasingLocationCreateUpdateRequest from the provided schema data
-func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.VolumePurchasingLocationCreateUpdateRequest, error) {
+func construct(d *schema.ResourceData) (*jamfpro.VolumePurchasingLocationCreateUpdateRequest, error) {
 	request := &jamfpro.VolumePurchasingLocationCreateUpdateRequest{
 		Name:                                  d.Get("name").(string),
 		ServiceToken:                          d.Get("service_token").(string),

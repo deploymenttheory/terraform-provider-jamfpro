@@ -16,9 +16,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	isUpdate := false
-
-	resource, err := construct(d, isUpdate)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Volume Purchasing Location: %v", err))
 	}
@@ -69,9 +67,8 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
-	isUpdate := true
 
-	resource, err := construct(d, isUpdate)
+	resource, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Volume Purchasing Location for update: %v", err))
 	}
