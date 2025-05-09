@@ -1,17 +1,25 @@
-name: "Terraform Integration Tests"
-run-name: "Terraform Integration Tests"
+name: "Terraform Integration Tests (Template)"
+
 on:
-  pull_request:
-    branches:
-      - main
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      test-branch:
+        required: false
+        type: string
+    secrets:
+      TESTING_JAMFPRO_INSTANCE_FQDN:
+        required: true
+      TESTING_CLIENT_ID:
+        required: true
+      TESTING_CLIENT_SECRET:
+        required: true
 
 jobs:
   Run-Integration-Test:
     environment: terraform-integration-testing
     runs-on: ubuntu-latest
     env:
-      REF_TO_CHECKOUT: ${{ github.event_name == 'pull_request' && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}
+      REF_TO_CHECKOUT: ${{inputs.test-branch}}
     concurrency:
       group: sandbox_interfacing_testing_environment
       cancel-in-progress: false
