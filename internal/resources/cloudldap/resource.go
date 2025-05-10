@@ -62,13 +62,11 @@ func ResourceJamfProCloudLdap() *schema.Resource {
 										Type:      schema.TypeString,
 										Required:  true,
 										Sensitive: true,
-										ForceNew:  true,
 									},
 									"file_bytes": {
 										Type:        schema.TypeString,
 										Required:    true,
 										Sensitive:   true,
-										ForceNew:    true,
 										Description: "Base64 encoded keystore file",
 									},
 									"file_name": {
