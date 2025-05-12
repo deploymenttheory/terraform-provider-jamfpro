@@ -27,6 +27,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/categories"
 	computercheckin "github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/clientcheckin"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/cloudidp"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/cloudldap"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerextensionattributes"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerinventory"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computerinventorycollectionsettings"
@@ -55,14 +56,17 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/printers"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/restrictedsoftware"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/scripts"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/selfservicesettings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/sites"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/smartcomputergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/smartmobiledevicegroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/smtpserver"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/ssosettings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/staticcomputergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/staticmobiledevicegroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/usergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/userinitiatedenrollment"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/volumepurchasinglocations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/webhooks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -394,6 +398,7 @@ func Provider() *schema.Provider {
 			"jamfpro_static_mobile_device_group":                staticmobiledevicegroups.DataSourceJamfProStaticMobileDeviceGroups(),
 			"jamfpro_restricted_software":                       restrictedsoftware.DataSourceJamfProRestrictedSoftwares(),
 			"jamfpro_user_group":                                usergroups.DataSourceJamfProUserGroups(),
+			"jamfpro_volume_purchasing_locations":               volumepurchasinglocations.DataSourceJamfProVolumePurchasingLocations(),
 			"jamfpro_webhook":                                   webhooks.DataSourceJamfProWebhooks(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -412,6 +417,7 @@ func Provider() *schema.Provider {
 			"jamfpro_building":                                    buildings.ResourceJamfProBuildings(),
 			"jamfpro_category":                                    categories.ResourceJamfProCategories(),
 			"jamfpro_client_checkin":                              computercheckin.ResourceJamfProClientCheckin(),
+			"jamfpro_cloud_ldap":                                  cloudldap.ResourceJamfProCloudLdap(),
 			"jamfpro_computer_extension_attribute":                computerextensionattributes.ResourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_inventory_collection_settings":      computerinventorycollectionsettings.ResourceJamfProComputerInventoryCollectionSettings(),
 			"jamfpro_computer_prestage_enrollment":                computerprestageenrollments.ResourceJamfProComputerPrestageEnrollmentEnrollment(),
@@ -437,15 +443,18 @@ func Provider() *schema.Provider {
 			"jamfpro_policy":                                      policies.ResourceJamfProPolicies(),
 			"jamfpro_printer":                                     printers.ResourceJamfProPrinters(),
 			"jamfpro_script":                                      scripts.ResourceJamfProScripts(),
+			"jamfpro_self_service_settings":                       selfservicesettings.ResourceJamfProSelfServiceSettings(),
 			"jamfpro_smtp_server":                                 smtpserver.ResourceJamfProSMTPServer(),
 			"jamfpro_site":                                        sites.ResourceJamfProSites(),
 			"jamfpro_smart_computer_group":                        smartcomputergroups.ResourceJamfProSmartComputerGroups(),
 			"jamfpro_smart_mobile_device_group":                   smartmobiledevicegroups.ResourceJamfProSmartMobileGroups(),
+			"jamfpro_sso_settings":                                ssosettings.ResourceJamfProSsoSettings(),
 			"jamfpro_static_computer_group":                       staticcomputergroups.ResourceJamfProStaticComputerGroups(),
 			"jamfpro_static_mobile_device_group":                  staticmobiledevicegroups.ResourceJamfProStaticMobileDeviceGroups(),
 			"jamfpro_restricted_software":                         restrictedsoftware.ResourceJamfProRestrictedSoftwares(),
 			"jamfpro_user_initiated_enrollment_settings":          userinitiatedenrollment.ResourceJamfProUserInitatedEnrollmentSettings(),
 			"jamfpro_user_group":                                  usergroups.ResourceJamfProUserGroups(),
+			"jamfpro_volume_purchasing_locations":                 volumepurchasinglocations.ResourceJamfProVolumePurchasingLocations(),
 			"jamfpro_webhook":                                     webhooks.ResourceJamfProWebhooks(),
 		},
 	}
