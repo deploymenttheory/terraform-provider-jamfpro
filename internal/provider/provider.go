@@ -64,6 +64,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/staticmobiledevicegroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/usergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/userinitiatedenrollment"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/volumepurchasinglocations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/webhooks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -395,6 +396,7 @@ func Provider() *schema.Provider {
 			"jamfpro_static_mobile_device_group":                staticmobiledevicegroups.DataSourceJamfProStaticMobileDeviceGroups(),
 			"jamfpro_restricted_software":                       restrictedsoftware.DataSourceJamfProRestrictedSoftwares(),
 			"jamfpro_user_group":                                usergroups.DataSourceJamfProUserGroups(),
+			"jamfpro_volume_purchasing_locations":               volumepurchasinglocations.DataSourceJamfProVolumePurchasingLocations(),
 			"jamfpro_webhook":                                   webhooks.DataSourceJamfProWebhooks(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -448,6 +450,7 @@ func Provider() *schema.Provider {
 			"jamfpro_restricted_software":                         restrictedsoftware.ResourceJamfProRestrictedSoftwares(),
 			"jamfpro_user_initiated_enrollment_settings":          userinitiatedenrollment.ResourceJamfProUserInitatedEnrollmentSettings(),
 			"jamfpro_user_group":                                  usergroups.ResourceJamfProUserGroups(),
+			"jamfpro_volume_purchasing_locations":                 volumepurchasinglocations.ResourceJamfProVolumePurchasingLocations(),
 			"jamfpro_webhook":                                     webhooks.ResourceJamfProWebhooks(),
 		},
 	}
