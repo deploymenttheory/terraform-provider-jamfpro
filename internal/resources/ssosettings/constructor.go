@@ -86,9 +86,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceSsoSettings, error) {
 func expandStringList(list []interface{}) []string {
 	result := make([]string, 0, len(list))
 	for _, item := range list {
-		if item != nil {
-			result = append(result, item.(string))
-		}
+		result = append(result, item.(string))
 	}
 	return result
 }
