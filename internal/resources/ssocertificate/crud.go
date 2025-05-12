@@ -55,16 +55,6 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 		return append(diags, common.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
-	if err := setKeystoreData(d, response.Keystore); err != nil {
-		return append(diags, diag.FromErr(fmt.Errorf("error setting keystore data: %v", err))...)
-	}
-
-	if response.KeystoreDetails != nil {
-		if err := setKeystoreDetails(d, response.KeystoreDetails); err != nil {
-			return append(diags, diag.FromErr(fmt.Errorf("error setting keystore details: %v", err))...)
-		}
-	}
-
 	return append(diags, updateState(d, response)...)
 }
 
