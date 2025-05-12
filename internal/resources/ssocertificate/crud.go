@@ -17,19 +17,9 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	var diags diag.Diagnostics
 
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		response, apiErr := client.CreateSSOCertificate()
+		_, apiErr := client.CreateSSOCertificate()
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
-		}
-
-		if err := setKeystoreData(d, response.Keystore); err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to set keystore data: %v", err))
-		}
-
-		if response.KeystoreDetails != nil {
-			if err := setKeystoreDetails(d, response.KeystoreDetails); err != nil {
-				return retry.NonRetryableError(fmt.Errorf("failed to set keystore details: %v", err))
-			}
 		}
 
 		return nil

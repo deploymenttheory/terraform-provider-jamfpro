@@ -6,10 +6,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// updateState updates the state of the SSO certificate resource with the provided response data.
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceSSOKeystoreResponse) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// Create the keystore map with nested keys
 	keystoreMap := map[string]interface{}{
 		"key":                 resp.Keystore.Key,
 		"type":                resp.Keystore.Type,
@@ -18,12 +18,10 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceSSOKeystoreRespon
 		"keys":                flattenCertKeys(resp.Keystore.Keys),
 	}
 
-	// Set the entire keystore structure
 	if err := d.Set("keystore", []interface{}{keystoreMap}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Set keystore details if available
 	if resp.KeystoreDetails != nil {
 		keystoreDetails := map[string]interface{}{
 			"keys":          resp.KeystoreDetails.Keys,
