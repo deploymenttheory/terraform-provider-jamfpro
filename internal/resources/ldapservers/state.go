@@ -13,8 +13,6 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceLDAPServers) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// Update Connection fields
-
 	if err := d.Set("id", strconv.Itoa(resp.Connection.ID)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -49,18 +47,20 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceLDAPServers) diag
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Update Account information (excluding password)
 	account := []interface{}{
 		map[string]interface{}{
 			"distinguished_username": resp.Connection.Account.DistinguishedUsername,
-			// Password is not included as it's sensitive and not returned by the API
 		},
 	}
+
+	if oldPassword, ok := d.GetOk("account.0.password"); ok {
+		account[0].(map[string]interface{})["password"] = oldPassword
+	}
+
 	if err := d.Set("account", account); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Update User Mappings
 	userMappings := []interface{}{
 		map[string]interface{}{
 			"map_object_class_to_any_or_all": resp.MappingsForUsers.UserMappings.MapObjectClassToAnyOrAll,
@@ -84,7 +84,6 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceLDAPServers) diag
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Update User Group Mappings
 	userGroupMappings := []interface{}{
 		map[string]interface{}{
 			"map_object_class_to_any_or_all": resp.MappingsForUsers.UserGroupMappings.MapObjectClassToAnyOrAll,
@@ -100,7 +99,6 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceLDAPServers) diag
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Update User Group Membership Mappings
 	membershipMappings := []interface{}{
 		map[string]interface{}{
 			"user_group_membership_stored_in":    resp.MappingsForUsers.UserGroupMembershipMappings.UserGroupMembershipStoredIn,
