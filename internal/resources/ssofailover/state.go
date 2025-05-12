@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// updateState updates the state of the SSO failover resource with the provided response data.
 func updateState(d *schema.ResourceData, resp *jamfpro.ResponseSSOFailover) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -14,7 +15,6 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResponseSSOFailover) diag
 		"generation_time": resp.GenerationTime,
 	}
 
-	// Set all settings
 	for key, val := range settings {
 		if err := d.Set(key, val); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
