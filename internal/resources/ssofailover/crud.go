@@ -17,18 +17,9 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	var diags diag.Diagnostics
 
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		response, apiErr := client.UpdateFailoverUrl()
+		_, apiErr := client.UpdateFailoverUrl()
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
-		}
-
-		d.SetId("jamfpro_sso_failover_singleton")
-
-		if err := d.Set("failover_url", response.FailoverURL); err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to set failover_url: %v", err))
-		}
-		if err := d.Set("generation_time", response.GenerationTime); err != nil {
-			return retry.NonRetryableError(fmt.Errorf("failed to set generation_time: %v", err))
 		}
 
 		return nil
@@ -37,6 +28,8 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to create SSO failover settings: %v", err))
 	}
+
+	d.SetId("jamfpro_sso_failover_singleton")
 
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
@@ -60,14 +53,6 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 
 	if err != nil {
 		return append(diags, common.HandleResourceNotFoundError(err, d, cleanup)...)
-	}
-
-	if err := d.Set("failover_url", response.FailoverURL); err != nil {
-		return append(diags, diag.FromErr(fmt.Errorf("error setting failover_url: %v", err))...)
-	}
-
-	if err := d.Set("generation_time", response.GenerationTime); err != nil {
-		return append(diags, diag.FromErr(fmt.Errorf("error setting generation_time: %v", err))...)
 	}
 
 	return append(diags, updateState(d, response)...)

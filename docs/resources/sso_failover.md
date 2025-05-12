@@ -26,7 +26,7 @@ output "failover_url" {
 
 ### Read-Only
 
-- `failover_url` (String) The SSO failover URL for Jamf Pro
+- `failover_url` (String, Sensitive) The SSO failover URL for Jamf Pro
 - `generation_time` (Number) The timestamp when the failover URL was generated
 - `id` (String) The ID of this resource.
 

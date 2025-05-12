@@ -6,20 +6,28 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// updateState updates the state of the SSO failover resource with the provided response data.
+// updateState updates the Terraform state with the values from the Jamf Pro SSO Failover response.
 func updateState(d *schema.ResourceData, resp *jamfpro.ResponseSSOFailover) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	settings := map[string]interface{}{
-		"failover_url":    resp.FailoverURL,
-		"generation_time": resp.GenerationTime,
+	oldURL, hasOldURL := d.GetOk("failover_url")
+	oldTime, hasOldTime := d.GetOk("generation_time")
+
+	if err := d.Set("failover_url", resp.FailoverURL); err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("generation_time", resp.GenerationTime); err != nil {
+		return append(diags, diag.FromErr(err)...)
 	}
 
-	for key, val := range settings {
-		if err := d.Set(key, val); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+	if hasOldURL && hasOldTime && d.Id() != "" {
+		if oldURL.(string) != resp.FailoverURL &&
+			oldTime.(int) != int(resp.GenerationTime) {
+			d.SetId("")
+			return diags
 		}
 	}
 
+	d.SetId("jamfpro_sso_failover_singleton")
 	return diags
 }

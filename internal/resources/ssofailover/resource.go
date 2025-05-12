@@ -24,6 +24,7 @@ func ResourceJamfProSSOFailover() *schema.Resource {
 			"failover_url": {
 				Type:        schema.TypeString,
 				Computed:    true,
+				Sensitive:   true,
 				Description: "The SSO failover URL for Jamf Pro",
 			},
 			"generation_time": {
