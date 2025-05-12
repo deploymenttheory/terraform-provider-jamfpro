@@ -1,4 +1,3 @@
-// jamf_protect_constructor.go
 package jamfprotect
 
 import (
@@ -10,20 +9,39 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// construct constructs the Jamf Protect registration request from the Terraform schema data.
-func construct(d *schema.ResourceData) (*jamfpro.ResourceJamfProtectRegisterRequest, error) {
-	resource := &jamfpro.ResourceJamfProtectRegisterRequest{
+type ProtectResources struct {
+	Registration *jamfpro.ResourceJamfProtectRegistration
+	Settings     *jamfpro.ResourceJamfProtectSettings
+}
+
+// construct creates a new instance of Jamf Protect registration and settings based on the provided schema.
+func construct(d *schema.ResourceData) (*ProtectResources, error) {
+	registration := &jamfpro.ResourceJamfProtectRegistration{
 		ProtectURL: d.Get("protect_url").(string),
 		ClientID:   d.Get("client_id").(string),
 		Password:   d.Get("password").(string),
 	}
 
-	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
+	registrationJSON, err := json.MarshalIndent(registration, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Protect registration request to JSON: %v", err)
+		return nil, fmt.Errorf("failed to marshal Jamf Protect Registration to JSON: %v", err)
 	}
 
-	log.Printf("[DEBUG] Constructed Jamf Protect registration request JSON:\n%s\n", string(resourceJSON))
+	log.Printf("[DEBUG] Constructed Jamf Protect Registration JSON:\n%s\n", string(registrationJSON))
 
-	return resource, nil
+	settings := &jamfpro.ResourceJamfProtectSettings{
+		AutoInstall: d.Get("auto_install").(bool),
+	}
+
+	settingsJSON, err := json.MarshalIndent(settings, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal Jamf Protect Settings to JSON: %v", err)
+	}
+
+	log.Printf("[DEBUG] Constructed Jamf Protect Settings JSON:\n%s\n", string(settingsJSON))
+
+	return &ProtectResources{
+		Registration: registration,
+		Settings:     settings,
+	}, nil
 }

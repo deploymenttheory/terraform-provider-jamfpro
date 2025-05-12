@@ -1,4 +1,3 @@
-// jamf_protect_crud.go
 package jamfprotect
 
 import (
@@ -12,34 +11,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// create registers a new Jamf Protect integration in Jamf Pro and performs initial setup
+// create initializes the Jamf Protect integration by creating a new resource.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
 	resource, err := construct(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Protect registration request: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Protect integration: %v", err))
 	}
 
-	var response *jamfpro.ResourceJamfProtectRegisterResponse
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		var apiErr error
-		response, apiErr = client.CreateJamfProtectAPIConfiguration(*resource)
-		if apiErr != nil {
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to register Jamf Protect integration: %v", err))
-	}
-
-	d.SetId(response.ID)
-
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		_, apiErr := client.CreateJamfProtectIntegration(d.Get("auto_install").(bool))
+		_, apiErr := client.CreateJamfProtectIntegration(*resource.Registration, resource.Settings.AutoInstall)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -50,35 +33,22 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		return diag.FromErr(fmt.Errorf("failed to create Jamf Protect integration: %v", err))
 	}
 
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		apiErr := client.SyncJamfProtectPlans()
-		if apiErr != nil {
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to sync Jamf Protect plans: %v", err))
-	}
-
-	diags = append(diags, updateStateFromRegisterResponse(d, response)...)
-	if diags.HasError() {
-		return diags
-	}
+	d.SetId("jamfpro_jamf_protect_singleton")
 
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
-// read reads the Jamf Protect integration settings from Jamf Pro.
+// read retrieves the current state of the Jamf Protect integration.
 func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	var response *jamfpro.ResourceJamfProtectIntegrationSettings
+	d.SetId("jamfpro_jamf_protect_singleton")
+
+	var response *jamfpro.ResponseJamfProtectSettings
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		response, apiErr = client.GetJamfProtectIntegrationSettings()
+		response, apiErr = client.GetJamfProtectSettings()
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}
@@ -92,41 +62,42 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 	return append(diags, updateState(d, response)...)
 }
 
-// readWithCleanup reads the Jamf Protect settings and cleans up the state if necessary.
+// readWithCleanup is a wrapper for the read function that handles cleanup.
 func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return read(ctx, d, meta, true)
 }
 
-// readNoCleanup reads the Jamf Protect settings without cleaning up the state.
+// readNoCleanup is a wrapper for the read function that does not handle cleanup.
 func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return read(ctx, d, meta, false)
 }
 
-// update updates the Jamf Protect integration settings in Jamf Pro.
+// update modifies the existing Jamf Protect integration settings.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	if d.HasChange("auto_install") {
-		autoInstall := d.Get("auto_install").(bool)
+	resource, err := construct(d)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Protect settings: %v", err))
+	}
 
-		err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-			_, apiErr := client.CreateJamfProtectIntegration(autoInstall)
-			if apiErr != nil {
-				return retry.RetryableError(apiErr)
-			}
-			return nil
-		})
-
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to update Jamf Protect settings: %v", err))
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+		_, apiErr := client.UpdateJamfProtectSettings(*resource.Settings)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
 		}
+		return nil
+	})
+
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Protect settings: %v", err))
 	}
 
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
-// delete removes the Jamf Protect integration from Jamf Pro.
+// delete removes the Jamf Protect integration.
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics

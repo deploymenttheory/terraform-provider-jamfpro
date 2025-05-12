@@ -1,4 +1,3 @@
-// jamf_protect_state.go
 package jamfprotect
 
 import (
@@ -7,43 +6,24 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// updateState updates the state of the Jamf Protect settings resource in Terraform
-func updateState(d *schema.ResourceData, resp *jamfpro.ResourceJamfProtectIntegrationSettings) diag.Diagnostics {
+// updateState updates the Terraform state with the current settings of the Jamf Protect integration.
+func updateState(d *schema.ResourceData, resp *jamfpro.ResponseJamfProtectSettings) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	settings := map[string]interface{}{
-		"id":              resp.ID,
-		"api_client_id":   resp.APIClientID,
-		"api_client_name": resp.APIClientName,
-		"registration_id": resp.RegistrationID,
 		"protect_url":     resp.ProtectURL,
-		"last_sync_time":  resp.LastSyncTime,
-		"sync_status":     resp.SyncStatus,
 		"auto_install":    resp.AutoInstall,
+		"sync_status":     resp.SyncStatus,
+		"api_client_name": resp.APIClientName,
+		"last_sync_time":  resp.LastSyncTime,
+		"registration_id": resp.RegistrationID,
 	}
 
-	for key, val := range settings {
-		if err := d.Set(key, val); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+	if d.HasChange("client_id") {
+		settings["client_id"] = d.Get("client_id").(string)
 	}
-
-	return diags
-}
-
-// updateStateFromRegisterResponse updates the state from the initial registration response
-func updateStateFromRegisterResponse(d *schema.ResourceData, resp *jamfpro.ResourceJamfProtectRegisterResponse) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	settings := map[string]interface{}{
-		"id":              resp.ID,
-		"api_client_id":   resp.APIClientID,
-		"api_client_name": resp.APIClientName,
-		"registration_id": resp.RegistrationID,
-		"protect_url":     resp.ProtectURL,
-		"last_sync_time":  resp.LastSyncTime,
-		"sync_status":     resp.SyncStatus,
-		"auto_install":    resp.AutoInstall,
+	if d.HasChange("password") {
+		settings["password"] = d.Get("password").(string)
 	}
 
 	for key, val := range settings {
