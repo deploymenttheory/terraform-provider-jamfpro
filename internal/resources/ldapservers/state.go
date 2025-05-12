@@ -53,11 +53,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceLDAPServers) diag
 		},
 	}
 
-	if old, ok := d.GetOk("account.0"); ok {
-		oldAccount := old.(map[string]interface{})
-		if password, ok := oldAccount["password"]; ok {
-			account[0].(map[string]interface{})["password"] = password
-		}
+	if oldPassword, ok := d.GetOk("account.0.password"); ok {
+		account[0].(map[string]interface{})["password"] = oldPassword
 	}
 
 	if err := d.Set("account", account); err != nil {
