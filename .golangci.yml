@@ -1,13 +1,19 @@
 # Visit https://golangci-lint.run/ for usage documentation
 # and information on other useful linters
+
+run:
+  issues-exit-code: 1
+
 issues:
-  max-per-linter: 0
   max-same-issues: 0
 
-version: 2
+version: "2"
 
+linters-settings:
+  misspell:
+    locale: US
+# above for testing
 linters:
-  disable-all: true
   enable:
     - durationcheck
     - errcheck
