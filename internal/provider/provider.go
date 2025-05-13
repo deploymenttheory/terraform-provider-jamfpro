@@ -300,7 +300,7 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
-				Description: "Debug option to propogate logs from the SDK and HttpClient",
+				Description: "Debug option to propagate logs from the SDK and HttpClient",
 			},
 			"client_sdk_log_export_path": {
 				Type:        schema.TypeString,
