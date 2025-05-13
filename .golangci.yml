@@ -1,1 +1,182 @@
 version: "2"
+
+run:
+  timeout: 20m
+  # CI mode: Fails if go.mod needs updates, ensuring dependencies are properly declared
+  modules-download-mode: readonly
+  allow-parallel-runners: true
+  allow-serial-runners: false
+  concurrency: 2
+
+issues:
+  # Don’t cap lint errors per linter—report everything in new code.
+  max-issues-per-linter: 0
+
+  # Don’t limit duplicates by text—if the same error crops up on multiple lines, show them all.
+  max-same-issues: 0
+
+  # Don’t dedupe by line; every instance matters.
+  uniq-by-line: false
+
+  # Only fail on new issues introduced by new PR's.
+  new: true
+
+  # Define the “base” for “new” issues as the merge-base against main.
+  new-from-merge-base: main
+
+  # Also catch anything in new or modified files, even outside the diff hunk.
+  whole-files: true
+
+  # Automatically apply any fixable issues (like gofmt/goimports).
+  fix: true
+
+
+linters:
+  default: none
+  enable:
+    # Core correctness & compile checks
+    - govet          # catches suspicious Go constructs
+    - staticcheck    # static analyses (nil‐checks, API misuse, etc.)
+    - errcheck       # ensures you never ignore an error return
+    - unused         # finds dead code we no longer need
+    - ineffassign    # flags assignments that have no effect
+  
+    # error-handling best practices
+    - errorlint      # flag missing %w wraps
+    - err113         # enforce correct error-handling patterns
+
+    # Terraform‐specific safety & resource handling
+    - bodyclose      # makes sure every HTTP response body is closed
+    - gosec          # scans for security issues (e.g. hardcoded credentials)
+    
+    # Specifically important for API clients (Microsoft 365 API)
+    - contextcheck   # check whether function uses a non-inherited context
+    - noctx          # finds sending http request without context.Context
+    - nilnil         # checks that there is no simultaneous return of nil error and invalid value
+    
+    # Quality & style
+    - gocritic       # catches a variety of performance/style bugs
+    - prealloc       # recommends when you can preallocate slices/maps
+    - misspell       # finds typos in comments, docs, & variable names
+    - gocyclo        # warn on high cyclomatic complexity
+    - wrapcheck      # checks that errors from external packages are wrapped
+    
+    # API/Terraform specific
+    - musttag        # enforce field tags in (un)marshaled structs
+    - tagliatelle    # checks struct tags (important for JSON/XML APIs)
+
+  # 3) Per-linter configuration
+  settings:
+    nakedret:
+      max-func-lines: 40
+
+  # 4) Issue-filtering (not disabling analysis, just silencing reports)
+  exclusions:
+    # skip generated files strictly matching Go’s “Code generated … DO NOT EDIT.”
+    generated: strict
+
+    # warn if any of these exclusions never match
+    warn-unused: true
+
+    # apply standard “false positive” presets
+    presets:
+      - comments
+      - std-error-handling
+      - common-false-positives
+      - legacy
+
+    # fine-grained rules to drop issues by path, linter, text, or source
+    rules:
+      # in test files, silence these noisy checks
+      - path: _test\.go
+        linters:
+          - gocyclo
+          - errcheck
+          - dupl
+          - gosec
+
+      # only run “forbidigo” on tests (silence everywhere else)
+      - path-except: _test\.go
+        linters:
+          - forbidigo
+
+      # silence known gosec warning in this vendored code
+      - path: internal/hmac/
+        text: "weak cryptographic primitive"
+        linters:
+          - gosec
+
+      # drop staticcheck’s SA9003 messages
+      - linters:
+          - staticcheck
+        text: "SA9003:"
+
+      # exclude “lll” warnings on go:generate lines
+      - linters:
+          - lll
+        source: "^//go:generate "
+
+   # exclude entire files from reporting (still analyzed)
+    paths:
+      - ".*\\.gen\\.go$"          # Generated Go files
+      - ".*_test\\.go$"           # Test files (already handled with more specific rules)
+      - "examples/.*"             # Example code for documentation
+      - "tools/.*"                # Build/helper tools
+      - "scripts/.*"              # Scripts for development
+      - "docs/.*\\.go$"           # Documentation generators
+
+    # Never exclude these critical paths, even if they match patterns above
+    paths-except:
+      - "internal/.*\\.go$"       # Core provider logic
+
+formatters:
+  # Only run the formatters you actually want to auto‐fix in CI
+  enable:
+    - gofumpt     # strict Go formatting (superset of gofmt)
+    - goimports   # fixes imports (add/remove/sort)
+    - gci         # groups & sorts import blocks
+    - golines     # wraps long lines to a max length (e.g. 120 chars)
+
+  # Per‐formatter settings (optional—only if you need to tweak defaults)
+  settings:
+    gci:
+      # customize your import sections order: standard, external, project
+      sections:
+        - Standard
+        - Default
+        - Prefix(github.com/deploymenttheory)
+
+  # Exclude generated or special‐case files from formatting checks
+  exclusions:
+    warn-unused: true   # error if any of the below rules never match
+    generated: strict   # only skip files with exact “// Code generated … DO NOT EDIT.”
+    paths:
+      - ".*\\.gen\\.go$"       # ignore any *.gen.go files
+      - "internal/tools/.*"    # ignore codegen tools dir
+
+output:
+  formats:
+    # 1) Text format for the Action log
+    text:
+      # Send lint results to stderr so the Action log shows them even when piped
+      path: stderr
+      # Include the linter name after each issue
+      print-linter-name: true
+      # Show the source lines for each issue
+      print-issued-lines: true
+      # Keep ANSI colors enabled for readability in the Actions console
+      colors: true
+
+    # 2) SARIF format for GitHub Code Scanning integration
+    sarif:
+      path: golangci-lint-report.sarif
+
+  # Use relative paths (from the module root) in output
+  path-mode: ""
+
+  sort-order:
+    - severity
+    - file
+
+  # Show summary statistics at the end of the report
+  show-stats: true
