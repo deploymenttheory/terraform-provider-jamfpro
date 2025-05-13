@@ -109,7 +109,6 @@ func GetJamfFqdn(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	}
 	return jamf_fqdn.(string)
 }
-asdpijaspdiojaspoda invalid code blah
 /*
 GetClientID retrieves the client ID from the provided schema resource data.
 If the client ID is not found, it appends an error diagnostic to the diagnostics slice.

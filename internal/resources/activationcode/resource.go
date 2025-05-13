@@ -35,7 +35,6 @@ func ResourceJamfProActivationCode() *schema.Resource {
 				Sensitive:   true,
 				Description: "The activation code.",
 			},
-			thisisntwihsw0pgnwpidfgnwnbiofipqwe
 		},
 	}
 }
