@@ -80,7 +80,6 @@ const (
 	envVarJamfProFQDN                 = "JAMFPRO_INSTANCE_FQDN"
 	envVarJamfProAuthMethod           = "JAMFPRO_AUTH_METHOD"
 	jamfLoadBalancerCookieName        = "jpro-ingress"
-	wibblewobble                      = "wibblewobble"
 )
 
 /*
