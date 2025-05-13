@@ -11,6 +11,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResponseJamfProtectSettin
 	var diags diag.Diagnostics
 
 	settings := map[string]interface{}{
+		"client_id":       resp.APIClientID,
 		"protect_url":     resp.ProtectURL,
 		"auto_install":    resp.AutoInstall,
 		"sync_status":     resp.SyncStatus,
@@ -19,9 +20,6 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResponseJamfProtectSettin
 		"registration_id": resp.RegistrationID,
 	}
 
-	if d.HasChange("client_id") {
-		settings["client_id"] = d.Get("client_id").(string)
-	}
 	if d.HasChange("password") {
 		settings["password"] = d.Get("password").(string)
 	}
