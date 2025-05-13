@@ -26,7 +26,6 @@ import (
 var (
 	// these will be set by the goreleaser configuration
 	// to appropriate values for the compiled binary.
-	//nolint:unused // Used by goreleaser for version injection at build time
 	version string = "dev"
 
 	// goreleaser can pass other information to the main package, such as the specific commit
