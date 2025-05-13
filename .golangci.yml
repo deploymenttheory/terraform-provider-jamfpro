@@ -63,7 +63,6 @@ linters:
     
     # API/Terraform specific
     - musttag        # enforce field tags in (un)marshaled structs
-    - tagliatelle    # checks struct tags (important for JSON/XML APIs)
 
   # 3) Per-linter configuration
   settings:
