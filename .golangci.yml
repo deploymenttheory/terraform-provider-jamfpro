@@ -46,32 +46,7 @@ linters:
     nakedret:
       max-func-lines: 40
 
-  # 4) Issue-filtering (not disabling analysis, just silencing reports)
-formatters:
-  # Only run the formatters you actually want to auto‐fix in CI
-  enable:
-    - gofumpt     # strict Go formatting (superset of gofmt)
-    - goimports   # fixes imports (add/remove/sort)
-    - gci         # groups & sorts import blocks
-    - golines     # wraps long lines to a max length (e.g. 120 chars)
-
-  # Per‐formatter settings (optional—only if you need to tweak defaults)
-  settings:
-    gci:
-      # customize your import sections order: standard, external, project
-      sections:
-        - Standard
-        - Default
-        - Prefix(github.com/deploymenttheory)
-
   # Exclude generated or special‐case files from formatting checks
-  exclusions:
-    warn-unused: true   # error if any of the below rules never match
-    generated: strict   # only skip files with exact "// Code generated ... DO NOT EDIT."
-    paths:
-      - ".*\\.gen\\.go$"       # ignore any *.gen.go files
-      - "internal/tools/.*"    # ignore codegen tools dir
-
 output:
   formats:
     # 1) Text format for the Action log
