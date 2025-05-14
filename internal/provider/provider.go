@@ -63,6 +63,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/smartmobiledevicegroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/smtpserver"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/ssocertificate"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/ssofailover"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/ssosettings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/staticcomputergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/staticmobiledevicegroups"
@@ -397,6 +398,7 @@ func Provider() *schema.Provider {
 			"jamfpro_smart_computer_group":                      smartcomputergroups.DataSourceJamfProSmartComputerGroups(),
 			"jamfpro_smart_mobile_device_group":                 smartmobiledevicegroups.DataSourceJamfProSmartMobileGroups(),
 			"jamfpro_sso_certificate":                           ssocertificate.DataSourceJamfProSSOCertificate(),
+			"jamfpro_sso_failover":                              ssofailover.DataSourceJamfProSSOFailover(),
 			"jamfpro_static_computer_group":                     staticcomputergroups.DataSourceJamfProStaticComputerGroups(),
 			"jamfpro_static_mobile_device_group":                staticmobiledevicegroups.DataSourceJamfProStaticMobileDeviceGroups(),
 			"jamfpro_restricted_software":                       restrictedsoftware.DataSourceJamfProRestrictedSoftwares(),
@@ -453,6 +455,7 @@ func Provider() *schema.Provider {
 			"jamfpro_smart_computer_group":                        smartcomputergroups.ResourceJamfProSmartComputerGroups(),
 			"jamfpro_smart_mobile_device_group":                   smartmobiledevicegroups.ResourceJamfProSmartMobileGroups(),
 			"jamfpro_sso_certificate":                             ssocertificate.ResourceJamfProSSOCertificate(),
+			"jamfpro_sso_failover":                                ssofailover.ResourceJamfProSSOFailover(),
 			"jamfpro_sso_settings":                                ssosettings.ResourceJamfProSsoSettings(),
 			"jamfpro_static_computer_group":                       staticcomputergroups.ResourceJamfProStaticComputerGroups(),
 			"jamfpro_static_mobile_device_group":                  staticmobiledevicegroups.ResourceJamfProStaticMobileDeviceGroups(),
