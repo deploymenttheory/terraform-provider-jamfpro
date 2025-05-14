@@ -19,6 +19,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	settings, err := construct(d)
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account Driven User Enrollment Settings: %v", err))
 	}
 
@@ -31,6 +32,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Account Driven User Enrollment Settings: %v", err))
 	}
 
@@ -80,6 +82,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	if d.HasChanges("enabled", "expiration_interval_days", "expiration_interval_seconds") {
 		settings, err := construct(d)
 		if err != nil {
+			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account Driven User Enrollment Settings: %v", err))
 		}
 
@@ -92,6 +95,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		})
 
 		if err != nil {
+			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Account Driven User Enrollment Settings: %v", err))
 		}
 	}
