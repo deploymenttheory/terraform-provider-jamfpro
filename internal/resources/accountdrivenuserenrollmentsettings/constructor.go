@@ -2,14 +2,12 @@ package accountdrivenuserenrollmentsettings
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/pkg/errors"
 )
-
-var errMarshalADUESettings = errors.New("failed to marshal Account Driven User Enrollment Settings to JSON")
 
 // construct builds the request for UpdateADUESessionTokenSettings
 func construct(d *schema.ResourceData) (*jamfpro.ResourceADUETokenSettings, error) {
@@ -28,7 +26,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceADUETokenSettings, erro
 
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, errors.Wrap(err, errMarshalADUESettings.Error())
+		return nil, fmt.Errorf("failed to marshal Account Driven User Enrollment Settings to JSON: %v", err)
 	}
 	log.Printf("[DEBUG] Constructed Account Driven User Enrollment Settings resource:\n%s", string(resourceJSON))
 
