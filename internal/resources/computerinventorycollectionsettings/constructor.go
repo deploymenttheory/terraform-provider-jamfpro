@@ -55,6 +55,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceComputerInventoryCollec
 
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return nil, fmt.Errorf("failed to marshal Computer Inventory Collection Settings to JSON: %v", err)
 	}
 	log.Printf("[DEBUG] Constructed Computer Inventory Collection Settings resource:\n%s", string(resourceJSON))
@@ -80,6 +81,7 @@ func constructCustomPaths(d *schema.ResourceData) ([]jamfpro.ResourceComputerInv
 
 				pathJSON, err := json.MarshalIndent(customPath, "", "  ")
 				if err != nil {
+					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 					return nil, fmt.Errorf("failed to marshal custom path to JSON: %v", err)
 				}
 				log.Printf("[DEBUG] Constructing API request for custom path:\n%s", string(pathJSON))

@@ -46,6 +46,7 @@ func constructAppInstallerGlobalSettings(d *schema.ResourceData) (*jamfpro.Respo
 
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return nil, fmt.Errorf("failed to marshal Jamf App Catalog Global Settings to JSON: %v", err)
 	}
 

@@ -77,6 +77,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 
 	if resource == nil {
 		d.SetId("")
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return append(diags, diag.FromErr(fmt.Errorf("recieved empty resource"))...)
 	}
 
