@@ -20,8 +20,10 @@ func validateIconFilePath() schema.SchemaValidateFunc {
 			v := i.(string)
 			ext := filepath.Ext(v)
 			if ext == "" {
+				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return nil, []error{fmt.Errorf("expected .png file, got no extension")}
 			}
+			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return nil, []error{fmt.Errorf("expected .png file, got %s", ext)}
 		},
 	)
