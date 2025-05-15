@@ -56,15 +56,18 @@ func validatePayloadIdentifers(_ context.Context, diff *schema.ResourceDiff, _ i
 
 	profile, err := plist.UnmarshalPayload(payload)
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': error unmarshalling payload: %v", resourceName, err)
 	}
 
 	if profile.PayloadIdentifier != profile.PayloadUUID {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': root-level PayloadIdentifier and PayloadUUID within the plist do not match. Expected PayloadIdentifier to be '%s', but got '%s'", resourceName, profile.PayloadUUID, profile.PayloadIdentifier)
 	}
 
 	errs := plist.ValidatePayloadFields(profile)
 	if len(errs) > 0 {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': %v", resourceName, errs)
 	}
 

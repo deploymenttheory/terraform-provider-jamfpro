@@ -310,12 +310,14 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v, ok := val.(string)
 					if !ok {
+						//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 						errs = append(errs, fmt.Errorf("%q must be a string, got: %T", key, val))
 						return warns, errs
 					}
 					if v == "All" || v == "Newly Assigned" {
 						return
 					}
+					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 					errs = append(errs, fmt.Errorf("%q must be either 'All' or 'Newly Assigned', got: %s", key, v))
 					return warns, errs
 				},
