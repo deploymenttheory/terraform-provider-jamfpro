@@ -25,6 +25,7 @@ func constructLocalAdminPasswordSettings(d *schema.ResourceData) (*jamfpro.Resou
 
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Local Admin Password Settings to JSON: %v", err)
 	}
 

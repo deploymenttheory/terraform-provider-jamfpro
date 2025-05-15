@@ -29,6 +29,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceNetworkSegment, error) 
 	// Serialize and pretty-print the Network Segment object as XML for logging
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Network Segment '%s' to XML: %v", resource.Name, err)
 	}
 

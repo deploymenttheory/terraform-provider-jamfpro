@@ -28,6 +28,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceGroup, erro
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Mobile Group '%s' to XML: %v", resource.Name, err)
 	}
 
