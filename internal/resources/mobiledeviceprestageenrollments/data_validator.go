@@ -21,10 +21,12 @@ func validateAuthenticationPrompt(_ context.Context, diff *schema.ResourceDiff, 
 	authPrompt, authPromptOk := diff.GetOk("authentication_prompt")
 
 	if requireAuth.(bool) && !authPromptOk {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_mobile_device_prestage_enrollment.%s': 'authentication_prompt' is required when 'require_authentication' is set to true", resourceName)
 	}
 
 	if !requireAuth.(bool) && authPromptOk && authPrompt.(string) != "" {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_mobile_device_prestage_enrollment.%s': 'authentication_prompt' is not allowed when 'require_authentication' is set to false", resourceName)
 	}
 
@@ -46,6 +48,7 @@ func validateDateFormat(v interface{}, k string) (ws []string, errors []error) {
 	match, _ := regexp.MatchString(datePattern, dateString)
 
 	if !match {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		errors = append(errors, fmt.Errorf("%q must be in the format YYYY-MM-DD, got: %s", k, dateString))
 	}
 

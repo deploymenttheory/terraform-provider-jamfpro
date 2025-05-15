@@ -77,7 +77,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 		if err != nil {
 			log.Printf("[ERROR] Failed to upload package file '%s': %v", resource.FileName, err)
-
+			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return retry.NonRetryableError(fmt.Errorf("failed to upload package file: %v", err))
 		}
 
@@ -87,19 +87,21 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-
 		// Cleans up the metadata so the next run doesn't hit an error trying to remake it, duplicate names are not allowed
 		cleanupErr := client.DeletePackageByID(packageID)
 
 		if cleanupErr != nil {
+			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return diag.FromErr(fmt.Errorf("failed to upload package: %v and failed to delete metadata: %v", err, cleanupErr))
 		}
 
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to upload Jamf Pro Package '%s': %v", resource.PackageName, err))
 	}
 
 	if err := verifyPackageUpload(ctx, client, packageID, resource.FileName, initialHash,
 		d.Timeout(schema.TimeoutCreate)); err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to verify Jamf Pro Package '%s': %v", resource.PackageName, err))
 	}
 

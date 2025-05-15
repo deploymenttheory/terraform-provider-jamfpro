@@ -35,6 +35,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Mobile Device Prestage Enrollment '%s' after retries: %v", resource.DisplayName, err))
 	}
 
@@ -74,6 +75,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	resource, err := construct(d, isUpdate)
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Mobile Device Prestage Enrollment for update: %v", err))
 	}
 
@@ -86,6 +88,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Mobile Device Prestage Enrollment '%s' (ID: %s) after retries: %v", resource.DisplayName, resourceID, err))
 	}
 
