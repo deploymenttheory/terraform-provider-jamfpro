@@ -18,6 +18,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	resource, err := construct(d)
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to construct Advanced Mobile Search: %v", err))
 	}
 
@@ -32,6 +33,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to create Advanced Mobile Search '%s' after retries: %v", resource.Name, err))
 	}
 
@@ -70,6 +72,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	resource, err := construct(d)
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to construct Advanced Mobile Device Search for update: %v", err))
 	}
 
@@ -82,6 +85,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to update Advanced Mobile Device Search '%s' (ID: %s) after retries: %v", resource.Name, resourceID, err))
 	}
 

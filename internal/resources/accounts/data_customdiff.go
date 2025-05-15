@@ -216,9 +216,11 @@ func validateReverseDependencyChecks(_ context.Context, d *schema.ResourceDiff, 
 			if ok {
 				casperAdminPrivilegesSet := casperAdminPrivileges.(*schema.Set)
 				if !casperAdminPrivilegesSet.Contains("Save With Casper Admin") {
+					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 					return fmt.Errorf("when the following JSS Object Privileges are set %v, 'Save With Casper Admin' must be included in 'casper_admin_privileges'", crudPrivileges)
 				}
 			} else {
+				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return fmt.Errorf("when the following JSS Object Privileges are set %v, 'Save With Casper Admin' must be included in 'casper_admin_privileges'", crudPrivileges)
 			}
 		}

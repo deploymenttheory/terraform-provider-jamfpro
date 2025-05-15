@@ -71,6 +71,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	})
 
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro API Integration with ID '%s' after retries: %v", resourceID, err))
 	}
 
@@ -92,6 +93,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 		return nil
 	})
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to create or rotate Client secret from Jamf Pro API Integration with ID '%s' after retries: %v", resourceID, err))
 	}
 
