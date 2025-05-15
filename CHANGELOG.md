@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.21.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.20.0...v0.21.0) (2025-05-15)
+
+
+### Features
+
+* add jamf_protect resource ([#734](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/734)) ([d3a5acc](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/d3a5accd533a0ec62b292c4583f904a9b10a195c))
+* add jamfpro_cloud_ldap resource ([#727](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/727)) ([ab75a46](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/ab75a4686aa151054abf9b623b8f77b58131c359))
+* add jamfpro_device_enrollments resource ([#719](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/719)) ([50ea4ac](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/50ea4acc7d2beeda25f04ef1c04e4ce110843e3a))
+* add jamfpro_device_enrollments_public_key data source ([#718](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/718)) ([511f926](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/511f926dee566eec480c1613c2ec7f82186315bc))
+* add jamfpro_self_service_settings resource ([#717](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/717)) ([47cd726](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/47cd7261d1d39861978d670edc899d2f6cba1788))
+* add jamfpro_settings_engage resource ([#736](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/736)) ([3fbd427](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/3fbd427c7e5d669cac3737ecfb5f0f40a2380eb0))
+* add jamfpro_sso_certificate resource and data source ([#724](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/724)) ([a8e673f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/a8e673f60e2e178f190aff690eb103a6f80d754a))
+* add jamfpro_sso_failover resource and data source ([#723](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/723)) ([5d5aa51](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/5d5aa51c8c41e8e053a95152b19d79581a76c009))
+* add jamfpro_sso_settings resource ([#725](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/725)) ([8e00356](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/8e00356aad681f5f7664e8e7d8d685348de10851))
+* add jamfpro_volume_purchasing_locations resource and data source ([#722](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/722)) ([5a886fc](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/5a886fcd31f28421a3d26fabe32ce614a0231e78))
+* release please actor is now a GH app ([#738](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/738)) ([71eaf7e](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/71eaf7e401c61b8dabce9e812eaa7c844b0a704e))
+
+
+### Bug Fixes
+
+* jamfpro_ldap_servers state password handling ([#728](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/728)) ([75a295a](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/75a295af8d7baa28edb9d6b6c7e8a699106dd8bd))
+* sdk deps ([#735](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/735)) ([9602dae](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/9602dae4a1f0b12f3226398dd67357a64c4324e4))
+
 ## [0.20.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.19.1...v0.20.0) (2025-05-02)
 
 
