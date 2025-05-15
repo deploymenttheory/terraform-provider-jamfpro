@@ -43,10 +43,12 @@ func validateAccessLevelSiteRequirement(_ context.Context, d *schema.ResourceDif
 	site := d.Get("site_id").(int)
 
 	if site > 0 && accessLevel != "Site Access" {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("cannot have site set without site access")
 	}
 
 	if site == -1 && accessLevel == "Site Access" {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("cannot have site access without site set")
 	}
 
@@ -77,6 +79,7 @@ func validateGroupAccessPrivilegeSetRequirement(_ context.Context, d *schema.Res
 	privilegeSet := d.Get("privilege_set").(string)
 
 	if accessLevel == "Group Access" && privilegeSet != "Custom" {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("when 'access_level' is 'Group Access', 'privilege_set' must be 'Custom'")
 	}
 

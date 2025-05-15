@@ -14,6 +14,7 @@ import (
 func SerializeAndRedactXML(resource interface{}, redactFields []string) (string, error) {
 	v := reflect.ValueOf(resource)
 	if v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Struct {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return "", fmt.Errorf("resource must be a pointer to a struct")
 	}
 
@@ -29,6 +30,7 @@ func SerializeAndRedactXML(resource interface{}, redactFields []string) (string,
 	}
 
 	if marshaledXML, err := xml.MarshalIndent(resourceCopy.Interface(), "", "  "); err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return "", fmt.Errorf("failed to marshal %s to XML: %v", v.Elem().Type(), err)
 	} else {
 		return string(marshaledXML), nil
@@ -39,6 +41,7 @@ func SerializeAndRedactXML(resource interface{}, redactFields []string) (string,
 func SerializeAndRedactJSON(resource interface{}, redactFields []string) (string, error) {
 	v := reflect.ValueOf(resource)
 	if v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Struct {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return "", fmt.Errorf("resource must be a pointer to a struct")
 	}
 
@@ -55,6 +58,7 @@ func SerializeAndRedactJSON(resource interface{}, redactFields []string) (string
 
 	marshaledJSON, err := json.MarshalIndent(resourceCopy.Interface(), "", "  ")
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return "", fmt.Errorf("failed to marshal %s to JSON: %v", v.Elem().Type(), err)
 	}
 
@@ -67,6 +71,7 @@ func getIDField(response interface{}) (any, error) {
 
 	idField := v.FieldByName("ID")
 	if !idField.IsValid() {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return "", fmt.Errorf("ID field not found in response")
 	}
 
@@ -80,5 +85,6 @@ func getIDField(response interface{}) (any, error) {
 		return strconv.Itoa(integer), nil
 	}
 
+	//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 	return nil, fmt.Errorf("unsupported type")
 }
