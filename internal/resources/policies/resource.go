@@ -122,6 +122,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 					if vInt == -1 || (vInt > 0 && vInt <= 10) {
 						return
 					}
+					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 					errs = append(errs, fmt.Errorf("%q must be -1 if not being set or between 1 and 10 if it is being set, got: %d", key, val))
 					return warns, errs
 				},
