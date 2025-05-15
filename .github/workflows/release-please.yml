@@ -11,11 +11,15 @@ name: release-please
 
 jobs:
   release-please:
-    name: '🏷️ Release Please'
     runs-on: ubuntu-latest
     steps:
-    - uses: googleapis/release-please-action@v4.2.0
-      id: release
+    - uses: actions/create-github-app-token@v1
+      id: app-token
       with:
+        app-id: ${{ vars.RP_APP_ID }}
+        private-key: ${{ secrets.RP_APP_PRIVATE_KEY }}
+
+    - uses: googleapis/release-please-action@v4
+      with:
+        token: ${{ steps.app-token.outputs.token }}
         release-type: terraform-module
-        token: ${{ secrets.PAT_TOKEN }}
