@@ -63,10 +63,12 @@ func validatePrivilegesForSiteAccess(_ context.Context, d *schema.ResourceDiff, 
 	}
 
 	if jssSettingsPrivileges, ok := d.GetOk("jss_settings_privileges"); ok && len(jssSettingsPrivileges.([]interface{})) > 0 {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("when 'access_level' is 'Site Access', 'jss_settings_privileges' are not allowed")
 	}
 
 	if casperAdminPrivileges, ok := d.GetOk("casper_admin_privileges"); ok && len(casperAdminPrivileges.([]interface{})) > 0 {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("when 'access_level' is 'Site Access', 'casper_admin_privileges' are not allowed")
 	}
 
@@ -102,6 +104,7 @@ func validateCasperAdminUsePrivileges(_ context.Context, d *schema.ResourceDiff,
 
 			jssObjectsPrivilegesSet, ok := d.GetOk("jss_objects_privileges")
 			if !ok {
+				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return fmt.Errorf("when 'Use Casper Admin' is selected, the following JSS Object Privileges are required: %v", requiredReadPrivileges)
 			}
 
@@ -112,6 +115,7 @@ func validateCasperAdminUsePrivileges(_ context.Context, d *schema.ResourceDiff,
 
 			for _, requiredPriv := range requiredReadPrivileges {
 				if !jssPrivilegesSet[requiredPriv] {
+					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 					return fmt.Errorf("missing required privilege '%s' in 'jss_objects_privileges' when 'Use Casper Admin' is selected in 'casper_admin_privileges'", requiredPriv)
 				}
 			}
@@ -137,6 +141,7 @@ func validateCasperAdminSavePrivileges(_ context.Context, d *schema.ResourceDiff
 
 			jssObjectsPrivilegesSet, ok := d.GetOk("jss_objects_privileges")
 			if !ok {
+				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return fmt.Errorf("when 'Save With Casper Admin' is selected, the following JSS Object Privileges are required: %v", requiredCrudPrivileges)
 			}
 
@@ -147,6 +152,7 @@ func validateCasperAdminSavePrivileges(_ context.Context, d *schema.ResourceDiff
 
 			for _, requiredPriv := range requiredCrudPrivileges {
 				if !jssPrivilegesSet[requiredPriv] {
+					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 					return fmt.Errorf("missing required privilege '%s' in 'jss_objects_privileges' when 'Save With Casper Admin' is selected in 'casper_admin_privileges'", requiredPriv)
 				}
 			}
@@ -180,9 +186,11 @@ func validateReverseDependencyChecks(_ context.Context, d *schema.ResourceDiff, 
 			if ok {
 				casperAdminPrivilegesSet := casperAdminPrivileges.(*schema.Set)
 				if !casperAdminPrivilegesSet.Contains("Use Casper Admin") {
+					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 					return fmt.Errorf("when the following JSS Object Privileges are set %v, 'Use Casper Admin' must be included in 'casper_admin_privileges'", readPrivileges)
 				}
 			} else {
+				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return fmt.Errorf("when the following JSS Object Privileges are set %v, 'Use Casper Admin' must be included in 'casper_admin_privileges'", readPrivileges)
 			}
 		}
