@@ -86,10 +86,12 @@ func validateDistributionMethod(_ context.Context, diff *schema.ResourceDiff, _ 
 	selfServiceBlockExists := len(diff.Get("self_service").([]interface{})) > 0
 
 	if distributionMethod == "Make Available in Self Service" && !selfServiceBlockExists {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': 'self_service' block is required when 'distribution_method' is set to 'Make Available in Self Service'", resourceName)
 	}
 
 	if distributionMethod != "Make Available in Self Service" && selfServiceBlockExists {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': 'self_service' block is not allowed when 'distribution_method' is set to '%s'", resourceName, distributionMethod)
 	}
 
@@ -104,15 +106,18 @@ func validatePlistPayloadScope(_ context.Context, diff *schema.ResourceDiff, _ i
 
 	plistData, err := plist.DecodePlist([]byte(payloads))
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': error decoding plist data: %v", resourceName, err)
 	}
 
 	payloadScope, err := datavalidators.GetPayloadScope(plistData)
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': error getting 'PayloadScope' from plist: %v", resourceName, err)
 	}
 
 	if payloadScope != level {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': the hcl 'level' attribute (%s) does not match the 'PayloadScope' in the root dict of the plist (%s); the values must be identical", resourceName, level, payloadScope)
 	}
 
@@ -139,6 +144,7 @@ func validateSelfServiceCategories(_ context.Context, diff *schema.ResourceDiff,
 		featureIn, featureOk := cat["feature_in"].(bool)
 
 		if displayOk && featureOk && featureIn && !displayIn {
+			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': self_service_category[%d]: feature_in can only be true if display_in is also true", resourceName, i)
 		}
 	}
@@ -161,6 +167,7 @@ func validateAllComputersScope(_ context.Context, diff *schema.ResourceDiff, _ i
 		for _, field := range fieldsToCheck {
 			if value, exists := scope[field]; exists {
 				if setVal, ok := value.(*schema.Set); ok && setVal.Len() > 0 {
+					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 					return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': when 'all_computers' scope is set to true, '%s' should not be set", resourceName, field)
 				}
 			}
@@ -185,6 +192,7 @@ func validateAllUsersScope(_ context.Context, diff *schema.ResourceDiff, _ inter
 		for _, field := range fieldsToCheck {
 			if value, exists := scope[field]; exists {
 				if setVal, ok := value.(*schema.Set); ok && setVal.Len() > 0 {
+					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 					return fmt.Errorf("in 'jamfpro_macos_configuration_profile_plist.%s': when 'all_jss_users' scope is set to true, '%s' should not be set", resourceName, field)
 				}
 			}

@@ -33,6 +33,7 @@ func validateHexColor(val interface{}, key string) (warns []string, errs []error
 	// Check if all characters are valid hex
 	for _, c := range v {
 		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			errs = append(errs, fmt.Errorf("%q contains invalid hex character: %c", key, c))
 			return
 		}

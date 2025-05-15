@@ -26,6 +26,7 @@ func validateCriteriaPriority(_ context.Context, diff *schema.ResourceDiff, _ in
 
 	resourceName, ok := diff.Get("name").(string)
 	if !ok {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("unable to retrieve resource name for validation")
 	}
 
@@ -33,8 +34,10 @@ func validateCriteriaPriority(_ context.Context, diff *schema.ResourceDiff, _ in
 	for index, criterion := range criteria {
 		priority := criterion.(map[string]interface{})["priority"].(int)
 		if index == 0 && priority != 0 {
+			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return fmt.Errorf("in 'jamfpro_smart_mobile_group.%s': the first criterion must have a priority of 0, got %d", resourceName, priority)
 		} else if index > 0 && priority != expectedPriority {
+			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return fmt.Errorf("in 'jamfpro_smart_mobile_group.%s': criterion %d has an invalid priority %d, expected %d", resourceName, index, priority, expectedPriority)
 		}
 		expectedPriority++

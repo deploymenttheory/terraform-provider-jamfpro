@@ -24,6 +24,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 	err := checkAndEnableManagedSoftwareUpdateFeatureToggle(ctx, client)
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to ensure Jamf Pro Managed Software Update toggle is enabled: %v", err))
 	}
 
