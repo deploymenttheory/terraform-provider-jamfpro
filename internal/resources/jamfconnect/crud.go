@@ -20,6 +20,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	resource, err := construct(d)
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Connect config profile for create: %v", err))
 	}
 
@@ -39,6 +40,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Connect config profile after retries: %v", err))
 	}
 
@@ -70,6 +72,7 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 		}
 
 		if targetProfile == nil {
+			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return retry.RetryableError(fmt.Errorf("jamf connect config profile with UUID %s not found", uuid))
 		}
 

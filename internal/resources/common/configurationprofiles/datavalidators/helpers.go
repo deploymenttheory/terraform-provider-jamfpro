@@ -16,6 +16,7 @@ func GetPayloadScope(plistData map[string]interface{}) (string, error) {
 	if scope, ok := plistData["PayloadScope"].(string); ok {
 		return scope, nil
 	}
+	//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 	return "", fmt.Errorf("'PayloadScope' key not found in plist")
 }
 
@@ -26,12 +27,14 @@ func CheckPlistIndentationAndWhiteSpace(plistStr string) error {
 
 	_, err := plist.Unmarshal([]byte(plistStr), &decoded)
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("invalid plist: %v", err)
 	}
 
 	// Re-encode the plist to check formatting
 	formatted, err := FormatPlist(plistStr)
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("error formatting plist: %v", err)
 	}
 
@@ -45,12 +48,14 @@ func CheckPlistIndentationAndWhiteSpace(plistStr string) error {
 
 	if len(origLines) != len(formattedLines) {
 		log.Printf("[DEBUG] Line count mismatch: original has %d lines, formatted has %d lines", len(origLines), len(formattedLines))
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("plist line count mismatch: source has %d lines, formatted has %d lines, check for trailing lines and whitespace", len(origLines), len(formattedLines))
 	}
 
 	for i := range origLines {
 		if origLines[i] != formattedLines[i] {
 			log.Printf("[DEBUG] Difference at line %d:\nOriginal: %s\nFormatted: %s\n", i+1, origLines[i], formattedLines[i])
+			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return fmt.Errorf("plist is not properly indented at line %d", i+1)
 		}
 	}
@@ -63,6 +68,7 @@ func FormatPlist(plistStr string) (string, error) {
 	var decoded interface{}
 	_, err := plist.Unmarshal([]byte(plistStr), &decoded)
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return "", fmt.Errorf("invalid plist: %v", err)
 	}
 
