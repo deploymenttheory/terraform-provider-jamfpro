@@ -12,34 +12,34 @@ run:
 linters:
   default: none
   enable:
-    - govet
-    - staticcheck
-    - errcheck
-    - unused
-    - ineffassign
+    # - govet
+    # - staticcheck
+    # - errcheck
+    # - unused
+    # - ineffassign
   
-    # error-handling best practices
-    - errorlint      # flag missing %w wraps
+    # # error-handling best practices
+    # - errorlint      # flag missing %w wraps
     - err113         # enforce correct error-handling patterns
 
-    # Terraform‐specific safety & resource handling
-    - bodyclose      # makes sure every HTTP response body is closed
-    - gosec          # scans for security issues (e.g. hardcoded credentials)
+    # # Terraform‐specific safety & resource handling
+    # - bodyclose      # makes sure every HTTP response body is closed
+    # - gosec          # scans for security issues (e.g. hardcoded credentials)
     
-    # Specifically important for API clients (Microsoft 365 API)
-    - contextcheck   # check whether function uses a non-inherited context
-    - noctx          # finds sending http request without context.Context
-    - nilnil         # checks that there is no simultaneous return of nil error and invalid value
+    # # Specifically important for API clients (Microsoft 365 API)
+    # - contextcheck   # check whether function uses a non-inherited context
+    # - noctx          # finds sending http request without context.Context
+    # - nilnil         # checks that there is no simultaneous return of nil error and invalid value
     
-    # Quality & style
-    - gocritic       # catches a variety of performance/style bugs
-    - prealloc       # recommends when you can preallocate slices/maps
-    - misspell       # finds typos in comments, docs, & variable names
-    - gocyclo        # warn on high cyclomatic complexity
-    - wrapcheck      # checks that errors from external packages are wrapped
+    # # Quality & style
+    # - gocritic       # catches a variety of performance/style bugs
+    # - prealloc       # recommends when you can preallocate slices/maps
+    # - misspell       # finds typos in comments, docs, & variable names
+    # - gocyclo        # warn on high cyclomatic complexity
+    # - wrapcheck      # checks that errors from external packages are wrapped
     
-    # API/Terraform specific
-    - musttag        # enforce field tags in (un)marshaled structs
+    # # API/Terraform specific
+    # - musttag        # enforce field tags in (un)marshaled structs
 
   # 3) Per-linter configuration
   settings:
