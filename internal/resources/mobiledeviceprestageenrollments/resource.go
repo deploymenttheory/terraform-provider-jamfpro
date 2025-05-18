@@ -309,6 +309,11 @@ func ResourceJamfProMobileDevicePrestageEnrollment() *schema.Resource {
 							Required:    true,
 							Description: "Skip Welcome setup during device enrollment.",
 						},
+						"safety_and_handling": {
+							Type:        schema.TypeBool,
+							Required:    true,
+							Description: "Skip Safety and Handling setup during device enrollment.",
+						},
 						"tap_to_setup": {
 							Type:        schema.TypeBool,
 							Required:    true,
@@ -707,6 +712,12 @@ func ResourceJamfProMobileDevicePrestageEnrollment() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The specific minimum OS version required for iPadOS devices when using MINIMUM_OS_SPECIFIC_VERSION type.",
+			},
+			"rts_enabled": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Enable RTS.",
 			},
 			"rts_config_profile_id": {
 				Type:        schema.TypeString,
