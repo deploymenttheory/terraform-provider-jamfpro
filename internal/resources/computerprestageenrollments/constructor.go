@@ -7,11 +7,12 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/constructors"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputerPrestage, error) {
-	versionLock := handleVersionLock(d.Get("version_lock"), isUpdate)
+	versionLock := constructors.HandleVersionLock(d.Get("version_lock"), isUpdate)
 
 	resource := &jamfpro.ResourceComputerPrestage{
 		VersionLock:                        d.Get("version_lock").(int), // for some reason, this is not incremented. weird.
@@ -22,7 +23,7 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 		SupportEmailAddress:                d.Get("support_email_address").(string),
 		Department:                         d.Get("department").(string),
 		DefaultPrestage:                    jamfpro.BoolPtr(d.Get("default_prestage").(bool)),
-		EnrollmentSiteId:                   getHCLStringOrDefaultInteger(d, "enrollment_site_id"),
+		EnrollmentSiteId:                   constructors.GetHCLStringOrDefaultInteger(d, "enrollment_site_id"),
 		KeepExistingSiteMembership:         jamfpro.BoolPtr(d.Get("keep_existing_site_membership").(bool)),
 		KeepExistingLocationInformation:    jamfpro.BoolPtr(d.Get("keep_existing_location_information").(bool)),
 		RequireAuthentication:              jamfpro.BoolPtr(d.Get("require_authentication").(bool)),
@@ -38,7 +39,7 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 		MinimumOsSpecificVersion:           d.Get("minimum_os_specific_version").(string),
 		ProfileUuid:                        d.Get("profile_uuid").(string),
 		SiteId:                             d.Get("site_id").(string),
-		CustomPackageDistributionPointId:   getHCLStringOrDefaultInteger(d, "custom_package_distribution_point_id"),
+		CustomPackageDistributionPointId:   constructors.GetHCLStringOrDefaultInteger(d, "custom_package_distribution_point_id"),
 		EnrollmentCustomizationId:          d.Get("enrollment_customization_id").(string),
 		Language:                           d.Get("language").(string),
 		Region:                             d.Get("region").(string),
@@ -179,8 +180,8 @@ func constructLocationInformation(data map[string]interface{}, isUpdate bool, ve
 		Email:        data["email"].(string),
 		Room:         data["room"].(string),
 		Position:     data["position"].(string),
-		DepartmentId: getHCLStringOrDefaultInteger(d, "department_id"),
-		BuildingId:   getHCLStringOrDefaultInteger(d, "building_id"),
+		DepartmentId: constructors.GetHCLStringOrDefaultInteger(d, "department_id"),
+		BuildingId:   constructors.GetHCLStringOrDefaultInteger(d, "building_id"),
 	}
 }
 
@@ -203,9 +204,9 @@ func constructPurchasingInformation(data map[string]interface{}, isUpdate bool, 
 		LifeExpectancy:    data["life_expectancy"].(int),
 		PurchasingAccount: data["purchasing_account"].(string),
 		PurchasingContact: data["purchasing_contact"].(string),
-		LeaseDate:         getDateOrDefaultDate(d, "lease_date"),
-		PODate:            getDateOrDefaultDate(d, "po_date"),
-		WarrantyDate:      getDateOrDefaultDate(d, "warranty_date"),
+		LeaseDate:         constructors.GetDateOrDefaultDate(d, "lease_date"),
+		PODate:            constructors.GetDateOrDefaultDate(d, "po_date"),
+		WarrantyDate:      constructors.GetDateOrDefaultDate(d, "warranty_date"),
 	}
 }
 
@@ -227,66 +228,4 @@ func constructAccountSettings(data map[string]interface{}, isUpdate bool, versio
 		PrefillAccountUserName:                  data["prefill_account_user_name"].(string),
 		PreventPrefillInfoFromModification:      jamfpro.BoolPtr(data["prevent_prefill_info_from_modification"].(bool)),
 	}
-}
-
-// handleVersionLock manages the VersionLock field for Jamf Pro Computer Prestage resources during update operations.
-//
-// Parameters:
-//   - currentVersionLock: The current version lock value as an interface{}.
-//   - isUpdate: A boolean flag indicating whether this is an update operation.
-//
-// Returns:
-//   - An integer representing the version lock to be used in the API request.
-//     For create operations (isUpdate == false), this will be 0.
-//     For update operations (isUpdate == true), this will be the incremented version lock.
-//
-// Behavior:
-//   - Create operations (isUpdate == false):
-//   - Returns 0, as version lock is not needed for create operations.
-//   - Update operations (isUpdate == true):
-//   - Attempts to convert the currentVersionLock to an integer and increment it by 1.
-//   - If conversion fails, logs a warning and returns 0.
-//
-// Error Handling:
-//   - If the currentVersionLock cannot be converted to an integer during an update operation,
-//     the function logs a warning and returns 0.
-//
-// Usage:
-//   - This function should be called for each structure within a Computer Prestage
-//     resource that requires version lock handling.
-func handleVersionLock(currentVersionLock interface{}, isUpdate bool) int {
-	if !isUpdate {
-		log.Printf("[DEBUG] Create operation: Version lock not required, using 0")
-		return 0
-	}
-
-	log.Printf("[DEBUG] Update operation: Current version lock is '%v'", currentVersionLock)
-
-	versionLock, ok := currentVersionLock.(int)
-	if !ok {
-		log.Printf("[WARN] Failed to convert version lock '%v' to integer. Using 0.", currentVersionLock)
-		return 0
-	}
-
-	newVersionLock := versionLock + 1
-	log.Printf("[DEBUG] Update operation: Incrementing version lock from '%d' to '%d'", versionLock, newVersionLock)
-	return newVersionLock
-}
-
-// getHCLStringOrDefaultInteger returns the string value from the ResourceData if it exists,
-// otherwise it returns the default value "-1".
-func getHCLStringOrDefaultInteger(d *schema.ResourceData, key string) string {
-	if v, ok := d.GetOk(key); ok {
-		return v.(string)
-	}
-	return "-1"
-}
-
-// getDateOrDefaultDate returns the date string if it exists and is not empty,
-// otherwise it returns the default date "1970-01-01".
-func getDateOrDefaultDate(d *schema.ResourceData, key string) string {
-	if v, ok := d.GetOk(key); ok && v.(string) != "" {
-		return v.(string)
-	}
-	return "1970-01-01"
 }
