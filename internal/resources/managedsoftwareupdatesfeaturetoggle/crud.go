@@ -43,8 +43,6 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	d.SetId("jamfpro_managed_software_update_feature_toggle_singleton")
-
 	var response *jamfpro.ResourceManagedSoftwareUpdateFeatureToggle
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
@@ -77,13 +75,13 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	manadedSoftwareUpdateFeatureToggleConfig, err := constrconstructManagedSoftwareUpdatesFeatureToggle(d)
+	response, err := constrconstructManagedSoftwareUpdatesFeatureToggle(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Managed Software Updates Feature Toggle for update: %v", err))
 	}
 
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := client.UpdateManagedSoftwareUpdateFeatureToggle(manadedSoftwareUpdateFeatureToggleConfig)
+		_, apiErr := client.UpdateManagedSoftwareUpdateFeatureToggle(response)
 		if apiErr != nil {
 			return retry.RetryableError(apiErr)
 		}

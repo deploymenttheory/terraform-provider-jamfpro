@@ -10,14 +10,8 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceManagedSoftwareUpdateFeatureToggle) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	managedSoftwareUpdatesFeatureToggleConfig := map[string]interface{}{
-		"toggle": resp.Toggle,
-	}
-
-	for key, val := range managedSoftwareUpdatesFeatureToggleConfig {
-		if err := d.Set(key, val); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+	if err := d.Set("toggle", resp.Toggle); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	return diags
