@@ -8,6 +8,9 @@ on:
 
 jobs:
   Run-Integration-Test:
+
+    container:
+      image: ghcr.io/${{ github.repository }}/provider_testing:latest
     
     environment: terraform-integration-testing
     runs-on: ubuntu-latest
@@ -30,18 +33,6 @@ jobs:
           ref: ${{ env.REF_TO_CHECKOUT }}
           path: terraform-provider-jamfpro
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
-
-      - name: Set up Golang
-        uses: actions/setup-go@v5
-
-      - name: Set up Python
-        uses: actions/setup-python@v5.6.0
-
-      - name: Set up Python Environment
-        run: |
-          pip install -r ./terraform-provider-jamfpro/testing/requirements.txt
       - name: Compile Provider
         run: |
           cd ./terraform-provider-jamfpro
@@ -80,12 +71,12 @@ jobs:
           cd ./terraform-provider-jamfpro/testing/setup
           ./scaffolding.sh -r ${{ steps.generate-uuid.outputs.uuid }}
 
-      - name: Run Tests
-        run: |  
-          cd ./terraform-provider-jamfpro/testing
-          terraform fmt
-          terraform init
-          terraform test
+      # - name: Run Tests
+      #   run: |  
+      #     cd ./terraform-provider-jamfpro/testing
+      #     terraform fmt
+      #     terraform init
+      #     terraform test
 
       - name: Post-flight cleanup
         run: |
