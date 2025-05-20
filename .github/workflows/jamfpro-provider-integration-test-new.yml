@@ -1,0 +1,92 @@
+name: "Terraform Integration Tests - NEW"
+run-name: "Terraform Integration Tests - NEW"
+on:
+  workflow_dispatch:
+
+jobs:
+  Run-Integration-Test:
+
+    container:
+      image: ghcr.io/${{ github.repository }}/provider_testing:latest
+    
+    environment: terraform-integration-testing
+    runs-on: ubuntu-latest
+
+    env: 
+      CLIENT_ID: ${{ secrets.TESTING_CLIENT_ID }}
+      CLIENT_SEC: ${{ secrets.TESTING_CLIENT_SECRET }}
+      CLIENT_FQDN: ${{ secrets.TESTING_JAMFPRO_INSTANCE_FQDN }}
+      REF_TO_CHECKOUT: ${{ github.event_name == 'pull_request' && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}
+
+    concurrency:
+      group: sandbox_interfacing_testing_environment
+      cancel-in-progress: false
+    
+    steps:
+      - name: Checkout Terraform Repository
+        uses: actions/checkout@v4
+        with:
+          repository: deploymenttheory/terraform-provider-jamfpro
+          ref: ${{ env.REF_TO_CHECKOUT }}
+          path: terraform-provider-jamfpro
+
+      - name: Compile Provider
+        run: |
+          cd ./terraform-provider-jamfpro
+          mkdir -p ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/
+          go build
+          mv ./terraform-provider-jamfpro ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/
+          chmod +x ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/terraform-provider-jamfpro
+          cd testing
+          terraform init
+
+      - name: Generate UUID
+        id: generate-uuid
+        run: |
+          generated_uuid=$(uuidgen)
+          echo "uuid=$generated_uuid" >> $GITHUB_OUTPUT
+          echo "Run ID: $generated_uuid"
+
+        
+      - name: Build TFVARS File
+        run: |
+          cd ./terraform-provider-jamfpro/testing
+          cat <<EOF > terraform.tfvars
+          jamfpro_instance_fqdn="$CLIENT_FQDN"
+          jamfpro_auth_method="oauth2"
+          jamfpro_client_id="$CLIENT_ID"
+          jamfpro_client_secret="$CLIENT_SEC"
+          jamfpro_token_refresh_buffer_period_seconds="30"
+          jamfpro_mandatory_request_delay_milliseconds="100"
+          testing_id="${{ steps.generate-uuid.outputs.uuid }}"
+          EOF
+
+
+      - name: Scaffolding
+        run: |
+          echo "PLEASE NOTE at 23:59 a wipe job is performed on all testing objects. Tests run at this time will most likely fail."
+          cd ./terraform-provider-jamfpro/testing/setup
+          ./scaffolding.sh -r ${{ steps.generate-uuid.outputs.uuid }}
+
+      # - name: Run Tests
+      #   run: |  
+      #     cd ./terraform-provider-jamfpro/testing
+      #     terraform fmt
+      #     terraform init
+      #     terraform test
+
+      - name: Post-flight cleanup
+        run: |
+          # Waits 5 seconds to allow for deletes to properly apply after test.
+          sleep 5
+          cd ./terraform-provider-jamfpro/testing/setup
+          ./cleanup.sh -r ${{ steps.generate-uuid.outputs.uuid }}
+
+
+      - name: Diff cascade - Terraform Plan (Pre-Apply)
+        id: plan_pre
+        run: |
+          cd ./terraform-provider-jamfpro/testing
+          chmod +x ./diff_cascade_check.sh
+          ./diff_cascade_check.sh
+          
