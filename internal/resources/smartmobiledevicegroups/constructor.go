@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// I am diff
+
 // constructJamfProSmartMobileGroup constructs a ResourceMobileDeviceGroup object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceGroup, error) {
 	resource := &jamfpro.ResourceMobileDeviceGroup{
