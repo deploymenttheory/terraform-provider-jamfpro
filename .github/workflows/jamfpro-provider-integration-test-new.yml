@@ -1,9 +1,6 @@
-name: "Terraform Integration Tests"
-run-name: "Terraform Integration Tests"
+name: "Terraform Integration Tests - NEW"
+run-name: "Terraform Integration Tests - NEW"
 on:
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
