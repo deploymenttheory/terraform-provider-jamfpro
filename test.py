@@ -1,0 +1,3 @@
+import jamfpy
+
+print("SUCCESS! :)")
