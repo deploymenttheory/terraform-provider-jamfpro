@@ -6,12 +6,14 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // constructMobileDeviceApplication constructs a MobileDeviceApplication object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceApplication, error) {
-	app := &jamfpro.ResourceMobileDeviceApplication{
+	resource := &jamfpro.ResourceMobileDeviceApplication{
 		General: jamfpro.MobileDeviceApplicationSubsetGeneral{
 			Name:                             d.Get("name").(string),
 			DisplayName:                      d.Get("display_name").(string),
@@ -37,17 +39,10 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceApplication
 			ProvisioningProfile:              d.Get("mobile_device_provisioning_profile").(int),
 		},
 	}
-	if v, ok := d.GetOk("category"); ok && len(v.([]interface{})) > 0 {
-		categoryMap := v.([]interface{})[0].(map[string]interface{})
-		app.General.Category = &jamfpro.SharedResourceCategory{
-			ID:   categoryMap["id"].(int),
-			Name: categoryMap["name"].(string),
-		}
-	}
 
 	if v, ok := d.GetOk("ipa"); ok && len(v.([]interface{})) > 0 {
 		ipaMap := v.([]interface{})[0].(map[string]interface{})
-		app.General.IPA = jamfpro.MobileDeviceApplicationSubsetGeneralIPA{
+		resource.General.IPA = jamfpro.MobileDeviceApplicationSubsetGeneralIPA{
 			Name: ipaMap["name"].(string),
 			URI:  ipaMap["uri"].(string),
 			Data: ipaMap["data"].(string),
@@ -56,195 +51,22 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceApplication
 
 	if v, ok := d.GetOk("icon"); ok && len(v.([]interface{})) > 0 {
 		iconMap := v.([]interface{})[0].(map[string]interface{})
-		app.General.Icon = jamfpro.MobileDeviceApplicationSubsetIcon{
+		resource.General.Icon = jamfpro.MobileDeviceApplicationSubsetIcon{
 			ID:   iconMap["id"].(int),
 			Name: iconMap["name"].(string),
 			URI:  iconMap["uri"].(string),
 		}
 	}
 
-	if v, ok := d.GetOk("site"); ok && len(v.([]interface{})) > 0 {
-		siteMap := v.([]interface{})[0].(map[string]interface{})
-		app.General.Site = &jamfpro.SharedResourceSite{
-			ID:   siteMap["id"].(int),
-			Name: siteMap["name"].(string),
-		}
+	resource.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
+	resource.General.Category = sharedschemas.ConstructSharedResourceCategory(d.Get("category_id").(int))
+
+	if _, ok := d.GetOk("scope"); ok {
+		resource.Scope = constructMobileDeviceApplicationSubsetScope(d)
+	} else {
+		log.Printf("[DEBUG] constructJamfProMobileDeviceApplication: No scope block found or it's empty.")
 	}
 
-	if v, ok := d.GetOk("scope"); ok && len(v.([]interface{})) > 0 {
-		scopeMap := v.([]interface{})[0].(map[string]interface{})
-		scope := jamfpro.MobileDeviceApplicationSubsetScope{
-			AllMobileDevices: jamfpro.BoolPtr(scopeMap["all_mobile_devices"].(bool)),
-			AllJSSUsers:      jamfpro.BoolPtr(scopeMap["all_jss_users"].(bool)),
-		}
-		if devices, ok := scopeMap["mobile_devices"].([]interface{}); ok {
-			for _, device := range devices {
-				deviceMap := device.(map[string]interface{})
-				scope.MobileDevices = append(scope.MobileDevices, jamfpro.MobileDeviceApplicationSubsetMobileDevice{
-					ID:             deviceMap["id"].(int),
-					Name:           deviceMap["name"].(string),
-					UDID:           deviceMap["udid"].(string),
-					WifiMacAddress: deviceMap["wifi_mac_address"].(string),
-				})
-			}
-		}
-
-		if buildings, ok := scopeMap["buildings"].([]interface{}); ok {
-			for _, building := range buildings {
-				buildingMap := building.(map[string]interface{})
-				scope.Buildings = append(scope.Buildings, jamfpro.MobileDeviceApplicationSubsetBuilding{
-					ID:   buildingMap["id"].(int),
-					Name: buildingMap["name"].(string),
-				})
-			}
-		}
-
-		if departments, ok := scopeMap["departments"].([]interface{}); ok {
-			for _, department := range departments {
-				departmentMap := department.(map[string]interface{})
-				scope.Departments = append(scope.Departments, jamfpro.MobileDeviceApplicationSubsetDepartment{
-					ID:   departmentMap["id"].(int),
-					Name: departmentMap["name"].(string),
-				})
-			}
-		}
-		if groups, ok := scopeMap["mobile_device_groups"].([]interface{}); ok {
-			for _, group := range groups {
-				groupMap := group.(map[string]interface{})
-				scope.MobileDeviceGroups = append(scope.MobileDeviceGroups, jamfpro.MobileDeviceApplicationSubsetMobileDeviceGroup{
-					ID:   groupMap["id"].(int),
-					Name: groupMap["name"].(string),
-				})
-			}
-		}
-
-		if users, ok := scopeMap["jss_users"].([]interface{}); ok {
-			for _, user := range users {
-				userMap := user.(map[string]interface{})
-				scope.JSSUsers = append(scope.JSSUsers, jamfpro.MobileDeviceApplicationSubsetJSSUser{
-					ID:   userMap["id"].(int),
-					Name: userMap["name"].(string),
-				})
-			}
-		}
-
-		if groups, ok := scopeMap["jss_user_groups"].([]interface{}); ok {
-			for _, group := range groups {
-				groupMap := group.(map[string]interface{})
-				scope.JSSUserGroups = append(scope.JSSUserGroups, jamfpro.MobileDeviceApplicationSubsetJSSUserGroup{
-					ID:   groupMap["id"].(int),
-					Name: groupMap["name"].(string),
-				})
-			}
-		}
-
-		if limitations, ok := scopeMap["limitations"].([]interface{}); ok && len(limitations) > 0 {
-			limitationsMap := limitations[0].(map[string]interface{})
-			if users, ok := limitationsMap["users"].([]interface{}); ok {
-				for _, user := range users {
-					userMap := user.(map[string]interface{})
-					scope.Limitations.Users = append(scope.Limitations.Users, jamfpro.MobileDeviceApplicationSubsetUser{
-						ID:   userMap["id"].(int),
-						Name: userMap["name"].(string),
-					})
-				}
-			}
-
-			if groups, ok := limitationsMap["user_groups"].([]interface{}); ok {
-				for _, group := range groups {
-					groupMap := group.(map[string]interface{})
-					scope.Limitations.UserGroups = append(scope.Limitations.UserGroups, jamfpro.MobileDeviceApplicationSubsetUserGroup{
-						ID:   groupMap["id"].(int),
-						Name: groupMap["name"].(string),
-					})
-				}
-			}
-
-			if segments, ok := limitationsMap["network_segments"].([]interface{}); ok {
-				for _, segment := range segments {
-					segmentMap := segment.(map[string]interface{})
-					scope.Limitations.NetworkSegments = append(scope.Limitations.NetworkSegments, jamfpro.MobileDeviceApplicationSubsetNetworkSegment{
-						ID:   segmentMap["id"].(int),
-						Name: segmentMap["name"].(string),
-						UID:  segmentMap["uid"].(string),
-					})
-				}
-			}
-		}
-
-		if exclusions, ok := scopeMap["exclusions"].([]interface{}); ok && len(exclusions) > 0 {
-			exclusionsMap := exclusions[0].(map[string]interface{})
-			if devices, ok := exclusionsMap["mobile_devices"].([]interface{}); ok {
-				for _, device := range devices {
-					deviceMap := device.(map[string]interface{})
-					scope.Exclusions.MobileDevices = append(scope.Exclusions.MobileDevices,
-						jamfpro.MobileDeviceApplicationSubsetMobileDevice{
-							ID:             deviceMap["id"].(int),
-							Name:           deviceMap["name"].(string),
-							UDID:           deviceMap["udid"].(string),
-							WifiMacAddress: deviceMap["wifi_mac_address"].(string),
-						})
-				}
-			}
-
-			if buildings, ok := exclusionsMap["buildings"].([]interface{}); ok {
-				for _, building := range buildings {
-					buildingMap := building.(map[string]interface{})
-					scope.Exclusions.Buildings = append(scope.Exclusions.Buildings,
-						jamfpro.MobileDeviceApplicationSubsetBuilding{
-							ID:   buildingMap["id"].(int),
-							Name: buildingMap["name"].(string),
-						})
-				}
-			}
-
-			if departments, ok := exclusionsMap["departments"].([]interface{}); ok {
-				for _, department := range departments {
-					departmentMap := department.(map[string]interface{})
-					scope.Exclusions.Departments = append(scope.Exclusions.Departments,
-						jamfpro.MobileDeviceApplicationSubsetDepartment{
-							ID:   departmentMap["id"].(int),
-							Name: departmentMap["name"].(string),
-						})
-				}
-			}
-
-			if groups, ok := exclusionsMap["mobile_device_groups"].([]interface{}); ok {
-				for _, group := range groups {
-					groupMap := group.(map[string]interface{})
-					scope.Exclusions.MobileDeviceGroups = append(scope.Exclusions.MobileDeviceGroups,
-						jamfpro.MobileDeviceApplicationSubsetMobileDeviceGroup{
-							ID:   groupMap["id"].(int),
-							Name: groupMap["name"].(string),
-						})
-				}
-			}
-
-			if users, ok := exclusionsMap["users"].([]interface{}); ok {
-				for _, user := range users {
-					userMap := user.(map[string]interface{})
-					scope.Exclusions.JSSUsers = append(scope.Exclusions.JSSUsers,
-						jamfpro.MobileDeviceApplicationSubsetJSSUser{
-							ID:   userMap["id"].(int),
-							Name: userMap["name"].(string),
-						})
-				}
-			}
-
-			if groups, ok := exclusionsMap["user_groups"].([]interface{}); ok {
-				for _, group := range groups {
-					groupMap := group.(map[string]interface{})
-					scope.Exclusions.JSSUserGroups = append(scope.Exclusions.JSSUserGroups,
-						jamfpro.MobileDeviceApplicationSubsetJSSUserGroup{
-							ID:   groupMap["id"].(int),
-							Name: groupMap["name"].(string),
-						})
-				}
-			}
-		}
-
-		app.Scope = scope
-	}
 	if v, ok := d.GetOk("self_service"); ok && len(v.([]interface{})) > 0 {
 		selfServiceMap := v.([]interface{})[0].(map[string]interface{})
 		selfService := jamfpro.MobileDeviceApplicationSubsetGeneralSelfService{
@@ -263,12 +85,12 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceApplication
 			}
 		}
 
-		app.SelfService = selfService
+		resource.SelfService = selfService
 	}
 
 	if v, ok := d.GetOk("vpp"); ok && len(v.([]interface{})) > 0 {
 		vppMap := v.([]interface{})[0].(map[string]interface{})
-		app.VPP = jamfpro.MobileDeviceApplicationSubsetGeneralVPP{
+		resource.VPP = jamfpro.MobileDeviceApplicationSubsetGeneralVPP{
 			AssignVPPDeviceBasedLicenses: jamfpro.BoolPtr(vppMap["assign_vpp_device_based_licenses"].(bool)),
 			VPPAdminAccountID:            vppMap["vpp_admin_account_id"].(int),
 		}
@@ -276,17 +98,158 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceApplication
 
 	if v, ok := d.GetOk("app_configuration"); ok && len(v.([]interface{})) > 0 {
 		appConfigMap := v.([]interface{})[0].(map[string]interface{})
-		app.AppConfiguration = jamfpro.MobileDeviceApplicationSubsetGeneralAppConfiguration{
+		resource.AppConfiguration = jamfpro.MobileDeviceApplicationSubsetGeneralAppConfiguration{
 			Preferences: appConfigMap["preferences"].(string),
 		}
 	}
 
-	resourceXML, err := xml.MarshalIndent(app, "", "  ")
+	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Mobile Device Application '%s' to XML: %v", app.General.Name, err)
+		return nil, fmt.Errorf("failed to marshal Mobile Device Application '%s' to XML: %v", resource.General.Name, err)
 	}
 
 	log.Printf("[DEBUG] Constructed Mobile Device Application XML:\n%s\n", string(resourceXML))
 
-	return app, nil
+	return resource, nil
+}
+
+// constructMobileDeviceApplicationSubsetScope constructs the scope from the provided schema data.
+func constructMobileDeviceApplicationSubsetScope(d *schema.ResourceData) jamfpro.MobileDeviceApplicationSubsetScope {
+	scope := jamfpro.MobileDeviceApplicationSubsetScope{}
+	scopeData := d.Get("scope").([]interface{})[0].(map[string]interface{})
+
+	scope.AllMobileDevices = jamfpro.BoolPtr(scopeData["all_mobile_devices"].(bool))
+	scope.AllJSSUsers = jamfpro.BoolPtr(scopeData["all_jss_users"].(bool))
+
+	var mobileDevices []jamfpro.MobileDeviceApplicationSubsetMobileDevice
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceApplicationSubsetMobileDevice, int](
+		"scope.0.mobile_device_ids", "ID", d, &mobileDevices); err == nil {
+		scope.MobileDevices = mobileDevices
+	}
+
+	var mobileDeviceGroups []jamfpro.MobileDeviceApplicationSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceApplicationSubsetScopeEntity, int](
+		"scope.0.mobile_device_group_ids", "ID", d, &mobileDeviceGroups); err == nil {
+		scope.MobileDeviceGroups = mobileDeviceGroups
+	}
+
+	var buildings []jamfpro.MobileDeviceApplicationSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceApplicationSubsetScopeEntity, int](
+		"scope.0.building_ids", "ID", d, &buildings); err == nil {
+		scope.Buildings = buildings
+	}
+
+	var departments []jamfpro.MobileDeviceApplicationSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceApplicationSubsetScopeEntity, int](
+		"scope.0.department_ids", "ID", d, &departments); err == nil {
+		scope.Departments = departments
+	}
+
+	var jssUsers []jamfpro.MobileDeviceApplicationSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceApplicationSubsetScopeEntity, int](
+		"scope.0.jss_user_ids", "ID", d, &jssUsers); err == nil {
+		scope.JSSUsers = jssUsers
+	}
+
+	var jssUserGroups []jamfpro.MobileDeviceApplicationSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceApplicationSubsetScopeEntity, int](
+		"scope.0.jss_user_group_ids", "ID", d, &jssUserGroups); err == nil {
+		scope.JSSUserGroups = jssUserGroups
+	}
+
+	if _, ok := d.GetOk("scope.0.limitations"); ok {
+		scope.Limitations = constructLimitations(d)
+	}
+
+	if _, ok := d.GetOk("scope.0.exclusions"); ok {
+		scope.Exclusions = constructExclusions(d)
+	}
+
+	return scope
+}
+
+// constructLimitations constructs the limitations from the provided schema data.
+func constructLimitations(d *schema.ResourceData) jamfpro.MobileDeviceApplicationSubsetLimitation {
+	limitations := jamfpro.MobileDeviceApplicationSubsetLimitation{}
+
+	var users []jamfpro.MobileDeviceApplicationSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceApplicationSubsetScopeEntity, string](
+		"scope.0.limitations.0.directory_service_or_local_usernames", "Name", d, &users); err == nil {
+		limitations.Users = users
+	}
+
+	var userGroups []jamfpro.MobileDeviceApplicationSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceApplicationSubsetScopeEntity, int](
+		"scope.0.limitations.0.directory_service_usergroup_ids", "ID", d, &userGroups); err == nil {
+		limitations.UserGroups = userGroups
+	}
+
+	var networkSegments []jamfpro.MobileDeviceApplicationSubsetNetworkSegment
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceApplicationSubsetNetworkSegment, int](
+		"scope.0.limitations.0.network_segment_ids", "ID", d, &networkSegments); err == nil {
+		limitations.NetworkSegments = networkSegments
+	}
+
+	return limitations
+}
+
+// constructExclusions constructs the exclusions from the provided schema data.
+func constructExclusions(d *schema.ResourceData) jamfpro.MobileDeviceApplicationSubsetExclusion {
+	exclusions := jamfpro.MobileDeviceApplicationSubsetExclusion{}
+
+	var mobileDevices []jamfpro.MobileDeviceApplicationSubsetMobileDevice
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceApplicationSubsetMobileDevice, int](
+		"scope.0.exclusions.0.mobile_device_ids", "ID", d, &mobileDevices); err == nil {
+		exclusions.MobileDevices = mobileDevices
+	}
+
+	var mobileDeviceGroups []jamfpro.MobileDeviceApplicationSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceApplicationSubsetScopeEntity, int](
+		"scope.0.exclusions.0.mobile_device_group_ids", "ID", d, &mobileDeviceGroups); err == nil {
+		exclusions.MobileDeviceGroups = mobileDeviceGroups
+	}
+
+	var users []jamfpro.MobileDeviceApplicationSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceApplicationSubsetScopeEntity, string](
+		"scope.0.exclusions.0.directory_service_or_local_usernames", "Name", d, &users); err == nil {
+		exclusions.Users = users
+	}
+
+	var userGroups []jamfpro.MobileDeviceApplicationSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceApplicationSubsetScopeEntity, int](
+		"scope.0.exclusions.0.directory_service_usergroup_ids", "ID", d, &userGroups); err == nil {
+		exclusions.UserGroups = userGroups
+	}
+
+	var buildings []jamfpro.MobileDeviceApplicationSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceApplicationSubsetScopeEntity, int](
+		"scope.0.exclusions.0.building_ids", "ID", d, &buildings); err == nil {
+		exclusions.Buildings = buildings
+	}
+
+	var departments []jamfpro.MobileDeviceApplicationSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceApplicationSubsetScopeEntity, int](
+		"scope.0.exclusions.0.department_ids", "ID", d, &departments); err == nil {
+		exclusions.Departments = departments
+	}
+
+	var networkSegments []jamfpro.MobileDeviceApplicationSubsetNetworkSegment
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceApplicationSubsetNetworkSegment, int](
+		"scope.0.exclusions.0.network_segment_ids", "ID", d, &networkSegments); err == nil {
+		exclusions.NetworkSegments = networkSegments
+	}
+
+	var jssUsers []jamfpro.MobileDeviceApplicationSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceApplicationSubsetScopeEntity, int](
+		"scope.0.exclusions.0.jss_user_ids", "ID", d, &jssUsers); err == nil {
+		exclusions.JSSUsers = jssUsers
+	}
+
+	var jssUserGroups []jamfpro.MobileDeviceApplicationSubsetScopeEntity
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceApplicationSubsetScopeEntity, int](
+		"scope.0.exclusions.0.jss_user_group_ids", "ID", d, &jssUserGroups); err == nil {
+		exclusions.JSSUserGroups = jssUserGroups
+	}
+
+	return exclusions
 }

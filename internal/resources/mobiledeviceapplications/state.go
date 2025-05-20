@@ -1,6 +1,8 @@
 package mobiledeviceapplications
 
 import (
+	"sort"
+
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -32,16 +34,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceAppli
 	d.Set("host_externally", resp.General.HostExternally)
 	d.Set("external_url", resp.General.ExternalURL)
 	d.Set("mobile_device_provisioning_profile", resp.General.ProvisioningProfile)
-
-	if resp.General.Category != nil {
-		category := []map[string]interface{}{
-			{
-				"id":   resp.General.Category.ID,
-				"name": resp.General.Category.Name,
-			},
-		}
-		d.Set("category", category)
-	}
+	d.Set("site_id", resp.General.Site.ID)
+	d.Set("category_id", resp.General.Category.ID)
 
 	if resp.General.IPA.Name != "" || resp.General.IPA.URI != "" || resp.General.IPA.Data != "" {
 		ipa := []map[string]interface{}{
@@ -63,16 +57,6 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceAppli
 			},
 		}
 		d.Set("icon", icon)
-	}
-
-	if resp.General.Site != nil {
-		site := []map[string]interface{}{
-			{
-				"id":   resp.General.Site.ID,
-				"name": resp.General.Site.Name,
-			},
-		}
-		d.Set("site", site)
 	}
 
 	if resp.SelfService.SelfServiceDescription != "" || resp.SelfService.NotificationMessage != "" {
@@ -118,205 +102,200 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceAppli
 		d.Set("app_configuration", appConfig)
 	}
 
-	if scope := buildScopeState(&resp.Scope); scope != nil {
-		d.Set("scope", []interface{}{scope})
+	if scopeData, err := setScope(resp); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	} else if err := d.Set("scope", []interface{}{scopeData}); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	return diags
 }
 
-// buildScopeState constructs the state representation of the scope
-func buildScopeState(scope *jamfpro.MobileDeviceApplicationSubsetScope) map[string]interface{} {
-	if scope == nil {
-		return nil
+// setScope converts the scope structure into a format suitable for setting in the Terraform state.
+func setScope(resp *jamfpro.ResourceMobileDeviceApplication) (map[string]interface{}, error) {
+	scopeData := map[string]interface{}{
+		"all_mobile_devices": resp.Scope.AllMobileDevices,
+		"all_jss_users":      resp.Scope.AllJSSUsers,
 	}
 
-	scopeMap := map[string]interface{}{
-		"all_mobile_devices": scope.AllMobileDevices,
-		"all_jss_users":      scope.AllJSSUsers,
+	scopeData["mobile_device_ids"] = flattenAndSortMobileDeviceIDs(resp.Scope.MobileDevices)
+	scopeData["mobile_device_group_ids"] = flattenAndSortScopeEntityIds(resp.Scope.MobileDeviceGroups)
+	scopeData["jss_user_ids"] = flattenAndSortScopeEntityIds(resp.Scope.JSSUsers)
+	scopeData["jss_user_group_ids"] = flattenAndSortScopeEntityIds(resp.Scope.JSSUserGroups)
+	scopeData["building_ids"] = flattenAndSortScopeEntityIds(resp.Scope.Buildings)
+	scopeData["department_ids"] = flattenAndSortScopeEntityIds(resp.Scope.Departments)
+
+	limitationsData, err := setLimitations(resp.Scope.Limitations)
+	if err != nil {
+		return nil, err
+	}
+	if limitationsData != nil {
+		scopeData["limitations"] = limitationsData
 	}
 
-	if len(scope.MobileDevices) > 0 {
-		devices := make([]map[string]interface{}, len(scope.MobileDevices))
-		for i, device := range scope.MobileDevices {
-			devices[i] = map[string]interface{}{
-				"id":               device.ID,
-				"name":             device.Name,
-				"udid":             device.UDID,
-				"wifi_mac_address": device.WifiMacAddress,
-			}
-		}
-		scopeMap["mobile_devices"] = devices
+	exclusionsData, err := setExclusions(resp.Scope.Exclusions)
+	if err != nil {
+		return nil, err
+	}
+	if exclusionsData != nil {
+		scopeData["exclusions"] = exclusionsData
 	}
 
-	if len(scope.Buildings) > 0 {
-		buildings := make([]map[string]interface{}, len(scope.Buildings))
-		for i, building := range scope.Buildings {
-			buildings[i] = map[string]interface{}{
-				"id":   building.ID,
-				"name": building.Name,
-			}
+	return scopeData, nil
+}
+
+// setLimitations collects and formats limitations data for the Terraform state.
+func setLimitations(limitations jamfpro.MobileDeviceApplicationSubsetLimitation) ([]map[string]interface{}, error) {
+	result := map[string]interface{}{}
+
+	if len(limitations.NetworkSegments) > 0 {
+		networkSegmentIDs := flattenAndSortNetworkSegmentIds(limitations.NetworkSegments)
+		if len(networkSegmentIDs) > 0 {
+			result["network_segment_ids"] = networkSegmentIDs
 		}
-		scopeMap["buildings"] = buildings
 	}
 
-	if len(scope.Departments) > 0 {
-		departments := make([]map[string]interface{}, len(scope.Departments))
-		for i, dept := range scope.Departments {
-			departments[i] = map[string]interface{}{
-				"id":   dept.ID,
-				"name": dept.Name,
-			}
+	if len(limitations.Users) > 0 {
+		userNames := flattenAndSortScopeEntityNames(limitations.Users)
+		if len(userNames) > 0 {
+			result["directory_service_or_local_usernames"] = userNames
 		}
-		scopeMap["departments"] = departments
 	}
 
-	if len(scope.MobileDeviceGroups) > 0 {
-		groups := make([]map[string]interface{}, len(scope.MobileDeviceGroups))
-		for i, group := range scope.MobileDeviceGroups {
-			groups[i] = map[string]interface{}{
-				"id":   group.ID,
-				"name": group.Name,
-			}
+	if len(limitations.UserGroups) > 0 {
+		userGroupIDs := flattenAndSortScopeEntityIds(limitations.UserGroups)
+		if len(userGroupIDs) > 0 {
+			result["directory_service_usergroup_ids"] = userGroupIDs
 		}
-		scopeMap["mobile_device_groups"] = groups
 	}
 
-	if len(scope.JSSUsers) > 0 {
-		users := make([]map[string]interface{}, len(scope.JSSUsers))
-		for i, user := range scope.JSSUsers {
-			users[i] = map[string]interface{}{
-				"id":   user.ID,
-				"name": user.Name,
-			}
-		}
-		scopeMap["jss_users"] = users
+	if len(result) == 0 {
+		return nil, nil
 	}
 
-	if len(scope.JSSUserGroups) > 0 {
-		groups := make([]map[string]interface{}, len(scope.JSSUserGroups))
-		for i, group := range scope.JSSUserGroups {
-			groups[i] = map[string]interface{}{
-				"id":   group.ID,
-				"name": group.Name,
-			}
+	return []map[string]interface{}{result}, nil
+}
+
+// setExclusions collects and formats exclusion data for the Terraform state.
+func setExclusions(exclusions jamfpro.MobileDeviceApplicationSubsetExclusion) ([]map[string]interface{}, error) {
+	result := map[string]interface{}{}
+
+	if len(exclusions.MobileDevices) > 0 {
+		computerIDs := flattenAndSortMobileDeviceIDs(exclusions.MobileDevices)
+		if len(computerIDs) > 0 {
+			result["mobile_device_ids"] = computerIDs
 		}
-		scopeMap["jss_user_groups"] = groups
 	}
 
-	if len(scope.Limitations.Users) > 0 || len(scope.Limitations.UserGroups) > 0 || len(scope.Limitations.NetworkSegments) > 0 {
-		limitations := map[string]interface{}{}
-
-		if len(scope.Limitations.Users) > 0 {
-			users := make([]map[string]interface{}, len(scope.Limitations.Users))
-			for i, user := range scope.Limitations.Users {
-				users[i] = map[string]interface{}{
-					"id":   user.ID,
-					"name": user.Name,
-				}
-			}
-			limitations["users"] = users
+	if len(exclusions.MobileDeviceGroups) > 0 {
+		computerGroupIDs := flattenAndSortScopeEntityIds(exclusions.MobileDeviceGroups)
+		if len(computerGroupIDs) > 0 {
+			result["mobile_device_group_ids"] = computerGroupIDs
 		}
-
-		if len(scope.Limitations.UserGroups) > 0 {
-			groups := make([]map[string]interface{}, len(scope.Limitations.UserGroups))
-			for i, group := range scope.Limitations.UserGroups {
-				groups[i] = map[string]interface{}{
-					"id":   group.ID,
-					"name": group.Name,
-				}
-			}
-			limitations["user_groups"] = groups
-		}
-
-		if len(scope.Limitations.NetworkSegments) > 0 {
-			segments := make([]map[string]interface{}, len(scope.Limitations.NetworkSegments))
-			for i, segment := range scope.Limitations.NetworkSegments {
-				segments[i] = map[string]interface{}{
-					"id":   segment.ID,
-					"name": segment.Name,
-					"uid":  segment.UID,
-				}
-			}
-			limitations["network_segments"] = segments
-		}
-
-		scopeMap["limitations"] = []interface{}{limitations}
 	}
 
-	if hasExclusions(scope.Exclusions) {
-		exclusions := map[string]interface{}{}
-
-		if len(scope.Exclusions.MobileDevices) > 0 {
-			devices := make([]map[string]interface{}, len(scope.Exclusions.MobileDevices))
-			for i, device := range scope.Exclusions.MobileDevices {
-				devices[i] = map[string]interface{}{
-					"id":               device.ID,
-					"name":             device.Name,
-					"udid":             device.UDID,
-					"wifi_mac_address": device.WifiMacAddress,
-				}
-			}
-			exclusions["mobile_devices"] = devices
+	if len(exclusions.Buildings) > 0 {
+		buildingIDs := flattenAndSortScopeEntityIds(exclusions.Buildings)
+		if len(buildingIDs) > 0 {
+			result["building_ids"] = buildingIDs
 		}
-
-		if len(scope.Exclusions.Buildings) > 0 {
-			buildings := make([]map[string]interface{}, len(scope.Exclusions.Buildings))
-			for i, building := range scope.Exclusions.Buildings {
-				buildings[i] = map[string]interface{}{
-					"id":   building.ID,
-					"name": building.Name,
-				}
-			}
-			exclusions["buildings"] = buildings
-		}
-
-		if len(scope.Exclusions.Departments) > 0 {
-			departments := make([]map[string]interface{}, len(scope.Exclusions.Departments))
-			for i, dept := range scope.Exclusions.Departments {
-				departments[i] = map[string]interface{}{
-					"id":   dept.ID,
-					"name": dept.Name,
-				}
-			}
-			exclusions["departments"] = departments
-		}
-
-		if len(scope.Exclusions.MobileDeviceGroups) > 0 {
-			groups := make([]map[string]interface{}, len(scope.Exclusions.MobileDeviceGroups))
-			for i, group := range scope.Exclusions.MobileDeviceGroups {
-				groups[i] = map[string]interface{}{
-					"id":   group.ID,
-					"name": group.Name,
-				}
-			}
-			exclusions["mobile_device_groups"] = groups
-		}
-
-		if len(scope.Exclusions.JSSUsers) > 0 {
-			users := make([]map[string]interface{}, len(scope.Exclusions.JSSUsers))
-			for i, user := range scope.Exclusions.JSSUsers {
-				users[i] = map[string]interface{}{
-					"id":   user.ID,
-					"name": user.Name,
-				}
-			}
-			exclusions["jss_users"] = users
-		}
-
-		if len(scope.Exclusions.JSSUserGroups) > 0 {
-			groups := make([]map[string]interface{}, len(scope.Exclusions.JSSUserGroups))
-			for i, group := range scope.Exclusions.JSSUserGroups {
-				groups[i] = map[string]interface{}{
-					"id":   group.ID,
-					"name": group.Name,
-				}
-			}
-			exclusions["jss_user_groups"] = groups
-		}
-
-		scopeMap["exclusions"] = []interface{}{exclusions}
 	}
 
-	return scopeMap
+	if len(exclusions.JSSUsers) > 0 {
+		jssUserIDs := flattenAndSortScopeEntityIds(exclusions.JSSUsers)
+		if len(jssUserIDs) > 0 {
+			result["jss_user_ids"] = jssUserIDs
+		}
+	}
+
+	if len(exclusions.JSSUserGroups) > 0 {
+		jssUserGroupIDs := flattenAndSortScopeEntityIds(exclusions.JSSUserGroups)
+		if len(jssUserGroupIDs) > 0 {
+			result["jss_user_group_ids"] = jssUserGroupIDs
+		}
+	}
+
+	if len(exclusions.Departments) > 0 {
+		departmentIDs := flattenAndSortScopeEntityIds(exclusions.Departments)
+		if len(departmentIDs) > 0 {
+			result["department_ids"] = departmentIDs
+		}
+	}
+
+	if len(exclusions.NetworkSegments) > 0 {
+		networkSegmentIDs := flattenAndSortNetworkSegmentIds(exclusions.NetworkSegments)
+		if len(networkSegmentIDs) > 0 {
+			result["network_segment_ids"] = networkSegmentIDs
+		}
+	}
+
+	if len(exclusions.Users) > 0 {
+		userNames := flattenAndSortScopeEntityNames(exclusions.Users)
+		if len(userNames) > 0 {
+			result["directory_service_or_local_usernames"] = userNames
+		}
+	}
+
+	if len(exclusions.UserGroups) > 0 {
+		userGroupIDs := flattenAndSortScopeEntityIds(exclusions.UserGroups)
+		if len(userGroupIDs) > 0 {
+			result["directory_service_usergroup_ids"] = userGroupIDs
+		}
+	}
+
+	if len(result) == 0 {
+		return nil, nil
+	}
+
+	return []map[string]interface{}{result}, nil
+}
+
+// helper functions
+
+// flattenAndSortScopeEntityIds converts a slice of general scope entities (like user groups, buildings) to a format suitable for Terraform state.
+func flattenAndSortScopeEntityIds(entities []jamfpro.MobileDeviceApplicationSubsetScopeEntity) []int {
+	var ids []int
+	for _, entity := range entities {
+		if entity.ID != 0 {
+			ids = append(ids, entity.ID)
+		}
+	}
+	sort.Ints(ids)
+	return ids
+}
+
+// flattenAndSortScopeEntityNames converts a slice of RestrictedSoftwareSubsetScopeEntity into a sorted slice of strings.
+func flattenAndSortScopeEntityNames(entities []jamfpro.MobileDeviceApplicationSubsetScopeEntity) []string {
+	var names []string
+	for _, entity := range entities {
+		if entity.Name != "" {
+			names = append(names, entity.Name)
+		}
+	}
+	sort.Strings(names)
+	return names
+}
+
+// flattenAndSortMobileDeviceIDs converts a slice of MobileDeviceApplicationSubsetMobileDevice into a sorted slice of integers.
+func flattenAndSortMobileDeviceIDs(devices []jamfpro.MobileDeviceApplicationSubsetMobileDevice) []int {
+	var ids []int
+	for _, device := range devices {
+		if device.ID != 0 {
+			ids = append(ids, device.ID)
+		}
+	}
+	sort.Ints(ids)
+	return ids
+}
+
+// flattenAndSortNetworkSegmentIds converts a slice of MobileDeviceApplicationSubsetNetworkSegment into a sorted slice of integers.
+func flattenAndSortNetworkSegmentIds(segments []jamfpro.MobileDeviceApplicationSubsetNetworkSegment) []int {
+	var ids []int
+	for _, segment := range segments {
+		if segment.ID != 0 {
+			ids = append(ids, segment.ID)
+		}
+	}
+	sort.Ints(ids)
+	return ids
 }

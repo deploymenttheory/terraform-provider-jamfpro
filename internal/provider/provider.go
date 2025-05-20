@@ -390,6 +390,7 @@ func Provider() *schema.Provider {
 			"jamfpro_ldap_server":                               ldapservers.DataSourceJamfProLDAPServers(),
 			"jamfpro_network_segment":                           networksegments.DataSourceJamfProNetworkSegments(),
 			"jamfpro_macos_configuration_profile_plist":         macosconfigurationprofilesplist.DataSourceJamfProMacOSConfigurationProfilesPlist(),
+			"jamfpro_mobile_device_application":                 mobiledeviceapplications.DataSourceJamfProMobileDeviceApplications(),
 			"jamfpro_mobile_device_configuration_profile_plist": mobiledeviceconfigurationprofilesplist.DataSourceJamfProMobileDeviceConfigurationProfilesPlist(),
 			"jamfpro_mobile_device_prestage_enrollment":         mobiledeviceprestageenrollments.DataSourceJamfProMobileDevicePrestageEnrollmentEnrollment(),
 			"jamfpro_package":                                   packages.DataSourceJamfProPackages(),

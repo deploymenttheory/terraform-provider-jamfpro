@@ -3,6 +3,7 @@ package mobiledeviceapplications
 import (
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -59,25 +60,6 @@ func ResourceJamfProMobileDeviceApplication() *schema.Resource {
 				Default:     false,
 				Description: "Indicates if this is an internal application.",
 			},
-			"category": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:        schema.TypeInt,
-							Computed:    true,
-							Description: "The ID of the category.",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The name of the category.",
-						},
-					},
-				},
-			},
 			"ipa": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -104,13 +86,12 @@ func ResourceJamfProMobileDeviceApplication() *schema.Resource {
 			},
 			"icon": {
 				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:        schema.TypeInt,
-							Optional:    true,
+							Computed:    true,
 							Description: "The ID of the icon.",
 						},
 						"name": {
@@ -229,25 +210,8 @@ func ResourceJamfProMobileDeviceApplication() *schema.Resource {
 				Optional:    true,
 				Description: "The external URL for the application.",
 			},
-			"site": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "The ID of the site.",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The name of the site.",
-						},
-					},
-				},
-			},
+			"site_id":     sharedschemas.GetSharedSchemaSite(),
+			"category_id": sharedschemas.GetSharedSchemaCategory(),
 			"self_service": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -354,397 +318,11 @@ func ResourceJamfProMobileDeviceApplication() *schema.Resource {
 				},
 			},
 			"scope": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"all_mobile_devices": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Default:     false,
-							Description: "Scope to all mobile devices.",
-						},
-						"all_jss_users": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Default:     false,
-							Description: "Scope to all JSS users.",
-						},
-						"mobile_devices": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Computed:    true,
-										Description: "The ID of the mobile device.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "The name of the mobile device.",
-									},
-									"udid": {
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: "The UDID of the mobile device.",
-									},
-									"wifi_mac_address": {
-										Type:        schema.TypeString,
-										Computed:    true,
-										Description: "The WiFi MAC address of the mobile device.",
-									},
-								},
-							},
-						},
-						"buildings": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Computed:    true,
-										Description: "The ID of the building.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "The name of the building.",
-									},
-								},
-							},
-						},
-						"departments": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Computed:    true,
-										Description: "The ID of the department.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "The name of the department.",
-									},
-								},
-							},
-						},
-						"mobile_device_groups": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Computed:    true,
-										Description: "The ID of the mobile device group.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "The name of the mobile device group.",
-									},
-								},
-							},
-						},
-						"jss_users": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Computed:    true,
-										Description: "The ID of the JSS user.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "The name of the JSS user.",
-									},
-								},
-							},
-						},
-						"jss_user_groups": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:        schema.TypeInt,
-										Computed:    true,
-										Description: "The ID of the JSS user group.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "The name of the JSS user group.",
-									},
-								},
-							},
-						},
-						"limitations": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"users": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:        schema.TypeInt,
-													Computed:    true,
-													Description: "The ID of the user.",
-												},
-												"name": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "The name of the user.",
-												},
-											},
-										},
-									},
-									"user_groups": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:        schema.TypeInt,
-													Computed:    true,
-													Description: "The ID of the user group.",
-												},
-												"name": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "The name of the user group.",
-												},
-											},
-										},
-									},
-									"network_segments": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:        schema.TypeInt,
-													Computed:    true,
-													Description: "The ID of the network segment.",
-												},
-												"name": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "The name of the network segment.",
-												},
-												"uid": {
-													Type:        schema.TypeString,
-													Computed:    true,
-													Description: "The UID of the network segment.",
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-						"exclusions": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"mobile_devices": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:        schema.TypeInt,
-													Computed:    true,
-													Description: "The ID of the mobile device to exclude.",
-												},
-												"name": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "The name of the mobile device to exclude.",
-												},
-												"udid": {
-													Type:        schema.TypeString,
-													Computed:    true,
-													Description: "The UDID of the mobile device to exclude.",
-												},
-												"wifi_mac_address": {
-													Type:        schema.TypeString,
-													Computed:    true,
-													Description: "The WiFi MAC address of the mobile device to exclude.",
-												},
-											},
-										},
-									},
-									"buildings": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:        schema.TypeInt,
-													Computed:    true,
-													Description: "The ID of the building to exclude.",
-												},
-												"name": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "The name of the building to exclude.",
-												},
-											},
-										},
-									},
-									"departments": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:        schema.TypeInt,
-													Computed:    true,
-													Description: "The ID of the department to exclude.",
-												},
-												"name": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "The name of the department to exclude.",
-												},
-											},
-										},
-									},
-									"mobile_device_groups": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:        schema.TypeInt,
-													Computed:    true,
-													Description: "The ID of the mobile device group to exclude.",
-												},
-												"name": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "The name of the mobile device group to exclude.",
-												},
-											},
-										},
-									},
-									"users": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:        schema.TypeInt,
-													Computed:    true,
-													Description: "The ID of the user to exclude.",
-												},
-												"name": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "The name of the user to exclude.",
-												},
-											},
-										},
-									},
-									"user_groups": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:        schema.TypeInt,
-													Computed:    true,
-													Description: "The ID of the user group to exclude.",
-												},
-												"name": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "The name of the user group to exclude.",
-												},
-											},
-										},
-									},
-									"network_segments": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:        schema.TypeInt,
-													Computed:    true,
-													Description: "The ID of the network segment to exclude.",
-												},
-												"name": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "The name of the network segment to exclude.",
-												},
-												"uid": {
-													Type:        schema.TypeString,
-													Computed:    true,
-													Description: "The UID of the network segment to exclude.",
-												},
-											},
-										},
-									},
-									"jss_users": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:        schema.TypeInt,
-													Computed:    true,
-													Description: "The ID of the JSS user to exclude.",
-												},
-												"name": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "The name of the JSS user to exclude.",
-												},
-											},
-										},
-									},
-									"jss_user_groups": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:        schema.TypeInt,
-													Computed:    true,
-													Description: "The ID of the JSS user group to exclude.",
-												},
-												"name": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "The name of the JSS user group to exclude.",
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
+				Type:        schema.TypeList,
+				MaxItems:    1,
+				Description: "The scope of the mobile device application.",
+				Required:    true,
+				Elem:        sharedschemas.GetSharedMobileDeviceSchemaScope(),
 			},
 		},
 	}
