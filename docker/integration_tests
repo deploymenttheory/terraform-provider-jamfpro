@@ -11,7 +11,7 @@ COPY ./testing/requirements.txt .
 RUN set -eux; \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-        wget unzip git ca-certificates && \
+        wget unzip git ca-certificates uuid-runtime && \
     \
     # Go
     wget -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz && \
