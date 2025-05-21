@@ -10,6 +10,10 @@ jobs:
   Run-Nightly-Cleanup:
     environment: terraform-integration-testing
     runs-on: ubuntu-latest
+    env: 
+      CLIENT_ID: ${{ secrets.TESTING_CLIENT_ID }}
+      CLIENT_SEC: ${{ secrets.TESTING_CLIENT_SECRET }}
+
     concurrency:
       group: sandbox_interfacing_testing_environment
       cancel-in-progress: false
@@ -27,14 +31,6 @@ jobs:
       - name: Set up Python Environment
         run: |
           pip install -r ./terraform-provider-jamfpro/testing/requirements.txt
-      
-      - name: Build .env File
-        run: |
-          cd ./terraform-provider-jamfpro/testing/jamfpy
-          cat <<EOF > .env
-          CLIENT_ID="${{ secrets.TESTING_CLIENT_ID }}"
-          CLIENT_SEC="${{ secrets.TESTING_CLIENT_SECRET }}"
-          EOF
 
       - name: Run full cleanup
         run: |
