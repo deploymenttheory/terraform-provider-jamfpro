@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// I am diff
+
 // constructImageUpload returns the path to an image suitable for upload from Terraform configuration
 // It validates the image source and calls resizeImage if needed
 func constructImageUpload(d *schema.ResourceData) (string, error) {
