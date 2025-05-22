@@ -31,7 +31,7 @@ jobs:
     container:
       image: ghcr.io/${{ github.repository }}/provider_testing:latest
 
-    environment: ${{ github.event.pull_request.head.repo.full_name == github.repository && 'provider-integration-testing-internal' || 'external-env' }}
+    environment: ${{ (github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'workflow_dispatch') && 'provider-integration-testing-internal' || 'external-env' }}
 
     concurrency:
       group: sandbox_interfacing_testing_environment
@@ -105,7 +105,7 @@ jobs:
           python3 ${{ steps.set-targets-outputs.targets }}
 
       - name: debug
-        run: ls terraform-provider-jamfpro/
+        run: ls terraform-provider-jamfpro/testing/
 
       - name: Build TFVARS File
         if: env.TARGETS != 'compileonly'
