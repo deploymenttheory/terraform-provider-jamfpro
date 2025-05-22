@@ -35,6 +35,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	resource, localFilePath, err := construct(d)
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package: %v", err))
 	}
 
@@ -42,6 +43,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	initialHash, err := jamfpro.CalculateSHA3_512(localFilePath)
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to calculate SHA3-512: %v", err))
 	}
 
@@ -50,6 +52,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		creationResponse, err := client.CreatePackage(*resource)
 
 		if err != nil {
+			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return retry.RetryableError(fmt.Errorf("failed to create package metadata in Jamf Pro: %v", err))
 		}
 
@@ -61,8 +64,8 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to make the metadata, exiting: %v", err))
-
 	}
 
 	// Package
@@ -74,7 +77,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 		if err != nil {
 			log.Printf("[ERROR] Failed to upload package file '%s': %v", resource.FileName, err)
-
+			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return retry.NonRetryableError(fmt.Errorf("failed to upload package file: %v", err))
 		}
 
@@ -84,19 +87,21 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-
 		// Cleans up the metadata so the next run doesn't hit an error trying to remake it, duplicate names are not allowed
 		cleanupErr := client.DeletePackageByID(packageID)
 
 		if cleanupErr != nil {
+			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return diag.FromErr(fmt.Errorf("failed to upload package: %v and failed to delete metadata: %v", err, cleanupErr))
 		}
 
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to upload Jamf Pro Package '%s': %v", resource.PackageName, err))
 	}
 
 	if err := verifyPackageUpload(ctx, client, packageID, resource.FileName, initialHash,
 		d.Timeout(schema.TimeoutCreate)); err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to verify Jamf Pro Package '%s': %v", resource.PackageName, err))
 	}
 
@@ -161,6 +166,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	resource, localFilePath, err := construct(d)
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package for update: %v", err))
 	}
 
@@ -168,6 +174,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		_, err := client.UpdatePackageByID(resourceID, *resource)
 		if err != nil {
+			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return retry.RetryableError(fmt.Errorf("failed to update package metadata: %v", err))
 		}
 		log.Printf("[INFO] Package metadata updated successfully")
@@ -175,6 +182,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Package metadata '%s' (ID: %s): %v",
 			resource.PackageName, resourceID, err))
 	}
@@ -183,12 +191,14 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	if fileChanged {
 		newFileHash, err := jamfpro.CalculateSHA3_512(localFilePath)
 		if err != nil {
+			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return diag.FromErr(fmt.Errorf("failed to calculate SHA3-512 hash for %s: %v", localFilePath, err))
 		}
 
 		err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 			_, err := client.UploadPackage(resourceID, []string{localFilePath})
 			if err != nil {
+				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return retry.RetryableError(fmt.Errorf("failed to upload package file: %v", err))
 			}
 
@@ -197,11 +207,13 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		})
 
 		if err != nil {
+			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return diag.FromErr(fmt.Errorf("failed to upload new package file: %v", err))
 		}
 
 		if err := verifyPackageUpload(ctx, client, resourceID, resource.FileName, newFileHash,
 			d.Timeout(schema.TimeoutUpdate)); err != nil {
+			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return diag.FromErr(fmt.Errorf("failed to verify updated package file: %v", err))
 		}
 

@@ -41,6 +41,7 @@ func ResizeImage(img image.Image, format string, originalPath string, maxWidth, 
 
 	tempFile, err := os.Create(tempFilename)
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return "", fmt.Errorf("failed to create temporary file for resized image: %v", err)
 	}
 	defer tempFile.Close()
@@ -56,6 +57,7 @@ func ResizeImage(img image.Image, format string, originalPath string, maxWidth, 
 	}
 
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return "", fmt.Errorf("failed to encode processed image: %v", err)
 	}
 

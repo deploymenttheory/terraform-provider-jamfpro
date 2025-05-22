@@ -24,6 +24,7 @@ func construct(d *schema.ResourceData, meta interface{}) (*jamfpro.ResourceAPIRo
 		privileges := make([]string, len(privilegesInterface))
 		for i, priv := range privilegesInterface {
 			if privileges[i], ok = priv.(string); !ok {
+				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return nil, fmt.Errorf("failed to assert api role privilege to string")
 			}
 		}
@@ -37,6 +38,7 @@ func construct(d *schema.ResourceData, meta interface{}) (*jamfpro.ResourceAPIRo
 
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Api Role '%s' to JSON: %v", resource.DisplayName, err)
 	}
 
@@ -49,11 +51,13 @@ func construct(d *schema.ResourceData, meta interface{}) (*jamfpro.ResourceAPIRo
 func validateApiRolePrivileges(client *jamfpro.Client, privileges []string) error {
 	versionInfo, err := client.GetJamfProVersion()
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("failed to fetch Jamf Pro version: %v", err)
 	}
 
 	privilegesList, err := client.GetJamfAPIPrivileges()
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("failed to fetch API privileges for validation: %v", err)
 	}
 
@@ -90,6 +94,7 @@ func validateApiRolePrivileges(client *jamfpro.Client, privileges []string) erro
 			}
 		}
 
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("%s", msg.String())
 	}
 
