@@ -120,7 +120,7 @@ def generate_targetted_test_files(resources):
 
 def get_all_available_test_files():
     print("DEBUG: get_all_available_test_files called.")
-    payloads_dir = "testing/payloads"
+    payloads_dir = "testing/payloads/"
     print(f"DEBUG: Payloads directory set to: {payloads_dir}")
     available_resources = []
     print(f"DEBUG: Initialized available_resources: {available_resources}")
