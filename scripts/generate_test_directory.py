@@ -85,7 +85,7 @@ def generate_targetted_test_files(resources):
         resource_dir = os.path.join(root_dir, r)
         os.makedirs(resource_dir, exist_ok=True) # Ensure per-resource directory exists
 
-        payload_dir_for_hcl = f"../payloads/{r}"
+        payload_dir_for_hcl = f"payloads/{r}"
 
         test_block_content = TEST_BLOCK.format(
             resource_type=r,
