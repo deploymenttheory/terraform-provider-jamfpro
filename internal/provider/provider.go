@@ -38,10 +38,12 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/deviceenrollmentspublickey"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/diskencryptionconfigurations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/dockitems"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/engagesettings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/enrollmentcustomizations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/filesharedistributionpoints"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/icons"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/jamfconnect"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/jamfprotect"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/ldapservers"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/localadminpasswordsettings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macosconfigurationprofilesplist"
@@ -61,6 +63,8 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/smartcomputergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/smartmobiledevicegroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/smtpserver"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/ssocertificate"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/ssofailover"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/ssosettings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/staticcomputergroups"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/staticmobiledevicegroups"
@@ -393,6 +397,8 @@ func Provider() *schema.Provider {
 			"jamfpro_site":                                      sites.DataSourceJamfProSites(),
 			"jamfpro_smart_computer_group":                      smartcomputergroups.DataSourceJamfProSmartComputerGroups(),
 			"jamfpro_smart_mobile_device_group":                 smartmobiledevicegroups.DataSourceJamfProSmartMobileGroups(),
+			"jamfpro_sso_certificate":                           ssocertificate.DataSourceJamfProSSOCertificate(),
+			"jamfpro_sso_failover":                              ssofailover.DataSourceJamfProSSOFailover(),
 			"jamfpro_static_computer_group":                     staticcomputergroups.DataSourceJamfProStaticComputerGroups(),
 			"jamfpro_static_mobile_device_group":                staticmobiledevicegroups.DataSourceJamfProStaticMobileDeviceGroups(),
 			"jamfpro_restricted_software":                       restrictedsoftware.DataSourceJamfProRestrictedSoftwares(),
@@ -425,10 +431,12 @@ func Provider() *schema.Provider {
 			"jamfpro_device_enrollments":                          deviceenrollments.ResourceJamfProDeviceEnrollments(),
 			"jamfpro_disk_encryption_configuration":               diskencryptionconfigurations.ResourceJamfProDiskEncryptionConfigurations(),
 			"jamfpro_dock_item":                                   dockitems.ResourceJamfProDockItems(),
+			"jamfpro_engage_settings":                             engagesettings.ResourceEngageSettings(),
 			"jamfpro_enrollment_customization":                    enrollmentcustomizations.ResourceJamfProEnrollmentCustomization(),
 			"jamfpro_file_share_distribution_point":               filesharedistributionpoints.ResourceJamfProFileShareDistributionPoints(),
 			"jamfpro_icon":                                        icons.ResourceJamfProIcons(),
 			"jamfpro_jamf_connect":                                jamfconnect.ResourceJamfConnectConfigProfile(),
+			"jamfpro_jamf_protect":                                jamfprotect.ResourceJamfProtect(),
 			"jamfpro_ldap_server":                                 ldapservers.ResourceJamfProLDAPServers(),
 			"jamfpro_local_admin_password_settings":               localadminpasswordsettings.ResourceLocalAdminPasswordSettings(),
 			"jamfpro_network_segment":                             networksegments.ResourceJamfProNetworkSegments(),
@@ -447,6 +455,8 @@ func Provider() *schema.Provider {
 			"jamfpro_site":                                        sites.ResourceJamfProSites(),
 			"jamfpro_smart_computer_group":                        smartcomputergroups.ResourceJamfProSmartComputerGroups(),
 			"jamfpro_smart_mobile_device_group":                   smartmobiledevicegroups.ResourceJamfProSmartMobileGroups(),
+			"jamfpro_sso_certificate":                             ssocertificate.ResourceJamfProSSOCertificate(),
+			"jamfpro_sso_failover":                                ssofailover.ResourceJamfProSSOFailover(),
 			"jamfpro_sso_settings":                                ssosettings.ResourceJamfProSsoSettings(),
 			"jamfpro_static_computer_group":                       staticcomputergroups.ResourceJamfProStaticComputerGroups(),
 			"jamfpro_static_mobile_device_group":                  staticmobiledevicegroups.ResourceJamfProStaticMobileDeviceGroups(),

@@ -6,22 +6,6 @@
 #       - main
 #   workflow_dispatch:
 
-# jobs:
-#   Run-Integration-Test:
-#     environment: terraform-integration-testing
-#     runs-on: ubuntu-latest
-#     env:
-#       REF_TO_CHECKOUT: ${{ github.event_name == 'pull_request' && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}
-#     concurrency:
-#       group: sandbox_interfacing_testing_environment
-#       cancel-in-progress: false
-#     steps:
-#       - name: Checkout Terraform Repository
-#         uses: actions/checkout@v4
-#         with:
-#           repository: deploymenttheory/terraform-provider-jamfpro
-#           ref: ${{ env.REF_TO_CHECKOUT }}
-#           path: terraform-provider-jamfpro
 
 #       - name: Set up Terraform
 #         uses: hashicorp/setup-terraform@v3
@@ -53,26 +37,6 @@
 #           echo "Run ID: $generated_uuid"
 
         
-#       - name: Build TFVARS File
-#         run: |
-#           cd ./terraform-provider-jamfpro/testing
-#           cat <<EOF > terraform.tfvars
-#           jamfpro_instance_fqdn="${{ secrets.TESTING_JAMFPRO_INSTANCE_FQDN }}"
-#           jamfpro_auth_method="oauth2"
-#           jamfpro_client_id="${{ secrets.TESTING_CLIENT_ID }}"
-#           jamfpro_client_secret="${{ secrets.TESTING_CLIENT_SECRET }}"
-#           jamfpro_token_refresh_buffer_period_seconds="30"
-#           jamfpro_mandatory_request_delay_milliseconds="100"
-#           testing_id="${{ steps.generate-uuid.outputs.uuid }}"
-#           EOF
-      
-#       - name: Build .env File
-#         run: |
-#           cd ./terraform-provider-jamfpro/testing/jamfpy
-#           cat <<EOF > .env
-#           CLIENT_ID="${{ secrets.TESTING_CLIENT_ID }}"
-#           CLIENT_SEC="${{ secrets.TESTING_CLIENT_SECRET }}"
-#           EOF
 
 #       - name: Scaffolding
 #         run: |
