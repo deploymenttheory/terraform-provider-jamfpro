@@ -31,6 +31,7 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*
 
 COPY go.mod go.sum ./
+RUN go mod tidy
 RUN go mod download
 
 ENV PYTHONUNBUFFERED=1
