@@ -92,7 +92,7 @@ def generate_targetted_test_files(resources):
             payload_dir=payload_dir_for_hcl
         )
 
-        test_file_path = os.path.join(resource_dir, f"{r}.tftest.hcl")
+        test_file_path = os.path.join(root_dir, f"{r}.tftest.hcl")
         with open(test_file_path, "w") as f:
             f.write(test_block_content)
 
