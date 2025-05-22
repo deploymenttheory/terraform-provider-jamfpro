@@ -133,8 +133,11 @@ jobs:
       # For testing, saves a lot of time. Only care if it compiles right now.
       - name: Run Tests
         run: |
-          ls
           cd terraform-provider-jamfpro/testing
+          ls
+          cd tests
+          ls
+          cd ..
           terraform fmt
           terraform init
           terraform test
