@@ -7,15 +7,15 @@ directory under 'testing/tests/' and generates a '<resource_name>.tftest.hcl'
 file within that directory.
 
 The content of the generated HCL file is based on a predefined template,
-pointing to a payload directory expected at 'testing/payloads/<resource_name>'.
+pointing to a payload directory expected at 'terraform-provider-jamfpro/testing/payloads/<resource_name>'.
 
 If 'all' is specified, the script discovers available resources by listing
-subdirectories within 'testing/payloads/'.
+subdirectories within 'terraform-provider-jamfpro/testing/payloads/'.
 
 Arguments:
     resources_data (str): A comma-separated string of resource names (e.g.,
                           "resource1,resource2") or the keyword 'all' to
-                          process all resources found in 'testing/payloads/'.
+                          process all resources found in 'terraform-provider-jamfpro/testing/payloads/'.
 
 Example:
     Input:
@@ -29,7 +29,7 @@ Example:
          command = apply
 
          module {
-           source = "testing/payloads/foo"
+           source = "terraform-provider-jamfpro/testing/payloads/foo"
          }
        }
        ```
@@ -40,7 +40,7 @@ Example:
          command = apply
 
          module {
-           source = "testing/payloads/bar"
+           source = "terraform-provider-jamfpro/testing/payloads/bar"
          }
        }
        ```
@@ -48,13 +48,13 @@ Example:
     Input:
     `python scripts/generate_test_directory.py all`
 
-    Assuming `testing/payloads/` contains directories `resA` and `resB`:
+    Assuming `terraform-provider-jamfpro/testing/payloads/` contains directories `resA` and `resB`:
     1. Create the directory `testing/tests/resA/`.
     2. Create the file `testing/tests/resA/resA.tftest.hcl` (content similar to above).
     3. Create the directory `testing/tests/resB/`.
     4. Create the file `testing/tests/resB/resB.tftest.hcl` (content similar to above).
 
-    If `testing/payloads/` is missing or empty when 'all' is used, a warning
+    If `terraform-provider-jamfpro/testing/payloads/` is missing or empty when 'all' is used, a warning
     will be printed, and the script may exit or generate no files.
 """
 
@@ -97,7 +97,7 @@ def generate_targetted_test_files(resources):
         os.makedirs(resource_dir, exist_ok=True) # Ensure per-resource directory exists
         print(f"DEBUG: Resource directory '{resource_dir}' ensured.")
 
-        payload_dir_rel = f"testing/payloads/{r}"
+        payload_dir_rel = f"terraform-provider-jamfpro/testing/payloads/{r}"
         print(f"DEBUG: Relative payload directory for resource '{r}': {payload_dir_rel}")
 
         test_block_content = TEST_BLOCK.format(
@@ -120,7 +120,7 @@ def generate_targetted_test_files(resources):
 
 def get_all_available_test_files():
     print("DEBUG: get_all_available_test_files called.")
-    payloads_dir = "testing/payloads/"
+    payloads_dir = "terraform-provider-jamfpro/testing/payloads/"
     print(f"DEBUG: Payloads directory set to: {payloads_dir}")
     available_resources = []
     print(f"DEBUG: Initialized available_resources: {available_resources}")
