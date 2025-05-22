@@ -123,21 +123,24 @@ def get_all_available_test_files():
 
 def main():
     parser = argparse.ArgumentParser(description="Generate targeted test files based on a resources string.")
-    parser.add_argument("resources_data", help="Target resources (comma-separated string or 'all').")
+    parser.add_argument("resources_data", required=True, help="Target resources (comma-separated string or 'all').")
     args = parser.parse_args()
 
     input_str: str = args.resources_data
 
+    if not input_str:
+        sys.exit(1)
+
     targets = []
     if input_str.lower() == "all":
         targets = get_all_available_test_files()
+
     else:
         stripped_input = input_str.strip()
+
         if stripped_input:
             targets = stripped_input.split(",")
             targets = [t.strip() for t in targets if t.strip()]
-        else:
-            targets = []
 
     if not targets:
         # This print might be useful to keep, as it indicates no files will be generated.
