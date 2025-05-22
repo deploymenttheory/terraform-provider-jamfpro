@@ -65,14 +65,13 @@ jobs:
 
       - name: Generate Test Targets
         if: github.event_name == 'pull_request'
-        env:
-          REPO_OWNER: ${{ github.repository_owner }}
-          REPO_NAME: ${{ github.event.repository.name }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          GITHUB_TOKEN: ${{ github.token }}
         run: |
           cd ../
-          python3 scripts/get_targets_to_file.py
+          python3 scripts/get_targets_to_file.py \
+          --repo-owner ${{ github.repository_owner }} \
+          --repo-name ${{ github.event.repository.name }} \
+          --pr-number ${{ github.event.pull_request.number }} \
+          --github-token ${{ github.token }}
 
         
       - name: Set Test Targets
@@ -99,7 +98,7 @@ jobs:
       - name: Populate Testing Directory
         id: generate-test-dir
         run: |
-          cheese
+          python3 ${{ steps.set-targets-outputs.targets }}
 
 
       - name: Build TFVARS File

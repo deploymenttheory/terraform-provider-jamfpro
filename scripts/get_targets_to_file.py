@@ -1,30 +1,46 @@
+'''
+This script interacts with the GitHub API to determine changed files within a specific pull request.
+It then filters these files to identify 'resource targets'. A file is considered to contain
+a resource target if its path includes both "internal" and "resources" segments.
+The script extracts the name of the resource (assumed to be the directory name immediately
+following "internal/resources/") from such paths.
+
+All unique, extracted resource target names are then written to a file named 'targets.txt',
+comma-separated. If no resource targets are found in the pull request's changed files,
+the script prints a message and exits with an error code.
+
+Command-line arguments:
+  --repo-owner: The owner of the GitHub repository.
+  --repo-name: The name of the GitHub repository.
+  --pr-number: The number of the pull request to inspect.
+  --github-token: A GitHub personal access token with permissions to read repository data.
+
+Example Usage:
+
+Input:
+  Command:
+  `python scripts/get_targets_to_file.py --repo-owner example-owner --repo-name example-repo --pr-number 123 --github-token <your_token>`
+
+  Assuming PR #123 in `example-owner/example-repo` has the following changed files:
+    - `internal/resources/user/main.go`
+    - `internal/resources/group/resource.go`
+    - `docs/users.md`
+    - `README.md`
+
+Output (`targets.txt`):
+  `user,group`
+'''
+
 import os
 import sys
 import requests
-from dotenv import load_dotenv
+import argparse
 
-REQUIRED_ENV_VARS = [
-    "REPO_OWNER",
-    "REPO_NAME",
-    "PR_NUMBER",
-    "GITHUB_TOKEN"
-]
+
+
+
 
 FILEPATH_KEY = "filename"
-
-def get_env():
-    load_dotenv()
-    out = {}
-    for k in REQUIRED_ENV_VARS:
-        v = os.environ.get(k)
-        if not v:
-            print(f"::error::Required environment variable {k} is not set")
-            sys.exit(1)
-        
-        out[k] = v
-
-    return out
-
 
 def get_diff(owner, repo, token, pr_number: str):
     resp = requests.request(
@@ -59,17 +75,23 @@ def extract_resource_from_path(path: str):
 
 
 def save_targets_to_file(targets: list):
-    with open("target_resources.txt", "w") as f:
+    with open("targets.txt", "w") as f:
         f.write(",".join(targets))        
 
 
 def main():
-    env = get_env()
+    parser = argparse.ArgumentParser(description="Get PR diff and extract resource targets.")
+    parser.add_argument("--repo-owner", required=True, help="Repository owner.")
+    parser.add_argument("--repo-name", required=True, help="Repository name.")
+    parser.add_argument("--pr-number", required=True, help="Pull request number.")
+    parser.add_argument("--github-token", required=True, help="GitHub token.")
+    args = parser.parse_args()
+
     diff_info = get_diff(
-        env["REPO_OWNER"],
-        env["REPO_NAME"],
-        env["GITHUB_TOKEN"],
-        env["PR_NUMBER"]
+        args.repo_owner,
+        args.repo_name,
+        args.github_token,
+        args.pr_number
     )
 
     filepaths = get_diff_path(diff_info)
@@ -80,6 +102,11 @@ def main():
 
         if found:
             targets.append(res)
+
+
+    if not targets:
+        print("no targets found")
+        sys.exit(1)
 
     save_targets_to_file(targets)
 
