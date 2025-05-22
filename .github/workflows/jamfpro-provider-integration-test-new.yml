@@ -144,7 +144,7 @@ jobs:
         run: |
           # Waits 5 seconds to allow for deletes to properly apply after test.
           sleep 5
-          cd ./terraform-provider-jamfpro/testing/setup
+          cd ./terraform-provider-jamfpro/testing/scripts/
           ./cleanup.sh -r ${{ steps.generate-uuid.outputs.uuid }}
 
 

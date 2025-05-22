@@ -3,11 +3,12 @@ Generates Terraform test files (.tftest.hcl) for specified resources.
 
 This script takes a comma-separated list of resource names or the keyword 'all'
 as a command-line argument. For each resource, it creates a corresponding
-directory under 'testing/tests/' and generates a '<resource_name>.tftest.hcl'
+directory under 'terraform-provider-jamfpro/testing/tests/' and generates a '<resource_name>.tftest.hcl'
 file within that directory.
 
-The content of the generated HCL file is based on a predefined template,
-pointing to a payload directory expected at 'terraform-provider-jamfpro/testing/payloads/<resource_name>'.
+The content of the generated HCL file is based on a predefined template.
+The module source within the HCL will point to a payload directory relative
+to the HCL file itself (e.g., '../../payloads/<resource_name>').
 
 If 'all' is specified, the script discovers available resources by listing
 subdirectories within 'terraform-provider-jamfpro/testing/payloads/'.
@@ -18,41 +19,42 @@ Arguments:
                           process all resources found in 'terraform-provider-jamfpro/testing/payloads/'.
 
 Example:
+    Assuming the script is run from the workspace root, and 'terraform-provider-jamfpro' is a subdirectory.
     Input:
-    `python scripts/generate_test_directory.py "foo,bar"`
+    `python terraform-provider-jamfpro/scripts/generate_test_directory.py "foo,bar"`
 
     This command will:
-    1. Create the directory `testing/tests/foo/`.
-    2. Create the file `testing/tests/foo/foo.tftest.hcl` with content:
+    1. Create the directory `terraform-provider-jamfpro/testing/tests/foo/`.
+    2. Create the file `terraform-provider-jamfpro/testing/tests/foo/foo.tftest.hcl` with content:
        ```hcl
-       run "apply_foo" {
+       run "apply_foo" {{
          command = apply
 
-         module {
-           source = "terraform-provider-jamfpro/testing/payloads/foo"
-         }
-       }
+         module {{
+           source = "../../payloads/foo"
+         }}
+       }}
        ```
-    3. Create the directory `testing/tests/bar/`.
-    4. Create the file `testing/tests/bar/bar.tftest.hcl` with content:
+    3. Create the directory `terraform-provider-jamfpro/testing/tests/bar/`.
+    4. Create the file `terraform-provider-jamfpro/testing/tests/bar/bar.tftest.hcl` with content:
        ```hcl
-       run "apply_bar" {
+       run "apply_bar" {{
          command = apply
 
-         module {
-           source = "terraform-provider-jamfpro/testing/payloads/bar"
-         }
-       }
+         module {{
+           source = "../../payloads/bar"
+         }}
+       }}
        ```
 
     Input:
-    `python scripts/generate_test_directory.py all`
+    `python terraform-provider-jamfpro/scripts/generate_test_directory.py all`
 
-    Assuming `terraform-provider-jamfpro/testing/payloads/` contains directories `resA` and `resB`:
-    1. Create the directory `testing/tests/resA/`.
-    2. Create the file `testing/tests/resA/resA.tftest.hcl` (content similar to above).
-    3. Create the directory `testing/tests/resB/`.
-    4. Create the file `testing/tests/resB/resB.tftest.hcl` (content similar to above).
+    Assuming `terraform-provider-jamfpro/testing/payloads/` contains subdirectories `resA` and `resB`:
+    1. Create the directory `terraform-provider-jamfpro/testing/tests/resA/`.
+    2. Create the file `terraform-provider-jamfpro/testing/tests/resA/resA.tftest.hcl` (content similar to above).
+    3. Create the directory `terraform-provider-jamfpro/testing/tests/resB/`.
+    4. Create the file `terraform-provider-jamfpro/testing/tests/resB/resB.tftest.hcl` (content similar to above).
 
     If `terraform-provider-jamfpro/testing/payloads/` is missing or empty when 'all' is used, a warning
     will be printed, and the script may exit or generate no files.
