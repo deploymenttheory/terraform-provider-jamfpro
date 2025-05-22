@@ -77,7 +77,7 @@ print(f"DEBUG: TEST_BLOCK template defined as: \n{TEST_BLOCK}")
 
 def generate_targetted_test_files(resources):
     print(f"DEBUG: generate_targetted_test_files called with resources: {resources}")
-    root_dir = "testing/tests"
+    root_dir = "testing/tests/"
     print(f"DEBUG: Root directory for tests set to: {root_dir}")
     
     print(f"DEBUG: Ensuring root directory '{root_dir}' exists...")
