@@ -103,7 +103,7 @@ jobs:
 
       - name: Build TFVARS File
         run: |
-          cd terraform-provider-jamfpro/testing/${{ steps.generate-test-dir.outputs.test_dir }}
+          cd terraform-provider-jamfpro/testing/tests
           cat <<EOF > terraform.tfvars
           jamfpro_instance_fqdn="$CLIENT_FQDN"
           jamfpro_auth_method="oauth2"
@@ -116,11 +116,11 @@ jobs:
 
 
         # This needs to go in an "Executor" type script
-      - name: Scaffolding
-        run: |
-          echo "PLEASE NOTE at 23:59 a wipe job is performed on all testing objects. Tests run at this time will most likely fail."
-          cd ./terraform-provider-jamfpro/testing/setup
-          ./scaffolding.sh -r ${{ steps.generate-uuid.outputs.uuid }}
+      # - name: Scaffolding
+      #   run: |
+      #     echo "PLEASE NOTE at 23:59 a wipe job is performed on all testing objects. Tests run at this time will most likely fail."
+      #     cd ./terraform-provider-jamfpro/testing/setup
+      #     ./scaffolding.sh -r ${{ steps.generate-uuid.outputs.uuid }}
 
       # For testing, saves a lot of time. Only care if it compiles right now.
       # - name: Run Tests
