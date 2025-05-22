@@ -2,25 +2,46 @@ name: "Terraform Integration Tests - NEW"
 run-name: "Terraform Integration Tests - NEW"
 on:
   workflow_dispatch:
+    inputs:  
+      targets:
+        description: 'Specify targets to test'
+        type: string
+        required: false
+        default: 'all'
+
+  pull_request:
+    types: [opened, synchronize]
+
+env:
+  PR: ${{ github.event_name == 'pull_request' }}
+  TARGETS: ${{ inputs.targets }}
 
 jobs:
-  Run-Integration-Test:
+  Check-PR-Name:
+    container: python:3.11-slim
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run PR Name Check Script
+        run: python3 scripts/check_pr_name.py ${{ github.event_name }}
 
+
+  Run-Integration-Test:
+    runs-on: ubuntu-latest
     container:
       image: ghcr.io/${{ github.repository }}/provider_testing:latest
-    
-    environment: terraform-integration-testing
-    runs-on: ubuntu-latest
+
+    environment: ${{ github.event.pull_request.head.repo.full_name == github.repository && 'provider-integration-testing-internal' || 'external-env' }}
+
+    concurrency:
+      group: sandbox_interfacing_testing_environment
+      cancel-in-progress: false
 
     env: 
       CLIENT_ID: ${{ secrets.TESTING_CLIENT_ID }}
       CLIENT_SEC: ${{ secrets.TESTING_CLIENT_SECRET }}
       CLIENT_FQDN: ${{ secrets.TESTING_JAMFPRO_INSTANCE_FQDN }}
       REF_TO_CHECKOUT: ${{ github.event_name == 'pull_request' && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}
-
-    concurrency:
-      group: sandbox_interfacing_testing_environment-new
-      cancel-in-progress: false
     
     steps:
       - name: Checkout Terraform Repository
@@ -29,6 +50,7 @@ jobs:
           repository: deploymenttheory/terraform-provider-jamfpro
           ref: ${{ env.REF_TO_CHECKOUT }}
           path: terraform-provider-jamfpro
+
 
       - name: Compile Provider
         run: |
@@ -40,6 +62,32 @@ jobs:
           cd testing
           terraform init
 
+
+      - name: Generate Test Targets
+        if: github.event_name == 'pull_request'
+        env:
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          cd ../
+          python3 scripts/get_targets_to_file.py
+
+        
+      - name: Set Test Targets
+        id: set-targets
+        run: |
+          if [ -f "target_resources.txt" ]; then
+            targets=$(cat target_resources.txt)
+          elif [ "$TARGETS" != "all" ] && [ ! -z "$TARGETS" ]; then
+            targets="$TARGETS"
+          else
+            targets="all"
+          fi
+          echo "targets=$targets" >> $GITHUB_OUTPUT
+
+
       - name: Generate UUID
         id: generate-uuid
         run: |
@@ -47,10 +95,16 @@ jobs:
           echo "uuid=$generated_uuid" >> $GITHUB_OUTPUT
           echo "Run ID: $generated_uuid"
 
-        
+
+      - name: Populate Testing Directory
+        id: generate-test-dir
+        run: |
+          cheese
+
+
       - name: Build TFVARS File
         run: |
-          cd ./terraform-provider-jamfpro/testing
+          cd terraform-provider-jamfpro/testing/${{ steps.generate-test-dir.outputs.test_dir }}
           cat <<EOF > terraform.tfvars
           jamfpro_instance_fqdn="$CLIENT_FQDN"
           jamfpro_auth_method="oauth2"
@@ -62,21 +116,23 @@ jobs:
           EOF
 
 
-      # this is only for static computer groups
+        # This needs to go in an "Executor" type script
       - name: Scaffolding
         run: |
           echo "PLEASE NOTE at 23:59 a wipe job is performed on all testing objects. Tests run at this time will most likely fail."
           cd ./terraform-provider-jamfpro/testing/setup
           ./scaffolding.sh -r ${{ steps.generate-uuid.outputs.uuid }}
 
+      # For testing, saves a lot of time. Only care if it compiles right now.
       # - name: Run Tests
       #   run: |  
+            # Convert this to a script which checks for the need of scaffoldings
       #     cd ./terraform-provider-jamfpro/testing
       #     terraform fmt
       #     terraform init
       #     terraform test
 
-      - name: Post-flight cleanup
+      - name: Cleanup
         run: |
           # Waits 5 seconds to allow for deletes to properly apply after test.
           sleep 5
@@ -85,7 +141,7 @@ jobs:
 
 
       - name: Diff cascade - Terraform Plan (Pre-Apply)
-        id: plan_pre
+        id: plan_pre # What is this?
         run: |
           cd ./terraform-provider-jamfpro/testing
           chmod +x ./diff_cascade_check.sh
