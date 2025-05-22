@@ -77,7 +77,7 @@ print(f"DEBUG: TEST_BLOCK template defined as: \n{TEST_BLOCK}")
 
 def generate_targetted_test_files(resources):
     print(f"DEBUG: generate_targetted_test_files called with resources: {resources}")
-    root_dir = "testing/tests/"
+    root_dir = "terraform-provider-jamfpro/testing/tests/"
     print(f"DEBUG: Root directory for tests set to: {root_dir}")
     
     print(f"DEBUG: Ensuring root directory '{root_dir}' exists...")
@@ -97,12 +97,12 @@ def generate_targetted_test_files(resources):
         os.makedirs(resource_dir, exist_ok=True) # Ensure per-resource directory exists
         print(f"DEBUG: Resource directory '{resource_dir}' ensured.")
 
-        payload_dir_rel = f"terraform-provider-jamfpro/testing/payloads/{r}"
-        print(f"DEBUG: Relative payload directory for resource '{r}': {payload_dir_rel}")
+        payload_dir_for_hcl = f"../../payloads/{r}"
+        print(f"DEBUG: Payload directory for HCL source for resource '{r}': {payload_dir_for_hcl}")
 
         test_block_content = TEST_BLOCK.format(
             resource_type=r,
-            payload_dir=payload_dir_rel # Assuming payloads are structured this way
+            payload_dir=payload_dir_for_hcl
         )
         print(f"DEBUG: Generated test block content for resource '{r}':\\n{test_block_content}")
 
