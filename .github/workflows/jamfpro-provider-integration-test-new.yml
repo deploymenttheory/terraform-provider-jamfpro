@@ -152,7 +152,7 @@ jobs:
         id: plan_pre # What is this?
         if: env.TARGETS != 'compileonly'
         run: |
-          cd ./terraform-provider-jamfpro/testing
+          cd ./terraform-provider-jamfpro/testing/scripts/
           chmod +x ./diff_cascade_check.sh
           ./diff_cascade_check.sh
           
