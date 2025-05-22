@@ -105,7 +105,7 @@ jobs:
           python3 ${{ steps.set-targets-outputs.targets }}
 
       - name: debug
-        run: ls
+        run: ls terraform-provider-jamfpro/
 
       - name: Build TFVARS File
         if: env.TARGETS != 'compileonly'
