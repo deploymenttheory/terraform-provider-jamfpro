@@ -124,7 +124,7 @@ def get_all_available_test_files():
     print(f"DEBUG: Payloads directory set to: {payloads_dir}")
     available_resources = []
     print(f"DEBUG: Initialized available_resources: {available_resources}")
-
+    print(os.listdir())
     print(f"DEBUG: Checking if payload directory '{payloads_dir}' exists and is a directory...")
     if not os.path.isdir(payloads_dir):
         print(f"DEBUG: Payload directory '{payloads_dir}' not found or not a directory.")
