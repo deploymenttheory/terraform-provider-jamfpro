@@ -102,7 +102,8 @@ jobs:
         id: generate-test-dir
         if: env.TARGETS != 'compileonly'
         run: |
-          python3 ${{ steps.set-targets-outputs.targets }}
+          echo "Resolved targets for script: ${{ steps.set-targets.outputs.targets }}"
+          python3 terraform-provider-jamfpro/scripts/generate_test_directory.py "${{ steps.set-targets.outputs.targets }}"
 
       - name: debug
         run: ls terraform-provider-jamfpro/testing/
