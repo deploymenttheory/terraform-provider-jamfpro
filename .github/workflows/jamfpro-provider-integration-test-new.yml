@@ -61,10 +61,11 @@ jobs:
           chmod +x ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/terraform-provider-jamfpro
           cd testing
           terraform init
+          
 
 
       - name: Generate Test Targets
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && env.TARGETS != 'compileonly'
         run: |
           cd ../
           python3 scripts/get_targets_to_file.py \
@@ -76,6 +77,7 @@ jobs:
         
       - name: Set Test Targets
         id: set-targets
+        if: env.TARGETS != 'compileonly'
         run: |
           if [ -f "target_resources.txt" ]; then
             targets=$(cat target_resources.txt)
@@ -89,6 +91,7 @@ jobs:
 
       - name: Generate UUID
         id: generate-uuid
+        if: env.TARGETS != 'compileonly'
         run: |
           generated_uuid=$(uuidgen)
           echo "uuid=$generated_uuid" >> $GITHUB_OUTPUT
@@ -97,11 +100,15 @@ jobs:
 
       - name: Populate Testing Directory
         id: generate-test-dir
+        if: env.TARGETS != 'compileonly'
         run: |
           python3 ${{ steps.set-targets-outputs.targets }}
 
+      - name: debug
+        run: ls
 
       - name: Build TFVARS File
+        if: env.TARGETS != 'compileonly'
         run: |
           cd terraform-provider-jamfpro/testing/tests
           cat <<EOF > terraform.tfvars
@@ -132,6 +139,7 @@ jobs:
       #     terraform test
 
       - name: Cleanup
+        if: env.TARGETS != 'compileonly'
         run: |
           # Waits 5 seconds to allow for deletes to properly apply after test.
           sleep 5
@@ -141,6 +149,7 @@ jobs:
 
       - name: Diff cascade - Terraform Plan (Pre-Apply)
         id: plan_pre # What is this?
+        if: env.TARGETS != 'compileonly'
         run: |
           cd ./terraform-provider-jamfpro/testing
           chmod +x ./diff_cascade_check.sh
