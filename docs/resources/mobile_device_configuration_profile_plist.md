@@ -151,16 +151,16 @@ Set to false when importing profiles from external sources that may not strictly
 
 Optional:
 
-- `all_jss_users` (Boolean) If true, the profile is applied to all JSS users.
-- `all_mobile_devices` (Boolean) If true, the profile is applied to all mobile devices.
-- `building_ids` (Set of Number) A list of building IDs associated with the profile.
-- `department_ids` (Set of Number) A list of department IDs associated with the profile.
-- `exclusions` (Block List, Max: 1) The scope exclusions from the mobile device configuration profile. (see [below for nested schema](#nestedblock--scope--exclusions))
-- `jss_user_group_ids` (Set of Number) A list of JSS user group IDs associated with the profile.
-- `jss_user_ids` (Set of Number) A list of JSS user IDs associated with the profile.
-- `limitations` (Block List, Max: 1) The scope limitations from the mobile device configuration profile. (see [below for nested schema](#nestedblock--scope--limitations))
-- `mobile_device_group_ids` (Set of Number) A list of mobile device group IDs associated with the profile.
-- `mobile_device_ids` (Set of Number) A list of mobile device IDs associated with the profile.
+- `all_jss_users` (Boolean) If true, the resource is applied to all JSS users.
+- `all_mobile_devices` (Boolean) If true, the resource is applied to all mobile devices.
+- `building_ids` (Set of Number) A list of building IDs associated with the resource.
+- `department_ids` (Set of Number) A list of department IDs associated with the resource.
+- `exclusions` (Block List, Max: 1) The scope exclusions from the mobile device configuration resource. (see [below for nested schema](#nestedblock--scope--exclusions))
+- `jss_user_group_ids` (Set of Number) A list of JSS user group IDs associated with the resource.
+- `jss_user_ids` (Set of Number) A list of JSS user IDs associated with the resource.
+- `limitations` (Block List, Max: 1) The scope limitations from the mobile device resource. (see [below for nested schema](#nestedblock--scope--limitations))
+- `mobile_device_group_ids` (Set of Number) A list of mobile device group IDs associated with the resource.
+- `mobile_device_ids` (Set of Number) A list of mobile device IDs associated with the resource.
 
 <a id="nestedblock--scope--exclusions"></a>
 ### Nested Schema for `scope.exclusions`
