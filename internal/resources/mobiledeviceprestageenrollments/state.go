@@ -55,6 +55,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDevicePrest
 		"minimum_os_specific_version_ios":              resp.MinimumOsSpecificVersionIos,
 		"prestage_minimum_os_target_version_type_ipad": resp.PrestageMinimumOsTargetVersionTypeIpad,
 		"minimum_os_specific_version_ipad":             resp.MinimumOsSpecificVersionIpad,
+		"rts_enabled":                                  resp.RTSEnabled,
 		"rts_config_profile_id":                        resp.RTSConfigProfileId,
 	}
 
@@ -172,6 +173,7 @@ func skipSetupItems(skipSetupItems jamfpro.MobileDevicePrestageSubsetSkipSetupIt
 		"onboarding":              skipSetupItems.OnBoarding,
 		"tos":                     skipSetupItems.TOS,
 		"welcome":                 skipSetupItems.Welcome,
+		"safety_and_handling":     skipSetupItems.SafetyAndHandling,
 		"tap_to_setup":            skipSetupItems.TapToSetup,
 	}
 }

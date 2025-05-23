@@ -46,6 +46,9 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceWebhook) diag.Dia
 	if err := d.Set("enable_display_fields_for_group", resp.EnableDisplayFieldsForGroup); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+	if err := d.Set("header", resp.Header); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 	if err := d.Set("smart_group_id", resp.SmartGroupID); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
