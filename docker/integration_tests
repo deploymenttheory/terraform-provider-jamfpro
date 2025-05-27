@@ -9,9 +9,7 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-
-COPY ./testing/requirements.txt .
-
+# Install Go and other dependencies first
 RUN set -eux; \
     apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -27,15 +25,17 @@ RUN set -eux; \
     unzip -q terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin && \
     rm terraform_${TERRAFORM_VERSION}_linux_amd64.zip && \
     \
-    # Python reqs
-    pip install --no-cache-dir -r requirements.txt && \
-    \
-    # Clean up
+    # Clean up apt caches for this layer
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+# Copy and download Go modules to leverage Docker layer caching
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod go mod download
 
+COPY ./testing/requirements.txt .
 
-COPY go.sum .
-COPY go.mod .
-RUN go mod download
+# Install Python requirements
+RUN pip install --no-cache-dir -r requirements.txt
+
+RUN ls -la /go/pkg/mod
