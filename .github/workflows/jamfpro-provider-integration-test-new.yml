@@ -143,10 +143,6 @@ jobs:
       - name: Run Tests
         run: |
           cd terraform-provider-jamfpro/testing
-          ls
-          cd tests
-          ls
-          cd ..
           terraform fmt
           terraform init
           terraform test
