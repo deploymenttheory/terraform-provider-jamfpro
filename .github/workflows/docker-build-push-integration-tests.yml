@@ -46,5 +46,3 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}/provider_testing:latest
             ghcr.io/${{ github.repository }}/provider_testing:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
