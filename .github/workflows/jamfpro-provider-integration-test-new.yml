@@ -68,15 +68,11 @@ jobs:
           go build
           mv ./terraform-provider-jamfpro ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/
           chmod +x ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/terraform-provider-jamfpro
-          cd testing
-          terraform init
-          
 
 
       - name: Generate Test Targets
         if: github.event_name == 'pull_request' && env.TARGETS != 'compileonly'
         run: |
-          cd ../
           python3 scripts/get_targets_to_file.py \
           --repo-owner ${{ github.repository_owner }} \
           --repo-name ${{ github.event.repository.name }} \
@@ -111,11 +107,8 @@ jobs:
         id: generate-test-dir
         if: env.TARGETS != 'compileonly'
         run: |
-          echo "Resolved targets for script: ${{ steps.set-targets.outputs.targets }}"
           python3 terraform-provider-jamfpro/scripts/generate_test_directory.py "${{ steps.set-targets.outputs.targets }}"
 
-      - name: debug
-        run: ls terraform-provider-jamfpro/testing/
 
       - name: Build TFVARS File
         if: env.TARGETS != 'compileonly'
@@ -143,9 +136,7 @@ jobs:
       - name: Run Tests
         run: |
           cd terraform-provider-jamfpro/testing
-          terraform fmt
-          terraform init
-          terraform test
+          ./run.sh "${{ steps.set-targets.outputs.targets }}" "${{ steps.generate-uuid.outputs.uuid }}"
 
       - name: Cleanup
         if: env.TARGETS != 'compileonly'
