@@ -45,13 +45,13 @@ jobs:
     
     steps:
 
-      - name: Cache Go modules
-        uses: actions/cache@v4
-        with:
-          path: /go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
+      # - name: Cache Go modules
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: /go/pkg/mod
+      #     key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-go-
 
       - name: Checkout Terraform Repository
         uses: actions/checkout@v4
