@@ -37,4 +37,4 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*
 
 COPY go.* .
-RUN go mod download
+RUN go mod download -x
