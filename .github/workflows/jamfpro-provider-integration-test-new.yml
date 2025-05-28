@@ -45,14 +45,7 @@ jobs:
     
     steps:
 
-      - name: debug
-        run: |
-          echo "Current working directory:"
-          pwd
-          echo "Contents of current directory:"
-          ls -1
-          echo "Contents with details:"
-          ls -la
+
 
       # - name: Cache Go modules
       #   uses: actions/cache@v4
@@ -68,6 +61,15 @@ jobs:
           repository: deploymenttheory/terraform-provider-jamfpro
           ref: ${{ env.REF_TO_CHECKOUT }}
           path: terraform-provider-jamfpro
+
+      - name: debug
+        run: |
+          echo "Current working directory:"
+          pwd
+          echo "Contents of current directory:"
+          ls -1
+          echo "Contents with details:"
+          ls -la
 
 
       - name: Compile Provider
