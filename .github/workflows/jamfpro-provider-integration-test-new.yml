@@ -46,7 +46,13 @@ jobs:
     steps:
 
       - name: debug
-        run: ls -1
+        run: |
+          echo "Current working directory:"
+          pwd
+          echo "Contents of current directory:"
+          ls -1
+          echo "Contents with details:"
+          ls -la
 
       # - name: Cache Go modules
       #   uses: actions/cache@v4
