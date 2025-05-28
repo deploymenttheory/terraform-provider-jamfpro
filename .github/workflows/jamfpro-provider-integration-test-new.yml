@@ -45,6 +45,9 @@ jobs:
     
     steps:
 
+      - name: debug
+        run: ls
+
       # - name: Cache Go modules
       #   uses: actions/cache@v4
       #   with:
