@@ -108,6 +108,7 @@ jobs:
       - name: Populate Testing Directory
         id: generate-test-dir
         if: env.TARGETS != 'compileonly'
+        working-directory: ./terraform-provider-jamfpro
         run: |
           pwd
           ls
