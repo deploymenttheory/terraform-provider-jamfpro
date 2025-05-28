@@ -105,6 +105,8 @@ jobs:
         id: generate-test-dir
         if: env.TARGETS != 'compileonly'
         run: |
+          pwd
+          ls
           python3 scripts/generate_test_directory.py "${{ steps.set-targets.outputs.targets }}"
 
       # Let's go into testing here
