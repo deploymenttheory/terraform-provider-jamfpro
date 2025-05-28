@@ -45,3 +45,10 @@ run "apply_static_computer_groups" {
     source = "./testing/static_computer_groups"
   }
 }
+
+run "apply_accounts"{
+  command = apply
+  module {
+    source = "./testing/accounts"
+  }
+}

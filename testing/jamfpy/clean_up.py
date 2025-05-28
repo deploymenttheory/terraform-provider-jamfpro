@@ -56,31 +56,46 @@ def parse_error_message(html_content):
     else:
         logger.warning("Issue parsing error response.")
 
-
-def testing_ids_from_resources(resources):
-    resource_ids = []
+def calculate_testing_id_prefix():
     if TESTING_ID:
-        prefix = f"tf-testing-{TESTING_ID}"
+        return f"tf-testing-{TESTING_ID}"
     else:
-        prefix = "tf-testing"
+        return "tf-testing"
+    
+
+
+def common_testing_ids_from_resources(resources):
+    resource_ids = []
+    prefix = calculate_testing_id_prefix()
 
     for resource in resources:
+        # Debug
+        # print("Here are the resources\n")
+        # print(type(resources))
+        # print(type(resource))
+
         name = str(resource["name"])
         if name.startswith(prefix):
             resource_id = resource["id"]
             resource_ids.append(resource_id)
     return resource_ids
 
+def common_get_resource_list(resource_instance, resource_type_string):
+    resp = resource_instance.get_all()
+    resp.raise_for_status()
+    # print(resp.json())
+    resources = resp.json()[resource_type_string]
+
+    return resources
+
 
 def purge_classic_test_resources(resource_instance, resource_type_string):
     # Escape characters for underlining
     logger.info(f"\033[4mPurging {resource_type_string}...\033[0m")
+    
+    resources = common_get_resource_list(resource_instance, resource_type_string)
+    resource_ids = common_testing_ids_from_resources(resources)
 
-
-    resp = resource_instance.get_all()
-    resp.raise_for_status()
-    resources = resp.json()[resource_type_string]
-    resource_ids = testing_ids_from_resources(resources)
     for id in resource_ids:
         del_resp = resource_instance.delete_by_id(id)
         if del_resp.ok:
@@ -101,4 +116,5 @@ purge_classic_test_resources(instance.classic.computer_groups, "computer_groups"
 purge_classic_test_resources(instance.classic.sites, "sites")
 purge_classic_test_resources(instance.classic.computers, "computers")
 purge_classic_test_resources(instance.classic.departments, "departments")
-
+purge_classic_test_resources(instance.classic.accounts.users, "users")
+purge_classic_test_resources(instance.classic.accounts.groups, "groups")

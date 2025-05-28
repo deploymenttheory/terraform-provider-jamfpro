@@ -1,3 +1,5 @@
 python-dotenv
-jamfpy @ git+https://github.com/thejoeker12/jamfpy-python-sdk-jamfpro@v2.1.0-rc
+# jamfpy @ git+https://github.com/thejoeker12/jamfpy-python-sdk-jamfpro@v2.2.0-rc
+jamfpy @ git+https://github.com/thejoeker12/jamfpy-python-sdk-jamfpro@account-child-branch-change
+
 bs4
