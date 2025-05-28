@@ -44,17 +44,6 @@ jobs:
       REF_TO_CHECKOUT: ${{ github.event_name == 'pull_request' && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}
     
     steps:
-
-
-
-      # - name: Cache Go modules
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: /go/pkg/mod
-      #     key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-go-
-
       - name: Checkout Terraform Repository
         uses: actions/checkout@v4
         with:
@@ -62,25 +51,20 @@ jobs:
           ref: ${{ env.REF_TO_CHECKOUT }}
           path: terraform-provider-jamfpro
 
-      - name: debug
-        run: |
-          echo "Current working directory:"
-          pwd
-          echo "Contents of current directory:"
-          ls -1
-          echo "Contents with details:"
-          ls -la
-
-
+        # From here, we're outside the provider
       - name: Compile Provider
+
+        # Then we go into terraform/provider/jamfpro here
         run: |
           cd ./terraform-provider-jamfpro
+
           mkdir -p ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/
           go build
           mv ./terraform-provider-jamfpro ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/
           chmod +x ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/terraform-provider-jamfpro
 
-
+        
+      # Running from provider root
       - name: Generate Test Targets
         if: github.event_name == 'pull_request' && env.TARGETS != 'compileonly'
         run: |
@@ -91,6 +75,7 @@ jobs:
           --github-token ${{ github.token }}
 
         
+      # Relies on this file being at root of provider - does this matter?
       - name: Set Test Targets
         id: set-targets
         if: env.TARGETS != 'compileonly'
@@ -104,7 +89,8 @@ jobs:
           fi
           echo "targets=$targets" >> $GITHUB_OUTPUT
 
-
+        
+      # Non-reliant on currnet dir
       - name: Generate UUID
         id: generate-uuid
         if: env.TARGETS != 'compileonly'
@@ -114,17 +100,22 @@ jobs:
           echo "Run ID: $generated_uuid"
 
 
+      # Running from root of provider again
       - name: Populate Testing Directory
         id: generate-test-dir
         if: env.TARGETS != 'compileonly'
         run: |
           python3 scripts/generate_test_directory.py "${{ steps.set-targets.outputs.targets }}"
 
+      # Let's go into testing here
+      - name: Enter Test Dir
+        run: cd testing/
 
+      # In Testing
       - name: Build TFVARS File
         if: env.TARGETS != 'compileonly'
         run: |
-          cat <<EOF > terraform-provider-jamfpro/testing/terraform.tfvars
+          cat <<EOF > terraform.tfvars
           jamfpro_instance_fqdn="$CLIENT_FQDN"
           jamfpro_auth_method="oauth2"
           jamfpro_client_id="$CLIENT_ID"
@@ -134,33 +125,27 @@ jobs:
           testing_id="${{ steps.generate-uuid.outputs.uuid }}"
           EOF
 
-
-        # This needs to go in an "Executor" type script
-      # - name: Scaffolding
-      #   run: |
-      #     echo "PLEASE NOTE at 23:59 a wipe job is performed on all testing objects. Tests run at this time will most likely fail."
-      #     cd ./terraform-provider-jamfpro/testing/setup
-      #     ./scaffolding.sh -r ${{ steps.generate-uuid.outputs.uuid }}
-
-      # For testing, saves a lot of time. Only care if it compiles right now.
+      
+      # In Testing
       - name: Run Tests
         run: |
-          chmod +x terraform-provider-jamfpro/testing/scripts/run.sh
-          terraform-provider-jamfpro/testing/scripts/run.sh "${{ steps.set-targets.outputs.targets }}" "${{ steps.generate-uuid.outputs.uuid }}"
+          chmod +x scripts/run.sh
+          scripts/run.sh "${{ steps.set-targets.outputs.targets }}" "${{ steps.generate-uuid.outputs.uuid }}"
 
+      # Still in testing
       - name: Cleanup
         if: env.TARGETS != 'compileonly'
         run: |
           # Waits 5 seconds to allow for deletes to properly apply after test.
           sleep 5
-          chmod +x terraform-provider-jamfpro/testing/scripts/cleanup.sh
-          terraform-provider-jamfpro/testing/scripts/cleanup.sh -r ${{ steps.generate-uuid.outputs.uuid }}
+          chmod +x scripts/cleanup.sh
+          scripts/cleanup.sh -r ${{ steps.generate-uuid.outputs.uuid }}
 
-
+      # Still in testing
       - name: Diff cascade - Terraform Plan (Pre-Apply)
         id: plan_pre # What is this?
         if: env.TARGETS != 'compileonly'
         run: |
-          chmod +x terraform-provider-jamfpro/testing/scripts/diff_cascade_check.sh
-          terraform-provider-jamfpro/testing/scripts/diff_cascade_check.sh
+          chmod +x scripts/diff_cascade_check.sh
+          scripts/diff_cascade_check.sh
           
