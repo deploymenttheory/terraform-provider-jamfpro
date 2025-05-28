@@ -75,7 +75,7 @@ run "apply_{resource_type}" {{
 """
 
 def generate_targetted_test_files(resources):
-    root_dir = "terraform-provider-jamfpro/testing/tests/"
+    root_dir = "testing/tests/"
     os.makedirs(root_dir, exist_ok=True)
 
     if not resources:
