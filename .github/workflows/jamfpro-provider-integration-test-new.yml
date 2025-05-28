@@ -111,7 +111,7 @@ jobs:
         run: |
           pwd
           ls
-          cd terraform-provider-jamfrpo
+          cd terraform-provider-jamfpro
           pwd
           ls
           cd testing
