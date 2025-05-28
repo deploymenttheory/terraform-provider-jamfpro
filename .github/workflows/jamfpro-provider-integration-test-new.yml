@@ -111,6 +111,12 @@ jobs:
         run: |
           pwd
           ls
+          cd terraform-provider-jamfrpo
+          pwd
+          ls
+          cd testing
+          pwd
+          ls
           python3 scripts/generate_test_directory.py "${{ steps.set-targets.outputs.targets }}"
 
       # Let's go into testing here
