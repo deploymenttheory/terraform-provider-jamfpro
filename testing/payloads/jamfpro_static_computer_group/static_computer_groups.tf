@@ -3,7 +3,7 @@
 // ========================================================================== //
 
 data "local_file" "site_and_computer_ids" {
-  filename = "${path.module}/../data_sources/site_and_computer_ids.json"
+  filename = "testing/data_sources/site_and_computer_ids.json"
 }
 
 resource "jamfpro_static_computer_group" "name" {
