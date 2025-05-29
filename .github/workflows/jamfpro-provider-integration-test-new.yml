@@ -130,22 +130,14 @@ jobs:
           scripts/run.sh "${{ steps.set-targets.outputs.targets }}" "${{ steps.generate-uuid.outputs.uuid }}"
 
 
-      # Refactor this
+      - name: 5s Delay to Allow Jamf API to Settle
+        run: sleep 5
+
       - name: Cleanup
         if: env.TARGETS != 'compileonly'
         id: cleanup
         working-directory: ./testing
         run: |
-          # Waits 5 seconds to allow for deletes to properly apply after test.
-          sleep 5
           chmod +x scripts/cleanup.sh
-          scripts/cleanup.sh -r ${{ steps.generate-uuid.outputs.uuid }}
-
-
-      - name: Diff cascade - Terraform Plan (Pre-Apply)
-        id: plan_pre # What is this?
-        if: env.TARGETS != 'compileonly'
-        working-directory: ./testing
-        run: |
-          chmod +x scripts/diff_cascade_check.sh
-          scripts/diff_cascade_check.sh
+          if [ -d "./data_sources" ]; then rm -rf ./data_sources; fi
+          scripts/cleanup.py -r ${{ steps.generate-uuid.outputs.uuid }}
