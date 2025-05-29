@@ -51,7 +51,6 @@ jobs:
         with:
           repository: deploymenttheory/terraform-provider-jamfpro
           ref: ${{ env.REF_TO_CHECKOUT }}
-          fetch-depth: 0
 
         # From here, we're outside the provider
       - name: Compile Provider
@@ -62,7 +61,7 @@ jobs:
           pwd
 
           mkdir -p ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/
-          go build
+          go build -buildvcs=false
           mv ./terraform-provider-jamfpro ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/
           chmod +x ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/terraform-provider-jamfpro
 
