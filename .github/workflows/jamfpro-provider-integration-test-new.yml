@@ -44,7 +44,7 @@ jobs:
       CLIENT_SEC: ${{ secrets.TESTING_CLIENT_SECRET }}
       CLIENT_FQDN: ${{ secrets.TESTING_JAMFPRO_INSTANCE_FQDN }}
       REF_TO_CHECKOUT: ${{ github.event_name == 'pull_request' && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}
-    
+
     steps:
       - name: Checkout Terraform Repository
         uses: actions/checkout@v4
@@ -52,40 +52,33 @@ jobs:
           repository: deploymenttheory/terraform-provider-jamfpro
           ref: ${{ env.REF_TO_CHECKOUT }}
 
-        # From here, we're outside the provider
+
       - name: Compile Provider
         working-directory: .
-
-        # Then we go into terraform/provider/jamfpro here
         run: |
-          pwd
-
           mkdir -p ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/
           go build -buildvcs=false
           mv ./terraform-provider-jamfpro ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/
           chmod +x ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/terraform-provider-jamfpro
 
         
-      # Running from provider root
       - name: Generate Test Targets
+        id: generate-test-targets
         if: github.event_name == 'pull_request' && env.TARGETS != 'compileonly'
         working-directory: .
         run: |
-          pwd
-          python3 scripts/get_targets_to_file.py \
+          python3 testing/scripts/get_targets_to_file.py \
           --repo-owner ${{ github.repository_owner }} \
           --repo-name ${{ github.event.repository.name }} \
           --pr-number ${{ github.event.pull_request.number }} \
           --github-token ${{ github.token }}
 
         
-      # Relies on this file being at root of provider - does this matter?
       - name: Set Test Targets
         id: set-targets
         if: env.TARGETS != 'compileonly'
         working-directory: .
         run: |
-          pwd
           if [ -f "target_resources.txt" ]; then
             targets=$(cat target_resources.txt)
           elif [ "$TARGETS" != "all" ] && [ ! -z "$TARGETS" ]; then
@@ -95,31 +88,27 @@ jobs:
           fi
           echo "targets=$targets" >> $GITHUB_OUTPUT
 
-        
-      # Non-reliant on currnet dir
+
       - name: Generate UUID
         id: generate-uuid
         if: env.TARGETS != 'compileonly'
         run: |
-          pwd
           generated_uuid=$(uuidgen)
           echo "uuid=$generated_uuid" >> $GITHUB_OUTPUT
           echo "Run ID: $generated_uuid"
 
 
-      # Running from root of provider again
       - name: Populate Testing Directory
         id: generate-test-dir
         if: env.TARGETS != 'compileonly'
         working-directory: .
         run: |
-          pwd
-          ls
-          python3 scripts/generate_test_directory.py "${{ steps.set-targets.outputs.targets }}"
+          python3 testing/scripts/generate_test_directory.py "${{ steps.set-targets.outputs.targets }}"
 
-      # In Testing
+
       - name: Build TFVARS File
         if: env.TARGETS != 'compileonly'
+        id: build-tfvars
         working-directory: ./testing
         run: |
           cat <<EOF > terraform.tfvars
@@ -133,32 +122,30 @@ jobs:
           EOF
 
       
-      # In Testing
       - name: Run Tests
         working-directory: ./testing
+        id: run-tests
         run: |
-          pwd
           chmod +x scripts/run.sh
           scripts/run.sh "${{ steps.set-targets.outputs.targets }}" "${{ steps.generate-uuid.outputs.uuid }}"
 
-      # Still in testing
+
+      # Refactor this
       - name: Cleanup
         if: env.TARGETS != 'compileonly'
+        id: cleanup
         working-directory: ./testing
         run: |
-          pwd
           # Waits 5 seconds to allow for deletes to properly apply after test.
           sleep 5
           chmod +x scripts/cleanup.sh
           scripts/cleanup.sh -r ${{ steps.generate-uuid.outputs.uuid }}
 
-      # Still in testing
+
       - name: Diff cascade - Terraform Plan (Pre-Apply)
         id: plan_pre # What is this?
         if: env.TARGETS != 'compileonly'
         working-directory: ./testing
         run: |
-          pwd
           chmod +x scripts/diff_cascade_check.sh
           scripts/diff_cascade_check.sh
-          
