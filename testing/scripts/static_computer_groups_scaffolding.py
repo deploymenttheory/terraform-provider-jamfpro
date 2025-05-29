@@ -7,6 +7,7 @@ from optparse import OptionParser
 from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
+print("SCAFFOLDING")
 logger = jamfpy.get_logger(name="site_computer_setup", level=20)
 
 parser = OptionParser()
