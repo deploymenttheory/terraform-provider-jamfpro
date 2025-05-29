@@ -49,7 +49,7 @@ jobs:
         with:
           repository: deploymenttheory/terraform-provider-jamfpro
           ref: ${{ env.REF_TO_CHECKOUT }}
-          path: terraform-provider-jamfpro
+          # path: terraform-provider-jamfpro
 
         # From here, we're outside the provider
       - name: Compile Provider
