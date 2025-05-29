@@ -58,7 +58,6 @@ jobs:
         # Then we go into terraform/provider/jamfpro here
         run: |
           pwd
-          cd ./terraform-provider-jamfpro
 
           mkdir -p ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/
           go build
@@ -115,20 +114,7 @@ jobs:
         run: |
           pwd
           ls
-          cd terraform-provider-jamfpro
-          pwd
-          ls
-          cd testing
-          pwd
-          ls
           python3 scripts/generate_test_directory.py "${{ steps.set-targets.outputs.targets }}"
-
-      # Let's go into testing here
-      - name: Enter Test Dir
-        working-directory: terraform-provider-jamfpro/testing/
-        run: |
-          pwd
-          cd testing/
 
       # In Testing
       - name: Build TFVARS File
