@@ -53,7 +53,7 @@ jobs:
 
         # From here, we're outside the provider
       - name: Compile Provider
-        working-directory: terraform-provider-jamfpro/
+        working-directory: ./terraform-provider-jamfpro
 
         # Then we go into terraform/provider/jamfpro here
         run: |
@@ -68,7 +68,7 @@ jobs:
       # Running from provider root
       - name: Generate Test Targets
         if: github.event_name == 'pull_request' && env.TARGETS != 'compileonly'
-        working-directory: terraform-provider-jamfpro/
+        working-directory: ./terraform-provider-jamfpro
         run: |
           pwd
           python3 scripts/get_targets_to_file.py \
@@ -82,7 +82,7 @@ jobs:
       - name: Set Test Targets
         id: set-targets
         if: env.TARGETS != 'compileonly'
-        working-directory: terraform-provider-jamfpro/
+        working-directory: ./terraform-provider-jamfpro
         run: |
           pwd
           if [ -f "target_resources.txt" ]; then
@@ -119,7 +119,7 @@ jobs:
       # In Testing
       - name: Build TFVARS File
         if: env.TARGETS != 'compileonly'
-        working-directory: terraform-provider-jamfpro/testing/
+        working-directory: ./terraform-provider-jamfpro/testing
         run: |
           cat <<EOF > terraform.tfvars
           jamfpro_instance_fqdn="$CLIENT_FQDN"
@@ -134,7 +134,7 @@ jobs:
       
       # In Testing
       - name: Run Tests
-        working-directory: terraform-provider-jamfpro/testing
+        working-directory: ./terraform-provider-jamfpro/testing
         run: |
           pwd
           chmod +x scripts/run.sh
@@ -143,7 +143,7 @@ jobs:
       # Still in testing
       - name: Cleanup
         if: env.TARGETS != 'compileonly'
-        working-directory: terraform-provider-jamfpro/testing
+        working-directory: ./terraform-provider-jamfpro/testing
         run: |
           pwd
           # Waits 5 seconds to allow for deletes to properly apply after test.
@@ -155,7 +155,7 @@ jobs:
       - name: Diff cascade - Terraform Plan (Pre-Apply)
         id: plan_pre # What is this?
         if: env.TARGETS != 'compileonly'
-        working-directory: terraform-provider-jamfpro/testing
+        working-directory: ./terraform-provider-jamfpro/testing
         run: |
           pwd
           chmod +x scripts/diff_cascade_check.sh
