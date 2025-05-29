@@ -161,7 +161,7 @@ def write_ids_to_data_source(site_id, computer_ids):
         "computers": computer_ids,
             "site": site_id
         }
-    full_path = "../data_sources/site_and_computer_ids.json"
+    full_path = "testing/data_sources/site_and_computer_ids.json"
     file = Path(full_path)
     # If the file path doesnt exist, the next line facilitates its creation
     file.parent.mkdir(parents=True, exist_ok=True)
