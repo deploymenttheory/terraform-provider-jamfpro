@@ -140,4 +140,4 @@ jobs:
         run: |
           chmod +x scripts/cleanup.sh
           if [ -d "./data_sources" ]; then rm -rf ./data_sources; fi
-          scripts/cleanup.py -r ${{ steps.generate-uuid.outputs.uuid }}
+          python3 scripts/cleanup.py -r ${{ steps.generate-uuid.outputs.uuid }}
