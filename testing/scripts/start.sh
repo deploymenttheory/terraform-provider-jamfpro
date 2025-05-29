@@ -5,8 +5,7 @@ UUID="$2"
 
 if [[ "$TARGETS" == *"jamfpro_static_computer_group"* ]]; then
     echo running scaffolding
-    chmod +x ./scripts/static_computer_groups_scaffolding.py
-    ./scripts/static_computer_groups_scaffolding.py -r "$UUID"
+    python3 ./scripts/static_computer_groups_scaffolding.py -r "$UUID"
 fi
 
 terraform init
