@@ -51,6 +51,7 @@ jobs:
         with:
           repository: deploymenttheory/terraform-provider-jamfpro
           ref: ${{ env.REF_TO_CHECKOUT }}
+          fetch-depth: 0
 
         # From here, we're outside the provider
       - name: Compile Provider
