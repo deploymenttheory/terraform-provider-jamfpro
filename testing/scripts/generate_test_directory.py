@@ -98,7 +98,7 @@ def generate_targetted_test_files(resources):
 
 
 def get_all_available_test_files():
-    payloads_dir = "terraform-provider-jamfpro/testing/payloads/"
+    payloads_dir = "testing/payloads/"
     available_resources = []
 
     if not os.path.isdir(payloads_dir):
