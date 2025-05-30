@@ -1,60 +1,60 @@
 resource "jamfpro_cloud_ldap" "example" {
-  cloud_idp_common {
-    provider_name = "GOOGLE"
-    display_name  = "Google LDAP"
-  }
+  # Cloud IDP Common Settings
+  provider_name = "GOOGLE"
+  display_name  = "Google LDAP"
 
-  server {
-    enabled         = true
-    use_wildcards   = true
-    connection_type = "LDAPS"
-    server_url      = "ldap.google.com"
-    domain_name     = "jamf.com"
-    port            = 636
+  # Server Configuration
+  server_enabled = true
+  server_url     = "ldap.google.com"
+  domain_name    = "jamf.com"
+  port           = 636
 
-    connection_timeout = 60
-    search_timeout     = 60
+  # Connection Settings
+  connection_type    = "LDAPS"
+  connection_timeout = 60
+  search_timeout     = 60
 
-    membership_calculation_optimization_enabled = true
+  # Keystore Configuration
+  keystore_password   = "supersecretpassword"
+  keystore_file_bytes = filebase64("/path/to/keystore.p12")
+  keystore_file_name  = "keystore.p12"
 
-    keystore {
-      password   = "supersecretpassword"
-      file_bytes = filebase64("/path/to/keystore.p12")
-      file_name  = "keystore.p12"
-    }
-  }
+  # Advanced Server Settings
+  use_wildcards                               = true
+  membership_calculation_optimization_enabled = true
 
-  mappings {
-    user_mappings {
-      object_class_limitation = "ANY_OBJECT_CLASSES"
-      object_classes          = "inetOrgPerson"
-      search_base             = "ou=Users"
-      search_scope            = "ALL_SUBTREES"
-      additional_search_base  = ""
-      user_id                 = "mail"
-      username                = "uid"
-      real_name               = "displayName"
-      email_address           = "mail"
-      department              = "departmentNumber"
-      building                = ""
-      room                    = ""
-      phone                   = ""
-      position                = "title"
-      user_uuid               = "uid"
-    }
+  # User Mappings
+  user_mappings_object_class_limitation = "ANY_OBJECT_CLASSES"
+  user_mappings_object_classes          = "inetOrgPerson"
+  user_mappings_search_base             = "ou=Users"
+  user_mappings_search_scope            = "ALL_SUBTREES"
+  user_mappings_additional_search_base  = ""
 
-    group_mappings {
-      object_class_limitation = "ANY_OBJECT_CLASSES"
-      object_classes          = "groupOfNames"
-      search_base             = "ou=Groups"
-      search_scope            = "ALL_SUBTREES"
-      group_id                = "cn"
-      group_name              = "cn"
-      group_uuid              = "gidNumber"
-    }
+  # User Attribute Mappings
+  user_mappings_id            = "mail"
+  user_mappings_username      = "uid"
+  user_mappings_real_name     = "displayName"
+  user_mappings_email_address = "mail"
+  user_mappings_uuid          = "uid"
 
-    membership_mappings {
-      group_membership_mapping = "memberOf"
-    }
-  }
+  # Optional User Attributes
+  user_mappings_department = "departmentNumber"
+  user_mappings_position   = "title"
+  user_mappings_phone      = ""
+  user_mappings_building   = ""
+  user_mappings_room       = ""
+
+  # Group Mappings
+  group_mappings_object_class_limitation = "ANY_OBJECT_CLASSES"
+  group_mappings_object_classes          = "groupOfNames"
+  group_mappings_search_base             = "ou=Groups"
+  group_mappings_search_scope            = "ALL_SUBTREES"
+
+  # Group Attribute Mappings
+  group_mappings_id   = "cn"
+  group_mappings_name = "cn"
+  group_mappings_uuid = "gidNumber"
+
+  # Membership Mapping
+  group_membership_mapping = "memberOf"
 }
