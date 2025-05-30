@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.21.0...v0.21.1) (2025-05-30)
+
+
+### Bug Fixes
+
+* revampted integration tests, alpha release. ([#753](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/753)) ([a101b40](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/a101b40ada932b57e2eee8d04187739eca5122aa))
+
 ## [0.21.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.20.0...v0.21.0) (2025-05-15)
 
 
