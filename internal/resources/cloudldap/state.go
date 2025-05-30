@@ -6,120 +6,73 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// updateState updates the Terraform state with the provided ResourceCloudLdap object.
+// updateState updates the Terraform state with the latest Cloud LDAP settings information from the Jamf Pro API.
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceCloudLdap) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	cloudIdpCommon := []interface{}{
-		map[string]interface{}{
-			"provider_name": resp.CloudIdPCommon.ProviderName,
-			"display_name":  resp.CloudIdPCommon.DisplayName,
-		},
-	}
-	if err := d.Set("cloud_idp_common", cloudIdpCommon); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	settings := map[string]interface{}{
+		"provider_name":      resp.CloudIdPCommon.ProviderName,
+		"display_name":       resp.CloudIdPCommon.DisplayName,
+		"server_enabled":     resp.Server.Enabled,
+		"use_wildcards":      resp.Server.UseWildcards,
+		"connection_type":    resp.Server.ConnectionType,
+		"server_url":         resp.Server.ServerUrl,
+		"domain_name":        resp.Server.DomainName,
+		"port":               resp.Server.Port,
+		"connection_timeout": resp.Server.ConnectionTimeout,
+		"search_timeout":     resp.Server.SearchTimeout,
+		"membership_calculation_optimization_enabled": resp.Server.MembershipCalculationOptimizationEnabled,
+		"user_mappings_object_class_limitation":       resp.Mappings.UserMappings.ObjectClassLimitation,
+		"user_mappings_object_classes":                resp.Mappings.UserMappings.ObjectClasses,
+		"user_mappings_search_base":                   resp.Mappings.UserMappings.SearchBase,
+		"user_mappings_search_scope":                  resp.Mappings.UserMappings.SearchScope,
+		"user_mappings_additional_search_base":        resp.Mappings.UserMappings.AdditionalSearchBase,
+		"user_mappings_id":                            resp.Mappings.UserMappings.UserID,
+		"user_mappings_username":                      resp.Mappings.UserMappings.Username,
+		"user_mappings_real_name":                     resp.Mappings.UserMappings.RealName,
+		"user_mappings_email_address":                 resp.Mappings.UserMappings.EmailAddress,
+		"user_mappings_department":                    resp.Mappings.UserMappings.Department,
+		"user_mappings_building":                      resp.Mappings.UserMappings.Building,
+		"user_mappings_room":                          resp.Mappings.UserMappings.Room,
+		"user_mappings_phone":                         resp.Mappings.UserMappings.Phone,
+		"user_mappings_position":                      resp.Mappings.UserMappings.Position,
+		"user_mappings_uuid":                          resp.Mappings.UserMappings.UserUuid,
+		"group_mappings_object_class_limitation":      resp.Mappings.GroupMappings.ObjectClassLimitation,
+		"group_mappings_object_classes":               resp.Mappings.GroupMappings.ObjectClasses,
+		"group_mappings_search_base":                  resp.Mappings.GroupMappings.SearchBase,
+		"group_mappings_search_scope":                 resp.Mappings.GroupMappings.SearchScope,
+		"group_mappings_id":                           resp.Mappings.GroupMappings.GroupID,
+		"group_mappings_name":                         resp.Mappings.GroupMappings.GroupName,
+		"group_mappings_uuid":                         resp.Mappings.GroupMappings.GroupUuid,
+		"group_membership_mapping":                    resp.Mappings.MembershipMappings.GroupMembershipMapping,
 	}
 
-	server := setCloudLdapServer(d, resp.Server)
-	if err := d.Set("server", []interface{}{server}); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if resp.Mappings != nil {
-		mappings := setCloudLdapMappings(resp.Mappings)
-		if err := d.Set("mappings", []interface{}{mappings}); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+	if resp.Server.Keystore != nil {
+		computedKeystoreFields := map[string]interface{}{
+			"keystore_file_name":       resp.Server.Keystore.FileName,
+			"keystore_type":            resp.Server.Keystore.Type,
+			"keystore_expiration_date": resp.Server.Keystore.ExpirationDate,
+			"keystore_subject":         resp.Server.Keystore.Subject,
 		}
-	} else {
-		if err := d.Set("mappings", []interface{}{}); err != nil {
+
+		if password, ok := d.GetOk("keystore_password"); ok {
+			settings["keystore_password"] = password
+		}
+
+		if fileBytes, ok := d.GetOk("keystore_file_bytes"); ok {
+			settings["keystore_file_bytes"] = fileBytes
+		}
+
+		for k, v := range computedKeystoreFields {
+			settings[k] = v
+		}
+	}
+
+	for key, val := range settings {
+		if err := d.Set(key, val); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
 	return diags
-}
-
-// setCloudLdapServer flattens a CloudLdapServer object into a format suitable for Terraform state.
-func setCloudLdapServer(d *schema.ResourceData, server *jamfpro.CloudLdapServer) map[string]interface{} {
-	serverMap := map[string]interface{}{
-		"enabled":            server.Enabled,
-		"use_wildcards":      server.UseWildcards,
-		"connection_type":    server.ConnectionType,
-		"server_url":         server.ServerUrl,
-		"domain_name":        server.DomainName,
-		"port":               server.Port,
-		"connection_timeout": server.ConnectionTimeout,
-		"search_timeout":     server.SearchTimeout,
-		"membership_calculation_optimization_enabled": server.MembershipCalculationOptimizationEnabled,
-	}
-
-	if server.Keystore != nil {
-		keystoreMap := map[string]interface{}{
-			"file_name":       server.Keystore.FileName,
-			"type":            server.Keystore.Type,
-			"expiration_date": server.Keystore.ExpirationDate,
-			"subject":         server.Keystore.Subject,
-		}
-
-		if old, ok := d.GetOk("server.0.keystore.0"); ok {
-			oldKeystore := old.(map[string]interface{})
-			if password, ok := oldKeystore["password"]; ok {
-				keystoreMap["password"] = password
-			}
-			if fileBytes, ok := oldKeystore["file_bytes"]; ok {
-				keystoreMap["file_bytes"] = fileBytes
-			}
-		}
-
-		serverMap["keystore"] = []interface{}{keystoreMap}
-	}
-
-	return serverMap
-}
-
-// setCloudLdapMappings flattens a CloudLdapMappings object into a format suitable for Terraform state.
-func setCloudLdapMappings(mappings *jamfpro.CloudLdapMappings) map[string]interface{} {
-	userMappings := []interface{}{
-		map[string]interface{}{
-			"object_class_limitation": mappings.UserMappings.ObjectClassLimitation,
-			"object_classes":          mappings.UserMappings.ObjectClasses,
-			"search_base":             mappings.UserMappings.SearchBase,
-			"search_scope":            mappings.UserMappings.SearchScope,
-			"additional_search_base":  mappings.UserMappings.AdditionalSearchBase,
-			"user_id":                 mappings.UserMappings.UserID,
-			"username":                mappings.UserMappings.Username,
-			"real_name":               mappings.UserMappings.RealName,
-			"email_address":           mappings.UserMappings.EmailAddress,
-			"department":              mappings.UserMappings.Department,
-			"building":                mappings.UserMappings.Building,
-			"room":                    mappings.UserMappings.Room,
-			"phone":                   mappings.UserMappings.Phone,
-			"position":                mappings.UserMappings.Position,
-			"user_uuid":               mappings.UserMappings.UserUuid,
-		},
-	}
-
-	groupMappings := []interface{}{
-		map[string]interface{}{
-			"object_class_limitation": mappings.GroupMappings.ObjectClassLimitation,
-			"object_classes":          mappings.GroupMappings.ObjectClasses,
-			"search_base":             mappings.GroupMappings.SearchBase,
-			"search_scope":            mappings.GroupMappings.SearchScope,
-			"group_id":                mappings.GroupMappings.GroupID,
-			"group_name":              mappings.GroupMappings.GroupName,
-			"group_uuid":              mappings.GroupMappings.GroupUuid,
-		},
-	}
-
-	membershipMappings := []interface{}{
-		map[string]interface{}{
-			"group_membership_mapping": mappings.MembershipMappings.GroupMembershipMapping,
-		},
-	}
-
-	return map[string]interface{}{
-		"user_mappings":       userMappings,
-		"group_mappings":      groupMappings,
-		"membership_mappings": membershipMappings,
-	}
 }
