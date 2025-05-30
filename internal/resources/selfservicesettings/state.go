@@ -10,19 +10,13 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceSelfServiceSettings) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	installSettings := map[string]interface{}{
-		"install_automatically": resp.InstallSettings.InstallAutomatically,
-		"install_location":      resp.InstallSettings.InstallLocation,
-	}
-
-	loginSettings := map[string]interface{}{
-		"user_login_level":  resp.LoginSettings.UserLoginLevel,
-		"allow_remember_me": resp.LoginSettings.AllowRememberMe,
-		"use_fido2":         resp.LoginSettings.UseFido2,
-		"auth_type":         resp.LoginSettings.AuthType,
-	}
-
-	configurationSettings := map[string]interface{}{
+	settings := map[string]interface{}{
+		"install_automatically":    resp.InstallSettings.InstallAutomatically,
+		"install_location":         resp.InstallSettings.InstallLocation,
+		"user_login_level":         resp.LoginSettings.UserLoginLevel,
+		"allow_remember_me":        resp.LoginSettings.AllowRememberMe,
+		"use_fido2":                resp.LoginSettings.UseFido2,
+		"auth_type":                resp.LoginSettings.AuthType,
 		"notifications_enabled":    resp.ConfigurationSettings.NotificationsEnabled,
 		"alert_user_approved_mdm":  resp.ConfigurationSettings.AlertUserApprovedMdm,
 		"default_landing_page":     resp.ConfigurationSettings.DefaultLandingPage,
@@ -30,16 +24,10 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceSelfServiceSettin
 		"bookmarks_name":           resp.ConfigurationSettings.BookmarksName,
 	}
 
-	if err := d.Set("install_settings", []interface{}{installSettings}); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := d.Set("login_settings", []interface{}{loginSettings}); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := d.Set("configuration_settings", []interface{}{configurationSettings}); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	for key, val := range settings {
+		if err := d.Set(key, val); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	return diags
