@@ -7,11 +7,9 @@ on:
         description: 'Specify targets to test'
         type: string
         required: false
-        # Just for testing - reduces run time whilst triggering most of the workflow
-        default: 'jamfpro_script'
-        # default: 'all'
+        default: 'all'
 
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize]
 
 env:
@@ -23,8 +21,10 @@ jobs:
     container: python:3.11-slim
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+  
     steps:
       - name: Run PR Name Check Script
+        working-directory: .
         run: python3 scripts/check_pr_name.py ${{ github.event_name }}
 
 
@@ -46,14 +46,14 @@ jobs:
       REF_TO_CHECKOUT: ${{ github.event_name == 'pull_request' && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}
 
     steps:
-      - name: Checkout Terraform Repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           repository: deploymenttheory/terraform-provider-jamfpro
           ref: ${{ env.REF_TO_CHECKOUT }}
 
 
-      - name: Compile Provider
+      - name: Compile Provider Binary
         working-directory: .
         run: |
           mkdir -p ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/
@@ -61,20 +61,20 @@ jobs:
           mv ./terraform-provider-jamfpro ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/
           chmod +x ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/terraform-provider-jamfpro
 
-        
+
       - name: Generate Test Targets
         id: generate-test-targets
         if: github.event_name == 'pull_request' && env.TARGETS != 'compileonly'
         working-directory: .
         run: |
-          python3 testing/scripts/get_targets_to_file.py \
+          python3 testing/action_scripts/generate_test_targets.py \
           --repo-owner ${{ github.repository_owner }} \
           --repo-name ${{ github.event.repository.name }} \
           --pr-number ${{ github.event.pull_request.number }} \
           --github-token ${{ github.token }}
 
-        
-      - name: Set Test Targets
+
+      - name: Set Test Targets Var
         id: set-targets
         if: env.TARGETS != 'compileonly'
         working-directory: .
@@ -103,7 +103,7 @@ jobs:
         if: env.TARGETS != 'compileonly'
         working-directory: .
         run: |
-          python3 testing/scripts/generate_test_directory.py "${{ steps.set-targets.outputs.targets }}"
+          python3 testing/action_scripts/generate_test_directory.py "${{ steps.set-targets.outputs.targets }}"
 
 
       - name: Build TFVARS File
@@ -121,23 +121,24 @@ jobs:
           testing_id="${{ steps.generate-uuid.outputs.uuid }}"
           EOF
 
-      
+
       - name: Run Tests
         working-directory: ./testing
         id: run-tests
         run: |
-          chmod +x scripts/start.sh
-          scripts/start.sh "${{ steps.set-targets.outputs.targets }}" "${{ steps.generate-uuid.outputs.uuid }}"
+          chmod +x action_scripts/start_test.sh
+          action_scripts/start.sh "${{ steps.set-targets.outputs.targets }}" "${{ steps.generate-uuid.outputs.uuid }}"
 
 
       - name: 5s Delay to Allow Jamf API to Settle
         run: sleep 5
+
 
       - name: Cleanup
         if: env.TARGETS != 'compileonly'
         id: cleanup
         working-directory: ./testing
         run: |
-          chmod +x scripts/cleanup.sh
+          chmod +x action_scripts/cleanup.sh
           if [ -d "./data_sources" ]; then rm -rf ./data_sources; fi
-          python3 scripts/cleanup.py -r ${{ steps.generate-uuid.outputs.uuid }}
+          python3 action_scripts/cleanup.py -r ${{ steps.generate-uuid.outputs.uuid }}
