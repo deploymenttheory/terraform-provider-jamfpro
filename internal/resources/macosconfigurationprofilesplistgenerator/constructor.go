@@ -20,6 +20,7 @@ func constructJamfProMacOSConfigurationProfilesPlistGenerator(d *schema.Resource
 
 	plistXML, err := plist.ConvertHCLToPlist(d)
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return nil, fmt.Errorf("failed to generate plist from payloads: %v", err)
 	}
 
@@ -54,6 +55,7 @@ func constructJamfProMacOSConfigurationProfilesPlistGenerator(d *schema.Resource
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
+		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return nil, fmt.Errorf("failed to marshal Jamf Pro macOS Configuration Profile '%s' to XML: %v", resource.General.Name, err)
 	}
 
