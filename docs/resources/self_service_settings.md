@@ -10,25 +10,17 @@ description: |-
 ## Example Usage
 ```terraform
 resource "jamfpro_self_service_settings" "example" {
-  install_settings {
-    install_automatically = true
-    install_location      = "/Applications"
-  }
-
-  login_settings {
-    user_login_level  = "Anonymous"
-    allow_remember_me = true
-    use_fido2         = false
-    auth_type         = "Basic"
-  }
-
-  configuration_settings {
-    notifications_enabled    = true
-    alert_user_approved_mdm  = true
-    default_landing_page     = "HOME"
-    default_home_category_id = -1
-    bookmarks_name           = "Bookmarks"
-  }
+  install_automatically    = true
+  install_location         = "/Applications"
+  user_login_level         = "Anonymous"
+  allow_remember_me        = true
+  use_fido2                = false
+  auth_type                = "Basic"
+  notifications_enabled    = true
+  alert_user_approved_mdm  = true
+  default_landing_page     = "HOME"
+  default_home_category_id = -1
+  bookmarks_name           = "Bookmarks"
 }
 ```
 
@@ -37,9 +29,17 @@ resource "jamfpro_self_service_settings" "example" {
 
 ### Required
 
-- `configuration_settings` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--configuration_settings))
-- `install_settings` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--install_settings))
-- `login_settings` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--login_settings))
+- `alert_user_approved_mdm` (Boolean) Whether to alert users about approved MDM status
+- `allow_remember_me` (Boolean) Whether to allow the Remember Me option
+- `auth_type` (String) The type of authentication to use. Set to 'Basic' or 'Saml'
+- `bookmarks_name` (String) The name to use for bookmarks. Set to 'Bookmarks' by default
+- `default_home_category_id` (Number) The ID of the default home category. Set to -1 for no default category
+- `default_landing_page` (String) The default landing page in Self Service. Set to 'HOME', 'BROWSE', 'HISTORY', or 'NOTIFICATIONS'
+- `install_automatically` (Boolean) Whether to install Self Service automatically
+- `install_location` (String) The location where Self Service should be installed
+- `notifications_enabled` (Boolean) Whether to enable notifications
+- `use_fido2` (Boolean) Whether to enable FIDO2 authentication
+- `user_login_level` (String) The login level required for users. Set to 'NotRequired', 'Anonymous', or 'Required'
 
 ### Optional
 
@@ -48,38 +48,6 @@ resource "jamfpro_self_service_settings" "example" {
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-<a id="nestedblock--configuration_settings"></a>
-### Nested Schema for `configuration_settings`
-
-Required:
-
-- `alert_user_approved_mdm` (Boolean) Whether to alert users about approved MDM status
-- `bookmarks_name` (String) The name to use for bookmarks. Set to 'Bookmarks' by default
-- `default_home_category_id` (Number) The ID of the default home category. Set to -1 for no default category
-- `default_landing_page` (String) The default landing page in Self Service. Set to 'HOME', 'BROWSE', 'HISTORY', or 'NOTIFICATIONS'
-- `notifications_enabled` (Boolean) Whether to enable notifications
-
-
-<a id="nestedblock--install_settings"></a>
-### Nested Schema for `install_settings`
-
-Required:
-
-- `install_automatically` (Boolean) Whether to install Self Service automatically
-- `install_location` (String) The location where Self Service should be installed
-
-
-<a id="nestedblock--login_settings"></a>
-### Nested Schema for `login_settings`
-
-Required:
-
-- `allow_remember_me` (Boolean) Whether to allow the Remember Me option
-- `auth_type` (String) The type of authentication to use. Set to 'Basic' or 'Saml'
-- `use_fido2` (Boolean) Whether to enable FIDO2 authentication
-- `user_login_level` (String) The login level required for users. Set to 'NotRequired', 'Anonymous', or 'Required'
-
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`
