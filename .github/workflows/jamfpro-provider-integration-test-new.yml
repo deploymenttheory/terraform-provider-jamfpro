@@ -13,13 +13,13 @@ on:
     types: [opened, synchronize]
 
 env:
-  PR: ${{ github.event_name == 'pull_request' }}
+  PR: ${{ github.event_name == 'pull_request_target' }}
   TARGETS: ${{ inputs.targets }}
 
 jobs:
   Check-PR-Name:
     container: python:3.11-slim
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request_target'
     runs-on: ubuntu-latest
   
     steps:
@@ -43,7 +43,7 @@ jobs:
       CLIENT_ID: ${{ secrets.TESTING_CLIENT_ID }}
       CLIENT_SEC: ${{ secrets.TESTING_CLIENT_SECRET }}
       CLIENT_FQDN: ${{ secrets.TESTING_JAMFPRO_INSTANCE_FQDN }}
-      REF_TO_CHECKOUT: ${{ github.event_name == 'pull_request' && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}
+      REF_TO_CHECKOUT: ${{ github.event_name == 'pull_request_target' && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}
 
     steps:
       - name: Checkout
@@ -64,7 +64,7 @@ jobs:
 
       - name: Generate Test Targets
         id: generate-test-targets
-        if: github.event_name == 'pull_request' && env.TARGETS != 'compileonly'
+        if: github.event_name == 'pull_request_target' && env.TARGETS != 'compileonly'
         working-directory: .
         run: |
           python3 testing/action_scripts/generate_test_targets.py \
