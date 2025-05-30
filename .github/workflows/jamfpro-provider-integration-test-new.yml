@@ -139,6 +139,5 @@ jobs:
         id: cleanup
         working-directory: ./testing
         run: |
-          chmod +x action_scripts/cleanup.sh
           if [ -d "./data_sources" ]; then rm -rf ./data_sources; fi
           python3 action_scripts/cleanup.py -r ${{ steps.generate-uuid.outputs.uuid }}
