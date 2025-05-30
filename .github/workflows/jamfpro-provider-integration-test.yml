@@ -9,7 +9,7 @@ on:
 jobs:
   Run-Integration-Test:
     
-    environment: terraform-integration-testing
+    environment: provider-integration-testing-internal
     runs-on: ubuntu-latest
 
     env: 
