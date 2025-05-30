@@ -1,0 +1,39 @@
+name: Manual | Build New Python Docker Image | Integration Tests
+run-name: "Build New Python Docker Image | Integration Tests"
+
+on:
+  workflow_dispatch:
+    inputs:
+      go_version:
+        description: 'Go version to use'
+        default: '1.24.0'
+        required: false
+        type: string
+      terraform_version:
+        description: 'Terraform version to use'
+        default: '1.12.0'
+        required: false
+        type: string
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/integration_tests
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/provider_testing:latest
+            ghcr.io/${{ github.repository }}/provider_testing:${{ github.sha }}
