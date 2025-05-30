@@ -77,6 +77,6 @@ output:
 issues:
 
   new: true
-  # new-from-rev: HEAD~
-  new-from-merge-base: main
+  new-from-rev: HEAD~
+  # new-from-merge-base: main
   
