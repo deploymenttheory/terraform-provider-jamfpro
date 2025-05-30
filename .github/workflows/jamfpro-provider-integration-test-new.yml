@@ -127,7 +127,7 @@ jobs:
         id: run-tests
         run: |
           chmod +x action_scripts/start_test.sh
-          action_scripts/start.sh "${{ steps.set-targets.outputs.targets }}" "${{ steps.generate-uuid.outputs.uuid }}"
+          action_scripts/start_test.sh "${{ steps.set-targets.outputs.targets }}" "${{ steps.generate-uuid.outputs.uuid }}"
 
 
       - name: 5s Delay to Allow Jamf API to Settle
