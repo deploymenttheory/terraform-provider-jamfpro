@@ -32,3 +32,5 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceBuilding, error) {
 
 	return resource, nil
 }
+
+// some diff in buildings
