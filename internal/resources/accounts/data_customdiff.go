@@ -22,13 +22,13 @@ func customDiffAccounts(ctx context.Context, d *schema.ResourceDiff, meta interf
 		return err
 	}
 
-	if err := validateCasperAdminUsePrivileges(ctx, d, meta); err != nil {
-		return err
-	}
+	// if err := validateCasperAdminUsePrivileges(ctx, d, meta); err != nil {
+	// 	return err
+	// }
 
-	if err := validateCasperAdminSavePrivileges(ctx, d, meta); err != nil {
-		return err
-	}
+	// if err := validateCasperAdminSavePrivileges(ctx, d, meta); err != nil {
+	// 	return err
+	// }
 
 	if err := validateReverseDependencyChecks(ctx, d, meta); err != nil {
 		return err
@@ -62,12 +62,12 @@ func validatePrivilegesForSiteAccess(_ context.Context, d *schema.ResourceDiff, 
 		return nil
 	}
 
-	if jssSettingsPrivileges, ok := d.GetOk("jss_settings_privileges"); ok && len(jssSettingsPrivileges.([]interface{})) > 0 {
+	if jssSettingsPrivileges, ok := d.GetOk("jss_settings_privileges"); ok && len(jssSettingsPrivileges.(*schema.Set).List()) > 0 {
 		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("when 'access_level' is 'Site Access', 'jss_settings_privileges' are not allowed")
 	}
 
-	if casperAdminPrivileges, ok := d.GetOk("casper_admin_privileges"); ok && len(casperAdminPrivileges.([]interface{})) > 0 {
+	if casperAdminPrivileges, ok := d.GetOk("casper_admin_privileges"); ok && len(casperAdminPrivileges.(*schema.Set).List()) > 0 {
 		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("when 'access_level' is 'Site Access', 'casper_admin_privileges' are not allowed")
 	}

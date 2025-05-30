@@ -61,7 +61,6 @@ def calculate_testing_id_prefix():
         return f"tf-testing-{TESTING_ID}"
     else:
         return "tf-testing"
-    
 
 
 def common_testing_ids_from_resources(resources):
@@ -69,11 +68,6 @@ def common_testing_ids_from_resources(resources):
     prefix = calculate_testing_id_prefix()
 
     for resource in resources:
-        # Debug
-        # print("Here are the resources\n")
-        # print(type(resources))
-        # print(type(resource))
-
         name = str(resource["name"])
         if name.startswith(prefix):
             resource_id = resource["id"]
@@ -83,7 +77,6 @@ def common_testing_ids_from_resources(resources):
 def common_get_resource_list(resource_instance, resource_type_string):
     resp = resource_instance.get_all()
     resp.raise_for_status()
-    # print(resp.json())
     resources = resp.json()[resource_type_string]
 
     return resources
@@ -91,7 +84,8 @@ def common_get_resource_list(resource_instance, resource_type_string):
 
 def purge_classic_test_resources(resource_instance, resource_type_string):
     # Escape characters for underlining
-    logger.info(f"\033[4mPurging {resource_type_string}...\033[0m")
+    resource_class_name = type(resource_instance).__name__
+    logger.info(f"\033[4mPurging {resource_class_name}...\033[0m")
     
     resources = common_get_resource_list(resource_instance, resource_type_string)
     resource_ids = common_testing_ids_from_resources(resources)
