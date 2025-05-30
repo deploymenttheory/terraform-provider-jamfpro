@@ -11,6 +11,8 @@ on:
 
   pull_request_target:
     types: [opened, synchronize]
+    paths:
+      - 'internal/**'
 
 env:
   PR: ${{ github.event_name == 'pull_request_target' }}
