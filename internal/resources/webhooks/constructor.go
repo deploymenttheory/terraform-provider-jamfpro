@@ -23,6 +23,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceWebhook, error) {
 		Username:                    d.Get("username").(string),
 		Password:                    d.Get("password").(string),
 		EnableDisplayFieldsForGroup: d.Get("enable_display_fields_for_group").(bool),
+		Header:                      d.Get("header").(string),
 		SmartGroupID:                d.Get("smart_group_id").(int),
 	}
 

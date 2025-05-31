@@ -58,6 +58,7 @@ resource "jamfpro_webhook" "jamfpro_webhook_001" {
 - `connection_timeout` (Number) Amount of time to wait for a response from the webhook's host server after sending a request, in seconds.Value must be an integer between 1 and 15
 - `display_fields` (List of String) List of displayfields
 - `enable_display_fields_for_group` (Boolean) Whether to enable display fields for the group associated with the webhook.
+- `header` (String, Sensitive) The JSON header for authentication, if applicable.
 - `password` (String, Sensitive) The password for authentication, if applicable.
 - `read_timeout` (Number) Amount of time to attempt to connect to the webhook's host server, in seconds.Value must be an integer between 1 and 15
 - `smart_group_id` (Number) The ID of the smart group associated with the webhook.
