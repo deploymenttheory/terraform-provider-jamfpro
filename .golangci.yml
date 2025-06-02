@@ -75,8 +75,5 @@ output:
   show-stats: true
 
 issues:
-
   new: true
-  new-from-rev: HEAD~
-  # new-from-merge-base: main
   
