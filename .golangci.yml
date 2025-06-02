@@ -8,7 +8,6 @@ run:
   allow-serial-runners: false
   concurrency: 2
 
-
 linters:
   default: none
   enable:
@@ -74,5 +73,3 @@ output:
   # Show summary statistics at the end of the report
   show-stats: true
 
-issues:
-  new-from-merge-base: main
