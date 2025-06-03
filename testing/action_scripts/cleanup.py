@@ -4,7 +4,6 @@ from optparse import OptionParser
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 load_dotenv()
-logger = jamfpy.get_logger(name="cleanup", level=20)
 
 
 parser = OptionParser()
@@ -13,10 +12,14 @@ parser.add_option("-f", "--force", action="store_true", dest="force",
                     help="Force cleanup of all tf-testing resources")
 parser.add_option("-r", "--runid", dest="runid",
                     help="ID associated with the tests to clean up")
+parser.add_option("-l", "--log-level", dest="loglevel", 
+                  default=20,
+                  help="DEBUG: 10\nINFO: 20\n WARN: 30")
 
 
 (options, args) = parser.parse_args()
 
+logger = jamfpy.get_logger(name="cleanup", level=options.loglevel)
 
 if options.force and options.runid:
     print("-f or --force overrides runid")
