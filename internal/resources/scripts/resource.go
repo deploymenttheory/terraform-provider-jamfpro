@@ -110,5 +110,3 @@ func ResourceJamfProScripts() *schema.Resource {
 		},
 	}
 }
-
-// I am iron man
