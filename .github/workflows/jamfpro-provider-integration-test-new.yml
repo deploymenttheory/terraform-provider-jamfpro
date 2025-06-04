@@ -19,24 +19,6 @@ env:
   TARGETS: ${{ inputs.targets }}
 
 jobs:
-  Check-PR-Name:
-    container: python:3.11-slim
-    if: github.event_name == 'pull_request_target'
-    runs-on: ubuntu-latest
-  
-    steps:
-      - name: pwd
-        working-directory: .
-        run: |
-          pwd \
-          cd terraform-provider-jamfpro \
-          pwd
-
-      - name: Run PR Name Check Script
-        working-directory: .
-        run: python3 scripts/check_pr_name.py ${{ github.event.pull_request.title }}
-
-
   Run-Integration-Test:
     runs-on: ubuntu-latest
     container:
