@@ -14,9 +14,6 @@ jobs:
       CLIENT_ID: ${{ secrets.TESTING_CLIENT_ID }}
       CLIENT_SEC: ${{ secrets.TESTING_CLIENT_SECRET }}
 
-    # concurrency:
-    #   group: sandbox_interfacing_testing_environment
-    #   cancel-in-progress: false
     steps:
       - name: Checkout Terraform Repository
         uses: actions/checkout@v4
