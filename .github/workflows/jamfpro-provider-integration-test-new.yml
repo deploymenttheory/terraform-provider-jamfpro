@@ -25,12 +25,9 @@ jobs:
     runs-on: ubuntu-latest
   
     steps:
-      - name: debug
-        run: echo ${{ github.event_name }}
-
       - name: Run PR Name Check Script
         working-directory: .
-        run: python3 scripts/check_pr_name.py ${{ github.event_name }}
+        run: python3 scripts/check_pr_name.py ${{ github.event.pull_request.title }}
 
 
   Run-Integration-Test:
