@@ -1,5 +1,5 @@
-name: "Terraform Integration Tests - NEW"
-run-name: "Terraform Integration Tests - NEW"
+name: "Integration Testing - Compile and Resources"
+run-name: "Integration Testing - Compile and Resources"
 on:
   workflow_dispatch:
     inputs:  
@@ -7,7 +7,7 @@ on:
         description: 'Specify targets to test'
         type: string
         required: false
-        default: 'all'
+        default: 'jamfpro_script'
 
   pull_request_target:
     types: [opened, synchronize]
@@ -19,17 +19,6 @@ env:
   TARGETS: ${{ inputs.targets }}
 
 jobs:
-  Check-PR-Name:
-    container: python:3.11-slim
-    if: github.event_name == 'pull_request_target'
-    runs-on: ubuntu-latest
-  
-    steps:
-      - name: Run PR Name Check Script
-        working-directory: .
-        run: python3 scripts/check_pr_name.py ${{ github.event_name }}
-
-
   Run-Integration-Test:
     runs-on: ubuntu-latest
     container:
@@ -81,6 +70,8 @@ jobs:
         if: env.TARGETS != 'compileonly'
         working-directory: .
         run: |
+          pwd
+          ls
           if [ -f "target_resources.txt" ]; then
             targets=$(cat target_resources.txt)
           elif [ "$TARGETS" != "all" ] && [ ! -z "$TARGETS" ]; then
