@@ -7,7 +7,7 @@ on:
         description: 'Specify targets to test'
         type: string
         required: false
-        default: 'all'
+        default: 'jamfpro_script'
 
   pull_request_target:
     types: [opened, synchronize]
