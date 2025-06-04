@@ -1,5 +1,5 @@
-name: "Terraform Integration Tests - NEW"
-run-name: "Terraform Integration Tests - NEW"
+name: "Integration Testing - Compile and Resources"
+run-name: "Integration Testing - Compile and Resources"
 on:
   workflow_dispatch:
     inputs:  
