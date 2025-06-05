@@ -36,10 +36,6 @@ import sys
 import requests
 import argparse
 
-
-
-
-
 FILEPATH_KEY = "filename"
 
 def get_diff(owner, repo, token, pr_number: str):
@@ -50,11 +46,9 @@ def get_diff(owner, repo, token, pr_number: str):
             "Authorization": token
         }
     )
-
     resp.raise_for_status()
-
-    return resp.json()
-
+    json_resp = resp.json()
+    return json_resp
 
 def get_diff_path(response: list[dict]):
     files = []
@@ -62,22 +56,17 @@ def get_diff_path(response: list[dict]):
         for k, v in i.items():
             if k == FILEPATH_KEY:
                 files.append(v)
-
     return files
-
 
 def extract_resource_from_path(path: str):
     path_split = path.split("/")
     if all(i in path_split for i in ["internal", "resources"]):
         return True, path_split[2]
-    
     return False, None
-
 
 def save_targets_to_file(targets: list):
     with open("targets.txt", "w") as f:
         f.write(",".join(targets))        
-
 
 def main():
     parser = argparse.ArgumentParser(description="Get PR diff and extract resource targets.")
@@ -99,17 +88,14 @@ def main():
     targets = []
     for f in filepaths:
         found, res = extract_resource_from_path(f)
-
         if found:
             targets.append(res)
-
 
     if not targets:
         print("no targets found")
         sys.exit(1)
 
     save_targets_to_file(targets)
-
 
 if __name__ == "__main__":
     main()
