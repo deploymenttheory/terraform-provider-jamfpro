@@ -67,7 +67,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 					if v == "Enabled" || v == "Disabled" {
 						return
 					}
-					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 					return warns, append(errs, fmt.Errorf("%q must be either 'Enabled' or 'Disabled', got: %s", key, v))
 				},
 			},
@@ -90,7 +90,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 					if v == "Full Access" || v == "Site Access" || v == "Group Access" {
 						return
 					}
-					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 					return warns, append(errs, fmt.Errorf("%q must be either 'Full Access' or 'Site Access' or 'Group Access', got: %s", key, v))
 				},
 			},
@@ -112,7 +112,7 @@ func ResourceJamfProAccounts() *schema.Resource {
 							return
 						}
 					}
-					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 					return warns, append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validPrivileges, v))
 				},
 			},

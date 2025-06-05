@@ -51,7 +51,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	displayName := d.Get("display_name").(string)
 
 	if resourceID == "" && displayName == "" {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("either 'id' or 'display_name' must be provided"))
 	}
 
@@ -88,13 +88,13 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 			lookupMethod = "display_name"
 			lookupValue = displayName
 		}
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Cloud Identity Provider with %s '%s' after retries: %v", lookupMethod, lookupValue, err))
 	}
 
 	if resource == nil {
 		d.SetId("")
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("the Jamf Pro Cloud Identity Provider was not found"))
 	}
 

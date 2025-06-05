@@ -38,7 +38,7 @@ import (
 func DownloadFile(url string) (string, error) {
 	tmpFile, err := os.CreateTemp("", "downloaded-*")
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return "", fmt.Errorf("failed to create temporary file: %v", err)
 	}
 	defer tmpFile.Close()
@@ -46,7 +46,7 @@ func DownloadFile(url string) (string, error) {
 	client := &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			if len(via) >= 10 {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 				return fmt.Errorf("too many redirects when attempting to download file from %s", url)
 			}
 			return nil
@@ -55,14 +55,14 @@ func DownloadFile(url string) (string, error) {
 
 	resp, err := client.Get(url)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return "", fmt.Errorf("failed to download file from %s: %v", url, err)
 	}
 	defer resp.Body.Close()
 
 	_, err = io.Copy(tmpFile, resp.Body)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return "", fmt.Errorf("failed to write to temporary file: %v", err)
 	}
 
@@ -92,13 +92,13 @@ func DownloadFile(url string) (string, error) {
 	finalPath := filepath.Join(os.TempDir(), finalFileName)
 
 	if !strings.HasPrefix(filepath.Clean(finalPath), os.TempDir()) {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return "", fmt.Errorf("security error: final path '%s' would be outside temporary directory", finalPath)
 	}
 
 	err = os.Rename(tmpFile.Name(), finalPath)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return "", fmt.Errorf("failed to rename temporary file to final destination: %v", err)
 	}
 
@@ -111,7 +111,7 @@ func sanitizeFileName(name string) (string, error) {
 	name = filepath.Base(name)
 
 	if strings.Contains(name, "..") {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return "", fmt.Errorf("invalid filename: contains parent directory reference")
 	}
 
@@ -122,7 +122,7 @@ func sanitizeFileName(name string) (string, error) {
 
 	cleaned := strings.TrimSpace(unescaped)
 	if cleaned == "" || cleaned == "." {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return "", fmt.Errorf("invalid filename: empty or invalid after cleaning")
 	}
 

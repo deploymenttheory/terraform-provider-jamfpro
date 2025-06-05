@@ -111,7 +111,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	name := d.Get("name").(string)
 
 	if resourceID == "" && name == "" {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("either 'id' or 'name' must be provided"))
 	}
 
@@ -138,13 +138,13 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 			lookupMethod = "name"
 			lookupValue = name
 		}
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Script with %s '%s' after retries: %v", lookupMethod, lookupValue, err))
 	}
 
 	if resource == nil {
 		d.SetId("")
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("the Jamf Pro Script was not found"))
 	}
 

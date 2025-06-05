@@ -52,14 +52,14 @@ func DataSourceJamfProMacOSConfigurationProfilePlistRead(ctx context.Context, d 
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro macOS Configuration Profile with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	if resource != nil {
 		d.SetId(resourceID)
 		if err := d.Set("name", resource.General.Name); err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro macOS Configuration Profile with ID '%s': %v", resourceID, err))...)
 		}
 	} else {

@@ -65,14 +65,14 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro resource with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	if resource != nil {
 		d.SetId(resourceID)
 		if err := d.Set("name", resource.Name); err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro resource with ID '%s': %v", resourceID, err))...)
 		}
 	} else {

@@ -38,22 +38,22 @@ func validateIsSmartAttribute(_ context.Context, diff *schema.ResourceDiff, _ in
 	criteriaBlockExists := len(diff.Get("criteria").([]interface{})) > 0
 
 	if isSmart.(bool) && usersBlockExists {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return fmt.Errorf("in 'jamfpro_user_group.%s': 'users' block is not allowed when 'is_smart' is set to true", resourceName)
 	}
 
 	if !isSmart.(bool) && criteriaBlockExists {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return fmt.Errorf("in 'jamfpro_user_group.%s': 'criteria' block is not allowed when 'is_smart' is set to false", resourceName)
 	}
 
 	if isSmart.(bool) && !criteriaBlockExists {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return fmt.Errorf("in 'jamfpro_user_group.%s': 'criteria' block is required when 'is_smart' is set to true", resourceName)
 	}
 
 	if !isSmart.(bool) && !usersBlockExists {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return fmt.Errorf("in 'jamfpro_user_group.%s': 'users' block is required when 'is_smart' is set to false", resourceName)
 	}
 
@@ -71,7 +71,7 @@ func validateCriteriaPrioritySequence(_ context.Context, diff *schema.ResourceDi
 			criteriaMap := criteria.(map[string]interface{})
 
 			if actualPriority, ok := criteriaMap["priority"].(int); !ok || actualPriority != expectedPriority {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 				return fmt.Errorf("in 'jamfpro_user_group.%s': 'priority' value in 'criteria' block must be sequential starting from 0, found priority '%d' at position '%d'", resourceName, actualPriority, expectedPriority)
 			}
 		}

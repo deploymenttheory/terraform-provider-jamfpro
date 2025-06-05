@@ -88,7 +88,7 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceMobileDe
 	// Serialize and pretty-print the inventory collection object as JSON for logging
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Mobile Device Prestage to JSON: %v", err)
 	}
 

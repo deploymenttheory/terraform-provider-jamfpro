@@ -24,7 +24,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	resource, err := constructJamfProMobileDeviceConfigurationProfilePlist(d, "create", meta)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Mobile Device Configuration Profile: %v", err))
 	}
 
@@ -39,7 +39,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Mobile Device Configuration Profile '%s' after retries: %v", resource.General.Name, err))
 	}
 
@@ -93,7 +93,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	resource, err := constructJamfProMobileDeviceConfigurationProfilePlist(d, "update", meta)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Mobile Device Configuration Profile for update: %v", err))
 	}
 
@@ -106,7 +106,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Mobile Device Configuration Profile '%s' (ID: %s) after retries: %v", resource.General.Name, resourceID, err))
 	}
 
@@ -132,7 +132,7 @@ func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Mobile Device Configuration Profile '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
 	}
 

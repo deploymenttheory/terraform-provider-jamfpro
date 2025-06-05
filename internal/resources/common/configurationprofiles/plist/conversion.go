@@ -29,7 +29,7 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 
 	prettyPlistXML, err := plist.MarshalIndent(plistData, plist.XMLFormat, "  ")
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return "", fmt.Errorf("failed to marshal profile to pretty plist: %v", err)
 	}
 	unescapedPrettyPlistXML := html.UnescapeString(string(prettyPlistXML))

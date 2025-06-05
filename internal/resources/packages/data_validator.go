@@ -14,7 +14,7 @@ import (
 func customValidateFilePath(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 	filePath, ok := d.Get("package_file_source").(string)
 	if !ok {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return fmt.Errorf("invalid type for package_file_sourceh")
 	}
 
@@ -27,12 +27,12 @@ func customValidateFilePath(ctx context.Context, d *schema.ResourceDiff, meta in
 	fillExistingUsers, fillExistingUsersOk := d.GetOk("fill_existing_users")
 
 	if fillUserTemplateOk && fillUserTemplate.(bool) {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return fmt.Errorf("fill_user_template can only be set to true if the package defined in package_file_source ends with .dmg")
 	}
 
 	if fillExistingUsersOk && fillExistingUsers.(bool) {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return fmt.Errorf("fill_existing_users can only be set to true if the package defined in package_file_source ends with .dmg")
 	}
 

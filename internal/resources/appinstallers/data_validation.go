@@ -47,7 +47,6 @@ func init() {
 func validateAppCatalogDeploymentName(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
 	resourceName := diff.Get("name").(string)
 
-	//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 	if !contains(validTitleNames, resourceName) {
 		return fmt.Errorf("in 'jamfpro_app_catalog_deployment.%s': 'name' must be one of the following values: %s", resourceName, strings.Join(validTitleNames, ", "))
 	}

@@ -36,7 +36,7 @@ func getAppTitleID(name string) (string, error) {
 			return result.ID, nil
 		}
 	}
-	//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 	return "", fmt.Errorf("no matching app title found for name: %s", name)
 }
 
@@ -102,7 +102,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceJamfAppCatalogDeploymen
 	// Serialize and pretty-print the AppCatalogDeployment object as JSON for logging
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return nil, fmt.Errorf("failed to marshal Jamf Pro App Installer Deployment '%s' to JSON: %v", resource.Name, err)
 	}
 

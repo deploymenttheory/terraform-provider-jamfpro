@@ -38,12 +38,12 @@ func validateAuthenticationPrompt(_ context.Context, diff *schema.ResourceDiff, 
 	authPrompt, authPromptOk := diff.GetOk("authentication_prompt")
 
 	if requireAuth.(bool) && !authPromptOk {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'authentication_prompt' is required when 'require_authentication' is set to true", resourceName)
 	}
 
 	if !requireAuth.(bool) && authPromptOk && authPrompt.(string) != "" {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'authentication_prompt' is not allowed when 'require_authentication' is set to false", resourceName)
 	}
 
@@ -60,15 +60,15 @@ func validateRecoveryLockPasswordType(_ context.Context, diff *schema.ResourceDi
 	// Scenario 1: When enable_recovery_lock is false
 	if !enableRecoveryLockOk || !enableRecoveryLock.(bool) {
 		if rotateOk && rotate.(bool) {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'rotate_recovery_lock_password' must be false when 'enable_recovery_lock' is false", resourceName)
 		}
 		if passwordOk && password.(string) != "" {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'recovery_lock_password' must be empty when 'enable_recovery_lock' is false", resourceName)
 		}
 		if passwordTypeOk && passwordType.(string) != "MANUAL" {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'recovery_lock_password_type' must be 'MANUAL' when 'enable_recovery_lock' is false (this is the default value)", resourceName)
 		}
 		return nil
@@ -76,7 +76,7 @@ func validateRecoveryLockPasswordType(_ context.Context, diff *schema.ResourceDi
 
 	// For scenarios where enable_recovery_lock is true
 	if !passwordTypeOk {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'recovery_lock_password_type' must be set when 'enable_recovery_lock' is true", resourceName)
 	}
 
@@ -84,22 +84,22 @@ func validateRecoveryLockPasswordType(_ context.Context, diff *schema.ResourceDi
 	case "RANDOM":
 		// Scenario 2: Random password with rotation
 		if passwordOk && password.(string) != "" {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'recovery_lock_password' must be empty when 'recovery_lock_password_type' is 'RANDOM'", resourceName)
 		}
 		// Note: rotate_recovery_lock_password can be either true or false for RANDOM
 	case "MANUAL":
 		// Scenario 3: Manual password without rotation
 		if !passwordOk || password.(string) == "" {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'recovery_lock_password' must be set and non-empty when 'recovery_lock_password_type' is 'MANUAL'", resourceName)
 		}
 		if rotateOk && rotate.(bool) {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'rotate_recovery_lock_password' must be false when 'recovery_lock_password_type' is 'MANUAL'", resourceName)
 		}
 	default:
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'recovery_lock_password_type' must be either 'MANUAL' or 'RANDOM'", resourceName)
 	}
 
@@ -121,7 +121,7 @@ func validateDateFormat(v interface{}, k string) (ws []string, errors []error) {
 	match, _ := regexp.MatchString(datePattern, dateString)
 
 	if !match {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		errors = append(errors, fmt.Errorf("%q must be in the format YYYY-MM-DD, got: %s", k, dateString))
 	}
 
@@ -135,7 +135,7 @@ func validateMinimumOSSpecificVersion(_ context.Context, diff *schema.ResourceDi
 
 	if versionType == "MINIMUM_OS_SPECIFIC_VERSION" {
 		if specificVersion == "" {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'minimum_os_specific_version' must be set when 'prestate_minimum_os_target_version_type' is MINIMUM_OS_SPECIFIC_VERSION", resourceName)
 		}
 
@@ -146,7 +146,7 @@ func validateMinimumOSSpecificVersion(_ context.Context, diff *schema.ResourceDi
 		}
 
 		if !validVersions[specificVersion] {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'minimum_os_specific_version' must be one of '14.5', '14.6', or '14.6.1', got: %s", resourceName, specificVersion)
 		}
 	}

@@ -449,7 +449,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 						"RANDOM": true,
 					}
 					if _, valid := validTypes[v]; !valid {
-						//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 						errs = append(errs, fmt.Errorf("%q must be one of 'MANUAL', 'RANDOM', got: %s", key, v))
 					}
 					return warns, errs
@@ -479,7 +479,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 						"MINIMUM_OS_SPECIFIC_VERSION":     true,
 					}
 					if _, valid := validTypes[v]; !valid {
-						//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 						errs = append(errs, fmt.Errorf("%q must be one of 'NO_ENFORCEMENT', 'MINIMUM_OS_LATEST_VERSION', 'MINIMUM_OS_LATEST_MAJOR_VERSION', 'MINIMUM_OS_LATEST_MINOR_VERSION', 'MINIMUM_OS_SPECIFIC_VERSION', got: %s", key, v))
 					}
 					return warns, errs
@@ -572,7 +572,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 									"SKIP":          true,
 								}
 								if _, valid := validTypes[v]; !valid {
-									//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 									errs = append(errs, fmt.Errorf("%q must be one of 'ADMINISTRATOR', 'STANDARD', 'SKIP', got: %s", key, v))
 								}
 								return warns, errs
@@ -595,7 +595,7 @@ func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
 									"UNKNOWN":      true,
 								}
 								if _, valid := validTypes[v]; !valid {
-									//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 									errs = append(errs, fmt.Errorf("%q must be one of 'CUSTOM', 'DEVICE_OWNER', 'UNKNOWN' got: %s", key, v))
 								}
 								return warns, errs

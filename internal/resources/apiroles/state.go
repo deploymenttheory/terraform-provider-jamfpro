@@ -21,7 +21,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceAPIRole) diag.Dia
 
 	for key, val := range apiRoleData {
 		if err := d.Set(key, val); err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			diags = append(diags, diag.FromErr(fmt.Errorf("failed to set '%s': %v", key, err))...)
 		}
 	}

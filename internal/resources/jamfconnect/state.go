@@ -23,7 +23,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceJamfConnectConfig
 	}
 
 	for key, val := range profileData {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		if err := d.Set(key, val); err != nil {
 			diags = append(diags, diag.FromErr(fmt.Errorf("error setting %s: %v", key, err))...)
 		}

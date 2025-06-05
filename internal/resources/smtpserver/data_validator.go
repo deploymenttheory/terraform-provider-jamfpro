@@ -84,7 +84,7 @@ func customDiff(ctx context.Context, d *schema.ResourceDiff, m interface{}) erro
 	}
 
 	if len(errorMessages) > 0 {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return fmt.Errorf("validation failed: %s", strings.Join(errorMessages, "; "))
 	}
 

@@ -46,7 +46,7 @@ func validateComputerCheckinDependencies(d *schema.ResourceDiff) error {
 
 	// If there are any error messages, return them with a constant format string
 	if len(errorMessages) > 0 {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return fmt.Errorf("validation failed: %s", strings.Join(errorMessages, "; "))
 	}
 

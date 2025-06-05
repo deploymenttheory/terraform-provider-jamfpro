@@ -300,7 +300,7 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 // handleDirectoryServiceGroupEnrollmentSettings flattens a directory service group enrollment setting struct into a map for Terraform state.
 func handleDirectoryServiceGroupEnrollmentSettings(group *jamfpro.ResourceAccountDrivenUserEnrollmentAccessGroup) (map[string]interface{}, error) {
 	if group == nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return nil, fmt.Errorf("cannot flatten nil access group")
 	}
 
@@ -322,7 +322,7 @@ func handleDirectoryServiceGroupEnrollmentSettings(group *jamfpro.ResourceAccoun
 // handleEnrollmentMessage flattens an enrollment language message struct into a map for Terraform state.
 func handleEnrollmentMessage(message *jamfpro.ResourceEnrollmentLanguage) (map[string]interface{}, error) {
 	if message == nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return nil, fmt.Errorf("cannot flatten nil enrollment message")
 	}
 

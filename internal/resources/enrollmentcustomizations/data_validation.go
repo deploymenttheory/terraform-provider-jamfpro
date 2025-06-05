@@ -12,7 +12,7 @@ func validatePaneCombinations(d *schema.ResourceData) error {
 	hasLDAP := len(d.Get("ldap_pane").([]interface{})) > 0
 
 	if hasSSO && hasLDAP {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return fmt.Errorf("invalid combination: SSO and LDAP panes cannot be used together")
 	}
 
@@ -25,7 +25,7 @@ func validateHexColor(val interface{}, key string) (warns []string, errs []error
 
 	// Check length (6 characters for hex without #)
 	if len(v) != 6 {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		errs = append(errs, fmt.Errorf("%q must be exactly 6 characters (without #), got: %d characters", key, len(v)))
 		return
 	}
@@ -33,7 +33,7 @@ func validateHexColor(val interface{}, key string) (warns []string, errs []error
 	// Check if all characters are valid hex
 	for _, c := range v {
 		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			errs = append(errs, fmt.Errorf("%q contains invalid hex character: %c", key, c))
 			return
 		}

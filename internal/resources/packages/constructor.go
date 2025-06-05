@@ -27,7 +27,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourcePackage, string, error)
 		log.Printf("[INFO] URL detected: %s. Attempting to download.", fullPath)
 		localFilePath, err = common.DownloadFile(fullPath)
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			return nil, "", fmt.Errorf("failed to download file: %v", err)
 		}
 		fileName = filepath.Base(localFilePath)
@@ -70,7 +70,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourcePackage, string, error)
 
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return nil, "", fmt.Errorf("failed to marshal Jamf Pro Package '%s' to JSON: %v", resource.FileName, err)
 	}
 

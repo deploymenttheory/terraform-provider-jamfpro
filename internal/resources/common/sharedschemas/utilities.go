@@ -24,7 +24,7 @@ func ExtractNestedObjectsFromSchema[NestedObjectType any, ListItemPrimitiveType 
 
 	attrList, ok := getAttr.([]interface{})
 	if !ok {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return fmt.Errorf("failed to cast %s to []interface{}", path)
 	}
 
@@ -45,7 +45,7 @@ func ExtractNestedObjectsFromSchema[NestedObjectType any, ListItemPrimitiveType 
 		if idField.IsValid() && idField.CanSet() {
 			idField.Set(reflect.ValueOf(v.(ListItemPrimitiveType)))
 		} else {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			return fmt.Errorf("error cannot set field %s", targetField)
 		}
 

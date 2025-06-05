@@ -40,7 +40,7 @@ func customizeDiffForEnglishLanguage(ctx context.Context, d *schema.ResourceDiff
 		}
 
 		if !hasEnglish {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			return fmt.Errorf("english language enrollment messaging is required, please include an English enrollment messaging with 'en' and 'english'")
 		}
 	} else if d.Id() != "" {
@@ -48,7 +48,7 @@ func customizeDiffForEnglishLanguage(ctx context.Context, d *schema.ResourceDiff
 		oldSet := old.(*schema.Set)
 
 		if oldSet != nil && oldSet.Len() > 0 {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			return fmt.Errorf("cannot remove all messaging configurations as English language configuration is required")
 		}
 	}

@@ -18,7 +18,7 @@ func updateState(d *schema.ResourceData, plan *jamfpro.ResponseManagedSoftwareUp
 
 	d.SetId(plan.PlanUuid)
 	if err := d.Set("plan_uuid", plan.PlanUuid); err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("error setting plan_uuid: %v", err))
 	}
 
@@ -31,7 +31,7 @@ func updateState(d *schema.ResourceData, plan *jamfpro.ResponseManagedSoftwareUp
 		"force_install_local_date_time": plan.ForceInstallLocalDateTime,
 	}
 	if err := d.Set("config", []interface{}{config}); err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("error setting config: %v", err))
 	}
 
@@ -42,7 +42,7 @@ func updateState(d *schema.ResourceData, plan *jamfpro.ResponseManagedSoftwareUp
 			"object_type": plan.Device.ObjectType,
 		}
 		if err := d.Set("group", []interface{}{group}); err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			return diag.FromErr(fmt.Errorf("error setting group: %v", err))
 		}
 	} else if plan.Device.ObjectType == "COMPUTER" || plan.Device.ObjectType == "MOBILE_DEVICE" {
@@ -51,11 +51,11 @@ func updateState(d *schema.ResourceData, plan *jamfpro.ResponseManagedSoftwareUp
 			"object_type": plan.Device.ObjectType,
 		}
 		if err := d.Set("device", []interface{}{device}); err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			return diag.FromErr(fmt.Errorf("error setting device: %v", err))
 		}
 	} else {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("unknown object type: %s", plan.Device.ObjectType))
 	}
 

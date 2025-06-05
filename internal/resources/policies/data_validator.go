@@ -8,7 +8,7 @@ import (
 
 // validateDateTime validates the input string is in the format 'YYYY-MM-DD HH:mm:ss'
 //
-//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 func validateDateTime(v interface{}, k string) (warns []string, errs []error) {
 	value := v.(string)
 	if _, err := time.Parse("2006-01-02 15:04:05", value); err != nil {
@@ -19,7 +19,7 @@ func validateDateTime(v interface{}, k string) (warns []string, errs []error) {
 
 // validateDateTimeUTC validates the input string is in the format 'YYYY-MM-DDThh:mm:ss.sss+0000'
 //
-//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 func validateDateTimeUTC(v interface{}, k string) (warns []string, errs []error) {
 	value := v.(string)
 	if _, err := time.Parse("2006-01-02T15:04:05.000-0700", value); err != nil {
@@ -30,7 +30,7 @@ func validateDateTimeUTC(v interface{}, k string) (warns []string, errs []error)
 
 // validateEpochMillis validates the input integer is a positive number
 //
-//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 func validateEpochMillis(v interface{}, k string) (warns []string, errs []error) {
 	value := v.(int)
 	if value < 0 {
@@ -41,7 +41,7 @@ func validateEpochMillis(v interface{}, k string) (warns []string, errs []error)
 
 // validateDayOfWeek validates the input string is a valid day of the week
 //
-//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 func validate12HourTime(v interface{}, k string) (warns []string, errs []error) {
 	value := v.(string)
 	pattern := regexp.MustCompile(`^(1[0-2]|0?[1-9]):[0-5][0-9] (AM|PM)$`)

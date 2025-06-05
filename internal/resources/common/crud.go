@@ -61,7 +61,7 @@ func Create[sdkPayloadType any, sdkResponseType any](
 	payloadtypeName := reflect.TypeOf(payload).Name()
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("failed to construct %s: %v", payloadtypeName, err))
 	}
 
@@ -76,13 +76,13 @@ func Create[sdkPayloadType any, sdkResponseType any](
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return append(diags, diag.FromErr(fmt.Errorf("failed to create %s after retries: %v", payloadtypeName, err))...)
 	}
 
 	idField, err := getIDField(outcomeResponse)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return append(diags, diag.FromErr(fmt.Errorf("error getting ID field from response: %v", err))...)
 	}
 
@@ -121,7 +121,7 @@ func Update[sdkPayloadType any, sdkResponseType any](
 	payloadtypeName := reflect.TypeOf(payload).Name()
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro %s for update: %v", payloadtypeName, err))
 	}
 
@@ -134,7 +134,7 @@ func Update[sdkPayloadType any, sdkResponseType any](
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("failed to update Jamf pro %s (ID: %s) after retries: %v", payloadtypeName, resourceID, err))
 	}
 
@@ -207,7 +207,7 @@ func Delete(ctx context.Context, d *schema.ResourceData, meta interface{}, serve
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro resource '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
 	}
 

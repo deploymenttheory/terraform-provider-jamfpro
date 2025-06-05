@@ -19,19 +19,19 @@ import (
 func constructImageUpload(d *schema.ResourceData) (string, error) {
 	imagePath := d.Get("enrollment_customization_image_source").(string)
 	if imagePath == "" {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return "", fmt.Errorf("enrollment_customization_image_source cannot be empty when specified")
 	}
 
 	ext := strings.ToLower(filepath.Ext(imagePath))
 	if ext != ".png" && ext != ".gif" {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return "", fmt.Errorf("image file must be PNG or GIF format, got: %s", ext)
 	}
 
 	file, err := os.Open(imagePath)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return "", fmt.Errorf("failed to open image file: %v", err)
 	}
 	defer file.Close()
@@ -39,7 +39,7 @@ func constructImageUpload(d *schema.ResourceData) (string, error) {
 	// Decode the image to determine its format and size
 	img, format, err := image.Decode(file)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return "", fmt.Errorf("failed to decode image: %v", err)
 	}
 
@@ -60,7 +60,7 @@ func constructImageUpload(d *schema.ResourceData) (string, error) {
 func constructBaseResource(d *schema.ResourceData) (*jamfpro.ResourceEnrollmentCustomization, error) {
 	brandingSettingsList := d.Get("branding_settings").([]interface{})
 	if len(brandingSettingsList) == 0 {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return nil, fmt.Errorf("branding_settings is required")
 	}
 	brandingSettingsData := brandingSettingsList[0].(map[string]interface{})
@@ -82,7 +82,7 @@ func constructBaseResource(d *schema.ResourceData) (*jamfpro.ResourceEnrollmentC
 
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Dock Item '%s' to JSON: %v", resource.DisplayName, err)
 	}
 

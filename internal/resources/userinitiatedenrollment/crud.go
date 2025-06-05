@@ -27,7 +27,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	// Step 1: Update main enrollment settings (API doesn't have a true "create" operation)
 	enrollmentSettings, err := constructEnrollmentSettings(d)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("failed to construct enrollment settings: %v", err))
 	}
 
@@ -40,14 +40,14 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("failed to update enrollment settings: %v", err))
 	}
 
 	// Step 2: Create language messaging configurations
 	messagingList, err := constructEnrollmentMessaging(d, client)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("failed to construct enrollment messaging: %v", err))
 	}
 
@@ -56,7 +56,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		languageCode := message.LanguageCode
 
 		if languageCode == "" {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			return diag.FromErr(fmt.Errorf("cannot update language message for '%s': empty language code", message.Name))
 		}
 
@@ -69,7 +69,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		})
 
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			return diag.FromErr(fmt.Errorf("failed to update enrollment message for language '%s' (code: %s): %v",
 				message.Name, languageCode, err))
 		}
@@ -78,7 +78,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	// Step 3: Create directory service group enrollment settings
 	accessGroups, err := constructDirectoryServiceGroupSettings(d)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("failed to construct directory service group settings: %v", err))
 	}
 
@@ -93,7 +93,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		})
 
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			return diag.FromErr(fmt.Errorf("failed to create directory service group enrollment setting for group '%s': %v", group.Name, err))
 		}
 	}
@@ -210,7 +210,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	// Step 1: Update main enrollment settings
 	enrollmentSettings, err := constructEnrollmentSettings(d)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("failed to construct updated enrollment settings: %v", err))
 	}
 
@@ -224,7 +224,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("failed to update base enrollment settings: %v", err))
 	}
 
@@ -245,7 +245,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		})
 
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			return diag.FromErr(fmt.Errorf("failed to fetch configured enrollment messages for cleanup: %v", err))
 		}
 
@@ -273,7 +273,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 			})
 
 			if deleteErr != nil {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 				return diag.FromErr(fmt.Errorf("failed to delete enrollment message for language '%s': %v", languageCode, deleteErr))
 			}
 		}
@@ -281,14 +281,14 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		// Step 2.3: Reconstruct and reapply updated messaging config
 		messagingList, err := constructEnrollmentMessaging(d, client)
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			return diag.FromErr(fmt.Errorf("failed to construct enrollment messaging: %v", err))
 		}
 
 		for i := range messagingList {
 			message := &messagingList[i]
 			if message.LanguageCode == "" {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 				return diag.FromErr(fmt.Errorf("cannot update enrollment message for language '%s': empty language code", message.Name))
 			}
 
@@ -302,7 +302,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 			})
 
 			if err != nil {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 				return diag.FromErr(fmt.Errorf("failed to update enrollment message for language '%s' (code: %s): %v", message.Name, message.LanguageCode, err))
 			}
 		}
@@ -379,7 +379,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		// 3.2: Create new directory service group settings from Terraform config
 		groupsToCreate, err := constructDirectoryServiceGroupSettings(d)
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			return diag.FromErr(fmt.Errorf("failed to construct directory service group settings for creation: %v", err))
 		}
 

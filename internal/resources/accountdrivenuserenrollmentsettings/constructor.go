@@ -26,7 +26,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceADUETokenSettings, erro
 
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return nil, fmt.Errorf("failed to marshal Account Driven User Enrollment Settings to JSON: %v", err)
 	}
 	log.Printf("[DEBUG] Constructed Account Driven User Enrollment Settings resource:\n%s", string(resourceJSON))

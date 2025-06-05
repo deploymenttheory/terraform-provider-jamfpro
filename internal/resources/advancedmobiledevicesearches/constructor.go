@@ -50,7 +50,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceAdvancedMobileDeviceSea
 
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Advanced Mobile Searches '%s' to JSON: %v", resource.Name, err)
 	}
 

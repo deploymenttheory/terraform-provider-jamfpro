@@ -61,7 +61,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	name := d.Get("name").(string)
 
 	if id != "" && name != "" {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("please provide either 'id' or 'name', not both"))
 	}
 
@@ -80,7 +80,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 		}
 		identifier = name
 	default:
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("either 'id' or 'name' must be provided"))
 	}
 
@@ -95,13 +95,13 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Dock Item Configuration resource with identifier '%s' after retries: %v", identifier, err))
 	}
 
 	if resource == nil {
 		d.SetId("")
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("the Jamf Pro Dock Item Configuration resource was not found using identifier '%s'", identifier))
 	}
 

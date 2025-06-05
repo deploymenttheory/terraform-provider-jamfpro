@@ -16,7 +16,7 @@ func customDiffAccountGroups(ctx context.Context, d *schema.ResourceDiff, meta i
 
 	if accessLevel == "Site Access" {
 		if _, ok := d.GetOk("site_id"); !ok {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			return fmt.Errorf("'site' must be set when 'access_level' is 'Site Access'")
 		}
 	}

@@ -21,16 +21,15 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 	err := checkAndEnableManagedSoftwareUpdateFeatureToggle(ctx, client)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("failed to ensure Jamf Pro Managed Software Update toggle is enabled: %v", err))
 	}
 
 	resource, err := construct(d)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Managed Software Update: %v", err))
 	}
 
@@ -49,7 +48,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Managed Software Update after retries: %v", err))
 	}
 
@@ -57,18 +56,18 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		planUUID := creationResponse.Plans[0].PlanID
 		d.SetId(planUUID)
 		if err := d.Set("plan_uuid", planUUID); err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 			return diag.FromErr(fmt.Errorf("error setting planID as plan_uuid: %v", err))
 		}
 
 		// Set group and object_type
 		if resource.Group.GroupId != "" {
 			if err := d.Set("group_id", resource.Group.GroupId); err != nil {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 				return diag.FromErr(fmt.Errorf("error setting group_id: %v", err))
 			}
 			if err := d.Set("object_type", resource.Group.ObjectType); err != nil {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 				return diag.FromErr(fmt.Errorf("error setting object_type: %v", err))
 			}
 		}

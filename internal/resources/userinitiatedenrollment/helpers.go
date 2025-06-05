@@ -12,7 +12,7 @@ import (
 // processes each language code adds lowercase version for case-insensitive matching
 // and creates a map of language names to their codes
 //
-//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
+
 func getLanguageCodesMap(client *jamfpro.Client) (map[string]string, error) {
 	languageCodes, err := client.GetEnrollmentLanguageCodes()
 	if err != nil {
