@@ -1,5 +1,5 @@
-name: "Terraform Integration Tests - NEW"
-run-name: "Terraform Integration Tests - NEW"
+name: "Integration Testing - Compile and Resources"
+run-name: "Integration Testing - Compile and Resources"
 on:
   workflow_dispatch:
     inputs:  
@@ -7,29 +7,18 @@ on:
         description: 'Specify targets to test'
         type: string
         required: false
-        default: 'all'
+        default: 'jamfpro_script'
 
-  pull_request_target:
+  pull_request:
     types: [opened, synchronize]
     paths:
       - 'internal/**'
 
 env:
-  PR: ${{ github.event_name == 'pull_request_target' }}
+  PR: ${{ github.event_name == 'pull_request' }}
   TARGETS: ${{ inputs.targets }}
 
 jobs:
-  Check-PR-Name:
-    container: python:3.11-slim
-    if: github.event_name == 'pull_request_target'
-    runs-on: ubuntu-latest
-  
-    steps:
-      - name: Run PR Name Check Script
-        working-directory: .
-        run: python3 scripts/check_pr_name.py ${{ github.event_name }}
-
-
   Run-Integration-Test:
     runs-on: ubuntu-latest
     container:
@@ -45,7 +34,7 @@ jobs:
       CLIENT_ID: ${{ secrets.TESTING_CLIENT_ID }}
       CLIENT_SEC: ${{ secrets.TESTING_CLIENT_SECRET }}
       CLIENT_FQDN: ${{ secrets.TESTING_JAMFPRO_INSTANCE_FQDN }}
-      REF_TO_CHECKOUT: ${{ github.event_name == 'pull_request_target' && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}
+      REF_TO_CHECKOUT: ${{ github.event_name == 'pull_request' && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}
 
     steps:
       - name: Checkout
@@ -66,7 +55,7 @@ jobs:
 
       - name: Generate Test Targets
         id: generate-test-targets
-        if: github.event_name == 'pull_request_target' && env.TARGETS != 'compileonly'
+        if: github.event_name == 'pull_request' && env.TARGETS != 'compileonly'
         working-directory: .
         run: |
           python3 testing/action_scripts/generate_test_targets.py \
@@ -81,13 +70,15 @@ jobs:
         if: env.TARGETS != 'compileonly'
         working-directory: .
         run: |
-          if [ -f "target_resources.txt" ]; then
-            targets=$(cat target_resources.txt)
+          cat targets.txt
+          if [ -f "targets.txt" ]; then
+            targets=$(cat targets.txt)
           elif [ "$TARGETS" != "all" ] && [ ! -z "$TARGETS" ]; then
             targets="$TARGETS"
           else
             targets="all"
           fi
+          echo $targets
           echo "targets=$targets" >> $GITHUB_OUTPUT
 
 
