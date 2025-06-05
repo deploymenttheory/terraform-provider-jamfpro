@@ -1,4 +1,4 @@
-package clouddistributionpoint
+package cloud_distribution_point
 
 import (
 	"context"
