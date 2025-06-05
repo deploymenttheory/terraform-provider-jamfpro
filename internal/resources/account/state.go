@@ -1,5 +1,5 @@
 // accounts_state.go
-package accounts
+package account
 
 import (
 	"strconv"

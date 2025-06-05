@@ -1,5 +1,5 @@
 // accounts_object.go
-package accounts
+package account
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

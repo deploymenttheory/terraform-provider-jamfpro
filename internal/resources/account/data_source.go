@@ -1,5 +1,5 @@
 // accounts_data_source.go
-package accounts
+package account
 
 import (
 	"context"

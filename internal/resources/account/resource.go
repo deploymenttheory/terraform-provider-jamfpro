@@ -1,5 +1,5 @@
 // accounts_resource.go
-package accounts
+package account
 
 import (
 	"fmt"
