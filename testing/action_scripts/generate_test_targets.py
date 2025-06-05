@@ -89,7 +89,7 @@ def main():
     for f in filepaths:
         found, res = extract_resource_from_path(f)
         if found:
-            targets.append(res)
+            targets.append("jamfpro_" + res)
 
     if not targets:
         print("no targets found")
