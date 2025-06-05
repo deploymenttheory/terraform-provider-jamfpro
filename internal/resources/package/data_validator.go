@@ -1,5 +1,5 @@
 // packages_data_handling.go
-package package
+package packages
 
 import (
 	"context"

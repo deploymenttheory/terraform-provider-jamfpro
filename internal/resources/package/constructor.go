@@ -1,5 +1,5 @@
 // packages_constructor.go
-package package
+package packages
 
 import (
 	"encoding/json"

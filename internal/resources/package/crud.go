@@ -1,5 +1,5 @@
 // packages_crud.go
-package package
+package packages
 
 import (
 	"context"

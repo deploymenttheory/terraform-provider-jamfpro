@@ -1,5 +1,5 @@
 // apiintegrations_data_source.go
-package api_integration"
+package api_integration
 
 import (
 	"context"
