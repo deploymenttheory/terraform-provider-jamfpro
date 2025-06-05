@@ -19,7 +19,7 @@ resource "jamfpro_managed_software_update_feature_toggle" "example" {
 
 ### Required
 
-- `toggle` (Boolean) Whether the Managed Software Updates Feature Toggle is enabled or not.
+- `toggle` (Boolean) Whether the Managed Software Update Feature Toggle is enabled or not.
 
 ### Optional
 
