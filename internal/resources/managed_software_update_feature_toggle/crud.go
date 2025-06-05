@@ -1,4 +1,4 @@
-package managedsoftwareupdatesfeaturetoggle
+package managed_software_update_feature_toggle
 
 import (
 	"context"
@@ -11,14 +11,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// create is responsible for initializing the Jamf Pro Managed Software Updates Feature Toggle configuration in Terraform.
+// create is responsible for initializing the Jamf Pro Managed Software Update Feature Toggle configuration in Terraform.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := constrconstructManagedSoftwareUpdatesFeatureToggle(d)
+	resource, err := constrconstructManagedSoftwareUpdateFeatureToggle(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Managed Software Updates Feature Toggle for create: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Managed Software Update Feature Toggle for create: %v", err))
 	}
 
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
@@ -30,7 +30,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Managed Software Updates Feature Toggle configuration: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Managed Software Update Feature Toggle configuration: %v", err))
 	}
 
 	d.SetId("jamfpro_managed_software_update_feature_toggle_singleton")
@@ -38,7 +38,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
-// read is responsible for reading the current state of the Jamf Pro Managed Software Updates Feature Toggle configuration.
+// read is responsible for reading the current state of the Jamf Pro Managed Software Update Feature Toggle configuration.
 func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
@@ -70,14 +70,14 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 	return read(ctx, d, meta, false)
 }
 
-// update is responsible for updating the Jamf Pro Managed Software Updates Feature Toggle configuration.
+// update is responsible for updating the Jamf Pro Managed Software Update Feature Toggle configuration.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	response, err := constrconstructManagedSoftwareUpdatesFeatureToggle(d)
+	response, err := constrconstructManagedSoftwareUpdateFeatureToggle(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Managed Software Updates Feature Toggle for update: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Managed Software Update Feature Toggle for update: %v", err))
 	}
 
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
@@ -89,7 +89,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Managed Software Updates Feature Toggle configuration: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Managed Software Update Feature Toggle configuration: %v", err))
 	}
 
 	d.SetId("jamfpro_managed_software_update_feature_toggle_singleton")
@@ -97,7 +97,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
-// delete is responsible for 'deleting' the Jamf Pro Managed Software Updates Feature Toggle configuration.
+// delete is responsible for 'deleting' the Jamf Pro Managed Software Update Feature Toggle configuration.
 // Since this resource represents a configuration and not an actual entity that can be deleted,
 // this function will simply remove it from the Terraform state.
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

@@ -48,8 +48,8 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/localadminpasswordsettings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macosconfigurationprofilesplist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macosconfigurationprofilesplistgenerator"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/managed_software_update_feature_toggle"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/managedsoftwareupdates"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/managedsoftwareupdatesfeaturetoggle"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mobiledeviceconfigurationprofilesplist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mobiledeviceextensionattributes"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mobiledeviceprestageenrollments"
@@ -445,7 +445,7 @@ func Provider() *schema.Provider {
 			"jamfpro_macos_configuration_profile_plist":           macosconfigurationprofilesplist.ResourceJamfProMacOSConfigurationProfilesPlist(),
 			"jamfpro_macos_configuration_profile_plist_generator": macosconfigurationprofilesplistgenerator.ResourceJamfProMacOSConfigurationProfilesPlistGenerator(),
 			"jamfpro_managed_software_update":                     managedsoftwareupdates.ResourceJamfProManagedSoftwareUpdate(),
-			"jamfpro_managed_software_update_feature_toggle":      managedsoftwareupdatesfeaturetoggle.ResourceManagedSoftwareUpdateFeatureToggle(),
+			"jamfpro_managed_software_update_feature_toggle":      managed_software_update_feature_toggle.ResourceManagedSoftwareUpdateFeatureToggle(),
 			"jamfpro_mobile_device_configuration_profile_plist":   mobiledeviceconfigurationprofilesplist.ResourceJamfProMobileDeviceConfigurationProfilesPlist(),
 			"jamfpro_mobile_device_extension_attribute":           mobiledeviceextensionattributes.ResourceJamfProMobileDeviceExtensionAttributes(),
 			"jamfpro_mobile_device_prestage_enrollment":           mobiledeviceprestageenrollments.ResourceJamfProMobileDevicePrestageEnrollment(),
