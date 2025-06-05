@@ -48,7 +48,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macos_configuration_profile_plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macos_configuration_profile_plist_generator"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/managed_software_update"
-  "github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/managed_software_update_feature_toggle"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/managed_software_update_feature_toggle"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mobile_device_configuration_profile_plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mobile_device_extension_attribute"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mobile_device_prestage_enrollment"
