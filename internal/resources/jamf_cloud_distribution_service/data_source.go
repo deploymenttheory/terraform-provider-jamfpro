@@ -1,4 +1,4 @@
-package jamfclouddistributionservice
+package jamf_cloud_distribution_service
 
 import (
 	"context"
