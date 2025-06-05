@@ -42,3 +42,5 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceScript, error) {
 
 	return resource, nil
 }
+
+// I am steve
