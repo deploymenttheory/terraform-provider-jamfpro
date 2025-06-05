@@ -79,6 +79,7 @@ jobs:
           else
             targets="all"
           fi
+          echo $targets
           echo "targets=$targets" >> $GITHUB_OUTPUT
 
 
