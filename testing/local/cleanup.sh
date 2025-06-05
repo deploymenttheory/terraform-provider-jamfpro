@@ -19,13 +19,15 @@ done
 
 printf "\n##### BEGINNING CLEANUP #####\n"
 printf "Purging data source files in /data_sources...\n"
-rm -rf ../data_sources
+# temp fix while joseph works on the testing...
+# rm -rf ../data_sources
+rm -rf ../action_scripts/testing
 printf "purging resources in jamfpro...\n"
 
 if [ "$FORCE" = true ]; then
-  python3 jamfpy/clean_up.py -f
+  python3 ../action_scripts/cleanup.py -f
 elif [ -n "$RUNID" ]; then
-  python3 jamfpy/clean_up.py -r $RUNID
+  python3 ../action_scripts/cleanup.py -r $RUNID
 else
-  python3 jamfpy/clean_up.py
+  python3 ../action_scripts/cleanup.py
 fi

@@ -1,10 +1,10 @@
 #!/bin/bash
 # Initial cleanup
-(cd ./setup && bash ./cleanup.sh)
+bash ./cleanup.sh
 # Scaffolding
-(cd ./setup && bash ./scaffolding.sh)
+(cd ../action_scripts && python3 ./scaffolding_static_group_computers.py)
 # Run tests
 terraform init
 terraform test
-# Post run cleanup
-(cd ./setup && bash ./cleanup.sh)
+# # Post run cleanup
+bash ./cleanup.sh
