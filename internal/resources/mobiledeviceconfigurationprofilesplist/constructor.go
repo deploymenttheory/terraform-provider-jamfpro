@@ -74,20 +74,17 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 		var err error
 		existingProfile, err = client.GetMobileDeviceConfigurationProfileByID(resourceID)
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return nil, fmt.Errorf("failed to get existing mobile device configuration profile by ID %s for update: %v", resourceID, err)
 		}
 
 		existingPayload := existingProfile.General.Payloads
 		existingPayload = html.UnescapeString(existingPayload)
 		if err := plist.NewDecoder(strings.NewReader(existingPayload)).Decode(&existingPlist); err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return nil, fmt.Errorf("failed to decode existing plist payload from Jamf Pro for update (ID: %s): %v\nPayload attempted:\n%s", resourceID, err, existingPayload)
 		}
 
 		newPayload := d.Get("payloads").(string)
 		if err := plist.NewDecoder(strings.NewReader(newPayload)).Decode(&newPlist); err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return nil, fmt.Errorf("failed to decode new plist payload from Terraform state for update: %v", err)
 		}
 
@@ -112,7 +109,6 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 		encoder := plist.NewEncoder(&buf)
 		encoder.Indent("    ")
 		if err := encoder.Encode(newPlist); err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return nil, fmt.Errorf("failed to encode updated plist payload: %v", err)
 		}
 
@@ -126,7 +122,6 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Mobile Device Configuration Profile '%s' to XML: %v", resource.General.Name, err)
 	}
 

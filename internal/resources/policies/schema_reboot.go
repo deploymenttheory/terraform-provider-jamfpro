@@ -28,7 +28,6 @@ func getPolicySchemaReboot() *schema.Resource {
 							return
 						}
 					}
-					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 					errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validMethods, v))
 					return
 				},
@@ -46,7 +45,6 @@ func getPolicySchemaReboot() *schema.Resource {
 							return
 						}
 					}
-					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 					errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validDisks, v))
 					return
 				},
@@ -64,7 +62,6 @@ func getPolicySchemaReboot() *schema.Resource {
 							return
 						}
 					}
-					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 					errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validOptions, v))
 					return
 				},
@@ -82,7 +79,6 @@ func getPolicySchemaReboot() *schema.Resource {
 							return
 						}
 					}
-					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 					errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validOptions, v))
 					return
 				},

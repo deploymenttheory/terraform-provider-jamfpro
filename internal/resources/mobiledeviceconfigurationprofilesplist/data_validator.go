@@ -42,18 +42,15 @@ func validatePayload(_ context.Context, diff *schema.ResourceDiff, _ interface{}
 
 	profile, err := plist.UnmarshalPayload(payload)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile_plist.%s': error unmarshalling payload: %v", resourceName, err)
 	}
 
 	if profile.PayloadIdentifier != profile.PayloadUUID {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile_plist.%s': Top-level PayloadIdentifier should match top-level PayloadUUID", resourceName)
 	}
 
 	errs := plist.ValidatePayloadFields(profile)
 	if len(errs) > 0 {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile_plist.%s': %v", resourceName, errs)
 	}
 
@@ -68,13 +65,11 @@ func validateMobileDeviceConfigurationProfileLevel(_ context.Context, diff *sche
 
 	plistData, err := plist.DecodePlist([]byte(payloads))
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile.%s': error decoding plist data: %v", resourceName, err)
 	}
 
 	payloadScope, err := datavalidators.GetPayloadScope(plistData)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile.%s': error getting 'PayloadScope' from plist: %v", resourceName, err)
 	}
 
@@ -85,12 +80,10 @@ func validateMobileDeviceConfigurationProfileLevel(_ context.Context, diff *sche
 	case "User Level":
 		expectedScope = "User"
 	default:
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile.%s': invalid 'level' attribute (%s)", resourceName, level)
 	}
 
 	if payloadScope != expectedScope {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile.%s': .hcl 'level' attribute (%s) does not match the 'PayloadScope' in the plist (%s). When .hcl 'level' attribute is 'Device Level', the payload value must be 'System'. When .hcl 'level' attribute is 'User Level', the payload value must be 'User'", resourceName, level, payloadScope)
 	}
 

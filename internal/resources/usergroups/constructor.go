@@ -51,7 +51,6 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceUserGroup, error) {
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return nil, fmt.Errorf("failed to marshal Jamf Pro User Group  '%s' to XML: %v", resource.Name, err)
 	}
 

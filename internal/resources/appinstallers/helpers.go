@@ -15,7 +15,6 @@ import (
 func checkJamfAppCatalogAppInstallerTermsAndConditions(ctx context.Context, client *jamfpro.Client) error {
 	status, err := client.GetJamfAppCatalogAppInstallerTermsAndConditionsStatus()
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("failed to fetch Jamf Pro App Installer terms and conditions status: %v", err)
 	}
 	fmt.Printf("Fetched Terms and Conditions Status: %+v\n", status)
@@ -27,7 +26,6 @@ func checkJamfAppCatalogAppInstallerTermsAndConditions(ctx context.Context, clie
 
 	_, err = client.AcceptJamfAppCatalogAppInstallerTermsAndConditions()
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("failed to accept Jamf Pro App Installer terms and conditions: %v", err)
 	}
 
@@ -37,7 +35,6 @@ func checkJamfAppCatalogAppInstallerTermsAndConditions(ctx context.Context, clie
 	return retry.RetryContext(ctx, time.Duration(maxRetries)*retryInterval, func() *retry.RetryError {
 		status, err := client.GetJamfAppCatalogAppInstallerTermsAndConditionsStatus()
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return retry.RetryableError(fmt.Errorf("failed to fetch Jamf Pro App Installer terms and conditions status: %v", err))
 		}
 		fmt.Printf("Retry Fetched Terms and Conditions Status: %+v\n", status)
@@ -45,7 +42,6 @@ func checkJamfAppCatalogAppInstallerTermsAndConditions(ctx context.Context, clie
 		if !status.Accepted {
 			time.Sleep(retryInterval)
 			retryInterval *= 2
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return retry.RetryableError(fmt.Errorf("terms and conditions are not yet accepted"))
 		}
 

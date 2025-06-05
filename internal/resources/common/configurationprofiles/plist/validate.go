@@ -26,7 +26,6 @@ func ValidatePayloadFields(profile *ConfigurationProfile) []error {
 			if strings.Contains(tag, "required") {
 				value := val.Field(i).Interface()
 				if value == "" {
-					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 					errs = append(errs, fmt.Errorf("plist key '%s' is required", field.Name))
 				}
 			}

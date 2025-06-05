@@ -14,7 +14,6 @@ import (
 func checkAndEnableManagedSoftwareUpdateFeatureToggle(ctx context.Context, client *jamfpro.Client) error {
 	status, err := client.GetManagedSoftwareUpdateFeatureToggle()
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("failed to fetch Managed Software Update Feature Toggle status: %v", err)
 	}
 	fmt.Printf("Fetched Feature Toggle Status: %+v\n", status)
@@ -27,7 +26,6 @@ func checkAndEnableManagedSoftwareUpdateFeatureToggle(ctx context.Context, clien
 	// Enable the feature toggle
 	_, err = client.UpdateManagedSoftwareUpdateFeatureToggle(&jamfpro.ResourceManagedSoftwareUpdateFeatureToggle{Toggle: true})
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("failed to enable Managed Software Update Feature Toggle: %v", err)
 	}
 
@@ -37,7 +35,6 @@ func checkAndEnableManagedSoftwareUpdateFeatureToggle(ctx context.Context, clien
 	return retry.RetryContext(ctx, time.Duration(maxRetries)*retryInterval, func() *retry.RetryError {
 		status, err := client.GetManagedSoftwareUpdateFeatureToggle()
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return retry.RetryableError(fmt.Errorf("failed to fetch Managed Software Update Feature Toggle status: %v", err))
 		}
 		fmt.Printf("Retry Fetched Feature Toggle Status: %+v\n", status)
@@ -45,7 +42,6 @@ func checkAndEnableManagedSoftwareUpdateFeatureToggle(ctx context.Context, clien
 		if !status.Toggle {
 			time.Sleep(retryInterval)
 			retryInterval *= 2
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return retry.RetryableError(fmt.Errorf("managed Software Update Feature Toggle is not yet enabled"))
 		}
 

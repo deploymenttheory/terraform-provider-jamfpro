@@ -32,7 +32,6 @@ func validateJamfProResourcePrinterDataFields(_ context.Context, diff *schema.Re
 	// Scenario 1: When 'use_generic' is true, 'ppd_path' must be set to the generic path
 	if useGeneric.(bool) {
 		expectedPPDPath := "/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/PrintCore.framework/Resources/Generic.ppd"
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		if ppdPath, ok := diff.GetOk("ppd_path"); !ok || ppdPath.(string) != expectedPPDPath {
 			return fmt.Errorf("in 'jamfpro_printer.%s': when 'use_generic' is true, 'ppd_path' must be set to '%s'", resourceName, expectedPPDPath)
 		}
@@ -41,7 +40,6 @@ func validateJamfProResourcePrinterDataFields(_ context.Context, diff *schema.Re
 	// Scenario 2: When 'use_generic' is true, 'ppd' must be empty
 	if useGeneric.(bool) {
 		if ppd, ok := diff.GetOk("ppd"); ok && ppd.(string) != "" {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return fmt.Errorf("in 'jamfpro_printer.%s': when 'use_generic' is true, 'ppd' must be empty", resourceName)
 		}
 	}
@@ -49,7 +47,6 @@ func validateJamfProResourcePrinterDataFields(_ context.Context, diff *schema.Re
 	// Scenario 3: When 'use_generic' is false, 'ppd_path' must not be empty
 	if !useGeneric.(bool) {
 		if ppdPath, ok := diff.GetOk("ppd_path"); !ok || ppdPath == "" {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return fmt.Errorf("in 'jamfpro_printer.%s': when 'use_generic' is false, 'ppd_path' must not be empty", resourceName)
 		}
 	}
@@ -57,7 +54,6 @@ func validateJamfProResourcePrinterDataFields(_ context.Context, diff *schema.Re
 	// Scenario 4: When 'use_generic' is false, 'ppd' must not be empty
 	if !useGeneric.(bool) {
 		if ppd, ok := diff.GetOk("ppd"); !ok || ppd == "" {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return fmt.Errorf("in 'jamfpro_printer.%s': when 'use_generic' is false, 'ppd' must not be empty", resourceName)
 		}
 	}

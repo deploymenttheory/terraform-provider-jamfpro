@@ -20,7 +20,6 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	settings, err := construct(d)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Inventory Collection Settings: %v", err))
 	}
 
@@ -33,13 +32,11 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Computer Inventory Collection Settings: %v", err))
 	}
 
 	customPaths, err := constructCustomPaths(d)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to construct custom paths: %v", err))
 	}
 
@@ -54,7 +51,6 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		})
 
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return diag.FromErr(fmt.Errorf("failed to create custom path %s: %v", customPath.Path, err))
 		}
 	}
@@ -106,7 +102,6 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	if d.HasChange("computer_inventory_collection_preferences") {
 		settings, err := construct(d)
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Inventory Collection Settings: %v", err))
 		}
 
@@ -119,7 +114,6 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		})
 
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Computer Inventory Collection Settings: %v", err))
 		}
 	}
@@ -139,7 +133,6 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		})
 
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return diag.FromErr(fmt.Errorf("failed to delete custom path ID %s: %v", id, err))
 		}
 	}
@@ -159,7 +152,6 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		})
 
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return diag.FromErr(fmt.Errorf("failed to create custom path %s: %v", addPath.Path, err))
 		}
 	}
@@ -193,7 +185,6 @@ func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 				})
 
 				if err != nil {
-					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 					return diag.FromErr(fmt.Errorf("failed to delete custom path (ID: %s, Path: %s) during resource destruction: %v",
 						id, path, err))
 				}

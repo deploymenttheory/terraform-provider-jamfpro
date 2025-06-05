@@ -33,11 +33,9 @@ func validateAuthenticationRequirements(_ context.Context, diff *schema.Resource
 	password, passwordOk := diff.GetOk("password")
 
 	if !usernameOk || username == "" {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_webhook.%s': when 'authentication_type' is set to 'Basic Authentication', 'username' must be provided", resourceName)
 	}
 	if !passwordOk || password == "" {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_webhook.%s': when 'authentication_type' is set to 'Basic Authentication', 'password' must be provided", resourceName)
 	}
 
@@ -64,7 +62,6 @@ func validateSmartGroupIDRequirement(_ context.Context, diff *schema.ResourceDif
 		if event.(string) == reqEvent {
 			smartGroupID, smartGroupIDOk := diff.GetOk("smart_group_id")
 			if !smartGroupIDOk || smartGroupID == 0 {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return fmt.Errorf("in 'jamfpro_webhook.%s': when 'event' is set to '%s', 'smart_group_id' must be provided and must be a valid non-zero integer", resourceName, event)
 			}
 			break

@@ -48,7 +48,6 @@ func ResourceJamfProWebhooks() *schema.Resource {
 				Description: "The URL the webhook will post data to.",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := val.(string)
-					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 					if !strings.HasPrefix(v, "http://") && !strings.HasPrefix(v, "https://") {
 						errs = append(errs, fmt.Errorf("%q must start with 'http://' or 'https://', got: %s", key, v))
 					}
@@ -68,8 +67,6 @@ func ResourceJamfProWebhooks() *schema.Resource {
 							return // Valid value found, return without error
 						}
 					}
-
-					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 					errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validContentTypes, v))
 					return warns, errs
 				},
@@ -95,8 +92,6 @@ func ResourceJamfProWebhooks() *schema.Resource {
 							return // Valid value found, return without error
 						}
 					}
-
-					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 					errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validEvents, v))
 					return warns, errs
 				},
@@ -110,7 +105,6 @@ func ResourceJamfProWebhooks() *schema.Resource {
 					v := val.(int)
 					if v < 0 || v > 16 {
 						errs := make([]error, 0)
-						//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 						errs = append(errs, fmt.Errorf("%q must be between 1 and 15, inclusive, got: %d", key, v))
 						return nil, errs
 					}
@@ -126,7 +120,6 @@ func ResourceJamfProWebhooks() *schema.Resource {
 					v := val.(int)
 					if v < 0 || v > 16 {
 						errs := make([]error, 0)
-						//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 						errs = append(errs, fmt.Errorf("%q must be between 1 and 15, inclusive, got: %d", key, v))
 						return nil, errs
 					}
@@ -147,8 +140,6 @@ func ResourceJamfProWebhooks() *schema.Resource {
 							return // Valid value found, return without error
 						}
 					}
-
-					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 					errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validAuthTypes, v))
 					return warns, errs
 				},

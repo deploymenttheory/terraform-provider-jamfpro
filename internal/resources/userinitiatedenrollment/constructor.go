@@ -118,7 +118,6 @@ func constructEnrollmentSettings(d *schema.ResourceData) (*jamfpro.ResourceEnrol
 
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return nil, fmt.Errorf("failed to marshal Jamf Pro SMTP Server Settings to JSON: %v", err)
 	}
 
@@ -137,7 +136,6 @@ func constructEnrollmentMessaging(d *schema.ResourceData, client *jamfpro.Client
 		// Get language codes for mapping from the API
 		langCodes, err := getLanguageCodesMap(client)
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return nil, fmt.Errorf("failed to get language codes: %v", err)
 		}
 
@@ -233,7 +231,6 @@ func constructEnrollmentMessaging(d *schema.ResourceData, client *jamfpro.Client
 
 	messagesJSON, err := json.MarshalIndent(messages, "", "  ")
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return nil, fmt.Errorf("failed to marshal Jamf Pro enrollment messaging to JSON: %v", err)
 	}
 
@@ -275,7 +272,6 @@ func constructDirectoryServiceGroupSettings(d *schema.ResourceData) ([]*jamfpro.
 
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return nil, fmt.Errorf("failed to marshal Jamf Pro User-initiated enrollment Directory Service Groups to JSON: %v", err)
 	}
 

@@ -27,7 +27,6 @@ func resourceJamfProMacOSConfigurationProfilesPlistGeneratorCreate(ctx context.C
 
 	resource, err := constructJamfProMacOSConfigurationProfilesPlistGenerator(d)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro macOS Configuration Profile: %v", err))
 	}
 
@@ -42,7 +41,6 @@ func resourceJamfProMacOSConfigurationProfilesPlistGeneratorCreate(ctx context.C
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro macOS Configuration Profile '%s' after retries: %v", resource.General.Name, err))
 	}
 
@@ -96,7 +94,6 @@ func resourceJamfProMacOSConfigurationProfilesPlistGeneratorUpdate(ctx context.C
 
 	resource, err := constructJamfProMacOSConfigurationProfilesPlistGenerator(d)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro macOS Configuration Profile for update: %v", err))
 	}
 
@@ -109,7 +106,6 @@ func resourceJamfProMacOSConfigurationProfilesPlistGeneratorUpdate(ctx context.C
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro macOS Configuration Profile '%s' (ID: %s) after retries: %v", resource.General.Name, resourceID, err))
 	}
 
@@ -137,7 +133,6 @@ func resourceJamfProMacOSConfigurationProfilesPlistGeneratorDelete(ctx context.C
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro macOS Configuration Profile '%s' (ID: %s) after retries: %v", resourceName, resourceID, err))
 	}
 

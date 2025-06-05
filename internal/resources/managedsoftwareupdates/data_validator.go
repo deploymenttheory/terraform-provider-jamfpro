@@ -27,12 +27,10 @@ func validateGroupOrDevice(_ context.Context, diff *schema.ResourceDiff, _ inter
 	_, hasDevice := diff.GetOk("device")
 
 	if hasGroup && hasDevice {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_managed_software_update.%s': only one of 'group' or 'device' can be specified, not both", resourceName)
 	}
 
 	if !hasGroup && !hasDevice {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_managed_software_update.%s': either 'group' or 'device' must be specified", resourceName)
 	}
 
@@ -45,7 +43,6 @@ func validateConfigFields(_ context.Context, diff *schema.ResourceDiff, _ interf
 	config := diff.Get("config").([]interface{})
 
 	if len(config) == 0 {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_managed_software_update.%s': 'config' block is required", resourceName)
 	}
 
@@ -56,12 +53,10 @@ func validateConfigFields(_ context.Context, diff *schema.ResourceDiff, _ interf
 	maxDeferrals := configMap["max_deferrals"].(int)
 
 	if updateAction == "DOWNLOAD_INSTALL_ALLOW_DEFERRAL" && maxDeferrals == 0 {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_managed_software_update.%s': 'max_deferrals' must be set when 'update_action' is 'DOWNLOAD_INSTALL_ALLOW_DEFERRAL'", resourceName)
 	}
 
 	if (versionType == "SPECIFIC_VERSION" || versionType == "CUSTOM_VERSION") && specificVersion == "" {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("in 'jamfpro_managed_software_update.%s': 'specific_version' must be set when 'version_type' is 'SPECIFIC_VERSION' or 'CUSTOM_VERSION'", resourceName)
 	}
 

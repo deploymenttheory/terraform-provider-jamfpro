@@ -21,17 +21,14 @@ func verifyPackageUpload(ctx context.Context, client *jamfpro.Client, packageID 
 	err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
 		uploadedPackage, err := client.GetPackageByID(packageID)
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return retry.RetryableError(fmt.Errorf("failed to verify uploaded package: %v", err))
 		}
 
 		if uploadedPackage.HashValue == "" {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return retry.RetryableError(fmt.Errorf("waiting for package hash calculation to complete"))
 		}
 
 		if uploadedPackage.HashType != "SHA3_512" || uploadedPackage.HashValue != expectedHash {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return retry.NonRetryableError(fmt.Errorf("package hash verification failed: expected=%s, got=%s (type: %s)",
 				expectedHash, uploadedPackage.HashValue, uploadedPackage.HashType))
 		}
@@ -48,7 +45,6 @@ func verifyPackageUpload(ctx context.Context, client *jamfpro.Client, packageID 
 			}
 
 			if err := client.DeletePackageByID(packageID); err != nil {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return retry.RetryableError(fmt.Errorf("failed to clean up package %s: %v", packageID, err))
 			}
 
@@ -59,8 +55,6 @@ func verifyPackageUpload(ctx context.Context, client *jamfpro.Client, packageID 
 		if cleanupErr != nil {
 			log.Printf("[WARN] Failed to clean up package %s after verification failure: %v", packageID, cleanupErr)
 		}
-
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("failed to verify package upload: %v", err)
 	}
 

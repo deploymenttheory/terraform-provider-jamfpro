@@ -32,21 +32,18 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 				settings["icon_url"] = uploadResponse.Url
 				brandingSettingsList := []interface{}{settings}
 				if err := d.Set("branding_settings", brandingSettingsList); err != nil {
-					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 					return retry.NonRetryableError(fmt.Errorf("failed to set icon_url in schema: %v", err))
 				}
 			}
 			return nil
 		})
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return diag.FromErr(fmt.Errorf("failed to upload enrollment customization image: %v", err))
 		}
 	}
 
 	resource, err := constructBaseResource(d)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to construct enrollment customization: %v", err))
 	}
 
@@ -61,7 +58,6 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to create enrollment customization: %v", err))
 	}
 
@@ -77,7 +73,6 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	hasText := len(textPanes) > 0
 
 	if hasSSO && hasLDAP {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("invalid combination: SSO and LDAP panes cannot be used together"))
 	}
 
@@ -86,7 +81,6 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		for _, paneData := range textPanes {
 			textPane, err := constructTextPane(paneData.(map[string]interface{}))
 			if err != nil {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return diag.FromErr(fmt.Errorf("failed to construct text pane: %v", err))
 			}
 
@@ -99,7 +93,6 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 			})
 
 			if err != nil {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return diag.FromErr(fmt.Errorf("failed to create text pane: %v", err))
 			}
 		}
@@ -110,7 +103,6 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		for _, paneData := range ldapPanes {
 			ldapPane, err := constructLDAPPane(paneData.(map[string]interface{}))
 			if err != nil {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return diag.FromErr(fmt.Errorf("failed to construct LDAP pane: %v", err))
 			}
 
@@ -123,7 +115,6 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 			})
 
 			if err != nil {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return diag.FromErr(fmt.Errorf("failed to create LDAP pane: %v", err))
 			}
 		}
@@ -134,7 +125,6 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		for _, paneData := range ssoPanes {
 			ssoPane, err := constructSSOPane(paneData.(map[string]interface{}))
 			if err != nil {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return diag.FromErr(fmt.Errorf("failed to construct SSO pane: %v", err))
 			}
 
@@ -147,7 +137,6 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 			})
 
 			if err != nil {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return diag.FromErr(fmt.Errorf("failed to create SSO pane: %v", err))
 			}
 		}
@@ -192,7 +181,6 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to get prestage panes for enrollment customization: %v", err))
 	}
 
@@ -236,7 +224,6 @@ func readTextPanes(ctx context.Context, d *schema.ResourceData, client *jamfpro.
 
 	if len(textPanes) > 0 {
 		if err := d.Set("text_pane", textPanes); err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return fmt.Errorf("error setting text_pane: %v", err)
 		}
 	}
@@ -276,7 +263,6 @@ func readLDAPPanes(ctx context.Context, d *schema.ResourceData, client *jamfpro.
 
 	if len(ldapPanes) > 0 {
 		if err := d.Set("ldap_pane", ldapPanes); err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return fmt.Errorf("error setting ldap_pane: %v", err)
 		}
 	}
@@ -316,7 +302,6 @@ func readSSOPanes(ctx context.Context, d *schema.ResourceData, client *jamfpro.C
 
 	if len(ssoPanes) > 0 {
 		if err := d.Set("sso_pane", ssoPanes); err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return fmt.Errorf("error setting sso_pane: %v", err)
 		}
 	}
@@ -353,14 +338,12 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 					settings["icon_url"] = uploadResponse.Url
 					brandingSettingsList := []interface{}{settings}
 					if err := d.Set("branding_settings", brandingSettingsList); err != nil {
-						//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 						return retry.NonRetryableError(fmt.Errorf("failed to set icon_url in schema: %v", err))
 					}
 				}
 				return nil
 			})
 			if err != nil {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return diag.FromErr(fmt.Errorf("failed to upload enrollment customization image: %v", err))
 			}
 		}
@@ -368,7 +351,6 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	resource, err := constructBaseResource(d)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to construct enrollment customization: %v", err))
 	}
 
@@ -381,7 +363,6 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to update enrollment customization: %v", err))
 	}
 
@@ -404,7 +385,6 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		})
 
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return diag.FromErr(fmt.Errorf("failed to get prestage panes for enrollment customization: %v", err))
 		}
 
@@ -488,7 +468,6 @@ func handleTextPaneChanges(ctx context.Context, d *schema.ResourceData, client *
 				})
 
 				if err != nil {
-					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 					return fmt.Errorf("failed to delete text pane %d: %v", id, err)
 				}
 			}
@@ -501,7 +480,6 @@ func handleTextPaneChanges(ctx context.Context, d *schema.ResourceData, client *
 
 		textPane, err := constructTextPane(newPaneMap)
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return fmt.Errorf("failed to construct text pane: %v", err)
 		}
 
@@ -526,7 +504,6 @@ func handleTextPaneChanges(ctx context.Context, d *schema.ResourceData, client *
 			})
 
 			if err != nil {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return fmt.Errorf("failed to update text pane %d: %v", paneID, err)
 			}
 		} else {
@@ -539,7 +516,6 @@ func handleTextPaneChanges(ctx context.Context, d *schema.ResourceData, client *
 			})
 
 			if err != nil {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return fmt.Errorf("failed to create text pane: %v", err)
 			}
 		}
@@ -585,7 +561,6 @@ func handleLDAPPaneChanges(ctx context.Context, d *schema.ResourceData, client *
 				})
 
 				if err != nil {
-					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 					return fmt.Errorf("failed to delete LDAP pane %d: %v", id, err)
 				}
 			}
@@ -598,7 +573,6 @@ func handleLDAPPaneChanges(ctx context.Context, d *schema.ResourceData, client *
 
 		ldapPane, err := constructLDAPPane(newPaneMap)
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return fmt.Errorf("failed to construct LDAP pane: %v", err)
 		}
 
@@ -623,7 +597,6 @@ func handleLDAPPaneChanges(ctx context.Context, d *schema.ResourceData, client *
 			})
 
 			if err != nil {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return fmt.Errorf("failed to update LDAP pane %d: %v", paneID, err)
 			}
 		} else {
@@ -636,7 +609,6 @@ func handleLDAPPaneChanges(ctx context.Context, d *schema.ResourceData, client *
 			})
 
 			if err != nil {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return fmt.Errorf("failed to create LDAP pane: %v", err)
 			}
 		}
@@ -682,7 +654,6 @@ func handleSSOPaneChanges(ctx context.Context, d *schema.ResourceData, client *j
 				})
 
 				if err != nil {
-					//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 					return fmt.Errorf("failed to delete SSO pane %d: %v", id, err)
 				}
 			}
@@ -696,7 +667,6 @@ func handleSSOPaneChanges(ctx context.Context, d *schema.ResourceData, client *j
 		// Build the pane object
 		ssoPane, err := constructSSOPane(newPaneMap)
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return fmt.Errorf("failed to construct SSO pane: %v", err)
 		}
 
@@ -723,7 +693,6 @@ func handleSSOPaneChanges(ctx context.Context, d *schema.ResourceData, client *j
 			})
 
 			if err != nil {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return fmt.Errorf("failed to update SSO pane %d: %v", paneID, err)
 			}
 		} else {
@@ -737,7 +706,6 @@ func handleSSOPaneChanges(ctx context.Context, d *schema.ResourceData, client *j
 			})
 
 			if err != nil {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return fmt.Errorf("failed to create SSO pane: %v", err)
 			}
 		}
@@ -760,7 +728,6 @@ func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to delete enrollment customization: %v", err))
 	}
 

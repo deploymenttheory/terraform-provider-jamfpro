@@ -18,13 +18,11 @@ type invalidPrivInfo struct {
 func ValidateAccountPrivileges(client *jamfpro.Client, privileges jamfpro.AccountSubsetPrivileges) error {
 	versionInfo, err := client.GetJamfProVersion()
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("failed to fetch Jamf Pro version: %v", err)
 	}
 
 	accountsList, err := client.GetAccounts()
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("failed to fetch accounts for validation: %v", err)
 	}
 
@@ -93,8 +91,6 @@ func ValidateAccountPrivileges(client *jamfpro.Client, privileges jamfpro.Accoun
 				}
 			}
 		}
-
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("%s", msg.String())
 	}
 

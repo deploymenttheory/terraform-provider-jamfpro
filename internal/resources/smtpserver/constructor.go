@@ -65,7 +65,6 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceSMTPServer, error) {
 
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return nil, fmt.Errorf("failed to marshal Jamf Pro SMTP Server Settings to JSON: %v", err)
 	}
 

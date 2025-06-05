@@ -42,7 +42,6 @@ func ResourceJamfProDockItems() *schema.Resource {
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v, ok := val.(string)
 					if !ok {
-						//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 						errs = append(errs, fmt.Errorf("expected a string for %q but got a different type", key))
 						return
 					}
@@ -52,7 +51,6 @@ func ResourceJamfProDockItems() *schema.Resource {
 						"Folder": true,
 					}
 					if !validTypes[v] {
-						//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 						errs = append(errs, fmt.Errorf("%q must be one of 'App', 'File', or 'Folder', got: %s", key, v))
 					}
 					return

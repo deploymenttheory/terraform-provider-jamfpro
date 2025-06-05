@@ -73,7 +73,6 @@ func ResourceJamfProFileShareDistributionPoints() *schema.Resource {
 						"AFP": true,
 					}
 					if _, valid := validTypes[v]; !valid {
-						//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 						errs = append(errs, fmt.Errorf("%q must be one of 'SMB', or 'AFP', got: %s", key, v))
 					}
 					return warns, errs

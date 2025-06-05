@@ -41,14 +41,12 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileExtensionAttribut
 	}
 
 	// Validate the input type
-	//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 	if err := ValidateInputType(resource); err != nil {
 		return nil, fmt.Errorf("failed to construct: %v", err)
 	}
 
 	// Serialize and pretty-print the mobile device extension attribute object as JSON for logging
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
-	//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Mobile Device Extension Attribute to JSON: %v", err)
 	}

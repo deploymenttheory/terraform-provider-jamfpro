@@ -14,7 +14,6 @@ func construct(d *schema.ResourceData) (string, error) {
 	webSource := d.Get("icon_file_web_source").(string)
 
 	if filePath != "" && webSource != "" {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return "", fmt.Errorf("cannot specify both icon_file_path and icon_file_web_source, choose one source only")
 	}
 
@@ -25,12 +24,9 @@ func construct(d *schema.ResourceData) (string, error) {
 	if webSource != "" {
 		localPath, err := common.DownloadFile(webSource)
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return "", fmt.Errorf("failed to download icon from %s: %v", webSource, err)
 		}
 		return localPath, nil
 	}
-
-	//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 	return "", fmt.Errorf("either icon_file_path or icon_file_web_source must be specified")
 }

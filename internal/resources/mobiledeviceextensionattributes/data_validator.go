@@ -10,23 +10,19 @@ import (
 func ValidateInputType(resource *jamfpro.ResourceMobileExtensionAttribute) error {
 	// Check if InputType is empty
 	if resource.InputType.Type == "" {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("input_type.type must be set")
 	}
 
 	switch resource.InputType.Type {
 	case "Text Field":
 		if len(resource.InputType.PopupChoices.Choice) > 0 {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return fmt.Errorf("popup_choices should not be set when input_type is 'Text Field'")
 		}
 	case "Pop-up Menu":
 		if len(resource.InputType.PopupChoices.Choice) == 0 {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return fmt.Errorf("popup_choices must be set when input_type is 'Pop-up Menu'")
 		}
 	default:
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return fmt.Errorf("invalid input_type: %s", resource.InputType.Type)
 	}
 

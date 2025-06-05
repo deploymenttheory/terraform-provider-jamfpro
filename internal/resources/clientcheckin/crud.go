@@ -19,7 +19,6 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	resource, err := constructClientCheckInSettings(d)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Client Check-In for update: %v", err))
 	}
 
@@ -32,13 +31,11 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Client Check-In configuration after retries: %v", err))
 	}
 
 	policyProperties, err := constructPolicyProperties(d)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Policy Properties for update: %v", err))
 	}
 
@@ -51,7 +48,6 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Policy Properties configuration after retries: %v", err))
 	}
 
@@ -122,7 +118,6 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	checkinConfig, err := constructClientCheckInSettings(d)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Client Check-In for update: %v", err))
 	}
 
@@ -135,14 +130,12 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Client Check-In configuration after retries: %v", err))
 	}
 
 	if d.HasChange("allow_network_state_change_triggers") {
 		policyProperties, err := constructPolicyProperties(d)
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Policy Properties for update: %v", err))
 		}
 
@@ -155,7 +148,6 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		})
 
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Policy Properties configuration after retries: %v", err))
 		}
 	}

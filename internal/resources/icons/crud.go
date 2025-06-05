@@ -19,7 +19,6 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	filePath, err := construct(d)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to construct icon file path: %v", err))
 	}
 
@@ -28,14 +27,12 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		var apiErr error
 		uploadResponse, apiErr = client.UploadIcon(filePath)
 		if apiErr != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return retry.RetryableError(fmt.Errorf("failed to upload icon: %v", apiErr))
 		}
 		return nil
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Icon after retries: %v", err))
 	}
 
@@ -55,7 +52,6 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 	resourceID := d.Id()
 	iconID, err := strconv.Atoi(resourceID)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to parse icon ID %s: %v", resourceID, err))
 	}
 
@@ -95,14 +91,12 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	if d.HasChange("icon_file_path") || d.HasChange("icon_file_web_source") {
 		filePath, err := construct(d)
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return diag.FromErr(fmt.Errorf("failed to construct icon file path for update: %v", err))
 		}
 
 		err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 			uploadResponse, apiErr := client.UploadIcon(filePath)
 			if apiErr != nil {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return retry.RetryableError(fmt.Errorf("failed to upload icon: %v", apiErr))
 			}
 
@@ -111,7 +105,6 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		})
 
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Icon after retries: %v", err))
 		}
 

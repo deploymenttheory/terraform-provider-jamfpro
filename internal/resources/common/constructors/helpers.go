@@ -73,7 +73,6 @@ func MapSetToStructs[NestedObjectType any, ListItemPrimitiveType comparable](pat
 
 		value, ok := rawValue.(ListItemPrimitiveType)
 		if !ok {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return fmt.Errorf("value in %s has incorrect type: expected %T",
 				path, *new(ListItemPrimitiveType))
 		}

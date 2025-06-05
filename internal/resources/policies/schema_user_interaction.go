@@ -33,7 +33,6 @@ func getPolicySchemaUserInteraction() *schema.Resource {
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := val.(int)
 					if v%1440 != 0 {
-						//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 						errs = append(errs, fmt.Errorf("%q must be a multiple of 1440 (minutes in day), got: %d", key, v))
 					}
 					return

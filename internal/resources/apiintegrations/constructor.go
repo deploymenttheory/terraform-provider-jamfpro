@@ -24,7 +24,6 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceApiIntegration, error) 
 		for i, scope := range scopesList {
 			scopeStr, ok := scope.(string)
 			if !ok {
-				//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 				return nil, fmt.Errorf("failed to assert authorization scope to string")
 			}
 			authorizationScopes[i] = scopeStr
@@ -34,7 +33,6 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceApiIntegration, error) 
 
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Api Integration '%s' to JSON: %v", resource.DisplayName, err)
 	}
 

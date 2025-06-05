@@ -72,7 +72,6 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceManagedSoftwareUpdatePl
 	// Debug logging for config specifically
 	configJSON, err := json.MarshalIndent(resource.Config, "", "  ")
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return nil, fmt.Errorf("failed to marshal Jamf Pro managed software update config to JSON: %v", err)
 	}
 	log.Printf("[DEBUG] Constructed Jamf Pro managed software update config JSON:\n%s\n", string(configJSON))

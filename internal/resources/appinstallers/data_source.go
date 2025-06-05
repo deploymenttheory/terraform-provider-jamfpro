@@ -203,7 +203,6 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	name := d.Get("name").(string)
 
 	if resourceID == "" && name == "" {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("either id or name must be provided"))
 	}
 
@@ -214,14 +213,12 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 		// Get deployment directly by ID
 		appInstaller, err = client.GetJamfAppCatalogAppInstallerByID(resourceID)
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return diag.FromErr(fmt.Errorf("failed to fetch Jamf Pro App Installer Deployment by ID %s: %v", resourceID, err))
 		}
 	} else {
 		// Get deployment by name
 		appInstaller, err = client.GetJamfAppCatalogAppInstallerByName(name)
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return diag.FromErr(fmt.Errorf("failed to fetch Jamf Pro App Installer Deployment by name %s: %v", name, err))
 		}
 	}

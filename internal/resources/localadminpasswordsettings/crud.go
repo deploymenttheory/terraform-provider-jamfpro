@@ -17,7 +17,6 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	resource, err := constructLocalAdminPasswordSettings(d)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Local Admin Password Settings for update: %v", err))
 	}
 
@@ -30,7 +29,6 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Local Admin Password Settings configuration after retries: %v", err))
 	}
 
@@ -70,7 +68,6 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	localAdminPasswordSettingsConfig, err := constructLocalAdminPasswordSettings(d)
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Local Admin Password Settings for update: %v", err))
 	}
 
@@ -83,7 +80,6 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Local Admin Password Settings configuration after retries: %v", err))
 	}
 

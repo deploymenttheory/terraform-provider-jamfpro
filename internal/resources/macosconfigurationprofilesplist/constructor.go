@@ -92,21 +92,18 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		var err error
 		existingProfile, err = client.GetMacOSConfigurationProfileByID(resourceID)
 		if err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return nil, fmt.Errorf("failed to get existing configuration profile by ID for update operation: %v", err)
 		}
 
 		// Decode existing payload from Jamf Pro which has the jamf pro post processed uuid's etc
 		existingPayload := existingProfile.General.Payloads
 		if err := plist.NewDecoder(strings.NewReader(existingPayload)).Decode(&existingPlist); err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return nil, fmt.Errorf("failed to decode existing plist payload stored in jamf pro for update operation: %v", err)
 		}
 
 		// Decode payloads field from Terraform state ready for injection
 		newPayload := d.Get("payloads").(string)
 		if err := plist.NewDecoder(strings.NewReader(newPayload)).Decode(&newPlist); err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return nil, fmt.Errorf("failed to decode new plist payload from terraform state for update operation: %v", err)
 		}
 
@@ -125,7 +122,6 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		helpers.ValidatePayloadUUIDsMatch(existingPlist, newPlist, "Payload", &mismatches)
 
 		if len(mismatches) > 0 {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return nil, fmt.Errorf("configuration profile UUID mismatch found:\n%s", strings.Join(mismatches, "\n"))
 		}
 
@@ -134,7 +130,6 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		encoder := plist.NewEncoder(&buf)
 		encoder.Indent("    ")
 		if err := encoder.Encode(newPlist); err != nil {
-			//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 			return nil, fmt.Errorf("failed to encode plist payload with injected PayloadUUID and PayloadIdentifier: %v", err)
 		}
 
@@ -148,7 +143,6 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return nil, fmt.Errorf("failed to marshal Jamf Pro macOS Configuration Profile '%s' to XML: %v", resource.General.Name, err)
 	}
 

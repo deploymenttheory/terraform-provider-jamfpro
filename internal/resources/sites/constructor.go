@@ -19,7 +19,6 @@ func construct(d *schema.ResourceData) (*jamfpro.SharedResourceSite, error) {
 	// Serialize and pretty-print the Site object as XML for logging
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Site '%s' to XML: %v", resource.Name, err)
 	}
 

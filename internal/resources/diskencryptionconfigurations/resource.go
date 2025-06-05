@@ -53,7 +53,6 @@ func ResourceJamfProDiskEncryptionConfigurations() *schema.Resource {
 					}
 
 					if !found {
-						//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 						errs = append(errs, fmt.Errorf("%q must be one of [%s], got '%s'", key, strings.Join(validValues, ", "), value))
 					}
 
@@ -77,7 +76,6 @@ func ResourceJamfProDiskEncryptionConfigurations() *schema.Resource {
 					}
 
 					if !found {
-						//nolint:err113 // https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/650
 						errs = append(errs, fmt.Errorf("%q must be one of [%s], got '%s'", key, strings.Join(validValues, ", "), value))
 					}
 
