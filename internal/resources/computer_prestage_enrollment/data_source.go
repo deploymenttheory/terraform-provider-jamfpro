@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProComputerPrestageEnrollmentEnrollment provides information about a specific department in Jamf Pro.
-func DataSourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
+// DataSourceJamfProComputerPrestageEnrollment provides information about a specific department in Jamf Pro.
+func DataSourceJamfProComputerPrestageEnrollment() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceRead,
 		Timeouts: &schema.ResourceTimeout{

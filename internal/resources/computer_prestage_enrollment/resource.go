@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// resourceJamfProComputerPrestageEnrollmentEnrollment defines the schema for managing Jamf Pro Computer Prestages in Terraform.
-func ResourceJamfProComputerPrestageEnrollmentEnrollment() *schema.Resource {
+// resourceJamfProComputerPrestageEnrollment defines the schema for managing Jamf Pro Computer Prestages in Terraform.
+func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,
 		ReadContext:   readWithCleanup,
