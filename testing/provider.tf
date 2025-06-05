@@ -11,6 +11,7 @@ terraform {
     }
   }
 }
+
 provider "jamfpro" {
   jamfpro_instance_fqdn                = var.jamfpro_instance_fqdn
   auth_method                          = var.jamfpro_auth_method

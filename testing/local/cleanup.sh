@@ -23,9 +23,9 @@ rm -rf ../data_sources
 printf "purging resources in jamfpro...\n"
 
 if [ "$FORCE" = true ]; then
-  python3 ../jamfpy/clean_up.py -f
+  python3 jamfpy/clean_up.py -f
 elif [ -n "$RUNID" ]; then
-  python3 ../jamfpy/clean_up.py -r $RUNID
+  python3 jamfpy/clean_up.py -r $RUNID
 else
-  python3 ../jamfpy/clean_up.py
+  python3 jamfpy/clean_up.py
 fi

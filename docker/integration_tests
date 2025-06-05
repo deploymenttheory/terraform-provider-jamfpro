@@ -4,14 +4,20 @@ ARG GO_VERSION=1.24.0
 ARG TERRAFORM_VERSION=1.12.0
 
 ENV PATH="/usr/local/go/bin:$PATH"
+ENV GOPATH=/go
+ENV GOMODCACHE=/go/pkg/mod
+ENV PYTHONUNBUFFERED=1
+
 WORKDIR /app
+
+
 
 COPY ./testing/requirements.txt .
 
 RUN set -eux; \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-        wget unzip git ca-certificates && \
+        wget unzip git ca-certificates uuid-runtime && \
     \
     # Go
     wget -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz && \
@@ -30,4 +36,5 @@ RUN set -eux; \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-ENV PYTHONUNBUFFERED=1
+COPY go.* .
+RUN go mod download -x
