@@ -52,7 +52,6 @@ def get_diff(owner, repo, token, pr_number: str):
     print(f"[DEBUG] GitHub API response status: {resp.status_code}")
     resp.raise_for_status()
     json_resp = resp.json()
-    print(f"[DEBUG] GitHub API response JSON: {json_resp}")
     return json_resp
 
 
