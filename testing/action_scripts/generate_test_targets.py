@@ -36,12 +36,9 @@ import sys
 import requests
 import argparse
 
-print("[DEBUG] Starting script execution.")
-
 FILEPATH_KEY = "filename"
 
 def get_diff(owner, repo, token, pr_number: str):
-    print(f"[DEBUG] get_diff called with owner={owner}, repo={repo}, pr_number={pr_number}")
     resp = requests.request(
         method="GET",
         url=f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/files",
@@ -49,53 +46,35 @@ def get_diff(owner, repo, token, pr_number: str):
             "Authorization": token
         }
     )
-    print(f"[DEBUG] GitHub API response status: {resp.status_code}")
     resp.raise_for_status()
     json_resp = resp.json()
     return json_resp
 
-
 def get_diff_path(response: list[dict]):
-    print(f"[DEBUG] get_diff_path called with response: {response}")
     files = []
     for i in response:
-        print(f"[DEBUG] Inspecting diff item: {i}")
         for k, v in i.items():
-            print(f"[DEBUG] Key: {k}, Value: {v}")
             if k == FILEPATH_KEY:
-                print(f"[DEBUG] Found file path: {v}")
                 files.append(v)
-    print(f"[DEBUG] Extracted file paths: {files}")
     return files
 
-
 def extract_resource_from_path(path: str):
-    print(f"[DEBUG] extract_resource_from_path called with path: {path}")
     path_split = path.split("/")
-    print(f"[DEBUG] Path split: {path_split}")
     if all(i in path_split for i in ["internal", "resources"]):
-        print(f"[DEBUG] Path contains both 'internal' and 'resources'. Resource: {path_split[2]}")
         return True, path_split[2]
-    print(f"[DEBUG] Path does not contain both 'internal' and 'resources'.")
     return False, None
 
-
 def save_targets_to_file(targets: list):
-    print(f"[DEBUG] save_targets_to_file called with targets: {targets}")
     with open("targets.txt", "w") as f:
         f.write(",".join(targets))        
-    print(f"[DEBUG] targets.txt written with: {','.join(targets)}")
-
 
 def main():
-    print("[DEBUG] main() called.")
     parser = argparse.ArgumentParser(description="Get PR diff and extract resource targets.")
     parser.add_argument("--repo-owner", required=True, help="Repository owner.")
     parser.add_argument("--repo-name", required=True, help="Repository name.")
     parser.add_argument("--pr-number", required=True, help="Pull request number.")
     parser.add_argument("--github-token", required=True, help="GitHub token.")
     args = parser.parse_args()
-    print(f"[DEBUG] Parsed arguments: {args}")
 
     diff_info = get_diff(
         args.repo_owner,
@@ -103,30 +82,20 @@ def main():
         args.github_token,
         args.pr_number
     )
-    print(f"[DEBUG] diff_info: {diff_info}")
 
     filepaths = get_diff_path(diff_info)
-    print(f"[DEBUG] filepaths: {filepaths}")
 
     targets = []
     for f in filepaths:
-        print(f"[DEBUG] Processing file path: {f}")
         found, res = extract_resource_from_path(f)
-        print(f"[DEBUG] extract_resource_from_path result: found={found}, res={res}")
         if found:
             targets.append(res)
-            print(f"[DEBUG] Appended target: {res}")
 
-    print(f"[DEBUG] Final targets list: {targets}")
     if not targets:
-        print("[DEBUG] No targets found. Exiting with error.")
         print("no targets found")
         sys.exit(1)
 
     save_targets_to_file(targets)
-    print("[DEBUG] Script completed successfully.")
-
 
 if __name__ == "__main__":
-    print("[DEBUG] __main__ entrypoint.")
     main()
