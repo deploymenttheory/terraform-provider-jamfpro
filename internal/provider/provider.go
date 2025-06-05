@@ -26,7 +26,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/building"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/category"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/client_checkin"
-  	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/cloud_distribution_point"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/cloud_distribution_point"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/cloud_ldap"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/cloudidp"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computer_extension_attribute"
@@ -376,7 +376,7 @@ func Provider() *schema.Provider {
 			"jamfpro_app_installer":                             app_installer.DataSourceJamfProAppInstallers(),
 			"jamfpro_building":                                  building.DataSourceJamfProBuildings(),
 			"jamfpro_category":                                  category.DataSourceJamfProCategories(),
-      			"jamfpro_cloud_distribution_point":                  cloud_distribution_point.DataSourceJamfProCloudDistributionPoint(),
+			"jamfpro_cloud_distribution_point":                  cloud_distribution_point.DataSourceJamfProCloudDistributionPoint(),
 			"jamfpro_cloud_idp":                                 cloudidp.DataSourceJamfProCloudIdp(),
 			"jamfpro_computer_extension_attribute":              computer_extension_attribute.DataSourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_prestage_enrollment":              computer_prestage_enrollment.DataSourceJamfProComputerPrestageEnrollment(),
