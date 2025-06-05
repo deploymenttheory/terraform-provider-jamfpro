@@ -1,5 +1,5 @@
 // mobile_device_applications_data_source.go
-package mobiledeviceapplications
+package mobile_device_application
 
 import (
 	"context"

@@ -49,7 +49,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macosconfigurationprofilesplist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macosconfigurationprofilesplistgenerator"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/managedsoftwareupdates"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mobiledeviceapplications"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mobile_device_application"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mobiledeviceconfigurationprofilesplist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mobiledeviceextensionattributes"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mobiledeviceprestageenrollments"
@@ -390,7 +390,7 @@ func Provider() *schema.Provider {
 			"jamfpro_ldap_server":                               ldapservers.DataSourceJamfProLDAPServers(),
 			"jamfpro_network_segment":                           networksegments.DataSourceJamfProNetworkSegments(),
 			"jamfpro_macos_configuration_profile_plist":         macosconfigurationprofilesplist.DataSourceJamfProMacOSConfigurationProfilesPlist(),
-			"jamfpro_mobile_device_application":                 mobiledeviceapplications.DataSourceJamfProMobileDeviceApplications(),
+			"jamfpro_mobile_device_application":                 mobile_device_application.DataSourceJamfProMobileDeviceApplications(),
 			"jamfpro_mobile_device_configuration_profile_plist": mobiledeviceconfigurationprofilesplist.DataSourceJamfProMobileDeviceConfigurationProfilesPlist(),
 			"jamfpro_mobile_device_prestage_enrollment":         mobiledeviceprestageenrollments.DataSourceJamfProMobileDevicePrestageEnrollmentEnrollment(),
 			"jamfpro_package":                                   packages.DataSourceJamfProPackages(),
@@ -446,7 +446,7 @@ func Provider() *schema.Provider {
 			"jamfpro_macos_configuration_profile_plist":           macosconfigurationprofilesplist.ResourceJamfProMacOSConfigurationProfilesPlist(),
 			"jamfpro_macos_configuration_profile_plist_generator": macosconfigurationprofilesplistgenerator.ResourceJamfProMacOSConfigurationProfilesPlistGenerator(),
 			"jamfpro_managed_software_update":                     managedsoftwareupdates.ResourceJamfProManagedSoftwareUpdate(),
-			"jamfpro_mobile_device_application":                   mobiledeviceapplications.ResourceJamfProMobileDeviceApplication(),
+			"jamfpro_mobile_device_application":                   mobile_device_application.ResourceJamfProMobileDeviceApplication(),
 			"jamfpro_mobile_device_configuration_profile_plist":   mobiledeviceconfigurationprofilesplist.ResourceJamfProMobileDeviceConfigurationProfilesPlist(),
 			"jamfpro_mobile_device_extension_attribute":           mobiledeviceextensionattributes.ResourceJamfProMobileDeviceExtensionAttributes(),
 			"jamfpro_mobile_device_prestage_enrollment":           mobiledeviceprestageenrollments.ResourceJamfProMobileDevicePrestageEnrollment(),

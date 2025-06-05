@@ -1,4 +1,4 @@
-package mobiledeviceapplications
+package mobile_device_application
 
 import (
 	"encoding/xml"
