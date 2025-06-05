@@ -1,5 +1,5 @@
 // volumepurchasinglocations_data_source.go
-package volumepurchasinglocations
+package volume_purchasing_locations
 
 import (
 	"context"

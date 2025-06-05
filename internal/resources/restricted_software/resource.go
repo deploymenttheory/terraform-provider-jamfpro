@@ -1,5 +1,5 @@
 // restrictedsoftware_resource.go
-package restrictedsoftware
+package restricted_software
 
 import (
 	"time"

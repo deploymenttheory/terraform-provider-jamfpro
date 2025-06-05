@@ -1,5 +1,5 @@
 // webhooks_data_source.go
-package webhooks
+package webhook
 
 import (
 	"context"

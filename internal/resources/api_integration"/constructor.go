@@ -1,5 +1,5 @@
 // apiintegrations_data_object.go
-package apiintegrations
+package api_integration"
 
 import (
 	"encoding/json"

@@ -1,5 +1,5 @@
 // categories_state.go
-package categories
+package category
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

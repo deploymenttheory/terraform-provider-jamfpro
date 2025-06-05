@@ -1,5 +1,5 @@
 // categories_data_object.go
-package categories
+package category
 
 import (
 	"encoding/xml"

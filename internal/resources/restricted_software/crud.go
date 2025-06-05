@@ -1,4 +1,4 @@
-package restrictedsoftware
+package restricted_software
 
 import (
 	"context"

@@ -1,5 +1,5 @@
 // categories_resource.go
-package categories
+package category
 
 import (
 	"time"

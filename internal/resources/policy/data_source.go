@@ -1,5 +1,5 @@
 // packages_data_source.go
-package policies
+package policy
 
 import (
 	"context"

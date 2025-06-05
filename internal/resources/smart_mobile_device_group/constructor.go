@@ -1,4 +1,4 @@
-package smartmobiledevicegroups
+package smart_mobile_device_group
 
 import (
 	"encoding/xml"

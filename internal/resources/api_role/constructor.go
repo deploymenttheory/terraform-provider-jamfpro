@@ -1,4 +1,4 @@
-package apiroles
+package api_role
 
 import (
 	"encoding/json"

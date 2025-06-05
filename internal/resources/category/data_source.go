@@ -1,5 +1,5 @@
 // categories_data_source.go
-package categories
+package category
 
 import (
 	"context"

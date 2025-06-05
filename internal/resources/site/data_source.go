@@ -1,5 +1,5 @@
 // sites_data_source.go
-package sites
+package site
 
 import (
 	"context"

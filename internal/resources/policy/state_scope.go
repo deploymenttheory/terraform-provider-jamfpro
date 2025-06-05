@@ -1,4 +1,4 @@
-package policies
+package policy
 
 // TODO remove log.prints, debug use only
 // TODO maybe review error handling here too?

@@ -1,5 +1,5 @@
 // advancedmobiledevicesearches_object.go
-package advancedmobiledevicesearches
+package advanced_mobile_device_search
 
 import (
 	"encoding/json"

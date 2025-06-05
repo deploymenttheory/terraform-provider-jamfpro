@@ -1,5 +1,5 @@
 // sso_settings_state.go
-package ssosettings
+package sso_settings
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

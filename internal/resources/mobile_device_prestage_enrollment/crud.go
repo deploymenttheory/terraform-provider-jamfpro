@@ -1,4 +1,4 @@
-package mobiledeviceprestageenrollments
+package mobile_device_prestage_enrollment
 
 import (
 	"context"

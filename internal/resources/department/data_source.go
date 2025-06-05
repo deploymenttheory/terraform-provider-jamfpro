@@ -1,5 +1,5 @@
 // department_data_source.go
-package departments
+package department
 
 import (
 	"context"

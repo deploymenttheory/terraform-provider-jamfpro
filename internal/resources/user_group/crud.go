@@ -1,4 +1,4 @@
-package usergroups
+package user_group
 
 import (
 	"context"

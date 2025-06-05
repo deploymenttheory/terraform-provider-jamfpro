@@ -1,4 +1,4 @@
-package computercheckin
+package client_checkin
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

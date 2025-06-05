@@ -1,4 +1,4 @@
-package appinstallers
+package app_installer
 
 import (
 	"context"

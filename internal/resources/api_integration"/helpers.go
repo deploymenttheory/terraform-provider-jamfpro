@@ -1,5 +1,5 @@
 // apiintegrations_data_validation.go
-package apiintegrations
+package api_integration"
 
 import (
 	"context"

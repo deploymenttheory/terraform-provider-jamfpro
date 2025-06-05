@@ -1,5 +1,5 @@
 // sso_settings_constructor.go
-package ssosettings
+package sso_settings
 
 import (
 	"encoding/json"

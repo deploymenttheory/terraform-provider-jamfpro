@@ -1,5 +1,5 @@
 // computerextensionattributes_data_source.go
-package computerextensionattributes
+package computer_extension_attribute
 
 import (
 	"context"

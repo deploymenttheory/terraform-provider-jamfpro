@@ -1,4 +1,4 @@
-package departments
+package department
 
 import (
 	"context"

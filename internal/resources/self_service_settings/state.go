@@ -1,4 +1,4 @@
-package selfservicesettings
+package self_service_settings
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

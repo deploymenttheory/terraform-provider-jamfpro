@@ -1,5 +1,5 @@
 // deviceenrollments_state.go
-package deviceenrollments
+package device_enrollments
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

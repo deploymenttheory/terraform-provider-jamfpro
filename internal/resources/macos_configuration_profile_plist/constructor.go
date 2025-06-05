@@ -1,4 +1,4 @@
-package macosconfigurationprofilesplist
+package macos_configuration_profile_plist
 
 import (
 	"bytes"

@@ -1,4 +1,4 @@
-package jamfprotect
+package jamf_protect
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

@@ -1,4 +1,4 @@
-package networksegments
+package network_segment
 
 import (
 	"context"

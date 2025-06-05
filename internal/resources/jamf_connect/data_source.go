@@ -1,5 +1,5 @@
 // jamfconnect_data_source.go
-package jamfconnect
+package jamf_connect
 
 import (
 	"context"

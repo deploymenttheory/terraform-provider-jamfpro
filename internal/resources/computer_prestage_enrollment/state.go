@@ -1,5 +1,5 @@
 // computerprestageenrollments_state.go
-package computerprestageenrollments
+package computer_prestage_enrollment
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

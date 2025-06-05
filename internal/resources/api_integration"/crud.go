@@ -1,4 +1,4 @@
-package apiintegrations
+package api_integration"
 
 import (
 	"context"

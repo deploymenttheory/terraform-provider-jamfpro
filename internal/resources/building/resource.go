@@ -1,5 +1,5 @@
 // buildings_resource.go
-package buildings
+package building
 
 import (
 	"time"

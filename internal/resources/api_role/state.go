@@ -1,5 +1,5 @@
 // apiroles_state.go
-package apiroles
+package api_role
 
 import (
 	"fmt"

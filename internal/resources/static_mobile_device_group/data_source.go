@@ -1,5 +1,5 @@
 // staticmobiledevicegroup_data_source.go
-package staticmobiledevicegroups
+package static_mobile_device_group
 
 import (
 	"context"

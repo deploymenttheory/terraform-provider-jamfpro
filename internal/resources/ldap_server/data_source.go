@@ -1,5 +1,5 @@
 // ldapservers_data_source.go
-package ldapservers
+package ldap_server
 
 import (
 	"context"

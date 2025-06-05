@@ -1,5 +1,5 @@
 // smartcomputergroup_resource.go
-package smartcomputergroups
+package smart_computer_group
 
 import (
 	"fmt"

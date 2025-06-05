@@ -1,4 +1,4 @@
-package ssocertificate
+package sso_certificate
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

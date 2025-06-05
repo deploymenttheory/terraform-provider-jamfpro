@@ -1,5 +1,5 @@
 // sites_resource.go
-package sites
+package site
 
 import (
 	"time"

@@ -1,5 +1,5 @@
 // staticmobiledevicegroup_crud.go
-package staticmobiledevicegroups
+package static_mobile_device_group
 
 import (
 	"context"

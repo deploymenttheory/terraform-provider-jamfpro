@@ -1,5 +1,5 @@
 // activationcode_resource.go
-package activationcode
+package activation_code
 
 import (
 	"time"

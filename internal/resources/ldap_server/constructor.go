@@ -1,5 +1,5 @@
 // ldapserver_object.go
-package ldapservers
+package ldap_server
 
 import (
 	"encoding/xml"

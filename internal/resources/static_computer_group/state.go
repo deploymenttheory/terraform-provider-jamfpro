@@ -1,5 +1,5 @@
 // computergroup_state.go
-package staticcomputergroups
+package static_computer_group
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

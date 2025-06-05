@@ -1,5 +1,5 @@
 // mobiledeviceconfigurationprofilesplist_state.go
-package mobiledeviceconfigurationprofilesplist
+package mobile_device_configuration_profile_plist
 
 import (
 	"sort"

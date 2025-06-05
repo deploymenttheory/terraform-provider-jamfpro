@@ -1,5 +1,5 @@
 // mobiledeviceextensionattributes_resource.go
-package mobiledeviceextensionattributes
+package mobile_device_extension_attribute
 
 import (
 	"time"

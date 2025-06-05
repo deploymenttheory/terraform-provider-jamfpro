@@ -1,5 +1,5 @@
 // printers_data_object.go
-package printers
+package printer
 
 import (
 	"encoding/xml"

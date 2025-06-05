@@ -1,5 +1,5 @@
 // advancedcomputersearches_resource.go
-package advancedcomputersearches
+package advanced_computer_search
 
 import (
 	"time"

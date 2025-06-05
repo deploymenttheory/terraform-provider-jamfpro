@@ -1,4 +1,4 @@
-package diskencryptionconfigurations
+package disk_encryption_configuration
 
 import (
 	"context"

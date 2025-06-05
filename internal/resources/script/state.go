@@ -1,5 +1,5 @@
 // scripts_state.go
-package scripts
+package script
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

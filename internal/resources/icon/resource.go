@@ -1,5 +1,5 @@
 // Icons_resource.go
-package icons
+package icon
 
 import (
 	"regexp"

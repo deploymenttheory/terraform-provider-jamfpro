@@ -1,5 +1,5 @@
 // sites_state.go
-package sites
+package site
 
 import (
 	"strconv"

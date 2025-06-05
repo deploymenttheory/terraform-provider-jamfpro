@@ -1,4 +1,4 @@
-package buildings
+package building
 
 import (
 	"context"

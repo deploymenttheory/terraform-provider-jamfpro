@@ -1,5 +1,5 @@
 // activationcode_object.go
-package activationcode
+package activation_code
 
 import (
 	"encoding/xml"

@@ -1,4 +1,4 @@
-package computerextensionattributes
+package computer_extension_attribute
 
 import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 

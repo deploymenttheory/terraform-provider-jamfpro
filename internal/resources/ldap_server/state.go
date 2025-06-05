@@ -1,5 +1,5 @@
 // ldapserver_state.go
-package ldapservers
+package ldap_server
 
 import (
 	"strconv"

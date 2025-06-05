@@ -1,5 +1,5 @@
 // filesharedistributionpoints_resource.go
-package filesharedistributionpoints
+package file_share_distribution_point
 
 import (
 	"fmt"

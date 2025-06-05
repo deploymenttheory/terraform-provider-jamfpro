@@ -1,5 +1,5 @@
 // accountgroups_resource.go
-package accountgroups
+package account_group
 
 import (
 	"fmt"

@@ -1,5 +1,5 @@
 // computerextensionattributes_resource.go
-package computerextensionattributes
+package computer_extension_attribute
 
 import (
 	"time"

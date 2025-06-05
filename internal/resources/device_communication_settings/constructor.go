@@ -1,5 +1,5 @@
 // Constructor file (device_communication_settings_constructor.go)
-package devicecommunicationsettings
+package device_communication_settings
 
 import (
 	"encoding/json"

@@ -1,5 +1,5 @@
 // usergroups_state.go
-package usergroups
+package user_group
 
 import (
 	"strconv"

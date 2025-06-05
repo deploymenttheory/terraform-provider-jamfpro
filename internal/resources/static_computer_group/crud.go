@@ -1,5 +1,5 @@
 // staticcomputergroup_crud.go
-package staticcomputergroups
+package static_computer_group
 
 import (
 	"context"

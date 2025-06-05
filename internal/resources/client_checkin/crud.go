@@ -1,4 +1,4 @@
-package computercheckin
+package client_checkin
 
 import (
 	"context"

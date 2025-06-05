@@ -1,5 +1,5 @@
 // department_state.go
-package departments
+package department
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

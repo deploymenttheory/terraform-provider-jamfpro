@@ -1,5 +1,5 @@
 // deviceenrollments_data_source.go
-package deviceenrollments
+package device_enrollments
 
 import (
 	"context"

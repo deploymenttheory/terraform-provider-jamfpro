@@ -1,4 +1,4 @@
-package ssocertificate
+package sso_certificate
 
 import (
 	"time"

@@ -1,5 +1,5 @@
 // webhooks_state.go
-package webhooks
+package webhook
 
 import (
 	"strconv"

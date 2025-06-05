@@ -1,4 +1,4 @@
-package cloudldap
+package cloud_ldap
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

@@ -1,4 +1,4 @@
-package ssofailover
+package sso_failover
 
 import (
 	"time"

@@ -1,4 +1,4 @@
-package jamfprotect
+package jamf_protect
 
 import (
 	"context"

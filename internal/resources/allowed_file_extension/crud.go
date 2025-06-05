@@ -1,4 +1,4 @@
-package allowedfileextensions
+package allowed_file_extension
 
 import (
 	"context"

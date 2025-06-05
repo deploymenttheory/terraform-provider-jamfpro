@@ -1,5 +1,5 @@
 // usergroups_data_source.go
-package usergroups
+package user_group
 
 import (
 	"context"

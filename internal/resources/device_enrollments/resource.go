@@ -1,5 +1,5 @@
 // deviceenrollments_resource.go
-package deviceenrollments
+package device_enrollments
 
 import (
 	"time"

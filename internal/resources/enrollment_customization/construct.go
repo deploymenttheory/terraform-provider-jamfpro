@@ -1,4 +1,4 @@
-package enrollmentcustomizations
+package enrollment_customization
 
 import (
 	"encoding/json"

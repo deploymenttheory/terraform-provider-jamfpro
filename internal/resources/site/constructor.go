@@ -1,5 +1,5 @@
 // sites_data_object.go
-package sites
+package site
 
 import (
 	"encoding/xml"

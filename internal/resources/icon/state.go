@@ -1,5 +1,5 @@
 // icons_state.go
-package icons
+package icon
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

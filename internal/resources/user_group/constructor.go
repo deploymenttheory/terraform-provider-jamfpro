@@ -1,5 +1,5 @@
 // usergroups_object.go
-package usergroups
+package user_group
 
 import (
 	"encoding/xml"

@@ -1,5 +1,5 @@
 // packages_helpers.go
-package packages
+package package
 
 import (
 	"context"

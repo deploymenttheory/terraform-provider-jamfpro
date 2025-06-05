@@ -1,5 +1,5 @@
 // scripts_object.go
-package scripts
+package script
 
 import (
 	"encoding/json"

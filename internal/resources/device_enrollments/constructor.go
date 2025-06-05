@@ -1,5 +1,5 @@
 // deviceenrollments_object.go
-package deviceenrollments
+package device_enrollments
 
 import (
 	"encoding/json"

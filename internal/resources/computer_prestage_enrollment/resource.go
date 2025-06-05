@@ -1,5 +1,5 @@
 // computerprestages_resource.go
-package computerprestageenrollments
+package computer_prestage_enrollment
 
 import (
 	"fmt"

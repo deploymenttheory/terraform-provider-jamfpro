@@ -1,5 +1,5 @@
 // advancedmobiledevicesearches_resource.go
-package advancedmobiledevicesearches
+package advanced_mobile_device_search
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

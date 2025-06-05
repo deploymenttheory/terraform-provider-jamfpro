@@ -1,5 +1,5 @@
 // computerprestageenrollments_data_source.go
-package computerprestageenrollments
+package computer_prestage_enrollment
 
 import (
 	"context"

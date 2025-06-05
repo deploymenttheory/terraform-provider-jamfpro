@@ -1,5 +1,5 @@
 // printers_resource.go
-package printers
+package printer
 
 import (
 	"time"

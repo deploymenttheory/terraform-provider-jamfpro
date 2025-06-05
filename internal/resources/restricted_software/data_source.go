@@ -1,5 +1,5 @@
 // restrictedsoftware_data_source.go
-package restrictedsoftware
+package restricted_software
 
 import (
 	"context"

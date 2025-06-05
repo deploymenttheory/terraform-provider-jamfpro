@@ -1,4 +1,4 @@
-package advancedusersearches
+package advanced_user_search
 
 import (
 	"context"

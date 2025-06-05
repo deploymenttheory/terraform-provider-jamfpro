@@ -1,5 +1,5 @@
 // policies_resource.go
-package policies
+package policy
 
 import (
 	"fmt"

@@ -1,5 +1,5 @@
 // mobiledeviceconfigurationprofilesplist_diff_suppress.go
-package mobiledeviceconfigurationprofilesplist
+package mobile_device_configuration_profile_plist
 
 import (
 	"fmt"

@@ -1,5 +1,5 @@
 // networksegments_object.go
-package networksegments
+package network_segment
 
 import (
 	"encoding/xml"

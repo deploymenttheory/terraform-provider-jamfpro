@@ -1,5 +1,5 @@
 // mobiledeviceprestageenrollments_data_validator.go
-package mobiledeviceprestageenrollments
+package mobile_device_prestage_enrollment
 
 import (
 	"context"

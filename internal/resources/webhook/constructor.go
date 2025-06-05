@@ -1,5 +1,5 @@
 // webhooks_object.go
-package webhooks
+package webhook
 
 import (
 	"log"

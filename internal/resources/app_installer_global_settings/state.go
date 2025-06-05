@@ -1,4 +1,4 @@
-package appinstallerglobalsettings
+package app_installer_global_settings
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

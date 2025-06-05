@@ -1,5 +1,5 @@
 // activationcode_state.go
-package activationcode
+package activation_code
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

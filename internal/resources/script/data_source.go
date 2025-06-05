@@ -1,5 +1,5 @@
 // scripts_data_source.go
-package scripts
+package script
 
 import (
 	"context"

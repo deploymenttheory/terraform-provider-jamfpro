@@ -1,5 +1,5 @@
 // department_resource.go
-package departments
+package department
 
 import (
 	"time"

@@ -1,5 +1,5 @@
 // packages_state.go
-package packages
+package package
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

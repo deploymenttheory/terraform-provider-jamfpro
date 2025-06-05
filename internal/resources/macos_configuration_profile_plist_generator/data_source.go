@@ -1,5 +1,5 @@
 // macosconfigurationprofilesplistgenerator_data_source.go
-package macosconfigurationprofilesplistgenerator
+package macos_configuration_profile_plist_generator
 
 import (
 	"context"

@@ -1,5 +1,5 @@
 // usergroups_data_validator.go
-package usergroups
+package user_group
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-package computerinventorycollectionsettings
+package computer_inventory_collection_settings
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

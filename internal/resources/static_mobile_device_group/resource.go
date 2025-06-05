@@ -1,4 +1,4 @@
-package staticmobiledevicegroups
+package static_mobile_device_group
 
 import (
 	"time"

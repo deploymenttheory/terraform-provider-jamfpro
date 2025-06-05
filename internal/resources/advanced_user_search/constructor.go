@@ -1,5 +1,5 @@
 // advancedusersearches_object.go
-package advancedusersearches
+package advanced_user_search
 
 import (
 	"encoding/xml"

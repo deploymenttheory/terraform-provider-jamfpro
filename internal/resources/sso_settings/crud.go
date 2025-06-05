@@ -1,5 +1,5 @@
 // sso_settings_crud.go
-package ssosettings
+package sso_settings
 
 import (
 	"context"

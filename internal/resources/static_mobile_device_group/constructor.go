@@ -1,5 +1,5 @@
 // staticmobiledevicegroup_object.go
-package staticmobiledevicegroups
+package static_mobile_device_group
 
 import (
 	"encoding/xml"

@@ -1,4 +1,4 @@
-package dockitems
+package dock_item
 
 import (
 	"context"

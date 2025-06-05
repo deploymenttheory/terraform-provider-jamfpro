@@ -1,5 +1,5 @@
 // printers_data_source.go
-package printers
+package printer
 
 import (
 	"context"

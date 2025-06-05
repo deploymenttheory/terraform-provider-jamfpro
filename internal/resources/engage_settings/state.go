@@ -1,4 +1,4 @@
-package engagesettings
+package engage_settings
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

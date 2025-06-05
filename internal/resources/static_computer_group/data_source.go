@@ -1,5 +1,5 @@
 // staticcomputergroup_data_source.go
-package staticcomputergroups
+package static_computer_group
 
 import (
 	"context"

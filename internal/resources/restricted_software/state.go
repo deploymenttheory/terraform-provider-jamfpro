@@ -1,5 +1,5 @@
 // restrictedsoftware_state.go
-package restrictedsoftware
+package restricted_software
 
 import (
 	"strconv"

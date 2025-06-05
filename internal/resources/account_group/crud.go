@@ -1,4 +1,4 @@
-package accountgroups
+package account_group
 
 import (
 	"context"

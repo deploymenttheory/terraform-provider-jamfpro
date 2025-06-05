@@ -1,4 +1,4 @@
-package ssofailover
+package sso_failover
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

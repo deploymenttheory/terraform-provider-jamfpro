@@ -1,5 +1,5 @@
 // computerprestageenrollments_object.go
-package computerprestageenrollments
+package computer_prestage_enrollment
 
 import (
 	"encoding/json"

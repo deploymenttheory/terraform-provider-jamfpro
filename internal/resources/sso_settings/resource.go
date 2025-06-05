@@ -1,5 +1,5 @@
 // sso_settings_resource.go
-package ssosettings
+package sso_settings
 
 import (
 	"time"

@@ -1,5 +1,5 @@
 // accountgroups_state.go
-package accountgroups
+package account_group
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

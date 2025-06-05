@@ -1,5 +1,5 @@
 // state.go
-package managedsoftwareupdates
+package managed_software_update
 
 import (
 	"fmt"

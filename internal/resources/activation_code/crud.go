@@ -1,4 +1,4 @@
-package activationcode
+package activation_code
 
 import (
 	"context"

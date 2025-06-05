@@ -1,5 +1,5 @@
 // restrictedsoftware_object.go
-package restrictedsoftware
+package restricted_software
 
 import (
 	"encoding/xml"

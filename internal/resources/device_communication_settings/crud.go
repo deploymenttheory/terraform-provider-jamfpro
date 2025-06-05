@@ -1,5 +1,5 @@
 // CRUD file (device_communication_settings_crud.go)
-package devicecommunicationsettings
+package device_communication_settings
 
 import (
 	"context"

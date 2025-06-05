@@ -1,5 +1,5 @@
 // accountgroups_data_source.go
-package accountgroups
+package account_group
 
 import (
 	"context"

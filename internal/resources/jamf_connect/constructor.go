@@ -1,4 +1,4 @@
-package jamfconnect
+package jamf_connect
 
 import (
 	"encoding/json"

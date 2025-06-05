@@ -1,5 +1,5 @@
 // State file (device_communication_settings_state.go)
-package devicecommunicationsettings
+package device_communication_settings
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

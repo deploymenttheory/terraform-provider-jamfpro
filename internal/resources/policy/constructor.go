@@ -1,4 +1,4 @@
-package policies
+package policy
 
 import (
 	"encoding/xml"

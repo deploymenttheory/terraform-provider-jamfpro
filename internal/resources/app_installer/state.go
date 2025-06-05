@@ -1,5 +1,5 @@
 // state.go
-package appinstallers
+package app_installer
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

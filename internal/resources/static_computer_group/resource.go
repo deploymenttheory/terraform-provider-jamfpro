@@ -1,4 +1,4 @@
-package staticcomputergroups
+package static_computer_group
 
 import (
 	"time"

@@ -1,5 +1,5 @@
 // allowedfileextensions_object.go
-package allowedfileextensions
+package allowed_file_extension
 
 import (
 	"encoding/xml"

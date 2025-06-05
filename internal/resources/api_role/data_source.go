@@ -1,5 +1,5 @@
 // apiroles_data_source.go
-package apiroles
+package api_role
 
 import (
 	"context"

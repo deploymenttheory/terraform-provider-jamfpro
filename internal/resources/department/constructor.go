@@ -1,5 +1,5 @@
 // department_data_object.go
-package departments
+package department
 
 import (
 	"encoding/xml"

@@ -1,5 +1,5 @@
 // mobiledeviceprestageenrollments_object.go
-package mobiledeviceprestageenrollments
+package mobile_device_prestage_enrollment
 
 import (
 	"encoding/json"

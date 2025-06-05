@@ -1,5 +1,5 @@
 // diskencryptionconfigurations_resource.go
-package diskencryptionconfigurations
+package disk_encryption_configuration
 
 import (
 	"fmt"

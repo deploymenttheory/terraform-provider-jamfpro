@@ -1,5 +1,5 @@
 // accountgroups_object.go
-package accountgroups
+package account_group
 
 import (
 	"encoding/xml"

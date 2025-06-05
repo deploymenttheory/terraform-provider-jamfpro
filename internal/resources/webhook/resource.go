@@ -1,5 +1,5 @@
 // webhooks_resource.go
-package webhooks
+package webhook
 
 import (
 	"fmt"

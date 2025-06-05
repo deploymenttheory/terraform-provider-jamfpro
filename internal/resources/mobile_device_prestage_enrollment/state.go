@@ -1,5 +1,5 @@
 // mobiledeviceprestageenrollments_state.go
-package mobiledeviceprestageenrollments
+package mobile_device_prestage_enrollment
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

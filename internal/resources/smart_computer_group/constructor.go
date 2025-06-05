@@ -1,5 +1,5 @@
 // smartcomputergroup_object.go
-package smartcomputergroups
+package smart_computer_group
 
 import (
 	"encoding/xml"

@@ -1,5 +1,5 @@
 // smartcomputergroup_data_source.go
-package smartcomputergroups
+package smart_computer_group
 
 import (
 	"context"

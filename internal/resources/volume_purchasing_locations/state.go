@@ -1,5 +1,5 @@
 // volumepurchasinglocations_state.go
-package volumepurchasinglocations
+package volume_purchasing_locations
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

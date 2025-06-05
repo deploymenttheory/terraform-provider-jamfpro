@@ -1,2 +1,2 @@
 // staticcomputergroup_data_validator.go
-package staticcomputergroups
+package static_computer_group

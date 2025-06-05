@@ -1,5 +1,5 @@
 // resources_data_source.go
-package networksegments
+package network_segment
 
 import (
 	"context"

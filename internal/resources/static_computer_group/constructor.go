@@ -1,5 +1,5 @@
 // staticcomputergroup_object.go
-package staticcomputergroups
+package static_computer_group
 
 import (
 	"encoding/xml"

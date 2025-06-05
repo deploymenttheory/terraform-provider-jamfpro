@@ -1,5 +1,5 @@
 // dockitems_state.go
-package dockitems
+package dock_item
 
 import (
 	"strconv"

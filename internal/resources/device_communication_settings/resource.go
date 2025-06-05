@@ -1,5 +1,5 @@
 // Resource file (device_communication_settings_resource.go)
-package devicecommunicationsettings
+package device_communication_settings
 
 import (
 	"time"

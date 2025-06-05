@@ -1,4 +1,4 @@
-package localadminpasswordsettings
+package local_admin_password_settings
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

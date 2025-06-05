@@ -1,5 +1,5 @@
 // ldapservers_resource.go
-package ldapservers
+package ldap_server
 
 import (
 	"time"

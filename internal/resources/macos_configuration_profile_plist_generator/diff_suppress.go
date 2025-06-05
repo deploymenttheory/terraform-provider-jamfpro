@@ -1,5 +1,5 @@
 // macosconfigurationprofilesplistgenerator_diff_suppress.go
-package macosconfigurationprofilesplistgenerator
+package macos_configuration_profile_plist_generator
 
 import (
 	"log"

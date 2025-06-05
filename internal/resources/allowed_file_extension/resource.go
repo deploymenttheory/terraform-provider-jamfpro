@@ -1,5 +1,5 @@
 // allowedfileextensions_resource.go
-package allowedfileextensions
+package allowed_file_extension
 
 import (
 	"time"

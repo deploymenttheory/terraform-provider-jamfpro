@@ -1,4 +1,4 @@
-package computerprestageenrollments
+package computer_prestage_enrollment
 
 import (
 	"context"

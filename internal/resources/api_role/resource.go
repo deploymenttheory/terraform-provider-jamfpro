@@ -1,5 +1,5 @@
 // apiroles_resource.go
-package apiroles
+package api_role
 
 import (
 	"time"

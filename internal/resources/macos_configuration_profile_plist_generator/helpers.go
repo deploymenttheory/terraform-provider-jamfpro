@@ -1,5 +1,5 @@
 // macosconfigurationprofilesplistgenerator_helpers.go
-package macosconfigurationprofilesplistgenerator
+package macos_configuration_profile_plist_generator
 
 import (
 	"fmt"

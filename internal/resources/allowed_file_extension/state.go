@@ -1,5 +1,5 @@
 // allowedfileextensions_state.go
-package allowedfileextensions
+package allowed_file_extension
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

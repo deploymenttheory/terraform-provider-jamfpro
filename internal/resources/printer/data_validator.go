@@ -1,5 +1,5 @@
 // printers_data_validator.go
-package printers
+package printer
 
 import (
 	"context"

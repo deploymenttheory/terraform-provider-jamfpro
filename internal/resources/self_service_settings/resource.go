@@ -1,4 +1,4 @@
-package selfservicesettings
+package self_service_settings
 
 import (
 	"time"

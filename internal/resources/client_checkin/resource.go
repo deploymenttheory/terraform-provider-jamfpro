@@ -1,5 +1,5 @@
 // computercheckin_resource.go
-package computercheckin
+package client_checkin
 
 import (
 	"context"

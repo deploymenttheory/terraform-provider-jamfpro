@@ -1,4 +1,4 @@
-package ldapservers
+package ldap_server
 
 import (
 	"context"

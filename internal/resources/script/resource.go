@@ -1,5 +1,5 @@
 // scripts_resource.go
-package scripts
+package script
 
 import (
 	"time"

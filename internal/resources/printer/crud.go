@@ -1,4 +1,4 @@
-package printers
+package printer
 
 import (
 	"context"

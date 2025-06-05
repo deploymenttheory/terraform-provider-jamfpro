@@ -1,4 +1,4 @@
-package mobiledeviceextensionattributes
+package mobile_device_extension_attribute
 
 import (
 	"reflect"

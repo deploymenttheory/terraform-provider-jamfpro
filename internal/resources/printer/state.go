@@ -1,5 +1,5 @@
 // printers_state.go
-package printers
+package printer
 
 import (
 	"strconv"

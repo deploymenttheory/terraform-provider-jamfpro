@@ -1,5 +1,5 @@
 // mobiledeviceextensionattributes_data_source.go
-package mobiledeviceextensionattributes
+package mobile_device_extension_attribute
 
 import (
 	"context"

@@ -1,5 +1,5 @@
 // enrollment_customization_state.go
-package enrollmentcustomizations
+package enrollment_customization
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

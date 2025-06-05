@@ -1,5 +1,5 @@
 // buildings_object.go
-package buildings
+package building
 
 import (
 	"encoding/json"

@@ -1,5 +1,5 @@
 // icons_object.go
-package icons
+package icon
 
 import (
 	"fmt"

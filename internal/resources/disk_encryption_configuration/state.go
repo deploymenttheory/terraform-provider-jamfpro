@@ -1,5 +1,5 @@
 // diskencryptionconfigurations_state.go
-package diskencryptionconfigurations
+package disk_encryption_configuration
 
 import (
 	"strconv"

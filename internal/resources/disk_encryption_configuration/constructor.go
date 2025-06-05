@@ -1,5 +1,5 @@
 // diskencryptionconfigurations_object.go
-package diskencryptionconfigurations
+package disk_encryption_configuration
 
 import (
 	"log"

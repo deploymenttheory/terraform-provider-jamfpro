@@ -1,5 +1,5 @@
 // advancedusersearches_data_source.go
-package advancedusersearches
+package advanced_user_search
 
 import (
 	"context"

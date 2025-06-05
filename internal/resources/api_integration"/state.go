@@ -1,5 +1,5 @@
 // apiintegrations_state.go
-package apiintegrations
+package api_integration"
 
 import (
 	"fmt"

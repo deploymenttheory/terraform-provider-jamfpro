@@ -1,4 +1,4 @@
-package deviceenrollments
+package device_enrollments
 
 import (
 	"context"

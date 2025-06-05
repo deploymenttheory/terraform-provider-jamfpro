@@ -1,5 +1,5 @@
 // webhooks_data_validator.go
-package webhooks
+package webhook
 
 import (
 	"context"

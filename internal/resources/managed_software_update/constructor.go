@@ -1,4 +1,4 @@
-package managedsoftwareupdates
+package managed_software_update
 
 import (
 	"encoding/json"

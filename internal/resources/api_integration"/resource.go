@@ -1,5 +1,5 @@
 // apiintegrations_resource.go
-package apiintegrations
+package api_integration"
 
 import (
 	"time"

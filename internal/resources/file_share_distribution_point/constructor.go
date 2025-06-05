@@ -1,5 +1,5 @@
 // filesharedistributionpoints_object.go
-package filesharedistributionpoints
+package file_share_distribution_point
 
 import (
 	"log"

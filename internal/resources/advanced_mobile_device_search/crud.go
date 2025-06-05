@@ -1,4 +1,4 @@
-package advancedmobiledevicesearches
+package advanced_mobile_device_search
 
 import (
 	"context"

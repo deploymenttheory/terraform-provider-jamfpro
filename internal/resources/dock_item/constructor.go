@@ -1,5 +1,5 @@
 // dockitems_data_object.go
-package dockitems
+package dock_item
 
 import (
 	"encoding/xml"

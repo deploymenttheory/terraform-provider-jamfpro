@@ -1,5 +1,5 @@
 // volume_purchasing_locations_resource.go
-package volumepurchasinglocations
+package volume_purchasing_locations
 
 import (
 	"time"

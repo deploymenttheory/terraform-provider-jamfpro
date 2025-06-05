@@ -1,4 +1,4 @@
-package selfservicesettings
+package self_service_settings
 
 // selfservicesettings_resource.go
 // Package selfservicesettings provides the schema and CRUD operations for managing Jamf Pro Self Service Settings in Terraform.

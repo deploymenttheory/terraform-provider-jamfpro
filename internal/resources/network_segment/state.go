@@ -1,5 +1,5 @@
 // networksegments_state.go
-package networksegments
+package network_segment
 
 import (
 	"strconv"

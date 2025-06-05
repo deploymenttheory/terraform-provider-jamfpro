@@ -1,5 +1,5 @@
 // mobiledevicegroup_state.go
-package staticmobiledevicegroups
+package static_mobile_device_group
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

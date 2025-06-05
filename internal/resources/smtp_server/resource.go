@@ -1,4 +1,4 @@
-package smtpserver
+package smtp_server
 
 import (
 	"time"

@@ -1,5 +1,5 @@
 // computercheckin_data_validation.go
-package computercheckin
+package client_checkin
 
 import (
 	"fmt"

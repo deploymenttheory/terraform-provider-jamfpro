@@ -1,5 +1,5 @@
 // mobiledeviceprestageenrollments_data_source.go
-package mobiledeviceprestageenrollments
+package mobile_device_prestage_enrollment
 
 import (
 	"context"

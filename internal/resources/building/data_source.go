@@ -1,5 +1,5 @@
 // buildings_data_source.go
-package buildings
+package building
 
 import (
 	"context"

@@ -1,5 +1,5 @@
 // usergroups_resource.go
-package usergroups
+package user_group
 
 import (
 	"fmt"

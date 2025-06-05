@@ -1,5 +1,5 @@
 // smartcomputergroup_state.go
-package smartcomputergroups
+package smart_computer_group
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

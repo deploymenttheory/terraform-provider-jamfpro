@@ -1,5 +1,5 @@
 // dockitems_resource.go
-package dockitems
+package dock_item
 
 import (
 	"fmt"

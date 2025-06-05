@@ -1,4 +1,4 @@
-package accountdrivenuserenrollmentsettings
+package account_driven_user_enrollment_settings
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"

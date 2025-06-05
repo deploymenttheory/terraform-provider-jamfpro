@@ -1,5 +1,5 @@
 // computerprestageenrollments_data_validator.go
-package computerprestageenrollments
+package computer_prestage_enrollment
 
 import (
 	"context"
