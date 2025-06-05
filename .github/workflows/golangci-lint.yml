@@ -10,12 +10,9 @@ jobs:
   golangci:
     name: lint
     runs-on: ubuntu-latest
-    env:
-      REF_TO_CHECKOUT: ${{ format('refs/pull/{0}/head', github.event.pull_request.number) }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ env.REF_TO_CHECKOUT }}
+      
     
       - uses: actions/setup-go@v5
         with:
