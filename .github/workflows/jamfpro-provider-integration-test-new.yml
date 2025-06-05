@@ -72,8 +72,8 @@ jobs:
         run: |
           pwd
           ls
-          if [ -f "target_resources.txt" ]; then
-            targets=$(cat target_resources.txt)
+          if [ -f "targets.txt" ]; then
+            targets=$(cat targets.txt)
           elif [ "$TARGETS" != "all" ] && [ ! -z "$TARGETS" ]; then
             targets="$TARGETS"
           else
