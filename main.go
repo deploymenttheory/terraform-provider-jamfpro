@@ -21,6 +21,8 @@ import (
 // can be customized.
 //go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 
+// TODO: Remove once determined this is not needed.
+/*
 var (
 	// these will be set by the goreleaser configuration
 	// to appropriate values for the compiled binary.
@@ -29,6 +31,7 @@ var (
 	// goreleaser can pass other information to the main package, such as the specific commit
 	// https://goreleaser.com/cookbooks/using-main.version/
 )
+*/
 
 const noLogPrefix = 0
 

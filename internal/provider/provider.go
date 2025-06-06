@@ -118,7 +118,6 @@ func GetJamfFqdn(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	}
 	return jamf_fqdn.(string)
 }
-
 /*
 GetClientID retrieves the client ID from the provided schema resource data.
 If the client ID is not found, it appends an error diagnostic to the diagnostics slice.
@@ -310,7 +309,7 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
-				Description: "Debug option to propogate logs from the SDK and HttpClient",
+				Description: "Debug option to propagate logs from the SDK and HttpClient",
 			},
 			"client_sdk_log_export_path": {
 				Type:        schema.TypeString,

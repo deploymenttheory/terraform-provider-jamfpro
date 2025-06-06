@@ -89,7 +89,6 @@ func validateApiRolePrivileges(client *jamfpro.Client, privileges []string) erro
 				}
 			}
 		}
-
 		return fmt.Errorf("%s", msg.String())
 	}
 
