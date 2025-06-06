@@ -62,7 +62,6 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to make the metadata, exiting: %v", err))
-
 	}
 
 	// Package
@@ -74,7 +73,6 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 		if err != nil {
 			log.Printf("[ERROR] Failed to upload package file '%s': %v", resource.FileName, err)
-
 			return retry.NonRetryableError(fmt.Errorf("failed to upload package file: %v", err))
 		}
 
@@ -84,14 +82,12 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-
 		// Cleans up the metadata so the next run doesn't hit an error trying to remake it, duplicate names are not allowed
 		cleanupErr := client.DeletePackageByID(packageID)
 
 		if cleanupErr != nil {
 			return diag.FromErr(fmt.Errorf("failed to upload package: %v and failed to delete metadata: %v", err, cleanupErr))
 		}
-
 		return diag.FromErr(fmt.Errorf("failed to upload Jamf Pro Package '%s': %v", resource.PackageName, err))
 	}
 

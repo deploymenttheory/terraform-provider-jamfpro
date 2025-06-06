@@ -28,6 +28,5 @@ func construct(d *schema.ResourceData) (string, error) {
 		}
 		return localPath, nil
 	}
-
 	return "", fmt.Errorf("either icon_file_path or icon_file_web_source must be specified")
 }
