@@ -67,7 +67,6 @@ func ResourceJamfProWebhooks() *schema.Resource {
 							return // Valid value found, return without error
 						}
 					}
-
 					errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validContentTypes, v))
 					return warns, errs
 				},
@@ -93,7 +92,6 @@ func ResourceJamfProWebhooks() *schema.Resource {
 							return // Valid value found, return without error
 						}
 					}
-
 					errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validEvents, v))
 					return warns, errs
 				},
@@ -142,7 +140,6 @@ func ResourceJamfProWebhooks() *schema.Resource {
 							return // Valid value found, return without error
 						}
 					}
-
 					errs = append(errs, fmt.Errorf("%q must be one of %v, got: %s", key, validAuthTypes, v))
 					return warns, errs
 				},
