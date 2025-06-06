@@ -91,7 +91,6 @@ func ValidateAccountPrivileges(client *jamfpro.Client, privileges jamfpro.Accoun
 				}
 			}
 		}
-
 		return fmt.Errorf("%s", msg.String())
 	}
 

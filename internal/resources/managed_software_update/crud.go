@@ -20,7 +20,6 @@ import (
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
-
 	err := checkAndEnableManagedSoftwareUpdateFeatureToggle(ctx, client)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to ensure Jamf Pro Managed Software Update toggle is enabled: %v", err))
