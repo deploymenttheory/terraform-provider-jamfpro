@@ -165,6 +165,12 @@ func ResourceJamfProWebhooks() *schema.Resource {
 				Optional:    true,
 				Description: "The ID of the smart group associated with the webhook.",
 			},
+			"header": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Sensitive:   true,
+				Description: "The JSON header for authentication, if applicable.",
+			},
 			"display_fields": {
 				Type:        schema.TypeList,
 				Description: "List of displayfields",

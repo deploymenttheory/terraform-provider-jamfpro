@@ -167,6 +167,7 @@ resource "jamfpro_mobile_device_prestage_enrollment" "example_prestage" {
 - `enrollment_site_id` (String) Site ID for device enrollment.
 - `minimum_os_specific_version_ios` (String) The specific minimum OS version required for iOS devices when using MINIMUM_OS_SPECIFIC_VERSION type.
 - `minimum_os_specific_version_ipad` (String) The specific minimum OS version required for iPadOS devices when using MINIMUM_OS_SPECIFIC_VERSION type.
+- `rts_enabled` (Boolean) Enable RTS.
 - `send_timezone` (Boolean) Indicates if timezone should be sent to the device.
 - `site_id` (String) The jamf pro site ID. Set to -1 if not used.
 - `storage_quota_size_megabytes` (Number) The storage quota size in megabytes.
@@ -291,6 +292,7 @@ Required:
 - `restore` (Boolean) Skip Restore setup during device enrollment.
 - `restore_completed` (Boolean) Skip Restore Completed setup during device enrollment.
 - `safety` (Boolean) Skip Safety setup during device enrollment.
+- `safety_and_handling` (Boolean) Skip Safety and Handling setup during device enrollment.
 - `screen_saver` (Boolean) Skip Screen Saver setup during device enrollment.
 - `screen_time` (Boolean) Skip Screen Time setup during device enrollment.
 - `sim_setup` (Boolean) Skip SIM setup during device enrollment.
