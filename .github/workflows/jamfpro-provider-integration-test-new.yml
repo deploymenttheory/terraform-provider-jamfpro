@@ -70,7 +70,6 @@ jobs:
         if: env.TARGETS != 'compileonly'
         working-directory: .
         run: |
-          cat targets.txt
           if [ -f "targets.txt" ]; then
             targets=$(cat targets.txt)
           elif [ "$TARGETS" != "all" ] && [ ! -z "$TARGETS" ]; then
