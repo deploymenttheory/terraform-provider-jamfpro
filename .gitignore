@@ -43,3 +43,4 @@ website/vendor
 *.venv
 testing/data_sources/*
 .terraform.lock.hcl
+golangci-lint-report.sarif
