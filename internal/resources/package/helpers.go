@@ -55,7 +55,6 @@ func verifyPackageUpload(ctx context.Context, client *jamfpro.Client, packageID 
 		if cleanupErr != nil {
 			log.Printf("[WARN] Failed to clean up package %s after verification failure: %v", packageID, cleanupErr)
 		}
-
 		return fmt.Errorf("failed to verify package upload: %v", err)
 	}
 
