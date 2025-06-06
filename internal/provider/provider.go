@@ -42,6 +42,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/enrollment_customization"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/file_share_distribution_point"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/icon"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/jamf_cloud_distribution_service"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/jamf_connect"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/jamf_protect"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/ldap_server"
@@ -386,6 +387,7 @@ func Provider() *schema.Provider {
 			"jamfpro_disk_encryption_configuration":             disk_encryption_configuration.DataSourceJamfProDiskEncryptionConfigurations(),
 			"jamfpro_dock_item":                                 dock_item.DataSourceJamfProDockItems(),
 			"jamfpro_file_share_distribution_point":             file_share_distribution_point.DataSourceJamfProFileShareDistributionPoints(),
+			"jamfpro_jamf_cloud_distribution_service":           jamf_cloud_distribution_service.DataSourceJamfProJamfCloudDistributionService(),
 			"jamfpro_ldap_server":                               ldap_server.DataSourceJamfProLDAPServers(),
 			"jamfpro_network_segment":                           network_segment.DataSourceJamfProNetworkSegments(),
 			"jamfpro_macos_configuration_profile_plist":         macos_configuration_profile_plist.DataSourceJamfProMacOSConfigurationProfilesPlist(),
