@@ -79,6 +79,5 @@ func getIDField(response interface{}) (any, error) {
 	if ok {
 		return strconv.Itoa(integer), nil
 	}
-
 	return nil, fmt.Errorf("unsupported type")
 }

@@ -1,27 +1,75 @@
-# Visit https://golangci-lint.run/ for usage documentation
-# and information on other useful linters
-issues:
-  max-per-linter: 0
-  max-same-issues: 0
+version: "2"
+
+run:
+  timeout: 5m
+  # CI mode: Fails if go.mod needs updates, ensuring dependencies are properly declared
+  modules-download-mode: readonly
+  allow-parallel-runners: true
+  allow-serial-runners: false
+  concurrency: 2
 
 linters:
-  disable-all: true
+  default: none
   enable:
-    - durationcheck
-    - errcheck
-    - exportloopref
-    - forcetypeassert
-    - godot
-    - gofmt
-    - gosimple
-    - ineffassign
-    - makezero
-    - misspell
-    - nilerr
-    - predeclared
+    - govet
     - staticcheck
-    - tenv
-    - unconvert
-    - unparam
+    - errcheck
     - unused
-    - vet
+    - ineffassign
+  
+    # error-handling best practices
+    - errorlint      # flag missing %w wraps
+    - err113         # enforce correct error-handling patterns
+
+    # Terraform‐specific safety & resource handling
+    - bodyclose      # makes sure every HTTP response body is closed
+    - gosec          # scans for security issues (e.g. hardcoded credentials)
+    
+    # Specifically important for API clients (Microsoft 365 API)
+    - contextcheck   # check whether function uses a non-inherited context
+    - noctx          # finds sending http request without context.Context
+    - nilnil         # checks that there is no simultaneous return of nil error and invalid value
+    
+    # Quality & style
+    - gocritic       # catches a variety of performance/style bugs
+    - prealloc       # recommends when you can preallocate slices/maps
+    - misspell       # finds typos in comments, docs, & variable names
+    - gocyclo        # warn on high cyclomatic complexity
+    - wrapcheck      # checks that errors from external packages are wrapped
+    
+    # API/Terraform specific
+    - musttag        # enforce field tags in (un)marshaled structs
+
+  # 3) Per-linter configuration
+  settings:
+    nakedret:
+      max-func-lines: 40
+
+  # Exclude generated or special‐case files from formatting checks
+output:
+  formats:
+    # 1) Text format for the Action log
+    text:
+      # Send lint results to stderr so the Action log shows them even when piped
+      path: stderr
+      # Include the linter name after each issue
+      print-linter-name: true
+      # Show the source lines for each issue
+      print-issued-lines: true
+      # Keep ANSI colors enabled for readability in the Actions console
+      colors: true
+
+    # 2) SARIF format for GitHub Code Scanning integration
+    sarif:
+      path: golangci-lint-report.sarif
+
+  # Use relative paths (from the module root) in output
+  path-mode: ""
+
+  sort-order:
+    - severity
+    - file
+
+  # Show summary statistics at the end of the report
+  show-stats: true
+

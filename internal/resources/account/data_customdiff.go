@@ -14,9 +14,9 @@ func customDiffAccounts(ctx context.Context, d *schema.ResourceDiff, meta interf
 		return err
 	}
 
-	// if err := validatePrivilegesForSiteAccess(ctx, d, meta); err != nil {
-	// 	return err
-	// }
+	if err := validatePrivilegesForSiteAccess(ctx, d, meta); err != nil {
+		return err
+	}
 
 	if err := validateGroupAccessPrivilegeSetRequirement(ctx, d, meta); err != nil {
 		return err
