@@ -17,6 +17,8 @@ func ResourceJamfProAccounts() *schema.Resource {
 		ReadContext:   readWithCleanup,
 		UpdateContext: update,
 		DeleteContext: delete,
+		// TODO: Investigate if this matches intended behaviour
+		// CustomizeDiff: customDiffAccounts,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(70 * time.Second),

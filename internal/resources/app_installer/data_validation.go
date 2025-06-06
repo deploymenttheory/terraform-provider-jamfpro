@@ -46,7 +46,6 @@ func init() {
 // validateAppCatalogDeploymentName checks that the 'name' is a valid app title name.
 func validateAppCatalogDeploymentName(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
 	resourceName := diff.Get("name").(string)
-
 	if !contains(validTitleNames, resourceName) {
 		return fmt.Errorf("in 'jamfpro_app_catalog_deployment.%s': 'name' must be one of the following values: %s", resourceName, strings.Join(validTitleNames, ", "))
 	}
