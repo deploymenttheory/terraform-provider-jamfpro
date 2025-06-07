@@ -27,6 +27,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceAppli
 	d.Set("deploy_as_managed_app", resp.General.DeployAsManagedApp)
 	d.Set("remove_app_when_mdm_profile_is_removed", resp.General.RemoveAppWhenMDMProfileIsRemoved)
 	d.Set("prevent_backup_of_app_data", resp.General.PreventBackupOfAppData)
+	d.Set("allow_user_to_delete", resp.General.AllowUserToDelete)
 	d.Set("keep_description_and_icon_up_to_date", resp.General.KeepDescriptionAndIconUpToDate)
 	d.Set("keep_app_updated_on_devices", resp.General.KeepAppUpdatedOnDevices)
 	d.Set("free", resp.General.Free)

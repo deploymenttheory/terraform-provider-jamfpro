@@ -29,6 +29,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceApplication
 			DeployAutomatically:              jamfpro.BoolPtr(d.Get("deploy_automatically").(bool)),
 			DeployAsManagedApp:               jamfpro.BoolPtr(d.Get("deploy_as_managed_app").(bool)),
 			RemoveAppWhenMDMProfileIsRemoved: jamfpro.BoolPtr(d.Get("remove_app_when_mdm_profile_is_removed").(bool)),
+			AllowUserToDelete:                jamfpro.BoolPtr(d.Get("allow_user_to_delete").(bool)),
 			PreventBackupOfAppData:           jamfpro.BoolPtr(d.Get("prevent_backup_of_app_data").(bool)),
 			KeepDescriptionAndIconUpToDate:   jamfpro.BoolPtr(d.Get("keep_description_and_icon_up_to_date").(bool)),
 			KeepAppUpdatedOnDevices:          jamfpro.BoolPtr(d.Get("keep_app_updated_on_devices").(bool)),
