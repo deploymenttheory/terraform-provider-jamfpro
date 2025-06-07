@@ -1,10 +1,5 @@
 package self_service_settings
 
-// selfservicesettings_resource.go
-// Package selfservicesettings provides the schema and CRUD operations for managing Jamf Pro Self Service Settings in Terraform.
-// This package includes functions to create, read, update, and delete the Self Service Settings configuration.
-// It also includes a function to construct the ResourceSelfServiceSettings object from the schema data.
-
 import (
 	"encoding/json"
 	"fmt"
@@ -16,39 +11,24 @@ import (
 
 // constructSelfServiceSettings constructs a ResourceSelfServiceSettings object from the provided schema data
 func constructSelfServiceSettings(d *schema.ResourceData) (*jamfpro.ResourceSelfServiceSettings, error) {
-	installSettingsList := d.Get("install_settings").([]interface{})
-	var installSettings jamfpro.InstallSettings
-	if len(installSettingsList) > 0 {
-		installSettingsMap := installSettingsList[0].(map[string]interface{})
-		installSettings = jamfpro.InstallSettings{
-			InstallAutomatically: installSettingsMap["install_automatically"].(bool),
-			InstallLocation:      installSettingsMap["install_location"].(string),
-		}
+	installSettings := jamfpro.InstallSettings{
+		InstallAutomatically: d.Get("install_automatically").(bool),
+		InstallLocation:      d.Get("install_location").(string),
 	}
 
-	loginSettingsList := d.Get("login_settings").([]interface{})
-	var loginSettings jamfpro.LoginSettings
-	if len(loginSettingsList) > 0 {
-		loginSettingsMap := loginSettingsList[0].(map[string]interface{})
-		loginSettings = jamfpro.LoginSettings{
-			UserLoginLevel:  loginSettingsMap["user_login_level"].(string),
-			AllowRememberMe: loginSettingsMap["allow_remember_me"].(bool),
-			UseFido2:        loginSettingsMap["use_fido2"].(bool),
-			AuthType:        loginSettingsMap["auth_type"].(string),
-		}
+	loginSettings := jamfpro.LoginSettings{
+		UserLoginLevel:  d.Get("user_login_level").(string),
+		AllowRememberMe: d.Get("allow_remember_me").(bool),
+		UseFido2:        d.Get("use_fido2").(bool),
+		AuthType:        d.Get("auth_type").(string),
 	}
 
-	configSettingsList := d.Get("configuration_settings").([]interface{})
-	var configSettings jamfpro.ConfigurationSettings
-	if len(configSettingsList) > 0 {
-		configSettingsMap := configSettingsList[0].(map[string]interface{})
-		configSettings = jamfpro.ConfigurationSettings{
-			NotificationsEnabled:  configSettingsMap["notifications_enabled"].(bool),
-			AlertUserApprovedMdm:  configSettingsMap["alert_user_approved_mdm"].(bool),
-			DefaultLandingPage:    configSettingsMap["default_landing_page"].(string),
-			DefaultHomeCategoryId: configSettingsMap["default_home_category_id"].(int),
-			BookmarksName:         configSettingsMap["bookmarks_name"].(string),
-		}
+	configSettings := jamfpro.ConfigurationSettings{
+		NotificationsEnabled:  d.Get("notifications_enabled").(bool),
+		AlertUserApprovedMdm:  d.Get("alert_user_approved_mdm").(bool),
+		DefaultLandingPage:    d.Get("default_landing_page").(string),
+		DefaultHomeCategoryId: d.Get("default_home_category_id").(int),
+		BookmarksName:         d.Get("bookmarks_name").(string),
 	}
 
 	resource := &jamfpro.ResourceSelfServiceSettings{

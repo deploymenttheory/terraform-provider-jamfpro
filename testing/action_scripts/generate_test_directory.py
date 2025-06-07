@@ -92,7 +92,7 @@ def generate_targetted_test_files(resources):
             payload_dir=payload_dir_for_hcl
         )
 
-        test_file_path = os.path.join(root_dir, f"{r}.tftest.hcl")
+        test_file_path = os.path.join(resource_dir, f"{r}.tftest.hcl")
         with open(test_file_path, "w") as f:
             f.write(test_block_content)
 
@@ -137,10 +137,21 @@ def main():
 
     else:
         stripped_input = input_str.strip()
+        
 
         if stripped_input:
-            targets = stripped_input.split(",")
-            targets = [t.strip() for t in targets if t.strip()]
+            requested_targets = [t.strip() for t in stripped_input.split(",")]
+            payloads_dir = "testing/payloads/"
+            existing_targets = []
+            missing_targets = []
+            for t in requested_targets:
+                if os.path.isdir(os.path.join(payloads_dir, t)):
+                    existing_targets.append(t)
+                else:
+                    missing_targets.append(t)
+            if missing_targets:
+                print(f"Warning: The following resources do not exist in '{payloads_dir}' and will be skipped: {', '.join(missing_targets)}")
+            targets = existing_targets
 
     if not targets:
         # This print might be useful to keep, as it indicates no files will be generated.

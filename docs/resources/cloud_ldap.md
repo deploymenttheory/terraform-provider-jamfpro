@@ -10,64 +10,64 @@ description: |-
 ## Example Usage
 ```terraform
 resource "jamfpro_cloud_ldap" "example" {
-  cloud_idp_common {
-    provider_name = "GOOGLE"
-    display_name  = "Google LDAP"
-  }
+  # Cloud IDP Common Settings
+  provider_name = "GOOGLE"
+  display_name  = "Google LDAP"
 
-  server {
-    enabled         = true
-    use_wildcards   = true
-    connection_type = "LDAPS"
-    server_url      = "ldap.google.com"
-    domain_name     = "jamf.com"
-    port            = 636
+  # Server Configuration
+  server_enabled = true
+  server_url     = "ldap.google.com"
+  domain_name    = "jamf.com"
+  port           = 636
 
-    connection_timeout = 60
-    search_timeout     = 60
+  # Connection Settings
+  connection_type    = "LDAPS"
+  connection_timeout = 60
+  search_timeout     = 60
 
-    membership_calculation_optimization_enabled = true
+  # Keystore Configuration
+  keystore_password   = "supersecretpassword"
+  keystore_file_bytes = filebase64("/path/to/keystore.p12")
+  keystore_file_name  = "keystore.p12"
 
-    keystore {
-      password   = "supersecretpassword"
-      file_bytes = filebase64("/path/to/keystore.p12")
-      file_name  = "keystore.p12"
-    }
-  }
+  # Advanced Server Settings
+  use_wildcards                               = true
+  membership_calculation_optimization_enabled = true
 
-  mappings {
-    user_mappings {
-      object_class_limitation = "ANY_OBJECT_CLASSES"
-      object_classes          = "inetOrgPerson"
-      search_base             = "ou=Users"
-      search_scope            = "ALL_SUBTREES"
-      additional_search_base  = ""
-      user_id                 = "mail"
-      username                = "uid"
-      real_name               = "displayName"
-      email_address           = "mail"
-      department              = "departmentNumber"
-      building                = ""
-      room                    = ""
-      phone                   = ""
-      position                = "title"
-      user_uuid               = "uid"
-    }
+  # User Mappings
+  user_mappings_object_class_limitation = "ANY_OBJECT_CLASSES"
+  user_mappings_object_classes          = "inetOrgPerson"
+  user_mappings_search_base             = "ou=Users"
+  user_mappings_search_scope            = "ALL_SUBTREES"
+  user_mappings_additional_search_base  = ""
 
-    group_mappings {
-      object_class_limitation = "ANY_OBJECT_CLASSES"
-      object_classes          = "groupOfNames"
-      search_base             = "ou=Groups"
-      search_scope            = "ALL_SUBTREES"
-      group_id                = "cn"
-      group_name              = "cn"
-      group_uuid              = "gidNumber"
-    }
+  # User Attribute Mappings
+  user_mappings_id            = "mail"
+  user_mappings_username      = "uid"
+  user_mappings_real_name     = "displayName"
+  user_mappings_email_address = "mail"
+  user_mappings_uuid          = "uid"
 
-    membership_mappings {
-      group_membership_mapping = "memberOf"
-    }
-  }
+  # Optional User Attributes
+  user_mappings_department = "departmentNumber"
+  user_mappings_position   = "title"
+  user_mappings_phone      = ""
+  user_mappings_building   = ""
+  user_mappings_room       = ""
+
+  # Group Mappings
+  group_mappings_object_class_limitation = "ANY_OBJECT_CLASSES"
+  group_mappings_object_classes          = "groupOfNames"
+  group_mappings_search_base             = "ou=Groups"
+  group_mappings_search_scope            = "ALL_SUBTREES"
+
+  # Group Attribute Mappings
+  group_mappings_id   = "cn"
+  group_mappings_name = "cn"
+  group_mappings_uuid = "gidNumber"
+
+  # Membership Mapping
+  group_membership_mapping = "memberOf"
 }
 ```
 
@@ -76,122 +76,54 @@ resource "jamfpro_cloud_ldap" "example" {
 
 ### Required
 
-- `cloud_idp_common` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--cloud_idp_common))
-- `server` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--server))
+- `connection_type` (String) The type of LDAP connection (LDAPS or START_TLS)
+- `display_name` (String) The display name for the cloud LDAP configuration
+- `domain_name` (String, Sensitive) The domain name for the LDAP server
+- `group_mappings_id` (String) Group ID attribute mapping (e.g., cn)
+- `group_mappings_name` (String) Group name attribute mapping (e.g., cn)
+- `group_mappings_object_class_limitation` (String) Object class limitation for group mappings
+- `group_mappings_object_classes` (String) Object classes for group mappings (e.g., groupOfNames)
+- `group_mappings_search_base` (String) Search base for group mappings (e.g., ou=Groups)
+- `group_mappings_search_scope` (String) Search scope for group mappings
+- `group_mappings_uuid` (String) Group UUID attribute mapping (e.g., gidNumber)
+- `group_membership_mapping` (String) Group membership attribute mapping (e.g., memberOf)
+- `keystore_file_bytes` (String, Sensitive) Base64 encoded keystore file
+- `keystore_file_name` (String) Name of the keystore file
+- `keystore_password` (String, Sensitive)
+- `port` (Number) The port number for the LDAP server
+- `provider_name` (String) The name of the cloud identity provider. Must be 'GOOGLE' or 'AZURE'.
+- `server_enabled` (Boolean) Whether the cloud LDAP server is enabled
+- `server_url` (String) The URL of the LDAP server
+- `user_mappings_email_address` (String) Email address attribute mapping (e.g., mail)
+- `user_mappings_id` (String) User ID attribute mapping (e.g., mail)
+- `user_mappings_object_class_limitation` (String) Object class limitation for user mappings
+- `user_mappings_object_classes` (String) Object classes for user mappings (e.g., inetOrgPerson)
+- `user_mappings_real_name` (String) Real name attribute mapping (e.g., displayName)
+- `user_mappings_search_base` (String) Search base for user mappings (e.g., ou=Users)
+- `user_mappings_search_scope` (String) Search scope for user mappings
+- `user_mappings_username` (String) Username attribute mapping (e.g., uid)
+- `user_mappings_uuid` (String) User UUID attribute mapping (e.g., uid)
 
 ### Optional
 
-- `mappings` (Block List, Max: 1) (see [below for nested schema](#nestedblock--mappings))
+- `connection_timeout` (Number) Connection timeout in seconds
+- `membership_calculation_optimization_enabled` (Boolean) Enable optimization for membership calculations
+- `search_timeout` (Number) Search timeout in seconds
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `use_wildcards` (Boolean) Whether to use wildcards in LDAP queries
+- `user_mappings_additional_search_base` (String) Additional search base for user mappings
+- `user_mappings_building` (String) Building attribute mapping
+- `user_mappings_department` (String) Department attribute mapping (e.g., departmentNumber)
+- `user_mappings_phone` (String) Phone attribute mapping
+- `user_mappings_position` (String) Position attribute mapping (e.g., title)
+- `user_mappings_room` (String) Room attribute mapping
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-<a id="nestedblock--cloud_idp_common"></a>
-### Nested Schema for `cloud_idp_common`
-
-Required:
-
-- `display_name` (String) The display name for the cloud LDAP configuration
-- `provider_name` (String) The name of the cloud identity provider. Must be 'GOOGLE' or 'AZURE'.
-
-
-<a id="nestedblock--server"></a>
-### Nested Schema for `server`
-
-Required:
-
-- `connection_type` (String) The type of LDAP connection (LDAPS or START_TLS)
-- `domain_name` (String, Sensitive) The domain name for the LDAP server
-- `enabled` (Boolean) Whether the cloud LDAP server is enabled
-- `port` (Number) The port number for the LDAP server
-- `server_url` (String) The URL of the LDAP server
-
-Optional:
-
-- `connection_timeout` (Number) Connection timeout in seconds
-- `keystore` (Block List, Max: 1) (see [below for nested schema](#nestedblock--server--keystore))
-- `membership_calculation_optimization_enabled` (Boolean) Enable optimization for membership calculations
-- `search_timeout` (Number) Search timeout in seconds
-- `use_wildcards` (Boolean) Whether to use wildcards in LDAP queries
-
-<a id="nestedblock--server--keystore"></a>
-### Nested Schema for `server.keystore`
-
-Required:
-
-- `file_bytes` (String, Sensitive) Base64 encoded keystore file
-- `file_name` (String) Name of the keystore file
-- `password` (String, Sensitive)
-
-Read-Only:
-
-- `expiration_date` (String)
-- `subject` (String)
-- `type` (String)
-
-
-
-<a id="nestedblock--mappings"></a>
-### Nested Schema for `mappings`
-
-Required:
-
-- `group_mappings` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--mappings--group_mappings))
-- `membership_mappings` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--mappings--membership_mappings))
-- `user_mappings` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--mappings--user_mappings))
-
-<a id="nestedblock--mappings--group_mappings"></a>
-### Nested Schema for `mappings.group_mappings`
-
-Required:
-
-- `group_id` (String)
-- `group_name` (String)
-- `object_class_limitation` (String)
-- `object_classes` (String)
-- `search_base` (String)
-- `search_scope` (String)
-
-Optional:
-
-- `group_uuid` (String)
-
-
-<a id="nestedblock--mappings--membership_mappings"></a>
-### Nested Schema for `mappings.membership_mappings`
-
-Required:
-
-- `group_membership_mapping` (String)
-
-
-<a id="nestedblock--mappings--user_mappings"></a>
-### Nested Schema for `mappings.user_mappings`
-
-Required:
-
-- `email_address` (String)
-- `object_class_limitation` (String)
-- `object_classes` (String)
-- `real_name` (String)
-- `search_base` (String)
-- `search_scope` (String)
-- `user_id` (String)
-- `username` (String)
-
-Optional:
-
-- `additional_search_base` (String)
-- `building` (String)
-- `department` (String)
-- `phone` (String)
-- `position` (String)
-- `room` (String)
-- `user_uuid` (String)
-
-
+- `keystore_expiration_date` (String)
+- `keystore_subject` (String)
+- `keystore_type` (String)
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

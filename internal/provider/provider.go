@@ -26,6 +26,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/building"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/category"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/client_checkin"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/cloud_distribution_point"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/cloud_ldap"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/cloudidp"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/computer_extension_attribute"
@@ -41,6 +42,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/enrollment_customization"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/file_share_distribution_point"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/icon"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/jamf_cloud_distribution_service"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/jamf_connect"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/jamf_protect"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/ldap_server"
@@ -48,6 +50,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macos_configuration_profile_plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macos_configuration_profile_plist_generator"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/managed_software_update"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/managed_software_update_feature_toggle"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mobile_device_configuration_profile_plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mobile_device_extension_attribute"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mobile_device_prestage_enrollment"
@@ -374,6 +377,7 @@ func Provider() *schema.Provider {
 			"jamfpro_app_installer":                             app_installer.DataSourceJamfProAppInstallers(),
 			"jamfpro_building":                                  building.DataSourceJamfProBuildings(),
 			"jamfpro_category":                                  category.DataSourceJamfProCategories(),
+			"jamfpro_cloud_distribution_point":                  cloud_distribution_point.DataSourceJamfProCloudDistributionPoint(),
 			"jamfpro_cloud_idp":                                 cloudidp.DataSourceJamfProCloudIdp(),
 			"jamfpro_computer_extension_attribute":              computer_extension_attribute.DataSourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_prestage_enrollment":              computer_prestage_enrollment.DataSourceJamfProComputerPrestageEnrollment(),
@@ -383,6 +387,7 @@ func Provider() *schema.Provider {
 			"jamfpro_disk_encryption_configuration":             disk_encryption_configuration.DataSourceJamfProDiskEncryptionConfigurations(),
 			"jamfpro_dock_item":                                 dock_item.DataSourceJamfProDockItems(),
 			"jamfpro_file_share_distribution_point":             file_share_distribution_point.DataSourceJamfProFileShareDistributionPoints(),
+			"jamfpro_jamf_cloud_distribution_service":           jamf_cloud_distribution_service.DataSourceJamfProJamfCloudDistributionService(),
 			"jamfpro_ldap_server":                               ldap_server.DataSourceJamfProLDAPServers(),
 			"jamfpro_network_segment":                           network_segment.DataSourceJamfProNetworkSegments(),
 			"jamfpro_macos_configuration_profile_plist":         macos_configuration_profile_plist.DataSourceJamfProMacOSConfigurationProfilesPlist(),
@@ -441,6 +446,7 @@ func Provider() *schema.Provider {
 			"jamfpro_macos_configuration_profile_plist":           macos_configuration_profile_plist.ResourceJamfProMacOSConfigurationProfilesPlist(),
 			"jamfpro_macos_configuration_profile_plist_generator": macos_configuration_profile_plist_generator.ResourceJamfProMacOSConfigurationProfilesPlistGenerator(),
 			"jamfpro_managed_software_update":                     managed_software_update.ResourceJamfProManagedSoftwareUpdate(),
+			"jamfpro_managed_software_update_feature_toggle":      managed_software_update_feature_toggle.ResourceManagedSoftwareUpdateFeatureToggle(),
 			"jamfpro_mobile_device_configuration_profile_plist":   mobile_device_configuration_profile_plist.ResourceJamfProMobileDeviceConfigurationProfilesPlist(),
 			"jamfpro_mobile_device_extension_attribute":           mobile_device_extension_attribute.ResourceJamfProMobileDeviceExtensionAttributes(),
 			"jamfpro_mobile_device_prestage_enrollment":           mobile_device_prestage_enrollment.ResourceJamfProMobileDevicePrestageEnrollment(),
