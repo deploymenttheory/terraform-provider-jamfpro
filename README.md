@@ -15,7 +15,7 @@ Its primary goal is to enhance the efficiency of managing, deploying, and mainta
 
 To help you get started and understand the practical implementation of this provider, we've created a comprehensive demo repository:
 
-- **Demo Repository**: [Terraform Demo Jamf Pro](https://github.com/deploymenttheory/terraform-demo-jamfpro)
+- **Demo Repository**: [Terraform Demo Jamf Pro](https://github.com/deploymenttheory/terraform-demo-jamfpro-v2)
 
 This demo repository showcases a real-world implementation of the Jamf Pro Terraform provider. It's designed to:
 
