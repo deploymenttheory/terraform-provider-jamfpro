@@ -91,6 +91,8 @@ def main():
         if found:
             targets.append("jamfpro_" + res)
 
+    targets = list(set(targets))
+
     if not targets:
         print("no targets found")
         sys.exit(1)
