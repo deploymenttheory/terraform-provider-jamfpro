@@ -9,7 +9,11 @@ on:
 jobs:
   Run-Nightly-Cleanup:
     environment: provider-integration-testing-internal
+    
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}/provider_testing:latest
+
     env: 
       CLIENT_ID: ${{ secrets.TESTING_CLIENT_ID }}
       CLIENT_SEC: ${{ secrets.TESTING_CLIENT_SECRET }}

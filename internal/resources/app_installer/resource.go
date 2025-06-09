@@ -22,7 +22,7 @@ func ResourceJamfProAppInstallers() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
-		CustomizeDiff: validateAppCatalogDeploymentName,
+		//CustomizeDiff: validateAppCatalogDeploymentName,
 
 		Schema: map[string]*schema.Schema{
 			"id": {
@@ -33,7 +33,7 @@ func ResourceJamfProAppInstallers() *schema.Resource {
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The name of the app installer deployment. This name cannot be freeform text like in the gui as the name is used to infur the automatically appTitleId field.",
+				Description: "The name of the app installer deployment.",
 			},
 			"enabled": {
 				Type:        schema.TypeBool,
@@ -44,6 +44,11 @@ func ResourceJamfProAppInstallers() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The jamf pro app installer ID of the app title.",
+			},
+			"app_title_name": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The name of the app title as listed in the Jamf App Catalog. Used to look up the app_title_id.",
 			},
 			"deployment_type": {
 				Type:         schema.TypeString,

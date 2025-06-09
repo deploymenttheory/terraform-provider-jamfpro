@@ -30,7 +30,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	// 	return diag.FromErr(fmt.Errorf("failed to ensure Jamf Pro App Installer terms and conditions are accepted: %v", err))
 	// }
 
-	resource, err := construct(d)
+	resource, err := construct(d, client)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro App Installer: %v", err))
 	}
@@ -89,12 +89,15 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 
 // update updates a jamfpro building
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	client := meta.(*jamfpro.Client)
 	return common.Update(
 		ctx,
 		d,
 		meta,
-		construct,
-		meta.(*jamfpro.Client).UpdateJamfAppCatalogAppInstallerDeploymentByID,
+		func(d *schema.ResourceData) (*jamfpro.ResourceJamfAppCatalogDeployment, error) {
+			return construct(d, client)
+		},
+		client.UpdateJamfAppCatalogAppInstallerDeploymentByID,
 		readNoCleanup,
 	)
 }

@@ -1,54 +1,39 @@
 package app_installer
 
 import (
-	"embed"
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-//go:embed app_catalog_app_installer_titles.json
-var appTitlesFS embed.FS
+// construct constructs an AppCatalogDeployment object from the provided schema data.
+func construct(d *schema.ResourceData, client *jamfpro.Client) (*jamfpro.ResourceJamfAppCatalogDeployment, error) {
+	appTitleName := d.Get("app_title_name").(string)
 
-var appTitles struct {
-	TotalCount int                                          `json:"totalCount"`
-	Results    []jamfpro.ResourceJamfAppCatalogAppInstaller `json:"results"`
-}
-
-func init() {
-	// Read the embedded JSON file
-	data, err := appTitlesFS.ReadFile("app_catalog_app_installer_titles.json")
+	// Fetch app titles dynamically from the API and resolve the app_title_id
+	titlesResp, err := client.GetJamfAppCatalogAppInstallerTitles(nil)
 	if err != nil {
-		log.Fatalf("Failed to read app_catalog_app_installer_titles.json: %v", err)
+		return nil, fmt.Errorf("failed to fetch app titles from Jamf Pro: %v", err)
 	}
 
-	if err := json.Unmarshal(data, &appTitles); err != nil {
-		log.Fatalf("Failed to unmarshal app titles data: %v", err)
-	}
-}
-
-func getAppTitleID(name string) (string, error) {
-	for _, result := range appTitles.Results {
-		if result.TitleName == name {
-			return result.ID, nil
+	var appTitleID string
+	var validTitles []string
+	for _, result := range titlesResp.Results {
+		validTitles = append(validTitles, result.TitleName)
+		if result.TitleName == appTitleName {
+			appTitleID = result.ID
 		}
 	}
-	return "", fmt.Errorf("no matching app title found for name: %s", name)
-}
-
-// construct constructs an AppCatalogDeployment object from the provided schema data.
-func construct(d *schema.ResourceData) (*jamfpro.ResourceJamfAppCatalogDeployment, error) {
-	name := d.Get("name").(string)
-	appTitleID, err := getAppTitleID(name)
-	if err != nil {
-		return nil, err
+	if appTitleID == "" {
+		return nil, fmt.Errorf("in 'jamfpro_app_installer.%s': 'app_title_name' must be one of the following values: %s", appTitleName, strings.Join(validTitles, ", "))
 	}
 
 	resource := &jamfpro.ResourceJamfAppCatalogDeployment{
-		Name:                            name,
+		Name:                            d.Get("name").(string),
 		Enabled:                         jamfpro.BoolPtr(d.Get("enabled").(bool)),
 		AppTitleId:                      appTitleID,
 		DeploymentType:                  d.Get("deployment_type").(string),
@@ -98,7 +83,6 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceJamfAppCatalogDeploymen
 		}
 	}
 
-	// Serialize and pretty-print the AppCatalogDeployment object as JSON for logging
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro App Installer Deployment '%s' to JSON: %v", resource.Name, err)
