@@ -8,54 +8,54 @@ func GetSharedMobileDeviceSchemaScope() *schema.Resource {
 			"all_mobile_devices": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "If true, the profile is applied to all mobile devices.",
+				Description: "If true, the resource is applied to all mobile devices.",
 			},
 			"all_jss_users": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "If true, the profile is applied to all JSS users.",
+				Description: "If true, the resource is applied to all JSS users.",
 			},
 			"mobile_device_ids": {
 				Type:        schema.TypeSet,
 				Optional:    true,
-				Description: "A list of mobile device IDs associated with the profile.",
+				Description: "A list of mobile device IDs associated with the resource.",
 				Elem:        &schema.Schema{Type: schema.TypeInt},
 			},
 			"mobile_device_group_ids": {
 				Type:        schema.TypeSet,
 				Optional:    true,
-				Description: "A list of mobile device group IDs associated with the profile.",
+				Description: "A list of mobile device group IDs associated with the resource.",
 				Elem:        &schema.Schema{Type: schema.TypeInt},
 			},
 			"jss_user_ids": {
 				Type:        schema.TypeSet,
 				Optional:    true,
-				Description: "A list of JSS user IDs associated with the profile.",
+				Description: "A list of JSS user IDs associated with the resource.",
 				Elem:        &schema.Schema{Type: schema.TypeInt},
 			},
 			"jss_user_group_ids": {
 				Type:        schema.TypeSet,
 				Optional:    true,
-				Description: "A list of JSS user group IDs associated with the profile.",
+				Description: "A list of JSS user group IDs associated with the resource.",
 				Elem:        &schema.Schema{Type: schema.TypeInt},
 			},
 			"building_ids": {
 				Type:        schema.TypeSet,
 				Optional:    true,
-				Description: "A list of building IDs associated with the profile.",
+				Description: "A list of building IDs associated with the resource.",
 				Elem:        &schema.Schema{Type: schema.TypeInt},
 			},
 			"department_ids": {
 				Type:        schema.TypeSet,
 				Optional:    true,
-				Description: "A list of department IDs associated with the profile.",
+				Description: "A list of department IDs associated with the resource.",
 				Elem:        &schema.Schema{Type: schema.TypeInt},
 			},
 			"limitations": {
 				Type:        schema.TypeList,
 				Optional:    true,
 				MaxItems:    1,
-				Description: "The scope limitations from the mobile device configuration profile.",
+				Description: "The scope limitations from the mobile device resource.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"network_segment_ids": {
@@ -89,7 +89,7 @@ func GetSharedMobileDeviceSchemaScope() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				MaxItems:    1,
-				Description: "The scope exclusions from the mobile device configuration profile.",
+				Description: "The scope exclusions from the mobile device configuration resource.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"mobile_device_ids": {
