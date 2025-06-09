@@ -51,10 +51,11 @@ resource "jamfpro_app_installer" "jamfpro_app_installer_001" {
 
 ### Required
 
+- `app_title_name` (String) The name of the app title as listed in the Jamf App Catalog. Used to look up the app_title_id.
 - `category_id` (String) The ID of the category to assign to the app installer. Use -1 if not required.
 - `deployment_type` (String) Initial distribution method to use for distributing the app to a computer for the initial installation. (INSTALL_AUTOMATICALLY or SELF_SERVICE).
 - `enabled` (Boolean) Whether the deployment is enabled.
-- `name` (String) The name of the app installer deployment. This name cannot be freeform text like in the gui as the name is used to infur the automatically appTitleId field.
+- `name` (String) The name of the app installer deployment.
 - `site_id` (String) The ID of the site. Use -1 if not required.
 - `smart_group_id` (String) The ID of the smart group to scope the Jamf Pro App installer. Default is '1' - All Managed Clients. -1 is not an option.
 - `update_behavior` (String) The method to use for all future app updates, regardless of the initial distribution method. (AUTOMATIC or MANUAL).
