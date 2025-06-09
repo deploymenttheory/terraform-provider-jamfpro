@@ -15,6 +15,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceJamfAppCatalogDep
 		"name":                               resp.Name,
 		"enabled":                            resp.Enabled,
 		"app_title_id":                       resp.AppTitleId,
+		"app_title_name":                     d.Get("app_title_name"),
 		"deployment_type":                    resp.DeploymentType,
 		"update_behavior":                    resp.UpdateBehavior,
 		"category_id":                        resp.CategoryId,
