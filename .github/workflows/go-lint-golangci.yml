@@ -1,4 +1,4 @@
-name: Go Lint (golangci)
+name: 'Linter'
 on:
   pull_request:
     branches: [main]
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   golangci:
-    name: lint
+    name: '🧹golangci'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
