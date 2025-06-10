@@ -16,6 +16,8 @@ Fixes #[Issue Number]
 - Include any configuration changes needed
 - Note any version updates required
 
+
+
 ## Type of Change
 Please mark the relevant option with an `x`:
 - [ ] 🐛 Bug fix (non-breaking change which fixes an issue)
@@ -30,6 +32,7 @@ Please mark the relevant option with an `x`:
 ## Testing
 - [ ] I have added unit tests that prove my fix is effective or that my feature works
 - [ ] New and existing unit tests pass locally with my changes
+- [ ] I have added integration tests following the [testing implementation guide](../docs/testing-implementation.md)
 - [ ] I have tested this code in the following browsers/environments: [list environments]
 
 ## Quality Checklist
