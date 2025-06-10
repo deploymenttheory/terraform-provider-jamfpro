@@ -72,7 +72,7 @@ variable "jamfpro_basic_auth_password" {
 }
 
 variable "enable_client_sdk_logs" {
-  description = "Debug option to propogate logs from the SDK and HttpClient"
+  description = "Debug option to propagate logs from the SDK and HttpClient"
   default     = false
 }
 
