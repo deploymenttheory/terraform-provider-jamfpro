@@ -4,9 +4,9 @@ on:
   pull_request:
     branches:
       - main
-    paths-ignore:
-      - '.github/**/*'
-      - 'scripts/**/*'
+    paths:
+      - 'internal/**/*'
+      - 'templates/**/*'
   workflow_dispatch:
 
 permissions:
