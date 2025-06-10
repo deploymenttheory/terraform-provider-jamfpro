@@ -89,6 +89,7 @@ jobs:
       - uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0
+          ref: ${{ github.event.inputs.release_version || github.ref }}
 
       - name: Generate Release Notes
         run: sed -n -e "1{/# /d;}" -e "2{/^$/d;}" -e "/# $(git describe --abbrev=0 --exclude="$(git describe --abbrev=0 --match='v*.*.*' --tags)" --match='v*.*.*' --tags | tr -d v)/q;p" CHANGELOG.md > release-notes.txt
