@@ -75,7 +75,7 @@ run "apply_{resource_type}" {{
 """
 
 def generate_targetted_test_files(resources):
-    root_dir = "testing/tests/"
+    root_dir = "testing/"
     if not os.path.exists(root_dir):
         os.makedirs(root_dir, exist_ok=True)
         print(f"Created directory: {root_dir}")
