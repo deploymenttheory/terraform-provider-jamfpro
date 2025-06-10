@@ -1,4 +1,4 @@
-name: "Integration Testing - Compile and Resources"
+name: Provider | Integration Tests
 run-name: "Integration Testing - Compile and Resources"
 on:
   workflow_dispatch:

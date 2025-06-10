@@ -1,4 +1,4 @@
-name: Generate Docs
+name: Provider | Generate Docs
 
 on:
   pull_request:
