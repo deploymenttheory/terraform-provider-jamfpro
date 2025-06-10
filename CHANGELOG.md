@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.22.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.22.0...v0.22.1) (2025-06-10)
+
+
+### Bug Fixes
+
+* docker file python requirements copy path ([#790](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/790)) ([faba03a](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/faba03a4e9b424c6f4123432d449c8647a976f8a))
+* for workflow dispatch re: doc gen ([dd1499f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/dd1499f22998cda27edcb3835a8535756cc77900))
+* typo in provider.tf ([#788](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/788)) ([0763a36](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/0763a362cff0e33a2ada1b077584be23b9959c7b))
+* typos ([#789](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/789)) ([14b90ef](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/14b90ef3a2c8e926665f090320827d995a7a812a))
+* typos ([#791](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/791)) ([a3f18d7](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/a3f18d78543c612648e57bfe28ec3b8e00e8768a))
+* typos ([#795](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/795)) ([196fc56](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/196fc5679d67e12d03c20ce6aa3cf28c5c028c7a))
+* various typo fixes ([#792](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/792)) ([4b6fd2c](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/4b6fd2c4880f7e115e830d76eb13d1f41446c8f7))
+
 ## [0.22.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.21.0...v0.22.0) (2025-06-10)
 
 
