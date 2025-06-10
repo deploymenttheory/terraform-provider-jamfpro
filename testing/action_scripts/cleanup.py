@@ -1,6 +1,7 @@
 import os
-import jamfpy
+import sys
 from optparse import OptionParser
+import jamfpy
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 load_dotenv()
@@ -12,7 +13,7 @@ parser.add_option("-f", "--force", action="store_true", dest="force",
                     help="Force cleanup of all tf-testing resources")
 parser.add_option("-r", "--runid", dest="runid",
                     help="ID associated with the tests to clean up")
-parser.add_option("-l", "--log-level", dest="loglevel", 
+parser.add_option("-l", "--log-level", dest="loglevel",
                   default=20,
                   help="DEBUG: 10\nINFO: 20\n WARN: 30")
 
@@ -23,7 +24,7 @@ logger = jamfpy.get_logger(name="cleanup", level=options.loglevel)
 
 if options.force and options.runid:
     print("-f or --force overrides runid")
-    exit()
+    sys.exit()
 elif options.force:
     TESTING_ID = None
     logger.info("CLEANING ALL tf-testing* RESOURCES. This will affect any tests runs currently in progress.")
@@ -56,8 +57,8 @@ def parse_error_message(html_content):
     if len(p_tags) > 1:
         target_paragraph = p_tags[1]
         return target_paragraph.get_text()
-    else:
-        logger.warning("Issue parsing error response.")
+
+    logger.warning("Issue parsing error response.")
 
 
 def testing_ids_from_resources(resources):
@@ -84,14 +85,13 @@ def purge_classic_test_resources(resource_instance, resource_type_string):
     resp.raise_for_status()
     resources = resp.json()[resource_type_string]
     resource_ids = testing_ids_from_resources(resources)
-    for id in resource_ids:
-        del_resp = resource_instance.delete_by_id(id)
+    for res_id in resource_ids:
+        del_resp = resource_instance.delete_by_id(res_id)
         if del_resp.ok:
-            pass
-            logger.info(f"Successfully DELETED {resource_type_string} id:{id}")
+            logger.info(f"Successfully DELETED {resource_type_string} id:{res_id}")
         else:
             error_response = parse_error_message(del_resp.text)
-            logger.warning(f"FAILED to DELETE {resource_type_string} id:{id}\n Reason: {error_response}")
+            logger.warning(f"FAILED to DELETE {resource_type_string} id:{res_id}\n Reason: {error_response}")
 
 
 # ============================================================================ #
@@ -104,4 +104,3 @@ purge_classic_test_resources(instance.classic.computer_groups, "computer_groups"
 purge_classic_test_resources(instance.classic.sites, "sites")
 purge_classic_test_resources(instance.classic.computers, "computers")
 purge_classic_test_resources(instance.classic.departments, "departments")
-

@@ -92,7 +92,7 @@ def generate_targetted_test_files(resources):
         )
 
         test_file_path = os.path.join(root_dir, f"{r}.tftest.hcl")
-        with open(test_file_path, "w") as f:
+        with open(test_file_path, "w", encoding="utf-8") as f:
             f.write(test_block_content)
         print(f"Created test file: {test_file_path}")
 
@@ -114,7 +114,7 @@ def get_all_available_test_files():
         item_path = os.path.join(payloads_dir, item)
         if os.path.isdir(item_path):
             available_resources.append(item)
-    
+
     if not available_resources:
         print(f"Warning: No subdirectories found in '{payloads_dir}'. No tests will be generated for 'all'.")
 
@@ -137,7 +137,6 @@ def main():
 
     else:
         stripped_input = input_str.strip()
-        
 
         if stripped_input:
             requested_targets = [t.strip() for t in stripped_input.split(",")]
@@ -162,6 +161,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
