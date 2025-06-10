@@ -1,4 +1,4 @@
-name: "Terraform Test Object Nightly Cleanup"
+name: Sandbox Cleanup
 run-name: "Terraform Test Object Nightly Cleanup"
 on:
   schedule:
