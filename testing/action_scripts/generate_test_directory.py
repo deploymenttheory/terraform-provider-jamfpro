@@ -84,11 +84,6 @@ def generate_targetted_test_files(resources):
         return
 
     for r in resources:
-        resource_dir = os.path.join(root_dir, r)
-        if not os.path.exists(resource_dir):
-            os.makedirs(resource_dir, exist_ok=True)
-            print(f"Created directory: {resource_dir}")
-
         payload_dir_for_hcl = f"./payloads/{r}"
 
         test_block_content = TEST_BLOCK.format(
@@ -96,7 +91,7 @@ def generate_targetted_test_files(resources):
             payload_dir=payload_dir_for_hcl
         )
 
-        test_file_path = os.path.join(resource_dir, f"{r}.tftest.hcl")
+        test_file_path = os.path.join(root_dir, f"{r}.tftest.hcl")
         with open(test_file_path, "w") as f:
             f.write(test_block_content)
         print(f"Created test file: {test_file_path}")
