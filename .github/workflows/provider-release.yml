@@ -35,14 +35,14 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5.2.0
       with:
-        cache: true
+        cache: false
         go-version-file: 'go.mod'
       id: go
 
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v3.1.2
       with:
-        terraform_version: '1.10.3'
+        terraform_version: '1.12.1'
         terraform_wrapper: false
 
     - name: Run 'go mod tidy' and check for differences
@@ -59,7 +59,7 @@ jobs:
       run: |
         go build -v .
 
-    - name: Generate and check docs
+    - name: Generate tf registry docs
       run: |
         go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
         tfplugindocs generate --examples-dir examples
