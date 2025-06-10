@@ -31,10 +31,10 @@ Output (`targets.txt`):
   `user,group`
 '''
 
-import os
 import sys
-import requests
 import argparse
+import requests
+
 
 FILEPATH_KEY = "filename"
 
@@ -65,8 +65,8 @@ def extract_resource_from_path(path: str):
     return False, None
 
 def save_targets_to_file(targets: list):
-    with open("targets.txt", "w") as f:
-        f.write(",".join(targets))        
+    with open("targets.txt", "w", encoding="utf-8") as f:
+        f.write(",".join(targets))
 
 def main():
     parser = argparse.ArgumentParser(description="Get PR diff and extract resource targets.")

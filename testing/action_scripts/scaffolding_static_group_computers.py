@@ -1,10 +1,10 @@
 import os
-import jamfpy
 import random
 import uuid
 import json
 from optparse import OptionParser
 from pathlib import Path
+import jamfpy
 from dotenv import load_dotenv
 load_dotenv()
 print("SCAFFOLDING")
@@ -41,7 +41,7 @@ instance = jamfpy.Tenant(
 )
 
 
-def create_computer_config(computer_name,site_id, site_name):
+def create_computer_config(computer_name, site_id, site_name):
     return f"""
 <computer>
     <general>
@@ -104,7 +104,6 @@ def create_computer_config(computer_name,site_id, site_name):
     </extension_attributes>
 </computer>
     """
-    return
 
 def create_site_config(site_name):
     return f"""
@@ -114,7 +113,7 @@ def create_site_config(site_name):
     """
 
 
-def parse_id_from_response(resp_text) -> str: 
+def parse_id_from_response(resp_text) -> str:
     start = "<id>"
     end = "</id>"
     return parse_tag_contents(start, end, resp_text)
@@ -125,7 +124,7 @@ def parse_tag_contents(start_tag, end_tag, resp_text):
     start_tag_index = resp_text.index(start_tag)
     end_tag_index = resp_text.index(end_tag)
     offset_start_tag_index = start_tag_index + start_tag_length
-    
+
     return resp_text[offset_start_tag_index : end_tag_index]
 
 
