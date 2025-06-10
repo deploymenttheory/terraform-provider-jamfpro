@@ -30,12 +30,12 @@ jobs:
 
     - uses: actions/setup-go@v5.4.0
       with:
-        cache: true
+        cache: false
         go-version-file: 'go.mod'
 
     - uses: hashicorp/setup-terraform@v3.1.2
       with:
-        terraform_version: '1.10.2'
+        terraform_version: '1.12.1'
         terraform_wrapper: true
     
     # Creates provider documentation for godoc.org and pkg.go.dev
