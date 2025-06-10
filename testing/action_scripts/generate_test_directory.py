@@ -76,14 +76,18 @@ run "apply_{resource_type}" {{
 
 def generate_targetted_test_files(resources):
     root_dir = "testing/tests/"
-    os.makedirs(root_dir, exist_ok=True)
+    if not os.path.exists(root_dir):
+        os.makedirs(root_dir, exist_ok=True)
+        print(f"Created directory: {root_dir}")
 
     if not resources:
         return
 
     for r in resources:
         resource_dir = os.path.join(root_dir, r)
-        os.makedirs(resource_dir, exist_ok=True) # Ensure per-resource directory exists
+        if not os.path.exists(resource_dir):
+            os.makedirs(resource_dir, exist_ok=True)
+            print(f"Created directory: {resource_dir}")
 
         payload_dir_for_hcl = f"./payloads/{r}"
 
@@ -95,6 +99,7 @@ def generate_targetted_test_files(resources):
         test_file_path = os.path.join(resource_dir, f"{r}.tftest.hcl")
         with open(test_file_path, "w") as f:
             f.write(test_block_content)
+        print(f"Created test file: {test_file_path}")
 
 
 def get_all_available_test_files():
