@@ -12,7 +12,7 @@ WORKDIR /app
 
 
 
-COPY ./testing/requirements.txt .
+COPY ./testing/action_scripts/requirements.txt .
 
 RUN set -eux; \
     apt-get update && \
