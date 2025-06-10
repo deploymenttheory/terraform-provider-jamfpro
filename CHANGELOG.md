@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.22.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.21.0...v0.22.0) (2025-06-10)
+
+
+### Features
+
+* add jamfpro_cloud_distribution_point data source ([#763](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/763)) ([98021d7](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/98021d734d197adebaf4112f044396a5464bdeeb))
+* add jamfpro_jamf_cloud_distribution_service data source ([#762](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/762)) ([c4b56ff](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/c4b56ff9ea48a6d89a9ad8570677f205124ca123))
+* add jamfpro_managed_sotware_update_feature_toggle resource ([#741](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/741)) ([216dbe7](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/216dbe7745e724df46e9219a6e993da5ea143abc))
+* add jamfpro_mobile_device_application resource and data source ([#747](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/747)) ([1e2952f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/1e2952f3e2df16fd8c516aa057a1c5dcc50df7f6))
+* add rts_enabled and safety_and_handling fields to mobile_device_prestage_enrollment resource; add header field to webhook resource ([#743](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/743)) ([83b7cf9](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/83b7cf933738eb9eb8ee8e96293c6128b260e837))
+* added app_title_name field to jamfpro_app_installer resource and simplified app title id resolution logic ([#775](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/775)) ([2666152](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/26661529cfe1825b5930a1b70b75d9c6e7d0b124))
+* pr and cron checks overhaul. Reduced bloat and centralised common items ([#781](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/781)) ([b115dbb](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/b115dbb0259b3518693b9e1dc11f3e43af891218))
+
+
+### Bug Fixes
+
+* actions renamed for clarity ([#782](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/782)) ([033790b](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/033790bf6b471467c96adf18110c37df09d2a88f))
+* All Resource Dir names now match their correspondant resource names ([#769](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/769)) ([5302ae3](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/5302ae32e67b90dc534c0d2c3742443348057835))
+* deps, small bugfixes ([#777](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/777)) ([1dac6b5](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/1dac6b5ec08a135eda16368f546b10233fa84102))
+* int tests debugging ([#771](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/771)) ([e88b2b3](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/e88b2b3cbf87ffc5e5dcb6ae7a0b9692308706b2))
+* remove dupes from list ([#779](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/779)) ([93e27e0](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/93e27e02a1586835cffd642281e9e0938d852efd))
+* revampted integration tests, alpha release. ([#753](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/753)) ([a101b40](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/a101b40ada932b57e2eee8d04187739eca5122aa))
+* test targetting bug ([#773](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/773)) ([2ed2ee4](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/2ed2ee4a5d131160aa6b5b262f0aa85b3663730d))
+* test trigger hotfix ([4c54e67](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/4c54e679693eb108e013fb82b6324a8f94afc291))
+
 ## [0.21.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.20.0...v0.21.0) (2025-05-15)
 
 
