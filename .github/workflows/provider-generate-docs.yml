@@ -1,12 +1,13 @@
-name: Generate Docs
+name: Provider | Generate Docs
 
 on:
   pull_request:
     branches:
       - main
-    paths-ignore:
-      - '.github/**/*'
-      - 'scripts/**/*'
+    paths:
+      - 'internal/**/*'
+      - 'templates/**/*'
+      - 'examples/**/*'
   workflow_dispatch:
 
 permissions:
@@ -23,19 +24,18 @@ jobs:
       uses: step-security/harden-runner@v2.12.0
       with:
         egress-policy: audit
-
     - uses: actions/checkout@v4.2.2
       with:
-        ref: refs/pull/${{ github.event.pull_request.number }}/head
-        
+        ref: ${{ github.event.pull_request.head.sha || github.ref }}
+
     - uses: actions/setup-go@v5.4.0
       with:
-        cache: true
+        cache: false
         go-version-file: 'go.mod'
 
     - uses: hashicorp/setup-terraform@v3.1.2
       with:
-        terraform_version: '1.10.2'
+        terraform_version: '1.12.1'
         terraform_wrapper: true
     
     # Creates provider documentation for godoc.org and pkg.go.dev

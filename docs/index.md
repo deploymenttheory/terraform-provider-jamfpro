@@ -72,7 +72,7 @@ variable "jamfpro_basic_auth_password" {
 }
 
 variable "enable_client_sdk_logs" {
-  description = "Debug option to propogate logs from the SDK and HttpClient"
+  description = "Debug option to propagate logs from the SDK and HttpClient"
   default     = false
 }
 
@@ -123,7 +123,7 @@ variable "jamfpro_mandatory_request_delay_milliseconds" {
 - `client_sdk_log_export_path` (String) Specify the path to export http client logs to.
 - `client_secret` (String, Sensitive) The Jamf Pro Client secret for authentication when auth_method is 'oauth2'.
 - `custom_cookies` (Block List) Persistent custom cookies used by HTTP Client in all requests. (see [below for nested schema](#nestedblock--custom_cookies))
-- `enable_client_sdk_logs` (Boolean) Debug option to propogate logs from the SDK and HttpClient
+- `enable_client_sdk_logs` (Boolean) Debug option to propagate logs from the SDK and HttpClient
 - `hide_sensitive_data` (Boolean) Define whether sensitive fields should be hidden in logs. Default to hiding sensitive data in logs
 - `jamfpro_instance_fqdn` (String) The Jamf Pro FQDN (fully qualified domain name). example: https://mycompany.jamfcloud.com
 - `jamfpro_load_balancer_lock` (Boolean) Programatically determines all available web app members in the load balancer and locks all instances of httpclient to the app for faster executions. 

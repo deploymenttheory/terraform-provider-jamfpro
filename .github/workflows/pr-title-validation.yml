@@ -1,4 +1,4 @@
-name: PR Title Validation
+name: PR | Title Validation
 
 on:
   pull_request:

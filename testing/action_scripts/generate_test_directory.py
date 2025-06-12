@@ -75,16 +75,15 @@ run "apply_{resource_type}" {{
 """
 
 def generate_targetted_test_files(resources):
-    root_dir = "testing/tests/"
-    os.makedirs(root_dir, exist_ok=True)
+    root_dir = "testing/"
+    if not os.path.exists(root_dir):
+        os.makedirs(root_dir, exist_ok=True)
+        print(f"Created directory: {root_dir}")
 
     if not resources:
         return
 
     for r in resources:
-        resource_dir = os.path.join(root_dir, r)
-        os.makedirs(resource_dir, exist_ok=True) # Ensure per-resource directory exists
-
         payload_dir_for_hcl = f"./payloads/{r}"
 
         test_block_content = TEST_BLOCK.format(
@@ -92,9 +91,10 @@ def generate_targetted_test_files(resources):
             payload_dir=payload_dir_for_hcl
         )
 
-        test_file_path = os.path.join(resource_dir, f"{r}.tftest.hcl")
-        with open(test_file_path, "w") as f:
+        test_file_path = os.path.join(root_dir, f"{r}.tftest.hcl")
+        with open(test_file_path, "w", encoding="utf-8") as f:
             f.write(test_block_content)
+        print(f"Created test file: {test_file_path}")
 
 
 def get_all_available_test_files():
@@ -114,7 +114,7 @@ def get_all_available_test_files():
         item_path = os.path.join(payloads_dir, item)
         if os.path.isdir(item_path):
             available_resources.append(item)
-    
+
     if not available_resources:
         print(f"Warning: No subdirectories found in '{payloads_dir}'. No tests will be generated for 'all'.")
 
@@ -137,7 +137,6 @@ def main():
 
     else:
         stripped_input = input_str.strip()
-        
 
         if stripped_input:
             requested_targets = [t.strip() for t in stripped_input.split(",")]
@@ -162,6 +161,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
