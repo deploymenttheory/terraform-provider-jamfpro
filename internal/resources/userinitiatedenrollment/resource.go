@@ -607,7 +607,6 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							Description:  "id of the Directory Service group to configure enrollment access for. Maps to request field 'groupId'",
-							ValidateFunc: validation.IsUUID,
 						},
 						"ldap_server_id": {
 							Type:        schema.TypeString,
