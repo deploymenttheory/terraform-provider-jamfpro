@@ -10,7 +10,179 @@ This styleguide defines project-specific conventions for Go code in this reposit
 - **File naming**: Use underscores to separate logical parts. E.g., `schema_self_service.go`, `state_general.go`.
 - **Package names**: All lowercase, no underscores. E.g., `policy`, `common`.
 
-## 2. Naming Conventions
+## 2. File Organization and Structure
+
+### Resource File Structure
+Each resource should follow this standardized file organization pattern:
+
+```
+internal/resources/<resource_name>/
+├── resource.go                    # Main resource definition, schema, CRUD operations
+├── constructor.go                 # Data constructors and transformations
+├── state.go                      # State management functions
+├── data_validator.go             # Custom validation functions
+├── data_customdiff.go            # Custom diff functions (if needed)
+├── state_migration.go            # State migration logic (if needed)
+└── schema_<component>.go         # Component-specific schemas (for complex resources)
+```
+
+### Specific File Purposes
+
+#### `resource.go`
+- Main resource definition
+- Schema definition (or imports from schema files)
+- CRUD operations (`Create`, `Read`, `Update`, `Delete`)
+- Resource configuration and metadata
+
+#### `constructor.go`
+- Functions that transform Terraform data to API structs
+- Functions that transform API responses to Terraform state
+- Data mapping and conversion logic
+- Example naming: `constructResourceFromState()`, `updateStateFromResponse()`
+
+#### `state.go` (or `state_<component>.go`)
+- State management helper functions
+- State update and retrieval logic
+- For complex resources, split into logical components:
+  - `state_general.go` - basic resource state
+  - `state_scope.go` - scoping-related state
+  - `state_self_service.go` - self-service specific state
+
+#### `data_validator.go`
+- Custom validation functions
+- Schema validation helpers
+- Input sanitization functions
+- Example functions: `validateDateTime()`, `validateGUID()`
+
+#### `data_customdiff.go`
+- Custom diff functions for complex validation
+- Inter-field dependency validation
+- Conditional validation logic
+- Example functions: `validateAuthenticationPrompt()`, `validateScopeRequirements()`
+
+#### `schema_<component>.go`
+- Component-specific schema definitions for complex resources
+- Used when the main schema would be too large for a single file
+- Examples: `schema_self_service.go`, `schema_scope.go`, `schema_payloads.go`
+
+### Shared Components Location
+
+#### `internal/resources/common/`
+```
+internal/resources/common/
+├── sharedschemas/                 # Reusable schema components
+│   ├── category.go               # Category schema
+│   ├── site.go                   # Site schema
+│   ├── computerscope.go          # Computer scoping schemas
+│   ├── mobiledevicescope.go      # Mobile device scoping schemas
+│   └── utilities.go              # Schema utility functions
+├── constructors/                  # Shared constructor functions
+├── configurationprofiles/         # Configuration profile utilities
+│   └── plist/                    # Plist handling utilities
+└── jamfprivileges/               # Privilege validation utilities
+```
+
+#### When to Use Shared Components
+- **Schemas**: When the same schema is used in 2+ resources
+- **Constructors**: For common data transformation patterns
+- **Validators**: For validation logic used across multiple resources
+
+### Data Sources Structure
+```
+internal/resources/<resource_name>/
+├── data_source.go                # Data source definition and read logic
+├── data_source_schema.go         # Schema specific to data source (if different from resource)
+└── constructor.go                # Shared with resource (if applicable)
+```
+
+### Testing Structure
+```
+internal/resources/<resource_name>/
+├── resource_test.go              # Acceptance tests
+├── constructor_test.go           # Unit tests for constructors
+├── data_validator_test.go        # Unit tests for validators
+└── testdata/                     # Test fixtures and mock data
+    ├── valid_payload.json
+    └── invalid_payload.json
+```
+
+### Documentation Structure
+```
+docs/
+├── data-sources/
+│   └── <resource_name>.md        # Data source documentation
+├── resources/
+│   └── <resource_name>.md        # Resource documentation
+└── styleguide.md                 # This file
+```
+
+### Examples Structure
+```
+examples/
+├── data-sources/
+│   └── <resource_name>/
+│       └── data-source.tf        # Example data source usage
+├── resources/
+│   └── <resource_name>/
+│       ├── resource.tf           # Basic resource example
+│       ├── complex-example.tf    # Advanced usage example
+│       └── payloads/             # Example payload files
+└── provider/
+    └── provider.tf               # Provider configuration examples
+```
+
+### File Naming Conventions
+
+#### Go Files
+- `resource.go` - Main resource file
+- `data_source.go` - Data source file
+- `constructor.go` - Constructor functions
+- `state_<component>.go` - State management
+- `schema_<component>.go` - Schema definitions
+- `data_validator.go` - Validation functions
+- `data_customdiff.go` - Custom diff functions
+- `state_migration.go` - State migration
+- `helpers.go` - General helper functions
+
+#### Test Files
+- `<filename>_test.go` - Unit tests
+- `resource_test.go` - Acceptance tests
+- `data_source_test.go` - Data source tests
+
+#### Documentation Files
+- `<resource_name>.md` - Resource/data source documentation
+- Use hyphens for multi-word resource names in file paths
+
+### Package Organization Rules
+
+1. **One resource per package**: Each resource gets its own package directory
+2. **Shared utilities**: Place in `internal/resources/common/`
+3. **No circular dependencies**: Ensure clean dependency hierarchy
+4. **Logical grouping**: Group related functionality within files
+
+### Import Organization
+```go
+// Standard library imports
+import (
+    "context"
+    "fmt"
+    "strings"
+)
+
+// Third-party imports
+import (
+    "github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+// Local imports
+import (
+    "github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+    "github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
+)
+```
+
+## 3. Naming Conventions
 - **Acronyms**: Capitalize acronyms in names (e.g., `ID`, `URL`, `API`, `HTTP`).
   - Example: `userID`, `getPolicyByID()`, `validateGUID()`
 - **Constants**: Use `CamelCase` for exported constants, `ALL_CAPS` for package-level constants.
@@ -18,7 +190,7 @@ This styleguide defines project-specific conventions for Go code in this reposit
 - **Booleans**: Prefix with `is`, `has`, `can`, or `should` when appropriate.
   - Example: `isEnabled`, `hasPermission`, `canDelete`
 
-## 3. Functions and Methods
+## 4. Functions and Methods
 - **Short receiver names**: Use a single letter for method receivers, typically the first letter of the type.
   - Example: `func (p *Policy) Validate() error { ... }`
 - **Validation functions**: Use consistent naming patterns for validators.
@@ -32,7 +204,7 @@ This styleguide defines project-specific conventions for Go code in this reposit
 - **Helpers for repeated logic**: Extract repeated logic into helper functions.
 - **Function organization**: Group related functions together and separate with comments when logical.
 
-## 4. Error Handling
+## 5. Error Handling
 - **Descriptive error messages**: Include context about what failed and why.
   - Example: `fmt.Errorf("validation failed: %s", strings.Join(errorMessages, "; "))`
 - **Error wrapping**: Use `fmt.Errorf("operation failed: %w", err)` for wrapping errors.
@@ -42,7 +214,7 @@ This styleguide defines project-specific conventions for Go code in this reposit
     // TODO: improve error handling for edge cases
     ```
 
-## 5. Comments and Documentation
+## 6. Comments and Documentation
 - **Package documentation**: Every package should have a package comment.
 - **Function documentation**: Public functions should have doc comments starting with the function name.
 - **TODO formatting**: Use consistent format for TODOs and FIXMEs.
@@ -55,7 +227,7 @@ This styleguide defines project-specific conventions for Go code in this reposit
     ```
 - **Inline comments**: Use sparingly, only when the code's purpose isn't self-explanatory.
 
-## 6. Structs and Interfaces
+## 7. Structs and Interfaces
 - **Struct tags for schemas**: Always use struct tags for schema definitions.
   - Example:
     ```go
@@ -84,7 +256,7 @@ This styleguide defines project-specific conventions for Go code in this reposit
     "category_id": sharedschemas.GetCategorySchema(),
     ```
 
-## 7. Third-Party Dependencies
+## 8. Third-Party Dependencies
 - **Pin versions in `go.mod`**: Always specify versions for dependencies in `go.mod`.
   - Example:
     ```go
@@ -93,7 +265,7 @@ This styleguide defines project-specific conventions for Go code in this reposit
   - See: [Go Modules Reference](https://go.dev/ref/mod)
 - **Minimal dependencies**: Only add dependencies that are absolutely necessary.
 
-## 8. Security and Validation
+## 9. Security and Validation
 - **Input validation**: Always validate user input when required by the Jamf Pro API.
   - If the API has specific requirements, validate accordingly
   - If the API is permissive, validation is optional but recommended for UX
@@ -107,13 +279,13 @@ This styleguide defines project-specific conventions for Go code in this reposit
 - **Sensitive data**: Never log sensitive information like passwords or tokens.
 - **GUID validation**: Use the existing `validateGUID()` function for UUID/GUID fields.
 
-## 9. Testing
+## 10. Testing
 - **Test file naming**: Use `_test.go` suffix for test files.
 - **Test function naming**: Prefix with `Test` for unit tests, `TestAcc` for acceptance tests.
 - **Table-driven tests**: Use table-driven tests for multiple test cases.
 - **Test helpers**: Extract common test setup into helper functions.
 
-## 10. Code Reviews and Pull Requests
+## 11. Code Reviews and Pull Requests
 - **Self-review**: Always review your own code before requesting review.
 - **Clear commit messages**: Use conventional commit format (see PR guidelines).
 - **Review comments**: Leave clear comments for reviewers about areas needing attention.
@@ -122,18 +294,18 @@ This styleguide defines project-specific conventions for Go code in this reposit
     // TODO: review this logic for concurrency issues
     ```
 
-## 11. Performance Considerations
+## 12. Performance Considerations
 - **Avoid unnecessary allocations**: Reuse slices and maps where possible.
 - **Context usage**: Always respect context cancellation in long-running operations.
 - **Resource cleanup**: Always clean up resources (close files, connections, etc.).
 
-## 12. Terraform Provider Specific
+## 13. Terraform Provider Specific
 - **Schema organization**: Separate complex schemas into logical files.
 - **State management**: Keep state functions focused and testable.
 - **Custom diffs**: Use custom diff functions for complex validation logic.
 - **Resource naming**: Use consistent naming patterns for resource files and functions.
 
-## 13. General Guidance
+## 14. General Guidance
 - **Refer to the Google Go styleguide**: [Google Go Style Guide](https://google.github.io/styleguide/go/index.html)
 - **Refer to Effective Go**: [Effective Go](https://go.dev/doc/effective_go)
 - **Go Proverbs**: [Go Proverbs](https://go-proverbs.github.io/)
@@ -141,7 +313,7 @@ This styleguide defines project-specific conventions for Go code in this reposit
 
 ---
 
-## 14. Example: Resource Usage and Structure
+## 15. Example: Resource Usage and Structure
 
 For examples of resource usage and structure, see [`examples/resources/jamfpro_mobile_device_configuration_profile_plist/resource.tf`](examples/resources/jamfpro_mobile_device_configuration_profile_plist/resource.tf). This file demonstrates best practices for resource definition, block structure, and field usage in Terraform for this provider.
 
