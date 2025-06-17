@@ -3,13 +3,6 @@
 This styleguide defines project-specific conventions for Go code in this repository. For any areas not covered here, refer to the [Google Go Style Guide](https://google.github.io/styleguide/go/index.html) and [Effective Go](https://go.dev/doc/effective_go).
 
 ---
-
-## 1. Project Structure
-- **One logical block per file**: Separate schemas, state, constructors, and validators into their own files.
-  - Example: `schema_self_service.go` contains only the self-service schema.
-- **File naming**: Use underscores to separate logical parts. E.g., `schema_self_service.go`, `state_general.go`.
-- **Package names**: All lowercase, no underscores. E.g., `policy`, `common`.
-
 ## 2. File Organization and Structure
 
 ### Resource File Structure
