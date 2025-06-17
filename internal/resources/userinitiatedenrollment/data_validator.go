@@ -15,6 +15,10 @@ func customizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}
 		return err
 	}
 
+	if err := customizeDiffForAccessGroupOne(ctx, d, meta); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -48,6 +52,53 @@ func customizeDiffForEnglishLanguage(ctx context.Context, d *schema.ResourceDiff
 
 		if oldSet != nil && oldSet.Len() > 0 {
 			return fmt.Errorf("cannot remove all messaging configurations as English language configuration is required")
+		}
+	}
+
+	return nil
+}
+
+// customizeDiffForAccessGroupOne ensures that Access Group ID 1 is handled correctly
+func customizeDiffForAccessGroupOne(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	if v, ok := d.GetOk("directory_service_group_enrollment_settings"); ok {
+		groupSet := v.(*schema.Set).List()
+
+		for _, group := range groupSet {
+			groupMap := group.(map[string]interface{})
+
+			if groupID, ok := groupMap["directory_service_group_id"].(string); ok && groupID == "1" {
+				if d.Id() == "" {
+					return fmt.Errorf("access Group ID 1 is built-in and cannot be created")
+				}
+
+				if d.HasChange("directory_service_group_enrollment_settings") {
+					oldGroups, _ := d.GetChange("directory_service_group_enrollment_settings")
+					oldGroupSet := oldGroups.(*schema.Set).List()
+
+					var oldGroup1 map[string]interface{}
+					for _, og := range oldGroupSet {
+						ogMap := og.(map[string]interface{})
+						if ogID, ok := ogMap["directory_service_group_id"].(string); ok && ogID == "1" {
+							oldGroup1 = ogMap
+							break
+						}
+					}
+
+					if oldGroup1 != nil {
+						immutableFields := map[string]string{
+							"directory_service_group_id":   "Directory Service Group ID",
+							"ldap_server_id":               "LDAP Server ID",
+							"directory_service_group_name": "Directory Service Group Name",
+						}
+
+						for field, displayName := range immutableFields {
+							if oldGroup1[field] != groupMap[field] {
+								return fmt.Errorf("%s cannot be modified for Access Group ID 1", displayName)
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 

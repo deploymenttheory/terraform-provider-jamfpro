@@ -160,7 +160,23 @@ resource "jamfpro_user_initiated_enrollment_settings" "jamfpro_uie_settings" {
     log_out_button_name                             = "Log Out"
   }
 
-  //Directory Service Group Enrollment Settings
+  # Directory Service Group Enrollment Settings
+
+  # All Directory Service Users (Required when managing other directory_service_group_enrollment_settings blocks)
+  # This is a special group that always exists as ID 1 and cannot be created or destroyed
+  directory_service_group_enrollment_settings {
+    id                                                                       = "1" // Must be provided 
+    allow_group_to_enroll_institutionally_owned_devices                      = true
+    allow_group_to_enroll_personally_owned_devices                           = false
+    allow_group_to_enroll_personal_and_institutionally_owned_devices_via_ade = true
+    require_eula                                                             = true
+    ldap_server_id                                                           = "-1"
+    directory_service_group_name                                             = "All Directory Service Users"
+    directory_service_group_id                                               = "-1"
+    site_id                                                                  = "-1"
+  }
+
+  # Other groups
   directory_service_group_enrollment_settings {
     allow_group_to_enroll_institutionally_owned_devices                      = false
     allow_group_to_enroll_personally_owned_devices                           = false

@@ -78,13 +78,24 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	for i := range accessGroups {
 		group := accessGroups[i]
-		err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-			_, apiErr := client.CreateAccountDrivenUserEnrollmentAccessGroup(group)
-			if apiErr != nil {
-				return retry.RetryableError(apiErr)
-			}
-			return nil
-		})
+		if group.ID == "1" {
+			err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+				_, apiErr := client.UpdateAccountDrivenUserEnrollmentAccessGroupByID(group.ID, group)
+				if apiErr != nil {
+					return retry.RetryableError(apiErr)
+				}
+				return nil
+			})
+		} else {
+
+			err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+				_, apiErr := client.CreateAccountDrivenUserEnrollmentAccessGroup(group)
+				if apiErr != nil {
+					return retry.RetryableError(apiErr)
+				}
+				return nil
+			})
+		}
 
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to create directory service group enrollment setting for group '%s': %v", group.Name, err))
@@ -164,13 +175,7 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 			Detail:   fmt.Sprintf("Error fetching all groups: %v", err),
 		})
 	} else if currentGroups != nil && len(currentGroups.Results) > 0 {
-		// When we have access groups from the API, filter out any built-in groups (ID "1")
-		for _, group := range currentGroups.Results {
-			if group.ID == "1" {
-				continue
-			}
-			accessGroupsList = append(accessGroupsList, group)
-		}
+		accessGroupsList = currentGroups.Results
 	}
 
 	// --- Step 4: Update state using the centralized function ---
@@ -371,6 +376,14 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		log.Printf("[DEBUG] Creating %d directory service groups from Terraform configuration.", len(groupsToCreate))
 		for i := range groupsToCreate {
 			group := groupsToCreate[i]
+
+			groupID := group.ID
+
+			if groupID == "1" {
+				log.Printf("[INFO] Skipping built-in directory service group ID '1' (Name: %s)", group.Name)
+				continue
+			}
+
 			log.Printf("[DEBUG] Creating directory service group: Name=%s, LDAP ID=%s, Group ID=%s", group.Name, group.LdapServerID, group.GroupID)
 
 			err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
@@ -388,6 +401,36 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 					Severity: diag.Error,
 					Summary:  "Failed to create directory service group",
 					Detail:   fmt.Sprintf("Failed to create directory service group for '%s' (LDAP ID: %s, Group ID: %s): %v", group.Name, group.LdapServerID, group.GroupID, err),
+				})
+				return diags
+			}
+		}
+
+		// 3.3: Update All Directory Service Users settings from Terraform config
+		groupsToUpdate, err := constructDirectoryServiceGroupSettings(d)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("failed to construct group settings: %v", err))
+		}
+
+		for _, group := range groupsToUpdate {
+			if group.ID == "1" {
+				err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+					_, apiErr := client.UpdateAccountDrivenUserEnrollmentAccessGroupByID(group.ID, group)
+					if apiErr != nil {
+						log.Printf("[ERROR] Failed attempt to update directory service group for group '%s': %v", group.Name, apiErr)
+						return retry.RetryableError(apiErr)
+					}
+					log.Printf("[DEBUG] Successfully updated directory service group: Name=%s", group.Name)
+
+					return nil
+				})
+			}
+
+			if err != nil {
+				diags = append(diags, diag.Diagnostic{
+					Severity: diag.Error,
+					Summary:  "Failed to update directory service group",
+					Detail:   fmt.Sprintf("Failed to update directory service group for '%s' (LDAP ID: %s, Group ID: %s): %v", group.Name, group.LdapServerID, group.GroupID, err),
 				})
 				return diags
 			}
@@ -482,12 +525,7 @@ func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 			groupID := group.ID
 
 			if groupID == "1" {
-				log.Printf("[INFO] Skipping deletion of directory service group with ID '1' (Name: %s) as it is considered built-in.", group.Name)
-				continue
-			}
-
-			if groupID == "" {
-				log.Printf("[WARN] Skipping group at index %d with empty ID.", i)
+				log.Printf("[INFO] Preserving Access Group ID 1 (Name: %s)", group.Name)
 				continue
 			}
 

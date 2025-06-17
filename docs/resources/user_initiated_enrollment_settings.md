@@ -171,7 +171,23 @@ resource "jamfpro_user_initiated_enrollment_settings" "jamfpro_uie_settings" {
     log_out_button_name                             = "Log Out"
   }
 
-  //Directory Service Group Enrollment Settings
+  # Directory Service Group Enrollment Settings
+
+  # All Directory Service Users (Required when managing other directory_service_group_enrollment_settings blocks)
+  # This is a special group that always exists as ID 1 and cannot be created or destroyed
+  directory_service_group_enrollment_settings {
+    id                                                                       = "1" // Must be provided 
+    allow_group_to_enroll_institutionally_owned_devices                      = true
+    allow_group_to_enroll_personally_owned_devices                           = false
+    allow_group_to_enroll_personal_and_institutionally_owned_devices_via_ade = true
+    require_eula                                                             = true
+    ldap_server_id                                                           = "-1"
+    directory_service_group_name                                             = "All Directory Service Users"
+    directory_service_group_id                                               = "-1"
+    site_id                                                                  = "-1"
+  }
+
+  # Other groups
   directory_service_group_enrollment_settings {
     allow_group_to_enroll_institutionally_owned_devices                      = false
     allow_group_to_enroll_personally_owned_devices                           = false
@@ -224,23 +240,17 @@ resource "jamfpro_user_initiated_enrollment_settings" "jamfpro_uie_settings" {
 <a id="nestedblock--directory_service_group_enrollment_settings"></a>
 ### Nested Schema for `directory_service_group_enrollment_settings`
 
-Required:
-
-- `directory_service_group_id` (String) id of the Directory Service group to configure enrollment access for. Maps to request field 'groupId'
-- `directory_service_group_name` (String) Name of the Directory Service group to configure enrollment access for. Maps to request field 'name'
-- `ldap_server_id` (String) The unique identifier of the Directory Service group id.
-
 Optional:
 
 - `allow_group_to_enroll_institutionally_owned_devices` (Boolean) Whether directory group can perform user initiated device enrollment for iOS/iPadOS institutionally owned devices. Maps to request field 'enterpriseEnrollmentEnabled'
 - `allow_group_to_enroll_personal_and_institutionally_owned_devices_via_ade` (Boolean) Whether directory group can perform user initiated device enrollment for iOS/iPadOS by signing in to their device using a Managed Apple ID with ade. Maps to request field 'accountDrivenUserEnrollmentEnabled'
 - `allow_group_to_enroll_personally_owned_devices` (Boolean) Whether directory group can perform user initiated device enrollment for iOS/iPadOS personally owned devices. Maps to request field 'personalEnrollmentEnabled'
+- `directory_service_group_id` (String) id of the Directory Service group to configure enrollment access for. Maps to request field 'groupId'
+- `directory_service_group_name` (String) Name of the Directory Service group to configure enrollment access for. Maps to request field 'name'
+- `id` (String) The unique identifier of the Directory Service group enrollment setting id. Only ID '1' is valid as it represents the built-in 'All Directory Service Users' group.
+- `ldap_server_id` (String) The unique identifier of the Directory Service group id.
 - `require_eula` (Boolean) Upon enrollment is the eula required to be accepted
-- `site_id` (String) ID of the Site to allow this LDAP user group to select during enrollment
-
-Read-Only:
-
-- `id` (String) The unique identifier of the Directory Service group enrollment setting id.
+- `site_id` (String) ID of the Site to allow this LDAP user group to select during enrollment. Set to '-1' for no site.
 
 
 <a id="nestedblock--messaging"></a>

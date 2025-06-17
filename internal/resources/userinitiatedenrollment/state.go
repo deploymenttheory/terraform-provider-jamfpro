@@ -270,6 +270,13 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 	// --- Set Directory Service Group Enrollment Settings ---
 	if len(accessGroups) > 0 {
 		groupSettingsList := make([]interface{}, 0, len(accessGroups))
+
+		// First, check if directory_service_group_enrollment_settings is in the config
+		hasConfiguredGroups := false
+		if _, ok := d.GetOk("directory_service_group_enrollment_settings"); ok {
+			hasConfiguredGroups = true
+		}
+
 		for i := range accessGroups {
 			groupConfigMap, err := handleDirectoryServiceGroupEnrollmentSettings(&accessGroups[i])
 			if err != nil {
@@ -280,8 +287,14 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 				})
 				continue
 			}
-			groupSettingsList = append(groupSettingsList, groupConfigMap)
+
+			if !hasConfiguredGroups && groupConfigMap["id"] == "1" {
+				groupSettingsList = append(groupSettingsList, groupConfigMap)
+			} else if hasConfiguredGroups {
+				groupSettingsList = append(groupSettingsList, groupConfigMap)
+			}
 		}
+
 		log.Printf("[DEBUG] Setting 'directory_service_group_enrollment_settings' state with %d flattened configurations from API.", len(groupSettingsList))
 		if err := d.Set("directory_service_group_enrollment_settings", groupSettingsList); err != nil {
 			diags = append(diags, diag.Diagnostic{Severity: diag.Error, Summary: "Failed to set directory service group settings in state", Detail: err.Error()})
