@@ -4,6 +4,33 @@
 
 This project follows the [Google Go Style Guide](https://google.github.io/styleguide/go) as its foundation.
 
+## Provider-Specific Code Style
+
+The `internal/resources/policy` directory represents our latest iteration of code organization and patterns. Follow these conventions:
+
+1. Schema Organization:
+   - Split complex resource schemas into logical components using separate `schema_*.go` files
+   - Examples: `schema_account_maintenance.go`, `schema_network_limitations.go`, `schema_reboot.go`
+   - Each schema file should focus on one specific aspect of the resource
+
+2. State Management:
+   - Separate state handling into focused files with `state_*.go` naming
+   - Use `state_payloads.go` for API request/response structures
+   - Use `state_migration.go` for version migrations
+   - Split complex state operations into logical groups (e.g., `state_general.go`, `state_scope.go`)
+
+3. Core Files:
+   - `constructor.go` - Resource schema assembly and initialization
+   - `crud.go` - Basic CRUD operations
+   - `data_source.go` - Data source implementation
+   - `resource.go` - Resource type definitions and main logic
+   - `data_validator.go` - Custom validation functions
+
+4. File Organization:
+   - Keep files focused and single-purpose
+   - Use clear, descriptive file names that indicate their content
+   - Break down large schemas into manageable components
+
 ## Repository Structure
 
 ```
