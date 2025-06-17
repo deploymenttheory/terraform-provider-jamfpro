@@ -189,17 +189,3 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_device_conf
   }
 }
 ```
-
-## 15. Quick Reference Checklist
-
-Before submitting code, verify:
-- [ ] Functions follow naming conventions
-- [ ] Error messages are descriptive
-- [ ] No repeated schema definitions (use shared schemas)
-- [ ] Validation functions follow established patterns
-- [ ] Comments are necessary and well-formatted
-- [ ] Dependencies are pinned in `go.mod`
-- [ ] Code follows project structure guidelines
-- [ ] Tests are included for new functionality
-
-For any questions or ambiguities, prefer the Google Go styleguide and Effective Go as the final authority.
