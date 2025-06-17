@@ -2,7 +2,7 @@
 
 ## Base Style Guide
 
-This project follows the [Google Go Style Guide](https://google.github.io/styleguide/go) as its foundation. Please familiarize yourself with it before contributing.
+This project follows the [Google Go Style Guide](https://google.github.io/styleguide/go) as its foundation.
 
 ## Repository Structure
 
