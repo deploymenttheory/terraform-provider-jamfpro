@@ -11,22 +11,31 @@ This styleguide defines project-specific conventions for Go code in this reposit
 - **Package names**: All lowercase, no underscores. E.g., `policy`, `common`.
 
 ## 2. Naming Conventions
-- **Acronyms**: Capitalize acronyms in names (e.g., `ID`, `URL`).
-  - Example: `userID`, `getPolicyByID()`
-- **Constants**: Use `CamelCase` or `ALL_CAPS` for acronyms.
+- **Acronyms**: Capitalize acronyms in names (e.g., `ID`, `URL`, `API`, `HTTP`).
+  - Example: `userID`, `getPolicyByID()`, `validateGUID()`
+- **Constants**: Use `CamelCase` for exported constants, `ALL_CAPS` for package-level constants.
   - Example: `DefaultTimeout`, `MAX_RETRIES`
+- **Booleans**: Prefix with `is`, `has`, `can`, or `should` when appropriate.
+  - Example: `isEnabled`, `hasPermission`, `canDelete`
 
 ## 3. Functions and Methods
 - **Short receiver names**: Use a single letter for method receivers, typically the first letter of the type.
   - Example: `func (p *Policy) Validate() error { ... }`
-- **Helpers for repeated logic**: Extract repeated logic into helper functions.
+- **Validation functions**: Use consistent naming patterns for validators.
+  - Schema validation functions: `validate<Field>() schema.SchemaValidateFunc`
+  - Custom diff validators: `validate<Requirement>(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error`
   - Example:
     ```go
     func validateDateTime(v interface{}, k string) (warns []string, errs []error) { ... }
-    // Used in multiple schema files
+    func validateAuthenticationPrompt(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error { ... }
     ```
+- **Helpers for repeated logic**: Extract repeated logic into helper functions.
+- **Function organization**: Group related functions together and separate with comments when logical.
 
 ## 4. Error Handling
+- **Descriptive error messages**: Include context about what failed and why.
+  - Example: `fmt.Errorf("validation failed: %s", strings.Join(errorMessages, "; "))`
+- **Error wrapping**: Use `fmt.Errorf("operation failed: %w", err)` for wrapping errors.
 - **TODOs for improvements**: If error handling is incomplete or needs review, leave a `TODO` comment.
   - Example:
     ```go
@@ -34,12 +43,17 @@ This styleguide defines project-specific conventions for Go code in this reposit
     ```
 
 ## 5. Comments and Documentation
-- **TODOs and FIXMEs**: Use these for future work or known issues.
+- **Package documentation**: Every package should have a package comment.
+- **Function documentation**: Public functions should have doc comments starting with the function name.
+- **TODO formatting**: Use consistent format for TODOs and FIXMEs.
+  - `TODO:` followed by a space and description
+  - `FIXME:` for bugs that need immediate attention
   - Example:
     ```go
     // TODO: remove log.prints, debug use only
     // FIXME: handle nil pointer dereference
     ```
+- **Inline comments**: Use sparingly, only when the code's purpose isn't self-explanatory.
 
 ## 6. Structs and Interfaces
 - **Struct tags for schemas**: Always use struct tags for schema definitions.
@@ -54,16 +68,20 @@ This styleguide defines project-specific conventions for Go code in this reposit
   - Example:
     ```go
     type Base struct { ID int }
-    type User struct { Base; Name string }
+    type User struct { 
+        Base
+        Name string 
+    }
     ```
-- **No repeated schemas**: If a schema is used more than once, move it to `/common` and import it.
+- **No repeated schemas**: If a schema is used more than once, move it to `/common/sharedschemas` and import it.
   - Example:
     ```go
-    // In /common/schema_shared.go
-    func SharedUserSchema() *schema.Resource { ... }
+    // In /common/sharedschemas/category.go
+    func GetCategorySchema() *schema.Schema { ... }
+    
     // In other packages
-    import ".../common"
-    common.SharedUserSchema()
+    import "internal/resources/common/sharedschemas"
+    "category_id": sharedschemas.GetCategorySchema(),
     ```
 
 ## 7. Third-Party Dependencies
@@ -73,32 +91,57 @@ This styleguide defines project-specific conventions for Go code in this reposit
     require github.com/hashicorp/terraform-plugin-sdk/v2 v2.15.0
     ```
   - See: [Go Modules Reference](https://go.dev/ref/mod)
+- **Minimal dependencies**: Only add dependencies that are absolutely necessary.
 
-## 8. Security Best Practices
-- **Validate input when required by the API**: If the API is specific about accepted values or formats, always validate user input accordingly. If the API is permissive, validation is optional.
+## 8. Security and Validation
+- **Input validation**: Always validate user input when required by the Jamf Pro API.
+  - If the API has specific requirements, validate accordingly
+  - If the API is permissive, validation is optional but recommended for UX
   - Example:
     ```go
     "activation_date": {
-        Type: schema.TypeString,
+        Type:         schema.TypeString,
         ValidateFunc: validateDateTime,
     }
     ```
+- **Sensitive data**: Never log sensitive information like passwords or tokens.
+- **GUID validation**: Use the existing `validateGUID()` function for UUID/GUID fields.
 
-## 9. Code Reviews and Pull Requests
-- **Use TODOs/comments for review notes**: Leave clear comments for reviewers about areas needing attention or improvement.
+## 9. Testing
+- **Test file naming**: Use `_test.go` suffix for test files.
+- **Test function naming**: Prefix with `Test` for unit tests, `TestAcc` for acceptance tests.
+- **Table-driven tests**: Use table-driven tests for multiple test cases.
+- **Test helpers**: Extract common test setup into helper functions.
+
+## 10. Code Reviews and Pull Requests
+- **Self-review**: Always review your own code before requesting review.
+- **Clear commit messages**: Use conventional commit format (see PR guidelines).
+- **Review comments**: Leave clear comments for reviewers about areas needing attention.
   - Example:
     ```go
     // TODO: review this logic for concurrency issues
     ```
 
-## 10. General Guidance
-- **Refer to the Google Go styleguide at all opportunities**: [Google Go Style Guide](https://google.github.io/styleguide/go/index.html)
+## 11. Performance Considerations
+- **Avoid unnecessary allocations**: Reuse slices and maps where possible.
+- **Context usage**: Always respect context cancellation in long-running operations.
+- **Resource cleanup**: Always clean up resources (close files, connections, etc.).
+
+## 12. Terraform Provider Specific
+- **Schema organization**: Separate complex schemas into logical files.
+- **State management**: Keep state functions focused and testable.
+- **Custom diffs**: Use custom diff functions for complex validation logic.
+- **Resource naming**: Use consistent naming patterns for resource files and functions.
+
+## 13. General Guidance
+- **Refer to the Google Go styleguide**: [Google Go Style Guide](https://google.github.io/styleguide/go/index.html)
 - **Refer to Effective Go**: [Effective Go](https://go.dev/doc/effective_go)
 - **Go Proverbs**: [Go Proverbs](https://go-proverbs.github.io/)
+- **Terraform Plugin Development**: [Terraform Plugin SDK](https://developer.hashicorp.com/terraform/plugin)
 
 ---
 
-## 11. Example: Resource Usage and Structure
+## 14. Example: Resource Usage and Structure
 
 For examples of resource usage and structure, see [`examples/resources/jamfpro_mobile_device_configuration_profile_plist/resource.tf`](examples/resources/jamfpro_mobile_device_configuration_profile_plist/resource.tf). This file demonstrates best practices for resource definition, block structure, and field usage in Terraform for this provider.
 
@@ -146,5 +189,17 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_device_conf
   }
 }
 ```
+
+## 15. Quick Reference Checklist
+
+Before submitting code, verify:
+- [ ] Functions follow naming conventions
+- [ ] Error messages are descriptive
+- [ ] No repeated schema definitions (use shared schemas)
+- [ ] Validation functions follow established patterns
+- [ ] Comments are necessary and well-formatted
+- [ ] Dependencies are pinned in `go.mod`
+- [ ] Code follows project structure guidelines
+- [ ] Tests are included for new functionality
 
 For any questions or ambiguities, prefer the Google Go styleguide and Effective Go as the final authority.
