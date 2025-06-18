@@ -68,7 +68,7 @@ func customizeDiffForAccessGroupOne(ctx context.Context, d *schema.ResourceDiff,
 
 			if groupID, ok := groupMap["directory_service_group_id"].(string); ok && groupID == "1" {
 				if d.Id() == "" {
-					return fmt.Errorf("access Group ID 1 is built-in and cannot be created")
+					return fmt.Errorf("access Group ID 1 is built-in and cannot be created") //nolint:err113
 				}
 
 				if d.HasChange("directory_service_group_enrollment_settings") {
@@ -93,7 +93,7 @@ func customizeDiffForAccessGroupOne(ctx context.Context, d *schema.ResourceDiff,
 
 						for field, displayName := range immutableFields {
 							if oldGroup1[field] != groupMap[field] {
-								return fmt.Errorf("%s cannot be modified for Access Group ID 1", displayName)
+								return fmt.Errorf("%s cannot be modified for Access Group ID 1", displayName) //nolint:err113
 							}
 						}
 					}
