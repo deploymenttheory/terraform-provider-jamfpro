@@ -1,4 +1,4 @@
-package userinitiatedenrollment
+package user_initiated_enrollment_settings
 
 import (
 	"context"
@@ -409,7 +409,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		// 3.3: Update All Directory Service Users settings from Terraform config
 		groupsToUpdate, err := constructDirectoryServiceGroupSettings(d)
 		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to construct group settings: %v", err)) //nolint:err113
+			return diag.FromErr(fmt.Errorf("failed to construct group settings: %w", err)) //nolint:err113
 		}
 
 		for _, group := range groupsToUpdate {

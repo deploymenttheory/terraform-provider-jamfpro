@@ -50,8 +50,8 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macos_configuration_profile_plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macos_configuration_profile_plist_generator"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/managed_software_update"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mobile_device_application"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/managed_software_update_feature_toggle"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mobile_device_application"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mobile_device_configuration_profile_plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mobile_device_extension_attribute"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mobile_device_prestage_enrollment"
@@ -72,7 +72,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/static_computer_group"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/static_mobile_device_group"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/user_group"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/userinitiatedenrollment"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/user_initiated_enrollment_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/volume_purchasing_locations"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/webhook"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -121,6 +121,7 @@ func GetJamfFqdn(d *schema.ResourceData, diags *diag.Diagnostics) string {
 	}
 	return jamf_fqdn.(string)
 }
+
 /*
 GetClientID retrieves the client ID from the provided schema resource data.
 If the client ID is not found, it appends an error diagnostic to the diagnostics slice.
@@ -468,7 +469,7 @@ func Provider() *schema.Provider {
 			"jamfpro_static_computer_group":                       static_computer_group.ResourceJamfProStaticComputerGroups(),
 			"jamfpro_static_mobile_device_group":                  static_mobile_device_group.ResourceJamfProStaticMobileDeviceGroups(),
 			"jamfpro_restricted_software":                         restricted_software.ResourceJamfProRestrictedSoftwares(),
-			"jamfpro_user_initiated_enrollment_settings":          userinitiatedenrollment.ResourceJamfProUserInitatedEnrollmentSettings(),
+			"jamfpro_user_initiated_enrollment_settings":          user_initiated_enrollment_settings.ResourceJamfProUserInitatedEnrollmentSettings(),
 			"jamfpro_user_group":                                  user_group.ResourceJamfProUserGroups(),
 			"jamfpro_volume_purchasing_locations":                 volume_purchasing_locations.ResourceJamfProVolumePurchasingLocations(),
 			"jamfpro_webhook":                                     webhook.ResourceJamfProWebhooks(),

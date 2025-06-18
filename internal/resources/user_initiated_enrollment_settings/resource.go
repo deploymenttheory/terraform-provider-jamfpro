@@ -1,4 +1,4 @@
-package userinitiatedenrollment
+package user_initiated_enrollment_settings
 
 import (
 	"time"
