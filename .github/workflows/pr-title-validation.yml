@@ -49,8 +49,7 @@ jobs:
               fi
               echo "✅ Valid PR name: '${prefix}: ${TITLE}'"
               exit 0
-
-            elif [[ "$PR_NAME" =~ ^${prefix}\b ]]; then
+            elif [[ "$PR_NAME" =~ ^${prefix}[[:space:]] ]]; then
               echo "❌ Found '${prefix}' but missing colon. Use format: '${prefix}: ...'"
               exit 1
             fi
