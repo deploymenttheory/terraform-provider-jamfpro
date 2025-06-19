@@ -1,4 +1,4 @@
-package userinitiatedenrollment
+package user_initiated_enrollment_settings
 
 import (
 	"encoding/json"
@@ -251,6 +251,7 @@ func constructDirectoryServiceGroupSettings(d *schema.ResourceData) ([]*jamfpro.
 			groupMap := groupData.(map[string]interface{})
 
 			group := &jamfpro.ResourceAccountDrivenUserEnrollmentAccessGroup{
+				ID:                                 groupMap["id"].(string),
 				GroupID:                            groupMap["directory_service_group_id"].(string),
 				LdapServerID:                       groupMap["ldap_server_id"].(string),
 				Name:                               groupMap["directory_service_group_name"].(string),
