@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.2](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.22.1...v0.22.2) (2025-06-19)
+
+
+### Bug Fixes
+
+* correct handling of All Directory Service Users in user_initiated_enrollment_settings ([#803](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/803)) ([d14e20d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/d14e20d2a989cb04871796e80bdbed812ed46f30))
+
 ## [0.22.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.22.0...v0.22.1) (2025-06-10)
 
 
