@@ -11,7 +11,9 @@ jobs:
     container: python:3.13
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Run Check Script
         working-directory: .
-        run: python ./scripts/check_pr_name.py "${{ github.event.pull_request.title }}"
-    
+        run: python scripts/check_pr_name.py "${{ github.event.pull_request.title }}"
