@@ -1,0 +1,16 @@
+name: PR | Title Validation (new)
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, opened]
+
+jobs:
+  validate-title:
+    name: 'Validate Title'
+    runs-on: ubuntu-latest
+    container: python:3.13
+
+    steps:
+      - name: Run Check Script
+        run: python scripts/check_pr_name.py ${{ github.event.pull_request.title }}
+    
