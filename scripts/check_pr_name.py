@@ -2,11 +2,12 @@
 
 import argparse
 import sys
+import re
 
-VALID_PREFIXES = [
-    "feat:",
-    "fix:",
-    "chore:"
+VALID_PREFIXES_LOWER = [
+    "feat",
+    "fix",
+    "chore"
 ]
 
 
@@ -20,11 +21,17 @@ def check_pr_name(pr_name: str):
     Returns:
         None
     """
-    if any(pr_name.lower().startswith(i) for i in VALID_PREFIXES):
+    if any(pr_name.lower().startswith(i) for i in VALID_PREFIXES_LOWER):
         return
     
-    print(f"PR Name has invalid prefix: {pr_name}, should be one of: {VALID_PREFIXES}")
-    sys.exit(1)
+    
+    for i in VALID_PREFIXES_LOWER:
+        matched = re.match(fr'^{i}:')
+        if matched:
+            print(f"[DEBUG] successfully matched {matched.group(1)}")
+            return
+    
+    raise Exception(f"PR Name has invalid prefix: {pr_name}, should be one of: {VALID_PREFIXES_LOWER}")
 
 
 def main():
