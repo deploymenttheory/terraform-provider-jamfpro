@@ -2,47 +2,55 @@ name: PR | Title Validation
 
 on:
   pull_request:
-    types: [opened, edited, synchronize, reopened]
+    types: [opened, edited, synchronize, opened]
 
 jobs:
-  validate-pr-title:
-    name: '✅ Validate PR Title'
+  validate-title:
+    name: 'Validate Title'
     runs-on: ubuntu-latest
+
     steps:
-      - name: Check PR Title
+      - name: Run Check Script
+        working-directory: .
         run: |
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          PATTERN="^(([Ff]eat|[Ff]ix|[Dd]ocs|[Ss]tyle|[Rr]efactor|[Tt]est|[Cc]hore|[Bb]uild|[Cc]i|[Pp]erf)(\(.+\))?: .+|dependabot.*)$"
-          
-          if ! echo "$PR_TITLE" | grep -qE "$PATTERN"; then
-            echo "❌ ERROR: Invalid PR title format"
-            echo ""
-            echo "Got PR title: $PR_TITLE"
-            echo ""
-            echo "PR titles must:"
-            echo "1. Start with one of these prefixes (case-insensitive first letter):"
-            echo "   - feat     / Feat     (for new features)"
-            echo "   - fix      / Fix      (for bug fixes)"
-            echo "   - docs     / Docs     (for documentation)"
-            echo "   - style    / Style    (for formatting)"
-            echo "   - refactor / Refactor (for code restructuring)"
-            echo "   - test     / Test     (for adding tests)"
-            echo "   - chore    / Chore    (for maintenance)"
-            echo "   - build    / Build    (for build system)"
-            echo "   - ci       / CI       (for CI/CD)"
-            echo "   - perf     / Perf     (for performance)"
-            echo ""
-            echo "2. Optionally include a scope in parentheses after the type"
-            echo ""
-            echo "3. Include a description after a colon and space"
-            echo ""
-            echo "Examples:"
-            echo "✅ feat: add new resource"
-            echo "✅ feat(api): add new endpoint"
-            echo "✅ fix: resolve connection timeout"
-            echo "✅ fix(database): fix query performance"
-            echo "✅ dependabot: bump lodash from 4.17.20 to 4.17.21"
+          VALID_PREFIXES=(
+            "feat"
+            "fix"
+            "chore"
+            "docs"
+            "style"
+            "refactor"
+            "perf"
+            "test"
+            "build"
+            "ci"
+            "revert"
+          )
+
+          PR_NAME="${{ github.event.pull_request.title }}"
+
+          if [[ -z "$PR_NAME" ]]; then
+            echo "❌ PR name is empty"
             exit 1
           fi
-          
-          echo "✅ PR title '$PR_TITLE' follows the conventional commit format and is compatible with the release-please"
+
+          for prefix in "${VALID_PREFIXES[@]}"; do
+            if [[ "$PR_NAME" =~ ^${prefix}:\ *(.*) ]]; then
+              TITLE="${BASH_REMATCH[1]}"
+              TITLE_LENGTH=${#TITLE}
+
+              if (( TITLE_LENGTH < 6 )); then
+                echo "❌ PR title after '${prefix}:' is too short (found: '${TITLE}'). Must be at least 6 characters."
+                exit 1
+              fi
+              echo "✅ Valid PR name: '${prefix}: ${TITLE}'"
+              exit 0
+
+            elif [[ "$PR_NAME" =~ ^${prefix}\b ]]; then
+              echo "❌ Found '${prefix}' but missing colon. Use format: '${prefix}: ...'"
+              exit 1
+            fi
+          done
+
+          echo "❌ Invalid PR name prefix. Use one of: ${VALID_PREFIXES[*]}"
+          exit 1
