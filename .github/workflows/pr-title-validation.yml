@@ -4,6 +4,10 @@ on:
   pull_request_target:
     types: [opened, edited, synchronize, opened]
 
+permissions:
+  pull-requests: read
+
+
 jobs:
   validate-title:
     name: 'Validate Title'
