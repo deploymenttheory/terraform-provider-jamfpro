@@ -83,7 +83,8 @@ jobs:
           
           # Check 4: Ensure colon exists after word/scope
           echo "DEBUG: Checking for colon..."
-          if [[ ! "$PR_TITLE" =~ ^[a-zA-Z]+(\([^)]+\))?:. ]]; then
+          # Check for pattern: word: or word(scope):
+          if [[ ! "$PR_TITLE" =~ ^[a-zA-Z]+: ]] && [[ ! "$PR_TITLE" =~ ^[a-zA-Z]+\([^)]+\): ]]; then
             echo "ERROR: Missing colon after conventional commit type/scope - format should be 'feat: description' or 'feat(scope): description'"
             exit 1
           fi
@@ -91,7 +92,7 @@ jobs:
           
           # Check 5: Ensure at least 5 non-space characters after colon
           echo "DEBUG: Checking post-colon content..."
-          POST_COLON=$(echo "$PR_TITLE" | sed 's/^[a-zA-Z]*(\([^)]*\))*: *//')
+          POST_COLON=$(echo "$PR_TITLE" | sed 's/^[a-zA-Z]*\([^:]*\): *//')
           echo "DEBUG: Post-colon content: '$POST_COLON'"
           
           # Remove all spaces and count characters
