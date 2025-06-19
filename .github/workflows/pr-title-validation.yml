@@ -36,11 +36,11 @@ jobs:
 
           for prefix in "${VALID_PREFIXES[@]}"; do
             # Accepts: prefix: ... or prefix(scope): ...
-            if [[ "$PR_NAME" =~ ^${prefix}(:|\([a-zA-Z0-9_-]+\):)\ *(.*) ]]; then
+            if [[ "$PR_NAME" =~ ^${prefix}(:\s+|\([a-zA-Z0-9_-]+\):\s+)(.+)$ ]]; then
               SCOPE_MATCH="${BASH_REMATCH[1]}"
-              TITLE="${BASH_REMATCH[3]}"
+              TITLE="${BASH_REMATCH[2]}"
               # Check for empty scope (e.g., feat(): ...)
-              if [[ "$SCOPE_MATCH" =~ ^\(\):$ ]]; then
+              if [[ "$SCOPE_MATCH" =~ ^\(\): ]]; then
                 echo "❌ Scope must not be empty. Use format: '${prefix}(scope): ...' or '${prefix}: ...'"
                 exit 1
               fi
@@ -49,7 +49,7 @@ jobs:
                 echo "❌ PR title after '${prefix}${SCOPE_MATCH}' is too short (found: '${TITLE}'). Must be at least 6 characters."
                 exit 1
               fi
-              echo "✅ Valid PR name: '${prefix}${SCOPE_MATCH} ${TITLE}'"
+              echo "✅ Valid PR name: '${prefix}${SCOPE_MATCH}${TITLE}'"
               exit 0
             elif [[ "$PR_NAME" =~ ^${prefix}[[:space:]] ]]; then
               echo "❌ Found '${prefix}' but missing colon. Use format: '${prefix}: ...' or '${prefix}(scope): ...'"
