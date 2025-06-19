@@ -16,11 +16,11 @@ jobs:
     steps:
       - name: Run Check Script
         working-directory: .
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           #!/bin/bash
           set -e
-          
-          PR_TITLE="${{ github.event.pull_request.title }}"
           if [[ -z "$PR_TITLE" ]] || [[ "$PR_TITLE" =~ ^[[:space:]]*$ ]]; then
             echo "::error::PR title cannot be empty"
             exit 1
