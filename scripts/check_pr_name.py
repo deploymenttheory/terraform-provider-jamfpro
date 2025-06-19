@@ -7,11 +7,22 @@ import re
 VALID_PREFIXES_LOWER = [
     "feat",
     "fix",
-    "chore"
+    "chore",
+    "docs",
+    "style",
+    "refactor",
+    "perf",
+    "test",
+    "build",
+    "ci",
+    "revert"
 ]
 
+class InvalidPrName(Exception):
+    "Error for a bad PR name"
 
 def check_pr_name(pr_name: str):
+    print('check pr name')
     """
     Process the input string argument.
     
@@ -21,20 +32,27 @@ def check_pr_name(pr_name: str):
     Returns:
         None
     """
-    if any(pr_name.lower().startswith(i) for i in VALID_PREFIXES_LOWER):
-        return
+    # if any(pr_name.lower().startswith(i) for i in VALID_PREFIXES_LOWER):
+        # return
     
     
     for i in VALID_PREFIXES_LOWER:
-        matched = re.match(fr'^{i}:')
+        matched = re.match(fr'^{i}:', pr_name)
         if matched:
-            print(f"[DEBUG] successfully matched {matched.group(1)}")
+            print(f"[DEBUG] successfully matched {matched.group(0)}")
             return
+            
+        
+        matched = re.match(fr'^{i}\b', pr_name)
+        if matched:
+            raise InvalidPrName(f"[DEBUG] successfully matched {matched.group(0)} but does not contain a colon. Should be: '{pr_name}:'")
+
     
-    raise Exception(f"PR Name has invalid prefix: {pr_name}, should be one of: {VALID_PREFIXES_LOWER}")
+    raise InvalidPrName(f"PR Name has invalid prefix: {pr_name}, should be one of: {VALID_PREFIXES_LOWER}")
 
 
 def main():
+    print('main')
     """Main entry point for the script."""
     parser = argparse.ArgumentParser(description='Process a single string argument.')
     parser.add_argument('pr_name', type=str, help='Input string to process')
@@ -49,3 +67,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
