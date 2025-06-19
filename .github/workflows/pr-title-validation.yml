@@ -16,34 +16,20 @@ jobs:
           #!/bin/bash
           set -e
           
-          # Get PR title from GitHub event
           PR_TITLE="${{ github.event.pull_request.title }}"
-          
-          echo "DEBUG: Raw PR title: '$PR_TITLE'"
-          
-          # Check 1: Title is not empty
-          echo "DEBUG: Checking if title is empty..."
           if [[ -z "$PR_TITLE" ]] || [[ "$PR_TITLE" =~ ^[[:space:]]*$ ]]; then
             echo "::error::PR title cannot be empty"
             exit 1
           fi
-          echo "DEBUG: Title is not empty ✓"
           
-          # Check 2: Extract first word and validate conventional commit type
-          echo "DEBUG: Extracting first word..."
           FIRST_WORD=$(echo "$PR_TITLE" | grep -oE '^[a-zA-Z]+' || echo "")
-          echo "DEBUG: First word: '$FIRST_WORD'"
           
           if [[ -z "$FIRST_WORD" ]]; then
             echo "::error::PR title must start with a conventional commit type"
             exit 1
           fi
           
-          # Convert to lowercase for comparison
           FIRST_WORD_LOWER=$(echo "$FIRST_WORD" | tr '[:upper:]' '[:lower:]')
-          echo "DEBUG: First word (lowercase): '$FIRST_WORD_LOWER'"
-          
-          # List of valid conventional commit types
           VALID_TYPES=(
             "feat"
             "fix" 
@@ -58,7 +44,6 @@ jobs:
             "revert"
           )
           
-          echo "DEBUG: Checking if '$FIRST_WORD_LOWER' is a valid conventional commit type..."
           VALID_TYPE=false
           for type in "${VALID_TYPES[@]}"; do
             if [[ "$FIRST_WORD_LOWER" == "$type" ]]; then
@@ -71,42 +56,25 @@ jobs:
             echo "::error::PR title must start with a conventional commit type (feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert)"
             exit 1
           fi
-          echo "DEBUG: Valid conventional commit type ✓"
           
-          # Check 3: Check scope if present (not empty)
-          echo "DEBUG: Checking scope..."
-          # Check if title contains parentheses
           if [[ "$PR_TITLE" == *"("* ]] && [[ "$PR_TITLE" == *")"* ]]; then
-            # Extract content between parentheses
             TEMP="${PR_TITLE#*\(}"
             SCOPE_CONTENT="${TEMP%%\)*}"
-            echo "DEBUG: Scope content: '$SCOPE_CONTENT'"
             if [[ -z "$SCOPE_CONTENT" ]]; then
               echo "::error::Empty scope not allowed - use 'feat: description' or 'feat(scope): description'"
               exit 1
             fi
           fi
-          echo "DEBUG: Scope check passed ✓"
           
-          # Check 4: Ensure colon exists after word/scope
-          echo "DEBUG: Checking for colon..."
-          # Simple check: does title contain a colon?
           if [[ ! "$PR_TITLE" == *":"* ]]; then
             echo "::error::Missing colon after conventional commit type/scope - format should be 'feat: description' or 'feat(scope): description'"
             exit 1
           fi
           
-          # Extract everything before the colon
           BEFORE_COLON="${PR_TITLE%%:*}"
-          echo "DEBUG: Before colon: '$BEFORE_COLON'"
-          
-          # Check that before colon matches expected format
-          # Should be either: word or word(scope)
           VALID_FORMAT=false
           
-          # Check if it's just letters (no parentheses)
           if [[ "$BEFORE_COLON" == *"("* ]] || [[ "$BEFORE_COLON" == *")"* ]]; then
-            # Has parentheses - check format: word(scope)
             if [[ "$BEFORE_COLON" == *"("* ]] && [[ "$BEFORE_COLON" == *")"* ]]; then
               WORD_PART="${BEFORE_COLON%%\(*}"
               if [[ "$WORD_PART" == [a-zA-Z]* ]]; then
@@ -114,7 +82,6 @@ jobs:
               fi
             fi
           else
-            # No parentheses - should be just letters
             if [[ "$BEFORE_COLON" == [a-zA-Z]* ]]; then
               VALID_FORMAT=true
             fi
@@ -124,26 +91,16 @@ jobs:
             echo "::error::Invalid format before colon - use 'feat: description' or 'feat(scope): description'"
             exit 1
           fi
-          echo "DEBUG: Colon format valid ✓"
           
-          # Check 5: Ensure at least 5 non-space characters after colon
-          echo "DEBUG: Checking post-colon content..."
-          # Extract everything after the first colon
           POST_COLON="${PR_TITLE#*:}"
-          # Remove leading spaces
           POST_COLON="${POST_COLON# }"
-          echo "DEBUG: Post-colon content: '$POST_COLON'"
           
-          # Remove all spaces and count characters
           POST_COLON_NO_SPACES=$(echo "$POST_COLON" | tr -d ' ')
           CHAR_COUNT=${#POST_COLON_NO_SPACES}
-          echo "DEBUG: Non-space character count: $CHAR_COUNT"
           
           if [[ $CHAR_COUNT -lt 5 ]]; then
             echo "::error::Description after colon must contain at least 5 non-space characters"
             exit 1
           fi
-          echo "DEBUG: Post-colon content has enough characters ✓"
           
           echo "SUCCESS: PR title validation passed!"
-          echo "✓ Title: '$PR_TITLE'"
