@@ -1,3 +1,5 @@
+"""simple script to make sure the PR names are formed how we like"""
+
 #!/usr/bin/env python3
 
 import argparse
@@ -22,41 +24,39 @@ class InvalidPrName(Exception):
     "Error for a bad PR name"
 
 def check_pr_name(pr_name: str):
-    print('check pr name')
     """
     Process the input string argument.
-    
+
     Args:
         input_string (str): The input string to process
-        
+
     Returns:
         None
     """
-    # if any(pr_name.lower().startswith(i) for i in VALID_PREFIXES_LOWER):
-        # return
-    
-    
+
     for i in VALID_PREFIXES_LOWER:
         matched = re.match(fr'^{i}:', pr_name)
         if matched:
             print(f"[DEBUG] successfully matched {matched.group(0)}")
             return
-            
-        
+
         matched = re.match(fr'^{i}\b', pr_name)
         if matched:
-            raise InvalidPrName(f"[DEBUG] successfully matched {matched.group(0)} but does not contain a colon. Should be: '{pr_name}:'")
+            raise InvalidPrName(
+                f"[DEBUG] matched {matched.group(0)} but found no colon. Should be: '{pr_name}:'"
+            )
 
-    
-    raise InvalidPrName(f"PR Name has invalid prefix: {pr_name}, should be one of: {VALID_PREFIXES_LOWER}")
+
+    raise InvalidPrName(
+        f"PR Name has invalid prefix: {pr_name}, should be one of: {VALID_PREFIXES_LOWER}"
+        )
 
 
 def main():
-    print('main')
     """Main entry point for the script."""
     parser = argparse.ArgumentParser(description='Process a single string argument.')
     parser.add_argument('pr_name', type=str, help='Input string to process')
-    
+
     pr_name = parser.parse_args().pr_name
 
     if not pr_name:
@@ -67,5 +67,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
