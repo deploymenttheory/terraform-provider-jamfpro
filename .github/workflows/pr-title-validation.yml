@@ -13,49 +13,97 @@ jobs:
       - name: Run Check Script
         working-directory: .
         run: |
-          VALID_PREFIXES=(
+          #!/bin/bash
+          set -e
+          
+          # Get PR title from GitHub event
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          
+          echo "DEBUG: Raw PR title: '$PR_TITLE'"
+          
+          # Check 1: Title is not empty
+          echo "DEBUG: Checking if title is empty..."
+          if [[ -z "$PR_TITLE" ]] || [[ "$PR_TITLE" =~ ^[[:space:]]*$ ]]; then
+            echo "ERROR: PR title cannot be empty"
+            exit 1
+          fi
+          echo "DEBUG: Title is not empty ✓"
+          
+          # Check 2: Extract first word and validate conventional commit type
+          echo "DEBUG: Extracting first word..."
+          FIRST_WORD=$(echo "$PR_TITLE" | grep -oE '^[a-zA-Z]+' || echo "")
+          echo "DEBUG: First word: '$FIRST_WORD'"
+          
+          if [[ -z "$FIRST_WORD" ]]; then
+            echo "ERROR: PR title must start with a conventional commit type"
+            exit 1
+          fi
+          
+          # Convert to lowercase for comparison
+          FIRST_WORD_LOWER=$(echo "$FIRST_WORD" | tr '[:upper:]' '[:lower:]')
+          echo "DEBUG: First word (lowercase): '$FIRST_WORD_LOWER'"
+          
+          # List of valid conventional commit types
+          VALID_TYPES=(
             "feat"
-            "fix"
-            "chore"
+            "fix" 
             "docs"
             "style"
             "refactor"
-            "perf"
             "test"
-            "build"
+            "chore"
+            "perf"
             "ci"
+            "build"
             "revert"
           )
-
-          PR_NAME="${{ github.event.pull_request.title }}"
-
-          if [[ -z "$PR_NAME" ]]; then
-            echo "❌ PR name is empty"
-            exit 1
-          fi
-
-          for prefix in "${VALID_PREFIXES[@]}"; do
-            # Accepts: prefix: ... or prefix(scope): ...
-            if [[ "$PR_NAME" =~ ^${prefix}(:\s+|\([a-zA-Z0-9_-]+\):\s+)(.+)$ ]]; then
-              SCOPE_MATCH="${BASH_REMATCH[1]}"
-              TITLE="${BASH_REMATCH[2]}"
-              # Check for empty scope (e.g., feat(): ...)
-              if [[ "$SCOPE_MATCH" =~ ^\(\): ]]; then
-                echo "❌ Scope must not be empty. Use format: '${prefix}(scope): ...' or '${prefix}: ...'"
-                exit 1
-              fi
-              TITLE_LENGTH=${#TITLE}
-              if (( TITLE_LENGTH < 6 )); then
-                echo "❌ PR title after '${prefix}${SCOPE_MATCH}' is too short (found: '${TITLE}'). Must be at least 6 characters."
-                exit 1
-              fi
-              echo "✅ Valid PR name: '${prefix}${SCOPE_MATCH}${TITLE}'"
-              exit 0
-            elif [[ "$PR_NAME" =~ ^${prefix}[[:space:]] ]]; then
-              echo "❌ Found '${prefix}' but missing colon. Use format: '${prefix}: ...' or '${prefix}(scope): ...'"
-              exit 1
+          
+          echo "DEBUG: Checking if '$FIRST_WORD_LOWER' is a valid conventional commit type..."
+          VALID_TYPE=false
+          for type in "${VALID_TYPES[@]}"; do
+            if [[ "$FIRST_WORD_LOWER" == "$type" ]]; then
+              VALID_TYPE=true
+              break
             fi
           done
-
-          echo "❌ Invalid PR name prefix. Use one of: ${VALID_PREFIXES[*]}"
-          exit 1
+          
+          if [[ "$VALID_TYPE" == false ]]; then
+            echo "ERROR: PR title must start with a conventional commit type (feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert)"
+            exit 1
+          fi
+          echo "DEBUG: Valid conventional commit type ✓"
+          
+          # Check 3: Check scope if present (not empty)
+          echo "DEBUG: Checking scope..."
+          if [[ "$PR_TITLE" =~ ^[a-zA-Z]+\(\) ]]; then
+            echo "ERROR: Empty scope not allowed - use 'feat: description' or 'feat(scope): description'"
+            exit 1
+          fi
+          echo "DEBUG: Scope check passed ✓"
+          
+          # Check 4: Ensure colon exists after word/scope
+          echo "DEBUG: Checking for colon..."
+          if [[ ! "$PR_TITLE" =~ ^[a-zA-Z]+(\([^)]+\))?:. ]]; then
+            echo "ERROR: Missing colon after conventional commit type/scope - format should be 'feat: description' or 'feat(scope): description'"
+            exit 1
+          fi
+          echo "DEBUG: Colon found ✓"
+          
+          # Check 5: Ensure at least 5 non-space characters after colon
+          echo "DEBUG: Checking post-colon content..."
+          POST_COLON=$(echo "$PR_TITLE" | sed 's/^[a-zA-Z]*(\([^)]*\))*: *//')
+          echo "DEBUG: Post-colon content: '$POST_COLON'"
+          
+          # Remove all spaces and count characters
+          POST_COLON_NO_SPACES=$(echo "$POST_COLON" | tr -d ' ')
+          CHAR_COUNT=${#POST_COLON_NO_SPACES}
+          echo "DEBUG: Non-space character count: $CHAR_COUNT"
+          
+          if [[ $CHAR_COUNT -lt 5 ]]; then
+            echo "ERROR: Description after colon must contain at least 5 non-space characters"
+            exit 1
+          fi
+          echo "DEBUG: Post-colon content has enough characters ✓"
+          
+          echo "SUCCESS: PR title validation passed!"
+          echo "✓ Title: '$PR_TITLE'"
