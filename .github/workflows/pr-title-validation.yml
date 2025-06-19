@@ -75,9 +75,16 @@ jobs:
           
           # Check 3: Check scope if present (not empty)
           echo "DEBUG: Checking scope..."
-          if [[ "$PR_TITLE" =~ ^[a-zA-Z]+\(\) ]]; then
-            echo "ERROR: Empty scope not allowed - use 'feat: description' or 'feat(scope): description'"
-            exit 1
+          # Check if title contains parentheses
+          if [[ "$PR_TITLE" == *"("* ]] && [[ "$PR_TITLE" == *")"* ]]; then
+            # Extract content between parentheses
+            TEMP="${PR_TITLE#*\(}"
+            SCOPE_CONTENT="${TEMP%%\)*}"
+            echo "DEBUG: Scope content: '$SCOPE_CONTENT'"
+            if [[ -z "$SCOPE_CONTENT" ]]; then
+              echo "ERROR: Empty scope not allowed - use 'feat: description' or 'feat(scope): description'"
+              exit 1
+            fi
           fi
           echo "DEBUG: Scope check passed ✓"
           
@@ -89,16 +96,42 @@ jobs:
             exit 1
           fi
           
-          # Check that colon comes after the word or word(scope)
-          if ! echo "$PR_TITLE" | grep -qE '^[a-zA-Z]+(\([^)]+\))?:'; then
-            echo "ERROR: Missing colon after conventional commit type/scope - format should be 'feat: description' or 'feat(scope): description'"
+          # Extract everything before the colon
+          BEFORE_COLON="${PR_TITLE%%:*}"
+          echo "DEBUG: Before colon: '$BEFORE_COLON'"
+          
+          # Check that before colon matches expected format
+          # Should be either: word or word(scope)
+          VALID_FORMAT=false
+          
+          # Check if it's just letters (no parentheses)
+          if [[ "$BEFORE_COLON" == *"("* ]] || [[ "$BEFORE_COLON" == *")"* ]]; then
+            # Has parentheses - check format: word(scope)
+            if [[ "$BEFORE_COLON" == *"("* ]] && [[ "$BEFORE_COLON" == *")"* ]]; then
+              WORD_PART="${BEFORE_COLON%%\(*}"
+              if [[ "$WORD_PART" == [a-zA-Z]* ]]; then
+                VALID_FORMAT=true
+              fi
+            fi
+          else
+            # No parentheses - should be just letters
+            if [[ "$BEFORE_COLON" == [a-zA-Z]* ]]; then
+              VALID_FORMAT=true
+            fi
+          fi
+          
+          if [[ "$VALID_FORMAT" == false ]]; then
+            echo "ERROR: Invalid format before colon - use 'feat: description' or 'feat(scope): description'"
             exit 1
           fi
-          echo "DEBUG: Colon found ✓"
+          echo "DEBUG: Colon format valid ✓"
           
           # Check 5: Ensure at least 5 non-space characters after colon
           echo "DEBUG: Checking post-colon content..."
-          POST_COLON=$(echo "$PR_TITLE" | sed 's/^[a-zA-Z]*\([^:]*\): *//')
+          # Extract everything after the first colon
+          POST_COLON="${PR_TITLE#*:}"
+          # Remove leading spaces
+          POST_COLON="${POST_COLON# }"
           echo "DEBUG: Post-colon content: '$POST_COLON'"
           
           # Remove all spaces and count characters
