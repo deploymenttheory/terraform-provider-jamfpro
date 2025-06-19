@@ -13,5 +13,5 @@ jobs:
     steps:
       - name: Run Check Script
         working-directory: .
-        run: python scripts/check_pr_name.py "${{ github.event.pull_request.title }}""
+        run: python scripts/check_pr_name.py "${{ github.event.pull_request.title }}"
     
