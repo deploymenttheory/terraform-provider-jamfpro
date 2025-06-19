@@ -83,8 +83,14 @@ jobs:
           
           # Check 4: Ensure colon exists after word/scope
           echo "DEBUG: Checking for colon..."
-          # Check for pattern: word: or word(scope):
-          if [[ ! "$PR_TITLE" =~ ^[a-zA-Z]+: ]] && [[ ! "$PR_TITLE" =~ ^[a-zA-Z]+\([^)]+\): ]]; then
+          # Simple check: does title contain a colon?
+          if [[ ! "$PR_TITLE" == *":"* ]]; then
+            echo "ERROR: Missing colon after conventional commit type/scope - format should be 'feat: description' or 'feat(scope): description'"
+            exit 1
+          fi
+          
+          # Check that colon comes after the word or word(scope)
+          if ! echo "$PR_TITLE" | grep -qE '^[a-zA-Z]+(\([^)]+\))?:'; then
             echo "ERROR: Missing colon after conventional commit type/scope - format should be 'feat: description' or 'feat(scope): description'"
             exit 1
           fi
