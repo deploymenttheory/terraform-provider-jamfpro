@@ -24,7 +24,7 @@ jobs:
           # Check 1: Title is not empty
           echo "DEBUG: Checking if title is empty..."
           if [[ -z "$PR_TITLE" ]] || [[ "$PR_TITLE" =~ ^[[:space:]]*$ ]]; then
-            echo "ERROR: PR title cannot be empty"
+            echo "::error::PR title cannot be empty"
             exit 1
           fi
           echo "DEBUG: Title is not empty ✓"
@@ -35,7 +35,7 @@ jobs:
           echo "DEBUG: First word: '$FIRST_WORD'"
           
           if [[ -z "$FIRST_WORD" ]]; then
-            echo "ERROR: PR title must start with a conventional commit type"
+            echo "::error::PR title must start with a conventional commit type"
             exit 1
           fi
           
@@ -68,7 +68,7 @@ jobs:
           done
           
           if [[ "$VALID_TYPE" == false ]]; then
-            echo "ERROR: PR title must start with a conventional commit type (feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert)"
+            echo "::error::PR title must start with a conventional commit type (feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert)"
             exit 1
           fi
           echo "DEBUG: Valid conventional commit type ✓"
@@ -82,7 +82,7 @@ jobs:
             SCOPE_CONTENT="${TEMP%%\)*}"
             echo "DEBUG: Scope content: '$SCOPE_CONTENT'"
             if [[ -z "$SCOPE_CONTENT" ]]; then
-              echo "ERROR: Empty scope not allowed - use 'feat: description' or 'feat(scope): description'"
+              echo "::error::Empty scope not allowed - use 'feat: description' or 'feat(scope): description'"
               exit 1
             fi
           fi
@@ -92,7 +92,7 @@ jobs:
           echo "DEBUG: Checking for colon..."
           # Simple check: does title contain a colon?
           if [[ ! "$PR_TITLE" == *":"* ]]; then
-            echo "ERROR: Missing colon after conventional commit type/scope - format should be 'feat: description' or 'feat(scope): description'"
+            echo "::error::Missing colon after conventional commit type/scope - format should be 'feat: description' or 'feat(scope): description'"
             exit 1
           fi
           
@@ -121,7 +121,7 @@ jobs:
           fi
           
           if [[ "$VALID_FORMAT" == false ]]; then
-            echo "ERROR: Invalid format before colon - use 'feat: description' or 'feat(scope): description'"
+            echo "::error::Invalid format before colon - use 'feat: description' or 'feat(scope): description'"
             exit 1
           fi
           echo "DEBUG: Colon format valid ✓"
@@ -140,7 +140,7 @@ jobs:
           echo "DEBUG: Non-space character count: $CHAR_COUNT"
           
           if [[ $CHAR_COUNT -lt 5 ]]; then
-            echo "ERROR: Description after colon must contain at least 5 non-space characters"
+            echo "::error::Description after colon must contain at least 5 non-space characters"
             exit 1
           fi
           echo "DEBUG: Post-colon content has enough characters ✓"
