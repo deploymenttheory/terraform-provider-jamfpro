@@ -35,6 +35,21 @@ The `internal/resources/policy` directory represents our latest iteration of cod
    - Use clear, descriptive file names that indicate their content
    - Break down large schemas into manageable components
 
+5. Comments:
+   - Use comments sparingly and only when necessary
+   - Comments should explain *why* something is done, not *what* is being done
+   - The code itself should be self-documenting for the "what"
+
+6. Function Naming Conventions:
+   - `ResourceNAME()` functions always return the schema and should be the only exported function
+   - Standard CRUD operations follow lowercase naming: `create`, `read`, `update`, `delete`
+   - Helper functions use descriptive names that clearly indicate their purpose
+
+7. Schema Descriptions:
+   - Schema key descriptions follow a common sense approach
+   - Descriptions don't always match the API documentation exactly
+   - Focus on clarity for Terraform users rather than API documentation verbatim
+
 ## Repository Structure
 
 ```
@@ -61,6 +76,10 @@ Each resource in `internal/resources/` follows a consistent file structure:
 - `data_custom_diff.go` - Custom diff functions (if needed)
 
 The `internal/resources/common/` directory contains shared code and utilities used across multiple resources.
+
+### Data Source Location
+
+Data sources are currently located within the resource directories rather than in a separate `data-sources/` directory. This is a historical decision, and while we recognize that data sources could logically live in their own directory structure, we don't see the value in updating this organization at this time. For now, data sources should continue to live in the resource folder.
 
 ## Testing Guidelines
 
