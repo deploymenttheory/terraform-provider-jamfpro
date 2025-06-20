@@ -1,7 +1,3 @@
-# General Style Guide
-
-Where reasonable and in the absence of a more specific style, we will follow "clean code" practices.
-
 # Go Style Guide
 
 ## Base Style Guide
