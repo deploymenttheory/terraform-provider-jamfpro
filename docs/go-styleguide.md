@@ -192,3 +192,56 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 }
 ```
 
+### Singleton Configuration Resources
+
+Some resources manage singleton configurations rather than individual entities (e.g., global settings). These follow a modified CRUD pattern:
+
+**Characteristics:**
+- Represent system-wide configuration that always exists
+- Cannot be "created" or "deleted" in the traditional sense
+- Use hardcoded singleton IDs
+
+**Example Pattern:**
+```go
+// create calls UPDATE API method since configuration always exists
+func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+    client := meta.(*jamfpro.Client)
+    
+    settings, err := construct(d)
+    if err != nil {
+        return diag.FromErr(fmt.Errorf("failed to construct settings: %v", err))
+    }
+
+    err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+        _, apiErr := client.UpdateComputerInventoryCollectionSettings(settings)
+        if apiErr != nil {
+            return retry.RetryableError(apiErr)
+        }
+        return nil
+    })
+
+    if err != nil {
+        return diag.FromErr(fmt.Errorf("failed to apply settings: %v", err))
+    }
+
+    // Use descriptive singleton ID
+    d.SetId("jamfpro_computer_inventory_collection_settings_singleton")
+    return readNoCleanup(ctx, d, meta)
+}
+
+// delete only removes from Terraform state, doesn't delete from API
+func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+    // Since this represents configuration and not an entity that can be deleted,
+    // simply remove from Terraform state
+    d.SetId("")
+    return nil
+}
+```
+
+**Singleton ID Naming:**
+- Format: `jamfpro_{resource_name}_singleton`
+- Examples: 
+  - `jamfpro_computer_inventory_collection_settings_singleton`
+  - `jamfpro_device_communication_settings_singleton`
+  - `jamfpro_client_checkin_singleton`
+
