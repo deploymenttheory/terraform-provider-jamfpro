@@ -54,7 +54,7 @@ Each resource in `internal/resources/` follows a consistent file structure:
 - `data_source.go` - Data source implementation
 - `resource.go` - Resource type definitions and main implementation
 - `state.go` - State management functions
-- `data_customdiff.go` - Custom diff functions (if needed)
+- `data_custom_diff.go` - Custom diff functions (if needed)
 
 The `internal/resources/common/` directory contains shared code and utilities used across multiple resources.
 
