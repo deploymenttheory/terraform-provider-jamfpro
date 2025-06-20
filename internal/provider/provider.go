@@ -47,6 +47,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/jamf_protect"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/ldap_server"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/local_admin_password_settings"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mac_application"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macos_configuration_profile_plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macos_configuration_profile_plist_generator"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/managed_software_update"
@@ -392,6 +393,7 @@ func Provider() *schema.Provider {
 			"jamfpro_jamf_cloud_distribution_service":           jamf_cloud_distribution_service.DataSourceJamfProJamfCloudDistributionService(),
 			"jamfpro_ldap_server":                               ldap_server.DataSourceJamfProLDAPServers(),
 			"jamfpro_network_segment":                           network_segment.DataSourceJamfProNetworkSegments(),
+			"jamfpro_mac_application":                           mac_application.DataSourceJamfProMacApplications(),
 			"jamfpro_macos_configuration_profile_plist":         macos_configuration_profile_plist.DataSourceJamfProMacOSConfigurationProfilesPlist(),
 			"jamfpro_mobile_device_application":                 mobile_device_application.DataSourceJamfProMobileDeviceApplications(),
 			"jamfpro_mobile_device_configuration_profile_plist": mobile_device_configuration_profile_plist.DataSourceJamfProMobileDeviceConfigurationProfilesPlist(),
@@ -446,6 +448,7 @@ func Provider() *schema.Provider {
 			"jamfpro_ldap_server":                                 ldap_server.ResourceJamfProLDAPServers(),
 			"jamfpro_local_admin_password_settings":               local_admin_password_settings.ResourceLocalAdminPasswordSettings(),
 			"jamfpro_network_segment":                             network_segment.ResourceJamfProNetworkSegments(),
+			"jamfpro_mac_application":                             mac_application.ResourceJamfProMacApplication(),
 			"jamfpro_macos_configuration_profile_plist":           macos_configuration_profile_plist.ResourceJamfProMacOSConfigurationProfilesPlist(),
 			"jamfpro_macos_configuration_profile_plist_generator": macos_configuration_profile_plist_generator.ResourceJamfProMacOSConfigurationProfilesPlistGenerator(),
 			"jamfpro_managed_software_update":                     managed_software_update.ResourceJamfProManagedSoftwareUpdate(),
