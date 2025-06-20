@@ -1,6 +1,7 @@
 package mac_application
 
 import (
+	"log"
 	"sort"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -12,14 +13,37 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacApplications) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	d.Set("name", resp.General.Name)
-	d.Set("version", resp.General.Version)
-	d.Set("bundle_id", resp.General.BundleID)
-	d.Set("url", resp.General.URL)
-	d.Set("is_free", resp.General.IsFree)
-	d.Set("deployment_type", resp.General.DeploymentType)
-	d.Set("site_id", resp.General.Site.ID)
-	d.Set("category_id", resp.General.Category.ID)
+	if err := d.Set("name", resp.General.Name); err != nil {
+		log.Printf("[ERROR] Failed to set name: %v", err)
+	}
+
+	if err := d.Set("version", resp.General.Version); err != nil {
+		log.Printf("[ERROR] Failed to set version: %v", err)
+	}
+
+	if err := d.Set("bundle_id", resp.General.BundleID); err != nil {
+		log.Printf("[ERROR] Failed to set bundle_id: %v", err)
+	}
+
+	if err := d.Set("url", resp.General.URL); err != nil {
+		log.Printf("[ERROR] Failed to set url: %v", err)
+	}
+
+	if err := d.Set("is_free", resp.General.IsFree); err != nil {
+		log.Printf("[ERROR] Failed to set is_free: %v", err)
+	}
+
+	if err := d.Set("deployment_type", resp.General.DeploymentType); err != nil {
+		log.Printf("[ERROR] Failed to set deployment_type: %v", err)
+	}
+
+	if err := d.Set("site_id", resp.General.Site.ID); err != nil {
+		log.Printf("[ERROR] Failed to set site_id: %v", err)
+	}
+
+	if err := d.Set("category_id", resp.General.Category.ID); err != nil {
+		log.Printf("[ERROR] Failed to set category_id: %v", err)
+	}
 
 	if resp.SelfService.SelfServiceDescription != "" || resp.SelfService.NotificationMessage != "" {
 		selfService := []map[string]interface{}{
@@ -59,7 +83,9 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacApplications) 
 			selfService[0]["self_service_category"] = categories
 		}
 
-		d.Set("self_service", selfService)
+		if err := d.Set("self_service", selfService); err != nil {
+			log.Printf("[ERROR] Failed to set self_service: %v", err)
+		}
 	}
 
 	if resp.VPP.VPPAdminAccountID != 0 {
@@ -69,7 +95,11 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacApplications) 
 				"vpp_admin_account_id":             resp.VPP.VPPAdminAccountID,
 			},
 		}
-		d.Set("vpp", vpp)
+
+		if err := d.Set("vpp", vpp); err != nil {
+			log.Printf("[ERROR] Failed to set vpp: %v", err)
+		}
+
 	}
 
 	if scopeData, err := setScope(resp); err != nil {
