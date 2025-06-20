@@ -1,3 +1,9 @@
+# General Style Guide
+
+Where reasonable and in the absence of a more specific style, we will follow "clean code" practices.
+https://github.com/Gatjuat-Wicteat-Riek/clean-code-book
+
+
 # Go Style Guide
 
 ## Base Style Guide
