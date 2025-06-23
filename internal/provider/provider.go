@@ -390,6 +390,7 @@ func Provider() *schema.Provider {
 			"jamfpro_dock_item":                                 dock_item.DataSourceJamfProDockItems(),
 			"jamfpro_file_share_distribution_point":             file_share_distribution_point.DataSourceJamfProFileShareDistributionPoints(),
 			"jamfpro_jamf_cloud_distribution_service":           jamf_cloud_distribution_service.DataSourceJamfProJamfCloudDistributionService(),
+			"jamfpro_jamf_connect":                              jamf_connect.DataSourceJamfConnectConfigProfile(),
 			"jamfpro_ldap_server":                               ldap_server.DataSourceJamfProLDAPServers(),
 			"jamfpro_network_segment":                           network_segment.DataSourceJamfProNetworkSegments(),
 			"jamfpro_macos_configuration_profile_plist":         macos_configuration_profile_plist.DataSourceJamfProMacOSConfigurationProfilesPlist(),
