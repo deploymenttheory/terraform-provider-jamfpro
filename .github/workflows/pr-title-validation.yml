@@ -1,48 +1,110 @@
 name: PR | Title Validation
 
 on:
-  pull_request:
-    types: [opened, edited, synchronize, reopened]
+  pull_request_target:
+    types: [opened, edited, synchronize, opened]
+
+permissions:
+  pull-requests: read
+
 
 jobs:
-  validate-pr-title:
-    name: '✅ Validate PR Title'
+  validate-title:
+    name: 'Validate Title'
     runs-on: ubuntu-latest
+
     steps:
-      - name: Check PR Title
+      - name: Run Check Script
+        working-directory: .
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          PATTERN="^(([Ff]eat|[Ff]ix|[Dd]ocs|[Ss]tyle|[Rr]efactor|[Tt]est|[Cc]hore|[Bb]uild|[Cc]i|[Pp]erf)(\(.+\))?: .+|dependabot.*)$"
-          
-          if ! echo "$PR_TITLE" | grep -qE "$PATTERN"; then
-            echo "❌ ERROR: Invalid PR title format"
-            echo ""
-            echo "Got PR title: $PR_TITLE"
-            echo ""
-            echo "PR titles must:"
-            echo "1. Start with one of these prefixes (case-insensitive first letter):"
-            echo "   - feat     / Feat     (for new features)"
-            echo "   - fix      / Fix      (for bug fixes)"
-            echo "   - docs     / Docs     (for documentation)"
-            echo "   - style    / Style    (for formatting)"
-            echo "   - refactor / Refactor (for code restructuring)"
-            echo "   - test     / Test     (for adding tests)"
-            echo "   - chore    / Chore    (for maintenance)"
-            echo "   - build    / Build    (for build system)"
-            echo "   - ci       / CI       (for CI/CD)"
-            echo "   - perf     / Perf     (for performance)"
-            echo ""
-            echo "2. Optionally include a scope in parentheses after the type"
-            echo ""
-            echo "3. Include a description after a colon and space"
-            echo ""
-            echo "Examples:"
-            echo "✅ feat: add new resource"
-            echo "✅ feat(api): add new endpoint"
-            echo "✅ fix: resolve connection timeout"
-            echo "✅ fix(database): fix query performance"
-            echo "✅ dependabot: bump lodash from 4.17.20 to 4.17.21"
+          #!/bin/bash
+          set -e
+          if [[ -z "$PR_TITLE" ]] || [[ "$PR_TITLE" =~ ^[[:space:]]*$ ]]; then
+            echo "::error::PR title cannot be empty"
             exit 1
           fi
           
-          echo "✅ PR title '$PR_TITLE' follows the conventional commit format and is compatible with the release-please"
+          FIRST_WORD=$(echo "$PR_TITLE" | grep -oE '^[a-zA-Z]+' || echo "")
+          
+          if [[ -z "$FIRST_WORD" ]]; then
+            echo "::error::PR title must start with a conventional commit type"
+            exit 1
+          fi
+          
+          FIRST_WORD_LOWER=$(echo "$FIRST_WORD" | tr '[:upper:]' '[:lower:]')
+          VALID_TYPES=(
+            "feat"
+            "fix" 
+            "docs"
+            "style"
+            "refactor"
+            "test"
+            "chore"
+            "perf"
+            "ci"
+            "build"
+            "revert"
+          )
+          
+          VALID_TYPE=false
+          for type in "${VALID_TYPES[@]}"; do
+            if [[ "$FIRST_WORD_LOWER" == "$type" ]]; then
+              VALID_TYPE=true
+              break
+            fi
+          done
+          
+          if [[ "$VALID_TYPE" == false ]]; then
+            echo "::error::PR title must start with a conventional commit type (feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert)"
+            exit 1
+          fi
+          
+          if [[ "$PR_TITLE" == *"("* ]] && [[ "$PR_TITLE" == *")"* ]]; then
+            TEMP="${PR_TITLE#*\(}"
+            SCOPE_CONTENT="${TEMP%%\)*}"
+            if [[ -z "$SCOPE_CONTENT" ]]; then
+              echo "::error::Empty scope not allowed - use 'feat: description' or 'feat(scope): description'"
+              exit 1
+            fi
+          fi
+          
+          if [[ ! "$PR_TITLE" == *":"* ]]; then
+            echo "::error::Missing colon after conventional commit type/scope - format should be 'feat: description' or 'feat(scope): description'"
+            exit 1
+          fi
+          
+          BEFORE_COLON="${PR_TITLE%%:*}"
+          VALID_FORMAT=false
+          
+          if [[ "$BEFORE_COLON" == *"("* ]] || [[ "$BEFORE_COLON" == *")"* ]]; then
+            if [[ "$BEFORE_COLON" == *"("* ]] && [[ "$BEFORE_COLON" == *")"* ]]; then
+              WORD_PART="${BEFORE_COLON%%\(*}"
+              if [[ "$WORD_PART" == [a-zA-Z]* ]]; then
+                VALID_FORMAT=true
+              fi
+            fi
+          else
+            if [[ "$BEFORE_COLON" == [a-zA-Z]* ]]; then
+              VALID_FORMAT=true
+            fi
+          fi
+          
+          if [[ "$VALID_FORMAT" == false ]]; then
+            echo "::error::Invalid format before colon - use 'feat: description' or 'feat(scope): description'"
+            exit 1
+          fi
+          
+          POST_COLON="${PR_TITLE#*:}"
+          POST_COLON="${POST_COLON# }"
+          
+          POST_COLON_NO_SPACES=$(echo "$POST_COLON" | tr -d ' ')
+          CHAR_COUNT=${#POST_COLON_NO_SPACES}
+          
+          if [[ $CHAR_COUNT -lt 5 ]]; then
+            echo "::error::Description after colon must contain at least 5 non-space characters"
+            exit 1
+          fi
+          
+          echo "SUCCESS: PR title validation passed!"
