@@ -10,7 +10,7 @@ resource "jamfpro_macos_configuration_profile_plist" "jamf_connect_license_001" 
   level               = "System"
   distribution_method = "Install Automatically"
   redeploy_on_update  = "Newly Assigned"
-  payloads            = file("./jamf_connect_license.mobileconfig")
+  payloads            = file("testing/payloads/jamfpro_jamf_connect/jamf_connect_license.mobileconfig")
   payload_validate    = true
   user_removable      = false
   scope {
