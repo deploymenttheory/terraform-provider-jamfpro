@@ -4,227 +4,8 @@ This guide provides comprehensive information for developers working on the terr
 
 ## Table of Contents
 
-1. [Style Guide](#style-guide)
-2. [Developer Guide](#developer-guide)
-
----
-
-## Style Guide
-
-### Base Style Guide
-
-This project follows the [Google Go Style Guide](https://google.github.io/styleguide/go) as its foundation. Where reasonable and in the absence of a more specific style, we follow "clean code" practices as outlined in the [Clean Code book](https://github.com/Gatjuat-Wicteat-Riek/clean-code-book).
-
-### Reference Implementation
-
-The `internal/resources/policy` directory represents our **current best practice** for code organization and patterns. All new resources should follow these conventions, and existing resources should work toward this standard over time.
-
-### Function Naming Conventions
-
-#### Exported Functions (Resource Entry Points)
-
-```go
-// Pattern: ResourceJamfPro{ResourceName}() *schema.Resource
-func ResourceJamfProPolicies() *schema.Resource       // ✓ Correct
-func ResourceJamfProBuildings() *schema.Resource      // ✓ Correct
-func ResourceJamfProSites() *schema.Resource          // ✓ Correct
-```
-
-**Rules:**
-- Must be the **only exported function** in the resource package
-- Always returns `*schema.Resource`
-- Uses PascalCase with "ResourceJamfPro" prefix
-
-#### Data Source Functions
-
-```go
-// Pattern: DataSourceJamfPro{ResourceName}() *schema.Resource
-func DataSourceJamfProPolicies() *schema.Resource     // ✓ Correct
-func DataSourceJamfProBuildings() *schema.Resource    // ✓ Correct
-```
-
-#### CRUD Operations (Internal Functions)
-
-All CRUD functions use **lowercase naming** and follow exact signature patterns:
-
-```go
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics
-func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics  
-func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics
-func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics
-
-// Standard read variants:
-func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics
-func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics
-```
-
-**Read Function Cleanup Parameter:**
-- `cleanup bool` parameter determines whether to remove the resource from Terraform state if it's not found in the API
-- `readWithCleanup` - removes from state when resource not found (used in normal operations)
-- `readNoCleanup` - preserves state when resource not found (used after create/update operations)
-
-
-#### Standard Function Names
-
-These are standardized function names that each resource should implement with consistent signatures:
-
-```go
-func construct(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error)
-func updateState(resource *jamfpro.ResourcePolicy, d *schema.ResourceData) diag.Diagnostics
-func constructPayloads(d *schema.ResourceData, resource *jamfpro.ResourcePolicy)
-```
-
-**Guidelines:**
-- `construct` - builds the API request object from Terraform ResourceData
-- `updateState` - updates Terraform state from API response object
-- `constructPayloads` - used for complex resources with multiple payload structures
-
-### Variable Naming
-
-- Follow Go conventions: camelCase for local variables, PascalCase for exported variables
-- Use descriptive names that clearly indicate the variable's purpose
-- Avoid abbreviations unless they're well-established (e.g., `ctx` for context, `err` for error)
-
-### Schema Descriptions
-
-Schema key descriptions follow a **common sense approach**:
-
-**Naming Convention:** When possible, descriptions should follow the naming and terminology used in the Jamf Pro GUI to provide familiarity for users transitioning from the web interface to Terraform.
-
-- Focus on **clarity for Terraform users** rather than API documentation verbatim
-- Prioritize user understanding over technical accuracy
-- Descriptions **don't always match the API documentation** exactly
-
-```go
-// ✓ Good: User-friendly description
-"name": {
-    Type:        schema.TypeString,
-    Required:    true,
-    Description: "The name of the policy.",
-},
-
-// ✗ Avoid: Too technical/API-focused  
-"name": {
-    Type:        schema.TypeString,
-    Required:    true,
-    Description: "ResourcePolicy.General.Name field as defined in jamfpro.ResourcePolicy struct",
-},
-```
-
-### Comments Guidelines
-
-- **Use comments sparingly** and only when necessary
-- Comments should explain **why** something is done, not **what** is being done
-- The code itself should be self-documenting for the "what"
-- Avoid obvious comments that just restate the code
-- Write Go comments on exported functions, types, and methods to explain their purpose when it adds clarity
-
-```go
-// ✓ Good: Explains why
-// Use hardcoded singleton ID since this represents global configuration
-d.SetId("jamfpro_computer_inventory_collection_settings_singleton")
-
-// ✗ Avoid: Just restates the code
-// Set the ID to the singleton value
-d.SetId("jamfpro_computer_inventory_collection_settings_singleton")
-```
-
-### Code Patterns
-
-#### Resource Function Pattern
-
-Every resource package exports exactly one function following this pattern:
-
-```go
-func ResourceJamfProPolicies() *schema.Resource {
-    return &schema.Resource{
-        CreateContext: create,           // ← lowercase CRUD functions
-        ReadContext:   readWithCleanup,  
-        UpdateContext: update,
-        DeleteContext: delete,
-        // ... schema definition
-    }
-}
-```
-
-#### Standard CRUD Pattern
-
-For simple resources that make single API calls, use the common CRUD operations:
-
-```go
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-    return common.Create(ctx, d, meta, construct, meta.(*jamfpro.Client).CreatePolicy, readNoCleanup)
-}
-
-func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
-    return common.Read(ctx, d, meta, cleanup, meta.(*jamfpro.Client).GetPolicyByID, updateState)
-}
-```
-
-#### Complex CRUD Pattern
-
-For resources that require multiple API calls within a single CRUD operation (like package uploads with verification):
-
-```go
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-    client := meta.(*jamfpro.Client)
-    var packageID string
-    
-    // Step 1: Construct and validate resource
-    resource, localFilePath, err := construct(d)
-    if err != nil {
-        return diag.FromErr(fmt.Errorf("failed to construct: %v", err))
-    }
-    
-    // Step 2: Create metadata
-    err = retry.RetryContext(ctx, PackagesMetaTimeout, func() *retry.RetryError {
-        response, err := client.CreatePackage(*resource)
-        if err != nil {
-            return retry.RetryableError(err)
-        }
-        packageID = response.ID
-        return nil
-    })
-    
-    // Step 3: Upload file
-    err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-        _, err = client.UploadPackage(packageID, []string{localFilePath})
-        return retry.RetryableError(err)
-    })
-    
-    // Step 4: Verify upload (custom verification step)
-    if err := verifyPackageUpload(ctx, client, packageID, resource.FileName, 
-        initialHash, d.Timeout(schema.TimeoutCreate)); err != nil {
-        return diag.FromErr(fmt.Errorf("verification failed: %v", err))
-    }
-    
-    d.SetId(packageID)
-    return readNoCleanup(ctx, d, meta)
-}
-```
-
-#### Singleton Configuration Pattern
-
-For resources that manage system-wide configuration:
-
-```go
-// create calls UPDATE API method since configuration always exists
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-    // ... construct and update configuration
-    
-    // Use descriptive singleton ID
-    d.SetId("jamfpro_computer_inventory_collection_settings_singleton")
-    return readNoCleanup(ctx, d, meta)
-}
-
-// delete only removes from Terraform state, doesn't delete from API
-func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-    d.SetId("")
-    return nil
-}
-```
-
----
+1. [Developer Guide](#developer-guide)
+2. [Style Guide](#style-guide)
 
 ## Developer Guide
 
@@ -500,3 +281,220 @@ A cleanup process runs daily at 23:59 to remove test resources with the `tf-test
 - Follow the testing guide in `docs/` when submitting PRs
 - Refer to `internal/resources/policy/` as the current best practice implementation
 - Use the `GNUmakefile` commands for all development tasks 
+
+---
+
+## Style Guide
+
+### Base Style Guide
+
+This project follows the [Google Go Style Guide](https://google.github.io/styleguide/go) as its foundation. Where reasonable and in the absence of a more specific style, we follow "clean code" practices as outlined in the [Clean Code book](https://github.com/Gatjuat-Wicteat-Riek/clean-code-book).
+
+### Reference Implementation
+
+The `internal/resources/policy` directory represents our **current best practice** for code organization and patterns. All new resources should follow these conventions, and existing resources should work toward this standard over time.
+
+### Function Naming Conventions
+
+#### Exported Functions (Resource Entry Points)
+
+```go
+// Pattern: ResourceJamfPro{ResourceName}() *schema.Resource
+func ResourceJamfProPolicies() *schema.Resource       // ✓ Correct
+func ResourceJamfProBuildings() *schema.Resource      // ✓ Correct
+func ResourceJamfProSites() *schema.Resource          // ✓ Correct
+```
+
+**Rules:**
+- Must be the **only exported function** in the resource package
+- Always returns `*schema.Resource`
+- Uses PascalCase with "ResourceJamfPro" prefix
+
+#### Data Source Functions
+
+```go
+// Pattern: DataSourceJamfPro{ResourceName}() *schema.Resource
+func DataSourceJamfProPolicies() *schema.Resource     // ✓ Correct
+func DataSourceJamfProBuildings() *schema.Resource    // ✓ Correct
+```
+
+#### CRUD Operations (Internal Functions)
+
+All CRUD functions use **lowercase naming** and follow exact signature patterns:
+
+```go
+func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics
+func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics  
+func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics
+func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics
+
+// Standard read variants:
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics
+```
+
+**Read Function Cleanup Parameter:**
+- `cleanup bool` parameter determines whether to remove the resource from Terraform state if it's not found in the API
+- `readWithCleanup` - removes from state when resource not found (used in normal operations)
+- `readNoCleanup` - preserves state when resource not found (used after create/update operations)
+
+
+#### Standard Function Names
+
+These are standardized function names that each resource should implement with consistent signatures:
+
+```go
+func construct(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error)
+func updateState(resource *jamfpro.ResourcePolicy, d *schema.ResourceData) diag.Diagnostics
+func constructPayloads(d *schema.ResourceData, resource *jamfpro.ResourcePolicy)
+```
+
+**Guidelines:**
+- `construct` - builds the API request object from Terraform ResourceData
+- `updateState` - updates Terraform state from API response object
+- `constructPayloads` - used for complex resources with multiple payload structures
+
+### Variable Naming
+
+- Follow Go conventions: camelCase for local variables, PascalCase for exported variables
+- Use descriptive names that clearly indicate the variable's purpose
+- Avoid abbreviations unless they're well-established (e.g., `ctx` for context, `err` for error)
+
+### Schema Descriptions
+
+Schema key descriptions follow a **common sense approach**:
+
+**Naming Convention:** When possible, descriptions should follow the naming and terminology used in the Jamf Pro GUI to provide familiarity for users transitioning from the web interface to Terraform.
+
+- Focus on **clarity for Terraform users** rather than API documentation verbatim
+- Prioritize user understanding over technical accuracy
+- Descriptions **don't always match the API documentation** exactly
+
+```go
+// ✓ Good: User-friendly description
+"name": {
+    Type:        schema.TypeString,
+    Required:    true,
+    Description: "The name of the policy.",
+},
+
+// ✗ Avoid: Too technical/API-focused  
+"name": {
+    Type:        schema.TypeString,
+    Required:    true,
+    Description: "ResourcePolicy.General.Name field as defined in jamfpro.ResourcePolicy struct",
+},
+```
+
+### Comments Guidelines
+
+- **Use comments sparingly** and only when necessary
+- Comments should explain **why** something is done, not **what** is being done
+- The code itself should be self-documenting for the "what"
+- Avoid obvious comments that just restate the code
+- Write Go comments on exported functions, types, and methods to explain their purpose when it adds clarity
+
+```go
+// ✓ Good: Explains why
+// Use hardcoded singleton ID since this represents global configuration
+d.SetId("jamfpro_computer_inventory_collection_settings_singleton")
+
+// ✗ Avoid: Just restates the code
+// Set the ID to the singleton value
+d.SetId("jamfpro_computer_inventory_collection_settings_singleton")
+```
+
+### Code Patterns
+
+#### Resource Function Pattern
+
+Every resource package exports exactly one function following this pattern:
+
+```go
+func ResourceJamfProPolicies() *schema.Resource {
+    return &schema.Resource{
+        CreateContext: create,           // ← lowercase CRUD functions
+        ReadContext:   readWithCleanup,  
+        UpdateContext: update,
+        DeleteContext: delete,
+        // ... schema definition
+    }
+}
+```
+
+#### Standard CRUD Pattern
+
+For simple resources that make single API calls, use the common CRUD operations:
+
+```go
+func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+    return common.Create(ctx, d, meta, construct, meta.(*jamfpro.Client).CreatePolicy, readNoCleanup)
+}
+
+func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+    return common.Read(ctx, d, meta, cleanup, meta.(*jamfpro.Client).GetPolicyByID, updateState)
+}
+```
+
+#### Complex CRUD Pattern
+
+For resources that require multiple API calls within a single CRUD operation (like package uploads with verification):
+
+```go
+func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+    client := meta.(*jamfpro.Client)
+    var packageID string
+    
+    // Step 1: Construct and validate resource
+    resource, localFilePath, err := construct(d)
+    if err != nil {
+        return diag.FromErr(fmt.Errorf("failed to construct: %v", err))
+    }
+    
+    // Step 2: Create metadata
+    err = retry.RetryContext(ctx, PackagesMetaTimeout, func() *retry.RetryError {
+        response, err := client.CreatePackage(*resource)
+        if err != nil {
+            return retry.RetryableError(err)
+        }
+        packageID = response.ID
+        return nil
+    })
+    
+    // Step 3: Upload file
+    err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+        _, err = client.UploadPackage(packageID, []string{localFilePath})
+        return retry.RetryableError(err)
+    })
+    
+    // Step 4: Verify upload (custom verification step)
+    if err := verifyPackageUpload(ctx, client, packageID, resource.FileName, 
+        initialHash, d.Timeout(schema.TimeoutCreate)); err != nil {
+        return diag.FromErr(fmt.Errorf("verification failed: %v", err))
+    }
+    
+    d.SetId(packageID)
+    return readNoCleanup(ctx, d, meta)
+}
+```
+
+#### Singleton Configuration Pattern
+
+For resources that manage system-wide configuration:
+
+```go
+// create calls UPDATE API method since configuration always exists
+func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+    // ... construct and update configuration
+    
+    // Use descriptive singleton ID
+    d.SetId("jamfpro_computer_inventory_collection_settings_singleton")
+    return readNoCleanup(ctx, d, meta)
+}
+
+// delete only removes from Terraform state, doesn't delete from API
+func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+    d.SetId("")
+    return nil
+}
+```
