@@ -111,7 +111,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 			lookupMethod = "name"
 			lookupValue = name
 		}
-		return diag.FromErr(fmt.Errorf("failed to read Mac Application with %s '%s' after retries: %v", lookupMethod, lookupValue, err)) //nolint:err113
+		return diag.FromErr(fmt.Errorf("failed to read Mac Application with %s '%s' after retries: %w", lookupMethod, lookupValue, err)) //nolint:err113
 	}
 
 	if resource == nil {
