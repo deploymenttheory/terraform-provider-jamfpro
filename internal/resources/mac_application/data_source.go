@@ -85,7 +85,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	name := d.Get("name").(string)
 
 	if resourceID == "" && name == "" {
-		return diag.FromErr(fmt.Errorf("either 'id' or 'name' must be provided"))
+		return diag.FromErr(fmt.Errorf("either 'id' or 'name' must be provided")) //nolint:err113
 	}
 
 	var resource *jamfpro.ResourceMacApplications
@@ -111,12 +111,12 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 			lookupMethod = "name"
 			lookupValue = name
 		}
-		return diag.FromErr(fmt.Errorf("failed to read Mac Application with %s '%s' after retries: %v", lookupMethod, lookupValue, err))
+		return diag.FromErr(fmt.Errorf("failed to read Mac Application with %s '%s' after retries: %v", lookupMethod, lookupValue, err)) //nolint:err113
 	}
 
 	if resource == nil {
 		d.SetId("")
-		return diag.FromErr(fmt.Errorf("the Jamf Pro Mac Application was not found"))
+		return diag.FromErr(fmt.Errorf("the Jamf Pro Mac Application was not found")) //nolint:err113
 	}
 
 	d.SetId(fmt.Sprintf("%d", resource.General.ID))

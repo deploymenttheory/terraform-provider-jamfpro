@@ -81,7 +81,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMacApplications, error)
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Mac Application '%s' to XML: %v", resource.General.Name, err)
+		return nil, fmt.Errorf("failed to marshal Mac Application '%s' to XML: %v", resource.General.Name, err) //nolint:err113
 	}
 
 	log.Printf("[DEBUG] Constructed Mac Application XML:\n%s\n", string(resourceXML))
