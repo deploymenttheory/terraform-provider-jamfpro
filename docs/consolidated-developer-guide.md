@@ -9,6 +9,24 @@ This guide provides comprehensive information for developers working on the terr
 
 ## Developer Guide
 
+### Repository Structure
+
+```
+terraform-provider-jamfpro/
+├── docs/               # Documentation for data sources and resources
+├── examples/           # Example configurations for each resource/data source
+│   ├── data-sources/   # Examples for data sources
+│   ├── resources/      # Examples for resources
+│   └── provider/       # Provider configuration examples
+├── internal/           # Internal provider code
+│   ├── provider/       # Core provider implementation
+│   └── resources/      # Individual resource implementations
+│       └── common/     # Shared code and utilities
+├── scripts/            # Maintenance and utility scripts
+├── testing/            # Test configurations and fixtures
+└── tools/              # Development tools and utilities
+```
+
 ### Development Setup & Workflow
 
 Use the provided **GNUmakefile** commands for all build and test tasks:
@@ -37,23 +55,7 @@ Always run these commands from the repository root.
 - `constructor.go` - Resource construction logic
 - `data_validator.go` - Custom validation logic
 
-### Repository Structure
 
-```
-terraform-provider-jamfpro/
-├── docs/               # Documentation for data sources and resources
-├── examples/           # Example configurations for each resource/data source
-│   ├── data-sources/   # Examples for data sources
-│   ├── resources/      # Examples for resources
-│   └── provider/       # Provider configuration examples
-├── internal/           # Internal provider code
-│   ├── provider/       # Core provider implementation
-│   └── resources/      # Individual resource implementations
-│       └── common/     # Shared code and utilities
-├── scripts/            # Maintenance and utility scripts
-├── testing/            # Test configurations and fixtures
-└── tools/              # Development tools and utilities
-```
 
 ### Resource Organization
 
