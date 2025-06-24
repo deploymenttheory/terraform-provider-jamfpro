@@ -41,22 +41,6 @@ Use the provided **GNUmakefile** commands for all build and test tasks:
 
 Always run these commands from the repository root.
 
-### File Organization Best Practices
-
-**Keep files focused and single-purpose:**
-- Break down large schemas into manageable, logical components
-- Use clear, descriptive file names that indicate their content
-- Avoid monolithic files - prefer multiple smaller, focused files
-
-**File Naming Patterns:**
-- `schema_*.go` - Schema definitions for specific resource aspects
-- `state_*.go` - State management for specific resource aspects  
-- `crud.go` - Standard CRUD operations
-- `constructor.go` - Resource construction logic
-- `data_validator.go` - Custom validation logic
-
-
-
 ### Resource Organization
 
 #### Directory Structure
