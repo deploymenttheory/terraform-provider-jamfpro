@@ -63,15 +63,21 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 - `readWithCleanup` - removes from state when resource not found (used in normal operations)
 - `readNoCleanup` - preserves state when resource not found (used after create/update operations)
 
-#### Helper Functions
 
-Use descriptive names that clearly indicate purpose:
+#### Standard Function Names
+
+These are standardized function names that each resource should implement with consistent signatures:
 
 ```go
 func construct(d *schema.ResourceData) (*jamfpro.ResourcePolicy, error)
 func updateState(resource *jamfpro.ResourcePolicy, d *schema.ResourceData) diag.Diagnostics
 func constructPayloads(d *schema.ResourceData, resource *jamfpro.ResourcePolicy)
 ```
+
+**Guidelines:**
+- `construct` - builds the API request object from Terraform ResourceData
+- `updateState` - updates Terraform state from API response object
+- `constructPayloads` - used for complex resources with multiple payload structures
 
 ### Variable Naming
 
@@ -82,6 +88,8 @@ func constructPayloads(d *schema.ResourceData, resource *jamfpro.ResourcePolicy)
 ### Schema Descriptions
 
 Schema key descriptions follow a **common sense approach**:
+
+**Naming Convention:** When possible, descriptions should follow the naming and terminology used in the Jamf Pro GUI to provide familiarity for users transitioning from the web interface to Terraform.
 
 - Focus on **clarity for Terraform users** rather than API documentation verbatim
 - Prioritize user understanding over technical accuracy
@@ -153,6 +161,48 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 }
 ```
 
+#### Complex CRUD Pattern
+
+For resources that require multiple API calls within a single CRUD operation (like package uploads with verification):
+
+```go
+func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+    client := meta.(*jamfpro.Client)
+    var packageID string
+    
+    // Step 1: Construct and validate resource
+    resource, localFilePath, err := construct(d)
+    if err != nil {
+        return diag.FromErr(fmt.Errorf("failed to construct: %v", err))
+    }
+    
+    // Step 2: Create metadata
+    err = retry.RetryContext(ctx, PackagesMetaTimeout, func() *retry.RetryError {
+        response, err := client.CreatePackage(*resource)
+        if err != nil {
+            return retry.RetryableError(err)
+        }
+        packageID = response.ID
+        return nil
+    })
+    
+    // Step 3: Upload file
+    err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+        _, err = client.UploadPackage(packageID, []string{localFilePath})
+        return retry.RetryableError(err)
+    })
+    
+    // Step 4: Verify upload (custom verification step)
+    if err := verifyPackageUpload(ctx, client, packageID, resource.FileName, 
+        initialHash, d.Timeout(schema.TimeoutCreate)); err != nil {
+        return diag.FromErr(fmt.Errorf("verification failed: %v", err))
+    }
+    
+    d.SetId(packageID)
+    return readNoCleanup(ctx, d, meta)
+}
+```
+
 #### Singleton Configuration Pattern
 
 For resources that manage system-wide configuration:
@@ -191,6 +241,20 @@ Use the provided **GNUmakefile** commands for all build and test tasks:
 - `make fmt` - format the code
 
 Always run these commands from the repository root.
+
+### File Organization Best Practices
+
+**Keep files focused and single-purpose:**
+- Break down large schemas into manageable, logical components
+- Use clear, descriptive file names that indicate their content
+- Avoid monolithic files - prefer multiple smaller, focused files
+
+**File Naming Patterns:**
+- `schema_*.go` - Schema definitions for specific resource aspects
+- `state_*.go` - State management for specific resource aspects  
+- `crud.go` - Standard CRUD operations
+- `constructor.go` - Resource construction logic
+- `data_validator.go` - Custom validation logic
 
 ### Repository Structure
 
@@ -317,7 +381,28 @@ Implement custom CRUD functions for resources that require:
 - Complex state management
 - Verification or validation steps
 
-**Examples of complex resources:**
+**Example: Package Resource Structure**
+
+The package resource demonstrates a complex implementation with multiple steps:
+
+1. **Create metadata** - First API call to create package record
+2. **Upload file** - Second API call to upload actual package file  
+3. **Verify upload** - Custom verification logic to ensure file integrity
+4. **Cleanup** - Remove temporary files and handle rollback on failures
+
+```go
+// File structure for complex resource
+internal/resources/package/
+├── crud.go              # Custom CRUD with multi-step operations
+├── constructor.go       # Resource construction and validation
+├── data_source.go       # Data source implementation
+├── data_validator.go    # Custom validation rules
+├── helpers.go           # Verification and utility functions
+├── resource.go          # Resource definition
+└── state.go             # State management
+```
+
+**Other examples of complex resources:**
 - `package` - handles file uploads and verification
 - `user_initiated_enrollment_settings` - manages multiple configuration endpoints
 
@@ -326,10 +411,10 @@ Implement custom CRUD functions for resources that require:
 Some resources represent system-wide configuration that always exists in Jamf Pro:
 
 **Characteristics:**
-- Cannot be "created" or "deleted" in the traditional sense
-- Use hardcoded singleton IDs
-- Create operations call UPDATE API methods
-- Delete operations only remove from Terraform state
+- Cannot be "created" or "deleted" in the traditional sense (the configuration always exists in Jamf Pro)
+- Use hardcoded singleton IDs to represent the single instance of the configuration
+- Create operations call UPDATE API methods since the configuration already exists
+- Delete operations only remove from Terraform state, leaving the configuration unchanged in Jamf Pro
 
 **Singleton ID Naming:**
 - Format: `jamfpro_{resource_name}_singleton`
@@ -367,20 +452,6 @@ err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.Retr
 ```
 
 Return detailed diagnostics with `diag.FromErr()` for user-friendly messages.
-
-### File Organization Best Practices
-
-**Keep files focused and single-purpose:**
-- Break down large schemas into manageable, logical components
-- Use clear, descriptive file names that indicate their content
-- Avoid monolithic files - prefer multiple smaller, focused files
-
-**File Naming Patterns:**
-- `schema_*.go` - Schema definitions for specific resource aspects
-- `state_*.go` - State management for specific resource aspects  
-- `crud.go` - Standard CRUD operations
-- `constructor.go` - Resource construction logic
-- `data_validator.go` - Custom validation logic
 
 ### Testing Guidelines
 
