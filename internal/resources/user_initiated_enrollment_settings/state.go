@@ -186,59 +186,35 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 	}
 
 	// --- Set Mobile Device Enrollment Settings ---
-	deviceBlockEnabledInAPI := enrollment.IosEnterpriseEnrollmentEnabled ||
-		enrollment.IosPersonalEnrollmentEnabled ||
-		enrollment.AccountDrivenUserEnrollmentEnabled ||
-		enrollment.AccountDrivenUserVisionosEnrollmentEnabled ||
-		enrollment.AccountDrivenDeviceIosEnrollmentEnabled ||
-		enrollment.AccountDrivenDeviceVisionosEnrollmentEnabled
+	deviceSettings := map[string]interface{}{}
 
-	var deviceEnrollmentStateValue []interface{}
-
-	if deviceBlockEnabledInAPI {
-		log.Printf("[DEBUG] updateState: user_initiated_enrollment_for_devices block is considered enabled based on API flags.")
-		deviceSettings := map[string]interface{}{}
-
-		if enrollment.IosEnterpriseEnrollmentEnabled || enrollment.IosPersonalEnrollmentEnabled {
-			profileSettingsMap := map[string]interface{}{
-				"enable_for_institutionally_owned_devices": enrollment.IosEnterpriseEnrollmentEnabled,
-				"enable_for_personally_owned_devices":      enrollment.IosPersonalEnrollmentEnabled,
-				"personal_device_enrollment_type":          enrollment.PersonalDeviceEnrollmentType,
-			}
-			deviceSettings["profile_driven_enrollment_via_url"] = []interface{}{profileSettingsMap}
-		} else {
-			deviceSettings["profile_driven_enrollment_via_url"] = nil
-		}
-
-		if enrollment.AccountDrivenUserEnrollmentEnabled || enrollment.AccountDrivenUserVisionosEnrollmentEnabled {
-			userSettingsMap := map[string]interface{}{
-				"enable_for_personally_owned_mobile_devices":     enrollment.AccountDrivenUserEnrollmentEnabled,
-				"enable_for_personally_owned_vision_pro_devices": enrollment.AccountDrivenUserVisionosEnrollmentEnabled,
-			}
-			deviceSettings["account_driven_user_enrollment"] = []interface{}{userSettingsMap}
-		} else {
-			deviceSettings["account_driven_user_enrollment"] = nil
-		}
-
-		if enrollment.AccountDrivenDeviceIosEnrollmentEnabled || enrollment.AccountDrivenDeviceVisionosEnrollmentEnabled {
-			accountDrivenSettingsMap := map[string]interface{}{
-				"enable_for_institutionally_owned_mobile_devices": enrollment.AccountDrivenDeviceIosEnrollmentEnabled,
-				"enable_for_personally_owned_vision_pro_devices":  enrollment.AccountDrivenDeviceVisionosEnrollmentEnabled,
-			}
-			deviceSettings["account_driven_device_enrollment"] = []interface{}{accountDrivenSettingsMap}
-		} else {
-			deviceSettings["account_driven_device_enrollment"] = nil
-		}
-
-		deviceEnrollmentStateValue = []interface{}{deviceSettings}
-
-	} else {
-		log.Printf("[DEBUG] updateState: user_initiated_enrollment_for_devices block is considered disabled based on API flags. Clearing state.")
-		deviceEnrollmentStateValue = nil
+	profileSettingsMap := map[string]interface{}{
+		"enable_for_institutionally_owned_devices": enrollment.IosEnterpriseEnrollmentEnabled,
+		"enable_for_personally_owned_devices":      enrollment.IosPersonalEnrollmentEnabled,
+		"personal_device_enrollment_type":          enrollment.PersonalDeviceEnrollmentType,
 	}
+	deviceSettings["profile_driven_enrollment_via_url"] = []interface{}{profileSettingsMap}
+
+	userSettingsMap := map[string]interface{}{
+		"enable_for_personally_owned_mobile_devices":     enrollment.AccountDrivenUserEnrollmentEnabled,
+		"enable_for_personally_owned_vision_pro_devices": enrollment.AccountDrivenUserVisionosEnrollmentEnabled,
+	}
+	deviceSettings["account_driven_user_enrollment"] = []interface{}{userSettingsMap}
+
+	accountDrivenSettingsMap := map[string]interface{}{
+		"enable_for_institutionally_owned_mobile_devices": enrollment.AccountDrivenDeviceIosEnrollmentEnabled,
+		"enable_for_personally_owned_vision_pro_devices":  enrollment.AccountDrivenDeviceVisionosEnrollmentEnabled,
+	}
+	deviceSettings["account_driven_device_enrollment"] = []interface{}{accountDrivenSettingsMap}
+
+	deviceEnrollmentStateValue := []interface{}{deviceSettings}
 
 	if err := d.Set("user_initiated_enrollment_for_devices", deviceEnrollmentStateValue); err != nil {
-		diags = append(diags, diag.Diagnostic{Severity: diag.Error, Summary: "Failed to set device enrollment settings", Detail: err.Error()})
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Failed to set device enrollment settings",
+			Detail:   err.Error(),
+		})
 	}
 
 	// --- Set Enrollment Messaging Configurations ---
