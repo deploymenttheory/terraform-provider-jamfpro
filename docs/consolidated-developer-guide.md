@@ -211,37 +211,16 @@ Return detailed diagnostics with `diag.FromErr()` for user-friendly messages.
 
 ### Testing Guidelines
 
-All new resources must include tests before PRs can be merged. The project uses Terraform's built-in testing framework.
+All new resources **must include tests** before PRs can be merged. 
 
-#### Test Structure
+For comprehensive testing guidelines, including test structure, naming conventions, automated testing workflows, and local testing instructions, see:
 
-1. **Location:** Place test configurations in `testing/payloads/[resource_name]/`
-2. **Naming:** Folder name must match the resource name (e.g., `jamfpro_building`)
-3. **Resource Names:** All test resources must have a name prefix of `tf-testing-`
-4. **Variables:** Use `${var.testing_id}` and `${random_id.rng.hex}` for unique names
+**📖 [Testing Implementation Guide](testing-implementation.md)**
 
-#### Test Content
-
-- Create minimal examples (required fields only) and comprehensive examples (all fields)
-- Test edge cases and validation rules
-- For bulk operations, include tests with multiple instances
-- Use symlinks to the root `provider.tf` file: `ln -s ../../provider.tf provider.tf`
-
-#### Running Tests
-
-Tests are automatically triggered by GitHub workflows. To run locally:
-
-```bash
-cd testing
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-./run_tests.sh
-```
-
-#### Test Cleanup
-
-A cleanup process runs daily at 23:59 to remove test resources with the `tf-testing` prefix.
+**Key Requirements:**
+- Tests must be placed in `testing/payloads/[resource_name]/`
+- All test resources must have a `tf-testing-` name prefix
+- Tests are automatically triggered by GitHub workflows when PRs modify `internal/` files
 
 ### Example Files Requirements
 
