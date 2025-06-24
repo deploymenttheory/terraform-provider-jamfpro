@@ -50,44 +50,45 @@ Always run these commands from the repository root.
 - Name directories using lowercase words with underscores (e.g., `policy`, `building`, `script`)
 - Choose names that reflect the Jamf Pro resource domain they represent
 
-#### Required Core Files
+#### File Organization
+
+**Keep files focused and single-purpose:**
+- Break down large schemas into manageable, logical components
+- Use clear, descriptive file names that indicate their content
+- Avoid monolithic files - prefer multiple smaller, focused files
+
+**Required Core Files:**
 
 Every resource directory must contain these core files:
 
 - **`resource.go`** - Resource type definitions and main logic
-- **`crud.go`** - Basic CRUD operations
+- **`crud.go`** - CRUD operations (may use common functions or custom implementation)
 - **`data_source.go`** - Data source implementation  
 - **`constructor.go`** - Resource schema assembly and initialization
 - **`data_validator.go`** - Custom validation functions (if needed)
 
-#### Schema Organization
+**Optional Schema Files:**
 
-Split complex resource schemas into logical components using separate `schema_*.go` files:
+For complex resources, split schemas into logical components:
 
-**Examples from policy resource:**
-- `schema_account_maintenance.go` - Account management configurations
-- `schema_network_limitations.go` - Network restriction settings  
-- `schema_reboot.go` - Reboot behavior configurations
-- `schema_user_interaction.go` - User interaction prompts
+- **`schema_*.go`** - Schema definitions for specific resource aspects
+  - Examples: `schema_account_maintenance.go`, `schema_network_limitations.go`, `schema_reboot.go`
+  - Each file should focus on one specific aspect of the resource
+  - Use descriptive names that clearly indicate the schema's purpose
 
-**Guidelines:**
-- Each schema file should focus on one specific aspect of the resource
-- Use descriptive names that clearly indicate the schema's purpose
-- Keep related functionality grouped together
+**Optional State Files:**
 
-#### State Management
+For complex state management, separate into focused files:
 
-Separate state handling into focused files with `state_*.go` naming:
+- **`state_*.go`** - State management for specific resource aspects
+  - Examples: `state_payloads.go`, `state_migration.go`, `state_general.go`
+  - Split complex state operations into logical groups
+  - Keep state construction and updates separate from business logic
 
-**File Structure:**
-- `state_payloads.go` - API request/response structures
-- `state_migration.go` - Version migrations
-- `state_general.go`, `state_scope.go` - Logical groupings of state operations
+**Additional Helper Files:**
 
-**Guidelines:**
-- Split complex state operations into logical groups
-- Use consistent naming patterns for state management functions
-- Keep state construction and updates separate from business logic
+- **`helpers.go`** - Resource-specific utility functions (for complex resources)
+- **`data_custom_diff.go`** - Custom diff functions (if needed)
 
 ### Resource Naming Conventions
 
@@ -148,7 +149,7 @@ Implement custom CRUD functions for resources that require:
 - Complex state management
 - Verification or validation steps
 
-**Example: Package Resource Structure**
+**Example: Package Resource**
 
 The package resource demonstrates a complex implementation with multiple steps:
 
@@ -156,18 +157,6 @@ The package resource demonstrates a complex implementation with multiple steps:
 2. **Upload file** - Second API call to upload actual package file  
 3. **Verify upload** - Custom verification logic to ensure file integrity
 4. **Cleanup** - Remove temporary files and handle rollback on failures
-
-```go
-// File structure for complex resource
-internal/resources/package/
-├── crud.go              # Custom CRUD with multi-step operations
-├── constructor.go       # Resource construction and validation
-├── data_source.go       # Data source implementation
-├── data_validator.go    # Custom validation rules
-├── helpers.go           # Verification and utility functions
-├── resource.go          # Resource definition
-└── state.go             # State management
-```
 
 **Other examples of complex resources:**
 - `package` - handles file uploads and verification
