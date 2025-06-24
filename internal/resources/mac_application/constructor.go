@@ -2,6 +2,7 @@ package mac_application
 
 import (
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"log"
 
@@ -9,6 +10,10 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/sharedschemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+var (
+	errMarshalMacAppXML = errors.New("failed to marshal Mac Application to XML")
 )
 
 // construct constructs a ResourceMacApplications object from the provided schema data.
@@ -81,7 +86,8 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMacApplications, error)
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Mac Application '%s' to XML: %w", resource.General.Name, err) //nolint:err113
+		log.Printf("[ERROR] Failed to marshal Mac Application '%s' to XML: %v", resource.General.Name, err)
+		return nil, fmt.Errorf("%w", errMarshalMacAppXML)
 	}
 
 	log.Printf("[DEBUG] Constructed Mac Application XML:\n%s\n", string(resourceXML))

@@ -2,7 +2,9 @@ package mac_application
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -11,6 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+var (
+	errMissingIDOrName = errors.New("either 'id' or 'name' must be provided")
+	errReadMacApp      = errors.New("failed to read Mac Application after retries")
+	errMacAppNotFound  = errors.New("the Jamf Pro Mac Application was not found")
 )
 
 // DataSourceJamfProMacApplications provides information about a specific Jamf Pro Mac Application
@@ -85,7 +93,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	name := d.Get("name").(string)
 
 	if resourceID == "" && name == "" {
-		return diag.FromErr(fmt.Errorf("either 'id' or 'name' must be provided")) //nolint:err113
+		return diag.FromErr(errMissingIDOrName)
 	}
 
 	var resource *jamfpro.ResourceMacApplications
@@ -111,12 +119,13 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 			lookupMethod = "name"
 			lookupValue = name
 		}
-		return diag.FromErr(fmt.Errorf("failed to read Mac Application with %s '%s' after retries: %w", lookupMethod, lookupValue, err)) //nolint:err113
+		log.Printf("[ERROR] Lookup failed for Mac Application by %s '%s': %v", lookupMethod, lookupValue, err)
+		return diag.FromErr(fmt.Errorf("%w", errReadMacApp))
 	}
 
 	if resource == nil {
 		d.SetId("")
-		return diag.FromErr(fmt.Errorf("the Jamf Pro Mac Application was not found")) //nolint:err113
+		return diag.FromErr(fmt.Errorf("%w", errMacAppNotFound))
 	}
 
 	d.SetId(fmt.Sprintf("%d", resource.General.ID))
