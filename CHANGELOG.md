@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.23.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.22.1...v0.23.0) (2025-06-26)
+
+
+### Features
+
+* add jamf_id_authentication_enabled option to sso_settings resource ([#815](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/815)) ([5f4cb97](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/5f4cb97db4dd81dc260bab1115434194bc6d8327))
+* add jamfpro_jamf_connect data source ([#812](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/812)) ([d5453d2](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/d5453d255aef1d3d45bb625b334bac10e1b7b54a))
+* add jamfpro_mac_application resource and data source ([#810](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/810)) ([866e714](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/866e7141a5c5f3a036c009d65e1bc0907eab5e30))
+* add jamfpro_self_service_plus_settings resource ([#814](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/814)) ([0e24f73](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/0e24f731bb228c38d74a4e974e2fc23f829ae92f))
+
+
+### Bug Fixes
+
+* correct handling of All Directory Service Users in user_initiated_enrollment_settings ([#803](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/803)) ([d14e20d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/d14e20d2a989cb04871796e80bdbed812ed46f30))
+* correct state management of user_initiated_enrollment_settings _ ([#811](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/811)) ([13e6c6e](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/13e6c6e58be748ae70c4295a967f974e3590f3c9))
+
 ## [0.22.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.22.0...v0.22.1) (2025-06-10)
 
 
