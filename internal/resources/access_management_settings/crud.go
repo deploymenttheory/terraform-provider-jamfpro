@@ -35,7 +35,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Access Management Settings configuration after retries: %v", err))
+		return diag.FromErr(fmt.Errorf("%w: %v", ErrApplyConfig, err))
 	}
 
 	d.SetId("jamfpro_access_management_settings_singleton")
