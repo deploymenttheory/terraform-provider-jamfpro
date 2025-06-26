@@ -35,7 +35,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("%s: %w", ErrApplyConfig, err))
+		return diag.FromErr(fmt.Errorf("%s: %w", ErrApplyConfig.Error(), err))
 	}
 
 	d.SetId("jamfpro_access_management_settings_singleton")
