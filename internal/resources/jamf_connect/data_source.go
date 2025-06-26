@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProJamfConnect provides information about Jamf Connect config profiles
-func DataSourceJamfProJamfConnect() *schema.Resource {
+// DataSourceJamfConnectConfigProfile provides information about Jamf Connect config profiles
+func DataSourceJamfConnectConfigProfile() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceRead,
 		Timeouts: &schema.ResourceTimeout{
