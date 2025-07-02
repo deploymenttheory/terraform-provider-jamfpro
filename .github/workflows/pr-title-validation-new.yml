@@ -9,7 +9,6 @@ jobs:
   Check-PR-Title:
     env:
       PR_TITLE: ${{ github.event.pull_request.title }}
-      PR_NUMBER: ${{ github.event.pull_request.number }}
 
     runs-on: ubuntu-latest
     container: python:3.13-slim
