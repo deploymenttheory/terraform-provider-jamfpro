@@ -81,6 +81,11 @@ func ResourceJamfProSsoSettings() *schema.Resource {
 							Description:  "OIDC user mapping type. Supported values are 'USERNAME', 'EMAIL'",
 							ValidateFunc: validation.StringInSlice(getUserMappingTypes(), false),
 						},
+						"jamf_id_authentication_enabled": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Enable authenticate using Jamf ID credentials",
+						},
 					},
 				},
 			},
