@@ -126,6 +126,10 @@ Required:
 
 - `user_mapping` (String) OIDC user mapping type. Supported values are 'USERNAME', 'EMAIL'
 
+Optional:
+
+- `jamf_id_authentication_enabled` (Boolean) Enable authenticate using Jamf ID credentials
+
 
 <a id="nestedblock--saml_settings"></a>
 ### Nested Schema for `saml_settings`

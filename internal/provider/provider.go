@@ -63,6 +63,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/printer"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/restricted_software"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/script"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/self_service_plus_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/self_service_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/site"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/smart_computer_group"
@@ -465,6 +466,7 @@ func Provider() *schema.Provider {
 			"jamfpro_printer":                                     printer.ResourceJamfProPrinters(),
 			"jamfpro_script":                                      script.ResourceJamfProScripts(),
 			"jamfpro_self_service_settings":                       self_service_settings.ResourceJamfProSelfServiceSettings(),
+			"jamfpro_self_service_plus_settings":                  self_service_plus_settings.ResourceSelfServicePlusSettings(),
 			"jamfpro_smtp_server":                                 smtp_server.ResourceJamfProSMTPServer(),
 			"jamfpro_site":                                        site.ResourceJamfProSites(),
 			"jamfpro_smart_computer_group":                        smart_computer_group.ResourceJamfProSmartComputerGroups(),
