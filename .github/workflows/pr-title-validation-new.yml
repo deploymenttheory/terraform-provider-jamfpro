@@ -1,0 +1,26 @@
+name: PR Title Validation
+
+on:
+  pull_request:
+
+jobs:
+
+
+  Check-PR-Title:
+    env:
+      PR_TITLE: ${{ github.event.pull_request.title }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+
+    runs-on: ubuntu-latest
+    container: python:3.13-slim
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Check Script
+        run: python3 scripts/pr-title-validator.py
+
+
+
+  
