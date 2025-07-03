@@ -9,10 +9,6 @@ on:
       - 'templates/**/*'
       - 'examples/**/*'
   workflow_dispatch:
-
-# permissions:
-#   contents: write  # Required to update documentation in the repo
-#   pull-requests: write
   
 jobs:
   provider-docs:
@@ -26,7 +22,7 @@ jobs:
         egress-policy: audit
     - uses: actions/checkout@v4.2.2
       with:
-        ref: ${{ github.event.pull_request.head.sha || github.ref }}
+        ref: ${{ github.event_name == 'pull_request_target' && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}
 
     - uses: actions/setup-go@v5.4.0
       with:
