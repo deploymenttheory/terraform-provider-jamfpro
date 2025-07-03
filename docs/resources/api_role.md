@@ -521,7 +521,7 @@ resource "jamfpro_api_role" "jamfpro_api_role_11-12" {
 ### Required
 
 - `display_name` (String) The display name of the Jamf API Role.
-- `privileges` (Set of String) List of api role privileges associated with the Jamf API Role. These are compared against the Jamf Proserver for validation. You must supply the exact privilege names as they appear in the Jamf Pro server. They are case-sensitiveand can and do change between Jamf Pro versions.
+- `privileges` (Set of String) List of api role privileges associated with the Jamf API Role. These are compared against the Jamf Proserver for validation. You must supply the exact privilege names as they appear in the Jamf Pro server. They are case-sensitiveand can and do change between Jamf Pro versions. cheese
 
 ### Optional
 

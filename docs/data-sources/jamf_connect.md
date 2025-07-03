@@ -6,6 +6,7 @@ description: |-
 
 # jamfpro_jamf_connect (Data Source)
 
+
 ## Example Usage
 ```terraform
 # Example 1: Look up by ID
@@ -49,14 +50,22 @@ output "site_id" {
 
 ### Optional
 
-- `profile_id` (Number) The resource ID of the Jamf Connect configuration profile.
-- `profile_name` (String) The name of the Jamf Connect configuration profile.
+- `profile_id` (Number) The ID of the configuration profile
+- `profile_name` (String) The name of the configuration profile
+- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
 
-- `auto_deployment_type` (String) Determines how the server will behave regarding application updates and installs on the devices that have the configuration profile installed.
-- `config_profile_uuid` (String) The unique identifier for the Jamf Connect deployment configuration.
-- `id` (String) The ID of this resource; same value as the ID of the configuration profile.
-- `jamf_connect_version` (String) Version of Jamf Connect to deploy.
-- `scope_description` (String) Description of the profile's scope.
-- `site_id` (String) Site ID of the site this profile belongs to.
+- `auto_deployment_type` (String) Determines how the server will behave regarding applicationupdates and installs on the devices that have the configuration profileinstalled. PATCH_UPDATES - Server handles initial installation of theapplication and any patch updates. MINOR_AND_PATCH_UPDATES - Server handlesinitial installation of the application and any patch and minor updates.INITIAL_INSTALLATION_ONLY - Server only handles initial installation of the application. Updates will have to be done manually. NONE - Server doesnot handle any installations or updates for the application. Version is ignored for this type.
+- `config_profile_uuid` (String) The unique identifier for the Jamf Connect config profile
+- `id` (String) The ID of this resource.
+- `jamf_connect_version` (String) Version of Jamf Connect to deploy.Versions are listed here https://www.jamf.com/resources/product-documentation/jamf-connect-administrators-guide/
+- `scope_description` (String) Description of the profile's scope
+- `site_id` (String) Site ID of the site this profile belongs to
+
+<a id="nestedblock--timeouts"></a>
+### Nested Schema for `timeouts`
+
+Optional:
+
+- `read` (String)
