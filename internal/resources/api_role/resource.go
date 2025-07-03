@@ -39,7 +39,7 @@ func ResourceJamfProAPIRoles() *schema.Resource {
 				Required: true,
 				Description: "List of api role privileges associated with the Jamf API Role. These are compared against the Jamf Pro" +
 					"server for validation. You must supply the exact privilege names as they appear in the Jamf Pro server. They are case-sensitive" +
-					"and can and do change between Jamf Pro versions.",
+					"and can and do change between Jamf Pro versions. cheese",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -47,3 +47,5 @@ func ResourceJamfProAPIRoles() *schema.Resource {
 		},
 	}
 }
+
+// I am cheese
