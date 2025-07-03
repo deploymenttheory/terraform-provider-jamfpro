@@ -29,17 +29,3 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceReenrollmentSettings, e
 
 	return resource, nil
 }
-
-// // constructPolicyProperties constructs a ResourcePolicyProperties object from the provided schema data.
-// func constructPolicyProperties(d *schema.ResourceData) (*jamfpro.ResourcePolicyProperties, error) {
-// 	allowNetworkStateChangeTriggers := d.Get("allow_network_state_change_triggers").(bool)
-
-// 	resource := &jamfpro.ResourcePolicyProperties{
-// 		AllowNetworkStateChangeTriggers: allowNetworkStateChangeTriggers,
-// 	}
-
-// 	// Log the constructed resource for debugging
-// 	log.Printf("[DEBUG] Constructed Jamf Pro Policy Properties: %+v\n", resource)
-
-// 	return resource, nil
-// }
