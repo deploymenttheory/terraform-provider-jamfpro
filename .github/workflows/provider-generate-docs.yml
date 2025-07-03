@@ -10,9 +10,9 @@ on:
       - 'examples/**/*'
   workflow_dispatch:
 
-permissions:
-  contents: write  # Required to update documentation in the repo
-  pull-requests: write
+# permissions:
+#   contents: write  # Required to update documentation in the repo
+#   pull-requests: write
   
 jobs:
   provider-docs:
