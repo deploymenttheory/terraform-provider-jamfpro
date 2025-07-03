@@ -55,6 +55,7 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceMobileDe
 		MinimumOsSpecificVersionIos:            d.Get("minimum_os_specific_version_ios").(string),
 		PrestageMinimumOsTargetVersionTypeIpad: d.Get("prestage_minimum_os_target_version_type_ipad").(string),
 		RTSEnabled:                             jamfpro.BoolPtr(d.Get("rts_enabled").(bool)),
+		RTSConfigProfileId:                     d.Get("rts_config_profile_id").(string),
 		MinimumOsSpecificVersionIpad:           d.Get("minimum_os_specific_version_ipad").(string),
 	}
 
