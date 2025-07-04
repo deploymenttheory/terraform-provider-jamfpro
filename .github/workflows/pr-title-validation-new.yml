@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Check Script
-        run: python3 scripts/pr-title-validator.py
+        run: python3 scripts/pr_title_validator.py
 
 
 
