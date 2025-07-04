@@ -35,8 +35,8 @@ if ":" not in PR_TITLE:
 PR_TITLE_PREFIX = PR_TITLE.split(":", maxsplit=1) + ":"
 
 # No upper case - release please doesn't like it.
-if PR_TITLE.isupper():
-    raise InvalidPRTitle("title contains uppercase chars")
+if any(char.isupper() for char in PR_TITLE_PREFIX):
+    raise InvalidPRTitle(f"title prefix contains uppercase chars: {PR_TITLE}")
 
 if not any(i in PR_TITLE for i in VALID_PREFIXES):
     raise InvalidPRTitle("title does not contain a conventional commit token")
@@ -46,3 +46,9 @@ if "()" in PR_TITLE_PREFIX:
 
 if " " in PR_TITLE_PREFIX:
     raise InvalidPRTitle("cannot have spaces in title prefix")
+
+if (len(PR_TITLE) - len(PR_TITLE_PREFIX)) < 5:
+    raise InvalidPRTitle(f"title message must be more than 5 chars: {PR_TITLE}")
+
+
+print(f"title valid: {PR_TITLE}")
