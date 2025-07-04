@@ -32,7 +32,7 @@ if not PR_TITLE:
 if ":" not in PR_TITLE:
     raise InvalidPRTitle("no colon found in title")
 
-PR_TITLE_PREFIX = PR_TITLE.split(":", maxsplit=1) + ":"
+PR_TITLE_PREFIX = PR_TITLE.split(":", maxsplit=1)[0] + ":"
 
 # No upper case - release please doesn't like it.
 if any(char.isupper() for char in PR_TITLE_PREFIX):
