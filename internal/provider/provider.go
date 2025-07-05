@@ -41,6 +41,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/engage_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/enrollment_customization"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/file_share_distribution_point"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/group"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/icon"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/jamf_cloud_distribution_service"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/jamf_connect"
@@ -412,6 +413,7 @@ func Provider() *schema.Provider {
 			"jamfpro_static_computer_group":                     static_computer_group.DataSourceJamfProStaticComputerGroups(),
 			"jamfpro_static_mobile_device_group":                static_mobile_device_group.DataSourceJamfProStaticMobileDeviceGroups(),
 			"jamfpro_restricted_software":                       restricted_software.DataSourceJamfProRestrictedSoftwares(),
+			"jamfpro_group":                                     group.DataSourceJamfProGroups(),
 			"jamfpro_user_group":                                user_group.DataSourceJamfProUserGroups(),
 			"jamfpro_volume_purchasing_locations":               volume_purchasing_locations.DataSourceJamfProVolumePurchasingLocations(),
 			"jamfpro_webhook":                                   webhook.DataSourceJamfProWebhooks(),
