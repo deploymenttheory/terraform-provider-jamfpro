@@ -36,42 +36,39 @@ func ResourceJamfProFileShareDistributionPoints() *schema.Resource {
 				Required:    true,
 				Description: "The name of the distribution point.",
 			},
-			"ip_address": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Hostname or IP address of the distribution point server.",
-			},
-			"is_master": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Description: "Indicates if the distribution point is the principal distribution point, used  as the authoritative source for all files",
-			},
-			"failover_point": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The failover point for the distribution point.Can be ",
-			},
-			"ipaddress": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Hostname or IP address of the distribution point server.",
-			},
-			"failover_point_url": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The URL of the failover point.",
-			},
-			// Page 2
-			"connection_type": {
+			"serverName": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The type of connection protocol to the distribution point. Can be either 'AFP', or 'SMB'.",
+				Description: "Hostname of the distribution point server.",
+			},
+			"principal": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Indicates if the distribution point is the principal distribution point, used as the authoritative source for all files. Defaults to false.",
+			},
+			"backupDistributionPointID": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "-1",
+				Description: "The ID of the failover point. Defaults to -1.",
+			},
+			"localPathToShare": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The local path to the share.",
+			},
+			"fileSharingConnectionType": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Default:     "NONE",
+				Description: "The type of connection protocol to the distribution point. Can be either 'SMB', 'AFP', or 'NONE'. Required. Defaults to 'NONE'. Either this or httpsEnabled must be set.",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := val.(string)
 					validTypes := map[string]bool{
 						"SMB":  true,
 						"AFP":  true,
-						"NONE": false,
+						"NONE": true,
 					}
 					if _, valid := validTypes[v]; !valid {
 						errs = append(errs, fmt.Errorf("%q must be one of 'SMB', 'AFP', or 'NONE', got: %s", key, v))
@@ -79,112 +76,105 @@ func ResourceJamfProFileShareDistributionPoints() *schema.Resource {
 					return warns, errs
 				},
 			},
-			"share_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-
-				Description: "The name of the network share.",
+			"shareName": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The name of the network share. Required if fileSharingConnectionType is either AFP or SMB.",
 			},
-			"share_port": {
+			"port": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Description: "The port number used for the fileshare distribution point.",
+				Default:     139,
+				Description: "The port number used for the fileshare distribution point. Defaults to 139. Required if fileSharingConnectionType is either AFP or SMB.",
 			},
-			"enable_load_balancing": {
+			"enableLoadBalancing": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Indicates if load balancing is enabled.",
+				Default:     false,
+				Description: "Indicates if load balancing is enabled. Defaults to false. Cannot be enabled when the backup distribution point configured is cloud.",
 			},
-			"local_path": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The local path to the distribution point.",
-			},
-
-			"ssh_username": {
+			"sshUsername": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The SSH username for the distribution point.",
 			},
-			"password": {
+			"sshPassword": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The password for the distribution point. This field is marked as sensitive and will not be displayed in logs or console output.",
 			},
 
-			"workgroup_or_domain": {
+			"workgroup": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The workgroup or domain of the distribution point.",
 			},
-			"read_only_username": {
+			"readOnlyUsername": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The username for read-only access to the distribution point.",
 			},
-			"read_only_password": {
+			"readOnlyPassword": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
 				Description: "The password for read-only access. This field is marked as sensitive.",
 			},
-			"read_write_username": {
+			"readWriteUsername": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The username for read-write access to the distribution point.",
 			},
-			"read_write_password": {
+			"readWritePassword": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
 				Description: "The password for read-write access. This field is marked as sensitive.",
 			},
-			"no_authentication_required": {
+			"httpsEnabled": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Indicates if no authentication is required for accessing the distribution point.",
+				Default:     false,
+				Description: "Indicates if HTTP downloads are enabled. Defaults to false. Allow downloads over HTTPS - requires installation of a valid SSL certificate.",
 			},
-			// Page 3
-			"https_downloads_enabled": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Description: "Indicates if HTTP downloads are enabled.",
-			},
-			"https_port": {
+			"httpsPort": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Description: "The port number for the https share.",
+				Default:     443,
+				Description: "The port number for the https share. Defaults to 443. Required if HTTPS enabled.",
 			},
-			"https_share_path": {
+			"httpsContext": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Path to the https share (e.g. if the share is accessible at http://192.168.10.10/JamfShare, the context is 'JamfShare').",
+				Description: "Path to the https share (e.g. if the share is accessible at http://192.168.10.10/JamfShare, the context is 'JamfShare'). Required if HTTPS enabled.",
 			},
-			"https_username_password_required": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Description: "Indicates if username/password authentication is required for accessing the distribution point.",
-			},
-			"https_username": {
+			"httpsSecurityType": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The username for HTTP access, if username/password authentication is required.",
+				Default:     "NONE",
+				Description: "Type of authentication required to download files from the distribution point. Can be 'USERNAME_PASSWORD' or 'NONE'. Defaults to 'NONE'. Required if HTTPS enabled.",
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := val.(string)
+					validTypes := map[string]bool{
+						"NONE":              true,
+						"USERNAME_PASSWORD": true,
+					}
+					if _, valid := validTypes[v]; !valid {
+						errs = append(errs, fmt.Errorf("%q must be one of 'USERNAME_PASSWORD' or 'NONE', got: %s", key, v))
+					}
+					return warns, errs
+				},
 			},
-			"https_password": {
+			"httpsUsername": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The username for HTTP access, if username/password authentication is required. Required if httpsSecurityType is USERNAME_PASSWORD.",
+			},
+			"httpsPassword": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
-				Description: "The password for HTTP access, if username/password authentication is required. This field is marked as sensitive.",
-			},
-			"protocol": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The protocol used if HTTPS is enabled for the  distribution point. Result will always be 'https' if enabled.",
-			},
-			"http_url": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The URL for HTTP downloads.Constructed from the protocol, IP address, and port.",
+				Description: "The password for HTTP access, if username/password authentication is required. This field is marked as sensitive. Required if httpsSecurityType is USERNAME_PASSWORD.",
 			},
 		},
 	}
