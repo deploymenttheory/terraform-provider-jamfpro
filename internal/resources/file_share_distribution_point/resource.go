@@ -36,7 +36,7 @@ func ResourceJamfProFileShareDistributionPoints() *schema.Resource {
 				Required:    true,
 				Description: "The name of the distribution point.",
 			},
-			"serverName": {
+			"server_name": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Hostname of the distribution point server.",
@@ -47,22 +47,22 @@ func ResourceJamfProFileShareDistributionPoints() *schema.Resource {
 				Default:     false,
 				Description: "Indicates if the distribution point is the principal distribution point, used as the authoritative source for all files. Defaults to false.",
 			},
-			"backupDistributionPointID": {
+			"backup_distribution_point_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "-1",
 				Description: "The ID of the failover point. Defaults to -1.",
 			},
-			"localPathToShare": {
+			"local_path_to_share": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The local path to the share.",
 			},
-			"fileSharingConnectionType": {
+			"file_sharing_connection_type": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Default:     "NONE",
-				Description: "The type of connection protocol to the distribution point. Can be either 'SMB', 'AFP', or 'NONE'. Required. Defaults to 'NONE'. Either this or httpsEnabled must be set.",
+				Description: "The type of connection protocol to the distribution point. Can be either 'SMB', 'AFP', or 'NONE'. Required. Defaults to 'NONE'. Either this or https_enabled must be set.",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := val.(string)
 					validTypes := map[string]bool{
@@ -76,83 +76,82 @@ func ResourceJamfProFileShareDistributionPoints() *schema.Resource {
 					return warns, errs
 				},
 			},
-			"shareName": {
+			"share_name": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The name of the network share. Required if fileSharingConnectionType is either AFP or SMB.",
+				Description: "The name of the network share. Required if file_sharing_connection_type is either AFP or SMB.",
 			},
 			"port": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     139,
-				Description: "The port number used for the fileshare distribution point. Defaults to 139. Required if fileSharingConnectionType is either AFP or SMB.",
+				Description: "The port number used for the fileshare distribution point. Defaults to 139. Required if file_sharing_connection_type is either AFP or SMB.",
 			},
-			"enableLoadBalancing": {
+			"enable_load_balancing": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Indicates if load balancing is enabled. Defaults to false. Cannot be enabled when the backup distribution point configured is cloud.",
 			},
-			"sshUsername": {
+			"ssh_username": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The SSH username for the distribution point.",
 			},
-			"sshPassword": {
+			"ssh_password": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The password for the distribution point. This field is marked as sensitive and will not be displayed in logs or console output.",
 			},
-
 			"workgroup": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The workgroup or domain of the distribution point.",
 			},
-			"readOnlyUsername": {
+			"read_only_username": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The username for read-only access to the distribution point.",
 			},
-			"readOnlyPassword": {
+			"read_only_password": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
 				Description: "The password for read-only access. This field is marked as sensitive.",
 			},
-			"readWriteUsername": {
+			"read_write_username": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The username for read-write access to the distribution point.",
 			},
-			"readWritePassword": {
+			"read_write_password": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
 				Description: "The password for read-write access. This field is marked as sensitive.",
 			},
-			"httpsEnabled": {
+			"https_enabled": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Indicates if HTTP downloads are enabled. Defaults to false. Allow downloads over HTTPS - requires installation of a valid SSL certificate.",
 			},
-			"httpsPort": {
+			"https_port": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     443,
-				Description: "The port number for the https share. Defaults to 443. Required if HTTPS enabled.",
+				Description: "The port number for the https share. Defaults to 443. Required if https_enabled.",
 			},
-			"httpsContext": {
+			"https_context": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Path to the https share (e.g. if the share is accessible at http://192.168.10.10/JamfShare, the context is 'JamfShare'). Required if HTTPS enabled.",
+				Description: "Path to the https share (e.g. if the share is accessible at http://192.168.10.10/JamfShare, the context is 'JamfShare'). Required if https_enabled.",
 			},
-			"httpsSecurityType": {
+			"https_security_type": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "NONE",
-				Description: "Type of authentication required to download files from the distribution point. Can be 'USERNAME_PASSWORD' or 'NONE'. Defaults to 'NONE'. Required if HTTPS enabled.",
+				Description: "Type of authentication required to download files from the distribution point. Can be 'USERNAME_PASSWORD' or 'NONE'. Defaults to 'NONE'. Required if https_enabled.",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := val.(string)
 					validTypes := map[string]bool{
@@ -165,16 +164,16 @@ func ResourceJamfProFileShareDistributionPoints() *schema.Resource {
 					return warns, errs
 				},
 			},
-			"httpsUsername": {
+			"https_username": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The username for HTTP access, if username/password authentication is required. Required if httpsSecurityType is USERNAME_PASSWORD.",
+				Description: "The username for HTTP access, if username/password authentication is required. Required if https_security_type is USERNAME_PASSWORD.",
 			},
-			"httpsPassword": {
+			"https_password": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
-				Description: "The password for HTTP access, if username/password authentication is required. This field is marked as sensitive. Required if httpsSecurityType is USERNAME_PASSWORD.",
+				Description: "The password for HTTP access, if username/password authentication is required. This field is marked as sensitive. Required if https_security_type is USERNAME_PASSWORD.",
 			},
 		},
 	}
