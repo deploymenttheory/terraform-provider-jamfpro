@@ -69,11 +69,12 @@ func ResourceJamfProFileShareDistributionPoints() *schema.Resource {
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := val.(string)
 					validTypes := map[string]bool{
-						"SMB": true,
-						"AFP": true,
+						"SMB":  true,
+						"AFP":  true,
+						"NONE": false,
 					}
 					if _, valid := validTypes[v]; !valid {
-						errs = append(errs, fmt.Errorf("%q must be one of 'SMB', or 'AFP', got: %s", key, v))
+						errs = append(errs, fmt.Errorf("%q must be one of 'SMB', 'AFP', or 'NONE', got: %s", key, v))
 					}
 					return warns, errs
 				},
