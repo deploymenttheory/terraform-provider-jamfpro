@@ -16,12 +16,17 @@ func constructEnrollmentSettings(d *schema.ResourceData) (*jamfpro.ResourceEnrol
 		// General settings
 		InstallSingleProfile:            d.Get("skip_certificate_installation_during_enrollment").(bool),
 		RestrictReenrollment:            d.Get("restrict_reenrollment_to_authorized_users_only").(bool),
-		FlushLocationInformation:        d.Get("flush_location_information").(bool),
-		FlushLocationHistoryInformation: d.Get("flush_location_history_information").(bool),
-		FlushPolicyHistory:              d.Get("flush_policy_history").(bool),
-		FlushExtensionAttributes:        d.Get("flush_extension_attributes").(bool),
-		FlushSoftwareUpdatePlans:        d.Get("flush_software_update_plans").(bool),
-		FlushMdmCommandsOnReenroll:      d.Get("flush_mdm_commands_on_reenroll").(string),
+
+		//
+		// Sunsetting Re-enrollment options from this resource
+		// Use jamfpro_reenrollment resource instead
+		//
+		// FlushLocationInformation:        d.Get("flush_location_information").(bool),
+		// FlushLocationHistoryInformation: d.Get("flush_location_history_information").(bool),
+		// FlushPolicyHistory:              d.Get("flush_policy_history").(bool),
+		// FlushExtensionAttributes:        d.Get("flush_extension_attributes").(bool),
+		// FlushSoftwareUpdatePlans:        d.Get("flush_software_update_plans").(bool),
+		// FlushMdmCommandsOnReenroll:      d.Get("flush_mdm_commands_on_reenroll").(string),
 	}
 
 	// Set third-party signing certificate

@@ -20,12 +20,17 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 	generalSettings := map[string]interface{}{
 		"skip_certificate_installation_during_enrollment": enrollment.InstallSingleProfile,
 		"restrict_reenrollment_to_authorized_users_only":  enrollment.RestrictReenrollment,
-		"flush_location_information":                      enrollment.FlushLocationInformation,
-		"flush_location_history_information":              enrollment.FlushLocationHistoryInformation,
-		"flush_policy_history":                            enrollment.FlushPolicyHistory,
-		"flush_extension_attributes":                      enrollment.FlushExtensionAttributes,
-		"flush_software_update_plans":                     enrollment.FlushSoftwareUpdatePlans,
-		"flush_mdm_commands_on_reenroll":                  enrollment.FlushMdmCommandsOnReenroll,
+
+		//
+		// Sunsetting Re-enrollment options from this resource
+		// Use jamfpro_reenrollment resource instead
+		//
+		// "flush_location_information":                      enrollment.FlushLocationInformation,
+		// "flush_location_history_information":              enrollment.FlushLocationHistoryInformation,
+		// "flush_policy_history":                            enrollment.FlushPolicyHistory,
+		// "flush_extension_attributes":                      enrollment.FlushExtensionAttributes,
+		// "flush_software_update_plans":                     enrollment.FlushSoftwareUpdatePlans,
+		// "flush_mdm_commands_on_reenroll":                  enrollment.FlushMdmCommandsOnReenroll,
 	}
 	for key, val := range generalSettings {
 		if err := d.Set(key, val); err != nil {
