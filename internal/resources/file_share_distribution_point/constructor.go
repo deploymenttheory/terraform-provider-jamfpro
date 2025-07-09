@@ -37,12 +37,12 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceFileShareDistributionPo
 		EnableLoadBalancing:       d.Get("enable_load_balancing").(bool),
 	}
 
-	resourceXML, err := common.SerializeAndRedactJSON(resource, []string{"ReadOnlyPassword", "ReadWritePassword", "HTTPSPassword"})
+	resourceJSON, err := common.SerializeAndRedactJSON(resource, []string{"ReadOnlyPassword", "ReadWritePassword", "HTTPSPassword"})
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}
 
-	log.Printf("[DEBUG] Constructed Jamf Pro File Share Distribution Point XML:\n%s\n", string(resourceXML))
+	log.Printf("[DEBUG] Constructed Jamf Pro File Share Distribution Point JSON:\n%s\n", string(resourceJSON))
 
 	return resource, nil
 }
