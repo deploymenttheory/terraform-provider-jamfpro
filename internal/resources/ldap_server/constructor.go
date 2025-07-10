@@ -1,4 +1,3 @@
-// ldapserver_object.go
 package ldap_server
 
 import (
