@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProMobileDeviceConfigurationProfiles provides information about a specific department in Jamf Pro.
+// DataSourceJamfProMobileDeviceConfigurationProfiles provides information about a specific mobile device configuration profile in Jamf Pro.
 func DataSourceJamfProMobileDeviceConfigurationProfilesPlist() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceRead,
@@ -34,7 +34,7 @@ func DataSourceJamfProMobileDeviceConfigurationProfilesPlist() *schema.Resource 
 	}
 }
 
-// dataSourceRead fetches the details of a specific department from Jamf Pro using its unique ID.
+ // dataSourceRead fetches the details of a specific mobile device configuration profile from Jamf Pro using its unique ID.
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics

@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProMacOSConfigurationProfilesPlist provides information about a specific department in Jamf Pro.
+// DataSourceJamfProMacOSConfigurationProfilesPlist provides information about a specific macOS configuration profile in Jamf Pro.
 func DataSourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceRead,
