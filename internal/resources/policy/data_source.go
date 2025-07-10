@@ -1,4 +1,3 @@
-// packages_data_source.go
 package policy
 
 import (
