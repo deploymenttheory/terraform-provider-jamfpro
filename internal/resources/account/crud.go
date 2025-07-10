@@ -99,7 +99,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	if err != nil {
 		//nolint:err113
-		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Account after retries: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Account after retries: %w", err))
 	}
 
 	d.SetId(strconv.Itoa(updatedRole.ID))

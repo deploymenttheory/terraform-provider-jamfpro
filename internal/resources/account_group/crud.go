@@ -23,7 +23,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	resource, err := construct(d, meta)
 	if err != nil {
 		//nolint:err113
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account Group for create: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account Group for create: %w", err))
 	}
 
 	var createdRole *jamfpro.ResponseAccountGroupCreated
@@ -38,7 +38,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	if err != nil {
 		//nolint:err113
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Account Group after retries: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Account Group after retries: %w", err))
 	}
 
 	d.SetId(strconv.Itoa(createdRole.ID))
