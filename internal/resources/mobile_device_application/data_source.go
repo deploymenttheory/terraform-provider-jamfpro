@@ -103,7 +103,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 			lookupValue = name
 		}
 		//nolint:err113
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Mobile Device Application with %s '%s' after retries: %v", lookupMethod, lookupValue, err))
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Mobile Device Application with %s '%s' after retries: %w", lookupMethod, lookupValue, err))
 	}
 
 	if resource == nil {

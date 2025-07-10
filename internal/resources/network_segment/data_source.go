@@ -66,14 +66,14 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 
 	if err != nil {
 		//nolint:err113
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Network Segment with ID '%s' after retries: %v", resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Network Segment with ID '%s' after retries: %w", resourceID, err))
 	}
 
 	if resource != nil {
 		d.SetId(resourceID)
 		if err := d.Set("name", resource.Name); err != nil {
 			//nolint:err113
-			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Network Segment with ID '%s': %v", resourceID, err))...)
+			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Network Segment with ID '%s': %w", resourceID, err))...)
 		}
 	} else {
 		d.SetId("")
