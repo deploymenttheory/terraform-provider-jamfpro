@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// updateState updates the Terraform state with the latest Disk EncryptionC onfiguration information from the Jamf Pro API.
+// updateState updates the Terraform state with the latest Disk Encryption Configuration information from the Jamf Pro API.
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceDiskEncryptionConfiguration) diag.Diagnostics {
 	var diags diag.Diagnostics
 

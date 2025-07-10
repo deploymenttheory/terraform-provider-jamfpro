@@ -1,4 +1,3 @@
-// diskencryptionconfigurations_resource.go
 package disk_encryption_configuration
 
 import (
