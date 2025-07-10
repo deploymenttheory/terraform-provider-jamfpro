@@ -12,7 +12,7 @@ description: |-
 
 ### Required
 
-- `id` (String) The unique identifier of the advancec computer search.
+- `id` (String) The unique identifier of the advanced computer search.
 
 ### Read-Only
 

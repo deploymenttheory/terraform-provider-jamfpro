@@ -19,7 +19,7 @@ func DataSourceJamfProAdvancedComputerSearches() *schema.Resource {
 			"id": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The unique identifier of the advancec computer search.",
+				Description: "The unique identifier of the advanced computer search.",
 			},
 			"name": {
 				Type:        schema.TypeString,
