@@ -118,7 +118,7 @@ func constructEnrollmentSettings(d *schema.ResourceData) (*jamfpro.ResourceEnrol
 
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro SMTP Server Settings to JSON: %v", err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro User-initiated enrollment Settings to JSON: %v", err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro User-initiated enrollment Settings JSON:\n%s\n", string(resourceJSON))
