@@ -207,7 +207,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Dock Item Configuration resource with identifier '%s' after retries: %v", identifier, err))
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro macOS Configuration Profile resource with identifier '%s' after retries: %v", identifier, err))
 	}
 
 	if resource == nil {
