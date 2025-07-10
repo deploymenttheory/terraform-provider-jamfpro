@@ -37,7 +37,7 @@ resource "jamfpro_advanced_user_search" "advanced_user_search_001" {
 
 ### Required
 
-- `name` (String) The name of the advanced mobile device search
+- `name` (String) The name of the advanced user search
 
 ### Optional
 
