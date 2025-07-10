@@ -22,7 +22,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	)
 }
 
-// read is responsible for reading the current state of a Jamf Pro Site Resource from the remote system.
+// read is responsible for reading the current state of a Jamf Pro Network Segment from the remote system.
 func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	return common.Read(
 		ctx,
@@ -56,7 +56,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	)
 }
 
-// deleteis responsible for deleting a Jamf Pro network segment.
+// delete is responsible for deleting a Jamf Pro network segment.
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return common.Delete(
 		ctx,

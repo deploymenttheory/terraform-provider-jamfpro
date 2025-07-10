@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProNetworkSegments provides information about a specific Jamf Pro resource by its ID or Name.
+// DataSourceJamfProNetworkSegments provides information about a specific Jamf Pro Network Segment by its ID or Name.
 func DataSourceJamfProNetworkSegments() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceRead,
@@ -35,7 +35,7 @@ func DataSourceJamfProNetworkSegments() *schema.Resource {
 	}
 }
 
-// dataSourceRead fetches the details of a specific Jamf Pro resource
+// dataSourceRead fetches the details of a specific Jamf Pro Network Segment
 // from Jamf Pro using either its unique Name or its Id. The function prioritizes the 'name' attribute over the 'id'
 // attribute for fetching details. If neither 'name' nor 'id' is provided, it returns an error.
 // Once the details are fetched, they are set in the data source's state.
@@ -65,13 +65,13 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro resource with ID '%s' after retries: %v", resourceID, err))
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Network Segment with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	if resource != nil {
 		d.SetId(resourceID)
 		if err := d.Set("name", resource.Name); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro resource with ID '%s': %v", resourceID, err))...)
+			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Network Segment with ID '%s': %v", resourceID, err))...)
 		}
 	} else {
 		d.SetId("")
