@@ -42,7 +42,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
-// read is responsible for reading the current state of a Building Resource from the remote system.
+// read is responsible for reading the current state of a Mobile Device Prestage Enrollment from the remote system.
 func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	return common.Read(
 		ctx,
@@ -64,7 +64,7 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 	return read(ctx, d, meta, false)
 }
 
-// update is responsible for updating an existing Jamf Pro Department on the remote system.
+// update is responsible for updating an existing Jamf Pro Mobile Device Prestage Enrollment on the remote system.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
