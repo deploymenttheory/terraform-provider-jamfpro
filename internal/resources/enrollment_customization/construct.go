@@ -77,6 +77,7 @@ func constructBaseResource(d *schema.ResourceData) (*jamfpro.ResourceEnrollmentC
 
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
+		//nolint:err113
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Enrollment Customization '%s' to JSON: %v", resource.DisplayName, err)
 	}
 

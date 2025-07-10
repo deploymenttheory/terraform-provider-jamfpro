@@ -118,6 +118,7 @@ func constructEnrollmentSettings(d *schema.ResourceData) (*jamfpro.ResourceEnrol
 
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
+		//nolint:err113
 		return nil, fmt.Errorf("failed to marshal Jamf Pro User-initiated enrollment Settings to JSON: %v", err)
 	}
 

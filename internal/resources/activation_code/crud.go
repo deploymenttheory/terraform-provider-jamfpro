@@ -17,6 +17,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	activationCodeConfig, err := construct(d)
 	if err != nil {
+		//nolint:err113
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Activation Code for create: %v", err))
 	}
 

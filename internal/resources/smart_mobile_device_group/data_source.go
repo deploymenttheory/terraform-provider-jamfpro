@@ -59,6 +59,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	})
 
 	if err != nil {
+		//nolint:err113
 		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Smart Mobile Group with ID '%s' after retries: %v", resourceID, err))
 	}
 

@@ -124,6 +124,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 
 	if resource == nil {
 		d.SetId("")
+		//nolint:err113
 		return diag.FromErr(fmt.Errorf("the Jamf Pro Smart Computer Group was not found"))
 	}
 
