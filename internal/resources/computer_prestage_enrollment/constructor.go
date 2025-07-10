@@ -1,4 +1,3 @@
-// computerprestageenrollments_object.go
 package computer_prestage_enrollment
 
 import (
@@ -131,7 +130,7 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Prestage to JSON: %v", err)
 	}
 
-	log.Printf("[DEBUG] Constructed Jamf Pro Computer Computer Prestage JSON:\n%s\n", string(resourceJSON))
+	log.Printf("[DEBUG] Constructed Jamf Pro Computer Prestage JSON:\n%s\n", string(resourceJSON))
 
 	return resource, nil
 }

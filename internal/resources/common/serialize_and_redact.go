@@ -1,4 +1,3 @@
-// hash.go
 // This package contains shared / common hash functions
 package common
 

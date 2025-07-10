@@ -1,4 +1,3 @@
-// computerprestages_resource.go
 package computer_prestage_enrollment
 
 import (

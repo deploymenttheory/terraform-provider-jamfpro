@@ -1,4 +1,3 @@
-// computerprestageenrollments_state.go
 package computer_prestage_enrollment
 
 import (
