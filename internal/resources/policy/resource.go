@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-// resourceJamfProPolicies defines the schema and CRUD operations for managing Jamf Pro Policy in Terraform.
+// ResourceJamfProPolicies defines the schema and CRUD operations for managing Jamf Pro Policy in Terraform.
 func ResourceJamfProPolicies() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,

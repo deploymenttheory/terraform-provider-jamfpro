@@ -34,7 +34,7 @@ const (
 	SearchTypeDoesNotMatch       string = "does not match regex"
 )
 
-// resourceJamfProSmartComputerGroups defines the schema and CRUD operations for managing Jamf Pro smart Computer Groups in Terraform.
+// ResourceJamfProSmartComputerGroups defines the schema and CRUD operations for managing Jamf Pro smart Computer Groups in Terraform.
 func ResourceJamfProSmartComputerGroups() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,
