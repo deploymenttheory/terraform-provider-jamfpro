@@ -1,4 +1,3 @@
-// buildings_resource.go
 package building
 
 import (
