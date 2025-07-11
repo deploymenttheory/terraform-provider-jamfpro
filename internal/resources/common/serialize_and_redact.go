@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"log"
 	"reflect"
 	"strconv"
 )
@@ -37,7 +38,7 @@ func SerializeAndRedactXML(resource interface{}, redactFields []string) (string,
 // SerializeAndRedactJSON serializes a resource to JSON and redacts specified fields.
 func SerializeAndRedactJSON(resource interface{}, redactFields []string) (string, error) {
 	v := reflect.ValueOf(resource)
-	if v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Struct {
+	if v.Kind() != reflect.Pointer || v.Elem().Kind() != reflect.Struct {
 		return "", fmt.Errorf("resource must be a pointer to a struct")
 	}
 
@@ -48,6 +49,9 @@ func SerializeAndRedactJSON(resource interface{}, redactFields []string) (string
 		if f := resourceCopy.FieldByName(field); f.IsValid() && f.CanSet() {
 			if f.Kind() == reflect.String {
 				f.SetString("***REDACTED***")
+			} else {
+				log.Printf("[DEBUG] REDACTED: '%v' Zeroed in output", field)
+				f.Set(reflect.Zero(f.Type()))
 			}
 		}
 	}
