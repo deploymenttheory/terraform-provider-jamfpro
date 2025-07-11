@@ -533,49 +533,6 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 				},
 			},
 
-			//
-	  	// Sunsetting Re-enrollment options from this resource
-		  // Use jamfpro_reenrollment resource instead
-		  //
-			// Flush settings
-			// "flush_location_information": {
-			// 	Type:        schema.TypeBool,
-			// 	Optional:    true,
-			// 	Default:     false,
-			// 	Description: "Whether to flush location information during re-enrollment",
-			// },
-			// "flush_location_history_information": {
-			// 	Type:        schema.TypeBool,
-			// 	Optional:    true,
-			// 	Default:     false,
-			// 	Description: "Whether to flush location history information during re-enrollment",
-			// },
-			// "flush_policy_history": {
-			// 	Type:        schema.TypeBool,
-			// 	Optional:    true,
-			// 	Default:     false,
-			// 	Description: "Whether to flush policy history during re-enrollment",
-			// },
-			// "flush_extension_attributes": {
-			// 	Type:        schema.TypeBool,
-			// 	Optional:    true,
-			// 	Default:     false,
-			// 	Description: "Whether to flush extension attributes during re-enrollment",
-			// },
-			// "flush_software_update_plans": {
-			// 	Type:        schema.TypeBool,
-			// 	Optional:    true,
-			// 	Default:     false,
-			// 	Description: "Whether to flush software update plans during re-enrollment",
-			// },
-			// "flush_mdm_commands_on_reenroll": {
-			// 	Type:         schema.TypeString,
-			// 	Optional:     true,
-			// 	Default:      "DELETE_EVERYTHING_EXCEPT_ACKNOWLEDGED",
-			// 	Description:  "Determines which MDM commands to flush during re-enrollment",
-			// 	ValidateFunc: validation.StringInSlice([]string{"DELETE_EVERYTHING_EXCEPT_ACKNOWLEDGED", "DELETE_EVERYTHING", "DELETE_NOTHING", "DELETE_ERRORS"}, false),
-			// },
-
 			// MDM Signing Certificate Details
 			"mdm_signing_certificate_details": {
 				Type:        schema.TypeSet,
