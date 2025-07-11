@@ -28,11 +28,11 @@ resource "jamfpro_reenrollment" "settings" {
 
 ### Optional
 
+- `flush_extension_attributes` (Boolean) Clears all values for extension attributes from computer and mobile device inventory information during re-enrollment. This does not apply to extension attributes populated by scripts or Directory Service Attribute Mapping.
 - `flush_location_information` (Boolean) Clears computer and mobile device information from the User and Location category on the Inventory tab in inventory information during re-enrollment.
 - `flush_location_information_history` (Boolean) Clears computer and mobile device information from the User and Location History category on the History tab in inventory information during re-enrollment.
 - `flush_policy_history` (Boolean) Clears the logs for policies that ran on the computer and clears computer information from the Policy Logs category on the History tab in inventory information during re-enrollment.
-- `flush_extension_attributes` (Boolean) Clears all values for extension attributes from computer and mobile device inventory information during re-enrollment. This does not apply to extension attributes populated by scripts or Directory Service Attribute Mapping.
-- `flush_software_update_plans`  (Boolean) Clears all values for software update plans from computer and mobile device inventory information during re-enrollment.
+- `flush_software_update_plans` (Boolean) Clears all values for software update plans from computer and mobile device inventory information during re-enrollment.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
