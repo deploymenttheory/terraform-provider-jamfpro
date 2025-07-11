@@ -11,6 +11,7 @@ import (
 	"github.com/deploymenttheory/go-api-http-client-integrations/jamf/jamfprointegration"
 	"github.com/deploymenttheory/go-api-http-client/httpclient"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/access_management_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/account"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/account_driven_user_enrollment_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/account_group"
@@ -417,7 +418,8 @@ func Provider() *schema.Provider {
 			"jamfpro_webhook":                                   webhook.DataSourceJamfProWebhooks(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"jamfpro_account": account.ResourceJamfProAccounts(),
+			"jamfpro_access_management_settings":                  access_management_settings.ResourceAccessManagementSettings(),
+			"jamfpro_account":                                     account.ResourceJamfProAccounts(),
 			"jamfpro_account_driven_user_enrollment_settings":     account_driven_user_enrollment_settings.ResourceJamfProAccountDrivenUserEnrollmentSettings(),
 			"jamfpro_account_group":                               account_group.ResourceJamfProAccountGroups(),
 			"jamfpro_activation_code":                             activation_code.ResourceJamfProActivationCode(),
