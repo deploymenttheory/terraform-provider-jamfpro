@@ -532,7 +532,6 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 					},
 				},
 			},
-
 			// MDM Signing Certificate Details
 			"mdm_signing_certificate_details": {
 				Type:        schema.TypeSet,
