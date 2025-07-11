@@ -716,12 +716,11 @@ func ResourceJamfProMobileDevicePrestageEnrollment() *schema.Resource {
 			"rts_enabled": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Default:     false,
 				Description: "Enable RTS.",
 			},
 			"rts_config_profile_id": {
 				Type:        schema.TypeString,
-				Computed:    true,
+				Optional:    true,
 				Description: "The ID of the RTS configuration profile.",
 			},
 		},
