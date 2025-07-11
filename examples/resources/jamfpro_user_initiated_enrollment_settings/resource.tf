@@ -4,14 +4,6 @@ resource "jamfpro_user_initiated_enrollment_settings" "jamfpro_uie_settings" {
   restrict_reenrollment_to_authorized_users_only  = true
   skip_certificate_installation_during_enrollment = true
 
-  # Flush Settings
-  flush_location_information         = true
-  flush_location_history_information = true
-  flush_policy_history               = true
-  flush_extension_attributes         = true
-  flush_software_update_plans        = true
-  flush_mdm_commands_on_reenroll     = "DELETE_EVERYTHING"
-
   # Third-party MDM signing certificate
   third_party_signing_certificate {
     enabled           = true
