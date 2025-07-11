@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.23.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.22.1...v0.23.0) (2025-07-11)
+
+
+### Features
+
+* add jamf_id_authentication_enabled option to sso_settings resource ([#815](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/815)) ([5f4cb97](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/5f4cb97db4dd81dc260bab1115434194bc6d8327))
+* add jamfpro_access_management_settings resource ([#818](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/818)) ([d77345d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/d77345d5066593db8d5435ee525d28d156b8a7f0))
+* Add jamfpro_group data source ([#833](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/833)) ([96a5d19](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/96a5d1909c6baf81941e2143a8cdc8694654ebd4))
+* add jamfpro_jamf_connect data source ([#812](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/812)) ([d5453d2](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/d5453d255aef1d3d45bb625b334bac10e1b7b54a))
+* add jamfpro_mac_application resource and data source ([#810](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/810)) ([866e714](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/866e7141a5c5f3a036c009d65e1bc0907eab5e30))
+* add jamfpro_reenrollment resource ([#829](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/829)) ([d160497](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/d160497aa36c005898b491a91485da902165cf96))
+* add jamfpro_self_service_plus_settings resource ([#814](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/814)) ([0e24f73](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/0e24f731bb228c38d74a4e974e2fc23f829ae92f))
+* More Robust, Case-sensitive, Python Pr title validation ([#832](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/832)) ([eb8046b](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/eb8046be1150e408e2c4f8eee0fc8da12625919c))
+
+
+### Bug Fixes
+
+* correct handling of All Directory Service Users in user_initiated_enrollment_settings ([#803](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/803)) ([d14e20d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/d14e20d2a989cb04871796e80bdbed812ed46f30))
+* correct state management of user_initiated_enrollment_settings _ ([#811](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/811)) ([13e6c6e](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/13e6c6e58be748ae70c4295a967f974e3590f3c9))
+* doc gen target ([#835](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/835)) ([9ae0b50](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/9ae0b507bba06bd0e4dfda0d3237093d2e693b28))
+* external doc gen support ([#827](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/827)) ([5dd5ce9](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/5dd5ce9de6680e89e6d3c2e67f562ee3dde8697f))
+* jamfpro_mobile_device_prestages - correct handling of rts_config_profile_id and rts_enabled ([#816](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/816)) ([a79c8d3](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/a79c8d336732e41361f063818c261e9deebec873))
+* manually generated docs whilst pipeline broken ([#837](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/837)) ([4f2db9d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/4f2db9d42b389b4e8d2b836c18721c69af49b9b7))
+* more doc gen perms troubleshooting ([#828](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/828)) ([df14fbd](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/df14fbd8699e0a776aa67b0b43214cc248be1911))
+
 ## [0.22.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.22.0...v0.22.1) (2025-06-10)
 
 
