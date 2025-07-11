@@ -62,6 +62,7 @@ import (
 	packages "github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/package"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/policy"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/printer"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/reenrollment"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/restricted_software"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/script"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/self_service_plus_settings"
@@ -466,6 +467,7 @@ func Provider() *schema.Provider {
 			"jamfpro_package":                                     packages.ResourceJamfProPackages(),
 			"jamfpro_policy":                                      policy.ResourceJamfProPolicies(),
 			"jamfpro_printer":                                     printer.ResourceJamfProPrinters(),
+			"jamfpro_reenrollment":                                reenrollment.ResourceReenrollmentSettings(),
 			"jamfpro_script":                                      script.ResourceJamfProScripts(),
 			"jamfpro_self_service_settings":                       self_service_settings.ResourceJamfProSelfServiceSettings(),
 			"jamfpro_self_service_plus_settings":                  self_service_plus_settings.ResourceSelfServicePlusSettings(),
