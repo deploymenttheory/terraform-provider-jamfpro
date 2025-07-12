@@ -1,4 +1,3 @@
-// ldapservers_resource.go
 package ldap_server
 
 import (

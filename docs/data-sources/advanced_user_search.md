@@ -12,8 +12,8 @@ description: |-
 
 ### Required
 
-- `id` (String) The unique identifier of the API integration.
+- `id` (String) The unique identifier of the advanced user search.
 
 ### Read-Only
 
-- `name` (String) The unique name of the advanced mobile user search.
+- `name` (String) The unique name of the advanced user search.

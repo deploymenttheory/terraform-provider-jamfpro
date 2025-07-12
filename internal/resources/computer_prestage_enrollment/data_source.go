@@ -1,4 +1,3 @@
-// computerprestageenrollments_data_source.go
 package computer_prestage_enrollment
 
 import (
@@ -12,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProComputerPrestageEnrollment provides information about a specific department in Jamf Pro.
+// DataSourceJamfProComputerPrestageEnrollment provides information about a specific computer prestage enrollment in Jamf Pro.
 func DataSourceJamfProComputerPrestageEnrollment() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceRead,
@@ -34,7 +33,7 @@ func DataSourceJamfProComputerPrestageEnrollment() *schema.Resource {
 	}
 }
 
-// dataSourceRead fetches the details of a specific department from Jamf Pro using its unique ID.
+// dataSourceRead fetches the details of a specific computer prestage enrollment from Jamf Pro using its unique ID.
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics

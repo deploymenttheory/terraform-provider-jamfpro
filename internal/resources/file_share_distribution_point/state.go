@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// updateState updates the Terraform state with the latest MacOS Configuration Profile information from the Jamf Pro API.
+// updateState updates the Terraform state with the latest File Share Distribution Point information from the Jamf Pro API.
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceFileShareDistributionPoint) diag.Diagnostics {
 	var diags diag.Diagnostics
 

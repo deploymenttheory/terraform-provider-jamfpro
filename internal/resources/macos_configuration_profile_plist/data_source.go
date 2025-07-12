@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProMacOSConfigurationProfilesPlist provides information about a specific department in Jamf Pro.
+// DataSourceJamfProMacOSConfigurationProfilesPlist provides information about a specific macOS configuration profile in Jamf Pro.
 func DataSourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceRead,
@@ -207,7 +207,8 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Dock Item Configuration resource with identifier '%s' after retries: %v", identifier, err))
+		//nolint:err113
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro macOS Configuration Profile resource with identifier '%s' after retries: %w", identifier, err))
 	}
 
 	if resource == nil {

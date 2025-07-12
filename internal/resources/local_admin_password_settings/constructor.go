@@ -1,7 +1,6 @@
 package local_admin_password_settings
 
-// localadminpasswordsettings_resource.go
-// Package localadminpasswordsettings provides the schema and CRUD operations for managing Jamf Pro Local Admin Password Settings in Terraform.
+// Package local_admin_password_settings provides the schema and CRUD operations for managing Jamf Pro Local Admin Password Settings in Terraform.
 // This package includes functions to create, read, update, and delete the Local Admin Password Settings configuration.
 // It also includes a function to construct the ResourceLocalAdminPasswordSettings object from the schema data.
 

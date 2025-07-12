@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// resourceJamfProActivationCode defines the schema and CRUD operations for managing Jamf Pro activation code configuration in Terraform.
+// resourceJamfProLocalAdminPasswordSettings defines the schema and CRUD operations for managing Jamf Pro Local Admin Password Settings in Terraform.
 func ResourceLocalAdminPasswordSettings() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,

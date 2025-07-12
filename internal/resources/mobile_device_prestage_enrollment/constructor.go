@@ -1,4 +1,4 @@
-// mobiledeviceprestageenrollments_object.go
+// Package mobile_device_prestage_enrollment provides the schema and CRUD operations for managing Jamf Pro Mobile Device Prestage Enrollment in Terraform.
 package mobile_device_prestage_enrollment
 
 import (

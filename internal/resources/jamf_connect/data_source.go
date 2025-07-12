@@ -1,4 +1,3 @@
-// jamfconnect_data_source.go
 package jamf_connect
 
 import (

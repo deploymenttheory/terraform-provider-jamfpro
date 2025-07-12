@@ -1,7 +1,5 @@
 package engage_settings
-
-// engagesettings_resource.go
-// Package engagesettings provides the schema and CRUD operations for managing Jamf Pro Engage Settings in Terraform.
+// Package engage_settings provides the schema and CRUD operations for managing Jamf Pro Engage Settings in Terraform.
 // This package includes functions to create, read, update, and delete the Engage Settings configuration.
 // It also includes a function to construct the ResourceEngageSettings object from the schema data.
 

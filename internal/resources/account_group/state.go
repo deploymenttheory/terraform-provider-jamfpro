@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// updateState updates the Terraform state with the latest Account Groupinformation from the Jamf Pro API.
+// updateState updates the Terraform state with the latest Account Group information from the Jamf Pro API.
 func updateState(d *schema.ResourceData, response *jamfpro.ResourceAccountGroup) diag.Diagnostics {
 	var diags diag.Diagnostics
 

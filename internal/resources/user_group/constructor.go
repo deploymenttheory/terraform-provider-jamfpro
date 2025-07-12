@@ -1,4 +1,3 @@
-// usergroups_object.go
 package user_group
 
 import (

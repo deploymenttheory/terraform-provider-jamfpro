@@ -1,4 +1,3 @@
-// filesharedistributionpoints_object.go
 package file_share_distribution_point
 
 import (
@@ -9,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// cconstructJamfProFileShareDistributionPoint constructs a ResourceDockItem object from the provided schema data.
+// construct constructs a ResourceFileShareDistributionPoint object from the provided schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceFileShareDistributionPoint, error) {
 	resource := &jamfpro.ResourceFileShareDistributionPoint{
 		Name:                     d.Get("name").(string),

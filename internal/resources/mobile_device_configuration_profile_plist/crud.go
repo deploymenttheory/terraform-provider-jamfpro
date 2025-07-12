@@ -14,9 +14,9 @@ import (
 
 // create is responsible for creating a new Jamf Pro Mobile Device Configuration Profile in the remote system.
 // The function:
-// 1. Constructs the attribute data using the provided Terraform configuration.
-// 2. Calls the API to create the attribute in Jamf Pro.
-// 3. Updates the Terraform state with the ID of the newly created attribute.
+// 1. Constructs the configuration profile data using the provided Terraform configuration.
+// 2. Calls the API to create the configuration profile in Jamf Pro.
+// 3. Updates the Terraform state with the ID of the newly created configuration profile.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
@@ -48,9 +48,9 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 // read is responsible for reading the current state of a Jamf Pro Mobile Device Configuration Profile Resource from the remote system.
 // The function:
-// 1. Fetches the attribute's current state using its ID. If it fails then obtain attribute's current state using its Name.
+// 1. Fetches the configuration profile's current state using its ID. If it fails then obtain configuration profile's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
-// 3. Handles any discrepancies, such as the attribute being deleted outside of Terraform, to keep the Terraform state synchronized.
+// 3. Handles any discrepancies, such as the configuration profile being deleted outside of Terraform, to keep the Terraform state synchronized.
 func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics

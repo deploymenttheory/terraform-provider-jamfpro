@@ -1,12 +1,11 @@
-// computerprestageenrollments_object.go
 package computer_prestage_enrollment
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/common/constructors"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -126,12 +125,12 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 	}
 
 	// Serialize and pretty-print the inventory collection object as JSON for logging
-	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
+	resourceJSON, err := common.SerializeAndRedactJSON(resource, []string{"AccountSettings"})
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Prestage to JSON: %v", err)
 	}
 
-	log.Printf("[DEBUG] Constructed Jamf Pro Computer Computer Prestage JSON:\n%s\n", string(resourceJSON))
+	log.Printf("[DEBUG] Constructed Jamf Pro Computer Prestage JSON:\n%s\n", string(resourceJSON))
 
 	return resource, nil
 }

@@ -1,4 +1,3 @@
-// computergroup_state.go
 package static_computer_group
 
 import (

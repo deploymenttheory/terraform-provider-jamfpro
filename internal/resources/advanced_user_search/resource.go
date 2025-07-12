@@ -33,7 +33,7 @@ func ResourceJamfProAdvancedUserSearches() *schema.Resource {
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The name of the advanced mobile device search",
+				Description: "The name of the advanced user search",
 			},
 			"criteria": {
 				Type:     schema.TypeList,

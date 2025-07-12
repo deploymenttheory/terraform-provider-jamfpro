@@ -38,12 +38,12 @@ func DataSourceJamfProFileShareDistributionPoints() *schema.Resource {
 	}
 }
 
-// dataSourceReading the current state of a
+// dataSourceRead reads the current state of a
 // Jamf Pro File Share Distribution Point Resource from the remote system.
 // The function:
-// 1. Fetches the dock item's current state using its ID. If it fails then obtain dock item's current state using its Name.
+// 1. Fetches the file share distribution point's current state using its ID.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
-// 3. Handles any discrepancies, such as the dock item being deleted outside of Terraform, to keep the Terraform state synchronized.
+// 3. Handles any discrepancies, such as the file share distribution point being deleted outside of Terraform, to keep the Terraform state synchronized.
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics

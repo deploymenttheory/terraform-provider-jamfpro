@@ -112,7 +112,8 @@ func constructEnrollmentSettings(d *schema.ResourceData) (*jamfpro.ResourceEnrol
 
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro SMTP Server Settings to JSON: %v", err)
+		//nolint:err113
+		return nil, fmt.Errorf("failed to marshal Jamf Pro User-initiated enrollment Settings to JSON: %w", err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro User-initiated enrollment Settings JSON:\n%s\n", string(resourceJSON))
@@ -130,7 +131,7 @@ func constructEnrollmentMessaging(d *schema.ResourceData, client *jamfpro.Client
 		// Get language codes for mapping from the API
 		langCodes, err := getLanguageCodesMap(client)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get language codes: %v", err)
+			return nil, fmt.Errorf("failed to get language codes: %w", err)
 		}
 
 		for _, messaging := range messagingSet {
@@ -225,7 +226,7 @@ func constructEnrollmentMessaging(d *schema.ResourceData, client *jamfpro.Client
 
 	messagesJSON, err := json.MarshalIndent(messages, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro enrollment messaging to JSON: %v", err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro enrollment messaging to JSON: %w", err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro Enrollment Messaging JSON:\n%s\n", string(messagesJSON))
@@ -267,7 +268,7 @@ func constructDirectoryServiceGroupSettings(d *schema.ResourceData) ([]*jamfpro.
 
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro User-initiated enrollment Directory Service Groups to JSON: %v", err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro User-initiated enrollment Directory Service Groups to JSON: %w", err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro User-initiated enrollment Directory Service Groups JSON:\n%s\n", string(resourceJSON))

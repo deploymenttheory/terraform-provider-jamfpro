@@ -1,4 +1,3 @@
-// webhooks_data_validator.go
 package webhook
 
 import (

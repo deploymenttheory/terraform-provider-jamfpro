@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProAccounts provides information about specific Jamf Pro Dock Items by their ID or Name.
+// DataSourceJamfProAccounts provides information about specific Jamf Pro Accounts by their ID or Name.
 func DataSourceJamfProAccounts() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceRead,

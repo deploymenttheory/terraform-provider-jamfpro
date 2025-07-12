@@ -1,4 +1,3 @@
-// webhooks_state.go
 package webhook
 
 import (

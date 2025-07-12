@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-// ResourceJamfProIcons defines the schema and RU operations for managing Jamf Pro computer checkin configuration in Terraform.
+// ResourceJamfProIcons defines the schema and RU operations for managing Jamf Pro icons in Terraform.
 func ResourceJamfProIcons() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,

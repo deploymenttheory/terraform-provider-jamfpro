@@ -41,7 +41,7 @@ func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface
 
 // readNoCleanup reads the resource with cleanup disabled
 func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return read(ctx, d, meta, true)
+	return read(ctx, d, meta, false)
 }
 
 // update is responsible for updating a Jamf Pro dock item.
@@ -56,7 +56,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	)
 }
 
-// delete is responsible for deleting a Jamf Pro Disk Encryption Configuration.
+// delete is responsible for deleting a Jamf Pro Dock Item.
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return common.Delete(
 		ctx,

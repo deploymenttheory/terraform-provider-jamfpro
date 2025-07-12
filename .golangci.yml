@@ -8,6 +8,12 @@ run:
   allow-serial-runners: false
   concurrency: 2
 
+issues:
+  # Show all issues, don't limit per linter
+  max-issues-per-linter: 0
+  # Show all instances of the same issue
+  max-same-issues: 0
+
 linters:
   default: none
   enable:

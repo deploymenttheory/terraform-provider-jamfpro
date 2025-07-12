@@ -1,4 +1,3 @@
-// computercheckin_resource.go
 package client_checkin
 
 import (

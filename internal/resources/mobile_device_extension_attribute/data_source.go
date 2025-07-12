@@ -60,7 +60,8 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro MobileDevice Extension Attribute with ID '%s' after retries: %v", resourceID, err))
+		//nolint:err113
+		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Mobile Device Extension Attribute with ID '%s' after retries: %w", resourceID, err))
 	}
 
 	if resource != nil {

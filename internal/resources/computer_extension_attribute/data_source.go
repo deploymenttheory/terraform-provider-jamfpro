@@ -83,7 +83,6 @@ func DataSourceJamfProComputerExtensionAttributes() *schema.Resource {
 }
 
 // dataSourceRead fetches the details of a specific computer extension attribute
-// computerextensionattributes_data_source.go
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 
