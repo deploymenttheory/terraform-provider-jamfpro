@@ -1,4 +1,3 @@
-// usergroups_state.go
 package user_group
 
 import (

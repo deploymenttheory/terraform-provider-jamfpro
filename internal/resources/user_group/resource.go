@@ -1,4 +1,3 @@
-// usergroups_resource.go
 package user_group
 
 import (
@@ -25,7 +24,7 @@ const (
 
 type UserGroupAndOr string
 
-// resourceJamfProUserGroups defines the schema and CRUD operations for managing Jamf Pro Scripts in Terraform.
+// ResourceJamfProUserGroups defines the schema and CRUD operations for managing Jamf Pro User Groups in Terraform.
 func ResourceJamfProUserGroups() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,

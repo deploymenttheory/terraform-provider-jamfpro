@@ -25,7 +25,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	)
 }
 
-// read is responsible for reading the current state of a
+// read is responsible for reading the current state of a file share distribution point
 func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	return common.Read(
 		ctx,
@@ -47,7 +47,7 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 	return read(ctx, d, meta, false)
 }
 
-// update is responsible for updating an existing Jamf Pro Site on the remote system.
+// update is responsible for updating an existing Jamf Pro File Share Distribution Point on the remote system.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return common.Update(
 		ctx,

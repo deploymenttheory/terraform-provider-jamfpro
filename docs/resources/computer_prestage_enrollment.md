@@ -262,8 +262,8 @@ resource "jamfpro_computer_prestage_enrollment" "configured_example_1" {
 
 Required:
 
-- `admin_password` (String) The admin password. Can be left blank if not used.
-- `admin_username` (String) The admin username. Can be left blank if not used.
+- `admin_password` (String, Sensitive) The admin password. Can be left blank if not used.
+- `admin_username` (String, Sensitive) The admin username. Can be left blank if not used.
 - `hidden_admin_account` (Boolean) Indicates if the admin account is hidden.
 - `local_admin_account_enabled` (Boolean) Indicates if the local admin account is enabled.
 - `local_user_managed` (Boolean) Indicates if the local user is managed.

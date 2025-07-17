@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProAdvancedUserSearches provides information about a specific API integration by its ID or Name.
+// DataSourceJamfProAdvancedUserSearches provides information about a specific Advanced User Search by its ID or Name.
 func DataSourceJamfProAdvancedUserSearches() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceRead,
@@ -19,18 +19,18 @@ func DataSourceJamfProAdvancedUserSearches() *schema.Resource {
 			"id": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The unique identifier of the API integration.",
+				Description: "The unique identifier of the advanced user search.",
 			},
 			"name": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The unique name of the advanced mobile user search.",
+				Description: "The unique name of the advanced user search.",
 			},
 		},
 	}
 }
 
-// dataSourceRead fetches the details of a specific API integration
+// dataSourceRead fetches the details of a specific Advanced User Search
 // from Jamf Pro using either its unique Name or its Id. The function prioritizes the 'display_name' attribute over the 'id'
 // attribute for fetching details. If neither 'display_name' nor 'id' is provided, it returns an error.
 // Once the details are fetched, they are set in the data source's state.

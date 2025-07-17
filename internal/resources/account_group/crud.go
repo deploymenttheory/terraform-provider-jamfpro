@@ -22,7 +22,8 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	resource, err := construct(d, meta)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account for create: %v", err))
+		//nolint:err113
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account Group for create: %w", err))
 	}
 
 	var createdRole *jamfpro.ResponseAccountGroupCreated
@@ -36,7 +37,8 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro API Role after retries: %v", err))
+		//nolint:err113
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Account Group after retries: %w", err))
 	}
 
 	d.SetId(strconv.Itoa(createdRole.ID))
@@ -66,7 +68,7 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 	return read(ctx, d, meta, false)
 }
 
-// update is responsible for updating a new Jamf Pro account group in the remote system.
+// update is responsible for updating an existing Jamf Pro account group in the remote system.
 // it follows a non standard pattern to allow for the client to be passed
 // in as a parameter to the constructor to perform dynamic lookup for valid
 // account group privileges.
@@ -76,7 +78,8 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	resource, err := construct(d, meta)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro API Role for update: %v", err))
+		//nolint:err113
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Account Group for update: %w", err))
 	}
 
 	roleID := d.Id()
@@ -95,7 +98,8 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro API Role after retries: %v", err))
+		//nolint:err113
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Account Group after retries: %w", err))
 	}
 
 	d.SetId(strconv.Itoa(updatedRole.ID))

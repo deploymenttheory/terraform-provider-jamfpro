@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// updateState updates the Terraform state with the latest Computer Check-In information from the Jamf Pro API.
+// updateState updates the Terraform state with the latest Jamf Connect configuration profile information from the Jamf Pro API.
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceJamfConnectConfigProfile) diag.Diagnostics {
 	var diags diag.Diagnostics
 

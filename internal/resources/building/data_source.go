@@ -1,4 +1,3 @@
-// buildings_data_source.go
 package building
 
 import (

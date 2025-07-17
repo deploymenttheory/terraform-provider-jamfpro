@@ -1,4 +1,3 @@
-// computercheckin_data_validation.go
 package client_checkin
 
 import (

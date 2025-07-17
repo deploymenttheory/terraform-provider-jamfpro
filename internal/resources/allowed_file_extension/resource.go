@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// resourceJamfProAllowedFileExtensions defines the schema and CRUD operations for managing AllowedFileExtentionss in Terraform.
+// resourceJamfProAllowedFileExtensions defines the schema and CRUD operations for managing AllowedFileExtensions in Terraform.
 func ResourceJamfProAllowedFileExtensions() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,

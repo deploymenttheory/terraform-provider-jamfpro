@@ -16,7 +16,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	resource, err := constrconstructManagedSoftwareUpdateFeatureToggle(d)
+	resource, err := constructManagedSoftwareUpdateFeatureToggle(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Managed Software Update Feature Toggle for create: %v", err))
 	}
@@ -75,7 +75,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	response, err := constrconstructManagedSoftwareUpdateFeatureToggle(d)
+	response, err := constructManagedSoftwareUpdateFeatureToggle(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Managed Software Update Feature Toggle for update: %v", err))
 	}

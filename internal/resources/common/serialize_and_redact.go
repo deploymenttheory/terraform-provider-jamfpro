@@ -1,4 +1,3 @@
-// hash.go
 // This package contains shared / common hash functions
 package common
 
@@ -99,7 +98,7 @@ func SerializeAndRedactXML(resource interface{}, redactFields []string) (string,
 // Supports nested field paths using dot notation (e.g., "Kitchen.Bowl.Fruit")
 func SerializeAndRedactJSON(resource interface{}, redactFields []string) (string, error) {
 	v := reflect.ValueOf(resource)
-	if v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Struct {
+	if v.Kind() != reflect.Pointer || v.Elem().Kind() != reflect.Struct {
 		return "", fmt.Errorf("resource must be a pointer to a struct")
 	}
 

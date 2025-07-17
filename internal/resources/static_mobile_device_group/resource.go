@@ -31,7 +31,7 @@ const (
 	SearchTypeDoesNotMatch       string = "does not match regex"
 )
 
-// resourceJamfProStaticMobileDeviceGroups defines the schema and CRUD operations for managing Jamf Pro static Mobile Device Groups in Terraform.
+// ResourceJamfProStaticMobileDeviceGroups defines the schema and CRUD operations for managing Jamf Pro static Mobile Device Groups in Terraform.
 func ResourceJamfProStaticMobileDeviceGroups() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,

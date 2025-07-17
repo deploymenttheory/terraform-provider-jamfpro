@@ -45,7 +45,7 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 	return read(ctx, d, meta, false)
 }
 
-// update is responsible for updating an existing Jamf Pro Department on the remote system.
+// update is responsible for updating an existing Jamf Pro Script on the remote system.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return common.Update(
 		ctx,
@@ -59,7 +59,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 var mu sync.Mutex
 
-// delete is responsible for deleting a Jamf Pro Department.
+// delete is responsible for deleting a Jamf Pro Script.
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	mu.Lock()
 	defer mu.Unlock()

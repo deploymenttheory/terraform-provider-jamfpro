@@ -1,4 +1,3 @@
-// mobiledevicegroup_state.go
 package static_mobile_device_group
 
 import (

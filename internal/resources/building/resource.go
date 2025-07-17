@@ -1,4 +1,3 @@
-// buildings_resource.go
 package building
 
 import (
@@ -7,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// resourceJamfProBuildings defines the schema and CRUD operations for managing buildings in Terraform.
+// ResourceJamfProBuildings defines the schema and CRUD operations for managing buildings in Terraform.
 func ResourceJamfProBuildings() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,

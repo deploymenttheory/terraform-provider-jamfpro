@@ -1,4 +1,3 @@
-// buildings_object.go
 package building
 
 import (

@@ -1,4 +1,3 @@
-// computerprestages_resource.go
 package computer_prestage_enrollment
 
 import (
@@ -541,11 +540,13 @@ func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 						"admin_username": {
 							Type:        schema.TypeString,
 							Required:    true,
+							Sensitive:   true,
 							Description: "The admin username. Can be left blank if not used.",
 						},
 						"admin_password": {
 							Type:        schema.TypeString,
 							Required:    true,
+							Sensitive:   true,
 							Description: "The admin password. Can be left blank if not used.",
 						},
 						"hidden_admin_account": {

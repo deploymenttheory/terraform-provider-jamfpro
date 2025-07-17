@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// updateState updates the Terraform state with the provided ResourceMobileGroup object.
+// updateState updates the Terraform state with the provided ResourceMobileDeviceGroup object.
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceGroup) diag.Diagnostics {
 	var diags diag.Diagnostics
 

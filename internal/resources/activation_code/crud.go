@@ -10,14 +10,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// create is responsible for initializing the Jamf Pro computer check-in configuration in Terraform.
+// create is responsible for initializing the Jamf Pro activation code configuration in Terraform.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
 	activationCodeConfig, err := construct(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Activation Code for update: %v", err))
+		//nolint:err113
+		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Activation Code for create: %w", err))
 	}
 
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
@@ -37,7 +38,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	return append(diags, read(ctx, d, meta)...)
 }
 
-// read is responsible for reading the current state of the Jamf Pro computer check-in configuration.
+// read is responsible for reading the current state of the Jamf Pro activation code configuration.
 func read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
@@ -61,7 +62,7 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Di
 	return append(diags, updateState(d, response)...)
 }
 
-// update is responsible for updating the Jamf Pro computer check-in configuration.
+// update is responsible for updating the Jamf Pro activation code configuration.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
@@ -88,7 +89,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	return append(diags, read(ctx, d, meta)...)
 }
 
-// delete is responsible for 'deleting' the Jamf Pro computer check-in configuration.
+// delete is responsible for 'deleting' the Jamf Pro activation code configuration.
 // Since this resource represents a configuration and not an actual entity that can be deleted,
 // this function will simply remove it from the Terraform state.
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

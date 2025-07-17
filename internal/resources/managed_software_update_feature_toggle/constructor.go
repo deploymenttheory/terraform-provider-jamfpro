@@ -10,7 +10,7 @@ import (
 )
 
 // constructManagedSoftwareUpdateFeatureToggle constructs a Managed Software Update Feature Toggle object from the provided schema data
-func constrconstructManagedSoftwareUpdateFeatureToggle(d *schema.ResourceData) (*jamfpro.ResourceManagedSoftwareUpdateFeatureToggle, error) {
+func constructManagedSoftwareUpdateFeatureToggle(d *schema.ResourceData) (*jamfpro.ResourceManagedSoftwareUpdateFeatureToggle, error) {
 	resource := &jamfpro.ResourceManagedSoftwareUpdateFeatureToggle{
 		Toggle: d.Get("toggle").(bool),
 	}

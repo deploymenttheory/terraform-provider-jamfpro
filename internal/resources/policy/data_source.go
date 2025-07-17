@@ -1,4 +1,3 @@
-// packages_data_source.go
 package policy
 
 import (
@@ -13,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProPolicies provides information about a specific Jamf Pro site by its ID or Name.
+// DataSourceJamfProPolicies provides information about a specific Jamf Pro policy by its ID or Name.
 func DataSourceJamfProPolicies() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceRead,

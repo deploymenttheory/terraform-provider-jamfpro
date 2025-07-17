@@ -1,4 +1,3 @@
-// usergroups_data_validator.go
 package user_group
 
 import (
