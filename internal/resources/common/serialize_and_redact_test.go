@@ -10,25 +10,25 @@ import (
 
 // Test structs for various scenarios
 type TestStruct struct {
-	Name     string
-	Password string
-	Age      int
-	Nested   *NestedStruct
-	Direct   NestedStruct
+	Name     string         `xml:"Name"`
+	Password string         `xml:"Password"`
+	Age      int            `xml:"Age"`
+	Nested   *NestedStruct  `xml:"Nested"`
+	Direct   NestedStruct   `xml:"Direct"`
 }
 
 type NestedStruct struct {
-	Secret     string
-	Token      string
-	Value      int
-	DeepNest   *DeepNestedStruct
-	DeepDirect DeepNestedStruct
+	Secret     string            `xml:"Secret"`
+	Token      string            `xml:"Token"`
+	Value      int               `xml:"Value"`
+	DeepNest   *DeepNestedStruct `xml:"DeepNest"`
+	DeepDirect DeepNestedStruct  `xml:"DeepDirect"`
 }
 
 type DeepNestedStruct struct {
-	HiddenField string
-	PublicField string
-	Number      int
+	HiddenField string `xml:"HiddenField"`
+	PublicField string `xml:"PublicField"`
+	Number      int    `xml:"Number"`
 }
 
 func TestNavigateToField(t *testing.T) {
@@ -364,6 +364,9 @@ func BenchmarkSerializeAndRedactJSON(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		SerializeAndRedactJSON(testData, redactFields)
+		_, err := SerializeAndRedactJSON(testData, redactFields)
+		if err != nil {
+			b.Fatalf("SerializeAndRedactJSON failed: %v", err)
+		}
 	}
 }
