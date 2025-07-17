@@ -8,9 +8,67 @@ import (
 	"log"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
+// navigateToField recursively navigates through nested struct fields using dot notation
+// Returns the reflect.Value of the final field and whether it was found
+func navigateToField(v reflect.Value, fieldPath string) (reflect.Value, bool) {
+	if fieldPath == "" {
+		return reflect.Value{}, false
+	}
+
+	parts := strings.Split(fieldPath, ".")
+	return navigateToFieldRecursive(v, parts)
+}
+
+// navigateToFieldRecursive is the recursive helper function that walks the dot path
+func navigateToFieldRecursive(current reflect.Value, parts []string) (reflect.Value, bool) {
+	if len(parts) == 0 {
+		return current, true
+	}
+
+	// Dereference pointer
+	if current.Kind() == reflect.Ptr {
+		if current.IsNil() {
+			return reflect.Value{}, false
+		}
+		current = current.Elem()
+	}
+
+	if current.Kind() != reflect.Struct {
+		return reflect.Value{}, false
+	}
+
+	fieldName := parts[0]
+	field := current.FieldByName(fieldName)
+
+	if !field.IsValid() {
+		return reflect.Value{}, false
+	}
+
+	// Recursive case: navigate to the next level with remaining parts
+	return navigateToFieldRecursive(field, parts[1:])
+}
+
+// redactField redacts a single field based on its type
+func redactField(field reflect.Value, fieldPath string) {
+	if !field.CanSet() {
+		log.Printf("[DEBUG] Cannot set field '%s' - not settable", fieldPath)
+		return
+	}
+
+	if field.Kind() == reflect.String {
+		field.SetString("***REDACTED***")
+		log.Printf("[DEBUG] REDACTED: String field '%s' redacted", fieldPath)
+	} else {
+		log.Printf("[DEBUG] REDACTED: Field '%s' zeroed in output", fieldPath)
+		field.Set(reflect.Zero(field.Type()))
+	}
+}
+
 // SerializeAndRedactXML serializes a resource to XML and redacts specified fields.
+// Supports nested field paths using dot notation (e.g Parent.Child.Grandchild)
 func SerializeAndRedactXML(resource interface{}, redactFields []string) (string, error) {
 	v := reflect.ValueOf(resource)
 	if v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Struct {
@@ -20,11 +78,12 @@ func SerializeAndRedactXML(resource interface{}, redactFields []string) (string,
 	resourceCopy := reflect.New(v.Elem().Type()).Elem()
 	resourceCopy.Set(v.Elem())
 
-	for _, field := range redactFields {
-		if f := resourceCopy.FieldByName(field); f.IsValid() && f.CanSet() {
-			if f.Kind() == reflect.String {
-				f.SetString("***REDACTED***")
-			}
+	for _, fieldPath := range redactFields {
+		field, found := navigateToField(resourceCopy, fieldPath)
+		if found {
+			redactField(field, fieldPath)
+		} else {
+			log.Printf("[DEBUG] Field path '%s' not found or not accessible", fieldPath)
 		}
 	}
 
@@ -36,6 +95,7 @@ func SerializeAndRedactXML(resource interface{}, redactFields []string) (string,
 }
 
 // SerializeAndRedactJSON serializes a resource to JSON and redacts specified fields.
+// Supports nested field paths using dot notation (e.g., "Kitchen.Bowl.Fruit")
 func SerializeAndRedactJSON(resource interface{}, redactFields []string) (string, error) {
 	v := reflect.ValueOf(resource)
 	if v.Kind() != reflect.Pointer || v.Elem().Kind() != reflect.Struct {
@@ -45,14 +105,12 @@ func SerializeAndRedactJSON(resource interface{}, redactFields []string) (string
 	resourceCopy := reflect.New(v.Elem().Type()).Elem()
 	resourceCopy.Set(v.Elem())
 
-	for _, field := range redactFields {
-		if f := resourceCopy.FieldByName(field); f.IsValid() && f.CanSet() {
-			if f.Kind() == reflect.String {
-				f.SetString("***REDACTED***")
-			} else {
-				log.Printf("[DEBUG] REDACTED: '%v' Zeroed in output", field)
-				f.Set(reflect.Zero(f.Type()))
-			}
+	for _, fieldPath := range redactFields {
+		field, found := navigateToField(resourceCopy, fieldPath)
+		if found {
+			redactField(field, fieldPath)
+		} else {
+			log.Printf("[DEBUG] Field path '%s' not found or not accessible", fieldPath)
 		}
 	}
 

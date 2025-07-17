@@ -11,6 +11,7 @@ import (
 	"github.com/deploymenttheory/go-api-http-client-integrations/jamf/jamfprointegration"
 	"github.com/deploymenttheory/go-api-http-client/httpclient"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/access_management_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/account"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/account_driven_user_enrollment_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/account_group"
@@ -41,6 +42,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/engage_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/enrollment_customization"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/file_share_distribution_point"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/group"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/icon"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/jamf_cloud_distribution_service"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/jamf_connect"
@@ -60,6 +62,7 @@ import (
 	packages "github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/package"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/policy"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/printer"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/reenrollment"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/restricted_software"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/script"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/self_service_plus_settings"
@@ -412,12 +415,14 @@ func Provider() *schema.Provider {
 			"jamfpro_static_computer_group":                     static_computer_group.DataSourceJamfProStaticComputerGroups(),
 			"jamfpro_static_mobile_device_group":                static_mobile_device_group.DataSourceJamfProStaticMobileDeviceGroups(),
 			"jamfpro_restricted_software":                       restricted_software.DataSourceJamfProRestrictedSoftwares(),
+			"jamfpro_group":                                     group.DataSourceJamfProGroups(),
 			"jamfpro_user_group":                                user_group.DataSourceJamfProUserGroups(),
 			"jamfpro_volume_purchasing_locations":               volume_purchasing_locations.DataSourceJamfProVolumePurchasingLocations(),
 			"jamfpro_webhook":                                   webhook.DataSourceJamfProWebhooks(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"jamfpro_account": account.ResourceJamfProAccounts(),
+			"jamfpro_access_management_settings":                  access_management_settings.ResourceAccessManagementSettings(),
+			"jamfpro_account":                                     account.ResourceJamfProAccounts(),
 			"jamfpro_account_driven_user_enrollment_settings":     account_driven_user_enrollment_settings.ResourceJamfProAccountDrivenUserEnrollmentSettings(),
 			"jamfpro_account_group":                               account_group.ResourceJamfProAccountGroups(),
 			"jamfpro_activation_code":                             activation_code.ResourceJamfProActivationCode(),
@@ -462,6 +467,7 @@ func Provider() *schema.Provider {
 			"jamfpro_package":                                     packages.ResourceJamfProPackages(),
 			"jamfpro_policy":                                      policy.ResourceJamfProPolicies(),
 			"jamfpro_printer":                                     printer.ResourceJamfProPrinters(),
+			"jamfpro_reenrollment":                                reenrollment.ResourceReenrollmentSettings(),
 			"jamfpro_script":                                      script.ResourceJamfProScripts(),
 			"jamfpro_self_service_settings":                       self_service_settings.ResourceJamfProSelfServiceSettings(),
 			"jamfpro_self_service_plus_settings":                  self_service_plus_settings.ResourceSelfServicePlusSettings(),
