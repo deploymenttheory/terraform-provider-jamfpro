@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"log"
 	"reflect"
 	"strconv"
 	"strings"
-	"log"
 )
 
 // navigateToField recursively navigates through nested struct fields using dot notation
@@ -80,7 +80,8 @@ func SerializeAndRedactXML(resource interface{}, redactFields []string) (string,
 	resourceCopy.Set(v.Elem())
 
 	for _, fieldPath := range redactFields {
-		if field, found := navigateToField(resourceCopy, fieldPath); found {
+		field, found := navigateToField(resourceCopy, fieldPath)
+		if found {
 			redactField(field, fieldPath)
 		} else {
 			log.Printf("[DEBUG] Field path '%s' not found or not accessible", fieldPath)
@@ -106,7 +107,8 @@ func SerializeAndRedactJSON(resource interface{}, redactFields []string) (string
 	resourceCopy.Set(v.Elem())
 
 	for _, fieldPath := range redactFields {
-		if field, found := navigateToField(resourceCopy, fieldPath); found {
+		field, found := navigateToField(resourceCopy, fieldPath)
+		if found {
 			redactField(field, fieldPath)
 		} else {
 			log.Printf("[DEBUG] Field path '%s' not found or not accessible", fieldPath)
