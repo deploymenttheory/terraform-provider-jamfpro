@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.23.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.23.0...v0.23.1) (2025-07-17)
+
+
+### Bug Fixes
+
+* Correct resource comments, various minor fixes ([#834](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/834)) ([9041d9c](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/9041d9c439c46892f78948339753dd948ae9efeb))
+* Redaction logic can now handle nested structs, and adding to computer_prestage_enrolments ([#839](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/839)) ([07e9ec6](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/07e9ec6de704a60a00dd251de827790ec8f56d9f))
+
 ## [0.23.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.22.1...v0.23.0) (2025-07-11)
 
 
