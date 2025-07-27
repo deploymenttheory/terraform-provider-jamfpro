@@ -1,37 +1,47 @@
 package mobile_device_extension_attribute
 
 import (
-	"reflect"
-	"sort"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// suppressPopupChoicesDiff is a diff suppression function that ignores the order of popup choices
-func suppressPopupChoicesDiff(k, old, new string, d *schema.ResourceData) bool {
-	o, n := d.GetChange("input_type.0.popup_choices")
-	if o == nil || n == nil {
+// diffSuppressPopupMenuChoices is a custom diff suppression function for the popup_menu_choices attribute.
+// This attribute looks for matched values and ignores the order returned by the server.
+func diffSuppressPopupMenuChoices(k, old, new string, d *schema.ResourceData) bool {
+	oldRaw, newRaw := d.GetChange("popup_menu_choices")
+
+	oldList := make([]string, len(oldRaw.([]interface{})))
+	newList := make([]string, len(newRaw.([]interface{})))
+
+	for i, v := range oldRaw.([]interface{}) {
+		oldList[i] = v.(string)
+	}
+	for i, v := range newRaw.([]interface{}) {
+		newList[i] = v.(string)
+	}
+
+	if len(oldList) != len(newList) {
 		return false
 	}
-	oldChoices := o.([]interface{})
-	newChoices := n.([]interface{})
 
-	if len(oldChoices) != len(newChoices) {
+	oldMap := make(map[string]int)
+	newMap := make(map[string]int)
+
+	for _, v := range oldList {
+		oldMap[v]++
+	}
+	for _, v := range newList {
+		newMap[v]++
+	}
+
+	if len(oldMap) != len(newMap) {
 		return false
 	}
 
-	oldStrings := make([]string, len(oldChoices))
-	newStrings := make([]string, len(newChoices))
-
-	for i, v := range oldChoices {
-		oldStrings[i] = v.(string)
-	}
-	for i, v := range newChoices {
-		newStrings[i] = v.(string)
+	for k, v := range oldMap {
+		if newMap[k] != v {
+			return false
+		}
 	}
 
-	sort.Strings(oldStrings)
-	sort.Strings(newStrings)
-
-	return reflect.DeepEqual(oldStrings, newStrings)
+	return true
 }
