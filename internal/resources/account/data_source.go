@@ -3,6 +3,7 @@ package account
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -10,6 +11,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+var (
+	errIDOrNameRequired = errors.New("either 'id' or 'name' must be provided")
 )
 
 // DataSourceJamfProAccounts provides information about specific Jamf Pro Accounts by their ID or Name.
@@ -42,7 +47,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	userName := d.Get("name").(string)
 
 	if resourceID == "" && userName == "" {
-		return diag.FromErr(fmt.Errorf("either 'id' or 'name' must be provided"))
+		return diag.FromErr(errIDOrNameRequired)
 	}
 
 	var resource *jamfpro.ResourceAccount
@@ -61,14 +66,14 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 		var apiErr error
 		resource, apiErr = client.GetAccountByID(resourceID)
 		if apiErr != nil {
-			return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Account with ID '%s': %v", resourceID, apiErr))
+			return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Account with ID '%s': %w", resourceID, apiErr))
 		}
 	}
 
 	if resource != nil {
 		d.SetId(fmt.Sprintf("%d", resource.ID)) // or resource.ID if it's a string
 		if err := d.Set("name", resource.Name); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Account with ID '%v': %v", resource.ID, err))...)
+			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Account with ID '%v': %w", resource.ID, err))...)
 		}
 	} else {
 		d.SetId("")
