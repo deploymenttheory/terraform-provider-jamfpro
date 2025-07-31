@@ -104,6 +104,7 @@ output "group_by_mobile_jamfpro_id" {
 
 ### Read-Only
 
+- `group_description` (String) Brief explanation of the content or purpose of the group.
 - `id` (String) The ID of this resource.
 - `membership_count` (Number) Number of members in the group.
 - `smart` (Boolean) Whether the group is a smart group.

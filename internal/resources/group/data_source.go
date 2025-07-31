@@ -46,6 +46,11 @@ func DataSourceJamfProGroups() *schema.Resource {
 				ConflictsWith: []string{"name"},
 				Description:   "Jamf Pro ID of the group. Mutually exclusive with name. Requires group_type.",
 			},
+			"group_description": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Brief explanation of the content or purpose of the group.",
+			},
 			"group_type": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -136,6 +141,7 @@ func updateState(d *schema.ResourceData, resource *jamfpro.ResourceGroup) diag.D
 		"group_jamfpro_id":  resource.GroupJamfProId,
 		"name":              resource.GroupName,
 		"group_type":        resource.GroupType,
+		"group_description": resource.GroupDescription,
 		"smart":             resource.Smart,
 		"membership_count":  resource.MembershipCount,
 	}
