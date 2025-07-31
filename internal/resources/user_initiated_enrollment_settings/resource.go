@@ -504,6 +504,11 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 										Default:     false,
 										Description: "Whether user initiated device enrollment for visionOS personally owned devices is enabled. Maps to request field 'accountDrivenUserVisionosEnrollmentEnabled'",
 									},
+									"enable_maid_username_merge": {
+										Type:        schema.TypeBool,
+										Optional:    true,
+										Description: "Maps to API-only field 'maidUsernameMergeEnabled'. Whether to enable merging of the Managed Apple account with the Jamf Pro user account during enrollment.",
+									},
 								},
 							},
 						},
