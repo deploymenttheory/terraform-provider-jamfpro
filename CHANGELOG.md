@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.24.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.23.0...v0.24.0) (2025-07-31)
+
+
+### Features
+
+* Update account data source to allow lookup by name ([#844](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/844)) ([01a0c48](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/01a0c48a01335afd7fe7a8d0123651de7d6cb7ee))
+
+
+### Bug Fixes
+
+* Correct resource comments, various minor fixes ([#834](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/834)) ([9041d9c](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/9041d9c439c46892f78948339753dd948ae9efeb))
+* Redaction logic can now handle nested structs, and adding to computer_prestage_enrolments ([#839](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/839)) ([07e9ec6](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/07e9ec6de704a60a00dd251de827790ec8f56d9f))
+
 ## [0.23.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.22.1...v0.23.0) (2025-07-11)
 
 
