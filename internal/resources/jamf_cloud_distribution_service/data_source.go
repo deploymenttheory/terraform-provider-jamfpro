@@ -45,18 +45,6 @@ func DataSourceJamfProJamfCloudDistributionService() *schema.Resource {
 					},
 				},
 			},
-			"jcds2_enabled": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-			"file_stream_endpoint_enabled": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-			"max_chunk_size": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -71,11 +59,6 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 		return diag.FromErr(err)
 	}
 
-	props, err := client.GetJCDS2Properties()
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
 	fileList := make([]interface{}, len(files))
 	for i, file := range files {
 		fileMap := map[string]interface{}{
@@ -86,16 +69,6 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 			"sha3":      file.SHA3,
 		}
 		fileList[i] = fileMap
-	}
-
-	if err := d.Set("jcds2_enabled", props.JCDS2Enabled); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("file_stream_endpoint_enabled", props.FileStreamEndpointEnabled); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("max_chunk_size", props.MaxChunkSize); err != nil {
-		return diag.FromErr(err)
 	}
 
 	if err := d.Set("files", fileList); err != nil {

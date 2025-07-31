@@ -16,11 +16,8 @@ description: |-
 
 ### Read-Only
 
-- `file_stream_endpoint_enabled` (Boolean)
 - `files` (List of Object) (see [below for nested schema](#nestedatt--files))
 - `id` (String) The ID of this resource.
-- `jcds2_enabled` (Boolean)
-- `max_chunk_size` (Number)
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`
