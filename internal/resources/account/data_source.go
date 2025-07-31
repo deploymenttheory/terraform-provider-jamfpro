@@ -3,14 +3,18 @@ package account
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+var (
+	errIDOrNameRequired = errors.New("either 'id' or 'name' must be provided")
 )
 
 // DataSourceJamfProAccounts provides information about specific Jamf Pro Accounts by their ID or Name.
@@ -23,12 +27,12 @@ func DataSourceJamfProAccounts() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "The unique identifier of the jamf pro account.",
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Computed:    true,
+				Optional:    true,
 				Description: "The name of the jamf pro account.",
 			},
 		},
@@ -40,26 +44,36 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)
+	userName := d.Get("name").(string)
+
+	if resourceID == "" && userName == "" {
+		return diag.FromErr(errIDOrNameRequired)
+	}
 
 	var resource *jamfpro.ResourceAccount
-
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	if userName != "" {
+		var apiErr error
+		resource, apiErr = client.GetAccountByName(userName)
+		if apiErr != nil {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  fmt.Sprintf("Could not find Jamf Pro Account with Name '%s': %v", userName, apiErr),
+			})
+			d.SetId("")
+			return diags
+		}
+	} else if resourceID != "" {
 		var apiErr error
 		resource, apiErr = client.GetAccountByID(resourceID)
 		if apiErr != nil {
-			return retry.RetryableError(apiErr)
+			return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Account with ID '%s': %w", resourceID, apiErr))
 		}
-		return nil
-	})
-
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Account with ID '%s' after retries: %v", resourceID, err))
 	}
 
 	if resource != nil {
-		d.SetId(resourceID)
+		d.SetId(fmt.Sprintf("%d", resource.ID)) // or resource.ID if it's a string
 		if err := d.Set("name", resource.Name); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Account with ID '%s': %v", resourceID, err))...)
+			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Account with ID '%v': %w", resource.ID, err))...)
 		}
 	} else {
 		d.SetId("")
