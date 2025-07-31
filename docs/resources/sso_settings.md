@@ -129,6 +129,7 @@ Required:
 Optional:
 
 - `jamf_id_authentication_enabled` (Boolean) Enable authenticate using Jamf ID credentials
+- `username_attribute_claim_mapping` (String) Mapping for the username attribute claim. Supported values are 'USERNAME', 'EMAIL'
 
 
 <a id="nestedblock--saml_settings"></a>

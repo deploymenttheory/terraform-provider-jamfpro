@@ -30,8 +30,9 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceSsoSettings) diag
 
 	oidcSettings := []interface{}{
 		map[string]interface{}{
-			"user_mapping":                   resp.OidcSettings.UserMapping,
-			"jamf_id_authentication_enabled": resp.OidcSettings.JamfIdAuthenticationEnabled,
+			"user_mapping":                     resp.OidcSettings.UserMapping,
+			"jamf_id_authentication_enabled":   resp.OidcSettings.JamfIdAuthenticationEnabled,
+			"username_attribute_claim_mapping": resp.OidcSettings.UsernameAttributeClaimMapping,
 		},
 	}
 	if err := d.Set("oidc_settings", oidcSettings); err != nil {

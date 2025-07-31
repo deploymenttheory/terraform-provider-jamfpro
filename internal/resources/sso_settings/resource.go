@@ -86,6 +86,12 @@ func ResourceJamfProSsoSettings() *schema.Resource {
 							Optional:    true,
 							Description: "Enable authenticate using Jamf ID credentials",
 						},
+						"username_attribute_claim_mapping": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Description:  "Mapping for the username attribute claim. Supported values are 'USERNAME', 'EMAIL'",
+							ValidateFunc: validation.StringInSlice(getUserMappingTypes(), false),
+						},
 					},
 				},
 			},
