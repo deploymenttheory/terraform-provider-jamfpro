@@ -7,23 +7,28 @@ import (
 )
 
 // ValidateInputType ensures that the appropriate fields are set based on the input type
-func ValidateInputType(resource *jamfpro.ResourceMobileExtensionAttribute) error {
-	// Check if InputType is empty
-	if resource.InputType.Type == "" {
-		return fmt.Errorf("input_type.type must be set")
-	}
-
-	switch resource.InputType.Type {
-	case "Text Field":
-		if len(resource.InputType.PopupChoices.Choice) > 0 {
-			return fmt.Errorf("popup_choices should not be set when input_type is 'Text Field'")
+func validateInputType(resource *jamfpro.ResourceMobileDeviceExtensionAttribute) error {
+	switch resource.InputType {
+	case "POPUP":
+		if len(resource.PopupMenuChoices) == 0 {
+			return fmt.Errorf("popup_menu_choices must be set when input_type is 'POPUP'")
 		}
-	case "Pop-up Menu":
-		if len(resource.InputType.PopupChoices.Choice) == 0 {
-			return fmt.Errorf("popup_choices must be set when input_type is 'Pop-up Menu'")
+		if resource.LDAPAttributeMapping != "" {
+			return fmt.Errorf("ldap_attribute_mapping should not be set when input_type is 'POPUP'")
+		}
+	case "DIRECTORY_SERVICE_ATTRIBUTE_MAPPING":
+		if resource.LDAPAttributeMapping == "" {
+			return fmt.Errorf("ldap_attribute_mapping must be set when input_type is 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING'")
+		}
+		if len(resource.PopupMenuChoices) > 0 {
+			return fmt.Errorf("popup_menu_choices should not be set when input_type is 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING'")
+		}
+	case "TEXT":
+		if len(resource.PopupMenuChoices) > 0 || resource.LDAPAttributeMapping != "" {
+			return fmt.Errorf("popup_menu_choices, and ldap_attribute_mapping should not be set when input_type is 'TEXT'")
 		}
 	default:
-		return fmt.Errorf("invalid input_type: %s", resource.InputType.Type)
+		return fmt.Errorf("invalid input_type: %s", resource.InputType)
 	}
 
 	return nil
