@@ -67,7 +67,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	if resource != nil {
 		d.SetId(resourceID)
 		if err := d.Set("name", resource.Name); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro MobileDevice Extension Attribute with ID '%s': %v", resourceID, err))...)
+			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro MobileDevice Extension Attribute with ID '%s': %w", resourceID, err))...)
 		}
 	} else {
 		d.SetId("")
