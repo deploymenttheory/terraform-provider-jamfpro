@@ -21,11 +21,12 @@ const PackagesMetaTimeout time.Duration = 10 * time.Minute
 // create handles the creation of a Jamf Pro package resource:
 // 1. Constructs the attribute data using the provided Terraform configuration.
 // 2. Calculates initial SHA3-512 hash of the package file.
-// 3. Calls the API to create the package metadata in Jamf Pro.
-// 4. Uploads the package file to the Jamf Pro server.
-// 5. Verifies the uploaded package hash matches the initial hash.
-// 6. If verification fails, deletes the package from Jamf Pro.
-// 7. If verification succeeds, sets the package ID in Terraform state.
+// 3. Calculates the MD5 hash of the package file.
+// 4. Calls the API to create the package metadata in Jamf Pro.
+// 5. Uploads the package file to the Jamf Pro server.
+// 6. Verifies the uploaded package hash matches the initial hash.
+// 7. If verification fails, deletes the package from Jamf Pro.
+// 8. If verification succeeds, sets the package ID in Terraform state.
 // 8. Performs cleanup of downloaded package if it was from an HTTP(s) source.
 // 9. Reads the created package to ensure the Terraform state is up-to-date.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -44,6 +45,12 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to calculate SHA3-512: %v", err))
 	}
+
+	md5Hash, err := jamfpro.CalculateMD5(localFilePath)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to calculate MD5: %v", err))
+	}
+	resource.MD5 = md5Hash
 
 	// Meta
 	err = retry.RetryContext(ctx, PackagesMetaTimeout, func() *retry.RetryError {
@@ -140,13 +147,14 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 // update handles the updating of a Jamf Pro package resource:
 //  1. Constructs the updated attribute data from the Terraform configuration.
 //  2. Calculates SHA3-512 hash of the new package file.
-//  3. Updates the package metadata in Jamf Pro.
-//  4. If the file hash differs from current:
+//  3. Calculates the MD5 hash of the package file.
+//  4. Updates the package metadata in Jamf Pro.
+//  5. If the file hash differs from current:
 //     a. Uploads the new package file.
 //     b. Verifies the uploaded package hash matches.
 //     c. If verification fails, attempts to revert metadata changes.
-//  5. Performs cleanup of downloaded package if it was from an HTTP(s) source.
-//  6. Reads the updated package to ensure the Terraform state is up-to-date.
+//  6. Performs cleanup of downloaded package if it was from an HTTP(s) source.
+//  7. Reads the updated package to ensure the Terraform state is up-to-date.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
@@ -181,6 +189,12 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to calculate SHA3-512 hash for %s: %v", localFilePath, err))
 		}
+
+		md5Hash, err := jamfpro.CalculateMD5(localFilePath)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("failed to calculate MD5: %v", err))
+		}
+		resource.MD5 = md5Hash
 
 		err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 			_, err := client.UploadPackage(resourceID, []string{localFilePath})
