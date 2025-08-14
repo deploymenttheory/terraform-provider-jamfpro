@@ -39,6 +39,13 @@ resource "jamfpro_computer_extension_attribute" "jamfpro_computer_extension_attr
   ldap_extension_attribute_allowed = false
 }
 
+// Test that minimally defined object is sufficient
+resource "jamfpro_computer_extension_attribute" "jamfpro_computer_extension_attribute_minimum" {
+  name                             = "tf-testing-${var.testing_id}-min-test"
+  enabled                          = true
+  input_type                       = "TEXT"
+}
+
 // ========================================================================== //
 // Multiple extension attributes
 
