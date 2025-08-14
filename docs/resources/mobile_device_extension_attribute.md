@@ -49,7 +49,7 @@ resource "jamfpro_mobile_device_extension_attribute" "text_field_example" {
 - `description` (String) Description of the mobiledevice extension attribute.
 - `ldap_attribute_mapping` (String) Directory Service attribute use to populate the extension attribute.Required when inputType is 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING'.
 - `ldap_extension_attribute_allowed` (Boolean) Collect multiple values for this extension attribute. ldapExtensionAttributeAllowed is disabled by default, only for inputType 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING' it can be enabled. It's value cannot be modified during edit operation.Possible values are:true or false.
-- `popup_menu_choices` (List of String) When added with list of choices while creating mobile device extension attributes these Pop-up menu can be displayed in inventory information. User can choose a value from the pop-up menu list when enrolling a mobile device any time using Jamf Pro. Provide popupMenuChoices only when inputType is 'POPUP'.
+- `popup_menu_choices` (Set of String) When added with list of choices while creating mobile device extension attributes these Pop-up menu can be displayed in inventory information. User can choose a value from the pop-up menu list when enrolling a mobile device any time using Jamf Pro. Provide popupMenuChoices only when inputType is 'POPUP'.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only

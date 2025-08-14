@@ -69,13 +69,12 @@ func ResourceJamfProMobileDeviceExtensionAttributes() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"TEXT", "POPUP", "DIRECTORY_SERVICE_ATTRIBUTE_MAPPING"}, false),
 			},
 			"popup_menu_choices": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "When added with list of choices while creating mobile device extension attributes these Pop-up menu can be displayed in inventory information. User can choose a value from the pop-up menu list when enrolling a mobile device any time using Jamf Pro. Provide popupMenuChoices only when inputType is 'POPUP'.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
-				DiffSuppressFunc: diffSuppressPopupMenuChoices,
 			},
 			"ldap_attribute_mapping": {
 				Type:        schema.TypeString,
@@ -109,7 +108,7 @@ func resourceJamfProMobileDeviceExtensionAttributesV0() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"type": {Type: schema.TypeString, Required: true},
 						"popup_choices": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
