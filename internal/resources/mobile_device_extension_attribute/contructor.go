@@ -20,8 +20,8 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceExtensionAt
 	}
 
 	if v, ok := d.GetOk("popup_menu_choices"); ok {
-		choices := v.([]interface{})
-		for _, choice := range choices {
+		set := v.(*schema.Set)
+		for _, choice := range set.List() {
 			resource.PopupMenuChoices = append(resource.PopupMenuChoices, choice.(string))
 		}
 	}
