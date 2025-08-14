@@ -192,6 +192,7 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 	userSettingsMap := map[string]interface{}{
 		"enable_for_personally_owned_mobile_devices":     enrollment.AccountDrivenUserEnrollmentEnabled,
 		"enable_for_personally_owned_vision_pro_devices": enrollment.AccountDrivenUserVisionosEnrollmentEnabled,
+		"enable_maid_username_merge":                     enrollment.MaidUsernameMergeEnabled,
 	}
 	deviceSettings["account_driven_user_enrollment"] = []interface{}{userSettingsMap}
 

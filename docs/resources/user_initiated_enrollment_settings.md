@@ -381,6 +381,7 @@ Optional:
 
 - `enable_for_personally_owned_mobile_devices` (Boolean) Whether user initiated device enrollment for iOS/iPadOS personally owned devices is enabled. Maps to request field 'accountDrivenUserEnrollmentEnabled'
 - `enable_for_personally_owned_vision_pro_devices` (Boolean) Whether user initiated device enrollment for visionOS personally owned devices is enabled. Maps to request field 'accountDrivenUserVisionosEnrollmentEnabled'
+- `enable_maid_username_merge` (Boolean) Maps to API-only field 'maidUsernameMergeEnabled'. Whether to enable merging of the Managed Apple account with the Jamf Pro user account during enrollment.
 
 
 <a id="nestedblock--user_initiated_enrollment_for_devices--profile_driven_enrollment_via_url"></a>
