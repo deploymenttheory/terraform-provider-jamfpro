@@ -16,8 +16,9 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceSsoSettings, error) {
 	if v, ok := d.GetOk("oidc_settings"); ok && len(v.([]interface{})) > 0 {
 		oidcMap := v.([]interface{})[0].(map[string]interface{})
 		oidcSettings = jamfpro.OidcSettings{
-			UserMapping:                 oidcMap["user_mapping"].(string),
-			JamfIdAuthenticationEnabled: jamfpro.BoolPtr(oidcMap["jamf_id_authentication_enabled"].(bool)),
+			UserMapping:                   oidcMap["user_mapping"].(string),
+			JamfIdAuthenticationEnabled:   jamfpro.BoolPtr(oidcMap["jamf_id_authentication_enabled"].(bool)),
+			UsernameAttributeClaimMapping: oidcMap["username_attribute_claim_mapping"].(string),
 		}
 	}
 

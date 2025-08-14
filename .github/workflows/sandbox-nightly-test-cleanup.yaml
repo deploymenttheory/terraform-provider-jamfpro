@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout Terraform Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: deploymenttheory/terraform-provider-jamfpro
           ref: main 

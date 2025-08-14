@@ -64,7 +64,7 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 			"inventory_display_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "Extension Attributes",
+				Default:      "EXTENSION_ATTRIBUTES",
 				Description:  "Category in which to display the extension attribute in Jamf Pro.",
 				ValidateFunc: validation.StringInSlice([]string{"GENERAL", "HARDWARE", "OPERATING_SYSTEM", "USER_AND_LOCATION", "PURCHASING", "EXTENSION_ATTRIBUTES"}, false),
 			},

@@ -14,8 +14,8 @@ import (
 func constructEnrollmentSettings(d *schema.ResourceData) (*jamfpro.ResourceEnrollment, error) {
 	resource := &jamfpro.ResourceEnrollment{
 		// General settings
-		InstallSingleProfile:            d.Get("skip_certificate_installation_during_enrollment").(bool),
-		RestrictReenrollment:            d.Get("restrict_reenrollment_to_authorized_users_only").(bool),
+		InstallSingleProfile: d.Get("skip_certificate_installation_during_enrollment").(bool),
+		RestrictReenrollment: d.Get("restrict_reenrollment_to_authorized_users_only").(bool),
 	}
 
 	// Set third-party signing certificate
@@ -98,6 +98,7 @@ func constructEnrollmentSettings(d *schema.ResourceData) (*jamfpro.ResourceEnrol
 
 				resource.AccountDrivenUserEnrollmentEnabled = accountUserMap["enable_for_personally_owned_mobile_devices"].(bool)
 				resource.AccountDrivenUserVisionosEnrollmentEnabled = accountUserMap["enable_for_personally_owned_vision_pro_devices"].(bool)
+				resource.MaidUsernameMergeEnabled = accountUserMap["enable_maid_username_merge"].(bool)
 			}
 
 			// Account-driven device enrollment
