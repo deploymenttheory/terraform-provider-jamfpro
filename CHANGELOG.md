@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.24.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.23.0...v0.24.0) (2025-08-15)
+
+
+### Features
+
+* Add group_description attribute to jamfpro_group data source - Jamf Pro 11.19 ([33ac52b](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/33ac52bcda19b64a9e81518aff9f61139249b84f))
+* Add group_description attribute to jamfpro_group data source (11.19) ([#847](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/847)) ([33ac52b](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/33ac52bcda19b64a9e81518aff9f61139249b84f))
+* jamf_cloud_distribution_service - remove unsupported fields (11.19) ([#845](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/845)) ([33826d1](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/33826d1802dda81e99ea3952c95f5d2591070c11))
+* Update account data source to allow lookup by name ([#844](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/844)) ([01a0c48](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/01a0c48a01335afd7fe7a8d0123651de7d6cb7ee))
+
+
+### Bug Fixes
+
+* Conform inventory_display_type default to API ([#851](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/851)) ([519755f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/519755fe94741fad93d4304bdd33598d242955f9))
+* Conform inventory_display_type to API ([519755f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/519755fe94741fad93d4304bdd33598d242955f9))
+* Correct resource comments, various minor fixes ([#834](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/834)) ([9041d9c](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/9041d9c439c46892f78948339753dd948ae9efeb))
+* Redaction logic can now handle nested structs, and adding to computer_prestage_enrolments ([#839](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/839)) ([07e9ec6](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/07e9ec6de704a60a00dd251de827790ec8f56d9f))
+
 ## [0.23.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.22.1...v0.23.0) (2025-07-11)
 
 
