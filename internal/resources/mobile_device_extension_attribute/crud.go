@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// create is responsible for creating a new Jamf Pro MobileDevice Extension Attribute in the remote system.
+// create is responsible for creating a new Jamf Pro MobileDeviceDevice Extension Attribute in the remote system.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 
 	return common.Create(
@@ -17,19 +17,19 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		d,
 		meta,
 		construct,
-		meta.(*jamfpro.Client).CreateMobileExtensionAttribute,
+		meta.(*jamfpro.Client).CreateMobileDeviceExtensionAttribute,
 		readNoCleanup,
 	)
 }
 
-// read is responsible for reading the current state of a Jamf Pro MobileDevice Extension Attribute from the remote system.
+// read is responsible for reading the current state of a Jamf Pro MobileDeviceDevice Extension Attribute from the remote system.
 func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
 	return common.Read(
 		ctx,
 		d,
 		meta,
 		cleanup,
-		meta.(*jamfpro.Client).GetMobileExtensionAttributeByID,
+		meta.(*jamfpro.Client).GetMobileDeviceExtensionAttributeByID,
 		updateState,
 	)
 }
@@ -44,25 +44,25 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 	return read(ctx, d, meta, false)
 }
 
-// update is responsible for updating an existing Jamf Pro MobileDevice Extension Attribute on the remote system.
+// update is responsible for updating an existing Jamf Pro MobileDeviceDevice Extension Attribute on the remote system.
 func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return common.Update(
 		ctx,
 		d,
 		meta,
 		construct,
-		meta.(*jamfpro.Client).UpdateMobileExtensionAttributeByID,
+		meta.(*jamfpro.Client).UpdateMobileDeviceExtensionAttributeByID,
 		readNoCleanup,
 	)
 }
 
-// delete is responsible for deleting a Jamf Pro MobileDevice Extension Attribute.
+// delete is responsible for deleting a Jamf Pro MobileDeviceDevice Extension Attribute.
 
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return common.Delete(
 		ctx,
 		d,
 		meta,
-		meta.(*jamfpro.Client).DeleteMobileExtensionAttributeByID,
+		meta.(*jamfpro.Client).DeleteMobileDeviceExtensionAttributeByID,
 	)
 }
