@@ -1,6 +1,6 @@
 # Pop-up menu Example
 resource "jamfpro_mobile_device_extension_attribute" "popup_menu_example" {
-  name                   = "Device Location"
+  name                   = "Device Location Test"
   description            = "The primary location where this device is used"
   data_type              = "STRING"
   inventory_display_type = "USER_AND_LOCATION"
@@ -15,7 +15,7 @@ resource "jamfpro_mobile_device_extension_attribute" "popup_menu_example" {
 
 # Text Field Example
 resource "jamfpro_mobile_device_extension_attribute" "text_field_example" {
-  name                   = "User Department"
+  name                   = "User Department Test"
   description            = "The department to which the device user belongs"
   data_type              = "STRING"
   inventory_display_type = "GENERAL"

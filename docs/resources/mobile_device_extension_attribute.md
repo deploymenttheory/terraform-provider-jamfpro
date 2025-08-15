@@ -11,32 +11,26 @@ description: |-
 ```terraform
 # Pop-up menu Example
 resource "jamfpro_mobile_device_extension_attribute" "popup_menu_example" {
-  name              = "Device Location"
-  description       = "The primary location where this device is used"
-  data_type         = "String"
-  inventory_display = "User and Location"
-
-  input_type {
-    type = "Pop-up Menu"
-    popup_choices = [
-      "Head Office",
-      "Branch Office",
-      "Home Office",
-      "Client Site"
-    ]
-  }
+  name                   = "Device Location"
+  description            = "The primary location where this device is used"
+  data_type              = "STRING"
+  inventory_display_type = "USER_AND_LOCATION"
+  input_type             = "POPUP"
+  popup_menu_choices = [
+    "Head Office",
+    "Branch Office",
+    "Home Office",
+    "Client Site"
+  ]
 }
 
 # Text Field Example
 resource "jamfpro_mobile_device_extension_attribute" "text_field_example" {
-  name              = "User Department"
-  description       = "The department to which the device user belongs"
-  data_type         = "String"
-  inventory_display = "General"
-
-  input_type {
-    type = "Text Field"
-  }
+  name                   = "User Department"
+  description            = "The department to which the device user belongs"
+  data_type              = "STRING"
+  inventory_display_type = "GENERAL"
+  input_type             = "TEXT"
 }
 ```
 
@@ -45,31 +39,22 @@ resource "jamfpro_mobile_device_extension_attribute" "text_field_example" {
 
 ### Required
 
-- `data_type` (String) Data type of the mobile device extension attribute. Can be String, Integer, or Date.
-- `input_type` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--input_type))
-- `inventory_display` (String) Category in which to display the extension attribute in Jamf Pro.
+- `data_type` (String) Data type of the mobile device extension attribute. Can be STRING, INTEGER, or DATE.
+- `input_type` (String) Extension attributes collect inventory data by using an input type.The type of the Input used to populate the extension attribute. Can be TEXT, POPUP, or DIRECTORY_SERVICE_ATTRIBUTE_MAPPING.
+- `inventory_display_type` (String) Category in which to display the extension attribute in Jamf Pro. Can be GENERAL, HARDWARE, USER_AND_LOCATION, PURCHASING, or EXTENSION_ATTRIBUTES.
 - `name` (String) The unique name of the Jamf Pro mobiledevice extension attribute.
 
 ### Optional
 
 - `description` (String) Description of the mobiledevice extension attribute.
+- `ldap_attribute_mapping` (String) Directory Service attribute use to populate the extension attribute.Required when inputType is 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING'.
+- `ldap_extension_attribute_allowed` (Boolean) Collect multiple values for this extension attribute. ldapExtensionAttributeAllowed is disabled by default, only for inputType 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING' it can be enabled. It's value cannot be modified during edit operation.Possible values are:true or false.
+- `popup_menu_choices` (Set of String) When added with list of choices while creating mobile device extension attributes these Pop-up menu can be displayed in inventory information. User can choose a value from the pop-up menu list when enrolling a mobile device any time using Jamf Pro. Provide popupMenuChoices only when inputType is 'POPUP'.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
 
 - `id` (String) The unique identifier of the mobile device extension attribute.
-
-<a id="nestedblock--input_type"></a>
-### Nested Schema for `input_type`
-
-Required:
-
-- `type` (String) Input type for the Extension Attribute.
-
-Optional:
-
-- `popup_choices` (List of String) List of choices for Pop-up Menu input type.
-
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`
