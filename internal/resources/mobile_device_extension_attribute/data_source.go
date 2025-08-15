@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// DataSourceJamfProMobileDeviceExtensionAttributes provides information about a specific mobiledevice extension attribute by its ID or Name.
-func DataSourceJamfProMobileDeviceExtensionAttributes() *schema.Resource {
+// DataSourceJamfProMobileDeviceDeviceExtensionAttributes provides information about a specific mobiledevice extension attribute by its ID or Name.
+func DataSourceJamfProMobileDeviceDeviceExtensionAttributes() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
@@ -48,10 +48,10 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)
 
-	var resource *jamfpro.ResourceMobileExtensionAttribute
+	var resource *jamfpro.ResourceMobileDeviceExtensionAttribute
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		resource, apiErr = client.GetMobileExtensionAttributeByID(resourceID)
+		resource, apiErr = client.GetMobileDeviceExtensionAttributeByID(resourceID)
 		if apiErr != nil {
 
 			return retry.RetryableError(apiErr)
@@ -67,7 +67,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	if resource != nil {
 		d.SetId(resourceID)
 		if err := d.Set("name", resource.Name); err != nil {
-			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro MobileDevice Extension Attribute with ID '%s': %v", resourceID, err))...)
+			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro MobileDevice Extension Attribute with ID '%s': %w", resourceID, err))...)
 		}
 	} else {
 		d.SetId("")
