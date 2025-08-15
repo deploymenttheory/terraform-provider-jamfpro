@@ -1,5 +1,38 @@
 # Changelog
 
+## [1.0.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.23.0...v1.0.0) (2025-08-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* jamf_cloud_distribution_service - remove unsupported fields (11.19) ([#845](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/845))
+
+### Features
+
+* Add enable_maid_username_merge option for user initiated enrollment settings ([7299084](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/7299084da0e3b88a5bd77f5f32bf0af16e03263d))
+* Add enable_maid_username_merge option for user_initiated_enrollment_settings ([#849](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/849)) ([7299084](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/7299084da0e3b88a5bd77f5f32bf0af16e03263d))
+* Add group_description attribute to jamfpro_group data source - Jamf Pro 11.19 ([33ac52b](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/33ac52bcda19b64a9e81518aff9f61139249b84f))
+* Add group_description attribute to jamfpro_group data source (11.19) ([#847](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/847)) ([33ac52b](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/33ac52bcda19b64a9e81518aff9f61139249b84f))
+* Add username attribute claim mapping to jamfpro_sso_settings (11.19) ([#848](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/848)) ([b580909](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/b580909122d50b966c24180cab86e1b2467b9350))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([b580909](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/b580909122d50b966c24180cab86e1b2467b9350))
+* and MD5 hash calculation for packages ([#850](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/850)) ([068a905](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/068a905f5a178029bf99c9e93399036dccc69b91))
+* mobile_device_extension_attributes (11.19) ([#846](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/846)) ([a098224](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/a0982241ba626aea8b86b9bd6eaf5b01f16e6b3a))
+* Update account data source to allow lookup by name ([#844](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/844)) ([01a0c48](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/01a0c48a01335afd7fe7a8d0123651de7d6cb7ee))
+
+
+### Bug Fixes
+
+* Conform inventory_display_type default to API ([#851](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/851)) ([519755f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/519755fe94741fad93d4304bdd33598d242955f9))
+* Conform inventory_display_type to API ([519755f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/519755fe94741fad93d4304bdd33598d242955f9))
+* Correct resource comments, various minor fixes ([#834](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/834)) ([9041d9c](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/9041d9c439c46892f78948339753dd948ae9efeb))
+* Redaction logic can now handle nested structs, and adding to computer_prestage_enrolments ([#839](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/839)) ([07e9ec6](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/07e9ec6de704a60a00dd251de827790ec8f56d9f))
+* release please re-evaluation ([52f8dbb](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/52f8dbb3daef864efae7893f495fbae1be0b3239))
+
+
+### Code Refactoring
+
+* jamf_cloud_distribution_service - remove unsupported fields (11.19) ([#845](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/845)) ([43e229c](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/43e229c1d053504e9aa176e91e99d88fe2a87b9c))
+
 ## [0.23.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.22.1...v0.23.0) (2025-07-11)
 
 
