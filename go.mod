@@ -26,7 +26,7 @@ require (
 	github.com/hashicorp/terraform-plugin-docs v0.22.0
 	github.com/lithammer/fuzzysearch v1.1.8
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/text v0.28.0
 )
