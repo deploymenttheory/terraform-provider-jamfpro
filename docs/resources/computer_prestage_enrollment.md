@@ -334,6 +334,7 @@ Read-Only:
 Required:
 
 - `accessibility` (Boolean) Skip accessibility setup.
+- `additional_privacy_settings` (Boolean) Skip additional privacy settings setup.
 - `appearance` (Boolean) Skip Appearance setup.
 - `apple_id` (Boolean) Skip Apple ID setup.
 - `biometric` (Boolean) Skip biometric setup.
@@ -351,6 +352,7 @@ Required:
 - `restore` (Boolean) Skip Restore setup.
 - `screen_time` (Boolean) Skip Screen Time setup.
 - `siri` (Boolean) Skip Siri setup.
+- `software_update` (Boolean) Skip software update setup.
 - `terms_of_address` (Boolean) Skip terms of address setup.
 - `tos` (Boolean) Skip Terms of Service setup.
 - `wallpaper` (Boolean) Skip wallpaper setup.

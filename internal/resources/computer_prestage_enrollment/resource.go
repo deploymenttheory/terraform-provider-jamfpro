@@ -222,6 +222,16 @@ func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 							Required:    true,
 							Description: "Skip wallpaper setup.",
 						},
+						"software_update": {
+							Type:        schema.TypeBool,
+							Required:    true,
+							Description: "Skip software update setup.",
+						},
+						"additional_privacy_settings": {
+							Type:        schema.TypeBool,
+							Required:    true,
+							Description: "Skip additional privacy settings setup.",
+						},
 					},
 				},
 			},
