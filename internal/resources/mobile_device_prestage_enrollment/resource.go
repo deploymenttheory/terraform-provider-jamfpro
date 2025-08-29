@@ -319,6 +319,26 @@ func ResourceJamfProMobileDevicePrestageEnrollment() *schema.Resource {
 							Required:    true,
 							Description: "Skip Tap to Setup during device enrollment.",
 						},
+						"spoken_language": {
+							Type:        schema.TypeBool,
+							Required:    true,
+							Description: "Skip Spoken Language setup during device enrollment.",
+						},
+						"keyboard": {
+							Type:        schema.TypeBool,
+							Required:    true,
+							Description: "Skip Keyboard setup during device enrollment.",
+						},
+						"multitasking": {
+							Type:        schema.TypeBool,
+							Required:    true,
+							Description: "Skip Multitasking setup during device enrollment.",
+						},
+						"os_showcase": {
+							Type:        schema.TypeBool,
+							Required:    true,
+							Description: "Skip OS Showcase setup during device enrollment.",
+						},
 					},
 				},
 			},
@@ -722,6 +742,11 @@ func ResourceJamfProMobileDevicePrestageEnrollment() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The ID of the RTS configuration profile.",
+			},
+			"preserve_managed_apps": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Preserve managed apps during the enrollment process.",
 			},
 		},
 	}

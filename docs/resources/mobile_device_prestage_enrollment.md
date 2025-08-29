@@ -167,6 +167,7 @@ resource "jamfpro_mobile_device_prestage_enrollment" "example_prestage" {
 - `enrollment_site_id` (String) Site ID for device enrollment.
 - `minimum_os_specific_version_ios` (String) The specific minimum OS version required for iOS devices when using MINIMUM_OS_SPECIFIC_VERSION type.
 - `minimum_os_specific_version_ipad` (String) The specific minimum OS version required for iPadOS devices when using MINIMUM_OS_SPECIFIC_VERSION type.
+- `preserve_managed_apps` (Boolean) Preserve managed apps during the enrollment process.
 - `rts_config_profile_id` (String) The ID of the RTS configuration profile.
 - `rts_enabled` (Boolean) Enable RTS.
 - `send_timezone` (Boolean) Indicates if timezone should be sent to the device.
@@ -283,8 +284,11 @@ Required:
 - `home_button_sensitivity` (Boolean) Skip Home Button Sensitivity setup during device enrollment.
 - `imessage_and_facetime` (Boolean) Skip iMessage and FaceTime setup during device enrollment.
 - `intelligence` (Boolean) Skip Intelligence setup during device enrollment.
+- `keyboard` (Boolean) Skip Keyboard setup during device enrollment.
 - `location` (Boolean) Skip Location setup during device enrollment.
+- `multitasking` (Boolean) Skip Multitasking setup during device enrollment.
 - `onboarding` (Boolean) Skip Onboarding setup during device enrollment.
+- `os_showcase` (Boolean) Skip OS Showcase setup during device enrollment.
 - `passcode` (Boolean) Skip Passcode setup during device enrollment.
 - `payment` (Boolean) Skip Payment setup during device enrollment.
 - `preferred_language` (Boolean) Skip Preferred Language setup during device enrollment.
@@ -298,6 +302,7 @@ Required:
 - `sim_setup` (Boolean) Skip SIM setup during device enrollment.
 - `siri` (Boolean) Skip Siri setup during device enrollment.
 - `software_update` (Boolean) Skip Software Update setup during device enrollment.
+- `spoken_language` (Boolean) Skip Spoken Language setup during device enrollment.
 - `tap_to_setup` (Boolean) Skip Tap to Setup during device enrollment.
 - `terms_of_address` (Boolean) Skip Terms of Address setup during device enrollment.
 - `tos` (Boolean) Skip Terms of Service setup during device enrollment.
