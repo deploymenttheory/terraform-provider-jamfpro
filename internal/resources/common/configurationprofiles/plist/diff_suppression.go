@@ -174,12 +174,10 @@ func cleanEmptyArrayEntries(data interface{}) interface{} {
 		for _, item := range v {
 			switch itemVal := item.(type) {
 			case string:
-				// Remove strings that are empty or contain only whitespace
 				if strings.TrimSpace(itemVal) != "" {
 					cleaned = append(cleaned, cleanEmptyArrayEntries(itemVal))
 				}
 			default:
-				// Recursively clean other types
 				cleaned = append(cleaned, cleanEmptyArrayEntries(itemVal))
 			}
 		}

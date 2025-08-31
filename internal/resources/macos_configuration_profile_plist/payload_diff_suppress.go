@@ -47,11 +47,11 @@ func processPayload(payload string, source string) (string, error) {
 		"PayloadEnabled",
 		"PayloadRemovalDisallowed",
 		"PayloadScope",
-		"payloadScope", // Handle case variations
+		"payloadScope",
 		"PayloadVersion",
 		"PayloadDescription",
-		"AllowUserOverrides", // This field was removed in the diff
-		"Comment",            // Empty comment fields
+		"AllowUserOverrides",
+		"Comment",
 	}
 	processedPayload, err := plist.ProcessConfigurationProfileForDiffSuppression(payload, fieldsToRemove)
 	if err != nil {
