@@ -30,47 +30,56 @@ func ProcessConfigurationProfileForDiffSuppression(plistData string, fieldsToRem
 	// Step 2: Remove specified fields
 	processedData := removeSpecifiedXMLFields(rawData, fieldsToRemove, "")
 
-	// Step 3: Normalize base64 content
-	normalizedBase64 := normalizeBase64Content(processedData)
+	// Step 3: Clean empty array entries
+	cleanedArrays := cleanEmptyArrayEntries(processedData)
 
-	// Step 4: Normalize XML tags
+	// Step 4: Normalize base64 content
+	normalizedBase64 := normalizeBase64Content(cleanedArrays)
+
+	// Step 5: Normalize XML tags
 	normalizedXML := normalizeXMLTags(normalizedBase64)
 
-	// Step 5: Normalize empty strings
+	// Step 6: Normalize empty strings
 	normalizedStrings := normalizeEmptyStrings(normalizedXML)
 
-	// Step 6: normalize HTML Entities
+	// Step 7: normalize HTML Entities
 	normalizedData := normalizeHTMLEntitiesForDiff(normalizedStrings)
 
-	// Step 7: Sort keys
+	// Step 8: Sort keys
 	sortedData := SortPlistKeys(normalizedData.(map[string]interface{}))
 
-	// Step 8: Encode back to plist
+	// Step 9: Encode back to plist
 	encodedPlist, err := EncodePlist(sortedData)
 	if err != nil {
 		log.Printf("Error encoding plist data: %v\n", err)
 		return "", err
 	}
 
-	// Step 9: Remove trailing whitespace
+	// Step 10: Remove trailing whitespace
 	return trimTrailingWhitespace(encodedPlist), nil
 }
 
 // removeSpecifiedXMLFields( removes specified fields from the plist data recursively.
 // useful for removing jamfpro specific unique identifiers from the plist data.
 func removeSpecifiedXMLFields(data map[string]interface{}, fieldsToRemove []string, path string) map[string]interface{} {
-	// Create a set of fields to remove for quick lookup
+	// Create a set of fields to remove for quick lookup (case-insensitive)
 	fieldsToRemoveSet := make(map[string]struct{}, len(fieldsToRemove))
 	for _, field := range fieldsToRemove {
-		fieldsToRemoveSet[field] = struct{}{}
+		fieldsToRemoveSet[strings.ToLower(field)] = struct{}{}
 	}
 
-	// Iterate over the map and remove fields if they exist
-	for field := range fieldsToRemoveSet {
-		if _, exists := data[field]; exists {
-			log.Printf("[DEBUG] Removing field: %s from path: %s\n", field, path)
-			delete(data, field)
+	// Collect keys to remove to avoid modifying map while iterating
+	var keysToRemove []string
+	for key := range data {
+		if _, exists := fieldsToRemoveSet[strings.ToLower(key)]; exists {
+			log.Printf("[DEBUG] Removing field: %s from path: %s\n", key, path)
+			keysToRemove = append(keysToRemove, key)
 		}
+	}
+
+	// Remove the identified keys
+	for _, key := range keysToRemove {
+		delete(data, key)
 	}
 
 	// Recursively process nested maps and arrays
@@ -155,6 +164,35 @@ func NormalizeBase64(input string) string {
 	}
 
 	return trimmed
+}
+
+// cleanEmptyArrayEntries removes empty or whitespace-only string entries from arrays
+func cleanEmptyArrayEntries(data interface{}) interface{} {
+	switch v := data.(type) {
+	case []interface{}:
+		var cleaned []interface{}
+		for _, item := range v {
+			switch itemVal := item.(type) {
+			case string:
+				// Remove strings that are empty or contain only whitespace
+				if strings.TrimSpace(itemVal) != "" {
+					cleaned = append(cleaned, cleanEmptyArrayEntries(itemVal))
+				}
+			default:
+				// Recursively clean other types
+				cleaned = append(cleaned, cleanEmptyArrayEntries(itemVal))
+			}
+		}
+		return cleaned
+	case map[string]interface{}:
+		result := make(map[string]interface{})
+		for key, value := range v {
+			result[key] = cleanEmptyArrayEntries(value)
+		}
+		return result
+	default:
+		return data
+	}
 }
 
 // normalizeXMLTags standardizes XML tag formatting for malformed config profile xml
