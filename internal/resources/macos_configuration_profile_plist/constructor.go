@@ -113,10 +113,12 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		newPlist["PayloadUUID"] = existingPlist["PayloadUUID"]
 		newPlist["PayloadIdentifier"] = existingPlist["PayloadIdentifier"]
 
-		// Ensure nested UUIDs are also matched properly
+		// Ensure nested UUIDs and PayloadIdentifiers are also matched properly
 		uuidMap := make(map[string]string)
+		identifierMap := make(map[string]string)
 		helpers.ExtractUUIDs(existingPlist, uuidMap, true)
-		helpers.UpdateUUIDs(newPlist, uuidMap, true)
+		helpers.ExtractPayloadIdentifiers(existingPlist, identifierMap, true)
+		helpers.UpdateUUIDs(newPlist, uuidMap, identifierMap, true)
 
 		var mismatches []string
 		helpers.ValidatePayloadUUIDsMatch(existingPlist, newPlist, "Payload", &mismatches)

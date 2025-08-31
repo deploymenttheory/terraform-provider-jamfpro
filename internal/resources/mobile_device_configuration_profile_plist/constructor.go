@@ -95,8 +95,10 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 		newPlist["PayloadIdentifier"] = existingPlist["PayloadIdentifier"]
 
 		uuidMap := make(map[string]string)
+		identifierMap := make(map[string]string)
 		helpers.ExtractUUIDs(existingPlist, uuidMap, true)
-		helpers.UpdateUUIDs(newPlist, uuidMap, true)
+		helpers.ExtractPayloadIdentifiers(existingPlist, identifierMap, true)
+		helpers.UpdateUUIDs(newPlist, uuidMap, identifierMap, true)
 
 		var mismatches []string
 		helpers.ValidatePayloadUUIDsMatch(existingPlist, newPlist, "Payload", &mismatches)
