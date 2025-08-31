@@ -41,13 +41,43 @@ func ExtractUUIDs(data interface{}, uuidMap map[string]string, isRoot bool) {
 	}
 }
 
+// ExtractPayloadIdentifiers recursively traverses a plist structure to extract PayloadIdentifier
+// values and associate them with their PayloadDisplayName for proper structure preservation
+func ExtractPayloadIdentifiers(data interface{}, identifierMap map[string]string, isRoot bool) {
+	switch v := data.(type) {
+	case map[string]interface{}:
+		identifier, hasIdentifier := v["PayloadIdentifier"].(string)
+		displayName, hasDisplayName := v["PayloadDisplayName"].(string)
+
+		if hasIdentifier {
+			if isRoot {
+				identifierMap["root"] = identifier
+				log.Printf("[DEBUG] Found root PayloadIdentifier: %s", identifier)
+			} else if hasDisplayName {
+				identifierMap[displayName] = identifier
+				log.Printf("[DEBUG] Found inner PayloadIdentifier for '%s': %s", displayName, identifier)
+			}
+		}
+
+		// Recurse
+		for _, val := range v {
+			ExtractPayloadIdentifiers(val, identifierMap, false)
+		}
+
+	case []interface{}:
+		for _, item := range v {
+			ExtractPayloadIdentifiers(item, identifierMap, false)
+		}
+	}
+}
+
 // UpdateUUIDs recursively traverses a plist structure represented as nested maps and slices,
 // updating the values of `PayloadUUID` and `PayloadIdentifier` fields using the UUIDs
-// provided in `uuidMap`. It matches UUIDs based on `PayloadDisplayName`. If a `PayloadDisplayName`
-// is absent at the root level, it uses the special key "root" from the map.
+// provided in `uuidMap` and `identifierMap`. It matches UUIDs based on `PayloadDisplayName`.
+// If a `PayloadDisplayName` is absent at the root level, it uses the special key "root" from the map.
 // This function ensures that configuration profile UUIDs remain consistent with Jamf Pro
 // expectations during Terraform update operations.
-func UpdateUUIDs(data interface{}, uuidMap map[string]string, isRoot bool) {
+func UpdateUUIDs(data interface{}, uuidMap map[string]string, identifierMap map[string]string, isRoot bool) {
 	log.Printf("[DEBUG] Injecting Jamf Pro post creation configuration profile PayloadUUID and PayloadIdentifier.")
 
 	switch v := data.(type) {
@@ -58,21 +88,26 @@ func UpdateUUIDs(data interface{}, uuidMap map[string]string, isRoot bool) {
 		if isRoot {
 			if uuid, exists := uuidMap["root"]; exists {
 				v["PayloadUUID"] = uuid
-				v["PayloadIdentifier"] = uuid
+			}
+			if identifier, exists := identifierMap["root"]; exists {
+				v["PayloadIdentifier"] = identifier
 			}
 		} else if hasDisplayName {
 			if uuid, exists := uuidMap[displayName]; exists {
 				v["PayloadUUID"] = uuid
-				v["PayloadIdentifier"] = uuid
+			}
+			// Use the preserved PayloadIdentifier structure if available
+			if identifier, exists := identifierMap[displayName]; exists {
+				v["PayloadIdentifier"] = identifier
 			}
 		}
 
 		for _, val := range v {
-			UpdateUUIDs(val, uuidMap, false)
+			UpdateUUIDs(val, uuidMap, identifierMap, false)
 		}
 	case []interface{}:
 		for _, item := range v {
-			UpdateUUIDs(item, uuidMap, false)
+			UpdateUUIDs(item, uuidMap, identifierMap, false)
 		}
 	}
 }
