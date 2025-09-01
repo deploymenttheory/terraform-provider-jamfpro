@@ -21,14 +21,11 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	// ==== Temp removal since jamf broke this end point in v11.14.0
-	// will reinstate with jamf fix it.
-	//
 	// Check and accept the Jamf App Catalog App Installer terms and conditions
-	// err := checkJamfAppCatalogAppInstallerTermsAndConditions(ctx, client)
-	// if err != nil {
-	// 	return diag.FromErr(fmt.Errorf("failed to ensure Jamf Pro App Installer terms and conditions are accepted: %v", err))
-	// }
+	err := checkJamfAppCatalogAppInstallerTermsAndConditions(ctx, client)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to ensure Jamf Pro App Installer terms and conditions are accepted: %v", err))
+	}
 
 	resource, err := construct(d, client)
 	if err != nil {
