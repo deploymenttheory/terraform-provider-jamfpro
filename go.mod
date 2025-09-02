@@ -6,7 +6,7 @@ go 1.23.7
 
 // Deploymenttheory
 require (
-	github.com/deploymenttheory/go-api-http-client v0.4.3
+	github.com/deploymenttheory/go-api-http-client v0.4.4
 	github.com/deploymenttheory/go-api-http-client-integrations v0.0.14
 	github.com/deploymenttheory/go-api-sdk-jamfpro v1.37.0
 )
@@ -111,12 +111,12 @@ require (
 	github.com/zclconf/go-cty v1.16.3 // indirect
 	go.abhg.dev/goldmark/frontmatter v0.2.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.40.0 // indirect
+	golang.org/x/crypto v0.41.0 // indirect
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df // indirect
 	golang.org/x/mod v0.26.0 // indirect
-	golang.org/x/net v0.42.0 // indirect
+	golang.org/x/net v0.43.0 // indirect
 	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/sys v0.34.0 // indirect
+	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/tools v0.35.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
