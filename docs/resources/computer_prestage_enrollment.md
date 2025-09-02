@@ -248,6 +248,8 @@ resource "jamfpro_computer_prestage_enrollment" "configured_example_1" {
 
 - `anchor_certificates` (List of String) List of Base64 encoded PEM Certificates.
 - `minimum_os_specific_version` (String) The minimum macOS version to enforce for the prestage enrollment. Only used if prestate_minimum_os_target_version_type is set to MINIMUM_OS_SPECIFIC_VERSION.
+- `platform_sso_app_bundle_id` (String) The app bundle ID for used for platform SSO.
+- `platform_sso_enabled` (Boolean) Indicates if platform single sign-on (SSO) is enabled.
 - `recovery_lock_password` (String) Generate new Recovery Lock password 60 minutes after the password is viewed in Jamf Pro. Can be left blank.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 

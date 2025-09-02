@@ -46,6 +46,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 		"minimum_os_specific_version":             resp.MinimumOsSpecificVersion,
 		"profile_uuid":                            resp.ProfileUuid,
 		"site_id":                                 resp.SiteId,
+		"platform_sso_enabled":                    resp.PssoEnabled,
+		"platform_sso_app_bundle_id":              resp.PlatformSsoAppBundleId,
 		// "enabled":                                 resp.Enabled,
 		// "sso_for_enrollment_enabled":              resp.SsoForEnrollmentEnabled,
 		// "sso_bypass_allowed":                      resp.SsoBypassAllowed,

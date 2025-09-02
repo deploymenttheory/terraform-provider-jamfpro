@@ -105,6 +105,16 @@ func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 				Required:    true,
 				Description: "The Automated Device Enrollment instance ID to associate with the PreStage enrollment. Devices associated with the selected Automated Device Enrollment instance can be assigned the PreStage enrollment",
 			},
+			"platform_sso_enabled": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Indicates if platform single sign-on (SSO) is enabled.",
+			},
+			"platform_sso_app_bundle_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The app bundle ID for used for platform SSO.",
+			},
 			"skip_setup_items": {
 				Type:        schema.TypeList,
 				Required:    true,

@@ -14,6 +14,8 @@ resource "jamfpro_computer_prestage_enrollment" "minimum_example" {
   prevent_activation_lock               = false
   enable_device_based_activation_lock   = false
   device_enrollment_program_instance_id = "1"
+  platform_sso_enabled                  = true
+  platform_sso_app_bundle_id            = "com.example.app"
   skip_setup_items {
     biometric                   = false
     terms_of_address            = false

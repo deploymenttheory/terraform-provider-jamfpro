@@ -44,6 +44,8 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 		Region:                             d.Get("region").(string),
 		AutoAdvanceSetup:                   jamfpro.BoolPtr(d.Get("auto_advance_setup").(bool)),
 		InstallProfilesDuringSetup:         jamfpro.BoolPtr(d.Get("install_profiles_during_setup").(bool)),
+		PssoEnabled:                        jamfpro.BoolPtr(d.Get("platform_sso_enabled").(bool)),
+		PlatformSsoAppBundleId:             d.Get("platform_sso_app_bundle_id").(string),
 	}
 
 	if v, ok := d.GetOk("skip_setup_items"); ok && len(v.([]interface{})) > 0 {
