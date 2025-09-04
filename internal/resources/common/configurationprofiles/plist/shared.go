@@ -37,6 +37,10 @@ func EncodePlist(cleanedData map[string]interface{}) (string, error) {
 
 	// Post-process to remove unnecessary escaped characters while keeping essential ones
 	encodedString = strings.ReplaceAll(encodedString, "&#34;", "\"") // Fix double quotes
+	encodedString = strings.ReplaceAll(encodedString, "&#39;", "'")  // Fix single quotes
+	encodedString = strings.ReplaceAll(encodedString, "&lt;", "<")   // Fix less than
+	encodedString = strings.ReplaceAll(encodedString, "&gt;", ">")   // Fix greater than
+	encodedString = strings.ReplaceAll(encodedString, "&amp;", "&")  // Fix ampersand (do this last)
 
 	return encodedString, nil
 }

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1">
+<dict>
+    <key>PayloadUUID</key>
+    <string>C8E5933A-01D0-44BE-B02B-0850E4823E27</string>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadOrganization</key>
+    <string>JAMF Software</string>
+    <key>PayloadIdentifier</key>
+    <string>C8E5933A-01D0-44BE-B02B-0850E4823E27</string>
+    <key>PayloadDisplayName</key>
+    <string>Restrictions - Shared</string>
+    <key>PayloadDescription</key>
+    <string></string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+    <key>PayloadEnabled</key>
+    <true/>
+    <key>PayloadRemovalDisallowed</key>
+    <true/>
+    <key>PayloadScope</key>
+    <string>System</string>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>PayloadDisplayName</key>
+            <string>Restrictions Payload</string>
+            <key>PayloadIdentifier</key>
+            <string>04384F3B-AF9B-45E4-B722-E299CDE9CA68</string>
+            <key>PayloadOrganization</key>
+            <string>JAMF Software</string>
+            <key>PayloadType</key>
+            <string>com.apple.applicationaccess</string>
+            <key>PayloadUUID</key>
+            <string>04384F3B-AF9B-45E4-B722-E299CDE9CA68</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>allowAccountModification</key>
+            <false/>
+            <key>allowAppInstallation</key>
+            <false/>
+            <key>allowAppRemoval</key>
+            <false/>
+            <key>allowAppsToBeHidden</key>
+            <false/>
+            <key>allowAppsToBeLocked</key>
+            <false/>
+            <key>allowBluetoothModification</key>
+            <false/>
+            <key>allowBookstore</key>
+            <false/>
+            <key>allowCellularPlanModification</key>
+            <false/>
+            <key>allowEnablingRestrictions</key>
+            <false/>
+            <key>allowGameCenter</key>
+            <false/>
+            <key>allowInAppPurchases</key>
+            <false/>
+            <key>allowMusicService</key>
+            <false/>
+            <key>allowNews</key>
+            <false/>
+            <key>allowPersonalHotspotModification</key>
+            <false/>
+            <key>allowPodcasts</key>
+            <false/>
+            <key>allowProximitySetupToNewDevice</key>
+            <false/>
+            <key>allowRadioService</key>
+            <false/>
+            <key>allowSystemAppRemoval</key>
+            <false/>
+            <key>allowUIConfigurationProfileInstallation</key>
+            <false/>
+            <key>allowUntrustedTLSPrompt</key>
+            <false/>
+            <key>allowVPNCreation</key>
+            <false/>
+            <key>allowWallpaperModification</key>
+            <false/>
+            <key>allowiTunes</key>
+            <false/>
+            <key>forceAutomaticDateAndTime</key>
+            <true/>
+            <key>forceWiFiPowerOn</key>
+            <true/>
+        </dict>
+    </array>
+</dict>
+</plist>
