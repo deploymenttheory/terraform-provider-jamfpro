@@ -33,7 +33,7 @@ jobs:
         ref: ${{ github.event.inputs.release_version || github.ref }}
 
     - name: Set up Go
-      uses: actions/setup-go@v5.2.0
+      uses: actions/setup-go@v6
       with:
         cache: false
         go-version-file: 'go.mod'
