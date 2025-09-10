@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1">
+<dict>
+    <key>PayloadUUID</key>
+    <string>E5AE277A-BE9C-4FB1-86BB-1D9945948CAD</string>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadOrganization</key>
+    <string>JAMF Software</string>
+    <key>PayloadIdentifier</key>
+    <string>E5AE277A-BE9C-4FB1-86BB-1D9945948CAD</string>
+    <key>PayloadDisplayName</key>
+    <string>Restrictions - Baseline</string>
+    <key>PayloadDescription</key>
+    <string></string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+    <key>PayloadEnabled</key>
+    <true/>
+    <key>PayloadRemovalDisallowed</key>
+    <true/>
+    <key>PayloadScope</key>
+    <string>System</string>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>PayloadDisplayName</key>
+            <string>Restrictions Payload</string>
+            <key>PayloadIdentifier</key>
+            <string>70714D64-03CE-442D-8207-482194A6917F</string>
+            <key>PayloadOrganization</key>
+            <string>JAMF Software</string>
+            <key>PayloadType</key>
+            <string>com.apple.applicationaccess</string>
+            <key>PayloadUUID</key>
+            <string>70714D64-03CE-442D-8207-482194A6917F</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>allowDeviceNameModification</key>
+            <false/>
+            <key>allowEraseContentAndSettings</key>
+            <false/>
+        </dict>
+    </array>
+</dict>
+</plist>
