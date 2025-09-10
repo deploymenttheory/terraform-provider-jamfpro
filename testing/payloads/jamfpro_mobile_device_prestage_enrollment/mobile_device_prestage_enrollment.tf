@@ -4,7 +4,7 @@ resource "jamfpro_mobile_device_prestage_enrollment" "example_prestage" {
   mdm_removable                           = false
   support_phone_number                    = "+44-1234-567890"
   support_email_address                   = "support@mycompany.org"
-  department                              = "IT Department"
+  department                              = "IT Services"
   default_prestage                        = false
   keep_existing_site_membership           = false
   keep_existing_location_information      = false
@@ -23,6 +23,7 @@ resource "jamfpro_mobile_device_prestage_enrollment" "example_prestage" {
   maximum_shared_accounts                 = 10
   configure_device_before_setup_assistant = true
   anchor_certificates                     = []
+  preserve_managed_apps                   = true
 
   skip_setup_items {
     location                = false
@@ -66,6 +67,10 @@ resource "jamfpro_mobile_device_prestage_enrollment" "example_prestage" {
     welcome                 = true
     tap_to_setup            = true
     safety_and_handling     = true
+    spoken_language         = true
+    keyboard                = true
+    multitasking            = true
+    os_showcase             = true
   }
 
   location_information {
@@ -75,7 +80,7 @@ resource "jamfpro_mobile_device_prestage_enrollment" "example_prestage" {
     email         = ""
     room          = ""
     position      = ""
-    department_id = "1"
+    department_id = "-1"
     building_id   = "-1"
   }
 
@@ -103,6 +108,6 @@ resource "jamfpro_mobile_device_prestage_enrollment" "example_prestage" {
   storage_quota_size_megabytes = 1024
 
   prestage_minimum_os_target_version_type_ios  = "MINIMUM_OS_SPECIFIC_VERSION"
-  minimum_os_specific_version_ios              = "18.4.1"
+  minimum_os_specific_version_ios              = "18.6"
   prestage_minimum_os_target_version_type_ipad = "NO_ENFORCEMENT"
 }
