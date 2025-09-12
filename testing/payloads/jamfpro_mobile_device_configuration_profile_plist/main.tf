@@ -4,7 +4,7 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_device_conf
   level              = "Device Level"
   deployment_method  = "Make Available in Self Service"
   redeploy_on_update = "All"
-  payloads           = file("${path.module}/Restrictions-Baseline.mobileconfig")
+  payloads           = file("${path.module}/Restrictions-Baseline2.mobileconfig")
 
   scope {
     all_mobile_devices = true
