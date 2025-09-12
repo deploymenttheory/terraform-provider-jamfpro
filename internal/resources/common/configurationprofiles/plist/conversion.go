@@ -42,7 +42,6 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 func mapSchemaToProfile(d *schema.ResourceData) *ConfigurationProfile {
 	uuidStr := uuid.New().String()
 
-	// Root Level
 	out := &ConfigurationProfile{
 		PayloadDescription:       d.Get("payloads.0.payload_description_header").(string),
 		PayloadDisplayName:       d.Get("payloads.0.payload_display_name_header").(string),
@@ -56,7 +55,6 @@ func mapSchemaToProfile(d *schema.ResourceData) *ConfigurationProfile {
 		PayloadVersion:           d.Get("payloads.0.payload_version_header").(int),
 	}
 
-	// Contents
 	payloadContents := d.Get("payloads.0.payload_content").([]interface{})
 	for _, v := range payloadContents {
 		val := v.(map[string]interface{})
@@ -135,7 +133,6 @@ func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
 		return nil, fmt.Errorf("failed to unmarshal plist: %w", err)
 	}
 
-	// Log the entire profile to verify its contents
 	profileData, err := json.MarshalIndent(profile, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal profile to JSON: %w", err)
@@ -159,7 +156,6 @@ func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
 		return nil, fmt.Errorf("failed to map profile to schema: %w", err)
 	}
 
-	// Convert the payload list to JSON for pretty print
 	jsonData, err := json.MarshalIndent(payloadsList, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal JSON: %w", err)

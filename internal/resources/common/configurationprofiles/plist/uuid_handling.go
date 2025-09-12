@@ -29,7 +29,6 @@ func ExtractUUIDs(data interface{}, uuidMap map[string]string, isRoot bool) {
 			}
 		}
 
-		// Recurse
 		for _, val := range v {
 			ExtractUUIDs(val, uuidMap, false)
 		}
@@ -54,7 +53,6 @@ func UpdateUUIDs(data interface{}, uuidMap map[string]string, isRoot bool) {
 	case map[string]interface{}:
 		displayName, hasDisplayName := v["PayloadDisplayName"].(string)
 
-		// Only update root-level UUID if explicitly present in the map as "root"
 		if isRoot {
 			if uuid, exists := uuidMap["root"]; exists {
 				v["PayloadUUID"] = uuid
@@ -91,11 +89,10 @@ func ValidatePayloadUUIDsMatch(existingPlist, newPlist interface{}, path string,
 		for key, existingValue := range existingMap {
 			newValue, exists := newMap[key]
 
-			// Build the full path for clear logging
 			currentPath := path + "/" + key
 
 			if !exists {
-				continue // Ignore keys that don't exist in the new payload
+				continue
 			}
 
 			switch key {
@@ -122,7 +119,6 @@ func ValidatePayloadUUIDsMatch(existingPlist, newPlist interface{}, path string,
 		}
 	}
 
-	// If this is the root level call (empty path indicates root) and no mismatches were found
 	if path == "Payload" && len(*mismatches) == 0 {
 		log.Printf("[DEBUG] No config profile UUID mismatches found between existing and new plist. Injection was successful.")
 	}

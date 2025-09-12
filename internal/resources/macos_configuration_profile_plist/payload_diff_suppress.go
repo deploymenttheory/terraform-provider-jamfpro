@@ -30,9 +30,7 @@ func DiffSuppressPayloads(k, old, new string, d *schema.ResourceData) bool {
 	fmt.Printf("[DIFFSUPPRESS] Old payload hash: %s\n", oldHash)
 	fmt.Printf("[DIFFSUPPRESS] New payload hash: %s\n", newHash)
 
-	areSame := oldHash == newHash
-
-	return areSame
+	return oldHash == newHash
 }
 
 // processPayload processes the payload by comparing the old and new payloads. It removes specified fields

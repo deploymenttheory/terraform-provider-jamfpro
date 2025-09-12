@@ -20,55 +20,43 @@ import (
 func ProcessConfigurationProfileForDiffSuppression(plistData string, fieldsToRemove []string) (string, error) {
 	log.Println("Starting ProcessConfigurationProfile")
 
-	// Step 1: Unmarshal
 	var rawData map[string]interface{}
 	if _, err := plist.Unmarshal([]byte(plistData), &rawData); err != nil {
 		log.Printf("Error unmarshalling plist data: %v\n", err)
 		return "", err
 	}
 
-	// Step 2: Remove specified fields
 	processedData := removeSpecifiedXMLFields(rawData, fieldsToRemove, "")
 
-	// Step 3: Clean empty array entries
 	cleanedArrays := cleanEmptyArrayEntries(processedData)
 
-	// Step 4: Normalize base64 content
 	normalizedBase64 := normalizeBase64Content(cleanedArrays)
 
-	// Step 5: Normalize XML tags
 	normalizedXML := normalizeXMLTags(normalizedBase64)
 
-	// Step 6: Normalize empty strings
 	normalizedStrings := normalizeEmptyStrings(normalizedXML)
 
-	// Step 7: normalize HTML Entities
 	normalizedData := normalizeHTMLEntitiesForDiff(normalizedStrings)
 
-	// Step 8: Sort keys
 	sortedData := SortPlistKeys(normalizedData.(map[string]interface{}))
 
-	// Step 9: Encode back to plist
 	encodedPlist, err := EncodePlist(sortedData)
 	if err != nil {
 		log.Printf("Error encoding plist data: %v\n", err)
 		return "", err
 	}
 
-	// Step 10: Remove trailing whitespace
 	return trimTrailingWhitespace(encodedPlist), nil
 }
 
 // removeSpecifiedXMLFields( removes specified fields from the plist data recursively.
 // useful for removing jamfpro specific unique identifiers from the plist data.
 func removeSpecifiedXMLFields(data map[string]interface{}, fieldsToRemove []string, path string) map[string]interface{} {
-	// Create a set of fields to remove for quick lookup (case-insensitive)
 	fieldsToRemoveSet := make(map[string]struct{}, len(fieldsToRemove))
 	for _, field := range fieldsToRemove {
 		fieldsToRemoveSet[strings.ToLower(field)] = struct{}{}
 	}
 
-	// Collect keys to remove to avoid modifying map while iterating
 	var keysToRemove []string
 	for key := range data {
 		if _, exists := fieldsToRemoveSet[strings.ToLower(key)]; exists {
@@ -77,12 +65,10 @@ func removeSpecifiedXMLFields(data map[string]interface{}, fieldsToRemove []stri
 		}
 	}
 
-	// Remove the identified keys
 	for _, key := range keysToRemove {
 		delete(data, key)
 	}
 
-	// Recursively process nested maps and arrays
 	for key, value := range data {
 		newPath := path + "/" + key
 		switch v := value.(type) {
@@ -96,7 +82,6 @@ func removeSpecifiedXMLFields(data map[string]interface{}, fieldsToRemove []stri
 					removeSpecifiedXMLFields(nestedMap, fieldsToRemove, newPath+strings.ReplaceAll(key, "/", "_")+strconv.Itoa(i))
 				}
 			}
-			// Ensure empty arrays are preserved
 			data[key] = v
 		}
 	}
@@ -104,15 +89,13 @@ func removeSpecifiedXMLFields(data map[string]interface{}, fieldsToRemove []stri
 	return data
 }
 
+// normalizeBase64Content normalizes base64 content by removing all whitespace characters
 func normalizeBase64Content(data interface{}) interface{} {
-	// Helper to check and normalize potential base64 string values
 	normalizeString := func(s string) string {
-		// If string has no spaces/newlines, leave it alone
 		if !strings.ContainsAny(s, " \n\t\r") {
 			return s
 		}
 
-		// Remove all whitespace and try to decode
 		clean := strings.Join(strings.Fields(s), "")
 		_, err := base64.StdEncoding.DecodeString(clean)
 		if err == nil {
@@ -148,19 +131,17 @@ func normalizeBase64Content(data interface{}) interface{} {
 // Returns normalized base64 string with all spacing/formatting removed for comparison
 // Base64 uses characters A-Z, a-z, 0-9, +, /, and = for padding
 func NormalizeBase64(input string) string {
-	// First remove all whitespace
 	trimmed := strings.Map(func(r rune) rune {
 		if unicode.IsSpace(r) {
-			return -1 // Drop ALL whitespace (spaces, tabs, newlines, etc)
+			return -1
 		}
 		return r
 	}, input)
 
-	// Check if the result is a valid base64 string
 	isBase64 := regexp.MustCompile(`^[A-Za-z0-9+/]*={0,2}$`).MatchString(trimmed)
 
 	if !isBase64 {
-		return input // Not base64, return original
+		return input
 	}
 
 	return trimmed
@@ -255,18 +236,14 @@ var safeHTMLEntity = regexp.MustCompile(`&[a-zA-Z]+;`)
 func normalizeHTMLEntitiesForDiff(data interface{}) interface{} {
 	switch v := data.(type) {
 	case string:
-		// If it's wrapped in <string> tags, strip them for evaluation, but preserve during output
 		str := strings.TrimSpace(v)
 		if strings.Contains(str, "&") {
-			// Unescape once
 			unescaped := html.UnescapeString(str)
 
-			// If unescaping results in a valid single-level entity, don't double-unescape
 			if strings.Contains(unescaped, "<") || strings.Contains(unescaped, ">") || safeHTMLEntity.MatchString(unescaped) {
 				return str
 			}
 
-			// Catch common double-escape: &amp;amp; -> &amp;
 			if strings.Contains(str, "&amp;") && !strings.Contains(str, "&amp;amp;") {
 				return unescaped
 			}
