@@ -3,9 +3,9 @@ package plist
 
 import (
 	"bytes"
+	"html"
 	"log"
 	"sort"
-	"strings"
 
 	"howett.net/plist"
 )
@@ -26,7 +26,7 @@ func EncodePlist(cleanedData map[string]interface{}) (string, error) {
 	log.Printf("Encoding plist data: %v\n", cleanedData)
 	var buffer bytes.Buffer
 	encoder := plist.NewEncoder(&buffer)
-	encoder.Indent("\t") // Optional: for pretty-printing the XML
+	encoder.Indent("\t")
 
 	if err := encoder.Encode(cleanedData); err != nil {
 		log.Printf("Error encoding plist data: %v\n", err)
@@ -35,8 +35,7 @@ func EncodePlist(cleanedData map[string]interface{}) (string, error) {
 
 	encodedString := buffer.String()
 
-	// Post-process to remove unnecessary escaped characters while keeping essential ones
-	encodedString = strings.ReplaceAll(encodedString, "&#34;", "\"") // Fix double quotes
+	encodedString = html.UnescapeString(encodedString)
 
 	return encodedString, nil
 }
@@ -65,7 +64,6 @@ func SortPlistKeys(data map[string]interface{}) map[string]interface{} {
 			log.Printf("[DEBUG] Key %s is an array, processing items...\n", k)
 			sortedArray := make([]interface{}, len(v))
 
-			// First check if all elements are strings
 			allStrings := true
 			for _, item := range v {
 				if _, ok := item.(string); !ok {
@@ -75,7 +73,6 @@ func SortPlistKeys(data map[string]interface{}) map[string]interface{} {
 			}
 
 			if allStrings {
-				// If all strings, create string array and sort
 				stringArray := make([]string, len(v))
 				for i, item := range v {
 					stringArray[i] = item.(string)
@@ -85,7 +82,6 @@ func SortPlistKeys(data map[string]interface{}) map[string]interface{} {
 					sortedArray[i] = item
 				}
 			} else {
-				// Handle non-string arrays
 				for i, item := range v {
 					log.Printf("[DEBUG] Processing item %d of array %s\n", i, k)
 					if nestedMap, ok := item.(map[string]interface{}); ok {
