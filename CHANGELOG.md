@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.25.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.24.0...v0.25.0) (2025-09-19)
+
+
+### Features
+
+* Add enable_maid_username_merge option for user initiated enrollment settings ([aaf5a9f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/aaf5a9fcd07f93837a1b8d2b3e77b26bf46093a4))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([77c46e4](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/77c46e4a35100e9b8463410c828d50e919cfaf75))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([f7a61b4](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/f7a61b47443fce6df449684e274a35d394acb11f))
+* add jamfpro_jamf_protect_plan and jamfpro_jamf_protect_plans data sources ([#867](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/867)) ([77c46e4](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/77c46e4a35100e9b8463410c828d50e919cfaf75))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([aaf5a9f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/aaf5a9fcd07f93837a1b8d2b3e77b26bf46093a4))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([77c46e4](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/77c46e4a35100e9b8463410c828d50e919cfaf75))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([f7a61b4](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/f7a61b47443fce6df449684e274a35d394acb11f))
+* jamfpro_computer_prestage_enrollment - new PSSO and skip setup item fields for Jamf Pro 11.20 ([#865](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/865)) ([f7a61b4](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/f7a61b47443fce6df449684e274a35d394acb11f))
+* jamfpro_mobile_device_prestage_ enrollment - support for new fields in Jamf Pro 11.20 ([#866](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/866)) ([aaf5a9f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/aaf5a9fcd07f93837a1b8d2b3e77b26bf46093a4))
+
 ## [0.24.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.23.0...v0.24.0) (2025-08-15)
 
 
