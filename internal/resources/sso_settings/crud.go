@@ -98,8 +98,26 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
-// delete deletes the SSO settings resource from Jamf Pro.
+// delete deletes the SSO settings resource from Jamf Pro and disables SSO if enabled.
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	client := meta.(*jamfpro.Client)
+	var diags diag.Diagnostics
+
+	ssoEnabled := d.Get("sso_enabled").(bool)
+	if ssoEnabled {
+		err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
+			apiErr := client.DisableSso()
+			if apiErr != nil {
+				return retry.RetryableError(apiErr)
+			}
+			return nil
+		})
+
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("failed to disable SSO settings: %v", err))
+		}
+	}
+
 	d.SetId("")
-	return nil
+	return diags
 }
