@@ -18,14 +18,14 @@ jobs:
     steps:
     
     - name: Harden Runner
-      uses: step-security/harden-runner@v2.13.0
+      uses: step-security/harden-runner@v2.13.1
       with:
         egress-policy: audit
     - uses: actions/checkout@v5
       with:
         ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.ref }}
 
-    - uses: actions/setup-go@v5.4.0
+    - uses: actions/setup-go@v6
       with:
         cache: false
         go-version-file: 'go.mod'

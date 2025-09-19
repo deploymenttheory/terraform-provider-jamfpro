@@ -27,7 +27,7 @@ jobs:
           path: terraform-provider-jamfpro
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         
       - name: Set up Python Environment
         run: |
