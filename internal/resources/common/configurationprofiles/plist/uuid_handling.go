@@ -6,75 +6,169 @@ import (
 )
 
 // ExtractUUIDs recursively traverses a plist structure represented as nested maps and slices,
-// extracting all occurrences of `PayloadUUID` and associating them with their respective
-// `PayloadDisplayName`. It stores these key-value pairs in the provided `uuidMap`.
+// extracting all occurrences of `PayloadUUID` and associating them with a composite key
+// that combines PayloadDisplayName and PayloadType to handle duplicate display names.
 // If a `PayloadDisplayName` is absent at the root level, it uses the special key "root".
 // This function is typically used to map existing UUIDs from a configuration profile
 // retrieved from Jamf Pro.
 func ExtractUUIDs(data interface{}, uuidMap map[string]string, isRoot bool) {
-	log.Printf("[DEBUG] Extracting existing payload UUIDs and PayloadDisplayName.")
+	extractUUIDsRecursive(data, uuidMap, isRoot, 0)
+}
+
+// extractUUIDsRecursive handles the recursive extraction with payload counting for unique keys
+func extractUUIDsRecursive(data interface{}, uuidMap map[string]string, isRoot bool, payloadIndex int) int {
+	log.Printf("[DEBUG] Extracting existing payload UUIDs.")
 
 	switch v := data.(type) {
 	case map[string]interface{}:
 		uuid, hasUUID := v["PayloadUUID"].(string)
 		displayName, hasDisplayName := v["PayloadDisplayName"].(string)
+		payloadType, hasPayloadType := v["PayloadType"].(string)
 
 		if hasUUID {
 			if isRoot {
 				uuidMap["root"] = uuid
 				log.Printf("[DEBUG] Found root PayloadUUID: %s", uuid)
-			} else if hasDisplayName {
-				uuidMap[displayName] = uuid
-				log.Printf("[DEBUG] Found inner PayloadUUID for '%s': %s", displayName, uuid)
+			} else {
+				// Create a composite key to handle duplicate PayloadDisplayName values
+				var key string
+				if hasDisplayName && hasPayloadType {
+					key = fmt.Sprintf("%s|%s|%d", displayName, payloadType, payloadIndex)
+				} else if hasDisplayName {
+					key = fmt.Sprintf("%s|%d", displayName, payloadIndex)
+				} else {
+					key = fmt.Sprintf("payload|%d", payloadIndex)
+				}
+				uuidMap[key] = uuid
+				log.Printf("[DEBUG] Found inner PayloadUUID for key '%s': %s", key, uuid)
+				payloadIndex++
 			}
 		}
 
-		// Recurse
+		// Recurse through all values
 		for _, val := range v {
-			ExtractUUIDs(val, uuidMap, false)
+			payloadIndex = extractUUIDsRecursive(val, uuidMap, false, payloadIndex)
 		}
 
 	case []interface{}:
 		for _, item := range v {
-			ExtractUUIDs(item, uuidMap, false)
+			payloadIndex = extractUUIDsRecursive(item, uuidMap, false, payloadIndex)
 		}
 	}
+
+	return payloadIndex
+}
+
+// ExtractPayloadIdentifiers recursively traverses a plist structure to extract PayloadIdentifier
+// values and associate them with a composite key for proper structure preservation
+func ExtractPayloadIdentifiers(data interface{}, identifierMap map[string]string, isRoot bool) {
+	extractPayloadIdentifiersRecursive(data, identifierMap, isRoot, 0)
+}
+
+// extractPayloadIdentifiersRecursive handles the recursive extraction with payload counting for unique keys
+func extractPayloadIdentifiersRecursive(data interface{}, identifierMap map[string]string, isRoot bool, payloadIndex int) int {
+	switch v := data.(type) {
+	case map[string]interface{}:
+		identifier, hasIdentifier := v["PayloadIdentifier"].(string)
+		displayName, hasDisplayName := v["PayloadDisplayName"].(string)
+		payloadType, hasPayloadType := v["PayloadType"].(string)
+
+		if hasIdentifier {
+			if isRoot {
+				identifierMap["root"] = identifier
+				log.Printf("[DEBUG] Found root PayloadIdentifier: %s", identifier)
+			} else {
+				// Create a composite key to handle duplicate PayloadDisplayName values
+				var key string
+				if hasDisplayName && hasPayloadType {
+					key = fmt.Sprintf("%s|%s|%d", displayName, payloadType, payloadIndex)
+				} else if hasDisplayName {
+					key = fmt.Sprintf("%s|%d", displayName, payloadIndex)
+				} else {
+					key = fmt.Sprintf("payload|%d", payloadIndex)
+				}
+				identifierMap[key] = identifier
+				log.Printf("[DEBUG] Found inner PayloadIdentifier for key '%s': %s", key, identifier)
+				payloadIndex++
+			}
+		}
+
+		// Recurse through all values
+		for _, val := range v {
+			payloadIndex = extractPayloadIdentifiersRecursive(val, identifierMap, false, payloadIndex)
+		}
+
+	case []interface{}:
+		for _, item := range v {
+			payloadIndex = extractPayloadIdentifiersRecursive(item, identifierMap, false, payloadIndex)
+		}
+	}
+
+	return payloadIndex
 }
 
 // UpdateUUIDs recursively traverses a plist structure represented as nested maps and slices,
 // updating the values of `PayloadUUID` and `PayloadIdentifier` fields using the UUIDs
-// provided in `uuidMap`. It matches UUIDs based on `PayloadDisplayName`. If a `PayloadDisplayName`
-// is absent at the root level, it uses the special key "root" from the map.
+// provided in `uuidMap` and `identifierMap`. It matches UUIDs based on composite keys.
+// If a `PayloadDisplayName` is absent at the root level, it uses the special key "root" from the map.
 // This function ensures that configuration profile UUIDs remain consistent with Jamf Pro
 // expectations during Terraform update operations.
-func UpdateUUIDs(data interface{}, uuidMap map[string]string, isRoot bool) {
+func UpdateUUIDs(data interface{}, uuidMap map[string]string, identifierMap map[string]string, isRoot bool) {
+	updateUUIDsRecursive(data, uuidMap, identifierMap, isRoot, 0)
+}
+
+// updateUUIDsRecursive handles the recursive update with payload counting for unique keys
+func updateUUIDsRecursive(data interface{}, uuidMap map[string]string, identifierMap map[string]string, isRoot bool, payloadIndex int) int {
 	log.Printf("[DEBUG] Injecting Jamf Pro post creation configuration profile PayloadUUID and PayloadIdentifier.")
 
 	switch v := data.(type) {
 	case map[string]interface{}:
+		_, hasUUID := v["PayloadUUID"].(string)
 		displayName, hasDisplayName := v["PayloadDisplayName"].(string)
+		payloadType, hasPayloadType := v["PayloadType"].(string)
 
 		// Only update root-level UUID if explicitly present in the map as "root"
 		if isRoot {
 			if uuid, exists := uuidMap["root"]; exists {
 				v["PayloadUUID"] = uuid
-				v["PayloadIdentifier"] = uuid
 			}
-		} else if hasDisplayName {
-			if uuid, exists := uuidMap[displayName]; exists {
-				v["PayloadUUID"] = uuid
-				v["PayloadIdentifier"] = uuid
+			if identifier, exists := identifierMap["root"]; exists {
+				v["PayloadIdentifier"] = identifier
 			}
+		} else if hasUUID {
+			// Create a composite key to match with extracted UUIDs
+			var key string
+			if hasDisplayName && hasPayloadType {
+				key = fmt.Sprintf("%s|%s|%d", displayName, payloadType, payloadIndex)
+			} else if hasDisplayName {
+				key = fmt.Sprintf("%s|%d", displayName, payloadIndex)
+			} else {
+				key = fmt.Sprintf("payload|%d", payloadIndex)
+			}
+
+			if existingUUID, exists := uuidMap[key]; exists {
+				v["PayloadUUID"] = existingUUID
+				log.Printf("[DEBUG] Updated PayloadUUID for key '%s' to: %s", key, existingUUID)
+			}
+			if identifier, exists := identifierMap[key]; exists {
+				v["PayloadIdentifier"] = identifier
+				log.Printf("[DEBUG] Updated PayloadIdentifier for key '%s' to: %s", key, identifier)
+			}
+			payloadIndex++
 		}
 
+		// Recurse through all values
 		for _, val := range v {
-			UpdateUUIDs(val, uuidMap, false)
+			payloadIndex = updateUUIDsRecursive(val, uuidMap, identifierMap, false, payloadIndex)
 		}
+
 	case []interface{}:
 		for _, item := range v {
-			UpdateUUIDs(item, uuidMap, false)
+			payloadIndex = updateUUIDsRecursive(item, uuidMap, identifierMap, false, payloadIndex)
 		}
 	}
+
+	return payloadIndex
 }
 
 // ValidatePayloadUUIDsMatch recursively compares UUID-related fields (`PayloadUUID` and
