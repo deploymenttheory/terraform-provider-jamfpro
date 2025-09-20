@@ -8,35 +8,31 @@ import (
 
 // ConfigurationProfile represents a root level MacOS configuration profile.
 type ConfigurationProfile struct {
-	// Standard / Expected
-	PayloadDescription       string           `mapstructure:"PayloadDescription"`
-	PayloadDisplayName       string           `mapstructure:"PayloadDisplayName" validate:"required"`
-	PayloadEnabled           bool             `mapstructure:"PayloadEnabled" validate:"required"`
-	PayloadIdentifier        string           `mapstructure:"PayloadIdentifier" validate:"required"`
-	PayloadOrganization      string           `mapstructure:"PayloadOrganization" validate:"required"`
-	PayloadRemovalDisallowed bool             `mapstructure:"PayloadRemovalDisallowed" validate:"required"`
-	PayloadScope             string           `mapstructure:"PayloadScope" validate:"required,oneof=System User Computer"`
-	PayloadType              string           `mapstructure:"PayloadType" validate:"required,eq=Configuration"`
-	PayloadUUID              string           `mapstructure:"PayloadUUID" validate:"required"`
-	PayloadVersion           int              `mapstructure:"PayloadVersion" validate:"required"`
-	PayloadContent           []PayloadContent `mapstructure:"PayloadContent"`
-	// Catch all for unexpected fields
-	Unexpected map[string]interface{} `mapstructure:",remain"`
+	PayloadDescription       string                 `mapstructure:"PayloadDescription"`
+	PayloadDisplayName       string                 `mapstructure:"PayloadDisplayName" validate:"required"`
+	PayloadEnabled           bool                   `mapstructure:"PayloadEnabled" validate:"required"`
+	PayloadIdentifier        string                 `mapstructure:"PayloadIdentifier" validate:"required"`
+	PayloadOrganization      string                 `mapstructure:"PayloadOrganization" validate:"required"`
+	PayloadRemovalDisallowed bool                   `mapstructure:"PayloadRemovalDisallowed" validate:"required"`
+	PayloadScope             string                 `mapstructure:"PayloadScope" validate:"required,oneof=System User Computer"`
+	PayloadType              string                 `mapstructure:"PayloadType" validate:"required,eq=Configuration"`
+	PayloadUUID              string                 `mapstructure:"PayloadUUID" validate:"required"`
+	PayloadVersion           int                    `mapstructure:"PayloadVersion" validate:"required"`
+	PayloadContent           []PayloadContent       `mapstructure:"PayloadContent"`
+	Unexpected               map[string]interface{} `mapstructure:",remain"`
 }
 
 // ConfigurationPayload represents a nested MacOS configuration profile.
 type PayloadContent struct {
-	// Standard / Expected
-	PayloadDescription  string `mapstructure:"PayloadDescription"`
-	PayloadDisplayName  string `mapstructure:"PayloadDisplayName"`
-	PayloadEnabled      bool   `mapstructure:"PayloadEnabled"`
-	PayloadIdentifier   string `mapstructure:"PayloadIdentifier"`
-	PayloadOrganization string `mapstructure:"PayloadOrganization"`
-	PayloadType         string `mapstructure:"PayloadType"`
-	PayloadUUID         string `mapstructure:"PayloadUUID"`
-	PayloadVersion      int    `mapstructure:"PayloadVersion"`
-	// Variable
-	ConfigurationItems map[string]interface{} `mapstructure:",remain"`
+	PayloadDescription  string                 `mapstructure:"PayloadDescription"`
+	PayloadDisplayName  string                 `mapstructure:"PayloadDisplayName"`
+	PayloadEnabled      bool                   `mapstructure:"PayloadEnabled"`
+	PayloadIdentifier   string                 `mapstructure:"PayloadIdentifier"`
+	PayloadOrganization string                 `mapstructure:"PayloadOrganization"`
+	PayloadType         string                 `mapstructure:"PayloadType"`
+	PayloadUUID         string                 `mapstructure:"PayloadUUID"`
+	PayloadVersion      int                    `mapstructure:"PayloadVersion"`
+	ConfigurationItems  map[string]interface{} `mapstructure:",remain"`
 }
 
 // NormalizePayloadState processes and normalizes a macOS Configuration Profile payload.
@@ -65,16 +61,13 @@ func NormalizePayloadState(payload any) string {
 		return ""
 	}
 
-	// Normalize Base64 content and XML formatting
 	normalizePlistPayloadContent(plistData)
 
-	// Marshal back to plist
 	xml, err := plist.MarshalIndent(plistData, plist.XMLFormat, "\t")
 	if err != nil {
 		return ""
 	}
 
-	// Trim trailing whitespace for consistency
 	return trimTrailingWhitespace(string(xml))
 }
 
