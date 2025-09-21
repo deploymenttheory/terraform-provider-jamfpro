@@ -67,6 +67,9 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/reenrollment"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/restricted_software"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/script"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/self_service_branding_image"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/self_service_branding_ios"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/self_service_branding_macos"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/self_service_plus_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/self_service_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/site"
@@ -473,6 +476,9 @@ func Provider() *schema.Provider {
 			"jamfpro_printer":                                     printer.ResourceJamfProPrinters(),
 			"jamfpro_reenrollment":                                reenrollment.ResourceReenrollmentSettings(),
 			"jamfpro_script":                                      script.ResourceJamfProScripts(),
+			"jamfpro_self_service_branding_image":                 self_service_branding_image.ResourceJamfProSelfServiceBrandingImage(),
+			"jamfpro_self_service_branding_ios":                   self_service_branding_ios.ResourceJamfProSelfServiceBrandingIOS(),
+			"jamfpro_self_service_branding_macos":                 self_service_branding_macos.ResourceJamfProSelfServiceBrandingMacOS(),
 			"jamfpro_self_service_settings":                       self_service_settings.ResourceJamfProSelfServiceSettings(),
 			"jamfpro_self_service_plus_settings":                  self_service_plus_settings.ResourceSelfServicePlusSettings(),
 			"jamfpro_smtp_server":                                 smtp_server.ResourceJamfProSMTPServer(),
