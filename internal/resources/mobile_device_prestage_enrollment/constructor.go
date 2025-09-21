@@ -57,6 +57,7 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceMobileDe
 		RTSEnabled:                             jamfpro.BoolPtr(d.Get("rts_enabled").(bool)),
 		RTSConfigProfileId:                     d.Get("rts_config_profile_id").(string),
 		MinimumOsSpecificVersionIpad:           d.Get("minimum_os_specific_version_ipad").(string),
+		PreserveManagedApps:                    jamfpro.BoolPtr(d.Get("preserve_managed_apps").(bool)),
 	}
 
 	if v, ok := d.GetOk("skip_setup_items"); ok && len(v.([]interface{})) > 0 {
@@ -142,6 +143,10 @@ func constructSkipSetupItems(data map[string]interface{}) jamfpro.MobileDevicePr
 		Welcome:               jamfpro.BoolPtr(data["welcome"].(bool)),
 		SafetyAndHandling:     jamfpro.BoolPtr(data["safety_and_handling"].(bool)),
 		TapToSetup:            jamfpro.BoolPtr(data["tap_to_setup"].(bool)),
+		SpokenLanguage:        jamfpro.BoolPtr(data["spoken_language"].(bool)),
+		Keyboard:              jamfpro.BoolPtr(data["keyboard"].(bool)),
+		Multitasking:          jamfpro.BoolPtr(data["multitasking"].(bool)),
+		OSShowcase:            jamfpro.BoolPtr(data["os_showcase"].(bool)),
 	}
 }
 
