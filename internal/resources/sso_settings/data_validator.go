@@ -2,9 +2,20 @@ package sso_settings
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+var (
+	errMetadataFileNameSetForURL             = errors.New("in 'jamfpro_sso_settings': metadata_file_name should not be set when metadata_source is URL")
+	errFederationMetadataFileSetForURL       = errors.New("in 'jamfpro_sso_settings': federation_metadata_file should not be set when metadata_source is URL")
+	errIdpURLRequiredForURL                  = errors.New("in 'jamfpro_sso_settings': idp_url is required when metadata_source is URL")
+	errMetadataFileNameRequiredForFile       = errors.New("in 'jamfpro_sso_settings': metadata_file_name is required when metadata_source is FILE")
+	errFederationMetadataFileRequiredForFile = errors.New("in 'jamfpro_sso_settings': federation_metadata_file is required when metadata_source is FILE")
+	errIdpURLSetForFile                      = errors.New("in 'jamfpro_sso_settings': idp_url should not be set when metadata_source is FILE")
+	errGroupEnrollmentNameRequired           = errors.New("in 'jamfpro_sso_settings': group_enrollment_access_name is required when group_enrollment_access_enabled is true")
 )
 
 // mainCustomDiffFunc orchestrates all custom diff validations for SSO settings
@@ -37,23 +48,23 @@ func validateSamlMetadataSettings(_ context.Context, diff *schema.ResourceDiff, 
 	switch metadataSource {
 	case "URL":
 		if samlConfig["metadata_file_name"].(string) != "" {
-			return fmt.Errorf("in 'jamfpro_sso_settings.%s': metadata_file_name should not be set when metadata_source is URL", resourceName)
+			return fmt.Errorf("%w: %s", errMetadataFileNameSetForURL, resourceName)
 		}
 		if samlConfig["federation_metadata_file"].(string) != "" {
-			return fmt.Errorf("in 'jamfpro_sso_settings.%s': federation_metadata_file should not be set when metadata_source is URL", resourceName)
+			return fmt.Errorf("%w: %s", errFederationMetadataFileSetForURL, resourceName)
 		}
 		if samlConfig["idp_url"].(string) == "" {
-			return fmt.Errorf("in 'jamfpro_sso_settings.%s': idp_url is required when metadata_source is URL", resourceName)
+			return fmt.Errorf("%w: %s", errIdpURLRequiredForURL, resourceName)
 		}
 	case "FILE":
 		if samlConfig["metadata_file_name"].(string) == "" {
-			return fmt.Errorf("in 'jamfpro_sso_settings.%s': metadata_file_name is required when metadata_source is FILE", resourceName)
+			return fmt.Errorf("%w: %s", errMetadataFileNameRequiredForFile, resourceName)
 		}
 		if samlConfig["federation_metadata_file"].(string) == "" {
-			return fmt.Errorf("in 'jamfpro_sso_settings.%s': federation_metadata_file is required when metadata_source is FILE", resourceName)
+			return fmt.Errorf("%w: %s", errFederationMetadataFileRequiredForFile, resourceName)
 		}
 		if samlConfig["idp_url"].(string) != "" {
-			return fmt.Errorf("in 'jamfpro_sso_settings.%s': idp_url should not be set when metadata_source is FILE", resourceName)
+			return fmt.Errorf("%w: %s", errIdpURLSetForFile, resourceName)
 		}
 	}
 
@@ -70,7 +81,7 @@ func validateGroupEnrollmentSettings(_ context.Context, diff *schema.ResourceDif
 	}
 
 	if groupEnabled && groupName == "" {
-		return fmt.Errorf("in 'jamfpro_sso_settings.%s': group_enrollment_access_name is required when group_enrollment_access_enabled is true", resourceName)
+		return fmt.Errorf("%w: %s", errGroupEnrollmentNameRequired, resourceName)
 	}
 
 	return nil
