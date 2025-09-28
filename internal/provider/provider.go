@@ -44,6 +44,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/file_share_distribution_point"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/group"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/icon"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/impact_alert_notification_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/jamf_cloud_distribution_service"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/jamf_connect"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/jamf_protect"
@@ -454,6 +455,7 @@ func Provider() *schema.Provider {
 			"jamfpro_enrollment_customization":                    enrollment_customization.ResourceJamfProEnrollmentCustomization(),
 			"jamfpro_file_share_distribution_point":               file_share_distribution_point.ResourceJamfProFileShareDistributionPoints(),
 			"jamfpro_icon":                                        icon.ResourceJamfProIcons(),
+			"jamfpro_impact_alert_notification_settings":          impact_alert_notification_settings.ResourceImpactAlertNotificationSettings(),
 			"jamfpro_jamf_connect":                                jamf_connect.ResourceJamfConnectConfigProfile(),
 			"jamfpro_jamf_protect":                                jamf_protect.ResourceJamfProtect(),
 			"jamfpro_ldap_server":                                 ldap_server.ResourceJamfProLDAPServers(),
