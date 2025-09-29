@@ -1,7 +1,22 @@
-# Terraform Provider for Jamf Pro
+# Community Terraform Provider for Jamf Pro
+
+[![Release](https://img.shields.io/github/v/release/deploymenttheory/terraform-provider-jamfpro)](https://github.com/deploymenttheory/terraform-provider-jamfpro/releases)
+[![Installs](https://img.shields.io/badge/dynamic/json?logo=terraform&label=installs&query=$.data.attributes.downloads&url=https%3A%2F%2Fregistry.terraform.io%2Fv2%2Fproviders%2F4960)](https://registry.terraform.io/providers/deploymenttheory/jamfpro)
+[![Registry](https://img.shields.io/badge/registry-doc%40latest-lightgrey?logo=terraform)](https://registry.terraform.io/providers/deploymenttheory/jamfpro/latest/docs)
+[![Lint Status](https://github.com/deploymenttheory/terraform-provider-jamfpro/workflows/go%20%7C%20Linter/badge.svg)](https://github.com/deploymenttheory/terraform-provider-jamfpro/actions)
+[![Go Report Card](https://goreportcard.com/badge/github.com/deploymenttheory/terraform-provider-jamfpro)](https://goreportcard.com/report/github.com/deploymenttheory/terraform-provider-jamfpro)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/deploymenttheory/terraform-provider-jamfpro)](https://go.dev/)
+[![License](https://img.shields.io/github/license/deploymenttheory/terraform-provider-jamfpro)](LICENSE)
+![Status: Public Preview](https://img.shields.io/badge/status-public%20preview-0078D4)
 
 > [!WARNING]
-> This code is in preview and provided solely for evaluation purposes. It is **NOT** intended for production use and may contain bugs, incomplete features, or other issues. Use at your own risk, as it may undergo significant changes without notice until it reaches general availability, and no guarantees or support is provided. By using this code, you acknowledge and agree to these conditions. Consult the documentation or contact the maintainer if you have questions or concerns.
+> This provider is in public preview. While it has been tested extensively, please thoroughly test in non-production environments before production use. Features may contain bugs or undergo changes based on community feedback. Use at your own risk until general availability is reached. No guarantees or official support is provided. By using this provider, you acknowledge and agree to these conditions. For questions or issues, please consult the documentation or contact the maintainer.
+
+
+> [!TIP]
+> This is a community-driven project and is not officially supported by Jamf.
+> If you need help, want to ask questions, or connect with other users and contributors, join our community
+> [Mac Admins Slack Channel](https://macadmins.slack.com/archives/C06R172PUV6) - #terraform-provider-jamfpro
 
 ## Introduction
 
@@ -105,102 +120,25 @@ This documentation provides a detailed explanation of the configuration options 
 ### Concurrency
 
 > [!WARNING]
-> Jamf Pro produces inconsistent behaviour when using the default parallelism setting of 10 with terraform. You can adjust paralellism by setting the Terraform parallelism count using `terraform apply -parallelism=X` to a setting of your choice. [HashiCorp Docs](https://developer.hashicorp.com/terraform/cli/commands/apply#parallelism-n) . It's recconmended to set parallelism to 1 to guarantee successful CRUD operations and resource stating, what this produces in a moderate performance hit is offset by reliability. Not using a `-parallelism=1` is at your own risk!
-
+> Jamf Pro produces inconsistent behaviour when using the default parallelism setting of 10 with terraform. You can adjust paralellism by setting the Terraform parallelism count using `terraform apply -parallelism=X` to a setting of your choice. [HashiCorp Docs](https://developer.hashicorp.com/terraform/cli/commands/apply#parallelism-n) . It's recconmended to always set parallelism to 1 to guarantee successful CRUD operations and resource stating. What this produces in a moderate performance hit is offset by reliability. Not using `-parallelism=1` is at your own risk!
 
 ## Configuration Schema
 
-### `jamfpro_instance_fqdn`
-- **Type:** String
-- **Required:** Yes
-- **Default:** Fetched from environment variable `envKeyJamfProUrlRoot` if not provided
-- **Description:** The base URL for the Jamf Pro instance. Example: `https://mycompany.jamfcloud.com`. This URL is used to interact with the Jamf Pro API.
-
-### `auth_method`
-- **Type:** String
-- **Required:** Yes
-- **Description:** The authentication method to use for connecting to Jamf Pro.
-- **Valid Values:** 
-  - `basic`: Use basic authentication with a username and password.
-  - `oauth2`: Use OAuth2 for authentication.
-- **Validation:** Ensures the value is one of the specified valid values.
-
-### `client_id`
-- **Type:** String
-- **Optional:** Yes
-- **Default:** Fetched from environment variable `envKeyOAuthClientSecret` if not provided
-- **Description:** The OAuth2 Client ID used for authentication with Jamf Pro. Required if `auth_method` is `oauth2`.
-
-### `client_secret`
-- **Type:** String
-- **Optional:** Yes
-- **Sensitive:** Yes
-- **Default:** Fetched from environment variable `envKeyOAuthClientSecret` if not provided
-- **Description:** The OAuth2 Client Secret used for authentication with Jamf Pro. This field is sensitive and required if `auth_method` is `oauth2`.
-
-### `basic_auth_username`
-- **Type:** String
-- **Optional:** Yes
-- **Default:** Fetched from environment variable `envKeyBasicAuthUsername` if not provided
-- **Description:** The username for basic authentication with Jamf Pro. Required if `auth_method` is `basic`.
-
-### `basic_auth_password`
-- **Type:** String
-- **Optional:** Yes
-- **Sensitive:** Yes
-- **Default:** Fetched from environment variable `envKeyBasicAuthPassword` if not provided
-- **Description:** The password for basic authentication with Jamf Pro. This field is sensitive and required if `auth_method` is `basic`.
-
-
-### `enable_client_sdk_logs`
-- **Type:** bool
-- **Optional:** Yes
-- **Default:** false
-- **Description:** Enables Client and SDK logs to appear in the tf output.
-
-### `client_sdk_log_export_path`
-- **Type:** String
-- **Optional:** Yes
-- **Default:** `""`
-- **Description:** The file path to export HTTP client logs to. If set, logs will be saved to this path. If omitted, logs will not be exported.
-
-### `hide_sensitive_data`
-- **Type:** Boolean
-- **Optional:** Yes
-- **Default:** `true`
-- **Description:** Determines whether sensitive information (like passwords) should be hidden in logs. Defaults to hiding sensitive data for security reasons.
-
-### `custom_cookies`
-- **Type:** List of Objects
-- **Optional:** Yes
-- **Default:** `nil`
-- **Description:** A list of custom cookies to be included in HTTP requests. Each cookie object should have a `name` and a `value`.
-  - **name**: 
-    - **Type:** String
-    - **Required:** Yes
-    - **Description:** The name of the cookie.
-  - **value**: 
-    - **Type:** String
-    - **Required:** Yes
-    - **Description:** The value of the cookie.
-
-### `jamf_load_balancer_lock`
-- **Type:** Boolean
-- **Optional:** Yes
-- **Default:** `false`
-- **Description:** Temporarily locks all HTTP client instances to a specific web app member in the load balancer for faster execution. This is a temporary solution until Jamf provides an official load balancing solution.
-
-### `token_refresh_buffer_period_seconds`
-- **Type:** Integer
-- **Optional:** Yes
-- **Default:** `300`
-- **Description:** The buffer period in seconds before the token expires during which the token will be refreshed. Helps ensure continuous authentication.
-
-### `mandatory_request_delay_milliseconds`
-- **Type:** Integer
-- **Optional:** Yes
-- **Default:** `100`
-- **Description:** A mandatory delay after each request before returning to reduce high volume of requests in a short time.
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `jamfpro_instance_fqdn` | String | Yes | Fetched from environment variable `envKeyJamfProUrlRoot` if not provided | The base URL for the Jamf Pro instance. Example: `https://mycompany.jamfcloud.com`. This URL is used to interact with the Jamf Pro API. |
+| `auth_method` | String | Yes | - | The authentication method to use for connecting to Jamf Pro. Valid values: `basic` (username/password) or `oauth2` |
+| `client_id` | String | Optional | Fetched from environment variable `envKeyOAuthClientSecret` if not provided | The OAuth2 Client ID used for authentication with Jamf Pro. Required if `auth_method` is `oauth2`. |
+| `client_secret` | String (Sensitive) | Optional | Fetched from environment variable `envKeyOAuthClientSecret` if not provided | The OAuth2 Client Secret used for authentication with Jamf Pro. This field is sensitive and required if `auth_method` is `oauth2`. |
+| `basic_auth_username` | String | Optional | Fetched from environment variable `envKeyBasicAuthUsername` if not provided | The username for basic authentication with Jamf Pro. Required if `auth_method` is `basic`. |
+| `basic_auth_password` | String (Sensitive) | Optional | Fetched from environment variable `envKeyBasicAuthPassword` if not provided | The password for basic authentication with Jamf Pro. This field is sensitive and required if `auth_method` is `basic`. |
+| `enable_client_sdk_logs` | Boolean | Optional | `false` | Enables Client and SDK logs to appear in the tf output. |
+| `client_sdk_log_export_path` | String | Optional | `""` | The file path to export HTTP client logs to. If set, logs will be saved to this path. If omitted, logs will not be exported. |
+| `hide_sensitive_data` | Boolean | Optional | `true` | Determines whether sensitive information (like passwords) should be hidden in logs. Defaults to hiding sensitive data for security reasons. |
+| `custom_cookies` | List of Objects | Optional | `nil` | A list of custom cookies to be included in HTTP requests. Each cookie object should have a `name` and a `value`. |
+| `jamf_load_balancer_lock` | Boolean | Optional | `false` | Temporarily locks all HTTP client instances to a specific web app member in the load balancer for faster execution. This is a temporary solution until Jamf provides an official load balancing solution. |
+| `token_refresh_buffer_period_seconds` | Integer | Optional | `300` | The buffer period in seconds before the token expires during which the token will be refreshed. Helps ensure continuous authentication. |
+| `mandatory_request_delay_milliseconds` | Integer | Optional | `100` | A mandatory delay after each request before returning to reduce high volume of requests in a short time. |
 
 
 # Supported Jamf Pro Resources
