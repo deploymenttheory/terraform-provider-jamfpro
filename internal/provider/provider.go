@@ -54,6 +54,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mac_application"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macos_configuration_profile_plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macos_configuration_profile_plist_generator"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macos_onboarding_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/managed_software_update"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/managed_software_update_feature_toggle"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mobile_device_application"
@@ -67,6 +68,9 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/reenrollment"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/restricted_software"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/script"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/self_service_branding_image"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/self_service_branding_ios"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/self_service_branding_macos"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/self_service_plus_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/self_service_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/site"
@@ -462,6 +466,7 @@ func Provider() *schema.Provider {
 			"jamfpro_mac_application":                             mac_application.ResourceJamfProMacApplication(),
 			"jamfpro_macos_configuration_profile_plist":           macos_configuration_profile_plist.ResourceJamfProMacOSConfigurationProfilesPlist(),
 			"jamfpro_macos_configuration_profile_plist_generator": macos_configuration_profile_plist_generator.ResourceJamfProMacOSConfigurationProfilesPlistGenerator(),
+			"jamfpro_macos_onboarding_settings":                   macos_onboarding_settings.ResourceJamfProMacOSOnboardingSettings(),
 			"jamfpro_managed_software_update":                     managed_software_update.ResourceJamfProManagedSoftwareUpdate(),
 			"jamfpro_mobile_device_application":                   mobile_device_application.ResourceJamfProMobileDeviceApplication(),
 			"jamfpro_managed_software_update_feature_toggle":      managed_software_update_feature_toggle.ResourceManagedSoftwareUpdateFeatureToggle(),
@@ -473,6 +478,9 @@ func Provider() *schema.Provider {
 			"jamfpro_printer":                                     printer.ResourceJamfProPrinters(),
 			"jamfpro_reenrollment":                                reenrollment.ResourceReenrollmentSettings(),
 			"jamfpro_script":                                      script.ResourceJamfProScripts(),
+			"jamfpro_self_service_branding_image":                 self_service_branding_image.ResourceJamfProSelfServiceBrandingImage(),
+			"jamfpro_self_service_branding_ios":                   self_service_branding_ios.ResourceJamfProSelfServiceBrandingIOS(),
+			"jamfpro_self_service_branding_macos":                 self_service_branding_macos.ResourceJamfProSelfServiceBrandingMacOS(),
 			"jamfpro_self_service_settings":                       self_service_settings.ResourceJamfProSelfServiceSettings(),
 			"jamfpro_self_service_plus_settings":                  self_service_plus_settings.ResourceSelfServicePlusSettings(),
 			"jamfpro_smtp_server":                                 smtp_server.ResourceJamfProSMTPServer(),
