@@ -81,11 +81,6 @@ We encourage you to explore this repository to:
 
 Whether you're new to Terraform or looking to enhance your existing Jamf Pro management, this demo repository serves as a valuable resource to kickstart your infrastructure-as-code journey with Jamf Pro.
 
-## Getting Started
-
-Please refer to the [Getting Started](https://registry.terraform.io/providers/deploymenttheory/jamfpro/latest/docs) guide in the terraform registry for more information on how to get started.
-
-
 ## Requirements
 
 - [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.13.0
