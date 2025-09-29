@@ -81,70 +81,20 @@ We encourage you to explore this repository to:
 
 Whether you're new to Terraform or looking to enhance your existing Jamf Pro management, this demo repository serves as a valuable resource to kickstart your infrastructure-as-code journey with Jamf Pro.
 
-## Quick Start Guide
+## Getting Started
 
-- Minimum Requirements:
+Please refer to the [Getting Started](https://registry.terraform.io/providers/deploymenttheory/jamfpro/latest/docs) guide in the terraform registry for more information on how to get started.
 
-```hcl
-provider "jamfpro" {
-  jamfpro_instance_fqdn = "https://yourserver.jamfcloud.com"
-  auth_method     = "oauth2"
-  client_id       = "your client id"
-  client_secret   = "your client secret"
-  jamfpro_load_balancer_lock = true
-}
-```
-
-- Full Configuration:
-
-```hcl
-provider "jamfpro" {
-  jamfpro_instance_fqdn = "https://yourserver.jamfcloud.com"
-  auth_method     = "oauth2"
-  client_id       = "your client id"
-  client_secret   = "your client secret"
-  enable_client_sdk_logs = false
-  client_sdk_log_export_path = "/path/to/logfile.json"
-  hide_sensitive_data = true
-  custom_cookies {
-    // Cookie URL is set to jamfpro_instance_fqdn
-    name = "cookie name"
-    value = "cookie value"
-  }
-  jamfpro_load_balancer_lock = true
-  token_refresh_buffer_period_seconds = 300
-  mandatory_request_delay_milliseconds = 100
-  
-}
-```
-
-The provider contains:
-
-- Resources and data sources for Jamf Pro entities (`internal/provider/`),
-- Examples [examples](https://github.com/deploymenttheory/terraform-provider-jamfpro/tree/main/examples) directory for sample configurations and usage scenarios of the `terraform-provider-jamfpro` provider.
-- Documentation [docs](https://github.com/deploymenttheory/terraform-provider-jamfpro/tree/main/docs)
 
 ## Requirements
 
-- [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.11.0
+- [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.13.0
 - [Go](https://golang.org/doc/install) >= 1.22.4
-- [Jamf Pro](https://www.jamf.com/) >= 11.15.0
+- [Jamf Pro](https://www.jamf.com/) >= 11.20.0
 
 (Tested with production Jamf Pro instances, with and without SSO integratioin with Microsoft Entra ID. We do not test against beta or preview versions of Jamf Pro due to potential data model changes.)
 
-## Community & Support
-
-For further community support and to engage with other users of the Jamf Pro Terraform Provider, please join us on the Mac Admins Slack channel. You can ask questions, provide feedback, and share best practices with the community. Join us at:
-
-- [Mac Admins Slack Channel](https://macadmins.slack.com/archives/C06R172PUV6) - #terraform-provider-jamfpro
-
-## Getting Started with Examples
-
-### Provider Configuration for Jamf Pro in Terraform
-
-This documentation provides a detailed explanation of the configuration options available in the `provider.tf` file for setting up the Jamf Pro provider in Terraform.
-
-### Jamf Cloud Load Balancing and Cookies
+## Jamf Cloud Load Balancing and Cookies
 
 - Jamf Cloud uses a load balancer to distribute traffic across multiple web app members (typically 2). When resource's are manipulated on a given web app member, there is up to a 60 second time box until this resources changes are propagated and reflected onto the other web app(s). This architecture can cause issues with Terraform's http client default behaviour when multiple instances are running in parallel and also due to the speed terraform operates. This results in scenarios where it's very likely that a create by terraform, followed by a read (for stating) will freqently communicate with different web app members during a terraform run. This causes stating 'unfound' resource issues.
 - To mitigate this please use the `jamfpro_load_balancer_lock` (which enforces a single cookie across all parallel instances of Terraform operations). This feature on first run obtains all available web cookies (jpro-ingress) from Jamf Pro and selects and applies a single one to the http client for all subsequent api calls during the terraform run. This is eqivalent to a sticky session.
@@ -155,25 +105,14 @@ This documentation provides a detailed explanation of the configuration options 
 > [!WARNING]
 > Jamf Pro produces inconsistent behaviour when using the default parallelism setting of 10 with terraform. You can adjust paralellism by setting the Terraform parallelism count using `terraform apply -parallelism=X` to a setting of your choice. [HashiCorp Docs](https://developer.hashicorp.com/terraform/cli/commands/apply#parallelism-n) . It's recconmended to always set parallelism to 1 to guarantee successful CRUD operations and resource stating. What this produces in a moderate performance hit is offset by reliability. Not using `-parallelism=1` is at your own risk!
 
-## Configuration Schema
+## Community & Support
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `jamfpro_instance_fqdn` | String | Yes | Fetched from environment variable `envKeyJamfProUrlRoot` if not provided | The base URL for the Jamf Pro instance. Example: `https://mycompany.jamfcloud.com`. This URL is used to interact with the Jamf Pro API. |
-| `auth_method` | String | Yes | - | The authentication method to use for connecting to Jamf Pro. Valid values: `basic` (username/password) or `oauth2` |
-| `client_id` | String | Optional | Fetched from environment variable `envKeyOAuthClientSecret` if not provided | The OAuth2 Client ID used for authentication with Jamf Pro. Required if `auth_method` is `oauth2`. |
-| `client_secret` | String (Sensitive) | Optional | Fetched from environment variable `envKeyOAuthClientSecret` if not provided | The OAuth2 Client Secret used for authentication with Jamf Pro. This field is sensitive and required if `auth_method` is `oauth2`. |
-| `basic_auth_username` | String | Optional | Fetched from environment variable `envKeyBasicAuthUsername` if not provided | The username for basic authentication with Jamf Pro. Required if `auth_method` is `basic`. |
-| `basic_auth_password` | String (Sensitive) | Optional | Fetched from environment variable `envKeyBasicAuthPassword` if not provided | The password for basic authentication with Jamf Pro. This field is sensitive and required if `auth_method` is `basic`. |
-| `enable_client_sdk_logs` | Boolean | Optional | `false` | Enables Client and SDK logs to appear in the tf output. |
-| `client_sdk_log_export_path` | String | Optional | `""` | The file path to export HTTP client logs to. If set, logs will be saved to this path. If omitted, logs will not be exported. |
-| `hide_sensitive_data` | Boolean | Optional | `true` | Determines whether sensitive information (like passwords) should be hidden in logs. Defaults to hiding sensitive data for security reasons. |
-| `custom_cookies` | List of Objects | Optional | `nil` | A list of custom cookies to be included in HTTP requests. Each cookie object should have a `name` and a `value`. |
-| `jamf_load_balancer_lock` | Boolean | Optional | `false` | Temporarily locks all HTTP client instances to a specific web app member in the load balancer for faster execution. This is a temporary solution until Jamf provides an official load balancing solution. |
-| `token_refresh_buffer_period_seconds` | Integer | Optional | `300` | The buffer period in seconds before the token expires during which the token will be refreshed. Helps ensure continuous authentication. |
-| `mandatory_request_delay_milliseconds` | Integer | Optional | `100` | A mandatory delay after each request before returning to reduce high volume of requests in a short time. |
+For further community support and to engage with other users of the Jamf Pro Terraform Provider, please join us on the Mac Admins Slack channel. You can ask questions, provide feedback, and share best practices with the community. Join us at:
+
+- [Mac Admins Slack Channel](https://macadmins.slack.com/archives/C06R172PUV6) - #terraform-provider-jamfpro
 
 
-# Supported Jamf Pro Resources
+## Disclaimer
 
-[Supported Resources](https://registry.terraform.io/providers/deploymenttheory/jamfpro/latest/docs)
+> [!IMPORTANT]  
+> While every effort is made to maintain accuracy and reliability, users should thoroughly test configurations in non-production environments before deploying to production. Always refer to official Jamf documentation for the most up-to-date information on Jamf Pro services and features.
