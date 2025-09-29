@@ -54,6 +54,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mac_application"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macos_configuration_profile_plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macos_configuration_profile_plist_generator"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/macos_onboarding_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/managed_software_update"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/managed_software_update_feature_toggle"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/resources/mobile_device_application"
@@ -465,6 +466,7 @@ func Provider() *schema.Provider {
 			"jamfpro_mac_application":                             mac_application.ResourceJamfProMacApplication(),
 			"jamfpro_macos_configuration_profile_plist":           macos_configuration_profile_plist.ResourceJamfProMacOSConfigurationProfilesPlist(),
 			"jamfpro_macos_configuration_profile_plist_generator": macos_configuration_profile_plist_generator.ResourceJamfProMacOSConfigurationProfilesPlistGenerator(),
+			"jamfpro_macos_onboarding_settings":                   macos_onboarding_settings.ResourceJamfProMacOSOnboardingSettings(),
 			"jamfpro_managed_software_update":                     managed_software_update.ResourceJamfProManagedSoftwareUpdate(),
 			"jamfpro_mobile_device_application":                   mobile_device_application.ResourceJamfProMobileDeviceApplication(),
 			"jamfpro_managed_software_update_feature_toggle":      managed_software_update_feature_toggle.ResourceManagedSoftwareUpdateFeatureToggle(),
