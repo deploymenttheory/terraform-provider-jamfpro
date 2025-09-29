@@ -19,7 +19,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	resource, err := construct(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct SSO settings: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct SSO settings: %w", err))
 	}
 
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
@@ -31,7 +31,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create SSO settings: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to create SSO settings: %w", err))
 	}
 
 	d.SetId("jamfpro_sso_settings_singleton")
@@ -80,7 +80,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	resource, err := construct(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct SSO settings: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to construct SSO settings: %w", err))
 	}
 
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
@@ -92,14 +92,32 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to update SSO settings: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to update SSO settings: %w", err))
 	}
 
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
-// delete deletes the SSO settings resource from Jamf Pro.
+// delete deletes the SSO settings resource from Jamf Pro and disables SSO if enabled.
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	client := meta.(*jamfpro.Client)
+	var diags diag.Diagnostics
+
+	ssoEnabled := d.Get("sso_enabled").(bool)
+	if ssoEnabled {
+		err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
+			apiErr := client.DisableSso()
+			if apiErr != nil {
+				return retry.RetryableError(apiErr)
+			}
+			return nil
+		})
+
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("failed to disable SSO settings: %w", err))
+		}
+	}
+
 	d.SetId("")
-	return nil
+	return diags
 }
