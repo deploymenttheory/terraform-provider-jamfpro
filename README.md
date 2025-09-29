@@ -26,6 +26,39 @@ The jamfpro provider is engineered to enrich your CI/CD workflows with Jamf Pro'
 
 Its primary goal is to enhance the efficiency of managing, deploying, and maintaining Apple devices across your infrastructure, fostering an 'everything-as-code' mindset.
 
+## Use Cases
+
+- **Infrastructure as Code for Jamf Pro**  
+  Manage Jamf Pro configuration (apps, groups, policies, device management, and more) as code, enabling version control, peer review, and repeatable deployments—just as you would for cloud infrastructure in Azure or GCP.
+
+- **Automated, Auditable Change Management**  
+  Use Terraform's plan and apply in gitOps workflows to preview, approve, and track changes to your Jamf Pro environment, ensuring all modifications are intentional, reviewed, and logged.
+
+- **Environment Replication and Drift Detection**
+  Reproduce Jamf Pro tenant configurations across multiple environments (development, staging, production) or tenants, and detect configuration drift over time using Terraform’s state management.
+
+- **Disaster Recovery and Rapid Rebuilds**  
+  Store your Jamf Pro configuration in code, allowing for rapid recovery or migration of tenant settings, policies, and assignments in the event of accidental changes or tenant loss.
+
+- **Collaboration and Delegation**
+  Empower teams to collaborate on Jamf Pro configuration using pull requests, code reviews, and CI/CD pipelines, reducing bottlenecks and enabling safe delegation of administrative tasks.
+
+- **Bulk and Consistent Policy Enforcement**
+  Apply security, compliance, and device management policies at scale, ensuring consistency and reducing manual configuration errors across large organizations or multiple tenants.
+
+- **Self-Service via Terraform Modules**  
+  Build reusable Terraform modules for common Jamf Pro workloads, enabling service-owning teams to provide self-service provisioning to other engineering teams while maintaining standards and reducing manual effort.
+
+- **Integration with Policy-as-Code (OPA/Conftest)**  
+  Integrate with Open Policy Agent (OPA) or Conftest to enforce organizational standards, compliance, and guardrails on Jamf Pro resources before deployment, ensuring only approved configurations are applied in production.
+
+- **Guardrailed Deployments**  
+  Implement automated checks and guardrails in CI/CD pipelines to prevent misconfiguration and enforce best practices, reducing risk and improving governance for Jamf Pro administration.
+
+## Getting Started
+
+Please refer to the [Getting Started](https://registry.terraform.io/providers/deploymenttheory/jamfpro/latest/docs) guide in the terraform registry for more information on how to get started.
+
 ## Demo Implementation
 
 To help you get started and understand the practical implementation of this provider, we've created a comprehensive demo repository:
