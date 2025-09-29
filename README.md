@@ -3,7 +3,7 @@
 [![Release](https://img.shields.io/github/v/release/deploymenttheory/terraform-provider-jamfpro)](https://github.com/deploymenttheory/terraform-provider-jamfpro/releases)
 [![Installs](https://img.shields.io/badge/dynamic/json?logo=terraform&label=installs&query=$.data.attributes.downloads&url=https%3A%2F%2Fregistry.terraform.io%2Fv2%2Fproviders%2F4960)](https://registry.terraform.io/providers/deploymenttheory/jamfpro)
 [![Registry](https://img.shields.io/badge/registry-doc%40latest-lightgrey?logo=terraform)](https://registry.terraform.io/providers/deploymenttheory/jamfpro/latest/docs)
-[![Lint Status](https://github.com/deploymenttheory/terraform-provider-jamfpro/workflows/go%20%7C%20Linter/badge.svg)](https://github.com/deploymenttheory/terraform-provider-jamfpro/actions)
+[![Lint Status](https://github.com/deploymenttheory/terraform-provider-jamfpro/workflows/Linter/badge.svg)](https://github.com/deploymenttheory/terraform-provider-jamfpro/actions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/deploymenttheory/terraform-provider-jamfpro)](https://goreportcard.com/report/github.com/deploymenttheory/terraform-provider-jamfpro)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/deploymenttheory/terraform-provider-jamfpro)](https://go.dev/)
 [![License](https://img.shields.io/github/license/deploymenttheory/terraform-provider-jamfpro)](LICENSE)
