@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.25.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.24.0...v0.25.0) (2025-09-29)
+
+
+### Features
+
+* Add enable_maid_username_merge option for user initiated enrollment settings ([0b7e007](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/0b7e0078c7af7ba7617f42bff2d9eb99bf69c158))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([cd43d9d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/cd43d9d96d12562473a9576bba74b9064d0fce07))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([ed731d5](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/ed731d58c9122c58246473beeeb73fbfa56e2645))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([aaf5a9f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/aaf5a9fcd07f93837a1b8d2b3e77b26bf46093a4))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([77c46e4](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/77c46e4a35100e9b8463410c828d50e919cfaf75))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([f7a61b4](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/f7a61b47443fce6df449684e274a35d394acb11f))
+* add jamfpro_jamf_protect_plan and jamfpro_jamf_protect_plans data sources ([#867](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/867)) ([77c46e4](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/77c46e4a35100e9b8463410c828d50e919cfaf75))
+* add macos_onboarding_settings resource ([#873](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/873)) ([cd43d9d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/cd43d9d96d12562473a9576bba74b9064d0fce07))
+* add Self Service branding resources for iOS, macOS and images ([#878](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/878)) ([ed731d5](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/ed731d58c9122c58246473beeeb73fbfa56e2645))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([0b7e007](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/0b7e0078c7af7ba7617f42bff2d9eb99bf69c158))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([cd43d9d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/cd43d9d96d12562473a9576bba74b9064d0fce07))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([ed731d5](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/ed731d58c9122c58246473beeeb73fbfa56e2645))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([aaf5a9f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/aaf5a9fcd07f93837a1b8d2b3e77b26bf46093a4))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([77c46e4](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/77c46e4a35100e9b8463410c828d50e919cfaf75))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([f7a61b4](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/f7a61b47443fce6df449684e274a35d394acb11f))
+* jamfpro_computer_prestage_enrollment - new PSSO and skip setup item fields for Jamf Pro 11.20 ([#865](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/865)) ([f7a61b4](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/f7a61b47443fce6df449684e274a35d394acb11f))
+* jamfpro_mobile_device_prestage_ enrollment - support for new fields in Jamf Pro 11.20 ([#866](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/866)) ([aaf5a9f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/aaf5a9fcd07f93837a1b8d2b3e77b26bf46093a4))
+* jamfpro_sso_settings - disable SSO if enabled on destroy ([#876](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/876)) ([0b7e007](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/0b7e0078c7af7ba7617f42bff2d9eb99bf69c158))
+
+
+### Bug Fixes
+
+* badge ([c5221a2](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/c5221a2fd2db6baa0f52f0bb2bedd660bbfc9082))
+
 ## [0.24.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.23.0...v0.24.0) (2025-08-15)
 
 
