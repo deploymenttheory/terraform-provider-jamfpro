@@ -8,6 +8,14 @@ import (
 
 func ResourceJamfProComputerInventoryCollectionSettings() *schema.Resource {
 	return &schema.Resource{
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    resourceComputerInventoryCollectionSettingsV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: upgradeComputerInventoryCollectionSettingsV0toV1,
+				Version: 0,
+			},
+		},
 		CreateContext: create,
 		ReadContext:   readWithCleanup,
 		UpdateContext: update,
