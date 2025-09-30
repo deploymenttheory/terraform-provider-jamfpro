@@ -76,7 +76,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceSsoSettings, error) {
 
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro SSO Settings to JSON: %v", err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro SSO Settings to JSON: %w", err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro SSO Settings JSON:\n%s\n", string(resourceJSON))
