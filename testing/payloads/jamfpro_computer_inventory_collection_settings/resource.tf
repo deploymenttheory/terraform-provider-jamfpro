@@ -1,4 +1,4 @@
-resource "jamfpro_computer_inventory_collection_settings" "example" {
+resource "jamfpro_computer_inventory_collection_settings" "jamfpro_computer_inventory_collection_settings" {
   computer_inventory_collection_preferences {
     monitor_application_usage                          = false
     include_packages                                   = true
@@ -15,15 +15,5 @@ resource "jamfpro_computer_inventory_collection_settings" "example" {
     allow_changing_user_and_location                   = true
     use_unix_user_paths                                = true
     collect_unmanaged_certificates                     = true
-  }
-
-  application_paths {
-    path = "/Applications/Custom/App1"
-  }
-  application_paths {
-    path = "/Applications/Custom/App2"
-  }
-  application_paths {
-    path = "/Applications/Adobe/Creative Cloud"
   }
 }

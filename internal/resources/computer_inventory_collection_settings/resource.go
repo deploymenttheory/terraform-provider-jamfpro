@@ -33,16 +33,6 @@ func ResourceJamfProComputerInventoryCollectionSettings() *schema.Resource {
 							Required:    true,
 							Description: "Collect the number of minutes applications are in the foreground.",
 						},
-						"include_fonts": {
-							Type:        schema.TypeBool,
-							Required:    true,
-							Description: "Include fonts in inventory collection.",
-						},
-						"include_plugins": {
-							Type:        schema.TypeBool,
-							Required:    true,
-							Description: "Include plugins in inventory collection.",
-						},
 						"include_packages": {
 							Type:        schema.TypeBool,
 							Required:    true,
@@ -117,8 +107,6 @@ func ResourceJamfProComputerInventoryCollectionSettings() *schema.Resource {
 				},
 			},
 			"application_paths": pathSchema("Custom paths to use for collecting applications. These paths will also be used for collecting Application Usage information (if enabled)"),
-			"font_paths":        pathSchema("Custom paths to use when collecting fonts. Collect names, version numbers, and paths of installed fonts"),
-			"plugin_paths":      pathSchema("Custom paths to use when collecting plug-ins. Collect names, version numbers, and paths of installed plug-ins"),
 		},
 	}
 }
