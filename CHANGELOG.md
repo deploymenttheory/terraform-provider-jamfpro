@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.26.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.25.0...v0.26.0) (2025-10-01)
+
+
+### Features
+
+* Add enable_maid_username_merge option for user initiated enrollment settings ([36b28df](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/36b28df2a9ea2a6e4f0cb808d8ced08e11279704))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([86815ee](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/86815eef6670491988663d22f0620a19078d3d08))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([3b75633](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/3b7563391ae762570773f5967637104c53af132c))
+* add impact_alert_notification_settings resource (11.21) ([#884](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/884)) ([36b28df](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/36b28df2a9ea2a6e4f0cb808d8ced08e11279704))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([36b28df](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/36b28df2a9ea2a6e4f0cb808d8ced08e11279704))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([86815ee](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/86815eef6670491988663d22f0620a19078d3d08))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([3b75633](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/3b7563391ae762570773f5967637104c53af132c))
+
+
+### Bug Fixes
+
+* configuration profile identifyer and UUID mismatches when updating ([#860](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/860)) ([3b75633](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/3b7563391ae762570773f5967637104c53af132c))
+* remove deprecated fields from computer_inventory_collection_settings and handle updating app paths correctly (11.21) ([#885](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/885)) ([86815ee](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/86815eef6670491988663d22f0620a19078d3d08))
+
 ## [0.25.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.24.0...v0.25.0) (2025-09-29)
 
 
