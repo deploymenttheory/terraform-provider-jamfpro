@@ -1,0 +1,7 @@
+{
+  "id": 789,
+  "name": "Test Folder Dock Item",
+  "type": "Folder",
+  "path": "~/Downloads",
+  "contents": "<dict><key>GUID</key><integer>-91117049</integer><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>~/Downloads</string><key>_CFURLStringType</key><integer>15</integer></dict><key>file-label</key><string>Test Folder Dock Item</string></dict><key>tile-type</key><string>directory-tile</string></dict>"
+}

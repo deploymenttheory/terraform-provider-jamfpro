@@ -1,0 +1,7 @@
+{
+  "id": 123,
+  "name": "Test App Dock Item",
+  "type": "App",
+  "path": "file://localhost/Applications/iTunes.app/",
+  "contents": "<dict><key>GUID</key><integer>-91117049</integer><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>file://localhost/Applications/iTunes.app/</string><key>_CFURLStringType</key><integer>15</integer></dict><key>file-label</key><string>Test App Dock Item</string></dict><key>tile-type</key><string>file-tile</string></dict>"
+}

@@ -140,8 +140,9 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 					"not handled by 'payloads' diff suppression. Switch off at your own risk.",
 			},
 			"redeploy_on_update": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:      schema.TypeString,
+				WriteOnly: true,
+				Required:  true,
 				Description: "Defines the redeployment behaviour when an update to a macOS config profile" +
 					"occurs. This is always 'Newly Assigned' on new profile objects, but may be set to 'All'" +
 					"on profile update requests once the configuration profile has been deployed to at least" +

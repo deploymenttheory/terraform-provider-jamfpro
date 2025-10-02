@@ -1,0 +1,7 @@
+{
+  "id": 456,
+  "name": "Test File Dock Item",
+  "type": "File",
+  "path": "/etc/hosts",
+  "contents": "<dict><key>GUID</key><integer>-91117049</integer><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/etc/hosts</string><key>_CFURLStringType</key><integer>15</integer></dict><key>file-label</key><string>Test File Dock Item</string></dict><key>tile-type</key><string>file-tile</string></dict>"
+}
