@@ -22,7 +22,6 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfiguratio
 		"uuid":                resp.General.UUID,
 		"distribution_method": resp.General.DistributionMethod,
 		"user_removable":      resp.General.UserRemovable,
-		"redeploy_on_update":  resp.General.RedeployOnUpdate,
 	}
 
 	// Check if the level is "Computer" and set it to "System", otherwise use the value from resource
