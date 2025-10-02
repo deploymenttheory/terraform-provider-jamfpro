@@ -142,10 +142,10 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 			"redeploy_on_update": {
 				Type:     schema.TypeString,
 				Required: true,
-				Description: "Defines the redeployment behaviour when an update to a macOS config profile" +
-					"occurs. This is always 'Newly Assigned' on new profile objects, but may be set to 'All'" +
-					"on profile update requests once the configuration profile has been deployed to at least" +
-					" one device.",
+				Description: "Defines the redeployment behaviour when an update to a macOS configuration profile occurs. " +
+					"Valid values are 'All' or 'Newly Assigned'. Note: Jamf Pro's API returns 'Newly Assigned' in read responses " +
+					"for context and does not reflect transient decisions applied at update time. The provider does not infer or " +
+					"override this value from API reads; set it explicitly to control redeployment behaviour when updating a profile.",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v, ok := val.(string)
 					if !ok {
