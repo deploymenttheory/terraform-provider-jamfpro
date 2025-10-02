@@ -3,6 +3,7 @@ package computer_inventory_collection_settings
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 
@@ -13,6 +14,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+var (
+	errConstructSettings         = errors.New("failed to construct Jamf Pro Computer Inventory Collection Settings")
+	errApplySettings             = errors.New("failed to apply Jamf Pro Computer Inventory Collection Settings")
+	errConstructCustomPaths      = errors.New("failed to construct custom paths")
+	errCreateCustomPath          = errors.New("failed to create custom path")
+	errDeleteCustomPath          = errors.New("failed to delete custom path")
+	errDeleteCustomPathOnDestroy = errors.New("failed to delete custom path during resource destruction")
+)
+
 // create is responsible for initializing the Jamf Pro Computer Inventory Collection Settings in Terraform.
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
@@ -20,7 +30,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	settings, err := construct(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Inventory Collection Settings: %v", err))
+		return diag.FromErr(fmt.Errorf("%w: %w", errConstructSettings, err))
 	}
 
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
@@ -32,12 +42,12 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Computer Inventory Collection Settings: %v", err))
+		return diag.FromErr(fmt.Errorf("%w: %w", errApplySettings, err))
 	}
 
 	customPaths, err := constructCustomPaths(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct custom paths: %v", err))
+		return diag.FromErr(fmt.Errorf("%w: %w", errConstructCustomPaths, err))
 	}
 
 	for _, customPath := range customPaths {
@@ -51,7 +61,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		})
 
 		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to create custom path %s: %v", customPath.Path, err))
+			return diag.FromErr(fmt.Errorf("%w: %s: %w", errCreateCustomPath, customPath.Path, err))
 		}
 	}
 
@@ -102,7 +112,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	if d.HasChange("computer_inventory_collection_preferences") {
 		settings, err := construct(d)
 		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Computer Inventory Collection Settings: %v", err))
+			return diag.FromErr(fmt.Errorf("%w: %w", errConstructSettings, err))
 		}
 
 		err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
@@ -114,7 +124,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		})
 
 		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro Computer Inventory Collection Settings: %v", err))
+			return diag.FromErr(fmt.Errorf("%w: %w", errApplySettings, err))
 		}
 	}
 
@@ -123,6 +133,12 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	for _, idToDelete := range pathIDsToRemove {
 		id := idToDelete // Create a copy for the closure
 		log.Printf("[DEBUG] Deleting custom path with ID: %s", id)
+
+		// Skip built-in paths which use ID "-1"
+		if id == "-1" {
+			log.Printf("[DEBUG] Skipping deletion of built-in custom path with ID: %s", id)
+			continue
+		}
 
 		err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 			apiErr := client.DeleteComputerInventoryCollectionSettingsCustomPathByID(id)
@@ -133,7 +149,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		})
 
 		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to delete custom path ID %s: %v", id, err))
+			return diag.FromErr(fmt.Errorf("%w: %s: %w", errDeleteCustomPath, id, err))
 		}
 	}
 
@@ -152,7 +168,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		})
 
 		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to create custom path %s: %v", addPath.Path, err))
+			return diag.FromErr(fmt.Errorf("%w: %s: %w", errCreateCustomPath, addPath.Path, err))
 		}
 	}
 
@@ -176,6 +192,12 @@ func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 				log.Printf("[DEBUG] Deleting custom path during destruction:\n  Path: %s\n  ID: %s", path, id)
 
+				// Skip built-in paths which use ID "-1"
+				if id == "-1" {
+					log.Printf("[DEBUG] Skipping deletion of built-in custom path during destruction (ID: %s, Path: %s)", id, path)
+					continue
+				}
+
 				err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 					apiErr := client.DeleteComputerInventoryCollectionSettingsCustomPathByID(id)
 					if apiErr != nil {
@@ -185,8 +207,8 @@ func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 				})
 
 				if err != nil {
-					return diag.FromErr(fmt.Errorf("failed to delete custom path (ID: %s, Path: %s) during resource destruction: %v",
-						id, path, err))
+					return diag.FromErr(fmt.Errorf("%w: (ID: %s, Path: %s): %w",
+						errDeleteCustomPathOnDestroy, id, path, err))
 				}
 
 				log.Printf("[DEBUG] Successfully deleted custom path:\n  Path: %s\n  ID: %s", path, id)
