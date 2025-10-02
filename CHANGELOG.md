@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.27.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.26.0...v0.27.0) (2025-10-02)
+
+
+### Features
+
+* Add enable_maid_username_merge option for user initiated enrollment settings ([31d2a62](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/31d2a627ba61fc13700ce7492e7468e3a11f766a))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([31d2a62](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/31d2a627ba61fc13700ce7492e7468e3a11f766a))
+
+
+### Bug Fixes
+
+* do not read macos_configuration_profile_plist redeploy_on_update from API into state ([#888](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/888)) ([31d2a62](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/31d2a627ba61fc13700ce7492e7468e3a11f766a))
+
 ## [0.26.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.25.0...v0.26.0) (2025-10-01)
 
 
