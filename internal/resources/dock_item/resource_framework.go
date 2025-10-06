@@ -5,7 +5,6 @@ import (
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	commonschema "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/schema"
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -13,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 const (
@@ -41,16 +39,6 @@ type dockItemFrameworkResource struct {
 	client *jamfpro.Client
 }
 
-// dockItemFrameworkResourceModel describes the resource data model.
-type dockItemFrameworkResourceModel struct {
-	ID       types.String   `tfsdk:"id"`
-	Name     types.String   `tfsdk:"name"`
-	Type     types.String   `tfsdk:"type"`
-	Path     types.String   `tfsdk:"path"`
-	Contents types.String   `tfsdk:"contents"`
-	Timeouts timeouts.Value `tfsdk:"timeouts"`
-}
-
 func (r *dockItemFrameworkResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_dock_item_framework"
 }
@@ -73,7 +61,6 @@ func (r *dockItemFrameworkResource) Configure(_ context.Context, req resource.Co
 }
 
 func (r *dockItemFrameworkResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// Import state using the resource ID
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
