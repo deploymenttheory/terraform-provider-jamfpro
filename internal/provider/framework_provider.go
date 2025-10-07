@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
+
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"go.uber.org/zap"
 )
@@ -47,71 +48,71 @@ func (p *frameworkProvider) Schema(ctx context.Context, req provider.SchemaReque
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"jamfpro_instance_fqdn": schema.StringAttribute{
-				Optional:    true,
-				Description: "The Jamf Pro FQDN (fully qualified domain name). example: https://mycompany.jamfcloud.com",
+				Optional:            true,
+				MarkdownDescription: "The Jamf Pro FQDN (fully qualified domain name). example: https://mycompany.jamfcloud.com",
 			},
 			"auth_method": schema.StringAttribute{
-				Optional:    true,
-				Description: "The auth method chosen for interacting with Jamf Pro. Options are 'basic' for username/password or 'oauth2' for client id/secret.",
+				Optional:            true,
+				MarkdownDescription: "The auth method chosen for interacting with Jamf Pro. Options are 'basic' for username/password or 'oauth2' for client id/secret.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("basic", "oauth2"),
 				},
 			},
 			"client_id": schema.StringAttribute{
-				Optional:    true,
-				Description: "The Jamf Pro Client ID for authentication when auth_method is 'oauth2'.",
+				Optional:            true,
+				MarkdownDescription: "The Jamf Pro Client ID for authentication when auth_method is 'oauth2'.",
 			},
 			"client_secret": schema.StringAttribute{
-				Optional:    true,
-				Sensitive:   true,
-				Description: "The Jamf Pro Client secret for authentication when auth_method is 'oauth2'.",
+				Optional:            true,
+				Sensitive:           true,
+				MarkdownDescription: "The Jamf Pro Client secret for authentication when auth_method is 'oauth2'.",
 			},
 			"basic_auth_username": schema.StringAttribute{
-				Optional:    true,
-				Description: "The Jamf Pro username used for authentication when auth_method is 'basic'.",
+				Optional:            true,
+				MarkdownDescription: "The Jamf Pro username used for authentication when auth_method is 'basic'.",
 			},
 			"basic_auth_password": schema.StringAttribute{
-				Optional:    true,
-				Sensitive:   true,
-				Description: "The Jamf Pro password used for authentication when auth_method is 'basic'.",
+				Optional:            true,
+				Sensitive:           true,
+				MarkdownDescription: "The Jamf Pro password used for authentication when auth_method is 'basic'.",
 			},
 			"enable_client_sdk_logs": schema.BoolAttribute{
-				Optional:    true,
-				Description: "Debug option to propagate logs from the SDK and HttpClient",
+				Optional:            true,
+				MarkdownDescription: "Debug option to propagate logs from the SDK and HttpClient",
 			},
 			"client_sdk_log_export_path": schema.StringAttribute{
-				Optional:    true,
-				Description: "Specify the path to export http client logs to.",
+				Optional:            true,
+				MarkdownDescription: "Specify the path to export http client logs to.",
 			},
 			"hide_sensitive_data": schema.BoolAttribute{
-				Optional:    true,
-				Description: "Define whether sensitive fields should be hidden in logs. Default to hiding sensitive data in logs",
+				Required:            true,
+				MarkdownDescription: "Define whether sensitive fields should be hidden in logs.",
 			},
 			"jamfpro_load_balancer_lock": schema.BoolAttribute{
-				Optional:    true,
-				Description: "Programatically determines all available web app members in the load balancer and locks all instances of httpclient to the app for faster executions. \nTEMP SOLUTION UNTIL JAMF PROVIDES SOLUTION",
+				Required:            true,
+				MarkdownDescription: "Programatically determines all available web app members in the load balancer and locks all instances of httpclient to the app for faster executions. \nTEMP SOLUTION UNTIL JAMF PROVIDES SOLUTION",
 			},
 			"token_refresh_buffer_period_seconds": schema.Int64Attribute{
-				Optional:    true,
-				Description: "The buffer period in seconds for token refresh.",
+				Optional:            true,
+				MarkdownDescription: "The buffer period in seconds for token refresh.",
 			},
 			"mandatory_request_delay_milliseconds": schema.Int64Attribute{
-				Optional:    true,
-				Description: "A mandatory delay after each request before returning to reduce high volume of requests in a short time",
+				Optional:            true,
+				MarkdownDescription: "A mandatory delay after each request before returning to reduce high volume of requests in a short time",
 			},
 		},
 		Blocks: map[string]schema.Block{
 			"custom_cookies": schema.ListNestedBlock{
-				Description: "Persistent custom cookies used by HTTP Client in all requests.",
+				MarkdownDescription: "Persistent custom cookies used by HTTP Client in all requests.",
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
-							Required:    true,
-							Description: "cookie key",
+							Required:            true,
+							MarkdownDescription: "cookie key",
 						},
 						"value": schema.StringAttribute{
-							Required:    true,
-							Description: "cookie value",
+							Required:            true,
+							MarkdownDescription: "cookie value",
 						},
 					},
 				},

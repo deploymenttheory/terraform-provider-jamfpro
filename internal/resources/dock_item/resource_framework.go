@@ -66,33 +66,33 @@ func (r *dockItemFrameworkResource) ImportState(ctx context.Context, req resourc
 
 func (r *dockItemFrameworkResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Manages a Jamf Pro Dock Item using the Framework SDK.",
+		MarkdownDescription: "Manages a Jamf Pro Dock Item using the Framework SDK.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "The unique identifier of the dock item.",
-				Computed:    true,
+				MarkdownDescription: "The unique identifier of the dock item.",
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"name": schema.StringAttribute{
-				Description: "The name of the dock item.",
-				Required:    true,
+				MarkdownDescription: "The name of the dock item.",
+				Required:            true,
 			},
 			"type": schema.StringAttribute{
-				Description: "The type of the dock item (App/File/Folder).",
-				Required:    true,
+				MarkdownDescription: "The type of the dock item (App/File/Folder).",
+				Required:            true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("App", "File", "Folder"),
 				},
 			},
 			"path": schema.StringAttribute{
-				Description: "The path of the dock item.",
-				Required:    true,
+				MarkdownDescription: "The path of the dock item.",
+				Required:            true,
 			},
 			"contents": schema.StringAttribute{
-				Description: "Contents of the dock item.",
-				Computed:    true,
+				MarkdownDescription: "Contents of the dock item.",
+				Computed:            true,
 			},
 			"timeouts": commonschema.Timeouts(ctx),
 		},
