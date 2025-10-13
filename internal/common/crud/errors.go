@@ -1,6 +1,7 @@
 package crud
 
 import (
+	"fmt"
 	"net/http"
 	"slices"
 	"strings"
@@ -19,30 +20,27 @@ type ErrorInfo struct {
 func extractErrorFromDiagnostics(diagnostics diag.Diagnostics) ErrorInfo {
 	// Iterate through diagnostics to find HTTP error information
 	for _, d := range diagnostics.Errors() {
-		summary := d.Summary()
-		detail := d.Detail()
-
-		errorTextLower := strings.ToLower(summary + " " + detail)
+		errorTextLower := strings.ToLower(fmt.Sprintf("%s - %s", d.Summary(), d.Detail()))
 
 		// Try to extract status code patterns from error messages
 		if strings.Contains(errorTextLower, "404") || strings.Contains(errorTextLower, "not found") {
-			return ErrorInfo{StatusCode: 404, ErrorCode: http.StatusText(404)}
+			return ErrorInfo{StatusCode: 404, ErrorCode: "not found"}
 		}
 
 		if strings.Contains(errorTextLower, "400") || strings.Contains(errorTextLower, "bad request") {
-			return ErrorInfo{StatusCode: 400, ErrorCode: http.StatusText(400)}
+			return ErrorInfo{StatusCode: 400, ErrorCode: "bad request"}
 		}
 
 		if strings.Contains(errorTextLower, "401") || strings.Contains(errorTextLower, "unauthorized") {
-			return ErrorInfo{StatusCode: 401, ErrorCode: http.StatusText(401)}
+			return ErrorInfo{StatusCode: 401, ErrorCode: "unauthorized"}
 		}
 
 		if strings.Contains(errorTextLower, "403") || strings.Contains(errorTextLower, "forbidden") {
-			return ErrorInfo{StatusCode: 403, ErrorCode: http.StatusText(403)}
+			return ErrorInfo{StatusCode: 403, ErrorCode: "forbidden"}
 		}
 
 		if strings.Contains(errorTextLower, "409") || strings.Contains(errorTextLower, "conflict") {
-			return ErrorInfo{StatusCode: 409, ErrorCode: http.StatusText(409)}
+			return ErrorInfo{StatusCode: 409, ErrorCode: "conflict"}
 		}
 
 		if strings.Contains(errorTextLower, "423") || strings.Contains(errorTextLower, "locked") {
