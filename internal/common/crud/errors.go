@@ -17,38 +17,32 @@ type ErrorInfo struct {
 // extractErrorFromDiagnostics analyzes Terraform diagnostics to extract HTTP error information
 // for intelligent retry decisions
 func extractErrorFromDiagnostics(diagnostics diag.Diagnostics) ErrorInfo {
-	if !diagnostics.HasError() {
-		return ErrorInfo{}
-	}
-
 	// Iterate through diagnostics to find HTTP error information
 	for _, d := range diagnostics.Errors() {
 		summary := d.Summary()
 		detail := d.Detail()
 
-		// Combine summary and detail for analysis
-		errorText := summary + " " + detail
-		errorTextLower := strings.ToLower(errorText)
+		errorTextLower := strings.ToLower(summary + " " + detail)
 
 		// Try to extract status code patterns from error messages
 		if strings.Contains(errorTextLower, "404") || strings.Contains(errorTextLower, "not found") {
-			return ErrorInfo{StatusCode: 404, ErrorCode: "NotFound"}
+			return ErrorInfo{StatusCode: 404, ErrorCode: http.StatusText(404)}
 		}
 
 		if strings.Contains(errorTextLower, "400") || strings.Contains(errorTextLower, "bad request") {
-			return ErrorInfo{StatusCode: 400, ErrorCode: "BadRequest"}
+			return ErrorInfo{StatusCode: 400, ErrorCode: http.StatusText(400)}
 		}
 
 		if strings.Contains(errorTextLower, "401") || strings.Contains(errorTextLower, "unauthorized") {
-			return ErrorInfo{StatusCode: 401, ErrorCode: "Unauthorized"}
+			return ErrorInfo{StatusCode: 401, ErrorCode: http.StatusText(401)}
 		}
 
 		if strings.Contains(errorTextLower, "403") || strings.Contains(errorTextLower, "forbidden") {
-			return ErrorInfo{StatusCode: 403, ErrorCode: "Forbidden"}
+			return ErrorInfo{StatusCode: 403, ErrorCode: http.StatusText(403)}
 		}
 
 		if strings.Contains(errorTextLower, "409") || strings.Contains(errorTextLower, "conflict") {
-			return ErrorInfo{StatusCode: 409, ErrorCode: "Conflict"}
+			return ErrorInfo{StatusCode: 409, ErrorCode: http.StatusText(409)}
 		}
 
 		if strings.Contains(errorTextLower, "423") || strings.Contains(errorTextLower, "locked") {
