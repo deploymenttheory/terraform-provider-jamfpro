@@ -1,6 +1,8 @@
 package crud
 
 import (
+	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -99,58 +101,22 @@ func extractErrorFromDiagnostics(diagnostics diag.Diagnostics) ErrorInfo {
 	return ErrorInfo{}
 }
 
-// isRetryableReadError determines if an error should trigger a retry for read operations
-func isRetryableReadError(errorInfo *ErrorInfo) bool {
-	if errorInfo == nil {
-		return true // Unknown errors are retryable for safety
+// Retryable/non-retryable codes based on knowledge of the JP's API behaviors.
+func isRetryableReadError(statusCode int) bool {
+	if statusCode == 0 {
+		return true
 	}
 
-	switch errorInfo.StatusCode {
-	case 404, 409, 423, 429: // Not found (propagation), conflict, locked, rate limited
-		return true
-	case 500, 502, 503, 504: // Server errors
-		return true
-	default:
-		// Check specific error codes that might be retryable
-		retryableErrorCodes := map[string]bool{
-			"ServiceUnavailable":  true,
-			"RequestThrottled":    true,
-			"RequestTimeout":      true,
-			"InternalServerError": true,
-			"BadGateway":          true,
-			"GatewayTimeout":      true,
-			"NotFound":            true, // Resource propagation
-			"ResourceNotFound":    true, // Resource propagation
-			"NetworkError":        true, // Network connectivity issues
-		}
-		return retryableErrorCodes[errorInfo.ErrorCode]
-	}
-}
-
-// isNonRetryableReadError determines if an error should NOT trigger a retry for read operations
-func isNonRetryableReadError(errorInfo *ErrorInfo) bool {
-	if errorInfo == nil {
-		return false
+	retryableCodes := []int{
+		http.StatusNotFound,
+		http.StatusConflict,
+		http.StatusLocked,
+		http.StatusTooManyRequests,
+		http.StatusRequestTimeout,
+		http.StatusFailedDependency,
+		http.StatusTooEarly,
+		http.StatusGatewayTimeout,
 	}
 
-	switch errorInfo.StatusCode {
-	case 200, 204: // Success cases
-		return true
-	case 400, 401, 403, 405, 406, 410, 422: // Client errors that won't change on retry
-		return true
-	// Note: 404 is NOT here because it's retryable for reads (propagation)
-	// Note: 409 Conflict is retryable for reads (removed from here)
-	default:
-		// Check specific error codes that are permanent failures
-		nonRetryableErrorCodes := map[string]bool{
-			"BadRequest":          true,
-			"Unauthorized":        true,
-			"Forbidden":           true,
-			"Gone":                true,
-			"UnprocessableEntity": true,
-			"ValidationError":     true,
-			// Note: "NotFound" is NOT here because it's retryable for reads (propagation)
-		}
-		return nonRetryableErrorCodes[errorInfo.ErrorCode]
-	}
+	return slices.Contains(retryableCodes, statusCode)
 }

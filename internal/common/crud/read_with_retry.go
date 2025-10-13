@@ -88,10 +88,11 @@ func ReadWithRetry(
 		})
 
 		readResp := &resource.ReadResponse{State: stateContainer.GetState()}
-
 		ctxWithOp := context.WithValue(ctx, "retry_operation", opts.Operation)
+
 		readFunc(ctxWithOp, readReq, readResp)
 
+		// No error
 		if !readResp.Diagnostics.HasError() {
 			tflog.Debug(ctx, fmt.Sprintf("Read successful on attempt %d", attempt+1), map[string]any{
 				"resource_id":   resourceID,
@@ -101,14 +102,16 @@ func ReadWithRetry(
 			return nil
 		}
 
-		lastErr = fmt.Errorf("error reading resource state after %s method on attempt %d: %s",
-			opts.Operation, attempt+1, readResp.Diagnostics.Errors())
+		lastErr = fmt.Errorf(
+			"error reading resource state after %s method on attempt %d: %s",
+			opts.Operation,
+			attempt+1,
+			readResp.Diagnostics.Errors(),
+		)
 
-		// Analyze diagnostics to extract error information
 		errorInfo := extractErrorFromDiagnostics(readResp.Diagnostics)
 
-		// Check for non-retryable errors first (permanent failures)
-		if isNonRetryableReadError(&errorInfo) {
+		if !isRetryableReadError(errorInfo.StatusCode) {
 			tflog.Error(ctx, fmt.Sprintf("Read failed on attempt %d (non-retryable error)", attempt+1), map[string]any{
 				"resource_id":   resourceID,
 				"resource_type": resourceType,
@@ -119,49 +122,31 @@ func ReadWithRetry(
 			return fmt.Errorf("read operation failed with non-retryable error: %w", lastErr)
 		}
 
-		// Check if this error should trigger a retry
-		if isRetryableReadError(&errorInfo) {
-			if attempt < opts.MaxRetries {
-				tflog.Warn(ctx, fmt.Sprintf("Read failed on attempt %d (retryable error), waiting %s before retry", attempt+1, delay), map[string]any{
-					"resource_id":   resourceID,
-					"resource_type": resourceType,
-					"status_code":   errorInfo.StatusCode,
-					"error_code":    errorInfo.ErrorCode,
-					"diagnostics":   readResp.Diagnostics.Errors(),
-					"next_delay":    delay,
-				})
+		if attempt < opts.MaxRetries {
+			tflog.Warn(ctx, fmt.Sprintf("Read failed on attempt %d (retryable error), waiting %s before retry", attempt+1, delay), map[string]any{
+				"resource_id":   resourceID,
+				"resource_type": resourceType,
+				"status_code":   errorInfo.StatusCode,
+				"error_code":    errorInfo.ErrorCode,
+				"diagnostics":   readResp.Diagnostics.Errors(),
+				"next_delay":    delay,
+			})
 
-				select {
-				case <-time.After(delay):
-				case <-ctx.Done():
-					return fmt.Errorf("context cancelled during retry wait: %w", ctx.Err())
-				}
-			} else {
-				tflog.Error(ctx, fmt.Sprintf("Read failed on final attempt %d", attempt+1), map[string]any{
-					"resource_id":   resourceID,
-					"resource_type": resourceType,
-					"status_code":   errorInfo.StatusCode,
-					"error_code":    errorInfo.ErrorCode,
-					"diagnostics":   readResp.Diagnostics.Errors(),
-				})
+			select {
+			case <-time.After(delay):
+			case <-ctx.Done():
+				return fmt.Errorf("context cancelled during retry wait: %w", ctx.Err())
 			}
 		} else {
-			// Unknown error type, use conservative retry behavior
-			if attempt < opts.MaxRetries {
-				tflog.Debug(ctx, fmt.Sprintf("Read failed on attempt %d (unknown error type, continuing retry)", attempt+1), map[string]any{
-					"resource_id":   resourceID,
-					"resource_type": resourceType,
-					"diagnostics":   readResp.Diagnostics.Errors(),
-					"next_delay":    delay,
-				})
-
-				select {
-				case <-time.After(delay):
-				case <-ctx.Done():
-					return fmt.Errorf("context cancelled during retry wait: %w", ctx.Err())
-				}
-			}
+			tflog.Error(ctx, fmt.Sprintf("Read failed on final attempt %d", attempt+1), map[string]any{
+				"resource_id":   resourceID,
+				"resource_type": resourceType,
+				"status_code":   errorInfo.StatusCode,
+				"error_code":    errorInfo.ErrorCode,
+				"diagnostics":   readResp.Diagnostics.Errors(),
+			})
 		}
+
 	}
 
 	if lastErr != nil {
