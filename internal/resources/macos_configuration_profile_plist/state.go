@@ -24,6 +24,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfiguratio
 		"user_removable":      resp.General.UserRemovable,
 		//"redeploy_on_update":  resp.General.RedeployOnUpdate, Intentionally not stating this value and using the hcl value defined with the create func. this
 		// key is broken and always returns an 'any' value. But the api call still accepts 'Newly Assigned' as well.
+
 	}
 
 	// Check if the level is "Computer" and set it to "System", otherwise use the value from resource
