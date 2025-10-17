@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// constructEngageSettings constructs a ResourceEngageSettings object from the provided schema data
-func constructEngageSettings(d *schema.ResourceData) (*jamfpro.ResourceEngageSettings, error) {
+// construct constructs a ResourceEngageSettings object from the provided schema data
+func construct(d *schema.ResourceData) (*jamfpro.ResourceEngageSettings, error) {
 	resource := &jamfpro.ResourceEngageSettings{
 		IsEnabled: d.Get("is_enabled").(bool),
 	}

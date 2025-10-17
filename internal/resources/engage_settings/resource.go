@@ -10,7 +10,7 @@ import (
 func ResourceEngageSettings() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,
-		ReadContext:   read,
+		ReadContext:   readWithCleanup,
 		UpdateContext: update,
 		DeleteContext: delete,
 		Timeouts: &schema.ResourceTimeout{
