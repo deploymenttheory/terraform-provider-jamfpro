@@ -41,9 +41,9 @@ resource "jamfpro_computer_extension_attribute" "jamfpro_computer_extension_attr
 
 // Test that minimally defined object is sufficient
 resource "jamfpro_computer_extension_attribute" "jamfpro_computer_extension_attribute_minimum" {
-  name                             = "tf-testing-${var.testing_id}-min-test"
-  enabled                          = true
-  input_type                       = "TEXT"
+  name       = "tf-testing-${var.testing_id}-min-test"
+  enabled    = true
+  input_type = "TEXT"
 }
 
 // ========================================================================== //
