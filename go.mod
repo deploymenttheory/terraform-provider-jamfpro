@@ -26,7 +26,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/terraform-plugin-docs v0.23.0
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.6.0
-	github.com/hashicorp/terraform-plugin-framework-validators v0.14.0
+	github.com/hashicorp/terraform-plugin-framework-validators v0.19.0
 	github.com/hashicorp/terraform-plugin-go v0.29.0
 	github.com/hashicorp/terraform-plugin-mux v0.21.0
 	github.com/lithammer/fuzzysearch v1.1.8
