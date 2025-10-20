@@ -72,6 +72,7 @@ func ResourceJamfProAdvancedMobileDeviceSearches() *schema.Resource {
 								"is", "is not", "like", "not like", "has", "does not have",
 								"greater than", "less than", "greater than or equal", "less than or equal",
 								"matches regex", "does not match regex", "member of", "not member of",
+								"more than x days ago",
 							}, false),
 							Description: "Type of search to perform",
 						},
