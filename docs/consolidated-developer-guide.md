@@ -45,7 +45,7 @@ Always run these commands from the repository root.
 
 #### Directory Structure
 
-- All resource implementations live in `internal/resources/`
+- All resource implementations live in `internal/services/resources/`
 - Each resource has its own subdirectory
 - Name directories using lowercase words with underscores (e.g., `policy`, `building`, `script`)
 - Choose names that reflect the Jamf Pro resource domain they represent
@@ -97,7 +97,7 @@ For complex state management, separate into focused files:
 
 ### Common Folder Usage
 
-The `internal/resources/common/` directory contains shared code and utilities used across multiple resources:
+The `internal/services/common/` directory contains shared code and utilities used across multiple resources:
 
 #### Shared CRUD Operations
 
@@ -233,7 +233,7 @@ For comprehensive testing guidelines, including test structure, naming conventio
 ### Additional Resources
 
 - Follow the testing guide in `docs/` when submitting PRs
-- Refer to `internal/resources/policy/` as the current best practice implementation
+- Refer to `internal/services/resources/policy/` as the current best practice implementation
 - Use the `GNUmakefile` commands for all development tasks 
 
 ---
@@ -246,7 +246,7 @@ This project follows the [Google Go Style Guide](https://google.github.io/styleg
 
 ### Reference Implementation
 
-The `internal/resources/policy` directory represents our **current best practice** for code organization and patterns. All new resources should follow these conventions, and existing resources should work toward this standard over time.
+The `internal/services/resources/policy` directory represents our **current best practice** for code organization and patterns. All new resources should follow these conventions, and existing resources should work toward this standard over time.
 
 ### Function Naming Conventions
 

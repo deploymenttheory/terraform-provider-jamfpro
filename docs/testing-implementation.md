@@ -11,10 +11,10 @@ Place your tests in `testing/payloads/[resource_name]/`
 
 ### Naming Convention
 - The folder name in `testing/payloads/` **MUST** match the resource name
-- The resource folder in `internal/resources/` **MUST** also match the resource name
+- The resource folder in `internal/services/resources/` **MUST** also match the resource name
 - Example: `jamfpro_building` resource needs:
   - `testing/payloads/jamfpro_building/` folder
-  - `internal/resources/building/` folder
+  - `internal/services/resources/building/` folder
 
 ### Test Content
 Each test folder should contain Terraform modules that will be executed automatically by the integration testing workflow.
@@ -35,5 +35,5 @@ The workflow will:
 
 1. Create your test folder: `testing/payloads/[your_resource_name]/`
 2. Add your Terraform configuration files
-3. Ensure your resource implementation exists in `internal/resources/[resource_name]/`
+3. Ensure your resource implementation exists in `internal/services/resources/[resource_name]/`
 4. Submit your PR - tests will run automatically
