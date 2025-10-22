@@ -45,7 +45,7 @@ Always run these commands from the repository root.
 
 #### Directory Structure
 
-- All resource implementations live in `internal/resources/`
+- All resource implementations live in `internal/services/`
 - Each resource has its own subdirectory
 - Name directories using lowercase words with underscores (e.g., `policy`, `building`, `script`)
 - Choose names that reflect the Jamf Pro resource domain they represent
@@ -97,15 +97,15 @@ For complex state management, separate into focused files:
 
 ### Common Folder Usage
 
-The `internal/resources/common/` directory contains shared code and utilities used across multiple resources:
+The `internal/common/` directory contains shared code and utilities used across multiple resources:
 
 #### Shared CRUD Operations
 
 Use `common/crud.go` for resources that perform single API calls per operation:
 
 ```go
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-    return common.Create(
+func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+    return sdkv2.Create(
         ctx,
         d,
         meta,
@@ -233,7 +233,7 @@ For comprehensive testing guidelines, including test structure, naming conventio
 ### Additional Resources
 
 - Follow the testing guide in `docs/` when submitting PRs
-- Refer to `internal/resources/policy/` as the current best practice implementation
+- Refer to `internal/services/policy/` as the current best practice implementation
 - Use the `GNUmakefile` commands for all development tasks 
 
 ---
@@ -246,7 +246,7 @@ This project follows the [Google Go Style Guide](https://google.github.io/styleg
 
 ### Reference Implementation
 
-The `internal/resources/policy` directory represents our **current best practice** for code organization and patterns. All new resources should follow these conventions, and existing resources should work toward this standard over time.
+The `internal/services/policy` directory represents our **current best practice** for code organization and patterns. All new resources should follow these conventions, and existing resources should work toward this standard over time.
 
 ### Function Naming Conventions
 
@@ -277,14 +277,14 @@ func DataSourceJamfProBuildings() *schema.Resource    // ✓ Correct
 All CRUD functions use **lowercase naming** and follow exact signature patterns:
 
 ```go
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics
-func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics  
-func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics
-func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics
+func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics
+func read(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) diag.Diagnostics  
+func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics
+func delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics
 
 // Standard read variants:
-func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics
-func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics
 ```
 
 **Read Function Cleanup Parameter:**
@@ -381,12 +381,12 @@ func ResourceJamfProPolicies() *schema.Resource {
 For simple resources that make single API calls, use the common CRUD operations:
 
 ```go
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-    return common.Create(ctx, d, meta, construct, meta.(*jamfpro.Client).CreatePolicy, readNoCleanup)
+func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+    return sdkv2.Create(ctx, d, meta, construct, meta.(*jamfpro.Client).CreatePolicy, readNoCleanup)
 }
 
-func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
-    return common.Read(ctx, d, meta, cleanup, meta.(*jamfpro.Client).GetPolicyByID, updateState)
+func read(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) diag.Diagnostics {
+    return sdkv2.Read(ctx, d, meta, cleanup, meta.(*jamfpro.Client).GetPolicyByID, updateState)
 }
 ```
 
@@ -395,7 +395,7 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 For resources that require multiple API calls within a single CRUD operation (like package uploads with verification):
 
 ```go
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
     client := meta.(*jamfpro.Client)
     var packageID string
     
@@ -438,7 +438,7 @@ For resources that manage system-wide configuration:
 
 ```go
 // create calls UPDATE API method since configuration always exists
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
     // ... construct and update configuration
     
     // Use descriptive singleton ID
@@ -447,7 +447,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 }
 
 // delete only removes from Terraform state, doesn't delete from API
-func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
     d.SetId("")
     return nil
 }

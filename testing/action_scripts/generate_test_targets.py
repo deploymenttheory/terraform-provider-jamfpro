@@ -3,7 +3,7 @@ This script interacts with the GitHub API to determine changed files within a sp
 It then filters these files to identify 'resource targets'. A file is considered to contain
 a resource target if its path includes both "internal" and "resources" segments.
 The script extracts the name of the resource (assumed to be the directory name immediately
-following "internal/resources/") from such paths.
+following "internal/services/") from such paths.
 
 All unique, extracted resource target names are then written to a file named 'targets.txt',
 comma-separated. If no resource targets are found in the pull request's changed files,
@@ -22,8 +22,8 @@ Input:
   `python scripts/get_targets_to_file.py --repo-owner example-owner --repo-name example-repo --pr-number 123 --github-token <your_token>`
 
   Assuming PR #123 in `example-owner/example-repo` has the following changed files:
-    - `internal/resources/user/main.go`
-    - `internal/resources/group/resource.go`
+    - `internal/services/user/main.go`
+    - `internal/services/group/resource.go`
     - `docs/users.md`
     - `README.md`
 
