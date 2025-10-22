@@ -28,15 +28,15 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/category"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/client_checkin"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/cloud_distribution_point"
+	cloudidp "github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/cloud_idp"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/cloud_ldap"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/cloudidp"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/computer_extension_attribute"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/computer_inventory_collection_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/computer_prestage_enrollment"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/department"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/device_communication_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/device_enrollments"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/deviceenrollmentspublickey"
+	deviceenrollmentspublickey "github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/device_enrollments_public_key"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/disk_encryption_configuration"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/dock_item"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/engage_settings"
@@ -392,7 +392,7 @@ func Provider() *schema.Provider {
 			"jamfpro_building":                                  building.DataSourceJamfProBuildings(),
 			"jamfpro_category":                                  category.DataSourceJamfProCategories(),
 			"jamfpro_cloud_distribution_point":                  cloud_distribution_point.DataSourceJamfProCloudDistributionPoint(),
-			"jamfpro_cloud_idp":                                 cloudidp.DataSourceJamfProCloudIdp(),
+			"jamfpro_cloud_idp":                                 cloudidp.DataSourceJamfProCloudIdp(), // idp is a reserved namespace
 			"jamfpro_computer_extension_attribute":              computer_extension_attribute.DataSourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_prestage_enrollment":              computer_prestage_enrollment.DataSourceJamfProComputerPrestageEnrollment(),
 			"jamfpro_department":                                department.DataSourceJamfProDepartments(),
@@ -474,7 +474,7 @@ func Provider() *schema.Provider {
 			"jamfpro_mobile_device_configuration_profile_plist":   mobile_device_configuration_profile_plist.ResourceJamfProMobileDeviceConfigurationProfilesPlist(),
 			"jamfpro_mobile_device_extension_attribute":           mobile_device_extension_attribute.ResourceJamfProMobileDeviceExtensionAttributes(),
 			"jamfpro_mobile_device_prestage_enrollment":           mobile_device_prestage_enrollment.ResourceJamfProMobileDevicePrestageEnrollment(),
-			"jamfpro_package":                                     packages.ResourceJamfProPackages(),
+			"jamfpro_package":                                     packages.ResourceJamfProPackages(), // 'package' is a reserved namespace
 			"jamfpro_policy":                                      policy.ResourceJamfProPolicies(),
 			"jamfpro_printer":                                     printer.ResourceJamfProPrinters(),
 			"jamfpro_reenrollment":                                reenrollment.ResourceReenrollmentSettings(),
