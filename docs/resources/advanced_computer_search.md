@@ -74,12 +74,12 @@ resource "jamfpro_advanced_computer_search" "advanced_computer_search_001" {
 
 ### Required
 
+- `criteria` (Block List, Min: 1) List of search criteria (see [below for nested schema](#nestedblock--criteria))
 - `name` (String) The unique name of the advanced computer search
 
 ### Optional
 
-- `criteria` (Block List) (see [below for nested schema](#nestedblock--criteria))
-- `display_fields` (List of String) List of displayfields
+- `display_fields` (Set of String) List of fields to display in the search results
 - `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `sort1` (String) First sorting criteria for the advanced computer search
 - `sort2` (String) Second sorting criteria for the advanced computer search
@@ -96,16 +96,16 @@ resource "jamfpro_advanced_computer_search" "advanced_computer_search_001" {
 
 Required:
 
-- `name` (String)
-- `search_type` (String)
-- `value` (String)
+- `and_or` (String) Logical operator (and/or) for the search criteria
+- `name` (String) Name of the search criteria field
+- `search_type` (String) Type of search to perform
+- `value` (String) Value to search for
 
 Optional:
 
-- `and_or` (String)
-- `closing_paren` (Boolean)
-- `opening_paren` (Boolean)
-- `priority` (Number)
+- `closing_paren` (Boolean) Whether this criterion has a closing parenthesis
+- `opening_paren` (Boolean) Whether this criterion has an opening parenthesis
+- `priority` (Number) Priority order of the criteria. Default is 0, 0 is always used for the first criterion.
 
 
 <a id="nestedblock--timeouts"></a>
