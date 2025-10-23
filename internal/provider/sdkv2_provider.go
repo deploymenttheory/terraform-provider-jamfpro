@@ -50,7 +50,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/jamf_connect"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/jamf_protect"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/jamf_protect_plan"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/jamf_protect_plans"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/ldap_server"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/local_admin_password_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/mac_application"
@@ -406,7 +405,6 @@ func Provider() *schema.Provider {
 			"jamfpro_jamf_cloud_distribution_service":           jamf_cloud_distribution_service.DataSourceJamfProJamfCloudDistributionService(),
 			"jamfpro_jamf_connect":                              jamf_connect.DataSourceJamfConnectConfigProfile(),
 			"jamfpro_jamf_protect_plan":                         jamf_protect_plan.DataSourceJamfProtectPlan(),
-			"jamfpro_jamf_protect_plans":                        jamf_protect_plans.DataSourceJamfProtectPlans(),
 			"jamfpro_ldap_server":                               ldap_server.DataSourceJamfProLDAPServers(),
 			"jamfpro_network_segment":                           network_segment.DataSourceJamfProNetworkSegments(),
 			"jamfpro_mac_application":                           mac_application.DataSourceJamfProMacApplications(),
