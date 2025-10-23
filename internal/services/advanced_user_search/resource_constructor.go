@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// constructJamfProAdvancedUserSearch constructs an advanced user search object for create and update operations.
+// construct constructs an advanced user search object for create and update operations.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceAdvancedUserSearch, error) {
 	resource := &jamfpro.ResourceAdvancedUserSearch{
 		Name: d.Get("name").(string),
@@ -35,10 +35,10 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceAdvancedUserSearch, err
 		resource.Criteria.Criterion = criteria
 	}
 
-	displayFieldsHcl := d.Get("display_fields").([]any)
-	if len(displayFieldsHcl) > 0 {
-		for _, v := range displayFieldsHcl {
-			resource.DisplayFields = append(resource.DisplayFields, jamfpro.DisplayField{Name: v.(string)})
+	if v, ok := d.GetOk("display_fields"); ok {
+		displayFieldsSet := v.(*schema.Set)
+		for _, field := range displayFieldsSet.List() {
+			resource.DisplayFields = append(resource.DisplayFields, jamfpro.DisplayField{Name: field.(string)})
 		}
 	}
 

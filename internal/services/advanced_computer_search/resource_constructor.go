@@ -40,10 +40,10 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceAdvancedComputerSearch,
 		resource.Criteria.Criterion = criteria
 	}
 
-	displayFieldsHcl := d.Get("display_fields").([]any)
-	if len(displayFieldsHcl) > 0 {
-		for _, v := range displayFieldsHcl {
-			resource.DisplayFields = append(resource.DisplayFields, jamfpro.DisplayField{Name: v.(string)})
+	if v, ok := d.GetOk("display_fields"); ok {
+		displayFieldsSet := v.(*schema.Set)
+		for _, field := range displayFieldsSet.List() {
+			resource.DisplayFields = append(resource.DisplayFields, jamfpro.DisplayField{Name: field.(string)})
 		}
 	}
 
