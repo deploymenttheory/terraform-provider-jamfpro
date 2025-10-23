@@ -3,7 +3,7 @@ package sortkeys
 import (
 	"log"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/configuration_profiles/plist"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/plist"
 )
 
 func main() {

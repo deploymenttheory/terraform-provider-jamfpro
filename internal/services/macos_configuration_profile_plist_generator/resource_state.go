@@ -6,7 +6,7 @@ import (
 	"sort"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/configuration_profiles/plist"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/plist"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )

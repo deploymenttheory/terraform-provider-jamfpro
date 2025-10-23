@@ -5,8 +5,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/configuration_profiles/data_validators"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/configuration_profiles/plist"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/plist"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -105,7 +104,7 @@ func validatePlistPayloadScope(_ context.Context, diff *schema.ResourceDiff, _ a
 		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': error decoding plist data: %v", resourceName, err)
 	}
 
-	payloadScope, err := data_validators.GetPayloadScope(plistData)
+	payloadScope, err := plist.GetPayloadScope(plistData)
 	if err != nil {
 		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': error getting 'PayloadScope' from plist: %v", resourceName, err)
 	}

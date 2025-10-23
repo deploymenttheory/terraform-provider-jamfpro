@@ -1,9 +1,9 @@
-package removekeys
+package encode
 
 // import (
 // 	"log"
 
-// 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/configuration_profiles/plist"
+// 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/plist"
 // )
 
 // func main() {
@@ -62,8 +62,7 @@ package removekeys
 // 		<key>PayloadVersion</key>
 // 		<integer>1</integer>
 // 	</dict>
-// 	</plist>
-// 	`)
+// 	</plist>`)
 
 // 	decodedData, err := plist.DecodePlist(plistData)
 // 	if err != nil {
@@ -72,9 +71,12 @@ package removekeys
 
 // 	fieldsToRemove := []string{"PayloadUUID", "PayloadIdentifier", "PayloadOrganization", "PayloadDisplayName"}
 
-// 	plist.removeSpecifiedXMLFields(decodedData, fieldsToRemove, "")
+// 	plist.RemoveFields(decodedData, fieldsToRemove, "")
 
 // 	sortedData := plist.SortPlistKeys(decodedData)
+
+// 	log.Printf("Data structure before encoding: %v\n", sortedData)
+
 // 	encodedPlist, err := plist.EncodePlist(sortedData)
 // 	if err != nil {
 // 		log.Fatalf("Failed to encode plist: %v", err)

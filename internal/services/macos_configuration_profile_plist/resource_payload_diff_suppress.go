@@ -3,8 +3,8 @@ package macos_configuration_profile_plist
 import (
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/configuration_profiles/plist"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/crypto"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/crypto"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/plist"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 

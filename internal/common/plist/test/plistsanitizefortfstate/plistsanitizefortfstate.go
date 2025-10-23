@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/configuration_profiles/plist"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/crypto"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/crypto"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/plist"
 )
 
 // plistPreJamfProUpload is the plist data for the configuration profile prior to being uploaded into Jamf Pro.

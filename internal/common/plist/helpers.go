@@ -1,5 +1,4 @@
-// common/configurationprofiles/data_validators/helpers.go
-package data_validators
+package plist
 
 import (
 	"bytes"
