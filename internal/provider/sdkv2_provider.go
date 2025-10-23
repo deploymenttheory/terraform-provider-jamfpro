@@ -28,7 +28,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/category"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/client_checkin"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/cloud_distribution_point"
-	cloudidp "github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/cloud_idp"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/cloud_idp"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/cloud_ldap"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/computer_extension_attribute"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/computer_inventory"
@@ -393,7 +393,7 @@ func Provider() *schema.Provider {
 			"jamfpro_building":                                  building.DataSourceJamfProBuildings(),
 			"jamfpro_category":                                  category.DataSourceJamfProCategories(),
 			"jamfpro_cloud_distribution_point":                  cloud_distribution_point.DataSourceJamfProCloudDistributionPoint(),
-			"jamfpro_cloud_idp":                                 cloudidp.DataSourceJamfProCloudIdp(),
+			"jamfpro_cloud_idp":                                 cloud_idp.DataSourceJamfProCloudIdp(),
 			"jamfpro_computer_extension_attribute":              computer_extension_attribute.DataSourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_inventory":                        computer_inventory.DataSourceJamfProComputerInventory(),
 			"jamfpro_computer_prestage_enrollment":              computer_prestage_enrollment.DataSourceJamfProComputerPrestageEnrollment(),
@@ -456,7 +456,6 @@ func Provider() *schema.Provider {
 			"jamfpro_device_communication_settings":               device_communication_settings.ResourceJamfProDeviceCommunicationSettings(),
 			"jamfpro_device_enrollments":                          device_enrollments.ResourceJamfProDeviceEnrollments(),
 			"jamfpro_disk_encryption_configuration":               disk_encryption_configuration.ResourceJamfProDiskEncryptionConfigurations(),
-			"jamfpro_dock_item":                                   dock_item.ResourceJamfProDockItems(),
 			"jamfpro_engage_settings":                             engage_settings.ResourceEngageSettings(),
 			"jamfpro_enrollment_customization":                    enrollment_customization.ResourceJamfProEnrollmentCustomization(),
 			"jamfpro_file_share_distribution_point":               file_share_distribution_point.ResourceJamfProFileShareDistributionPoints(),
