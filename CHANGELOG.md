@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.27.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.26.0...v0.27.0) (2025-10-23)
+
+
+### Features
+
+* Add enable_maid_username_merge option for user initiated enrollment settings ([31d2a62](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/31d2a627ba61fc13700ce7492e7468e3a11f766a))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([31d2a62](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/31d2a627ba61fc13700ce7492e7468e3a11f766a))
+* added dock items as framework sdk as poc ([#890](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/890)) ([b38102f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/b38102f2e3c6e2dc6ac56d5a823c345b04ba0d91))
+* Improve advanced computer search schema with better validation and documentation ([#898](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/898)) ([5357833](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/5357833c1d187c9807106acf110439ae2f196dca))
+* repo restructure and naming fixes ([#906](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/906)) ([573cb62](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/573cb6209a69af1d7e4a437bb48f9d08f18fc110))
+* Update reenrollment and engage settings to match other singleton resources ([#897](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/897)) ([4dbf9a0](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/4dbf9a0e76dd971dba441deb429c4fabc2daf9eb))
+
+
+### Bug Fixes
+
+* added acc tests for jamfpro_advanced_computer_search ([#899](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/899)) ([489df55](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/489df55dfc8b581383cefebfa1fed546d3a1f358))
+* do not read macos_configuration_profile_plist redeploy_on_update from API into state ([#888](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/888)) ([31d2a62](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/31d2a627ba61fc13700ce7492e7468e3a11f766a))
+* for type set change to field "display_fields" in staters and constructors. updated schema descriptions and validators ([#908](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/908)) ([e64715b](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/e64715b02532d19fe82454624edaca70d0f2e058))
+
 ## [0.26.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.25.0...v0.26.0) (2025-10-01)
 
 
