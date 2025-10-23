@@ -3,7 +3,7 @@ package removekeys
 // import (
 // 	"log"
 
-// 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/common/configurationprofiles/plist"
+// 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/configurationprofiles/plist"
 // )
 
 // func main() {

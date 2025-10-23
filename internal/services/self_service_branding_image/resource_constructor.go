@@ -4,7 +4,7 @@ package self_service_branding_image
 import (
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 

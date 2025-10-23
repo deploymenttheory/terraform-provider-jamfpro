@@ -7,7 +7,7 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/constructors"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 

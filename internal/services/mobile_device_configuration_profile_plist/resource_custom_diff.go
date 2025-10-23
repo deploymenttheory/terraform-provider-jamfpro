@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/common/configurationprofiles/datavalidators"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/common/configurationprofiles/plist"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/configurationprofiles/datavalidators"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/configurationprofiles/plist"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
