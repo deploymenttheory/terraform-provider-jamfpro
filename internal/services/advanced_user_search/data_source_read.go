@@ -22,7 +22,7 @@ import (
 //
 // Returns:
 // - diag.Diagnostics: Returns any diagnostics (errors or warnings) encountered during the function's execution.
-func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client, ok := meta.(*jamfpro.Client)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.client")

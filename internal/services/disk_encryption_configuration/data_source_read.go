@@ -13,7 +13,7 @@ import (
 
 // dataSourceRead fetches the details of a specific Jamf Pro disk encryption configuration
 // from Jamf Pro and returns the details of the disk encryption configuration in the Terraform state.
-func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 
 	id := d.Get("id").(string)

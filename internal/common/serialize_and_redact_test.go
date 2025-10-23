@@ -10,11 +10,11 @@ import (
 
 // Test structs for various scenarios
 type TestStruct struct {
-	Name     string         `xml:"Name"`
-	Password string         `xml:"Password"`
-	Age      int            `xml:"Age"`
-	Nested   *NestedStruct  `xml:"Nested"`
-	Direct   NestedStruct   `xml:"Direct"`
+	Name     string        `xml:"Name"`
+	Password string        `xml:"Password"`
+	Age      int           `xml:"Age"`
+	Nested   *NestedStruct `xml:"Nested"`
+	Direct   NestedStruct  `xml:"Direct"`
 }
 
 type NestedStruct struct {
@@ -63,7 +63,7 @@ func TestNavigateToField(t *testing.T) {
 		name        string
 		fieldPath   string
 		expectFound bool
-		expectValue interface{}
+		expectValue any
 	}{
 		{
 			name:        "Simple field access",
@@ -200,7 +200,7 @@ func TestSerializeAndRedactJSON(t *testing.T) {
 	}
 
 	// Parse the result back to verify redaction
-	var resultMap map[string]interface{}
+	var resultMap map[string]any
 	if err := json.Unmarshal([]byte(result), &resultMap); err != nil {
 		t.Fatalf("Failed to parse JSON result: %v", err)
 	}
@@ -211,7 +211,7 @@ func TestSerializeAndRedactJSON(t *testing.T) {
 	}
 
 	// Check nested redaction
-	nested := resultMap["Nested"].(map[string]interface{})
+	nested := resultMap["Nested"].(map[string]any)
 	if nested["Secret"] != "***REDACTED***" {
 		t.Errorf("Expected Nested.Secret to be redacted, got: %v", nested["Secret"])
 	}

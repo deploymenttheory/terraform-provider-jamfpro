@@ -11,7 +11,7 @@ import (
 // customDiffAccountGroups is a custom diff function for the Jamf Pro Account resource.
 // This function is used during the Terraform plan phase to apply custom validation rules
 // that are not covered by the basic schema validation.
-func customDiffAccountGroups(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+func customDiffAccountGroups(ctx context.Context, d *schema.ResourceDiff, meta any) error {
 	accessLevel := d.Get("access_level").(string)
 
 	if accessLevel == "Site Access" {

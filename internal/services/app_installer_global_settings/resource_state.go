@@ -11,7 +11,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResponseJamfAppCatalogGlo
 	var diags diag.Diagnostics
 	settings := resp.EndUserExperienceSettings
 
-	stateData := map[string]interface{}{
+	stateData := map[string]any{
 		"notification_message":  settings.NotificationMessage,
 		"notification_interval": settings.NotificationInterval,
 		"deadline_message":      settings.DeadlineMessage,

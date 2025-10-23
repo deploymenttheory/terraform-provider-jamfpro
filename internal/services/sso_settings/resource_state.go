@@ -11,7 +11,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceSsoSettings) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	settings := map[string]interface{}{
+	settings := map[string]any{
 		"sso_enabled":                                          resp.SsoEnabled,
 		"configuration_type":                                   resp.ConfigurationType,
 		"sso_bypass_allowed":                                   resp.SsoBypassAllowed,
@@ -28,8 +28,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceSsoSettings) diag
 		}
 	}
 
-	oidcSettings := []interface{}{
-		map[string]interface{}{
+	oidcSettings := []any{
+		map[string]any{
 			"user_mapping":                     resp.OidcSettings.UserMapping,
 			"jamf_id_authentication_enabled":   resp.OidcSettings.JamfIdAuthenticationEnabled,
 			"username_attribute_claim_mapping": resp.OidcSettings.UsernameAttributeClaimMapping,
@@ -39,8 +39,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceSsoSettings) diag
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	samlSettings := []interface{}{
-		map[string]interface{}{
+	samlSettings := []any{
+		map[string]any{
 			"idp_url":                   resp.SamlSettings.IdpUrl,
 			"entity_id":                 resp.SamlSettings.EntityId,
 			"metadata_source":           resp.SamlSettings.MetadataSource,
@@ -62,8 +62,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceSsoSettings) diag
 	}
 
 	if resp.EnrollmentSsoConfig.Hosts != nil || resp.EnrollmentSsoConfig.ManagementHint != "" {
-		enrollmentConfig := []interface{}{
-			map[string]interface{}{
+		enrollmentConfig := []any{
+			map[string]any{
 				"hosts":           resp.EnrollmentSsoConfig.Hosts,
 				"management_hint": resp.EnrollmentSsoConfig.ManagementHint,
 			},

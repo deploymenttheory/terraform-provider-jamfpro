@@ -31,7 +31,7 @@ type sdkDeleteFunc func(resourceID string) error
 type providerStateFunc[resourceType any] func(d *schema.ResourceData, resource *resourceType) diag.Diagnostics
 
 // providerReadFunc defines a function type for reading resource state
-type providerReadFunc func(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics
+type providerReadFunc func(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics
 
 // Create is a shared helper that handles the creation of a new resource in Jamf Pro with retry logic and state management.
 // It accepts generic types for the SDK payload and response to maintain type safety while being reusable.
@@ -49,7 +49,7 @@ type providerReadFunc func(ctx context.Context, d *schema.ResourceData, meta int
 func Create[sdkPayloadType any, sdkResponseType any](
 	ctx context.Context,
 	d *schema.ResourceData,
-	meta interface{},
+	meta any,
 	construct payoadConstructorFunc[sdkPayloadType],
 	serverOutcomeFunc sdkCreateUpdateFunc[sdkPayloadType, sdkResponseType],
 	reader providerReadFunc,
@@ -104,7 +104,7 @@ func Create[sdkPayloadType any, sdkResponseType any](
 func Update[sdkPayloadType any, sdkResponseType any](
 	ctx context.Context,
 	d *schema.ResourceData,
-	meta interface{},
+	meta any,
 	constructor payoadConstructorFunc[sdkPayloadType],
 	outcomeFunc sdkUpdateFunc[sdkPayloadType, sdkResponseType],
 	reader providerReadFunc,
@@ -152,7 +152,7 @@ func Update[sdkPayloadType any, sdkResponseType any](
 func Read[sdkResponseType any](
 	ctx context.Context,
 	d *schema.ResourceData,
-	meta interface{},
+	meta any,
 	removeDeleteResourcesFromState bool,
 	serverOutcomeFunc sdkGetFunc[sdkResponseType],
 	providerStateFunc providerStateFunc[sdkResponseType],
@@ -189,7 +189,7 @@ func Read[sdkResponseType any](
 //
 // Returns:
 // - diag.Diagnostics containing any errors or warnings from the operation
-func Delete(ctx context.Context, d *schema.ResourceData, meta interface{}, serverOutcomeFunc sdkDeleteFunc) diag.Diagnostics {
+func Delete(ctx context.Context, d *schema.ResourceData, meta any, serverOutcomeFunc sdkDeleteFunc) diag.Diagnostics {
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 

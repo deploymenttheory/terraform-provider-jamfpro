@@ -20,9 +20,9 @@ func constructEnrollmentSettings(d *schema.ResourceData) (*jamfpro.ResourceEnrol
 
 	// Set third-party signing certificate
 	if v, ok := d.GetOk("third_party_signing_certificate"); ok {
-		certList := v.([]interface{})
+		certList := v.([]any)
 		if len(certList) > 0 {
-			certMap := certList[0].(map[string]interface{})
+			certMap := certList[0].(map[string]any)
 
 			resource.SigningMdmProfileEnabled = certMap["enabled"].(bool)
 
@@ -40,7 +40,7 @@ func constructEnrollmentSettings(d *schema.ResourceData) (*jamfpro.ResourceEnrol
 	if v, ok := d.GetOk("user_initiated_enrollment_for_computers"); ok {
 		computerSettingsList := v.(*schema.Set).List()
 		if len(computerSettingsList) > 0 {
-			computerSettings := computerSettingsList[0].(map[string]interface{})
+			computerSettings := computerSettingsList[0].(map[string]any)
 
 			resource.MacOsEnterpriseEnrollmentEnabled = computerSettings["enable_user_initiated_enrollment_for_computers"].(bool)
 			resource.EnsureSshRunning = computerSettings["ensure_ssh_is_enabled"].(bool)
@@ -49,7 +49,7 @@ func constructEnrollmentSettings(d *schema.ResourceData) (*jamfpro.ResourceEnrol
 
 			// Managed local admin account
 			if adminAcct, ok := computerSettings["managed_local_administrator_account"]; ok && len(adminAcct.(*schema.Set).List()) > 0 {
-				adminAcctMap := adminAcct.(*schema.Set).List()[0].(map[string]interface{})
+				adminAcctMap := adminAcct.(*schema.Set).List()[0].(map[string]any)
 
 				resource.CreateManagementAccount = adminAcctMap["create_managed_local_administrator_account"].(bool)
 				resource.ManagementUsername = adminAcctMap["management_account_username"].(string)
@@ -59,9 +59,9 @@ func constructEnrollmentSettings(d *schema.ResourceData) (*jamfpro.ResourceEnrol
 
 			// QuickAdd package settings
 			if quickAdd, ok := computerSettings["quickadd_package"]; ok {
-				quickAddList := quickAdd.([]interface{})
+				quickAddList := quickAdd.([]any)
 				if len(quickAddList) > 0 {
-					quickAddMap := quickAddList[0].(map[string]interface{})
+					quickAddMap := quickAddList[0].(map[string]any)
 
 					resource.SignQuickAdd = quickAddMap["sign_quickadd_package"].(bool)
 
@@ -81,11 +81,11 @@ func constructEnrollmentSettings(d *schema.ResourceData) (*jamfpro.ResourceEnrol
 	if v, ok := d.GetOk("user_initiated_enrollment_for_devices"); ok {
 		deviceSettingsList := v.(*schema.Set).List()
 		if len(deviceSettingsList) > 0 {
-			deviceSettings := deviceSettingsList[0].(map[string]interface{})
+			deviceSettings := deviceSettingsList[0].(map[string]any)
 
 			// Profile-driven enrollment
 			if profileDriven, ok := deviceSettings["profile_driven_enrollment_via_url"]; ok && len(profileDriven.(*schema.Set).List()) > 0 {
-				profileDrivenMap := profileDriven.(*schema.Set).List()[0].(map[string]interface{})
+				profileDrivenMap := profileDriven.(*schema.Set).List()[0].(map[string]any)
 
 				resource.IosEnterpriseEnrollmentEnabled = profileDrivenMap["enable_for_institutionally_owned_devices"].(bool)
 				resource.IosPersonalEnrollmentEnabled = profileDrivenMap["enable_for_personally_owned_devices"].(bool)
@@ -94,7 +94,7 @@ func constructEnrollmentSettings(d *schema.ResourceData) (*jamfpro.ResourceEnrol
 
 			// Account-driven user enrollment
 			if accountUser, ok := deviceSettings["account_driven_user_enrollment"]; ok && len(accountUser.(*schema.Set).List()) > 0 {
-				accountUserMap := accountUser.(*schema.Set).List()[0].(map[string]interface{})
+				accountUserMap := accountUser.(*schema.Set).List()[0].(map[string]any)
 
 				resource.AccountDrivenUserEnrollmentEnabled = accountUserMap["enable_for_personally_owned_mobile_devices"].(bool)
 				resource.AccountDrivenUserVisionosEnrollmentEnabled = accountUserMap["enable_for_personally_owned_vision_pro_devices"].(bool)
@@ -103,7 +103,7 @@ func constructEnrollmentSettings(d *schema.ResourceData) (*jamfpro.ResourceEnrol
 
 			// Account-driven device enrollment
 			if accountDevice, ok := deviceSettings["account_driven_device_enrollment"]; ok && len(accountDevice.(*schema.Set).List()) > 0 {
-				accountDeviceMap := accountDevice.(*schema.Set).List()[0].(map[string]interface{})
+				accountDeviceMap := accountDevice.(*schema.Set).List()[0].(map[string]any)
 
 				resource.AccountDrivenDeviceIosEnrollmentEnabled = accountDeviceMap["enable_for_institutionally_owned_mobile_devices"].(bool)
 				resource.AccountDrivenDeviceVisionosEnrollmentEnabled = accountDeviceMap["enable_for_personally_owned_vision_pro_devices"].(bool)
@@ -136,7 +136,7 @@ func constructEnrollmentMessaging(d *schema.ResourceData, client *jamfpro.Client
 		}
 
 		for _, messaging := range messagingSet {
-			msg := messaging.(map[string]interface{})
+			msg := messaging.(map[string]any)
 			langName := msg["language_name"].(string)
 			normalizedLangName := strings.ToLower(strings.TrimSpace(langName))
 			langCode, ok := langCodes[normalizedLangName]
@@ -244,7 +244,7 @@ func constructDirectoryServiceGroupSettings(d *schema.ResourceData) ([]*jamfpro.
 		groupsSet := v.(*schema.Set).List()
 
 		for _, groupData := range groupsSet {
-			groupMap := groupData.(map[string]interface{})
+			groupMap := groupData.(map[string]any)
 
 			group := &jamfpro.ResourceAccountDrivenUserEnrollmentAccessGroup{
 				ID:                                 groupMap["id"].(string),

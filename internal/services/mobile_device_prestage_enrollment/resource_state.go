@@ -11,7 +11,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDevicePrestage) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	prestageAttributes := map[string]interface{}{
+	prestageAttributes := map[string]any{
 		"id":                                           resp.ID,
 		"display_name":                                 resp.DisplayName,
 		"mandatory":                                    resp.Mandatory,
@@ -28,7 +28,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDevicePrest
 		"prevent_activation_lock":                      resp.PreventActivationLock,
 		"enable_device_based_activation_lock":          resp.EnableDeviceBasedActivationLock,
 		"device_enrollment_program_instance_id":        resp.DeviceEnrollmentProgramInstanceID,
-		"skip_setup_items":                             []interface{}{skipSetupItems(resp.SkipSetupItems)},
+		"skip_setup_items":                             []any{skipSetupItems(resp.SkipSetupItems)},
 		"anchor_certificates":                          resp.AnchorCertificates,
 		"enrollment_customization_id":                  resp.EnrollmentCustomizationID,
 		"language":                                     resp.Language,
@@ -61,8 +61,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDevicePrest
 	}
 
 	if locationInformation := resp.LocationInformation; locationInformation != (jamfpro.MobileDevicePrestageSubsetLocationInformation{}) {
-		prestageAttributes["location_information"] = []interface{}{
-			map[string]interface{}{
+		prestageAttributes["location_information"] = []any{
+			map[string]any{
 				"id":            locationInformation.ID,
 				"username":      locationInformation.Username,
 				"realname":      locationInformation.Realname,
@@ -78,8 +78,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDevicePrest
 	}
 
 	if purchasingInformation := resp.PurchasingInformation; purchasingInformation != (jamfpro.MobileDevicePrestageSubsetPurchasingInformation{}) {
-		prestageAttributes["purchasing_information"] = []interface{}{
-			map[string]interface{}{
+		prestageAttributes["purchasing_information"] = []any{
+			map[string]any{
 				"id":                 purchasingInformation.ID,
 				"leased":             purchasingInformation.Leased,
 				"purchased":          purchasingInformation.Purchased,
@@ -99,7 +99,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDevicePrest
 	}
 
 	if names := resp.Names; names.AssignNamesUsing != "" || names.DeviceNamePrefix != "" || names.DeviceNameSuffix != "" || names.SingleDeviceName != "" || *names.ManageNames || *names.DeviceNamingConfigured {
-		namesMap := map[string]interface{}{
+		namesMap := map[string]any{
 			"assign_names_using":       names.AssignNamesUsing,
 			"device_name_prefix":       names.DeviceNamePrefix,
 			"device_name_suffix":       names.DeviceNameSuffix,
@@ -109,9 +109,9 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDevicePrest
 		}
 
 		if len(names.PrestageDeviceNames) > 0 {
-			deviceNames := make([]interface{}, len(names.PrestageDeviceNames))
+			deviceNames := make([]any, len(names.PrestageDeviceNames))
 			for i, name := range names.PrestageDeviceNames {
-				deviceNames[i] = map[string]interface{}{
+				deviceNames[i] = map[string]any{
 					"id":          name.ID,
 					"device_name": name.DeviceName,
 					"used":        name.Used,
@@ -120,7 +120,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDevicePrest
 			namesMap["prestage_device_names"] = deviceNames
 		}
 
-		prestageAttributes["names"] = []interface{}{namesMap}
+		prestageAttributes["names"] = []any{namesMap}
 	}
 
 	for key, val := range prestageAttributes {
@@ -133,8 +133,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDevicePrest
 }
 
 // skipSetupItems converts the MobileDevicePrestageSubsetSkipSetupItems struct to a map
-func skipSetupItems(skipSetupItems jamfpro.MobileDevicePrestageSubsetSkipSetupItems) map[string]interface{} {
-	return map[string]interface{}{
+func skipSetupItems(skipSetupItems jamfpro.MobileDevicePrestageSubsetSkipSetupItems) map[string]any {
+	return map[string]any{
 		"location":                skipSetupItems.Location,
 		"privacy":                 skipSetupItems.Privacy,
 		"biometric":               skipSetupItems.Biometric,

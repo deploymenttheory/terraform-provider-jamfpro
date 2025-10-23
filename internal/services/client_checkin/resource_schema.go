@@ -14,7 +14,7 @@ func ResourceJamfProClientCheckin() *schema.Resource {
 		ReadContext:   readWithCleanup,
 		UpdateContext: update,
 		DeleteContext: delete,
-		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta any) error {
 			return validateComputerCheckinDependencies(d)
 		},
 		Timeouts: &schema.ResourceTimeout{

@@ -17,7 +17,7 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 	log.Printf("[DEBUG] updateState: Starting state update from API data.")
 
 	// --- Set General Settings ---
-	generalSettings := map[string]interface{}{
+	generalSettings := map[string]any{
 		"skip_certificate_installation_during_enrollment": enrollment.InstallSingleProfile,
 		"restrict_reenrollment_to_authorized_users_only":  enrollment.RestrictReenrollment,
 	}
@@ -29,7 +29,7 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 
 	// --- Set MDM signing certificate details ---
 	if enrollment.MdmSigningCertificateDetails.Subject != "" || enrollment.MdmSigningCertificateDetails.SerialNumber != "" {
-		mdmCertDetails := []map[string]interface{}{
+		mdmCertDetails := []map[string]any{
 			{
 				"subject":       enrollment.MdmSigningCertificateDetails.Subject,
 				"serial_number": enrollment.MdmSigningCertificateDetails.SerialNumber,
@@ -52,8 +52,8 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 		configPassword := ""
 
 		if v, ok := d.GetOk("third_party_signing_certificate"); ok {
-			if list, okList := v.([]interface{}); okList && len(list) > 0 {
-				if certMap, okMap := list[0].(map[string]interface{}); okMap {
+			if list, okList := v.([]any); okList && len(list) > 0 {
+				if certMap, okMap := list[0].(map[string]any); okMap {
 					if filenameVal, ok := certMap["filename"].(string); ok {
 						configFilename = filenameVal
 					}
@@ -70,14 +70,14 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 			log.Printf("[WARN] updateState: third_party_signing_certificate enabled in API, but block not found in current state. Filename/sensitive data might be lost if not reapplied.")
 		}
 
-		certMapForState := map[string]interface{}{
+		certMapForState := map[string]any{
 			"enabled":           true,           // Use API value for enablement
 			"filename":          configFilename, // USE VALUE FROM STATE
 			"identity_keystore": configKeystore, // USE VALUE FROM STATE
 			"keystore_password": configPassword, // USE VALUE FROM STATE
 		}
 
-		if err := d.Set("third_party_signing_certificate", []interface{}{certMapForState}); err != nil {
+		if err := d.Set("third_party_signing_certificate", []any{certMapForState}); err != nil {
 			diags = append(diags, diag.Diagnostic{Severity: diag.Error, Summary: "Failed to set third-party signing certificate state", Detail: err.Error()})
 		}
 	} else {
@@ -95,11 +95,11 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 		enrollment.SignQuickAdd ||
 		enrollment.AccountDrivenDeviceMacosEnrollmentEnabled
 
-	var computerEnrollmentStateValue []interface{} // Value to set for the TypeSet
+	var computerEnrollmentStateValue []any // Value to set for the TypeSet
 
 	if computerBlockEnabledInAPI {
 		log.Printf("[DEBUG] updateState: user_initiated_enrollment_for_computers block is considered enabled based on API flags.")
-		computerSettings := map[string]interface{}{
+		computerSettings := map[string]any{
 			"enable_user_initiated_enrollment_for_computers": enrollment.MacOsEnterpriseEnrollmentEnabled,
 			"ensure_ssh_is_enabled":                          enrollment.EnsureSshRunning,
 			"launch_self_service_when_done":                  enrollment.LaunchSelfService,
@@ -109,13 +109,13 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 		// Handle managed admin account
 		if enrollment.CreateManagementAccount {
 			log.Printf("[DEBUG] updateState: managed_local_administrator_account is enabled in API response.")
-			adminAccountMap := map[string]interface{}{
+			adminAccountMap := map[string]any{
 				"create_managed_local_administrator_account":                    enrollment.CreateManagementAccount,
 				"management_account_username":                                   enrollment.ManagementUsername,
 				"hide_managed_local_administrator_account":                      enrollment.HideManagementAccount,
 				"allow_ssh_access_for_managed_local_administrator_account_only": enrollment.AllowSshOnlyManagementAccount,
 			}
-			computerSettings["managed_local_administrator_account"] = []interface{}{adminAccountMap} // List for TypeSet
+			computerSettings["managed_local_administrator_account"] = []any{adminAccountMap} // List for TypeSet
 		} else {
 			log.Printf("[DEBUG] updateState: managed_local_administrator_account is disabled in API response. Clearing sub-block state.")
 			computerSettings["managed_local_administrator_account"] = nil
@@ -133,9 +133,9 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 				if compSet, okSet := vComp.(*schema.Set); okSet {
 					compList := compSet.List()
 					if len(compList) > 0 {
-						if compMap, okMap := compList[0].(map[string]interface{}); okMap {
-							if qaList, okQaList := compMap["quickadd_package"].([]interface{}); okQaList && len(qaList) > 0 {
-								if qaMap, okQaMap := qaList[0].(map[string]interface{}); okQaMap {
+						if compMap, okMap := compList[0].(map[string]any); okMap {
+							if qaList, okQaList := compMap["quickadd_package"].([]any); okQaList && len(qaList) > 0 {
+								if qaMap, okQaMap := qaList[0].(map[string]any); okQaMap {
 									if filenameVal, ok := qaMap["filename"].(string); ok {
 										qaConfigFilename = filenameVal // READ FROM STATE
 									}
@@ -155,20 +155,20 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 				log.Printf("[WARN] updateState: quickadd_package enabled in API, but parent block not found in current state. Filename/sensitive data might be lost.")
 			}
 
-			quickAddMapForState := map[string]interface{}{
+			quickAddMapForState := map[string]any{
 				"sign_quickadd_package": true,             // Use API value for enablement
 				"filename":              qaConfigFilename, // USE VALUE FROM STATE
 				"identity_keystore":     qaConfigKeystore, // USE VALUE FROM STATE
 				"keystore_password":     qaConfigPassword, // USE VALUE FROM STATE
 			}
-			computerSettings["quickadd_package"] = []interface{}{quickAddMapForState}
+			computerSettings["quickadd_package"] = []any{quickAddMapForState}
 		} else {
 			log.Printf("[DEBUG] updateState: quickadd_package signing is disabled in API response. Clearing sub-block state.")
 			computerSettings["quickadd_package"] = nil
 		}
 
 		// Final value is a list containing the single map (for TypeSet)
-		computerEnrollmentStateValue = []interface{}{computerSettings}
+		computerEnrollmentStateValue = []any{computerSettings}
 
 	} else {
 		log.Printf("[DEBUG] updateState: user_initiated_enrollment_for_computers block is considered disabled based on API flags. Clearing state.")
@@ -180,29 +180,29 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 	}
 
 	// --- Set Mobile Device Enrollment Settings ---
-	deviceSettings := map[string]interface{}{}
+	deviceSettings := map[string]any{}
 
-	profileSettingsMap := map[string]interface{}{
+	profileSettingsMap := map[string]any{
 		"enable_for_institutionally_owned_devices": enrollment.IosEnterpriseEnrollmentEnabled,
 		"enable_for_personally_owned_devices":      enrollment.IosPersonalEnrollmentEnabled,
 		"personal_device_enrollment_type":          enrollment.PersonalDeviceEnrollmentType,
 	}
-	deviceSettings["profile_driven_enrollment_via_url"] = []interface{}{profileSettingsMap}
+	deviceSettings["profile_driven_enrollment_via_url"] = []any{profileSettingsMap}
 
-	userSettingsMap := map[string]interface{}{
+	userSettingsMap := map[string]any{
 		"enable_for_personally_owned_mobile_devices":     enrollment.AccountDrivenUserEnrollmentEnabled,
 		"enable_for_personally_owned_vision_pro_devices": enrollment.AccountDrivenUserVisionosEnrollmentEnabled,
 		"enable_maid_username_merge":                     enrollment.MaidUsernameMergeEnabled,
 	}
-	deviceSettings["account_driven_user_enrollment"] = []interface{}{userSettingsMap}
+	deviceSettings["account_driven_user_enrollment"] = []any{userSettingsMap}
 
-	accountDrivenSettingsMap := map[string]interface{}{
+	accountDrivenSettingsMap := map[string]any{
 		"enable_for_institutionally_owned_mobile_devices": enrollment.AccountDrivenDeviceIosEnrollmentEnabled,
 		"enable_for_personally_owned_vision_pro_devices":  enrollment.AccountDrivenDeviceVisionosEnrollmentEnabled,
 	}
-	deviceSettings["account_driven_device_enrollment"] = []interface{}{accountDrivenSettingsMap}
+	deviceSettings["account_driven_device_enrollment"] = []any{accountDrivenSettingsMap}
 
-	deviceEnrollmentStateValue := []interface{}{deviceSettings}
+	deviceEnrollmentStateValue := []any{deviceSettings}
 
 	if err := d.Set("user_initiated_enrollment_for_devices", deviceEnrollmentStateValue); err != nil {
 		diags = append(diags, diag.Diagnostic{
@@ -214,7 +214,7 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 
 	// --- Set Enrollment Messaging Configurations ---
 	if len(messages) > 0 {
-		messagingConfigs := make([]interface{}, 0, len(messages))
+		messagingConfigs := make([]any, 0, len(messages))
 		for i := range messages {
 			messagingConfigMap, err := handleEnrollmentMessage(&messages[i])
 			if err != nil {
@@ -240,7 +240,7 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 
 	// --- Set Directory Service Group Enrollment Settings ---
 	if len(accessGroups) > 0 {
-		groupSettingsList := make([]interface{}, 0, len(accessGroups))
+		groupSettingsList := make([]any, 0, len(accessGroups))
 
 		// First, check if directory_service_group_enrollment_settings is in the config
 		hasConfiguredGroups := false
@@ -282,12 +282,12 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 }
 
 // handleDirectoryServiceGroupEnrollmentSettings flattens a directory service group enrollment setting struct into a map for Terraform state.
-func handleDirectoryServiceGroupEnrollmentSettings(group *jamfpro.ResourceAccountDrivenUserEnrollmentAccessGroup) (map[string]interface{}, error) {
+func handleDirectoryServiceGroupEnrollmentSettings(group *jamfpro.ResourceAccountDrivenUserEnrollmentAccessGroup) (map[string]any, error) {
 	if group == nil {
 		return nil, fmt.Errorf("cannot flatten nil access group")
 	}
 
-	flatGroup := map[string]interface{}{
+	flatGroup := map[string]any{
 		"id":                           group.ID,
 		"directory_service_group_name": group.Name,
 		"directory_service_group_id":   group.GroupID,
@@ -303,12 +303,12 @@ func handleDirectoryServiceGroupEnrollmentSettings(group *jamfpro.ResourceAccoun
 }
 
 // handleEnrollmentMessage flattens an enrollment language message struct into a map for Terraform state.
-func handleEnrollmentMessage(message *jamfpro.ResourceEnrollmentLanguage) (map[string]interface{}, error) {
+func handleEnrollmentMessage(message *jamfpro.ResourceEnrollmentLanguage) (map[string]any, error) {
 	if message == nil {
 		return nil, fmt.Errorf("cannot flatten nil enrollment message")
 	}
 
-	flatMsg := map[string]interface{}{
+	flatMsg := map[string]any{
 		"language_code":                                   message.LanguageCode,
 		"language_name":                                   strings.ToLower(message.Name), // Store consistent lowercase name
 		"page_title":                                      message.Title,

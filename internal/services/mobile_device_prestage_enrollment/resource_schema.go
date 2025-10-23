@@ -689,7 +689,7 @@ func ResourceJamfProMobileDevicePrestageEnrollment() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The type of minimum OS version enforcement for iOS devices.",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(string)
 					validTypes := map[string]bool{
 						"NO_ENFORCEMENT":                  true,
@@ -713,7 +713,7 @@ func ResourceJamfProMobileDevicePrestageEnrollment() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The type of minimum OS version enforcement for iPadOS devices.",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(string)
 					validTypes := map[string]bool{
 						"NO_ENFORCEMENT":                  true,

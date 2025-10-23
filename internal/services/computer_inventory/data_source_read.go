@@ -13,7 +13,7 @@ import (
 // from Jamf Pro using either its unique Name or its ID. The function prioritizes the 'name' attribute over the 'id'
 // attribute for fetching details. If neither 'name' nor 'id' is provided, it returns an error.
 // Once the details are fetched, they are set in the data source's state.
-func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Asserts 'meta' as '*client.client'
 	client, ok := meta.(*jamfpro.Client)
 	if !ok {
@@ -155,7 +155,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 // setGeneralSection maps the 'general' section of the computer inventory response to the Terraform resource data and updates the state.
 func setGeneralSection(d *schema.ResourceData, general jamfpro.ComputerInventorySubsetGeneral) error {
 	// Initialize a map to hold the 'general' section attributes.
-	gen := make(map[string]interface{})
+	gen := make(map[string]any)
 
 	// Map each attribute of the 'general' section from the API response to the corresponding Terraform schema attribute.
 	gen["name"] = general.Name
@@ -182,36 +182,36 @@ func setGeneralSection(d *schema.ResourceData, general jamfpro.ComputerInventory
 	gen["management_id"] = general.ManagementId
 
 	// Handle nested object 'remoteManagement'.
-	remoteManagement := make(map[string]interface{})
+	remoteManagement := make(map[string]any)
 	remoteManagement["managed"] = general.RemoteManagement.Managed
 	remoteManagement["management_username"] = general.RemoteManagement.ManagementUsername
-	gen["remote_management"] = []interface{}{remoteManagement}
+	gen["remote_management"] = []any{remoteManagement}
 
 	// Handle nested object 'site'.
 	if general.Site.ID != "" || general.Site.Name != "" {
-		site := make(map[string]interface{})
+		site := make(map[string]any)
 		site["id"] = general.Site.ID
 		site["name"] = general.Site.Name
-		gen["site_id"] = []interface{}{site}
+		gen["site_id"] = []any{site}
 	}
 
 	// Handle nested object 'enrollmentMethod'.
 	if general.EnrollmentMethod.ID != "" || general.EnrollmentMethod.ObjectName != "" || general.EnrollmentMethod.ObjectType != "" {
-		enrollmentMethod := make(map[string]interface{})
+		enrollmentMethod := make(map[string]any)
 		enrollmentMethod["id"] = general.EnrollmentMethod.ID
 		enrollmentMethod["object_name"] = general.EnrollmentMethod.ObjectName
 		enrollmentMethod["object_type"] = general.EnrollmentMethod.ObjectType
-		gen["enrollment_method"] = []interface{}{enrollmentMethod}
+		gen["enrollment_method"] = []any{enrollmentMethod}
 	}
 
 	// Set the 'general' section in the Terraform resource data.
-	return d.Set("general", []interface{}{gen})
+	return d.Set("general", []any{gen})
 }
 
 // setDiskEncryptionSection maps the 'diskEncryption' section of the computer inventory response to the Terraform resource data and updates the state.
 func setDiskEncryptionSection(d *schema.ResourceData, diskEncryption jamfpro.ComputerInventorySubsetDiskEncryption) error {
 	// Initialize a map to hold the 'diskEncryption' section attributes.
-	diskEnc := make(map[string]interface{})
+	diskEnc := make(map[string]any)
 
 	// Map each attribute of the 'diskEncryption' section from the API response to the corresponding Terraform schema attribute.
 	diskEnc["individual_recovery_key_validity_status"] = diskEncryption.IndividualRecoveryKeyValidityStatus
@@ -220,11 +220,11 @@ func setDiskEncryptionSection(d *schema.ResourceData, diskEncryption jamfpro.Com
 	diskEnc["file_vault2_eligibility_message"] = diskEncryption.FileVault2EligibilityMessage
 
 	// Handle nested object 'bootPartitionEncryptionDetails'.
-	bootPartitionDetails := make(map[string]interface{})
+	bootPartitionDetails := make(map[string]any)
 	bootPartitionDetails["partition_name"] = diskEncryption.BootPartitionEncryptionDetails.PartitionName
 	bootPartitionDetails["partition_file_vault2_state"] = diskEncryption.BootPartitionEncryptionDetails.PartitionFileVault2State
 	bootPartitionDetails["partition_file_vault2_percent"] = diskEncryption.BootPartitionEncryptionDetails.PartitionFileVault2Percent
-	diskEnc["boot_partition_encryption_details"] = []interface{}{bootPartitionDetails}
+	diskEnc["boot_partition_encryption_details"] = []any{bootPartitionDetails}
 
 	// Map 'fileVault2EnabledUserNames' as a list of strings.
 	fileVaultUserNames := make([]string, len(diskEncryption.FileVault2EnabledUserNames))
@@ -234,13 +234,13 @@ func setDiskEncryptionSection(d *schema.ResourceData, diskEncryption jamfpro.Com
 	diskEnc["file_vault2_enabled_user_names"] = fileVaultUserNames
 
 	// Set the 'diskEncryption' section in the Terraform resource data.
-	return d.Set("disk_encryption", []interface{}{diskEnc})
+	return d.Set("disk_encryption", []any{diskEnc})
 }
 
 // setPurchasingSection maps the 'purchasing' section of the computer inventory response to the Terraform resource data and updates the state.
 func setPurchasingSection(d *schema.ResourceData, purchasing jamfpro.ComputerInventorySubsetPurchasing) error {
 	// Initialize a map to hold the 'purchasing' section attributes.
-	purchasingMap := make(map[string]interface{})
+	purchasingMap := make(map[string]any)
 
 	// Map each attribute of the 'purchasing' section from the API response to the corresponding Terraform schema attribute.
 	purchasingMap["leased"] = purchasing.Leased
@@ -257,9 +257,9 @@ func setPurchasingSection(d *schema.ResourceData, purchasing jamfpro.ComputerInv
 	purchasingMap["purchasing_contact"] = purchasing.PurchasingContact
 
 	// Map 'extensionAttributes' as a list of maps.
-	extAttrs := make([]map[string]interface{}, len(purchasing.ExtensionAttributes))
+	extAttrs := make([]map[string]any, len(purchasing.ExtensionAttributes))
 	for i, attr := range purchasing.ExtensionAttributes {
-		attrMap := make(map[string]interface{})
+		attrMap := make(map[string]any)
 		attrMap["definition_id"] = attr.DefinitionId
 		attrMap["name"] = attr.Name
 		attrMap["description"] = attr.Description
@@ -275,17 +275,17 @@ func setPurchasingSection(d *schema.ResourceData, purchasing jamfpro.ComputerInv
 	purchasingMap["extension_attributes"] = extAttrs
 
 	// Set the 'purchasing' section in the Terraform resource data.
-	return d.Set("purchasing", []interface{}{purchasingMap})
+	return d.Set("purchasing", []any{purchasingMap})
 }
 
 // setApplicationsSection maps the 'applications' section of the computer inventory response to the Terraform resource data and updates the state.
 func setApplicationsSection(d *schema.ResourceData, applications []jamfpro.ComputerInventorySubsetApplication) error {
 	// Create a slice to hold the application maps.
-	apps := make([]interface{}, len(applications))
+	apps := make([]any, len(applications))
 
 	for i, app := range applications {
 		// Initialize a map for each application.
-		appMap := make(map[string]interface{})
+		appMap := make(map[string]any)
 
 		// Map each attribute of the application from the API response to the corresponding Terraform schema attribute.
 		appMap["name"] = app.Name
@@ -307,14 +307,14 @@ func setApplicationsSection(d *schema.ResourceData, applications []jamfpro.Compu
 
 // setStorageSection maps the 'storage' section of the computer inventory response to the Terraform resource data and updates the state.
 func setStorageSection(d *schema.ResourceData, storage jamfpro.ComputerInventorySubsetStorage) error {
-	storageMap := make(map[string]interface{})
+	storageMap := make(map[string]any)
 
 	storageMap["boot_drive_available_space_megabytes"] = storage.BootDriveAvailableSpaceMegabytes
 
 	// Mapping 'disks' array
-	disks := make([]interface{}, len(storage.Disks))
+	disks := make([]any, len(storage.Disks))
 	for i, disk := range storage.Disks {
-		diskMap := make(map[string]interface{})
+		diskMap := make(map[string]any)
 		diskMap["id"] = disk.ID
 		diskMap["device"] = disk.Device
 		diskMap["model"] = disk.Model
@@ -325,9 +325,9 @@ func setStorageSection(d *schema.ResourceData, storage jamfpro.ComputerInventory
 		diskMap["type"] = disk.Type
 
 		// Map 'partitions' if present
-		partitions := make([]interface{}, len(disk.Partitions))
+		partitions := make([]any, len(disk.Partitions))
 		for j, partition := range disk.Partitions {
-			partitionMap := make(map[string]interface{})
+			partitionMap := make(map[string]any)
 			partitionMap["name"] = partition.Name
 			partitionMap["size_megabytes"] = partition.SizeMegabytes
 			partitionMap["available_megabytes"] = partition.AvailableMegabytes
@@ -345,12 +345,12 @@ func setStorageSection(d *schema.ResourceData, storage jamfpro.ComputerInventory
 	storageMap["disks"] = disks
 
 	// Set the 'storage' section in the Terraform resource data.
-	return d.Set("storage", []interface{}{storageMap})
+	return d.Set("storage", []any{storageMap})
 }
 
 // setUserAndLocationSection maps the 'userAndLocation' section of the computer inventory response to the Terraform resource data and updates the state.
 func setUserAndLocationSection(d *schema.ResourceData, userAndLocation jamfpro.ComputerInventorySubsetUserAndLocation) error {
-	userLocationMap := make(map[string]interface{})
+	userLocationMap := make(map[string]any)
 
 	// Map each attribute from the 'userAndLocation' object to the corresponding schema attribute
 	userLocationMap["username"] = userAndLocation.Username
@@ -364,9 +364,9 @@ func setUserAndLocationSection(d *schema.ResourceData, userAndLocation jamfpro.C
 
 	// Map extension attributes if present
 	if len(userAndLocation.ExtensionAttributes) > 0 {
-		extAttrs := make([]map[string]interface{}, len(userAndLocation.ExtensionAttributes))
+		extAttrs := make([]map[string]any, len(userAndLocation.ExtensionAttributes))
 		for i, attr := range userAndLocation.ExtensionAttributes {
-			attrMap := make(map[string]interface{})
+			attrMap := make(map[string]any)
 			attrMap["definition_id"] = attr.DefinitionId
 			attrMap["name"] = attr.Name
 			attrMap["description"] = attr.Description
@@ -383,12 +383,12 @@ func setUserAndLocationSection(d *schema.ResourceData, userAndLocation jamfpro.C
 	}
 
 	// Set the 'userAndLocation' section in the Terraform resource data
-	return d.Set("user_and_location", []interface{}{userLocationMap})
+	return d.Set("user_and_location", []any{userLocationMap})
 }
 
 // setHardwareSection maps the 'hardware' section of the computer inventory response to the Terraform resource data and updates the state.
 func setHardwareSection(d *schema.ResourceData, hardware jamfpro.ComputerInventorySubsetHardware) error {
-	hardwareMap := make(map[string]interface{})
+	hardwareMap := make(map[string]any)
 
 	// Map each attribute from the 'hardware' object to the corresponding schema attribute
 	hardwareMap["make"] = hardware.Make
@@ -419,9 +419,9 @@ func setHardwareSection(d *schema.ResourceData, hardware jamfpro.ComputerInvento
 
 	// Map extension attributes if present
 	if len(hardware.ExtensionAttributes) > 0 {
-		extAttrs := make([]map[string]interface{}, len(hardware.ExtensionAttributes))
+		extAttrs := make([]map[string]any, len(hardware.ExtensionAttributes))
 		for i, attr := range hardware.ExtensionAttributes {
-			attrMap := make(map[string]interface{})
+			attrMap := make(map[string]any)
 			attrMap["definition_id"] = attr.DefinitionId
 			attrMap["name"] = attr.Name
 			attrMap["description"] = attr.Description
@@ -438,14 +438,14 @@ func setHardwareSection(d *schema.ResourceData, hardware jamfpro.ComputerInvento
 	}
 
 	// Set the 'hardware' section in the Terraform resource data
-	return d.Set("hardware", []interface{}{hardwareMap})
+	return d.Set("hardware", []any{hardwareMap})
 }
 
 // setLocalUserAccountsSection maps the 'localUserAccounts' section of the computer inventory response to the Terraform resource data and updates the state.
 func setLocalUserAccountsSection(d *schema.ResourceData, localUserAccounts []jamfpro.ComputerInventorySubsetLocalUserAccount) error {
-	accounts := make([]interface{}, len(localUserAccounts))
+	accounts := make([]any, len(localUserAccounts))
 	for i, account := range localUserAccounts {
-		acc := make(map[string]interface{})
+		acc := make(map[string]any)
 		acc["uid"] = account.UID
 		acc["user_guid"] = account.UserGuid
 		acc["username"] = account.Username
@@ -470,9 +470,9 @@ func setLocalUserAccountsSection(d *schema.ResourceData, localUserAccounts []jam
 
 // setCertificatesSection maps the 'certificate' section of the computer inventory response to the Terraform resource data and updates the state.
 func setCertificatesSection(d *schema.ResourceData, certificates []jamfpro.ComputerInventorySubsetCertificate) error {
-	certs := make([]interface{}, len(certificates))
+	certs := make([]any, len(certificates))
 	for i, cert := range certificates {
-		certMap := make(map[string]interface{})
+		certMap := make(map[string]any)
 		certMap["common_name"] = cert.CommonName
 		certMap["identity"] = cert.Identity
 		certMap["expiration_date"] = cert.ExpirationDate
@@ -490,9 +490,9 @@ func setCertificatesSection(d *schema.ResourceData, certificates []jamfpro.Compu
 
 // setAttachmentsSection maps the 'attachments' section of the computer inventory response to the Terraform resource data and updates the state.
 func setAttachmentsSection(d *schema.ResourceData, attachments []jamfpro.ComputerInventorySubsetAttachment) error {
-	atts := make([]interface{}, len(attachments))
+	atts := make([]any, len(attachments))
 	for i, att := range attachments {
-		attMap := make(map[string]interface{})
+		attMap := make(map[string]any)
 		attMap["id"] = att.ID
 		attMap["name"] = att.Name
 		attMap["file_type"] = att.FileType
@@ -504,9 +504,9 @@ func setAttachmentsSection(d *schema.ResourceData, attachments []jamfpro.Compute
 
 // setPluginsSection maps the 'plugins' section of the computer inventory response to the Terraform resource data and updates the state.
 func setPluginsSection(d *schema.ResourceData, plugins []jamfpro.ComputerInventorySubsetPlugin) error {
-	pluginList := make([]interface{}, len(plugins))
+	pluginList := make([]any, len(plugins))
 	for i, plugin := range plugins {
-		pluginMap := make(map[string]interface{})
+		pluginMap := make(map[string]any)
 		pluginMap["name"] = plugin.Name
 		pluginMap["version"] = plugin.Version
 		pluginMap["path"] = plugin.Path
@@ -517,18 +517,18 @@ func setPluginsSection(d *schema.ResourceData, plugins []jamfpro.ComputerInvento
 
 // setPackageReceiptsSection maps the 'package receipts' section of the computer inventory response to the Terraform resource data and updates the state.
 func setPackageReceiptsSection(d *schema.ResourceData, packageReceipts jamfpro.ComputerInventorySubsetPackageReceipts) error {
-	packageReceiptMap := make(map[string]interface{})
+	packageReceiptMap := make(map[string]any)
 	packageReceiptMap["installed_by_jamf_pro"] = packageReceipts.InstalledByJamfPro
 	packageReceiptMap["installed_by_installer_swu"] = packageReceipts.InstalledByInstallerSwu
 	packageReceiptMap["cached"] = packageReceipts.Cached
-	return d.Set("package_receipts", []interface{}{packageReceiptMap})
+	return d.Set("package_receipts", []any{packageReceiptMap})
 }
 
 // setFontsSection maps the 'fonts' section of the computer inventory response to the Terraform resource data and updates the state.
 func setFontsSection(d *schema.ResourceData, fonts []jamfpro.ComputerInventorySubsetFont) error {
-	fontsList := make([]interface{}, len(fonts))
+	fontsList := make([]any, len(fonts))
 	for i, font := range fonts {
-		fontMap := make(map[string]interface{})
+		fontMap := make(map[string]any)
 		fontMap["name"] = font.Name
 		fontMap["version"] = font.Version
 		fontMap["path"] = font.Path
@@ -539,7 +539,7 @@ func setFontsSection(d *schema.ResourceData, fonts []jamfpro.ComputerInventorySu
 
 // setSecuritySection maps the 'security' section of the computer inventory response to the Terraform resource data and updates the state.
 func setSecuritySection(d *schema.ResourceData, security jamfpro.ComputerInventorySubsetSecurity) error {
-	securityMap := make(map[string]interface{})
+	securityMap := make(map[string]any)
 	securityMap["sip_status"] = security.SipStatus
 	securityMap["gatekeeper_status"] = security.GatekeeperStatus
 	securityMap["xprotect_version"] = security.XprotectVersion
@@ -551,12 +551,12 @@ func setSecuritySection(d *schema.ResourceData, security jamfpro.ComputerInvento
 	securityMap["secure_boot_level"] = security.SecureBootLevel
 	securityMap["external_boot_level"] = security.ExternalBootLevel
 	securityMap["bootstrap_token_allowed"] = security.BootstrapTokenAllowed
-	return d.Set("security", []interface{}{securityMap})
+	return d.Set("security", []any{securityMap})
 }
 
 // setOperatingSystemSection maps the 'Operating System' section of the computer inventory response to the Terraform resource data and updates the state.
 func setOperatingSystemSection(d *schema.ResourceData, operatingSystem jamfpro.ComputerInventorySubsetOperatingSystem) error {
-	osMap := make(map[string]interface{})
+	osMap := make(map[string]any)
 	osMap["name"] = operatingSystem.Name
 	osMap["version"] = operatingSystem.Version
 	osMap["build"] = operatingSystem.Build
@@ -566,9 +566,9 @@ func setOperatingSystemSection(d *schema.ResourceData, operatingSystem jamfpro.C
 	osMap["filevault2_status"] = operatingSystem.FileVault2Status
 	osMap["softwareUpdate_device_id"] = operatingSystem.SoftwareUpdateDeviceId
 	// Map extension attributes if present
-	extAttrs := make([]map[string]interface{}, len(operatingSystem.ExtensionAttributes))
+	extAttrs := make([]map[string]any, len(operatingSystem.ExtensionAttributes))
 	for i, attr := range operatingSystem.ExtensionAttributes {
-		attrMap := make(map[string]interface{})
+		attrMap := make(map[string]any)
 		attrMap["definition_id"] = attr.DefinitionId
 		attrMap["name"] = attr.Name
 		attrMap["description"] = attr.Description
@@ -582,14 +582,14 @@ func setOperatingSystemSection(d *schema.ResourceData, operatingSystem jamfpro.C
 		extAttrs[i] = attrMap
 	}
 	osMap["extension_attributes"] = extAttrs
-	return d.Set("operating_system", []interface{}{osMap})
+	return d.Set("operating_system", []any{osMap})
 }
 
 // setLicensedSoftwareSection maps the 'Licensed Software' section of the computer inventory response to the Terraform resource data and updates the state.
 func setLicensedSoftwareSection(d *schema.ResourceData, licensedSoftware []jamfpro.ComputerInventorySubsetLicensedSoftware) error {
-	softwareList := make([]interface{}, len(licensedSoftware))
+	softwareList := make([]any, len(licensedSoftware))
 	for i, software := range licensedSoftware {
-		softwareMap := make(map[string]interface{})
+		softwareMap := make(map[string]any)
 		softwareMap["id"] = software.ID
 		softwareMap["name"] = software.Name
 		softwareList[i] = softwareMap
@@ -599,9 +599,9 @@ func setLicensedSoftwareSection(d *schema.ResourceData, licensedSoftware []jamfp
 
 // setIBeaconsSection maps the 'IBeacons' section of the computer inventory response to the Terraform resource data and updates the state.
 func setIBeaconsSection(d *schema.ResourceData, ibeacons []jamfpro.ComputerInventorySubsetIBeacon) error {
-	ibeaconList := make([]interface{}, len(ibeacons))
+	ibeaconList := make([]any, len(ibeacons))
 	for i, ibeacon := range ibeacons {
-		ibeaconMap := make(map[string]interface{})
+		ibeaconMap := make(map[string]any)
 		ibeaconMap["name"] = ibeacon.Name
 		ibeaconList[i] = ibeaconMap
 	}
@@ -610,9 +610,9 @@ func setIBeaconsSection(d *schema.ResourceData, ibeacons []jamfpro.ComputerInven
 
 // setSoftwareUpdatesSection maps the 'Software Updates' section of the computer inventory response to the Terraform resource data and updates the state.
 func setSoftwareUpdatesSection(d *schema.ResourceData, softwareUpdates []jamfpro.ComputerInventorySubsetSoftwareUpdate) error {
-	updateList := make([]interface{}, len(softwareUpdates))
+	updateList := make([]any, len(softwareUpdates))
 	for i, update := range softwareUpdates {
-		updateMap := make(map[string]interface{})
+		updateMap := make(map[string]any)
 		updateMap["name"] = update.Name
 		updateMap["version"] = update.Version
 		updateMap["package_name"] = update.PackageName
@@ -623,9 +623,9 @@ func setSoftwareUpdatesSection(d *schema.ResourceData, softwareUpdates []jamfpro
 
 // setExtensionAttributesSection maps the 'Extension Attributes' section of the computer inventory response to the Terraform resource data and updates the state.
 func setExtensionAttributesSection(d *schema.ResourceData, extensionAttributes []jamfpro.ComputerInventorySubsetExtensionAttribute) error {
-	attrList := make([]interface{}, len(extensionAttributes))
+	attrList := make([]any, len(extensionAttributes))
 	for i, attr := range extensionAttributes {
-		attrMap := make(map[string]interface{})
+		attrMap := make(map[string]any)
 		attrMap["definition_id"] = attr.DefinitionId
 		attrMap["name"] = attr.Name
 		attrMap["description"] = attr.Description
@@ -642,9 +642,9 @@ func setExtensionAttributesSection(d *schema.ResourceData, extensionAttributes [
 
 // setGroupMembershipsSection maps the 'groupMemberships' section of the computer inventory response to the Terraform resource data and updates the state.
 func setGroupMembershipsSection(d *schema.ResourceData, groupMemberships []jamfpro.ComputerInventorySubsetGroupMembership) error {
-	memberships := make([]interface{}, len(groupMemberships))
+	memberships := make([]any, len(groupMemberships))
 	for i, group := range groupMemberships {
-		groupMap := make(map[string]interface{})
+		groupMap := make(map[string]any)
 		groupMap["group_id"] = group.GroupId
 		groupMap["group_name"] = group.GroupName
 		groupMap["smart_group"] = group.SmartGroup

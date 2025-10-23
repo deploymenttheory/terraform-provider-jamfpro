@@ -16,7 +16,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfigurationProfile) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	resourceData := map[string]interface{}{
+	resourceData := map[string]any{
 		"name":                resp.General.Name,
 		"description":         resp.General.Description,
 		"uuid":                resp.General.UUID,
@@ -46,7 +46,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfiguratio
 
 	if scopeData, err := setScope(resp); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
-	} else if err := d.Set("scope", []interface{}{scopeData}); err != nil {
+	} else if err := d.Set("scope", []any{scopeData}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -56,13 +56,13 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfiguratio
 		if selfServiceData, err := setSelfService(resp.SelfService); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		} else if selfServiceData != nil {
-			if err := d.Set("self_service", []interface{}{selfServiceData}); err != nil {
+			if err := d.Set("self_service", []any{selfServiceData}); err != nil {
 				diags = append(diags, diag.FromErr(err)...)
 			}
 		}
 	} else {
 		log.Println("Self-service block is empty, default, or set to 'Install Automatically', removing from state")
-		if err := d.Set("self_service", []interface{}{}); err != nil {
+		if err := d.Set("self_service", []any{}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
@@ -77,8 +77,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfiguratio
 }
 
 // setScope converts the scope structure into a format suitable for setting in the Terraform state.
-func setScope(resp *jamfpro.ResourceMacOSConfigurationProfile) (map[string]interface{}, error) {
-	scopeData := map[string]interface{}{
+func setScope(resp *jamfpro.ResourceMacOSConfigurationProfile) (map[string]any, error) {
+	scopeData := map[string]any{
 		"all_computers": resp.Scope.AllComputers,
 		"all_jss_users": resp.Scope.AllJSSUsers,
 	}
@@ -110,8 +110,8 @@ func setScope(resp *jamfpro.ResourceMacOSConfigurationProfile) (map[string]inter
 }
 
 // setLimitations collects and formats limitations data for the Terraform state.
-func setLimitations(limitations jamfpro.MacOSConfigurationProfileSubsetLimitations) ([]map[string]interface{}, error) {
-	result := map[string]interface{}{}
+func setLimitations(limitations jamfpro.MacOSConfigurationProfileSubsetLimitations) ([]map[string]any, error) {
+	result := map[string]any{}
 
 	if len(limitations.NetworkSegments) > 0 {
 		networkSegmentIDs := flattenAndSortNetworkSegmentIds(limitations.NetworkSegments)
@@ -145,12 +145,12 @@ func setLimitations(limitations jamfpro.MacOSConfigurationProfileSubsetLimitatio
 		return nil, nil
 	}
 
-	return []map[string]interface{}{result}, nil
+	return []map[string]any{result}, nil
 }
 
 // setExclusions collects and formats exclusion data for the Terraform state.
-func setExclusions(exclusions jamfpro.MacOSConfigurationProfileSubsetExclusions) ([]map[string]interface{}, error) {
-	result := map[string]interface{}{}
+func setExclusions(exclusions jamfpro.MacOSConfigurationProfileSubsetExclusions) ([]map[string]any, error) {
+	result := map[string]any{}
 
 	if len(exclusions.Computers) > 0 {
 		computerIDs := flattenAndSortComputerIds(exclusions.Computers)
@@ -226,13 +226,13 @@ func setExclusions(exclusions jamfpro.MacOSConfigurationProfileSubsetExclusions)
 		return nil, nil
 	}
 
-	return []map[string]interface{}{result}, nil
+	return []map[string]any{result}, nil
 }
 
 // setSelfService converts the self-service structure into a format suitable for setting in the Terraform state.
-func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfService) (map[string]interface{}, error) {
+func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfService) (map[string]any, error) {
 	// Define default values
-	defaults := map[string]interface{}{
+	defaults := map[string]any{
 		"self_service_display_name":       "",
 		"install_button_text":             "Install",
 		"self_service_description":        "",
@@ -246,7 +246,7 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 		"self_service_category":           nil,
 	}
 
-	selfServiceBlock := map[string]interface{}{
+	selfServiceBlock := map[string]any{
 		"self_service_display_name":       selfService.SelfServiceDisplayName,
 		"install_button_text":             selfService.InstallButtonText,
 		"self_service_description":        selfService.SelfServiceDescription,
@@ -259,8 +259,8 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 	// Handle self service icon
 	if selfService.SelfServiceIcon.ID != 0 {
 		selfServiceBlock["self_service_icon_id"] = selfService.SelfServiceIcon.ID
-		selfServiceBlock["self_service_icon"] = []interface{}{
-			map[string]interface{}{
+		selfServiceBlock["self_service_icon"] = []any{
+			map[string]any{
 				"id":       selfService.SelfServiceIcon.ID,
 				"uri":      selfService.SelfServiceIcon.URI,
 				"data":     selfService.SelfServiceIcon.Data,
@@ -275,9 +275,9 @@ func setSelfService(selfService jamfpro.MacOSConfigurationProfileSubsetSelfServi
 
 	// Handle self service categories
 	if len(selfService.SelfServiceCategories) > 0 {
-		categories := make([]interface{}, len(selfService.SelfServiceCategories))
+		categories := make([]any, len(selfService.SelfServiceCategories))
 		for i, category := range selfService.SelfServiceCategories {
-			categories[i] = map[string]interface{}{
+			categories[i] = map[string]any{
 				"id":         category.ID,
 				"name":       category.Name,
 				"display_in": category.DisplayIn,

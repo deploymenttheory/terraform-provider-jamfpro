@@ -29,7 +29,7 @@ const PackagesMetaTimeout time.Duration = 10 * time.Minute
 // 8. If verification succeeds, sets the package ID in Terraform state.
 // 8. Performs cleanup of downloaded package if it was from an HTTP(s) source.
 // 9. Reads the created package to ensure the Terraform state is up-to-date.
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	var packageID string
@@ -111,7 +111,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 }
 
 // read is responsible for reading the current state of a Jamf Pro Site Resource from the remote system.
-func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+func read(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	resourceID := d.Id()
 	var diags diag.Diagnostics
@@ -135,12 +135,12 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 }
 
 // readWithCleanup reads the resource with cleanup enabled
-func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return read(ctx, d, meta, true)
 }
 
 // readNoCleanup reads the resource with cleanup disabled
-func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return read(ctx, d, meta, false)
 }
 
@@ -155,7 +155,7 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 //     c. If verification fails, attempts to revert metadata changes.
 //  6. Performs cleanup of downloaded package if it was from an HTTP(s) source.
 //  7. Reads the updated package to ensure the Terraform state is up-to-date.
-func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -222,7 +222,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 }
 
 // delete is responsible for deleting a Jamf Pro Package.
-func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return common.Delete(
 		ctx,
 		d,

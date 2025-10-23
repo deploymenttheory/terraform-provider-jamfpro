@@ -11,7 +11,7 @@ import (
 )
 
 // dataSourceRead reads the SSO certificate settings from Jamf Pro
-func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -31,8 +31,8 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 
 	d.SetId(fmt.Sprintf("jamfpro_sso_certificate_%s", response.Keystore.KeystoreFileName))
 
-	if err := d.Set("keystore", []interface{}{
-		map[string]interface{}{
+	if err := d.Set("keystore", []any{
+		map[string]any{
 			"key":                 response.Keystore.Key,
 			"type":                response.Keystore.Type,
 			"keystore_file_name":  response.Keystore.KeystoreFileName,
@@ -44,8 +44,8 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 	}
 
 	if response.KeystoreDetails != nil {
-		if err := d.Set("keystore_details", []interface{}{
-			map[string]interface{}{
+		if err := d.Set("keystore_details", []any{
+			map[string]any{
 				"keys":          response.KeystoreDetails.Keys,
 				"issuer":        response.KeystoreDetails.Issuer,
 				"subject":       response.KeystoreDetails.Subject,

@@ -13,7 +13,7 @@ import (
 )
 
 // construct constructs a jamf pro Account group object from the provided schema data.
-func construct(d *schema.ResourceData, meta interface{}) (*jamfpro.ResourceAccountGroup, error) {
+func construct(d *schema.ResourceData, meta any) (*jamfpro.ResourceAccountGroup, error) {
 	client := meta.(*jamfpro.Client)
 
 	privileges := constructAccountSubsetPrivileges(d)
@@ -31,7 +31,7 @@ func construct(d *schema.ResourceData, meta interface{}) (*jamfpro.ResourceAccou
 	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 	resource.Privileges = constructAccountSubsetPrivileges(d)
 
-	members_ids := d.Get("member_ids").([]interface{})
+	members_ids := d.Get("member_ids").([]any)
 	if len(members_ids) > 0 {
 		for _, v := range members_ids {
 			resource.Members = append(resource.Members, jamfpro.MemberUser{ID: v.(int)})

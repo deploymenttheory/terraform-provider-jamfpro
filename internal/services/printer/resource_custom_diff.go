@@ -9,7 +9,7 @@ import (
 )
 
 // mainCustomDiffFunc orchestrates all custom diff validations.
-func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
+func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i any) error {
 	// Validate printer configuration fields
 	if err := validateJamfProResourcePrinterDataFields(ctx, diff, i); err != nil {
 		return err
@@ -19,7 +19,7 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 }
 
 // validateJamfProResourcePrinterDataFields enforces specific rules for printer configuration fields.
-func validateJamfProResourcePrinterDataFields(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+func validateJamfProResourcePrinterDataFields(_ context.Context, diff *schema.ResourceDiff, _ any) error {
 	resourceName := diff.Get("name").(string)
 
 	// Retrieve the value of 'use_generic'

@@ -16,8 +16,8 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceSMTPServer, error) {
 	}
 
 	// Handle Connection Settings
-	if v, ok := d.GetOk("connection_settings"); ok && len(v.([]interface{})) > 0 {
-		connSettings := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("connection_settings"); ok && len(v.([]any)) > 0 {
+		connSettings := v.([]any)[0].(map[string]any)
 		resource.ConnectionSettings = &jamfpro.ResourceSMTPServerConnectionSettings{
 			Host:              connSettings["host"].(string),
 			Port:              connSettings["port"].(int),
@@ -27,8 +27,8 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceSMTPServer, error) {
 	}
 
 	// Handle Sender Settings
-	if v, ok := d.GetOk("sender_settings"); ok && len(v.([]interface{})) > 0 {
-		senderSettings := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("sender_settings"); ok && len(v.([]any)) > 0 {
+		senderSettings := v.([]any)[0].(map[string]any)
 		resource.SenderSettings = &jamfpro.ResourceSMTPServerSenderSettings{
 			DisplayName:  senderSettings["display_name"].(string),
 			EmailAddress: senderSettings["email_address"].(string),
@@ -36,8 +36,8 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceSMTPServer, error) {
 	}
 
 	// Handle Basic Auth Credentials
-	if v, ok := d.GetOk("basic_auth_credentials"); ok && len(v.([]interface{})) > 0 {
-		basicAuth := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("basic_auth_credentials"); ok && len(v.([]any)) > 0 {
+		basicAuth := v.([]any)[0].(map[string]any)
 		resource.BasicAuthCredentials = &jamfpro.ResourceSMTPServerBasicAuthCredentials{
 			Username: basicAuth["username"].(string),
 			Password: basicAuth["password"].(string),
@@ -45,8 +45,8 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceSMTPServer, error) {
 	}
 
 	// Handle Graph API Credentials
-	if v, ok := d.GetOk("graph_api_credentials"); ok && len(v.([]interface{})) > 0 {
-		graphApi := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("graph_api_credentials"); ok && len(v.([]any)) > 0 {
+		graphApi := v.([]any)[0].(map[string]any)
 		resource.GraphApiCredentials = &jamfpro.ResourceSMTPServerGraphApiCredentials{
 			TenantId:     graphApi["tenant_id"].(string),
 			ClientId:     graphApi["client_id"].(string),
@@ -55,8 +55,8 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceSMTPServer, error) {
 	}
 
 	// Handle Google Mail Credentials
-	if v, ok := d.GetOk("google_mail_credentials"); ok && len(v.([]interface{})) > 0 {
-		googleMail := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("google_mail_credentials"); ok && len(v.([]any)) > 0 {
+		googleMail := v.([]any)[0].(map[string]any)
 		resource.GoogleMailCredentials = &jamfpro.ResourceSMTPServerGoogleMailCredentials{
 			ClientId:     googleMail["client_id"].(string),
 			ClientSecret: googleMail["client_secret"].(string),

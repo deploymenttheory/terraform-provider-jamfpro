@@ -19,7 +19,7 @@ import (
 // 2. Calls the API to create the configuration profile in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created configuration profile.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func resourceJamfProMacOSConfigurationProfilesPlistGeneratorCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProMacOSConfigurationProfilesPlistGeneratorCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -54,7 +54,7 @@ func resourceJamfProMacOSConfigurationProfilesPlistGeneratorCreate(ctx context.C
 // 1. Fetches the configuration profile's current state using its ID. If it fails then obtain configuration profile's current state using its Name.
 // 2. Updates the Terraform state with the fetched data to ensure it accurately reflects the current state in Jamf Pro.
 // 3. Handles any discrepancies, such as the configuration profile being deleted outside of Terraform, to keep the Terraform state synchronized.
-func resourceJamfProMacOSConfigurationProfilesPlistGeneratorRead(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+func resourceJamfProMacOSConfigurationProfilesPlistGeneratorRead(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	resourceID := d.Id()
 	var diags diag.Diagnostics
@@ -77,17 +77,17 @@ func resourceJamfProMacOSConfigurationProfilesPlistGeneratorRead(ctx context.Con
 }
 
 // resourceJamfProMacOSConfigurationProfilesPlistGeneratorReadWithCleanup reads the resource with cleanup enabled
-func resourceJamfProMacOSConfigurationProfilesPlistGeneratorReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProMacOSConfigurationProfilesPlistGeneratorReadWithCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return resourceJamfProMacOSConfigurationProfilesPlistGeneratorRead(ctx, d, meta, true)
 }
 
 // resourceJamfProMacOSConfigurationProfilesPlistGeneratorReadNoCleanup reads the resource with cleanup disabled
-func resourceJamfProMacOSConfigurationProfilesPlistGeneratorReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProMacOSConfigurationProfilesPlistGeneratorReadNoCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return resourceJamfProMacOSConfigurationProfilesPlistGeneratorRead(ctx, d, meta, false)
 }
 
 // resourceJamfProMacOSConfigurationProfilesPlistGeneratorUpdate is responsible for updating an existing Jamf Pro config profile on the remote system.
-func resourceJamfProMacOSConfigurationProfilesPlistGeneratorUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProMacOSConfigurationProfilesPlistGeneratorUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -113,7 +113,7 @@ func resourceJamfProMacOSConfigurationProfilesPlistGeneratorUpdate(ctx context.C
 }
 
 // resourceJamfProMacOSConfigurationProfilesPlistGeneratorDelete is responsible for deleting a Jamf Pro config profile.
-func resourceJamfProMacOSConfigurationProfilesPlistGeneratorDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceJamfProMacOSConfigurationProfilesPlistGeneratorDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()

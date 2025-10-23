@@ -52,7 +52,7 @@ func DataSourceJamfProGroups() *schema.Resource {
 				Optional:    true,
 				Computed:    true,
 				Description: "Type of the group. Required if name or group_jamfpro_id is specified. Must be either COMPUTER or MOBILE.",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(string)
 					if v != "" && v != "COMPUTER" && v != "MOBILE" {
 						errs = append(errs, errGroupTypeAllowed)

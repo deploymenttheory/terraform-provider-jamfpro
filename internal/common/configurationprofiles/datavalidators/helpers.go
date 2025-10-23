@@ -12,7 +12,7 @@ import (
 )
 
 // GetPayloadScope retrieves the 'PayloadScope' key from the decoded plist data.
-func GetPayloadScope(plistData map[string]interface{}) (string, error) {
+func GetPayloadScope(plistData map[string]any) (string, error) {
 	if scope, ok := plistData["PayloadScope"].(string); ok {
 		return scope, nil
 	}
@@ -22,7 +22,7 @@ func GetPayloadScope(plistData map[string]interface{}) (string, error) {
 // CheckPlistIndentationAndWhiteSpace checks the plist XML for proper indentation and whitespace.
 func CheckPlistIndentationAndWhiteSpace(plistStr string) error {
 	// Decode the plist XML
-	var decoded interface{}
+	var decoded any
 
 	_, err := plist.Unmarshal([]byte(plistStr), &decoded)
 	if err != nil {
@@ -60,7 +60,7 @@ func CheckPlistIndentationAndWhiteSpace(plistStr string) error {
 
 // FormatPlist formats the plist structure to a properly indented XML string.
 func FormatPlist(plistStr string) (string, error) {
-	var decoded interface{}
+	var decoded any
 	_, err := plist.Unmarshal([]byte(plistStr), &decoded)
 	if err != nil {
 		return "", fmt.Errorf("invalid plist: %v", err)

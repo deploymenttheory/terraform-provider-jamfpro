@@ -12,7 +12,7 @@ import (
 )
 
 // construct builds an ResourceAPIRole object from the provided schema data
-func construct(d *schema.ResourceData, meta interface{}) (*jamfpro.ResourceAPIRole, error) {
+func construct(d *schema.ResourceData, meta any) (*jamfpro.ResourceAPIRole, error) {
 	client := meta.(*jamfpro.Client)
 
 	resource := &jamfpro.ResourceAPIRole{

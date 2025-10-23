@@ -21,7 +21,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceComputerGroup, error) {
 	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 
 	if v, ok := d.GetOk("criteria"); ok {
-		resource.Criteria = constructComputerGroupSubsetContainerCriteria(v.([]interface{}))
+		resource.Criteria = constructComputerGroupSubsetContainerCriteria(v.([]any))
 	}
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
@@ -35,14 +35,14 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceComputerGroup, error) {
 }
 
 // constructComputerGroupSubsetContainerCriteria constructs a ComputerGroupSubsetContainerCriteria object from the provided schema data.
-func constructComputerGroupSubsetContainerCriteria(criteriaList []interface{}) *jamfpro.ComputerGroupSubsetContainerCriteria {
+func constructComputerGroupSubsetContainerCriteria(criteriaList []any) *jamfpro.ComputerGroupSubsetContainerCriteria {
 	criteria := &jamfpro.ComputerGroupSubsetContainerCriteria{
 		Size:      len(criteriaList),
 		Criterion: &[]jamfpro.SharedSubsetCriteria{},
 	}
 
 	for _, item := range criteriaList {
-		criterionData := item.(map[string]interface{})
+		criterionData := item.(map[string]any)
 		criterion := jamfpro.SharedSubsetCriteria{
 			Name:         criterionData["name"].(string),
 			Priority:     criterionData["priority"].(int),

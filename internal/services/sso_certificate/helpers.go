@@ -9,8 +9,8 @@ import (
 
 // setKeystoreData sets the keystore data in the resource data
 func setKeystoreData(d *schema.ResourceData, keystore jamfpro.ResourceSSOCertKeystore) error {
-	if err := d.Set("keystore", []interface{}{
-		map[string]interface{}{
+	if err := d.Set("keystore", []any{
+		map[string]any{
 			"key":                 keystore.Key,
 			"type":                keystore.Type,
 			"keystore_file_name":  keystore.KeystoreFileName,
@@ -25,8 +25,8 @@ func setKeystoreData(d *schema.ResourceData, keystore jamfpro.ResourceSSOCertKey
 
 // setKeystoreDetails sets the keystore details in the resource data
 func setKeystoreDetails(d *schema.ResourceData, details *jamfpro.ResourceSSOKeystoreDetails) error {
-	if err := d.Set("keystore_details", []interface{}{
-		map[string]interface{}{
+	if err := d.Set("keystore_details", []any{
+		map[string]any{
 			"keys":          details.Keys,
 			"issuer":        details.Issuer,
 			"subject":       details.Subject,
@@ -40,10 +40,10 @@ func setKeystoreDetails(d *schema.ResourceData, details *jamfpro.ResourceSSOKeys
 }
 
 // flattenCertKeys flattens the cert keys into a slice of interfaces
-func flattenCertKeys(keys []jamfpro.ResourceCertKey) []interface{} {
-	var result []interface{}
+func flattenCertKeys(keys []jamfpro.ResourceCertKey) []any {
+	var result []any
 	for _, key := range keys {
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"id":    key.ID,
 			"valid": key.Valid,
 		})

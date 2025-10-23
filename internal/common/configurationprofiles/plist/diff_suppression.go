@@ -21,7 +21,7 @@ func ProcessConfigurationProfileForDiffSuppression(plistData string, fieldsToRem
 	log.Println("Starting ProcessConfigurationProfile")
 
 	// Step 1: Unmarshal
-	var rawData map[string]interface{}
+	var rawData map[string]any
 	if _, err := plist.Unmarshal([]byte(plistData), &rawData); err != nil {
 		log.Printf("Error unmarshalling plist data: %v\n", err)
 		return "", err
@@ -43,7 +43,7 @@ func ProcessConfigurationProfileForDiffSuppression(plistData string, fieldsToRem
 	normalizedData := normalizeHTMLEntitiesForDiff(normalizedStrings)
 
 	// Step 7: Sort keys
-	sortedData := SortPlistKeys(normalizedData.(map[string]interface{}))
+	sortedData := SortPlistKeys(normalizedData.(map[string]any))
 
 	// Step 8: Encode back to plist
 	encodedPlist, err := EncodePlist(sortedData)
@@ -58,7 +58,7 @@ func ProcessConfigurationProfileForDiffSuppression(plistData string, fieldsToRem
 
 // removeSpecifiedXMLFields( removes specified fields from the plist data recursively.
 // useful for removing jamfpro specific unique identifiers from the plist data.
-func removeSpecifiedXMLFields(data map[string]interface{}, fieldsToRemove []string, path string) map[string]interface{} {
+func removeSpecifiedXMLFields(data map[string]any, fieldsToRemove []string, path string) map[string]any {
 	// Create a set of fields to remove for quick lookup
 	fieldsToRemoveSet := make(map[string]struct{}, len(fieldsToRemove))
 	for _, field := range fieldsToRemove {
@@ -77,12 +77,12 @@ func removeSpecifiedXMLFields(data map[string]interface{}, fieldsToRemove []stri
 	for key, value := range data {
 		newPath := path + "/" + key
 		switch v := value.(type) {
-		case map[string]interface{}:
+		case map[string]any:
 			log.Printf("[DEBUG] Recursively removing fields in nested map at path: %s\n", newPath)
 			removeSpecifiedXMLFields(v, fieldsToRemove, newPath)
-		case []interface{}:
+		case []any:
 			for i, item := range v {
-				if nestedMap, ok := item.(map[string]interface{}); ok {
+				if nestedMap, ok := item.(map[string]any); ok {
 					log.Printf("[DEBUG] Recursively removing fields in array at path: %s[%d]\n", newPath, i)
 					removeSpecifiedXMLFields(nestedMap, fieldsToRemove, newPath+strings.ReplaceAll(key, "/", "_")+strconv.Itoa(i))
 				}
@@ -95,7 +95,7 @@ func removeSpecifiedXMLFields(data map[string]interface{}, fieldsToRemove []stri
 	return data
 }
 
-func normalizeBase64Content(data interface{}) interface{} {
+func normalizeBase64Content(data any) any {
 	// Helper to check and normalize potential base64 string values
 	normalizeString := func(s string) string {
 		// If string has no spaces/newlines, leave it alone
@@ -116,15 +116,15 @@ func normalizeBase64Content(data interface{}) interface{} {
 	case string:
 		return normalizeString(v)
 
-	case map[string]interface{}:
-		result := make(map[string]interface{})
+	case map[string]any:
+		result := make(map[string]any)
 		for key, value := range v {
 			result[key] = normalizeBase64Content(value)
 		}
 		return result
 
-	case []interface{}:
-		result := make([]interface{}, len(v))
+	case []any:
+		result := make([]any, len(v))
 		for i, item := range v {
 			result[i] = normalizeBase64Content(item)
 		}
@@ -165,7 +165,7 @@ func NormalizeBase64(input string) string {
 // <true  \t />
 // <false   />
 // <string    />
-func normalizeXMLTags(data interface{}) interface{} {
+func normalizeXMLTags(data any) any {
 	switch v := data.(type) {
 	case string:
 		if strings.Contains(v, "/") {
@@ -174,11 +174,11 @@ func normalizeXMLTags(data interface{}) interface{} {
 			return normalized
 		}
 		return v
-	case map[string]interface{}:
+	case map[string]any:
 		for key, value := range v {
 			v[key] = normalizeXMLTags(value)
 		}
-	case []interface{}:
+	case []any:
 		for i, item := range v {
 			v[i] = normalizeXMLTags(item)
 		}
@@ -187,21 +187,21 @@ func normalizeXMLTags(data interface{}) interface{} {
 }
 
 // normalizeEmptyStrings standardizes empty and whitespace-only strings
-func normalizeEmptyStrings(data interface{}) interface{} {
+func normalizeEmptyStrings(data any) any {
 	switch v := data.(type) {
 	case string:
 		if strings.TrimSpace(v) == "" {
 			return ""
 		}
 		return v
-	case map[string]interface{}:
-		result := make(map[string]interface{})
+	case map[string]any:
+		result := make(map[string]any)
 		for key, value := range v {
 			result[key] = normalizeEmptyStrings(value)
 		}
 		return result
-	case []interface{}:
-		result := make([]interface{}, len(v))
+	case []any:
+		result := make([]any, len(v))
 		for i, item := range v {
 			result[i] = normalizeEmptyStrings(item)
 		}
@@ -216,7 +216,7 @@ var safeHTMLEntity = regexp.MustCompile(`&[a-zA-Z]+;`)
 
 // normalizeHTMLEntitiesForDiff applies html.UnescapeString recursively,
 // but avoids double-unescaping or unescaping intentionally escaped XML entities.
-func normalizeHTMLEntitiesForDiff(data interface{}) interface{} {
+func normalizeHTMLEntitiesForDiff(data any) any {
 	switch v := data.(type) {
 	case string:
 		// If it's wrapped in <string> tags, strip them for evaluation, but preserve during output
@@ -237,11 +237,11 @@ func normalizeHTMLEntitiesForDiff(data interface{}) interface{} {
 		}
 		return str
 
-	case map[string]interface{}:
+	case map[string]any:
 		for key, val := range v {
 			v[key] = normalizeHTMLEntitiesForDiff(val)
 		}
-	case []interface{}:
+	case []any:
 		for i, val := range v {
 			v[i] = normalizeHTMLEntitiesForDiff(val)
 		}

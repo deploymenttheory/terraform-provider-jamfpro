@@ -13,7 +13,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourcePrinter) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	resourceData := map[string]interface{}{
+	resourceData := map[string]any{
 		"id":            strconv.Itoa(resp.ID),
 		"name":          resp.Name,
 		"category_name": resp.Category,

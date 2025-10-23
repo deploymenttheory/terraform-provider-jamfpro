@@ -26,7 +26,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceWebhook, error) {
 		SmartGroupID:                d.Get("smart_group_id").(int),
 	}
 
-	displayFieldsHcl := d.Get("display_fields").([]interface{})
+	displayFieldsHcl := d.Get("display_fields").([]any)
 	if len(displayFieldsHcl) > 0 {
 		for _, v := range displayFieldsHcl {
 			resource.DisplayFields = append(resource.DisplayFields, jamfpro.DisplayField{Name: v.(string)})

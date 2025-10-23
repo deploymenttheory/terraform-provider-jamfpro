@@ -16,7 +16,7 @@ import (
 // it follows a non standard pattern to allow for the client to be passed
 // in as a parameter to the constructor to perform dynamic lookup for valid
 // account privileges.
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -47,7 +47,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 }
 
 // read is responsible for reading the current state of a Jamf Pro Account Group Resource from the remote system.
-func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+func read(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) diag.Diagnostics {
 	return common.Read(
 		ctx,
 		d,
@@ -59,12 +59,12 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 }
 
 // readWithCleanup reads the resource with cleanup enabled
-func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return read(ctx, d, meta, true)
 }
 
 // readNoCleanup reads the resource with cleanup disabled
-func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return read(ctx, d, meta, false)
 }
 
@@ -72,7 +72,7 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 // it follows a non standard pattern to allow for the client to be passed
 // in as a parameter to the constructor to perform dynamic lookup for valid
 // account privileges.
-func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -108,7 +108,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 }
 
 // delete is responsible for deleting a Jamf Pro account .
-func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return common.Delete(
 		ctx,
 		d,

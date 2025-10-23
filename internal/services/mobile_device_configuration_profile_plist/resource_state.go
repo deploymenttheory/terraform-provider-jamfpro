@@ -15,7 +15,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceConfigurationProfile) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	resourceData := map[string]interface{}{
+	resourceData := map[string]any{
 		"name":              resp.General.Name,
 		"description":       resp.General.Description,
 		"uuid":              resp.General.UUID,
@@ -44,7 +44,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceConfi
 
 	if scopeData, err := setScope(resp); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
-	} else if err := d.Set("scope", []interface{}{scopeData}); err != nil {
+	} else if err := d.Set("scope", []any{scopeData}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -58,8 +58,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceConfi
 }
 
 // setScope converts the scope structure into a format suitable for setting in the Terraform state.
-func setScope(resp *jamfpro.ResourceMobileDeviceConfigurationProfile) (map[string]interface{}, error) {
-	scopeData := map[string]interface{}{
+func setScope(resp *jamfpro.ResourceMobileDeviceConfigurationProfile) (map[string]any, error) {
+	scopeData := map[string]any{
 		"all_mobile_devices": resp.Scope.AllMobileDevices,
 		"all_jss_users":      resp.Scope.AllJSSUsers,
 	}
@@ -91,8 +91,8 @@ func setScope(resp *jamfpro.ResourceMobileDeviceConfigurationProfile) (map[strin
 }
 
 // setLimitations collects and formats limitations data for the Terraform state.
-func setLimitations(limitations jamfpro.MobileDeviceConfigurationProfileSubsetLimitation) ([]map[string]interface{}, error) {
-	result := map[string]interface{}{}
+func setLimitations(limitations jamfpro.MobileDeviceConfigurationProfileSubsetLimitation) ([]map[string]any, error) {
+	result := map[string]any{}
 
 	if len(limitations.NetworkSegments) > 0 {
 		networkSegmentIDs := flattenAndSortNetworkSegmentIds(limitations.NetworkSegments)
@@ -126,12 +126,12 @@ func setLimitations(limitations jamfpro.MobileDeviceConfigurationProfileSubsetLi
 		return nil, nil
 	}
 
-	return []map[string]interface{}{result}, nil
+	return []map[string]any{result}, nil
 }
 
 // setExclusions collects and formats exclusion data for the Terraform state.
-func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExclusion) ([]map[string]interface{}, error) {
-	result := map[string]interface{}{}
+func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExclusion) ([]map[string]any, error) {
+	result := map[string]any{}
 
 	if len(exclusions.MobileDevices) > 0 {
 		computerIDs := flattenAndSortMobileDeviceIDs(exclusions.MobileDevices)
@@ -207,7 +207,7 @@ func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExcl
 		return nil, nil
 	}
 
-	return []map[string]interface{}{result}, nil
+	return []map[string]any{result}, nil
 }
 
 // helper functions

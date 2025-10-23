@@ -20,9 +20,9 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceUserGroup, error) {
 
 	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 
-	criteria := d.Get("criteria").([]interface{})
+	criteria := d.Get("criteria").([]any)
 	for _, criterion := range criteria {
-		c := criterion.(map[string]interface{})
+		c := criterion.(map[string]any)
 		resource.Criteria = append(resource.Criteria, jamfpro.SharedSubsetCriteria{
 			Name:         c["name"].(string),
 			Priority:     c["priority"].(int),
@@ -35,7 +35,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceUserGroup, error) {
 	}
 
 	if !resource.IsSmart {
-		assignedUsers := d.Get("assigned_user_ids").([]interface{})
+		assignedUsers := d.Get("assigned_user_ids").([]any)
 		if len(assignedUsers) > 0 {
 			for _, v := range assignedUsers {
 				resource.Users = append(resource.Users, jamfpro.UserGroupSubsetUserItem{
@@ -45,8 +45,8 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceUserGroup, error) {
 		}
 	}
 
-	resource.UserAdditions = extractUsers(d.Get("user_additions").([]interface{}))
-	resource.UserDeletions = extractUsers(d.Get("user_deletions").([]interface{}))
+	resource.UserAdditions = extractUsers(d.Get("user_additions").([]any))
+	resource.UserDeletions = extractUsers(d.Get("user_deletions").([]any))
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
@@ -58,15 +58,15 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceUserGroup, error) {
 	return resource, nil
 }
 
-// extractUsers converts a slice of interface{} that represents user data into a slice
+// extractUsers converts a slice of any that represents user data into a slice
 // of jamfpro.UserGroupSubsetUserItem. It iterates over each user in the interface
 // slice, extracts the relevant fields, and constructs a UserGroupSubsetUserItem for
 // each user. The resulting slice of UserGroupSubsetUserItem is suitable for use in
 // constructing a jamfpro.ResourceUserGroup object.
-func extractUsers(usersInterface []interface{}) []jamfpro.UserGroupSubsetUserItem {
+func extractUsers(usersInterface []any) []jamfpro.UserGroupSubsetUserItem {
 	var users []jamfpro.UserGroupSubsetUserItem
 	for _, user := range usersInterface {
-		u := user.(map[string]interface{})
+		u := user.(map[string]any)
 		userItem := jamfpro.UserGroupSubsetUserItem{
 			ID:           u["id"].(int),
 			Username:     u["username"].(string),

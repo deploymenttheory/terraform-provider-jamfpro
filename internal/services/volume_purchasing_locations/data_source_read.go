@@ -11,7 +11,7 @@ import (
 )
 
 // dataSourceRead fetches the details of a volume purchasing location from Jamf Pro using either its Name or Id.
-func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 
 	id := d.Get("id").(string)

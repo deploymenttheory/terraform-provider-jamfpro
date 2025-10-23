@@ -9,7 +9,7 @@ import (
 )
 
 // construct builds an Account object from schema data and validates privileges
-func construct(d *schema.ResourceData, meta interface{}) (*jamfpro.ResourceAccount, error) {
+func construct(d *schema.ResourceData, meta any) (*jamfpro.ResourceAccount, error) {
 	client := meta.(*jamfpro.Client)
 
 	privileges := constructAccountSubsetPrivileges(d)

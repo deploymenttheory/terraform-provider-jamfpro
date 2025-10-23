@@ -10,7 +10,7 @@ import (
 )
 
 // dataSourcePublicKeyRead fetches the device enrollments public key from Jamf Pro.
-func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 
 	publicKey, err := client.GetDeviceEnrollmentsPublicKey()

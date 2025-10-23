@@ -13,8 +13,8 @@ import (
 // construct constructs the SSO settings resource from the Terraform schema data.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceSsoSettings, error) {
 	var oidcSettings jamfpro.OidcSettings
-	if v, ok := d.GetOk("oidc_settings"); ok && len(v.([]interface{})) > 0 {
-		oidcMap := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("oidc_settings"); ok && len(v.([]any)) > 0 {
+		oidcMap := v.([]any)[0].(map[string]any)
 		oidcSettings = jamfpro.OidcSettings{
 			UserMapping:                   oidcMap["user_mapping"].(string),
 			JamfIdAuthenticationEnabled:   jamfpro.BoolPtr(oidcMap["jamf_id_authentication_enabled"].(bool)),
@@ -23,8 +23,8 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceSsoSettings, error) {
 	}
 
 	var samlSettings jamfpro.SamlSettings
-	if v, ok := d.GetOk("saml_settings"); ok && len(v.([]interface{})) > 0 {
-		samlMap := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("saml_settings"); ok && len(v.([]any)) > 0 {
+		samlMap := v.([]any)[0].(map[string]any)
 		samlSettings = jamfpro.SamlSettings{
 			IdpUrl:                  samlMap["idp_url"].(string),
 			EntityId:                samlMap["entity_id"].(string),
@@ -44,11 +44,11 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceSsoSettings, error) {
 	}
 
 	var enrollmentSsoConfig jamfpro.EnrollmentSsoConfig
-	if v, ok := d.GetOk("enrollment_sso_config"); ok && len(v.([]interface{})) > 0 {
-		if enrollmentMap, ok := v.([]interface{})[0].(map[string]interface{}); ok && enrollmentMap != nil {
+	if v, ok := d.GetOk("enrollment_sso_config"); ok && len(v.([]any)) > 0 {
+		if enrollmentMap, ok := v.([]any)[0].(map[string]any); ok && enrollmentMap != nil {
 			hosts := make([]string, 0)
 			if hostsRaw, ok := enrollmentMap["hosts"]; ok && hostsRaw != nil {
-				if hostsInterface, ok := hostsRaw.([]interface{}); ok {
+				if hostsInterface, ok := hostsRaw.([]any); ok {
 					hosts = expandStringList(hostsInterface)
 				}
 			}
@@ -85,7 +85,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceSsoSettings, error) {
 }
 
 // expandStringList converts a list of interfaces to a list of strings.
-func expandStringList(list []interface{}) []string {
+func expandStringList(list []any) []string {
 	result := make([]string, 0, len(list))
 	for _, item := range list {
 		result = append(result, item.(string))

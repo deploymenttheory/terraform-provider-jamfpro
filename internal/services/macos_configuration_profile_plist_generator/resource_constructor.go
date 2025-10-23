@@ -44,7 +44,7 @@ func constructJamfProMacOSConfigurationProfilesPlistGenerator(d *schema.Resource
 	}
 
 	if v, ok := d.GetOk("self_service"); ok {
-		selfServiceData := v.([]interface{})[0].(map[string]interface{})
+		selfServiceData := v.([]any)[0].(map[string]any)
 		if selfServiceData["notification"] != nil {
 			log.Println("[WARN] Self Service notification bool key is temporarily disabled, please review the docs.")
 
@@ -69,7 +69,7 @@ func constructMacOSConfigurationProfileSubsetScope(d *schema.ResourceData) jamfp
 	scope := jamfpro.MacOSConfigurationProfileSubsetScope{}
 
 	// Get the scope data from the resource data
-	scopeData := d.Get("scope").([]interface{})[0].(map[string]interface{})
+	scopeData := d.Get("scope").([]any)[0].(map[string]any)
 
 	// Set basic boolean fields
 	scope.AllComputers = scopeData["all_computers"].(bool)
@@ -259,7 +259,7 @@ func constructExclusions(d *schema.ResourceData) jamfpro.MacOSConfigurationProfi
 // --- Self Service Construction Functions (Adapted for TypeSet) ---
 
 // constructMacOSConfigurationProfileSubsetSelfService reads the self_service map.
-func constructMacOSConfigurationProfileSubsetSelfService(data map[string]interface{}) jamfpro.MacOSConfigurationProfileSubsetSelfService {
+func constructMacOSConfigurationProfileSubsetSelfService(data map[string]any) jamfpro.MacOSConfigurationProfileSubsetSelfService {
 	selfService := jamfpro.MacOSConfigurationProfileSubsetSelfService{}
 
 	// Use type assertion with ok check for safety
@@ -302,10 +302,10 @@ func constructMacOSConfigurationProfileSubsetSelfService(data map[string]interfa
 }
 
 // constructSelfServiceCategories processes the list from constructors.GetListFromSet.
-func constructSelfServiceCategories(categoryList []interface{}) []jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory {
+func constructSelfServiceCategories(categoryList []any) []jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory {
 	selfServiceCategories := make([]jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory, 0, len(categoryList))
 	for i, category := range categoryList {
-		catData, mapOk := category.(map[string]interface{})
+		catData, mapOk := category.(map[string]any)
 		if !mapOk {
 			log.Printf("[WARN] constructSelfServiceCategories: Could not cast category data to map at index %d. Skipping.", i)
 			continue

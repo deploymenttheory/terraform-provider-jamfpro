@@ -11,7 +11,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceJamfAppCatalogDeployment) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	deploymentData := map[string]interface{}{
+	deploymentData := map[string]any{
 		"name":                               resp.Name,
 		"enabled":                            resp.Enabled,
 		"app_title_id":                       resp.AppTitleId,
@@ -36,7 +36,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceJamfAppCatalogDep
 	}
 
 	// Update notification settings
-	notificationSettings := map[string]interface{}{
+	notificationSettings := map[string]any{
 		"notification_message":  resp.NotificationSettings.NotificationMessage,
 		"notification_interval": resp.NotificationSettings.NotificationInterval,
 		"deadline_message":      resp.NotificationSettings.DeadlineMessage,
@@ -46,12 +46,12 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceJamfAppCatalogDep
 		"relaunch":              resp.NotificationSettings.Relaunch,
 		"suppress":              resp.NotificationSettings.Suppress,
 	}
-	if err := d.Set("notification_settings", []interface{}{notificationSettings}); err != nil {
+	if err := d.Set("notification_settings", []any{notificationSettings}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	// Update self-service settings
-	selfServiceSettings := map[string]interface{}{
+	selfServiceSettings := map[string]any{
 		"include_in_featured_category":   resp.SelfServiceSettings.IncludeInFeaturedCategory,
 		"include_in_compliance_category": resp.SelfServiceSettings.IncludeInComplianceCategory,
 		"force_view_description":         resp.SelfServiceSettings.ForceViewDescription,
@@ -59,9 +59,9 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceJamfAppCatalogDep
 	}
 
 	// Update categories
-	var categories []interface{}
+	var categories []any
 	for _, cat := range resp.SelfServiceSettings.Categories {
-		category := map[string]interface{}{
+		category := map[string]any{
 			"id": cat.ID,
 		}
 		if cat.Featured != nil {
@@ -76,7 +76,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceJamfAppCatalogDep
 		},
 	}), categories)
 
-	if err := d.Set("self_service_settings", []interface{}{selfServiceSettings}); err != nil {
+	if err := d.Set("self_service_settings", []any{selfServiceSettings}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

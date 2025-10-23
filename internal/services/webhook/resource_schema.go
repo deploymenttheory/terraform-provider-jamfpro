@@ -45,7 +45,7 @@ func ResourceJamfProWebhooks() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The URL the webhook will post data to.",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(string)
 					if !strings.HasPrefix(v, "http://") && !strings.HasPrefix(v, "https://") {
 						errs = append(errs, fmt.Errorf("%q must start with 'http://' or 'https://', got: %s", key, v))
@@ -57,7 +57,7 @@ func ResourceJamfProWebhooks() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The content type of the webhook payload (e.g., 'application/json' or 'text/xml').",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(string)
 					validContentTypes := []string{"text/xml", "application/json"}
 
@@ -74,7 +74,7 @@ func ResourceJamfProWebhooks() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The event type that triggers the webhook.",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(string)
 					validEvents := []string{
 						"ComputerAdded", "ComputerCheckIn", "ComputerInventoryCompleted",
@@ -100,7 +100,7 @@ func ResourceJamfProWebhooks() *schema.Resource {
 				Optional:    true,
 				Default:     2,
 				Description: "Amount of time to wait for a response from the webhook's host server after sending a request, in seconds.Value must be an integer between 1 and 15",
-				ValidateFunc: func(val interface{}, key string) ([]string, []error) {
+				ValidateFunc: func(val any, key string) ([]string, []error) {
 					v := val.(int)
 					if v < 0 || v > 16 {
 						errs := make([]error, 0)
@@ -115,7 +115,7 @@ func ResourceJamfProWebhooks() *schema.Resource {
 				Optional:    true,
 				Default:     5,
 				Description: "Amount of time to attempt to connect to the webhook's host server, in seconds.Value must be an integer between 1 and 15",
-				ValidateFunc: func(val interface{}, key string) ([]string, []error) {
+				ValidateFunc: func(val any, key string) ([]string, []error) {
 					v := val.(int)
 					if v < 0 || v > 16 {
 						errs := make([]error, 0)
@@ -130,7 +130,7 @@ func ResourceJamfProWebhooks() *schema.Resource {
 				Optional:    true,
 				Default:     "None",
 				Description: "The type of authentication required for the webhook (e.g., BASIC 'Basic Authentication', HEADER for 'Header Authentication').",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(string)
 					validAuthTypes := []string{"BASIC", "HEADER"}
 

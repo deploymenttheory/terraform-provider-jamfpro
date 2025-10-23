@@ -12,7 +12,7 @@ import (
 )
 
 // create is responsible for creating a new Jamf Pro mobile device Search in the remote system.
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -41,7 +41,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 }
 
 // read is responsible for reading the current state of a Jamf Pro mobile device Search from the remote system.
-func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+func read(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) diag.Diagnostics {
 	return common.Read(
 		ctx,
 		d,
@@ -53,17 +53,17 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 }
 
 // readWithCleanup reads the resource with cleanup enabled
-func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return read(ctx, d, meta, true)
 }
 
 // readNoCleanup reads the resource with cleanup disabled
-func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return read(ctx, d, meta, true)
 }
 
 // update is responsible for updating an existing Jamf Pro mobile device Search on the remote system.
-func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
@@ -89,7 +89,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 }
 
 // delete is responsible for deleting a Jamf Pro AdvancedMobileDeviceSearch.
-func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return common.Delete(
 		ctx,
 		d,

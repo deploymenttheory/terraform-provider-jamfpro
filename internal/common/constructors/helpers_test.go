@@ -28,8 +28,8 @@ func TestMapSetToStructs(t *testing.T) {
 	t.Run("with valid int values", func(t *testing.T) {
 		rd := schema.TestResourceDataRaw(t, map[string]*schema.Schema{
 			"test_ids": testSchema,
-		}, map[string]interface{}{
-			"test_ids": []interface{}{1, 2, 3},
+		}, map[string]any{
+			"test_ids": []any{1, 2, 3},
 		})
 
 		var result []TestStruct
@@ -48,8 +48,8 @@ func TestMapSetToStructs(t *testing.T) {
 	t.Run("with empty set", func(t *testing.T) {
 		rd := schema.TestResourceDataRaw(t, map[string]*schema.Schema{
 			"test_ids": testSchema,
-		}, map[string]interface{}{
-			"test_ids": []interface{}{},
+		}, map[string]any{
+			"test_ids": []any{},
 		})
 
 		var result []TestStruct
@@ -62,7 +62,7 @@ func TestMapSetToStructs(t *testing.T) {
 	t.Run("with non-existent path", func(t *testing.T) {
 		rd := schema.TestResourceDataRaw(t, map[string]*schema.Schema{
 			"other_field": testSchema,
-		}, map[string]interface{}{})
+		}, map[string]any{})
 
 		var result []TestStruct
 
@@ -75,8 +75,8 @@ func TestMapSetToStructs(t *testing.T) {
 	t.Run("with nil values in set", func(t *testing.T) {
 		rd := schema.TestResourceDataRaw(t, map[string]*schema.Schema{
 			"test_ids": testSchema,
-		}, map[string]interface{}{
-			"test_ids": []interface{}{1, nil, 3},
+		}, map[string]any{
+			"test_ids": []any{1, nil, 3},
 		})
 
 		var result []TestStruct
@@ -105,8 +105,8 @@ func TestMapSetToStructs(t *testing.T) {
 
 		rd := schema.TestResourceDataRaw(t, map[string]*schema.Schema{
 			"test_ids": stringSchema,
-		}, map[string]interface{}{
-			"test_ids": []interface{}{"1", "2", "3"},
+		}, map[string]any{
+			"test_ids": []any{"1", "2", "3"},
 		})
 
 		var result []TestStruct
@@ -120,8 +120,8 @@ func TestMapSetToStructs(t *testing.T) {
 	t.Run("with non-existent field in struct", func(t *testing.T) {
 		rd := schema.TestResourceDataRaw(t, map[string]*schema.Schema{
 			"test_ids": testSchema,
-		}, map[string]interface{}{
-			"test_ids": []interface{}{1, 2, 3},
+		}, map[string]any{
+			"test_ids": []any{1, 2, 3},
 		})
 
 		var result []TestStruct
@@ -134,8 +134,8 @@ func TestMapSetToStructs(t *testing.T) {
 	t.Run("with unexported field in struct", func(t *testing.T) {
 		rd := schema.TestResourceDataRaw(t, map[string]*schema.Schema{
 			"test_ids": testSchema,
-		}, map[string]interface{}{
-			"test_ids": []interface{}{1, 2, 3},
+		}, map[string]any{
+			"test_ids": []any{1, 2, 3},
 		})
 
 		var result []TestStructWithUnexportedField
@@ -158,8 +158,8 @@ func TestMapSetToStructs_DifferentTypes(t *testing.T) {
 
 		rd := schema.TestResourceDataRaw(t, map[string]*schema.Schema{
 			"test_names": stringSchema,
-		}, map[string]interface{}{
-			"test_names": []interface{}{"one", "two", "three"},
+		}, map[string]any{
+			"test_names": []any{"one", "two", "three"},
 		})
 
 		var result []TestStruct

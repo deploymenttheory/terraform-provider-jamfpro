@@ -20,24 +20,24 @@ package plist
 // func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 // 	uuidStr := GenerateUUID()
 // 	// Extracting HCL data
-// 	payloads := d.Get("payloads").([]interface{})
+// 	payloads := d.Get("payloads").([]any)
 // 	if len(payloads) == 0 {
 // 		return "", fmt.Errorf("no payloads found in the provided HCL")
 // 	}
 
-// 	payloadData := payloads[0].(map[string]interface{})
+// 	payloadData := payloads[0].(map[string]any)
 
-// 	payloadRootData := payloadData["payload_root"].([]interface{})[0].(map[string]interface{})
-// 	payloadContentData := payloadData["payload_content"].([]interface{})
+// 	payloadRootData := payloadData["payload_root"].([]any)[0].(map[string]any)
+// 	payloadContentData := payloadData["payload_content"].([]any)
 
 // 	payloadContent := make([]PayloadContent, len(payloadContentData))
 
 // 	for i, pc := range payloadContentData {
-// 		pcMap := pc.(map[string]interface{})
-// 		configurations := pcMap["configuration"].([]interface{})
-// 		additionalFields := make(map[string]interface{})
+// 		pcMap := pc.(map[string]any)
+// 		configurations := pcMap["configuration"].([]any)
+// 		additionalFields := make(map[string]any)
 // 		for _, config := range configurations {
-// 			configMap := config.(map[string]interface{})
+// 			configMap := config.(map[string]any)
 // 			key := configMap["key"].(string)
 // 			value := GetTypedValue(configMap["value"])
 // 			additionalFields[key] = value
@@ -94,7 +94,7 @@ package plist
 // }
 
 // // GetTypedValue converts the value from the HCL always stored as string into the appropriate type for plist serialization.
-// func GetTypedValue(value interface{}) interface{} {
+// func GetTypedValue(value any) any {
 // 	strValue := fmt.Sprintf("%v", value)
 // 	if boolValue, err := strconv.ParseBool(strValue); err == nil {
 // 		return boolValue
@@ -106,7 +106,7 @@ package plist
 // }
 
 // // ConvertPlistToHCL converts a plist XML string to HCL data. Used for stating the configuration profile data.
-// func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
+// func ConvertPlistToHCL(plistXML string) ([]any, error) {
 // 	// Unmarshal the plist XML into a ConfigurationProfile struct
 // 	profile, err := UnmarshalPayload(plistXML)
 // 	if err != nil {
@@ -114,10 +114,10 @@ package plist
 // 	}
 
 // 	// Convert the ConfigurationProfile struct to the format required by Terraform state
-// 	var payloadsList []interface{}
+// 	var payloadsList []any
 
 // 	// Create a map for root-level fields
-// 	profileRootMap := map[string]interface{}{
+// 	profileRootMap := map[string]any{
 // 		"payload_description_root":        profile.PayloadDescription,
 // 		"payload_display_name_root":       profile.PayloadDisplayName,
 // 		"payload_enabled_root":            profile.PayloadEnabled,
@@ -131,13 +131,13 @@ package plist
 // 	}
 
 // 	// Convert each PayloadContent to the appropriate format
-// 	var payloadContentList []interface{}
+// 	var payloadContentList []any
 // 	for _, configurationPayload := range profile.PayloadContent {
-// 		configurations := make([]interface{}, 0, len(configurationPayload.AdditionalFields))
+// 		configurations := make([]any, 0, len(configurationPayload.AdditionalFields))
 // 		for key, value := range configurationPayload.AdditionalFields {
 // 			// Ensure all values are converted to strings for storage in the state
 // 			strValue := fmt.Sprintf("%v", value)
-// 			configurations = append(configurations, map[string]interface{}{
+// 			configurations = append(configurations, map[string]any{
 // 				"key":   key,
 // 				"value": strValue,
 // 			})
@@ -146,7 +146,7 @@ package plist
 // 		// Reorder configurations based on the jamf pro server logic
 // 		reorderedConfigurations := reorderConfigurationKeys(configurations)
 
-// 		payloadMap := map[string]interface{}{
+// 		payloadMap := map[string]any{
 // 			"payload_description":  configurationPayload.PayloadDescription,
 // 			"payload_display_name": configurationPayload.PayloadDisplayName,
 // 			"payload_enabled":      configurationPayload.PayloadEnabled,
@@ -163,8 +163,8 @@ package plist
 // 	}
 
 // 	// Create the full payloads map
-// 	payloadsMap := map[string]interface{}{
-// 		"payload_root":    []interface{}{profileRootMap},
+// 	payloadsMap := map[string]any{
+// 		"payload_root":    []any{profileRootMap},
 // 		"payload_content": payloadContentList,
 // 	}
 

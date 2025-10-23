@@ -9,7 +9,7 @@ import (
 )
 
 // mainCustomDiffFunc orchestrates all custom diff validations.
-func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
+func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i any) error {
 	if err := validateAuthenticationPrompt(ctx, diff, i); err != nil {
 		return err
 	}
@@ -26,7 +26,7 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 }
 
 // validateAuthenticationPrompt checks that the 'authentication_prompt' is only set when 'require_authentication' is true.
-func validateAuthenticationPrompt(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+func validateAuthenticationPrompt(_ context.Context, diff *schema.ResourceDiff, _ any) error {
 	resourceName := diff.Get("display_name").(string)
 	requireAuth, ok := diff.GetOk("require_authentication")
 
@@ -47,7 +47,7 @@ func validateAuthenticationPrompt(_ context.Context, diff *schema.ResourceDiff, 
 	return nil
 }
 
-func validateRecoveryLockPasswordType(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+func validateRecoveryLockPasswordType(_ context.Context, diff *schema.ResourceDiff, _ any) error {
 	resourceName := diff.Get("display_name").(string)
 	enableRecoveryLock, enableRecoveryLockOk := diff.GetOk("enable_recovery_lock")
 	passwordType, passwordTypeOk := diff.GetOk("recovery_lock_password_type")
@@ -96,7 +96,7 @@ func validateRecoveryLockPasswordType(_ context.Context, diff *schema.ResourceDi
 }
 
 // validateDateFormat checks that the date is in the format YYYY-MM-DD, but only if the value is not null or empty.
-func validateDateFormat(v interface{}, k string) (ws []string, errors []error) {
+func validateDateFormat(v any, k string) (ws []string, errors []error) {
 	dateString, ok := v.(string)
 	if !ok {
 		return
@@ -116,7 +116,7 @@ func validateDateFormat(v interface{}, k string) (ws []string, errors []error) {
 	return
 }
 
-func validateMinimumOSSpecificVersion(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+func validateMinimumOSSpecificVersion(_ context.Context, diff *schema.ResourceDiff, _ any) error {
 	resourceName := diff.Get("display_name").(string)
 	versionType := diff.Get("prestage_minimum_os_target_version_type").(string)
 	specificVersion := diff.Get("minimum_os_specific_version").(string)

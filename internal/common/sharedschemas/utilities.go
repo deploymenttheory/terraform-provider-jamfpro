@@ -22,9 +22,9 @@ func ExtractNestedObjectsFromSchema[NestedObjectType any, ListItemPrimitiveType 
 		return nil
 	}
 
-	attrList, ok := getAttr.([]interface{})
+	attrList, ok := getAttr.([]any)
 	if !ok {
-		return fmt.Errorf("failed to cast %s to []interface{}", path)
+		return fmt.Errorf("failed to cast %s to []any", path)
 	}
 
 	if len(attrList) == 0 {

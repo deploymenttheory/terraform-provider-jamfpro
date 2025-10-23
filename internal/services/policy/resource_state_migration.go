@@ -52,14 +52,14 @@ func resourcePolicyV0() *schema.Resource {
 	}
 }
 
-func upgradePolicyUserInteractionV0toV1(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	if payloads, ok := rawState["payloads"].([]interface{}); ok && len(payloads) > 0 {
-		payload := payloads[0].(map[string]interface{})
-		if userInteractions, ok := payload["user_interaction"].([]interface{}); ok && len(userInteractions) > 0 {
-			userInteraction := userInteractions[0].(map[string]interface{})
+func upgradePolicyUserInteractionV0toV1(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
+	if payloads, ok := rawState["payloads"].([]any); ok && len(payloads) > 0 {
+		payload := payloads[0].(map[string]any)
+		if userInteractions, ok := payload["user_interaction"].([]any); ok && len(userInteractions) > 0 {
+			userInteraction := userInteractions[0].(map[string]any)
 
 			// Create a new interaction block with the new field name
-			newInteraction := map[string]interface{}{
+			newInteraction := map[string]any{
 				"message_start":            userInteraction["message_start"],
 				"allow_users_to_defer":     userInteraction["allow_user_to_defer"],
 				"allow_deferral_until_utc": userInteraction["allow_deferral_until_utc"],

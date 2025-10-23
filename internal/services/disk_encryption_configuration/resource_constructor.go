@@ -17,8 +17,8 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceDiskEncryptionConfigura
 		FileVaultEnabledUsers: d.Get("file_vault_enabled_users").(string),
 	}
 
-	if v, ok := d.GetOk("institutional_recovery_key"); ok && len(v.([]interface{})) > 0 {
-		irkData := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("institutional_recovery_key"); ok && len(v.([]any)) > 0 {
+		irkData := v.([]any)[0].(map[string]any)
 		resource.InstitutionalRecoveryKey = &jamfpro.DiskEncryptionConfigurationInstitutionalRecoveryKey{
 			Key:             irkData["key"].(string),
 			CertificateType: irkData["certificate_type"].(string),

@@ -9,7 +9,7 @@ import (
 )
 
 // customDiffAccounts is the top-level custom diff function.
-func customDiffAccounts(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+func customDiffAccounts(ctx context.Context, d *schema.ResourceDiff, meta any) error {
 	if err := validateAccessLevelSiteRequirement(ctx, d, meta); err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func customDiffAccounts(ctx context.Context, d *schema.ResourceDiff, meta interf
 }
 
 // validateAccessLevelSiteRequirement checks that the 'site' attribute is set when access_level is 'Site Access'.
-func validateAccessLevelSiteRequirement(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+func validateAccessLevelSiteRequirement(_ context.Context, d *schema.ResourceDiff, _ any) error {
 	accessLevel := d.Get("access_level").(string)
 	site := d.Get("site_id").(int)
 
@@ -54,17 +54,17 @@ func validateAccessLevelSiteRequirement(_ context.Context, d *schema.ResourceDif
 }
 
 // validatePrivilegesForSiteAccess checks that certain privileges are not set when access_level is 'Site Access'.
-func validatePrivilegesForSiteAccess(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+func validatePrivilegesForSiteAccess(_ context.Context, d *schema.ResourceDiff, _ any) error {
 	accessLevel := d.Get("access_level")
 	if accessLevel.(string) != "Site Access" {
 		return nil
 	}
 
-	if jssSettingsPrivileges, ok := d.GetOk("jss_settings_privileges"); ok && len(jssSettingsPrivileges.([]interface{})) > 0 {
+	if jssSettingsPrivileges, ok := d.GetOk("jss_settings_privileges"); ok && len(jssSettingsPrivileges.([]any)) > 0 {
 		return fmt.Errorf("when 'access_level' is 'Site Access', 'jss_settings_privileges' are not allowed")
 	}
 
-	if casperAdminPrivileges, ok := d.GetOk("casper_admin_privileges"); ok && len(casperAdminPrivileges.([]interface{})) > 0 {
+	if casperAdminPrivileges, ok := d.GetOk("casper_admin_privileges"); ok && len(casperAdminPrivileges.([]any)) > 0 {
 		return fmt.Errorf("when 'access_level' is 'Site Access', 'casper_admin_privileges' are not allowed")
 	}
 
@@ -72,7 +72,7 @@ func validatePrivilegesForSiteAccess(_ context.Context, d *schema.ResourceDiff, 
 }
 
 // validateGroupAccessPrivilegeSetRequirement ensures that if access_level is "Group Access", then privilege_set must be "Custom".
-func validateGroupAccessPrivilegeSetRequirement(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+func validateGroupAccessPrivilegeSetRequirement(_ context.Context, d *schema.ResourceDiff, _ any) error {
 	accessLevel := d.Get("access_level").(string)
 	privilegeSet := d.Get("privilege_set").(string)
 
@@ -84,7 +84,7 @@ func validateGroupAccessPrivilegeSetRequirement(_ context.Context, d *schema.Res
 }
 
 // validateCasperAdminUsePrivileges checks for required privileges when "Use Casper Admin" is selected.
-func validateCasperAdminUsePrivileges(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+func validateCasperAdminUsePrivileges(_ context.Context, d *schema.ResourceDiff, _ any) error {
 	if v, ok := d.GetOk("casper_admin_privileges"); ok {
 		casperAdminPrivilegesSet := v.(*schema.Set)
 		if casperAdminPrivilegesSet.Contains("Use Casper Admin") {
@@ -119,7 +119,7 @@ func validateCasperAdminUsePrivileges(_ context.Context, d *schema.ResourceDiff,
 }
 
 // validateCasperAdminSavePrivileges checks for required privileges when "Save With Casper Admin" is selected.
-func validateCasperAdminSavePrivileges(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+func validateCasperAdminSavePrivileges(_ context.Context, d *schema.ResourceDiff, _ any) error {
 	if v, ok := d.GetOk("casper_admin_privileges"); ok {
 		casperAdminPrivilegesSet := v.(*schema.Set)
 		if casperAdminPrivilegesSet.Contains("Save With Casper Admin") {
@@ -154,7 +154,7 @@ func validateCasperAdminSavePrivileges(_ context.Context, d *schema.ResourceDiff
 }
 
 // validateReverseDependencyChecks performs reverse dependency checks for specific privileges.
-func validateReverseDependencyChecks(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+func validateReverseDependencyChecks(_ context.Context, d *schema.ResourceDiff, _ any) error {
 	jssObjectsPrivileges, ok := d.GetOk("jss_objects_privileges")
 	if ok {
 		jssObjectsPrivilegesSet := jssObjectsPrivileges.(*schema.Set)

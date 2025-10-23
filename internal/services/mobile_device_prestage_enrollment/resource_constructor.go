@@ -60,29 +60,29 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceMobileDe
 		PreserveManagedApps:                    jamfpro.BoolPtr(d.Get("preserve_managed_apps").(bool)),
 	}
 
-	if v, ok := d.GetOk("skip_setup_items"); ok && len(v.([]interface{})) > 0 {
-		skipSetupItemsMap := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("skip_setup_items"); ok && len(v.([]any)) > 0 {
+		skipSetupItemsMap := v.([]any)[0].(map[string]any)
 		resource.SkipSetupItems = constructSkipSetupItems(skipSetupItemsMap)
 	}
 
-	if v, ok := d.GetOk("location_information"); ok && len(v.([]interface{})) > 0 {
-		locationData := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("location_information"); ok && len(v.([]any)) > 0 {
+		locationData := v.([]any)[0].(map[string]any)
 		resource.LocationInformation = constructLocationInformation(locationData, isUpdate, versionLock)
 	}
 
-	if v, ok := d.GetOk("purchasing_information"); ok && len(v.([]interface{})) > 0 {
-		purchasingData := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("purchasing_information"); ok && len(v.([]any)) > 0 {
+		purchasingData := v.([]any)[0].(map[string]any)
 		resource.PurchasingInformation = constructPurchasingInformation(purchasingData, isUpdate, versionLock)
 	}
 
-	if v, ok := d.GetOk("names"); ok && len(v.([]interface{})) > 0 {
-		namesData := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("names"); ok && len(v.([]any)) > 0 {
+		namesData := v.([]any)[0].(map[string]any)
 		resource.Names = constructNames(namesData, isUpdate)
 	}
 
 	if v, ok := d.GetOk("anchor_certificates"); ok {
-		anchorCertificates := make([]string, len(v.([]interface{})))
-		for i, cert := range v.([]interface{}) {
+		anchorCertificates := make([]string, len(v.([]any)))
+		for i, cert := range v.([]any) {
 			anchorCertificates[i] = cert.(string)
 		}
 		resource.AnchorCertificates = anchorCertificates
@@ -100,7 +100,7 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceMobileDe
 }
 
 // constructSkipSetupItems constructs the SkipSetupItems subset of a Mobile Device Prestage resource.
-func constructSkipSetupItems(data map[string]interface{}) jamfpro.MobileDevicePrestageSubsetSkipSetupItems {
+func constructSkipSetupItems(data map[string]any) jamfpro.MobileDevicePrestageSubsetSkipSetupItems {
 	return jamfpro.MobileDevicePrestageSubsetSkipSetupItems{
 		Location:              jamfpro.BoolPtr(data["location"].(bool)),
 		Privacy:               jamfpro.BoolPtr(data["privacy"].(bool)),
@@ -151,7 +151,7 @@ func constructSkipSetupItems(data map[string]interface{}) jamfpro.MobileDevicePr
 }
 
 // constructLocationInformation constructs the LocationInformation subset of a Mobile Device Prestage resource.
-func constructLocationInformation(data map[string]interface{}, isUpdate bool, versionLock int) jamfpro.MobileDevicePrestageSubsetLocationInformation {
+func constructLocationInformation(data map[string]any, isUpdate bool, versionLock int) jamfpro.MobileDevicePrestageSubsetLocationInformation {
 	return jamfpro.MobileDevicePrestageSubsetLocationInformation{
 		Username:     data["username"].(string),
 		Realname:     data["realname"].(string),
@@ -167,7 +167,7 @@ func constructLocationInformation(data map[string]interface{}, isUpdate bool, ve
 }
 
 // constructPurchasingInformation constructs the PurchasingInformation subset of a Mobile Device Prestage resource.
-func constructPurchasingInformation(data map[string]interface{}, isUpdate bool, versionLock int) jamfpro.MobileDevicePrestageSubsetPurchasingInformation {
+func constructPurchasingInformation(data map[string]any, isUpdate bool, versionLock int) jamfpro.MobileDevicePrestageSubsetPurchasingInformation {
 	return jamfpro.MobileDevicePrestageSubsetPurchasingInformation{
 		ID:                "-1",
 		Leased:            jamfpro.BoolPtr(data["leased"].(bool)),
@@ -187,7 +187,7 @@ func constructPurchasingInformation(data map[string]interface{}, isUpdate bool, 
 }
 
 // constructNames constructs the Names subset of a Mobile Device Prestage resource.
-func constructNames(data map[string]interface{}, isUpdate bool) jamfpro.MobileDevicePrestageSubsetNames {
+func constructNames(data map[string]any, isUpdate bool) jamfpro.MobileDevicePrestageSubsetNames {
 	names := jamfpro.MobileDevicePrestageSubsetNames{
 		AssignNamesUsing:       data["assign_names_using"].(string),
 		DeviceNamePrefix:       data["device_name_prefix"].(string),
@@ -198,11 +198,11 @@ func constructNames(data map[string]interface{}, isUpdate bool) jamfpro.MobileDe
 	}
 
 	if v, ok := data["prestage_device_names"]; ok {
-		deviceNames := v.([]interface{})
+		deviceNames := v.([]any)
 		names.PrestageDeviceNames = make([]jamfpro.MobileDevicePrestageSubsetNamesName, len(deviceNames))
 
 		for i, name := range deviceNames {
-			nameMap := name.(map[string]interface{})
+			nameMap := name.(map[string]any)
 			names.PrestageDeviceNames[i] = jamfpro.MobileDevicePrestageSubsetNamesName{
 				ID:         "-1",
 				DeviceName: nameMap["device_name"].(string),

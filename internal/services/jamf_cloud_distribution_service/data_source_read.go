@@ -10,7 +10,7 @@ import (
 )
 
 // dataSourceRead fetches the JCDS2 properties and files from Jamf Pro.
-func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -19,9 +19,9 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 		return diag.FromErr(err)
 	}
 
-	fileList := make([]interface{}, len(files))
+	fileList := make([]any, len(files))
 	for i, file := range files {
-		fileMap := map[string]interface{}{
+		fileMap := map[string]any{
 			"file_name": file.FileName,
 			"length":    file.Length,
 			"md5":       file.MD5,

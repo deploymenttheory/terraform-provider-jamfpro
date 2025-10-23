@@ -81,7 +81,7 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					return normalizeScript(old) == normalizeScript(new)
 				},
-				StateFunc: func(v interface{}) string {
+				StateFunc: func(v any) string {
 					return normalizeScript(v.(string))
 				},
 			},

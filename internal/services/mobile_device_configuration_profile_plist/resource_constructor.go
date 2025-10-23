@@ -32,7 +32,7 @@ import (
 // Returns:
 // - Constructed ResourceMobileDeviceConfigurationProfile
 // - Error if construction or API calls fail
-func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceData, mode string, meta interface{}) (*jamfpro.ResourceMobileDeviceConfigurationProfile, error) {
+func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceData, mode string, meta any) (*jamfpro.ResourceMobileDeviceConfigurationProfile, error) {
 	var existingProfile *jamfpro.ResourceMobileDeviceConfigurationProfile
 	var buf bytes.Buffer
 
@@ -66,8 +66,8 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 	if mode != "update" {
 		resource.General.Payloads = html.EscapeString(d.Get("payloads").(string))
 	} else if mode == "update" {
-		var existingPlist map[string]interface{}
-		var newPlist map[string]interface{}
+		var existingPlist map[string]any
+		var newPlist map[string]any
 
 		client := meta.(*jamfpro.Client)
 		resourceID := d.Id()
@@ -149,7 +149,7 @@ func preMarshallingXMLPayloadEscaping(input string) string {
 func constructMobileDeviceConfigurationProfileSubsetScope(d *schema.ResourceData) jamfpro.MobileDeviceConfigurationProfileSubsetScope {
 	scope := jamfpro.MobileDeviceConfigurationProfileSubsetScope{}
 	// Get the scope data from the resource data
-	scopeData := d.Get("scope").([]interface{})[0].(map[string]interface{})
+	scopeData := d.Get("scope").([]any)[0].(map[string]any)
 
 	scope.AllMobileDevices = scopeData["all_mobile_devices"].(bool)
 	scope.AllJSSUsers = scopeData["all_jss_users"].(bool)

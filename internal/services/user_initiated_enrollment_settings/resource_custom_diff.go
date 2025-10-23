@@ -9,7 +9,7 @@ import (
 )
 
 // Main CustomizeDiff function that orchestrates all diff customizations
-func customizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+func customizeDiff(ctx context.Context, d *schema.ResourceDiff, meta any) error {
 	err := customizeDiffForEnglishLanguage(ctx, d, meta)
 	if err != nil {
 		return err
@@ -24,7 +24,7 @@ func customizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}
 
 // customizeDiffForEnglishLanguage ensures that the English language exists
 // in the enrollment languages block
-func customizeDiffForEnglishLanguage(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+func customizeDiffForEnglishLanguage(ctx context.Context, d *schema.ResourceDiff, meta any) error {
 	if v, ok := d.GetOk("messaging"); ok {
 		messagingSet := v.(*schema.Set).List()
 
@@ -32,7 +32,7 @@ func customizeDiffForEnglishLanguage(ctx context.Context, d *schema.ResourceDiff
 		// it can never be removed from the gui.
 		var hasEnglish bool
 		for _, messaging := range messagingSet {
-			msg := messaging.(map[string]interface{})
+			msg := messaging.(map[string]any)
 			langName := msg["language_name"].(string)
 			normalizedLangName := strings.ToLower(strings.TrimSpace(langName))
 
@@ -59,12 +59,12 @@ func customizeDiffForEnglishLanguage(ctx context.Context, d *schema.ResourceDiff
 }
 
 // customizeDiffForAccessGroupOne ensures that Access Group ID 1 is handled correctly
-func customizeDiffForAccessGroupOne(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+func customizeDiffForAccessGroupOne(ctx context.Context, d *schema.ResourceDiff, meta any) error {
 	if v, ok := d.GetOk("directory_service_group_enrollment_settings"); ok {
 		groupSet := v.(*schema.Set).List()
 
 		for _, group := range groupSet {
-			groupMap := group.(map[string]interface{})
+			groupMap := group.(map[string]any)
 
 			if groupID, ok := groupMap["directory_service_group_id"].(string); ok && groupID == "1" {
 				if d.Id() == "" {
@@ -75,9 +75,9 @@ func customizeDiffForAccessGroupOne(ctx context.Context, d *schema.ResourceDiff,
 					oldGroups, _ := d.GetChange("directory_service_group_enrollment_settings")
 					oldGroupSet := oldGroups.(*schema.Set).List()
 
-					var oldGroup1 map[string]interface{}
+					var oldGroup1 map[string]any
 					for _, og := range oldGroupSet {
-						ogMap := og.(map[string]interface{})
+						ogMap := og.(map[string]any)
 						if ogID, ok := ogMap["directory_service_group_id"].(string); ok && ogID == "1" {
 							oldGroup1 = ogMap
 							break

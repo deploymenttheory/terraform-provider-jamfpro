@@ -10,7 +10,7 @@ import (
 )
 
 // dataSourceRead fetches the details of a specific group from Jamf Pro using either its unique Name or its Id.
-func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 
 	name := d.Get("name").(string)
@@ -67,7 +67,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{
 
 // updateState sets the Terraform state from the ResourceGroup object.
 func updateState(d *schema.ResourceData, resource *jamfpro.ResourceGroup) diag.Diagnostics {
-	fields := map[string]interface{}{
+	fields := map[string]any{
 		"group_platform_id": resource.GroupPlatformId,
 		"group_jamfpro_id":  resource.GroupJamfProId,
 		"name":              resource.GroupName,

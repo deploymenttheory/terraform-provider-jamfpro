@@ -10,7 +10,7 @@ import (
 )
 
 // create creates and states a jamfpro building
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// mu.Lock()
 	// defer mu.Unlock()
 	return common.Create(
@@ -24,7 +24,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 }
 
 // read reads and states a jamfpro building
-func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+func read(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) diag.Diagnostics {
 	return common.Read(
 		ctx,
 		d,
@@ -36,17 +36,17 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 }
 
 // readWithCleanup reads a resources and states with cleanup
-func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return read(ctx, d, meta, true)
 }
 
 // readNoCleanup reads a resource without cleanup
-func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return read(ctx, d, meta, false)
 }
 
 // update updates a jamfpro building
-func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return common.Update(
 		ctx,
 		d,
@@ -57,7 +57,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	)
 }
 
-func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return common.Delete(
 		ctx,
 		d,

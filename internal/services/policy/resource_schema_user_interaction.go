@@ -30,7 +30,7 @@ func getPolicySchemaUserInteraction() *schema.Resource {
 				Optional:    true,
 				Description: "Number of minutes after the user was first prompted by the policy at which the policy runs and deferrals are prohibited. Must be a multiple of 1440 (minutes in day)",
 				Default:     0,
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(int)
 					if v%1440 != 0 {
 						errs = append(errs, fmt.Errorf("%q must be a multiple of 1440 (minutes in day), got: %d", key, v))

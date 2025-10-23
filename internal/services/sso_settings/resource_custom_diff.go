@@ -19,7 +19,7 @@ var (
 )
 
 // mainCustomDiffFunc orchestrates all custom diff validations for SSO settings
-func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
+func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i any) error {
 	if err := validateSamlMetadataSettings(ctx, diff, i); err != nil {
 		return err
 	}
@@ -32,13 +32,13 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 }
 
 // validateSamlMetadataSettings ensures SAML metadata settings are properly configured
-func validateSamlMetadataSettings(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
-	samlSettings := diff.Get("saml_settings").([]interface{})
+func validateSamlMetadataSettings(_ context.Context, diff *schema.ResourceDiff, _ any) error {
+	samlSettings := diff.Get("saml_settings").([]any)
 	if len(samlSettings) == 0 {
 		return nil
 	}
 
-	samlConfig := samlSettings[0].(map[string]interface{})
+	samlConfig := samlSettings[0].(map[string]any)
 	metadataSource := samlConfig["metadata_source"].(string)
 	resourceName, ok := diff.Get("name").(string)
 	if !ok {
@@ -72,7 +72,7 @@ func validateSamlMetadataSettings(_ context.Context, diff *schema.ResourceDiff, 
 }
 
 // validateGroupEnrollmentSettings ensures group enrollment settings are properly configured
-func validateGroupEnrollmentSettings(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+func validateGroupEnrollmentSettings(_ context.Context, diff *schema.ResourceDiff, _ any) error {
 	groupEnabled := diff.Get("group_enrollment_access_enabled").(bool)
 	groupName := diff.Get("group_enrollment_access_name").(string)
 	resourceName, ok := diff.Get("name").(string)

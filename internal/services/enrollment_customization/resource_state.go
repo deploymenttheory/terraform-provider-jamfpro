@@ -12,7 +12,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceEnrollmentCustomi
 	var diags diag.Diagnostics
 
 	// Set main attributes
-	resourceData := map[string]interface{}{
+	resourceData := map[string]any{
 		"id":           resp.ID,
 		"site_id":      resp.SiteID,
 		"display_name": resp.DisplayName,
@@ -20,8 +20,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceEnrollmentCustomi
 	}
 
 	// Set branding settings as a list with one item
-	brandingSettings := []interface{}{
-		map[string]interface{}{
+	brandingSettings := []any{
+		map[string]any{
 			"text_color":        resp.BrandingSettings.TextColor,
 			"button_color":      resp.BrandingSettings.ButtonColor,
 			"button_text_color": resp.BrandingSettings.ButtonTextColor,
@@ -46,8 +46,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceEnrollmentCustomi
 }
 
 // stateTextPrestagePane converts API response to Terraform state format
-func stateTextPrestagePane(textPane *jamfpro.ResourceEnrollmentCustomizationTextPane) map[string]interface{} {
-	return map[string]interface{}{
+func stateTextPrestagePane(textPane *jamfpro.ResourceEnrollmentCustomizationTextPane) map[string]any {
+	return map[string]any{
 		"id":                   textPane.ID,
 		"display_name":         textPane.DisplayName,
 		"rank":                 textPane.Rank,
@@ -60,17 +60,17 @@ func stateTextPrestagePane(textPane *jamfpro.ResourceEnrollmentCustomizationText
 }
 
 // stateLDAPPrestagePane converts API response to Terraform state format
-func stateLDAPPrestagePane(ldapPane *jamfpro.ResourceEnrollmentCustomizationLDAPPane) map[string]interface{} {
-	ldapGroupAccess := make([]map[string]interface{}, 0)
+func stateLDAPPrestagePane(ldapPane *jamfpro.ResourceEnrollmentCustomizationLDAPPane) map[string]any {
+	ldapGroupAccess := make([]map[string]any, 0)
 	for _, group := range ldapPane.LDAPGroupAccess {
-		groupMap := map[string]interface{}{
+		groupMap := map[string]any{
 			"group_name":     group.GroupName,
 			"ldap_server_id": group.LDAPServerID,
 		}
 		ldapGroupAccess = append(ldapGroupAccess, groupMap)
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
 		"id":                   ldapPane.ID,
 		"display_name":         ldapPane.DisplayName,
 		"rank":                 ldapPane.Rank,
@@ -84,8 +84,8 @@ func stateLDAPPrestagePane(ldapPane *jamfpro.ResourceEnrollmentCustomizationLDAP
 }
 
 // stateSSOPrestagePane converts API response to Terraform state format
-func stateSSOPrestagePane(ssoPane *jamfpro.ResourceEnrollmentCustomizationSSOPane) map[string]interface{} {
-	return map[string]interface{}{
+func stateSSOPrestagePane(ssoPane *jamfpro.ResourceEnrollmentCustomizationSSOPane) map[string]any {
+	return map[string]any{
 		"id":                                 ssoPane.ID,
 		"display_name":                       ssoPane.DisplayName,
 		"rank":                               ssoPane.Rank,

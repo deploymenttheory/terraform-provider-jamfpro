@@ -21,7 +21,7 @@ type ConfigurationProfile struct {
 	PayloadVersion           int              `mapstructure:"PayloadVersion" validate:"required"`
 	PayloadContent           []PayloadContent `mapstructure:"PayloadContent"`
 	// Catch all for unexpected fields
-	Unexpected map[string]interface{} `mapstructure:",remain"`
+	Unexpected map[string]any `mapstructure:",remain"`
 }
 
 // ConfigurationPayload represents a nested MacOS configuration profile.
@@ -36,7 +36,7 @@ type PayloadContent struct {
 	PayloadUUID         string `mapstructure:"PayloadUUID"`
 	PayloadVersion      int    `mapstructure:"PayloadVersion"`
 	// Variable
-	ConfigurationItems map[string]interface{} `mapstructure:",remain"`
+	ConfigurationItems map[string]any `mapstructure:",remain"`
 }
 
 // NormalizePayloadState processes and normalizes a macOS Configuration Profile payload.
@@ -59,7 +59,7 @@ type PayloadContent struct {
 // Returns:
 //   - A string containing the normalized plist XML. If any error occurs during processing, an empty string is returned.
 func NormalizePayloadState(payload any) string {
-	var plistData map[string]interface{}
+	var plistData map[string]any
 	_, err := plist.Unmarshal([]byte(payload.(string)), &plistData)
 	if err != nil {
 		return ""
@@ -93,12 +93,12 @@ func NormalizePayloadState(payload any) string {
 //   - data: A map representing a portion of the plist structure, typically the root or a nested PayloadContent.
 //
 // The function modifies the data in place, recursively processing all levels of PayloadContent.
-func normalizePlistPayloadContent(data map[string]interface{}) {
-	if payloadContent, ok := data["PayloadContent"].([]interface{}); ok {
+func normalizePlistPayloadContent(data map[string]any) {
+	if payloadContent, ok := data["PayloadContent"].([]any); ok {
 		for i, content := range payloadContent {
-			if contentMap, ok := content.(map[string]interface{}); ok {
+			if contentMap, ok := content.(map[string]any); ok {
 				if nestedContent, exists := contentMap["PayloadContent"]; exists {
-					if nestedMap, ok := nestedContent.(map[string]interface{}); ok {
+					if nestedMap, ok := nestedContent.(map[string]any); ok {
 						normalizePlistPayloadContent(nestedMap)
 					}
 				}

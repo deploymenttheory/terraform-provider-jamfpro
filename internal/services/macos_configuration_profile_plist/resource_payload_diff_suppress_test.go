@@ -247,7 +247,7 @@ func TestDiffSuppressEquivalentPayloads(t *testing.T) {
 					Type:     schema.TypeBool,
 					Optional: true,
 				},
-			}, map[string]interface{}{
+			}, map[string]any{
 				"payload_validate": tt.payloadValidate,
 			})
 

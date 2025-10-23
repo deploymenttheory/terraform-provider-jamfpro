@@ -13,7 +13,7 @@ import (
 
 // create is responsible for initializing the Jamf Pro computer check-in configuration in Terraform.
 // Doesn't follow crud pattern as requires 2 api calls to complete operation.
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -57,7 +57,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 }
 
 // read is responsible for reading the current state of the Jamf Pro computer check-in configuration.
-func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+func read(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -101,18 +101,18 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 }
 
 // readWithCleanup reads the resource with cleanup enabled
-func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return read(ctx, d, meta, true)
 }
 
 // readNoCleanup reads the resource with cleanup disabled
-func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return read(ctx, d, meta, false)
 }
 
 // update is responsible for updating the Jamf Pro computer check-in configuration.
 // Doesn't follow crud pattern as requires 2 api calls to complete operation.
-func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -160,7 +160,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 // delete is responsible for 'deleting' the Jamf Pro computer check-in configuration.
 // Since this resource represents a configuration and not an actual entity that can be deleted,
 // this function will simply remove it from the Terraform state.
-func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	d.SetId("")
 
 	return nil

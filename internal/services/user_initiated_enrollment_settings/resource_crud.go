@@ -20,7 +20,7 @@ const (
 // create is responsible for creating jamf pro User-initiated enrollment base settings, enrollment languages
 // and ldap groups. It performs multiple api calls and therefore doesn't follow the function pattern
 // of simpler resource types.
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -111,7 +111,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 }
 
 // read handles reading the current state of the user initiated enrollment settings from Jamf Pro
-func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+func read(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -187,12 +187,12 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 }
 
 // readWithCleanup reads the resource with cleanup enabled
-func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return read(ctx, d, meta, true)
 }
 
 // readNoCleanup reads the resource with cleanup disabled
-func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return read(ctx, d, meta, false)
 }
 
@@ -201,7 +201,7 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}
 // second it gets all existing enrollment messages, skips the built in english option and removes
 // all other language settings. It then reapplies as needed. The http method is PUT.
 // It then follows the same flow for LDAP Directory Service Groups.
-func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -446,7 +446,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 // delete handles cleanup of specific sub-configurations in Jamf Pro
 // before removing the resource from Terraform state.
-func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	log.Printf("[DEBUG] Starting deletion cleanup for resource %s.", ResourceIDSingleton)

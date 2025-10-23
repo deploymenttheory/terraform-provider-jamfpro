@@ -10,7 +10,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResponseJamfProtectSettings) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	settings := map[string]interface{}{
+	settings := map[string]any{
 		"client_id":       resp.APIClientID,
 		"protect_url":     resp.ProtectURL,
 		"auto_install":    resp.AutoInstall,

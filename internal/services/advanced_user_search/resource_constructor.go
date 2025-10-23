@@ -18,10 +18,10 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceAdvancedUserSearch, err
 	}
 
 	if v, ok := d.GetOk("criteria"); ok {
-		criteriaList := v.([]interface{})
+		criteriaList := v.([]any)
 		criteria := make([]jamfpro.SharedSubsetCriteria, len(criteriaList))
 		for i, crit := range criteriaList {
-			criterionMap := crit.(map[string]interface{})
+			criterionMap := crit.(map[string]any)
 			criteria[i] = jamfpro.SharedSubsetCriteria{
 				Name:         criterionMap["name"].(string),
 				Priority:     criterionMap["priority"].(int),
@@ -35,7 +35,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceAdvancedUserSearch, err
 		resource.Criteria.Criterion = criteria
 	}
 
-	displayFieldsHcl := d.Get("display_fields").([]interface{})
+	displayFieldsHcl := d.Get("display_fields").([]any)
 	if len(displayFieldsHcl) > 0 {
 		for _, v := range displayFieldsHcl {
 			resource.DisplayFields = append(resource.DisplayFields, jamfpro.DisplayField{Name: v.(string)})

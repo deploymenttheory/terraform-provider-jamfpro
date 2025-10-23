@@ -11,7 +11,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceVolumePurchasingLocation) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	resourceData := map[string]interface{}{
+	resourceData := map[string]any{
 		"id":                      resp.ID,
 		"name":                    resp.Name,
 		"apple_id":                resp.AppleID,
@@ -48,10 +48,10 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceVolumePurchasingL
 }
 
 // flattenContent converts the Content slice to a format suitable for the Terraform state
-func flattenContent(content []jamfpro.VolumePurchasingSubsetContent) []interface{} {
-	var out []interface{}
+func flattenContent(content []jamfpro.VolumePurchasingSubsetContent) []any {
+	var out []any
 	for _, c := range content {
-		m := map[string]interface{}{
+		m := map[string]any{
 			"name":                   c.Name,
 			"license_count_total":    c.LicenseCountTotal,
 			"license_count_in_use":   c.LicenseCountInUse,

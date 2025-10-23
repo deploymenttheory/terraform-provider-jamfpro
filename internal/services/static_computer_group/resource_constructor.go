@@ -20,7 +20,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceComputerGroup, error) {
 
 	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 
-	assignedComputers := d.Get("assigned_computer_ids").([]interface{})
+	assignedComputers := d.Get("assigned_computer_ids").([]any)
 	if len(assignedComputers) > 0 {
 		computers := []jamfpro.ComputerGroupSubsetComputer{}
 		for _, v := range assignedComputers {

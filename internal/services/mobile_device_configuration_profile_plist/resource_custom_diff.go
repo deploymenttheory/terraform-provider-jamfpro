@@ -11,7 +11,7 @@ import (
 )
 
 // mainCustomDiffFunc orchestrates all custom diff validations.
-func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
+func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i any) error {
 	if diff.Get("payload_validate").(bool) {
 		if err := validatePayload(ctx, diff, i); err != nil {
 			return err
@@ -30,13 +30,13 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 	return nil
 }
 
-func normalizePayloadState(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+func normalizePayloadState(_ context.Context, diff *schema.ResourceDiff, _ any) error {
 	diff.SetNew("payloads", plist.NormalizePayloadState(diff.Get("payloads").(string)))
 	return nil
 }
 
 // validatePayload performs the payload validation that was previously in the ValidateFunc.
-func validatePayload(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+func validatePayload(_ context.Context, diff *schema.ResourceDiff, _ any) error {
 	resourceName := diff.Get("name").(string)
 	payload := diff.Get("payloads").(string)
 
@@ -58,7 +58,7 @@ func validatePayload(_ context.Context, diff *schema.ResourceDiff, _ interface{}
 }
 
 // validateMobileDeviceConfigurationProfileLevel validates that the 'PayloadScope' key in the payload matches the 'level' attribute.
-func validateMobileDeviceConfigurationProfileLevel(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+func validateMobileDeviceConfigurationProfileLevel(_ context.Context, diff *schema.ResourceDiff, _ any) error {
 	resourceName := diff.Get("name").(string)
 	level := diff.Get("level").(string)
 	payloads := diff.Get("payloads").(string)

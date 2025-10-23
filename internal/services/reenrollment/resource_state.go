@@ -10,7 +10,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceReenrollmentSettings) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	reenrollmentData := map[string]interface{}{
+	reenrollmentData := map[string]any{
 		"flush_location_information":         resp.FlushLocationInformation,
 		"flush_location_information_history": resp.FlushLocationInformationHistory,
 		"flush_policy_history":               resp.FlushPolicyHistory,

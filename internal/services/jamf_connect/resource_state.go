@@ -12,7 +12,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceJamfConnectConfigProfile) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	profileData := map[string]interface{}{
+	profileData := map[string]any{
 		"config_profile_uuid":  resp.UUID,
 		"profile_id":           resp.ProfileID,
 		"profile_name":         resp.ProfileName,

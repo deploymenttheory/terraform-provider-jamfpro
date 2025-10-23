@@ -12,7 +12,7 @@ import (
 )
 
 // dataSourceRead fetches Jamf Protect Plan details
-func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 
 	planID := d.Get("id").(string)

@@ -10,7 +10,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceAccessManagementSettings) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	accessManagementSettingsConfig := map[string]interface{}{
+	accessManagementSettingsConfig := map[string]any{
 		"automated_device_enrollment_server_uuid": resp.AutomatedDeviceEnrollmentServerUuid,
 	}
 

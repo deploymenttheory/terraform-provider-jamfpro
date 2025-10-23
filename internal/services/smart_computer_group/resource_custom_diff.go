@@ -9,7 +9,7 @@ import (
 )
 
 // mainCustomDiffFunc orchestrates all custom diff validations.
-func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
+func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i any) error {
 	// Validate criteria priorities
 	if err := validateCriteriaPriority(ctx, diff, i); err != nil {
 		return err
@@ -19,8 +19,8 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 }
 
 // validateCriteriaPriority ensures the first criterion has a priority of 0 and each subsequent criterion has a priority incremented by 1.
-func validateCriteriaPriority(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
-	criteria, ok := diff.Get("criteria").([]interface{})
+func validateCriteriaPriority(_ context.Context, diff *schema.ResourceDiff, _ any) error {
+	criteria, ok := diff.Get("criteria").([]any)
 	if !ok {
 		return nil
 	}
@@ -32,7 +32,7 @@ func validateCriteriaPriority(_ context.Context, diff *schema.ResourceDiff, _ in
 
 	expectedPriority := 0
 	for index, criterion := range criteria {
-		priority := criterion.(map[string]interface{})["priority"].(int)
+		priority := criterion.(map[string]any)["priority"].(int)
 		if index == 0 && priority != 0 {
 			return fmt.Errorf("in 'jamfpro_smart_computer_group.%s': the first criterion must have a priority of 0, got %d", resourceName, priority)
 		} else if index > 0 && priority != expectedPriority {

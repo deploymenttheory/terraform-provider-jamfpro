@@ -48,8 +48,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftwar
 }
 
 // flattenScope converts the scope structure into a format suitable for setting in the Terraform state.
-func flattenScope(scope jamfpro.RestrictedSoftwareSubsetScope) []interface{} {
-	scopeMap := map[string]interface{}{
+func flattenScope(scope jamfpro.RestrictedSoftwareSubsetScope) []any {
+	scopeMap := map[string]any{
 		"all_computers":      scope.AllComputers,
 		"computer_ids":       schema.NewSet(schema.HashInt, flattenScopeEntityIds(scope.Computers)),
 		"computer_group_ids": schema.NewSet(schema.HashInt, flattenScopeEntityIds(scope.ComputerGroups)),
@@ -61,8 +61,8 @@ func flattenScope(scope jamfpro.RestrictedSoftwareSubsetScope) []interface{} {
 	if len(scope.Exclusions.Computers) > 0 || len(scope.Exclusions.ComputerGroups) > 0 ||
 		len(scope.Exclusions.Buildings) > 0 || len(scope.Exclusions.Departments) > 0 ||
 		len(scope.Exclusions.Users) > 0 {
-		scopeMap["exclusions"] = []interface{}{
-			map[string]interface{}{
+		scopeMap["exclusions"] = []any{
+			map[string]any{
 				"computer_ids":                         schema.NewSet(schema.HashInt, flattenScopeEntityIds(scope.Exclusions.Computers)),
 				"computer_group_ids":                   schema.NewSet(schema.HashInt, flattenScopeEntityIds(scope.Exclusions.ComputerGroups)),
 				"building_ids":                         schema.NewSet(schema.HashInt, flattenScopeEntityIds(scope.Exclusions.Buildings)),
@@ -72,12 +72,12 @@ func flattenScope(scope jamfpro.RestrictedSoftwareSubsetScope) []interface{} {
 		}
 	}
 
-	return []interface{}{scopeMap}
+	return []any{scopeMap}
 }
 
 // flattenScopeEntityIds converts a slice of RestrictedSoftwareSubsetScopeEntity into a slice of interfaces containing IDs
-func flattenScopeEntityIds(entities []jamfpro.RestrictedSoftwareSubsetScopeEntity) []interface{} {
-	var ids []interface{}
+func flattenScopeEntityIds(entities []jamfpro.RestrictedSoftwareSubsetScopeEntity) []any {
+	var ids []any
 	for _, entity := range entities {
 		ids = append(ids, entity.ID)
 	}
@@ -85,8 +85,8 @@ func flattenScopeEntityIds(entities []jamfpro.RestrictedSoftwareSubsetScopeEntit
 }
 
 // flattenScopeEntityNames converts a slice of RestrictedSoftwareSubsetScopeEntity into a slice of interfaces containing names
-func flattenScopeEntityNames(entities []jamfpro.RestrictedSoftwareSubsetScopeEntity) []interface{} {
-	var names []interface{}
+func flattenScopeEntityNames(entities []jamfpro.RestrictedSoftwareSubsetScopeEntity) []any {
+	var names []any
 	for _, entity := range entities {
 		names = append(names, entity.Name)
 	}

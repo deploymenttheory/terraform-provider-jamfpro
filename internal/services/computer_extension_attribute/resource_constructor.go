@@ -25,7 +25,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceComputerExtensionAttrib
 	}
 
 	if v, ok := d.GetOk("popup_menu_choices"); ok {
-		choices := v.([]interface{})
+		choices := v.([]any)
 		for _, choice := range choices {
 			resource.PopupMenuChoices = append(resource.PopupMenuChoices, choice.(string))
 		}

@@ -65,7 +65,7 @@ func ResourceJamfProFileShareDistributionPoints() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The type of connection protocol to the distribution point. Can be either 'AFP', or 'SMB'.",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(string)
 					validTypes := map[string]bool{
 						"SMB": true,

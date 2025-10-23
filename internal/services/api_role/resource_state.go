@@ -13,7 +13,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceAPIRole) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	apiRoleData := map[string]interface{}{
+	apiRoleData := map[string]any{
 		"id":           resp.ID,
 		"display_name": resp.DisplayName,
 		"privileges":   resp.Privileges,

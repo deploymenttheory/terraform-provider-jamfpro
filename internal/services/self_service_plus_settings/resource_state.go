@@ -10,7 +10,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceSelfServicePlusSettings) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	selfServicePlusSettingsConfig := map[string]interface{}{
+	selfServicePlusSettingsConfig := map[string]any{
 		"enabled": resp.Enabled,
 	}
 

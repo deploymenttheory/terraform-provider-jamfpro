@@ -20,7 +20,7 @@ func getPolicySchemaReboot() *schema.Resource {
 				Optional:    true,
 				Description: "Reboot Method",
 				// Default:     "",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(string)
 					validMethods := []string{"", "Standard Restart", "MDM Restart with Kernel Cache Rebuild"}
 					for _, method := range validMethods {
@@ -37,7 +37,7 @@ func getPolicySchemaReboot() *schema.Resource {
 				Optional:    true,
 				Description: "Disk to boot computers to",
 				Default:     "Current Startup Disk",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(string)
 					validDisks := []string{"Current Startup Disk", "Currently Selected Startup Disk (No Bless)", "macOS Installer", "Specify Local Startup Disk"}
 					for _, disk := range validDisks {
@@ -54,7 +54,7 @@ func getPolicySchemaReboot() *schema.Resource {
 				Optional:    true,
 				Description: "Action to take if no user is logged in to the computer",
 				Default:     "Do not restart",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(string)
 					validOptions := []string{"Restart if a package or update requires it", "Restart Immediately", "Do not restart"}
 					for _, option := range validOptions {
@@ -71,7 +71,7 @@ func getPolicySchemaReboot() *schema.Resource {
 				Optional:    true,
 				Default:     "Do not restart",
 				Description: "Action to take if a user is logged in to the computer",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(string)
 					validOptions := []string{"Restart if a package or update requires it", "Restart Immediately", "Restart", "Do not restart"}
 					for _, option := range validOptions {

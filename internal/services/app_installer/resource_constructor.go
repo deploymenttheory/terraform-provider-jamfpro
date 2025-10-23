@@ -47,8 +47,8 @@ func construct(d *schema.ResourceData, client *jamfpro.Client) (*jamfpro.Resourc
 	}
 
 	// Construct notification settings
-	if v, ok := d.GetOk("notification_settings"); ok && len(v.([]interface{})) > 0 {
-		ns := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("notification_settings"); ok && len(v.([]any)) > 0 {
+		ns := v.([]any)[0].(map[string]any)
 		resource.NotificationSettings = jamfpro.JamfAppCatalogDeploymentSubsetNotificationSettings{
 			NotificationMessage:  ns["notification_message"].(string),
 			NotificationInterval: ns["notification_interval"].(int),
@@ -62,8 +62,8 @@ func construct(d *schema.ResourceData, client *jamfpro.Client) (*jamfpro.Resourc
 	}
 
 	// Construct self-service settings
-	if v, ok := d.GetOk("self_service_settings"); ok && len(v.([]interface{})) > 0 {
-		ss := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("self_service_settings"); ok && len(v.([]any)) > 0 {
+		ss := v.([]any)[0].(map[string]any)
 		resource.SelfServiceSettings = jamfpro.JamfAppCatalogDeploymentSubsetSelfServiceSettings{
 			IncludeInFeaturedCategory:   jamfpro.BoolPtr(ss["include_in_featured_category"].(bool)),
 			IncludeInComplianceCategory: jamfpro.BoolPtr(ss["include_in_compliance_category"].(bool)),
@@ -74,7 +74,7 @@ func construct(d *schema.ResourceData, client *jamfpro.Client) (*jamfpro.Resourc
 		// Construct categories
 		if categories, ok := ss["categories"].(*schema.Set); ok {
 			for _, cat := range categories.List() {
-				category := cat.(map[string]interface{})
+				category := cat.(map[string]any)
 				resource.SelfServiceSettings.Categories = append(resource.SelfServiceSettings.Categories, jamfpro.JamfAppCatalogDeploymentSubsetCategory{
 					ID:       category["id"].(string),
 					Featured: jamfpro.BoolPtr(category["featured"].(bool)),

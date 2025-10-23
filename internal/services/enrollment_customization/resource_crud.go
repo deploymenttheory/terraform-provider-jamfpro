@@ -13,7 +13,7 @@ import (
 )
 
 // create is responsible for creating a new enrollment customization
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -26,11 +26,11 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 				return retry.RetryableError(apiErr)
 			}
 
-			brandingSettings := d.Get("branding_settings").([]interface{})
+			brandingSettings := d.Get("branding_settings").([]any)
 			if len(brandingSettings) > 0 {
-				settings := brandingSettings[0].(map[string]interface{})
+				settings := brandingSettings[0].(map[string]any)
 				settings["icon_url"] = uploadResponse.Url
-				brandingSettingsList := []interface{}{settings}
+				brandingSettingsList := []any{settings}
 				if err := d.Set("branding_settings", brandingSettingsList); err != nil {
 					return retry.NonRetryableError(fmt.Errorf("failed to set icon_url in schema: %v", err))
 				}
@@ -63,9 +63,9 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	d.SetId(response.Id)
 
-	textPanes := d.Get("text_pane").([]interface{})
-	ldapPanes := d.Get("ldap_pane").([]interface{})
-	ssoPanes := d.Get("sso_pane").([]interface{})
+	textPanes := d.Get("text_pane").([]any)
+	ldapPanes := d.Get("ldap_pane").([]any)
+	ssoPanes := d.Get("sso_pane").([]any)
 
 	// Check for valid combinations
 	hasSSO := len(ssoPanes) > 0
@@ -79,7 +79,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	// Create text panes if present
 	if hasText {
 		for _, paneData := range textPanes {
-			textPane, err := constructTextPane(paneData.(map[string]interface{}))
+			textPane, err := constructTextPane(paneData.(map[string]any))
 			if err != nil {
 				return diag.FromErr(fmt.Errorf("failed to construct text pane: %v", err))
 			}
@@ -101,7 +101,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	// Create LDAP panes if present
 	if hasLDAP {
 		for _, paneData := range ldapPanes {
-			ldapPane, err := constructLDAPPane(paneData.(map[string]interface{}))
+			ldapPane, err := constructLDAPPane(paneData.(map[string]any))
 			if err != nil {
 				return diag.FromErr(fmt.Errorf("failed to construct LDAP pane: %v", err))
 			}
@@ -123,7 +123,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	// Create SSO panes if present
 	if hasSSO {
 		for _, paneData := range ssoPanes {
-			ssoPane, err := constructSSOPane(paneData.(map[string]interface{}))
+			ssoPane, err := constructSSOPane(paneData.(map[string]any))
 			if err != nil {
 				return diag.FromErr(fmt.Errorf("failed to construct SSO pane: %v", err))
 			}
@@ -146,7 +146,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 }
 
 // read is responsible for reading the enrollment customization
-func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+func read(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -194,7 +194,7 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 
 // readTextPanes fetches text panes and updates state
 func readTextPanes(ctx context.Context, d *schema.ResourceData, client *jamfpro.Client, panesList *jamfpro.ResponsePrestagePanesList) error {
-	var textPanes []map[string]interface{}
+	var textPanes []map[string]any
 
 	for _, panel := range panesList.Panels {
 		if panel.Type != "text" {
@@ -233,7 +233,7 @@ func readTextPanes(ctx context.Context, d *schema.ResourceData, client *jamfpro.
 
 // readLDAPPanes fetches LDAP panes and updates state
 func readLDAPPanes(ctx context.Context, d *schema.ResourceData, client *jamfpro.Client, panesList *jamfpro.ResponsePrestagePanesList) error {
-	var ldapPanes []map[string]interface{}
+	var ldapPanes []map[string]any
 
 	for _, panel := range panesList.Panels {
 		if panel.Type != "ldap" {
@@ -272,7 +272,7 @@ func readLDAPPanes(ctx context.Context, d *schema.ResourceData, client *jamfpro.
 
 // readSSOPanes fetches SSO panes and updates state
 func readSSOPanes(ctx context.Context, d *schema.ResourceData, client *jamfpro.Client, panesList *jamfpro.ResponsePrestagePanesList) error {
-	var ssoPanes []map[string]interface{}
+	var ssoPanes []map[string]any
 
 	for _, panel := range panesList.Panels {
 		if panel.Type != "sso" {
@@ -309,16 +309,16 @@ func readSSOPanes(ctx context.Context, d *schema.ResourceData, client *jamfpro.C
 	return nil
 }
 
-func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return read(ctx, d, meta, true)
 }
 
-func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return read(ctx, d, meta, false)
 }
 
 // update is responsible for updating the enrollment customization
-func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
@@ -332,11 +332,11 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 					return retry.RetryableError(apiErr)
 				}
 				// Store the URL in the schema for the main resource construction
-				brandingSettings := d.Get("branding_settings").([]interface{})
+				brandingSettings := d.Get("branding_settings").([]any)
 				if len(brandingSettings) > 0 {
-					settings := brandingSettings[0].(map[string]interface{})
+					settings := brandingSettings[0].(map[string]any)
 					settings["icon_url"] = uploadResponse.Url
-					brandingSettingsList := []interface{}{settings}
+					brandingSettingsList := []any{settings}
 					if err := d.Set("branding_settings", brandingSettingsList); err != nil {
 						return retry.NonRetryableError(fmt.Errorf("failed to set icon_url in schema: %v", err))
 					}
@@ -434,12 +434,12 @@ func mapExistingPanesByType(panesList *jamfpro.ResponsePrestagePanesList) map[st
 // handleTextPaneChanges processes changes to text panes
 func handleTextPaneChanges(ctx context.Context, d *schema.ResourceData, client *jamfpro.Client, existingPanes map[int]jamfpro.PrestagePaneSummary) error {
 	old, new := d.GetChange("text_pane")
-	oldPanes := old.([]interface{})
-	newPanes := new.([]interface{})
+	oldPanes := old.([]any)
+	newPanes := new.([]any)
 
 	// Process deletions - panes that exist in old but not in new
 	for _, oldPane := range oldPanes {
-		oldPaneMap := oldPane.(map[string]interface{})
+		oldPaneMap := oldPane.(map[string]any)
 		if id, ok := oldPaneMap["id"].(int); ok && id > 0 {
 			// Check if this pane exists in the current API state
 			if _, exists := existingPanes[id]; !exists {
@@ -449,7 +449,7 @@ func handleTextPaneChanges(ctx context.Context, d *schema.ResourceData, client *
 			// Check if this pane still exists in new config
 			found := false
 			for _, newPane := range newPanes {
-				newPaneMap := newPane.(map[string]interface{})
+				newPaneMap := newPane.(map[string]any)
 				if newID, ok := newPaneMap["id"].(int); ok && newID == id {
 					found = true
 					break
@@ -476,7 +476,7 @@ func handleTextPaneChanges(ctx context.Context, d *schema.ResourceData, client *
 
 	// Process additions and updates
 	for _, newPane := range newPanes {
-		newPaneMap := newPane.(map[string]interface{})
+		newPaneMap := newPane.(map[string]any)
 
 		textPane, err := constructTextPane(newPaneMap)
 		if err != nil {
@@ -527,12 +527,12 @@ func handleTextPaneChanges(ctx context.Context, d *schema.ResourceData, client *
 // handleLDAPPaneChanges processes changes to LDAP panes
 func handleLDAPPaneChanges(ctx context.Context, d *schema.ResourceData, client *jamfpro.Client, existingPanes map[int]jamfpro.PrestagePaneSummary) error {
 	old, new := d.GetChange("ldap_pane")
-	oldPanes := old.([]interface{})
-	newPanes := new.([]interface{})
+	oldPanes := old.([]any)
+	newPanes := new.([]any)
 
 	// Process deletions - panes that exist in old but not in new
 	for _, oldPane := range oldPanes {
-		oldPaneMap := oldPane.(map[string]interface{})
+		oldPaneMap := oldPane.(map[string]any)
 		if id, ok := oldPaneMap["id"].(int); ok && id > 0 {
 			// Check if this pane exists in the current API state
 			if _, exists := existingPanes[id]; !exists {
@@ -542,7 +542,7 @@ func handleLDAPPaneChanges(ctx context.Context, d *schema.ResourceData, client *
 			// Check if this pane still exists in new config
 			found := false
 			for _, newPane := range newPanes {
-				newPaneMap := newPane.(map[string]interface{})
+				newPaneMap := newPane.(map[string]any)
 				if newID, ok := newPaneMap["id"].(int); ok && newID == id {
 					found = true
 					break
@@ -569,7 +569,7 @@ func handleLDAPPaneChanges(ctx context.Context, d *schema.ResourceData, client *
 
 	// Process additions and updates
 	for _, newPane := range newPanes {
-		newPaneMap := newPane.(map[string]interface{})
+		newPaneMap := newPane.(map[string]any)
 
 		ldapPane, err := constructLDAPPane(newPaneMap)
 		if err != nil {
@@ -620,12 +620,12 @@ func handleLDAPPaneChanges(ctx context.Context, d *schema.ResourceData, client *
 // handleSSOPaneChanges processes changes to SSO panes
 func handleSSOPaneChanges(ctx context.Context, d *schema.ResourceData, client *jamfpro.Client, existingPanes map[int]jamfpro.PrestagePaneSummary) error {
 	old, new := d.GetChange("sso_pane")
-	oldPanes := old.([]interface{})
-	newPanes := new.([]interface{})
+	oldPanes := old.([]any)
+	newPanes := new.([]any)
 
 	// Process deletions - panes that exist in old but not in new
 	for _, oldPane := range oldPanes {
-		oldPaneMap := oldPane.(map[string]interface{})
+		oldPaneMap := oldPane.(map[string]any)
 		if id, ok := oldPaneMap["id"].(int); ok && id > 0 {
 			// Check if this pane exists in the current API state
 			if _, exists := existingPanes[id]; !exists {
@@ -635,7 +635,7 @@ func handleSSOPaneChanges(ctx context.Context, d *schema.ResourceData, client *j
 			// Check if this pane still exists in new config
 			found := false
 			for _, newPane := range newPanes {
-				newPaneMap := newPane.(map[string]interface{})
+				newPaneMap := newPane.(map[string]any)
 				if newID, ok := newPaneMap["id"].(int); ok && newID == id {
 					found = true
 					break
@@ -662,7 +662,7 @@ func handleSSOPaneChanges(ctx context.Context, d *schema.ResourceData, client *j
 
 	// Process additions and updates
 	for _, newPane := range newPanes {
-		newPaneMap := newPane.(map[string]interface{})
+		newPaneMap := newPane.(map[string]any)
 
 		// Build the pane object
 		ssoPane, err := constructSSOPane(newPaneMap)
@@ -715,7 +715,7 @@ func handleSSOPaneChanges(ctx context.Context, d *schema.ResourceData, client *j
 }
 
 // delete is responsible for removing the enrollment customization
-func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 

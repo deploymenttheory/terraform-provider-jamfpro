@@ -70,7 +70,7 @@ func DataSourceJamfConnectConfigProfile() *schema.Resource {
 }
 
 // dataSourceRead fetches Jamf Connect profile details
-func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 
 	id := d.Get("profile_id").(int)

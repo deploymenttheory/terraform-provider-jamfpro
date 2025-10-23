@@ -11,7 +11,7 @@ import (
 
 // customValidateFilePath is a custom validation function for the package_file_source field.
 // It ensures that the package_file_source field ends with .dmg if fill_user_template or fill_existing_users are set to true.
-func customValidateFilePath(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+func customValidateFilePath(ctx context.Context, d *schema.ResourceDiff, meta any) error {
 	filePath, ok := d.Get("package_file_source").(string)
 	if !ok {
 		return fmt.Errorf("invalid type for package_file_sourceh")

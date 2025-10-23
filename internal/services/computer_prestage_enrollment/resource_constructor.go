@@ -48,29 +48,29 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 		PlatformSsoAppBundleId:             d.Get("platform_sso_app_bundle_id").(string),
 	}
 
-	if v, ok := d.GetOk("skip_setup_items"); ok && len(v.([]interface{})) > 0 {
-		skipSetupItemsMap := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("skip_setup_items"); ok && len(v.([]any)) > 0 {
+		skipSetupItemsMap := v.([]any)[0].(map[string]any)
 		resource.SkipSetupItems = constructSkipSetupItems(skipSetupItemsMap)
 	}
 
-	if v, ok := d.GetOk("location_information"); ok && len(v.([]interface{})) > 0 {
-		locationData := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("location_information"); ok && len(v.([]any)) > 0 {
+		locationData := v.([]any)[0].(map[string]any)
 		resource.LocationInformation = constructLocationInformation(locationData, isUpdate, versionLock)
 	}
 
-	if v, ok := d.GetOk("purchasing_information"); ok && len(v.([]interface{})) > 0 {
-		purchasingData := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("purchasing_information"); ok && len(v.([]any)) > 0 {
+		purchasingData := v.([]any)[0].(map[string]any)
 		resource.PurchasingInformation = constructPurchasingInformation(purchasingData, isUpdate, versionLock)
 	}
 
-	if v, ok := d.GetOk("account_settings"); ok && len(v.([]interface{})) > 0 {
-		accountData := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("account_settings"); ok && len(v.([]any)) > 0 {
+		accountData := v.([]any)[0].(map[string]any)
 		resource.AccountSettings = constructAccountSettings(accountData, isUpdate, versionLock)
 	}
 
 	if v, ok := d.GetOk("anchor_certificates"); ok {
-		anchorCertificates := make([]string, len(v.([]interface{})))
-		for i, cert := range v.([]interface{}) {
+		anchorCertificates := make([]string, len(v.([]any)))
+		for i, cert := range v.([]any) {
 			anchorCertificates[i] = cert.(string)
 		}
 		resource.AnchorCertificates = anchorCertificates
@@ -93,9 +93,9 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 	}
 
 	if v, ok := d.GetOk("onboarding_items"); ok {
-		onboardingItems := make([]jamfpro.OnboardingItem, len(v.([]interface{})))
-		for i, item := range v.([]interface{}) {
-			itemMap := item.(map[string]interface{})
+		onboardingItems := make([]jamfpro.OnboardingItem, len(v.([]any)))
+		for i, item := range v.([]any) {
+			itemMap := item.(map[string]any)
 			onboardingItems[i] = jamfpro.OnboardingItem{
 				SelfServiceEntityType: itemMap["self_service_entity_type"].(string),
 				ID:                    itemMap["id"].(string),
@@ -118,7 +118,7 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 }
 
 // constructSkipSetupItems constructs the SkipSetupItems subset of a Computer Prestage resource.
-func constructSkipSetupItems(data map[string]interface{}) jamfpro.ComputerPrestageSubsetSkipSetupItems {
+func constructSkipSetupItems(data map[string]any) jamfpro.ComputerPrestageSubsetSkipSetupItems {
 	return jamfpro.ComputerPrestageSubsetSkipSetupItems{
 		Biometric:                 jamfpro.BoolPtr(data["biometric"].(bool)),
 		TermsOfAddress:            jamfpro.BoolPtr(data["terms_of_address"].(bool)),
@@ -148,7 +148,7 @@ func constructSkipSetupItems(data map[string]interface{}) jamfpro.ComputerPresta
 }
 
 // constructLocationInformation constructs the LocationInformation subset of a Computer Prestage resource.
-func constructLocationInformation(data map[string]interface{}, isUpdate bool, versionLock int) jamfpro.ComputerPrestageSubsetLocationInformation {
+func constructLocationInformation(data map[string]any, isUpdate bool, versionLock int) jamfpro.ComputerPrestageSubsetLocationInformation {
 	d := &schema.ResourceData{}
 	for k, v := range data {
 		d.Set(k, v)
@@ -169,7 +169,7 @@ func constructLocationInformation(data map[string]interface{}, isUpdate bool, ve
 }
 
 // constructPurchasingInformation constructs the PurchasingInformation subset of a Computer Prestage resource.
-func constructPurchasingInformation(data map[string]interface{}, isUpdate bool, versionLock int) jamfpro.ComputerPrestageSubsetPurchasingInformation {
+func constructPurchasingInformation(data map[string]any, isUpdate bool, versionLock int) jamfpro.ComputerPrestageSubsetPurchasingInformation {
 	d := &schema.ResourceData{}
 	for k, v := range data {
 		d.Set(k, v)
@@ -194,7 +194,7 @@ func constructPurchasingInformation(data map[string]interface{}, isUpdate bool, 
 }
 
 // constructAccountSettings constructs the AccountSettings subset of a Computer Prestage resource.
-func constructAccountSettings(data map[string]interface{}, isUpdate bool, versionLock int) jamfpro.ComputerPrestageSubsetAccountSettings {
+func constructAccountSettings(data map[string]any, isUpdate bool, versionLock int) jamfpro.ComputerPrestageSubsetAccountSettings {
 	return jamfpro.ComputerPrestageSubsetAccountSettings{
 		ID:                                      "-1",
 		VersionLock:                             versionLock,

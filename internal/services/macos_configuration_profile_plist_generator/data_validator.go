@@ -11,7 +11,7 @@ import (
 )
 
 // mainCustomDiffFunc orchestrates all custom diff validations for macOS config profiles.
-func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
+func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i any) error {
 	if diff.Get("payload_validate").(bool) {
 		if err := validatePayloadIdentifers(ctx, diff, i); err != nil {
 			return err
@@ -45,13 +45,13 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 	return nil
 }
 
-func normalizePayloadState(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+func normalizePayloadState(_ context.Context, diff *schema.ResourceDiff, _ any) error {
 	diff.SetNew("payloads", plist.NormalizePayloadState(diff.Get("payloads").(string)))
 	return nil
 }
 
 // validatePayloadIdentifers performs the payload validation that was previously in the ValidateFunc.
-func validatePayloadIdentifers(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+func validatePayloadIdentifers(_ context.Context, diff *schema.ResourceDiff, _ any) error {
 	resourceName := diff.Get("name").(string)
 	payload := diff.Get("payloads").(string)
 
@@ -73,7 +73,7 @@ func validatePayloadIdentifers(_ context.Context, diff *schema.ResourceDiff, _ i
 }
 
 // validateDistributionMethod checks that the 'self_service' block is only used when 'distribution_method' is "Make Available in Self Service".
-func validateDistributionMethod(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+func validateDistributionMethod(_ context.Context, diff *schema.ResourceDiff, _ any) error {
 	resourceName := diff.Get("name").(string)
 	distributionMethod, ok := diff.GetOk("distribution_method")
 
@@ -81,7 +81,7 @@ func validateDistributionMethod(_ context.Context, diff *schema.ResourceDiff, _ 
 		return nil
 	}
 
-	selfServiceBlockExists := len(diff.Get("self_service").([]interface{})) > 0
+	selfServiceBlockExists := len(diff.Get("self_service").([]any)) > 0
 
 	if distributionMethod == "Make Available in Self Service" && !selfServiceBlockExists {
 		return fmt.Errorf("in 'jamfpro_macos_configuration_profile.%s': 'self_service' block is required when 'distribution_method' is set to 'Make Available in Self Service'", resourceName)
@@ -95,7 +95,7 @@ func validateDistributionMethod(_ context.Context, diff *schema.ResourceDiff, _ 
 }
 
 // validatePlistPayloadScope validates that the 'PayloadScope' key in the payload matches the 'level' attribute in the HCL.
-func validatePlistPayloadScope(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+func validatePlistPayloadScope(_ context.Context, diff *schema.ResourceDiff, _ any) error {
 	resourceName := diff.Get("name").(string)
 	level := diff.Get("level").(string)
 	payloads := diff.Get("payloads").(string)
@@ -118,21 +118,21 @@ func validatePlistPayloadScope(_ context.Context, diff *schema.ResourceDiff, _ i
 }
 
 // validateSelfServiceCategories validates the 'self_service_category' block.
-func validateSelfServiceCategories(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+func validateSelfServiceCategories(_ context.Context, diff *schema.ResourceDiff, _ any) error {
 	resourceName := diff.Get("name").(string)
 	selfServiceRaw, ok := diff.GetOk("self_service")
 	if !ok {
 		return nil
 	}
 
-	selfService := selfServiceRaw.([]interface{})[0].(map[string]interface{})
-	categories, ok := selfService["self_service_category"].([]interface{})
+	selfService := selfServiceRaw.([]any)[0].(map[string]any)
+	categories, ok := selfService["self_service_category"].([]any)
 	if !ok {
 		return nil
 	}
 
 	for i, catRaw := range categories {
-		cat := catRaw.(map[string]interface{})
+		cat := catRaw.(map[string]any)
 		displayIn, displayOk := cat["display_in"].(bool)
 		featureIn, featureOk := cat["feature_in"].(bool)
 
@@ -144,14 +144,14 @@ func validateSelfServiceCategories(_ context.Context, diff *schema.ResourceDiff,
 	return nil
 }
 
-func validateAllComputersScope(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+func validateAllComputersScope(_ context.Context, diff *schema.ResourceDiff, _ any) error {
 	resourceName := diff.Get("name").(string)
 	scopeRaw, ok := diff.GetOk("scope")
 	if !ok {
 		return nil
 	}
 
-	scope := scopeRaw.([]interface{})[0].(map[string]interface{})
+	scope := scopeRaw.([]any)[0].(map[string]any)
 	allComputers := scope["all_computers"].(bool)
 
 	if allComputers {
@@ -168,14 +168,14 @@ func validateAllComputersScope(_ context.Context, diff *schema.ResourceDiff, _ i
 	return nil
 }
 
-func validateAllUsersScope(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+func validateAllUsersScope(_ context.Context, diff *schema.ResourceDiff, _ any) error {
 	resourceName := diff.Get("name").(string)
 	scopeRaw, ok := diff.GetOk("scope")
 	if !ok {
 		return nil
 	}
 
-	scope := scopeRaw.([]interface{})[0].(map[string]interface{})
+	scope := scopeRaw.([]any)[0].(map[string]any)
 	allJssUsers := scope["all_jss_users"].(bool)
 
 	if allJssUsers {

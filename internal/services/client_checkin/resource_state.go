@@ -10,7 +10,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceClientCheckinSettings) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	checkinData := map[string]interface{}{
+	checkinData := map[string]any{
 		"check_in_frequency":                  resp.CheckInFrequency,
 		"create_hooks":                        resp.CreateHooks,
 		"hook_log":                            resp.HookLog,

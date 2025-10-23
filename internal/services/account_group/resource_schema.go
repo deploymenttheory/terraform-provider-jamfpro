@@ -42,7 +42,7 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The access level of the account. This can be either Full Access, scoped to a jamf pro site with Site Access, or scoped to a jamf pro account group with Group Access",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(string)
 					if v == "Full Access" || v == "Site Access" || v == "Group Access" {
 						return
@@ -54,7 +54,7 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The privilege set assigned to the account.",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(string)
 					validPrivileges := []string{"Administrator", "Auditor", "Enrollment Only", "Custom"}
 					for _, validPriv := range validPrivileges {

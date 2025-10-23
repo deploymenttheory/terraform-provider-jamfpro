@@ -8,7 +8,7 @@ import (
 )
 
 // mainCustomDiffFunc orchestrates all custom diff validations.
-func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
+func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i any) error {
 	if err := validateGroupOrDevice(ctx, diff, i); err != nil {
 		return err
 	}
@@ -21,7 +21,7 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i interf
 }
 
 // validateGroupOrDevice ensures that either 'group' or 'device' is specified, but not both.
-func validateGroupOrDevice(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+func validateGroupOrDevice(_ context.Context, diff *schema.ResourceDiff, _ any) error {
 	resourceName := diff.Get("name").(string)
 	_, hasGroup := diff.GetOk("group")
 	_, hasDevice := diff.GetOk("device")
@@ -38,15 +38,15 @@ func validateGroupOrDevice(_ context.Context, diff *schema.ResourceDiff, _ inter
 }
 
 // validateConfigFields performs validation on the 'config' block fields.
-func validateConfigFields(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+func validateConfigFields(_ context.Context, diff *schema.ResourceDiff, _ any) error {
 	resourceName := diff.Get("name").(string)
-	config := diff.Get("config").([]interface{})
+	config := diff.Get("config").([]any)
 
 	if len(config) == 0 {
 		return fmt.Errorf("in 'jamfpro_managed_software_update.%s': 'config' block is required", resourceName)
 	}
 
-	configMap := config[0].(map[string]interface{})
+	configMap := config[0].(map[string]any)
 	updateAction := configMap["update_action"].(string)
 	versionType := configMap["version_type"].(string)
 	specificVersion := configMap["specific_version"].(string)

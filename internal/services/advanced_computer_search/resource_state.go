@@ -33,9 +33,9 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceAdvancedComputerS
 	}
 
 	// TODO review this
-	criteriaList := make([]interface{}, len(resp.Criteria.Criterion))
+	criteriaList := make([]any, len(resp.Criteria.Criterion))
 	for i, crit := range resp.Criteria.Criterion {
-		criteriaMap := map[string]interface{}{
+		criteriaMap := map[string]any{
 			"name":          crit.Name,
 			"priority":      crit.Priority,
 			"and_or":        crit.AndOr,

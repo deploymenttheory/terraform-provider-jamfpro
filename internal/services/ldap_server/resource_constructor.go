@@ -43,8 +43,8 @@ func constructConnection(d *schema.ResourceData) jamfpro.LDAPServerSubsetConnect
 	}
 
 	// Handle account credentials
-	if v, ok := d.GetOk("account"); ok && len(v.([]interface{})) > 0 {
-		accountMap := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("account"); ok && len(v.([]any)) > 0 {
+		accountMap := v.([]any)[0].(map[string]any)
 		connection.Account = jamfpro.LDAPServerSubsetConnectionAccount{
 			DistinguishedUsername: accountMap["distinguished_username"].(string),
 			Password:              accountMap["password"].(string),
@@ -63,8 +63,8 @@ func constructMappings(d *schema.ResourceData) jamfpro.LDAPServerContainerMappin
 }
 
 func constructUserMappings(d *schema.ResourceData) jamfpro.LDAPServerSubsetMappingUsers {
-	if v, ok := d.GetOk("user_mappings"); ok && len(v.([]interface{})) > 0 {
-		mappingMap := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("user_mappings"); ok && len(v.([]any)) > 0 {
+		mappingMap := v.([]any)[0].(map[string]any)
 		return jamfpro.LDAPServerSubsetMappingUsers{
 			MapObjectClassToAnyOrAll: mappingMap["map_object_class_to_any_or_all"].(string),
 			ObjectClasses:            mappingMap["object_classes"].(string),
@@ -87,8 +87,8 @@ func constructUserMappings(d *schema.ResourceData) jamfpro.LDAPServerSubsetMappi
 }
 
 func constructUserGroupMappings(d *schema.ResourceData) jamfpro.LDAPServerSubsetMappingUserGroups {
-	if v, ok := d.GetOk("user_group_mappings"); ok && len(v.([]interface{})) > 0 {
-		mappingMap := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("user_group_mappings"); ok && len(v.([]any)) > 0 {
+		mappingMap := v.([]any)[0].(map[string]any)
 		return jamfpro.LDAPServerSubsetMappingUserGroups{
 			MapObjectClassToAnyOrAll: mappingMap["map_object_class_to_any_or_all"].(string),
 			ObjectClasses:            mappingMap["object_classes"].(string),
@@ -103,8 +103,8 @@ func constructUserGroupMappings(d *schema.ResourceData) jamfpro.LDAPServerSubset
 }
 
 func constructUserGroupMembershipMappings(d *schema.ResourceData) jamfpro.LDAPServerSubsetMappingUserGroupMemberships {
-	if v, ok := d.GetOk("user_group_membership_mappings"); ok && len(v.([]interface{})) > 0 {
-		mappingMap := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("user_group_membership_mappings"); ok && len(v.([]any)) > 0 {
+		mappingMap := v.([]any)[0].(map[string]any)
 		return jamfpro.LDAPServerSubsetMappingUserGroupMemberships{
 			UserGroupMembershipStoredIn:   mappingMap["user_group_membership_stored_in"].(string),
 			MapGroupMembershipToUserField: mappingMap["map_group_membership_to_user_field"].(string),

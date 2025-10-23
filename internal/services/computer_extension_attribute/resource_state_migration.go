@@ -26,8 +26,8 @@ func resourceComputerExtensionAttributeV0() *schema.Resource {
 	}
 }
 
-func upgradeComputerExtensionAttributeV0toV1(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	newState := make(map[string]interface{})
+func upgradeComputerExtensionAttributeV0toV1(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
+	newState := make(map[string]any)
 
 	// Map existing fields
 	newState["id"] = rawState["id"]

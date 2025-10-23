@@ -10,7 +10,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceLocalAdminPasswordSettings) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	localAdminPasswordSettingsConfig := map[string]interface{}{
+	localAdminPasswordSettingsConfig := map[string]any{
 		"auto_deploy_enabled":                 resp.AutoDeployEnabled,
 		"password_rotation_time_seconds":      resp.PasswordRotationTime,
 		"auto_rotate_enabled":                 resp.AutoRotateEnabled,

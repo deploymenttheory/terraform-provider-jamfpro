@@ -27,8 +27,8 @@ func resourceComputerInventoryCollectionSettingsV0() *schema.Resource {
 }
 
 // upgrader for v0 -> v1: remove deprecated fields
-func upgradeComputerInventoryCollectionSettingsV0toV1(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	newState := make(map[string]interface{})
+func upgradeComputerInventoryCollectionSettingsV0toV1(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
+	newState := make(map[string]any)
 	for k, v := range rawState {
 		if k == "font_paths" || k == "plugin_paths" {
 			continue
@@ -37,9 +37,9 @@ func upgradeComputerInventoryCollectionSettingsV0toV1(ctx context.Context, rawSt
 	}
 
 	if v, ok := newState["computer_inventory_collection_preferences"]; ok {
-		if list, ok := v.([]interface{}); ok && len(list) > 0 {
-			if prefs, ok := list[0].(map[string]interface{}); ok {
-				cleaned := make(map[string]interface{})
+		if list, ok := v.([]any); ok && len(list) > 0 {
+			if prefs, ok := list[0].(map[string]any); ok {
+				cleaned := make(map[string]any)
 				for pk, pv := range prefs {
 					if pk == "include_fonts" || pk == "include_plugins" {
 						continue

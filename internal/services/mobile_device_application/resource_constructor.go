@@ -41,8 +41,8 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceApplication
 		},
 	}
 
-	if v, ok := d.GetOk("ipa"); ok && len(v.([]interface{})) > 0 {
-		ipaMap := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("ipa"); ok && len(v.([]any)) > 0 {
+		ipaMap := v.([]any)[0].(map[string]any)
 		resource.General.IPA = jamfpro.MobileDeviceApplicationSubsetGeneralIPA{
 			Name: ipaMap["name"].(string),
 			URI:  ipaMap["uri"].(string),
@@ -50,8 +50,8 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceApplication
 		}
 	}
 
-	if v, ok := d.GetOk("icon"); ok && len(v.([]interface{})) > 0 {
-		iconMap := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("icon"); ok && len(v.([]any)) > 0 {
+		iconMap := v.([]any)[0].(map[string]any)
 		resource.General.Icon = jamfpro.MobileDeviceApplicationSubsetIcon{
 			ID:   iconMap["id"].(int),
 			Name: iconMap["name"].(string),
@@ -68,8 +68,8 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceApplication
 		log.Printf("[DEBUG] constructJamfProMobileDeviceApplication: No scope block found or it's empty.")
 	}
 
-	if v, ok := d.GetOk("self_service"); ok && len(v.([]interface{})) > 0 {
-		selfServiceMap := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("self_service"); ok && len(v.([]any)) > 0 {
+		selfServiceMap := v.([]any)[0].(map[string]any)
 		selfService := jamfpro.MobileDeviceApplicationSubsetGeneralSelfService{
 			SelfServiceDescription: selfServiceMap["self_service_description"].(string),
 			FeatureOnMainPage:      jamfpro.BoolPtr(selfServiceMap["feature_on_main_page"].(bool)),
@@ -77,8 +77,8 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceApplication
 			NotificationSubject:    selfServiceMap["notification_subject"].(string),
 			NotificationMessage:    selfServiceMap["notification_message"].(string),
 		}
-		if icon, ok := selfServiceMap["self_service_icon"].([]interface{}); ok && len(icon) > 0 {
-			iconMap := icon[0].(map[string]interface{})
+		if icon, ok := selfServiceMap["self_service_icon"].([]any); ok && len(icon) > 0 {
+			iconMap := icon[0].(map[string]any)
 			selfService.SelfServiceIcon = jamfpro.MobileDeviceApplicationSubsetIcon{
 				ID:   iconMap["id"].(int),
 				Name: iconMap["filename"].(string),
@@ -89,16 +89,16 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceApplication
 		resource.SelfService = selfService
 	}
 
-	if v, ok := d.GetOk("vpp"); ok && len(v.([]interface{})) > 0 {
-		vppMap := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("vpp"); ok && len(v.([]any)) > 0 {
+		vppMap := v.([]any)[0].(map[string]any)
 		resource.VPP = jamfpro.MobileDeviceApplicationSubsetGeneralVPP{
 			AssignVPPDeviceBasedLicenses: jamfpro.BoolPtr(vppMap["assign_vpp_device_based_licenses"].(bool)),
 			VPPAdminAccountID:            vppMap["vpp_admin_account_id"].(int),
 		}
 	}
 
-	if v, ok := d.GetOk("app_configuration"); ok && len(v.([]interface{})) > 0 {
-		appConfigMap := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("app_configuration"); ok && len(v.([]any)) > 0 {
+		appConfigMap := v.([]any)[0].(map[string]any)
 		resource.AppConfiguration = jamfpro.MobileDeviceApplicationSubsetGeneralAppConfiguration{
 			Preferences: appConfigMap["preferences"].(string),
 		}
@@ -117,7 +117,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceApplication
 // constructMobileDeviceApplicationSubsetScope constructs the scope from the provided schema data.
 func constructMobileDeviceApplicationSubsetScope(d *schema.ResourceData) jamfpro.MobileDeviceApplicationSubsetScope {
 	scope := jamfpro.MobileDeviceApplicationSubsetScope{}
-	scopeData := d.Get("scope").([]interface{})[0].(map[string]interface{})
+	scopeData := d.Get("scope").([]any)[0].(map[string]any)
 
 	scope.AllMobileDevices = jamfpro.BoolPtr(scopeData["all_mobile_devices"].(bool))
 	scope.AllJSSUsers = jamfpro.BoolPtr(scopeData["all_jss_users"].(bool))

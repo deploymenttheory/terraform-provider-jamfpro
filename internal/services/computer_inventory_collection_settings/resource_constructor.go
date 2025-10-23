@@ -32,9 +32,9 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceComputerInventoryCollec
 	resource := &jamfpro.ResourceComputerInventoryCollectionSettings{}
 
 	if v, ok := d.GetOk("computer_inventory_collection_preferences"); ok {
-		prefsList := v.([]interface{})
+		prefsList := v.([]any)
 		if len(prefsList) > 0 {
-			prefsMap := prefsList[0].(map[string]interface{})
+			prefsMap := prefsList[0].(map[string]any)
 
 			resource.ComputerInventoryCollectionPreferences = jamfpro.ComputerInventoryCollectionSettingsSubsetPreferences{
 				MonitorApplicationUsage:                      prefsMap["monitor_application_usage"].(bool),
@@ -73,7 +73,7 @@ func constructCustomPaths(d *schema.ResourceData) ([]jamfpro.ResourceComputerInv
 		if v, ok := d.GetOk(pt.key); ok {
 			pathSet := v.(*schema.Set)
 			for _, p := range pathSet.List() {
-				pathMap := p.(map[string]interface{})
+				pathMap := p.(map[string]any)
 				path := pathMap["path"].(string)
 
 				customPath := jamfpro.ResourceComputerInventoryCollectionSettingsCustomPath{
@@ -104,7 +104,7 @@ func constructPathUpdates(d *schema.ResourceData) (pathsToAdd []jamfpro.Resource
 			newSet := new.(*schema.Set)
 
 			for _, oldPath := range oldSet.List() {
-				oldPathMap := oldPath.(map[string]interface{})
+				oldPathMap := oldPath.(map[string]any)
 				oldPathStr := oldPathMap["path"].(string)
 				oldPathID := oldPathMap["id"].(string)
 
@@ -121,7 +121,7 @@ func constructPathUpdates(d *schema.ResourceData) (pathsToAdd []jamfpro.Resource
 			}
 
 			for _, newPath := range newSet.List() {
-				newPathMap := newPath.(map[string]interface{})
+				newPathMap := newPath.(map[string]any)
 				newPathStr := newPathMap["path"].(string)
 
 				log.Printf("[DEBUG] Checking new path for addition:\n  Path: %s", newPathStr)
@@ -152,9 +152,9 @@ func constructPathUpdates(d *schema.ResourceData) (pathsToAdd []jamfpro.Resource
 }
 
 // Helper function to check if a path exists in a list of path maps
-func containsPath(list []interface{}, searchPath string) bool {
+func containsPath(list []any, searchPath string) bool {
 	for _, item := range list {
-		pathMap := item.(map[string]interface{})
+		pathMap := item.(map[string]any)
 		if pathMap["path"].(string) == searchPath {
 			return true
 		}

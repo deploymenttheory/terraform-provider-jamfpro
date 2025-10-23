@@ -11,7 +11,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceScript) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	resourceData := map[string]interface{}{
+	resourceData := map[string]any{
 		"id":              resp.ID,
 		"name":            resp.Name,
 		"info":            resp.Info,

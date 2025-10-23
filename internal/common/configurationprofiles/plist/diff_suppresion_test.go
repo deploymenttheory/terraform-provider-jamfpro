@@ -363,50 +363,50 @@ func normalizeWhitespace(s string) string {
 func TestRemoveSpecifiedXMLFields(t *testing.T) {
 	tests := []struct {
 		name           string
-		input          map[string]interface{}
+		input          map[string]any
 		fieldsToRemove []string
-		want           map[string]interface{}
+		want           map[string]any
 	}{
 		{
 			name: "Remove single field",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"PayloadUUID": "test-uuid",
 				"PayloadType": "test-type",
 			},
 			fieldsToRemove: []string{"PayloadUUID"},
-			want: map[string]interface{}{
+			want: map[string]any{
 				"PayloadType": "test-type",
 			},
 		},
 		{
 			name: "Remove nested field",
-			input: map[string]interface{}{
-				"PayloadContent": map[string]interface{}{
+			input: map[string]any{
+				"PayloadContent": map[string]any{
 					"PayloadUUID": "nested-uuid",
 					"PayloadType": "nested-type",
 				},
 			},
 			fieldsToRemove: []string{"PayloadUUID"},
-			want: map[string]interface{}{
-				"PayloadContent": map[string]interface{}{
+			want: map[string]any{
+				"PayloadContent": map[string]any{
 					"PayloadType": "nested-type",
 				},
 			},
 		},
 		{
 			name: "Remove field from array",
-			input: map[string]interface{}{
-				"PayloadContent": []interface{}{
-					map[string]interface{}{
+			input: map[string]any{
+				"PayloadContent": []any{
+					map[string]any{
 						"PayloadUUID": "array-uuid",
 						"PayloadType": "array-type",
 					},
 				},
 			},
 			fieldsToRemove: []string{"PayloadUUID"},
-			want: map[string]interface{}{
-				"PayloadContent": []interface{}{
-					map[string]interface{}{
+			want: map[string]any{
+				"PayloadContent": []any{
+					map[string]any{
 						"PayloadType": "array-type",
 					},
 				},
@@ -425,8 +425,8 @@ func TestRemoveSpecifiedXMLFields(t *testing.T) {
 func TestNormalizeBase64Content(t *testing.T) {
 	tests := []struct {
 		name  string
-		input interface{}
-		want  interface{}
+		input any
+		want  any
 	}{
 		{
 			name:  "Do not alter XML <data> tag wrapping — not valid base64",
@@ -435,28 +435,28 @@ func TestNormalizeBase64Content(t *testing.T) {
 		},
 		{
 			name: "Do not alter map with base64 in <data> tag",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"payload": "<data>\n\t\t\t\tMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA\n\t\t\t\t</data>",
 				"other":   "regular string",
 			},
-			want: map[string]interface{}{
+			want: map[string]any{
 				"payload": "<data>\n\t\t\t\tMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA\n\t\t\t\t</data>",
 				"other":   "regular string",
 			},
 		},
 		{
 			name: "Do not alter array containing <data> tags",
-			input: []interface{}{
+			input: []any{
 				"<data>\n\t\t\t\tMIICIjAN\n\t\t\t\t</data>",
 				"regular string",
-				map[string]interface{}{
+				map[string]any{
 					"nested": "<data> \n\t\tSGVsbG8= \n\t\t</data>",
 				},
 			},
-			want: []interface{}{
+			want: []any{
 				"<data>\n\t\t\t\tMIICIjAN\n\t\t\t\t</data>",
 				"regular string",
-				map[string]interface{}{
+				map[string]any{
 					"nested": "<data> \n\t\tSGVsbG8= \n\t\t</data>",
 				},
 			},
@@ -540,8 +540,8 @@ func TestNormalizeBase64(t *testing.T) {
 func TestNormalizeXMLTags(t *testing.T) {
 	tests := []struct {
 		name  string
-		input interface{}
-		want  interface{}
+		input any
+		want  any
 	}{
 		{
 			name:  "Normalize true tag",
@@ -560,10 +560,10 @@ func TestNormalizeXMLTags(t *testing.T) {
 		},
 		{
 			name: "Handle nested map",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"enabled": "<true   />",
 			},
-			want: map[string]interface{}{
+			want: map[string]any{
 				"enabled": "<true/>",
 			},
 		},
@@ -580,8 +580,8 @@ func TestNormalizeXMLTags(t *testing.T) {
 func TestNormalizeHTMLEntitiesForDiff(t *testing.T) {
 	tests := []struct {
 		name  string
-		input interface{}
-		want  interface{}
+		input any
+		want  any
 	}{
 		{
 			name:  "Simple unescape of amp",
@@ -600,13 +600,13 @@ func TestNormalizeHTMLEntitiesForDiff(t *testing.T) {
 		},
 		{
 			name: "Nested map with mixed values",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"html_safe":   "Click here &lt;a href='https://example.com'&gt;",
 				"double_amp":  "Double escaped &amp;amp; stuff",
 				"just_amp":    "Some &amp; thing",
 				"no_entities": "Nothing here",
 			},
-			want: map[string]interface{}{
+			want: map[string]any{
 				"html_safe":   "Click here &lt;a href='https://example.com'&gt;", // unchanged
 				"double_amp":  "Double escaped &amp;amp; stuff",                  // unchanged
 				"just_amp":    "Some & thing",                                    // unescaped
@@ -615,13 +615,13 @@ func TestNormalizeHTMLEntitiesForDiff(t *testing.T) {
 		},
 		{
 			name: "Array of values",
-			input: []interface{}{
+			input: []any{
 				"Normal text",
 				"Text with &amp;",
 				"Text with &amp;amp;",
 				"Text with &lt;br/&gt;",
 			},
-			want: []interface{}{
+			want: []any{
 				"Normal text",
 				"Text with &",
 				"Text with &amp;amp;",
@@ -739,12 +739,12 @@ func TestBooleanValueNormalization(t *testing.T) {
 func TestNormalizeEmptyStrings(t *testing.T) {
 	tests := []struct {
 		name  string
-		input map[string]interface{}
-		want  map[string]interface{}
+		input map[string]any
+		want  map[string]any
 	}{
 		{
 			name: "Empty and whitespace strings",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"empty":    "",
 				"spaces":   "   ",
 				"newlines": "\n    \n",
@@ -752,7 +752,7 @@ func TestNormalizeEmptyStrings(t *testing.T) {
 				"mixed":    "  \n\t  ",
 				"content":  "actual content",
 			},
-			want: map[string]interface{}{
+			want: map[string]any{
 				"empty":    "",
 				"spaces":   "",
 				"newlines": "",
@@ -763,15 +763,15 @@ func TestNormalizeEmptyStrings(t *testing.T) {
 		},
 		{
 			name: "Nested dictionary",
-			input: map[string]interface{}{
-				"outer": map[string]interface{}{
+			input: map[string]any{
+				"outer": map[string]any{
 					"inner_empty":   "",
 					"inner_spaces":  "   ",
 					"inner_content": "test",
 				},
 			},
-			want: map[string]interface{}{
-				"outer": map[string]interface{}{
+			want: map[string]any{
+				"outer": map[string]any{
 					"inner_empty":   "",
 					"inner_spaces":  "",
 					"inner_content": "test",
@@ -780,16 +780,16 @@ func TestNormalizeEmptyStrings(t *testing.T) {
 		},
 		{
 			name: "Array with empty strings",
-			input: map[string]interface{}{
-				"items": []interface{}{
+			input: map[string]any{
+				"items": []any{
 					"   ",
 					"\n\t",
 					"content",
 					"",
 				},
 			},
-			want: map[string]interface{}{
-				"items": []interface{}{
+			want: map[string]any{
+				"items": []any{
 					"",
 					"",
 					"content",

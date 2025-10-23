@@ -9,13 +9,13 @@ func diffSuppressPopupMenuChoices(k, old, new string, d *schema.ResourceData) bo
 	oldRaw, newRaw := d.GetChange("popup_menu_choices")
 
 	// Convert interfaces to []string
-	oldList := make([]string, len(oldRaw.([]interface{})))
-	newList := make([]string, len(newRaw.([]interface{})))
+	oldList := make([]string, len(oldRaw.([]any)))
+	newList := make([]string, len(newRaw.([]any)))
 
-	for i, v := range oldRaw.([]interface{}) {
+	for i, v := range oldRaw.([]any) {
 		oldList[i] = v.(string)
 	}
-	for i, v := range newRaw.([]interface{}) {
+	for i, v := range newRaw.([]any) {
 		newList[i] = v.(string)
 	}
 

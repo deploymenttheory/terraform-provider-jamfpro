@@ -11,7 +11,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceBuilding) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	buildingData := map[string]interface{}{
+	buildingData := map[string]any{
 		"name":            resp.Name,
 		"street_address1": resp.StreetAddress1,
 		"street_address2": resp.StreetAddress2,

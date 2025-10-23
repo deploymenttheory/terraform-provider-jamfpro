@@ -10,7 +10,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceSelfServiceSettings) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	settings := map[string]interface{}{
+	settings := map[string]any{
 		"install_automatically":    resp.InstallSettings.InstallAutomatically,
 		"install_location":         resp.InstallSettings.InstallLocation,
 		"user_login_level":         resp.LoginSettings.UserLoginLevel,

@@ -10,7 +10,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceCloudIdentityProvider) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	resourceData := map[string]interface{}{
+	resourceData := map[string]any{
 		"id":            resp.ID,
 		"display_name":  resp.DisplayName,
 		"enabled":       resp.Enabled,

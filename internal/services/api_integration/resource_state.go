@@ -13,7 +13,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceApiIntegration) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	apiIntegrationData := map[string]interface{}{
+	apiIntegrationData := map[string]any{
 		"display_name":                  resp.DisplayName,
 		"enabled":                       resp.Enabled,
 		"access_token_lifetime_seconds": resp.AccessTokenLifetimeSeconds,

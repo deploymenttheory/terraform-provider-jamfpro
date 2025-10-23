@@ -10,7 +10,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceImpactAlertNotificationSettings) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	impactAlertSettingsConfig := map[string]interface{}{
+	impactAlertSettingsConfig := map[string]any{
 		"scopeable_objects_alert_enabled":              resp.ScopeableObjectsAlertEnabled,
 		"scopeable_objects_confirmation_code_enabled":  resp.ScopeableObjectsConfirmationCodeEnabled,
 		"deployable_objects_alert_enabled":             resp.DeployableObjectsAlertEnabled,

@@ -19,7 +19,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerGroup) di
 
 	d.Set("site_id", resp.Site.ID)
 
-	var assignments []interface{}
+	var assignments []any
 	if resp.Computers != nil {
 		for _, comp := range *resp.Computers {
 			assignments = append(assignments, comp.ID)

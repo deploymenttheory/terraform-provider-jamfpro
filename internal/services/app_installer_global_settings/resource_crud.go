@@ -13,7 +13,7 @@ import (
 
 // create initializes the App Installer Global Settings in Jamf Pro.
 // This is a singleton configuration, so it always performs an update.
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 
 	settings, err := constructAppInstallerGlobalSettings(d)
@@ -37,7 +37,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 }
 
 // read fetches and updates the state of the App Installer Global Settings from Jamf Pro.
-func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+func read(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 
 	d.SetId("jamfpro_app_installers_global_settings_singleton")
@@ -62,17 +62,17 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 }
 
 // readWithCleanup runs the read operation and allows cleanup on missing resource
-func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return read(ctx, d, meta, true)
 }
 
 // readNoCleanup runs the read operation without cleanup on missing resource
-func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return read(ctx, d, meta, false)
 }
 
 // update modifies the App Installer Global Settings in Jamf Pro.
-func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 
 	settings, err := constructAppInstallerGlobalSettings(d)
@@ -97,7 +97,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 // delete removes the App Installer Global Settings from Terraform state only.
 // The configuration remains in Jamf Pro (not deletable via API).
-func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	d.SetId("")
 	return nil
 }

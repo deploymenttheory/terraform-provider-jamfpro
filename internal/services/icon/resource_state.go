@@ -11,7 +11,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResponseIconUpload) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	iconData := map[string]interface{}{
+	iconData := map[string]any{
 		"name":                 resp.Name,
 		"url":                  resp.URL,
 		"icon_file_path":       d.Get("icon_file_path").(string),

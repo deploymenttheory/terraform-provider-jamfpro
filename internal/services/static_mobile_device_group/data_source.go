@@ -49,7 +49,7 @@ func DataSourceJamfProStaticMobileDeviceGroups() *schema.Resource {
 	}
 }
 
-func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 
 	resourceID := d.Get("id").(string)

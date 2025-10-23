@@ -38,8 +38,8 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMacApplications, error)
 		log.Printf("[DEBUG] construct: No scope block found or it's empty.")
 	}
 
-	if v, ok := d.GetOk("self_service"); ok && len(v.([]interface{})) > 0 {
-		selfServiceMap := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("self_service"); ok && len(v.([]any)) > 0 {
+		selfServiceMap := v.([]any)[0].(map[string]any)
 		selfService := jamfpro.MacAppSubsetSelfService{
 			InstallButtonText:           selfServiceMap["install_button_text"].(string),
 			SelfServiceDescription:      selfServiceMap["self_service_description"].(string),
@@ -50,10 +50,10 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMacApplications, error)
 			NotificationMessage:         selfServiceMap["notification_message"].(string),
 		}
 
-		if categories, ok := selfServiceMap["self_service_category"].([]interface{}); ok {
+		if categories, ok := selfServiceMap["self_service_category"].([]any); ok {
 			var selfServiceCategories []jamfpro.MacAppSubsetSelfServiceCategories
 			for _, cat := range categories {
-				category := cat.(map[string]interface{})
+				category := cat.(map[string]any)
 				selfServiceCategories = append(selfServiceCategories, jamfpro.MacAppSubsetSelfServiceCategories{
 					ID:        category["id"].(int),
 					Name:      category["name"].(string),
@@ -64,8 +64,8 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMacApplications, error)
 			selfService.SelfServiceCategories = selfServiceCategories
 		}
 
-		if icon, ok := selfServiceMap["self_service_icon"].([]interface{}); ok && len(icon) > 0 {
-			iconMap := icon[0].(map[string]interface{})
+		if icon, ok := selfServiceMap["self_service_icon"].([]any); ok && len(icon) > 0 {
+			iconMap := icon[0].(map[string]any)
 			selfService.SelfServiceIcon = jamfpro.SharedResourceSelfServiceIcon{
 				ID:   iconMap["id"].(int),
 				Data: iconMap["data"].(string),
@@ -76,8 +76,8 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMacApplications, error)
 		resource.SelfService = selfService
 	}
 
-	if v, ok := d.GetOk("vpp"); ok && len(v.([]interface{})) > 0 {
-		vppMap := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("vpp"); ok && len(v.([]any)) > 0 {
+		vppMap := v.([]any)[0].(map[string]any)
 		resource.VPP = jamfpro.MacAppSubsetVPP{
 			AssignVPPDeviceBasedLicenses: jamfpro.BoolPtr(vppMap["assign_vpp_device_based_licenses"].(bool)),
 			VPPAdminAccountID:            vppMap["vpp_admin_account_id"].(int),
@@ -98,7 +98,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMacApplications, error)
 // constructMacApplicationScope constructs the scope from the provided schema data.
 func constructMacApplicationScope(d *schema.ResourceData) jamfpro.MacApplicationsSubsetScope {
 	scope := jamfpro.MacApplicationsSubsetScope{}
-	scopeData := d.Get("scope").([]interface{})[0].(map[string]interface{})
+	scopeData := d.Get("scope").([]any)[0].(map[string]any)
 
 	scope.AllComputers = jamfpro.BoolPtr(scopeData["all_computers"].(bool))
 	scope.AllJSSUsers = jamfpro.BoolPtr(scopeData["all_jss_users"].(bool))

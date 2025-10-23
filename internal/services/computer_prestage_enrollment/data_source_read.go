@@ -11,7 +11,7 @@ import (
 )
 
 // dataSourceRead fetches the details of a specific computer prestage enrollment from Jamf Pro using its unique ID.
-func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)

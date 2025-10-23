@@ -40,7 +40,7 @@ func ResourceJamfProDiskEncryptionConfigurations() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The type of the key used in the disk encryption which can be either 'Institutional' or 'Individual and Institutional'.",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					value := val.(string)
 					validValues := []string{"Individual", "Institutional", "Individual and Institutional"}
 
@@ -63,7 +63,7 @@ func ResourceJamfProDiskEncryptionConfigurations() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Defines which user to enable for FileVault 2. Value can be either 'Management Account' or 'Current or Next User'",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					value := val.(string)
 					validValues := []string{"Management Account", "Current or Next User"}
 

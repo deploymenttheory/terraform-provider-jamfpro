@@ -104,7 +104,7 @@ The `internal/resources/common/` directory contains shared code and utilities us
 Use `common/crud.go` for resources that perform single API calls per operation:
 
 ```go
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
     return common.Create(
         ctx,
         d,
@@ -277,14 +277,14 @@ func DataSourceJamfProBuildings() *schema.Resource    // ✓ Correct
 All CRUD functions use **lowercase naming** and follow exact signature patterns:
 
 ```go
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics
-func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics  
-func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics
-func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics
+func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics
+func read(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) diag.Diagnostics  
+func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics
+func delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics
 
 // Standard read variants:
-func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics
-func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics
 ```
 
 **Read Function Cleanup Parameter:**
@@ -381,11 +381,11 @@ func ResourceJamfProPolicies() *schema.Resource {
 For simple resources that make single API calls, use the common CRUD operations:
 
 ```go
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
     return common.Create(ctx, d, meta, construct, meta.(*jamfpro.Client).CreatePolicy, readNoCleanup)
 }
 
-func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+func read(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) diag.Diagnostics {
     return common.Read(ctx, d, meta, cleanup, meta.(*jamfpro.Client).GetPolicyByID, updateState)
 }
 ```
@@ -395,7 +395,7 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 For resources that require multiple API calls within a single CRUD operation (like package uploads with verification):
 
 ```go
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
     client := meta.(*jamfpro.Client)
     var packageID string
     
@@ -438,7 +438,7 @@ For resources that manage system-wide configuration:
 
 ```go
 // create calls UPDATE API method since configuration always exists
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
     // ... construct and update configuration
     
     // Use descriptive singleton ID
@@ -447,7 +447,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 }
 
 // delete only removes from Terraform state, doesn't delete from API
-func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
     d.SetId("")
     return nil
 }

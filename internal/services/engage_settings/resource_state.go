@@ -10,7 +10,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceEngageSettings) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	engageSettingsConfig := map[string]interface{}{
+	engageSettingsConfig := map[string]any{
 		"is_enabled": resp.IsEnabled,
 	}
 

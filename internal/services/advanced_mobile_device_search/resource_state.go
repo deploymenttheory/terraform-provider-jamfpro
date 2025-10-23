@@ -21,9 +21,9 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceAdvancedMobileDev
 
 	// Set criteria
 	if len(resp.Criteria) > 0 {
-		criteriaList := make([]interface{}, len(resp.Criteria))
+		criteriaList := make([]any, len(resp.Criteria))
 		for i, crit := range resp.Criteria {
-			criteriaMap := map[string]interface{}{
+			criteriaMap := map[string]any{
 				"name":          crit.Name,
 				"priority":      crit.Priority,
 				"and_or":        crit.AndOr,

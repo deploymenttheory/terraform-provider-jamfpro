@@ -14,8 +14,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerInventory
 	d.SetId("jamfpro_computer_inventory_collection_settings_singleton")
 
 	// Build the preferences map
-	preferences := []interface{}{
-		map[string]interface{}{
+	preferences := []any{
+		map[string]any{
 			"monitor_application_usage":                          resp.ComputerInventoryCollectionPreferences.MonitorApplicationUsage,
 			"include_packages":                                   resp.ComputerInventoryCollectionPreferences.IncludePackages,
 			"include_software_updates":                           resp.ComputerInventoryCollectionPreferences.IncludeSoftwareUpdates,
@@ -58,13 +58,13 @@ func flattenPaths(paths []jamfpro.ComputerInventoryCollectionSettingsSubsetPathR
 				Computed: true,
 			},
 		},
-	}), []interface{}{})
+	}), []any{})
 
 	for _, path := range paths {
 		if path.ID == "-1" {
 			continue
 		}
-		pathMap := map[string]interface{}{
+		pathMap := map[string]any{
 			"path": path.Path,
 			"id":   path.ID,
 		}

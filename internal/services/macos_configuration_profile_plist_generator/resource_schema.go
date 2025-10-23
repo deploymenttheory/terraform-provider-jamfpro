@@ -307,7 +307,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 					"occurs. This is always 'Newly Assigned' on new profile objects, but may be set to 'All'" +
 					"on profile update requests once the configuration profile has been deployed to at least" +
 					" one device.",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v, ok := val.(string)
 					if !ok {
 						errs = append(errs, fmt.Errorf("%q must be a string, got: %T", key, val))

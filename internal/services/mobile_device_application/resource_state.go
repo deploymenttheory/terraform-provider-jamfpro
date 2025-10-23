@@ -39,7 +39,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceAppli
 	d.Set("category_id", resp.General.Category.ID)
 
 	if resp.General.IPA.Name != "" || resp.General.IPA.URI != "" || resp.General.IPA.Data != "" {
-		ipa := []map[string]interface{}{
+		ipa := []map[string]any{
 			{
 				"name": resp.General.IPA.Name,
 				"uri":  resp.General.IPA.URI,
@@ -50,7 +50,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceAppli
 	}
 
 	if resp.General.Icon.ID != 0 || resp.General.Icon.Name != "" || resp.General.Icon.URI != "" {
-		icon := []map[string]interface{}{
+		icon := []map[string]any{
 			{
 				"id":   resp.General.Icon.ID,
 				"name": resp.General.Icon.Name,
@@ -61,7 +61,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceAppli
 	}
 
 	if resp.SelfService.SelfServiceDescription != "" || resp.SelfService.NotificationMessage != "" {
-		selfService := []map[string]interface{}{
+		selfService := []map[string]any{
 			{
 				"self_service_description": normalizeWhitespace(resp.SelfService.SelfServiceDescription),
 				"feature_on_main_page":     resp.SelfService.FeatureOnMainPage,
@@ -72,7 +72,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceAppli
 		}
 
 		if resp.SelfService.SelfServiceIcon.ID != 0 || resp.SelfService.SelfServiceIcon.Name != "" || resp.SelfService.SelfServiceIcon.URI != "" {
-			selfService[0]["self_service_icon"] = []map[string]interface{}{
+			selfService[0]["self_service_icon"] = []map[string]any{
 				{
 					"id":       resp.SelfService.SelfServiceIcon.ID,
 					"filename": resp.SelfService.SelfServiceIcon.Name,
@@ -85,7 +85,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceAppli
 	}
 
 	if resp.VPP.VPPAdminAccountID != 0 {
-		vpp := []map[string]interface{}{
+		vpp := []map[string]any{
 			{
 				"assign_vpp_device_based_licenses": resp.VPP.AssignVPPDeviceBasedLicenses,
 				"vpp_admin_account_id":             resp.VPP.VPPAdminAccountID,
@@ -95,7 +95,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceAppli
 	}
 
 	if resp.AppConfiguration.Preferences != "" {
-		appConfig := []map[string]interface{}{
+		appConfig := []map[string]any{
 			{
 				"preferences": normalizeWhitespace(resp.AppConfiguration.Preferences),
 			},
@@ -105,7 +105,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceAppli
 
 	if scopeData, err := setScope(resp); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
-	} else if err := d.Set("scope", []interface{}{scopeData}); err != nil {
+	} else if err := d.Set("scope", []any{scopeData}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -113,8 +113,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceAppli
 }
 
 // setScope converts the scope structure into a format suitable for setting in the Terraform state.
-func setScope(resp *jamfpro.ResourceMobileDeviceApplication) (map[string]interface{}, error) {
-	scopeData := map[string]interface{}{
+func setScope(resp *jamfpro.ResourceMobileDeviceApplication) (map[string]any, error) {
+	scopeData := map[string]any{
 		"all_mobile_devices": resp.Scope.AllMobileDevices,
 		"all_jss_users":      resp.Scope.AllJSSUsers,
 	}
@@ -146,8 +146,8 @@ func setScope(resp *jamfpro.ResourceMobileDeviceApplication) (map[string]interfa
 }
 
 // setLimitations collects and formats limitations data for the Terraform state.
-func setLimitations(limitations jamfpro.MobileDeviceApplicationSubsetLimitation) ([]map[string]interface{}, error) {
-	result := map[string]interface{}{}
+func setLimitations(limitations jamfpro.MobileDeviceApplicationSubsetLimitation) ([]map[string]any, error) {
+	result := map[string]any{}
 
 	if len(limitations.NetworkSegments) > 0 {
 		networkSegmentIDs := flattenAndSortNetworkSegmentIds(limitations.NetworkSegments)
@@ -174,12 +174,12 @@ func setLimitations(limitations jamfpro.MobileDeviceApplicationSubsetLimitation)
 		return nil, nil
 	}
 
-	return []map[string]interface{}{result}, nil
+	return []map[string]any{result}, nil
 }
 
 // setExclusions collects and formats exclusion data for the Terraform state.
-func setExclusions(exclusions jamfpro.MobileDeviceApplicationSubsetExclusion) ([]map[string]interface{}, error) {
-	result := map[string]interface{}{}
+func setExclusions(exclusions jamfpro.MobileDeviceApplicationSubsetExclusion) ([]map[string]any, error) {
+	result := map[string]any{}
 
 	if len(exclusions.MobileDevices) > 0 {
 		computerIDs := flattenAndSortMobileDeviceIDs(exclusions.MobileDevices)
@@ -248,7 +248,7 @@ func setExclusions(exclusions jamfpro.MobileDeviceApplicationSubsetExclusion) ([
 		return nil, nil
 	}
 
-	return []map[string]interface{}{result}, nil
+	return []map[string]any{result}, nil
 }
 
 // helper functions

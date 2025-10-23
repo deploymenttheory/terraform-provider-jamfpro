@@ -15,11 +15,11 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceUpdateOnboardingSetting
 	var onboardingItems []jamfpro.SubsetOnboardingItemRequest
 
 	if v, ok := d.GetOk("onboarding_items"); ok {
-		itemsList := v.([]interface{})
+		itemsList := v.([]any)
 		onboardingItems = make([]jamfpro.SubsetOnboardingItemRequest, 0, len(itemsList))
 
 		for _, item := range itemsList {
-			itemMap := item.(map[string]interface{})
+			itemMap := item.(map[string]any)
 
 			onboardingItem := jamfpro.SubsetOnboardingItemRequest{
 				EntityID:              itemMap["entity_id"].(string),

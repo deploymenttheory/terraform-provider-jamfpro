@@ -10,7 +10,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	prestageAttributes := map[string]interface{}{
+	prestageAttributes := map[string]any{
 		"id":                                      resp.ID,
 		"version_lock":                            resp.VersionLock,
 		"display_name":                            resp.DisplayName,
@@ -28,7 +28,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 		"prevent_activation_lock":                 resp.PreventActivationLock,
 		"enable_device_based_activation_lock":     resp.EnableDeviceBasedActivationLock,
 		"device_enrollment_program_instance_id":   resp.DeviceEnrollmentProgramInstanceId,
-		"skip_setup_items":                        []interface{}{skipSetupItems(resp.SkipSetupItems)},
+		"skip_setup_items":                        []any{skipSetupItems(resp.SkipSetupItems)},
 		"anchor_certificates":                     resp.AnchorCertificates,
 		"enrollment_customization_id":             resp.EnrollmentCustomizationId,
 		"language":                                resp.Language,
@@ -70,8 +70,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 	}
 
 	if locationInformation := resp.LocationInformation; locationInformation != (jamfpro.ComputerPrestageSubsetLocationInformation{}) {
-		prestageAttributes["location_information"] = []interface{}{
-			map[string]interface{}{
+		prestageAttributes["location_information"] = []any{
+			map[string]any{
 				"id":            locationInformation.ID,
 				"username":      locationInformation.Username,
 				"realname":      locationInformation.Realname,
@@ -87,8 +87,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 	}
 
 	if purchasingInformation := resp.PurchasingInformation; purchasingInformation != (jamfpro.ComputerPrestageSubsetPurchasingInformation{}) {
-		prestageAttributes["purchasing_information"] = []interface{}{
-			map[string]interface{}{
+		prestageAttributes["purchasing_information"] = []any{
+			map[string]any{
 				"id":                 purchasingInformation.ID,
 				"leased":             purchasingInformation.Leased,
 				"purchased":          purchasingInformation.Purchased,
@@ -108,8 +108,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 	}
 
 	if accountSettings := resp.AccountSettings; accountSettings != (jamfpro.ComputerPrestageSubsetAccountSettings{}) {
-		prestageAttributes["account_settings"] = []interface{}{
-			map[string]interface{}{
+		prestageAttributes["account_settings"] = []any{
+			map[string]any{
 				"id":                          accountSettings.ID,
 				"payload_configured":          accountSettings.PayloadConfigured,
 				"local_admin_account_enabled": accountSettings.LocalAdminAccountEnabled,
@@ -129,9 +129,9 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 	}
 
 	if resp.OnboardingItems != nil {
-		onboardingItems := make([]interface{}, len(resp.OnboardingItems))
+		onboardingItems := make([]any, len(resp.OnboardingItems))
 		for i, item := range resp.OnboardingItems {
-			onboardingItems[i] = map[string]interface{}{
+			onboardingItems[i] = map[string]any{
 				"self_service_entity_type": item.SelfServiceEntityType,
 				"id":                       item.ID,
 				"entity_id":                item.EntityId,
@@ -151,8 +151,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 }
 
 // skipSetupItems converts the ComputerPrestageSubsetSkipSetupItems struct to a map
-func skipSetupItems(skipSetupItems jamfpro.ComputerPrestageSubsetSkipSetupItems) map[string]interface{} {
-	return map[string]interface{}{
+func skipSetupItems(skipSetupItems jamfpro.ComputerPrestageSubsetSkipSetupItems) map[string]any {
+	return map[string]any{
 		"biometric":                   *skipSetupItems.Biometric,
 		"terms_of_address":            *skipSetupItems.TermsOfAddress,
 		"file_vault":                  *skipSetupItems.FileVault,
@@ -181,7 +181,7 @@ func skipSetupItems(skipSetupItems jamfpro.ComputerPrestageSubsetSkipSetupItems)
 }
 
 // getHCLValue gets the value of a key from the ResourceData, either from the current state or the config.
-func getHCLValue(d *schema.ResourceData, key string) interface{} {
+func getHCLValue(d *schema.ResourceData, key string) any {
 	value, exists := d.GetOk(key)
 	if !exists {
 		value = d.Get(key)

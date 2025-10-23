@@ -26,7 +26,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerGroup) di
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	} else {
-		if err := d.Set("criteria", []interface{}{}); err != nil {
+		if err := d.Set("criteria", []any{}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
@@ -35,15 +35,15 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerGroup) di
 }
 
 // setComputerSmartGroupSubsetContainerCriteria flattens a ComputerGroupSubsetContainerCriteria object into a format suitable for Terraform state.
-func setComputerSmartGroupSubsetContainerCriteria(criteria *jamfpro.ComputerGroupSubsetContainerCriteria) []interface{} {
+func setComputerSmartGroupSubsetContainerCriteria(criteria *jamfpro.ComputerGroupSubsetContainerCriteria) []any {
 	// TODO Review this!
 	if criteria == nil || criteria.Criterion == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	var criteriaList []interface{}
+	var criteriaList []any
 	for _, criterion := range *criteria.Criterion {
-		criterionMap := map[string]interface{}{
+		criterionMap := map[string]any{
 			"name":          criterion.Name,
 			"priority":      criterion.Priority,
 			"and_or":        criterion.AndOr,

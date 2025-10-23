@@ -54,11 +54,11 @@ func constructImageUpload(d *schema.ResourceData) (string, error) {
 
 // constructBaseResource creates a ResourceEnrollmentCustomization struct from Terraform configuration
 func constructBaseResource(d *schema.ResourceData) (*jamfpro.ResourceEnrollmentCustomization, error) {
-	brandingSettingsList := d.Get("branding_settings").([]interface{})
+	brandingSettingsList := d.Get("branding_settings").([]any)
 	if len(brandingSettingsList) == 0 {
 		return nil, fmt.Errorf("branding_settings is required")
 	}
-	brandingSettingsData := brandingSettingsList[0].(map[string]interface{})
+	brandingSettingsData := brandingSettingsList[0].(map[string]any)
 
 	brandingSettings := jamfpro.EnrollmentCustomizationSubsetBrandingSettings{
 		TextColor:       brandingSettingsData["text_color"].(string),
@@ -87,7 +87,7 @@ func constructBaseResource(d *schema.ResourceData) (*jamfpro.ResourceEnrollmentC
 }
 
 // constructTextPane creates a ResourceEnrollmentCustomizationTextPane struct from Terraform configuration
-func constructTextPane(data map[string]interface{}) (*jamfpro.ResourceEnrollmentCustomizationTextPane, error) {
+func constructTextPane(data map[string]any) (*jamfpro.ResourceEnrollmentCustomizationTextPane, error) {
 	textPane := &jamfpro.ResourceEnrollmentCustomizationTextPane{
 		Type:               "text",
 		DisplayName:        data["display_name"].(string),
@@ -103,7 +103,7 @@ func constructTextPane(data map[string]interface{}) (*jamfpro.ResourceEnrollment
 }
 
 // constructLDAPPane creates a ResourceEnrollmentCustomizationLDAPPane struct from Terraform configuration
-func constructLDAPPane(data map[string]interface{}) (*jamfpro.ResourceEnrollmentCustomizationLDAPPane, error) {
+func constructLDAPPane(data map[string]any) (*jamfpro.ResourceEnrollmentCustomizationLDAPPane, error) {
 	ldapPane := &jamfpro.ResourceEnrollmentCustomizationLDAPPane{
 		Type:               "ldap",
 		DisplayName:        data["display_name"].(string),
@@ -116,9 +116,9 @@ func constructLDAPPane(data map[string]interface{}) (*jamfpro.ResourceEnrollment
 	}
 
 	// Process LDAP group access settings if present
-	if groupsData, ok := data["ldap_group_access"].([]interface{}); ok && len(groupsData) > 0 {
+	if groupsData, ok := data["ldap_group_access"].([]any); ok && len(groupsData) > 0 {
 		for _, groupData := range groupsData {
-			group := groupData.(map[string]interface{})
+			group := groupData.(map[string]any)
 			ldapGroupAccess := jamfpro.EnrollmentCustomizationLDAPGroupAccess{
 				GroupName:    group["group_name"].(string),
 				LDAPServerID: group["ldap_server_id"].(int),
@@ -131,7 +131,7 @@ func constructLDAPPane(data map[string]interface{}) (*jamfpro.ResourceEnrollment
 }
 
 // constructSSOPane creates a ResourceEnrollmentCustomizationSSOPane struct from Terraform configuration
-func constructSSOPane(data map[string]interface{}) (*jamfpro.ResourceEnrollmentCustomizationSSOPane, error) {
+func constructSSOPane(data map[string]any) (*jamfpro.ResourceEnrollmentCustomizationSSOPane, error) {
 	ssoPane := &jamfpro.ResourceEnrollmentCustomizationSSOPane{
 		Type:                           "sso",
 		DisplayName:                    data["display_name"].(string),

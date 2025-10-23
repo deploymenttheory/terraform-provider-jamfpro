@@ -24,7 +24,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceGroup
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	} else {
-		if err := d.Set("criteria", []interface{}{}); err != nil {
+		if err := d.Set("criteria", []any{}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
@@ -33,15 +33,15 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceGroup
 }
 
 // setMobileSmartGroupSubsetContainerCriteria flattens a MobileGroupSubsetContainerCriteria object into a format suitable for Terraform state.
-func setMobileSmartGroupSubsetContainerCriteria(criteria jamfpro.SharedContainerCriteria) []interface{} {
+func setMobileSmartGroupSubsetContainerCriteria(criteria jamfpro.SharedContainerCriteria) []any {
 	// TODO Review this!
 	if criteria.Size == 0 || criteria.Criterion == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	var criteriaList []interface{}
+	var criteriaList []any
 	for _, criterion := range criteria.Criterion {
-		criterionMap := map[string]interface{}{
+		criterionMap := map[string]any{
 			"name":          criterion.Name,
 			"priority":      criterion.Priority,
 			"and_or":        criterion.AndOr,

@@ -35,7 +35,7 @@ func DataSourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resourc
 }
 
 // DataSourceJamfProMacOSConfigurationProfilePlistRead fetches the details of a macOS configuration profile.
-func DataSourceJamfProMacOSConfigurationProfilePlistRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func DataSourceJamfProMacOSConfigurationProfilePlistRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)

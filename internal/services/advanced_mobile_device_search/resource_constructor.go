@@ -20,10 +20,10 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceAdvancedMobileDeviceSea
 	}
 
 	if v, ok := d.GetOk("criteria"); ok {
-		criteriaList := v.([]interface{})
+		criteriaList := v.([]any)
 		criteria := make([]jamfpro.SharedSubsetCriteriaJamfProAPI, len(criteriaList))
 		for i, crit := range criteriaList {
-			criterionMap := crit.(map[string]interface{})
+			criterionMap := crit.(map[string]any)
 
 			criteria[i] = jamfpro.SharedSubsetCriteriaJamfProAPI{
 				Name:         criterionMap["name"].(string),

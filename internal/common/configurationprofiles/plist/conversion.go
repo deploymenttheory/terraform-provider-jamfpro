@@ -57,9 +57,9 @@ func mapSchemaToProfile(d *schema.ResourceData) *ConfigurationProfile {
 	}
 
 	// Contents
-	payloadContents := d.Get("payloads.0.payload_content").([]interface{})
+	payloadContents := d.Get("payloads.0.payload_content").([]any)
 	for _, v := range payloadContents {
-		val := v.(map[string]interface{})
+		val := v.(map[string]any)
 		payloadContentStruct := PayloadContent{
 			PayloadDescription:  val["payload_description"].(string),
 			PayloadDisplayName:  val["payload_display_name"].(string),
@@ -71,16 +71,16 @@ func mapSchemaToProfile(d *schema.ResourceData) *ConfigurationProfile {
 			PayloadVersion:      val["payload_version"].(int),
 		}
 
-		settings := val["setting"].([]interface{})
+		settings := val["setting"].([]any)
 		if len(settings) == 0 {
 			return out
 		}
 
-		payloadContentStruct.ConfigurationItems = make(map[string]interface{}, 0)
+		payloadContentStruct.ConfigurationItems = make(map[string]any, 0)
 		for _, s := range settings {
-			settingMap := s.(map[string]interface{})
+			settingMap := s.(map[string]any)
 			dictionary := parseNestedDictionary(settingMap["dictionary"])
-			payloadContent := map[string]interface{}{
+			payloadContent := map[string]any{
 				"key":        settingMap["key"].(string),
 				"value":      GetTypedValue(settingMap["value"]),
 				"dictionary": dictionary,
@@ -95,18 +95,18 @@ func mapSchemaToProfile(d *schema.ResourceData) *ConfigurationProfile {
 }
 
 // parseNestedDictionary recursively parses the nested dictionary structure
-func parseNestedDictionary(dict interface{}) map[string]interface{} {
+func parseNestedDictionary(dict any) map[string]any {
 	if dict == nil {
 		return nil
 	}
 
-	result := make(map[string]interface{})
-	dictionary := dict.([]interface{})
+	result := make(map[string]any)
+	dictionary := dict.([]any)
 	for _, item := range dictionary {
-		entry := item.(map[string]interface{})
+		entry := item.(map[string]any)
 		key := entry["key"].(string)
 		value := GetTypedValue(entry["value"])
-		if nestedDict, ok := entry["dictionary"].([]interface{}); ok {
+		if nestedDict, ok := entry["dictionary"].([]any); ok {
 			value = parseNestedDictionary(nestedDict)
 		}
 		result[key] = value
@@ -116,7 +116,7 @@ func parseNestedDictionary(dict interface{}) map[string]interface{} {
 }
 
 // GetTypedValue converts the value from the HCL always stored as string into the appropriate type for plist serialization.
-func GetTypedValue(value interface{}) interface{} {
+func GetTypedValue(value any) any {
 	strValue := fmt.Sprintf("%v", value)
 	if boolValue, err := strconv.ParseBool(strValue); err == nil {
 		return boolValue
@@ -129,7 +129,7 @@ func GetTypedValue(value interface{}) interface{} {
 
 // ConvertPlistToHCL converts a plist XML string to Terraform HCL schema data
 // Used by plist generator resource
-func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
+func ConvertPlistToHCL(plistXML string) ([]any, error) {
 	profile, err := UnmarshalPayload(plistXML)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal plist: %w", err)
@@ -171,8 +171,8 @@ func ConvertPlistToHCL(plistXML string) ([]interface{}, error) {
 }
 
 // mapProfileToSchema maps the ConfigurationProfile struct data to the Terraform schema
-func mapProfileToSchema(profile *ConfigurationProfile) ([]interface{}, error) {
-	payloadHeader := map[string]interface{}{
+func mapProfileToSchema(profile *ConfigurationProfile) ([]any, error) {
+	payloadHeader := map[string]any{
 		"payload_description_header":        profile.PayloadDescription,
 		"payload_display_name_header":       profile.PayloadDisplayName,
 		"payload_enabled_header":            profile.PayloadEnabled,
@@ -185,9 +185,9 @@ func mapProfileToSchema(profile *ConfigurationProfile) ([]interface{}, error) {
 		"payload_version_header":            profile.PayloadVersion,
 	}
 
-	payloadContentList := []interface{}{}
+	payloadContentList := []any{}
 	for _, content := range profile.PayloadContent {
-		payloadContent := map[string]interface{}{
+		payloadContent := map[string]any{
 			"payload_description":  content.PayloadDescription,
 			"payload_display_name": content.PayloadDisplayName,
 			"payload_enabled":      content.PayloadEnabled,
@@ -199,7 +199,7 @@ func mapProfileToSchema(profile *ConfigurationProfile) ([]interface{}, error) {
 		}
 
 		log.Printf("[DEBUG] ConfigurationItems being passed: %v", content.ConfigurationItems)
-		settingsList := []interface{}{}
+		settingsList := []any{}
 		extractNestedConfigurationSettings(content.ConfigurationItems, &settingsList)
 		log.Printf("[DEBUG] Final settingsList: %v", settingsList)
 
@@ -209,32 +209,32 @@ func mapProfileToSchema(profile *ConfigurationProfile) ([]interface{}, error) {
 
 	payloadHeader["payload_content"] = payloadContentList
 
-	return []interface{}{payloadHeader}, nil
+	return []any{payloadHeader}, nil
 }
 
 // extractNestedConfigurationSettings recursively extracts key-value pairs from nested dictionaries and appends them to settingsList
-func extractNestedConfigurationSettings(items map[string]interface{}, settingsList *[]interface{}) {
+func extractNestedConfigurationSettings(items map[string]any, settingsList *[]any) {
 	log.Printf("[DEBUG] Raw data being processed: %v", items)
 	for key, value := range items {
 		log.Printf("[DEBUG] Processing configuration item key: %s, value: %v", key, value)
-		settingMap := map[string]interface{}{
+		settingMap := map[string]any{
 			"key": key,
 		}
 
 		switch v := value.(type) {
-		case map[string]interface{}:
+		case map[string]any:
 			if len(v) > 0 {
-				nestedSettings := []interface{}{}
+				nestedSettings := []any{}
 				extractNestedConfigurationSettings(v, &nestedSettings)
 				settingMap["dictionary"] = nestedSettings
 			} else {
 				settingMap["value"] = "{}"
 			}
-		case []interface{}:
+		case []any:
 			if len(v) > 0 {
-				var nestedSettings []interface{}
+				var nestedSettings []any
 				for _, item := range v {
-					if nestedItem, ok := item.(map[string]interface{}); ok {
+					if nestedItem, ok := item.(map[string]any); ok {
 						nestedSettings = append(nestedSettings, nestedItem)
 					}
 				}
@@ -255,7 +255,7 @@ func extractNestedConfigurationSettings(items map[string]interface{}, settingsLi
 
 // UnmarshalPayload unmarshals a plist payload into a ConfigurationProfile struct using mapstructure.
 func UnmarshalPayload(payload string) (*ConfigurationProfile, error) {
-	var profile map[string]interface{}
+	var profile map[string]any
 	_, err := plist.Unmarshal([]byte(payload), &profile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal plist: %w", err)
@@ -291,8 +291,8 @@ func MarshalPayload(profile *ConfigurationProfile) (string, error) {
 }
 
 // MergeConfigurationProfileFieldsIntoMap merges the fields of a ConfigurationProfile struct into a map.
-func MergeConfigurationProfileFieldsIntoMap(profile *ConfigurationProfile) map[string]interface{} {
-	merged := make(map[string]interface{}, len(profile.Unexpected))
+func MergeConfigurationProfileFieldsIntoMap(profile *ConfigurationProfile) map[string]any {
+	merged := make(map[string]any, len(profile.Unexpected))
 	for k, v := range profile.Unexpected {
 		merged[k] = v
 	}
@@ -308,7 +308,7 @@ func MergeConfigurationProfileFieldsIntoMap(profile *ConfigurationProfile) map[s
 		}
 	}
 
-	mergedPayloads := make([]map[string]interface{}, len(profile.PayloadContent))
+	mergedPayloads := make([]map[string]any, len(profile.PayloadContent))
 	for k, v := range profile.PayloadContent {
 		mergedPayloads[k] = MergeConfigurationPayloadFieldsIntoMap(&v)
 	}
@@ -319,8 +319,8 @@ func MergeConfigurationProfileFieldsIntoMap(profile *ConfigurationProfile) map[s
 }
 
 // MergeConfigurationPayloadFieldsIntoMap merges the fields of a ConfigurationPayload struct into a map.
-func MergeConfigurationPayloadFieldsIntoMap(payload *PayloadContent) map[string]interface{} {
-	merged := make(map[string]interface{}, len(payload.ConfigurationItems))
+func MergeConfigurationPayloadFieldsIntoMap(payload *PayloadContent) map[string]any {
+	merged := make(map[string]any, len(payload.ConfigurationItems))
 	for k, v := range payload.ConfigurationItems {
 		merged[k] = v
 	}

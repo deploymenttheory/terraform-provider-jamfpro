@@ -10,7 +10,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceCloudLdap) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	settings := map[string]interface{}{
+	settings := map[string]any{
 		"provider_name":      resp.CloudIdPCommon.ProviderName,
 		"display_name":       resp.CloudIdPCommon.DisplayName,
 		"server_enabled":     resp.Server.Enabled,
@@ -48,7 +48,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceCloudLdap) diag.D
 	}
 
 	if resp.Server.Keystore != nil {
-		computedKeystoreFields := map[string]interface{}{
+		computedKeystoreFields := map[string]any{
 			"keystore_file_name":       resp.Server.Keystore.FileName,
 			"keystore_type":            resp.Server.Keystore.Type,
 			"keystore_expiration_date": resp.Server.Keystore.ExpirationDate,

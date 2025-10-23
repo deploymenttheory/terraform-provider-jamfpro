@@ -29,7 +29,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceRestrictedSoftware, err
 
 	// Handle Scope
 	if v, ok := d.GetOk("scope"); ok {
-		scopeData := v.([]interface{})[0].(map[string]interface{})
+		scopeData := v.([]any)[0].(map[string]any)
 		scope := jamfpro.RestrictedSoftwareSubsetScope{
 			AllComputers: scopeData["all_computers"].(bool),
 		}
@@ -48,8 +48,8 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceRestrictedSoftware, err
 		}
 
 		// Handle Exclusions
-		if exclusions, ok := scopeData["exclusions"]; ok && len(exclusions.([]interface{})) > 0 {
-			exclusionData := exclusions.([]interface{})[0].(map[string]interface{})
+		if exclusions, ok := scopeData["exclusions"]; ok && len(exclusions.([]any)) > 0 {
+			exclusionData := exclusions.([]any)[0].(map[string]any)
 			scope.Exclusions = jamfpro.RestrictedSoftwareSubsetScopeExclusions{}
 
 			if computerIDs, ok := exclusionData["computer_ids"]; ok {

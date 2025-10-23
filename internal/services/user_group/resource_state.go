@@ -27,9 +27,9 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceUserGroup) diag.D
 
 	d.Set("site_id", resp.Site.ID)
 
-	criteria := make([]interface{}, len(resp.Criteria))
+	criteria := make([]any, len(resp.Criteria))
 	for i, criterion := range resp.Criteria {
-		criteria[i] = map[string]interface{}{
+		criteria[i] = map[string]any{
 			"name":          criterion.Name,
 			"priority":      criterion.Priority,
 			"and_or":        criterion.AndOr,
@@ -67,12 +67,12 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceUserGroup) diag.D
 
 }
 
-// setUserItem converts a slice of jamfpro.UserGroupSubsetUserItem structs into a slice of map[string]interface{} for Terraform.
-func setUserItem(userItems []jamfpro.UserGroupSubsetUserItem) []interface{} {
-	var tfUserItems []interface{}
+// setUserItem converts a slice of jamfpro.UserGroupSubsetUserItem structs into a slice of map[string]any for Terraform.
+func setUserItem(userItems []jamfpro.UserGroupSubsetUserItem) []any {
+	var tfUserItems []any
 
 	for _, userItem := range userItems {
-		tfUserItem := make(map[string]interface{})
+		tfUserItem := make(map[string]any)
 		tfUserItem["id"] = userItem.ID
 		tfUserItem["username"] = userItem.Username
 		tfUserItem["full_name"] = userItem.FullName

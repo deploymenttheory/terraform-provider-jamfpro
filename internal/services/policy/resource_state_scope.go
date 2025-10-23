@@ -15,8 +15,8 @@ import (
 func stateScope(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
 	var err error
 
-	out_scope := make([]map[string]interface{}, 0)
-	out_scope = append(out_scope, make(map[string]interface{}, 1))
+	out_scope := make([]map[string]any, 0)
+	out_scope = append(out_scope, make(map[string]any, 1))
 	out_scope[0]["all_computers"] = resp.Scope.AllComputers
 	out_scope[0]["all_jss_users"] = resp.Scope.AllJSSUsers
 
@@ -76,8 +76,8 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *dia
 	}
 
 	// Scope Limitations
-	out_scope_limitations := make([]map[string]interface{}, 0)
-	out_scope_limitations = append(out_scope_limitations, make(map[string]interface{}))
+	out_scope_limitations := make([]map[string]any, 0)
+	out_scope_limitations = append(out_scope_limitations, make(map[string]any))
 	var limitationsSet bool
 
 	// Users
@@ -126,8 +126,8 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *dia
 	}
 
 	// Scope Exclusions
-	out_scope_exclusions := make([]map[string]interface{}, 0)
-	out_scope_exclusions = append(out_scope_exclusions, make(map[string]interface{}))
+	out_scope_exclusions := make([]map[string]any, 0)
+	out_scope_exclusions = append(out_scope_exclusions, make(map[string]any))
 	var exclusionsSet bool
 
 	// Computers

@@ -46,22 +46,22 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceLDAPServers) diag
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	account := []interface{}{
-		map[string]interface{}{
+	account := []any{
+		map[string]any{
 			"distinguished_username": resp.Connection.Account.DistinguishedUsername,
 		},
 	}
 
 	if oldPassword, ok := d.GetOk("account.0.password"); ok {
-		account[0].(map[string]interface{})["password"] = oldPassword
+		account[0].(map[string]any)["password"] = oldPassword
 	}
 
 	if err := d.Set("account", account); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	userMappings := []interface{}{
-		map[string]interface{}{
+	userMappings := []any{
+		map[string]any{
 			"map_object_class_to_any_or_all": resp.MappingsForUsers.UserMappings.MapObjectClassToAnyOrAll,
 			"object_classes":                 resp.MappingsForUsers.UserMappings.ObjectClasses,
 			"search_base":                    resp.MappingsForUsers.UserMappings.SearchBase,
@@ -83,8 +83,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceLDAPServers) diag
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	userGroupMappings := []interface{}{
-		map[string]interface{}{
+	userGroupMappings := []any{
+		map[string]any{
 			"map_object_class_to_any_or_all": resp.MappingsForUsers.UserGroupMappings.MapObjectClassToAnyOrAll,
 			"object_classes":                 resp.MappingsForUsers.UserGroupMappings.ObjectClasses,
 			"search_base":                    resp.MappingsForUsers.UserGroupMappings.SearchBase,
@@ -98,8 +98,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceLDAPServers) diag
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	membershipMappings := []interface{}{
-		map[string]interface{}{
+	membershipMappings := []any{
+		map[string]any{
 			"user_group_membership_stored_in":    resp.MappingsForUsers.UserGroupMembershipMappings.UserGroupMembershipStoredIn,
 			"map_group_membership_to_user_field": resp.MappingsForUsers.UserGroupMembershipMappings.MapGroupMembershipToUserField,
 			"append_to_username":                 resp.MappingsForUsers.UserGroupMembershipMappings.AppendToUsername,

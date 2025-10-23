@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func customDiff(ctx context.Context, d *schema.ResourceDiff, m interface{}) error {
+func customDiff(ctx context.Context, d *schema.ResourceDiff, m any) error {
 	authType := d.Get("authentication_type").(string)
 	var errorMessages []string
 

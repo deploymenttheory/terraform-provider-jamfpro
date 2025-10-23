@@ -10,15 +10,15 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceSSOKeystoreResponse) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	var oldKeystore map[string]interface{}
-	var oldDetails map[string]interface{}
+	var oldKeystore map[string]any
+	var oldDetails map[string]any
 
-	if keystoreList, ok := d.GetOk("keystore"); ok && len(keystoreList.([]interface{})) > 0 {
-		oldKeystore = keystoreList.([]interface{})[0].(map[string]interface{})
+	if keystoreList, ok := d.GetOk("keystore"); ok && len(keystoreList.([]any)) > 0 {
+		oldKeystore = keystoreList.([]any)[0].(map[string]any)
 	}
 
-	if detailsList, ok := d.GetOk("keystore_details"); ok && len(detailsList.([]interface{})) > 0 {
-		oldDetails = detailsList.([]interface{})[0].(map[string]interface{})
+	if detailsList, ok := d.GetOk("keystore_details"); ok && len(detailsList.([]any)) > 0 {
+		oldDetails = detailsList.([]any)[0].(map[string]any)
 	}
 
 	if err := setKeystoreData(d, resp.Keystore); err != nil {
@@ -41,7 +41,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceSSOKeystoreRespon
 }
 
 // hasSignificantChanges checks if there are significant changes in the keystore and details
-func hasSignificantChanges(oldKeystore, oldDetails map[string]interface{}, resp *jamfpro.ResourceSSOKeystoreResponse) bool {
+func hasSignificantChanges(oldKeystore, oldDetails map[string]any, resp *jamfpro.ResourceSSOKeystoreResponse) bool {
 	if oldKeystore == nil || oldDetails == nil {
 		return false
 	}
@@ -59,13 +59,13 @@ func hasSignificantChanges(oldKeystore, oldDetails map[string]interface{}, resp 
 		}
 	}
 
-	oldKeys, ok := oldKeystore["keys"].([]interface{})
+	oldKeys, ok := oldKeystore["keys"].([]any)
 	if ok && len(oldKeys) > 0 {
 		for i, key := range resp.Keystore.Keys {
 			if i >= len(oldKeys) {
 				return true
 			}
-			oldKey := oldKeys[i].(map[string]interface{})
+			oldKey := oldKeys[i].(map[string]any)
 			if oldKey["id"] != key.ID || oldKey["valid"] != key.Valid {
 				return true
 			}

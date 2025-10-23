@@ -14,8 +14,8 @@ import (
 
 // Parent func for stating payloads. Constructs var with prep funcs and states as one here.
 func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
-	out := make([]map[string]interface{}, 0)
-	out = append(out, make(map[string]interface{}, 1))
+	out := make([]map[string]any, 0)
+	out = append(out, make(map[string]any, 1))
 
 	// DiskEncryption
 	prepStatePayloadDiskEncryption(&out, resp)
@@ -55,8 +55,8 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 }
 
 // prepStatePayloadDiskEncryption reads response and preps disk encryption payload items for stating
-func prepStatePayloadDiskEncryption(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	defaults := map[string]interface{}{
+func prepStatePayloadDiskEncryption(out *[]map[string]any, resp *jamfpro.ResourcePolicy) {
+	defaults := map[string]any{
 		"action":                           "none",
 		"disk_encryption_configuration_id": 0,
 		"auth_restart":                     false,
@@ -64,7 +64,7 @@ func prepStatePayloadDiskEncryption(out *[]map[string]interface{}, resp *jamfpro
 		"remediate_disk_encryption_configuration_id": 0,
 	}
 
-	diskEncryptionStatePayload := map[string]interface{}{
+	diskEncryptionStatePayload := map[string]any{
 		"action":                           resp.DiskEncryption.Action,
 		"disk_encryption_configuration_id": resp.DiskEncryption.DiskEncryptionConfigurationID,
 		"auth_restart":                     resp.DiskEncryption.AuthRestart,
@@ -84,43 +84,43 @@ func prepStatePayloadDiskEncryption(out *[]map[string]interface{}, resp *jamfpro
 		return
 	}
 
-	(*out)[0]["disk_encryption"] = []map[string]interface{}{diskEncryptionStatePayload}
+	(*out)[0]["disk_encryption"] = []map[string]any{diskEncryptionStatePayload}
 }
 
 // Reads response and preps package payload items
-func prepStatePayloadPackages(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
+func prepStatePayloadPackages(out *[]map[string]any, resp *jamfpro.ResourcePolicy) {
 	if len(resp.PackageConfiguration.Packages) == 0 {
 		return
 	}
 
-	packagesMap := make(map[string]interface{})
+	packagesMap := make(map[string]any)
 	packagesMap["distribution_point"] = resp.PackageConfiguration.DistributionPoint
-	packagesMap["package"] = make([]map[string]interface{}, 0)
+	packagesMap["package"] = make([]map[string]any, 0)
 
 	for _, v := range resp.PackageConfiguration.Packages {
-		outMap := make(map[string]interface{})
+		outMap := make(map[string]any)
 		outMap["id"] = v.ID
 		outMap["action"] = v.Action
 		outMap["fill_user_template"] = v.FillUserTemplate
 		outMap["fill_existing_user_template"] = v.FillExistingUsers
-		packagesMap["package"] = append(packagesMap["package"].([]map[string]interface{}), outMap)
+		packagesMap["package"] = append(packagesMap["package"].([]map[string]any), outMap)
 	}
 
-	(*out)[0]["packages"] = []map[string]interface{}{packagesMap}
+	(*out)[0]["packages"] = []map[string]any{packagesMap}
 }
 
 // Reads response and preps script payload items
-func prepStatePayloadScripts(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
+func prepStatePayloadScripts(out *[]map[string]any, resp *jamfpro.ResourcePolicy) {
 	if resp.Scripts == nil {
 		log.Println("No scripts found")
 		return
 	}
 
 	log.Println("Initializing scripts in state")
-	(*out)[0]["scripts"] = make([]map[string]interface{}, 0)
+	(*out)[0]["scripts"] = make([]map[string]any, 0)
 
 	for _, v := range resp.Scripts {
-		outMap := make(map[string]interface{})
+		outMap := make(map[string]any)
 		outMap["id"] = v.ID
 		outMap["priority"] = v.Priority
 
@@ -156,60 +156,60 @@ func prepStatePayloadScripts(out *[]map[string]interface{}, resp *jamfpro.Resour
 			outMap["parameter11"] = v.Parameter11
 		}
 
-		(*out)[0]["scripts"] = append((*out)[0]["scripts"].([]map[string]interface{}), outMap)
+		(*out)[0]["scripts"] = append((*out)[0]["scripts"].([]map[string]any), outMap)
 	}
 
 }
 
 // prepStatePayloadPrinters reads response and preps printer payload items for stating
-func prepStatePayloadPrinters(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
+func prepStatePayloadPrinters(out *[]map[string]any, resp *jamfpro.ResourcePolicy) {
 	if resp.Printers.Printer == nil {
 		return
 	}
 
 	log.Println("Initializing printers in state")
-	(*out)[0]["printers"] = make([]map[string]interface{}, 0)
+	(*out)[0]["printers"] = make([]map[string]any, 0)
 
 	for _, v := range resp.Printers.Printer {
-		outMap := make(map[string]interface{})
+		outMap := make(map[string]any)
 		outMap["id"] = v.ID
 		outMap["name"] = v.Name
 		outMap["action"] = v.Action
 		outMap["make_default"] = v.MakeDefault
 
-		(*out)[0]["printers"] = append((*out)[0]["printers"].([]map[string]interface{}), outMap)
+		(*out)[0]["printers"] = append((*out)[0]["printers"].([]map[string]any), outMap)
 	}
 
 }
 
 // Reads response and preps dock items payload items
-func prepStatePayloadDockItems(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
+func prepStatePayloadDockItems(out *[]map[string]any, resp *jamfpro.ResourcePolicy) {
 	if resp.DockItems == nil {
 		return
 	}
 
-	(*out)[0]["dock_items"] = make([]map[string]interface{}, 0)
+	(*out)[0]["dock_items"] = make([]map[string]any, 0)
 
 	for _, v := range resp.DockItems {
-		outMap := make(map[string]interface{})
+		outMap := make(map[string]any)
 		outMap["id"] = v.ID
 		outMap["name"] = v.Name
 		outMap["action"] = v.Action
 
-		(*out)[0]["dock_items"] = append((*out)[0]["dock_items"].([]map[string]interface{}), outMap)
+		(*out)[0]["dock_items"] = append((*out)[0]["dock_items"].([]map[string]any), outMap)
 	}
 
 }
 
 // prepStatePayloadAccountMaintenance reads response and preps account maintenance payload items.
 // If all values are default, do not set the account_maintenance block
-func prepStatePayloadAccountMaintenance(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	accountMaintenanceMap := make(map[string]interface{})
+func prepStatePayloadAccountMaintenance(out *[]map[string]any, resp *jamfpro.ResourcePolicy) {
+	accountMaintenanceMap := make(map[string]any)
 
 	if resp.AccountMaintenance.Accounts != nil {
-		localAccounts := make([]map[string]interface{}, 0)
+		localAccounts := make([]map[string]any, 0)
 		for _, v := range *resp.AccountMaintenance.Accounts {
-			accountMap := make(map[string]interface{})
+			accountMap := make(map[string]any)
 			accountMap["action"] = v.Action
 			accountMap["username"] = v.Username
 			accountMap["realname"] = v.Realname
@@ -226,7 +226,7 @@ func prepStatePayloadAccountMaintenance(out *[]map[string]interface{}, resp *jam
 		}
 
 		if len(localAccounts) > 0 {
-			accountMaintenanceMap["local_accounts"] = []map[string]interface{}{
+			accountMaintenanceMap["local_accounts"] = []map[string]any{
 				{"account": localAccounts},
 			}
 		}
@@ -234,9 +234,9 @@ func prepStatePayloadAccountMaintenance(out *[]map[string]interface{}, resp *jam
 
 	// Handle directory bindings
 	if resp.AccountMaintenance.DirectoryBindings != nil {
-		directoryBindings := make([]map[string]interface{}, 0)
+		directoryBindings := make([]map[string]any, 0)
 		for _, v := range *resp.AccountMaintenance.DirectoryBindings {
-			bindingMap := make(map[string]interface{})
+			bindingMap := make(map[string]any)
 			bindingMap["id"] = v.ID
 			bindingMap["name"] = v.Name
 
@@ -244,7 +244,7 @@ func prepStatePayloadAccountMaintenance(out *[]map[string]interface{}, resp *jam
 		}
 
 		if len(directoryBindings) > 0 {
-			accountMaintenanceMap["directory_bindings"] = []map[string]interface{}{
+			accountMaintenanceMap["directory_bindings"] = []map[string]any{
 				{"binding": directoryBindings},
 			}
 		}
@@ -252,35 +252,35 @@ func prepStatePayloadAccountMaintenance(out *[]map[string]interface{}, resp *jam
 
 	// Handle management account
 	if resp.AccountMaintenance.ManagementAccount != nil {
-		managementAccountMap := make(map[string]interface{})
+		managementAccountMap := make(map[string]any)
 		if resp.AccountMaintenance.ManagementAccount.Action != "doNotChange" || resp.AccountMaintenance.ManagementAccount.ManagedPassword != "" || resp.AccountMaintenance.ManagementAccount.ManagedPasswordLength != 0 {
 			managementAccountMap["action"] = resp.AccountMaintenance.ManagementAccount.Action
 			managementAccountMap["managed_password"] = resp.AccountMaintenance.ManagementAccount.ManagedPassword
 			managementAccountMap["managed_password_length"] = resp.AccountMaintenance.ManagementAccount.ManagedPasswordLength
 
-			accountMaintenanceMap["management_account"] = []map[string]interface{}{managementAccountMap}
+			accountMaintenanceMap["management_account"] = []map[string]any{managementAccountMap}
 		}
 	}
 
 	// Handle open firmware/EFI password
 	if resp.AccountMaintenance.OpenFirmwareEfiPassword != nil {
-		openFirmwareMap := make(map[string]interface{})
+		openFirmwareMap := make(map[string]any)
 		if resp.AccountMaintenance.OpenFirmwareEfiPassword.OfMode != "none" || resp.AccountMaintenance.OpenFirmwareEfiPassword.OfPassword != "" {
 			openFirmwareMap["of_mode"] = resp.AccountMaintenance.OpenFirmwareEfiPassword.OfMode
 			openFirmwareMap["of_password"] = resp.AccountMaintenance.OpenFirmwareEfiPassword.OfPassword
 
-			accountMaintenanceMap["open_firmware_efi_password"] = []map[string]interface{}{openFirmwareMap}
+			accountMaintenanceMap["open_firmware_efi_password"] = []map[string]any{openFirmwareMap}
 		}
 	}
 
 	if len(accountMaintenanceMap) > 0 {
-		(*out)[0]["account_maintenance"] = []map[string]interface{}{accountMaintenanceMap}
+		(*out)[0]["account_maintenance"] = []map[string]any{accountMaintenanceMap}
 	}
 }
 
 // prepStatePayloadFilesProcesses reads response and preps files and processes payload items.
-func prepStatePayloadFilesProcesses(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	defaults := map[string]interface{}{
+func prepStatePayloadFilesProcesses(out *[]map[string]any, resp *jamfpro.ResourcePolicy) {
+	defaults := map[string]any{
 		"search_by_path":         "",
 		"delete_file":            false,
 		"locate_file":            "",
@@ -291,7 +291,7 @@ func prepStatePayloadFilesProcesses(out *[]map[string]interface{}, resp *jamfpro
 		"run_command":            "",
 	}
 
-	filesProcessesBlock := map[string]interface{}{
+	filesProcessesBlock := map[string]any{
 		"search_by_path":         resp.FilesProcesses.SearchByPath,
 		"delete_file":            resp.FilesProcesses.DeleteFile,
 		"locate_file":            resp.FilesProcesses.LocateFile,
@@ -314,12 +314,12 @@ func prepStatePayloadFilesProcesses(out *[]map[string]interface{}, resp *jamfpro
 		return
 	}
 
-	(*out)[0]["files_processes"] = []map[string]interface{}{filesProcessesBlock}
+	(*out)[0]["files_processes"] = []map[string]any{filesProcessesBlock}
 }
 
 // prepStatePayloadUserInteraction Reads response and preps user interaction payload items. If all values are default, do not set the user_interaction block
-func prepStatePayloadUserInteraction(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	defaults := map[string]interface{}{
+func prepStatePayloadUserInteraction(out *[]map[string]any, resp *jamfpro.ResourcePolicy) {
+	defaults := map[string]any{
 		"message_start":            "",
 		"allow_users_to_defer":     false,
 		"allow_deferral_until_utc": "",
@@ -327,7 +327,7 @@ func prepStatePayloadUserInteraction(out *[]map[string]interface{}, resp *jamfpr
 		"message_finish":           "",
 	}
 
-	userInteractionBlock := map[string]interface{}{
+	userInteractionBlock := map[string]any{
 		"message_start":            resp.UserInteraction.MessageStart,
 		"allow_users_to_defer":     resp.UserInteraction.AllowUsersToDefer,
 		"allow_deferral_until_utc": resp.UserInteraction.AllowDeferralUntilUtc,
@@ -347,12 +347,12 @@ func prepStatePayloadUserInteraction(out *[]map[string]interface{}, resp *jamfpr
 		return
 	}
 
-	(*out)[0]["user_interaction"] = []map[string]interface{}{userInteractionBlock}
+	(*out)[0]["user_interaction"] = []map[string]any{userInteractionBlock}
 }
 
 // Reads response and preps reboot payload items
-func prepStatePayloadReboot(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
-	defaults := map[string]interface{}{
+func prepStatePayloadReboot(out *[]map[string]any, resp *jamfpro.ResourcePolicy) {
+	defaults := map[string]any{
 		"message":                        "",
 		"specify_startup":                "",
 		"startup_disk":                   "Current Startup Disk",
@@ -363,7 +363,7 @@ func prepStatePayloadReboot(out *[]map[string]interface{}, resp *jamfpro.Resourc
 		"file_vault_2_reboot":            false,
 	}
 
-	rebootBlock := map[string]interface{}{
+	rebootBlock := map[string]any{
 		"message":                        resp.Reboot.Message,
 		"specify_startup":                resp.Reboot.SpecifyStartup,
 		"startup_disk":                   resp.Reboot.StartupDisk,
@@ -386,11 +386,11 @@ func prepStatePayloadReboot(out *[]map[string]interface{}, resp *jamfpro.Resourc
 		return
 	}
 
-	(*out)[0]["reboot"] = []map[string]interface{}{rebootBlock}
+	(*out)[0]["reboot"] = []map[string]any{rebootBlock}
 }
 
 // prepStatePayloadMaintenance Reads response and preps maintenance payload items. If all values are default, do not set the maintenance block
-func prepStatePayloadMaintenance(out *[]map[string]interface{}, resp *jamfpro.ResourcePolicy) {
+func prepStatePayloadMaintenance(out *[]map[string]any, resp *jamfpro.ResourcePolicy) {
 	v := reflect.ValueOf(resp.Maintenance)
 
 	allDefault := true
@@ -405,9 +405,9 @@ func prepStatePayloadMaintenance(out *[]map[string]interface{}, resp *jamfpro.Re
 		return
 	}
 
-	(*out)[0]["maintenance"] = make([]map[string]interface{}, 0)
+	(*out)[0]["maintenance"] = make([]map[string]any, 0)
 
-	outMap := make(map[string]interface{})
+	outMap := make(map[string]any)
 	outMap["recon"] = resp.Maintenance.Recon
 	outMap["reset_name"] = resp.Maintenance.ResetName
 	outMap["install_all_cached_packages"] = resp.Maintenance.InstallAllCachedPackages
@@ -418,5 +418,5 @@ func prepStatePayloadMaintenance(out *[]map[string]interface{}, resp *jamfpro.Re
 	outMap["system_cache"] = resp.Maintenance.SystemCache
 	outMap["user_cache"] = resp.Maintenance.UserCache
 	outMap["verify"] = resp.Maintenance.Verify
-	(*out)[0]["maintenance"] = append((*out)[0]["maintenance"].([]map[string]interface{}), outMap)
+	(*out)[0]["maintenance"] = append((*out)[0]["maintenance"].([]map[string]any), outMap)
 }

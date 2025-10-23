@@ -146,7 +146,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 					"Valid values are 'All' or 'Newly Assigned'. Note: Jamf Pro's API returns 'Newly Assigned' in read responses " +
 					"for context and does not reflect transient decisions applied at update time. The provider does not infer or " +
 					"override this value from API reads; set it explicitly to control redeployment behaviour when updating a profile.",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v, ok := val.(string)
 					if !ok {
 						errs = append(errs, fmt.Errorf("%q must be a string, got: %T", key, val))

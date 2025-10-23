@@ -12,7 +12,7 @@ import (
 // ParseResourceID ensures a value can be safely used as an ID in Jamf Pro resources.
 // Handles int, float64, and string inputs with appropriate logging for conversion issues.
 // Returns the validated integer ID and a success boolean.
-func ParseResourceID(val interface{}, fieldName string, index int) (int, bool) {
+func ParseResourceID(val any, fieldName string, index int) (int, bool) {
 	switch v := val.(type) {
 	case int:
 		return v, true
@@ -30,17 +30,17 @@ func ParseResourceID(val interface{}, fieldName string, index int) (int, bool) {
 }
 
 // GetListFromSet is a helper function to safely extract a list of interfaces
-// from a *schema.Set stored within a map[string]interface{}.
+// from a *schema.Set stored within a map[string]any.
 // It returns an empty slice if the key is not found or the value is not a *schema.Set.
-func GetListFromSet(data map[string]interface{}, key string) []interface{} {
+func GetListFromSet(data map[string]any, key string) []any {
 	v, ok := data[key]
 	if !ok || v == nil {
-		return []interface{}{}
+		return []any{}
 	}
 	set, ok := v.(*schema.Set)
 	if !ok || set == nil {
 		log.Printf("[DEBUG] getListFromSet: Value for key '%s' is not a *schema.Set or is nil, type is %T", key, v)
-		return []interface{}{}
+		return []any{}
 	}
 	return set.List()
 }
@@ -112,7 +112,7 @@ func GetDateOrDefaultDate(d *schema.ResourceData, key string) string {
 // https://developer.jamf.com/jamf-pro/docs/optimistic-locking
 //
 // Parameters:
-//   - currentVersionLock: The current version lock value as an interface{}.
+//   - currentVersionLock: The current version lock value as an any.
 //   - isUpdate: A boolean flag indicating whether this is an update operation.
 //
 // Returns:
@@ -134,7 +134,7 @@ func GetDateOrDefaultDate(d *schema.ResourceData, key string) string {
 // Usage:
 //   - This function should be called for each structure within a resource that requires
 //     version lock handling.
-func HandleVersionLock(currentVersionLock interface{}, isUpdate bool) int {
+func HandleVersionLock(currentVersionLock any, isUpdate bool) int {
 	if !isUpdate {
 		log.Printf("[DEBUG] Create operation: Version lock not required, using 0")
 		return 0

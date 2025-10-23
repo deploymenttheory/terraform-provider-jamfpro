@@ -47,7 +47,7 @@ import (
 // Nested payload identifiers and UUIDs remain unchanged from the original request.
 // Therefore, when performing profile updates, only top-level PayloadUUID and PayloadIdentifier
 // need to be synced from Jamf Pro's existing profile state.
-func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode string, meta interface{}) (*jamfpro.ResourceMacOSConfigurationProfile, error) {
+func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode string, meta any) (*jamfpro.ResourceMacOSConfigurationProfile, error) {
 	var existingProfile *jamfpro.ResourceMacOSConfigurationProfile
 	var buf bytes.Buffer
 
@@ -72,7 +72,7 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 	}
 
 	if v, ok := d.GetOk("self_service"); ok {
-		selfServiceData := v.([]interface{})[0].(map[string]interface{})
+		selfServiceData := v.([]any)[0].(map[string]any)
 		if selfServiceData["notification"] != nil {
 			log.Println("[WARN] Self Service notification bool key is temporarily disabled, please review the docs.")
 
@@ -84,8 +84,8 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		resource.General.Payloads = html.EscapeString(d.Get("payloads").(string))
 
 	} else if mode == "update" {
-		var existingPlist map[string]interface{}
-		var newPlist map[string]interface{}
+		var existingPlist map[string]any
+		var newPlist map[string]any
 
 		client := meta.(*jamfpro.Client)
 		resourceID := d.Id()
@@ -170,7 +170,7 @@ func preMarshallingXMLPayloadEscaping(input string) string {
 func constructMacOSConfigurationProfileSubsetScope(d *schema.ResourceData) jamfpro.MacOSConfigurationProfileSubsetScope {
 	scope := jamfpro.MacOSConfigurationProfileSubsetScope{}
 
-	scopeData := d.Get("scope").([]interface{})[0].(map[string]interface{})
+	scopeData := d.Get("scope").([]any)[0].(map[string]any)
 
 	scope.AllComputers = scopeData["all_computers"].(bool)
 	scope.AllJSSUsers = scopeData["all_jss_users"].(bool)
@@ -359,7 +359,7 @@ func constructExclusions(d *schema.ResourceData) jamfpro.MacOSConfigurationProfi
 // --- Self Service Construction Functions (Adapted for TypeSet) ---
 
 // constructMacOSConfigurationProfileSubsetSelfService reads the self_service map.
-func constructMacOSConfigurationProfileSubsetSelfService(data map[string]interface{}) jamfpro.MacOSConfigurationProfileSubsetSelfService {
+func constructMacOSConfigurationProfileSubsetSelfService(data map[string]any) jamfpro.MacOSConfigurationProfileSubsetSelfService {
 	selfService := jamfpro.MacOSConfigurationProfileSubsetSelfService{}
 
 	// Use type assertion with ok check for safety
@@ -402,10 +402,10 @@ func constructMacOSConfigurationProfileSubsetSelfService(data map[string]interfa
 }
 
 // constructSelfServiceCategories processes the list from constructors.GetListFromSet.
-func constructSelfServiceCategories(categoryList []interface{}) []jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory {
+func constructSelfServiceCategories(categoryList []any) []jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory {
 	selfServiceCategories := make([]jamfpro.MacOSConfigurationProfileSubsetSelfServiceCategory, 0, len(categoryList))
 	for i, category := range categoryList {
-		catData, mapOk := category.(map[string]interface{})
+		catData, mapOk := category.(map[string]any)
 		if !mapOk {
 			log.Printf("[WARN] constructSelfServiceCategories: Could not cast category data to map at index %d. Skipping.", i)
 			continue

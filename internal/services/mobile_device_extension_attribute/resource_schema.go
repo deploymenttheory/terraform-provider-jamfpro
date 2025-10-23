@@ -120,21 +120,21 @@ func resourceJamfProMobileDeviceExtensionAttributesV0() *schema.Resource {
 }
 
 // State upgrader function
-func upgradeMobileDeviceExtensionAttributesV0toV1(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	if v, ok := rawState["input_type"].([]interface{}); ok && len(v) > 0 {
-		block, ok := v[0].(map[string]interface{})
+func upgradeMobileDeviceExtensionAttributesV0toV1(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
+	if v, ok := rawState["input_type"].([]any); ok && len(v) > 0 {
+		block, ok := v[0].(map[string]any)
 		if ok {
 			if t, ok := block["type"].(string); ok {
 				rawState["input_type"] = t
 			}
-			if choices, ok := block["popup_choices"].([]interface{}); ok {
+			if choices, ok := block["popup_choices"].([]any); ok {
 				rawState["popup_menu_choices"] = choices
 			}
 		}
 	}
 	if v, ok := rawState["inventory_display"]; ok {
 		rawState["inventory_display_type"] = v
-		newState := make(map[string]interface{})
+		newState := make(map[string]any)
 		for k, val := range rawState {
 			if k != "inventory_display" {
 				newState[k] = val

@@ -9,14 +9,14 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceSMTPServer) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	settings := map[string]interface{}{
+	settings := map[string]any{
 		"enabled":             resp.Enabled,
 		"authentication_type": resp.AuthenticationType,
 	}
 
 	// Set Connection Settings if present
 	if resp.ConnectionSettings != nil {
-		connSettings := []map[string]interface{}{
+		connSettings := []map[string]any{
 			{
 				"host":               resp.ConnectionSettings.Host,
 				"port":               resp.ConnectionSettings.Port,
@@ -31,7 +31,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceSMTPServer) diag.
 
 	// Set Sender Settings if present
 	if resp.SenderSettings != nil {
-		senderSettings := []map[string]interface{}{
+		senderSettings := []map[string]any{
 			{
 				"display_name":  resp.SenderSettings.DisplayName,
 				"email_address": resp.SenderSettings.EmailAddress,
@@ -44,7 +44,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceSMTPServer) diag.
 
 	// Set Basic Auth Credentials if present
 	if resp.BasicAuthCredentials != nil {
-		basicAuth := []map[string]interface{}{
+		basicAuth := []map[string]any{
 			{
 				"username": resp.BasicAuthCredentials.Username,
 				"password": d.Get("basic_auth_credentials.0.password").(string),
@@ -57,7 +57,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceSMTPServer) diag.
 
 	// Set Graph API Credentials if present
 	if resp.GraphApiCredentials != nil {
-		graphApi := []map[string]interface{}{
+		graphApi := []map[string]any{
 			{
 				"tenant_id":     resp.GraphApiCredentials.TenantId,
 				"client_id":     resp.GraphApiCredentials.ClientId,
@@ -71,7 +71,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceSMTPServer) diag.
 
 	// Set Google Mail Credentials if present
 	if resp.GoogleMailCredentials != nil {
-		googleMail := []map[string]interface{}{
+		googleMail := []map[string]any{
 			{
 				"client_id":     resp.GoogleMailCredentials.ClientId,
 				"client_secret": d.Get("google_mail_credentials.0.client_secret").(string),
@@ -82,9 +82,9 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceSMTPServer) diag.
 		}
 
 		// Set authentications if present
-		var auths []map[string]interface{}
+		var auths []map[string]any
 		for _, auth := range resp.GoogleMailCredentials.Authentications {
-			auths = append(auths, map[string]interface{}{
+			auths = append(auths, map[string]any{
 				"email_address": auth.EmailAddress,
 				"status":        auth.Status,
 			})

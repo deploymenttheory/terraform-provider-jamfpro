@@ -11,8 +11,8 @@ import (
 )
 
 // Function to decode a plist into a map without removing any fields
-func DecodePlist(plistData []byte) (map[string]interface{}, error) {
-	var rawData map[string]interface{}
+func DecodePlist(plistData []byte) (map[string]any, error) {
+	var rawData map[string]any
 	_, err := plist.Unmarshal(plistData, &rawData)
 	if err != nil {
 		log.Printf("Error unmarshalling plist data: %v\n", err)
@@ -22,7 +22,7 @@ func DecodePlist(plistData []byte) (map[string]interface{}, error) {
 }
 
 // EncodePlist encodes a cleaned map back to plist XML format
-func EncodePlist(cleanedData map[string]interface{}) (string, error) {
+func EncodePlist(cleanedData map[string]any) (string, error) {
 	log.Printf("Encoding plist data: %v\n", cleanedData)
 	var buffer bytes.Buffer
 	encoder := plist.NewEncoder(&buffer)
@@ -46,8 +46,8 @@ func EncodePlist(cleanedData map[string]interface{}) (string, error) {
 // This function is used to prepare the xml plist keys for diff suppression and since
 // there's no guranatee what keys will be present within the XML, nor their order presented,
 // this function is used to ensure that the keys are in a consistent order for comparison.
-func SortPlistKeys(data map[string]interface{}) map[string]interface{} {
-	sortedData := make(map[string]interface{})
+func SortPlistKeys(data map[string]any) map[string]any {
+	sortedData := make(map[string]any)
 	keys := make([]string, 0, len(data))
 	for k := range data {
 		keys = append(keys, k)
@@ -58,12 +58,12 @@ func SortPlistKeys(data map[string]interface{}) map[string]interface{} {
 	for _, k := range keys {
 		log.Printf("[DEBUG] Processing key: %s\n", k)
 		switch v := data[k].(type) {
-		case map[string]interface{}:
+		case map[string]any:
 			log.Printf("[DEBUG] Key %s is a nested map, sorting nested keys...\n", k)
 			sortedData[k] = SortPlistKeys(v)
-		case []interface{}:
+		case []any:
 			log.Printf("[DEBUG] Key %s is an array, processing items...\n", k)
-			sortedArray := make([]interface{}, len(v))
+			sortedArray := make([]any, len(v))
 
 			// First check if all elements are strings
 			allStrings := true
@@ -88,7 +88,7 @@ func SortPlistKeys(data map[string]interface{}) map[string]interface{} {
 				// Handle non-string arrays
 				for i, item := range v {
 					log.Printf("[DEBUG] Processing item %d of array %s\n", i, k)
-					if nestedMap, ok := item.(map[string]interface{}); ok {
+					if nestedMap, ok := item.(map[string]any); ok {
 						sortedArray[i] = SortPlistKeys(nestedMap)
 					} else {
 						sortedArray[i] = item

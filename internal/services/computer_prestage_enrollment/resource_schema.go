@@ -461,7 +461,7 @@ func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 				Description: "Method to use to set Recovery Lock password.'MANUAL' results in " +
 					"user having to enter a password. (Applies to all users) 'RANDOM' results in" +
 					"automatic generation of a random password being set for the device. 'MANUAL' is the default.",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(string)
 					validTypes := map[string]bool{
 						"MANUAL": true,
@@ -487,7 +487,7 @@ func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Enforce a minimum macOS target version type for the prestage enrollment. Required.",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(string)
 					validTypes := map[string]bool{
 						"NO_ENFORCEMENT":                  true,
@@ -583,7 +583,7 @@ func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 							Type:        schema.TypeString,
 							Required:    true,
 							Description: "Type of user account (ADMINISTRATOR, STANDARD, SKIP).",
-							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+							ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 								v := val.(string)
 								validTypes := map[string]bool{
 									"ADMINISTRATOR": true,
@@ -605,7 +605,7 @@ func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 							Type:        schema.TypeString,
 							Required:    true,
 							Description: "Pre-fill primary account information type (CUSTOM, DEVICE_OWNER, or UNKNOWN). Set as UNKNOWN if you wish to leave it unconfigured.",
-							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+							ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 								v := val.(string)
 								validTypes := map[string]bool{
 									"CUSTOM":       true,

@@ -117,7 +117,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 				Optional:    true,
 				Description: "Number of retry attempts for the jamf pro policy. Valid values are -1 (not configured) and 1 through 10.",
 				Default:     -1,
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					vInt := val.(int)
 					if vInt == -1 || (vInt > 0 && vInt <= 10) {
 						return

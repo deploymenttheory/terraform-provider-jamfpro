@@ -11,7 +11,7 @@ import (
 
 // stateSelfService Reads response and states self-service items and states only if non-default
 func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
-	defaults := map[string]interface{}{
+	defaults := map[string]any{
 		"use_for_self_service":            false,
 		"self_service_display_name":       "",
 		"install_button_text":             "Install",
@@ -21,7 +21,7 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 		"feature_on_main_page":            false,
 	}
 
-	current := map[string]interface{}{
+	current := map[string]any{
 		"use_for_self_service":            resp.SelfService.UseForSelfService,
 		"self_service_display_name":       resp.SelfService.SelfServiceDisplayName,
 		"install_button_text":             resp.SelfService.InstallButtonText,
@@ -43,8 +43,8 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 		return
 	}
 
-	out_ss := make([]map[string]interface{}, 0)
-	out_ss = append(out_ss, make(map[string]interface{}, 1))
+	out_ss := make([]map[string]any, 0)
+	out_ss = append(out_ss, make(map[string]any, 1))
 
 	out_ss[0]["use_for_self_service"] = resp.SelfService.UseForSelfService
 	out_ss[0]["self_service_display_name"] = resp.SelfService.SelfServiceDisplayName
@@ -53,11 +53,11 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 	out_ss[0]["force_users_to_view_description"] = resp.SelfService.ForceUsersToViewDescription
 	out_ss[0]["feature_on_main_page"] = resp.SelfService.FeatureOnMainPage
 
-	out_ss[0]["self_service_category"] = make([]map[string]interface{}, 0)
+	out_ss[0]["self_service_category"] = make([]map[string]any, 0)
 	if resp.SelfService.SelfServiceCategories != nil {
 		for _, v := range resp.SelfService.SelfServiceCategories {
-			var categoryBlock []map[string]interface{}
-			categoryItem := map[string]interface{}{
+			var categoryBlock []map[string]any
+			categoryItem := map[string]any{
 				"id":         v.ID,
 				"display_in": v.DisplayIn,
 				"feature_in": v.FeatureIn,

@@ -69,7 +69,7 @@ func redactField(field reflect.Value, fieldPath string) {
 
 // SerializeAndRedactXML serializes a resource to XML and redacts specified fields.
 // Supports nested field paths using dot notation (e.g Parent.Child.Grandchild)
-func SerializeAndRedactXML(resource interface{}, redactFields []string) (string, error) {
+func SerializeAndRedactXML(resource any, redactFields []string) (string, error) {
 	v := reflect.ValueOf(resource)
 	if v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Struct {
 		return "", fmt.Errorf("resource must be a pointer to a struct")
@@ -96,7 +96,7 @@ func SerializeAndRedactXML(resource interface{}, redactFields []string) (string,
 
 // SerializeAndRedactJSON serializes a resource to JSON and redacts specified fields.
 // Supports nested field paths using dot notation (e.g., "Kitchen.Bowl.Fruit")
-func SerializeAndRedactJSON(resource interface{}, redactFields []string) (string, error) {
+func SerializeAndRedactJSON(resource any, redactFields []string) (string, error) {
 	v := reflect.ValueOf(resource)
 	if v.Kind() != reflect.Pointer || v.Elem().Kind() != reflect.Struct {
 		return "", fmt.Errorf("resource must be a pointer to a struct")
@@ -123,7 +123,7 @@ func SerializeAndRedactJSON(resource interface{}, redactFields []string) (string
 }
 
 // getIDField returns the value of the ID field in a response.
-func getIDField(response interface{}) (any, error) {
+func getIDField(response any) (any, error) {
 	v := reflect.ValueOf(response).Elem()
 
 	idField := v.FieldByName("ID")

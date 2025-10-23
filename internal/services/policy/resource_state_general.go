@@ -135,7 +135,7 @@ func setGeneralDateTimeLimitations(d *schema.ResourceData, resp *jamfpro.Resourc
 	// --- Scenario 2: Block IS defined in HCL ---
 	log.Printf("[DEBUG] setGeneralDateTimeLimitations: Block 'date_time_limitations' is configured in HCL. Populating state using API and HCL overrides.")
 
-	newStateMap := make(map[string]interface{})
+	newStateMap := make(map[string]any)
 	apiBlock := resp.General.DateTimeLimitations
 
 	if apiBlock != nil {
@@ -146,14 +146,14 @@ func setGeneralDateTimeLimitations(d *schema.ResourceData, resp *jamfpro.Resourc
 		newStateMap["expiration_date_epoch"] = int(apiBlock.ExpirationDateEpoch)
 		newStateMap["expiration_date_utc"] = apiBlock.ExpirationDateUTC
 
-		var noExecuteOnItems []interface{}
+		var noExecuteOnItems []any
 		if apiBlock.NoExecuteOn != nil {
-			noExecuteOnItems = make([]interface{}, len(apiBlock.NoExecuteOn))
+			noExecuteOnItems = make([]any, len(apiBlock.NoExecuteOn))
 			for i, day := range apiBlock.NoExecuteOn {
 				noExecuteOnItems[i] = day
 			}
 		} else {
-			noExecuteOnItems = []interface{}{}
+			noExecuteOnItems = []any{}
 		}
 
 		newStateMap["no_execute_on"] = schema.NewSet(schema.HashString, noExecuteOnItems)
@@ -172,16 +172,16 @@ func setGeneralDateTimeLimitations(d *schema.ResourceData, resp *jamfpro.Resourc
 		newStateMap["expiration_date_utc"] = ""
 		newStateMap["no_execute_start"] = ""
 		newStateMap["no_execute_end"] = ""
-		newStateMap["no_execute_on"] = schema.NewSet(schema.HashString, []interface{}{})
+		newStateMap["no_execute_on"] = schema.NewSet(schema.HashString, []any{})
 		log.Printf("[DEBUG] setGeneralDateTimeLimitations: API did not return date_time_limitations block. Initialized state map with defaults.")
 	}
 
 	var hclStartValue string = ""
 	var hclEndValue string = ""
 
-	hclList, listOk := hclBlockRaw.([]interface{})
+	hclList, listOk := hclBlockRaw.([]any)
 	if listOk && len(hclList) > 0 && hclList[0] != nil {
-		hclMap, mapOk := hclList[0].(map[string]interface{})
+		hclMap, mapOk := hclList[0].(map[string]any)
 		if mapOk {
 			if val, ok := hclMap["no_execute_start"].(string); ok {
 				hclStartValue = val
@@ -201,7 +201,7 @@ func setGeneralDateTimeLimitations(d *schema.ResourceData, resp *jamfpro.Resourc
 	newStateMap["no_execute_end"] = hclEndValue
 
 	log.Printf("[DEBUG] Setting final date_time_limitations state: %+v", newStateMap)
-	err := d.Set("date_time_limitations", []interface{}{newStateMap})
+	err := d.Set("date_time_limitations", []any{newStateMap})
 	if err != nil {
 		*diags = append(*diags, diag.Errorf("Failed to set date_time_limitations in state: %s", err)...)
 	}
@@ -217,7 +217,7 @@ func setGeneralNetworkLimitations(d *schema.ResourceData, resp *jamfpro.Resource
 	v := reflect.ValueOf(*resp.General.NetworkLimitations)
 	allDefault := true
 
-	defaults := map[string]interface{}{
+	defaults := map[string]any{
 		"MinimumNetworkConnection": "No Minimum",
 		"AnyIPAddress":             true,
 		"NetworkSegments":          "",
@@ -247,13 +247,13 @@ func setGeneralNetworkLimitations(d *schema.ResourceData, resp *jamfpro.Resource
 	}
 
 	// Otherwise, proceed to set the network_limitations block
-	networkLimitations := make(map[string]interface{})
+	networkLimitations := make(map[string]any)
 	networkLimitations["minimum_network_connection"] = resp.General.NetworkLimitations.MinimumNetworkConnection
 	networkLimitations["any_ip_address"] = resp.General.NetworkLimitations.AnyIPAddress
 	//Appears to be removed from gui
 	//networkLimitations["network_segments"] = resp.General.NetworkLimitations.NetworkSegments
 
-	err := d.Set("network_limitations", []interface{}{networkLimitations})
+	err := d.Set("network_limitations", []any{networkLimitations})
 	if err != nil {
 		*diags = append(*diags, diag.FromErr(err)...)
 	}

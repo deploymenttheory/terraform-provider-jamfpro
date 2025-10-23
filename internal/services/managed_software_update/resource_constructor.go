@@ -17,9 +17,9 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceManagedSoftwareUpdatePl
 
 	// Handle group
 	if v, ok := d.GetOk("group"); ok {
-		groupList := v.([]interface{})
+		groupList := v.([]any)
 		if len(groupList) > 0 {
-			group := groupList[0].(map[string]interface{})
+			group := groupList[0].(map[string]any)
 			resource.Group = jamfpro.ResourcManagedSoftwareUpdatePlanObject{
 				GroupId:    group["group_id"].(string),
 				ObjectType: group["object_type"].(string),
@@ -29,9 +29,9 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceManagedSoftwareUpdatePl
 
 	// Handle device
 	if v, ok := d.GetOk("device"); ok {
-		deviceList := v.([]interface{})
+		deviceList := v.([]any)
 		if len(deviceList) > 0 {
-			device := deviceList[0].(map[string]interface{})
+			device := deviceList[0].(map[string]any)
 			resource.Devices = []jamfpro.ResourcManagedSoftwareUpdatePlanObject{
 				{
 					DeviceId:   device["device_id"].(string),

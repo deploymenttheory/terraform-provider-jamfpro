@@ -46,7 +46,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacApplications) 
 	}
 
 	if resp.SelfService.SelfServiceDescription != "" || resp.SelfService.NotificationMessage != "" {
-		selfService := []map[string]interface{}{
+		selfService := []map[string]any{
 			{
 				"self_service_description":        resp.SelfService.SelfServiceDescription,
 				"install_button_text":             resp.SelfService.InstallButtonText,
@@ -60,7 +60,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacApplications) 
 
 		// Handle self service icon
 		if resp.SelfService.SelfServiceIcon.ID != 0 {
-			selfService[0]["self_service_icon"] = []map[string]interface{}{
+			selfService[0]["self_service_icon"] = []map[string]any{
 				{
 					"id":   resp.SelfService.SelfServiceIcon.ID,
 					"data": resp.SelfService.SelfServiceIcon.Data,
@@ -71,9 +71,9 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacApplications) 
 
 		// Handle self service categories
 		if len(resp.SelfService.SelfServiceCategories) > 0 {
-			var categories []map[string]interface{}
+			var categories []map[string]any
 			for _, cat := range resp.SelfService.SelfServiceCategories {
-				categories = append(categories, map[string]interface{}{
+				categories = append(categories, map[string]any{
 					"id":         cat.ID,
 					"name":       cat.Name,
 					"display_in": cat.DisplayIn,
@@ -89,7 +89,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacApplications) 
 	}
 
 	if resp.VPP.VPPAdminAccountID != 0 {
-		vpp := []map[string]interface{}{
+		vpp := []map[string]any{
 			{
 				"assign_vpp_device_based_licenses": resp.VPP.AssignVPPDeviceBasedLicenses,
 				"vpp_admin_account_id":             resp.VPP.VPPAdminAccountID,
@@ -104,7 +104,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacApplications) 
 
 	if scopeData, err := setScope(resp); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
-	} else if err := d.Set("scope", []interface{}{scopeData}); err != nil {
+	} else if err := d.Set("scope", []any{scopeData}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
@@ -112,8 +112,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacApplications) 
 }
 
 // setScope converts the scope structure into a format suitable for setting in the Terraform state.
-func setScope(resp *jamfpro.ResourceMacApplications) (map[string]interface{}, error) {
-	scopeData := map[string]interface{}{
+func setScope(resp *jamfpro.ResourceMacApplications) (map[string]any, error) {
+	scopeData := map[string]any{
 		"all_computers": resp.Scope.AllComputers,
 		"all_jss_users": resp.Scope.AllJSSUsers,
 	}
@@ -145,8 +145,8 @@ func setScope(resp *jamfpro.ResourceMacApplications) (map[string]interface{}, er
 }
 
 // setLimitations collects and formats limitations data for the Terraform state.
-func setLimitations(limitations jamfpro.MacAppScopeLimitations) ([]map[string]interface{}, error) {
-	result := map[string]interface{}{}
+func setLimitations(limitations jamfpro.MacAppScopeLimitations) ([]map[string]any, error) {
+	result := map[string]any{}
 
 	if len(limitations.Users) > 0 {
 		userIDs := flattenAndSortUserIDs(limitations.Users)
@@ -173,12 +173,12 @@ func setLimitations(limitations jamfpro.MacAppScopeLimitations) ([]map[string]in
 		return nil, nil
 	}
 
-	return []map[string]interface{}{result}, nil
+	return []map[string]any{result}, nil
 }
 
 // setExclusions collects and formats exclusion data for the Terraform state.
-func setExclusions(exclusions jamfpro.MacAppScopeExclusions) ([]map[string]interface{}, error) {
-	result := map[string]interface{}{}
+func setExclusions(exclusions jamfpro.MacAppScopeExclusions) ([]map[string]any, error) {
+	result := map[string]any{}
 
 	if len(exclusions.Computers) > 0 {
 		computerIDs := flattenAndSortComputerIDs(exclusions.Computers)
@@ -247,7 +247,7 @@ func setExclusions(exclusions jamfpro.MacAppScopeExclusions) ([]map[string]inter
 		return nil, nil
 	}
 
-	return []map[string]interface{}{result}, nil
+	return []map[string]any{result}, nil
 }
 
 // Helper functions

@@ -11,7 +11,7 @@ import (
 )
 
 // dataSourceRead fetches the details of a specific cloud identity provider from Jamf Pro using either its display name or its ID.
-func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 
 	resourceID := d.Get("id").(string)

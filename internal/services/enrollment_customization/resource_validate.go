@@ -8,8 +8,8 @@ import (
 
 // validatePaneCombinations ensures that only valid combinations of pane types are configured
 func validatePaneCombinations(d *schema.ResourceData) error {
-	hasSSO := len(d.Get("sso_pane").([]interface{})) > 0
-	hasLDAP := len(d.Get("ldap_pane").([]interface{})) > 0
+	hasSSO := len(d.Get("sso_pane").([]any)) > 0
+	hasLDAP := len(d.Get("ldap_pane").([]any)) > 0
 
 	if hasSSO && hasLDAP {
 		return fmt.Errorf("invalid combination: SSO and LDAP panes cannot be used together")
@@ -19,7 +19,7 @@ func validatePaneCombinations(d *schema.ResourceData) error {
 }
 
 // validateHexColor validates a hex color code without the # prefix
-func validateHexColor(val interface{}, key string) (warns []string, errs []error) {
+func validateHexColor(val any, key string) (warns []string, errs []error) {
 	v := val.(string)
 
 	// Check length (6 characters for hex without #)

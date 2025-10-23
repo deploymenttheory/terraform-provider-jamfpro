@@ -12,7 +12,7 @@ import (
 )
 
 // dataSourceRead fetches the details of specific account from Jamf Pro using either their unique Name or Id.
-func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)

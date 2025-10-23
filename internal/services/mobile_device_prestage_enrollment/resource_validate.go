@@ -10,7 +10,7 @@ import (
 )
 
 // validateAuthenticationPrompt checks that the 'authentication_prompt' is only set when 'require_authentication' is true.
-func validateAuthenticationPrompt(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+func validateAuthenticationPrompt(_ context.Context, diff *schema.ResourceDiff, _ any) error {
 	resourceName := diff.Get("display_name").(string)
 	requireAuth, ok := diff.GetOk("require_authentication")
 
@@ -32,7 +32,7 @@ func validateAuthenticationPrompt(_ context.Context, diff *schema.ResourceDiff, 
 }
 
 // validateDateFormat checks that the date is in the format YYYY-MM-DD, but only if the value is not null or empty.
-func validateDateFormat(v interface{}, k string) (ws []string, errors []error) {
+func validateDateFormat(v any, k string) (ws []string, errors []error) {
 	dateString, ok := v.(string)
 	if !ok {
 		return

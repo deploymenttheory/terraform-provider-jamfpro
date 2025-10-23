@@ -16,7 +16,7 @@ func validateIconFilePath() schema.SchemaValidateFunc {
 			regexp.MustCompile(`^.*\.png$`),
 			"Expected .png file, got .%s",
 		),
-		func(i interface{}, k string) ([]string, []error) {
+		func(i any, k string) ([]string, []error) {
 			v := i.(string)
 			ext := filepath.Ext(v)
 			if ext == "" {

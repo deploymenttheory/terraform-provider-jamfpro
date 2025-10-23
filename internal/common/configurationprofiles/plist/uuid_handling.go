@@ -11,16 +11,16 @@ import (
 // If a `PayloadDisplayName` is absent at the root level, it uses the special key "root".
 // This function is typically used to map existing UUIDs from a configuration profile
 // retrieved from Jamf Pro.
-func ExtractUUIDs(data interface{}, uuidMap map[string]string, isRoot bool) {
+func ExtractUUIDs(data any, uuidMap map[string]string, isRoot bool) {
 	extractUUIDsRecursive(data, uuidMap, isRoot, 0)
 }
 
 // extractUUIDsRecursive handles the recursive extraction with payload counting for unique keys
-func extractUUIDsRecursive(data interface{}, uuidMap map[string]string, isRoot bool, payloadIndex int) int {
+func extractUUIDsRecursive(data any, uuidMap map[string]string, isRoot bool, payloadIndex int) int {
 	log.Printf("[DEBUG] Extracting existing payload UUIDs.")
 
 	switch v := data.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		uuid, hasUUID := v["PayloadUUID"].(string)
 		displayName, hasDisplayName := v["PayloadDisplayName"].(string)
 		payloadType, hasPayloadType := v["PayloadType"].(string)
@@ -50,7 +50,7 @@ func extractUUIDsRecursive(data interface{}, uuidMap map[string]string, isRoot b
 			payloadIndex = extractUUIDsRecursive(val, uuidMap, false, payloadIndex)
 		}
 
-	case []interface{}:
+	case []any:
 		for _, item := range v {
 			payloadIndex = extractUUIDsRecursive(item, uuidMap, false, payloadIndex)
 		}
@@ -61,14 +61,14 @@ func extractUUIDsRecursive(data interface{}, uuidMap map[string]string, isRoot b
 
 // ExtractPayloadIdentifiers recursively traverses a plist structure to extract PayloadIdentifier
 // values and associate them with a composite key for proper structure preservation
-func ExtractPayloadIdentifiers(data interface{}, identifierMap map[string]string, isRoot bool) {
+func ExtractPayloadIdentifiers(data any, identifierMap map[string]string, isRoot bool) {
 	extractPayloadIdentifiersRecursive(data, identifierMap, isRoot, 0)
 }
 
 // extractPayloadIdentifiersRecursive handles the recursive extraction with payload counting for unique keys
-func extractPayloadIdentifiersRecursive(data interface{}, identifierMap map[string]string, isRoot bool, payloadIndex int) int {
+func extractPayloadIdentifiersRecursive(data any, identifierMap map[string]string, isRoot bool, payloadIndex int) int {
 	switch v := data.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		identifier, hasIdentifier := v["PayloadIdentifier"].(string)
 		displayName, hasDisplayName := v["PayloadDisplayName"].(string)
 		payloadType, hasPayloadType := v["PayloadType"].(string)
@@ -98,7 +98,7 @@ func extractPayloadIdentifiersRecursive(data interface{}, identifierMap map[stri
 			payloadIndex = extractPayloadIdentifiersRecursive(val, identifierMap, false, payloadIndex)
 		}
 
-	case []interface{}:
+	case []any:
 		for _, item := range v {
 			payloadIndex = extractPayloadIdentifiersRecursive(item, identifierMap, false, payloadIndex)
 		}
@@ -113,16 +113,16 @@ func extractPayloadIdentifiersRecursive(data interface{}, identifierMap map[stri
 // If a `PayloadDisplayName` is absent at the root level, it uses the special key "root" from the map.
 // This function ensures that configuration profile UUIDs remain consistent with Jamf Pro
 // expectations during Terraform update operations.
-func UpdateUUIDs(data interface{}, uuidMap map[string]string, identifierMap map[string]string, isRoot bool) {
+func UpdateUUIDs(data any, uuidMap map[string]string, identifierMap map[string]string, isRoot bool) {
 	updateUUIDsRecursive(data, uuidMap, identifierMap, isRoot, 0)
 }
 
 // updateUUIDsRecursive handles the recursive update with payload counting for unique keys
-func updateUUIDsRecursive(data interface{}, uuidMap map[string]string, identifierMap map[string]string, isRoot bool, payloadIndex int) int {
+func updateUUIDsRecursive(data any, uuidMap map[string]string, identifierMap map[string]string, isRoot bool, payloadIndex int) int {
 	log.Printf("[DEBUG] Injecting Jamf Pro post creation configuration profile PayloadUUID and PayloadIdentifier.")
 
 	switch v := data.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		_, hasUUID := v["PayloadUUID"].(string)
 		displayName, hasDisplayName := v["PayloadDisplayName"].(string)
 		payloadType, hasPayloadType := v["PayloadType"].(string)
@@ -162,7 +162,7 @@ func updateUUIDsRecursive(data interface{}, uuidMap map[string]string, identifie
 			payloadIndex = updateUUIDsRecursive(val, uuidMap, identifierMap, false, payloadIndex)
 		}
 
-	case []interface{}:
+	case []any:
 		for _, item := range v {
 			payloadIndex = updateUUIDsRecursive(item, uuidMap, identifierMap, false, payloadIndex)
 		}
@@ -177,9 +177,9 @@ func updateUUIDsRecursive(data interface{}, uuidMap map[string]string, identifie
 // `mismatches` slice, describing the exact path and mismatched values.
 // This validation step ensures Terraform updates maintain consistency with Jamf Pro's
 // UUID requirements and detects unintended modifications.
-func ValidatePayloadUUIDsMatch(existingPlist, newPlist interface{}, path string, mismatches *[]string) {
-	existingMap, existingOk := existingPlist.(map[string]interface{})
-	newMap, newOk := newPlist.(map[string]interface{})
+func ValidatePayloadUUIDsMatch(existingPlist, newPlist any, path string, mismatches *[]string) {
+	existingMap, existingOk := existingPlist.(map[string]any)
+	newMap, newOk := newPlist.(map[string]any)
 
 	if existingOk && newOk {
 		for key, existingValue := range existingMap {
@@ -204,8 +204,8 @@ func ValidatePayloadUUIDsMatch(existingPlist, newPlist interface{}, path string,
 				ValidatePayloadUUIDsMatch(existingValue, newValue, currentPath, mismatches)
 			}
 		}
-	} else if existingSlice, ok := existingPlist.([]interface{}); ok {
-		if newSlice, newOk := newPlist.([]interface{}); newOk {
+	} else if existingSlice, ok := existingPlist.([]any); ok {
+		if newSlice, newOk := newPlist.([]any); newOk {
 			minLen := len(existingSlice)
 			if len(newSlice) < minLen {
 				minLen = len(newSlice)

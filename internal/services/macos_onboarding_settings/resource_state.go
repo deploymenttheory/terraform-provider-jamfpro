@@ -15,9 +15,9 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResponseOnboardingSetting
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	onboardingItems := make([]interface{}, 0, len(resp.OnboardingItems))
+	onboardingItems := make([]any, 0, len(resp.OnboardingItems))
 	for _, item := range resp.OnboardingItems {
-		itemMap := map[string]interface{}{
+		itemMap := map[string]any{
 			"id":                       item.ID,
 			"entity_id":                item.EntityID,
 			"entity_name":              item.EntityName,

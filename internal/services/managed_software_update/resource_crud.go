@@ -17,7 +17,7 @@ import (
 // 2. Calls the API to create the managed software update in Jamf Pro.
 // 3. Updates the Terraform state with the ID of the newly created managed software update.
 // 4. Initiates a read operation to synchronize the Terraform state with the actual state in Jamf Pro.
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	err := checkAndEnableManagedSoftwareUpdateFeatureToggle(ctx, client)
@@ -69,7 +69,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
 
-func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup bool) diag.Diagnostics {
+func read(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceUUID := d.Id()
@@ -93,24 +93,24 @@ func read(ctx context.Context, d *schema.ResourceData, meta interface{}, cleanup
 }
 
 // readWithCleanup reads a resources and states with cleanup
-func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func readWithCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return read(ctx, d, meta, true)
 }
 
 // readNoCleanup reads a resource without cleanup
-func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return read(ctx, d, meta, false)
 }
 
 // update updates a jamfpro managed software update plan
 // Since there is no API endpoint to update a managed software update plan, we create a new one by calling the create function
-func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Call the create function to create a new plan
 	return create(ctx, d, meta)
 }
 
 // delete deletes a jamfpro managed software update plan
-func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	d.SetId("")
 
 	return nil

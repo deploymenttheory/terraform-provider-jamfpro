@@ -10,7 +10,7 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResourceDeviceCommunicationSettings) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	settings := map[string]interface{}{
+	settings := map[string]any{
 		"auto_renew_mobile_device_mdm_profile_when_ca_renewed":                    resp.AutoRenewMobileDeviceMdmProfileWhenCaRenewed,
 		"auto_renew_mobile_device_mdm_profile_when_device_identity_cert_expiring": resp.AutoRenewMobileDeviceMdmProfileWhenDeviceIdentityCertExpiring,
 		"auto_renew_computer_mdm_profile_when_ca_renewed":                         resp.AutoRenewComputerMdmProfileWhenCaRenewed,

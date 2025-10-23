@@ -27,16 +27,16 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceDiskEncryptionCon
 	}
 
 	if resp.InstitutionalRecoveryKey != nil {
-		irk := make(map[string]interface{})
+		irk := make(map[string]any)
 		irk["certificate_type"] = resp.InstitutionalRecoveryKey.CertificateType
 		irk["data"] = resp.InstitutionalRecoveryKey.Data
 
-		if err := d.Set("institutional_recovery_key", []interface{}{irk}); err != nil {
+		if err := d.Set("institutional_recovery_key", []any{irk}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 
 	} else {
-		if err := d.Set("institutional_recovery_key", []interface{}{}); err != nil {
+		if err := d.Set("institutional_recovery_key", []any{}); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
