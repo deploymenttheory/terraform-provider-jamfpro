@@ -20,7 +20,7 @@ terraform-provider-jamfpro/
 │   └── provider/       # Provider configuration examples
 ├── internal/           # Internal provider code
 │   ├── provider/       # Core provider implementation
-│   └── resources/      # Individual resource implementations
+│   └── services/       # Individual resource and data source implementations
 │       └── common/     # Shared code and utilities
 ├── scripts/            # Maintenance and utility scripts
 ├── testing/            # Test configurations and fixtures
@@ -45,7 +45,7 @@ Always run these commands from the repository root.
 
 #### Directory Structure
 
-- All resource implementations live in `internal/resources/`
+- All resource implementations live in `internal/services/`
 - Each resource has its own subdirectory
 - Name directories using lowercase words with underscores (e.g., `policy`, `building`, `script`)
 - Choose names that reflect the Jamf Pro resource domain they represent
@@ -61,18 +61,25 @@ Always run these commands from the repository root.
 
 Every resource directory must contain these core files:
 
-- **`resource.go`** - Resource type definitions and main logic
-- **`crud.go`** - CRUD operations (may use common functions or custom implementation)
-- **`data_source.go`** - Data source implementation  
-- **`constructor.go`** - Resource schema assembly and initialization
+- **`resource_schema.go`** - Resource type definitions and main logic
+- **`resource_crud.go`** - CRUD operations (may use common functions or custom implementation)
+- **`data_source_schema.go`** - Data source schema definition
+- **`data_source_read.go`** - Data source read implementation  
+- **`resource_constructor.go`** - Resource schema assembly and initialization
 - **`data_validator.go`** - Custom validation functions (if needed)
+
+**Note on Data Source Files:**
+
+Data source files use a different naming convention and are NOT prefixed with `resource_`:
+- **`data_source_schema.go`** - Defines the data source schema and entry point
+- **`data_source_read.go`** - Implements the data source read logic
 
 **Optional Schema Files:**
 
 For complex resources, split schemas into logical components:
 
-- **`schema_*.go`** - Schema definitions for specific resource aspects
-  - Examples: `schema_account_maintenance.go`, `schema_network_limitations.go`, `schema_reboot.go`
+- **`resource_schema_*.go`** - Schema definitions for specific resource aspects
+  - Examples: `resource_schema_account_maintenance.go`, `resource_schema_network_limitations.go`, `resource_schema_reboot.go`
   - Each file should focus on one specific aspect of the resource
   - Use descriptive names that clearly indicate the schema's purpose
 
@@ -80,15 +87,15 @@ For complex resources, split schemas into logical components:
 
 For complex state management, separate into focused files:
 
-- **`state_*.go`** - State management for specific resource aspects
-  - Examples: `state_payloads.go`, `state_migration.go`, `state_general.go`
+- **`resource_state_*.go`** - State management for specific resource aspects
+  - Examples: `resource_state_payloads.go`, `resource_state_migration.go`, `resource_state_general.go`
   - Split complex state operations into logical groups
   - Keep state construction and updates separate from business logic
 
 **Additional Helper Files:**
 
 - **`helpers.go`** - Resource-specific utility functions (for complex resources)
-- **`data_custom_diff.go`** - Custom diff functions (if needed)
+- **`resource_custom_diff.go`** - Custom diff functions (if needed)
 
 ### Resource Naming Conventions
 
@@ -97,7 +104,7 @@ For complex state management, separate into focused files:
 
 ### Common Folder Usage
 
-The `internal/resources/common/` directory contains shared code and utilities used across multiple resources:
+The `internal/services/common/` directory contains shared code and utilities used across multiple resources:
 
 #### Shared CRUD Operations
 
@@ -129,7 +136,7 @@ Use shared schemas from `common/sharedschemas` for common attributes:
 
 - `common/constructors/` - Shared construction patterns
 - `common/configurationprofiles/` - Configuration profile utilities
-- `common/jamfprivileges/` - Jamf privilege management helpers
+- `common/jamf_privileges/` - Jamf privilege management helpers
 
 ### Complex vs Simple Resources
 
@@ -179,9 +186,15 @@ Some resources represent system-wide configuration that always exists in Jamf Pr
   - `jamfpro_device_communication_settings_singleton`
   - `jamfpro_client_checkin_singleton`
 
-### Data Source Location
+### Data Source Location and Organization
 
-Data sources are located within the resource directories rather than in a separate `data-sources/` directory. This is a **historical decision** - while data sources could logically live in their own directory structure, we don't see value in updating this organization currently. New data sources should continue to live in the resource folder.
+Data sources are located within the same resource service directories rather than in a separate `data-sources/` directory. This colocates related resource and data source code.
+
+**Data Source File Structure:**
+- Each service directory may contain both resource and data source implementations
+- Data source files maintain their own naming convention with `data_source_` prefix
+- Data source functions follow the pattern `DataSourceJamfPro{ResourceName}()`
+- Example: `advanced_user_search/` directory contains both resource and data source files
 
 ### Schema Definition Guidelines
 
@@ -233,7 +246,7 @@ For comprehensive testing guidelines, including test structure, naming conventio
 ### Additional Resources
 
 - Follow the testing guide in `docs/` when submitting PRs
-- Refer to `internal/resources/policy/` as the current best practice implementation
+- Refer to `internal/services/policy/` as the current best practice implementation for file organization
 - Use the `GNUmakefile` commands for all development tasks 
 
 ---
@@ -246,7 +259,28 @@ This project follows the [Google Go Style Guide](https://google.github.io/styleg
 
 ### Reference Implementation
 
-The `internal/resources/policy` directory represents our **current best practice** for code organization and patterns. All new resources should follow these conventions, and existing resources should work toward this standard over time.
+The `internal/services/policy` directory represents our **current best practice** for code organization and patterns. All new resources should follow these conventions, and existing resources should work toward this standard over time.
+
+### File Naming Conventions
+
+**Resource Files:**
+
+All core resource files follow a consistent naming pattern with the `resource_` prefix:
+
+- **`resource_schema.go`** - Main resource schema and entry point
+- **`resource_constructor.go`** - Constructs API request objects from Terraform data
+- **`resource_crud.go`** - CRUD operations implementation
+- **`resource_state.go`** - Updates Terraform state from API responses
+- **`resource_schema_*.go`** - Specific schema aspects (e.g., `resource_schema_account_maintenance.go`)
+- **`resource_state_*.go`** - Specific state management aspects (e.g., `resource_state_payloads.go`)
+- **`resource_custom_diff.go`** - Custom diff logic (if needed)
+
+**Data Source Files:**
+
+- **`data_source_schema.go`** - Data source schema definition
+- **`data_source_read.go`** - Data source read implementation
+
+This naming convention clearly identifies resource-related files and distinguishes them from data source files and other utilities.
 
 ### Function Naming Conventions
 
@@ -288,6 +322,7 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.D
 ```
 
 **Read Function Cleanup Parameter:**
+
 - `cleanup bool` parameter determines whether to remove the resource from Terraform state if it's not found in the API
 - `readWithCleanup` - removes from state when resource not found (used in normal operations)
 - `readNoCleanup` - preserves state when resource not found (used after create/update operations)
@@ -325,18 +360,36 @@ Schema key descriptions follow a **common sense approach**:
 - Descriptions **don't always match the API documentation** exactly
 
 ```go
-// ✓ Good: User-friendly description
-"name": {
-    Type:        schema.TypeString,
+// ✓ Good: Directive, shows implications and conditions
+"enabled": {
+    Type:        schema.TypeBool,
     Required:    true,
-    Description: "The name of the policy.",
+    Description: "Enable the policy. When set to true, the policy will be deployed to targeted devices based on triggers and scope.",
 },
 
-// ✗ Avoid: Too technical/API-focused  
-"name": {
-    Type:        schema.TypeString,
+"require_authentication": {
+    Type:        schema.TypeBool,
     Required:    true,
-    Description: "ResourcePolicy.General.Name field as defined in jamfpro.ResourcePolicy struct",
+    Description: "Require user authentication during enrollment on devices with macOS 10.10 or later. When enabled, users must provide username and password.",
+},
+
+"default_prestage": {
+    Type:        schema.TypeBool,
+    Required:    true,
+    Description: "Mark this as the default computer prestage enrollment configuration. If enabled, new devices will automatically be assigned to this PreStage enrollment.",
+},
+
+// ✗ Avoid: Too vague, doesn't explain implications
+"enabled": {
+    Type:        schema.TypeBool,
+    Required:    true,
+    Description: "The enabled status of the policy.",
+},
+
+"require_authentication": {
+    Type:        schema.TypeBool,
+    Required:    true,
+    Description: "Require authentication during enrollment.",
 },
 ```
 

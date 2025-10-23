@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// updateFrameworkState updates the Framework resource model with the latest Dock Item information from the Jamf Pro API.
-func updateFrameworkState(data *dockItemFrameworkResourceModel, resp *jamfpro.ResourceDockItem) diag.Diagnostics {
+// state updates the resource state with the latest Dock Item information from the Jamf Pro API.
+func state(data *dockItemResourceModel, resp *jamfpro.ResourceDockItem) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	data.ID = types.StringValue(strconv.Itoa(resp.ID))

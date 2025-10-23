@@ -4,7 +4,7 @@ package smart_computer_group
 import (
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/sharedschemas"
+	sharedschemas "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/shared_schemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 

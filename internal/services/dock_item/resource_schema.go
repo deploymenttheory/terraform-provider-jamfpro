@@ -40,7 +40,7 @@ type dockItemFrameworkResource struct {
 }
 
 func (r *dockItemFrameworkResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_dock_item_framework"
+	resp.TypeName = req.ProviderTypeName + "_dock_item"
 }
 
 func (r *dockItemFrameworkResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -66,7 +66,7 @@ func (r *dockItemFrameworkResource) ImportState(ctx context.Context, req resourc
 
 func (r *dockItemFrameworkResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages a Jamf Pro Dock Item using the Framework SDK.",
+		MarkdownDescription: "Manages a Jamf Pro Dock Item with the `/api/v1/dock-items` endpoint.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique identifier of the dock item.",
@@ -80,14 +80,14 @@ func (r *dockItemFrameworkResource) Schema(ctx context.Context, _ resource.Schem
 				Required:            true,
 			},
 			"type": schema.StringAttribute{
-				MarkdownDescription: "The type of the dock item (App/File/Folder).",
+				MarkdownDescription: "The type of the dock item. Must be one of: `App`, `File`, `Folder`.",
 				Required:            true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("App", "File", "Folder"),
 				},
 			},
 			"path": schema.StringAttribute{
-				MarkdownDescription: "The path of the dock item.",
+				MarkdownDescription: "The path of the dock item. e.g `file://localhost/Applications/iTunes.app`",
 				Required:            true,
 			},
 			"contents": schema.StringAttribute{

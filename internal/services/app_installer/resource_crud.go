@@ -5,7 +5,8 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/errors"
+	crud "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/sdkv2_crud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -73,7 +74,7 @@ func read(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) d
 	})
 
 	if err != nil {
-		return append(diags, common.HandleResourceNotFoundError(err, d, cleanup)...)
+		return append(diags, errors.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
 	return append(diags, updateState(d, response)...)
@@ -92,7 +93,7 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.D
 // update updates a jamfpro building
 func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
-	return common.Update(
+	return crud.Update(
 		ctx,
 		d,
 		meta,
@@ -105,7 +106,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 }
 
 func delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	return common.Delete(
+	return crud.Delete(
 		ctx,
 		d,
 		meta,

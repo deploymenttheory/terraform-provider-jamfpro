@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/files"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -25,7 +25,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourcePackage, string, error)
 
 	if strings.HasPrefix(fullPath, "http") {
 		log.Printf("[INFO] URL detected: %s. Attempting to download.", fullPath)
-		localFilePath, err = common.DownloadFile(fullPath)
+		localFilePath, err = files.DownloadFile(fullPath)
 		if err != nil {
 			return nil, "", fmt.Errorf("failed to download file: %v", err)
 		}

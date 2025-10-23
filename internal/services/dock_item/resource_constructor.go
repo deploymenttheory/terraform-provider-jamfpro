@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
-// constructFrameworkResource constructs a ResourceDockItem object from the provided framework resource model.
-func constructFrameworkResource(data *dockItemFrameworkResourceModel) (*jamfpro.ResourceDockItem, diag.Diagnostics) {
+// constructResource constructs a ResourceDockItem object from the provided framework resource model.
+func constructResource(data *dockItemResourceModel) (*jamfpro.ResourceDockItem, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	resource := &jamfpro.ResourceDockItem{

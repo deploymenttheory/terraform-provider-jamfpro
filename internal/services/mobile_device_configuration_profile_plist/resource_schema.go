@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/sharedschemas"
+	sharedschemas "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/shared_schemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 

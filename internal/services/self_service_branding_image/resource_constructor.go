@@ -4,7 +4,7 @@ package self_service_branding_image
 import (
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/files"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -28,7 +28,7 @@ func construct(d *schema.ResourceData) (string, error) {
 	}
 
 	if webSource != "" {
-		localPath, err := common.DownloadFile(webSource)
+		localPath, err := files.DownloadFile(webSource)
 		if err != nil {
 			return "", fmt.Errorf("%w: %s", ErrDownloadBrandingImage, webSource)
 		}

@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/images"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -46,7 +46,7 @@ func constructImageUpload(d *schema.ResourceData) (string, error) {
 
 	// Check if resizing is needed (if image is larger than 180x180)
 	if origWidth > 180 || origHeight > 180 {
-		return common.ResizeImage(img, format, imagePath, 180, 180)
+		return images.ResizeImage(img, format, imagePath, 180, 180)
 	}
 
 	return imagePath, nil

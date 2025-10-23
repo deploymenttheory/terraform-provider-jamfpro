@@ -3,8 +3,8 @@ package macos_configuration_profile_plist
 import (
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/configurationprofiles/plist"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/configuration_profiles/plist"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/crypto"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -24,8 +24,8 @@ func DiffSuppressPayloads(k, old, new string, d *schema.ResourceData) bool {
 		return false
 	}
 
-	oldHash := common.HashString(processedOldPayload)
-	newHash := common.HashString(processedNewPayload)
+	oldHash := crypto.HashString(processedOldPayload)
+	newHash := crypto.HashString(processedNewPayload)
 
 	fmt.Printf("[DIFFSUPPRESS] Old payload hash: %s\n", oldHash)
 	fmt.Printf("[DIFFSUPPRESS] New payload hash: %s\n", newHash)

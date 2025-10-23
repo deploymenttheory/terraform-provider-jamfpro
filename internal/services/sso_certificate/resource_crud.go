@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/errors"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -52,7 +52,7 @@ func read(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) d
 	})
 
 	if err != nil {
-		return append(diags, common.HandleResourceNotFoundError(err, d, cleanup)...)
+		return append(diags, errors.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
 	return append(diags, updateState(d, response)...)

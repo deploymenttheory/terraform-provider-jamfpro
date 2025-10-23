@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common"
+	crud "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/sdkv2_crud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -45,7 +45,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 
 // read handles reading a Jamf Pro API Role from the remote system.
 func read(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) diag.Diagnostics {
-	return common.Read(
+	return crud.Read(
 		ctx,
 		d,
 		meta,
@@ -104,7 +104,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 
 // delete handles the deletion of a Jamf Pro API Role.
 func delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	return common.Delete(
+	return crud.Delete(
 		ctx,
 		d,
 		meta,

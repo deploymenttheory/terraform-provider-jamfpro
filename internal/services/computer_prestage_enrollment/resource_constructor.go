@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/redact"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -107,7 +107,7 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 	}
 
 	// Serialize and pretty-print the inventory collection object as JSON for logging
-	resourceJSON, err := common.SerializeAndRedactJSON(resource, []string{"AccountSettings.AdminPassword", "AccountSettings.AdminUsername"})
+	resourceJSON, err := redact.SerializeAndRedactJSON(resource, []string{"AccountSettings.AdminPassword", "AccountSettings.AdminUsername"})
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Prestage to JSON: %v", err)
 	}

@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/crud"
+	frameworkCrud "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/framework_crud"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// Create creates a new dock item resource in Jamf Pro.
 func (r *dockItemFrameworkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object dockItemFrameworkResourceModel
+	var object dockItemResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
@@ -21,7 +22,7 @@ func (r *dockItemFrameworkResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := frameworkCrud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -31,7 +32,7 @@ func (r *dockItemFrameworkResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	dockItem, constructDiags := constructFrameworkResource(&object)
+	dockItem, constructDiags := constructResource(&object)
 	resp.Diagnostics.Append(constructDiags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -54,13 +55,13 @@ func (r *dockItemFrameworkResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
-	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
+	stateContainer := &frameworkCrud.CreateResponseContainer{CreateResponse: resp}
 
-	opts := crud.DefaultReadWithRetryOptions()
+	opts := frameworkCrud.DefaultReadWithRetryOptions()
 	opts.Operation = "Create"
 	opts.ResourceTypeName = ResourceName
 
-	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
+	err = frameworkCrud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Dock Item After Create",
@@ -72,8 +73,9 @@ func (r *dockItemFrameworkResource) Create(ctx context.Context, req resource.Cre
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
+// Read reads the current state of a dock item resource from Jamf Pro.
 func (r *dockItemFrameworkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object dockItemFrameworkResourceModel
+	var object dockItemResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
@@ -84,7 +86,7 @@ func (r *dockItemFrameworkResource) Read(ctx context.Context, req resource.ReadR
 
 	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := frameworkCrud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -99,23 +101,7 @@ func (r *dockItemFrameworkResource) Read(ctx context.Context, req resource.ReadR
 		return
 	}
 
-	if dockItem == nil {
-		resp.Diagnostics.AddError(
-			"Error Reading Dock Item",
-			fmt.Sprintf("API returned nil dock item for ID %s", object.ID.ValueString()),
-		)
-		return
-	}
-
-	if dockItem.ID == 0 {
-		resp.Diagnostics.AddError(
-			"Error Reading Dock Item",
-			fmt.Sprintf("API returned dock item with invalid ID (0) for requested ID %s", object.ID.ValueString()),
-		)
-		return
-	}
-
-	stateDiags := updateFrameworkState(&object, dockItem)
+	stateDiags := state(&object, dockItem)
 	resp.Diagnostics.Append(stateDiags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -129,9 +115,10 @@ func (r *dockItemFrameworkResource) Read(ctx context.Context, req resource.ReadR
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
+// Update updates an existing dock item resource in Jamf Pro.
 func (r *dockItemFrameworkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan dockItemFrameworkResourceModel
-	var state dockItemFrameworkResourceModel
+	var plan dockItemResourceModel
+	var state dockItemResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update method for: %s", ResourceName))
 
@@ -143,13 +130,13 @@ func (r *dockItemFrameworkResource) Update(ctx context.Context, req resource.Upd
 
 	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := frameworkCrud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	dockItem, constructDiags := constructFrameworkResource(&plan)
+	dockItem, constructDiags := constructResource(&plan)
 	resp.Diagnostics.Append(constructDiags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -165,13 +152,13 @@ func (r *dockItemFrameworkResource) Update(ctx context.Context, req resource.Upd
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
-	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
+	stateContainer := &frameworkCrud.UpdateResponseContainer{UpdateResponse: resp}
 
-	opts := crud.DefaultReadWithRetryOptions()
+	opts := frameworkCrud.DefaultReadWithRetryOptions()
 	opts.Operation = "Update"
 	opts.ResourceTypeName = ResourceName
 
-	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
+	err = frameworkCrud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Dock Item After Update",
@@ -183,8 +170,9 @@ func (r *dockItemFrameworkResource) Update(ctx context.Context, req resource.Upd
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
+// Delete deletes a dock item resource from Jamf Pro.
 func (r *dockItemFrameworkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object dockItemFrameworkResourceModel
+	var object dockItemResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 
@@ -193,13 +181,14 @@ func (r *dockItemFrameworkResource) Delete(ctx context.Context, req resource.Del
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := frameworkCrud.HandleTimeout(ctx, object.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
 	err := r.client.DeleteDockItemByID(object.ID.ValueString())
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Deleting Dock Item",

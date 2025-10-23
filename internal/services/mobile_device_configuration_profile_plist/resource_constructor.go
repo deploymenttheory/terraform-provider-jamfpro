@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	helpers "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/configurationprofiles/plist"
+	helpers "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/configuration_profiles/plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/constructors"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/sharedschemas"
+	sharedschemas "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/shared_schemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"howett.net/plist"
 )

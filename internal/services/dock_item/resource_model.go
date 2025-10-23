@@ -5,8 +5,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// dockItemFrameworkResourceModel describes the resource data model.
-type dockItemFrameworkResourceModel struct {
+// dockItemResourceModel describes the resource data model.
+type dockItemResourceModel struct {
 	ID       types.String   `tfsdk:"id"`
 	Name     types.String   `tfsdk:"name"`
 	Type     types.String   `tfsdk:"type"`

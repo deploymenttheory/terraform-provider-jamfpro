@@ -8,7 +8,7 @@ import (
 	"path"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/files"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -60,7 +60,8 @@ func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 	}
 
 	d.SetId(seg)
-	common.CleanupDownloadedIcon(d.Get("self_service_branding_image_file_web_source").(string), filePath)
+
+	files.CleanupDownloadedIcon(d.Get("self_service_branding_image_file_web_source").(string), filePath)
 
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }

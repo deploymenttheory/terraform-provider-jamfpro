@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common"
+	crud "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/sdkv2_crud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -27,7 +27,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 		return client.UpdateDeviceEnrollmentMetadataByID(enrollment.ID, payload)
 	}
 
-	return common.Create(
+	return crud.Create(
 		ctx,
 		d,
 		meta,
@@ -39,7 +39,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 
 // read is responsible for reading the current state of a Jamf Pro Device Enrollment from Jamf Pro
 func read(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) diag.Diagnostics {
-	return common.Read(
+	return crud.Read(
 		ctx,
 		d,
 		meta,
@@ -73,7 +73,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 		}
 	}
 
-	return common.Update(
+	return crud.Update(
 		ctx,
 		d,
 		meta,
@@ -85,7 +85,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 
 // delete is responsible for deleting a Jamf Pro Device Enrollment
 func delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	return common.Delete(
+	return crud.Delete(
 		ctx,
 		d,
 		meta,

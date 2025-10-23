@@ -5,14 +5,14 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common"
+	crud "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/sdkv2_crud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // create creates a new self-service branding configuration using the shared common helper
 func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	return common.Create(
+	return crud.Create(
 		ctx,
 		d,
 		meta,
@@ -24,7 +24,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 
 // read reads the resource state using the shared common helper
 func read(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) diag.Diagnostics {
-	return common.Read(
+	return crud.Read(
 		ctx,
 		d,
 		meta,
@@ -43,7 +43,7 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.D
 
 // update updates the resource using the shared common helper
 func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	return common.Update(
+	return crud.Update(
 		ctx,
 		d,
 		meta,
@@ -55,7 +55,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 
 // delete deletes the resource using the shared common helper
 func delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	return common.Delete(ctx,
+	return crud.Delete(ctx,
 		d,
 		meta,
 		meta.(*jamfpro.Client).DeleteSelfServiceBrandingIOSByID,

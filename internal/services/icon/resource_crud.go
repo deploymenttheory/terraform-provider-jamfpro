@@ -6,7 +6,8 @@ import (
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/errors"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/files"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -39,7 +40,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 	d.SetId(fmt.Sprintf("%d", uploadResponse.ID))
 
 	// Only clean up if we downloaded from web source and verify the path is what we expect
-	common.CleanupDownloadedIcon(d.Get("icon_file_web_source").(string), filePath)
+	files.CleanupDownloadedIcon(d.Get("icon_file_web_source").(string), filePath)
 
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
@@ -66,7 +67,7 @@ func read(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) d
 	})
 
 	if err != nil {
-		return append(diags, common.HandleResourceNotFoundError(err, d, cleanup)...)
+		return append(diags, errors.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
 	return append(diags, updateState(d, response)...)
@@ -109,7 +110,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 		}
 
 		// Only clean up if we downloaded from web source and verify the path is what we expect
-		common.CleanupDownloadedIcon(d.Get("icon_file_web_source").(string), filePath)
+		files.CleanupDownloadedIcon(d.Get("icon_file_web_source").(string), filePath)
 	}
 
 	return append(diags, readNoCleanup(ctx, d, meta)...)

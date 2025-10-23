@@ -9,7 +9,9 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/errors"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/files"
+	crud "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/sdkv2_crud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -105,7 +107,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 
 	d.SetId(packageID)
 
-	common.CleanupDownloadedPackage(d.Get("package_file_source").(string), localFilePath)
+	files.CleanupDownloadedPackage(d.Get("package_file_source").(string), localFilePath)
 
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
@@ -128,7 +130,7 @@ func read(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) d
 	})
 
 	if err != nil {
-		return append(diags, common.HandleResourceNotFoundError(err, d, cleanup)...)
+		return append(diags, errors.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
 	return append(diags, updateState(d, response)...)
@@ -215,7 +217,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 			return diag.FromErr(fmt.Errorf("failed to verify updated package file: %v", err))
 		}
 
-		common.CleanupDownloadedPackage(d.Get("package_file_source").(string), localFilePath)
+		files.CleanupDownloadedPackage(d.Get("package_file_source").(string), localFilePath)
 	}
 
 	return append(diags, readNoCleanup(ctx, d, meta)...)
@@ -223,7 +225,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 
 // delete is responsible for deleting a Jamf Pro Package.
 func delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	return common.Delete(
+	return crud.Delete(
 		ctx,
 		d,
 		meta,

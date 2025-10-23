@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/configurationprofiles/datavalidators"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/configurationprofiles/plist"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/configuration_profiles/data_validators"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/configuration_profiles/plist"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -68,7 +68,7 @@ func validateMobileDeviceConfigurationProfileLevel(_ context.Context, diff *sche
 		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile.%s': error decoding plist data: %v", resourceName, err)
 	}
 
-	payloadScope, err := datavalidators.GetPayloadScope(plistData)
+	payloadScope, err := data_validators.GetPayloadScope(plistData)
 	if err != nil {
 		return fmt.Errorf("in 'jamfpro_mobile_device_configuration_profile.%s': error getting 'PayloadScope' from plist: %v", resourceName, err)
 	}

@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/jamfprivileges"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/jamf_privileges"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -81,7 +81,7 @@ func validateApiRolePrivileges(client *jamfpro.Client, privileges []string) erro
 
 		msg.WriteString("\nSuggested similar privileges:\n")
 		for _, invalid := range invalidPrivileges {
-			similars := jamfprivileges.FindSimilarPrivileges(invalid, privilegesList.Privileges)
+			similars := jamf_privileges.FindSimilarPrivileges(invalid, privilegesList.Privileges)
 			if len(similars) > 0 {
 				msg.WriteString(fmt.Sprintf("Instead of '%s', did you mean:\n", invalid))
 				for _, s := range similars {

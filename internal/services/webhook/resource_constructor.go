@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/redact"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -33,8 +33,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceWebhook, error) {
 		}
 	}
 
-	// Serialize and log the XML output for debugging
-	xmlOutput, err := common.SerializeAndRedactXML(resource, []string{"Password"})
+	xmlOutput, err := redact.SerializeAndRedactXML(resource, []string{"Password"})
 	if err != nil {
 		log.Fatalf("Error serializing webhook to XML: %v", err)
 	}

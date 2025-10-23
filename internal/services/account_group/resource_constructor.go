@@ -7,8 +7,8 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/jamfprivileges"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/sharedschemas"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/jamf_privileges"
+	sharedschemas "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/shared_schemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -18,7 +18,7 @@ func construct(d *schema.ResourceData, meta any) (*jamfpro.ResourceAccountGroup,
 
 	privileges := constructAccountSubsetPrivileges(d)
 
-	if err := jamfprivileges.ValidateAccountPrivileges(client, privileges); err != nil {
+	if err := jamf_privileges.ValidateAccountPrivileges(client, privileges); err != nil {
 		return nil, err
 	}
 
