@@ -1,11 +1,11 @@
 ---
 page_title: "jamfpro_dock_item"
 description: |-
-  
+  Manages a Jamf Pro Dock Item with the `/api/v1/dock-items` endpoint.
 ---
 
 # jamfpro_dock_item (Resource)
-
+Manages a Jamf Pro Dock Item with the `/api/v1/dock-items` endpoint.
 
 ## Example Usage
 ```terraform
@@ -37,24 +37,24 @@ resource "jamfpro_dock_item" "dock_item_003" {
 ### Required
 
 - `name` (String) The name of the dock item.
-- `path` (String) The path of the dock item.
-- `type` (String) The type of the dock item (App/File/Folder).
+- `path` (String) The path of the dock item. e.g `file://localhost/Applications/iTunes.app`
+- `type` (String) The type of the dock item. Must be one of: `App`, `File`, `Folder`.
 
 ### Optional
 
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
 - `contents` (String) Contents of the dock item.
 - `id` (String) The unique identifier of the dock item.
 
-<a id="nestedblock--timeouts"></a>
+<a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`
 
 Optional:
 
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
+- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
+- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
