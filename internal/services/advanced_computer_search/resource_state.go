@@ -51,12 +51,13 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceAdvancedComputerS
 	}
 
 	if len(resp.DisplayFields) > 0 {
-		var displayFieldList []string
+		displayFieldSet := schema.NewSet(schema.HashString, nil)
 		for _, v := range resp.DisplayFields {
-			displayFieldList = append(displayFieldList, v.Name)
+			displayFieldSet.Add(v.Name)
 		}
-
-		d.Set("display_fields", displayFieldList)
+		if err := d.Set("display_fields", displayFieldSet); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	d.Set("site_id", resp.Site.ID)

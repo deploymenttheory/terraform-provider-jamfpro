@@ -96,7 +96,7 @@ func ResourceJamfProAdvancedMobileDeviceSearches() *schema.Resource {
 				},
 			},
 			"display_fields": {
-				Type:        schema.TypeSet, // Use TypeSet instead of TypeList as jamf uses a ranrom order for the fields
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "List of fields to display in the search results",
 				Elem: &schema.Schema{

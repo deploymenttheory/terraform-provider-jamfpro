@@ -41,7 +41,11 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceAdvancedMobileDev
 	}
 
 	if len(resp.DisplayFields) > 0 {
-		if err := d.Set("display_fields", resp.DisplayFields); err != nil {
+		displayFieldSet := schema.NewSet(schema.HashString, nil)
+		for _, field := range resp.DisplayFields {
+			displayFieldSet.Add(field)
+		}
+		if err := d.Set("display_fields", displayFieldSet); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
