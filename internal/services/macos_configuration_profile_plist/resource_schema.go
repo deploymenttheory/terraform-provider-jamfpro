@@ -116,6 +116,7 @@ func ResourceJamfProMacOSConfigurationProfilesPlist() *schema.Resource {
 			"payload_validate": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Computed: true,
 				Default:  true,
 				Description: "Controls validation of the MacOS configuration profile plist. When enabled (default), " +
 					"performs the following validations:\n\n" +
