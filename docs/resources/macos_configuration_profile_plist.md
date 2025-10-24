@@ -154,7 +154,7 @@ Differences are suppressed in the following cases:
 
 This normalization approach ensures that functionally identical profiles are recognized as equivalent despite superficial formatting differences. 
 NOTE - This provider only supports plists generated from Jamf Pro. It does not support importing plists from other sources. If you need to import a plist from an external source,(e.g. iMazing, Apple Configurator, etc.) you must first import it into Jamf Pro, then export it from Jamf Pro to generate a compatible plist. This provider cannot diff suppress plists generated from external sources.
-- `redeploy_on_update` (String) Defines the redeployment behaviour when an update to a macOS config profileoccurs. This is always 'Newly Assigned' on new profile objects, but may be set to 'All'on profile update requests once the configuration profile has been deployed to at least one device.
+- `redeploy_on_update` (String) Defines the redeployment behaviour when an update to a macOS configuration profile occurs. Valid values are 'All' or 'Newly Assigned'. Note: Jamf Pro's API returns 'Newly Assigned' in read responses for context and does not reflect transient decisions applied at update time. The provider does not infer or override this value from API reads; set it explicitly to control redeployment behaviour when updating a profile.
 - `scope` (Block List, Min: 1, Max: 1) The scope of the configuration profile. (see [below for nested schema](#nestedblock--scope))
 
 ### Optional

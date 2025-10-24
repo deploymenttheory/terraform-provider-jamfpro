@@ -1,0 +1,260 @@
+// common/configurationprofiles/plist/plistdiffsuppression.go
+// contains the functions to process configuration profiles for diff suppression.
+package plist
+
+import (
+	"encoding/base64"
+	"html"
+	"log"
+	"regexp"
+	"strconv"
+	"strings"
+	"unicode"
+
+	"howett.net/plist"
+)
+
+// ProcessConfigurationProfileForDiffSuppression processes the plist data through multiple steps
+// to prepare it for diff suppression. This function is used to remove specified fields, normalize base64 content,
+// normalize XML tags, unescape HTML entities, sort keys, and encode back to plist.
+func ProcessConfigurationProfileForDiffSuppression(plistData string, fieldsToRemove []string) (string, error) {
+	log.Println("Starting ProcessConfigurationProfile")
+
+	// Step 1: Unmarshal
+	var rawData map[string]any
+	if _, err := plist.Unmarshal([]byte(plistData), &rawData); err != nil {
+		log.Printf("Error unmarshalling plist data: %v\n", err)
+		return "", err
+	}
+
+	// Step 2: Remove specified fields
+	processedData := removeSpecifiedXMLFields(rawData, fieldsToRemove, "")
+
+	// Step 3: Normalize base64 content
+	normalizedBase64 := normalizeBase64Content(processedData)
+
+	// Step 4: Normalize XML tags
+	normalizedXML := normalizeXMLTags(normalizedBase64)
+
+	// Step 5: Normalize empty strings
+	normalizedStrings := normalizeEmptyStrings(normalizedXML)
+
+	// Step 6: normalize HTML Entities
+	normalizedData := normalizeHTMLEntitiesForDiff(normalizedStrings)
+
+	// Step 7: Sort keys
+	sortedData := SortPlistKeys(normalizedData.(map[string]any))
+
+	// Step 8: Encode back to plist
+	encodedPlist, err := EncodePlist(sortedData)
+	if err != nil {
+		log.Printf("Error encoding plist data: %v\n", err)
+		return "", err
+	}
+
+	// Step 9: Remove trailing whitespace
+	return trimTrailingWhitespace(encodedPlist), nil
+}
+
+// removeSpecifiedXMLFields( removes specified fields from the plist data recursively.
+// useful for removing jamfpro specific unique identifiers from the plist data.
+func removeSpecifiedXMLFields(data map[string]any, fieldsToRemove []string, path string) map[string]any {
+	// Create a set of fields to remove for quick lookup
+	fieldsToRemoveSet := make(map[string]struct{}, len(fieldsToRemove))
+	for _, field := range fieldsToRemove {
+		fieldsToRemoveSet[field] = struct{}{}
+	}
+
+	// Iterate over the map and remove fields if they exist
+	for field := range fieldsToRemoveSet {
+		if _, exists := data[field]; exists {
+			log.Printf("[DEBUG] Removing field: %s from path: %s\n", field, path)
+			delete(data, field)
+		}
+	}
+
+	// Recursively process nested maps and arrays
+	for key, value := range data {
+		newPath := path + "/" + key
+		switch v := value.(type) {
+		case map[string]any:
+			log.Printf("[DEBUG] Recursively removing fields in nested map at path: %s\n", newPath)
+			removeSpecifiedXMLFields(v, fieldsToRemove, newPath)
+		case []any:
+			for i, item := range v {
+				if nestedMap, ok := item.(map[string]any); ok {
+					log.Printf("[DEBUG] Recursively removing fields in array at path: %s[%d]\n", newPath, i)
+					removeSpecifiedXMLFields(nestedMap, fieldsToRemove, newPath+strings.ReplaceAll(key, "/", "_")+strconv.Itoa(i))
+				}
+			}
+			// Ensure empty arrays are preserved
+			data[key] = v
+		}
+	}
+
+	return data
+}
+
+func normalizeBase64Content(data any) any {
+	// Helper to check and normalize potential base64 string values
+	normalizeString := func(s string) string {
+		// If string has no spaces/newlines, leave it alone
+		if !strings.ContainsAny(s, " \n\t\r") {
+			return s
+		}
+
+		// Remove all whitespace and try to decode
+		clean := strings.Join(strings.Fields(s), "")
+		_, err := base64.StdEncoding.DecodeString(clean)
+		if err == nil {
+			return clean
+		}
+		return s
+	}
+
+	switch v := data.(type) {
+	case string:
+		return normalizeString(v)
+
+	case map[string]any:
+		result := make(map[string]any)
+		for key, value := range v {
+			result[key] = normalizeBase64Content(value)
+		}
+		return result
+
+	case []any:
+		result := make([]any, len(v))
+		for i, item := range v {
+			result[i] = normalizeBase64Content(item)
+		}
+		return result
+
+	default:
+		return data
+	}
+}
+
+// NormalizeBase64 normalizes base64 content by removing all whitespace characters
+// Returns normalized base64 string with all spacing/formatting removed for comparison
+// Base64 uses characters A-Z, a-z, 0-9, +, /, and = for padding
+func NormalizeBase64(input string) string {
+	// First remove all whitespace
+	trimmed := strings.Map(func(r rune) rune {
+		if unicode.IsSpace(r) {
+			return -1 // Drop ALL whitespace (spaces, tabs, newlines, etc)
+		}
+		return r
+	}, input)
+
+	// Check if the result is a valid base64 string
+	isBase64 := regexp.MustCompile(`^[A-Za-z0-9+/]*={0,2}$`).MatchString(trimmed)
+
+	if !isBase64 {
+		return input // Not base64, return original
+	}
+
+	return trimmed
+}
+
+// normalizeXMLTags standardizes XML tag formatting for malformed config profile xml
+// handles the following cases:
+// < true/>
+// <true />
+// <true    />
+// <true  \t />
+// <false   />
+// <string    />
+func normalizeXMLTags(data any) any {
+	switch v := data.(type) {
+	case string:
+		if strings.Contains(v, "/") {
+			trimmed := strings.TrimSpace(v)
+			normalized := regexp.MustCompile(`<\s*(\w+)\s*/>`).ReplaceAllString(trimmed, "<$1/>")
+			return normalized
+		}
+		return v
+	case map[string]any:
+		for key, value := range v {
+			v[key] = normalizeXMLTags(value)
+		}
+	case []any:
+		for i, item := range v {
+			v[i] = normalizeXMLTags(item)
+		}
+	}
+	return data
+}
+
+// normalizeEmptyStrings standardizes empty and whitespace-only strings
+func normalizeEmptyStrings(data any) any {
+	switch v := data.(type) {
+	case string:
+		if strings.TrimSpace(v) == "" {
+			return ""
+		}
+		return v
+	case map[string]any:
+		result := make(map[string]any)
+		for key, value := range v {
+			result[key] = normalizeEmptyStrings(value)
+		}
+		return result
+	case []any:
+		result := make([]any, len(v))
+		for i, item := range v {
+			result[i] = normalizeEmptyStrings(item)
+		}
+		return result
+	default:
+		return data
+	}
+}
+
+// safeHTMLEntity is a regex to detect a single-level valid entity like &lt;, &amp;, etc.
+var safeHTMLEntity = regexp.MustCompile(`&[a-zA-Z]+;`)
+
+// normalizeHTMLEntitiesForDiff applies html.UnescapeString recursively,
+// but avoids double-unescaping or unescaping intentionally escaped XML entities.
+func normalizeHTMLEntitiesForDiff(data any) any {
+	switch v := data.(type) {
+	case string:
+		// If it's wrapped in <string> tags, strip them for evaluation, but preserve during output
+		str := strings.TrimSpace(v)
+		if strings.Contains(str, "&") {
+			// Unescape once
+			unescaped := html.UnescapeString(str)
+
+			// If unescaping results in a valid single-level entity, don't double-unescape
+			if strings.Contains(unescaped, "<") || strings.Contains(unescaped, ">") || safeHTMLEntity.MatchString(unescaped) {
+				return str
+			}
+
+			// Catch common double-escape: &amp;amp; -> &amp;
+			if strings.Contains(str, "&amp;") && !strings.Contains(str, "&amp;amp;") {
+				return unescaped
+			}
+		}
+		return str
+
+	case map[string]any:
+		for key, val := range v {
+			v[key] = normalizeHTMLEntitiesForDiff(val)
+		}
+	case []any:
+		for i, val := range v {
+			v[i] = normalizeHTMLEntitiesForDiff(val)
+		}
+	}
+
+	return data
+}
+
+// trimTrailingWhitespace removes trailing whitespace from each line of the plist
+func trimTrailingWhitespace(plist string) string {
+	lines := strings.Split(plist, "\n")
+	for i, line := range lines {
+		lines[i] = strings.TrimRight(line, " \t")
+	}
+	return strings.Join(lines, "\n")
+}
