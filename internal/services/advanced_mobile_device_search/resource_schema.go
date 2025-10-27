@@ -43,7 +43,7 @@ func ResourceJamfProAdvancedMobileDeviceSearches() *schema.Resource {
 			},
 			"criteria": {
 				Type:        schema.TypeList,
-				Required:    true,
+				Optional:    true,
 				Description: "List of search criteria",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -72,15 +72,14 @@ func ResourceJamfProAdvancedMobileDeviceSearches() *schema.Resource {
 								"is", "is not", "like", "not like", "has", "does not have",
 								"greater than", "less than", "greater than or equal", "less than or equal",
 								"matches regex", "does not match regex", "member of", "not member of",
-								"more than x days ago",
+								"more than x days ago", "less than x days ago",
 							}, false),
 							Description: "Type of search to perform",
 						},
 						"value": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-							Description:  "Value to search for",
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Value to search for",
 						},
 						"opening_paren": {
 							Type:        schema.TypeBool,
