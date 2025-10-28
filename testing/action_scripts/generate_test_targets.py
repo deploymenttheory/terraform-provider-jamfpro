@@ -60,7 +60,7 @@ def get_diff_path(response: list[dict]):
 
 def extract_resource_from_path(path: str):
     path_split = path.split("/")
-    if all(i in path_split for i in ["internal", "resources"]):
+    if all(i in path_split for i in ["internal", "services"]):
         return True, path_split[2]
     return False, None
 
