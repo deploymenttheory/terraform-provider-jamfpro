@@ -25,6 +25,7 @@ resource "jamfpro_icon" "icon_from_web" {
 
 ### Optional
 
+- `icon_file_base64` (String) Base64 encoded string of the icon image file (PNG format). Must be a valid base64 encoded image.
 - `icon_file_path` (String) The file path to the icon file (PNG) to be uploaded.
 - `icon_file_web_source` (String) The web location of the icon file, can be a http(s) URL
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))

@@ -41,11 +41,11 @@ func ResourceJamfProIcons() *schema.Resource {
 				Computed: true,
 			},
 			"icon_file_path": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "",
-				Description:  "The file path to the icon file (PNG) to be uploaded.",
-				ValidateFunc: validateIconFilePath(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				Default:          "",
+				Description:      "The file path to the icon file (PNG) to be uploaded.",
+				ValidateDiagFunc: validateIconFilePath(),
 			},
 			"icon_file_web_source": {
 				Type:         schema.TypeString,
@@ -53,6 +53,13 @@ func ResourceJamfProIcons() *schema.Resource {
 				Default:      "",
 				Description:  "The web location of the icon file, can be a http(s) URL",
 				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^(http|https|file)://.*$|^(/|./|../).*$`), "Must be a valid URL."),
+			},
+			"icon_file_base64": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "",
+				Sensitive:   true,
+				Description: "Base64 encoded string of the icon image file (PNG format). Must be a valid base64 encoded image.",
 			},
 		},
 	}
