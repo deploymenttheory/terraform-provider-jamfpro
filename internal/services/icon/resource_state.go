@@ -11,11 +11,26 @@ import (
 func updateState(d *schema.ResourceData, resp *jamfpro.ResponseIconUpload) diag.Diagnostics {
 	var diags diag.Diagnostics
 
+	iconFilePath := ""
+	iconFileWebSource := ""
+	iconFileBase64 := ""
+
+	if val := d.Get("icon_file_path").(string); val != "" {
+		iconFilePath = val
+	}
+	if val := d.Get("icon_file_web_source").(string); val != "" {
+		iconFileWebSource = val
+	}
+	if val := d.Get("icon_file_base64").(string); val != "" {
+		iconFileBase64 = val
+	}
+
 	iconData := map[string]any{
 		"name":                 resp.Name,
 		"url":                  resp.URL,
-		"icon_file_path":       d.Get("icon_file_path").(string),
-		"icon_file_web_source": d.Get("icon_file_web_source").(string),
+		"icon_file_path":       iconFilePath,
+		"icon_file_web_source": iconFileWebSource,
+		"icon_file_base64":     iconFileBase64,
 	}
 
 	for key, val := range iconData {
