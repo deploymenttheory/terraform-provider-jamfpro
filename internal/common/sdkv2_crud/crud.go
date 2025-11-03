@@ -203,7 +203,14 @@ func Delete(ctx context.Context, d *schema.ResourceData, meta any, serverOutcome
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro resource '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
+		resourceName := ""
+		if nameVal := d.Get("name"); nameVal != nil {
+			resourceName = nameVal.(string)
+		}
+		if resourceName != "" {
+			return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro resource '%s' (ID: %s) after retries: %v", resourceName, resourceID, err))
+		}
+		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro resource (ID: %s) after retries: %v", resourceID, err))
 	}
 
 	d.SetId("")
