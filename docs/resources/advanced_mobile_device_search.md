@@ -43,11 +43,11 @@ resource "jamfpro_advanced_mobile_device_search" "advanced_mobile_device_search_
 
 ### Required
 
-- `criteria` (Block List, Min: 1) List of search criteria (see [below for nested schema](#nestedblock--criteria))
 - `name` (String) The unique name of the advanced mobile device search
 
 ### Optional
 
+- `criteria` (Block List) List of search criteria (see [below for nested schema](#nestedblock--criteria))
 - `display_fields` (Set of String) List of fields to display in the search results
 - `site_id` (String) The ID of the site to associate the search with
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))

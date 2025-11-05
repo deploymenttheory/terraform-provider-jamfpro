@@ -2,15 +2,24 @@ package icon
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/errors"
+	commonerrors "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/errors"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/files"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+var (
+	ErrConstructIconPath = errors.New("failed to construct icon file path")
+	ErrUploadIcon        = errors.New("failed to upload icon")
+	ErrCreateIcon        = errors.New("failed to create Jamf Pro Icon after retries")
+	ErrUpdateIcon        = errors.New("failed to update Jamf Pro Icon after retries")
+	ErrParseIconID       = errors.New("failed to parse icon ID")
 )
 
 // create is responsible for initializing the Jamf Pro Icon configuration in Terraform.
@@ -20,7 +29,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 
 	filePath, err := construct(d)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct icon file path: %v", err))
+		return diag.FromErr(fmt.Errorf("%w: %w", ErrConstructIconPath, err))
 	}
 
 	var uploadResponse *jamfpro.ResponseIconUpload
@@ -28,19 +37,21 @@ func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 		var apiErr error
 		uploadResponse, apiErr = client.UploadIcon(filePath)
 		if apiErr != nil {
-			return retry.RetryableError(fmt.Errorf("failed to upload icon: %v", apiErr))
+			return retry.RetryableError(fmt.Errorf("%w: %w", ErrUploadIcon, apiErr))
 		}
 		return nil
 	})
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Icon after retries: %v", err))
+		return diag.FromErr(fmt.Errorf("%w: %w", ErrCreateIcon, err))
 	}
 
 	d.SetId(fmt.Sprintf("%d", uploadResponse.ID))
 
-	// Only clean up if we downloaded from web source and verify the path is what we expect
 	files.CleanupDownloadedIcon(d.Get("icon_file_web_source").(string), filePath)
+	if d.Get("icon_file_base64").(string) != "" {
+		files.CleanupDownloadedIcon("base64", filePath)
+	}
 
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
@@ -53,7 +64,7 @@ func read(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) d
 	resourceID := d.Id()
 	iconID, err := strconv.Atoi(resourceID)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to parse icon ID %s: %v", resourceID, err))
+		return diag.FromErr(fmt.Errorf("%w %s: %w", ErrParseIconID, resourceID, err))
 	}
 
 	var response *jamfpro.ResponseIconUpload
@@ -67,7 +78,7 @@ func read(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) d
 	})
 
 	if err != nil {
-		return append(diags, errors.HandleResourceNotFoundError(err, d, cleanup)...)
+		return append(diags, commonerrors.HandleResourceNotFoundError(err, d, cleanup)...)
 	}
 
 	return append(diags, updateState(d, response)...)
@@ -88,17 +99,16 @@ func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	// Check if either file source has changed
-	if d.HasChange("icon_file_path") || d.HasChange("icon_file_web_source") {
+	if d.HasChange("icon_file_path") || d.HasChange("icon_file_web_source") || d.HasChange("icon_file_base64") {
 		filePath, err := construct(d)
 		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to construct icon file path for update: %v", err))
+			return diag.FromErr(fmt.Errorf("%w: %w", ErrConstructIconPath, err))
 		}
 
 		err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 			uploadResponse, apiErr := client.UploadIcon(filePath)
 			if apiErr != nil {
-				return retry.RetryableError(fmt.Errorf("failed to upload icon: %v", apiErr))
+				return retry.RetryableError(fmt.Errorf("%w: %w", ErrUploadIcon, apiErr))
 			}
 
 			d.SetId(fmt.Sprintf("%d", uploadResponse.ID))
@@ -106,11 +116,13 @@ func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 		})
 
 		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Icon after retries: %v", err))
+			return diag.FromErr(fmt.Errorf("%w: %w", ErrUpdateIcon, err))
 		}
 
-		// Only clean up if we downloaded from web source and verify the path is what we expect
 		files.CleanupDownloadedIcon(d.Get("icon_file_web_source").(string), filePath)
+		if d.Get("icon_file_base64").(string) != "" {
+			files.CleanupDownloadedIcon("base64", filePath)
+		}
 	}
 
 	return append(diags, readNoCleanup(ctx, d, meta)...)

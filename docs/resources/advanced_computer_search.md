@@ -74,11 +74,11 @@ resource "jamfpro_advanced_computer_search" "advanced_computer_search_001" {
 
 ### Required
 
-- `criteria` (Block List, Min: 1) List of search criteria (see [below for nested schema](#nestedblock--criteria))
 - `name` (String) The unique name of the advanced computer search
 
 ### Optional
 
+- `criteria` (Block List) List of search criteria (see [below for nested schema](#nestedblock--criteria))
 - `display_fields` (Set of String) List of fields to display in the search results
 - `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `sort1` (String) First sorting criteria for the advanced computer search

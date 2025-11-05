@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.28.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.27.0...v0.28.0) (2025-11-03)
+
+
+### Features
+
+* add base64 encoded file support for jamfpro_icon resource ([#915](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/915)) ([2069e13](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/2069e1383c1b816ffd783f78b05e9deb5831604e))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([39495e9](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/39495e9fd81f79a3f7a4f8167c3a6ec8bc76e37e))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([2069e13](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/2069e1383c1b816ffd783f78b05e9deb5831604e))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([39495e9](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/39495e9fd81f79a3f7a4f8167c3a6ec8bc76e37e))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([2069e13](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/2069e1383c1b816ffd783f78b05e9deb5831604e))
+
+
+### Bug Fixes
+
+* resolved state handling of "" ([a9e4880](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/a9e488019f12db5ac95ae2c8f3b705271d501536))
+* tests for advanced computer search ([c3a41a4](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/c3a41a4aad3d9df396987504a83a9b28825c8e44))
+* update schemas in advanced computer/mobile device search resources ([#911](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/911)) ([39495e9](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/39495e9fd81f79a3f7a4f8167c3a6ec8bc76e37e))
+
 ## [0.27.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.26.0...v0.27.0) (2025-10-23)
 
 

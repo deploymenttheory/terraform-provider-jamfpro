@@ -7,6 +7,7 @@ import (
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/errors"
+	crud "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/sdkv2_crud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -111,27 +112,10 @@ func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 
 // delete is responsible for deleting a Jamf Pro Mobile Device Configuration Profile.
 func delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	client := meta.(*jamfpro.Client)
-	var diags diag.Diagnostics
-	resourceID := d.Id()
-
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		apiErr := client.DeleteMobileDeviceConfigurationProfileByID(resourceID)
-		if apiErr != nil {
-			resourceName := d.Get("name").(string)
-			apiErrByName := client.DeleteMobileDeviceConfigurationProfileByName(resourceName)
-			if apiErrByName != nil {
-				return retry.RetryableError(apiErrByName)
-			}
-		}
-		return nil
-	})
-
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to delete Jamf Pro Mobile Device Configuration Profile '%s' (ID: %s) after retries: %v", d.Get("name").(string), resourceID, err))
-	}
-
-	d.SetId("")
-
-	return diags
+	return crud.Delete(
+		ctx,
+		d,
+		meta,
+		meta.(*jamfpro.Client).DeleteMobileDeviceConfigurationProfileByID,
+	)
 }
