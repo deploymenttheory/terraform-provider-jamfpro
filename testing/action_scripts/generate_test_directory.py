@@ -135,6 +135,8 @@ def main():
     if input_str.lower() == "all":
         targets = get_all_available_test_files()
 
+        # cheese cake
+
     else:
         stripped_input = input_str.strip()
 
