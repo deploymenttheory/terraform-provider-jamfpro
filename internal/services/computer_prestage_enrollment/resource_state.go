@@ -152,32 +152,46 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 
 // skipSetupItems converts the ComputerPrestageSubsetSkipSetupItems struct to a map
 func skipSetupItems(skipSetupItems jamfpro.ComputerPrestageSubsetSkipSetupItems) map[string]any {
-	return map[string]any{
-		"biometric":                   *skipSetupItems.Biometric,
-		"terms_of_address":            *skipSetupItems.TermsOfAddress,
-		"file_vault":                  *skipSetupItems.FileVault,
-		"icloud_diagnostics":          *skipSetupItems.ICloudDiagnostics,
-		"diagnostics":                 *skipSetupItems.Diagnostics,
-		"accessibility":               *skipSetupItems.Accessibility,
-		"apple_id":                    *skipSetupItems.AppleID,
-		"screen_time":                 *skipSetupItems.ScreenTime,
-		"siri":                        *skipSetupItems.Siri,
-		"display_tone":                *skipSetupItems.DisplayTone,
-		"restore":                     *skipSetupItems.Restore,
-		"appearance":                  *skipSetupItems.Appearance,
-		"privacy":                     *skipSetupItems.Privacy,
-		"payment":                     *skipSetupItems.Payment,
-		"registration":                *skipSetupItems.Registration,
-		"tos":                         *skipSetupItems.TOS,
-		"icloud_storage":              *skipSetupItems.ICloudStorage,
-		"location":                    *skipSetupItems.Location,
-		"intelligence":                *skipSetupItems.Intelligence,
-		"enable_lockdown_mode":        *skipSetupItems.EnableLockdownMode,
-		"welcome":                     *skipSetupItems.Welcome,
-		"wallpaper":                   *skipSetupItems.Wallpaper,
-		"software_update":             *skipSetupItems.SoftwareUpdate,
-		"additional_privacy_settings": *skipSetupItems.AdditionalPrivacySettings,
+	result := map[string]any{
+		"biometric":          *skipSetupItems.Biometric,
+		"terms_of_address":   *skipSetupItems.TermsOfAddress,
+		"file_vault":         *skipSetupItems.FileVault,
+		"icloud_diagnostics": *skipSetupItems.ICloudDiagnostics,
+		"diagnostics":        *skipSetupItems.Diagnostics,
+		"accessibility":      *skipSetupItems.Accessibility,
+		"apple_id":           *skipSetupItems.AppleID,
+		"screen_time":        *skipSetupItems.ScreenTime,
+		"siri":               *skipSetupItems.Siri,
+		"display_tone":       *skipSetupItems.DisplayTone,
+		"restore":            *skipSetupItems.Restore,
+		"appearance":         *skipSetupItems.Appearance,
+		"privacy":            *skipSetupItems.Privacy,
+		"payment":            *skipSetupItems.Payment,
+		"registration":       *skipSetupItems.Registration,
+		"tos":                *skipSetupItems.TOS,
+		"icloud_storage":     *skipSetupItems.ICloudStorage,
+		"location":           *skipSetupItems.Location,
+		"intelligence":       *skipSetupItems.Intelligence,
+		"enable_lockdown_mode": *skipSetupItems.EnableLockdownMode,
+		"welcome":              *skipSetupItems.Welcome,
+		"wallpaper":            *skipSetupItems.Wallpaper,
 	}
+
+	// Handle fields added in v0.25.0 (Jamf Pro 11.20) that may not exist in older state
+	// Default to false if nil to maintain backward compatibility
+	if skipSetupItems.SoftwareUpdate != nil {
+		result["software_update"] = *skipSetupItems.SoftwareUpdate
+	} else {
+		result["software_update"] = false
+	}
+
+	if skipSetupItems.AdditionalPrivacySettings != nil {
+		result["additional_privacy_settings"] = *skipSetupItems.AdditionalPrivacySettings
+	} else {
+		result["additional_privacy_settings"] = false
+	}
+
+	return result
 }
 
 // getHCLValue gets the value of a key from the ResourceData, either from the current state or the config.
