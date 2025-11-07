@@ -1,3 +1,19 @@
+```mermaid
+flowchart TD
+    Start([Start: mode != update]) --> GetPayloads[Get payloads from Terraform schema<br/>d.Get payloads string]
+    GetPayloads --> Escape[HTML Escape String<br/>html.EscapeString payloads]
+    Escape --> Assign[Assign to resource<br/>resource.General.Payloads = escapedPayloads]
+    Assign --> End([End: Return resource])
+    
+    style Start fill:#e1f5e1
+    style End fill:#e1f5e1
+    style GetPayloads fill:#fff4e1
+    style Escape fill:#fff4e1
+    style Assign fill:#fff4e1
+```
+
+
+
 # Payloads Flow: CREATE vs UPDATE
 
 ## **CREATE Flow - Payloads**
@@ -81,3 +97,7 @@
 4. Re-encoding everything together
 
 This ensures the update is recognized as a modification to the *same* profile, not a new profile.
+
+
+
+
