@@ -14,7 +14,6 @@ func ResourceJamfProIcons() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,
 		ReadContext:   readWithCleanup,
-		UpdateContext: update,
 		DeleteContext: delete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
@@ -44,6 +43,7 @@ func ResourceJamfProIcons() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          "",
+				ForceNew:         true,
 				Description:      "The file path to the icon file (PNG) to be uploaded.",
 				ValidateDiagFunc: validateIconFilePath(),
 			},
@@ -51,6 +51,7 @@ func ResourceJamfProIcons() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "",
+				ForceNew:     true,
 				Description:  "The web location of the icon file, can be a http(s) URL",
 				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^(http|https|file)://.*$|^(/|./|../).*$`), "Must be a valid URL."),
 			},
@@ -58,6 +59,7 @@ func ResourceJamfProIcons() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "",
+				ForceNew:    true,
 				Sensitive:   true,
 				Description: "Base64 encoded string of the icon image file (PNG format). Must be a valid base64 encoded image.",
 			},
