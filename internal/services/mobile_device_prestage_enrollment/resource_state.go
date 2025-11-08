@@ -58,6 +58,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDevicePrest
 		"rts_enabled":                                  resp.RTSEnabled,
 		"rts_config_profile_id":                        resp.RTSConfigProfileId,
 		"preserve_managed_apps":                        resp.PreserveManagedApps,
+		"install_apps_during_enrollment":               resp.InstallAppsDuringEnrollment,
 	}
 
 	if locationInformation := resp.LocationInformation; locationInformation != (jamfpro.MobileDevicePrestageSubsetLocationInformation{}) {
@@ -98,7 +99,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDevicePrest
 		}
 	}
 
-	if names := resp.Names; names.AssignNamesUsing != "" || names.DeviceNamePrefix != "" || names.DeviceNameSuffix != "" || names.SingleDeviceName != "" || *names.ManageNames || *names.DeviceNamingConfigured {
+	if names := resp.Names; names.AssignNamesUsing != "" || names.DeviceNamePrefix != "" || names.DeviceNameSuffix != "" || names.SingleDeviceName != "" || names.ManageNames || names.DeviceNamingConfigured {
 		namesMap := map[string]any{
 			"assign_names_using":       names.AssignNamesUsing,
 			"device_name_prefix":       names.DeviceNamePrefix,
