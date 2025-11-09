@@ -67,8 +67,9 @@ func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 			},
 			"enrollment_site_id": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The jamf pro Site ID that computers will be added to during enrollment. Should be set to -1, if not used.",
+				Optional:    true,
+				Default:     "-1",
+				Description: "The Jamf Pro Site ID that computers will be added to during enrollment. Default is -1.",
 			},
 			"keep_existing_site_membership": {
 				Type:        schema.TypeBool,
@@ -87,7 +88,8 @@ func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 			},
 			"authentication_prompt": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
+				Default:     "",
 				Description: "Authentication Message to display to the user. Used when Require Authentication is enabled. Can be left blank.",
 			},
 			"prevent_activation_lock": {
@@ -108,139 +110,171 @@ func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 			"platform_sso_enabled": {
 				Type:        schema.TypeBool,
 				Optional:    true,
+				Computed:    true,
 				Description: "Indicates if platform single sign-on (SSO) is enabled.",
 			},
 			"platform_sso_app_bundle_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Computed:    true,
 				Description: "The app bundle ID for used for platform SSO.",
 			},
 			"skip_setup_items": {
 				Type:        schema.TypeList,
-				Required:    true,
+				Optional:    true,
+				Computed:    true,
 				Description: "Selected items are not displayed in the Setup Assistant during macOS device setup within Apple Device Enrollment (ADE).",
 				MaxItems:    1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"biometric": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Skip biometric setup.",
 						},
 						"terms_of_address": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Skip terms of address setup.",
 						},
 						"file_vault": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Skip FileVault setup.",
 						},
 						"icloud_diagnostics": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Skip iCloud diagnostics setup.",
 						},
 						"diagnostics": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Skip diagnostics setup.",
 						},
 						"accessibility": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
 							Description: "Skip accessibility setup.",
 						},
 						"apple_id": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Skip Apple ID setup.",
 						},
 						"screen_time": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Skip Screen Time setup.",
 						},
 						"siri": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Skip Siri setup.",
 						},
 						"display_tone": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Skip Display Tone setup. (Deprecated)",
 						},
 						"restore": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Skip Restore setup.",
 						},
 						"appearance": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Skip Appearance setup.",
 						},
 						"privacy": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Skip Privacy setup.",
 						},
 						"payment": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Skip Payment setup.",
 						},
 						"registration": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Skip Registration setup.",
 						},
 						"tos": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Skip Terms of Service setup.",
 						},
 						"icloud_storage": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Skip iCloud Storage setup.",
 						},
 						"location": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Skip Location setup.",
 						},
 						"intelligence": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Skip Apple Intelligence setup.",
 						},
 						"enable_lockdown_mode": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Skip lockdown mode setup.",
 						},
 						"welcome": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Skip welcome setup.",
 						},
 						"wallpaper": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Skip wallpaper setup.",
 						},
 						"software_update": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Skip software update setup.",
 						},
 						"additional_privacy_settings": {
 							Type:        schema.TypeBool,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Skip additional privacy settings setup.",
+						},
+						"os_showcase": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Computed:    true,
+							Description: "Skip OS Showcase setup.",
 						},
 					},
 				},
@@ -303,7 +337,7 @@ func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 						},
 						"building_id": {
 							Type:        schema.TypeString,
-							Optional:    true,
+							Required:    true,
 							Description: "The building ID associated with this computer prestage. Set to -1 if not used.",
 						},
 					},
@@ -377,19 +411,22 @@ func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 						},
 						"lease_date": {
 							Type:         schema.TypeString,
-							Required:     true,
+							Optional:     true,
+							Default:      "1970-01-01",
 							Description:  "The lease date in YYYY-MM-DD format. Use '1970-01-01' if unused.",
 							ValidateFunc: validateDateFormat,
 						},
 						"po_date": {
 							Type:         schema.TypeString,
-							Required:     true,
+							Optional:     true,
+							Default:      "1970-01-01",
 							Description:  "The purchase order date in YYYY-MM-DD format. Use '1970-01-01' if unused",
 							ValidateFunc: validateDateFormat,
 						},
 						"warranty_date": {
 							Type:         schema.TypeString,
-							Required:     true,
+							Optional:     true,
+							Default:      "1970-01-01",
 							Description:  "The warranty date in YYYY-MM-DD format. Use '1970-01-01' if unused",
 							ValidateFunc: validateDateFormat,
 						},
@@ -399,22 +436,26 @@ func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 			"anchor_certificates": {
 				Type:        schema.TypeList,
 				Optional:    true,
+				Computed:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "List of Base64 encoded PEM Certificates.",
 			},
 			"enrollment_customization_id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
+				Computed:    true,
 				Description: "The enrollment customization ID. Set to 0 if unused.",
 			},
 			"language": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
+				Computed:    true,
 				Description: "The language setting defined for the computer prestage. Leverages ISO 639-1 (two-letter language codes): https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes . Ensure you define a code supported by jamf pro. Can be left blank.",
 			},
 			"region": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
+				Computed:    true,
 				Description: "The region setting defined for the computer prestage. Leverages ISO 3166-1 alpha-2 (two-letter country codes): https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2 . Ensure you define a code supported by jamf pro. Can be left blank.",
 			},
 			"auto_advance_setup": {
@@ -485,7 +526,8 @@ func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 			},
 			"prestage_minimum_os_target_version_type": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
+				Computed:    true,
 				Description: "Enforce a minimum macOS target version type for the prestage enrollment. Required.",
 				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(string)
@@ -505,6 +547,7 @@ func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 			"minimum_os_specific_version": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Computed:    true,
 				Description: "The minimum macOS version to enforce for the prestage enrollment. Only used if prestate_minimum_os_target_version_type is set to MINIMUM_OS_SPECIFIC_VERSION.",
 			},
 			"profile_uuid": {
@@ -514,8 +557,8 @@ func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 			},
 			"site_id": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The jamf pro site ID. Set to -1 if not used.",
+				Computed:    true,
+				Description: "The jamf pro site ID.",
 			},
 			"version_lock": {
 				Type:     schema.TypeInt,
@@ -529,7 +572,8 @@ func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 			},
 			"account_settings": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -549,40 +593,46 @@ func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 						},
 						"payload_configured": {
 							Type:        schema.TypeBool,
-							Required:    true,
-							Description: "Indicates if the payload is configured.",
+							Computed:    true,
+							Description: "Indicates if the payload is configured. Always true.",
 						},
 						"local_admin_account_enabled": {
 							Type:        schema.TypeBool,
-							Required:    true,
-							Description: "Indicates if the local admin account is enabled.",
+							Optional:    true,
+							Default:     false,
+							Description: "Indicates if the local admin account is enabled. Default is false.",
 						},
 						"admin_username": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
+							Default:     "",
 							Sensitive:   true,
 							Description: "The admin username. Can be left blank if not used.",
 						},
 						"admin_password": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
+							Default:     "",
 							Sensitive:   true,
 							Description: "The admin password. Can be left blank if not used.",
 						},
 						"hidden_admin_account": {
 							Type:        schema.TypeBool,
-							Required:    true,
-							Description: "Indicates if the admin account is hidden.",
+							Optional:    true,
+							Default:     false,
+							Description: "Indicates if the admin account is hidden. Default is false.",
 						},
 						"local_user_managed": {
 							Type:        schema.TypeBool,
-							Required:    true,
-							Description: "Indicates if the local user is managed.",
+							Optional:    true,
+							Default:     false,
+							Description: "Indicates if the local user is managed. Default is false.",
 						},
 						"user_account_type": {
 							Type:        schema.TypeString,
-							Required:    true,
-							Description: "Type of user account (ADMINISTRATOR, STANDARD, SKIP).",
+							Optional:    true,
+							Default:     "ADMINISTRATOR",
+							Description: "Type of user account (ADMINISTRATOR, STANDARD, SKIP). Default is ADMINISTRATOR.",
 							ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 								v := val.(string)
 								validTypes := map[string]bool{
@@ -598,19 +648,20 @@ func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 						},
 						"prefill_primary_account_info_feature_enabled": {
 							Type:        schema.TypeBool,
-							Required:    true,
-							Description: "Indicates if prefilling primary account info feature is enabled.",
+							Optional:    true,
+							Default:     false,
+							Description: "Indicates if prefilling primary account info feature is enabled. Default is false.",
 						},
 						"prefill_type": {
 							Type:        schema.TypeString,
-							Required:    true,
-							Description: "Pre-fill primary account information type (CUSTOM, DEVICE_OWNER, or UNKNOWN). Set as UNKNOWN if you wish to leave it unconfigured.",
+							Optional:    true,
+							Default:     "CUSTOM",
+							Description: "Pre-fill primary account information type (CUSTOM or DEVICE_OWNER). Default is CUSTOM.",
 							ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 								v := val.(string)
 								validTypes := map[string]bool{
 									"CUSTOM":       true,
 									"DEVICE_OWNER": true,
-									"UNKNOWN":      true,
 								}
 								if _, valid := validTypes[v]; !valid {
 									errs = append(errs, fmt.Errorf("%q must be one of 'CUSTOM', 'DEVICE_OWNER', 'UNKNOWN' got: %s", key, v))
@@ -620,18 +671,21 @@ func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 						},
 						"prefill_account_full_name": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
+							Default:     "",
 							Description: "Type of information to use to pre-fill the primary account full name with. Can be left blank.",
 						},
 						"prefill_account_user_name": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
+							Default:     "",
 							Description: "Type of information to use to pre-fill the primary account user name with. Can be left blank.",
 						},
 						"prevent_prefill_info_from_modification": {
 							Type:        schema.TypeBool,
-							Required:    true,
-							Description: "Lock prefill primary account information from modification.",
+							Optional:    true,
+							Default:     false,
+							Description: "Lock prefill primary account information from modification. Default is false.",
 						},
 					},
 				},
