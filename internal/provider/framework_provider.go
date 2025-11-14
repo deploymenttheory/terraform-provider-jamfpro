@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-http-client-integrations/jamf/jamfprointegration"
@@ -21,6 +22,8 @@ import (
 var (
 	_ provider.Provider = &frameworkProvider{}
 )
+
+const minimumJamfProVersion = "11.20"
 
 // frameworkProvider defines the provider implementation for Framework-based resources.
 type frameworkProvider struct {
@@ -345,6 +348,40 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 	// Create Jamf Pro SDK client - exactly matching SDKv2 provider
 	jamfProSdk := jamfpro.Client{
 		HTTP: httpClient,
+	}
+
+	versionResp, err := jamfProSdk.GetJamfProVersion()
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error checking Jamf Pro version",
+			fmt.Sprintf("Unable to determine Jamf Pro version: %v", err),
+		)
+		return
+	}
+
+	if versionResp == nil || versionResp.Version == nil || strings.TrimSpace(*versionResp.Version) == "" {
+		resp.Diagnostics.AddError(
+			"Error checking Jamf Pro version",
+			"Jamf Pro version response was empty",
+		)
+		return
+	}
+
+	meetsRequirement, err := versionSupportsRequirement(*versionResp.Version, minimumJamfProVersion)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error parsing Jamf Pro version",
+			fmt.Sprintf("Unable to parse Jamf Pro version %q: %v", *versionResp.Version, err),
+		)
+		return
+	}
+
+	if !meetsRequirement {
+		resp.Diagnostics.AddWarning(
+			"Unsupported Jamf Pro Version",
+			fmt.Sprintf("Your Jamf Pro instance (%s) does not meet the minimum supported version (%s). Operation against unsupported versions is not guaranteed and may result in data inconsistencies or provider errors. Continue only if you understand the risks.", *versionResp.Version, minimumJamfProVersion),
+		)
+		return
 	}
 
 	// Store client for use by resources and data sources
