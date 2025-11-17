@@ -16,24 +16,24 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 	resource := &jamfpro.ResourceComputerPrestage{
 		VersionLock:                        d.Get("version_lock").(int), // for some reason, this is not incremented. weird.
 		DisplayName:                        d.Get("display_name").(string),
-		Mandatory:                          jamfpro.BoolPtr(d.Get("mandatory").(bool)),
-		MDMRemovable:                       jamfpro.BoolPtr(d.Get("mdm_removable").(bool)),
+		Mandatory:                          d.Get("mandatory").(bool),
+		MDMRemovable:                       d.Get("mdm_removable").(bool),
 		SupportPhoneNumber:                 d.Get("support_phone_number").(string),
 		SupportEmailAddress:                d.Get("support_email_address").(string),
 		Department:                         d.Get("department").(string),
-		DefaultPrestage:                    jamfpro.BoolPtr(d.Get("default_prestage").(bool)),
+		DefaultPrestage:                    d.Get("default_prestage").(bool),
 		EnrollmentSiteId:                   constructors.GetHCLStringOrDefaultInteger(d, "enrollment_site_id"),
-		KeepExistingSiteMembership:         jamfpro.BoolPtr(d.Get("keep_existing_site_membership").(bool)),
-		KeepExistingLocationInformation:    jamfpro.BoolPtr(d.Get("keep_existing_location_information").(bool)),
-		RequireAuthentication:              jamfpro.BoolPtr(d.Get("require_authentication").(bool)),
+		KeepExistingSiteMembership:         d.Get("keep_existing_site_membership").(bool),
+		KeepExistingLocationInformation:    d.Get("keep_existing_location_information").(bool),
+		RequireAuthentication:              d.Get("require_authentication").(bool),
 		AuthenticationPrompt:               d.Get("authentication_prompt").(string),
-		PreventActivationLock:              jamfpro.BoolPtr(d.Get("prevent_activation_lock").(bool)),
-		EnableDeviceBasedActivationLock:    jamfpro.BoolPtr(d.Get("enable_device_based_activation_lock").(bool)),
+		PreventActivationLock:              d.Get("prevent_activation_lock").(bool),
+		EnableDeviceBasedActivationLock:    d.Get("enable_device_based_activation_lock").(bool),
 		DeviceEnrollmentProgramInstanceId:  d.Get("device_enrollment_program_instance_id").(string),
-		EnableRecoveryLock:                 jamfpro.BoolPtr(d.Get("enable_recovery_lock").(bool)),
+		EnableRecoveryLock:                 d.Get("enable_recovery_lock").(bool),
 		RecoveryLockPasswordType:           d.Get("recovery_lock_password_type").(string),
 		RecoveryLockPassword:               d.Get("recovery_lock_password").(string),
-		RotateRecoveryLockPassword:         jamfpro.BoolPtr(d.Get("rotate_recovery_lock_password").(bool)),
+		RotateRecoveryLockPassword:         d.Get("rotate_recovery_lock_password").(bool),
 		PrestageMinimumOsTargetVersionType: d.Get("prestage_minimum_os_target_version_type").(string),
 		MinimumOsSpecificVersion:           d.Get("minimum_os_specific_version").(string),
 		ProfileUuid:                        d.Get("profile_uuid").(string),
@@ -42,9 +42,9 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 		EnrollmentCustomizationId:          d.Get("enrollment_customization_id").(string),
 		Language:                           d.Get("language").(string),
 		Region:                             d.Get("region").(string),
-		AutoAdvanceSetup:                   jamfpro.BoolPtr(d.Get("auto_advance_setup").(bool)),
-		InstallProfilesDuringSetup:         jamfpro.BoolPtr(d.Get("install_profiles_during_setup").(bool)),
-		PssoEnabled:                        jamfpro.BoolPtr(d.Get("platform_sso_enabled").(bool)),
+		AutoAdvanceSetup:                   d.Get("auto_advance_setup").(bool),
+		InstallProfilesDuringSetup:         d.Get("install_profiles_during_setup").(bool),
+		PssoEnabled:                        d.Get("platform_sso_enabled").(bool),
 		PlatformSsoAppBundleId:             d.Get("platform_sso_app_bundle_id").(string),
 	}
 
@@ -66,6 +66,11 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 	if v, ok := d.GetOk("account_settings"); ok && len(v.([]any)) > 0 {
 		accountData := v.([]any)[0].(map[string]any)
 		resource.AccountSettings = constructAccountSettings(accountData, isUpdate, versionLock)
+	} else {
+		resource.AccountSettings = jamfpro.ComputerPrestageSubsetAccountSettings{
+			VersionLock:       versionLock,
+			PayloadConfigured: true,
+		}
 	}
 
 	if v, ok := d.GetOk("anchor_certificates"); ok {
@@ -92,20 +97,6 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 		}
 	}
 
-	if v, ok := d.GetOk("onboarding_items"); ok {
-		onboardingItems := make([]jamfpro.OnboardingItem, len(v.([]any)))
-		for i, item := range v.([]any) {
-			itemMap := item.(map[string]any)
-			onboardingItems[i] = jamfpro.OnboardingItem{
-				SelfServiceEntityType: itemMap["self_service_entity_type"].(string),
-				ID:                    itemMap["id"].(string),
-				EntityId:              itemMap["entity_id"].(string),
-				Priority:              itemMap["priority"].(int),
-			}
-		}
-		resource.OnboardingItems = onboardingItems
-	}
-
 	// Serialize and pretty-print the inventory collection object as JSON for logging
 	resourceJSON, err := redact.SerializeAndRedactJSON(resource, []string{"AccountSettings.AdminPassword", "AccountSettings.AdminUsername"})
 	if err != nil {
@@ -120,30 +111,31 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 // constructSkipSetupItems constructs the SkipSetupItems subset of a Computer Prestage resource.
 func constructSkipSetupItems(data map[string]any) jamfpro.ComputerPrestageSubsetSkipSetupItems {
 	return jamfpro.ComputerPrestageSubsetSkipSetupItems{
-		Biometric:                 jamfpro.BoolPtr(data["biometric"].(bool)),
-		TermsOfAddress:            jamfpro.BoolPtr(data["terms_of_address"].(bool)),
-		FileVault:                 jamfpro.BoolPtr(data["file_vault"].(bool)),
-		ICloudDiagnostics:         jamfpro.BoolPtr(data["icloud_diagnostics"].(bool)),
-		Diagnostics:               jamfpro.BoolPtr(data["diagnostics"].(bool)),
-		Accessibility:             jamfpro.BoolPtr(data["accessibility"].(bool)),
-		AppleID:                   jamfpro.BoolPtr(data["apple_id"].(bool)),
-		ScreenTime:                jamfpro.BoolPtr(data["screen_time"].(bool)),
-		Siri:                      jamfpro.BoolPtr(data["siri"].(bool)),
-		DisplayTone:               jamfpro.BoolPtr(data["display_tone"].(bool)),
-		Restore:                   jamfpro.BoolPtr(data["restore"].(bool)),
-		Appearance:                jamfpro.BoolPtr(data["appearance"].(bool)),
-		Privacy:                   jamfpro.BoolPtr(data["privacy"].(bool)),
-		Payment:                   jamfpro.BoolPtr(data["payment"].(bool)),
-		Registration:              jamfpro.BoolPtr(data["registration"].(bool)),
-		TOS:                       jamfpro.BoolPtr(data["tos"].(bool)),
-		ICloudStorage:             jamfpro.BoolPtr(data["icloud_storage"].(bool)),
-		Location:                  jamfpro.BoolPtr(data["location"].(bool)),
-		Intelligence:              jamfpro.BoolPtr(data["intelligence"].(bool)),
-		EnableLockdownMode:        jamfpro.BoolPtr(data["enable_lockdown_mode"].(bool)),
-		Welcome:                   jamfpro.BoolPtr(data["welcome"].(bool)),
-		Wallpaper:                 jamfpro.BoolPtr(data["wallpaper"].(bool)),
-		SoftwareUpdate:            jamfpro.BoolPtr(data["software_update"].(bool)),
-		AdditionalPrivacySettings: jamfpro.BoolPtr(data["additional_privacy_settings"].(bool)),
+		Biometric:                 data["biometric"].(bool),
+		TermsOfAddress:            data["terms_of_address"].(bool),
+		FileVault:                 data["file_vault"].(bool),
+		ICloudDiagnostics:         data["icloud_diagnostics"].(bool),
+		Diagnostics:               data["diagnostics"].(bool),
+		Accessibility:             data["accessibility"].(bool),
+		AppleID:                   data["apple_id"].(bool),
+		ScreenTime:                data["screen_time"].(bool),
+		Siri:                      data["siri"].(bool),
+		DisplayTone:               data["display_tone"].(bool),
+		Restore:                   data["restore"].(bool),
+		Appearance:                data["appearance"].(bool),
+		Privacy:                   data["privacy"].(bool),
+		Payment:                   data["payment"].(bool),
+		Registration:              data["registration"].(bool),
+		TOS:                       data["tos"].(bool),
+		ICloudStorage:             data["icloud_storage"].(bool),
+		Location:                  data["location"].(bool),
+		Intelligence:              data["intelligence"].(bool),
+		EnableLockdownMode:        data["enable_lockdown_mode"].(bool),
+		Welcome:                   data["welcome"].(bool),
+		Wallpaper:                 data["wallpaper"].(bool),
+		SoftwareUpdate:            data["software_update"].(bool),
+		AdditionalPrivacySettings: data["additional_privacy_settings"].(bool),
+		OSShowcase:                data["os_showcase"].(bool),
 	}
 }
 
@@ -178,8 +170,8 @@ func constructPurchasingInformation(data map[string]any, isUpdate bool, versionL
 	return jamfpro.ComputerPrestageSubsetPurchasingInformation{
 		ID:                "-1",
 		VersionLock:       versionLock,
-		Leased:            jamfpro.BoolPtr(data["leased"].(bool)),
-		Purchased:         jamfpro.BoolPtr(data["purchased"].(bool)),
+		Leased:            data["leased"].(bool),
+		Purchased:         data["purchased"].(bool),
 		AppleCareId:       data["apple_care_id"].(string),
 		PONumber:          data["po_number"].(string),
 		Vendor:            data["vendor"].(string),
@@ -196,19 +188,18 @@ func constructPurchasingInformation(data map[string]any, isUpdate bool, versionL
 // constructAccountSettings constructs the AccountSettings subset of a Computer Prestage resource.
 func constructAccountSettings(data map[string]any, isUpdate bool, versionLock int) jamfpro.ComputerPrestageSubsetAccountSettings {
 	return jamfpro.ComputerPrestageSubsetAccountSettings{
-		ID:                                      "-1",
 		VersionLock:                             versionLock,
-		PayloadConfigured:                       jamfpro.BoolPtr(data["payload_configured"].(bool)),
-		LocalAdminAccountEnabled:                jamfpro.BoolPtr(data["local_admin_account_enabled"].(bool)),
+		PayloadConfigured:                       true,
+		LocalAdminAccountEnabled:                data["local_admin_account_enabled"].(bool),
 		AdminUsername:                           data["admin_username"].(string),
 		AdminPassword:                           data["admin_password"].(string),
-		HiddenAdminAccount:                      jamfpro.BoolPtr(data["hidden_admin_account"].(bool)),
-		LocalUserManaged:                        jamfpro.BoolPtr(data["local_user_managed"].(bool)),
+		HiddenAdminAccount:                      data["hidden_admin_account"].(bool),
+		LocalUserManaged:                        data["local_user_managed"].(bool),
 		UserAccountType:                         data["user_account_type"].(string),
-		PrefillPrimaryAccountInfoFeatureEnabled: jamfpro.BoolPtr(data["prefill_primary_account_info_feature_enabled"].(bool)),
+		PrefillPrimaryAccountInfoFeatureEnabled: data["prefill_primary_account_info_feature_enabled"].(bool),
 		PrefillType:                             data["prefill_type"].(string),
 		PrefillAccountFullName:                  data["prefill_account_full_name"].(string),
 		PrefillAccountUserName:                  data["prefill_account_user_name"].(string),
-		PreventPrefillInfoFromModification:      jamfpro.BoolPtr(data["prevent_prefill_info_from_modification"].(bool)),
+		PreventPrefillInfoFromModification:      data["prevent_prefill_info_from_modification"].(bool),
 	}
 }
