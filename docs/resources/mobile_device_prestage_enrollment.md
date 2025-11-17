@@ -129,7 +129,6 @@ resource "jamfpro_mobile_device_prestage_enrollment" "example_prestage" {
 ### Required
 
 - `allow_pairing` (Boolean) Allow device pairing.
-- `authentication_prompt` (String) Message displayed when authentication is required.
 - `auto_advance_setup` (Boolean) Indicates if setup should auto-advance.
 - `configure_device_before_setup_assistant` (Boolean) Configure device before Setup Assistant.
 - `default_prestage` (Boolean) Whether this is the default prestage enrollment configuration.
@@ -137,46 +136,48 @@ resource "jamfpro_mobile_device_prestage_enrollment" "example_prestage" {
 - `device_enrollment_program_instance_id` (String) The Automated Device Enrollment instance ID.
 - `display_name` (String) The display name of the mobile device prestage enrollment.
 - `enable_device_based_activation_lock` (Boolean) Enable device-based Activation Lock.
-- `enrollment_customization_id` (String) The enrollment customization ID. Set to 0 if unused.
 - `keep_existing_location_information` (Boolean) Maintain existing location information during enrollment.
 - `keep_existing_site_membership` (Boolean) Maintain existing site membership during enrollment.
-- `language` (String) The language setting defined for the mobile device prestage. Leverages ISO 639-1 (two-letter language codes): https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes . Ensure you define a code supported by jamf pro. Can be left blank.
 - `location_information` (Block List, Min: 1) Location information associated with the Jamf Pro mobile device prestage. (see [below for nested schema](#nestedblock--location_information))
 - `mandatory` (Boolean) Make MDM Profile Mandatory.
 - `maximum_shared_accounts` (Number) Maximum number of shared accounts.
 - `mdm_removable` (Boolean) Allow MDM Profile Removal.
 - `multi_user` (Boolean) Enable multi-user mode.
 - `names` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--names))
-- `prestage_minimum_os_target_version_type_ios` (String) The type of minimum OS version enforcement for iOS devices.
-- `prestage_minimum_os_target_version_type_ipad` (String) The type of minimum OS version enforcement for iPadOS devices.
 - `prevent_activation_lock` (Boolean) Prevent Activation Lock on the device.
 - `purchasing_information` (Block List, Min: 1, Max: 1) Purchasing information associated with the mobile device prestage. (see [below for nested schema](#nestedblock--purchasing_information))
-- `region` (String) The region setting defined for the mobile device prestage. Leverages ISO 3166-1 alpha-2 (two-letter country codes): https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2 . Ensure you define a code supported by jamf pro. Can be left blank.
 - `require_authentication` (Boolean) Require authentication during enrollment.
-- `skip_setup_items` (Block List, Min: 1, Max: 1) Selected items are not displayed in the Setup Assistant during mobile device setup within Apple Device Enrollment (ADE). (see [below for nested schema](#nestedblock--skip_setup_items))
+- `send_timezone` (Boolean) Indicates if timezone should be sent to the device.
 - `supervised` (Boolean) Device is supervised.
 - `support_email_address` (String) Support email address for the organization.
 - `support_phone_number` (String) Support phone number for the organization.
-- `timezone` (String) The timezone to be set on the device. Default is UTC
+- `use_storage_quota_size` (Boolean) Indicates if storage quota size should be enforced.
 
 ### Optional
 
 - `anchor_certificates` (List of String) List of Base64 encoded PEM Certificates.
+- `authentication_prompt` (String) Message displayed when authentication is required.
 - `enforce_temporary_session_timeout` (Boolean) Indicates if temporary session timeout should be enforced.
 - `enforce_user_session_timeout` (Boolean) Indicates if user session timeout should be enforced.
+- `enrollment_customization_id` (String) The enrollment customization ID. Set to 0 if unused.
 - `enrollment_site_id` (String) Site ID for device enrollment.
+- `install_apps_during_enrollment` (Boolean) Controls whether apps are installed during the enrollment process.
+- `language` (String) The language setting defined for the mobile device prestage. Leverages ISO 639-1 (two-letter language codes): https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes . Ensure you define a code supported by jamf pro. Can be left blank.
 - `minimum_os_specific_version_ios` (String) The specific minimum OS version required for iOS devices when using MINIMUM_OS_SPECIFIC_VERSION type.
 - `minimum_os_specific_version_ipad` (String) The specific minimum OS version required for iPadOS devices when using MINIMUM_OS_SPECIFIC_VERSION type.
-- `preserve_managed_apps` (Boolean) Preserve managed apps during the enrollment process.
+- `preserve_managed_apps` (Boolean) Controls whether managed apps are preserved during Return to Service operations.
+- `prestage_minimum_os_target_version_type_ios` (String) The type of minimum OS version enforcement for iOS devices.
+- `prestage_minimum_os_target_version_type_ipad` (String) The type of minimum OS version enforcement for iPadOS devices.
+- `region` (String) The region setting defined for the mobile device prestage. Leverages ISO 3166-1 alpha-2 (two-letter country codes): https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2 . Ensure you define a code supported by jamf pro. Can be left blank.
 - `rts_config_profile_id` (String) The ID of the RTS configuration profile.
 - `rts_enabled` (Boolean) Enable RTS.
-- `send_timezone` (Boolean) Indicates if timezone should be sent to the device.
 - `site_id` (String) The jamf pro site ID. Set to -1 if not used.
-- `storage_quota_size_megabytes` (Number) The storage quota size in megabytes.
+- `skip_setup_items` (Block List, Max: 1) Selected items are not displayed in the Setup Assistant during mobile device setup within Apple Device Enrollment (ADE). (see [below for nested schema](#nestedblock--skip_setup_items))
+- `storage_quota_size_megabytes` (Number) The storage quota size in megabytes. Set to 1024 if unused.
 - `temporary_session_only` (Boolean) Indicates if the session should be temporary only.
 - `temporary_session_timeout_seconds` (Number) The timeout duration for temporary sessions in minutes.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
-- `use_storage_quota_size` (Boolean) Indicates if storage quota size should be enforced.
+- `timezone` (String) The timezone to be set on the device. Must be a valid timezone string. Set to 'UTC' if unused.
 - `user_session_timeout` (Number) The timeout duration for user sessions in minutes.
 
 ### Read-Only
@@ -211,23 +212,20 @@ Read-Only:
 <a id="nestedblock--names"></a>
 ### Nested Schema for `names`
 
-Required:
-
-- `assign_names_using` (String) Method to use for assigning device names. Valid values are: 'Default Names', 'List of Names', 'Serial Numbers' or 'Single Name'.
-- `device_naming_configured` (Boolean) Indicates if device naming has been configured for this prestage.
-- `manage_names` (Boolean) Indicates if device names should be managed by this prestage.
-
 Optional:
 
+- `assign_names_using` (String) Method to use for assigning device names. Valid values are: 'Default Names', 'List of Names', 'Serial Numbers' or 'Single Name'.
 - `device_name_prefix` (String) The prefix to use when naming devices with 'Serial Numbers' method.
 - `device_name_suffix` (String) The suffix to use when naming devices with 'Serial Numbers' method.
+- `device_naming_configured` (Boolean) Indicates if device naming has been configured for this prestage.
+- `manage_names` (Boolean) Indicates if device names should be managed by this prestage.
 - `prestage_device_names` (Block List) List of predefined device names when using 'List of Names' assignment method. (see [below for nested schema](#nestedblock--names--prestage_device_names))
 - `single_device_name` (String) The name to use when using 'Single Name' assignment method.
 
 <a id="nestedblock--names--prestage_device_names"></a>
 ### Nested Schema for `names.prestage_device_names`
 
-Required:
+Optional:
 
 - `device_name` (String) The name to be assigned to the device.
 
@@ -268,7 +266,7 @@ Read-Only:
 <a id="nestedblock--skip_setup_items"></a>
 ### Nested Schema for `skip_setup_items`
 
-Required:
+Optional:
 
 - `action_button` (Boolean) Skip Action Button setup during device enrollment.
 - `android` (Boolean) Skip Android Migration setup during device enrollment.
