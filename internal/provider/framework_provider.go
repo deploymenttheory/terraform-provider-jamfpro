@@ -345,7 +345,7 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 		return
 	}
 
-	// Create Jamf Pro SDK client - exactly matching SDKv2 provider
+	// Create Jamf Pro SDK client - mirroring SDKv2 provider logic
 	jamfProSdk := jamfpro.Client{
 		HTTP: httpClient,
 	}
