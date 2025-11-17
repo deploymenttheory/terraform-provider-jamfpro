@@ -699,6 +699,22 @@ func Provider() *schema.Provider {
 			HTTP: httpClient,
 		}
 
+		warning, err := CheckJamfProVersion(&jamfProSdk)
+		if err != nil {
+			return nil, append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Failed to verify Jamf Pro version",
+				Detail:   fmt.Sprintf("Could not determine Jamf Pro version: %s", err),
+			})
+		}
+		if warning != "" {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Jamf Pro Version Mismatch Detected",
+				Detail:   warning,
+			})
+		}
+
 		return &jamfProSdk, diags
 	}
 
