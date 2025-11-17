@@ -342,9 +342,24 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 		return
 	}
 
-	// Create Jamf Pro SDK client - exactly matching SDKv2 provider
+	// Create Jamf Pro SDK client - mirroring SDKv2 provider logic
 	jamfProSdk := jamfpro.Client{
 		HTTP: httpClient,
+	}
+
+	warning, err := CheckJamfProVersion(&jamfProSdk)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to verify Jamf Pro version",
+			fmt.Sprintf("Could not determine Jamf Pro version: %s", err),
+		)
+		return
+	}
+	if warning != "" {
+		resp.Diagnostics.AddWarning(
+			"Jamf Pro Version Mismatch Detected",
+			warning,
+		)
 	}
 
 	// Store client for use by resources and data sources
