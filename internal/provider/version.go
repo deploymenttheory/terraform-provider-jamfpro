@@ -9,7 +9,7 @@ import (
 )
 
 // MinimumSupportedJamfProVersion is the minimum Jamf Pro version supported by this provider
-const MinimumSupportedJamfProVersion = "11.30.0"
+const MinimumSupportedJamfProVersion = "11.20.0"
 
 // CheckJamfProVersion validates that the Jamf Pro instance version meets minimum requirements
 // Returns a warning message if the version is below minimum supported, or error if version cannot be determined
