@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/deploymenttheory/go-api-http-client-integrations/jamf/jamfprointegration"
 	"github.com/deploymenttheory/go-api-http-client/httpclient"
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -367,21 +368,35 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 		return
 	}
 
-	meetsRequirement, err := versionSupportsRequirement(*versionResp.Version, minimumJamfProVersion)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing Jamf Pro version",
-			fmt.Sprintf("Unable to parse Jamf Pro version %q: %v", *versionResp.Version, err),
-		)
-		return
+	versionString := strings.TrimSpace(*versionResp.Version)
+	baseVersionString := versionString
+
+	if idx := strings.Index(versionString, "-"); idx != -1 {
+		baseVersionString = versionString[:idx]
 	}
 
-	if !meetsRequirement {
+	currentVersion, err := semver.NewVersion(baseVersionString)
+	if err != nil {
 		resp.Diagnostics.AddWarning(
-			"Unsupported Jamf Pro Version",
-			fmt.Sprintf("Your Jamf Pro instance (%s) does not meet the minimum supported version (%s). Operation against unsupported versions is not guaranteed and may result in data inconsistencies or provider errors. Continue only if you understand the risks.", *versionResp.Version, minimumJamfProVersion),
+			"Unable to parse Jamf Pro version",
+			fmt.Sprintf("Could not parse version '%s': %v", versionString, err),
 		)
-		return
+	} else {
+		minVersion, err := semver.NewVersion(minimumJamfProVersion)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Invalid minimum version constant",
+				fmt.Sprintf("Could not parse minimum version '%s': %v", minimumJamfProVersion, err),
+			)
+			return
+		}
+
+		if currentVersion.LessThan(minVersion) {
+			resp.Diagnostics.AddWarning(
+				"Unsupported Jamf Pro Version",
+				fmt.Sprintf("Your Jamf Pro instance (%s) does not meet the minimum supported version (%s). Operation against unsupported versions is not guaranteed and may result in data inconsistencies or provider errors. Continue only if you understand the risks.", versionString, minVersion.String()),
+			)
+		}
 	}
 
 	// Store client for use by resources and data sources
