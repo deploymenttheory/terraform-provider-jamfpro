@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.29.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.28.0...v0.29.0) (2025-11-17)
+
+
+### Features
+
+* Add importer support for device_communication_settings resource ([#929](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/929)) ([9357ee9](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/9357ee908d92c34410bcfbcfdb2c223474dfb5d6))
+* Add importer support for smtp_server resource ([#928](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/928)) ([231b69a](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/231b69a6f11ab9e6974590d1002c9f362aa2beda))
+* Add Jamf Pro version check during SDK client configuration ([c634c90](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/c634c90ad810414bb578c8cc70458343a6c233a4))
+
+
+### Bug Fixes
+
+* Mark icon file attributes as ForceNew ([#921](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/921)) ([dfa610e](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/dfa610e2a2bf347222c00d33f867bccd7d9af8da))
+* prevent panic during resource deletion when name field is nil ([c95b606](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/c95b606f48064fac4f13945b0735b15534f15034))
+* update minimum supported Jamf Pro version to 11.20.0 ([1f6e0a1](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/1f6e0a13677f7f47225417d05dbdffca52747857))
+
 ## [0.28.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.27.0...v0.28.0) (2025-11-03)
 
 
