@@ -15,8 +15,9 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceAdvancedMobileDeviceSea
 	siteId := d.Get("site_id").(string)
 
 	resource := &jamfpro.ResourceAdvancedMobileDeviceSearch{
-		Name:   d.Get("name").(string),
-		SiteId: &siteId,
+		Name:           d.Get("name").(string),
+		SiteId:         &siteId,
+		DisplayFields:  []string{}, // Initialize to empty slice to avoid null in JSON
 	}
 
 	if v, ok := d.GetOk("criteria"); ok {
