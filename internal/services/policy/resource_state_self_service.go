@@ -11,6 +11,8 @@ import (
 
 // stateSelfService Reads response and states self-service items and states only if non-default
 func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
+	policyName := resp.General.Name
+
 	defaults := map[string]any{
 		"use_for_self_service":            false,
 		"self_service_display_name":       "",
@@ -31,10 +33,22 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 		"feature_on_main_page":            resp.SelfService.FeatureOnMainPage,
 	}
 
-	allDefault := false
+	allDefault := true
 	for key, value := range current {
+		// Special case: if self_service_display_name equals the policy name, Jamf Pro auto-populated it
+		// Treat it as a default value (empty string) since the user didn't explicitly set it
+		if key == "self_service_display_name" && value == policyName {
+			continue
+		}
+
+		// Special case: if install_button_text is empty, Jamf Pro returns empty string instead of default
+		// Treat it as the default "Install"
+		if key == "install_button_text" && value == "" {
+			continue
+		}
+
 		if value != defaults[key] {
-			allDefault = true
+			allDefault = false
 			break
 		}
 	}
@@ -49,6 +63,7 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 	out_ss[0]["use_for_self_service"] = resp.SelfService.UseForSelfService
 	out_ss[0]["self_service_display_name"] = resp.SelfService.SelfServiceDisplayName
 	out_ss[0]["install_button_text"] = resp.SelfService.InstallButtonText
+	out_ss[0]["reinstall_button_text"] = resp.SelfService.ReinstallButtonText
 	out_ss[0]["self_service_description"] = resp.SelfService.SelfServiceDescription
 	out_ss[0]["force_users_to_view_description"] = resp.SelfService.ForceUsersToViewDescription
 	out_ss[0]["feature_on_main_page"] = resp.SelfService.FeatureOnMainPage
