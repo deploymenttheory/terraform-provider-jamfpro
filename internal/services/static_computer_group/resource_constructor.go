@@ -1,44 +1,44 @@
-// staticcomputergroup_object.go
 package static_computer_group
 
 import (
-	"encoding/xml"
+	"encoding/json"
 	"fmt"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	sharedschemas "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/shared_schemas"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// constructJamfProStaticComputerGroup constructs a ResourceComputerGroup object from the provided schema data.
-func construct(d *schema.ResourceData) (*jamfpro.ResourceComputerGroup, error) {
-	resource := &jamfpro.ResourceComputerGroup{
-		Name:    d.Get("name").(string),
-		IsSmart: false,
+// constructResource constructs a ResourceStaticComputerGroupV2 object from the provided framework resource model.
+func constructResource(data *staticComputerGroupResourceModel) (*jamfpro.ResourceStaticComputerGroupV2, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	resource := &jamfpro.ResourceStaticComputerGroupV2{
+		Name:        data.Name.ValueString(),
+		Description: data.Description.ValueString(),
+		SiteId:      data.SiteID.ValueStringPointer(),
 	}
 
-	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
-
-	assignedComputers := d.Get("assigned_computer_ids").([]any)
-	if len(assignedComputers) > 0 {
-		computers := []jamfpro.ComputerGroupSubsetComputer{}
-		for _, v := range assignedComputers {
-			computers = append(computers, jamfpro.ComputerGroupSubsetComputer{
-				ID: v.(int),
-			})
+	if !data.AssignedComputerIDs.IsNull() && !data.AssignedComputerIDs.IsUnknown() {
+		elements := data.AssignedComputerIDs.Elements()
+		computerIDs := make([]string, 0, len(elements))
+		for _, elem := range elements {
+			computerIDs = append(computerIDs, elem.(types.String).ValueString())
 		}
-		resource.Computers = &computers
+		resource.Assignments = computerIDs
 	}
 
-	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
+	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Group '%s' to XML: %v", resource.Name, err)
+		diags.AddError(
+			"Failed to marshal Static Computer Group",
+			fmt.Sprintf("Failed to marshal Static Computer Group static_computer_group'%s' to JSON: %v", resource.Name, err),
+		)
+		return nil, diags
 	}
 
-	log.Printf("[DEBUG] Constructed Jamf Pro Computer Group XML:\n%s\n", string(resourceXML))
+	log.Printf("[DEBUG] Constructed Static Computer Group static_computer_groupJSON:\n%s\n", string(resourceJSON))
 
-	return resource, nil
+	return resource, diags
 }
-
-// Helper functions for nested structures
