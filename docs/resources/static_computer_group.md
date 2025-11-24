@@ -1,11 +1,11 @@
 ---
 page_title: "jamfpro_static_computer_group"
 description: |-
-  
+  Manages a Jamf Pro Static Computer Group using the `/api/v2/computer-groups/static-groups` endpoint.
 ---
 
 # jamfpro_static_computer_group (Resource)
-
+Manages a Jamf Pro Static Computer Group using the `/api/v2/computer-groups/static-groups` endpoint.
 
 ## Example Usage
 ```terraform
@@ -13,11 +13,14 @@ resource "jamfpro_static_computer_group" "jamfpro_static_computer_group_001" {
   name = "Example Static Computer Group"
 
 
-  # Optional Block
-  site_id = 1
+  # Optional Site ID
+  site_id = "1"
+
+  # Optional Description
+  description = "Managed by Terraform."
 
   # Optional: Specify computers for static groups
-  assigned_computer_ids = [1, 2, 3]
+  assigned_computer_ids = ["1", "2", "3"]
 }
 ```
 
@@ -26,25 +29,25 @@ resource "jamfpro_static_computer_group" "jamfpro_static_computer_group_001" {
 
 ### Required
 
-- `name` (String) The unique name of the Jamf Pro static computer group.
+- `name` (String) The name of the static computer group.
 
 ### Optional
 
-- `assigned_computer_ids` (List of Number) assigned computer by ids
-- `site_id` (Number) Jamf Pro Site-related settings of the policy.
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `assigned_computer_ids` (Set of String) Set of computer IDs assigned to this static computer group. Note: This value cannot be read back from the API.
+- `description` (String) The description of the static computer group.
+- `site_id` (String) The Site ID assigned to the resource. A Site ID of -1 indicates the resource is assigned to the 'None' site.
+- `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
-- `id` (String) The unique identifier of the Jamf Pro static computer group.
-- `is_smart` (Boolean) Computed value indicating whether the computer group is smart or static.
+- `id` (String) The unique identifier of the static computer group.
 
-<a id="nestedblock--timeouts"></a>
+<a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`
 
 Optional:
 
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
+- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
+- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).

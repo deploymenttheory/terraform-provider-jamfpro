@@ -5,36 +5,41 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	client := meta.(*jamfpro.Client)
+// Read fetches the static computer group data from Jamf Pro.
+func (d *staticComputerGroupFrameworkDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data staticComputerGroupDataSourceModel
 
-	resourceID := d.Get("id").(string)
-	name := d.Get("name").(string)
-
-	if resourceID == "" && name == "" {
-		return diag.FromErr(fmt.Errorf("either 'id' or 'name' must be provided"))
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	var resource *jamfpro.ResourceComputerGroup
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
-		var apiErr error
+	resourceID := data.ID.ValueString()
+	name := data.Name.ValueString()
 
-		if name != "" {
-			resource, apiErr = client.GetComputerGroupByName(name)
-		} else {
-			resource, apiErr = client.GetComputerGroupByID(resourceID)
-		}
+	if resourceID == "" && name == "" {
+		resp.Diagnostics.AddError(
+			"Missing Required Attribute",
+			"Either 'id' or 'name' must be provided",
+		)
+		return
+	}
 
-		if apiErr != nil {
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
+	var resource *jamfpro.ResponseStaticComputerGroupListItemV2
+	var err error
+
+	if name != "" {
+		tflog.Debug(ctx, fmt.Sprintf("Reading Static Computer Group by name: %s", name))
+		resource, err = d.client.GetStaticComputerGroupByNameV2(name)
+	} else {
+		tflog.Debug(ctx, fmt.Sprintf("Reading Static Computer Group by ID: %s", resourceID))
+		resource, err = d.client.GetStaticComputerGroupByIDV2(resourceID)
+	}
 
 	if err != nil {
 		lookupMethod := "ID"
@@ -43,14 +48,27 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			lookupMethod = "name"
 			lookupValue = name
 		}
-		return diag.FromErr(fmt.Errorf("failed to read Static Computer Group with %s '%s' after retries: %v", lookupMethod, lookupValue, err))
+		resp.Diagnostics.AddError(
+			"Error Reading Static Computer Group",
+			fmt.Sprintf("Failed to read Static Computer Group with %s '%s': %v", lookupMethod, lookupValue, err),
+		)
+		return
 	}
 
 	if resource == nil {
-		d.SetId("")
-		return diag.FromErr(fmt.Errorf("the Jamf Pro Static Computer Group was not found"))
+		resp.Diagnostics.AddError(
+			"Resource Not Found",
+			"The Jamf Pro Static Computer Group was not found",
+		)
+		return
 	}
 
-	d.SetId(fmt.Sprintf("%d", resource.ID))
-	return updateState(d, resource)
+	data.ID = types.StringValue(resource.ID)
+
+	resp.Diagnostics.Append(updateState(ctx, &data, resource)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

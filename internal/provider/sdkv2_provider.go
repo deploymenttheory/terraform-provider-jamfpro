@@ -81,7 +81,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/sso_certificate"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/sso_failover"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/sso_settings"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/static_computer_group"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/static_mobile_device_group"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/user_group"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/user_initiated_enrollment_settings"
@@ -421,7 +420,6 @@ func Provider() *schema.Provider {
 			"jamfpro_smart_mobile_device_group":                 smart_mobile_device_group.DataSourceJamfProSmartMobileGroups(),
 			"jamfpro_sso_certificate":                           sso_certificate.DataSourceJamfProSSOCertificate(),
 			"jamfpro_sso_failover":                              sso_failover.DataSourceJamfProSSOFailover(),
-			"jamfpro_static_computer_group":                     static_computer_group.DataSourceJamfProStaticComputerGroups(),
 			"jamfpro_static_mobile_device_group":                static_mobile_device_group.DataSourceJamfProStaticMobileDeviceGroups(),
 			"jamfpro_restricted_software":                       restricted_software.DataSourceJamfProRestrictedSoftwares(),
 			"jamfpro_group":                                     group.DataSourceJamfProGroups(),
@@ -491,7 +489,6 @@ func Provider() *schema.Provider {
 			"jamfpro_sso_certificate":                             sso_certificate.ResourceJamfProSSOCertificate(),
 			"jamfpro_sso_failover":                                sso_failover.ResourceJamfProSSOFailover(),
 			"jamfpro_sso_settings":                                sso_settings.ResourceJamfProSsoSettings(),
-			"jamfpro_static_computer_group":                       static_computer_group.ResourceJamfProStaticComputerGroups(),
 			"jamfpro_static_mobile_device_group":                  static_mobile_device_group.ResourceJamfProStaticMobileDeviceGroups(),
 			"jamfpro_restricted_software":                         restricted_software.ResourceJamfProRestrictedSoftwares(),
 			"jamfpro_user_initiated_enrollment_settings":          user_initiated_enrollment_settings.ResourceJamfProUserInitatedEnrollmentSettings(),

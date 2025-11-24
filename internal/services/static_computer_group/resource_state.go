@@ -2,32 +2,22 @@ package static_computer_group
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// updateState updates the Terraform state with the latest Computer Group information from the Jamf Pro API.
-func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerGroup) diag.Diagnostics {
+// state updates the Terraform model with the latest Static Computer Group V2 information from the Jamf Pro API.
+func state(data *staticComputerGroupResourceModel, resp *jamfpro.ResponseStaticComputerGroupListItemV2) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if err := d.Set("name", resp.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("is_smart", resp.IsSmart); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
+	data.ID = types.StringValue(resp.ID)
+	data.Name = types.StringValue(resp.Name)
+	data.SiteID = types.StringValue(resp.SiteID)
 
-	d.Set("site_id", resp.Site.ID)
-
-	var assignments []any
-	if resp.Computers != nil {
-		for _, comp := range *resp.Computers {
-			assignments = append(assignments, comp.ID)
-		}
-
-		if err := d.Set("assigned_computer_ids", assignments); err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+	if resp.Description == "" && (data.Description.IsNull() || data.Description.IsUnknown()) {
+		data.Description = types.StringNull()
+	} else {
+		data.Description = types.StringValue(resp.Description)
 	}
 
 	return diags
