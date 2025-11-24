@@ -21,7 +21,7 @@ jobs:
       uses: step-security/harden-runner@v2.13.2
       with:
         egress-policy: audit
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.ref }}
 
