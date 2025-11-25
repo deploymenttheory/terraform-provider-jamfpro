@@ -242,6 +242,11 @@ func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 							Required:    true,
 							Description: "Skip additional privacy settings setup.",
 						},
+						"os_showcase": {
+							Type:        schema.TypeBool,
+							Required:    true,
+							Description: "Skip OS showcase setup.",
+						},
 					},
 				},
 			},

@@ -39,6 +39,7 @@ resource "jamfpro_computer_prestage_enrollment" "minimum_example" {
     enable_lockdown_mode = false
     welcome              = false
     wallpaper            = false
+    os_showcase          = false
   }
   location_information {
     username      = ""
@@ -136,6 +137,7 @@ resource "jamfpro_computer_prestage_enrollment" "configured_example_1" {
     enable_lockdown_mode = false
     welcome              = false
     wallpaper            = false
+    os_showcase          = true
   }
   location_information {
     username      = ""

@@ -48,25 +48,6 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 		"site_id":                                 resp.SiteId,
 		"platform_sso_enabled":                    resp.PssoEnabled,
 		"platform_sso_app_bundle_id":              resp.PlatformSsoAppBundleId,
-		// "enabled":                                 resp.Enabled,
-		// "sso_for_enrollment_enabled":              resp.SsoForEnrollmentEnabled,
-		// "sso_bypass_allowed":                      resp.SsoBypassAllowed,
-		// "sso_enabled":                             resp.SsoEnabled,
-		// "sso_for_mac_os_self_service_enabled":     resp.SsoForMacOsSelfServiceEnabled,
-		// "token_expiration_disabled":               resp.TokenExpirationDisabled,
-		// "user_attribute_enabled":                  resp.UserAttributeEnabled,
-		// "user_attribute_name":                     resp.UserAttributeName,
-		// "user_mapping":                            resp.UserMapping,
-		// "enrollment_sso_for_account_driven_enrollment_enabled": resp.EnrollmentSsoForAccountDrivenEnrollmentEnabled,
-		// "group_enrollment_access_enabled":                      resp.GroupEnrollmentAccessEnabled,
-		// "group_attribute_name":                                 resp.GroupAttributeName,
-		// "group_rdn_key":                                        resp.GroupRdnKey,
-		// "group_enrollment_access_name":                         resp.GroupEnrollmentAccessName,
-		// "idp_provider_type":                                    resp.IdpProviderType,
-		// "other_provider_type_name":                             resp.OtherProviderTypeName,
-		// "metadata_source":                                      resp.MetadataSource,
-		// "session_timeout":                                      resp.SessionTimeout,
-		// "device_type":                                          resp.DeviceType,
 	}
 
 	if locationInformation := resp.LocationInformation; locationInformation != (jamfpro.ComputerPrestageSubsetLocationInformation{}) {
@@ -177,6 +158,7 @@ func skipSetupItems(skipSetupItems jamfpro.ComputerPrestageSubsetSkipSetupItems)
 		"wallpaper":                   *skipSetupItems.Wallpaper,
 		"software_update":             *skipSetupItems.SoftwareUpdate,
 		"additional_privacy_settings": *skipSetupItems.AdditionalPrivacySettings,
+		"os_showcase":                 *skipSetupItems.OSShowcase,
 	}
 }
 

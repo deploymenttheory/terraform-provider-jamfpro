@@ -50,6 +50,7 @@ resource "jamfpro_computer_prestage_enrollment" "minimum_example" {
     enable_lockdown_mode = false
     welcome              = false
     wallpaper            = false
+    os_showcase          = false
   }
   location_information {
     username      = ""
@@ -147,6 +148,7 @@ resource "jamfpro_computer_prestage_enrollment" "configured_example_1" {
     enable_lockdown_mode = false
     welcome              = false
     wallpaper            = false
+    os_showcase          = true
   }
   location_information {
     username      = ""
@@ -348,6 +350,7 @@ Required:
 - `icloud_storage` (Boolean) Skip iCloud Storage setup.
 - `intelligence` (Boolean) Skip Apple Intelligence setup.
 - `location` (Boolean) Skip Location setup.
+- `os_showcase` (Boolean) Skip OS showcase setup.
 - `payment` (Boolean) Skip Payment setup.
 - `privacy` (Boolean) Skip Privacy setup.
 - `registration` (Boolean) Skip Registration setup.

@@ -1,5 +1,5 @@
 resource "jamfpro_computer_prestage_enrollment" "minimum_example" {
-  display_name                          = "jamfpro-sdk-example-computerPrestageMinimum-config"
+  display_name                          = "tf-testing-${var.testing_id}-${random_id.rng.hex}"
   mandatory                             = true
   mdm_removable                         = true
   support_phone_number                  = "111-222-3333"
@@ -41,6 +41,7 @@ resource "jamfpro_computer_prestage_enrollment" "minimum_example" {
     wallpaper                   = false
     software_update             = false
     additional_privacy_settings = true
+    os_showcase                 = true
   }
   location_information {
     username      = ""
