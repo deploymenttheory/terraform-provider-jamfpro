@@ -1,5 +1,5 @@
 resource "jamfpro_policy" "jamfpro_policy_script_example" {
-  name                          = "tf-localtest-policy-script-example"
+  name                          = "acc-test-policy-script-with-self-service-enabled"
   enabled                       = false
   trigger_checkin               = false
   trigger_enrollment_complete   = false
@@ -66,7 +66,7 @@ resource "jamfpro_policy" "jamfpro_policy_script_example" {
 }
 
 resource "jamfpro_script" "jamfpro_script_001" {
-  name            = "tf-localtest-add-or-remove-group-membership-v4.0"
+  name            = "acc-test-add-or-remove-group-membership-v4.0"
   script_contents = file("${path.module}/support_files/scripts/Add or Remove Group Membership.zsh")
   category_id     = "5"
   os_requirements = "13"
@@ -80,6 +80,6 @@ resource "jamfpro_script" "jamfpro_script_001" {
 }
 
 resource "jamfpro_category" "jamfpro_category_001" {
-  name     = "tf-localtest-category-01"
+  name     = "acc-test-category-01"
   priority = 1
 }
