@@ -276,7 +276,11 @@ func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 			SelfServiceIcon: &jamfpro.SharedResourceSelfServiceIcon{
 				ID: d.Get("self_service.0.self_service_icon_id").(int),
 			},
-			FeatureOnMainPage: d.Get("self_service.0.feature_on_main_page").(bool),
+			FeatureOnMainPage:   d.Get("self_service.0.feature_on_main_page").(bool),
+			Notification:        d.Get("self_service.0.notification").(bool),
+			NotificationType:    d.Get("self_service.0.notification_type").(string),
+			NotificationSubject: d.Get("self_service.0.notification_subject").(string),
+			NotificationMessage: d.Get("self_service.0.notification_message").(string),
 		}
 
 		categories := d.Get("self_service.0.self_service_category")
