@@ -120,8 +120,8 @@ func ResourceJamfProSMTPServer() *schema.Resource {
 						"client_id": {
 							Type:             schema.TypeString,
 							Required:         true,
-							Description:      "Microsoft client ID for Graph API. Must be a valid GUID/UUID.",
-							ValidateDiagFunc: validateGUID(),
+							Description:      "Client ID for Graph API. Accepts either a Microsoft GUID/UUID or a Google OAuth client ID format.",
+							ValidateDiagFunc: validateClientID(),
 						},
 						"client_secret": {
 							Type:        schema.TypeString,

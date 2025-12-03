@@ -97,3 +97,27 @@ func validateGUID() schema.SchemaValidateDiagFunc {
 		"must be a valid GUID/UUID in the format 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'",
 	))
 }
+
+// validateClientID validates that a string is either a GUID/UUID or a Google OAuth client ID
+func validateClientID() schema.SchemaValidateDiagFunc {
+	return validation.ToDiagFunc(func(i interface{}, k string) ([]string, []error) {
+		v, ok := i.(string)
+		if !ok {
+			return nil, []error{fmt.Errorf("expected type of %s to be string", k)}
+		}
+
+		// Check if it matches GUID/UUID format
+		guidPattern := regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
+		if guidPattern.MatchString(v) {
+			return nil, nil
+		}
+
+		// Check if it matches Google OAuth client ID format
+		googlePattern := regexp.MustCompile(`^[0-9]{12}-[0-9a-z]{32}\.apps\.googleusercontent\.com$`)
+		if googlePattern.MatchString(v) {
+			return nil, nil
+		}
+
+		return nil, []error{fmt.Errorf("%s must be either a valid GUID/UUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx) or a Google OAuth client ID (012345678901-abcdefghijklmnopqrstuvwxyz123456.apps.googleusercontent.com)", k)}
+	})
+}
