@@ -137,7 +137,7 @@ Required:
 
 Required:
 
-- `client_id` (String) Microsoft client ID for Graph API. Must be a valid GUID/UUID.
+- `client_id` (String) Client ID for Graph API. Accepts either a Microsoft GUID/UUID or a Google OAuth client ID format.
 - `client_secret` (String, Sensitive) Microsoft client secret for Graph API
 - `tenant_id` (String) Microsoft tenant ID for Graph API. Must be a valid GUID/UUID.
 
