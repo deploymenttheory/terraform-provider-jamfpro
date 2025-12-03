@@ -130,7 +130,6 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		// Encode the plist with injections
 
 		encoder := plist.NewEncoder(&buf)
-		encoder.Indent("    ")
 		if err := encoder.Encode(newPlist); err != nil {
 			return nil, fmt.Errorf("failed to encode plist payload with injected PayloadUUID and PayloadIdentifier: %v", err)
 		}
