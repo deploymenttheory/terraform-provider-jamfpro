@@ -74,6 +74,17 @@ resource "jamfpro_policy" "jamfpro_policy_001" {
     self_service_description        = ""
     force_users_to_view_description = false
     feature_on_main_page            = false
+
+    self_service_category {
+      id         = 1
+      display_in = true
+      feature_in = false
+    }
+
+    notification         = false
+    notification_type    = "Self Service"
+    notification_subject = "Install Firefox"
+    notification_message = "This is a message for the Firefox install"
   }
 
   payloads {

@@ -1,8 +1,5 @@
 package policy
 
-// TODO remove log.prints, debug use only
-// TODO maybe review error handling here too?
-
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -21,6 +18,10 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 		"self_service_description":        "",
 		"force_users_to_view_description": false,
 		"feature_on_main_page":            false,
+		"notification":                    false,
+		"notification_type":               "Self Service",
+		"notification_subject":            "",
+		"notification_message":            "",
 	}
 
 	current := map[string]any{
@@ -31,6 +32,10 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 		"self_service_description":        resp.SelfService.SelfServiceDescription,
 		"force_users_to_view_description": resp.SelfService.ForceUsersToViewDescription,
 		"feature_on_main_page":            resp.SelfService.FeatureOnMainPage,
+		"notification":                    resp.SelfService.Notification,
+		"notification_type":               resp.SelfService.NotificationType,
+		"notification_subject":            resp.SelfService.NotificationSubject,
+		"notification_message":            resp.SelfService.NotificationMessage,
 	}
 
 	allDefault := true
@@ -47,13 +52,19 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 			continue
 		}
 
+		// Special case: if notification_type is empty, Jamf Pro returns empty string instead of default
+		// Treat it as the default "Self Service"
+		if key == "notification_type" && value == "" {
+			continue
+		}
+
 		if value != defaults[key] {
 			allDefault = false
 			break
 		}
 	}
 
-	if allDefault {
+	if allDefault && len(resp.SelfService.SelfServiceCategories) == 0 {
 		return
 	}
 
@@ -67,20 +78,23 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 	out_ss[0]["self_service_description"] = resp.SelfService.SelfServiceDescription
 	out_ss[0]["force_users_to_view_description"] = resp.SelfService.ForceUsersToViewDescription
 	out_ss[0]["feature_on_main_page"] = resp.SelfService.FeatureOnMainPage
+	out_ss[0]["notification"] = resp.SelfService.Notification
+	out_ss[0]["notification_type"] = resp.SelfService.NotificationType
+	out_ss[0]["notification_subject"] = resp.SelfService.NotificationSubject
+	out_ss[0]["notification_message"] = resp.SelfService.NotificationMessage
 
-	out_ss[0]["self_service_category"] = make([]map[string]any, 0)
+	categoryBlock := make([]map[string]any, 0)
 	if resp.SelfService.SelfServiceCategories != nil {
 		for _, v := range resp.SelfService.SelfServiceCategories {
-			var categoryBlock []map[string]any
 			categoryItem := map[string]any{
 				"id":         v.ID,
 				"display_in": v.DisplayIn,
 				"feature_in": v.FeatureIn,
 			}
 			categoryBlock = append(categoryBlock, categoryItem)
-			out_ss[0]["self_service_category"] = categoryBlock
 		}
 	}
+	out_ss[0]["self_service_category"] = categoryBlock
 
 	err := d.Set("self_service", out_ss)
 	if err != nil {
