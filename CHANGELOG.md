@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.30.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.29.0...v0.30.0) (2025-12-04)
+
+
+### Features
+
+* added datasource jamf_cloud_ip_address_list ([#945](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/945)) ([f393305](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/f39330557a1382a0ef63d24a338dfc6715e27c08))
+
 ## [0.29.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.28.0...v0.29.0) (2025-12-03)
 
 
