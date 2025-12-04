@@ -1,1 +1,0 @@
-https://learn.jamf.com/en-US/bundle/jamf-ip-address-list/page/Permitting_InboundOutbound_Traffic_with_Jamf.html
