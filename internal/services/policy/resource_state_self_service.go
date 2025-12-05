@@ -17,11 +17,19 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 		"reinstall_button_text":           "Reinstall",
 		"self_service_description":        "",
 		"force_users_to_view_description": false,
+		"self_service_icon_id":            0,
 		"feature_on_main_page":            false,
 		"notification":                    false,
 		"notification_type":               "Self Service",
 		"notification_subject":            "",
 		"notification_message":            "",
+	}
+
+	// Get icon ID - only track it when self service is enabled
+	// Icons cannot be removed via the API once set, so we don't track orphaned icons on disabled policies
+	iconID := 0
+	if resp.SelfService.UseForSelfService && resp.SelfService.SelfServiceIcon != nil {
+		iconID = resp.SelfService.SelfServiceIcon.ID
 	}
 
 	current := map[string]any{
@@ -31,6 +39,7 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 		"reinstall_button_text":           resp.SelfService.ReinstallButtonText,
 		"self_service_description":        resp.SelfService.SelfServiceDescription,
 		"force_users_to_view_description": resp.SelfService.ForceUsersToViewDescription,
+		"self_service_icon_id":            iconID,
 		"feature_on_main_page":            resp.SelfService.FeatureOnMainPage,
 		"notification":                    resp.SelfService.Notification,
 		"notification_type":               resp.SelfService.NotificationType,
@@ -77,6 +86,7 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 	out_ss[0]["reinstall_button_text"] = resp.SelfService.ReinstallButtonText
 	out_ss[0]["self_service_description"] = resp.SelfService.SelfServiceDescription
 	out_ss[0]["force_users_to_view_description"] = resp.SelfService.ForceUsersToViewDescription
+	out_ss[0]["self_service_icon_id"] = iconID
 	out_ss[0]["feature_on_main_page"] = resp.SelfService.FeatureOnMainPage
 	out_ss[0]["notification"] = resp.SelfService.Notification
 	out_ss[0]["notification_type"] = resp.SelfService.NotificationType
