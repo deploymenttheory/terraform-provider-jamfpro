@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.30.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.30.0...v0.30.1) (2025-12-05)
+
+
+### Bug Fixes
+
+* policy self_service_icon_id not being read into state ([#947](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/947)) ([ae2416f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/ae2416f9bb6de869d981c28ed15db006bcf98881))
+
 ## [0.30.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.29.0...v0.30.0) (2025-12-04)
 
 
