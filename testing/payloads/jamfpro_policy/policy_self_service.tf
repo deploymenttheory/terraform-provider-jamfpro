@@ -64,7 +64,7 @@ resource "jamfpro_policy" "jamfpro_policy_self_service_maximal" {
 
     reboot {
       message                        = "This computer will restart in 5 minutes. Please save anything you are working on and log out by choosing Log Out from the bottom of the Apple menu."
-      specify_startup                = "Immediately"
+      specify_startup                = "Standard Restart"
       startup_disk                   = "Current Startup Disk"
       no_user_logged_in              = "Do not restart"
       user_logged_in                 = "Do not restart"
