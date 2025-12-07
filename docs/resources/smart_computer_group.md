@@ -1,16 +1,19 @@
 ---
 page_title: "jamfpro_smart_computer_group"
 description: |-
-  
+  Manages a Jamf Pro Smart Computer Group using the `/api/v2/computer-groups/smart-groups` endpoint.
 ---
 
 # jamfpro_smart_computer_group (Resource)
-
+Manages a Jamf Pro Smart Computer Group using the `/api/v2/computer-groups/smart-groups` endpoint.
 
 ## Example Usage
 ```terraform
 resource "jamfpro_smart_computer_group" "smart_example" {
   name = "Example Smart Computer Group"
+
+  # Optional: Provide a description
+  description = "An example smart computer group created via Terraform."
 
   # Optional: Specify site details 
   site_id = 5
@@ -44,39 +47,42 @@ resource "jamfpro_smart_computer_group" "smart_example" {
 
 ### Required
 
-- `name` (String) The unique name of the Jamf Pro computer group.
+- `name` (String) The name of the smart computer group.
 
 ### Optional
 
 - `criteria` (Block List) (see [below for nested schema](#nestedblock--criteria))
-- `site_id` (Number) Jamf Pro Site-related settings of the policy.
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `description` (String) The description of the smart computer group.
+- `site_id` (String) The Site ID assigned to the resource. A Site ID of -1 indicates the resource is assigned to the 'None' site.
+- `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
-- `id` (String) The unique identifier of the computer group.
-- `is_smart` (Boolean) Boolean selection to state if the group is a Smart group or not. If false then the group is a static group.
+- `id` (String) The unique identifier of the smart computer group.
 
 <a id="nestedblock--criteria"></a>
 ### Nested Schema for `criteria`
 
+Required:
+
+- `name` (String) The name of the criterion.
+- `search_type` (String) The search type for the criterion. Allowed values are: 'is', 'is not', 'has', 'does not have', 'member of', 'not member of', 'before (yyyy-mm-dd)', 'after (yyyy-mm-dd)', 'more than x days ago', 'less than x days ago', 'like', 'not like', 'greater than', 'more than', 'less than', 'greater than or equal', 'less than or equal', 'matches regex', 'does not match regex'.
+- `value` (String) The value to match for the criterion.
+
 Optional:
 
-- `and_or` (String) Either 'and', 'or', or blank.
-- `closing_paren` (Boolean) Closing parenthesis flag used during smart group construction.
-- `name` (String) Name of the smart group search criteria. Can be from the Jamf built in enteries or can be an extension attribute.
-- `opening_paren` (Boolean) Opening parenthesis flag used during smart group construction.
-- `priority` (Number) The priority of the criterion.
-- `search_type` (String) The type of smart group search operator. Allowed values are '[and or is is not has does not have member of not member of before (yyyy-mm-dd) after (yyyy-mm-dd) more than x days ago less than x days ago like not like greater than more than less than greater than or equal less than or equal matches regex does not match regex]'
-- `value` (String) Search value for the smart group criteria to match with.
+- `and_or` (String) The logical operator for the criterion. Must be 'and' or 'or'. Defaults to 'and'.
+- `closing_paren` (Boolean) Whether this criterion has a closing parenthesis.
+- `opening_paren` (Boolean) Whether this criterion has an opening parenthesis.
+- `priority` (Number) The priority of the criterion. Priority must start with 0 and increment by one per new criteria added. Defaults to 0.
 
 
-<a id="nestedblock--timeouts"></a>
+<a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`
 
 Optional:
 
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
+- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
+- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).

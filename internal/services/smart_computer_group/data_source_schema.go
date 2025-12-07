@@ -1,83 +1,74 @@
-// smartcomputergroup_data_source.go
 package smart_computer_group
 
 import (
+	"context"
 	"fmt"
 
-	sharedschemas "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/shared_schemas"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	commonschema "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/schema"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
 
-func DataSourceJamfProSmartComputerGroups() *schema.Resource {
-	return &schema.Resource{
-		ReadContext: dataSourceRead,
-		Schema: map[string]*schema.Schema{
-			"id": {
-				Type:        schema.TypeString,
+// Ensure provider defined types fully satisfy framework interfaces.
+var _ datasource.DataSource = &smartComputerGroupFrameworkDataSource{}
+
+// smartComputerGroupFrameworkDataSource defines the data source implementation.
+type smartComputerGroupFrameworkDataSource struct {
+	client *jamfpro.Client
+}
+
+// NewSmartComputerGroupFrameworkDataSource creates a new instance of the data source.
+func NewSmartComputerGroupFrameworkDataSource() datasource.DataSource {
+	return &smartComputerGroupFrameworkDataSource{}
+}
+
+// Metadata returns the data source type name.
+func (d *smartComputerGroupFrameworkDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_smart_computer_group"
+}
+
+// Configure adds the provider configured client to the data source.
+func (d *smartComputerGroupFrameworkDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	client, ok := req.ProviderData.(*jamfpro.Client)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Data Source Configure Type",
+			fmt.Sprintf("Expected *jamfpro.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+		return
+	}
+
+	d.client = client
+}
+
+// Schema defines the schema for the data source.
+func (d *smartComputerGroupFrameworkDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		MarkdownDescription: "Data source for retrieving a Jamf Pro Smart Computer Group using the `/api/v2/computer-groups/smart-groups` endpoint.",
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
-				Description: "The unique identifier of the computer group.",
+				Description: "The unique identifier of the smart computer group.",
 			},
-			"name": {
-				Type:        schema.TypeString,
+			"name": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
-				Description: "The unique name of the Jamf Pro computer group.",
+				Description: "The name of the smart computer group.",
 			},
-			"is_smart": {
-				Type:        schema.TypeBool,
+			"description": schema.StringAttribute{
 				Computed:    true,
-				Description: "Boolean selection to state if the group is a Smart group or not. If false then the group is a static group.",
+				Description: "The description of the smart computer group.",
 			},
-			"site_id": sharedschemas.GetSharedSchemaSite(),
-			"criteria": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The unique identifier of the smart computer group.",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The name of the smart computer group.",
-						},
-						"priority": {
-							Type:        schema.TypeInt,
-							Computed:    true,
-							Description: "The priority of the criterion.",
-						},
-						"and_or": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Either 'and', 'or', or blank.",
-						},
-						"search_type": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: fmt.Sprintf("The type of smart group search operator. Allowed values are '%v'", getCriteriaOperators()),
-						},
-						"value": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Search value for the smart group criteria to match with.",
-						},
-						"opening_paren": {
-							Type:        schema.TypeBool,
-							Computed:    true,
-							Description: "Opening parenthesis flag used during smart group construction.",
-						},
-						"closing_paren": {
-							Type:        schema.TypeBool,
-							Computed:    true,
-							Description: "Closing parenthesis flag used during smart group construction.",
-						},
-					},
-				},
-			},
+			"site_id": commonschema.SiteID(ctx),
+		},
+		Blocks: map[string]schema.Block{
+			"criteria": commonschema.CriteriaDataSource(ctx),
 		},
 	}
 }

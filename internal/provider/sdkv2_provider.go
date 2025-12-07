@@ -75,7 +75,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/self_service_plus_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/self_service_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/site"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/smart_computer_group"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/smart_mobile_device_group"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/smtp_server"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/sso_certificate"
@@ -417,7 +416,6 @@ func Provider() *schema.Provider {
 			"jamfpro_printer":                                   printer.DataSourceJamfProPrinters(),
 			"jamfpro_script":                                    script.DataSourceJamfProScripts(),
 			"jamfpro_site":                                      site.DataSourceJamfProSites(),
-			"jamfpro_smart_computer_group":                      smart_computer_group.DataSourceJamfProSmartComputerGroups(),
 			"jamfpro_smart_mobile_device_group":                 smart_mobile_device_group.DataSourceJamfProSmartMobileGroups(),
 			"jamfpro_sso_certificate":                           sso_certificate.DataSourceJamfProSSOCertificate(),
 			"jamfpro_sso_failover":                              sso_failover.DataSourceJamfProSSOFailover(),
@@ -486,7 +484,6 @@ func Provider() *schema.Provider {
 			"jamfpro_self_service_plus_settings":                  self_service_plus_settings.ResourceSelfServicePlusSettings(),
 			"jamfpro_smtp_server":                                 smtp_server.ResourceJamfProSMTPServer(),
 			"jamfpro_site":                                        site.ResourceJamfProSites(),
-			"jamfpro_smart_computer_group":                        smart_computer_group.ResourceJamfProSmartComputerGroups(),
 			"jamfpro_smart_mobile_device_group":                   smart_mobile_device_group.ResourceJamfProSmartMobileGroups(),
 			"jamfpro_sso_certificate":                             sso_certificate.ResourceJamfProSSOCertificate(),
 			"jamfpro_sso_failover":                                sso_failover.ResourceJamfProSSOFailover(),
