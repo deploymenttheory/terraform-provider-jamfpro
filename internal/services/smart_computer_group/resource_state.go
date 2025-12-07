@@ -1,6 +1,8 @@
 package smart_computer_group
 
 import (
+	"strings"
+
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -30,7 +32,7 @@ func state(data *smartComputerGroupResourceModel, resourceID string, resp *jamfp
 		criteriaModel := smartComputerGroupCriteriaDataModel{
 			Name:       types.StringValue(criterion.Name),
 			Priority:   types.Int64Value(int64(criterion.Priority)),
-			AndOr:      types.StringValue(criterion.AndOr),
+			AndOr:      types.StringValue(strings.ToLower(criterion.AndOr)),
 			SearchType: types.StringValue(criterion.SearchType),
 			Value:      types.StringValue(criterion.Value),
 		}

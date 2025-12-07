@@ -3,6 +3,7 @@ package smart_computer_group
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -88,7 +89,7 @@ func (d *smartComputerGroupFrameworkDataSource) Read(ctx context.Context, req da
 		criteriaModel := smartComputerGroupCriteriaDataModel{
 			Name:       types.StringValue(criterion.Name),
 			Priority:   types.Int64Value(int64(criterion.Priority)),
-			AndOr:      types.StringValue(criterion.AndOr),
+			AndOr:      types.StringValue(strings.ToLower(criterion.AndOr)),
 			SearchType: types.StringValue(criterion.SearchType),
 			Value:      types.StringValue(criterion.Value),
 		}
