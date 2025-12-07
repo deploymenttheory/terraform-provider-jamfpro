@@ -7,11 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	resourceschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // ValidSearchTypes contains all valid search type values for criteria validation
@@ -135,4 +137,69 @@ func CriteriaResource(ctx context.Context) resourceschema.ListNestedBlock {
 			},
 		},
 	}
+}
+
+// CriteriaModel interface for models containing criteria
+type CriteriaModel interface {
+	GetCriteria() []CriterionModel
+}
+
+// CriterionModel interface for individual criterion
+type CriterionModel interface {
+	GetPriority() types.Int64
+}
+
+// CriteriaPriorityValidator validates that criteria priorities start at 0 and increment by 1
+type CriteriaPriorityValidator[T CriteriaModel] struct{}
+
+// Description returns a plain text description of the validator's behavior
+func (v CriteriaPriorityValidator[T]) Description(ctx context.Context) string {
+	return "Ensures criteria priorities start at 0 and increment by 1 for each subsequent criterion"
+}
+
+// MarkdownDescription returns a markdown formatted description of the validator's behavior
+func (v CriteriaPriorityValidator[T]) MarkdownDescription(ctx context.Context) string {
+	return "Ensures criteria priorities start at 0 and increment by 1 for each subsequent criterion"
+}
+
+// ValidateResource performs the validation
+func (v CriteriaPriorityValidator[T]) ValidateResource(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var data T
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	criteria := data.GetCriteria()
+	priorities := make([]int64, len(criteria))
+	for i, c := range criteria {
+		priorities[i] = c.GetPriority().ValueInt64()
+	}
+
+	if err := ValidateCriteriaPriorities(priorities); err != nil {
+		resp.Diagnostics.AddError("Invalid Criteria Priority", err.Error())
+	}
+}
+
+// ValidateCriteriaPriorities validates that priorities start at 0 and increment by 1
+func ValidateCriteriaPriorities(priorities []int64) error {
+	if len(priorities) <= 1 {
+		return nil
+	}
+
+	expectedPriority := int64(0)
+	for index, priority := range priorities {
+		if index == 0 && priority != 0 {
+			return fmt.Errorf("the first criterion must have a priority of 0, got %d", priority)
+		}
+
+		if index > 0 && priority != expectedPriority {
+			return fmt.Errorf("criterion %d has an invalid priority %d, expected %d", index, priority, expectedPriority)
+		}
+
+		expectedPriority++
+	}
+
+	return nil
 }
