@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Read fetches the static mobile device group data from Jamf Pro.
+// Read fetches the smart mobile device group data from Jamf Pro.
 func (d *smartMobileDeviceGroupFrameworkDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data smartMobileDeviceGroupDataSourceModel
 

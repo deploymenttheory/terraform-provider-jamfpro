@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Read fetches the static computer group data from Jamf Pro.
+// Read fetches the smart computer group data from Jamf Pro.
 func (d *smartComputerGroupFrameworkDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data smartComputerGroupDataSourceModel
 
