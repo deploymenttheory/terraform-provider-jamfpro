@@ -1,19 +1,18 @@
 ---
 page_title: "jamfpro_smart_computer_group"
 description: |-
-  
+  Data source for retrieving a Jamf Pro Smart Computer Group using the `/api/v2/computer-groups/smart-groups` endpoint.
 ---
 
 # jamfpro_smart_computer_group (Data Source)
-
+Data source for retrieving a Jamf Pro Smart Computer Group using the `/api/v2/computer-groups/smart-groups` endpoint.
 
 ## Example Usage
 ```terraform
 # Create smart group first 
 resource "jamfpro_smart_computer_group" "test_group" {
-  name     = "Test Smart Group"
-  is_smart = true
-  site_id  = "1"
+  name    = "Test Smart Group"
+  site_id = "1"
 
   criteria {
     name          = "Operating System Version"
@@ -36,8 +35,8 @@ resource "jamfpro_smart_computer_group" "test_group" {
 
 # Query by ID
 data "jamfpro_smart_computer_group" "by_id" {
-  smart_group_id = jamfpro_smart_computer_group.test_group.id
-  depends_on     = [jamfpro_smart_computer_group.test_group]
+  id         = jamfpro_smart_computer_group.test_group.id
+  depends_on = [jamfpro_smart_computer_group.test_group]
 }
 
 # Query by name
@@ -50,18 +49,18 @@ data "jamfpro_smart_computer_group" "by_name" {
 output "group_verification" {
   value = {
     by_id = {
-      id       = data.jamfpro_smart_computer_group.by_id.smart_group_id
-      name     = data.jamfpro_smart_computer_group.by_id.name
-      is_smart = data.jamfpro_smart_computer_group.by_id.is_smart
-      site_id  = data.jamfpro_smart_computer_group.by_id.site_id
-      criteria = data.jamfpro_smart_computer_group.by_id.criteria
+      id          = data.jamfpro_smart_computer_group.by_id.id
+      name        = data.jamfpro_smart_computer_group.by_id.name
+      description = data.jamfpro_smart_computer_group.by_id.description
+      site_id     = data.jamfpro_smart_computer_group.by_id.site_id
+      criteria    = data.jamfpro_smart_computer_group.by_id.criteria
     }
     by_name = {
-      id       = data.jamfpro_smart_computer_group.by_name.smart_group_id
-      name     = data.jamfpro_smart_computer_group.by_name.name
-      is_smart = data.jamfpro_smart_computer_group.by_name.is_smart
-      site_id  = data.jamfpro_smart_computer_group.by_name.site_id
-      criteria = data.jamfpro_smart_computer_group.by_name.criteria
+      id          = data.jamfpro_smart_computer_group.by_name.id
+      name        = data.jamfpro_smart_computer_group.by_name.name
+      description = data.jamfpro_smart_computer_group.by_name.description
+      site_id     = data.jamfpro_smart_computer_group.by_name.site_id
+      criteria    = data.jamfpro_smart_computer_group.by_name.criteria
     }
   }
 }
@@ -72,25 +71,24 @@ output "group_verification" {
 
 ### Optional
 
-- `id` (String) The unique identifier of the computer group.
-- `name` (String) The unique name of the Jamf Pro computer group.
-- `site_id` (Number) Jamf Pro Site-related settings of the policy.
+- `id` (String) The unique identifier of the smart computer group.
+- `name` (String) The name of the smart computer group.
+- `site_id` (String) The Site ID assigned to the resource. A Site ID of -1 indicates the resource is assigned to the 'None' site.
 
 ### Read-Only
 
-- `criteria` (Block List) (see [below for nested schema](#nestedblock--criteria))
-- `is_smart` (Boolean) Boolean selection to state if the group is a Smart group or not. If false then the group is a static group.
+- `criteria` (Block List) The criteria for the smart group. (see [below for nested schema](#nestedblock--criteria))
+- `description` (String) The description of the smart computer group.
 
 <a id="nestedblock--criteria"></a>
 ### Nested Schema for `criteria`
 
 Read-Only:
 
-- `and_or` (String) Either 'and', 'or', or blank.
-- `closing_paren` (Boolean) Closing parenthesis flag used during smart group construction.
-- `id` (String) The unique identifier of the smart computer group.
-- `name` (String) The name of the smart computer group.
-- `opening_paren` (Boolean) Opening parenthesis flag used during smart group construction.
+- `and_or` (String) The logical operator for the criterion. Must be 'and' or 'or'. Defaults to 'and'.
+- `closing_paren` (Boolean) Whether this criterion has a closing parenthesis.
+- `name` (String) The name of the criterion.
+- `opening_paren` (Boolean) Whether this criterion has an opening parenthesis.
 - `priority` (Number) The priority of the criterion.
-- `search_type` (String) The type of smart group search operator. Allowed values are '[and or is is not has does not have member of not member of before (yyyy-mm-dd) after (yyyy-mm-dd) more than x days ago less than x days ago like not like greater than more than less than greater than or equal less than or equal matches regex does not match regex]'
-- `value` (String) Search value for the smart group criteria to match with.
+- `search_type` (String) The search type for the criterion. Allowed values are: 'is', 'is not', 'has', 'does not have', 'member of', 'not member of', 'before (yyyy-mm-dd)', 'after (yyyy-mm-dd)', 'more than x days ago', 'less than x days ago', 'like', 'not like', 'greater than', 'more than', 'less than', 'greater than or equal', 'less than or equal', 'matches regex', 'does not match regex'.
+- `value` (String) The value to match for the criterion.
