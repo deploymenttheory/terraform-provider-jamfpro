@@ -2,9 +2,8 @@ package policy
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
-
-// TODO handle the commented attrs
 
 func getPolicySchemaSelfService() *schema.Resource {
 	selfServiceSchema := &schema.Resource{
@@ -48,7 +47,7 @@ func getPolicySchemaSelfService() *schema.Resource {
 			"self_service_icon_id": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Default:     0,
+				Computed:    true,
 				Description: "Icon for policy to use in self-service",
 			},
 			"feature_on_main_page": {
@@ -60,7 +59,7 @@ func getPolicySchemaSelfService() *schema.Resource {
 			"self_service_category": {
 				Type:        schema.TypeList,
 				Optional:    true,
-				Description: "Category settings for the policy in self-service.",
+				Description: "Category settings for the policy in self-service. Multiple categories can be specified.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -70,16 +69,46 @@ func getPolicySchemaSelfService() *schema.Resource {
 						},
 						"display_in": {
 							Type:        schema.TypeBool,
-							Required:    true,
-							Description: "Whether to display the category in self-service.",
+							Optional:    true,
+							Default:     true,
+							Description: "Whether to display the policy in this category in self-service.",
 						},
 						"feature_in": {
 							Type:        schema.TypeBool,
-							Required:    true,
-							Description: "Whether to feature the category in self-service.",
+							Optional:    true,
+							Default:     false,
+							Description: "Whether to feature the policy in this category in self-service.",
 						},
 					},
 				},
+			},
+			"notification": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Whether to enable notifications for this self-service policy.",
+			},
+			"notification_type": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "Self Service",
+				Description: "The type of notification. Valid values are 'Self Service' and 'Self Service and Notification Center'.",
+				ValidateFunc: validation.StringInSlice([]string{
+					"Self Service",
+					"Self Service and Notification Center",
+				}, false),
+			},
+			"notification_subject": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "",
+				Description: "The subject of the notification message.",
+			},
+			"notification_message": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "",
+				Description: "The body of the notification message.",
 			},
 		},
 	}

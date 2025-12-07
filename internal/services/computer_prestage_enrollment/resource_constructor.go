@@ -144,6 +144,7 @@ func constructSkipSetupItems(data map[string]any) jamfpro.ComputerPrestageSubset
 		Wallpaper:                 jamfpro.BoolPtr(data["wallpaper"].(bool)),
 		SoftwareUpdate:            jamfpro.BoolPtr(data["software_update"].(bool)),
 		AdditionalPrivacySettings: jamfpro.BoolPtr(data["additional_privacy_settings"].(bool)),
+		OSShowcase:                jamfpro.BoolPtr(data["os_showcase"].(bool)),
 	}
 }
 

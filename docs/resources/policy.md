@@ -85,6 +85,17 @@ resource "jamfpro_policy" "jamfpro_policy_001" {
     self_service_description        = ""
     force_users_to_view_description = false
     feature_on_main_page            = false
+
+    self_service_category {
+      id         = 1
+      display_in = true
+      feature_in = false
+    }
+
+    notification         = false
+    notification_type    = "Self Service"
+    notification_subject = "Install Firefox"
+    notification_message = "This is a message for the Firefox install"
   }
 
   payloads {
@@ -575,8 +586,12 @@ Optional:
 - `feature_on_main_page` (Boolean) Whether to feature the policy on the main page of self-service.
 - `force_users_to_view_description` (Boolean) Whether to force users to view the policy description in self-service.
 - `install_button_text` (String) Text displayed on the install button in self-service.
+- `notification` (Boolean) Whether to enable notifications for this self-service policy.
+- `notification_message` (String) The body of the notification message.
+- `notification_subject` (String) The subject of the notification message.
+- `notification_type` (String) The type of notification. Valid values are 'Self Service' and 'Self Service and Notification Center'.
 - `reinstall_button_text` (String) Text displayed on the re-install button in self-service.
-- `self_service_category` (Block List) Category settings for the policy in self-service. (see [below for nested schema](#nestedblock--self_service--self_service_category))
+- `self_service_category` (Block List) Category settings for the policy in self-service. Multiple categories can be specified. (see [below for nested schema](#nestedblock--self_service--self_service_category))
 - `self_service_description` (String) Description of the policy displayed in self-service.
 - `self_service_display_name` (String) Display name of the policy in self-service.
 - `self_service_icon_id` (Number) Icon for policy to use in self-service
@@ -587,9 +602,12 @@ Optional:
 
 Required:
 
-- `display_in` (Boolean) Whether to display the category in self-service.
-- `feature_in` (Boolean) Whether to feature the category in self-service.
 - `id` (Number) Category ID for the policy in self-service.
+
+Optional:
+
+- `display_in` (Boolean) Whether to display the policy in this category in self-service.
+- `feature_in` (Boolean) Whether to feature the policy in this category in self-service.
 
 
 

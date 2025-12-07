@@ -3,11 +3,12 @@ package provider
 import (
 	"context"
 
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/jamf_cloud_ip_address_list"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
 
 func (p *frameworkProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		// Framework data sources will be added here as they are migrated
+		jamf_cloud_ip_address_list.NewJamfCloudIPAddressListDataSource,
 	}
 }

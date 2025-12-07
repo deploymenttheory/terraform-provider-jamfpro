@@ -273,10 +273,21 @@ func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 			ReinstallButtonText:         d.Get("self_service.0.reinstall_button_text").(string),
 			SelfServiceDescription:      d.Get("self_service.0.self_service_description").(string),
 			ForceUsersToViewDescription: d.Get("self_service.0.force_users_to_view_description").(bool),
-			SelfServiceIcon: &jamfpro.SharedResourceSelfServiceIcon{
-				ID: d.Get("self_service.0.self_service_icon_id").(int),
-			},
-			FeatureOnMainPage: d.Get("self_service.0.feature_on_main_page").(bool),
+			FeatureOnMainPage:           d.Get("self_service.0.feature_on_main_page").(bool),
+			Notification:                d.Get("self_service.0.notification").(bool),
+			NotificationType:            d.Get("self_service.0.notification_type").(string),
+			NotificationSubject:         d.Get("self_service.0.notification_subject").(string),
+			NotificationMessage:         d.Get("self_service.0.notification_message").(string),
+		}
+
+		// Only include icon if self service is enabled AND icon ID is greater than 0
+		// Icons cannot be removed via the API once set, so we only manage them when self service is active
+		useForSelfService := d.Get("self_service.0.use_for_self_service").(bool)
+		iconID := d.Get("self_service.0.self_service_icon_id").(int)
+		if useForSelfService && iconID > 0 {
+			out.SelfService.SelfServiceIcon = &jamfpro.SharedResourceSelfServiceIcon{
+				ID: iconID,
+			}
 		}
 
 		categories := d.Get("self_service.0.self_service_category")
