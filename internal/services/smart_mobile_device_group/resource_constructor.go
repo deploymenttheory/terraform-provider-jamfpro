@@ -1,61 +1,59 @@
 package smart_mobile_device_group
 
 import (
-	"encoding/xml"
+	"encoding/json"
 	"fmt"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
-// constructJamfProSmartMobileGroup constructs a ResourceMobileDeviceGroup object from the provided schema data.
-func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceGroup, error) {
-	resource := &jamfpro.ResourceMobileDeviceGroup{
-		Name:    d.Get("name").(string),
-		IsSmart: true,
-	}
-	if (d.Get("site_id").(int)) == 0 || (d.Get("site_id").(int)) == -1 {
-		resource.Site = jamfpro.SharedResourceSite{ID: -1, Name: ""}
+// constructResource constructs a ResourceSmartMobileDeviceGroupV2 object from the provided framework resource model.
+func constructResource(data *smartMobileDeviceGroupResourceModel) (*jamfpro.ResourceSmartMobileDeviceGroupV1, diag.Diagnostics) {
+	var diags diag.Diagnostics
 
-	} else {
-		resource.Site = jamfpro.SharedResourceSite{ID: (d.Get("site_id").(int))}
+	resource := &jamfpro.ResourceSmartMobileDeviceGroupV1{
+		GroupName:        data.Name.ValueString(),
+		GroupDescription: data.Description.ValueString(),
+		SiteId:           data.SiteID.ValueStringPointer(),
 	}
 
-	if v, ok := d.GetOk("criteria"); ok {
-		resource.Criteria = constructMobileGroupSubsetContainerCriteria(v.([]any))
-	}
+	if len(data.Criteria) > 0 {
+		resource.Criteria = make([]jamfpro.SharedSubsetCriteriaJamfProAPI, len(data.Criteria))
+		for i, criterion := range data.Criteria {
+			apiCriterion := jamfpro.SharedSubsetCriteriaJamfProAPI{
+				Name:       criterion.Name.ValueString(),
+				Priority:   int(criterion.Priority.ValueInt64()),
+				AndOr:      criterion.AndOr.ValueString(),
+				SearchType: criterion.SearchType.ValueString(),
+				Value:      criterion.Value.ValueString(),
+			}
 
-	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Mobile Group '%s' to XML: %v", resource.Name, err)
-	}
+			if !criterion.OpeningParen.IsNull() && !criterion.OpeningParen.IsUnknown() {
+				val := criterion.OpeningParen.ValueBool()
+				apiCriterion.OpeningParen = &val
+			}
 
-	log.Printf("[DEBUG] Constructed Jamf Pro Mobile Device Group XML:\n%s\n", string(resourceXML))
+			if !criterion.ClosingParen.IsNull() && !criterion.ClosingParen.IsUnknown() {
+				val := criterion.ClosingParen.ValueBool()
+				apiCriterion.ClosingParen = &val
+			}
 
-	return resource, nil
-}
-
-// constructMobileGroupSubsetContainerCriteria constructs a SharedContainerCriteria object from the provided schema data.
-func constructMobileGroupSubsetContainerCriteria(criteriaList []any) jamfpro.SharedContainerCriteria {
-	criteria := jamfpro.SharedContainerCriteria{
-		Size:      len(criteriaList),
-		Criterion: []jamfpro.SharedSubsetCriteria{},
-	}
-
-	for _, item := range criteriaList {
-		criterionData := item.(map[string]any)
-		criterion := jamfpro.SharedSubsetCriteria{
-			Name:         criterionData["name"].(string),
-			Priority:     criterionData["priority"].(int),
-			AndOr:        criterionData["and_or"].(string),
-			SearchType:   criterionData["search_type"].(string),
-			Value:        criterionData["value"].(string),
-			OpeningParen: criterionData["opening_paren"].(bool),
-			ClosingParen: criterionData["closing_paren"].(bool),
+			resource.Criteria[i] = apiCriterion
 		}
-		criteria.Criterion = append(criteria.Criterion, criterion)
 	}
 
-	return criteria
+	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
+	if err != nil {
+		diags.AddError(
+			"Failed to marshal Smart Mobile Device Group",
+			fmt.Sprintf("Failed to marshal Smart Mobile Device Group '%s' to JSON: %v", resource.GroupName, err),
+		)
+		return nil, diags
+	}
+
+	log.Printf("[DEBUG] Constructed Smart Mobile Device Group JSON:\n%s\n", string(resourceJSON))
+
+	return resource, diags
 }
