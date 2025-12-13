@@ -173,7 +173,12 @@ func setGeneralSection(d *schema.ResourceData, general jamfpro.ComputerInventory
 	gen["barcode2"] = general.Barcode2
 	gen["asset_tag"] = general.AssetTag
 	gen["supervised"] = general.Supervised
-	gen["mdm_capable"] = general.MdmCapable.Capable
+	gen["mdm_capable"] = []interface{}{
+		map[string]interface{}{
+			"capable":       general.MdmCapable.Capable,
+			"capable_users": general.MdmCapable.CapableUsers,
+		},
+	}
 	gen["report_date"] = general.ReportDate
 	gen["last_contact_time"] = general.LastContactTime
 	gen["last_cloud_backup_date"] = general.LastCloudBackupDate
