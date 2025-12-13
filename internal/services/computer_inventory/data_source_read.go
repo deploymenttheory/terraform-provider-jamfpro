@@ -476,7 +476,7 @@ func setLocalUserAccountsSection(d *schema.ResourceData, localUserAccounts []jam
 		acc["azure_active_directory_id"] = account.AzureActiveDirectoryId
 		accounts[i] = acc
 	}
-	return d.Set("localUserAccounts", accounts)
+	return d.Set("local_user_accounts", accounts)
 }
 
 // setCertificatesSection maps the 'certificate' section of the computer inventory response to the Terraform resource data and updates the state.
