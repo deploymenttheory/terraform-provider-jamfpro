@@ -155,6 +155,21 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(err)
 	}
 
+	// Set 'configurationProfiles' section
+	if err := setConfigurationProfilesSection(d, profile.ConfigurationProfiles); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Set 'printers' section
+	if err := setPrintersSection(d, profile.Printers); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Set 'services' section
+	if err := setServicesSection(d, profile.Services); err != nil {
+		return diag.FromErr(err)
+	}
+
 	return nil
 }
 
@@ -663,4 +678,48 @@ func setGroupMembershipsSection(d *schema.ResourceData, groupMemberships []jamfp
 		memberships[i] = groupMap
 	}
 	return d.Set("group_memberships", memberships)
+}
+
+// setConfigurationProfilesSection maps the 'configurationProfiles' section of the computer inventory response to the Terraform resource data and updates the state.
+func setConfigurationProfilesSection(d *schema.ResourceData, configurationProfiles []jamfpro.ComputerInventorySubsetConfigurationProfile) error {
+	profiles := make([]any, len(configurationProfiles))
+	for i, profile := range configurationProfiles {
+		profileMap := map[string]interface{}{
+			"id":                 profile.ID,
+			"username":           profile.Username,
+			"last_installed":     profile.LastInstalled,
+			"removable":          profile.Removable,
+			"display_name":       profile.DisplayName,
+			"profile_identifier": profile.ProfileIdentifier,
+		}
+		profiles[i] = profileMap
+	}
+	return d.Set("configuration_profiles", profiles)
+}
+
+// setPrintersSection maps the 'printers' section of the computer inventory response to the Terraform resource data and updates the state.
+func setPrintersSection(d *schema.ResourceData, printers []jamfpro.ComputerInventorySubsetPrinter) error {
+	printerList := make([]any, len(printers))
+	for i, printer := range printers {
+		printerMap := map[string]interface{}{
+			"name":     printer.Name,
+			"type":     printer.Type,
+			"uri":      printer.URI,
+			"location": printer.Location,
+		}
+		printerList[i] = printerMap
+	}
+	return d.Set("printers", printerList)
+}
+
+// setServicesSection maps the 'services' section of the computer inventory response to the Terraform resource data and updates the state.
+func setServicesSection(d *schema.ResourceData, services []jamfpro.ComputerInventorySubsetService) error {
+	serviceList := make([]any, len(services))
+	for i, service := range services {
+		serviceMap := map[string]interface{}{
+			"name": service.Name,
+		}
+		serviceList[i] = serviceMap
+	}
+	return d.Set("services", serviceList)
 }
