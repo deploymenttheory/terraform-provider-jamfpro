@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.31.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.30.0...v0.31.0) (2025-12-13)
+
+
+### Features
+
+* Add enable_maid_username_merge option for user initiated enrollment settings ([5eb063d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/5eb063d62a6e62f5edeee2c5c0840f6fc230fc64))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([5eb063d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/5eb063d62a6e62f5edeee2c5c0840f6fc230fc64))
+
+
+### Bug Fixes
+
+* policy self_service_icon_id not being read into state ([#947](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/947)) ([ae2416f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/ae2416f9bb6de869d981c28ed15db006bcf98881))
+* static_computer_group empty assigned_computer_ids empty list handling  ([#952](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/952)) ([5eb063d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/5eb063d62a6e62f5edeee2c5c0840f6fc230fc64))
+
 ## [0.30.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.29.0...v0.30.0) (2025-12-04)
 
 
