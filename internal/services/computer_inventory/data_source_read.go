@@ -590,7 +590,7 @@ func setOperatingSystemSection(d *schema.ResourceData, operatingSystem jamfpro.C
 	osMap["rapid_security_response"] = operatingSystem.RapidSecurityResponse
 	osMap["active_directory_status"] = operatingSystem.ActiveDirectoryStatus
 	osMap["filevault2_status"] = operatingSystem.FileVault2Status
-	osMap["softwareUpdate_device_id"] = operatingSystem.SoftwareUpdateDeviceId
+	osMap["software_update_device_id"] = operatingSystem.SoftwareUpdateDeviceId
 	// Map extension attributes if present
 	extAttrs := make([]map[string]any, len(operatingSystem.ExtensionAttributes))
 	for i, attr := range operatingSystem.ExtensionAttributes {
