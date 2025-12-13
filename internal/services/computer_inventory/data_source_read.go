@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// dataSourceRead fetches the details of a specific macOS Configuration Profile
-// from Jamf Pro using either its unique Name or its ID. The function prioritizes the 'name' attribute over the 'id'
-// attribute for fetching details. If neither 'name' nor 'id' is provided, it returns an error.
+// dataSourceRead fetches the details of a specific computer inventory
+// from Jamf Pro using either its unique Name, Serial Number, or its ID. The function prioritizes the 'name' attribute,
+// then 'serial_number', then 'id' for fetching details. If none are provided, it returns an error.
 // Once the details are fetched, they are set in the data source's state.
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Asserts 'meta' as '*client.client'
@@ -23,13 +23,19 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	var profile *jamfpro.ResourceComputerInventory
 	var err error
 
-	// Fetch profile by 'name' or 'id'
+	// Fetch profile by 'name', 'serial_number', or 'id'
 	if v, ok := d.GetOk("name"); ok {
 		profileName, ok := v.(string)
 		if !ok {
 			return diag.Errorf("error asserting 'name' as string")
 		}
 		profile, err = client.GetComputerInventoryByName(profileName)
+	} else if v, ok := d.GetOk("serial_number"); ok {
+		serialNumber, ok := v.(string)
+		if !ok {
+			return diag.Errorf("error asserting 'serial_number' as string")
+		}
+		profile, err = client.GetComputerInventoryBySerialNumber(serialNumber)
 	} else if v, ok := d.GetOk("id"); ok {
 		profileID, ok := v.(string)
 		if !ok {
@@ -37,11 +43,11 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 		profile, err = client.GetComputerInventoryByID(profileID)
 	} else {
-		return diag.Errorf("Either 'name' or 'id' must be provided")
+		return diag.Errorf("Either 'name', 'serial_number', or 'id' must be provided")
 	}
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to fetch macOS Configuration Profile: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to fetch computer inventory: %v", err))
 	}
 
 	// Set top-level attributes
