@@ -21,7 +21,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceGroup
 
 	var assignments []any
 	if resp.MobileDevices != nil {
-		for _, comp := range resp.MobileDevices {
+		for _, comp := range *resp.MobileDevices {
 			assignments = append(assignments, comp.ID)
 		}
 
