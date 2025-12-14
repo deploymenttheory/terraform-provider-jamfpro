@@ -1,59 +1,59 @@
-// smartcomputergroup_object.go
 package smart_computer_group
 
 import (
-	"encoding/xml"
+	"encoding/json"
 	"fmt"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	sharedschemas "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/shared_schemas"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
-// constructJamfProSmartComputerGroup constructs a ResourceComputerGroup object from the provided schema data.
-func construct(d *schema.ResourceData) (*jamfpro.ResourceComputerGroup, error) {
-	resource := &jamfpro.ResourceComputerGroup{
-		Name:    d.Get("name").(string),
-		IsSmart: true,
+// constructResource constructs a ResourceSmartComputerGroupV2 object from the provided framework resource model.
+func constructResource(data *smartComputerGroupResourceModel) (*jamfpro.ResourceSmartComputerGroupV2, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	resource := &jamfpro.ResourceSmartComputerGroupV2{
+		Name:        data.Name.ValueString(),
+		Description: data.Description.ValueString(),
+		SiteId:      data.SiteID.ValueStringPointer(),
 	}
 
-	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
+	if len(data.Criteria) > 0 {
+		resource.Criteria = make([]jamfpro.SharedSubsetCriteriaJamfProAPI, len(data.Criteria))
+		for i, criterion := range data.Criteria {
+			apiCriterion := jamfpro.SharedSubsetCriteriaJamfProAPI{
+				Name:       criterion.Name.ValueString(),
+				Priority:   int(criterion.Priority.ValueInt64()),
+				AndOr:      criterion.AndOr.ValueString(),
+				SearchType: criterion.SearchType.ValueString(),
+				Value:      criterion.Value.ValueString(),
+			}
 
-	if v, ok := d.GetOk("criteria"); ok {
-		resource.Criteria = constructComputerGroupSubsetContainerCriteria(v.([]any))
-	}
+			if !criterion.OpeningParen.IsNull() && !criterion.OpeningParen.IsUnknown() {
+				val := criterion.OpeningParen.ValueBool()
+				apiCriterion.OpeningParen = &val
+			}
 
-	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Group '%s' to XML: %v", resource.Name, err)
-	}
+			if !criterion.ClosingParen.IsNull() && !criterion.ClosingParen.IsUnknown() {
+				val := criterion.ClosingParen.ValueBool()
+				apiCriterion.ClosingParen = &val
+			}
 
-	log.Printf("[DEBUG] Constructed Jamf Pro Computer Group XML:\n%s\n", string(resourceXML))
-
-	return resource, nil
-}
-
-// constructComputerGroupSubsetContainerCriteria constructs a ComputerGroupSubsetContainerCriteria object from the provided schema data.
-func constructComputerGroupSubsetContainerCriteria(criteriaList []any) *jamfpro.ComputerGroupSubsetContainerCriteria {
-	criteria := &jamfpro.ComputerGroupSubsetContainerCriteria{
-		Size:      len(criteriaList),
-		Criterion: &[]jamfpro.SharedSubsetCriteria{},
-	}
-
-	for _, item := range criteriaList {
-		criterionData := item.(map[string]any)
-		criterion := jamfpro.SharedSubsetCriteria{
-			Name:         criterionData["name"].(string),
-			Priority:     criterionData["priority"].(int),
-			AndOr:        criterionData["and_or"].(string),
-			SearchType:   criterionData["search_type"].(string),
-			Value:        criterionData["value"].(string),
-			OpeningParen: criterionData["opening_paren"].(bool),
-			ClosingParen: criterionData["closing_paren"].(bool),
+			resource.Criteria[i] = apiCriterion
 		}
-		*criteria.Criterion = append(*criteria.Criterion, criterion)
 	}
 
-	return criteria
+	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
+	if err != nil {
+		diags.AddError(
+			"Failed to marshal Smart Computer Group",
+			fmt.Sprintf("Failed to marshal Smart Computer Group '%s' to JSON: %v", resource.Name, err),
+		)
+		return nil, diags
+	}
+
+	log.Printf("[DEBUG] Constructed Smart Computer Group JSON:\n%s\n", string(resourceJSON))
+
+	return resource, diags
 }
