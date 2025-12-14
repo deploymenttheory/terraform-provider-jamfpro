@@ -71,7 +71,6 @@ def create_mobile_device_config(device_name, site_id, site_name):
         <is_leased>false</is_leased>
         <po_number/>
         <vendor/>
-        <applecare_id>test</applecare_id>
         <purchase_price/>
         <purchasing_account/>
         <po_date/>
