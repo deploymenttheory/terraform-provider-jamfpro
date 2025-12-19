@@ -8,6 +8,12 @@ import (
 
 // stateSelfService Reads response and states self-service items and states only if non-default
 func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
+	// If self service is disabled, don't track any self service attributes in state
+	// This matches the constructor behavior where we ignore all attributes when disabled
+	if !resp.SelfService.UseForSelfService {
+		return
+	}
+
 	policyName := resp.General.Name
 
 	defaults := map[string]any{
@@ -28,7 +34,7 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 	// Get icon ID - only track it when self service is enabled
 	// Icons cannot be removed via the API once set, so we don't track orphaned icons on disabled policies
 	iconID := 0
-	if resp.SelfService.UseForSelfService && resp.SelfService.SelfServiceIcon != nil {
+	if resp.SelfService.SelfServiceIcon != nil {
 		iconID = resp.SelfService.SelfServiceIcon.ID
 	}
 
