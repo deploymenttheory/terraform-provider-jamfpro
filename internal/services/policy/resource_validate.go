@@ -1,9 +1,12 @@
 package policy
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // validateDateTime validates the input string is in the format 'YYYY-MM-DD HH:mm:ss'
@@ -41,4 +44,22 @@ func validate12HourTime(v any, k string) (warns []string, errs []error) {
 		errs = append(errs, fmt.Errorf("%q must be in 12-hour format (h:mm AM/PM), got: %s", k, value))
 	}
 	return
+}
+
+// validateSelfServiceConfig validates that when use_for_self_service is false,
+// the self_service block should not be configured
+func validateSelfServiceConfig(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	if selfService, ok := d.GetOk("self_service"); ok {
+		selfServiceList := selfService.([]interface{})
+		if len(selfServiceList) > 0 {
+			selfServiceMap := selfServiceList[0].(map[string]interface{})
+			useForSelfService, exists := selfServiceMap["use_for_self_service"]
+
+			// If use_for_self_service is not explicitly set to true, error out
+			if !exists || !useForSelfService.(bool) {
+				return fmt.Errorf("self_service block is configured but use_for_self_service is not set to true. Either set use_for_self_service = true or remove the self_service block entirely")
+			}
+		}
+	}
+	return nil
 }
