@@ -266,8 +266,20 @@ func constructScope(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) er
 // Pulls "self service" settings from HCL and packages into object
 func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	if len(d.Get("self_service").([]any)) > 0 {
+		useForSelfService := d.Get("self_service.0.use_for_self_service").(bool)
+
+		// If self service is disabled, only set the use_for_self_service flag
+		// and ignore all other self service attributes
+		if !useForSelfService {
+			out.SelfService = jamfpro.PolicySubsetSelfService{
+				UseForSelfService: false,
+			}
+			return
+		}
+
+		// Self service is enabled, process all attributes
 		out.SelfService = jamfpro.PolicySubsetSelfService{
-			UseForSelfService:           d.Get("self_service.0.use_for_self_service").(bool),
+			UseForSelfService:           useForSelfService,
 			SelfServiceDisplayName:      d.Get("self_service.0.self_service_display_name").(string),
 			InstallButtonText:           d.Get("self_service.0.install_button_text").(string),
 			ReinstallButtonText:         d.Get("self_service.0.reinstall_button_text").(string),
@@ -280,11 +292,10 @@ func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 			NotificationMessage:         d.Get("self_service.0.notification_message").(string),
 		}
 
-		// Only include icon if self service is enabled AND icon ID is greater than 0
+		// Only include icon if icon ID is greater than 0
 		// Icons cannot be removed via the API once set, so we only manage them when self service is active
-		useForSelfService := d.Get("self_service.0.use_for_self_service").(bool)
 		iconID := d.Get("self_service.0.self_service_icon_id").(int)
-		if useForSelfService && iconID > 0 {
+		if iconID > 0 {
 			out.SelfService.SelfServiceIcon = &jamfpro.SharedResourceSelfServiceIcon{
 				ID: iconID,
 			}
