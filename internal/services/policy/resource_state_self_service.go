@@ -39,7 +39,7 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 		"reinstall_button_text":           resp.SelfService.ReinstallButtonText,
 		"self_service_description":        resp.SelfService.SelfServiceDescription,
 		"force_users_to_view_description": resp.SelfService.ForceUsersToViewDescription,
-		"self_service_icon_id":            iconID,
+		"self_service_icon_id":            resp.SelfService.SelfServiceIcon.ID,
 		"feature_on_main_page":            resp.SelfService.FeatureOnMainPage,
 		"notification":                    resp.SelfService.Notification,
 		"notification_type":               resp.SelfService.NotificationType,
