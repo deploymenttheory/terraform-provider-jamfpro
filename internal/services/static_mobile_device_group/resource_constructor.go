@@ -20,8 +20,8 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceGroup, erro
 
 	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 
-	if rawConfig := d.GetRawConfig(); !rawConfig.IsNull() {
-		if raw := rawConfig.GetAttr("assigned_mobile_device_ids"); !raw.IsNull() {
+	if resourceConfig := d.GetRawConfig(); !resourceConfig.IsNull() {
+		if raw := resourceConfig.GetAttr("assigned_mobile_device_ids"); !raw.IsNull() {
 			assignedMobileDevices := d.Get("assigned_mobile_device_ids").([]any)
 			mobile_devices := []jamfpro.MobileDeviceGroupSubsetDeviceItem{}
 			for _, id := range assignedMobileDevices {
