@@ -3,6 +3,16 @@ data "jamfpro_computer_inventory" "example_basic" {
   id = "123"
 }
 
+# Example 1a: Lookup by Computer Name
+data "jamfpro_computer_inventory" "example_by_name" {
+  name = "MacBook-Pro-123"
+}
+
+# Example 1b: Lookup by Serial Number
+data "jamfpro_computer_inventory" "example_by_serial" {
+  serial_number = "C02ABC123DEF"
+}
+
 # Example 2: Output Common Computer Information
 data "jamfpro_computer_inventory" "example_detailed" {
   id = "456"

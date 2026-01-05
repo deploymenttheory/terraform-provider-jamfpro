@@ -22,7 +22,7 @@ jobs:
     steps:
 
     - name: Harden Runner
-      uses: step-security/harden-runner@v2.13.2
+      uses: step-security/harden-runner@v2.14.0
       with:
         egress-policy: audit
 
@@ -82,7 +82,7 @@ jobs:
     steps:
 
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.13.2
+        uses: step-security/harden-runner@v2.14.0
         with:
           egress-policy: audit
 
@@ -93,7 +93,7 @@ jobs:
 
       - name: Generate Release Notes
         run: sed -n -e "1{/# /d;}" -e "2{/^$/d;}" -e "/# $(git describe --abbrev=0 --exclude="$(git describe --abbrev=0 --match='v*.*.*' --tags)" --match='v*.*.*' --tags | tr -d v)/q;p" CHANGELOG.md > release-notes.txt
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: release-notes
           path: release-notes.txt
