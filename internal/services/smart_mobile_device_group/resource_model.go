@@ -18,7 +18,7 @@ type smartMobileDeviceGroupResourceModel struct {
 // smartMobileDeviceGroupCriteriaDataModel describes the criteria data model.
 type smartMobileDeviceGroupCriteriaDataModel struct {
 	Name         types.String `tfsdk:"name"`
-	Priority     types.Int64  `tfsdk:"priority"`
+	Priority     types.Int32  `tfsdk:"priority"`
 	AndOr        types.String `tfsdk:"and_or"`
 	SearchType   types.String `tfsdk:"search_type"`
 	Value        types.String `tfsdk:"value"`

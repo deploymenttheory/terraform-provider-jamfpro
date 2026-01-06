@@ -29,7 +29,7 @@ func (r *smartComputerGroupFrameworkResource) UpgradeState(ctx context.Context) 
 					"is_smart": schema.BoolAttribute{
 						Computed: true,
 					},
-					"site_id": schema.Int64Attribute{
+					"site_id": schema.Int32Attribute{
 						Optional: true,
 						Computed: true,
 					},
@@ -41,7 +41,7 @@ func (r *smartComputerGroupFrameworkResource) UpgradeState(ctx context.Context) 
 								"name": schema.StringAttribute{
 									Optional: true,
 								},
-								"priority": schema.Int64Attribute{
+								"priority": schema.Int32Attribute{
 									Optional: true,
 									Computed: true,
 								},
@@ -93,7 +93,7 @@ func upgradeStateV0toV1(ctx context.Context, req resource.UpgradeStateRequest, r
 
 	type criteriaV0 struct {
 		Name         types.String `tfsdk:"name"`
-		Priority     types.Int64  `tfsdk:"priority"`
+		Priority     types.Int32  `tfsdk:"priority"`
 		AndOr        types.String `tfsdk:"and_or"`
 		SearchType   types.String `tfsdk:"search_type"`
 		Value        types.String `tfsdk:"value"`
@@ -105,7 +105,7 @@ func upgradeStateV0toV1(ctx context.Context, req resource.UpgradeStateRequest, r
 		ID       types.String `tfsdk:"id"`
 		Name     types.String `tfsdk:"name"`
 		IsSmart  types.Bool   `tfsdk:"is_smart"`
-		SiteID   types.Int64  `tfsdk:"site_id"`
+		SiteID   types.Int32  `tfsdk:"site_id"`
 		Criteria types.List   `tfsdk:"criteria"`
 		Timeouts *timeoutsV0  `tfsdk:"timeouts"`
 	}
@@ -124,7 +124,7 @@ func upgradeStateV0toV1(ctx context.Context, req resource.UpgradeStateRequest, r
 	}
 
 	if !priorStateData.SiteID.IsNull() && !priorStateData.SiteID.IsUnknown() {
-		siteIDInt := priorStateData.SiteID.ValueInt64()
+		siteIDInt := priorStateData.SiteID.ValueInt32()
 		if siteIDInt == -1 {
 			upgradedStateData.SiteID = types.StringValue("-1")
 		} else {

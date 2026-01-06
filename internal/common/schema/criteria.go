@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	resourceschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -58,7 +58,7 @@ func CriteriaDataSource(ctx context.Context) datasourceschema.ListNestedBlock {
 					Computed:    true,
 					Description: "The name of the criterion.",
 				},
-				"priority": datasourceschema.Int64Attribute{
+				"priority": datasourceschema.Int32Attribute{
 					Computed:    true,
 					Description: "The priority of the criterion.",
 				},
@@ -96,10 +96,10 @@ func CriteriaResource(ctx context.Context) resourceschema.ListNestedBlock {
 					Required:    true,
 					Description: "The name of the criterion.",
 				},
-				"priority": resourceschema.Int64Attribute{
+				"priority": resourceschema.Int32Attribute{
 					Optional:    true,
 					Computed:    true,
-					Default:     int64default.StaticInt64(0),
+					Default:     int32default.StaticInt32(0),
 					Description: "The priority of the criterion. Priority must start with 0 and increment by one per new criteria added. Defaults to 0.",
 				},
 				"and_or": resourceschema.StringAttribute{
@@ -146,7 +146,7 @@ type CriteriaModel interface {
 
 // CriterionModel interface for individual criterion
 type CriterionModel interface {
-	GetPriority() types.Int64
+	GetPriority() types.Int32
 }
 
 // CriteriaPriorityValidator validates that criteria priorities start at 0 and increment by 1
@@ -172,9 +172,9 @@ func (v CriteriaPriorityValidator[T]) ValidateResource(ctx context.Context, req 
 	}
 
 	criteria := data.GetCriteria()
-	priorities := make([]int64, len(criteria))
+	priorities := make([]int32, len(criteria))
 	for i, c := range criteria {
-		priorities[i] = c.GetPriority().ValueInt64()
+		priorities[i] = c.GetPriority().ValueInt32()
 	}
 
 	if err := ValidateCriteriaPriorities(priorities); err != nil {
@@ -183,12 +183,12 @@ func (v CriteriaPriorityValidator[T]) ValidateResource(ctx context.Context, req 
 }
 
 // ValidateCriteriaPriorities validates that priorities start at 0 and increment by 1
-func ValidateCriteriaPriorities(priorities []int64) error {
+func ValidateCriteriaPriorities(priorities []int32) error {
 	if len(priorities) <= 1 {
 		return nil
 	}
 
-	expectedPriority := int64(0)
+	expectedPriority := int32(0)
 	for index, priority := range priorities {
 		if index == 0 && priority != 0 {
 			return fmt.Errorf("the first criterion must have a priority of 0, got %d", priority)

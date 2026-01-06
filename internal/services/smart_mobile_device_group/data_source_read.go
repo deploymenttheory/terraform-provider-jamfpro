@@ -88,7 +88,7 @@ func (d *smartMobileDeviceGroupFrameworkDataSource) Read(ctx context.Context, re
 	for _, criterion := range resource.Criteria {
 		criteriaModel := smartMobileDeviceGroupCriteriaDataModel{
 			Name:       types.StringValue(criterion.Name),
-			Priority:   types.Int64Value(int64(criterion.Priority)),
+			Priority:   types.Int32Value(int32(criterion.Priority)),
 			AndOr:      types.StringValue(strings.ToLower(criterion.AndOr)),
 			SearchType: types.StringValue(criterion.SearchType),
 			Value:      types.StringValue(criterion.Value),

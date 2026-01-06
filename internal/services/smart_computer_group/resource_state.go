@@ -31,7 +31,7 @@ func state(data *smartComputerGroupResourceModel, resourceID string, resp *jamfp
 	for _, criterion := range resp.Criteria {
 		criteriaModel := smartComputerGroupCriteriaDataModel{
 			Name:       types.StringValue(criterion.Name),
-			Priority:   types.Int64Value(int64(criterion.Priority)),
+			Priority:   types.Int32Value(int32(criterion.Priority)),
 			AndOr:      types.StringValue(strings.ToLower(criterion.AndOr)),
 			SearchType: types.StringValue(criterion.SearchType),
 			Value:      types.StringValue(criterion.Value),

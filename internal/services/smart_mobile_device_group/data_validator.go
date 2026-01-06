@@ -28,6 +28,6 @@ func (m smartMobileDeviceGroupResourceModel) GetCriteria() []schema.CriterionMod
 }
 
 // GetPriority implements schema.CriterionModel for validation
-func (c smartMobileDeviceGroupCriteriaDataModel) GetPriority() types.Int64 {
+func (c smartMobileDeviceGroupCriteriaDataModel) GetPriority() types.Int32 {
 	return c.Priority
 }

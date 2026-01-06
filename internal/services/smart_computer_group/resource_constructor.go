@@ -24,7 +24,7 @@ func constructResource(data *smartComputerGroupResourceModel) (*jamfpro.Resource
 		for i, criterion := range data.Criteria {
 			apiCriterion := jamfpro.SharedSubsetCriteriaJamfProAPI{
 				Name:       criterion.Name.ValueString(),
-				Priority:   int(criterion.Priority.ValueInt64()),
+				Priority:   int(criterion.Priority.ValueInt32()),
 				AndOr:      criterion.AndOr.ValueString(),
 				SearchType: criterion.SearchType.ValueString(),
 				Value:      criterion.Value.ValueString(),
