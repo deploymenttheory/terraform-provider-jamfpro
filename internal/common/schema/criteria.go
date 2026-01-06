@@ -41,11 +41,11 @@ var ValidSearchTypes = []string{
 
 // searchTypeDescription returns a formatted description string listing all valid search types
 func searchTypeDescription() string {
-	quoted := make([]string, len(ValidSearchTypes))
+	quotedSearchTypes := make([]string, len(ValidSearchTypes))
 	for i, v := range ValidSearchTypes {
-		quoted[i] = fmt.Sprintf("'%s'", v)
+		quotedSearchTypes[i] = fmt.Sprintf("'%s'", v)
 	}
-	return fmt.Sprintf("The search type for the criterion. Allowed values are: %s.", strings.Join(quoted, ", "))
+	return fmt.Sprintf("The search type for the criterion. Allowed values are: %s.", strings.Join(quotedSearchTypes, ", "))
 }
 
 // CriteriaDataSource returns a common schema block for criteria used in smart groups and advanced searches (data sources).
