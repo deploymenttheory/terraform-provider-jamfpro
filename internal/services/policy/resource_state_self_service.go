@@ -9,7 +9,6 @@ import (
 // stateSelfService Reads response and states self-service items and states only if non-default
 func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
 
-	// This appears to have solved the whole issue.
 	if !resp.SelfService.UseForSelfService {
 		d.Set("self_service", "")
 		return
@@ -40,16 +39,6 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 		"notification_subject":            "",
 		"notification_message":            "",
 	}
-
-	// Get icon ID - only track it when self service is enabled
-	// Icons cannot be removed via the API once set, so we don't track orphaned icons on disabled policies
-
-	// This still feels wrong.
-	// So currently if Self Service is NOT in use and the icon comes back not set - we set it to 0? Surely we should just not set it at all?
-	// iconID := 0
-	// if resp.SelfService.UseForSelfService && resp.SelfService.SelfServiceIcon != nil {
-	// 	iconID = resp.SelfService.SelfServiceIcon.ID
-	// }
 
 	current := map[string]any{
 		"use_for_self_service":            resp.SelfService.UseForSelfService,
