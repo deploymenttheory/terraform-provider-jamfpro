@@ -101,13 +101,6 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 	out_ss = append(out_ss, make(map[string]any, 1))
 	out_ss_slice := out_ss[0]
 
-	if d.Get("self_service.0.self_service_icon_id") != 0 {
-		d.Set("self_service.0.self_service_icon_id", d.Get("self_service.0.self_service_icon_id"))
-	} else {
-		out_ss_slice["self_service_icon_id"] = resp.SelfService.SelfServiceIcon.ID
-
-	}
-
 	out_ss_slice["use_for_self_service"] = resp.SelfService.UseForSelfService
 	out_ss_slice["self_service_display_name"] = resp.SelfService.SelfServiceDisplayName
 	out_ss_slice["install_button_text"] = resp.SelfService.InstallButtonText
