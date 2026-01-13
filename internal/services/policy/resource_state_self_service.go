@@ -8,12 +8,12 @@ import (
 
 // stateSelfService Reads response and states self-service items and states only if non-default
 func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
+
+	// This appears to have solved the whole issue.
 	if !resp.SelfService.UseForSelfService {
 		d.Set("self_service", "")
 		return
 	}
-
-	policyName := resp.General.Name
 
 	defaults := map[string]any{
 		"use_for_self_service":            false,
@@ -60,7 +60,7 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 
 		// Special case: if self_service_display_name equals the policy name, Jamf Pro auto-populated it
 		// Treat it as a default value (empty string) since the user didn't explicitly set it
-		if key == "self_service_display_name" && value == policyName {
+		if key == "self_service_display_name" && value == resp.General.Name {
 			continue
 		}
 
