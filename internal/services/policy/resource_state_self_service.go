@@ -15,6 +15,17 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 		return
 	}
 
+	state_icon_val := d.Get("self_service.0.self_service_icon_id")
+	server_icon_val := resp.SelfService.SelfServiceIcon.ID
+
+	if state_icon_val == 0 && server_icon_val != 0 {
+		*diags = append(*diags, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "Invalid configuration",
+			Detail:   "Unable to unset Icon ID once set. Please change the icon or replace the policy.",
+		})
+	}
+
 	defaults := map[string]any{
 		"use_for_self_service":            false,
 		"self_service_display_name":       "",
@@ -35,10 +46,10 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 
 	// This still feels wrong.
 	// So currently if Self Service is NOT in use and the icon comes back not set - we set it to 0? Surely we should just not set it at all?
-	iconID := 0
-	if resp.SelfService.UseForSelfService && resp.SelfService.SelfServiceIcon != nil {
-		iconID = resp.SelfService.SelfServiceIcon.ID
-	}
+	// iconID := 0
+	// if resp.SelfService.UseForSelfService && resp.SelfService.SelfServiceIcon != nil {
+	// 	iconID = resp.SelfService.SelfServiceIcon.ID
+	// }
 
 	current := map[string]any{
 		"use_for_self_service":            resp.SelfService.UseForSelfService,
@@ -47,7 +58,7 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 		"reinstall_button_text":           resp.SelfService.ReinstallButtonText,
 		"self_service_description":        resp.SelfService.SelfServiceDescription,
 		"force_users_to_view_description": resp.SelfService.ForceUsersToViewDescription,
-		"self_service_icon_id":            iconID,
+		"self_service_icon_id":            resp.SelfService.SelfServiceIcon.ID,
 		"feature_on_main_page":            resp.SelfService.FeatureOnMainPage,
 		"notification":                    resp.SelfService.Notification,
 		"notification_type":               resp.SelfService.NotificationType,
@@ -88,19 +99,27 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 
 	out_ss := make([]map[string]any, 0)
 	out_ss = append(out_ss, make(map[string]any, 1))
+	out_ss_slice := out_ss[0]
 
-	out_ss[0]["use_for_self_service"] = resp.SelfService.UseForSelfService
-	out_ss[0]["self_service_display_name"] = resp.SelfService.SelfServiceDisplayName
-	out_ss[0]["install_button_text"] = resp.SelfService.InstallButtonText
-	out_ss[0]["reinstall_button_text"] = resp.SelfService.ReinstallButtonText
-	out_ss[0]["self_service_description"] = resp.SelfService.SelfServiceDescription
-	out_ss[0]["force_users_to_view_description"] = resp.SelfService.ForceUsersToViewDescription
-	out_ss[0]["self_service_icon_id"] = iconID
-	out_ss[0]["feature_on_main_page"] = resp.SelfService.FeatureOnMainPage
-	out_ss[0]["notification"] = resp.SelfService.Notification
-	out_ss[0]["notification_type"] = resp.SelfService.NotificationType
-	out_ss[0]["notification_subject"] = resp.SelfService.NotificationSubject
-	out_ss[0]["notification_message"] = resp.SelfService.NotificationMessage
+	if d.Get("self_service.0.self_service_icon_id") != 0 {
+		d.Set("self_service.0.self_service_icon_id", d.Get("self_service.0.self_service_icon_id"))
+	} else {
+		out_ss_slice["self_service_icon_id"] = resp.SelfService.SelfServiceIcon.ID
+
+	}
+
+	out_ss_slice["use_for_self_service"] = resp.SelfService.UseForSelfService
+	out_ss_slice["self_service_display_name"] = resp.SelfService.SelfServiceDisplayName
+	out_ss_slice["install_button_text"] = resp.SelfService.InstallButtonText
+	out_ss_slice["reinstall_button_text"] = resp.SelfService.ReinstallButtonText
+	out_ss_slice["self_service_description"] = resp.SelfService.SelfServiceDescription
+	out_ss_slice["force_users_to_view_description"] = resp.SelfService.ForceUsersToViewDescription
+	out_ss_slice["self_service_icon_id"] = resp.SelfService.SelfServiceIcon.ID
+	out_ss_slice["feature_on_main_page"] = resp.SelfService.FeatureOnMainPage
+	out_ss_slice["notification"] = resp.SelfService.Notification
+	out_ss_slice["notification_type"] = resp.SelfService.NotificationType
+	out_ss_slice["notification_subject"] = resp.SelfService.NotificationSubject
+	out_ss_slice["notification_message"] = resp.SelfService.NotificationMessage
 
 	categoryBlock := make([]map[string]any, 0)
 	if resp.SelfService.SelfServiceCategories != nil {
@@ -113,7 +132,7 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 			categoryBlock = append(categoryBlock, categoryItem)
 		}
 	}
-	out_ss[0]["self_service_category"] = categoryBlock
+	out_ss_slice["self_service_category"] = categoryBlock
 
 	err := d.Set("self_service", out_ss)
 	if err != nil {
