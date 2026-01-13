@@ -27,6 +27,9 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 
 	// Get icon ID - only track it when self service is enabled
 	// Icons cannot be removed via the API once set, so we don't track orphaned icons on disabled policies
+
+	// This still feels wrong.
+	// So currently if Self Service is NOT in use and the icon comes back not set - we set it to 0? Surely we should just not set it at all?
 	iconID := 0
 	if resp.SelfService.UseForSelfService && resp.SelfService.SelfServiceIcon != nil {
 		iconID = resp.SelfService.SelfServiceIcon.ID
@@ -49,6 +52,7 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 
 	allDefault := true
 	for key, value := range current {
+
 		// Special case: if self_service_display_name equals the policy name, Jamf Pro auto-populated it
 		// Treat it as a default value (empty string) since the user didn't explicitly set it
 		if key == "self_service_display_name" && value == policyName {
