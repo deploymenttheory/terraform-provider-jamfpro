@@ -26,7 +26,7 @@ resource "jamfpro_policy" "jamfpro_policy_script_example" {
     all_jss_users = false
   }
 
-   self_service {
+  self_service {
     use_for_self_service            = true
     self_service_display_name       = ""
     install_button_text             = "Install"
