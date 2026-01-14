@@ -11,11 +11,6 @@ import (
 // stateSelfService Reads response and states self-service items and states only if non-default
 func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
 
-	if !resp.SelfService.UseForSelfService {
-		d.Set("self_service", "")
-		return
-	}
-
 	// This matches the UI behaviour as close as possible, I'm purposefully not obsecuring the logic.
 	state_icon_val := d.Get("self_service.0.self_service_icon_id")
 	server_icon_val := resp.SelfService.SelfServiceIcon.ID
@@ -26,6 +21,11 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 			Summary:  "Invalid configuration - API Limitation",
 			Detail:   "Unable to unset icon ID once set. Please assign a different icon or replace the policy.",
 		})
+	}
+
+	if !resp.SelfService.UseForSelfService {
+		d.Set("self_service", "")
+		return
 	}
 
 	out_self_service := []map[string]any{{}}
