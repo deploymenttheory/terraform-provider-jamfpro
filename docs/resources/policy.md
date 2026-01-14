@@ -581,6 +581,10 @@ Optional:
 <a id="nestedblock--self_service"></a>
 ### Nested Schema for `self_service`
 
+Required:
+
+- `use_for_self_service` (Boolean) Whether the policy is available for self-service.
+
 Optional:
 
 - `feature_on_main_page` (Boolean) Whether to feature the policy on the main page of self-service.
@@ -595,7 +599,6 @@ Optional:
 - `self_service_description` (String) Description of the policy displayed in self-service.
 - `self_service_display_name` (String) Display name of the policy in self-service.
 - `self_service_icon_id` (Number) Icon for policy to use in self-service
-- `use_for_self_service` (Boolean) Whether the policy is available for self-service.
 
 <a id="nestedblock--self_service--self_service_category"></a>
 ### Nested Schema for `self_service.self_service_category`
