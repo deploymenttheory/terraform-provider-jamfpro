@@ -1,7 +1,6 @@
 package policy
 
 import (
-	"log"
 	"maps"
 	"strings"
 
@@ -35,10 +34,6 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 		d.Set("self_service", "")
 		return
 	}
-
-	log.Println("LOGHERE")
-	log.Printf("State: %v", stateIconVaal)
-	log.Printf("Server: %v", serverIconVal)
 
 	if invalidIconSet {
 		*diags = append(*diags, diag.Diagnostic{
