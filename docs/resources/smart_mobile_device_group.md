@@ -66,7 +66,7 @@ resource "jamfpro_smart_mobile_device_group" "smart_example" {
 Required:
 
 - `name` (String) The name of the criterion.
-- `search_type` (String) The search type for the criterion. Allowed values are: 'is', 'is not', 'has', 'does not have', 'member of', 'not member of', 'before (yyyy-mm-dd)', 'after (yyyy-mm-dd)', 'more than x days ago', 'less than x days ago', 'like', 'not like', 'greater than', 'more than', 'less than', 'greater than or equal', 'less than or equal', 'matches regex', 'does not match regex'.
+- `search_type` (String) The search type for the criterion. Allowed values are: 'is', 'is not', 'has', 'does not have', 'member of', 'not member of', 'before (yyyy-mm-dd)', 'after (yyyy-mm-dd)', 'in less than x days', 'in more than x days', 'more than x days ago', 'less than x days ago', 'like', 'not like', 'greater than', 'more than', 'less than', 'greater than or equal', 'less than or equal', 'matches regex', 'does not match regex'.
 - `value` (String) The value to match for the criterion.
 
 Optional:
