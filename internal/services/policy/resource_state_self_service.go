@@ -1,6 +1,8 @@
 package policy
 
 import (
+	"maps"
+
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -29,7 +31,7 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 	out_self_service := []map[string]any{{}}
 	out_self_service_slice := out_self_service[0]
 
-	selfServiceFields := map[string]interface{}{
+	maps.Copy(out_self_service_slice, map[string]any{
 		"use_for_self_service":            resp.SelfService.UseForSelfService,
 		"self_service_display_name":       resp.SelfService.SelfServiceDisplayName,
 		"install_button_text":             resp.SelfService.InstallButtonText,
@@ -42,11 +44,7 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 		"notification_type":               resp.SelfService.NotificationType,
 		"notification_subject":            resp.SelfService.NotificationSubject,
 		"notification_message":            resp.SelfService.NotificationMessage,
-	}
-
-	for key, value := range selfServiceFields {
-		out_self_service_slice[key] = value
-	}
+	})
 
 	categoryBlock := make([]map[string]any, 0)
 	if resp.SelfService.SelfServiceCategories != nil {
