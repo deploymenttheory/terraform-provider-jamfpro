@@ -1,15 +1,17 @@
 package smart_computer_group
 
 import (
+	"context"
 	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	schemahelpers "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/schema/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // state updates the Terraform model with the latest Smart Computer Group V2 information from the Jamf Pro API.
-func state(data *smartComputerGroupResourceModel, resourceID string, resp *jamfpro.ResourceSmartComputerGroupV2) diag.Diagnostics {
+func state(ctx context.Context, data *smartComputerGroupResourceModel, resourceID string, resp *jamfpro.ResourceSmartComputerGroupV2) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	data.ID = types.StringValue(resourceID)
@@ -27,7 +29,7 @@ func state(data *smartComputerGroupResourceModel, resourceID string, resp *jamfp
 		data.SiteID = types.StringNull()
 	}
 
-	data.Criteria = make([]smartComputerGroupCriteriaDataModel, 0, len(resp.Criteria))
+	criteriaModels := make([]smartComputerGroupCriteriaDataModel, 0, len(resp.Criteria))
 	for _, criterion := range resp.Criteria {
 		criteriaModel := smartComputerGroupCriteriaDataModel{
 			Name:       types.StringValue(criterion.Name),
@@ -49,8 +51,16 @@ func state(data *smartComputerGroupResourceModel, resourceID string, resp *jamfp
 			criteriaModel.ClosingParen = types.BoolValue(false)
 		}
 
-		data.Criteria = append(data.Criteria, criteriaModel)
+		criteriaModels = append(criteriaModels, criteriaModel)
 	}
+
+	criteriaList, criteriaDiags := schemahelpers.Flatten(ctx, criteriaModels)
+	diags.Append(criteriaDiags...)
+	if diags.HasError() {
+		return diags
+	}
+
+	data.Criteria = criteriaList
 
 	return diags
 }

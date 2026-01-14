@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	schemahelpers "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/schema/helpers"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -134,6 +135,7 @@ func upgradeStateV0toV1(ctx context.Context, req resource.UpgradeStateRequest, r
 		upgradedStateData.SiteID = types.StringNull()
 	}
 
+	var upgradedCriteria []smartComputerGroupCriteriaDataModel
 	if !priorStateData.Criteria.IsNull() && !priorStateData.Criteria.IsUnknown() {
 		var criteriaV0List []criteriaV0
 		diags := priorStateData.Criteria.ElementsAs(ctx, &criteriaV0List, false)
@@ -142,14 +144,19 @@ func upgradeStateV0toV1(ctx context.Context, req resource.UpgradeStateRequest, r
 			return
 		}
 
-		upgradedStateData.Criteria = make([]smartComputerGroupCriteriaDataModel, 0, len(criteriaV0List))
+		upgradedCriteria = make([]smartComputerGroupCriteriaDataModel, 0, len(criteriaV0List))
 		for _, oldCriteria := range criteriaV0List {
 			newCriteria := smartComputerGroupCriteriaDataModel(oldCriteria)
-			upgradedStateData.Criteria = append(upgradedStateData.Criteria, newCriteria)
+			upgradedCriteria = append(upgradedCriteria, newCriteria)
 		}
-	} else {
-		upgradedStateData.Criteria = []smartComputerGroupCriteriaDataModel{}
 	}
+
+	criteriaList, criteriaDiags := schemahelpers.Flatten(ctx, upgradedCriteria)
+	resp.Diagnostics.Append(criteriaDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	upgradedStateData.Criteria = criteriaList
 
 	timeoutsAttrTypes := map[string]attr.Type{
 		"create": types.StringType,

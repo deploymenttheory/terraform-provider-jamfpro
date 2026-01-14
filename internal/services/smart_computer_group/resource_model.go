@@ -7,12 +7,12 @@ import (
 
 // smartComputerGroupResourceModel describes the resource data model.
 type smartComputerGroupResourceModel struct {
-	ID          types.String                          `tfsdk:"id"`
-	Name        types.String                          `tfsdk:"name"`
-	Description types.String                          `tfsdk:"description"`
-	SiteID      types.String                          `tfsdk:"site_id"`
-	Criteria    []smartComputerGroupCriteriaDataModel `tfsdk:"criteria"`
-	Timeouts    timeouts.Value                        `tfsdk:"timeouts"`
+	ID          types.String   `tfsdk:"id"`
+	Name        types.String   `tfsdk:"name"`
+	Description types.String   `tfsdk:"description"`
+	SiteID      types.String   `tfsdk:"site_id"`
+	Criteria    types.List     `tfsdk:"criteria"`
+	Timeouts    timeouts.Value `tfsdk:"timeouts"`
 }
 
 // smartComputerGroupCriteriaDataModel describes the criteria data model.

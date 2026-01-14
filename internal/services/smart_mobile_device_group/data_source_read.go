@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	schemahelpers "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/schema/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -22,15 +24,28 @@ func (d *smartMobileDeviceGroupFrameworkDataSource) Read(ctx context.Context, re
 	resourceID := data.ID.ValueString()
 	name := data.Name.ValueString()
 
-	if resourceID == "" && name == "" {
-		resp.Diagnostics.AddError(
-			"Missing Required Attribute",
-			"Either 'id' or 'name' must be provided",
-		)
-		return
-	}
+	var resource *jamfpro.ResourceSmartMobileDeviceGroupV1
 
-	if name != "" {
+	switch {
+	case resourceID != "":
+		tflog.Debug(ctx, fmt.Sprintf("Reading Smart Mobile Device Group by ID: %s", resourceID))
+		fetchedResource, err := d.client.GetSmartMobileDeviceGroupByIDV1(resourceID)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error Reading Smart Mobile Device Group",
+				fmt.Sprintf("Failed to read Smart Mobile Device Group with ID '%s': %v", resourceID, err),
+			)
+			return
+		}
+		if fetchedResource == nil {
+			resp.Diagnostics.AddError(
+				"Resource Not Found",
+				fmt.Sprintf("Smart Mobile Device Group with ID '%s' was not found", resourceID),
+			)
+			return
+		}
+		resource = fetchedResource
+	case name != "":
 		tflog.Debug(ctx, fmt.Sprintf("Looking up Smart Mobile Device Group by name: %s", name))
 		listItem, err := d.client.GetSmartMobileDeviceGroupByNameV1(name)
 		if err != nil {
@@ -48,22 +63,27 @@ func (d *smartMobileDeviceGroupFrameworkDataSource) Read(ctx context.Context, re
 			return
 		}
 		resourceID = listItem.GroupID
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Reading Smart Mobile Device Group by ID: %s", resourceID))
-	resource, err := d.client.GetSmartMobileDeviceGroupByIDV1(resourceID)
-	if err != nil {
+		tflog.Debug(ctx, fmt.Sprintf("Reading Smart Mobile Device Group by ID: %s", resourceID))
+		fetchedResource, err := d.client.GetSmartMobileDeviceGroupByIDV1(resourceID)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error Reading Smart Mobile Device Group",
+				fmt.Sprintf("Failed to read Smart Mobile Device Group with ID '%s': %v", resourceID, err),
+			)
+			return
+		}
+		if fetchedResource == nil {
+			resp.Diagnostics.AddError(
+				"Resource Not Found",
+				fmt.Sprintf("Smart Mobile Device Group with ID '%s' was not found", resourceID),
+			)
+			return
+		}
+		resource = fetchedResource
+	default:
 		resp.Diagnostics.AddError(
-			"Error Reading Smart Mobile Device Group",
-			fmt.Sprintf("Failed to read Smart Mobile Device Group with ID '%s': %v", resourceID, err),
-		)
-		return
-	}
-
-	if resource == nil {
-		resp.Diagnostics.AddError(
-			"Resource Not Found",
-			fmt.Sprintf("Smart Mobile Device Group with ID '%s' was not found", resourceID),
+			"Missing Required Attribute",
+			"Either 'id' or 'name' must be provided",
 		)
 		return
 	}
@@ -84,7 +104,7 @@ func (d *smartMobileDeviceGroupFrameworkDataSource) Read(ctx context.Context, re
 		data.SiteID = types.StringNull()
 	}
 
-	data.Criteria = make([]smartMobileDeviceGroupCriteriaDataModel, 0, len(resource.Criteria))
+	criteriaModels := make([]smartMobileDeviceGroupCriteriaDataModel, 0, len(resource.Criteria))
 	for _, criterion := range resource.Criteria {
 		criteriaModel := smartMobileDeviceGroupCriteriaDataModel{
 			Name:       types.StringValue(criterion.Name),
@@ -106,8 +126,15 @@ func (d *smartMobileDeviceGroupFrameworkDataSource) Read(ctx context.Context, re
 			criteriaModel.ClosingParen = types.BoolValue(false)
 		}
 
-		data.Criteria = append(data.Criteria, criteriaModel)
+		criteriaModels = append(criteriaModels, criteriaModel)
 	}
+
+	criteriaList, criteriaDiags := schemahelpers.Flatten(ctx, criteriaModels)
+	resp.Diagnostics.Append(criteriaDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	data.Criteria = criteriaList
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

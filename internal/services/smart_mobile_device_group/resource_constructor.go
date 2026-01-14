@@ -1,16 +1,18 @@
 package smart_mobile_device_group
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	schemahelpers "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/schema/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
 // constructResource constructs a ResourceSmartMobileDeviceGroupV2 object from the provided framework resource model.
-func constructResource(data *smartMobileDeviceGroupResourceModel) (*jamfpro.ResourceSmartMobileDeviceGroupV1, diag.Diagnostics) {
+func constructResource(ctx context.Context, data *smartMobileDeviceGroupResourceModel) (*jamfpro.ResourceSmartMobileDeviceGroupV1, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	resource := &jamfpro.ResourceSmartMobileDeviceGroupV1{
@@ -19,9 +21,15 @@ func constructResource(data *smartMobileDeviceGroupResourceModel) (*jamfpro.Reso
 		SiteId:           data.SiteID.ValueStringPointer(),
 	}
 
-	if len(data.Criteria) > 0 {
-		resource.Criteria = make([]jamfpro.SharedSubsetCriteriaJamfProAPI, len(data.Criteria))
-		for i, criterion := range data.Criteria {
+	criteriaModels, critDiags := schemahelpers.Expand[smartMobileDeviceGroupCriteriaDataModel](ctx, data.Criteria)
+	diags.Append(critDiags...)
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	if len(criteriaModels) > 0 {
+		resource.Criteria = make([]jamfpro.SharedSubsetCriteriaJamfProAPI, len(criteriaModels))
+		for i, criterion := range criteriaModels {
 			apiCriterion := jamfpro.SharedSubsetCriteriaJamfProAPI{
 				Name:       criterion.Name.ValueString(),
 				Priority:   int(criterion.Priority.ValueInt32()),

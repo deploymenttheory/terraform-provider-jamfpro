@@ -32,7 +32,7 @@ func (r *smartMobileDeviceGroupFrameworkResource) Create(ctx context.Context, re
 		return
 	}
 
-	smartGroup, constructDiags := constructResource(&object)
+	smartGroup, constructDiags := constructResource(ctx, &object)
 	resp.Diagnostics.Append(constructDiags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -102,7 +102,7 @@ func (r *smartMobileDeviceGroupFrameworkResource) Read(ctx context.Context, req 
 		return
 	}
 
-	stateDiags := state(&object, resourceID, smartGroup)
+	stateDiags := state(ctx, &object, resourceID, smartGroup)
 	resp.Diagnostics.Append(stateDiags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -137,7 +137,7 @@ func (r *smartMobileDeviceGroupFrameworkResource) Update(ctx context.Context, re
 	}
 	defer cancel()
 
-	smartGroup, constructDiags := constructResource(&plan)
+	smartGroup, constructDiags := constructResource(ctx, &plan)
 	resp.Diagnostics.Append(constructDiags...)
 	if resp.Diagnostics.HasError() {
 		return
