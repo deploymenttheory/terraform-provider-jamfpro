@@ -24,6 +24,8 @@ var ValidSearchTypes = []string{
 	"not member of",
 	"before (yyyy-mm-dd)",
 	"after (yyyy-mm-dd)",
+	"in less than x days",
+	"in more than x days",
 	"more than x days ago",
 	"less than x days ago",
 	"like",
