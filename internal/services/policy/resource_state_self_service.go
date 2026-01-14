@@ -26,8 +26,8 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 		})
 	}
 
-	out_ss := []map[string]any{{}}
-	out_ss_slice := out_ss[0]
+	out_self_service := []map[string]any{{}}
+	out_self_service_slice := out_self_service[0]
 
 	selfServiceFields := map[string]interface{}{
 		"use_for_self_service":            resp.SelfService.UseForSelfService,
@@ -45,7 +45,7 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 	}
 
 	for key, value := range selfServiceFields {
-		out_ss_slice[key] = value
+		out_self_service_slice[key] = value
 	}
 
 	categoryBlock := make([]map[string]any, 0)
@@ -60,9 +60,9 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 		}
 	}
 
-	out_ss_slice["self_service_category"] = categoryBlock
+	out_self_service_slice["self_service_category"] = categoryBlock
 
-	err := d.Set("self_service", out_ss)
+	err := d.Set("self_service", out_self_service)
 	if err != nil {
 		*diags = append(*diags, diag.FromErr(err)...)
 	}
