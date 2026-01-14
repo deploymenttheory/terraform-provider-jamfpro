@@ -26,7 +26,7 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 		})
 	}
 
-	out_ss := append(make([]map[string]any, 0), make(map[string]any, 1))
+	out_ss := []map[string]any{{}}
 	out_ss_slice := out_ss[0]
 
 	selfServiceFields := map[string]interface{}{
