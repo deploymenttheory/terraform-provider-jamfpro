@@ -18,7 +18,7 @@ jobs:
     steps:
     
     - name: Harden Runner
-      uses: step-security/harden-runner@v2.13.2
+      uses: step-security/harden-runner@v2.14.0
       with:
         egress-policy: audit
     - uses: actions/checkout@v6
@@ -67,7 +67,7 @@ jobs:
 
     - name: Commit changes in Go + provider docs and Terraform formatting
       if: steps.go-gen-check.outputs.changes == 'true'
-      uses: stefanzweifel/git-auto-commit-action@v7.0.0
+      uses: stefanzweifel/git-auto-commit-action@v7.1.0
       with:
         commit_message: "chore: update go documentation, provider documentation and format terraform files"
         file_pattern: '**/*.go **/*.tf docs/**/*'

@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// dataSourceRead fetches the details of a specific macOS Configuration Profile
-// from Jamf Pro using either its unique Name or its ID. The function prioritizes the 'name' attribute over the 'id'
-// attribute for fetching details. If neither 'name' nor 'id' is provided, it returns an error.
+// dataSourceRead fetches the details of a specific computer inventory
+// from Jamf Pro using either its unique Name, Serial Number, or its ID. The function prioritizes the 'name' attribute,
+// then 'serial_number', then 'id' for fetching details. If none are provided, it returns an error.
 // Once the details are fetched, they are set in the data source's state.
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Asserts 'meta' as '*client.client'
@@ -23,13 +23,19 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	var profile *jamfpro.ResourceComputerInventory
 	var err error
 
-	// Fetch profile by 'name' or 'id'
+	// Fetch profile by 'name', 'serial_number', or 'id'
 	if v, ok := d.GetOk("name"); ok {
 		profileName, ok := v.(string)
 		if !ok {
 			return diag.Errorf("error asserting 'name' as string")
 		}
 		profile, err = client.GetComputerInventoryByName(profileName)
+	} else if v, ok := d.GetOk("serial_number"); ok {
+		serialNumber, ok := v.(string)
+		if !ok {
+			return diag.Errorf("error asserting 'serial_number' as string")
+		}
+		profile, err = client.GetComputerInventoryBySerialNumber(serialNumber)
 	} else if v, ok := d.GetOk("id"); ok {
 		profileID, ok := v.(string)
 		if !ok {
@@ -37,11 +43,11 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 		profile, err = client.GetComputerInventoryByID(profileID)
 	} else {
-		return diag.Errorf("Either 'name' or 'id' must be provided")
+		return diag.Errorf("Either 'name', 'serial_number', or 'id' must be provided")
 	}
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to fetch macOS Configuration Profile: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to fetch computer inventory: %v", err))
 	}
 
 	// Set top-level attributes
@@ -149,6 +155,21 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(err)
 	}
 
+	// Set 'configurationProfiles' section
+	if err := setConfigurationProfilesSection(d, profile.ConfigurationProfiles); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Set 'printers' section
+	if err := setPrintersSection(d, profile.Printers); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Set 'services' section
+	if err := setServicesSection(d, profile.Services); err != nil {
+		return diag.FromErr(err)
+	}
+
 	return nil
 }
 
@@ -167,7 +188,12 @@ func setGeneralSection(d *schema.ResourceData, general jamfpro.ComputerInventory
 	gen["barcode2"] = general.Barcode2
 	gen["asset_tag"] = general.AssetTag
 	gen["supervised"] = general.Supervised
-	gen["mdm_capable"] = general.MdmCapable.Capable
+	gen["mdm_capable"] = []interface{}{
+		map[string]interface{}{
+			"capable":       general.MdmCapable.Capable,
+			"capable_users": general.MdmCapable.CapableUsers,
+		},
+	}
 	gen["report_date"] = general.ReportDate
 	gen["last_contact_time"] = general.LastContactTime
 	gen["last_cloud_backup_date"] = general.LastCloudBackupDate
@@ -465,7 +491,7 @@ func setLocalUserAccountsSection(d *schema.ResourceData, localUserAccounts []jam
 		acc["azure_active_directory_id"] = account.AzureActiveDirectoryId
 		accounts[i] = acc
 	}
-	return d.Set("localUserAccounts", accounts)
+	return d.Set("local_user_accounts", accounts)
 }
 
 // setCertificatesSection maps the 'certificate' section of the computer inventory response to the Terraform resource data and updates the state.
@@ -564,7 +590,7 @@ func setOperatingSystemSection(d *schema.ResourceData, operatingSystem jamfpro.C
 	osMap["rapid_security_response"] = operatingSystem.RapidSecurityResponse
 	osMap["active_directory_status"] = operatingSystem.ActiveDirectoryStatus
 	osMap["filevault2_status"] = operatingSystem.FileVault2Status
-	osMap["softwareUpdate_device_id"] = operatingSystem.SoftwareUpdateDeviceId
+	osMap["software_update_device_id"] = operatingSystem.SoftwareUpdateDeviceId
 	// Map extension attributes if present
 	extAttrs := make([]map[string]any, len(operatingSystem.ExtensionAttributes))
 	for i, attr := range operatingSystem.ExtensionAttributes {
@@ -652,4 +678,48 @@ func setGroupMembershipsSection(d *schema.ResourceData, groupMemberships []jamfp
 		memberships[i] = groupMap
 	}
 	return d.Set("group_memberships", memberships)
+}
+
+// setConfigurationProfilesSection maps the 'configurationProfiles' section of the computer inventory response to the Terraform resource data and updates the state.
+func setConfigurationProfilesSection(d *schema.ResourceData, configurationProfiles []jamfpro.ComputerInventorySubsetConfigurationProfile) error {
+	profiles := make([]any, len(configurationProfiles))
+	for i, profile := range configurationProfiles {
+		profileMap := map[string]interface{}{
+			"id":                 profile.ID,
+			"username":           profile.Username,
+			"last_installed":     profile.LastInstalled,
+			"removable":          profile.Removable,
+			"display_name":       profile.DisplayName,
+			"profile_identifier": profile.ProfileIdentifier,
+		}
+		profiles[i] = profileMap
+	}
+	return d.Set("configuration_profiles", profiles)
+}
+
+// setPrintersSection maps the 'printers' section of the computer inventory response to the Terraform resource data and updates the state.
+func setPrintersSection(d *schema.ResourceData, printers []jamfpro.ComputerInventorySubsetPrinter) error {
+	printerList := make([]any, len(printers))
+	for i, printer := range printers {
+		printerMap := map[string]interface{}{
+			"name":     printer.Name,
+			"type":     printer.Type,
+			"uri":      printer.URI,
+			"location": printer.Location,
+		}
+		printerList[i] = printerMap
+	}
+	return d.Set("printers", printerList)
+}
+
+// setServicesSection maps the 'services' section of the computer inventory response to the Terraform resource data and updates the state.
+func setServicesSection(d *schema.ResourceData, services []jamfpro.ComputerInventorySubsetService) error {
+	serviceList := make([]any, len(services))
+	for i, service := range services {
+		serviceMap := map[string]interface{}{
+			"name": service.Name,
+		}
+		serviceList[i] = serviceMap
+	}
+	return d.Set("services", serviceList)
 }
