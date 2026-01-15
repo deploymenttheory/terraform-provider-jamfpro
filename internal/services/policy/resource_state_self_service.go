@@ -2,7 +2,6 @@ package policy
 
 import (
 	"maps"
-	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -11,36 +10,9 @@ import (
 
 // stateSelfService Reads response and states self-service items and states only if non-default
 func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
-
-	stateIconVaal := d.Get("self_service.0.self_service_icon_id")
-	serverIconVal := resp.SelfService.SelfServiceIcon.ID
-
-	// This matches the UI behaviour as close as possible, I'm purposefully not obsecuring the logic.
-	invalidIconSet := (stateIconVaal == 0 && serverIconVal != 0)
-
 	if !resp.SelfService.UseForSelfService {
-		if invalidIconSet {
-			*diags = append(*diags, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "Invalid configuration - API Limitation",
-				Detail: strings.Join([]string{
-					"Unable to unset icon ID once set. Please assign a different icon or replace the policy.\n",
-					"NOTE: Only a warning as Self Service is currently disabled. Attempting this with a live",
-					"policy will result in an Error.",
-				}, "\n"),
-			})
-		}
-
 		d.Set("self_service", "")
 		return
-	}
-
-	if invalidIconSet {
-		*diags = append(*diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Invalid configuration - API Limitation",
-			Detail:   "Unable to unset icon ID once set. Please assign a different icon or replace the policy.",
-		})
 	}
 
 	out_self_service := []map[string]any{{}}
