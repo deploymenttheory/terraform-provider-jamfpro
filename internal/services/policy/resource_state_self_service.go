@@ -11,10 +11,6 @@ import (
 // stateSelfService Reads response and states self-service items and states only if non-default
 func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
 	if !resp.SelfService.UseForSelfService {
-		err := d.Set("self_service", "")
-		if err != nil {
-			*diags = append(*diags, diag.FromErr(err)...)
-		}
 		return
 	}
 
