@@ -1,6 +1,9 @@
 resource "jamfpro_smart_computer_group" "smart_example" {
   name = "Example Smart Computer Group"
 
+  # Optional: Provide a description
+  description = "An example smart computer group created via Terraform."
+
   # Optional: Specify site details 
   site_id = 5
 
