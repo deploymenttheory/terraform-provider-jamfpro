@@ -62,7 +62,7 @@ jobs:
           --repo-owner ${{ github.repository_owner }} \
           --repo-name ${{ github.event.repository.name }} \
           --pr-number ${{ github.event.pull_request.number }} \
-          --github-token ${{ github.token }}
+          --github-token ${{ secrets.GITHUB_TOKEN }}
 
 
       - name: Set Test Targets Var
