@@ -58,7 +58,11 @@ func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 
 	if invalidIconChange {
 		oldSS, _ := d.GetChange("self_service")
-		d.Set("self_service", oldSS)
+		err := d.Set("self_service", oldSS)
+
+		if err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 
 		return append(diags, diag.Diagnostic{
 			Severity: diag.Error,
