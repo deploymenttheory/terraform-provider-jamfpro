@@ -25,7 +25,7 @@ resource "jamfpro_policy" "jamfpro_policy_self_service_maximal" {
   scope {
     all_computers      = false
     all_jss_users      = false
-    computer_group_ids = [jamfpro_static_computer_group.jamfpro_static_computer_group_self_service_test.id]
+    computer_group_ids = [266]
   }
 
   self_service {
@@ -97,9 +97,4 @@ resource "jamfpro_icon" "self_service_icon" {
 resource "jamfpro_category" "jamfpro_category_self_service" {
   name     = "acc-test-category-self-service"
   priority = 5
-}
-
-// Supporting computer group for scope
-resource "jamfpro_static_computer_group" "jamfpro_static_computer_group_self_service_test" {
-  name = "acc-test-static-computer-group-self-service"
 }
