@@ -6,7 +6,6 @@ description: |-
 
 # jamfpro_computer_inventory (Data Source)
 
-Use this data source to retrieve computer inventory information from Jamf Pro. You can look up a computer by ID, name, or serial number.
 
 ## Example Usage
 ```terraform
@@ -355,11 +354,8 @@ output "site_info" {
 
 ### Optional
 
-- `id` (String) The unique identifier of the computer. If specified, takes priority over name and serial_number.
-- `name` (String) The computer name. If specified without id, this will be used to look up the computer.
-- `serial_number` (String) The hardware serial number. If specified without id or name, this will be used to look up the computer.
-
-**Note:** You must provide at least one of: `id`, `name`, or `serial_number`. If multiple are provided, `name` takes priority, then `serial_number`, then `id`.
+- `name` (String)
+- `serial_number` (String)
 
 ### Read-Only
 
@@ -374,6 +370,7 @@ output "site_info" {
 - `group_memberships` (List of Object) (see [below for nested schema](#nestedatt--group_memberships))
 - `hardware` (List of Object) (see [below for nested schema](#nestedatt--hardware))
 - `ibeacons` (List of Object) (see [below for nested schema](#nestedatt--ibeacons))
+- `id` (String) The ID of this resource.
 - `licensed_software` (List of Object) (see [below for nested schema](#nestedatt--licensed_software))
 - `local_user_accounts` (List of Object) (see [below for nested schema](#nestedatt--local_user_accounts))
 - `operating_system` (List of Object) (see [below for nested schema](#nestedatt--operating_system))
