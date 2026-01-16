@@ -10,9 +10,8 @@ func getPolicySchemaSelfService() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"use_for_self_service": {
 				Type:        schema.TypeBool,
-				Optional:    true,
+				Required:    true,
 				Description: "Whether the policy is available for self-service.",
-				Default:     false,
 			},
 			"self_service_display_name": {
 				Type:        schema.TypeString,
@@ -47,8 +46,8 @@ func getPolicySchemaSelfService() *schema.Resource {
 			"self_service_icon_id": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Computed:    true,
 				Description: "Icon for policy to use in self-service",
+				Default:     0,
 			},
 			"feature_on_main_page": {
 				Type:        schema.TypeBool,

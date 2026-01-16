@@ -2,6 +2,7 @@ package policy
 
 import (
 	"context"
+	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	crud "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/sdkv2_crud"
@@ -27,6 +28,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 
 // Reads and states
 func read(ctx context.Context, d *schema.ResourceData, meta any, cleanup bool) diag.Diagnostics {
+	log.Println("FUNC-read")
 	return crud.Read(
 		ctx,
 		d,
@@ -49,14 +51,34 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.D
 
 // update connstructs, updates and reads
 func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	return crud.Update(
+	var diags diag.Diagnostics
+
+	oldV, newV := d.GetChange("self_service.0.self_service_icon_id")
+	invalidIconChange := (oldV != 0 && newV == 0)
+
+	if invalidIconChange {
+		oldSS, _ := d.GetChange("self_service")
+		err := d.Set("self_service", oldSS)
+
+		if err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+
+		return append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "API Limitation - Invalid Icon Change",
+			Detail:   "Cannot unset icon once set, please set a different icon or replace the policy",
+		})
+	}
+
+	return append(diags, crud.Update(
 		ctx,
 		d,
 		meta,
 		construct,
 		meta.(*jamfpro.Client).UpdatePolicyByID,
 		readNoCleanup,
-	)
+	)...)
 }
 
 // Deletes and removes from state
