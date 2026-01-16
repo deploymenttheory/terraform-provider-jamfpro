@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.31.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.30.0...v0.31.0) (2026-01-16)
+
+
+### Features
+
+* Add enable_maid_username_merge option for user initiated enrollment settings ([80652ae](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/80652ae0b2277e2333a5b7b8bf45d815c14e19ce))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([5eb063d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/5eb063d62a6e62f5edeee2c5c0840f6fc230fc64))
+* add name/serial lookup to computer_inventory data source ([#953](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/953)) ([d123f7d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/d123f7d44553f8688edadc25709f0a2a4d356cd0))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([80652ae](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/80652ae0b2277e2333a5b7b8bf45d815c14e19ce))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([5eb063d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/5eb063d62a6e62f5edeee2c5c0840f6fc230fc64))
+
+
+### Bug Fixes
+
+* add missing search options for advanced computer and mobile device searches ([#967](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/967)) ([80652ae](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/80652ae0b2277e2333a5b7b8bf45d815c14e19ce))
+* policy self_service_icon_id not being read into state ([#947](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/947)) ([ae2416f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/ae2416f9bb6de869d981c28ed15db006bcf98881))
+* Self Service Icon handling, Self Service Diff loops ([#964](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/964)) ([ae9d06d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/ae9d06d93d490ba30758417512264005c6a63b45))
+* static_computer_group empty assigned_computer_ids empty list handling  ([#952](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/952)) ([5eb063d](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/5eb063d62a6e62f5edeee2c5c0840f6fc230fc64))
+
 ## [0.30.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.29.0...v0.30.0) (2025-12-04)
 
 
