@@ -22,7 +22,6 @@ var (
 	errLDAPMappingOnlyWithDirectoryInput   = errors.New("'ldap_attribute_mapping' can only be set when 'input_type' is 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING'")
 	errLDAPMappingRequiredForDirectoryDiff = errors.New("'ldap_attribute_mapping' must be set when 'input_type' is 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING'")
 	errLDAPAllowedOnlyWithDirectoryInput   = errors.New("'ldap_extension_attribute_allowed' can only be true when 'input_type' is 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING'")
-	errLDAPAllowedRequiresMapping          = errors.New("'ldap_extension_attribute_allowed' requires 'ldap_attribute_mapping' to be set")
 )
 
 // mainCustomDiffFunc orchestrates all custom diff validations for computer extension attributes.
@@ -38,6 +37,7 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, meta any
 	return nil
 }
 
+// validateInputTypeSpecificAttributes ensures that attributes specific to certain input types are only set when appropriate.
 func validateInputTypeSpecificAttributes(_ context.Context, diff *schema.ResourceDiff, _ any) error {
 	resourceName := diff.Get("name").(string)
 	inputType := diff.Get("input_type").(string)
@@ -79,6 +79,7 @@ func validateInputTypeSpecificAttributes(_ context.Context, diff *schema.Resourc
 	return nil
 }
 
+// validateLDAPExtensionAttributeAllowed ensures that ldap_extension_attribute_allowed is only true when appropriate.
 func validateLDAPExtensionAttributeAllowed(_ context.Context, diff *schema.ResourceDiff, _ any) error {
 	resourceName := diff.Get("name").(string)
 	inputType := diff.Get("input_type").(string)
@@ -90,10 +91,6 @@ func validateLDAPExtensionAttributeAllowed(_ context.Context, diff *schema.Resou
 
 	if inputType != inputTypeLdapMap {
 		return fmt.Errorf("in 'jamfpro_computer_extension_attribute.%s': %w", resourceName, errLDAPAllowedOnlyWithDirectoryInput)
-	}
-
-	if mapping, ok := diff.GetOk("ldap_attribute_mapping"); !ok || mapping.(string) == "" {
-		return fmt.Errorf("in 'jamfpro_computer_extension_attribute.%s': %w", resourceName, errLDAPAllowedRequiresMapping)
 	}
 
 	return nil
