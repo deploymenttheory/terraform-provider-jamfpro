@@ -20,7 +20,6 @@ resource "jamfpro_mobile_device_extension_attribute" "jamfpro_mobile_device_exte
   name                   = "tf-testing-${var.testing_id}-max-popup-${random_id.rng.hex}"
   description            = "description"
   data_type              = "STRING"
-  enabled                = true
   inventory_display_type = "GENERAL"
   input_type             = "POPUP"
   popup_menu_choices     = ["Option 1", "Option 2", "Option 3"]
