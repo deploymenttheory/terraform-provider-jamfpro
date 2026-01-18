@@ -2,12 +2,19 @@ package computer_extension_attribute
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+var (
+	errIDOrNameRequired                 = errors.New("either 'id' or 'name' must be provided")
+	errReadComputerExtensionAttribute   = errors.New("failed to read Jamf Pro Computer Extension Attribute after retries")
+	errComputerExtensionAttributeAbsent = errors.New("the Jamf Pro Computer Extension Attribute was not found")
 )
 
 // dataSourceRead fetches the details of a specific computer extension attribute
@@ -18,7 +25,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	name := d.Get("name").(string)
 
 	if resourceID == "" && name == "" {
-		return diag.FromErr(fmt.Errorf("either 'id' or 'name' must be provided"))
+		return diag.FromErr(errIDOrNameRequired)
 	}
 
 	var resource *jamfpro.ResourceComputerExtensionAttribute
@@ -44,12 +51,13 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			lookupMethod = "name"
 			lookupValue = name
 		}
-		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Computer Extension Attribute with %s '%s' after retries: %v", lookupMethod, lookupValue, err))
+		joinedErr := errors.Join(errReadComputerExtensionAttribute, err)
+		return diag.FromErr(fmt.Errorf("%w with %s %q", joinedErr, lookupMethod, lookupValue))
 	}
 
 	if resource == nil {
 		d.SetId("")
-		return diag.FromErr(fmt.Errorf("the Jamf Pro Computer Extension Attribute was not found"))
+		return diag.FromErr(errComputerExtensionAttributeAbsent)
 	}
 
 	d.SetId(resource.ID)
