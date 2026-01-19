@@ -35,7 +35,6 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceJamfAppCatalogDep
 		}
 	}
 
-	// Update notification settings
 	notificationSettings := map[string]any{
 		"notification_message":  resp.NotificationSettings.NotificationMessage,
 		"notification_interval": resp.NotificationSettings.NotificationInterval,
@@ -46,11 +45,11 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceJamfAppCatalogDep
 		"relaunch":              resp.NotificationSettings.Relaunch,
 		"suppress":              resp.NotificationSettings.Suppress,
 	}
+
 	if err := d.Set("notification_settings", []any{notificationSettings}); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	// Update self-service settings
 	selfServiceSettings := map[string]any{
 		"include_in_featured_category":   resp.SelfServiceSettings.IncludeInFeaturedCategory,
 		"include_in_compliance_category": resp.SelfServiceSettings.IncludeInComplianceCategory,
@@ -58,17 +57,19 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceJamfAppCatalogDep
 		"description":                    resp.SelfServiceSettings.Description,
 	}
 
-	// Update categories
 	var categories []any
 	for _, cat := range resp.SelfServiceSettings.Categories {
 		category := map[string]any{
 			"id": cat.ID,
 		}
+
 		if cat.Featured != nil {
 			category["featured"] = *cat.Featured
 		}
+
 		categories = append(categories, category)
 	}
+
 	selfServiceSettings["categories"] = schema.NewSet(schema.HashResource(&schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"id":       {Type: schema.TypeString},

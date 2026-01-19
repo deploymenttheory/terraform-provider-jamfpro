@@ -64,13 +64,15 @@ func ResourceJamfProAppInstallers() *schema.Resource {
 			},
 			"category_id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "The ID of the category to assign to the app installer. Use -1 if not required.",
+				Default:     -1,
 			},
 			"site_id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "The ID of the site. Use -1 if not required.",
+				Default:     -1,
 			},
 			"smart_group_id": {
 				Type:        schema.TypeString,
