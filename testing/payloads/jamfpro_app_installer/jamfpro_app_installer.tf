@@ -1,4 +1,4 @@
-resource "jamfpro_app_installer" "jamfpro_app_installer_001" {
+resource "jamfpro_app_installer" "jamfpro_app_installer_test_001" {
   app_title_name  = "010 Editor"
   name            = "010 Editor"
   enabled         = true
@@ -32,7 +32,7 @@ resource "jamfpro_app_installer" "jamfpro_app_installer_001" {
 
 }
 
-resource "jamfpro_app_installer" "jamfpro_app_installer_001" {
+resource "jamfpro_app_installer" "jamfpro_app_installer_test_002" {
   app_title_name  = "010 Editor"
   name            = "010 Editor"
   enabled         = true
