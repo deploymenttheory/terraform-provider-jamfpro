@@ -50,6 +50,11 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceJamfAppCatalogDep
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
+	_, ok := d.GetOk("self_service_settings")
+	if !ok {
+		return diags
+	}
+
 	selfServiceSettings := map[string]any{
 		"include_in_featured_category":   resp.SelfServiceSettings.IncludeInFeaturedCategory,
 		"include_in_compliance_category": resp.SelfServiceSettings.IncludeInComplianceCategory,
