@@ -64,13 +64,15 @@ func ResourceJamfProAppInstallers() *schema.Resource {
 			},
 			"category_id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "The ID of the category to assign to the app installer. Use -1 if not required.",
+				Default:     -1,
 			},
 			"site_id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "The ID of the site. Use -1 if not required.",
+				Default:     -1,
 			},
 			"smart_group_id": {
 				Type:        schema.TypeString,
@@ -153,21 +155,25 @@ func ResourceJamfProAppInstallers() *schema.Resource {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Whether to include in the featured category.",
+							Default:     false,
 						},
 						"include_in_compliance_category": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Include the app in the Featured category.Jamf Pro must be integrated with Microsoft Intune to include the app in the Compliance category. Confirm the integration is enabled. If you previously integrated Microsoft Intune using Conditional Access, disregard this alert.",
+							Default:     false,
 						},
 						"force_view_description": {
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Description: "Force users to view the description before installing the app.",
+							Default:     false,
 						},
 						"description": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Description (up to 4000 characters) to display for the app in Self Service.",
+							Default:     "",
 						},
 						"categories": {
 							Type:        schema.TypeSet,
