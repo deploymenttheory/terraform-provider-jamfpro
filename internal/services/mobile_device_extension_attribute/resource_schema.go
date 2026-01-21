@@ -17,6 +17,7 @@ func ResourceJamfProMobileDeviceExtensionAttributes() *schema.Resource {
 		ReadContext:   readWithCleanup,
 		UpdateContext: update,
 		DeleteContext: delete,
+		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(70 * time.Second),
@@ -75,17 +76,20 @@ func ResourceJamfProMobileDeviceExtensionAttributes() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+				ConflictsWith: []string{"ldap_attribute_mapping"},
 			},
 			"ldap_attribute_mapping": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Directory Service attribute use to populate the extension attribute.Required when inputType is 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING'.",
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Directory Service attribute use to populate the extension attribute.Required when inputType is 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING'.",
+				ConflictsWith: []string{"popup_menu_choices"},
 			},
 			"ldap_extension_attribute_allowed": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Collect multiple values for this extension attribute. ldapExtensionAttributeAllowed is disabled by default, only for inputType 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING' it can be enabled. It's value cannot be modified during edit operation.Possible values are:true or false.",
+				Type:         schema.TypeBool,
+				Optional:     true,
+				Default:      false,
+				Description:  "Collect multiple values for this extension attribute. ldap_extension_attribute_allowed is disabled by default, only for inputType 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING' it can be enabled. It's value cannot be modified during edit operation.Possible values are:true or false.",
+				RequiredWith: []string{"ldap_attribute_mapping"},
 			},
 		},
 	}

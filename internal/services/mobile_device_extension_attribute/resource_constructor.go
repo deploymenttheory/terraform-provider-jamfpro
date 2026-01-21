@@ -34,10 +34,6 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceExtensionAt
 		resource.LDAPExtensionAttributeAllowed = jamfpro.BoolPtr(v.(bool))
 	}
 
-	if err := validateInputType(resource); err != nil {
-		return nil, fmt.Errorf("failed to construct: %w", err)
-	}
-
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal Jamf Pro Mobile Device Extension Attribute to JSON: %w", err)
