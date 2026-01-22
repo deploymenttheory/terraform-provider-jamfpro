@@ -47,9 +47,10 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceRestrictedSoftware, err
 		}
 
 		// Handle Exclusions
-		if exclusions, ok := scopeData["exclusions"]; ok && len(exclusions.([]any)) > 0 {
+		if exclusions, ok := scopeData["exclusions"]; ok && len(exclusions.([]any)) > 0 && exclusions.([]any)[0] != nil {
 			log.Println("LOGHERE")
 			log.Println(exclusions)
+
 			exclusionData := exclusions.([]any)[0].(map[string]any)
 			outScope.Exclusions = jamfpro.RestrictedSoftwareSubsetScopeExclusions{}
 
