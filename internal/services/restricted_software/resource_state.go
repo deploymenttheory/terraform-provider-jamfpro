@@ -68,12 +68,12 @@ func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftwa
 func stateScope(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftware, diags *diag.Diagnostics) {
 	var err error
 
-	out_scope := make([]map[string]any, 0)
+	out_scope := make([]map[string]any, 0, 1)
 	out_scope = append(out_scope, make(map[string]any, 1))
 	out_scope[0]["all_computers"] = resp.Scope.AllComputers
 
 	if len(resp.Scope.Computers) > 0 {
-		var listOfIds []int
+		listOfIds := make([]int, 0, len(resp.Scope.Computers))
 		for _, v := range resp.Scope.Computers {
 			listOfIds = append(listOfIds, v.ID)
 		}
@@ -81,7 +81,7 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftware
 	}
 
 	if len(resp.Scope.ComputerGroups) > 0 {
-		var listOfIds []int
+		listOfIds := make([]int, 0, len(resp.Scope.ComputerGroups))
 		for _, v := range resp.Scope.ComputerGroups {
 			listOfIds = append(listOfIds, v.ID)
 		}
@@ -89,7 +89,7 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftware
 	}
 
 	if len(resp.Scope.Buildings) > 0 {
-		var listOfIds []int
+		listOfIds := make([]int, 0, len(resp.Scope.Buildings))
 		for _, v := range resp.Scope.Buildings {
 			listOfIds = append(listOfIds, v.ID)
 		}
@@ -97,19 +97,19 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftware
 	}
 
 	if len(resp.Scope.Departments) > 0 {
-		var listOfIds []int
+		listOfIds := make([]int, 0, len(resp.Scope.Departments))
 		for _, v := range resp.Scope.Departments {
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope[0]["department_ids"] = listOfIds
 	}
 
-	out_scope_exclusions := make([]map[string]any, 0)
+	out_scope_exclusions := make([]map[string]any, 0, 1)
 	out_scope_exclusions = append(out_scope_exclusions, make(map[string]any))
 
 	var exclusionsSet bool
 	if len(resp.Scope.Exclusions.Computers) > 0 {
-		var listOfIds []int
+		listOfIds := make([]int, 0, len(resp.Scope.Exclusions.Computers))
 		for _, v := range resp.Scope.Exclusions.Computers {
 			listOfIds = append(listOfIds, v.ID)
 		}
@@ -118,7 +118,7 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftware
 	}
 
 	if len(resp.Scope.Exclusions.ComputerGroups) > 0 {
-		var listOfIds []int
+		listOfIds := make([]int, 0, len(resp.Scope.Exclusions.ComputerGroups))
 		for _, v := range resp.Scope.Exclusions.ComputerGroups {
 			listOfIds = append(listOfIds, v.ID)
 		}
@@ -127,7 +127,7 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftware
 	}
 
 	if len(resp.Scope.Exclusions.Buildings) > 0 {
-		var listOfIds []int
+		listOfIds := make([]int, 0, len(resp.Scope.Exclusions.Buildings))
 		for _, v := range resp.Scope.Exclusions.Buildings {
 			listOfIds = append(listOfIds, v.ID)
 		}
@@ -136,7 +136,7 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftware
 	}
 
 	if len(resp.Scope.Exclusions.Departments) > 0 {
-		var listOfIds []int
+		listOfIds := make([]int, 0, len(resp.Scope.Exclusions.Departments))
 		for _, v := range resp.Scope.Exclusions.Departments {
 			listOfIds = append(listOfIds, v.ID)
 		}
@@ -145,7 +145,7 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftware
 	}
 
 	if len(resp.Scope.Exclusions.Users) > 0 {
-		var listOfNames []string
+		listOfNames := make([]string, 0, len(resp.Scope.Exclusions.Users))
 		for _, v := range resp.Scope.Exclusions.Users {
 			listOfNames = append(listOfNames, v.Name)
 		}
