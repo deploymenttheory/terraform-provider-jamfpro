@@ -26,50 +26,51 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceRestrictedSoftware, err
 	}
 
 	resource.General.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
+	outScope := jamfpro.RestrictedSoftwareSubsetScope{}
 
 	// Handle Scope
 	if v, ok := d.GetOk("scope"); ok {
 		scopeData := v.([]any)[0].(map[string]any)
-		scope := jamfpro.RestrictedSoftwareSubsetScope{
-			AllComputers: scopeData["all_computers"].(bool),
-		}
+		outScope.AllComputers = scopeData["all_computers"].(bool)
 
 		if computerIDs, ok := scopeData["computer_ids"]; ok {
-			scope.Computers = constructScopeEntitiesFromIdSet(computerIDs.(*schema.Set))
+			outScope.Computers = constructScopeEntitiesFromIdSet(computerIDs.(*schema.Set))
 		}
 		if computerGroupIDs, ok := scopeData["computer_group_ids"]; ok {
-			scope.ComputerGroups = constructScopeEntitiesFromIdSet(computerGroupIDs.(*schema.Set))
+			outScope.ComputerGroups = constructScopeEntitiesFromIdSet(computerGroupIDs.(*schema.Set))
 		}
 		if buildingIDs, ok := scopeData["building_ids"]; ok {
-			scope.Buildings = constructScopeEntitiesFromIdSet(buildingIDs.(*schema.Set))
+			outScope.Buildings = constructScopeEntitiesFromIdSet(buildingIDs.(*schema.Set))
 		}
 		if departmentIDs, ok := scopeData["department_ids"]; ok {
-			scope.Departments = constructScopeEntitiesFromIdSet(departmentIDs.(*schema.Set))
+			outScope.Departments = constructScopeEntitiesFromIdSet(departmentIDs.(*schema.Set))
 		}
 
 		// Handle Exclusions
 		if exclusions, ok := scopeData["exclusions"]; ok && len(exclusions.([]any)) > 0 {
+			log.Println("LOGHERE")
+			log.Println(exclusions)
 			exclusionData := exclusions.([]any)[0].(map[string]any)
-			scope.Exclusions = jamfpro.RestrictedSoftwareSubsetScopeExclusions{}
+			outScope.Exclusions = jamfpro.RestrictedSoftwareSubsetScopeExclusions{}
 
 			if computerIDs, ok := exclusionData["computer_ids"]; ok {
-				scope.Exclusions.Computers = constructScopeEntitiesFromIdSet(computerIDs.(*schema.Set))
+				outScope.Exclusions.Computers = constructScopeEntitiesFromIdSet(computerIDs.(*schema.Set))
 			}
 			if computerGroupIDs, ok := exclusionData["computer_group_ids"]; ok {
-				scope.Exclusions.ComputerGroups = constructScopeEntitiesFromIdSet(computerGroupIDs.(*schema.Set))
+				outScope.Exclusions.ComputerGroups = constructScopeEntitiesFromIdSet(computerGroupIDs.(*schema.Set))
 			}
 			if buildingIDs, ok := exclusionData["building_ids"]; ok {
-				scope.Exclusions.Buildings = constructScopeEntitiesFromIdSet(buildingIDs.(*schema.Set))
+				outScope.Exclusions.Buildings = constructScopeEntitiesFromIdSet(buildingIDs.(*schema.Set))
 			}
 			if departmentIDs, ok := exclusionData["department_ids"]; ok {
-				scope.Exclusions.Departments = constructScopeEntitiesFromIdSet(departmentIDs.(*schema.Set))
+				outScope.Exclusions.Departments = constructScopeEntitiesFromIdSet(departmentIDs.(*schema.Set))
 			}
 			if userNames, ok := exclusionData["directory_service_or_local_usernames"]; ok {
-				scope.Exclusions.Users = constructScopeEntitiesFromNameSet(userNames.(*schema.Set))
+				outScope.Exclusions.Users = constructScopeEntitiesFromNameSet(userNames.(*schema.Set))
 			}
 		}
 
-		resource.Scope = scope
+		resource.Scope = outScope
 	}
 
 	// Serialize and pretty-print the restrictedSoftware object as XML for logging
@@ -83,7 +84,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceRestrictedSoftware, err
 	return resource, nil
 }
 
-// Helper functions for nested structures
+// Helper functions for nested structures - Why are these here?!
 
 // constructScopeEntitiesFromIdSet constructs a slice of RestrictedSoftwareSubsetScopeEntity from a set of IDs.
 func constructScopeEntitiesFromIdSet(idSet *schema.Set) []jamfpro.RestrictedSoftwareSubsetScopeEntity {
