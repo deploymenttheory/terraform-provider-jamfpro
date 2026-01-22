@@ -15,11 +15,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftwar
 	if err := d.Set("id", strconv.Itoa(resp.General.ID)); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
-
-	// General/Root level
 	stateGeneral(d, resp, &diags)
-
-	// Scope
 	stateScope(d, resp, &diags)
 
 	return diags
@@ -69,8 +65,6 @@ func stateGeneral(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftwa
 		*diags = append(*diags, diag.FromErr(err)...)
 	}
 }
-
-// stateScope reads response and states scope items
 func stateScope(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftware, diags *diag.Diagnostics) {
 	var err error
 
@@ -78,7 +72,6 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftware
 	out_scope = append(out_scope, make(map[string]any, 1))
 	out_scope[0]["all_computers"] = resp.Scope.AllComputers
 
-	// Computers
 	if len(resp.Scope.Computers) > 0 {
 		var listOfIds []int
 		for _, v := range resp.Scope.Computers {
@@ -87,7 +80,6 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftware
 		out_scope[0]["computer_ids"] = listOfIds
 	}
 
-	// Computer Groups
 	if len(resp.Scope.ComputerGroups) > 0 {
 		var listOfIds []int
 		for _, v := range resp.Scope.ComputerGroups {
@@ -96,7 +88,6 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftware
 		out_scope[0]["computer_group_ids"] = listOfIds
 	}
 
-	// Buildings
 	if len(resp.Scope.Buildings) > 0 {
 		var listOfIds []int
 		for _, v := range resp.Scope.Buildings {
@@ -105,7 +96,6 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftware
 		out_scope[0]["building_ids"] = listOfIds
 	}
 
-	// Departments
 	if len(resp.Scope.Departments) > 0 {
 		var listOfIds []int
 		for _, v := range resp.Scope.Departments {
@@ -114,12 +104,10 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftware
 		out_scope[0]["department_ids"] = listOfIds
 	}
 
-	// Scope Exclusions
 	out_scope_exclusions := make([]map[string]any, 0)
 	out_scope_exclusions = append(out_scope_exclusions, make(map[string]any))
-	var exclusionsSet bool
 
-	// Computers
+	var exclusionsSet bool
 	if len(resp.Scope.Exclusions.Computers) > 0 {
 		var listOfIds []int
 		for _, v := range resp.Scope.Exclusions.Computers {
@@ -129,7 +117,6 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftware
 		exclusionsSet = true
 	}
 
-	// Computer Groups
 	if len(resp.Scope.Exclusions.ComputerGroups) > 0 {
 		var listOfIds []int
 		for _, v := range resp.Scope.Exclusions.ComputerGroups {
@@ -139,7 +126,6 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftware
 		exclusionsSet = true
 	}
 
-	// Buildings
 	if len(resp.Scope.Exclusions.Buildings) > 0 {
 		var listOfIds []int
 		for _, v := range resp.Scope.Exclusions.Buildings {
@@ -149,7 +135,6 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftware
 		exclusionsSet = true
 	}
 
-	// Departments
 	if len(resp.Scope.Exclusions.Departments) > 0 {
 		var listOfIds []int
 		for _, v := range resp.Scope.Exclusions.Departments {
@@ -159,7 +144,6 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftware
 		exclusionsSet = true
 	}
 
-	// Users (directory_service_or_local_usernames)
 	if len(resp.Scope.Exclusions.Users) > 0 {
 		var listOfNames []string
 		for _, v := range resp.Scope.Exclusions.Users {
@@ -168,13 +152,11 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourceRestrictedSoftware
 		out_scope_exclusions[0]["directory_service_or_local_usernames"] = listOfNames
 		exclusionsSet = true
 	}
-
-	// Append Exclusions if they're set
-	if exclusionsSet {
+	_, exclusionsInHCL := d.GetOk("scope.0.exclusions")
+	if exclusionsSet || exclusionsInHCL {
 		out_scope[0]["exclusions"] = out_scope_exclusions
 	}
 
-	// State Scope
 	err = d.Set("scope", out_scope)
 	if err != nil {
 		*diags = append(*diags, diag.FromErr(err)...)
