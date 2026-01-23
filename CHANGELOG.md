@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.31.2](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.31.1...v0.31.2) (2026-01-23)
+
+
+### Bug Fixes
+
+* Restricted Software State logic made to match Policy ([#980](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/980)) ([b23091a](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/b23091a1eaccc0ed0a5b22588c8fead5d28c426d))
+
 ## [0.31.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.31.0...v0.31.1) (2026-01-20)
 
 
