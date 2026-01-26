@@ -28,7 +28,7 @@ resource "jamfpro_app_installer" "jamfpro_app_installer_test_001" {
   #   force_view_description         = true
   #   description                    = "This is an example  cheese app deployment"
   # }
-  
+
 
 }
 
@@ -56,12 +56,12 @@ resource "jamfpro_app_installer" "jamfpro_app_installer_test_002" {
     suppress              = false
   }
 
-    self_service_settings {
+  self_service_settings {
     include_in_featured_category   = true
     include_in_compliance_category = false
     force_view_description         = true
     description                    = "This is an example  cheese app deployment"
   }
-  
+
 
 }
