@@ -16,10 +16,10 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceGroup, erro
 		IsSmart: true,
 	}
 	if (d.Get("site_id").(int)) == 0 || (d.Get("site_id").(int)) == -1 {
-		resource.Site = jamfpro.SharedResourceSite{ID: -1, Name: ""}
+		resource.Site = &jamfpro.SharedResourceSite{ID: -1, Name: ""}
 
 	} else {
-		resource.Site = jamfpro.SharedResourceSite{ID: (d.Get("site_id").(int))}
+		resource.Site = &jamfpro.SharedResourceSite{ID: (d.Get("site_id").(int))}
 	}
 
 	if v, ok := d.GetOk("criteria"); ok {
@@ -37,7 +37,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceGroup, erro
 }
 
 // constructMobileGroupSubsetContainerCriteria constructs a SharedContainerCriteria object from the provided schema data.
-func constructMobileGroupSubsetContainerCriteria(criteriaList []any) jamfpro.SharedContainerCriteria {
+func constructMobileGroupSubsetContainerCriteria(criteriaList []any) *jamfpro.SharedContainerCriteria {
 	criteria := jamfpro.SharedContainerCriteria{
 		Size:      len(criteriaList),
 		Criterion: []jamfpro.SharedSubsetCriteria{},
@@ -57,5 +57,5 @@ func constructMobileGroupSubsetContainerCriteria(criteriaList []any) jamfpro.Sha
 		criteria.Criterion = append(criteria.Criterion, criterion)
 	}
 
-	return criteria
+	return &criteria
 }

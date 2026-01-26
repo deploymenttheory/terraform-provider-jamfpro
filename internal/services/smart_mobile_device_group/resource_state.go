@@ -19,7 +19,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceGroup
 	}
 
 	if resp.Criteria.Size != 0 && resp.Criteria.Criterion != nil {
-		criteria := setMobileSmartGroupSubsetContainerCriteria(resp.Criteria)
+		criteria := setMobileSmartGroupSubsetContainerCriteria(*resp.Criteria)
 		if err := d.Set("criteria", criteria); err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
