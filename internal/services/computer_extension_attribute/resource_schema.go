@@ -16,6 +16,7 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 		ReadContext:   readWithCleanup,
 		UpdateContext: update,
 		DeleteContext: delete,
+		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(70 * time.Second),
@@ -75,9 +76,10 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"SCRIPT", "TEXT", "POPUP", "DIRECTORY_SERVICE_ATTRIBUTE_MAPPING"}, false),
 			},
 			"script_contents": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "When we run this script it returns a data value each time a computer submits inventory to Jamf Pro. Provide scriptContents only when inputType is 'SCRIPT'.",
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "When we run this script it returns a data value each time a computer submits inventory to Jamf Pro. Provide scriptContents only when inputType is 'SCRIPT'.",
+				ConflictsWith: []string{"ldap_attribute_mapping", "popup_menu_choices"},
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					return normalizeScript(old) == normalizeScript(new)
 				},
@@ -92,18 +94,21 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+				ConflictsWith:    []string{"ldap_attribute_mapping", "script_contents"},
 				DiffSuppressFunc: diffSuppressPopupMenuChoices,
 			},
 			"ldap_attribute_mapping": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Directory Service attribute use to populate the extension attribute.Required when inputType is 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING'.",
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Directory Service attribute use to populate the extension attribute.Required when inputType is 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING'.",
+				ConflictsWith: []string{"script_contents", "popup_menu_choices"},
 			},
 			"ldap_extension_attribute_allowed": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Collect multiple values for this extension attribute. ldapExtensionAttributeAllowed is disabled by default, only for inputType 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING' it can be enabled. It's value cannot be modified during edit operation.Possible values are:true or false.",
+				Type:         schema.TypeBool,
+				Optional:     true,
+				Default:      false,
+				Description:  "Collect multiple values for this extension attribute. ldapExtensionAttributeAllowed is disabled by default, only for inputType 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING' it can be enabled. It's value cannot be modified during edit operation.Possible values are:true or false.",
+				RequiredWith: []string{"ldap_attribute_mapping"},
 			},
 		},
 	}

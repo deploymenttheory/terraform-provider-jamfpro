@@ -4,7 +4,7 @@ import "strings"
 
 // normalizeScript normalizes a script by replacing all CRLF with LF and trimming trailing newlines
 func normalizeScript(script string) string {
-	normalized := strings.Replace(script, "\r\n", "\n", -1)
+	normalized := strings.ReplaceAll(script, "\r\n", "\n")
 
 	return strings.TrimRight(normalized, "\n")
 }
