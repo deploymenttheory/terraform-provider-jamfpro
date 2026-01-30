@@ -355,7 +355,7 @@ func flattenAndSortNetworkSegmentIds(segments []jamfpro.MacOSConfigurationProfil
 	return ids
 }
 
-// flattenAndSortScopeEntityNames converts a slice of RestrictedSoftwareSubsetScopeEntity into a sorted slice of strings.
+// flattenAndSortScopeUserGroupNames converts a slice of RestrictedSoftwareSubsetScopeEntity into a sorted slice of strings.
 func flattenAndSortScopeUserGroupNames(usergroups []jamfpro.MacOSConfigurationProfileSubsetScopeUserGroup) []string {
 	names := make([]string, 0, len(usergroups))
 	for _, usergroup := range usergroups {
