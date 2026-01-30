@@ -143,10 +143,10 @@ func constructLimitations(d *schema.ResourceData) jamfpro.MacOSConfigurationProf
 	limitations.Users = users
 
 	// Directory service user groups
-	var userGroups []jamfpro.MacOSConfigurationProfileSubsetScopeEntity
-	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int](
-		"scope.0.limitations.0.directory_service_usergroup_ids", "ID", d, &userGroups); err != nil {
-		log.Printf("[WARN] Error mapping user group IDs: %v", err)
+	var userGroups []jamfpro.MacOSConfigurationProfileSubsetScopeUserGroup
+	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetScopeUserGroup, string](
+		"scope.0.limitations.0.directory_service_usergroup_names", "Name", d, &userGroups); err != nil {
+		log.Printf("[WARN] Error mapping user group Names: %v", err)
 	}
 	limitations.UserGroups = userGroups
 
@@ -238,10 +238,10 @@ func constructExclusions(d *schema.ResourceData) jamfpro.MacOSConfigurationProfi
 	exclusions.Users = users
 
 	// User groups
-	var userGroups []jamfpro.MacOSConfigurationProfileSubsetScopeEntity
-	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetScopeEntity, int](
-		"scope.0.exclusions.0.directory_service_usergroup_ids", "ID", d, &userGroups); err != nil {
-		log.Printf("[WARN] Error mapping excluded user group IDs: %v", err)
+	var userGroups []jamfpro.MacOSConfigurationProfileSubsetScopeUserGroup
+	if err := constructors.MapSetToStructs[jamfpro.MacOSConfigurationProfileSubsetScopeUserGroup, string](
+		"scope.0.exclusions.0.directory_service_usergroup_names", "Name", d, &userGroups); err != nil {
+		log.Printf("[WARN] Error mapping excluded user group Names: %v", err)
 	}
 	exclusions.UserGroups = userGroups
 
