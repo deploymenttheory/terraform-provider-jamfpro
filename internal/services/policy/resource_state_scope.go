@@ -113,11 +113,11 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *dia
 	// User Groups
 
 	if resp.Scope.Limitations.UserGroups != nil && len(*resp.Scope.Limitations.UserGroups) > 0 {
-		var listOfIds []int
+		var listOfNames []string
 		for _, v := range *resp.Scope.Limitations.UserGroups {
-			listOfIds = append(listOfIds, v.ID)
+			listOfNames = append(listOfNames, v.Name)
 		}
-		out_scope_limitations[0]["user_group_ids"] = listOfIds
+		out_scope_limitations[0]["directory_service_usergroup_names"] = listOfNames
 		limitationsSet = true
 	}
 
@@ -167,6 +167,26 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *dia
 			listOfIds = append(listOfIds, v.ID)
 		}
 		out_scope_exclusions[0]["department_ids"] = listOfIds
+		exclusionsSet = true
+	}
+
+	// Users
+	if resp.Scope.Exclusions.Users != nil && len(*resp.Scope.Exclusions.Users) > 0 {
+		var listOfNames []string
+		for _, v := range *resp.Scope.Exclusions.Users {
+			listOfNames = append(listOfNames, v.Name)
+		}
+		out_scope_exclusions[0]["directory_service_or_local_usernames"] = listOfNames
+		exclusionsSet = true
+	}
+
+	// User Groups
+	if resp.Scope.Exclusions.UserGroups != nil && len(*resp.Scope.Exclusions.UserGroups) > 0 {
+		var listOfNames []string
+		for _, v := range *resp.Scope.Exclusions.UserGroups {
+			listOfNames = append(listOfNames, v.Name)
+		}
+		out_scope_exclusions[0]["directory_service_usergroup_names"] = listOfNames
 		exclusionsSet = true
 	}
 
