@@ -14,12 +14,12 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 
-	config, err := client.GetCloudDistributionPoint()
+	config, err := client.GetCloudDistributionPointV1()
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	uploadCap, err := client.GetCloudDistributionPointUploadCapability()
+	uploadCap, err := client.GetCloudDistributionPointUploadCapabilityV1()
 	if err != nil {
 		return diag.FromErr(err)
 	}
