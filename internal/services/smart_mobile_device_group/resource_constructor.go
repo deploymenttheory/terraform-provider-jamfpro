@@ -16,14 +16,14 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceGroup, erro
 		IsSmart: true,
 	}
 	if (d.Get("site_id").(int)) == 0 || (d.Get("site_id").(int)) == -1 {
-		resource.Site = jamfpro.SharedResourceSite{ID: -1, Name: ""}
+		resource.Site = &jamfpro.SharedResourceSite{ID: -1, Name: ""}
 
 	} else {
-		resource.Site = jamfpro.SharedResourceSite{ID: (d.Get("site_id").(int))}
+		resource.Site = &jamfpro.SharedResourceSite{ID: (d.Get("site_id").(int))}
 	}
 
 	if v, ok := d.GetOk("criteria"); ok {
-		resource.Criteria = constructMobileGroupSubsetContainerCriteria(v.([]any))
+		*resource.Criteria = constructMobileGroupSubsetContainerCriteria(v.([]any))
 	}
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")

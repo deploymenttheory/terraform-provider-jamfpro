@@ -18,7 +18,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceGroup, erro
 		IsSmart: false,
 	}
 
-	resource.Site = *sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
+	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 
 	assignedMobileDevices := d.Get("assigned_mobile_device_ids").([]any)
 	if len(assignedMobileDevices) > 0 {
@@ -28,7 +28,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceGroup, erro
 				ID: v.(int),
 			})
 		}
-		resource.MobileDevices = mobile_devices
+		resource.MobileDevices = &mobile_devices
 	}
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
