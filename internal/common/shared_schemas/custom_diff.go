@@ -23,12 +23,10 @@ func ValidateScopeDirectoryServiceUserGroupNames(ctx context.Context, d *schema.
 		return fmt.Errorf("%w", errJamfClientNotConfigured)
 	}
 
-	type entry struct {
+	validationTargets := []struct {
 		description string
 		paths       []string
-	}
-
-	entries := []entry{
+	}{
 		{
 			description: "scope limitations directory service user group names",
 			paths: []string{
@@ -45,19 +43,13 @@ func ValidateScopeDirectoryServiceUserGroupNames(ctx context.Context, d *schema.
 
 	checked := make(map[string]bool)
 
-	for _, entry := range entries {
-		var (
-			value any
-			ok    bool
-		)
-		for _, path := range entry.paths {
+	for _, target := range validationTargets {
+		var value any
+		for _, path := range target.paths {
 			value, ok = d.GetOk(path)
 			if ok {
 				break
 			}
-		}
-		if !ok {
-			continue
 		}
 
 		set, ok := value.(*schema.Set)
@@ -65,13 +57,15 @@ func ValidateScopeDirectoryServiceUserGroupNames(ctx context.Context, d *schema.
 			continue
 		}
 
+		var exists bool
 		for _, raw := range set.List() {
 			trimmed := strings.TrimSpace(raw.(string))
 			if trimmed == "" {
 				continue
 			}
 
-			exists, cached := checked[trimmed]
+			var cached bool
+			exists, cached = checked[trimmed]
 			if !cached {
 				resp, err := client.GetLdapGroupsV1(trimmed)
 				if err != nil {
@@ -89,7 +83,7 @@ func ValidateScopeDirectoryServiceUserGroupNames(ctx context.Context, d *schema.
 			}
 
 			if !exists {
-				return fmt.Errorf("%w: %q defined in %s", errDirectoryServiceUserGroupNotFound, trimmed, entry.description)
+				return fmt.Errorf("%w: %q defined in %s", errDirectoryServiceUserGroupNotFound, trimmed, target.description)
 			}
 		}
 	}
