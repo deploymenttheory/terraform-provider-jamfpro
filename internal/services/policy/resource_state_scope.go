@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// Reads response and states scope items
+// Reads response and states scope items.
+// TODO reduce the cyclomatic complexity here by centralising the repeated slice-handling logic (gocyclo)
+// TODO preallocate the various output/list slices to address golangci-lint prealloc warnings
 func stateScope(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *diag.Diagnostics) {
 	var err error
 

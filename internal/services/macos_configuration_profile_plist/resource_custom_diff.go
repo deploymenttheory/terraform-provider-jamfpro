@@ -42,7 +42,7 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i any) e
 	}
 
 	if err := sharedschemas.ValidateScopeDirectoryServiceUserGroupNames(ctx, diff, i); err != nil {
-		return err
+		return fmt.Errorf("validating scope directory service user/group names: %w", err)
 	}
 
 	return nil
