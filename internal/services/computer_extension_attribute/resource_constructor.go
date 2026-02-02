@@ -39,54 +39,12 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceComputerExtensionAttrib
 		resource.LDAPExtensionAttributeAllowed = jamfpro.BoolPtr(v.(bool))
 	}
 
-	// Validate the input type
-	if err := validateInputType(resource); err != nil {
-		return nil, fmt.Errorf("failed to construct : %v", err)
-	}
-
-	// Serialize and pretty-print the inventory collection object as JSON for logging
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Extension Attribute to JSON: %v", err)
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Computer Extension Attribute to JSON: %w", err)
 	}
 
 	log.Printf("[DEBUG] Constructed Jamf Pro Computer Extension Attribute JSON:\n%s\n", string(resourceJSON))
 
 	return resource, nil
-}
-
-// validateInputType ensures that the appropriate fields are set based on the input type
-func validateInputType(resource *jamfpro.ResourceComputerExtensionAttribute) error {
-	switch resource.InputType {
-	case "SCRIPT":
-		if resource.ScriptContents == "" {
-			return fmt.Errorf("script_contents must be set when input_type is 'SCRIPT' (current value: '%s')", resource.ScriptContents)
-		}
-		if len(resource.PopupMenuChoices) > 0 || resource.LDAPAttributeMapping != "" {
-			return fmt.Errorf("popup_menu_choices and ldap_attribute_mapping should not be set when input_type is 'SCRIPT'")
-		}
-	case "POPUP":
-		if len(resource.PopupMenuChoices) == 0 {
-			return fmt.Errorf("popup_menu_choices must be set when input_type is 'POPUP'")
-		}
-		if resource.ScriptContents != "" || resource.LDAPAttributeMapping != "" {
-			return fmt.Errorf("script_contents and ldap_attribute_mapping should not be set when input_type is 'POPUP'")
-		}
-	case "DIRECTORY_SERVICE_ATTRIBUTE_MAPPING":
-		if resource.LDAPAttributeMapping == "" {
-			return fmt.Errorf("ldap_attribute_mapping must be set when input_type is 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING'")
-		}
-		if resource.ScriptContents != "" || len(resource.PopupMenuChoices) > 0 {
-			return fmt.Errorf("script_contents and popup_menu_choices should not be set when input_type is 'DIRECTORY_SERVICE_ATTRIBUTE_MAPPING'")
-		}
-		// Note: ldap_extension_attribute_allowed is handled by the schema's default value
-	case "TEXT":
-		if resource.ScriptContents != "" || len(resource.PopupMenuChoices) > 0 || resource.LDAPAttributeMapping != "" {
-			return fmt.Errorf("script_contents, popup_menu_choices, and ldap_attribute_mapping should not be set when input_type is 'TEXT'")
-		}
-	default:
-		return fmt.Errorf("invalid input_type: %s", resource.InputType)
-	}
-
-	return nil
 }
