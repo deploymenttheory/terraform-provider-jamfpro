@@ -1,7 +1,9 @@
 // sharedschemas/shared_schemas.go
 package sharedschemas
 
-import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+import (
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
 
 // GetSharedmacOSComputerSchemaScope defines the reusable scope schema for macOS computer resources.
 func GetSharedmacOSComputerSchemaScope() *schema.Resource {
@@ -73,11 +75,11 @@ func GetSharedmacOSComputerSchemaScope() *schema.Resource {
 							Description: "A set of directory service / local usernames for scoping limitations.",
 							Elem:        &schema.Schema{Type: schema.TypeString},
 						},
-						"directory_service_usergroup_ids": {
+						"directory_service_usergroup_names": {
 							Type:        schema.TypeSet,
 							Optional:    true,
-							Description: "A set of directory service user group IDs for limitations.",
-							Elem:        &schema.Schema{Type: schema.TypeInt},
+							Description: "A set of directory service user group names for limitations.",
+							Elem:        &schema.Schema{Type: schema.TypeString},
 						},
 						"ibeacon_ids": {
 							Type:        schema.TypeSet,
@@ -143,11 +145,11 @@ func GetSharedmacOSComputerSchemaScope() *schema.Resource {
 							Description: "A set of directory service / local usernames for scoping exclusions.",
 							Elem:        &schema.Schema{Type: schema.TypeString},
 						},
-						"directory_service_usergroup_ids": {
+						"directory_service_usergroup_names": {
 							Type:        schema.TypeSet,
 							Optional:    true,
-							Description: "A set of directory service / local user group IDs for exclusions.",
-							Elem:        &schema.Schema{Type: schema.TypeInt},
+							Description: "A set of directory service user group names for exclusions.",
+							Elem:        &schema.Schema{Type: schema.TypeString},
 						},
 						"ibeacon_ids": {
 							Type:        schema.TypeSet,
