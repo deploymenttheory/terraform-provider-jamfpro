@@ -128,13 +128,13 @@ func constructMacApplicationScope(d *schema.ResourceData) jamfpro.MacApplication
 	}
 
 	var jssUsers []jamfpro.MacAppSubsetScopeUser
-	if err := constructors.MapSetToStructs[jamfpro.MacAppSubsetScopeUser, int](
+	if err := constructors.MapSetToStructs[jamfpro.MacAppSubsetScopeUser, string](
 		"scope.0.jss_user_ids", "ID", d, &jssUsers); err == nil {
 		scope.JSSUsers = jssUsers
 	}
 
-	var jssUserGroups []jamfpro.MacAppSubsetScopeUserGroup
-	if err := constructors.MapSetToStructs[jamfpro.MacAppSubsetScopeUserGroup, int](
+	var jssUserGroups []jamfpro.MacAppSubsetScopeJSSUserGroup
+	if err := constructors.MapSetToStructs[jamfpro.MacAppSubsetScopeJSSUserGroup, int](
 		"scope.0.jss_user_group_ids", "ID", d, &jssUserGroups); err == nil {
 		scope.JSSUserGroups = jssUserGroups
 	}
@@ -161,8 +161,8 @@ func constructLimitations(d *schema.ResourceData) jamfpro.MacAppScopeLimitations
 	}
 
 	var userGroups []jamfpro.MacAppSubsetScopeUserGroup
-	if err := constructors.MapSetToStructs[jamfpro.MacAppSubsetScopeUserGroup, int](
-		"scope.0.limitations.0.user_groups", "ID", d, &userGroups); err == nil {
+	if err := constructors.MapSetToStructs[jamfpro.MacAppSubsetScopeUserGroup, string](
+		"scope.0.limitations.0.directory_service_usergroup_names", "Name", d, &userGroups); err == nil {
 		limitations.UserGroups = userGroups
 	}
 
@@ -198,8 +198,8 @@ func constructExclusions(d *schema.ResourceData) jamfpro.MacAppScopeExclusions {
 	}
 
 	var userGroups []jamfpro.MacAppSubsetScopeUserGroup
-	if err := constructors.MapSetToStructs[jamfpro.MacAppSubsetScopeUserGroup, int](
-		"scope.0.exclusions.0.user_groups", "ID", d, &userGroups); err == nil {
+	if err := constructors.MapSetToStructs[jamfpro.MacAppSubsetScopeUserGroup, string](
+		"scope.0.exclusions.0.directory_service_usergroup_names", "Name", d, &userGroups); err == nil {
 		exclusions.UserGroups = userGroups
 	}
 
@@ -227,8 +227,8 @@ func constructExclusions(d *schema.ResourceData) jamfpro.MacAppScopeExclusions {
 		exclusions.JSSUsers = jssUsers
 	}
 
-	var jssUserGroups []jamfpro.MacAppSubsetScopeUserGroup
-	if err := constructors.MapSetToStructs[jamfpro.MacAppSubsetScopeUserGroup, int](
+	var jssUserGroups []jamfpro.MacAppSubsetScopeJSSUserGroup
+	if err := constructors.MapSetToStructs[jamfpro.MacAppSubsetScopeJSSUserGroup, int](
 		"scope.0.exclusions.0.jss_user_group_ids", "ID", d, &jssUserGroups); err == nil {
 		exclusions.JSSUserGroups = jssUserGroups
 	}

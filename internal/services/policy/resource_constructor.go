@@ -188,8 +188,14 @@ func constructScope(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) er
 		return err
 	}
 
+	// Users
+	err = constructors.MapSetToStructs[jamfpro.PolicySubsetUser, string]("scope.0.limitations.0.directory_service_or_local_usernames", "Name", d, resource.Scope.Limitations.Users)
+	if err != nil {
+		return err
+	}
+
 	// User Groups
-	err = constructors.MapSetToStructs[jamfpro.PolicySubsetUserGroup, int]("scope.0.limitations.0.directory_service_usergroup_ids", "ID", d, resource.Scope.Limitations.UserGroups)
+	err = constructors.MapSetToStructs[jamfpro.PolicySubsetUserGroup, string]("scope.0.limitations.0.directory_service_usergroup_names", "Name", d, resource.Scope.Limitations.UserGroups)
 	if err != nil {
 		return err
 	}
@@ -220,6 +226,18 @@ func constructScope(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) er
 
 	// Computer Groups
 	err = constructors.MapSetToStructs[jamfpro.PolicySubsetComputerGroup, int]("scope.0.exclusions.0.computer_group_ids", "ID", d, resource.Scope.Exclusions.ComputerGroups)
+	if err != nil {
+		return err
+	}
+
+	// Users
+	err = constructors.MapSetToStructs[jamfpro.PolicySubsetUser, string]("scope.0.exclusions.0.directory_service_or_local_usernames", "Name", d, resource.Scope.Exclusions.Users)
+	if err != nil {
+		return err
+	}
+
+	// User Groups
+	err = constructors.MapSetToStructs[jamfpro.PolicySubsetUserGroup, string]("scope.0.exclusions.0.directory_service_usergroup_names", "Name", d, resource.Scope.Exclusions.UserGroups)
 	if err != nil {
 		return err
 	}

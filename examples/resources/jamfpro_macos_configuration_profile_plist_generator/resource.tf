@@ -28,7 +28,7 @@ resource "jamfpro_macos_configuration_profile_plist_generator" "jamfpro_macos_co
       network_segment_ids                  = [4, 5]
       ibeacon_ids                          = [3, 4]
       directory_service_or_local_usernames = ["Jane Smith", "John Doe"]
-      directory_service_usergroup_ids      = [3, 4]
+      directory_service_usergroup_names    = ["Marketing", "Finance"]
     }
 
     exclusions {
@@ -40,7 +40,7 @@ resource "jamfpro_macos_configuration_profile_plist_generator" "jamfpro_macos_co
       jss_user_ids                         = sort([2, 1])
       jss_user_group_ids                   = [4, 505]
       directory_service_or_local_usernames = ["Jane Smith", "John Doe"]
-      directory_service_usergroup_ids      = [3, 4]
+      directory_service_usergroup_names    = ["IT", "Engineering"]
       ibeacon_ids                          = [3, 4]
     }
   }

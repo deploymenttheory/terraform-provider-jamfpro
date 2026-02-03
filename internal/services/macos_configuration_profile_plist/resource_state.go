@@ -135,9 +135,9 @@ func setLimitations(limitations jamfpro.MacOSConfigurationProfileSubsetLimitatio
 	}
 
 	if len(limitations.UserGroups) > 0 {
-		userGroupIDs := flattenAndSortScopeEntityIds(limitations.UserGroups)
-		if len(userGroupIDs) > 0 {
-			result["directory_service_usergroup_ids"] = userGroupIDs
+		userGroupNames := flattenAndSortScopeUserGroupNames(limitations.UserGroups)
+		if len(userGroupNames) > 0 {
+			result["directory_service_usergroup_names"] = userGroupNames
 		}
 	}
 
@@ -209,9 +209,9 @@ func setExclusions(exclusions jamfpro.MacOSConfigurationProfileSubsetExclusions)
 	}
 
 	if len(exclusions.UserGroups) > 0 {
-		userGroupIDs := flattenAndSortScopeEntityIds(exclusions.UserGroups)
-		if len(userGroupIDs) > 0 {
-			result["directory_service_usergroup_ids"] = userGroupIDs
+		userGroupNames := flattenAndSortScopeUserGroupNames(exclusions.UserGroups)
+		if len(userGroupNames) > 0 {
+			result["directory_service_usergroup_names"] = userGroupNames
 		}
 	}
 
@@ -355,4 +355,16 @@ func flattenAndSortNetworkSegmentIds(segments []jamfpro.MacOSConfigurationProfil
 	}
 	sort.Ints(ids)
 	return ids
+}
+
+// flattenAndSortScopeEntityNames converts a slice of RestrictedSoftwareSubsetScopeEntity into a sorted slice of strings.
+func flattenAndSortScopeUserGroupNames(usergroups []jamfpro.MacOSConfigurationProfileSubsetScopeUserGroup) []string {
+	names := make([]string, 0, len(usergroups))
+	for _, usergroup := range usergroups {
+		if usergroup.Name != "" {
+			names = append(names, usergroup.Name)
+		}
+	}
+	sort.Strings(names)
+	return names
 }
