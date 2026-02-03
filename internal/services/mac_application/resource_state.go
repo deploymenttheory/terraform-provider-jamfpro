@@ -121,7 +121,7 @@ func setScope(resp *jamfpro.ResourceMacApplications) (map[string]any, error) {
 	scopeData["computer_ids"] = flattenAndSortComputerIDs(resp.Scope.Computers)
 	scopeData["computer_group_ids"] = flattenAndSortComputerGroupIDs(resp.Scope.ComputerGroups)
 	scopeData["jss_user_ids"] = flattenAndSortUserIDs(resp.Scope.JSSUsers)
-	scopeData["jss_user_group_ids"] = flattenAndSortUserGroupIDs(resp.Scope.JSSUserGroups)
+	scopeData["jss_user_group_ids"] = flattenAndSortJSSUserGroupIDs(resp.Scope.JSSUserGroups)
 	scopeData["building_ids"] = flattenAndSortBuildingIDs(resp.Scope.Buildings)
 	scopeData["department_ids"] = flattenAndSortDepartmentIDs(resp.Scope.Departments)
 
@@ -156,9 +156,9 @@ func setLimitations(limitations jamfpro.MacAppScopeLimitations) ([]map[string]an
 	}
 
 	if len(limitations.UserGroups) > 0 {
-		userGroupIDs := flattenAndSortUserGroupIDs(limitations.UserGroups)
-		if len(userGroupIDs) > 0 {
-			result["user_groups"] = userGroupIDs
+		userGroupNames := flattenAndSortScopeUserGroupNames(limitations.UserGroups)
+		if len(userGroupNames) > 0 {
+			result["directory_service_usergroup_names"] = userGroupNames
 		}
 	}
 
@@ -202,9 +202,9 @@ func setExclusions(exclusions jamfpro.MacAppScopeExclusions) ([]map[string]any, 
 	}
 
 	if len(exclusions.UserGroups) > 0 {
-		userGroupIDs := flattenAndSortUserGroupIDs(exclusions.UserGroups)
-		if len(userGroupIDs) > 0 {
-			result["user_groups"] = userGroupIDs
+		userGroupNames := flattenAndSortScopeUserGroupNames(exclusions.UserGroups)
+		if len(userGroupNames) > 0 {
+			result["directory_service_usergroup_names"] = userGroupNames
 		}
 	}
 
@@ -237,7 +237,7 @@ func setExclusions(exclusions jamfpro.MacAppScopeExclusions) ([]map[string]any, 
 	}
 
 	if len(exclusions.JSSUserGroups) > 0 {
-		jssUserGroupIDs := flattenAndSortUserGroupIDs(exclusions.JSSUserGroups)
+		jssUserGroupIDs := flattenAndSortJSSUserGroupIDs(exclusions.JSSUserGroups)
 		if len(jssUserGroupIDs) > 0 {
 			result["jss_user_group_ids"] = jssUserGroupIDs
 		}
@@ -285,7 +285,19 @@ func flattenAndSortUserIDs(users []jamfpro.MacAppSubsetScopeUser) []int {
 	return ids
 }
 
-func flattenAndSortUserGroupIDs(groups []jamfpro.MacAppSubsetScopeUserGroup) []int {
+// flattenAndSortScopeUserGroupNames converts a slice of RestrictedSoftwareSubsetScopeEntity into a sorted slice of strings.
+func flattenAndSortScopeUserGroupNames(usergroups []jamfpro.MacAppSubsetScopeUserGroup) []string {
+	names := make([]string, 0, len(usergroups))
+	for _, usergroup := range usergroups {
+		if usergroup.Name != "" {
+			names = append(names, usergroup.Name)
+		}
+	}
+	sort.Strings(names)
+	return names
+}
+
+func flattenAndSortJSSUserGroupIDs(groups []jamfpro.MacAppSubsetScopeJSSUserGroup) []int {
 	var ids []int
 	for _, group := range groups {
 		if group.ID != 0 {

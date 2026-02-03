@@ -23,7 +23,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceGroup, erro
 	}
 
 	if v, ok := d.GetOk("criteria"); ok {
-		resource.Criteria = constructMobileGroupSubsetContainerCriteria(v.([]any))
+		*resource.Criteria = constructMobileGroupSubsetContainerCriteria(v.([]any))
 	}
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")

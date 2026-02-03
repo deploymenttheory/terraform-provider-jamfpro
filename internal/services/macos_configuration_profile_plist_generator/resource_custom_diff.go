@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/plist"
+	sharedschemas "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/shared_schemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -39,6 +40,10 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i any) e
 
 	if err := validateAllUsersScope(ctx, diff, i); err != nil {
 		return err
+	}
+
+	if err := sharedschemas.ValidateScopeDirectoryServiceUserGroupNames(ctx, diff, i); err != nil {
+		return fmt.Errorf("validating scope directory service user/group names: %w", err)
 	}
 
 	return nil

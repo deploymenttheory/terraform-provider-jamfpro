@@ -67,7 +67,7 @@ resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuratio
       network_segment_ids                  = [4, 5]
       ibeacon_ids                          = [3, 4]
       directory_service_or_local_usernames = ["Jane Smith", "John Doe"]
-      directory_service_usergroup_ids      = [3, 4]
+      directory_service_usergroup_names    = ["Marketing", "Finance"]
     }
 
     // Optional Block
@@ -80,7 +80,7 @@ resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuratio
       jss_user_ids                         = [2, 1]
       jss_user_group_ids                   = [4, 505]
       directory_service_or_local_usernames = ["Jane Smith", "John Doe"]
-      directory_service_usergroup_ids      = [3, 4]
+      directory_service_usergroup_names    = ["IT", "Engineering"]
       ibeacon_ids                          = [3, 4]
     }
   }
@@ -223,7 +223,7 @@ Optional:
 - `computer_ids` (Set of Number) Computers excluded from scope by Jamf ID.
 - `department_ids` (Set of Number) Departments excluded from scope by Jamf ID.
 - `directory_service_or_local_usernames` (Set of String) A set of directory service / local usernames for scoping exclusions.
-- `directory_service_usergroup_ids` (Set of Number) A set of directory service / local user group IDs for exclusions.
+- `directory_service_usergroup_names` (Set of String) A set of directory service user group names for exclusions.
 - `ibeacon_ids` (Set of Number) Ibeacons excluded from scope by Jamf ID.
 - `jss_user_group_ids` (Set of Number) JSS User Groups excluded from scope by Jamf ID.
 - `jss_user_ids` (Set of Number) JSS Users excluded from scope by Jamf ID.
@@ -236,7 +236,7 @@ Optional:
 Optional:
 
 - `directory_service_or_local_usernames` (Set of String) A set of directory service / local usernames for scoping limitations.
-- `directory_service_usergroup_ids` (Set of Number) A set of directory service user group IDs for limitations.
+- `directory_service_usergroup_names` (Set of String) A set of directory service user group names for limitations.
 - `ibeacon_ids` (Set of Number) A set of iBeacon IDs for limitations.
 - `network_segment_ids` (Set of Number) A set of network segment IDs for limitations.
 
