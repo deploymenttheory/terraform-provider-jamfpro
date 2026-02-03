@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.33.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.32.0...v0.33.0) (2026-02-03)
+
+
+### Features
+
+* Add enable_maid_username_merge option for user initiated enrollment settings ([21ebdf9](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/21ebdf9c4938e6780e75ba06e1073329614f6ed6))
+* add support for directory_service_usergroup_names in scope limitations and exclusions (computer objects) ([#988](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/988)) ([21ebdf9](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/21ebdf9c4938e6780e75ba06e1073329614f6ed6))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([21ebdf9](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/21ebdf9c4938e6780e75ba06e1073329614f6ed6))
+
 ## [0.32.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.31.2...v0.32.0) (2026-02-02)
 
 
