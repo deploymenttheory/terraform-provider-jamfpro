@@ -9,9 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// setStateToTerraform sets all values in the state object
-func setStateToTerraform(ctx context.Context, state *GuidListSharderDataSourceModel, shards [][]string, sourceType string, shardCount int, strategy string) error {
-
+func setStateToTerraform(ctx context.Context, state *GuidListSharderDataSourceModel, shards [][]string) error {
 	shardsMap := make(map[string]types.List, len(shards))
 	for i, shard := range shards {
 		shardList, diags := types.ListValueFrom(ctx, types.StringType, shard)
@@ -25,13 +23,11 @@ func setStateToTerraform(ctx context.Context, state *GuidListSharderDataSourceMo
 	if diags.HasError() {
 		return fmt.Errorf("failed to convert shards map to state: %v", diags.Errors())
 	}
-
-	// Generate deterministic ID based on configuration
-	// This ensures the datasource ID remains stable across refreshes
+	shardCount := len(shards)
 	idString := fmt.Sprintf("%s-%d-%s-%s-%s",
-		sourceType,
+		state.SourceType.ValueString(),
 		shardCount,
-		strategy,
+		state.Strategy.ValueString(),
 		state.Seed.ValueString(),
 		state.GroupId.ValueString(),
 	)

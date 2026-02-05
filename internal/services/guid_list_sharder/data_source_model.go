@@ -4,6 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// GuidListSharderDataSourceModel represents the Terraform schema model.
 type GuidListSharderDataSourceModel struct {
 	Id               types.String `tfsdk:"id"`
 	SourceType       types.String `tfsdk:"source_type"`
@@ -13,5 +14,14 @@ type GuidListSharderDataSourceModel struct {
 	ShardSizes       types.List   `tfsdk:"shard_sizes"`
 	Strategy         types.String `tfsdk:"strategy"`
 	Seed             types.String `tfsdk:"seed"`
+	ExcludeIds       types.List   `tfsdk:"exclude_ids"`
+	ReservedIds      types.Map    `tfsdk:"reserved_ids"`
 	Shards           types.Map    `tfsdk:"shards"`
+}
+
+// reservationInfo holds information about reserved IDs during processing.
+type reservationInfo struct {
+	IDsByShard    map[string][]string
+	CountsByShard map[int]int
+	UnreservedIDs []string
 }

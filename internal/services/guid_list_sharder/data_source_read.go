@@ -11,92 +11,32 @@ import (
 )
 
 func (d *guidListSharderDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state GuidListSharderDataSourceModel
-
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", DataSourceName))
 
+	var state GuidListSharderDataSourceModel
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	sourceType := state.SourceType.ValueString()
-	strategy := state.Strategy.ValueString()
-
-	var groupId string
-	if !state.GroupId.IsNull() {
-		groupId = state.GroupId.ValueString()
+	sourceIDs := d.fetchSourceIDs(ctx, resp, &state)
+	if resp.Diagnostics.HasError() {
+		return
 	}
+	tflog.Debug(ctx, fmt.Sprintf("Retrieved %d IDs for source_type '%s'", len(sourceIDs), state.SourceType.ValueString()))
 
-	var seed string
-	if !state.Seed.IsNull() {
-		seed = state.Seed.ValueString()
-	}
+	filteredIDs, totalIDCount := d.applyExclusions(ctx, sourceIDs, &state)
+	tflog.Debug(ctx, fmt.Sprintf("After exclusions: %d IDs remain", len(filteredIDs)))
 
-	var shardCount int
-	var percentages []int64
-	var sizes []int64
-
-	if !state.ShardPercentages.IsNull() {
-		diags = state.ShardPercentages.ElementsAs(ctx, &percentages, false)
-
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		shardCount = len(percentages)
-
-	} else if !state.ShardSizes.IsNull() {
-		diags = state.ShardSizes.ElementsAs(ctx, &sizes, false)
-
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		shardCount = len(sizes)
-
-	} else {
-		shardCount = int(state.ShardCount.ValueInt64())
-	}
-
-	// get source IDs based upon context
-	var ids []string
-
-	switch sourceType {
-	case "computer_inventory":
-		ids = d.listAllComputers(ctx, resp)
-	case "mobile_device_inventory":
-		ids = d.listAllMobileDevices(ctx, resp)
-	case "computer_group_membership":
-		ids = d.listAllComputerGroupMembers(ctx, resp, groupId)
-	case "mobile_device_group_membership":
-		ids = d.listAllMobileDeviceGroupMembers(ctx, resp, groupId)
-	case "user_accounts":
-		ids = d.listAllUsers(ctx, resp)
-	}
-
+	reservations := d.processReservations(ctx, resp, filteredIDs, &state)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Retrieved %d IDs for source_type '%s'", len(ids), sourceType))
+	shards := d.distributeIDs(ctx, filteredIDs, totalIDCount, &state, reservations)
 
-	// Apply the sharding strategy based upon context
-	var shards [][]string
-
-	switch strategy {
-	case "round-robin":
-		shards = shardByRoundRobin(ctx, ids, shardCount, seed)
-	case "percentage":
-		shards = shardByPercentage(ctx, ids, percentages, seed)
-	case "size":
-		shards = shardBySize(ctx, ids, sizes, seed)
-	case "rendezvous":
-		shards = shardByRendezvous(ctx, ids, shardCount, seed)
-	}
-
-	if err := setStateToTerraform(ctx, &state, shards, sourceType, shardCount, strategy); err != nil {
+	if err := setStateToTerraform(ctx, &state, shards); err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to Set Computed State",
 			fmt.Sprintf("Error setting computed state attributes: %s", err.Error()),
@@ -105,20 +45,33 @@ func (d *guidListSharderDataSource) Read(ctx context.Context, req datasource.Rea
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", DataSourceName))
 }
 
-// listAllComputers retrieves all managed computer IDs from Jamf Pro computer inventory
-// Filters out unmanaged computers as they cannot be added to static groups
-func (d *guidListSharderDataSource) listAllComputers(ctx context.Context, resp *datasource.ReadResponse) []string {
-	var ids []string
+func (d *guidListSharderDataSource) fetchSourceIDs(ctx context.Context, resp *datasource.ReadResponse, state *GuidListSharderDataSourceModel) []string {
+	switch state.SourceType.ValueString() {
+	case "computer_inventory":
+		return d.listAllComputers(ctx, resp)
+	case "mobile_device_inventory":
+		return d.listAllMobileDevices(ctx, resp)
+	case "computer_group_membership":
+		return d.listAllComputerGroupMembers(ctx, resp, state.GroupId.ValueString())
+	case "mobile_device_group_membership":
+		return d.listAllMobileDeviceGroupMembers(ctx, resp, state.GroupId.ValueString())
+	case "user_accounts":
+		return d.listAllUsers(ctx, resp)
+	default:
+		resp.Diagnostics.AddError(
+			"Invalid Source Type",
+			fmt.Sprintf("Unknown source_type: %s", state.SourceType.ValueString()),
+		)
+		return nil
+	}
+}
 
+func (d *guidListSharderDataSource) listAllComputers(ctx context.Context, resp *datasource.ReadResponse) []string {
 	params := url.Values{}
-	params.Set("section", "GENERAL") // Only need basic info for IDs and managed status
+	params.Set("section", "GENERAL")
 
 	computers, err := d.client.GetComputersInventory(params)
 	if err != nil {
@@ -129,8 +82,8 @@ func (d *guidListSharderDataSource) listAllComputers(ctx context.Context, resp *
 		return nil
 	}
 
-	managedCount := 0
-	unmanagedCount := 0
+	var ids []string
+	managedCount, unmanagedCount := 0, 0
 
 	for _, computer := range computers.Results {
 		if computer.General.RemoteManagement.Managed {
@@ -141,16 +94,11 @@ func (d *guidListSharderDataSource) listAllComputers(ctx context.Context, resp *
 		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Computer inventory filtered: %d managed, %d unmanaged (excluded)", managedCount, unmanagedCount))
-
+	tflog.Debug(ctx, fmt.Sprintf("Computer inventory: %d managed, %d unmanaged (excluded)", managedCount, unmanagedCount))
 	return ids
 }
 
-// listAllMobileDevices retrieves all managed mobile device IDs from Jamf Pro
-// Filters out unmanaged devices as they cannot be added to static groups
 func (d *guidListSharderDataSource) listAllMobileDevices(ctx context.Context, resp *datasource.ReadResponse) []string {
-	var ids []string
-
 	mobileDevices, err := d.client.GetMobileDevices()
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -160,8 +108,8 @@ func (d *guidListSharderDataSource) listAllMobileDevices(ctx context.Context, re
 		return nil
 	}
 
-	managedCount := 0
-	unmanagedCount := 0
+	var ids []string
+	managedCount, unmanagedCount := 0, 0
 
 	for _, device := range mobileDevices.MobileDevices {
 		if device.Managed {
@@ -172,16 +120,12 @@ func (d *guidListSharderDataSource) listAllMobileDevices(ctx context.Context, re
 		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Mobile devices filtered: %d managed, %d unmanaged (excluded)", managedCount, unmanagedCount))
-
+	tflog.Debug(ctx, fmt.Sprintf("Mobile devices: %d managed, %d unmanaged (excluded)", managedCount, unmanagedCount))
 	return ids
 }
 
-// listAllComputerGroupMembers retrieves all computer IDs from a specific computer group
-func (d *guidListSharderDataSource) listAllComputerGroupMembers(ctx context.Context, resp *datasource.ReadResponse, groupId string) []string {
-	var ids []string
-
-	if groupId == "" {
+func (d *guidListSharderDataSource) listAllComputerGroupMembers(ctx context.Context, resp *datasource.ReadResponse, groupID string) []string {
+	if groupID == "" {
 		resp.Diagnostics.AddError(
 			"Missing Group ID",
 			"group_id is required when source_type is 'computer_group_membership'",
@@ -189,15 +133,16 @@ func (d *guidListSharderDataSource) listAllComputerGroupMembers(ctx context.Cont
 		return nil
 	}
 
-	group, err := d.client.GetComputerGroupByID(groupId)
+	group, err := d.client.GetComputerGroupByID(groupID)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Retrieving Computer Group",
-			fmt.Sprintf("Failed to retrieve computer group with ID %s: %s", groupId, err.Error()),
+			fmt.Sprintf("Failed to retrieve computer group with ID %s: %s", groupID, err.Error()),
 		)
 		return nil
 	}
 
+	var ids []string
 	if group.Computers != nil {
 		for _, computer := range *group.Computers {
 			ids = append(ids, strconv.Itoa(computer.ID))
@@ -207,11 +152,8 @@ func (d *guidListSharderDataSource) listAllComputerGroupMembers(ctx context.Cont
 	return ids
 }
 
-// listAllMobileDeviceGroupMembers retrieves all mobile device IDs from a specific mobile device group
-func (d *guidListSharderDataSource) listAllMobileDeviceGroupMembers(ctx context.Context, resp *datasource.ReadResponse, groupId string) []string {
-	var ids []string
-
-	if groupId == "" {
+func (d *guidListSharderDataSource) listAllMobileDeviceGroupMembers(ctx context.Context, resp *datasource.ReadResponse, groupID string) []string {
+	if groupID == "" {
 		resp.Diagnostics.AddError(
 			"Missing Group ID",
 			"group_id is required when source_type is 'mobile_device_group_membership'",
@@ -219,15 +161,16 @@ func (d *guidListSharderDataSource) listAllMobileDeviceGroupMembers(ctx context.
 		return nil
 	}
 
-	group, err := d.client.GetMobileDeviceGroupByID(groupId)
+	group, err := d.client.GetMobileDeviceGroupByID(groupID)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Retrieving Mobile Device Group",
-			fmt.Sprintf("Failed to retrieve mobile device group with ID %s: %s", groupId, err.Error()),
+			fmt.Sprintf("Failed to retrieve mobile device group with ID %s: %s", groupID, err.Error()),
 		)
 		return nil
 	}
 
+	var ids []string
 	if group.MobileDevices != nil {
 		for _, device := range *group.MobileDevices {
 			ids = append(ids, strconv.Itoa(device.ID))
@@ -237,10 +180,7 @@ func (d *guidListSharderDataSource) listAllMobileDeviceGroupMembers(ctx context.
 	return ids
 }
 
-// listAllUsers retrieves all user IDs from Jamf Pro
 func (d *guidListSharderDataSource) listAllUsers(ctx context.Context, resp *datasource.ReadResponse) []string {
-	var ids []string
-
 	users, err := d.client.GetUsers()
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -250,9 +190,197 @@ func (d *guidListSharderDataSource) listAllUsers(ctx context.Context, resp *data
 		return nil
 	}
 
+	var ids []string
 	for _, user := range users.Users {
 		ids = append(ids, strconv.Itoa(user.ID))
 	}
 
 	return ids
+}
+
+func (d *guidListSharderDataSource) applyExclusions(ctx context.Context, ids []string, state *GuidListSharderDataSourceModel) (filteredIDs []string, totalCount int) {
+	if state.ExcludeIds.IsNull() || len(state.ExcludeIds.Elements()) == 0 {
+		return ids, len(ids)
+	}
+
+	var excludeIDs []string
+	state.ExcludeIds.ElementsAs(ctx, &excludeIDs, false)
+
+	excludeMap := make(map[string]bool, len(excludeIDs))
+	for _, id := range excludeIDs {
+		excludeMap[id] = true
+	}
+
+	filtered := make([]string, 0, len(ids))
+	for _, id := range ids {
+		if !excludeMap[id] {
+			filtered = append(filtered, id)
+		}
+	}
+
+	if excludedCount := len(ids) - len(filtered); excludedCount > 0 {
+		tflog.Debug(ctx, fmt.Sprintf("Excluded %d IDs from sharding", excludedCount))
+	}
+
+	return filtered, len(filtered)
+}
+
+func (d *guidListSharderDataSource) processReservations(ctx context.Context, resp *datasource.ReadResponse, ids []string, state *GuidListSharderDataSourceModel) *reservationInfo {
+	info := &reservationInfo{
+		IDsByShard:    make(map[string][]string),
+		CountsByShard: make(map[int]int),
+		UnreservedIDs: ids,
+	}
+
+	if state.ReservedIds.IsNull() || len(state.ReservedIds.Elements()) == 0 {
+		return info
+	}
+
+	var reservedMap map[string][]string
+	var excludeIDs []string
+	if !state.ExcludeIds.IsNull() {
+		state.ExcludeIds.ElementsAs(ctx, &excludeIDs, false)
+	}
+	excludeMap := make(map[string]bool, len(excludeIDs))
+	for _, id := range excludeIDs {
+		excludeMap[id] = true
+	}
+
+	shardCount := d.getShardCount(ctx, state)
+
+	diags := state.ReservedIds.ElementsAs(ctx, &reservedMap, false)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return nil
+	}
+
+	seenIDs := make(map[string]string)
+
+	for shardName, idList := range reservedMap {
+		var shardIndex int
+		if _, err := fmt.Sscanf(shardName, "shard_%d", &shardIndex); err != nil {
+			resp.Diagnostics.AddError(
+				"Invalid Reserved ID Shard Name",
+				fmt.Sprintf("Invalid shard name '%s' in reserved_ids. Must be in format 'shard_0', 'shard_1', etc.", shardName),
+			)
+			return nil
+		}
+
+		if shardIndex < 0 || shardIndex >= shardCount {
+			resp.Diagnostics.AddError(
+				"Invalid Reserved ID Shard Index",
+				fmt.Sprintf("Shard name '%s' in reserved_ids is out of range. With shard_count=%d, valid shards are shard_0 to shard_%d.", shardName, shardCount, shardCount-1),
+			)
+			return nil
+		}
+
+		for _, id := range idList {
+			if excludeMap[id] {
+				resp.Diagnostics.AddError(
+					"Reserved ID Conflict",
+					fmt.Sprintf("ID '%s' appears in both exclude_ids and reserved_ids. Exclusion takes precedence - please remove it from reserved_ids.", id),
+				)
+				return nil
+			}
+
+			if prevShard, exists := seenIDs[id]; exists {
+				resp.Diagnostics.AddError(
+					"Duplicate Reserved ID",
+					fmt.Sprintf("ID '%s' appears in multiple shards in reserved_ids: '%s' and '%s'. Each ID can only be assigned to one shard.", id, prevShard, shardName),
+				)
+				return nil
+			}
+			seenIDs[id] = shardName
+		}
+
+		info.IDsByShard[shardName] = idList
+		info.CountsByShard[shardIndex] = len(idList)
+	}
+
+	if len(seenIDs) > 0 {
+		reservedSet := make(map[string]bool, len(seenIDs))
+		for id := range seenIDs {
+			reservedSet[id] = true
+		}
+
+		filtered := make([]string, 0, len(ids))
+		for _, id := range ids {
+			if !reservedSet[id] {
+				filtered = append(filtered, id)
+			}
+		}
+
+		info.UnreservedIDs = filtered
+		tflog.Debug(ctx, fmt.Sprintf("Reserved %d IDs for specific shards, %d remain for distribution", len(seenIDs), len(filtered)))
+	}
+
+	return info
+}
+
+func (d *guidListSharderDataSource) distributeIDs(ctx context.Context, unreservedIDs []string, totalIDCount int, state *GuidListSharderDataSourceModel, reservations *reservationInfo) [][]string {
+	strategy := state.Strategy.ValueString()
+	seed := state.Seed.ValueString()
+	shardCount := d.getShardCount(ctx, state)
+
+	if strategy == "rendezvous" {
+		shards := shardByRendezvous(ctx, unreservedIDs, shardCount, seed)
+		d.addReservedIDs(ctx, shards, reservations, nil)
+		return shards
+	}
+
+	var targetSizes []int
+	switch strategy {
+	case "round-robin":
+		targetSizes = calculateRoundRobinTargets(totalIDCount, shardCount)
+	case "percentage":
+		var percentages []int64
+		state.ShardPercentages.ElementsAs(ctx, &percentages, false)
+		targetSizes = calculatePercentageTargets(totalIDCount, percentages)
+	case "size":
+		var sizes []int64
+		state.ShardSizes.ElementsAs(ctx, &sizes, false)
+		targetSizes = calculateSizeTargets(sizes)
+	}
+
+	distributionTargets := make([]int, shardCount)
+
+	for i := range shardCount {
+		distributionTargets[i] = targetSizes[i] - reservations.CountsByShard[i]
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Targets: %v, Reserved: %v, Distribution: %v", targetSizes, reservations.CountsByShard, distributionTargets))
+
+	shards := distributeToTargets(ctx, unreservedIDs, distributionTargets, seed)
+	d.addReservedIDs(ctx, shards, reservations, targetSizes)
+	return shards
+}
+
+func (d *guidListSharderDataSource) getShardCount(ctx context.Context, state *GuidListSharderDataSourceModel) int {
+	if !state.ShardPercentages.IsNull() {
+		return len(state.ShardPercentages.Elements())
+	}
+	if !state.ShardSizes.IsNull() {
+		return len(state.ShardSizes.Elements())
+	}
+	return int(state.ShardCount.ValueInt64())
+}
+
+func (d *guidListSharderDataSource) addReservedIDs(ctx context.Context, shards [][]string, reservations *reservationInfo, targetSizes []int) {
+	if len(reservations.IDsByShard) == 0 {
+		return
+	}
+
+	for shardName, reservedIDs := range reservations.IDsByShard {
+		var shardIndex int
+		fmt.Sscanf(shardName, "shard_%d", &shardIndex)
+
+		shards[shardIndex] = append(reservedIDs, shards[shardIndex]...)
+
+		finalSize := len(shards[shardIndex])
+		if targetSizes != nil {
+			tflog.Debug(ctx, fmt.Sprintf("Added %d reserved to %s (final: %d, target: %d)", len(reservedIDs), shardName, finalSize, targetSizes[shardIndex]))
+		} else {
+			tflog.Debug(ctx, fmt.Sprintf("Added %d reserved to %s (final: %d)", len(reservedIDs), shardName, finalSize))
+		}
+	}
 }
