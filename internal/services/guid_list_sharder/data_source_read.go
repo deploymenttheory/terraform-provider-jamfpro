@@ -14,27 +14,49 @@ func (d *guidListSharderDataSource) Read(ctx context.Context, req datasource.Rea
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", DataSourceName))
 
 	var state GuidListSharderDataSourceModel
+
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	sourceIDs := d.fetchSourceIDs(ctx, resp, &state)
+	var sourceIDs []string
+	switch state.SourceType.ValueString() {
+	case "computer_inventory":
+		sourceIDs = d.listAllComputers(ctx, resp)
+	case "mobile_device_inventory":
+		sourceIDs = d.listAllMobileDevices(ctx, resp)
+	case "computer_group_membership":
+		sourceIDs = d.listAllComputerGroupMembers(ctx, resp, state.GroupId.ValueString())
+	case "mobile_device_group_membership":
+		sourceIDs = d.listAllMobileDeviceGroupMembers(ctx, resp, state.GroupId.ValueString())
+	case "user_accounts":
+		sourceIDs = d.listAllUsers(ctx, resp)
+	default:
+		resp.Diagnostics.AddError(
+			"Invalid Source Type",
+			fmt.Sprintf("Unknown source_type: %s", state.SourceType.ValueString()),
+		)
+		return
+	}
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
 	tflog.Debug(ctx, fmt.Sprintf("Retrieved %d IDs for source_type '%s'", len(sourceIDs), state.SourceType.ValueString()))
 
 	filteredIDs, totalIDCount := d.applyExclusions(ctx, sourceIDs, &state)
+
 	tflog.Debug(ctx, fmt.Sprintf("After exclusions: %d IDs remain", len(filteredIDs)))
 
-	reservations := d.processReservations(ctx, resp, filteredIDs, &state)
+	reservations := d.applyReservations(ctx, resp, filteredIDs, &state)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	shards := d.distributeIDs(ctx, filteredIDs, totalIDCount, &state, reservations)
+	shards := d.applyShardingStrategy(ctx, filteredIDs, totalIDCount, &state, reservations)
 
 	if err := setStateToTerraform(ctx, &state, shards); err != nil {
 		resp.Diagnostics.AddError(
@@ -46,27 +68,6 @@ func (d *guidListSharderDataSource) Read(ctx context.Context, req datasource.Rea
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", DataSourceName))
-}
-
-func (d *guidListSharderDataSource) fetchSourceIDs(ctx context.Context, resp *datasource.ReadResponse, state *GuidListSharderDataSourceModel) []string {
-	switch state.SourceType.ValueString() {
-	case "computer_inventory":
-		return d.listAllComputers(ctx, resp)
-	case "mobile_device_inventory":
-		return d.listAllMobileDevices(ctx, resp)
-	case "computer_group_membership":
-		return d.listAllComputerGroupMembers(ctx, resp, state.GroupId.ValueString())
-	case "mobile_device_group_membership":
-		return d.listAllMobileDeviceGroupMembers(ctx, resp, state.GroupId.ValueString())
-	case "user_accounts":
-		return d.listAllUsers(ctx, resp)
-	default:
-		resp.Diagnostics.AddError(
-			"Invalid Source Type",
-			fmt.Sprintf("Unknown source_type: %s", state.SourceType.ValueString()),
-		)
-		return nil
-	}
 }
 
 func (d *guidListSharderDataSource) listAllComputers(ctx context.Context, resp *datasource.ReadResponse) []string {
@@ -225,7 +226,7 @@ func (d *guidListSharderDataSource) applyExclusions(ctx context.Context, ids []s
 	return filtered, len(filtered)
 }
 
-func (d *guidListSharderDataSource) processReservations(ctx context.Context, resp *datasource.ReadResponse, ids []string, state *GuidListSharderDataSourceModel) *reservationInfo {
+func (d *guidListSharderDataSource) applyReservations(ctx context.Context, resp *datasource.ReadResponse, ids []string, state *GuidListSharderDataSourceModel) *reservationInfo {
 	info := &reservationInfo{
 		IDsByShard:    make(map[string][]string),
 		CountsByShard: make(map[int]int),
@@ -317,15 +318,15 @@ func (d *guidListSharderDataSource) processReservations(ctx context.Context, res
 	return info
 }
 
-func (d *guidListSharderDataSource) distributeIDs(ctx context.Context, unreservedIDs []string, totalIDCount int, state *GuidListSharderDataSourceModel, reservations *reservationInfo) [][]string {
+func (d *guidListSharderDataSource) applyShardingStrategy(ctx context.Context, unreservedIDs []string, totalIDCount int, state *GuidListSharderDataSourceModel, reservations *reservationInfo) [][]string {
 	strategy := state.Strategy.ValueString()
 	seed := state.Seed.ValueString()
 	shardCount := d.getShardCount(ctx, state)
 
 	if strategy == "rendezvous" {
-		shards := shardByRendezvous(ctx, unreservedIDs, shardCount, seed)
-		d.addReservedIDs(ctx, shards, reservations, nil)
-		return shards
+		result := shardByRendezvous(ctx, unreservedIDs, shardCount, seed)
+		d.appendReservedIds(ctx, result, reservations, nil)
+		return result
 	}
 
 	var targetSizes []int
@@ -343,16 +344,15 @@ func (d *guidListSharderDataSource) distributeIDs(ctx context.Context, unreserve
 	}
 
 	distributionTargets := make([]int, shardCount)
-
 	for i := range shardCount {
 		distributionTargets[i] = targetSizes[i] - reservations.CountsByShard[i]
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Targets: %v, Reserved: %v, Distribution: %v", targetSizes, reservations.CountsByShard, distributionTargets))
 
-	shards := distributeToTargets(ctx, unreservedIDs, distributionTargets, seed)
-	d.addReservedIDs(ctx, shards, reservations, targetSizes)
-	return shards
+	result := distributeIdsToShards(ctx, unreservedIDs, distributionTargets, seed)
+	d.appendReservedIds(ctx, result, reservations, targetSizes)
+	return result
 }
 
 func (d *guidListSharderDataSource) getShardCount(ctx context.Context, state *GuidListSharderDataSourceModel) int {
@@ -365,7 +365,7 @@ func (d *guidListSharderDataSource) getShardCount(ctx context.Context, state *Gu
 	return int(state.ShardCount.ValueInt64())
 }
 
-func (d *guidListSharderDataSource) addReservedIDs(ctx context.Context, shards [][]string, reservations *reservationInfo, targetSizes []int) {
+func (d *guidListSharderDataSource) appendReservedIds(ctx context.Context, shards [][]string, reservations *reservationInfo, targetSizes []int) {
 	if len(reservations.IDsByShard) == 0 {
 		return
 	}

@@ -6,9 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// distributeToTargets distributes IDs to shards according to target counts.
-// This ensures the final distribution (including reserved IDs) matches the strategy.
-func distributeToTargets(ctx context.Context, ids []string, targets []int, seed string) [][]string {
+func distributeIdsToShards(ctx context.Context, ids []string, targets []int, seed string) [][]string {
 	shardCount := len(targets)
 	shards := make([][]string, shardCount)
 
