@@ -1,12 +1,15 @@
 package guid_list_sharder
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/binary"
 	"fmt"
 	"math/rand"
 	"slices"
 	"strconv"
+
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // =============================================================================
@@ -16,7 +19,7 @@ import (
 // shardByRoundRobin distributes IDs in circular order, guaranteeing equal shard sizes
 // Without seed: uses API order (non-deterministic, may change between runs)
 // With seed: sorts first for stable input, then shuffles using Fisher-Yates (deterministic, reproducible)
-func shardByRoundRobin(ids []string, shardCount int, seed string) [][]string {
+func shardByRoundRobin(ctx context.Context, ids []string, shardCount int, seed string) [][]string {
 
 	if shardCount <= 0 {
 		shardCount = 1
@@ -47,11 +50,27 @@ func shardByRoundRobin(ids []string, shardCount int, seed string) [][]string {
 	// Sort each shard numerically to match how Jamf API returns them
 	// This prevents Terraform from seeing spurious diffs
 	for i := range shards {
+		// Debug: log before sorting
+		if len(shards[i]) > 0 {
+			tflog.Debug(ctx, fmt.Sprintf("Round-Robin Shard %d before numerical sort (first/last 3): first=%v, last=%v",
+				i,
+				shards[i][:min(3, len(shards[i]))],
+				shards[i][max(0, len(shards[i])-3):]))
+		}
+
 		slices.SortFunc(shards[i], func(a, b string) int {
 			aInt, _ := strconv.Atoi(a)
 			bInt, _ := strconv.Atoi(b)
 			return aInt - bInt
 		})
+
+		// Debug: log after sorting
+		if len(shards[i]) > 0 {
+			tflog.Debug(ctx, fmt.Sprintf("Round-Robin Shard %d after numerical sort (first/last 3): first=%v, last=%v",
+				i,
+				shards[i][:min(3, len(shards[i]))],
+				shards[i][max(0, len(shards[i])-3):]))
+		}
 	}
 
 	return shards
@@ -60,7 +79,7 @@ func shardByRoundRobin(ids []string, shardCount int, seed string) [][]string {
 // shardByPercentage distributes IDs according to specified percentages
 // Without seed: uses API order (non-deterministic, may change between runs)
 // With seed: sorts first for stable input, then shuffles using Fisher-Yates (deterministic, reproducible)
-func shardByPercentage(ids []string, percentages []int64, seed string) [][]string {
+func shardByPercentage(ctx context.Context, ids []string, percentages []int64, seed string) [][]string {
 	totalIds := len(ids)
 	shardCount := len(percentages)
 	shards := make([][]string, shardCount)
@@ -105,11 +124,27 @@ func shardByPercentage(ids []string, percentages []int64, seed string) [][]strin
 	// Sort each shard numerically to match how Jamf API returns them
 	// This prevents Terraform from seeing spurious diffs
 	for i := range shards {
+		// Debug: log before sorting
+		if len(shards[i]) > 0 {
+			tflog.Debug(ctx, fmt.Sprintf("Percentage Shard %d before numerical sort (first/last 3): first=%v, last=%v", 
+				i, 
+				shards[i][:min(3, len(shards[i]))],
+				shards[i][max(0, len(shards[i])-3):]))
+		}
+		
 		slices.SortFunc(shards[i], func(a, b string) int {
 			aInt, _ := strconv.Atoi(a)
 			bInt, _ := strconv.Atoi(b)
 			return aInt - bInt
 		})
+		
+		// Debug: log after sorting
+		if len(shards[i]) > 0 {
+			tflog.Debug(ctx, fmt.Sprintf("Percentage Shard %d after numerical sort (first/last 3): first=%v, last=%v", 
+				i,
+				shards[i][:min(3, len(shards[i]))],
+				shards[i][max(0, len(shards[i])-3):]))
+		}
 	}
 
 	return shards
@@ -119,7 +154,7 @@ func shardByPercentage(ids []string, percentages []int64, seed string) [][]strin
 // Without seed: uses API order (non-deterministic, may change between runs)
 // With seed: sorts first for stable input, then shuffles using Fisher-Yates (deterministic, reproducible)
 // Supports -1 in the last position to mean "all remaining IDs"
-func shardBySize(ids []string, sizes []int64, seed string) [][]string {
+func shardBySize(ctx context.Context, ids []string, sizes []int64, seed string) [][]string {
 	totalIds := len(ids)
 	shardCount := len(sizes)
 	shards := make([][]string, shardCount)
@@ -173,11 +208,27 @@ func shardBySize(ids []string, sizes []int64, seed string) [][]string {
 	// Sort each shard numerically to match how Jamf API returns them
 	// This prevents Terraform from seeing spurious diffs
 	for i := range shards {
+		// Debug: log before sorting
+		if len(shards[i]) > 0 {
+			tflog.Debug(ctx, fmt.Sprintf("Size Shard %d before numerical sort (first/last 3): first=%v, last=%v",
+				i,
+				shards[i][:min(3, len(shards[i]))],
+				shards[i][max(0, len(shards[i])-3):]))
+		}
+
 		slices.SortFunc(shards[i], func(a, b string) int {
 			aInt, _ := strconv.Atoi(a)
 			bInt, _ := strconv.Atoi(b)
 			return aInt - bInt
 		})
+
+		// Debug: log after sorting
+		if len(shards[i]) > 0 {
+			tflog.Debug(ctx, fmt.Sprintf("Size Shard %d after numerical sort (first/last 3): first=%v, last=%v",
+				i,
+				shards[i][:min(3, len(shards[i]))],
+				shards[i][max(0, len(shards[i])-3):]))
+		}
 	}
 
 	return shards
@@ -222,7 +273,7 @@ func shuffleWithSeed(ids []string, seed string) []string {
 // Each ID computes a score for every shard and is assigned to the shard with the highest score
 // This provides superior stability when shard counts change - only ~1/n IDs move when adding a shard
 // Always deterministic (reproducible across runs) - seed affects which shard wins for each ID
-func shardByRendezvous(ids []string, shardCount int, seed string) [][]string {
+func shardByRendezvous(ctx context.Context, ids []string, shardCount int, seed string) [][]string {
 	if shardCount <= 0 {
 		shardCount = 1
 	}
@@ -264,12 +315,48 @@ func shardByRendezvous(ids []string, shardCount int, seed string) [][]string {
 	// Sort each shard numerically to match how Jamf API returns them
 	// This prevents Terraform from seeing spurious diffs
 	for i := range shards {
+		// Debug: log before sorting
+		if len(shards[i]) > 0 {
+			tflog.Debug(ctx, fmt.Sprintf("Rendezvous Shard %d before numerical sort (first/last 3): first=%v, last=%v",
+				i,
+				shards[i][:min(3, len(shards[i]))],
+				shards[i][max(0, len(shards[i])-3):]))
+		}
+
 		slices.SortFunc(shards[i], func(a, b string) int {
 			aInt, _ := strconv.Atoi(a)
 			bInt, _ := strconv.Atoi(b)
 			return aInt - bInt
 		})
+
+		// Debug: log after sorting
+		if len(shards[i]) > 0 {
+			tflog.Debug(ctx, fmt.Sprintf("Rendezvous Shard %d after numerical sort (first/last 3): first=%v, last=%v",
+				i,
+				shards[i][:min(3, len(shards[i]))],
+				shards[i][max(0, len(shards[i])-3):]))
+		}
 	}
 
 	return shards
+}
+
+// =============================================================================
+// Utility Helpers
+// =============================================================================
+
+// min returns the smaller of two integers
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+// max returns the larger of two integers
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }

@@ -87,13 +87,13 @@ func (d *guidListSharderDataSource) Read(ctx context.Context, req datasource.Rea
 
 	switch strategy {
 	case "round-robin":
-		shards = shardByRoundRobin(ids, shardCount, seed)
+		shards = shardByRoundRobin(ctx, ids, shardCount, seed)
 	case "percentage":
-		shards = shardByPercentage(ids, percentages, seed)
+		shards = shardByPercentage(ctx, ids, percentages, seed)
 	case "size":
-		shards = shardBySize(ids, sizes, seed)
+		shards = shardBySize(ctx, ids, sizes, seed)
 	case "rendezvous":
-		shards = shardByRendezvous(ids, shardCount, seed)
+		shards = shardByRendezvous(ctx, ids, shardCount, seed)
 	}
 
 	if err := setStateToTerraform(ctx, &state, shards, sourceType, shardCount, strategy); err != nil {

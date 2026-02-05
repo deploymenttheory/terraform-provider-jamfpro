@@ -20,7 +20,7 @@ data "jamfpro_guid_list_sharder" "baseline_3_shards" {
   source_type = "computer_inventory"
   shard_count = 3
   strategy    = "rendezvous"
-  seed        = "stability-test-2024"
+  seed        = "stability-test-2026"
 }
 
 # Expanded: 4-shard distribution (same computers, same seed, +1 shard)
@@ -28,7 +28,7 @@ data "jamfpro_guid_list_sharder" "expanded_4_shards" {
   source_type = "computer_inventory"
   shard_count = 4
   strategy    = "rendezvous"
-  seed        = "stability-test-2024"
+  seed        = "stability-test-2026"
 }
 
 # ==============================================================================
@@ -36,7 +36,7 @@ data "jamfpro_guid_list_sharder" "expanded_4_shards" {
 # ==============================================================================
 
 # Count how many IDs remained in shard_0
-output "shard_0_stable_count" {
+output "rendezvous_shard_0_stable_count" {
   description = "IDs that stayed in shard_0 (3-shard → 4-shard)"
   value = length(setintersection(
     data.jamfpro_guid_list_sharder.baseline_3_shards.shards["shard_0"],
@@ -45,7 +45,7 @@ output "shard_0_stable_count" {
 }
 
 # Count how many IDs remained in shard_1
-output "shard_1_stable_count" {
+output "rendezvous_shard_1_stable_count" {
   description = "IDs that stayed in shard_1 (3-shard → 4-shard)"
   value = length(setintersection(
     data.jamfpro_guid_list_sharder.baseline_3_shards.shards["shard_1"],
@@ -54,7 +54,7 @@ output "shard_1_stable_count" {
 }
 
 # Count how many IDs remained in shard_2
-output "shard_2_stable_count" {
+output "rendezvous_shard_2_stable_count" {
   description = "IDs that stayed in shard_2 (3-shard → 4-shard)"
   value = length(setintersection(
     data.jamfpro_guid_list_sharder.baseline_3_shards.shards["shard_2"],
@@ -63,34 +63,34 @@ output "shard_2_stable_count" {
 }
 
 # Total IDs that didn't move
-output "total_stable_ids" {
+output "rendezvous_total_stable_ids" {
   description = "Total IDs that stayed in same shard number"
   value       = length(setintersection(data.jamfpro_guid_list_sharder.baseline_3_shards.shards["shard_0"], data.jamfpro_guid_list_sharder.expanded_4_shards.shards["shard_0"])) + length(setintersection(data.jamfpro_guid_list_sharder.baseline_3_shards.shards["shard_1"], data.jamfpro_guid_list_sharder.expanded_4_shards.shards["shard_1"])) + length(setintersection(data.jamfpro_guid_list_sharder.baseline_3_shards.shards["shard_2"], data.jamfpro_guid_list_sharder.expanded_4_shards.shards["shard_2"]))
 }
 
 # Total IDs being distributed
-output "total_ids" {
+output "rendezvous_total_ids" {
   description = "Total IDs in the dataset"
   value       = length(data.jamfpro_guid_list_sharder.baseline_3_shards.shards["shard_0"]) + length(data.jamfpro_guid_list_sharder.baseline_3_shards.shards["shard_1"]) + length(data.jamfpro_guid_list_sharder.baseline_3_shards.shards["shard_2"])
 }
 
 # Stability percentage (what we're proving!)
-output "stability_percentage" {
+output "rendezvous_stability_percentage" {
   description = "% of IDs that stayed in same shard (target: >=70%, proves <30% moved)"
   value       = floor(((length(setintersection(data.jamfpro_guid_list_sharder.baseline_3_shards.shards["shard_0"], data.jamfpro_guid_list_sharder.expanded_4_shards.shards["shard_0"])) + length(setintersection(data.jamfpro_guid_list_sharder.baseline_3_shards.shards["shard_1"], data.jamfpro_guid_list_sharder.expanded_4_shards.shards["shard_1"])) + length(setintersection(data.jamfpro_guid_list_sharder.baseline_3_shards.shards["shard_2"], data.jamfpro_guid_list_sharder.expanded_4_shards.shards["shard_2"]))) / (length(data.jamfpro_guid_list_sharder.baseline_3_shards.shards["shard_0"]) + length(data.jamfpro_guid_list_sharder.baseline_3_shards.shards["shard_1"]) + length(data.jamfpro_guid_list_sharder.baseline_3_shards.shards["shard_2"]))) * 100)
 }
 
 # New shard_3 size (should be ~25% of total)
-output "new_shard_3_count" {
+output "rendezvous_new_shard_3_count" {
   description = "Size of new shard_3 (should be ~25% of total)"
   value       = length(data.jamfpro_guid_list_sharder.expanded_4_shards.shards["shard_3"])
 }
 
 # Verify determinism: Same config = same ID
-output "baseline_id" {
+output "rendezvous_baseline_id" {
   value = data.jamfpro_guid_list_sharder.baseline_3_shards.id
 }
 
-output "expanded_id" {
+output "rendezvous_expanded_id" {
   value = data.jamfpro_guid_list_sharder.expanded_4_shards.id
 }

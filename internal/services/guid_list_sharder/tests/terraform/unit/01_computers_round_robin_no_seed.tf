@@ -12,34 +12,72 @@
 # - Fast processing (no shuffle overhead)
 # ==============================================================================
 
-data "jamfpro_guid_list_sharder" "test" {
+data "jamfpro_guid_list_sharder" "round_robin" {
   source_type = "computer_inventory"
   shard_count = 4
   strategy    = "round-robin"
   # No seed - uses API order (non-deterministic)
 }
 
-output "shard_0_count" {
+# Create static groups for each shard
+resource "jamfpro_static_computer_group" "shard_0" {
+  name    = "Test Round Robin - Shard 0 - ${random_string.test_suffix.result}"
+  site_id = -1
+  assigned_computer_ids = [
+    for id in data.jamfpro_guid_list_sharder.round_robin.shards["shard_0"] : tonumber(id)
+  ]
+}
+
+resource "jamfpro_static_computer_group" "shard_1" {
+  name    = "Test Round Robin - Shard 1 - ${random_string.test_suffix.result}"
+  site_id = -1
+  assigned_computer_ids = [
+    for id in data.jamfpro_guid_list_sharder.round_robin.shards["shard_1"] : tonumber(id)
+  ]
+}
+
+resource "jamfpro_static_computer_group" "shard_2" {
+  name    = "Test Round Robin - Shard 2 - ${random_string.test_suffix.result}"
+  site_id = -1
+  assigned_computer_ids = [
+    for id in data.jamfpro_guid_list_sharder.round_robin.shards["shard_2"] : tonumber(id)
+  ]
+}
+
+resource "jamfpro_static_computer_group" "shard_3" {
+  name    = "Test Round Robin - Shard 3 - ${random_string.test_suffix.result}"
+  site_id = -1
+  assigned_computer_ids = [
+    for id in data.jamfpro_guid_list_sharder.round_robin.shards["shard_3"] : tonumber(id)
+  ]
+}
+
+output "test_suffix" {
+  description = "Random suffix for round_robin group names"
+  value       = random_string.test_suffix.result
+}
+
+output "round_robin_shard_0_count" {
   description = "Computers in shard 0 (should be ~25%)"
-  value       = length(data.jamfpro_guid_list_sharder.test.shards["shard_0"])
+  value       = length(data.jamfpro_guid_list_sharder.round_robin.shards["shard_0"])
 }
 
-output "shard_1_count" {
+output "round_robin_shard_1_count" {
   description = "Computers in shard 1 (should be ~25%)"
-  value       = length(data.jamfpro_guid_list_sharder.test.shards["shard_1"])
+  value       = length(data.jamfpro_guid_list_sharder.round_robin.shards["shard_1"])
 }
 
-output "shard_2_count" {
+output "round_robin_shard_2_count" {
   description = "Computers in shard 2 (should be ~25%)"
-  value       = length(data.jamfpro_guid_list_sharder.test.shards["shard_2"])
+  value       = length(data.jamfpro_guid_list_sharder.round_robin.shards["shard_2"])
 }
 
-output "shard_3_count" {
+output "round_robin_shard_3_count" {
   description = "Computers in shard 3 (should be ~25%)"
-  value       = length(data.jamfpro_guid_list_sharder.test.shards["shard_3"])
+  value       = length(data.jamfpro_guid_list_sharder.round_robin.shards["shard_3"])
 }
 
-output "size_variance" {
+output "round_robin_size_variance" {
   description = "Max difference between largest and smallest shard"
-  value       = max(length(data.jamfpro_guid_list_sharder.test.shards["shard_0"]), length(data.jamfpro_guid_list_sharder.test.shards["shard_1"]), length(data.jamfpro_guid_list_sharder.test.shards["shard_2"]), length(data.jamfpro_guid_list_sharder.test.shards["shard_3"])) - min(length(data.jamfpro_guid_list_sharder.test.shards["shard_0"]), length(data.jamfpro_guid_list_sharder.test.shards["shard_1"]), length(data.jamfpro_guid_list_sharder.test.shards["shard_2"]), length(data.jamfpro_guid_list_sharder.test.shards["shard_3"]))
+  value       = max(length(data.jamfpro_guid_list_sharder.round_robin.shards["shard_0"]), length(data.jamfpro_guid_list_sharder.round_robin.shards["shard_1"]), length(data.jamfpro_guid_list_sharder.round_robin.shards["shard_2"]), length(data.jamfpro_guid_list_sharder.round_robin.shards["shard_3"])) - min(length(data.jamfpro_guid_list_sharder.round_robin.shards["shard_0"]), length(data.jamfpro_guid_list_sharder.round_robin.shards["shard_1"]), length(data.jamfpro_guid_list_sharder.round_robin.shards["shard_2"]), length(data.jamfpro_guid_list_sharder.round_robin.shards["shard_3"]))
 }

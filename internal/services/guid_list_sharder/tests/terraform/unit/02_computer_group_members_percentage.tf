@@ -4,7 +4,7 @@
 # Purpose: Verify percentage-based distribution from a computer group
 #
 # Use Case: Split existing group membership into phased rollout shards
-# (10% pilot, 30% broader, 60% full deployment)
+# (10% pilot, 30% limited, 60% broad deployment)
 #
 # Expected Behavior:
 # - Accurate percentage distribution
@@ -13,25 +13,24 @@
 # ==============================================================================
 
 data "jamfpro_guid_list_sharder" "test" {
-  source_type       = "computer_group_membership"
-  group_id          = "123" # Replace with actual group ID
+  source_type       = "computer_inventory"
   shard_percentages = [10, 30, 60]
   strategy          = "percentage"
-  seed              = "deployment-2024"
+  seed              = "deployment-2026"
 }
 
 output "pilot_count" {
-  description = "Pilot computers (10%)"
+  description = "01 Pilot computers (10%)"
   value       = length(data.jamfpro_guid_list_sharder.test.shards["shard_0"])
 }
 
-output "broader_count" {
-  description = "Broader rollout computers (30%)"
+output "limited_count" {
+  description = "02 Limited rollout computers (30%)"
   value       = length(data.jamfpro_guid_list_sharder.test.shards["shard_1"])
 }
 
-output "full_count" {
-  description = "Full deployment computers (60%)"
+output "broad_count" {
+  description = "03 Broad rollout computers (60%)"
   value       = length(data.jamfpro_guid_list_sharder.test.shards["shard_2"])
 }
 
@@ -49,16 +48,16 @@ resource "jamfpro_static_computer_group" "pilot_group" {
   ]
 }
 
-resource "jamfpro_static_computer_group" "broader_group" {
-  name    = "Broader Deployment - 30%"
+resource "jamfpro_static_computer_group" "limited_group" {
+  name    = "Limited Deployment - 30%"
   site_id = -1
   assigned_computer_ids = [
     for id in data.jamfpro_guid_list_sharder.test.shards["shard_1"] : tonumber(id)
   ]
 }
 
-resource "jamfpro_static_computer_group" "full_group" {
-  name    = "Full Deployment - 60%"
+resource "jamfpro_static_computer_group" "broad_group" {
+  name    = "Broad Deployment - 60%"
   site_id = -1
   assigned_computer_ids = [
     for id in data.jamfpro_guid_list_sharder.test.shards["shard_2"] : tonumber(id)

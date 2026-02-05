@@ -12,16 +12,16 @@ import (
 // setStateToTerraform sets all values in the state object
 func setStateToTerraform(ctx context.Context, state *GuidListSharderDataSourceModel, shards [][]string, sourceType string, shardCount int, strategy string) error {
 
-	shardsMap := make(map[string]types.Set, len(shards))
+	shardsMap := make(map[string]types.List, len(shards))
 	for i, shard := range shards {
-		shardSet, diags := types.SetValueFrom(ctx, types.StringType, shard)
+		shardList, diags := types.ListValueFrom(ctx, types.StringType, shard)
 		if diags.HasError() {
-			return fmt.Errorf("failed to convert shard %d to set: %v", i, diags.Errors())
+			return fmt.Errorf("failed to convert shard %d to list: %v", i, diags.Errors())
 		}
-		shardsMap[fmt.Sprintf("shard_%d", i)] = shardSet
+		shardsMap[fmt.Sprintf("shard_%d", i)] = shardList
 	}
 
-	shardsMapValue, diags := types.MapValueFrom(ctx, types.SetType{ElemType: types.StringType}, shardsMap)
+	shardsMapValue, diags := types.MapValueFrom(ctx, types.ListType{ElemType: types.StringType}, shardsMap)
 	if diags.HasError() {
 		return fmt.Errorf("failed to convert shards map to state: %v", diags.Errors())
 	}

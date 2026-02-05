@@ -5,6 +5,7 @@ import (
 	"regexp"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/validate"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -79,18 +80,19 @@ func (d *guidListSharderDataSource) Schema(ctx context.Context, _ datasource.Sch
 					stringvalidator.OneOf("computer_inventory", "mobile_device_inventory", "computer_group_membership", "mobile_device_group_membership", "user_accounts"),
 				},
 			},
-			"group_id": schema.StringAttribute{
-				Optional: true,
-				MarkdownDescription: "The ID of the group to query members from. " +
-					"Required when `source_type` is `computer_group_membership` or `mobile_device_group_membership`, ignored otherwise. " +
-					"Use this to split an existing group's membership into multiple new groups for targeted policy application.",
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^\d+$`),
-						"must be a valid numeric ID",
-					),
-				},
+		"group_id": schema.StringAttribute{
+			Optional: true,
+			MarkdownDescription: "The ID of the group to query members from. " +
+				"Required when `source_type` is `computer_group_membership` or `mobile_device_group_membership`, ignored otherwise. " +
+				"Use this to split an existing group's membership into multiple new groups for targeted policy application.",
+			Validators: []validator.String{
+				stringvalidator.RegexMatches(
+					regexp.MustCompile(`^\d+$`),
+					"must be a valid numeric ID",
+				),
+				validate.RequiredWhenOneOf("source_type", "computer_group_membership", "mobile_device_group_membership"),
 			},
+		},
 			"shard_count": schema.Int64Attribute{
 				Optional: true,
 				MarkdownDescription: "Number of equally-sized shards to create (minimum 1). " +
@@ -102,20 +104,21 @@ func (d *guidListSharderDataSource) Schema(ctx context.Context, _ datasource.Sch
 					int64validator.ExactlyOneOf(path.MatchRoot("shard_percentages"), path.MatchRoot("shard_sizes")),
 				},
 			},
-			"shard_percentages": schema.ListAttribute{
-				ElementType: types.Int64Type,
-				Optional:    true,
-				MarkdownDescription: "List of percentages for custom-sized shards. Use with `percentage` strategy. Conflicts with `shard_count` and `shard_sizes`. " +
-					"Values must be non-negative integers that sum to exactly 100. " +
-					"Example: `[10, 30, 60]` creates 10% pilot, 30% broader pilot, 60% full rollout. " +
-					"Common patterns: `[5, 15, 80]` (OS update rings), `[33, 33, 34]` (A/B/C testing). " +
-					"Last shard receives all remaining IDs to prevent loss.",
-				Validators: []validator.List{
-					listvalidator.SizeAtLeast(1),
-					listvalidator.ValueInt64sAre(int64validator.AtLeast(0)),
-					listvalidator.ExactlyOneOf(path.MatchRoot("shard_count"), path.MatchRoot("shard_sizes")),
-				},
+		"shard_percentages": schema.ListAttribute{
+			ElementType: types.Int64Type,
+			Optional:    true,
+			MarkdownDescription: "List of percentages for custom-sized shards. Use with `percentage` strategy. Conflicts with `shard_count` and `shard_sizes`. " +
+				"Values must be non-negative integers that sum to exactly 100. " +
+				"Example: `[10, 30, 60]` creates 10% pilot, 30% broader pilot, 60% full rollout. " +
+				"Common patterns: `[5, 15, 80]` (OS update rings), `[33, 33, 34]` (A/B/C testing). " +
+				"Last shard receives all remaining IDs to prevent loss.",
+			Validators: []validator.List{
+				listvalidator.SizeAtLeast(1),
+				listvalidator.ValueInt64sAre(int64validator.AtLeast(0)),
+				listvalidator.ExactlyOneOf(path.MatchRoot("shard_count"), path.MatchRoot("shard_sizes")),
+				validate.Int64ListSumEquals(100),
 			},
+		},
 			"shard_sizes": schema.ListAttribute{
 				ElementType: types.Int64Type,
 				Optional:    true,
@@ -154,14 +157,15 @@ func (d *guidListSharderDataSource) Schema(ctx context.Context, _ datasource.Sch
 					"**`rendezvous` strategy**: Always deterministic. Seed affects which shard wins for each ID via Highest Random Weight algorithm. " +
 					"Use different seeds for different rollouts to distribute pilot burden: Device X might be in shard_0 for OS updates but shard_2 for app deployments.",
 			},
-			"shards": schema.MapAttribute{
-				ElementType: types.SetType{ElemType: types.StringType},
-				Computed:    true,
-				MarkdownDescription: "Computed map of shard names (`shard_0`, `shard_1`, ...) to sets of IDs. " +
-					"Each value is a `set(string)` type, directly compatible with resource attributes expecting ID sets " +
-					"(e.g., static group members, policy scope). " +
-					"Access with `data.example.shards[\"shard_0\"]`, check size with `length(data.example.shards[\"shard_0\"])`.",
-			},
+		"shards": schema.MapAttribute{
+			ElementType: types.ListType{ElemType: types.StringType},
+			Computed:    true,
+			MarkdownDescription: "Computed map of shard names (`shard_0`, `shard_1`, ...) to lists of IDs. " +
+				"Each value is a `list(string)` type that preserves the deterministic numerical order of IDs. " +
+				"Compatible with resource attributes expecting ID lists " +
+				"(e.g., static group members, policy scope). " +
+				"Access with `data.example.shards[\"shard_0\"]`, check size with `length(data.example.shards[\"shard_0\"])`.",
+		},
 		},
 	}
 }

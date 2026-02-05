@@ -1,6 +1,7 @@
 package guid_list_sharder
 
 import (
+	"context"
 	"fmt"
 	"slices"
 	"testing"
@@ -151,7 +152,7 @@ func TestShuffle_Deterministic(t *testing.T) {
 
 func TestShardByRoundRobin_EmptyList(t *testing.T) {
 	ids := []string{}
-	shards := shardByRoundRobin(ids, 3, "")
+	shards := shardByRoundRobin(context.Background(), ids, 3, "")
 
 	require.Len(t, shards, 3, "Expected 3 shards")
 	for i, shard := range shards {
@@ -161,7 +162,7 @@ func TestShardByRoundRobin_EmptyList(t *testing.T) {
 
 func TestShardByRoundRobin_SingleShard(t *testing.T) {
 	ids := generateTestIDs(10)
-	shards := shardByRoundRobin(ids, 1, "")
+	shards := shardByRoundRobin(context.Background(), ids, 1, "")
 
 	require.Len(t, shards, 1, "Expected 1 shard")
 	assert.Len(t, shards[0], len(ids), "All IDs should be in single shard")
@@ -171,7 +172,7 @@ func TestShardByRoundRobin_SingleShard(t *testing.T) {
 func TestShardByRoundRobin_PerfectDistribution(t *testing.T) {
 	// Test with exactly divisible count
 	ids := generateTestIDs(30)
-	shards := shardByRoundRobin(ids, 3, "")
+	shards := shardByRoundRobin(context.Background(), ids, 3, "")
 
 	require.Len(t, shards, 3, "Expected 3 shards")
 
@@ -185,7 +186,7 @@ func TestShardByRoundRobin_PerfectDistribution(t *testing.T) {
 func TestShardByRoundRobin_PerfectDistribution_WithRemainder(t *testing.T) {
 	// 31 IDs / 3 shards = 10, 10, 11
 	ids := generateTestIDs(31)
-	shards := shardByRoundRobin(ids, 3, "")
+	shards := shardByRoundRobin(context.Background(), ids, 3, "")
 
 	require.Len(t, shards, 3, "Expected 3 shards")
 
@@ -205,7 +206,7 @@ func TestShardByRoundRobin_PerfectDistribution_WithRemainder(t *testing.T) {
 // Test realistic perfect distribution (512 computers, 3 shards)
 func TestShardByRoundRobin_RealisticDistribution_512Computers(t *testing.T) {
 	ids := generateTestIDs(512)
-	shards := shardByRoundRobin(ids, 3, "")
+	shards := shardByRoundRobin(context.Background(), ids, 3, "")
 
 	require.Len(t, shards, 3, "Expected 3 shards")
 
@@ -227,7 +228,7 @@ func TestShardByRoundRobin_RealisticDistribution_512Computers(t *testing.T) {
 // Test that WITHOUT seed, order is based on input (API order)
 func TestShardByRoundRobin_NoSeed_UsesInputOrder(t *testing.T) {
 	ids := generateTestIDs(9)
-	shards := shardByRoundRobin(ids, 3, "")
+	shards := shardByRoundRobin(context.Background(), ids, 3, "")
 
 	// Without seed, round-robin uses input order
 	// ID 1 → shard 0, ID 2 → shard 1, ID 3 → shard 2, ID 4 → shard 0, ...
@@ -243,8 +244,8 @@ func TestShardByRoundRobin_WithSeed_Deterministic(t *testing.T) {
 	ids := generateTestIDs(100)
 	seed := "test-seed"
 
-	shards1 := shardByRoundRobin(ids, 3, seed)
-	shards2 := shardByRoundRobin(ids, 3, seed)
+	shards1 := shardByRoundRobin(context.Background(), ids, 3, seed)
+	shards2 := shardByRoundRobin(context.Background(), ids, 3, seed)
 
 	// Verify each shard has identical contents with same seed
 	for i := 0; i < 3; i++ {
@@ -256,9 +257,9 @@ func TestShardByRoundRobin_WithSeed_Deterministic(t *testing.T) {
 func TestShardByRoundRobin_DifferentSeeds_DifferentDistributions(t *testing.T) {
 	ids := generateTestIDs(100)
 
-	shardsNoSeed := shardByRoundRobin(ids, 3, "")
-	shardsSeed1 := shardByRoundRobin(ids, 3, "seed1")
-	shardsSeed2 := shardByRoundRobin(ids, 3, "seed2")
+	shardsNoSeed := shardByRoundRobin(context.Background(), ids, 3, "")
+	shardsSeed1 := shardByRoundRobin(context.Background(), ids, 3, "seed1")
+	shardsSeed2 := shardByRoundRobin(context.Background(), ids, 3, "seed2")
 
 	// Count how many IDs are in different shards
 	differentFromNoSeed := 0
@@ -288,7 +289,7 @@ func TestShardByRoundRobin_DifferentSeeds_DifferentDistributions(t *testing.T) {
 func TestShardByPercentage_EmptyList(t *testing.T) {
 	ids := []string{}
 	percentages := []int64{10, 30, 60}
-	shards := shardByPercentage(ids, percentages, "")
+	shards := shardByPercentage(context.Background(), ids, percentages, "")
 
 	require.Len(t, shards, 3, "Expected 3 shards")
 	for i, shard := range shards {
@@ -300,7 +301,7 @@ func TestShardByPercentage_EmptyList(t *testing.T) {
 func TestShardByPercentage_AccuratePercentages_100Computers(t *testing.T) {
 	ids := generateTestIDs(100)
 	percentages := []int64{10, 30, 60}
-	shards := shardByPercentage(ids, percentages, "")
+	shards := shardByPercentage(context.Background(), ids, percentages, "")
 
 	require.Len(t, shards, 3, "Expected 3 shards")
 
@@ -317,7 +318,7 @@ func TestShardByPercentage_AccuratePercentages_100Computers(t *testing.T) {
 func TestShardByPercentage_RealisticPercentages_512Computers(t *testing.T) {
 	ids := generateTestIDs(512)
 	percentages := []int64{10, 30, 60}
-	shards := shardByPercentage(ids, percentages, "")
+	shards := shardByPercentage(context.Background(), ids, percentages, "")
 
 	require.Len(t, shards, 3, "Expected 3 shards")
 
@@ -345,7 +346,7 @@ func TestShardByPercentage_RealisticPercentages_512Computers(t *testing.T) {
 func TestShardByPercentage_LastShardGetsRemainder(t *testing.T) {
 	ids := generateTestIDs(103) // Odd number to ensure remainder
 	percentages := []int64{10, 20, 70}
-	shards := shardByPercentage(ids, percentages, "")
+	shards := shardByPercentage(context.Background(), ids, percentages, "")
 
 	// Verify all IDs are accounted for
 	total := countTotalIDs(shards)
@@ -361,7 +362,7 @@ func TestShardByPercentage_LastShardGetsRemainder(t *testing.T) {
 func TestShardByPercentage_NoSeed_UsesInputOrder(t *testing.T) {
 	ids := generateTestIDs(10)
 	percentages := []int64{20, 30, 50}
-	shards := shardByPercentage(ids, percentages, "")
+	shards := shardByPercentage(context.Background(), ids, percentages, "")
 
 	// Without seed: first 20% (2 IDs) go to shard 0, next 30% (3 IDs) to shard 1, rest to shard 2
 
@@ -384,8 +385,8 @@ func TestShardByPercentage_WithSeed_Deterministic(t *testing.T) {
 	percentages := []int64{10, 30, 60}
 	seed := "test-seed"
 
-	shards1 := shardByPercentage(ids, percentages, seed)
-	shards2 := shardByPercentage(ids, percentages, seed)
+	shards1 := shardByPercentage(context.Background(), ids, percentages, seed)
+	shards2 := shardByPercentage(context.Background(), ids, percentages, seed)
 
 	// Verify each shard has identical contents with same seed
 	for i := 0; i < 3; i++ {
@@ -400,7 +401,7 @@ func TestShardByPercentage_WithSeed_Deterministic(t *testing.T) {
 func TestShardBySize_EmptyList(t *testing.T) {
 	ids := []string{}
 	sizes := []int64{10, 20, -1}
-	shards := shardBySize(ids, sizes, "")
+	shards := shardBySize(context.Background(), ids, sizes, "")
 
 	require.Len(t, shards, 3, "Expected 3 shards")
 	for i, shard := range shards {
@@ -411,7 +412,7 @@ func TestShardBySize_EmptyList(t *testing.T) {
 func TestShardBySize_ExactSizes(t *testing.T) {
 	ids := generateTestIDs(100)
 	sizes := []int64{50, 30, 20}
-	shards := shardBySize(ids, sizes, "")
+	shards := shardBySize(context.Background(), ids, sizes, "")
 
 	require.Len(t, shards, 3, "Expected 3 shards")
 	assert.Len(t, shards[0], 50, "Shard 0 should have 50 IDs")
@@ -425,7 +426,7 @@ func TestShardBySize_ExactSizes(t *testing.T) {
 func TestShardBySize_WithRemainder(t *testing.T) {
 	ids := generateTestIDs(1000)
 	sizes := []int64{50, 200, -1}
-	shards := shardBySize(ids, sizes, "")
+	shards := shardBySize(context.Background(), ids, sizes, "")
 
 	require.Len(t, shards, 3, "Expected 3 shards")
 	assert.Len(t, shards[0], 50, "Shard 0 should have 50 IDs")
@@ -440,7 +441,7 @@ func TestShardBySize_ZeroRemainder(t *testing.T) {
 	// Edge case: sizes sum to exactly total IDs, leaving 0 for -1 shard
 	ids := generateTestIDs(30)
 	sizes := []int64{10, 20, -1} // 10+20=30, so 0 remaining
-	shards := shardBySize(ids, sizes, "")
+	shards := shardBySize(context.Background(), ids, sizes, "")
 
 	require.Len(t, shards, 3, "Expected 3 shards")
 	assert.Len(t, shards[0], 10, "Shard 0 should have 10 IDs")
