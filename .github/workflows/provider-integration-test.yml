@@ -2,17 +2,17 @@ name: Provider | Integration Tests
 run-name: Provider | Integration Tests
 on:
   workflow_dispatch:
-    inputs:
+    inputs:  
       targets:
-        description: "Specify targets to test"
+        description: 'Specify targets to test'
         type: string
         required: false
-        default: "compileonly"
+        default: 'compileonly'
 
   pull_request_target:
     types: [opened, synchronize]
     paths:
-      - "internal/**"
+      - 'internal/**'
 
 env:
   PR: ${{ github.event_name == 'pull_request_target' }}
@@ -30,7 +30,7 @@ jobs:
       group: sandbox_interfacing_testing_environment
       cancel-in-progress: false
 
-    env:
+    env: 
       CLIENT_ID: ${{ secrets.TESTING_CLIENT_ID }}
       CLIENT_SEC: ${{ secrets.TESTING_CLIENT_SECRET }}
       CLIENT_FQDN: ${{ secrets.TESTING_JAMFPRO_INSTANCE_FQDN }}
@@ -43,12 +43,6 @@ jobs:
           repository: deploymenttheory/terraform-provider-jamfpro
           ref: ${{ env.REF_TO_CHECKOUT }}
 
-      - name: Install Python Test Dependencies
-        if: env.TARGETS != 'compileonly'
-        working-directory: .
-        run: |
-          python3 -m pip install --no-cache-dir --upgrade pip
-          python3 -m pip install --no-cache-dir -r testing/action_scripts/requirements.txt
 
       - name: Compile Provider Binary
         working-directory: .
@@ -57,6 +51,7 @@ jobs:
           go build -buildvcs=false
           mv ./terraform-provider-jamfpro ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/
           chmod +x ~/.terraform.d/plugins/terraform.local/local/jamfpro/0.1.0/linux_amd64/terraform-provider-jamfpro
+
 
       - name: Generate Test Targets
         id: generate-test-targets
@@ -68,6 +63,7 @@ jobs:
           --repo-name ${{ github.event.repository.name }} \
           --pr-number ${{ github.event.pull_request.number }} \
           --github-token ${{ secrets.GITHUB_TOKEN }}
+
 
       - name: Set Test Targets Var
         id: set-targets
@@ -84,6 +80,7 @@ jobs:
           echo $targets
           echo "targets=$targets" >> $GITHUB_OUTPUT
 
+
       - name: Generate UUID
         id: generate-uuid
         if: env.TARGETS != 'compileonly'
@@ -92,12 +89,14 @@ jobs:
           echo "uuid=$generated_uuid" >> $GITHUB_OUTPUT
           echo "Run ID: $generated_uuid"
 
+
       - name: Populate Testing Directory
         id: generate-test-dir
         if: env.TARGETS != 'compileonly'
         working-directory: .
         run: |
           python3 testing/action_scripts/generate_test_directory.py "${{ steps.set-targets.outputs.targets }}"
+
 
       - name: Build TFVARS File
         if: env.TARGETS != 'compileonly'
@@ -114,6 +113,7 @@ jobs:
           testing_id="${{ steps.generate-uuid.outputs.uuid }}"
           EOF
 
+
       - name: Run Tests
         working-directory: ./testing
         id: run-tests
@@ -121,8 +121,10 @@ jobs:
           chmod +x action_scripts/start_test.sh
           action_scripts/start_test.sh "${{ steps.set-targets.outputs.targets }}" "${{ steps.generate-uuid.outputs.uuid }}"
 
+
       - name: 5s Delay to Allow Jamf API to Settle
         run: sleep 5
+
 
       - name: Cleanup
         if: env.TARGETS != 'compileonly'
