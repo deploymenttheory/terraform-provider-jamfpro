@@ -10,6 +10,10 @@ import (
 
 var _ validator.String = requiredWhenEqualsValidator{}
 
+// =============================================================================
+// String: Requirement Validators
+// =============================================================================
+
 // requiredWhenEqualsValidator is the implementation of the validator.
 type requiredWhenEqualsValidator struct {
 	dependentField string
@@ -33,7 +37,6 @@ func (v requiredWhenEqualsValidator) ValidateString(ctx context.Context, req val
 		return
 	}
 
-	// Get the path to the dependent attribute.
 	dependentPath := req.Path.ParentPath().AtName(v.dependentField)
 
 	// Get the value of the dependent attribute from the configuration.

@@ -628,6 +628,183 @@ func TestShardByRendezvous_DistributionVariance_10000IDs(t *testing.T) {
 }
 
 // =============================================================================
+// Rendezvous with Reserved IDs - Variance Impact Tests
+// Purpose: Compare distribution variance with and without reserved IDs
+// to validate claims about increased variance when using reservations
+// =============================================================================
+
+func TestShardByRendezvous_VarianceWithReservedIDs_1000IDs(t *testing.T) {
+	ids := generateTestIDs(1000)
+	shardCount := 3
+
+	// Test WITHOUT reserved IDs (baseline)
+	shardsNoReservations := shardByRendezvous(context.Background(), ids, shardCount, "variance-seed", nil)
+	
+	sizesNoRes := []int{len(shardsNoReservations[0]), len(shardsNoReservations[1]), len(shardsNoReservations[2])}
+	minNoRes, maxNoRes := sizesNoRes[0], sizesNoRes[0]
+	for _, size := range sizesNoRes {
+		if size < minNoRes {
+			minNoRes = size
+		}
+		if size > maxNoRes {
+			maxNoRes = size
+		}
+	}
+	varianceNoRes := maxNoRes - minNoRes
+	variancePercentNoRes := (float64(varianceNoRes) / (1000.0 / 3.0)) * 100
+
+	// Test WITH reserved IDs
+	reservations := &shardReservations{
+		IDsByShard: map[string][]string{
+			"shard_0": {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"},  // 10 reserved
+			"shard_1": {"11", "12", "13", "14", "15"},                        // 5 reserved
+			"shard_2": {"16", "17", "18"},                                     // 3 reserved
+		},
+		CountsByShard: map[int]int{
+			0: 10,
+			1: 5,
+			2: 3,
+		},
+		UnreservedIDs: make([]string, 0, 982),
+	}
+
+	reservedSet := map[string]bool{
+		"1": true, "2": true, "3": true, "4": true, "5": true,
+		"6": true, "7": true, "8": true, "9": true, "10": true,
+		"11": true, "12": true, "13": true, "14": true, "15": true,
+		"16": true, "17": true, "18": true,
+	}
+
+	for _, id := range ids {
+		if !reservedSet[id] {
+			reservations.UnreservedIDs = append(reservations.UnreservedIDs, id)
+		}
+	}
+
+	shardsWithReservations := shardByRendezvous(context.Background(), ids, shardCount, "variance-seed", reservations)
+
+	sizesWithRes := []int{len(shardsWithReservations[0]), len(shardsWithReservations[1]), len(shardsWithReservations[2])}
+	minWithRes, maxWithRes := sizesWithRes[0], sizesWithRes[0]
+	for _, size := range sizesWithRes {
+		if size < minWithRes {
+			minWithRes = size
+		}
+		if size > maxWithRes {
+			maxWithRes = size
+		}
+	}
+	varianceWithRes := maxWithRes - minWithRes
+	variancePercentWithRes := (float64(varianceWithRes) / (1000.0 / 3.0)) * 100
+
+	t.Logf("WITHOUT Reserved IDs: Sizes=%v, Variance=%d (%.1f%%)", sizesNoRes, varianceNoRes, variancePercentNoRes)
+	t.Logf("WITH Reserved IDs:    Sizes=%v, Variance=%d (%.1f%%)", sizesWithRes, varianceWithRes, variancePercentWithRes)
+	t.Logf("Variance Delta: %.1f%% → %.1f%% (change: %+.1f%%)", variancePercentNoRes, variancePercentWithRes, variancePercentWithRes-variancePercentNoRes)
+
+	// Verify all IDs are present
+	assert.Equal(t, 1000, countTotalIDs(shardsWithReservations), "All 1000 IDs should be distributed")
+	
+	// Check if variance increased (or stayed similar)
+	if variancePercentWithRes > variancePercentNoRes {
+		t.Logf("✓ Reserved IDs increased variance by %.1f%%", variancePercentWithRes-variancePercentNoRes)
+	} else {
+		t.Logf("✓ Reserved IDs did not significantly increase variance (delta: %.1f%%)", variancePercentWithRes-variancePercentNoRes)
+	}
+}
+
+func TestShardByRendezvous_VarianceWithReservedIDs_5000IDs(t *testing.T) {
+	ids := generateTestIDs(5000)
+	shardCount := 3
+
+	// Test WITHOUT reserved IDs (baseline)
+	shardsNoReservations := shardByRendezvous(context.Background(), ids, shardCount, "variance-seed", nil)
+	
+	sizesNoRes := []int{len(shardsNoReservations[0]), len(shardsNoReservations[1]), len(shardsNoReservations[2])}
+	minNoRes, maxNoRes := sizesNoRes[0], sizesNoRes[0]
+	for _, size := range sizesNoRes {
+		if size < minNoRes {
+			minNoRes = size
+		}
+		if size > maxNoRes {
+			maxNoRes = size
+		}
+	}
+	varianceNoRes := maxNoRes - minNoRes
+	variancePercentNoRes := (float64(varianceNoRes) / (5000.0 / 3.0)) * 100
+
+	// Test WITH reserved IDs (more significant reservations)
+	reservations := &shardReservations{
+		IDsByShard: map[string][]string{
+			"shard_0": make([]string, 50),  // 50 reserved
+			"shard_1": make([]string, 25),  // 25 reserved
+			"shard_2": make([]string, 10),  // 10 reserved
+		},
+		CountsByShard: map[int]int{
+			0: 50,
+			1: 25,
+			2: 10,
+		},
+		UnreservedIDs: make([]string, 0, 4915),
+	}
+
+	// Populate reserved IDs
+	reservedSet := make(map[string]bool)
+	idIdx := 0
+	for i := 0; i < 50; i++ {
+		id := fmt.Sprintf("%d", idIdx+1)
+		reservations.IDsByShard["shard_0"][i] = id
+		reservedSet[id] = true
+		idIdx++
+	}
+	for i := 0; i < 25; i++ {
+		id := fmt.Sprintf("%d", idIdx+1)
+		reservations.IDsByShard["shard_1"][i] = id
+		reservedSet[id] = true
+		idIdx++
+	}
+	for i := 0; i < 10; i++ {
+		id := fmt.Sprintf("%d", idIdx+1)
+		reservations.IDsByShard["shard_2"][i] = id
+		reservedSet[id] = true
+		idIdx++
+	}
+
+	for _, id := range ids {
+		if !reservedSet[id] {
+			reservations.UnreservedIDs = append(reservations.UnreservedIDs, id)
+		}
+	}
+
+	shardsWithReservations := shardByRendezvous(context.Background(), ids, shardCount, "variance-seed", reservations)
+
+	sizesWithRes := []int{len(shardsWithReservations[0]), len(shardsWithReservations[1]), len(shardsWithReservations[2])}
+	minWithRes, maxWithRes := sizesWithRes[0], sizesWithRes[0]
+	for _, size := range sizesWithRes {
+		if size < minWithRes {
+			minWithRes = size
+		}
+		if size > maxWithRes {
+			maxWithRes = size
+		}
+	}
+	varianceWithRes := maxWithRes - minWithRes
+	variancePercentWithRes := (float64(varianceWithRes) / (5000.0 / 3.0)) * 100
+
+	t.Logf("WITHOUT Reserved IDs: Sizes=%v, Variance=%d (%.1f%%)", sizesNoRes, varianceNoRes, variancePercentNoRes)
+	t.Logf("WITH Reserved IDs:    Sizes=%v, Variance=%d (%.1f%%)", sizesWithRes, varianceWithRes, variancePercentWithRes)
+	t.Logf("Variance Delta: %.1f%% → %.1f%% (change: %+.1f%%)", variancePercentNoRes, variancePercentWithRes, variancePercentWithRes-variancePercentNoRes)
+
+	// Verify all IDs are present
+	assert.Equal(t, 5000, countTotalIDs(shardsWithReservations), "All 5000 IDs should be distributed")
+	
+	// Document the impact
+	if variancePercentWithRes > variancePercentNoRes {
+		t.Logf("✓ Reserved IDs increased variance by %.1f%%", variancePercentWithRes-variancePercentNoRes)
+	} else {
+		t.Logf("✓ Reserved IDs did not significantly increase variance (delta: %.1f%%)", variancePercentWithRes-variancePercentNoRes)
+	}
+}
+
+// =============================================================================
 // Size Strategy Tests
 // =============================================================================
 
