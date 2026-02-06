@@ -55,8 +55,8 @@ func TestSortIDsNumerically(t *testing.T) {
 func TestPrepareIDsForDistribution_WithSeed(t *testing.T) {
 	ids := generateTestIDs(10)
 
-	prepared1 := prepareIDsForDistribution(ids, "test-seed")
-	prepared2 := prepareIDsForDistribution(ids, "test-seed")
+	prepared1 := sortAndShuffleIfSeed(ids, "test-seed")
+	prepared2 := sortAndShuffleIfSeed(ids, "test-seed")
 
 	assert.Equal(t, prepared1, prepared2, "Same seed should produce identical preparation")
 	assert.NotEqual(t, ids, prepared1, "Prepared IDs should be shuffled")
@@ -65,7 +65,7 @@ func TestPrepareIDsForDistribution_WithSeed(t *testing.T) {
 func TestPrepareIDsForDistribution_NoSeed(t *testing.T) {
 	ids := generateTestIDs(10)
 
-	prepared := prepareIDsForDistribution(ids, "")
+	prepared := sortAndShuffleIfSeed(ids, "")
 
 	assert.Equal(t, ids, prepared, "Without seed, should return original IDs")
 }

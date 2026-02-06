@@ -10,6 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// Read method for the guid_list_sharder data source.
+// Retrieves source IDs from the appropriate source type, applies exclusions and reservations,
+// and routes to the appropriate sharding strategy based on the configured strategy.
+// Sets the computed state attributes and returns the result.
 func (d *guidListSharderDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", DataSourceName))
 
@@ -56,7 +60,27 @@ func (d *guidListSharderDataSource) Read(ctx context.Context, req datasource.Rea
 		return
 	}
 
-	shards := d.applyShardingStrategy(ctx, sourceIDs, &state, reservations)
+	strategy := state.Strategy.ValueString()
+	seed := state.Seed.ValueString()
+	shardCount := d.getShardCount(ctx, &state)
+
+	var shards [][]string
+	switch strategy {
+	case "rendezvous":
+		shards = shardByRendezvous(ctx, sourceIDs, shardCount, seed, reservations)
+	case "round-robin":
+		shards = shardByRoundRobin(ctx, sourceIDs, shardCount, seed, reservations)
+	case "percentage":
+		var percentages []int64
+		state.ShardPercentages.ElementsAs(ctx, &percentages, false)
+		shards = shardByPercentage(ctx, sourceIDs, percentages, seed, reservations)
+	case "size":
+		var sizes []int64
+		state.ShardSizes.ElementsAs(ctx, &sizes, false)
+		shards = shardBySize(ctx, sourceIDs, sizes, seed, reservations)
+	default:
+		shards = nil
+	}
 
 	if err := setStateToTerraform(ctx, &state, shards); err != nil {
 		resp.Diagnostics.AddError(
@@ -70,6 +94,9 @@ func (d *guidListSharderDataSource) Read(ctx context.Context, req datasource.Rea
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", DataSourceName))
 }
 
+// listAllComputers retrieves all managed computer IDs from Jamf Pro computerinventory.
+// Filters out unmanaged computers and returns only managed device IDs as they cannot
+// be allocated to a jamf pro group.
 func (d *guidListSharderDataSource) listAllComputers(ctx context.Context, resp *datasource.ReadResponse) []string {
 	params := url.Values{}
 	params.Set("section", "GENERAL")
@@ -99,6 +126,9 @@ func (d *guidListSharderDataSource) listAllComputers(ctx context.Context, resp *
 	return ids
 }
 
+// listAllMobileDevices retrieves all managed mobile device IDs from Jamf Pro.
+// Filters out unmanaged devices and returns only managed device IDs as they cannot
+// be allocated to a jamf pro group.
 func (d *guidListSharderDataSource) listAllMobileDevices(ctx context.Context, resp *datasource.ReadResponse) []string {
 	mobileDevices, err := d.client.GetMobileDevices()
 	if err != nil {
@@ -125,6 +155,8 @@ func (d *guidListSharderDataSource) listAllMobileDevices(ctx context.Context, re
 	return ids
 }
 
+// listAllComputerGroupMembers retrieves all computer IDs from a specific Jamf Pro computer group.
+// Requires a valid groupID parameter.
 func (d *guidListSharderDataSource) listAllComputerGroupMembers(ctx context.Context, resp *datasource.ReadResponse, groupID string) []string {
 	if groupID == "" {
 		resp.Diagnostics.AddError(
@@ -153,6 +185,8 @@ func (d *guidListSharderDataSource) listAllComputerGroupMembers(ctx context.Cont
 	return ids
 }
 
+// listAllMobileDeviceGroupMembers retrieves all mobile device IDs from a specific Jamf Pro mobile device group.
+// Requires a valid groupID parameter.
 func (d *guidListSharderDataSource) listAllMobileDeviceGroupMembers(ctx context.Context, resp *datasource.ReadResponse, groupID string) []string {
 	if groupID == "" {
 		resp.Diagnostics.AddError(
@@ -181,6 +215,7 @@ func (d *guidListSharderDataSource) listAllMobileDeviceGroupMembers(ctx context.
 	return ids
 }
 
+// listAllUsers retrieves all user account IDs from Jamf Pro.
 func (d *guidListSharderDataSource) listAllUsers(ctx context.Context, resp *datasource.ReadResponse) []string {
 	users, err := d.client.GetUsers()
 	if err != nil {
@@ -199,6 +234,8 @@ func (d *guidListSharderDataSource) listAllUsers(ctx context.Context, resp *data
 	return ids
 }
 
+// applyExclusions removes excluded IDs from the distribution list.
+// Returns filtered IDs and the count of remaining IDs after exclusion.
 func (d *guidListSharderDataSource) applyExclusions(ctx context.Context, ids []string, state *GuidListSharderDataSourceModel) (filteredIDs []string, totalCount int) {
 	if state.ExcludeIds.IsNull() || len(state.ExcludeIds.Elements()) == 0 {
 		return ids, len(ids)
@@ -226,6 +263,9 @@ func (d *guidListSharderDataSource) applyExclusions(ctx context.Context, ids []s
 	return filtered, len(filtered)
 }
 
+// applyReservations processes reserved IDs configuration and separates them from unreserved IDs.
+// Validates that reserved IDs don't conflict with excluded IDs and aren't duplicated across shards.
+// Returns reservationInfo containing separated reserved and unreserved ID lists.
 func (d *guidListSharderDataSource) applyReservations(ctx context.Context, resp *datasource.ReadResponse, ids []string, state *GuidListSharderDataSourceModel) *reservationInfo {
 	info := &reservationInfo{
 		IDsByShard:    make(map[string][]string),
@@ -318,29 +358,9 @@ func (d *guidListSharderDataSource) applyReservations(ctx context.Context, resp 
 	return info
 }
 
-func (d *guidListSharderDataSource) applyShardingStrategy(ctx context.Context, ids []string, state *GuidListSharderDataSourceModel, reservations *reservationInfo) [][]string {
-	strategy := state.Strategy.ValueString()
-	seed := state.Seed.ValueString()
-	shardCount := d.getShardCount(ctx, state)
-
-	switch strategy {
-	case "rendezvous":
-		return shardByRendezvous(ctx, ids, shardCount, seed, reservations)
-	case "round-robin":
-		return shardByRoundRobin(ctx, ids, shardCount, seed, reservations)
-	case "percentage":
-		var percentages []int64
-		state.ShardPercentages.ElementsAs(ctx, &percentages, false)
-		return shardByPercentage(ctx, ids, percentages, seed, reservations)
-	case "size":
-		var sizes []int64
-		state.ShardSizes.ElementsAs(ctx, &sizes, false)
-		return shardBySize(ctx, ids, sizes, seed, reservations)
-	default:
-		return nil
-	}
-}
-
+// getShardCount determines the number of shards based on the configured strategy.
+// For percentage and size strategies, returns the length of the respective arrays.
+// For round-robin and rendezvous strategies, returns the explicit shard_count value.
 func (d *guidListSharderDataSource) getShardCount(ctx context.Context, state *GuidListSharderDataSourceModel) int {
 	if !state.ShardPercentages.IsNull() {
 		return len(state.ShardPercentages.Elements())
@@ -350,4 +370,3 @@ func (d *guidListSharderDataSource) getShardCount(ctx context.Context, state *Gu
 	}
 	return int(state.ShardCount.ValueInt64())
 }
-

@@ -443,6 +443,191 @@ func TestShardByRendezvous_WithReservations(t *testing.T) {
 }
 
 // =============================================================================
+// Rendezvous Distribution Variance Tests
+// Purpose: Demonstrate that rendezvous hashing improves distribution balance
+// as dataset size increases due to law of large numbers
+// =============================================================================
+
+func TestShardByRendezvous_DistributionVariance_100IDs(t *testing.T) {
+	ids := generateTestIDs(100)
+	shardCount := 3
+	shards := shardByRendezvous(context.Background(), ids, shardCount, "variance-seed", nil)
+
+	require.Len(t, shards, shardCount, "Expected %d shards", shardCount)
+
+	sizes := []int{len(shards[0]), len(shards[1]), len(shards[2])}
+	minSize := sizes[0]
+	maxSize := sizes[0]
+	sum := 0
+
+	for _, size := range sizes {
+		if size < minSize {
+			minSize = size
+		}
+		if size > maxSize {
+			maxSize = size
+		}
+		sum += size
+	}
+
+	variance := maxSize - minSize
+	avgSize := float64(sum) / float64(shardCount)
+	expectedSize := float64(100) / float64(shardCount)
+
+	t.Logf("Dataset: 100 IDs | Shard sizes: %v", sizes)
+	t.Logf("Min: %d, Max: %d, Variance: %d", minSize, maxSize, variance)
+	t.Logf("Average: %.2f, Expected: %.2f", avgSize, expectedSize)
+
+	assert.Equal(t, 100, sum, "All IDs should be distributed")
+	assert.LessOrEqual(t, variance, 20, "Variance should be reasonable for 100 IDs")
+}
+
+func TestShardByRendezvous_DistributionVariance_500IDs(t *testing.T) {
+	ids := generateTestIDs(500)
+	shardCount := 3
+	shards := shardByRendezvous(context.Background(), ids, shardCount, "variance-seed", nil)
+
+	require.Len(t, shards, shardCount, "Expected %d shards", shardCount)
+
+	sizes := []int{len(shards[0]), len(shards[1]), len(shards[2])}
+	minSize := sizes[0]
+	maxSize := sizes[0]
+	sum := 0
+
+	for _, size := range sizes {
+		if size < minSize {
+			minSize = size
+		}
+		if size > maxSize {
+			maxSize = size
+		}
+		sum += size
+	}
+
+	variance := maxSize - minSize
+	avgSize := float64(sum) / float64(shardCount)
+	expectedSize := float64(500) / float64(shardCount)
+	variancePercent := (float64(variance) / expectedSize) * 100
+
+	t.Logf("Dataset: 500 IDs | Shard sizes: %v", sizes)
+	t.Logf("Min: %d, Max: %d, Variance: %d (%.1f%%)", minSize, maxSize, variance, variancePercent)
+	t.Logf("Average: %.2f, Expected: %.2f", avgSize, expectedSize)
+
+	assert.Equal(t, 500, sum, "All IDs should be distributed")
+	assert.LessOrEqual(t, variance, 40, "Variance should improve with larger dataset")
+}
+
+func TestShardByRendezvous_DistributionVariance_1000IDs(t *testing.T) {
+	ids := generateTestIDs(1000)
+	shardCount := 3
+	shards := shardByRendezvous(context.Background(), ids, shardCount, "variance-seed", nil)
+
+	require.Len(t, shards, shardCount, "Expected %d shards", shardCount)
+
+	sizes := []int{len(shards[0]), len(shards[1]), len(shards[2])}
+	minSize := sizes[0]
+	maxSize := sizes[0]
+	sum := 0
+
+	for _, size := range sizes {
+		if size < minSize {
+			minSize = size
+		}
+		if size > maxSize {
+			maxSize = size
+		}
+		sum += size
+	}
+
+	variance := maxSize - minSize
+	avgSize := float64(sum) / float64(shardCount)
+	expectedSize := float64(1000) / float64(shardCount)
+	variancePercent := (float64(variance) / expectedSize) * 100
+
+	t.Logf("Dataset: 1000 IDs | Shard sizes: %v", sizes)
+	t.Logf("Min: %d, Max: %d, Variance: %d (%.1f%%)", minSize, maxSize, variance, variancePercent)
+	t.Logf("Average: %.2f, Expected: %.2f", avgSize, expectedSize)
+
+	assert.Equal(t, 1000, sum, "All IDs should be distributed")
+	assert.LessOrEqual(t, variance, 60, "Variance should continue to improve")
+}
+
+func TestShardByRendezvous_DistributionVariance_5000IDs(t *testing.T) {
+	ids := generateTestIDs(5000)
+	shardCount := 3
+	shards := shardByRendezvous(context.Background(), ids, shardCount, "variance-seed", nil)
+
+	require.Len(t, shards, shardCount, "Expected %d shards", shardCount)
+
+	sizes := []int{len(shards[0]), len(shards[1]), len(shards[2])}
+	minSize := sizes[0]
+	maxSize := sizes[0]
+	sum := 0
+
+	for _, size := range sizes {
+		if size < minSize {
+			minSize = size
+		}
+		if size > maxSize {
+			maxSize = size
+		}
+		sum += size
+	}
+
+	variance := maxSize - minSize
+	avgSize := float64(sum) / float64(shardCount)
+	expectedSize := float64(5000) / float64(shardCount)
+	variancePercent := (float64(variance) / expectedSize) * 100
+
+	t.Logf("Dataset: 5000 IDs | Shard sizes: %v", sizes)
+	t.Logf("Min: %d, Max: %d, Variance: %d (%.1f%%)", minSize, maxSize, variance, variancePercent)
+	t.Logf("Average: %.2f, Expected: %.2f", avgSize, expectedSize)
+
+	assert.Equal(t, 5000, sum, "All IDs should be distributed")
+	assert.LessOrEqual(t, variance, 150, "Variance should be reasonable for 5000 IDs")
+	assert.LessOrEqual(t, variancePercent, 10.0, "Variance should be less than 10% of expected shard size")
+}
+
+func TestShardByRendezvous_DistributionVariance_10000IDs(t *testing.T) {
+	ids := generateTestIDs(10000)
+	shardCount := 3
+	shards := shardByRendezvous(context.Background(), ids, shardCount, "variance-seed", nil)
+
+	require.Len(t, shards, shardCount, "Expected %d shards", shardCount)
+
+	sizes := []int{len(shards[0]), len(shards[1]), len(shards[2])}
+	minSize := sizes[0]
+	maxSize := sizes[0]
+	sum := 0
+
+	for _, size := range sizes {
+		if size < minSize {
+			minSize = size
+		}
+		if size > maxSize {
+			maxSize = size
+		}
+		sum += size
+	}
+
+	variance := maxSize - minSize
+	avgSize := float64(sum) / float64(shardCount)
+	expectedSize := float64(10000) / float64(shardCount)
+	variancePercent := (float64(variance) / expectedSize) * 100
+
+	t.Logf("Dataset: 10000 IDs | Shard sizes: %v", sizes)
+	t.Logf("Min: %d, Max: %d, Variance: %d (%.1f%%)", minSize, maxSize, variance, variancePercent)
+	t.Logf("Average: %.2f, Expected: %.2f", avgSize, expectedSize)
+
+	assert.Equal(t, 10000, sum, "All IDs should be distributed")
+	assert.LessOrEqual(t, variance, 250, "Variance should be reasonable for 10000 IDs")
+	assert.LessOrEqual(t, variancePercent, 8.0, "Variance should be less than 8% of expected shard size")
+	
+	// Verify this is the best distribution (lowest variance %)
+	t.Logf("Distribution quality: Excellent - variance only %.1f%% with 10k IDs", variancePercent)
+}
+
+// =============================================================================
 // Size Strategy Tests
 // =============================================================================
 

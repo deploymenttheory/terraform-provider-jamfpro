@@ -8,11 +8,17 @@ import (
 	"strconv"
 )
 
-// createSeededRNG creates a deterministic random number generator from a seed string.
-func createSeededRNG(seed string) *rand.Rand {
-	hash := sha256.Sum256([]byte(seed))
-	seedValue := int64(binary.BigEndian.Uint64(hash[:8]))
-	return rand.New(rand.NewSource(seedValue))
+// sortAndShuffleIfSeed sorts IDs numerically, then shuffles if seed provided.
+// Returns a new slice ready for distribution.
+func sortAndShuffleIfSeed(ids []string, seed string) []string {
+	if seed == "" {
+		return ids
+	}
+
+	sorted := make([]string, len(ids))
+	copy(sorted, ids)
+	sortIDsNumerically(sorted)
+	return shuffleIDs(sorted, seed)
 }
 
 // shuffleIDs performs Fisher-Yates shuffle using the provided seed.
@@ -30,6 +36,13 @@ func shuffleIDs(ids []string, seed string) []string {
 	return shuffled
 }
 
+// createSeededRNG creates a deterministic random number generator from a seed string.
+func createSeededRNG(seed string) *rand.Rand {
+	hash := sha256.Sum256([]byte(seed))
+	seedValue := int64(binary.BigEndian.Uint64(hash[:8]))
+	return rand.New(rand.NewSource(seedValue))
+}
+
 // sortIDsNumerically sorts a slice of string IDs by their numeric value.
 // Modifies the slice in place.
 func sortIDsNumerically(ids []string) {
@@ -38,17 +51,4 @@ func sortIDsNumerically(ids []string) {
 		bInt, _ := strconv.Atoi(b)
 		return aInt - bInt
 	})
-}
-
-// prepareIDsForDistribution sorts IDs numerically, then shuffles if seed provided.
-// Returns a new slice ready for distribution.
-func prepareIDsForDistribution(ids []string, seed string) []string {
-	if seed == "" {
-		return ids
-	}
-
-	sorted := make([]string, len(ids))
-	copy(sorted, ids)
-	sortIDsNumerically(sorted)
-	return shuffleIDs(sorted, seed)
 }
