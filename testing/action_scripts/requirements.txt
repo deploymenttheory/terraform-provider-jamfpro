@@ -1,4 +1,4 @@
 python-dotenv
-jamfpy @ git+https://github.com/thejoeker12/jamfpy-python-sdk-jamfpro@v2.1.0-rc
+jamfpy @ git+https://github.com/thejoeker12/jamfpy-python-sdk-jamfpro@v2.7.0
 bs4
 requests
