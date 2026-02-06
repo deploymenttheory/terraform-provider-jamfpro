@@ -21,18 +21,21 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceAdvancedUserSearc
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	criteriaList := make([]any, len(resp.Criteria.Criterion))
-	for i, crit := range resp.Criteria.Criterion {
-		criteriaMap := map[string]any{
-			"name":          crit.Name,
-			"priority":      crit.Priority,
-			"and_or":        crit.AndOr,
-			"search_type":   crit.SearchType,
-			"value":         crit.Value,
-			"opening_paren": crit.OpeningParen,
-			"closing_paren": crit.ClosingParen,
+	criteriaList := []any{}
+	if resp.Criteria.Criterion != nil && len(*resp.Criteria.Criterion) > 0 {
+		criteriaList = make([]any, len(*resp.Criteria.Criterion))
+		for i, crit := range *resp.Criteria.Criterion {
+			criteriaMap := map[string]any{
+				"name":          crit.Name,
+				"priority":      crit.Priority,
+				"and_or":        crit.AndOr,
+				"search_type":   crit.SearchType,
+				"value":         crit.Value,
+				"opening_paren": crit.OpeningParen,
+				"closing_paren": crit.ClosingParen,
+			}
+			criteriaList[i] = criteriaMap
 		}
-		criteriaList[i] = criteriaMap
 	}
 
 	if err := d.Set("criteria", criteriaList); err != nil {
