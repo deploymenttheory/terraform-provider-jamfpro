@@ -47,7 +47,7 @@ func (d *guidListSharderDataSource) Read(ctx context.Context, req datasource.Rea
 
 	tflog.Debug(ctx, fmt.Sprintf("Retrieved %d IDs for source_type '%s'", len(sourceIDs), state.SourceType.ValueString()))
 
-	filteredIDs, totalIDCount := d.applyExclusions(ctx, sourceIDs, &state)
+	filteredIDs, _ := d.applyExclusions(ctx, sourceIDs, &state)
 
 	tflog.Debug(ctx, fmt.Sprintf("After exclusions: %d IDs remain", len(filteredIDs)))
 
@@ -56,7 +56,7 @@ func (d *guidListSharderDataSource) Read(ctx context.Context, req datasource.Rea
 		return
 	}
 
-	shards := d.applyShardingStrategy(ctx, filteredIDs, totalIDCount, &state, reservations)
+	shards := d.applyShardingStrategy(ctx, sourceIDs, &state, reservations)
 
 	if err := setStateToTerraform(ctx, &state, shards); err != nil {
 		resp.Diagnostics.AddError(
@@ -318,41 +318,27 @@ func (d *guidListSharderDataSource) applyReservations(ctx context.Context, resp 
 	return info
 }
 
-func (d *guidListSharderDataSource) applyShardingStrategy(ctx context.Context, unreservedIDs []string, totalIDCount int, state *GuidListSharderDataSourceModel, reservations *reservationInfo) [][]string {
+func (d *guidListSharderDataSource) applyShardingStrategy(ctx context.Context, ids []string, state *GuidListSharderDataSourceModel, reservations *reservationInfo) [][]string {
 	strategy := state.Strategy.ValueString()
 	seed := state.Seed.ValueString()
 	shardCount := d.getShardCount(ctx, state)
 
-	if strategy == "rendezvous" {
-		result := shardByRendezvous(ctx, unreservedIDs, shardCount, seed)
-		d.appendReservedIds(ctx, result, reservations, nil)
-		return result
-	}
-
-	var targetSizes []int
 	switch strategy {
+	case "rendezvous":
+		return shardByRendezvous(ctx, ids, shardCount, seed, reservations)
 	case "round-robin":
-		targetSizes = calculateRoundRobinTargets(totalIDCount, shardCount)
+		return shardByRoundRobin(ctx, ids, shardCount, seed, reservations)
 	case "percentage":
 		var percentages []int64
 		state.ShardPercentages.ElementsAs(ctx, &percentages, false)
-		targetSizes = calculatePercentageTargets(totalIDCount, percentages)
+		return shardByPercentage(ctx, ids, percentages, seed, reservations)
 	case "size":
 		var sizes []int64
 		state.ShardSizes.ElementsAs(ctx, &sizes, false)
-		targetSizes = calculateSizeTargets(sizes)
+		return shardBySize(ctx, ids, sizes, seed, reservations)
+	default:
+		return nil
 	}
-
-	distributionTargets := make([]int, shardCount)
-	for i := range shardCount {
-		distributionTargets[i] = targetSizes[i] - reservations.CountsByShard[i]
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Targets: %v, Reserved: %v, Distribution: %v", targetSizes, reservations.CountsByShard, distributionTargets))
-
-	result := distributeIdsToShards(ctx, unreservedIDs, distributionTargets, seed)
-	d.appendReservedIds(ctx, result, reservations, targetSizes)
-	return result
 }
 
 func (d *guidListSharderDataSource) getShardCount(ctx context.Context, state *GuidListSharderDataSourceModel) int {
@@ -365,22 +351,3 @@ func (d *guidListSharderDataSource) getShardCount(ctx context.Context, state *Gu
 	return int(state.ShardCount.ValueInt64())
 }
 
-func (d *guidListSharderDataSource) appendReservedIds(ctx context.Context, shards [][]string, reservations *reservationInfo, targetSizes []int) {
-	if len(reservations.IDsByShard) == 0 {
-		return
-	}
-
-	for shardName, reservedIDs := range reservations.IDsByShard {
-		var shardIndex int
-		fmt.Sscanf(shardName, "shard_%d", &shardIndex)
-
-		shards[shardIndex] = append(reservedIDs, shards[shardIndex]...)
-
-		finalSize := len(shards[shardIndex])
-		if targetSizes != nil {
-			tflog.Debug(ctx, fmt.Sprintf("Added %d reserved to %s (final: %d, target: %d)", len(reservedIDs), shardName, finalSize, targetSizes[shardIndex]))
-		} else {
-			tflog.Debug(ctx, fmt.Sprintf("Added %d reserved to %s (final: %d)", len(reservedIDs), shardName, finalSize))
-		}
-	}
-}

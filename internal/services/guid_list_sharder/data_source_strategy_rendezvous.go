@@ -11,23 +11,28 @@ import (
 
 // shardByRendezvous distributes IDs using Highest Random Weight (HRW) algorithm.
 // Provides superior stability when shard counts change - only ~1/n IDs move when adding a shard.
-func shardByRendezvous(ctx context.Context, ids []string, shardCount int, seed string) [][]string {
+// If reservations are provided, reserved IDs are placed first in their designated shards,
+// then unreserved IDs are distributed using the rendezvous hashing algorithm.
+func shardByRendezvous(ctx context.Context, ids []string, shardCount int, seed string, reservations *reservationInfo) [][]string {
 	if shardCount <= 0 {
 		shardCount = 1
 	}
 
-	shards := make([][]string, shardCount)
+	unreservedIDs := ids
+	if reservations != nil {
+		unreservedIDs = reservations.UnreservedIDs
+	}
 
-	// Initialize all shards as empty slices to prevent nil in Terraform state
-	for i := 0; i < shardCount; i++ {
+	shards := make([][]string, shardCount)
+	for i := range shardCount {
 		shards[i] = []string{}
 	}
 
-	for _, id := range ids {
+	for _, id := range unreservedIDs {
 		highestWeight := uint64(0)
 		selectedShard := 0
 
-		for shardIdx := 0; shardIdx < shardCount; shardIdx++ {
+		for shardIdx := range shardCount {
 			input := fmt.Sprintf("%s:shard_%d:%s", id, shardIdx, seed)
 			hash := sha256.Sum256([]byte(input))
 			weight := binary.BigEndian.Uint64(hash[:8])
@@ -39,6 +44,14 @@ func shardByRendezvous(ctx context.Context, ids []string, shardCount int, seed s
 		}
 
 		shards[selectedShard] = append(shards[selectedShard], id)
+	}
+
+	if reservations != nil {
+		for shardName, reservedIDs := range reservations.IDsByShard {
+			var shardIndex int
+			fmt.Sscanf(shardName, "shard_%d", &shardIndex)
+			shards[shardIndex] = append(reservedIDs, shards[shardIndex]...)
+		}
 	}
 
 	for i := range shards {

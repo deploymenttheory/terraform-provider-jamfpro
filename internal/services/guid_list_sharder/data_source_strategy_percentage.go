@@ -2,37 +2,60 @@ package guid_list_sharder
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // shardByPercentage distributes IDs according to specified percentages.
-func shardByPercentage(ctx context.Context, ids []string, percentages []int64, seed string) [][]string {
+// Target shard sizes are calculated based on percentages of total IDs.
+// If reservations are provided, reserved counts are subtracted from targets,
+// and reserved IDs are placed first in their designated shards before distribution.
+func shardByPercentage(ctx context.Context, ids []string, percentages []int64, seed string, reservations *reservationInfo) [][]string {
+	unreservedIDs := ids
 	totalIds := len(ids)
+	
+	if reservations != nil {
+		unreservedIDs = reservations.UnreservedIDs
+	}
+
 	shardCount := len(percentages)
 	shards := make([][]string, shardCount)
 
-	if totalIds == 0 {
+	if len(unreservedIDs) == 0 {
 		return shards
 	}
 
-	workingIds := prepareIDsForDistribution(ids, seed)
+	workingIds := prepareIDsForDistribution(unreservedIDs, seed)
 
 	currentIndex := 0
 	for i, percentage := range percentages {
 		var shardSize int
 		if i == shardCount-1 {
-			shardSize = totalIds - currentIndex
+			shardSize = len(unreservedIDs) - currentIndex
 		} else {
 			shardSize = int(float64(totalIds) * float64(percentage) / 100.0)
+			if reservations != nil {
+				shardSize -= reservations.CountsByShard[i]
+			}
 		}
 
-		if currentIndex+shardSize > totalIds {
-			shardSize = totalIds - currentIndex
+		if currentIndex+shardSize > len(unreservedIDs) {
+			shardSize = len(unreservedIDs) - currentIndex
 		}
 
-		shards[i] = workingIds[currentIndex : currentIndex+shardSize]
-		currentIndex += shardSize
+		if shardSize > 0 {
+			shards[i] = workingIds[currentIndex : currentIndex+shardSize]
+			currentIndex += shardSize
+		}
+	}
+
+	if reservations != nil {
+		for shardName, reservedIDs := range reservations.IDsByShard {
+			var shardIndex int
+			fmt.Sscanf(shardName, "shard_%d", &shardIndex)
+			shards[shardIndex] = append(reservedIDs, shards[shardIndex]...)
+		}
 	}
 
 	for i := range shards {
@@ -46,21 +69,4 @@ func shardByPercentage(ctx context.Context, ids []string, percentages []int64, s
 	}
 
 	return shards
-}
-
-// calculatePercentageTargets calculates target shard sizes for percentage distribution.
-func calculatePercentageTargets(totalCount int, percentages []int64) []int {
-	shardCount := len(percentages)
-	targets := make([]int, shardCount)
-	distributed := 0
-
-	for i, pct := range percentages {
-		if i == shardCount-1 {
-			targets[i] = totalCount - distributed
-		} else {
-			targets[i] = int(float64(totalCount) * float64(pct) / 100.0)
-			distributed += targets[i]
-		}
-	}
-	return targets
 }

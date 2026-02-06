@@ -2,22 +2,38 @@ package guid_list_sharder
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // shardByRoundRobin distributes IDs in circular order, guaranteeing equal shard sizes ±1.
-func shardByRoundRobin(ctx context.Context, ids []string, shardCount int, seed string) [][]string {
+// If reservations are provided, reserved IDs are placed first in their designated shards,
+// then unreserved IDs are distributed round-robin across all shards.
+func shardByRoundRobin(ctx context.Context, ids []string, shardCount int, seed string, reservations *reservationInfo) [][]string {
 	if shardCount <= 0 {
 		shardCount = 1
 	}
 
+	unreservedIDs := ids
+	if reservations != nil {
+		unreservedIDs = reservations.UnreservedIDs
+	}
+
 	shards := make([][]string, shardCount)
-	workingIds := prepareIDsForDistribution(ids, seed)
+	workingIds := prepareIDsForDistribution(unreservedIDs, seed)
 
 	for i, id := range workingIds {
 		shardIndex := i % shardCount
 		shards[shardIndex] = append(shards[shardIndex], id)
+	}
+
+	if reservations != nil {
+		for shardName, reservedIDs := range reservations.IDsByShard {
+			var shardIndex int
+			fmt.Sscanf(shardName, "shard_%d", &shardIndex)
+			shards[shardIndex] = append(reservedIDs, shards[shardIndex]...)
+		}
 	}
 
 	for i := range shards {
@@ -31,19 +47,4 @@ func shardByRoundRobin(ctx context.Context, ids []string, shardCount int, seed s
 	}
 
 	return shards
-}
-
-// calculateRoundRobinTargets calculates target shard sizes for round-robin distribution.
-func calculateRoundRobinTargets(totalCount int, shardCount int) []int {
-	targets := make([]int, shardCount)
-	baseSize := totalCount / shardCount
-	remainder := totalCount % shardCount
-
-	for i := 0; i < shardCount; i++ {
-		targets[i] = baseSize
-		if i < remainder {
-			targets[i]++
-		}
-	}
-	return targets
 }
