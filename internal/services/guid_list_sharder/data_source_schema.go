@@ -73,7 +73,7 @@ func (d *guidListSharderDataSource) Schema(ctx context.Context, _ datasource.Sch
 			},
 			"source_type": schema.StringAttribute{
 				Required: true,
-				MarkdownDescription: "The source type to query IDs from before applying exclusions, reservations and applyingthe chosen sharding strategy. " +
+				MarkdownDescription: "The source type to query IDs from before applying exclusions, reservations and applying the chosen sharding strategy. " +
 					"`computer_inventory` queries computer inventory for computer-based policies and groups. " +
 					"`mobile_device_inventory` queries mobile device inventory. " +
 					"`computer_group_membership` queries computer group membership (requires `group_id`). " +
