@@ -266,8 +266,8 @@ func (d *guidListSharderDataSource) applyExclusions(ctx context.Context, ids []s
 // applyReservations processes reserved IDs configuration and separates them from unreserved IDs.
 // Validates that reserved IDs don't conflict with excluded IDs and aren't duplicated across shards.
 // Returns reservationInfo containing separated reserved and unreserved ID lists.
-func (d *guidListSharderDataSource) applyReservations(ctx context.Context, resp *datasource.ReadResponse, ids []string, state *GuidListSharderDataSourceModel) *reservationInfo {
-	info := &reservationInfo{
+func (d *guidListSharderDataSource) applyReservations(ctx context.Context, resp *datasource.ReadResponse, ids []string, state *GuidListSharderDataSourceModel) *shardReservations {
+	info := &shardReservations{
 		IDsByShard:    make(map[string][]string),
 		CountsByShard: make(map[int]int),
 		UnreservedIDs: ids,

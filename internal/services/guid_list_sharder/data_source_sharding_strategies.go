@@ -13,7 +13,7 @@ import (
 // Target shard sizes are calculated based on percentages of total IDs.
 // If reservations are provided, reserved counts are subtracted from targets,
 // and reserved IDs are placed first in their designated shards before distribution.
-func shardByPercentage(ctx context.Context, ids []string, percentages []int64, seed string, reservations *reservationInfo) [][]string {
+func shardByPercentage(ctx context.Context, ids []string, percentages []int64, seed string, reservations *shardReservations) [][]string {
 	unreservedIDs := ids
 	totalIds := len(ids)
 
@@ -77,7 +77,12 @@ func shardByPercentage(ctx context.Context, ids []string, percentages []int64, s
 // Provides superior stability when shard counts change - only ~1/n IDs move when adding a shard.
 // If reservations are provided, reserved IDs are placed first in their designated shards,
 // then unreserved IDs are distributed using the rendezvous hashing algorithm.
-func shardByRendezvous(ctx context.Context, ids []string, shardCount int, seed string, reservations *reservationInfo) [][]string {
+//
+// Algorithm: Rendezvous Hashing (Highest Random Weight Hashing)
+// Reference: https://en.wikipedia.org/wiki/Rendezvous_hashing
+// Original Paper: Thaler & Ravishankar (1998) "Using Name-Based Mappings to Increase Hit Rates"
+// Key property: Minimal disruption when cluster size changes (only K/n keys remapped when adding nth node)
+func shardByRendezvous(ctx context.Context, ids []string, shardCount int, seed string, reservations *shardReservations) [][]string {
 	if shardCount <= 0 {
 		shardCount = 1
 	}
@@ -134,7 +139,11 @@ func shardByRendezvous(ctx context.Context, ids []string, shardCount int, seed s
 // shardByRoundRobin distributes IDs in circular order, guaranteeing equal shard sizes ±1.
 // If reservations are provided, reserved IDs are placed first in their designated shards,
 // then unreserved IDs are distributed round-robin across all shards.
-func shardByRoundRobin(ctx context.Context, ids []string, shardCount int, seed string, reservations *reservationInfo) [][]string {
+//
+// Algorithm: Round-robin scheduling
+// Reference: https://en.wikipedia.org/wiki/Round-robin_scheduling
+// Time complexity: O(n), where n is the number of IDs
+func shardByRoundRobin(ctx context.Context, ids []string, shardCount int, seed string, reservations *shardReservations) [][]string {
 	if shardCount <= 0 {
 		shardCount = 1
 	}
@@ -177,7 +186,7 @@ func shardByRoundRobin(ctx context.Context, ids []string, shardCount int, seed s
 // Supports -1 in the last position to mean "all remaining IDs".
 // If reservations are provided, reserved counts are subtracted from targets,
 // and reserved IDs are placed first in their designated shards before distribution.
-func shardBySize(ctx context.Context, ids []string, sizes []int64, seed string, reservations *reservationInfo) [][]string {
+func shardBySize(ctx context.Context, ids []string, sizes []int64, seed string, reservations *shardReservations) [][]string {
 	unreservedIDs := ids
 	if reservations != nil {
 		unreservedIDs = reservations.UnreservedIDs

@@ -19,8 +19,8 @@ type GuidListSharderDataSourceModel struct {
 	Shards           types.Map    `tfsdk:"shards"`
 }
 
-// reservationInfo holds information about reserved IDs during processing.
-type reservationInfo struct {
+// shardReservations holds information about reserved IDs during shard distribution.
+type shardReservations struct {
 	IDsByShard    map[string][]string
 	CountsByShard map[int]int
 	UnreservedIDs []string

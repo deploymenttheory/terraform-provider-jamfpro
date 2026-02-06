@@ -23,6 +23,10 @@ func sortAndShuffleIfSeed(ids []string, seed string) []string {
 
 // shuffleIDs performs Fisher-Yates shuffle using the provided seed.
 // Returns a shuffled copy without mutating the original slice.
+//
+// Algorithm: Fisher-Yates shuffle (also known as Knuth shuffle)
+// Reference: https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+// Time complexity: O(n), where n is the number of elements
 func shuffleIDs(ids []string, seed string) []string {
 	rng := createSeededRNG(seed)
 	shuffled := make([]string, len(ids))

@@ -171,8 +171,8 @@ func TestShardByRoundRobin_DifferentSeeds(t *testing.T) {
 
 func TestShardByRoundRobin_WithReservations(t *testing.T) {
 	ids := generateTestIDs(100)
-	
-	reservations := &reservationInfo{
+
+	reservations := &shardReservations{
 		IDsByShard: map[string][]string{
 			"shard_0": {"1", "2"},
 			"shard_1": {"3", "4", "5"},
@@ -308,8 +308,8 @@ func TestShardByPercentage_WithSeed_Deterministic(t *testing.T) {
 func TestShardByPercentage_WithReservations(t *testing.T) {
 	ids := generateTestIDs(100)
 	percentages := []int64{20, 30, 50}
-	
-	reservations := &reservationInfo{
+
+	reservations := &shardReservations{
 		IDsByShard: map[string][]string{
 			"shard_0": {"1", "2", "3"},
 			"shard_1": {"4", "5"},
@@ -398,8 +398,8 @@ func TestShardByRendezvous_AllIDsDistributed(t *testing.T) {
 
 func TestShardByRendezvous_WithReservations(t *testing.T) {
 	ids := generateTestIDs(100)
-	
-	reservations := &reservationInfo{
+
+	reservations := &shardReservations{
 		IDsByShard: map[string][]string{
 			"shard_0": {"1", "2"},
 			"shard_1": {"3", "4", "5", "6"},
@@ -622,7 +622,7 @@ func TestShardByRendezvous_DistributionVariance_10000IDs(t *testing.T) {
 	assert.Equal(t, 10000, sum, "All IDs should be distributed")
 	assert.LessOrEqual(t, variance, 250, "Variance should be reasonable for 10000 IDs")
 	assert.LessOrEqual(t, variancePercent, 8.0, "Variance should be less than 8% of expected shard size")
-	
+
 	// Verify this is the best distribution (lowest variance %)
 	t.Logf("Distribution quality: Excellent - variance only %.1f%% with 10k IDs", variancePercent)
 }
@@ -689,8 +689,8 @@ func TestShardBySize_ZeroRemainder(t *testing.T) {
 func TestShardBySize_WithReservations(t *testing.T) {
 	ids := generateTestIDs(100)
 	sizes := []int64{25, 35, 40}
-	
-	reservations := &reservationInfo{
+
+	reservations := &shardReservations{
 		IDsByShard: map[string][]string{
 			"shard_0": {"1", "2", "3", "4", "5"},
 			"shard_1": {"6", "7"},
