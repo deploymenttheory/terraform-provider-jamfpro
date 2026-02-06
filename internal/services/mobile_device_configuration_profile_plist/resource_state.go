@@ -3,8 +3,8 @@ package mobile_device_configuration_profile_plist
 
 import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/collections"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/plist"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -63,27 +63,27 @@ func setScope(resp *jamfpro.ResourceMobileDeviceConfigurationProfile) (map[strin
 		"all_jss_users":      resp.Scope.AllJSSUsers,
 	}
 
-	scopeData["mobile_device_ids"] = collections.FlattenSortIDs(
+	scopeData["mobile_device_ids"] = utils.FlattenSortIDs(
 		resp.Scope.MobileDevices,
 		func(device jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice) int { return device.ID },
 	)
-	scopeData["mobile_device_group_ids"] = collections.FlattenSortIDs(
+	scopeData["mobile_device_group_ids"] = utils.FlattenSortIDs(
 		resp.Scope.MobileDeviceGroups,
 		func(entity jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 	)
-	scopeData["jss_user_ids"] = collections.FlattenSortIDs(
+	scopeData["jss_user_ids"] = utils.FlattenSortIDs(
 		resp.Scope.JSSUsers,
 		func(entity jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 	)
-	scopeData["jss_user_group_ids"] = collections.FlattenSortIDs(
+	scopeData["jss_user_group_ids"] = utils.FlattenSortIDs(
 		resp.Scope.JSSUserGroups,
 		func(entity jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 	)
-	scopeData["building_ids"] = collections.FlattenSortIDs(
+	scopeData["building_ids"] = utils.FlattenSortIDs(
 		resp.Scope.Buildings,
 		func(entity jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 	)
-	scopeData["department_ids"] = collections.FlattenSortIDs(
+	scopeData["department_ids"] = utils.FlattenSortIDs(
 		resp.Scope.Departments,
 		func(entity jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 	)
@@ -112,7 +112,7 @@ func setLimitations(limitations jamfpro.MobileDeviceConfigurationProfileSubsetLi
 	result := map[string]any{}
 
 	if len(limitations.NetworkSegments) > 0 {
-		networkSegmentIDs := collections.FlattenSortIDs(
+		networkSegmentIDs := utils.FlattenSortIDs(
 			limitations.NetworkSegments,
 			func(segment jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment) int { return segment.ID },
 		)
@@ -122,7 +122,7 @@ func setLimitations(limitations jamfpro.MobileDeviceConfigurationProfileSubsetLi
 	}
 
 	if len(limitations.Ibeacons) > 0 {
-		ibeaconIDs := collections.FlattenSortIDs(
+		ibeaconIDs := utils.FlattenSortIDs(
 			limitations.Ibeacons,
 			func(entity jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 		)
@@ -132,7 +132,7 @@ func setLimitations(limitations jamfpro.MobileDeviceConfigurationProfileSubsetLi
 	}
 
 	if len(limitations.Users) > 0 {
-		userNames := collections.FlattenSortStrings(
+		userNames := utils.FlattenSortStrings(
 			limitations.Users,
 			func(entity jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) string { return entity.Name },
 		)
@@ -142,7 +142,7 @@ func setLimitations(limitations jamfpro.MobileDeviceConfigurationProfileSubsetLi
 	}
 
 	if len(limitations.UserGroups) > 0 {
-		userGroupIDs := collections.FlattenSortIDs(
+		userGroupIDs := utils.FlattenSortIDs(
 			limitations.UserGroups,
 			func(entity jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 		)
@@ -163,7 +163,7 @@ func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExcl
 	result := map[string]any{}
 
 	if len(exclusions.MobileDevices) > 0 {
-		computerIDs := collections.FlattenSortIDs(
+		computerIDs := utils.FlattenSortIDs(
 			exclusions.MobileDevices,
 			func(device jamfpro.MobileDeviceConfigurationProfileSubsetMobileDevice) int { return device.ID },
 		)
@@ -173,7 +173,7 @@ func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExcl
 	}
 
 	if len(exclusions.MobileDeviceGroups) > 0 {
-		computerGroupIDs := collections.FlattenSortIDs(
+		computerGroupIDs := utils.FlattenSortIDs(
 			exclusions.MobileDeviceGroups,
 			func(entity jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 		)
@@ -183,7 +183,7 @@ func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExcl
 	}
 
 	if len(exclusions.Buildings) > 0 {
-		buildingIDs := collections.FlattenSortIDs(
+		buildingIDs := utils.FlattenSortIDs(
 			exclusions.Buildings,
 			func(entity jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 		)
@@ -193,7 +193,7 @@ func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExcl
 	}
 
 	if len(exclusions.JSSUsers) > 0 {
-		jssUserIDs := collections.FlattenSortIDs(
+		jssUserIDs := utils.FlattenSortIDs(
 			exclusions.JSSUsers,
 			func(entity jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 		)
@@ -203,7 +203,7 @@ func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExcl
 	}
 
 	if len(exclusions.JSSUserGroups) > 0 {
-		jssUserGroupIDs := collections.FlattenSortIDs(
+		jssUserGroupIDs := utils.FlattenSortIDs(
 			exclusions.JSSUserGroups,
 			func(entity jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 		)
@@ -213,7 +213,7 @@ func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExcl
 	}
 
 	if len(exclusions.Departments) > 0 {
-		departmentIDs := collections.FlattenSortIDs(
+		departmentIDs := utils.FlattenSortIDs(
 			exclusions.Departments,
 			func(entity jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 		)
@@ -223,7 +223,7 @@ func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExcl
 	}
 
 	if len(exclusions.NetworkSegments) > 0 {
-		networkSegmentIDs := collections.FlattenSortIDs(
+		networkSegmentIDs := utils.FlattenSortIDs(
 			exclusions.NetworkSegments,
 			func(segment jamfpro.MobileDeviceConfigurationProfileSubsetNetworkSegment) int { return segment.ID },
 		)
@@ -233,7 +233,7 @@ func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExcl
 	}
 
 	if len(exclusions.Users) > 0 {
-		userNames := collections.FlattenSortStrings(
+		userNames := utils.FlattenSortStrings(
 			exclusions.Users,
 			func(entity jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) string { return entity.Name },
 		)
@@ -243,7 +243,7 @@ func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExcl
 	}
 
 	if len(exclusions.UserGroups) > 0 {
-		userGroupIDs := collections.FlattenSortIDs(
+		userGroupIDs := utils.FlattenSortIDs(
 			exclusions.UserGroups,
 			func(entity jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 		)
@@ -253,7 +253,7 @@ func setExclusions(exclusions jamfpro.MobileDeviceConfigurationProfileSubsetExcl
 	}
 
 	if len(exclusions.IBeacons) > 0 {
-		ibeaconIDs := collections.FlattenSortIDs(
+		ibeaconIDs := utils.FlattenSortIDs(
 			exclusions.IBeacons,
 			func(entity jamfpro.MobileDeviceConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 		)

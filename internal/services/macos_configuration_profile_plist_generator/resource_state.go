@@ -5,8 +5,8 @@ import (
 	"reflect"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/collections"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/plist"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -81,27 +81,27 @@ func setScope(resp *jamfpro.ResourceMacOSConfigurationProfile) (map[string]any, 
 		"all_jss_users": resp.Scope.AllJSSUsers,
 	}
 
-	scopeData["computer_ids"] = collections.FlattenSortIDs(
+	scopeData["computer_ids"] = utils.FlattenSortIDs(
 		resp.Scope.Computers,
 		func(computer jamfpro.MacOSConfigurationProfileSubsetComputer) int { return computer.ID },
 	)
-	scopeData["computer_group_ids"] = collections.FlattenSortIDs(
+	scopeData["computer_group_ids"] = utils.FlattenSortIDs(
 		resp.Scope.ComputerGroups,
 		func(entity jamfpro.MacOSConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 	)
-	scopeData["jss_user_ids"] = collections.FlattenSortIDs(
+	scopeData["jss_user_ids"] = utils.FlattenSortIDs(
 		resp.Scope.JSSUsers,
 		func(entity jamfpro.MacOSConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 	)
-	scopeData["jss_user_group_ids"] = collections.FlattenSortIDs(
+	scopeData["jss_user_group_ids"] = utils.FlattenSortIDs(
 		resp.Scope.JSSUserGroups,
 		func(entity jamfpro.MacOSConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 	)
-	scopeData["building_ids"] = collections.FlattenSortIDs(
+	scopeData["building_ids"] = utils.FlattenSortIDs(
 		resp.Scope.Buildings,
 		func(entity jamfpro.MacOSConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 	)
-	scopeData["department_ids"] = collections.FlattenSortIDs(
+	scopeData["department_ids"] = utils.FlattenSortIDs(
 		resp.Scope.Departments,
 		func(entity jamfpro.MacOSConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 	)
@@ -130,7 +130,7 @@ func setLimitations(limitations jamfpro.MacOSConfigurationProfileSubsetLimitatio
 	result := map[string]any{}
 
 	if len(limitations.NetworkSegments) > 0 {
-		networkSegmentIDs := collections.FlattenSortIDs(
+		networkSegmentIDs := utils.FlattenSortIDs(
 			limitations.NetworkSegments,
 			func(segment jamfpro.MacOSConfigurationProfileSubsetNetworkSegment) int { return segment.ID },
 		)
@@ -140,7 +140,7 @@ func setLimitations(limitations jamfpro.MacOSConfigurationProfileSubsetLimitatio
 	}
 
 	if len(limitations.IBeacons) > 0 {
-		ibeaconIDs := collections.FlattenSortIDs(
+		ibeaconIDs := utils.FlattenSortIDs(
 			limitations.IBeacons,
 			func(entity jamfpro.MacOSConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 		)
@@ -150,7 +150,7 @@ func setLimitations(limitations jamfpro.MacOSConfigurationProfileSubsetLimitatio
 	}
 
 	if len(limitations.Users) > 0 {
-		userNames := collections.FlattenSortStrings(
+		userNames := utils.FlattenSortStrings(
 			limitations.Users,
 			func(entity jamfpro.MacOSConfigurationProfileSubsetScopeEntity) string { return entity.Name },
 		)
@@ -160,7 +160,7 @@ func setLimitations(limitations jamfpro.MacOSConfigurationProfileSubsetLimitatio
 	}
 
 	if len(limitations.UserGroups) > 0 {
-		userGroupNames := collections.FlattenSortStrings(
+		userGroupNames := utils.FlattenSortStrings(
 			limitations.UserGroups,
 			func(userGroup jamfpro.MacOSConfigurationProfileSubsetScopeUserGroup) string { return userGroup.Name },
 		)
@@ -181,7 +181,7 @@ func setExclusions(exclusions jamfpro.MacOSConfigurationProfileSubsetExclusions)
 	result := map[string]any{}
 
 	if len(exclusions.Computers) > 0 {
-		computerIDs := collections.FlattenSortIDs(
+		computerIDs := utils.FlattenSortIDs(
 			exclusions.Computers,
 			func(computer jamfpro.MacOSConfigurationProfileSubsetComputer) int { return computer.ID },
 		)
@@ -191,7 +191,7 @@ func setExclusions(exclusions jamfpro.MacOSConfigurationProfileSubsetExclusions)
 	}
 
 	if len(exclusions.ComputerGroups) > 0 {
-		computerGroupIDs := collections.FlattenSortIDs(
+		computerGroupIDs := utils.FlattenSortIDs(
 			exclusions.ComputerGroups,
 			func(entity jamfpro.MacOSConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 		)
@@ -201,7 +201,7 @@ func setExclusions(exclusions jamfpro.MacOSConfigurationProfileSubsetExclusions)
 	}
 
 	if len(exclusions.Buildings) > 0 {
-		buildingIDs := collections.FlattenSortIDs(
+		buildingIDs := utils.FlattenSortIDs(
 			exclusions.Buildings,
 			func(entity jamfpro.MacOSConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 		)
@@ -211,7 +211,7 @@ func setExclusions(exclusions jamfpro.MacOSConfigurationProfileSubsetExclusions)
 	}
 
 	if len(exclusions.JSSUsers) > 0 {
-		jssUserIDs := collections.FlattenSortIDs(
+		jssUserIDs := utils.FlattenSortIDs(
 			exclusions.JSSUsers,
 			func(entity jamfpro.MacOSConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 		)
@@ -221,7 +221,7 @@ func setExclusions(exclusions jamfpro.MacOSConfigurationProfileSubsetExclusions)
 	}
 
 	if len(exclusions.JSSUserGroups) > 0 {
-		jssUserGroupIDs := collections.FlattenSortIDs(
+		jssUserGroupIDs := utils.FlattenSortIDs(
 			exclusions.JSSUserGroups,
 			func(entity jamfpro.MacOSConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 		)
@@ -231,7 +231,7 @@ func setExclusions(exclusions jamfpro.MacOSConfigurationProfileSubsetExclusions)
 	}
 
 	if len(exclusions.Departments) > 0 {
-		departmentIDs := collections.FlattenSortIDs(
+		departmentIDs := utils.FlattenSortIDs(
 			exclusions.Departments,
 			func(entity jamfpro.MacOSConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 		)
@@ -241,7 +241,7 @@ func setExclusions(exclusions jamfpro.MacOSConfigurationProfileSubsetExclusions)
 	}
 
 	if len(exclusions.NetworkSegments) > 0 {
-		networkSegmentIDs := collections.FlattenSortIDs(
+		networkSegmentIDs := utils.FlattenSortIDs(
 			exclusions.NetworkSegments,
 			func(segment jamfpro.MacOSConfigurationProfileSubsetNetworkSegment) int { return segment.ID },
 		)
@@ -251,7 +251,7 @@ func setExclusions(exclusions jamfpro.MacOSConfigurationProfileSubsetExclusions)
 	}
 
 	if len(exclusions.Users) > 0 {
-		userNames := collections.FlattenSortStrings(
+		userNames := utils.FlattenSortStrings(
 			exclusions.Users,
 			func(entity jamfpro.MacOSConfigurationProfileSubsetScopeEntity) string { return entity.Name },
 		)
@@ -261,7 +261,7 @@ func setExclusions(exclusions jamfpro.MacOSConfigurationProfileSubsetExclusions)
 	}
 
 	if len(exclusions.UserGroups) > 0 {
-		userGroupNames := collections.FlattenSortStrings(
+		userGroupNames := utils.FlattenSortStrings(
 			exclusions.UserGroups,
 			func(userGroup jamfpro.MacOSConfigurationProfileSubsetScopeUserGroup) string { return userGroup.Name },
 		)
@@ -271,7 +271,7 @@ func setExclusions(exclusions jamfpro.MacOSConfigurationProfileSubsetExclusions)
 	}
 
 	if len(exclusions.IBeacons) > 0 {
-		ibeaconIDs := collections.FlattenSortIDs(
+		ibeaconIDs := utils.FlattenSortIDs(
 			exclusions.IBeacons,
 			func(entity jamfpro.MacOSConfigurationProfileSubsetScopeEntity) int { return entity.ID },
 		)
