@@ -17,7 +17,7 @@ data "jamfpro_guid_list_sharder" "percentage_exclude" {
   strategy          = "percentage"
   shard_percentages = [20, 30, 50]
   seed              = "percentage-exclude-2026"
-  
+
   # Update these IDs to match actual IDs from your inventory
   exclude_ids = ["10", "20", "30"]
 }

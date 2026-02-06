@@ -18,11 +18,11 @@ data "jamfpro_guid_list_sharder" "reserved_test" {
   strategy    = "round-robin"
   shard_count = 3
   seed        = "reserved-test-2026"
-  
+
   # Update these IDs to match actual IDs from your inventory
   reserved_ids = {
-    "shard_0" = ["1", "2"]      # IT test devices -> first ring
-    "shard_2" = ["99", "100"]   # Executive devices -> last ring
+    "shard_0" = ["1", "2"]    # IT test devices -> first ring
+    "shard_2" = ["99", "100"] # Executive devices -> last ring
   }
 }
 

@@ -27,7 +27,7 @@ data "jamfpro_guid_list_sharder" "with_exclusions" {
   strategy    = "round-robin"
   shard_count = 3
   seed        = "exclude-test-2026"
-  
+
   # Update these IDs to match actual IDs from your inventory
   exclude_ids = ["50", "51", "52"]
 }

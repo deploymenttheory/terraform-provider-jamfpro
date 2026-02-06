@@ -18,11 +18,11 @@ data "jamfpro_guid_list_sharder" "size_reserved" {
   strategy    = "size"
   shard_sizes = [25, 40, -1]
   seed        = "size-reserved-2026"
-  
+
   # Update these IDs to match actual IDs from your inventory
   reserved_ids = {
-    "shard_0" = ["1", "2", "3", "4", "5"]  # 5 reserved for dev/test
-    "shard_1" = ["10", "11"]                # 2 reserved for staging
+    "shard_0" = ["1", "2", "3", "4", "5"] # 5 reserved for dev/test
+    "shard_1" = ["10", "11"]              # 2 reserved for staging
   }
 }
 

@@ -18,7 +18,7 @@ data "jamfpro_guid_list_sharder" "size_exclude" {
   strategy    = "size"
   shard_sizes = [20, 30, -1]
   seed        = "size-exclude-2026"
-  
+
   # Update these IDs to match actual IDs from your inventory
   exclude_ids = ["5", "15", "25", "35"]
 }

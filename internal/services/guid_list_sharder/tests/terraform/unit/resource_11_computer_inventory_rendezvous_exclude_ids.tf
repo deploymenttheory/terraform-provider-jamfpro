@@ -27,7 +27,7 @@ data "jamfpro_guid_list_sharder" "rendezvous_with_exclusions" {
   strategy    = "rendezvous"
   shard_count = 3
   seed        = "rendezvous-exclude-2026"
-  
+
   # Update these IDs to match actual IDs from your inventory
   exclude_ids = ["50", "51", "52"]
 }
@@ -91,10 +91,10 @@ output "rendezvous_exclude_stability_percentage" {
   description = "% of non-excluded IDs that stayed in same shard (should be ~100%)"
   value = floor((
     (length(setintersection(data.jamfpro_guid_list_sharder.rendezvous_baseline.shards["shard_0"], data.jamfpro_guid_list_sharder.rendezvous_with_exclusions.shards["shard_0"])) +
-     length(setintersection(data.jamfpro_guid_list_sharder.rendezvous_baseline.shards["shard_1"], data.jamfpro_guid_list_sharder.rendezvous_with_exclusions.shards["shard_1"])) +
-     length(setintersection(data.jamfpro_guid_list_sharder.rendezvous_baseline.shards["shard_2"], data.jamfpro_guid_list_sharder.rendezvous_with_exclusions.shards["shard_2"]))) /
-    (length(data.jamfpro_guid_list_sharder.rendezvous_with_exclusions.shards["shard_0"]) + 
-     length(data.jamfpro_guid_list_sharder.rendezvous_with_exclusions.shards["shard_1"]) + 
-     length(data.jamfpro_guid_list_sharder.rendezvous_with_exclusions.shards["shard_2"]))
+      length(setintersection(data.jamfpro_guid_list_sharder.rendezvous_baseline.shards["shard_1"], data.jamfpro_guid_list_sharder.rendezvous_with_exclusions.shards["shard_1"])) +
+    length(setintersection(data.jamfpro_guid_list_sharder.rendezvous_baseline.shards["shard_2"], data.jamfpro_guid_list_sharder.rendezvous_with_exclusions.shards["shard_2"]))) /
+    (length(data.jamfpro_guid_list_sharder.rendezvous_with_exclusions.shards["shard_0"]) +
+      length(data.jamfpro_guid_list_sharder.rendezvous_with_exclusions.shards["shard_1"]) +
+    length(data.jamfpro_guid_list_sharder.rendezvous_with_exclusions.shards["shard_2"]))
   ) * 100)
 }

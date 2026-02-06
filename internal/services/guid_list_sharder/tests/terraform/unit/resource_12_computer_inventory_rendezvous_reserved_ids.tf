@@ -23,11 +23,11 @@ data "jamfpro_guid_list_sharder" "rendezvous_reserved_test" {
   strategy    = "rendezvous"
   shard_count = 3
   seed        = "rendezvous-reserved-2026"
-  
+
   # Update these IDs to match actual IDs from your inventory
   reserved_ids = {
-    "shard_0" = ["1", "2"]      # IT test devices -> first ring
-    "shard_2" = ["99", "100"]   # Executive devices -> last ring
+    "shard_0" = ["1", "2"]    # IT test devices -> first ring
+    "shard_2" = ["99", "100"] # Executive devices -> last ring
   }
 }
 
@@ -92,7 +92,7 @@ output "rendezvous_reserved_distribution_variance" {
     length(data.jamfpro_guid_list_sharder.rendezvous_reserved_test.shards["shard_0"]),
     length(data.jamfpro_guid_list_sharder.rendezvous_reserved_test.shards["shard_1"]),
     length(data.jamfpro_guid_list_sharder.rendezvous_reserved_test.shards["shard_2"])
-  ) - min(
+    ) - min(
     length(data.jamfpro_guid_list_sharder.rendezvous_reserved_test.shards["shard_0"]),
     length(data.jamfpro_guid_list_sharder.rendezvous_reserved_test.shards["shard_1"]),
     length(data.jamfpro_guid_list_sharder.rendezvous_reserved_test.shards["shard_2"])

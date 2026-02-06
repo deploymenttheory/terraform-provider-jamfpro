@@ -18,7 +18,7 @@ data "jamfpro_guid_list_sharder" "percentage_reserved" {
   strategy          = "percentage"
   shard_percentages = [20, 30, 50]
   seed              = "percentage-reserved-2026"
-  
+
   # Update these IDs to match actual IDs from your inventory
   reserved_ids = {
     "shard_0" = ["1", "2", "3"]     # Early adopters
