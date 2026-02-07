@@ -1,9 +1,8 @@
 package mobile_device_application
 
 import (
-	"sort"
-
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -119,12 +118,30 @@ func setScope(resp *jamfpro.ResourceMobileDeviceApplication) (map[string]any, er
 		"all_jss_users":      resp.Scope.AllJSSUsers,
 	}
 
-	scopeData["mobile_device_ids"] = flattenAndSortMobileDeviceIDs(resp.Scope.MobileDevices)
-	scopeData["mobile_device_group_ids"] = flattenAndSortScopeEntityIds(resp.Scope.MobileDeviceGroups)
-	scopeData["jss_user_ids"] = flattenAndSortScopeEntityIds(resp.Scope.JSSUsers)
-	scopeData["jss_user_group_ids"] = flattenAndSortScopeEntityIds(resp.Scope.JSSUserGroups)
-	scopeData["building_ids"] = flattenAndSortScopeEntityIds(resp.Scope.Buildings)
-	scopeData["department_ids"] = flattenAndSortScopeEntityIds(resp.Scope.Departments)
+	scopeData["mobile_device_ids"] = utils.FlattenSortIDs(
+		resp.Scope.MobileDevices,
+		func(device jamfpro.MobileDeviceApplicationSubsetMobileDevice) int { return device.ID },
+	)
+	scopeData["mobile_device_group_ids"] = utils.FlattenSortIDs(
+		resp.Scope.MobileDeviceGroups,
+		func(entity jamfpro.MobileDeviceApplicationSubsetScopeEntity) int { return entity.ID },
+	)
+	scopeData["jss_user_ids"] = utils.FlattenSortIDs(
+		resp.Scope.JSSUsers,
+		func(entity jamfpro.MobileDeviceApplicationSubsetScopeEntity) int { return entity.ID },
+	)
+	scopeData["jss_user_group_ids"] = utils.FlattenSortIDs(
+		resp.Scope.JSSUserGroups,
+		func(entity jamfpro.MobileDeviceApplicationSubsetScopeEntity) int { return entity.ID },
+	)
+	scopeData["building_ids"] = utils.FlattenSortIDs(
+		resp.Scope.Buildings,
+		func(entity jamfpro.MobileDeviceApplicationSubsetScopeEntity) int { return entity.ID },
+	)
+	scopeData["department_ids"] = utils.FlattenSortIDs(
+		resp.Scope.Departments,
+		func(entity jamfpro.MobileDeviceApplicationSubsetScopeEntity) int { return entity.ID },
+	)
 
 	limitationsData, err := setLimitations(resp.Scope.Limitations)
 	if err != nil {
@@ -150,21 +167,30 @@ func setLimitations(limitations jamfpro.MobileDeviceApplicationSubsetLimitation)
 	result := map[string]any{}
 
 	if len(limitations.NetworkSegments) > 0 {
-		networkSegmentIDs := flattenAndSortNetworkSegmentIds(limitations.NetworkSegments)
+		networkSegmentIDs := utils.FlattenSortIDs(
+			limitations.NetworkSegments,
+			func(segment jamfpro.MobileDeviceApplicationSubsetNetworkSegment) int { return segment.ID },
+		)
 		if len(networkSegmentIDs) > 0 {
 			result["network_segment_ids"] = networkSegmentIDs
 		}
 	}
 
 	if len(limitations.Users) > 0 {
-		userNames := flattenAndSortScopeEntityNames(limitations.Users)
+		userNames := utils.FlattenSortStrings(
+			limitations.Users,
+			func(entity jamfpro.MobileDeviceApplicationSubsetScopeEntity) string { return entity.Name },
+		)
 		if len(userNames) > 0 {
 			result["directory_service_or_local_usernames"] = userNames
 		}
 	}
 
 	if len(limitations.UserGroups) > 0 {
-		userGroupIDs := flattenAndSortScopeEntityIds(limitations.UserGroups)
+		userGroupIDs := utils.FlattenSortIDs(
+			limitations.UserGroups,
+			func(entity jamfpro.MobileDeviceApplicationSubsetScopeEntity) int { return entity.ID },
+		)
 		if len(userGroupIDs) > 0 {
 			result["directory_service_usergroup_ids"] = userGroupIDs
 		}
@@ -182,63 +208,90 @@ func setExclusions(exclusions jamfpro.MobileDeviceApplicationSubsetExclusion) ([
 	result := map[string]any{}
 
 	if len(exclusions.MobileDevices) > 0 {
-		computerIDs := flattenAndSortMobileDeviceIDs(exclusions.MobileDevices)
+		computerIDs := utils.FlattenSortIDs(
+			exclusions.MobileDevices,
+			func(device jamfpro.MobileDeviceApplicationSubsetMobileDevice) int { return device.ID },
+		)
 		if len(computerIDs) > 0 {
 			result["mobile_device_ids"] = computerIDs
 		}
 	}
 
 	if len(exclusions.MobileDeviceGroups) > 0 {
-		computerGroupIDs := flattenAndSortScopeEntityIds(exclusions.MobileDeviceGroups)
+		computerGroupIDs := utils.FlattenSortIDs(
+			exclusions.MobileDeviceGroups,
+			func(entity jamfpro.MobileDeviceApplicationSubsetScopeEntity) int { return entity.ID },
+		)
 		if len(computerGroupIDs) > 0 {
 			result["mobile_device_group_ids"] = computerGroupIDs
 		}
 	}
 
 	if len(exclusions.Buildings) > 0 {
-		buildingIDs := flattenAndSortScopeEntityIds(exclusions.Buildings)
+		buildingIDs := utils.FlattenSortIDs(
+			exclusions.Buildings,
+			func(entity jamfpro.MobileDeviceApplicationSubsetScopeEntity) int { return entity.ID },
+		)
 		if len(buildingIDs) > 0 {
 			result["building_ids"] = buildingIDs
 		}
 	}
 
 	if len(exclusions.JSSUsers) > 0 {
-		jssUserIDs := flattenAndSortScopeEntityIds(exclusions.JSSUsers)
+		jssUserIDs := utils.FlattenSortIDs(
+			exclusions.JSSUsers,
+			func(entity jamfpro.MobileDeviceApplicationSubsetScopeEntity) int { return entity.ID },
+		)
 		if len(jssUserIDs) > 0 {
 			result["jss_user_ids"] = jssUserIDs
 		}
 	}
 
 	if len(exclusions.JSSUserGroups) > 0 {
-		jssUserGroupIDs := flattenAndSortScopeEntityIds(exclusions.JSSUserGroups)
+		jssUserGroupIDs := utils.FlattenSortIDs(
+			exclusions.JSSUserGroups,
+			func(entity jamfpro.MobileDeviceApplicationSubsetScopeEntity) int { return entity.ID },
+		)
 		if len(jssUserGroupIDs) > 0 {
 			result["jss_user_group_ids"] = jssUserGroupIDs
 		}
 	}
 
 	if len(exclusions.Departments) > 0 {
-		departmentIDs := flattenAndSortScopeEntityIds(exclusions.Departments)
+		departmentIDs := utils.FlattenSortIDs(
+			exclusions.Departments,
+			func(entity jamfpro.MobileDeviceApplicationSubsetScopeEntity) int { return entity.ID },
+		)
 		if len(departmentIDs) > 0 {
 			result["department_ids"] = departmentIDs
 		}
 	}
 
 	if len(exclusions.NetworkSegments) > 0 {
-		networkSegmentIDs := flattenAndSortNetworkSegmentIds(exclusions.NetworkSegments)
+		networkSegmentIDs := utils.FlattenSortIDs(
+			exclusions.NetworkSegments,
+			func(segment jamfpro.MobileDeviceApplicationSubsetNetworkSegment) int { return segment.ID },
+		)
 		if len(networkSegmentIDs) > 0 {
 			result["network_segment_ids"] = networkSegmentIDs
 		}
 	}
 
 	if len(exclusions.Users) > 0 {
-		userNames := flattenAndSortScopeEntityNames(exclusions.Users)
+		userNames := utils.FlattenSortStrings(
+			exclusions.Users,
+			func(entity jamfpro.MobileDeviceApplicationSubsetScopeEntity) string { return entity.Name },
+		)
 		if len(userNames) > 0 {
 			result["directory_service_or_local_usernames"] = userNames
 		}
 	}
 
 	if len(exclusions.UserGroups) > 0 {
-		userGroupIDs := flattenAndSortScopeEntityIds(exclusions.UserGroups)
+		userGroupIDs := utils.FlattenSortIDs(
+			exclusions.UserGroups,
+			func(entity jamfpro.MobileDeviceApplicationSubsetScopeEntity) int { return entity.ID },
+		)
 		if len(userGroupIDs) > 0 {
 			result["directory_service_usergroup_ids"] = userGroupIDs
 		}
@@ -249,54 +302,4 @@ func setExclusions(exclusions jamfpro.MobileDeviceApplicationSubsetExclusion) ([
 	}
 
 	return []map[string]any{result}, nil
-}
-
-// helper functions
-
-// flattenAndSortScopeEntityIds converts a slice of general scope entities (like user groups, buildings) to a format suitable for Terraform state.
-func flattenAndSortScopeEntityIds(entities []jamfpro.MobileDeviceApplicationSubsetScopeEntity) []int {
-	var ids []int
-	for _, entity := range entities {
-		if entity.ID != 0 {
-			ids = append(ids, entity.ID)
-		}
-	}
-	sort.Ints(ids)
-	return ids
-}
-
-// flattenAndSortScopeEntityNames converts a slice of RestrictedSoftwareSubsetScopeEntity into a sorted slice of strings.
-func flattenAndSortScopeEntityNames(entities []jamfpro.MobileDeviceApplicationSubsetScopeEntity) []string {
-	var names []string
-	for _, entity := range entities {
-		if entity.Name != "" {
-			names = append(names, entity.Name)
-		}
-	}
-	sort.Strings(names)
-	return names
-}
-
-// flattenAndSortMobileDeviceIDs converts a slice of MobileDeviceApplicationSubsetMobileDevice into a sorted slice of integers.
-func flattenAndSortMobileDeviceIDs(devices []jamfpro.MobileDeviceApplicationSubsetMobileDevice) []int {
-	var ids []int
-	for _, device := range devices {
-		if device.ID != 0 {
-			ids = append(ids, device.ID)
-		}
-	}
-	sort.Ints(ids)
-	return ids
-}
-
-// flattenAndSortNetworkSegmentIds converts a slice of MobileDeviceApplicationSubsetNetworkSegment into a sorted slice of integers.
-func flattenAndSortNetworkSegmentIds(segments []jamfpro.MobileDeviceApplicationSubsetNetworkSegment) []int {
-	var ids []int
-	for _, segment := range segments {
-		if segment.ID != 0 {
-			ids = append(ids, segment.ID)
-		}
-	}
-	sort.Ints(ids)
-	return ids
 }
