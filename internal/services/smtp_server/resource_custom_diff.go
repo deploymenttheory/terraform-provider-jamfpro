@@ -100,7 +100,7 @@ func validateGUID() schema.SchemaValidateDiagFunc {
 
 // validateClientID validates that a string is either a GUID/UUID or a Google OAuth client ID
 func validateClientID() schema.SchemaValidateDiagFunc {
-	return validation.ToDiagFunc(func(i interface{}, k string) ([]string, []error) {
+	return validation.ToDiagFunc(func(i any, k string) ([]string, []error) {
 		v, ok := i.(string)
 		if !ok {
 			return nil, []error{fmt.Errorf("expected type of %s to be string", k)}

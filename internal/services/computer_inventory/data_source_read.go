@@ -188,8 +188,8 @@ func setGeneralSection(d *schema.ResourceData, general jamfpro.ComputerInventory
 	gen["barcode2"] = general.Barcode2
 	gen["asset_tag"] = general.AssetTag
 	gen["supervised"] = general.Supervised
-	gen["mdm_capable"] = []interface{}{
-		map[string]interface{}{
+	gen["mdm_capable"] = []any{
+		map[string]any{
 			"capable":       general.MdmCapable.Capable,
 			"capable_users": general.MdmCapable.CapableUsers,
 		},
@@ -684,7 +684,7 @@ func setGroupMembershipsSection(d *schema.ResourceData, groupMemberships []jamfp
 func setConfigurationProfilesSection(d *schema.ResourceData, configurationProfiles []jamfpro.ComputerInventorySubsetConfigurationProfile) error {
 	profiles := make([]any, len(configurationProfiles))
 	for i, profile := range configurationProfiles {
-		profileMap := map[string]interface{}{
+		profileMap := map[string]any{
 			"id":                 profile.ID,
 			"username":           profile.Username,
 			"last_installed":     profile.LastInstalled,
@@ -701,7 +701,7 @@ func setConfigurationProfilesSection(d *schema.ResourceData, configurationProfil
 func setPrintersSection(d *schema.ResourceData, printers []jamfpro.ComputerInventorySubsetPrinter) error {
 	printerList := make([]any, len(printers))
 	for i, printer := range printers {
-		printerMap := map[string]interface{}{
+		printerMap := map[string]any{
 			"name":     printer.Name,
 			"type":     printer.Type,
 			"uri":      printer.URI,
@@ -716,7 +716,7 @@ func setPrintersSection(d *schema.ResourceData, printers []jamfpro.ComputerInven
 func setServicesSection(d *schema.ResourceData, services []jamfpro.ComputerInventorySubsetService) error {
 	serviceList := make([]any, len(services))
 	for i, service := range services {
-		serviceMap := map[string]interface{}{
+		serviceMap := map[string]any{
 			"name": service.Name,
 		}
 		serviceList[i] = serviceMap
