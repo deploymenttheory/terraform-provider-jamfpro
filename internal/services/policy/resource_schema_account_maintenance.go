@@ -121,16 +121,10 @@ func getPolicySchemaDirectoryBinding() *schema.Resource {
 				Description: "Details of the directory binding.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "The unique identifier of the binding.",
-							Default:     -1,
-						},
 						"name": {
 							Type:        schema.TypeString,
+							Required:    true,
 							Description: "The name of the binding.",
-							Computed:    true,
 						},
 					},
 				},
