@@ -33,7 +33,7 @@ func state(ctx context.Context, data *smartComputerGroupV2ResourceModel, resourc
 	for _, criterion := range resp.Criteria {
 		criteriaModel := smartComputerGroupV2CriteriaDataModel{
 			Name:       types.StringValue(criterion.Name),
-			Priority:   types.Int32Value(int32(criterion.Priority)),
+			Priority:   types.Int64Value(int64(criterion.Priority)),
 			AndOr:      types.StringValue(strings.ToLower(criterion.AndOr)),
 			SearchType: types.StringValue(criterion.SearchType),
 			Value:      types.StringValue(criterion.Value),

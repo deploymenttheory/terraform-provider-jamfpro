@@ -14,12 +14,12 @@ var _ resource.ResourceWithConfigValidators = &smartMobileDeviceGroupV1Framework
 // ConfigValidators returns a list of config validators for the resource
 func (r *smartMobileDeviceGroupV1FrameworkResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
 	return []resource.ConfigValidator{
-		validation.IncrementingInt32SequenceValidator[smartMobileDeviceGroupV1ResourceModel]{},
+		validation.IncrementingInt64SequenceValidator[smartMobileDeviceGroupV1ResourceModel]{},
 	}
 }
 
-// GetInt32Sequence exposes the priority sequence for validation.
-func (m smartMobileDeviceGroupV1ResourceModel) GetInt32Sequence() []int32 {
+// GetInt64Sequence exposes the priority sequence for validation.
+func (m smartMobileDeviceGroupV1ResourceModel) GetInt64Sequence() []int64 {
 	if m.Criteria.IsNull() || m.Criteria.IsUnknown() {
 		return nil
 	}
@@ -29,12 +29,12 @@ func (m smartMobileDeviceGroupV1ResourceModel) GetInt32Sequence() []int32 {
 		return nil
 	}
 
-	priorities := make([]int32, 0, len(criteria))
+	priorities := make([]int64, 0, len(criteria))
 	for _, c := range criteria {
 		if c.Priority.IsUnknown() {
 			return nil
 		}
-		priorities = append(priorities, c.Priority.ValueInt32())
+		priorities = append(priorities, c.Priority.ValueInt64())
 	}
 
 	return priorities

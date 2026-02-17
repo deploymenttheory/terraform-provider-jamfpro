@@ -1,8 +1,8 @@
 // ========================================================================== //
-// Smart Computer Groups
+// Smart Mobile Device Groups
 // ========================================================================== //
 
-resource "jamfpro_smart_mobile_device_group" "name" {
+resource "jamfpro_smart_mobile_device_group_v2" "name" {
   name        = "tf-testing-${var.testing_id}-script-max-${random_id.rng.hex}"
   description = "Terraform testing smart mobile device group."
   criteria {

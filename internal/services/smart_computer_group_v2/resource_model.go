@@ -18,7 +18,7 @@ type smartComputerGroupV2ResourceModel struct {
 // smartComputerGroupV2CriteriaDataModel describes the criteria data model.
 type smartComputerGroupV2CriteriaDataModel struct {
 	Name         types.String `tfsdk:"name"`
-	Priority     types.Int32  `tfsdk:"priority"`
+	Priority     types.Int64  `tfsdk:"priority"`
 	AndOr        types.String `tfsdk:"and_or"`
 	SearchType   types.String `tfsdk:"search_type"`
 	Value        types.String `tfsdk:"value"`

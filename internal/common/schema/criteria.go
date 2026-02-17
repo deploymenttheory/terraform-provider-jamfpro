@@ -9,7 +9,7 @@ import (
 	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	resourceschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
@@ -58,7 +58,7 @@ func CriteriaDataSource(ctx context.Context) datasourceschema.ListNestedBlock {
 					Computed:    true,
 					Description: "The name of the criterion.",
 				},
-				"priority": datasourceschema.Int32Attribute{
+				"priority": datasourceschema.Int64Attribute{
 					Computed:    true,
 					Description: "The priority of the criterion.",
 				},
@@ -96,10 +96,10 @@ func CriteriaResource(ctx context.Context) resourceschema.ListNestedBlock {
 					Required:    true,
 					Description: "The name of the criterion.",
 				},
-				"priority": resourceschema.Int32Attribute{
+				"priority": resourceschema.Int64Attribute{
 					Optional:    true,
 					Computed:    true,
-					Default:     int32default.StaticInt32(0),
+					Default:     int64default.StaticInt64(0),
 					Description: "The priority of the criterion. Priority must start with 0 and increment by one per new criteria added. Defaults to 0.",
 				},
 				"and_or": resourceschema.StringAttribute{

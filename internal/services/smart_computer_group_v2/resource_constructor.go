@@ -32,7 +32,7 @@ func constructResource(ctx context.Context, data *smartComputerGroupV2ResourceMo
 		for i, criterion := range criteriaModels {
 			apiCriterion := jamfpro.SharedSubsetCriteriaJamfProAPI{
 				Name:       criterion.Name.ValueString(),
-				Priority:   int(criterion.Priority.ValueInt32()),
+				Priority:   int(criterion.Priority.ValueInt64()),
 				AndOr:      criterion.AndOr.ValueString(),
 				SearchType: criterion.SearchType.ValueString(),
 				Value:      criterion.Value.ValueString(),

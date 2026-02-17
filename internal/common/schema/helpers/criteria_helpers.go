@@ -10,7 +10,7 @@ import (
 
 var AttrTypes = map[string]attr.Type{
 	"name":          types.StringType,
-	"priority":      types.Int32Type,
+	"priority":      types.Int64Type,
 	"and_or":        types.StringType,
 	"search_type":   types.StringType,
 	"value":         types.StringType,
