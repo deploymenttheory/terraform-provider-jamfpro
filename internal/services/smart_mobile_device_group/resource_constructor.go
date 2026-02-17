@@ -57,5 +57,5 @@ func constructMobileGroupSubsetContainerCriteria(criteriaList []any) *jamfpro.Sh
 		*criteria.Criterion = append(*criteria.Criterion, criterion)
 	}
 
-	return &criteria
+	return criteria
 }
