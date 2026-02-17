@@ -87,18 +87,18 @@ Whether you're new to Terraform or looking to enhance your existing Jamf Pro man
 - [Go](https://golang.org/doc/install) >= 1.22.4
 - [Jamf Pro](https://www.jamf.com/) >= 11.20.0
 
-(Tested with production Jamf Pro instances, with and without SSO integratioin with Microsoft Entra ID. We do not test against beta or preview versions of Jamf Pro due to potential data model changes.)
+(Tested with production Jamf Pro instances, with and without SSO integration with Microsoft Entra ID. We do not test against beta or preview versions of Jamf Pro due to potential data model changes.)
 
 ## Jamf Cloud Load Balancing and Cookies
 
-- Jamf Cloud uses a load balancer to distribute traffic across multiple web app members (typically 2). When resource's are manipulated on a given web app member, there is up to a 60 second time box until this resources changes are propagated and reflected onto the other web app(s). This architecture can cause issues with Terraform's http client default behaviour when multiple instances are running in parallel and also due to the speed terraform operates. This results in scenarios where it's very likely that a create by terraform, followed by a read (for stating) will freqently communicate with different web app members during a terraform run. This causes stating 'unfound' resource issues.
-- To mitigate this please use the `jamfpro_load_balancer_lock` (which enforces a single cookie across all parallel instances of Terraform operations). This feature on first run obtains all available web cookies (jpro-ingress) from Jamf Pro and selects and applies a single one to the http client for all subsequent api calls during the terraform run. This is eqivalent to a sticky session.
+- Jamf Cloud uses a load balancer to distribute traffic across multiple web app members (typically 2). When resources are manipulated on a given web app member, there is up to a 60 second time box until this resources changes are propagated and reflected onto the other web app(s). This architecture can cause issues with Terraform's http client default behaviour when multiple instances are running in parallel and also due to the speed terraform operates. This results in scenarios where it's very likely that a create by terraform, followed by a read (for stating) will frequently communicate with different web app members during a terraform run. This causes stating 'unfound' resource issues.
+- To mitigate this please use the `jamfpro_load_balancer_lock` (which enforces a single cookie across all parallel instances of Terraform operations). This feature on first run obtains all available web cookies (jpro-ingress) from Jamf Pro and selects and applies a single one to the http client for all subsequent api calls during the terraform run. This is equivalent to a sticky session.
 - For non Jamf Cloud customers, with load balanced configurations please use `custom_cookies` and configure a custom cookie to be used in all requests instead.
 
 ### Concurrency
 
 > [!WARNING]
-> Jamf Pro produces inconsistent behaviour when using the default parallelism setting of 10 with terraform. You can adjust paralellism by setting the Terraform parallelism count using `terraform apply -parallelism=X` to a setting of your choice. [HashiCorp Docs](https://developer.hashicorp.com/terraform/cli/commands/apply#parallelism-n) . It's recconmended to always set parallelism to 1 to guarantee successful CRUD operations and resource stating. What this produces in a moderate performance hit is offset by reliability. Not using `-parallelism=1` is at your own risk!
+> Jamf Pro produces inconsistent behaviour when using the default parallelism setting of 10 with terraform. You can adjust parallelism by setting the Terraform parallelism count using `terraform apply -parallelism=X` to a setting of your choice. [HashiCorp Docs](https://developer.hashicorp.com/terraform/cli/commands/apply#parallelism-n) . It's recommended to always set parallelism to 1 to guarantee successful CRUD operations and resource stating. What this produces in a moderate performance hit is offset by reliability. Not using `-parallelism=1` is at your own risk!
 
 ## Community & Support
 
