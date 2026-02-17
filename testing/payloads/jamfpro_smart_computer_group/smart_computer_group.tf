@@ -3,8 +3,7 @@
 // ========================================================================== //
 
 resource "jamfpro_smart_computer_group" "name" {
-  name        = "tf-testing-${var.testing_id}-script-max-${random_id.rng.hex}"
-  description = "Terraform testing smart computer group."
+  name = "tf-testing-${var.testing_id}-script-max-${random_id.rng.hex}"
   criteria {
     name        = "Serial Number"
     search_type = "not like"
