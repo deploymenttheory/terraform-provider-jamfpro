@@ -149,7 +149,7 @@ resource "jamfpro_policy" "jamfpro_policy_001" {
       }
       directory_bindings {
         binding {
-          id = 1
+          name = "Legacy Active Directory Domain"
         }
       }
 
