@@ -4,9 +4,8 @@ name: Provider | Release
 # This GitHub action creates a release when a tag that matches the pattern
 # "v*" (e.g. v0.1.0) is created.
 on:
-  push:
-    tags:
-      - 'v*'
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       release_version:
@@ -22,7 +21,7 @@ jobs:
     steps:
 
     - name: Harden Runner
-      uses: step-security/harden-runner@v2.14.0
+      uses: step-security/harden-runner@v2.14.2
       with:
         egress-policy: audit
 
@@ -82,7 +81,7 @@ jobs:
     steps:
 
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.14.0
+        uses: step-security/harden-runner@v2.14.2
         with:
           egress-policy: audit
 

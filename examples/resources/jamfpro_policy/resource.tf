@@ -49,7 +49,7 @@ resource "jamfpro_policy" "jamfpro_policy_001" {
       network_segment_ids                  = [4, 5]
       ibeacon_ids                          = [3, 4]
       directory_service_or_local_usernames = ["Jane Smith", "John Doe"]
-      //directory_service_usergroup_ids = [3, 4]
+      directory_service_usergroup_names    = ["Marketing", "Finance"]
     }
 
     exclusions {
@@ -61,7 +61,7 @@ resource "jamfpro_policy" "jamfpro_policy_001" {
       jss_user_ids                         = sort([2, 1])
       jss_user_group_ids                   = [4, 505]
       directory_service_or_local_usernames = ["Jane Smith", "John Doe"]
-      directory_service_usergroup_ids      = [3, 4]
+      directory_service_usergroup_names    = ["Graphics", "Engineering"]
       ibeacon_ids                          = [3, 4]
     }
   }
@@ -149,7 +149,7 @@ resource "jamfpro_policy" "jamfpro_policy_001" {
       }
       directory_bindings {
         binding {
-          id = 1
+          name = "Legacy Active Directory Domain"
         }
       }
 

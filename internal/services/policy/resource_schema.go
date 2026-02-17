@@ -17,6 +17,7 @@ func ResourceJamfProPolicies() *schema.Resource {
 		ReadContext:   readWithCleanup,
 		UpdateContext: update,
 		DeleteContext: delete,
+		CustomizeDiff: mainCustomDiffFunc,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},

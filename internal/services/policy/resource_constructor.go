@@ -188,8 +188,14 @@ func constructScope(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) er
 		return err
 	}
 
+	// Users
+	err = constructors.MapSetToStructs[jamfpro.PolicySubsetUser, string]("scope.0.limitations.0.directory_service_or_local_usernames", "Name", d, resource.Scope.Limitations.Users)
+	if err != nil {
+		return err
+	}
+
 	// User Groups
-	err = constructors.MapSetToStructs[jamfpro.PolicySubsetUserGroup, int]("scope.0.limitations.0.directory_service_usergroup_ids", "ID", d, resource.Scope.Limitations.UserGroups)
+	err = constructors.MapSetToStructs[jamfpro.PolicySubsetUserGroup, string]("scope.0.limitations.0.directory_service_usergroup_names", "Name", d, resource.Scope.Limitations.UserGroups)
 	if err != nil {
 		return err
 	}
@@ -220,6 +226,18 @@ func constructScope(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) er
 
 	// Computer Groups
 	err = constructors.MapSetToStructs[jamfpro.PolicySubsetComputerGroup, int]("scope.0.exclusions.0.computer_group_ids", "ID", d, resource.Scope.Exclusions.ComputerGroups)
+	if err != nil {
+		return err
+	}
+
+	// Users
+	err = constructors.MapSetToStructs[jamfpro.PolicySubsetUser, string]("scope.0.exclusions.0.directory_service_or_local_usernames", "Name", d, resource.Scope.Exclusions.Users)
+	if err != nil {
+		return err
+	}
+
+	// User Groups
+	err = constructors.MapSetToStructs[jamfpro.PolicySubsetUserGroup, string]("scope.0.exclusions.0.directory_service_usergroup_names", "Name", d, resource.Scope.Exclusions.UserGroups)
 	if err != nil {
 		return err
 	}
@@ -472,16 +490,20 @@ func constructPayloadAccountMaintenance(d *schema.ResourceData, resource *jamfpr
 
 		// Handle directory bindings
 		if directoryBindings, ok := data["directory_bindings"]; ok && len(directoryBindings.([]any)) > 0 {
-			directoryBindingsList := directoryBindings.([]any)
 			bindings := []jamfpro.PolicySubsetAccountMaintenanceDirectoryBindings{}
-			for _, binding := range directoryBindingsList {
-				bindingData := binding.(map[string]any)
-				bindings = append(bindings, jamfpro.PolicySubsetAccountMaintenanceDirectoryBindings{
-					ID:   bindingData["id"].(int),
-					Name: bindingData["name"].(string),
-				})
+			for _, bindingGroup := range directoryBindings.([]any) {
+				bindingGroupData := bindingGroup.(map[string]any)
+				bindingItems, _ := bindingGroupData["binding"].([]any)
+				for _, binding := range bindingItems {
+					bindingData := binding.(map[string]any)
+					bindings = append(bindings, jamfpro.PolicySubsetAccountMaintenanceDirectoryBindings{
+						Name: bindingData["name"].(string),
+					})
+				}
 			}
-			outBlock.DirectoryBindings = &bindings
+			if len(bindings) > 0 {
+				outBlock.DirectoryBindings = &bindings
+			}
 		}
 
 		// Handle management account

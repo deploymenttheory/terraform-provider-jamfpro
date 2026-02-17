@@ -52,19 +52,19 @@ resource "jamfpro_app_installer" "jamfpro_app_installer_001" {
 ### Required
 
 - `app_title_name` (String) The name of the app title as listed in the Jamf App Catalog. Used to look up the app_title_id.
-- `category_id` (String) The ID of the category to assign to the app installer. Use -1 if not required.
 - `deployment_type` (String) Initial distribution method to use for distributing the app to a computer for the initial installation. (INSTALL_AUTOMATICALLY or SELF_SERVICE).
 - `enabled` (Boolean) Whether the deployment is enabled.
 - `name` (String) The name of the app installer deployment.
-- `site_id` (String) The ID of the site. Use -1 if not required.
 - `smart_group_id` (String) The ID of the smart group to scope the Jamf Pro App installer. Default is '1' - All Managed Clients. -1 is not an option.
 - `update_behavior` (String) The method to use for all future app updates, regardless of the initial distribution method. (AUTOMATIC or MANUAL).
 
 ### Optional
 
+- `category_id` (String) The ID of the category to assign to the app installer. Use -1 if not required.
 - `install_predefined_config_profiles` (Boolean) Allows Jamf to automatically install necessary configuration profiles to support this App Installer. When unselected, you may need to create configuration profiles for some software titles. https://learn.jamf.com/en-US/bundle/technical-articles/page/Configuration_Profiles_for_Additional_App_Installers_Settings.html
 - `notification_settings` (Block List, Max: 1) End User Experience notification settings for the deployment. (see [below for nested schema](#nestedblock--notification_settings))
 - `self_service_settings` (Block List, Max: 1) Self-service settings for the deployment. (see [below for nested schema](#nestedblock--self_service_settings))
+- `site_id` (String) The ID of the site. Use -1 if not required.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 - `trigger_admin_notifications` (Boolean) Log event notifications for this app. Opt in to receiving notifications for certain events including app updates and installation failures. Account Notification settings. https://your-instance.jamfcloud.com/notifications.html?id=0&o=r
 

@@ -56,7 +56,7 @@ func getPolicySchemaReboot() *schema.Resource {
 				Default:     "Do not restart",
 				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(string)
-					validOptions := []string{"Restart if a package or update requires it", "Restart Immediately", "Do not restart"}
+					validOptions := []string{"Restart if a package or update requires it", "Restart immediately", "Do not restart"}
 					for _, option := range validOptions {
 						if v == option {
 							return
@@ -73,7 +73,7 @@ func getPolicySchemaReboot() *schema.Resource {
 				Description: "Action to take if a user is logged in to the computer",
 				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(string)
-					validOptions := []string{"Restart if a package or update requires it", "Restart Immediately", "Restart", "Do not restart"}
+					validOptions := []string{"Restart if a package or update requires it", "Restart immediately", "Restart", "Do not restart"}
 					for _, option := range validOptions {
 						if v == option {
 							return

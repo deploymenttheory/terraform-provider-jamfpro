@@ -1,5 +1,52 @@
 # Changelog
 
+## [0.33.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.32.0...v0.33.0) (2026-02-03)
+
+
+### Features
+
+* Add enable_maid_username_merge option for user initiated enrollment settings ([21ebdf9](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/21ebdf9c4938e6780e75ba06e1073329614f6ed6))
+* add support for directory_service_usergroup_names in scope limitations and exclusions (computer objects) ([#988](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/988)) ([21ebdf9](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/21ebdf9c4938e6780e75ba06e1073329614f6ed6))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([21ebdf9](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/21ebdf9c4938e6780e75ba06e1073329614f6ed6))
+
+## [0.32.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.31.2...v0.32.0) (2026-02-02)
+
+
+### Features
+
+* add cloud_distribution_point resource ([#989](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/989)) ([559a482](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/559a4829e4d89940e165c10182ac15fd745361c6))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([876ab16](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/876ab1655d2f7e7ed593b24873f1d9e394407d76))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([b2b950f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/b2b950fe8baebf98726116c51524b0599b931f3a))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([bd0d4b3](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/bd0d4b30550f022c6b1d44e3fe595509219a6d39))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([559a482](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/559a4829e4d89940e165c10182ac15fd745361c6))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([876ab16](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/876ab1655d2f7e7ed593b24873f1d9e394407d76))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([b2b950f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/b2b950fe8baebf98726116c51524b0599b931f3a))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([bd0d4b3](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/bd0d4b30550f022c6b1d44e3fe595509219a6d39))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([559a482](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/559a4829e4d89940e165c10182ac15fd745361c6))
+
+
+### Bug Fixes
+
+* enhance computer extension attribute handling with custom diff validations and error management ([#972](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/972)) ([bd0d4b3](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/bd0d4b30550f022c6b1d44e3fe595509219a6d39))
+* enhance mobile device extension attribute handling with custom diff validations and error management ([#973](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/973)) ([b2b950f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/b2b950fe8baebf98726116c51524b0599b931f3a))
+* reboot of policy validation ([#991](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/991)) ([d55133e](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/d55133e595b9f9e86bc6d4f3c24e314c5314d3cd))
+* update aws-sdk-go-v2 dependencies to latest versions ([#994](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/994)) ([07ad370](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/07ad370ae950d4263be7bd05b70863af6a1f6b87))
+* update aws-sdk-go-v2 dependencies to latest versions ([#995](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/995)) ([630b404](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/630b404b47bc525e8a52c32534c96199c1aec557))
+
+## [0.31.2](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.31.1...v0.31.2) (2026-01-23)
+
+
+### Bug Fixes
+
+* Restricted Software State logic made to match Policy ([#980](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/980)) ([b23091a](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/b23091a1eaccc0ed0a5b22588c8fead5d28c426d))
+
+## [0.31.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.31.0...v0.31.1) (2026-01-20)
+
+
+### Bug Fixes
+
+* App Installer Self Service Diff Loop ([#974](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/974)) ([b35754a](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/b35754afae116d282ee662027d085493689fa6b7))
+
 ## [0.31.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.30.0...v0.31.0) (2026-01-16)
 
 
