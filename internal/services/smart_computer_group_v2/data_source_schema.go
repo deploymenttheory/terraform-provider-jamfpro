@@ -25,7 +25,7 @@ func NewSmartComputerGroupV2FrameworkDataSource() datasource.DataSource {
 
 // Metadata returns the data source type name.
 func (d *smartComputerGroupV2FrameworkDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_smart_computer_group"
+	resp.TypeName = req.ProviderTypeName + "_smart_computer_group_v2"
 }
 
 // Configure adds the provider configured client to the data source.

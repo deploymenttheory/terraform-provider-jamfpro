@@ -25,7 +25,7 @@ func NewSmartMobileDeviceGroupV1FrameworkDataSource() datasource.DataSource {
 
 // Metadata returns the data source type name.
 func (d *smartMobileDeviceGroupV1FrameworkDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_smart_mobile_device_group"
+	resp.TypeName = req.ProviderTypeName + "_smart_mobile_device_group_v2"
 }
 
 // Configure adds the provider configured client to the data source.
