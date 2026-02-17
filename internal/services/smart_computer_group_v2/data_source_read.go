@@ -13,8 +13,8 @@ import (
 )
 
 // Read fetches the smart computer group data from Jamf Pro.
-func (d *smartComputerGroupFrameworkDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data smartComputerGroupDataSourceModel
+func (d *smartComputerGroupV2FrameworkDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data smartComputerGroupV2DataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
@@ -104,9 +104,9 @@ func (d *smartComputerGroupFrameworkDataSource) Read(ctx context.Context, req da
 		data.SiteID = types.StringNull()
 	}
 
-	criteriaModels := make([]smartComputerGroupCriteriaDataModel, 0, len(resource.Criteria))
+	criteriaModels := make([]smartComputerGroupV2CriteriaDataModel, 0, len(resource.Criteria))
 	for _, criterion := range resource.Criteria {
-		criteriaModel := smartComputerGroupCriteriaDataModel{
+		criteriaModel := smartComputerGroupV2CriteriaDataModel{
 			Name:       types.StringValue(criterion.Name),
 			Priority:   types.Int32Value(int32(criterion.Priority)),
 			AndOr:      types.StringValue(strings.ToLower(criterion.AndOr)),

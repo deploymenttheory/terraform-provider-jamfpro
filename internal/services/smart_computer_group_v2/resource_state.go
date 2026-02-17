@@ -11,7 +11,7 @@ import (
 )
 
 // state updates the Terraform model with the latest Smart Computer Group V2 information from the Jamf Pro API.
-func state(ctx context.Context, data *smartComputerGroupResourceModel, resourceID string, resp *jamfpro.ResourceSmartComputerGroupV2) diag.Diagnostics {
+func state(ctx context.Context, data *smartComputerGroupV2ResourceModel, resourceID string, resp *jamfpro.ResourceSmartComputerGroupV2) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	data.ID = types.StringValue(resourceID)
@@ -29,9 +29,9 @@ func state(ctx context.Context, data *smartComputerGroupResourceModel, resourceI
 		data.SiteID = types.StringNull()
 	}
 
-	criteriaModels := make([]smartComputerGroupCriteriaDataModel, 0, len(resp.Criteria))
+	criteriaModels := make([]smartComputerGroupV2CriteriaDataModel, 0, len(resp.Criteria))
 	for _, criterion := range resp.Criteria {
-		criteriaModel := smartComputerGroupCriteriaDataModel{
+		criteriaModel := smartComputerGroupV2CriteriaDataModel{
 			Name:       types.StringValue(criterion.Name),
 			Priority:   types.Int32Value(int32(criterion.Priority)),
 			AndOr:      types.StringValue(strings.ToLower(criterion.AndOr)),

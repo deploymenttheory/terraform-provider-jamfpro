@@ -2,8 +2,8 @@ package smart_computer_group_v2
 
 import "github.com/hashicorp/terraform-plugin-framework/types"
 
-// smartComputerGroupDataSourceModel describes the data source data model.
-type smartComputerGroupDataSourceModel struct {
+// smartComputerGroupV2DataSourceModel describes the data source data model.
+type smartComputerGroupV2DataSourceModel struct {
 	ID          types.String `tfsdk:"id"`
 	Name        types.String `tfsdk:"name"`
 	Description types.String `tfsdk:"description"`

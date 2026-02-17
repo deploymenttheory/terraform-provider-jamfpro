@@ -11,7 +11,7 @@ import (
 )
 
 // state updates the Terraform model with the latest Smart Mobile Device Group V1 information from the Jamf Pro API.
-func state(ctx context.Context, data *smartMobileDeviceGroupResourceModel, resourceID string, resp *jamfpro.ResourceSmartMobileDeviceGroupV1) diag.Diagnostics {
+func state(ctx context.Context, data *smartMobileDeviceGroupV1ResourceModel, resourceID string, resp *jamfpro.ResourceSmartMobileDeviceGroupV1) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	data.ID = types.StringValue(resourceID)
@@ -29,9 +29,9 @@ func state(ctx context.Context, data *smartMobileDeviceGroupResourceModel, resou
 		data.SiteID = types.StringNull()
 	}
 
-	criteriaModels := make([]smartMobileDeviceGroupCriteriaDataModel, 0, len(resp.Criteria))
+	criteriaModels := make([]smartMobileDeviceGroupV1CriteriaDataModel, 0, len(resp.Criteria))
 	for _, criterion := range resp.Criteria {
-		criteriaModel := smartMobileDeviceGroupCriteriaDataModel{
+		criteriaModel := smartMobileDeviceGroupV1CriteriaDataModel{
 			Name:       types.StringValue(criterion.Name),
 			Priority:   types.Int32Value(int32(criterion.Priority)),
 			AndOr:      types.StringValue(strings.ToLower(criterion.AndOr)),

@@ -12,8 +12,8 @@ import (
 )
 
 // Create creates a new smart computer group resource in Jamf Pro.
-func (r *smartComputerGroupFrameworkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object smartComputerGroupResourceModel
+func (r *smartComputerGroupV2FrameworkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object smartComputerGroupV2ResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
@@ -74,8 +74,8 @@ func (r *smartComputerGroupFrameworkResource) Create(ctx context.Context, req re
 }
 
 // Read reads the current state of a smart computer group resource from Jamf Pro.
-func (r *smartComputerGroupFrameworkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object smartComputerGroupResourceModel
+func (r *smartComputerGroupV2FrameworkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object smartComputerGroupV2ResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
@@ -117,9 +117,9 @@ func (r *smartComputerGroupFrameworkResource) Read(ctx context.Context, req reso
 }
 
 // Update updates an existing smart computer group resource in Jamf Pro.
-func (r *smartComputerGroupFrameworkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan smartComputerGroupResourceModel
-	var state smartComputerGroupResourceModel
+func (r *smartComputerGroupV2FrameworkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan smartComputerGroupV2ResourceModel
+	var state smartComputerGroupV2ResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update method for: %s", ResourceName))
 
@@ -180,8 +180,8 @@ func (r *smartComputerGroupFrameworkResource) Update(ctx context.Context, req re
 }
 
 // Delete deletes a smart computer group resource from Jamf Pro.
-func (r *smartComputerGroupFrameworkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object smartComputerGroupResourceModel
+func (r *smartComputerGroupV2FrameworkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object smartComputerGroupV2ResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 

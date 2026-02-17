@@ -11,25 +11,25 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-var _ datasource.DataSource = &smartComputerGroupFrameworkDataSource{}
+var _ datasource.DataSource = &smartComputerGroupV2FrameworkDataSource{}
 
-// smartComputerGroupFrameworkDataSource defines the data source implementation.
-type smartComputerGroupFrameworkDataSource struct {
+// smartComputerGroupV2FrameworkDataSource defines the data source implementation.
+type smartComputerGroupV2FrameworkDataSource struct {
 	client *jamfpro.Client
 }
 
-// NewSmartComputerGroupFrameworkDataSource creates a new instance of the data source.
-func NewSmartComputerGroupFrameworkDataSource() datasource.DataSource {
-	return &smartComputerGroupFrameworkDataSource{}
+// NewSmartComputerGroupV2FrameworkDataSource creates a new instance of the data source.
+func NewSmartComputerGroupV2FrameworkDataSource() datasource.DataSource {
+	return &smartComputerGroupV2FrameworkDataSource{}
 }
 
 // Metadata returns the data source type name.
-func (d *smartComputerGroupFrameworkDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *smartComputerGroupV2FrameworkDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_smart_computer_group"
 }
 
 // Configure adds the provider configured client to the data source.
-func (d *smartComputerGroupFrameworkDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *smartComputerGroupV2FrameworkDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -47,7 +47,7 @@ func (d *smartComputerGroupFrameworkDataSource) Configure(ctx context.Context, r
 }
 
 // Schema defines the schema for the data source.
-func (d *smartComputerGroupFrameworkDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *smartComputerGroupV2FrameworkDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Data source for retrieving a Jamf Pro Smart Computer Group using the `/api/v2/computer-groups/smart-groups` endpoint.",
 		Attributes: map[string]schema.Attribute{

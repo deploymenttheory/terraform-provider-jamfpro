@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
-// constructResource constructs a ResourceSmartMobileDeviceGroupV2 object from the provided framework resource model.
-func constructResource(ctx context.Context, data *smartMobileDeviceGroupResourceModel) (*jamfpro.ResourceSmartMobileDeviceGroupV1, diag.Diagnostics) {
+// constructResource constructs a ResourceSmartMobileDeviceGroupV1 object from the provided framework resource model.
+func constructResource(ctx context.Context, data *smartMobileDeviceGroupV1ResourceModel) (*jamfpro.ResourceSmartMobileDeviceGroupV1, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	resource := &jamfpro.ResourceSmartMobileDeviceGroupV1{
@@ -21,7 +21,7 @@ func constructResource(ctx context.Context, data *smartMobileDeviceGroupResource
 		SiteId:           data.SiteID.ValueStringPointer(),
 	}
 
-	criteriaModels, critDiags := schemahelpers.Expand[smartMobileDeviceGroupCriteriaDataModel](ctx, data.Criteria)
+	criteriaModels, critDiags := schemahelpers.Expand[smartMobileDeviceGroupV1CriteriaDataModel](ctx, data.Criteria)
 	diags.Append(critDiags...)
 	if diags.HasError() {
 		return nil, diags

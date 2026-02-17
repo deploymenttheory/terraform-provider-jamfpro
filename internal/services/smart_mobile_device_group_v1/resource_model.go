@@ -5,8 +5,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// smartMobileDeviceGroupResourceModel describes the resource data model.
-type smartMobileDeviceGroupResourceModel struct {
+// smartMobileDeviceGroupV1ResourceModel describes the resource data model.
+type smartMobileDeviceGroupV1ResourceModel struct {
 	ID          types.String   `tfsdk:"id"`
 	Name        types.String   `tfsdk:"name"`
 	Description types.String   `tfsdk:"description"`
@@ -15,8 +15,8 @@ type smartMobileDeviceGroupResourceModel struct {
 	Timeouts    timeouts.Value `tfsdk:"timeouts"`
 }
 
-// smartMobileDeviceGroupCriteriaDataModel describes the criteria data model.
-type smartMobileDeviceGroupCriteriaDataModel struct {
+// smartMobileDeviceGroupV1CriteriaDataModel describes the criteria data model.
+type smartMobileDeviceGroupV1CriteriaDataModel struct {
 	Name         types.String `tfsdk:"name"`
 	Priority     types.Int32  `tfsdk:"priority"`
 	AndOr        types.String `tfsdk:"and_or"`

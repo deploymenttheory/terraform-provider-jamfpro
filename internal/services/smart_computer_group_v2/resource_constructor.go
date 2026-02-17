@@ -12,7 +12,7 @@ import (
 )
 
 // constructResource constructs a ResourceSmartComputerGroupV2 object from the provided framework resource model.
-func constructResource(ctx context.Context, data *smartComputerGroupResourceModel) (*jamfpro.ResourceSmartComputerGroupV2, diag.Diagnostics) {
+func constructResource(ctx context.Context, data *smartComputerGroupV2ResourceModel) (*jamfpro.ResourceSmartComputerGroupV2, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	resource := &jamfpro.ResourceSmartComputerGroupV2{
@@ -21,7 +21,7 @@ func constructResource(ctx context.Context, data *smartComputerGroupResourceMode
 		SiteId:      data.SiteID.ValueStringPointer(),
 	}
 
-	criteriaModels, critDiags := schemahelpers.Expand[smartComputerGroupCriteriaDataModel](ctx, data.Criteria)
+	criteriaModels, critDiags := schemahelpers.Expand[smartComputerGroupV2CriteriaDataModel](ctx, data.Criteria)
 	diags.Append(critDiags...)
 	if diags.HasError() {
 		return nil, diags

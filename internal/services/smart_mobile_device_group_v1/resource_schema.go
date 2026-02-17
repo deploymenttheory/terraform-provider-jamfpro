@@ -22,27 +22,26 @@ const (
 
 // Ensure provider defined types fully satisfy framework interfaces.
 var (
-	_ resource.Resource                 = &smartMobileDeviceGroupFrameworkResource{}
-	_ resource.ResourceWithConfigure    = &smartMobileDeviceGroupFrameworkResource{}
-	_ resource.ResourceWithImportState  = &smartMobileDeviceGroupFrameworkResource{}
-	_ resource.ResourceWithUpgradeState = &smartMobileDeviceGroupFrameworkResource{}
+	_ resource.Resource                = &smartMobileDeviceGroupV1FrameworkResource{}
+	_ resource.ResourceWithConfigure   = &smartMobileDeviceGroupV1FrameworkResource{}
+	_ resource.ResourceWithImportState = &smartMobileDeviceGroupV1FrameworkResource{}
 )
 
-// NewSmartMobileDeviceGroupFrameworkResource is a helper function to simplify the provider implementation.
-func NewSmartMobileDeviceGroupFrameworkResource() resource.Resource {
-	return &smartMobileDeviceGroupFrameworkResource{}
+// NewSmartMobileDeviceGroupV1FrameworkResource is a helper function to simplify the provider implementation.
+func NewSmartMobileDeviceGroupV1FrameworkResource() resource.Resource {
+	return &smartMobileDeviceGroupV1FrameworkResource{}
 }
 
-// smartMobileDeviceGroupFrameworkResource defines the resource implementation.
-type smartMobileDeviceGroupFrameworkResource struct {
+// smartMobileDeviceGroupV1FrameworkResource defines the resource implementation.
+type smartMobileDeviceGroupV1FrameworkResource struct {
 	client *jamfpro.Client
 }
 
-func (r *smartMobileDeviceGroupFrameworkResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_smart_mobile_device_group"
+func (r *smartMobileDeviceGroupV1FrameworkResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_smart_mobile_device_group_v1"
 }
 
-func (r *smartMobileDeviceGroupFrameworkResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *smartMobileDeviceGroupV1FrameworkResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -59,11 +58,11 @@ func (r *smartMobileDeviceGroupFrameworkResource) Configure(_ context.Context, r
 	r.client = client
 }
 
-func (r *smartMobileDeviceGroupFrameworkResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *smartMobileDeviceGroupV1FrameworkResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func (r *smartMobileDeviceGroupFrameworkResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *smartMobileDeviceGroupV1FrameworkResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Version:             1,
 		MarkdownDescription: "Manages a Jamf Pro Smart Mobile Device Group using the `/api/v1/mobile-device-groups/smart-groups` endpoint.",

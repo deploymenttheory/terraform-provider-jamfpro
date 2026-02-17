@@ -13,8 +13,8 @@ import (
 )
 
 // Read fetches the smart mobile device group data from Jamf Pro.
-func (d *smartMobileDeviceGroupFrameworkDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data smartMobileDeviceGroupDataSourceModel
+func (d *smartMobileDeviceGroupV1FrameworkDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data smartMobileDeviceGroupV1DataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
@@ -104,9 +104,9 @@ func (d *smartMobileDeviceGroupFrameworkDataSource) Read(ctx context.Context, re
 		data.SiteID = types.StringNull()
 	}
 
-	criteriaModels := make([]smartMobileDeviceGroupCriteriaDataModel, 0, len(resource.Criteria))
+	criteriaModels := make([]smartMobileDeviceGroupV1CriteriaDataModel, 0, len(resource.Criteria))
 	for _, criterion := range resource.Criteria {
-		criteriaModel := smartMobileDeviceGroupCriteriaDataModel{
+		criteriaModel := smartMobileDeviceGroupV1CriteriaDataModel{
 			Name:       types.StringValue(criterion.Name),
 			Priority:   types.Int32Value(int32(criterion.Priority)),
 			AndOr:      types.StringValue(strings.ToLower(criterion.AndOr)),

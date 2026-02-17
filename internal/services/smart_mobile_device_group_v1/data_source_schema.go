@@ -11,25 +11,25 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-var _ datasource.DataSource = &smartMobileDeviceGroupFrameworkDataSource{}
+var _ datasource.DataSource = &smartMobileDeviceGroupV1FrameworkDataSource{}
 
-// smartMobileDeviceGroupFrameworkDataSource defines the data source implementation.
-type smartMobileDeviceGroupFrameworkDataSource struct {
+// smartMobileDeviceGroupV1FrameworkDataSource defines the data source implementation.
+type smartMobileDeviceGroupV1FrameworkDataSource struct {
 	client *jamfpro.Client
 }
 
-// NewSmartMobileDeviceGroupFrameworkDataSource creates a new instance of the data source.
-func NewSmartMobileDeviceGroupFrameworkDataSource() datasource.DataSource {
-	return &smartMobileDeviceGroupFrameworkDataSource{}
+// NewSmartMobileDeviceGroupV1FrameworkDataSource creates a new instance of the data source.
+func NewSmartMobileDeviceGroupV1FrameworkDataSource() datasource.DataSource {
+	return &smartMobileDeviceGroupV1FrameworkDataSource{}
 }
 
 // Metadata returns the data source type name.
-func (d *smartMobileDeviceGroupFrameworkDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *smartMobileDeviceGroupV1FrameworkDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_smart_mobile_device_group"
 }
 
 // Configure adds the provider configured client to the data source.
-func (d *smartMobileDeviceGroupFrameworkDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *smartMobileDeviceGroupV1FrameworkDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -47,7 +47,7 @@ func (d *smartMobileDeviceGroupFrameworkDataSource) Configure(ctx context.Contex
 }
 
 // Schema defines the schema for the data source.
-func (d *smartMobileDeviceGroupFrameworkDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *smartMobileDeviceGroupV1FrameworkDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Data source for retrieving a Jamf Pro Smart Mobile Device Group using the `/api/v1/mobile-device-groups/smart-groups` endpoint.",
 		Attributes: map[string]schema.Attribute{

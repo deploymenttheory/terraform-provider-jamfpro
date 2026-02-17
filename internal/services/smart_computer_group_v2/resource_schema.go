@@ -22,27 +22,26 @@ const (
 
 // Ensure provider defined types fully satisfy framework interfaces.
 var (
-	_ resource.Resource                 = &smartComputerGroupFrameworkResource{}
-	_ resource.ResourceWithConfigure    = &smartComputerGroupFrameworkResource{}
-	_ resource.ResourceWithImportState  = &smartComputerGroupFrameworkResource{}
-	_ resource.ResourceWithUpgradeState = &smartComputerGroupFrameworkResource{}
+	_ resource.Resource                = &smartComputerGroupV2FrameworkResource{}
+	_ resource.ResourceWithConfigure   = &smartComputerGroupV2FrameworkResource{}
+	_ resource.ResourceWithImportState = &smartComputerGroupV2FrameworkResource{}
 )
 
-// NewSmartComputerGroupFrameworkResource is a helper function to simplify the provider implementation.
-func NewSmartComputerGroupFrameworkResource() resource.Resource {
-	return &smartComputerGroupFrameworkResource{}
+// NewSmartComputerGroupV2FrameworkResource is a helper function to simplify the provider implementation.
+func NewSmartComputerGroupV2FrameworkResource() resource.Resource {
+	return &smartComputerGroupV2FrameworkResource{}
 }
 
-// smartComputerGroupFrameworkResource defines the resource implementation.
-type smartComputerGroupFrameworkResource struct {
+// smartComputerGroupV2FrameworkResource defines the resource implementation.
+type smartComputerGroupV2FrameworkResource struct {
 	client *jamfpro.Client
 }
 
-func (r *smartComputerGroupFrameworkResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_smart_computer_group"
+func (r *smartComputerGroupV2FrameworkResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_smart_computer_group_v2"
 }
 
-func (r *smartComputerGroupFrameworkResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *smartComputerGroupV2FrameworkResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -59,11 +58,11 @@ func (r *smartComputerGroupFrameworkResource) Configure(_ context.Context, req r
 	r.client = client
 }
 
-func (r *smartComputerGroupFrameworkResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *smartComputerGroupV2FrameworkResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func (r *smartComputerGroupFrameworkResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *smartComputerGroupV2FrameworkResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Version:             1,
 		MarkdownDescription: "Manages a Jamf Pro Smart Computer Group using the `/api/v2/computer-groups/smart-groups` endpoint.",

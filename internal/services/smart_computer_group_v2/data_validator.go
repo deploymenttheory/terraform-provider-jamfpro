@@ -9,22 +9,22 @@ import (
 )
 
 // Ensure the resource implements the ResourceWithConfigValidators interface
-var _ resource.ResourceWithConfigValidators = &smartComputerGroupFrameworkResource{}
+var _ resource.ResourceWithConfigValidators = &smartComputerGroupV2FrameworkResource{}
 
 // ConfigValidators returns a list of config validators for the resource
-func (r *smartComputerGroupFrameworkResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
+func (r *smartComputerGroupV2FrameworkResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
 	return []resource.ConfigValidator{
-		validation.IncrementingInt32SequenceValidator[smartComputerGroupResourceModel]{},
+		validation.IncrementingInt32SequenceValidator[smartComputerGroupV2ResourceModel]{},
 	}
 }
 
 // GetInt32Sequence exposes the priority sequence for validation.
-func (m smartComputerGroupResourceModel) GetInt32Sequence() []int32 {
+func (m smartComputerGroupV2ResourceModel) GetInt32Sequence() []int32 {
 	if m.Criteria.IsNull() || m.Criteria.IsUnknown() {
 		return nil
 	}
 
-	criteria, diags := schemahelpers.Expand[smartComputerGroupCriteriaDataModel](context.Background(), m.Criteria)
+	criteria, diags := schemahelpers.Expand[smartComputerGroupV2CriteriaDataModel](context.Background(), m.Criteria)
 	if diags.HasError() {
 		return nil
 	}

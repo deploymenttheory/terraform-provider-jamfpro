@@ -12,8 +12,8 @@ import (
 )
 
 // Create creates a new smart mobile device group resource in Jamf Pro.
-func (r *smartMobileDeviceGroupFrameworkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object smartMobileDeviceGroupResourceModel
+func (r *smartMobileDeviceGroupV1FrameworkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object smartMobileDeviceGroupV1ResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
@@ -74,8 +74,8 @@ func (r *smartMobileDeviceGroupFrameworkResource) Create(ctx context.Context, re
 }
 
 // Read reads the current state of a smart mobile device group resource from Jamf Pro.
-func (r *smartMobileDeviceGroupFrameworkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object smartMobileDeviceGroupResourceModel
+func (r *smartMobileDeviceGroupV1FrameworkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object smartMobileDeviceGroupV1ResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
@@ -117,9 +117,9 @@ func (r *smartMobileDeviceGroupFrameworkResource) Read(ctx context.Context, req 
 }
 
 // Update updates an existing smart mobile device group resource in Jamf Pro.
-func (r *smartMobileDeviceGroupFrameworkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan smartMobileDeviceGroupResourceModel
-	var state smartMobileDeviceGroupResourceModel
+func (r *smartMobileDeviceGroupV1FrameworkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan smartMobileDeviceGroupV1ResourceModel
+	var state smartMobileDeviceGroupV1ResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update method for: %s", ResourceName))
 
@@ -180,8 +180,8 @@ func (r *smartMobileDeviceGroupFrameworkResource) Update(ctx context.Context, re
 }
 
 // Delete deletes a smart mobile device group resource from Jamf Pro.
-func (r *smartMobileDeviceGroupFrameworkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object smartMobileDeviceGroupResourceModel
+func (r *smartMobileDeviceGroupV1FrameworkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object smartMobileDeviceGroupV1ResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 

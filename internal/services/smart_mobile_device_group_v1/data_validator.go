@@ -9,22 +9,22 @@ import (
 )
 
 // Ensure the resource implements the ResourceWithConfigValidators interface
-var _ resource.ResourceWithConfigValidators = &smartMobileDeviceGroupFrameworkResource{}
+var _ resource.ResourceWithConfigValidators = &smartMobileDeviceGroupV1FrameworkResource{}
 
 // ConfigValidators returns a list of config validators for the resource
-func (r *smartMobileDeviceGroupFrameworkResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
+func (r *smartMobileDeviceGroupV1FrameworkResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
 	return []resource.ConfigValidator{
-		validation.IncrementingInt32SequenceValidator[smartMobileDeviceGroupResourceModel]{},
+		validation.IncrementingInt32SequenceValidator[smartMobileDeviceGroupV1ResourceModel]{},
 	}
 }
 
 // GetInt32Sequence exposes the priority sequence for validation.
-func (m smartMobileDeviceGroupResourceModel) GetInt32Sequence() []int32 {
+func (m smartMobileDeviceGroupV1ResourceModel) GetInt32Sequence() []int32 {
 	if m.Criteria.IsNull() || m.Criteria.IsUnknown() {
 		return nil
 	}
 
-	criteria, diags := schemahelpers.Expand[smartMobileDeviceGroupCriteriaDataModel](context.Background(), m.Criteria)
+	criteria, diags := schemahelpers.Expand[smartMobileDeviceGroupV1CriteriaDataModel](context.Background(), m.Criteria)
 	if diags.HasError() {
 		return nil
 	}
