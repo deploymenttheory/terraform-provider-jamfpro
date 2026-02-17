@@ -38,9 +38,9 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceGroup, erro
 
 // constructMobileGroupSubsetContainerCriteria constructs a SharedContainerCriteria object from the provided schema data.
 func constructMobileGroupSubsetContainerCriteria(criteriaList []any) *jamfpro.SharedContainerCriteria {
-	criteria := jamfpro.SharedContainerCriteria{
+	criteria := &jamfpro.SharedContainerCriteria{
 		Size:      len(criteriaList),
-		Criterion: []jamfpro.SharedSubsetCriteria{},
+		Criterion: &[]jamfpro.SharedSubsetCriteria{},
 	}
 
 	for _, item := range criteriaList {
@@ -54,7 +54,7 @@ func constructMobileGroupSubsetContainerCriteria(criteriaList []any) *jamfpro.Sh
 			OpeningParen: criterionData["opening_paren"].(bool),
 			ClosingParen: criterionData["closing_paren"].(bool),
 		}
-		criteria.Criterion = append(criteria.Criterion, criterion)
+		*criteria.Criterion = append(*criteria.Criterion, criterion)
 	}
 
 	return &criteria

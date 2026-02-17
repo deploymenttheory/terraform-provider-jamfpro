@@ -490,16 +490,20 @@ func constructPayloadAccountMaintenance(d *schema.ResourceData, resource *jamfpr
 
 		// Handle directory bindings
 		if directoryBindings, ok := data["directory_bindings"]; ok && len(directoryBindings.([]any)) > 0 {
-			directoryBindingsList := directoryBindings.([]any)
 			bindings := []jamfpro.PolicySubsetAccountMaintenanceDirectoryBindings{}
-			for _, binding := range directoryBindingsList {
-				bindingData := binding.(map[string]any)
-				bindings = append(bindings, jamfpro.PolicySubsetAccountMaintenanceDirectoryBindings{
-					ID:   bindingData["id"].(int),
-					Name: bindingData["name"].(string),
-				})
+			for _, bindingGroup := range directoryBindings.([]any) {
+				bindingGroupData := bindingGroup.(map[string]any)
+				bindingItems, _ := bindingGroupData["binding"].([]any)
+				for _, binding := range bindingItems {
+					bindingData := binding.(map[string]any)
+					bindings = append(bindings, jamfpro.PolicySubsetAccountMaintenanceDirectoryBindings{
+						Name: bindingData["name"].(string),
+					})
+				}
 			}
-			outBlock.DirectoryBindings = &bindings
+			if len(bindings) > 0 {
+				outBlock.DirectoryBindings = &bindings
+			}
 		}
 
 		// Handle management account

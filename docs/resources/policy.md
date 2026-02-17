@@ -160,7 +160,7 @@ resource "jamfpro_policy" "jamfpro_policy_001" {
       }
       directory_bindings {
         binding {
-          id = 1
+          name = "Legacy Active Directory Domain"
         }
       }
 
@@ -304,11 +304,7 @@ Optional:
 <a id="nestedblock--payloads--account_maintenance--directory_bindings--binding"></a>
 ### Nested Schema for `payloads.account_maintenance.directory_bindings.binding`
 
-Optional:
-
-- `id` (Number) The unique identifier of the binding.
-
-Read-Only:
+Required:
 
 - `name` (String) The name of the binding.
 
