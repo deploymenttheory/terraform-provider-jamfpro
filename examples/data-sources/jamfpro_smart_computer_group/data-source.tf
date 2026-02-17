@@ -38,18 +38,16 @@ data "jamfpro_smart_computer_group" "by_name" {
 output "group_verification" {
   value = {
     by_id = {
-      id          = data.jamfpro_smart_computer_group.by_id.id
-      name        = data.jamfpro_smart_computer_group.by_id.name
-      description = data.jamfpro_smart_computer_group.by_id.description
-      site_id     = data.jamfpro_smart_computer_group.by_id.site_id
-      criteria    = data.jamfpro_smart_computer_group.by_id.criteria
+      id       = data.jamfpro_smart_computer_group.by_id.id
+      name     = data.jamfpro_smart_computer_group.by_id.name
+      site_id  = data.jamfpro_smart_computer_group.by_id.site_id
+      criteria = data.jamfpro_smart_computer_group.by_id.criteria
     }
     by_name = {
-      id          = data.jamfpro_smart_computer_group.by_name.id
-      name        = data.jamfpro_smart_computer_group.by_name.name
-      description = data.jamfpro_smart_computer_group.by_name.description
-      site_id     = data.jamfpro_smart_computer_group.by_name.site_id
-      criteria    = data.jamfpro_smart_computer_group.by_name.criteria
+      id       = data.jamfpro_smart_computer_group.by_name.id
+      name     = data.jamfpro_smart_computer_group.by_name.name
+      site_id  = data.jamfpro_smart_computer_group.by_name.site_id
+      criteria = data.jamfpro_smart_computer_group.by_name.criteria
     }
   }
 }
