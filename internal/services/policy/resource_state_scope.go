@@ -88,7 +88,7 @@ func stateScope(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *dia
 		for _, v := range *resp.Scope.Limitations.Users {
 			listOfNames = append(listOfNames, v.Name)
 		}
-		out_scope_limitations[0]["user_names"] = listOfNames
+		out_scope_limitations[0]["directory_service_or_local_usernames"] = listOfNames
 		limitationsSet = true
 	}
 

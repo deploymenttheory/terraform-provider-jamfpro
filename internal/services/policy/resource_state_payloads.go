@@ -237,7 +237,6 @@ func prepStatePayloadAccountMaintenance(out *[]map[string]any, resp *jamfpro.Res
 		directoryBindings := make([]map[string]any, 0)
 		for _, v := range *resp.AccountMaintenance.DirectoryBindings {
 			bindingMap := make(map[string]any)
-			bindingMap["id"] = v.ID
 			bindingMap["name"] = v.Name
 
 			directoryBindings = append(directoryBindings, bindingMap)

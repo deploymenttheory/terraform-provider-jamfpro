@@ -40,7 +40,7 @@ func setMobileSmartGroupSubsetContainerCriteria(criteria jamfpro.SharedContainer
 	}
 
 	var criteriaList []any
-	for _, criterion := range criteria.Criterion {
+	for _, criterion := range *criteria.Criterion {
 		criterionMap := map[string]any{
 			"name":          criterion.Name,
 			"priority":      criterion.Priority,
