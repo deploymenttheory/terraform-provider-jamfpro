@@ -76,6 +76,7 @@ jobs:
         branch: auto-docs-update
         delete-branch: true
         title: 'chore: Auto-update documentation and format files'
+        base: main
         body: |
           Automated changes by GitHub Actions:
           - Updated Go documentation (go generate)
