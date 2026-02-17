@@ -65,20 +65,29 @@ jobs:
           echo "changes=false" >> $GITHUB_OUTPUT
         fi
 
-    - name: Commit changes in Go + provider docs and Terraform formatting
+    - name: Create Pull Request with documentation updates
       if: steps.go-gen-check.outputs.changes == 'true'
-      uses: stefanzweifel/git-auto-commit-action@v7.1.0
+      uses: peter-evans/create-pull-request@v8.1.0
       with:
-        commit_message: "chore: update go documentation, provider documentation and format terraform files"
-        file_pattern: '**/*.go **/*.tf docs/**/*'
+        commit-message: 'chore: update go documentation, provider documentation and format terraform files'
+        committer: GitHub Actions Bot <github-actions[bot]@users.noreply.github.com>
+        author: GitHub Actions Bot <github-actions[bot]@users.noreply.github.com>
+        signoff: true
+        branch: auto-docs-update
+        delete-branch: true
+        title: 'chore: Auto-update documentation and format files'
+        base: main
+        body: |
+          Automated changes by GitHub Actions:
+          - Updated Go documentation (go generate)
+          - Updated provider documentation (tfplugindocs)
+          - Formatted Terraform files
 
-        commit_options: '--no-verify --signoff'
-        commit_user_name: "GitHub Actions Bot"
-        commit_user_email: "github-actions[bot]@users.noreply.github.com"
-        commit_author: "GitHub Actions Bot <github-actions[bot]@users.noreply.github.com>"
-        status_options: '--untracked-files=no'
-        add_options: '-u'
-        push_options: '--force'
-        skip_dirty_check: false
-        skip_fetch: true
-        skip_checkout: true
+          This PR was automatically created by the [Generate Docs workflow](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+        labels: |
+          documentation
+          automated
+        add-paths: |
+          **/*.go
+          **/*.tf
+          docs/**/*
