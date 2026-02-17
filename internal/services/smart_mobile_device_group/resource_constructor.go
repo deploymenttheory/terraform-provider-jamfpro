@@ -1,67 +1,61 @@
 package smart_mobile_device_group
 
 import (
-	"context"
-	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	schemahelpers "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/schema/helpers"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// constructResource constructs a ResourceSmartMobileDeviceGroupV2 object from the provided framework resource model.
-func constructResource(ctx context.Context, data *smartMobileDeviceGroupResourceModel) (*jamfpro.ResourceSmartMobileDeviceGroupV1, diag.Diagnostics) {
-	var diags diag.Diagnostics
+// constructJamfProSmartMobileGroup constructs a ResourceMobileDeviceGroup object from the provided schema data.
+func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceGroup, error) {
+	resource := &jamfpro.ResourceMobileDeviceGroup{
+		Name:    d.Get("name").(string),
+		IsSmart: true,
+	}
+	if (d.Get("site_id").(int)) == 0 || (d.Get("site_id").(int)) == -1 {
+		resource.Site = &jamfpro.SharedResourceSite{ID: -1, Name: ""}
 
-	resource := &jamfpro.ResourceSmartMobileDeviceGroupV1{
-		GroupName:        data.Name.ValueString(),
-		GroupDescription: data.Description.ValueString(),
-		SiteId:           data.SiteID.ValueStringPointer(),
+	} else {
+		resource.Site = &jamfpro.SharedResourceSite{ID: (d.Get("site_id").(int))}
 	}
 
-	criteriaModels, critDiags := schemahelpers.Expand[smartMobileDeviceGroupCriteriaDataModel](ctx, data.Criteria)
-	diags.Append(critDiags...)
-	if diags.HasError() {
-		return nil, diags
+	if v, ok := d.GetOk("criteria"); ok {
+		resource.Criteria = constructMobileGroupSubsetContainerCriteria(v.([]any))
 	}
 
-	if len(criteriaModels) > 0 {
-		resource.Criteria = make([]jamfpro.SharedSubsetCriteriaJamfProAPI, len(criteriaModels))
-		for i, criterion := range criteriaModels {
-			apiCriterion := jamfpro.SharedSubsetCriteriaJamfProAPI{
-				Name:       criterion.Name.ValueString(),
-				Priority:   int(criterion.Priority.ValueInt32()),
-				AndOr:      criterion.AndOr.ValueString(),
-				SearchType: criterion.SearchType.ValueString(),
-				Value:      criterion.Value.ValueString(),
-			}
-
-			if !criterion.OpeningParen.IsNull() && !criterion.OpeningParen.IsUnknown() {
-				val := criterion.OpeningParen.ValueBool()
-				apiCriterion.OpeningParen = &val
-			}
-
-			if !criterion.ClosingParen.IsNull() && !criterion.ClosingParen.IsUnknown() {
-				val := criterion.ClosingParen.ValueBool()
-				apiCriterion.ClosingParen = &val
-			}
-
-			resource.Criteria[i] = apiCriterion
-		}
-	}
-
-	resourceJSON, err := json.MarshalIndent(resource, "", "  ")
+	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		diags.AddError(
-			"Failed to marshal Smart Mobile Device Group",
-			fmt.Sprintf("Failed to marshal Smart Mobile Device Group '%s' to JSON: %v", resource.GroupName, err),
-		)
-		return nil, diags
+		return nil, fmt.Errorf("failed to marshal Jamf Pro Mobile Group '%s' to XML: %v", resource.Name, err)
 	}
 
-	log.Printf("[DEBUG] Constructed Smart Mobile Device Group JSON:\n%s\n", string(resourceJSON))
+	log.Printf("[DEBUG] Constructed Jamf Pro Mobile Device Group XML:\n%s\n", string(resourceXML))
 
-	return resource, diags
+	return resource, nil
+}
+
+// constructMobileGroupSubsetContainerCriteria constructs a SharedContainerCriteria object from the provided schema data.
+func constructMobileGroupSubsetContainerCriteria(criteriaList []any) *jamfpro.SharedContainerCriteria {
+	criteria := &jamfpro.SharedContainerCriteria{
+		Size:      len(criteriaList),
+		Criterion: &[]jamfpro.SharedSubsetCriteria{},
+	}
+
+	for _, item := range criteriaList {
+		criterionData := item.(map[string]any)
+		criterion := jamfpro.SharedSubsetCriteria{
+			Name:         criterionData["name"].(string),
+			Priority:     criterionData["priority"].(int),
+			AndOr:        criterionData["and_or"].(string),
+			SearchType:   criterionData["search_type"].(string),
+			Value:        criterionData["value"].(string),
+			OpeningParen: criterionData["opening_paren"].(bool),
+			ClosingParen: criterionData["closing_paren"].(bool),
+		}
+		*criteria.Criterion = append(*criteria.Criterion, criterion)
+	}
+
+	return criteria
 }

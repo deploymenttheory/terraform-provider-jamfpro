@@ -1,66 +1,59 @@
+// smartcomputergroup_state.go
 package smart_computer_group
 
 import (
-	"context"
-	"strings"
-
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	schemahelpers "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/schema/helpers"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// state updates the Terraform model with the latest Smart Computer Group V2 information from the Jamf Pro API.
-func state(ctx context.Context, data *smartComputerGroupResourceModel, resourceID string, resp *jamfpro.ResourceSmartComputerGroupV2) diag.Diagnostics {
+// updateState updates the Terraform state with the provided ResourceComputerGroup object.
+func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerGroup) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	data.ID = types.StringValue(resourceID)
-	data.Name = types.StringValue(resp.Name)
+	if err := d.Set("name", resp.Name); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("is_smart", resp.IsSmart); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
-	if resp.Description == "" && (data.Description.IsNull() || data.Description.IsUnknown()) {
-		data.Description = types.StringNull()
+	d.Set("site_id", resp.Site.ID)
+
+	if resp.Criteria != nil && resp.Criteria.Criterion != nil {
+		criteria := setComputerSmartGroupSubsetContainerCriteria(resp.Criteria)
+		if err := d.Set("criteria", criteria); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	} else {
-		data.Description = types.StringValue(resp.Description)
-	}
-
-	if resp.SiteId != nil && *resp.SiteId != "" {
-		data.SiteID = types.StringValue(*resp.SiteId)
-	} else {
-		data.SiteID = types.StringNull()
-	}
-
-	criteriaModels := make([]smartComputerGroupCriteriaDataModel, 0, len(resp.Criteria))
-	for _, criterion := range resp.Criteria {
-		criteriaModel := smartComputerGroupCriteriaDataModel{
-			Name:       types.StringValue(criterion.Name),
-			Priority:   types.Int32Value(int32(criterion.Priority)),
-			AndOr:      types.StringValue(strings.ToLower(criterion.AndOr)),
-			SearchType: types.StringValue(criterion.SearchType),
-			Value:      types.StringValue(criterion.Value),
+		if err := d.Set("criteria", []any{}); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
 		}
-
-		if criterion.OpeningParen != nil {
-			criteriaModel.OpeningParen = types.BoolValue(*criterion.OpeningParen)
-		} else {
-			criteriaModel.OpeningParen = types.BoolValue(false)
-		}
-
-		if criterion.ClosingParen != nil {
-			criteriaModel.ClosingParen = types.BoolValue(*criterion.ClosingParen)
-		} else {
-			criteriaModel.ClosingParen = types.BoolValue(false)
-		}
-
-		criteriaModels = append(criteriaModels, criteriaModel)
 	}
-
-	criteriaList, criteriaDiags := schemahelpers.Flatten(ctx, criteriaModels)
-	diags.Append(criteriaDiags...)
-	if diags.HasError() {
-		return diags
-	}
-
-	data.Criteria = criteriaList
 
 	return diags
+}
+
+// setComputerSmartGroupSubsetContainerCriteria flattens a ComputerGroupSubsetContainerCriteria object into a format suitable for Terraform state.
+func setComputerSmartGroupSubsetContainerCriteria(criteria *jamfpro.ComputerGroupSubsetContainerCriteria) []any {
+	// TODO Review this!
+	if criteria == nil || criteria.Criterion == nil {
+		return []any{}
+	}
+
+	var criteriaList []any
+	for _, criterion := range *criteria.Criterion {
+		criterionMap := map[string]any{
+			"name":          criterion.Name,
+			"priority":      criterion.Priority,
+			"and_or":        criterion.AndOr,
+			"search_type":   criterion.SearchType,
+			"value":         criterion.Value,
+			"opening_paren": criterion.OpeningParen,
+			"closing_paren": criterion.ClosingParen,
+		}
+		criteriaList = append(criteriaList, criterionMap)
+	}
+
+	return criteriaList
 }

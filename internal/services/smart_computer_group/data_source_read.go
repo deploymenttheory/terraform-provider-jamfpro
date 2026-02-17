@@ -3,138 +3,55 @@ package smart_computer_group
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	schemahelpers "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/schema/helpers"
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// Read fetches the smart computer group data from Jamf Pro.
-func (d *smartComputerGroupFrameworkDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data smartComputerGroupDataSourceModel
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	client := meta.(*jamfpro.Client)
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
+	resourceID := d.Get("id").(string)
+	name := d.Get("name").(string)
+
+	if resourceID == "" && name == "" {
+		return diag.FromErr(fmt.Errorf("either 'id' or 'name' must be provided"))
 	}
 
-	resourceID := data.ID.ValueString()
-	name := data.Name.ValueString()
+	var resource *jamfpro.ResourceComputerGroup
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+		var apiErr error
 
-	var resource *jamfpro.ResourceSmartComputerGroupV2
-
-	switch {
-	case resourceID != "":
-		tflog.Debug(ctx, fmt.Sprintf("Reading Smart Computer Group by ID: %s", resourceID))
-		fetchedResource, err := d.client.GetSmartComputerGroupByIDV2(resourceID)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error Reading Smart Computer Group",
-				fmt.Sprintf("Failed to read Smart Computer Group with ID '%s': %v", resourceID, err),
-			)
-			return
-		}
-		if fetchedResource == nil {
-			resp.Diagnostics.AddError(
-				"Resource Not Found",
-				fmt.Sprintf("Smart Computer Group with ID '%s' was not found", resourceID),
-			)
-			return
-		}
-		resource = fetchedResource
-	case name != "":
-		tflog.Debug(ctx, fmt.Sprintf("Looking up Smart Computer Group by name: %s", name))
-		listItem, err := d.client.GetSmartComputerGroupByNameV2(name)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error Finding Smart Computer Group",
-				fmt.Sprintf("Failed to find Smart Computer Group with name '%s': %v", name, err),
-			)
-			return
-		}
-		if listItem == nil {
-			resp.Diagnostics.AddError(
-				"Resource Not Found",
-				fmt.Sprintf("Smart Computer Group with name '%s' was not found", name),
-			)
-			return
-		}
-		resourceID = listItem.ID
-		tflog.Debug(ctx, fmt.Sprintf("Reading Smart Computer Group by ID: %s", resourceID))
-		fetchedResource, err := d.client.GetSmartComputerGroupByIDV2(resourceID)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error Reading Smart Computer Group",
-				fmt.Sprintf("Failed to read Smart Computer Group with ID '%s': %v", resourceID, err),
-			)
-			return
-		}
-		if fetchedResource == nil {
-			resp.Diagnostics.AddError(
-				"Resource Not Found",
-				fmt.Sprintf("Smart Computer Group with ID '%s' was not found", resourceID),
-			)
-			return
-		}
-		resource = fetchedResource
-	default:
-		resp.Diagnostics.AddError(
-			"Missing Required Attribute",
-			"Either 'id' or 'name' must be provided",
-		)
-		return
-	}
-
-	data.ID = types.StringValue(resourceID)
-
-	data.Name = types.StringValue(resource.Name)
-
-	if resource.Description != "" {
-		data.Description = types.StringValue(resource.Description)
-	} else {
-		data.Description = types.StringNull()
-	}
-
-	if resource.SiteId != nil && *resource.SiteId != "" {
-		data.SiteID = types.StringValue(*resource.SiteId)
-	} else {
-		data.SiteID = types.StringNull()
-	}
-
-	criteriaModels := make([]smartComputerGroupCriteriaDataModel, 0, len(resource.Criteria))
-	for _, criterion := range resource.Criteria {
-		criteriaModel := smartComputerGroupCriteriaDataModel{
-			Name:       types.StringValue(criterion.Name),
-			Priority:   types.Int32Value(int32(criterion.Priority)),
-			AndOr:      types.StringValue(strings.ToLower(criterion.AndOr)),
-			SearchType: types.StringValue(criterion.SearchType),
-			Value:      types.StringValue(criterion.Value),
-		}
-
-		if criterion.OpeningParen != nil {
-			criteriaModel.OpeningParen = types.BoolValue(*criterion.OpeningParen)
+		if name != "" {
+			resource, apiErr = client.GetComputerGroupByName(name)
 		} else {
-			criteriaModel.OpeningParen = types.BoolValue(false)
+			resource, apiErr = client.GetComputerGroupByID(resourceID)
 		}
 
-		if criterion.ClosingParen != nil {
-			criteriaModel.ClosingParen = types.BoolValue(*criterion.ClosingParen)
-		} else {
-			criteriaModel.ClosingParen = types.BoolValue(false)
+		if apiErr != nil {
+			return retry.RetryableError(apiErr)
 		}
+		return nil
+	})
 
-		criteriaModels = append(criteriaModels, criteriaModel)
+	if err != nil {
+		lookupMethod := "ID"
+		lookupValue := resourceID
+		if name != "" {
+			lookupMethod = "name"
+			lookupValue = name
+		}
+		return diag.FromErr(fmt.Errorf("failed to read Smart Computer Group with %s '%s' after retries: %v", lookupMethod, lookupValue, err))
 	}
 
-	criteriaList, criteriaDiags := schemahelpers.Flatten(ctx, criteriaModels)
-	resp.Diagnostics.Append(criteriaDiags...)
-	if resp.Diagnostics.HasError() {
-		return
+	if resource == nil {
+		d.SetId("")
+		//nolint:err113
+		return diag.FromErr(fmt.Errorf("the Jamf Pro Smart Computer Group was not found"))
 	}
-	data.Criteria = criteriaList
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	d.SetId(fmt.Sprintf("%d", resource.ID))
+	return updateState(d, resource)
 }
