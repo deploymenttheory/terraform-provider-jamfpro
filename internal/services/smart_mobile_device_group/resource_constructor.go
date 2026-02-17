@@ -23,7 +23,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceGroup, erro
 	}
 
 	if v, ok := d.GetOk("criteria"); ok {
-		*resource.Criteria = constructMobileGroupSubsetContainerCriteria(v.([]any))
+		resource.Criteria = constructMobileGroupSubsetContainerCriteria(v.([]any))
 	}
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
@@ -37,10 +37,10 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceGroup, erro
 }
 
 // constructMobileGroupSubsetContainerCriteria constructs a SharedContainerCriteria object from the provided schema data.
-func constructMobileGroupSubsetContainerCriteria(criteriaList []any) jamfpro.SharedContainerCriteria {
-	criteria := jamfpro.SharedContainerCriteria{
+func constructMobileGroupSubsetContainerCriteria(criteriaList []any) *jamfpro.SharedContainerCriteria {
+	criteria := &jamfpro.SharedContainerCriteria{
 		Size:      len(criteriaList),
-		Criterion: []jamfpro.SharedSubsetCriteria{},
+		Criterion: &[]jamfpro.SharedSubsetCriteria{},
 	}
 
 	for _, item := range criteriaList {
@@ -54,7 +54,7 @@ func constructMobileGroupSubsetContainerCriteria(criteriaList []any) jamfpro.Sha
 			OpeningParen: criterionData["opening_paren"].(bool),
 			ClosingParen: criterionData["closing_paren"].(bool),
 		}
-		criteria.Criterion = append(criteria.Criterion, criterion)
+		*criteria.Criterion = append(*criteria.Criterion, criterion)
 	}
 
 	return criteria

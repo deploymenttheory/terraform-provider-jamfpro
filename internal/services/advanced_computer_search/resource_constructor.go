@@ -23,21 +23,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceAdvancedComputerSearch,
 	}
 
 	if v, ok := d.GetOk("criteria"); ok {
-		criteriaList := v.([]any)
-		criteria := make([]jamfpro.SharedSubsetCriteria, len(criteriaList))
-		for i, crit := range criteriaList {
-			criterionMap := crit.(map[string]any)
-			criteria[i] = jamfpro.SharedSubsetCriteria{
-				Name:         criterionMap["name"].(string),
-				Priority:     criterionMap["priority"].(int),
-				AndOr:        criterionMap["and_or"].(string),
-				SearchType:   criterionMap["search_type"].(string),
-				Value:        criterionMap["value"].(string),
-				OpeningParen: criterionMap["opening_paren"].(bool),
-				ClosingParen: criterionMap["closing_paren"].(bool),
-			}
-		}
-		resource.Criteria.Criterion = criteria
+		resource.Criteria = constructAdvancedComputerSearchCriteria(v.([]any))
 	}
 
 	if v, ok := d.GetOk("display_fields"); ok {
@@ -57,4 +43,28 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceAdvancedComputerSearch,
 	log.Printf("[DEBUG] Constructed Jamf Pro Advanced Computer Search XML:\n%s\n", string(resourceXML))
 
 	return resource, nil
+}
+
+// constructAdvancedComputerSearchCriteria builds the criteria payload expected by the Jamf Pro API.
+func constructAdvancedComputerSearchCriteria(criteriaList []any) jamfpro.SharedContainerCriteria {
+	criteria := &jamfpro.SharedContainerCriteria{
+		Size:      len(criteriaList),
+		Criterion: &[]jamfpro.SharedSubsetCriteria{},
+	}
+
+	for _, crit := range criteriaList {
+		criterionMap := crit.(map[string]any)
+		criterion := jamfpro.SharedSubsetCriteria{
+			Name:         criterionMap["name"].(string),
+			Priority:     criterionMap["priority"].(int),
+			AndOr:        criterionMap["and_or"].(string),
+			SearchType:   criterionMap["search_type"].(string),
+			Value:        criterionMap["value"].(string),
+			OpeningParen: criterionMap["opening_paren"].(bool),
+			ClosingParen: criterionMap["closing_paren"].(bool),
+		}
+		*criteria.Criterion = append(*criteria.Criterion, criterion)
+	}
+
+	return *criteria
 }
