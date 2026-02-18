@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.34.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.34.0...v0.34.1) (2026-02-18)
+
+
+### Bug Fixes
+
+* smart group deprecation link ([#1025](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1025)) ([94e09d3](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/94e09d3f31dfde318533705fed4de4fd1b454e82))
+
 ## [0.34.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.33.0...v0.34.0) (2026-02-18)
 
 
