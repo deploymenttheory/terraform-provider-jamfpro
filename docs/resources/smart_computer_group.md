@@ -1,13 +1,15 @@
 ---
 page_title: "jamfpro_smart_computer_group"
 description: |-
-  This resource is superseded by jamfpro_smart_computer_group_v2, which uses newly available API endpoints. The endpoints backing jamfpro_smart_computer_group are likely to be deprecated. It is recommended to migrate to jamfpro_smart_computer_group_v2 as soon as possible. Review the migration guide for more details: https://github.com/deploymenttheory/terraform-provider-jamfpro/docs/resource-migration-guide.md
+  This resource is superseded by jamfpro_smart_computer_group_v2, which uses newly available API endpoints. The endpoints backing jamfpro_smart_computer_group are likely to be deprecated. It is recommended to migrate to jamfpro_smart_computer_group_v2 as soon as possible. Review the migration guide for more details: https://github.com/deploymenttheory/terraform-provider-jamfpro/blob/main/docs/resource-migration-guide.md
 ---
 
 # jamfpro_smart_computer_group (Resource)
-This resource is superseded by jamfpro_smart_computer_group_v2, which uses newly available API endpoints. The endpoints backing jamfpro_smart_computer_group are likely to be deprecated. It is recommended to migrate to jamfpro_smart_computer_group_v2 as soon as possible. Review the migration guide for more details: https://github.com/deploymenttheory/terraform-provider-jamfpro/docs/resource-migration-guide.md
+
+This resource is superseded by jamfpro_smart_computer_group_v2, which uses newly available API endpoints. The endpoints backing jamfpro_smart_computer_group are likely to be deprecated. It is recommended to migrate to jamfpro_smart_computer_group_v2 as soon as possible. Review the migration guide for more details: <https://github.com/deploymenttheory/terraform-provider-jamfpro/blob/main/docs/resource-migration-guide.md>
 
 ## Example Usage
+
 ```terraform
 resource "jamfpro_smart_computer_group" "smart_example" {
   name = "Example Smart Computer Group"
@@ -58,6 +60,7 @@ resource "jamfpro_smart_computer_group" "smart_example" {
 - `is_smart` (Boolean) Boolean selection to state if the group is a Smart group or not. If false then the group is a static group.
 
 <a id="nestedblock--criteria"></a>
+
 ### Nested Schema for `criteria`
 
 Optional:
@@ -70,8 +73,8 @@ Optional:
 - `search_type` (String) The type of smart group search operator. Allowed values are '[and or is is not has does not have member of not member of before (yyyy-mm-dd) after (yyyy-mm-dd) more than x days ago less than x days ago like not like greater than more than less than greater than or equal less than or equal matches regex does not match regex]'
 - `value` (String) Search value for the smart group criteria to match with.
 
-
 <a id="nestedblock--timeouts"></a>
+
 ### Nested Schema for `timeouts`
 
 Optional:
