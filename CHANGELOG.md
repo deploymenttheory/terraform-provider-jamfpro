@@ -1,5 +1,41 @@
 # Changelog
 
+## [0.34.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.33.0...v0.34.0) (2026-02-18)
+
+
+### Features
+
+* add adcs_settings resource ([#985](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/985)) ([7bce9a0](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/7bce9a07844010be8b1b5590e346caf98652d691))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([8474669](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/84746695f999a84de40a57f3c806ab6a3bf5b4c8))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([815f223](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/815f223aca0cdae36aadce990659b9039196446d))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([41a6c08](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/41a6c087ae0d187182e0885af0dbdb6e93477fea))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([203a34a](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/203a34aa37ad11707b5a563d9f9799b7929edcc0))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([99f3bed](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/99f3bed98ff6f690a72055cbc58bd34cc1874a57))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([725ca2c](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/725ca2c9d7ef847c08b971d76448a2a7a39f5329))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([025d5ad](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/025d5ad461e2ef39390bf18b3ffd1eb9be1585bf))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([4d12c59](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/4d12c5995ee9a0cb54245653d36ade8636c2916f))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([7bce9a0](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/7bce9a07844010be8b1b5590e346caf98652d691))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([8474669](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/84746695f999a84de40a57f3c806ab6a3bf5b4c8))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([815f223](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/815f223aca0cdae36aadce990659b9039196446d))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([41a6c08](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/41a6c087ae0d187182e0885af0dbdb6e93477fea))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([203a34a](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/203a34aa37ad11707b5a563d9f9799b7929edcc0))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([99f3bed](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/99f3bed98ff6f690a72055cbc58bd34cc1874a57))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([725ca2c](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/725ca2c9d7ef847c08b971d76448a2a7a39f5329))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([4d12c59](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/4d12c5995ee9a0cb54245653d36ade8636c2916f))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([7bce9a0](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/7bce9a07844010be8b1b5590e346caf98652d691))
+* migrate jamfpro_smart_computer_group and jamfpro_smart_mobile_device_group to Pro API and Terraform Plugin Framework (11.22) ([#949](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/949)) ([815f223](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/815f223aca0cdae36aadce990659b9039196446d))
+* new resource and data source: service_discovery_enrollment_well_known_settings ([#1020](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1020)) ([41a6c08](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/41a6c087ae0d187182e0885af0dbdb6e93477fea))
+* resource migration guidance for smart_computer_group and smart_mobile_device_group ([#1022](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1022)) ([8474669](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/84746695f999a84de40a57f3c806ab6a3bf5b4c8))
+* update directory bindings schema for jamfpro_policy (add name, remove id) ([#1012](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1012)) ([99f3bed](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/99f3bed98ff6f690a72055cbc58bd34cc1874a57))
+
+
+### Bug Fixes
+
+* add base to pr creation step ([#1018](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1018)) ([7ef8a7b](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/7ef8a7bf488f89badb62ded20fb1d1600ec0aafb))
+* criteria ptr handling for advanced user/computer searches and mobile device groups ([#1002](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1002)) ([4d12c59](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/4d12c5995ee9a0cb54245653d36ade8636c2916f))
+* rename key correctly for directory_service_or_local_usernames in policy state handling ([#1011](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1011)) ([725ca2c](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/725ca2c9d7ef847c08b971d76448a2a7a39f5329))
+* static_mobile_device_group empty assigned_mobile_device_ids empty list handling ([#954](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/954)) ([203a34a](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/203a34aa37ad11707b5a563d9f9799b7929edcc0))
+
 ## [0.33.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.32.0...v0.33.0) (2026-02-03)
 
 
