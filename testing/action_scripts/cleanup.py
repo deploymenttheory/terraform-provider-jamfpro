@@ -20,7 +20,7 @@ parser.add_option("-l", "--log-level", dest="loglevel",
 
 (options, args) = parser.parse_args()
 
-logger = jamfpy.get_logger(name="cleanup", level=options.loglevel)
+logger = jamfpy.new_logger(name="cleanup", level=options.loglevel)
 
 if options.force and options.runid:
     print("-f or --force overrides runid")

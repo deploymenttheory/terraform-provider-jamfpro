@@ -8,6 +8,7 @@ import (
 	jamfProDockItem "github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/dock_item"
 	jamfProSmartComputerGroupV2 "github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/smart_computer_group_v2"
 	jamfProSmartMobileDeviceGroupV1 "github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/smart_mobile_device_group_v1"
+	jamfProServiceDiscoveryEnrollmentWellKnownSettings "github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/service_discovery_enrollment_well_known_settings"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
@@ -18,5 +19,6 @@ func (p *frameworkProvider) Resources(ctx context.Context) []func() resource.Res
 		jamfProDockItem.NewDockItemFrameworkResource,
 		jamfProSmartComputerGroupV2.NewSmartComputerGroupV2FrameworkResource,
 		jamfProSmartMobileDeviceGroupV1.NewSmartMobileDeviceGroupV1FrameworkResource,
+		jamfProServiceDiscoveryEnrollmentWellKnownSettings.NewServiceDiscoveryEnrollmentWellKnownSettingsFrameworkResource,
 	}
 }

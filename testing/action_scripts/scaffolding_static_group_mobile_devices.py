@@ -8,7 +8,7 @@ import jamfpy
 from dotenv import load_dotenv
 load_dotenv()
 print("SCAFFOLDING")
-logger = jamfpy.get_logger(name="site_mobile_device_setup", level=20)
+logger = jamfpy.new_logger(name="site_mobile_device_setup", level=20)
 
 parser = OptionParser()
 parser.add_option("-r", "--runid", dest="runid",
