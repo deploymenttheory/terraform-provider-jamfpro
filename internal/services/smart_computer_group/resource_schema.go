@@ -37,13 +37,13 @@ const (
 // ResourceJamfProSmartComputerGroups defines the schema and CRUD operations for managing Jamf Pro smart Computer Groups in Terraform.
 func ResourceJamfProSmartComputerGroups() *schema.Resource {
 	return &schema.Resource{
-		DeprecationMessage: "This resource is superseded by jamfpro_smart_computer_group_v2, which uses newly available API endpoints. The endpoints backing jamfpro_smart_computer_group are likely to be deprecated. It is recommended to migrate to jamfpro_smart_computer_group_v2 as soon as possible. Review the migration guide for more details: https://github.com/deploymenttheory/terraform-provider-jamfpro/docs/resource-migration-guide.md",
+		DeprecationMessage: "This resource is superseded by jamfpro_smart_computer_group_v2, which uses newly available API endpoints. The endpoints backing jamfpro_smart_computer_group are likely to be deprecated. It is recommended to migrate to jamfpro_smart_computer_group_v2 as soon as possible. Review the migration guide for more details: https://github.com/deploymenttheory/terraform-provider-jamfpro/blob/main/docs/resource-migration-guide.md",
 		CreateContext:      create,
 		ReadContext:        readWithCleanup,
 		UpdateContext:      update,
 		DeleteContext:      delete,
 		CustomizeDiff:      mainCustomDiffFunc,
-		Description:        "This resource is superseded by jamfpro_smart_computer_group_v2, which uses newly available API endpoints. The endpoints backing jamfpro_smart_computer_group are likely to be deprecated. It is recommended to migrate to jamfpro_smart_computer_group_v2 as soon as possible. Review the migration guide for more details: https://github.com/deploymenttheory/terraform-provider-jamfpro/docs/resource-migration-guide.md",
+		Description:        "This resource is superseded by jamfpro_smart_computer_group_v2, which uses newly available API endpoints. The endpoints backing jamfpro_smart_computer_group are likely to be deprecated. It is recommended to migrate to jamfpro_smart_computer_group_v2 as soon as possible. Review the migration guide for more details: https://github.com/deploymenttheory/terraform-provider-jamfpro/blob/main/docs/resource-migration-guide.md",
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(70 * time.Second),
