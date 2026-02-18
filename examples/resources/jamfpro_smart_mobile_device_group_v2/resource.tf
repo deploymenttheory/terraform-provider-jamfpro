@@ -1,8 +1,11 @@
-resource "jamfpro_smart_computer_group" "smart_example" {
-  name = "Example Smart Computer Group"
+resource "jamfpro_smart_mobile_device_group_v1" "smart_example" {
+  name = "Example Smart Mobile Device Group"
+
+  # Optional: Provide a description
+  description = "This is an example smart mobile device group created via Terraform."
 
   # Optional: Specify site details 
-  site_id = 5
+  site_id = "5"
 
   # Optional: Define criteria for Smart groups
   criteria {
@@ -26,4 +29,3 @@ resource "jamfpro_smart_computer_group" "smart_example" {
   }
 
 }
-
