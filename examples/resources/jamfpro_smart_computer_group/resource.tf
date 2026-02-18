@@ -26,3 +26,4 @@ resource "jamfpro_smart_computer_group" "smart_example" {
   }
 
 }
+

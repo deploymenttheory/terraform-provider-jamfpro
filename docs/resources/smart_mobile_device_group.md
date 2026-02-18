@@ -1,11 +1,11 @@
 ---
 page_title: "jamfpro_smart_mobile_device_group"
 description: |-
-  
+  This resource is superseded by jamfpro_smart_mobile_device_group_v1, which uses newly available API endpoints. The endpoints backing jamfpro_smart_mobile_device_group are likely to be deprecated. It is recommended to migrate to jamfpro_smart_mobile_device_group_v1 as soon as possible. Review the migration guide for more details: https://github.com/deploymenttheory/terraform-provider-jamfpro/docs/resource-migration-guide.md
 ---
 
 # jamfpro_smart_mobile_device_group (Resource)
-
+This resource is superseded by jamfpro_smart_mobile_device_group_v1, which uses newly available API endpoints. The endpoints backing jamfpro_smart_mobile_device_group are likely to be deprecated. It is recommended to migrate to jamfpro_smart_mobile_device_group_v1 as soon as possible. Review the migration guide for more details: https://github.com/deploymenttheory/terraform-provider-jamfpro/docs/resource-migration-guide.md
 
 ## Example Usage
 ```terraform
