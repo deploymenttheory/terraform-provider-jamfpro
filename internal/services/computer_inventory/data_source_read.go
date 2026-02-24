@@ -56,8 +56,16 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	d.SetId(computer.ID)
-	d.Set("id", computer.ID)
-	d.Set("udid", computer.UDID)
+
+	err = d.Set("id", computer.ID)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = d.Set("udid", computer.UDID)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	if err := setGeneralSection(d, computer.General); err != nil {
 		return diag.FromErr(err)
