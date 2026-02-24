@@ -1,11 +1,11 @@
-package mobile_device_application
+package utils
 
 import (
 	"strings"
 )
 
-// normalizeWhitespace removes leading/trailing whitespace and normalizes newlines
-func normalizeWhitespace(s string) string {
+// NormalizeWhitespace removes leading/trailing whitespace and normalizes newlines
+func NormalizeWhitespace(s string) string {
 	s = strings.ReplaceAll(s, "\r\n", "\n")
 	s = strings.ReplaceAll(s, "\r", "\n")
 

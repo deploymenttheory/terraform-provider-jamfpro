@@ -4,6 +4,7 @@ import (
 	"time"
 
 	sharedschemas "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/shared_schemas"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -223,7 +224,7 @@ func ResourceJamfProMobileDeviceApplication() *schema.Resource {
 							Optional:    true,
 							Description: "The self service description.",
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-								return normalizeWhitespace(old) == normalizeWhitespace(new)
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
 							},
 						},
 						"self_service_install_button_text": {
@@ -311,7 +312,7 @@ func ResourceJamfProMobileDeviceApplication() *schema.Resource {
 							Optional:    true,
 							Description: "The preferences configuration for the application.",
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-								return normalizeWhitespace(old) == normalizeWhitespace(new)
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
 							},
 						},
 					},
