@@ -4,6 +4,7 @@ import (
 	"maps"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -22,7 +23,7 @@ func stateSelfService(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diag
 		"self_service_display_name":       resp.SelfService.SelfServiceDisplayName,
 		"install_button_text":             resp.SelfService.InstallButtonText,
 		"reinstall_button_text":           resp.SelfService.ReinstallButtonText,
-		"self_service_description":        resp.SelfService.SelfServiceDescription,
+		"self_service_description":        utils.NormalizeWhitespace(resp.SelfService.SelfServiceDescription),
 		"force_users_to_view_description": resp.SelfService.ForceUsersToViewDescription,
 		"self_service_icon_id":            resp.SelfService.SelfServiceIcon.ID,
 		"feature_on_main_page":            resp.SelfService.FeatureOnMainPage,
