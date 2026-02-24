@@ -24,7 +24,7 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 	prepStatePayloadPackages(&out, resp)
 
 	// Scripts
-	prepStatePayloadScripts(&out, resp)
+	prepStatePayloadScripts(&out, resp, d)
 
 	// Printers
 	prepStatePayloadPrinters(&out, resp)
@@ -109,8 +109,10 @@ func prepStatePayloadPackages(out *[]map[string]any, resp *jamfpro.ResourcePolic
 	(*out)[0]["packages"] = []map[string]any{packagesMap}
 }
 
-// Reads response and preps script payload items
-func prepStatePayloadScripts(out *[]map[string]any, resp *jamfpro.ResourcePolicy) {
+// Reads response and preps script payload items.
+// Reorders the API response scripts to match the order defined in the HCL config
+// to prevent phantom diffs caused by the API returning scripts in a different order.
+func prepStatePayloadScripts(out *[]map[string]any, resp *jamfpro.ResourcePolicy, d *schema.ResourceData) {
 	if resp.Scripts == nil {
 		log.Println("No scripts found")
 		return
@@ -119,46 +121,85 @@ func prepStatePayloadScripts(out *[]map[string]any, resp *jamfpro.ResourcePolicy
 	log.Println("Initializing scripts in state")
 	(*out)[0]["scripts"] = make([]map[string]any, 0)
 
+	// Build a map of API response scripts keyed by ID for quick lookup
+	respScriptsByID := make(map[string]jamfpro.PolicySubsetScript)
+	var respScriptIDs []string
 	for _, v := range resp.Scripts {
-		outMap := make(map[string]any)
-		outMap["id"] = v.ID
-		outMap["priority"] = v.Priority
-
-		if v.Parameter4 != "" {
-			outMap["parameter4"] = v.Parameter4
-		}
-
-		if v.Parameter5 != "" {
-			outMap["parameter5"] = v.Parameter5
-		}
-
-		if v.Parameter6 != "" {
-			outMap["parameter6"] = v.Parameter6
-		}
-
-		if v.Parameter7 != "" {
-			outMap["parameter7"] = v.Parameter7
-		}
-
-		if v.Parameter8 != "" {
-			outMap["parameter8"] = v.Parameter8
-		}
-
-		if v.Parameter9 != "" {
-			outMap["parameter9"] = v.Parameter9
-		}
-
-		if v.Parameter10 != "" {
-			outMap["parameter10"] = v.Parameter10
-		}
-
-		if v.Parameter11 != "" {
-			outMap["parameter11"] = v.Parameter11
-		}
-
-		(*out)[0]["scripts"] = append((*out)[0]["scripts"].([]map[string]any), outMap)
+		respScriptsByID[v.ID] = v
+		respScriptIDs = append(respScriptIDs, v.ID)
 	}
 
+	// Get the config-defined script order to preserve HCL ordering
+	configScripts := d.Get("payloads.0.scripts")
+	var orderedIDs []string
+	if configScripts != nil {
+		for _, v := range configScripts.([]any) {
+			if v != nil {
+				orderedIDs = append(orderedIDs, v.(map[string]any)["id"].(string))
+			}
+		}
+	}
+
+	// Track which IDs have been added
+	added := make(map[string]bool)
+
+	// First, add scripts in the order they appear in the config
+	for _, id := range orderedIDs {
+		if script, ok := respScriptsByID[id]; ok {
+			outMap := buildScriptStateMap(script)
+			(*out)[0]["scripts"] = append((*out)[0]["scripts"].([]map[string]any), outMap)
+			added[id] = true
+		}
+	}
+
+	// Then, append any scripts from the API response that weren't in the config
+	for _, id := range respScriptIDs {
+		if !added[id] {
+			outMap := buildScriptStateMap(respScriptsByID[id])
+			(*out)[0]["scripts"] = append((*out)[0]["scripts"].([]map[string]any), outMap)
+		}
+	}
+}
+
+// buildScriptStateMap converts a PolicySubsetScript into a state map
+func buildScriptStateMap(v jamfpro.PolicySubsetScript) map[string]any {
+	outMap := make(map[string]any)
+	outMap["id"] = v.ID
+	outMap["priority"] = v.Priority
+
+	if v.Parameter4 != "" {
+		outMap["parameter4"] = v.Parameter4
+	}
+
+	if v.Parameter5 != "" {
+		outMap["parameter5"] = v.Parameter5
+	}
+
+	if v.Parameter6 != "" {
+		outMap["parameter6"] = v.Parameter6
+	}
+
+	if v.Parameter7 != "" {
+		outMap["parameter7"] = v.Parameter7
+	}
+
+	if v.Parameter8 != "" {
+		outMap["parameter8"] = v.Parameter8
+	}
+
+	if v.Parameter9 != "" {
+		outMap["parameter9"] = v.Parameter9
+	}
+
+	if v.Parameter10 != "" {
+		outMap["parameter10"] = v.Parameter10
+	}
+
+	if v.Parameter11 != "" {
+		outMap["parameter11"] = v.Parameter11
+	}
+
+	return outMap
 }
 
 // prepStatePayloadPrinters reads response and preps printer payload items for stating
