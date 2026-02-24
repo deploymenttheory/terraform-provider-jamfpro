@@ -187,13 +187,11 @@ func setGeneralSection(d *schema.ResourceData, general jamfpro.ComputerInventory
 	gen["declarative_device_management_enabled"] = general.DeclarativeDeviceManagementEnabled
 	gen["management_id"] = general.ManagementId
 
-	// Handle nested object 'remoteManagement'.
 	remoteManagement := make(map[string]any)
 	remoteManagement["managed"] = general.RemoteManagement.Managed
 	remoteManagement["management_username"] = general.RemoteManagement.ManagementUsername
 	gen["remote_management"] = []any{remoteManagement}
 
-	// Handle nested object 'site'.
 	if general.Site.ID != "" || general.Site.Name != "" {
 		site := make(map[string]any)
 		site["id"] = general.Site.ID
@@ -201,7 +199,6 @@ func setGeneralSection(d *schema.ResourceData, general jamfpro.ComputerInventory
 		gen["site_id"] = []any{site}
 	}
 
-	// Handle nested object 'enrollmentMethod'.
 	if general.EnrollmentMethod.ID != "" || general.EnrollmentMethod.ObjectName != "" || general.EnrollmentMethod.ObjectType != "" {
 		enrollmentMethod := make(map[string]any)
 		enrollmentMethod["id"] = general.EnrollmentMethod.ID
@@ -215,23 +212,19 @@ func setGeneralSection(d *schema.ResourceData, general jamfpro.ComputerInventory
 
 // setDiskEncryptionSection maps the 'diskEncryption' section of the computer inventory response to the Terraform resource data and updates the state.
 func setDiskEncryptionSection(d *schema.ResourceData, diskEncryption jamfpro.ComputerInventorySubsetDiskEncryption) error {
-	// Initialize a map to hold the 'diskEncryption' section attributes.
 	diskEnc := make(map[string]any)
 
-	// Map each attribute of the 'diskEncryption' section from the API response to the corresponding Terraform schema attribute.
 	diskEnc["individual_recovery_key_validity_status"] = diskEncryption.IndividualRecoveryKeyValidityStatus
 	diskEnc["institutional_recovery_key_present"] = diskEncryption.InstitutionalRecoveryKeyPresent
 	diskEnc["disk_encryption_configuration_name"] = diskEncryption.DiskEncryptionConfigurationName
 	diskEnc["file_vault2_eligibility_message"] = diskEncryption.FileVault2EligibilityMessage
 
-	// Handle nested object 'bootPartitionEncryptionDetails'.
 	bootPartitionDetails := make(map[string]any)
 	bootPartitionDetails["partition_name"] = diskEncryption.BootPartitionEncryptionDetails.PartitionName
 	bootPartitionDetails["partition_file_vault2_state"] = diskEncryption.BootPartitionEncryptionDetails.PartitionFileVault2State
 	bootPartitionDetails["partition_file_vault2_percent"] = diskEncryption.BootPartitionEncryptionDetails.PartitionFileVault2Percent
 	diskEnc["boot_partition_encryption_details"] = []any{bootPartitionDetails}
 
-	// Map 'fileVault2EnabledUserNames' as a list of strings.
 	fileVaultUserNames := make([]string, len(diskEncryption.FileVault2EnabledUserNames))
 	copy(fileVaultUserNames, diskEncryption.FileVault2EnabledUserNames)
 
@@ -242,10 +235,8 @@ func setDiskEncryptionSection(d *schema.ResourceData, diskEncryption jamfpro.Com
 
 // setPurchasingSection maps the 'purchasing' section of the computer inventory response to the Terraform resource data and updates the state.
 func setPurchasingSection(d *schema.ResourceData, purchasing jamfpro.ComputerInventorySubsetPurchasing) error {
-	// Initialize a map to hold the 'purchasing' section attributes.
 	purchasingMap := make(map[string]any)
 
-	// Map each attribute of the 'purchasing' section from the API response to the corresponding Terraform schema attribute.
 	purchasingMap["leased"] = purchasing.Leased
 	purchasingMap["purchased"] = purchasing.Purchased
 	purchasingMap["po_number"] = purchasing.PoNumber
@@ -259,7 +250,6 @@ func setPurchasingSection(d *schema.ResourceData, purchasing jamfpro.ComputerInv
 	purchasingMap["purchasing_account"] = purchasing.PurchasingAccount
 	purchasingMap["purchasing_contact"] = purchasing.PurchasingContact
 
-	// Map 'extensionAttributes' as a list of maps.
 	extAttrs := make([]map[string]any, len(purchasing.ExtensionAttributes))
 	for i, attr := range purchasing.ExtensionAttributes {
 		attrMap := make(map[string]any)
@@ -282,14 +272,10 @@ func setPurchasingSection(d *schema.ResourceData, purchasing jamfpro.ComputerInv
 
 // setApplicationsSection maps the 'applications' section of the computer inventory response to the Terraform resource data and updates the state.
 func setApplicationsSection(d *schema.ResourceData, applications []jamfpro.ComputerInventorySubsetApplication) error {
-	// Create a slice to hold the application maps.
 	apps := make([]any, len(applications))
 
 	for i, app := range applications {
-		// Initialize a map for each application.
 		appMap := make(map[string]any)
-
-		// Map each attribute of the application from the API response to the corresponding Terraform schema attribute.
 		appMap["name"] = app.Name
 		appMap["path"] = app.Path
 		appMap["version"] = app.Version
@@ -299,7 +285,6 @@ func setApplicationsSection(d *schema.ResourceData, applications []jamfpro.Compu
 		appMap["update_available"] = app.UpdateAvailable
 		appMap["external_version_id"] = app.ExternalVersionId
 
-		// Add the application map to the slice.
 		apps[i] = appMap
 	}
 
@@ -312,7 +297,6 @@ func setStorageSection(d *schema.ResourceData, storage jamfpro.ComputerInventory
 
 	storageMap["boot_drive_available_space_megabytes"] = storage.BootDriveAvailableSpaceMegabytes
 
-	// Mapping 'disks' array
 	disks := make([]any, len(storage.Disks))
 	for i, disk := range storage.Disks {
 		diskMap := make(map[string]any)
@@ -325,7 +309,6 @@ func setStorageSection(d *schema.ResourceData, storage jamfpro.ComputerInventory
 		diskMap["smart_status"] = disk.SmartStatus
 		diskMap["type"] = disk.Type
 
-		// Map 'partitions' if present
 		partitions := make([]any, len(disk.Partitions))
 		for j, partition := range disk.Partitions {
 			partitionMap := make(map[string]any)
@@ -352,7 +335,6 @@ func setStorageSection(d *schema.ResourceData, storage jamfpro.ComputerInventory
 func setUserAndLocationSection(d *schema.ResourceData, userAndLocation jamfpro.ComputerInventorySubsetUserAndLocation) error {
 	userLocationMap := make(map[string]any)
 
-	// Map each attribute from the 'userAndLocation' object to the corresponding schema attribute
 	userLocationMap["username"] = userAndLocation.Username
 	userLocationMap["realname"] = userAndLocation.Realname
 	userLocationMap["email"] = userAndLocation.Email
@@ -362,7 +344,6 @@ func setUserAndLocationSection(d *schema.ResourceData, userAndLocation jamfpro.C
 	userLocationMap["building_id"] = userAndLocation.BuildingId
 	userLocationMap["room"] = userAndLocation.Room
 
-	// Map extension attributes if present
 	if len(userAndLocation.ExtensionAttributes) > 0 {
 		extAttrs := make([]map[string]any, len(userAndLocation.ExtensionAttributes))
 		for i, attr := range userAndLocation.ExtensionAttributes {
@@ -389,7 +370,6 @@ func setUserAndLocationSection(d *schema.ResourceData, userAndLocation jamfpro.C
 func setHardwareSection(d *schema.ResourceData, hardware jamfpro.ComputerInventorySubsetHardware) error {
 	hardwareMap := make(map[string]any)
 
-	// Map each attribute from the 'hardware' object to the corresponding schema attribute
 	hardwareMap["make"] = hardware.Make
 	hardwareMap["model"] = hardware.Model
 	hardwareMap["model_identifier"] = hardware.ModelIdentifier
@@ -416,7 +396,6 @@ func setHardwareSection(d *schema.ResourceData, hardware jamfpro.ComputerInvento
 	hardwareMap["supports_ios_app_installs"] = hardware.SupportsIosAppInstalls
 	hardwareMap["apple_silicon"] = hardware.AppleSilicon
 
-	// Map extension attributes if present
 	if len(hardware.ExtensionAttributes) > 0 {
 		extAttrs := make([]map[string]any, len(hardware.ExtensionAttributes))
 		for i, attr := range hardware.ExtensionAttributes {
@@ -563,7 +542,7 @@ func setOperatingSystemSection(d *schema.ResourceData, operatingSystem jamfpro.C
 	osMap["active_directory_status"] = operatingSystem.ActiveDirectoryStatus
 	osMap["filevault2_status"] = operatingSystem.FileVault2Status
 	osMap["software_update_device_id"] = operatingSystem.SoftwareUpdateDeviceId
-	// Map extension attributes if present
+
 	extAttrs := make([]map[string]any, len(operatingSystem.ExtensionAttributes))
 	for i, attr := range operatingSystem.ExtensionAttributes {
 		attrMap := make(map[string]any)
