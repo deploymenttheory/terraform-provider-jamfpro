@@ -14,6 +14,11 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"allow_not_found": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 			"name": {
 				Type:     schema.TypeString,
 				Optional: true,

@@ -14,34 +14,38 @@ import (
 // then 'serial_number', then 'id' for fetching details. If none are provided, it returns an error.
 // Once the details are fetched, they are set in the data source's state.
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Asserts 'meta' as '*client.client'
 	client, ok := meta.(*jamfpro.Client)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.client")
 	}
 
-	var profile *jamfpro.ResourceComputerInventory
+	var computer *jamfpro.ResourceComputerInventory
 	var err error
 
-	// Fetch profile by 'name', 'serial_number', or 'id'
+	allow_not_found := d.Get("allow_not_found").(bool)
+
 	if v, ok := d.GetOk("name"); ok {
-		profileName, ok := v.(string)
+		attrName, ok := v.(string)
 		if !ok {
 			return diag.Errorf("error asserting 'name' as string")
 		}
-		profile, err = client.GetComputerInventoryByName(profileName)
+
+		computer, err = client.GetComputerInventoryByName(attrName)
 	} else if v, ok := d.GetOk("serial_number"); ok {
+
 		serialNumber, ok := v.(string)
 		if !ok {
 			return diag.Errorf("error asserting 'serial_number' as string")
 		}
-		profile, err = client.GetComputerInventoryBySerialNumber(serialNumber)
+		computer, err = client.GetComputerInventoryBySerialNumber(serialNumber)
+
 	} else if v, ok := d.GetOk("id"); ok {
 		profileID, ok := v.(string)
 		if !ok {
 			return diag.Errorf("error asserting 'id' as string")
 		}
-		profile, err = client.GetComputerInventoryByID(profileID)
+		computer, err = client.GetComputerInventoryByID(profileID)
+
 	} else {
 		return diag.Errorf("Either 'name', 'serial_number', or 'id' must be provided")
 	}
@@ -51,122 +55,121 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	// Set top-level attributes
-	d.SetId(profile.ID)
-	d.Set("id", profile.ID)
-	d.Set("udid", profile.UDID)
+	d.SetId(computer.ID)
+	d.Set("id", computer.ID)
+	d.Set("udid", computer.UDID)
 
-	// Set 'general' section
-	if err := setGeneralSection(d, profile.General); err != nil {
+	if err := setGeneralSection(d, computer.General); err != nil {
 		return diag.FromErr(err)
 	}
 
 	// Set 'diskEncryption' section
-	if err := setDiskEncryptionSection(d, profile.DiskEncryption); err != nil {
+	if err := setDiskEncryptionSection(d, computer.DiskEncryption); err != nil {
 		return diag.FromErr(err)
 	}
 
 	// Set 'purchasing' section
-	if err := setPurchasingSection(d, profile.Purchasing); err != nil {
+	if err := setPurchasingSection(d, computer.Purchasing); err != nil {
 		return diag.FromErr(err)
 	}
 
 	// Set 'applications' section
-	if err := setApplicationsSection(d, profile.Applications); err != nil {
+	if err := setApplicationsSection(d, computer.Applications); err != nil {
 		return diag.FromErr(err)
 	}
 
 	// Set 'storage' section
-	if err := setStorageSection(d, profile.Storage); err != nil {
+	if err := setStorageSection(d, computer.Storage); err != nil {
 		return diag.FromErr(err)
 	}
 
 	// Set 'userAndLocation' section
-	if err := setUserAndLocationSection(d, profile.UserAndLocation); err != nil {
+	if err := setUserAndLocationSection(d, computer.UserAndLocation); err != nil {
 		return diag.FromErr(err)
 	}
 
 	// Set 'hardware' section
-	if err := setHardwareSection(d, profile.Hardware); err != nil {
+	if err := setHardwareSection(d, computer.Hardware); err != nil {
 		return diag.FromErr(err)
 	}
 
 	// Set 'localUserAccounts' section
-	if err := setLocalUserAccountsSection(d, profile.LocalUserAccounts); err != nil {
+	if err := setLocalUserAccountsSection(d, computer.LocalUserAccounts); err != nil {
 		return diag.FromErr(err)
 	}
 
 	// Set 'certificates' section
-	if err := setCertificatesSection(d, profile.Certificates); err != nil {
+	if err := setCertificatesSection(d, computer.Certificates); err != nil {
 		return diag.FromErr(err)
 	}
 
 	// Set 'attachments' section
-	if err := setAttachmentsSection(d, profile.Attachments); err != nil {
+	if err := setAttachmentsSection(d, computer.Attachments); err != nil {
 		return diag.FromErr(err)
 	}
 
 	// Set 'plugins' section
-	if err := setPluginsSection(d, profile.Plugins); err != nil {
+	if err := setPluginsSection(d, computer.Plugins); err != nil {
 		return diag.FromErr(err)
 	}
 
 	// Set 'packageReceipts' section
-	if err := setPackageReceiptsSection(d, profile.PackageReceipts); err != nil {
+	if err := setPackageReceiptsSection(d, computer.PackageReceipts); err != nil {
 		return diag.FromErr(err)
 	}
 
 	// Set 'fonts' section
-	if err := setFontsSection(d, profile.Fonts); err != nil {
+	if err := setFontsSection(d, computer.Fonts); err != nil {
 		return diag.FromErr(err)
 	}
 
 	// Set 'security' section
-	if err := setSecuritySection(d, profile.Security); err != nil {
+	if err := setSecuritySection(d, computer.Security); err != nil {
 		return diag.FromErr(err)
 	}
 
 	// Set 'operatingSystem' section
-	if err := setOperatingSystemSection(d, profile.OperatingSystem); err != nil {
+	if err := setOperatingSystemSection(d, computer.OperatingSystem); err != nil {
 		return diag.FromErr(err)
 	}
 
 	// Set 'licensedSoftware' section
-	if err := setLicensedSoftwareSection(d, profile.LicensedSoftware); err != nil {
+	if err := setLicensedSoftwareSection(d, computer.LicensedSoftware); err != nil {
 		return diag.FromErr(err)
 	}
 
 	// Set 'ibeacons' section
-	if err := setIBeaconsSection(d, profile.Ibeacons); err != nil {
+	if err := setIBeaconsSection(d, computer.Ibeacons); err != nil {
 		return diag.FromErr(err)
 	}
 
 	// Set 'softwareUpdates' section
-	if err := setSoftwareUpdatesSection(d, profile.SoftwareUpdates); err != nil {
+	if err := setSoftwareUpdatesSection(d, computer.SoftwareUpdates); err != nil {
 		return diag.FromErr(err)
 	}
 
 	// Set 'extensionAttributes' section
-	if err := setExtensionAttributesSection(d, profile.ExtensionAttributes); err != nil {
+	if err := setExtensionAttributesSection(d, computer.ExtensionAttributes); err != nil {
 		return diag.FromErr(err)
 	}
 
 	// Set 'groupMemberships' section
-	if err := setGroupMembershipsSection(d, profile.GroupMemberships); err != nil {
+	if err := setGroupMembershipsSection(d, computer.GroupMemberships); err != nil {
 		return diag.FromErr(err)
 	}
 
 	// Set 'configurationProfiles' section
-	if err := setConfigurationProfilesSection(d, profile.ConfigurationProfiles); err != nil {
+	if err := setConfigurationProfilesSection(d, computer.ConfigurationProfiles); err != nil {
 		return diag.FromErr(err)
 	}
 
 	// Set 'printers' section
-	if err := setPrintersSection(d, profile.Printers); err != nil {
+	if err := setPrintersSection(d, computer.Printers); err != nil {
 		return diag.FromErr(err)
 	}
 
 	// Set 'services' section
-	if err := setServicesSection(d, profile.Services); err != nil {
+	if err := setServicesSection(d, computer.Services); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -683,14 +686,14 @@ func setGroupMembershipsSection(d *schema.ResourceData, groupMemberships []jamfp
 // setConfigurationProfilesSection maps the 'configurationProfiles' section of the computer inventory response to the Terraform resource data and updates the state.
 func setConfigurationProfilesSection(d *schema.ResourceData, configurationProfiles []jamfpro.ComputerInventorySubsetConfigurationProfile) error {
 	profiles := make([]any, len(configurationProfiles))
-	for i, profile := range configurationProfiles {
+	for i, computer := range configurationProfiles {
 		profileMap := map[string]interface{}{
-			"id":                 profile.ID,
-			"username":           profile.Username,
-			"last_installed":     profile.LastInstalled,
-			"removable":          profile.Removable,
-			"display_name":       profile.DisplayName,
-			"profile_identifier": profile.ProfileIdentifier,
+			"id":                 computer.ID,
+			"username":           computer.Username,
+			"last_installed":     computer.LastInstalled,
+			"removable":          computer.Removable,
+			"display_name":       computer.DisplayName,
+			"profile_identifier": computer.ProfileIdentifier,
 		}
 		profiles[i] = profileMap
 	}
