@@ -54,7 +54,6 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf("failed to fetch computer inventory: %v", err))
 	}
 
-	// Set top-level attributes
 	d.SetId(computer.ID)
 	d.Set("id", computer.ID)
 	d.Set("udid", computer.UDID)
@@ -63,112 +62,90 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(err)
 	}
 
-	// Set 'diskEncryption' section
 	if err := setDiskEncryptionSection(d, computer.DiskEncryption); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'purchasing' section
 	if err := setPurchasingSection(d, computer.Purchasing); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'applications' section
 	if err := setApplicationsSection(d, computer.Applications); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'storage' section
 	if err := setStorageSection(d, computer.Storage); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'userAndLocation' section
 	if err := setUserAndLocationSection(d, computer.UserAndLocation); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'hardware' section
 	if err := setHardwareSection(d, computer.Hardware); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'localUserAccounts' section
 	if err := setLocalUserAccountsSection(d, computer.LocalUserAccounts); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'certificates' section
 	if err := setCertificatesSection(d, computer.Certificates); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'attachments' section
 	if err := setAttachmentsSection(d, computer.Attachments); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'plugins' section
 	if err := setPluginsSection(d, computer.Plugins); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'packageReceipts' section
 	if err := setPackageReceiptsSection(d, computer.PackageReceipts); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'fonts' section
 	if err := setFontsSection(d, computer.Fonts); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'security' section
 	if err := setSecuritySection(d, computer.Security); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'operatingSystem' section
 	if err := setOperatingSystemSection(d, computer.OperatingSystem); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'licensedSoftware' section
 	if err := setLicensedSoftwareSection(d, computer.LicensedSoftware); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'ibeacons' section
 	if err := setIBeaconsSection(d, computer.Ibeacons); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'softwareUpdates' section
 	if err := setSoftwareUpdatesSection(d, computer.SoftwareUpdates); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'extensionAttributes' section
 	if err := setExtensionAttributesSection(d, computer.ExtensionAttributes); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'groupMemberships' section
 	if err := setGroupMembershipsSection(d, computer.GroupMemberships); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'configurationProfiles' section
 	if err := setConfigurationProfilesSection(d, computer.ConfigurationProfiles); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'printers' section
 	if err := setPrintersSection(d, computer.Printers); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'services' section
 	if err := setServicesSection(d, computer.Services); err != nil {
 		return diag.FromErr(err)
 	}
@@ -233,7 +210,6 @@ func setGeneralSection(d *schema.ResourceData, general jamfpro.ComputerInventory
 		gen["enrollment_method"] = []any{enrollmentMethod}
 	}
 
-	// Set the 'general' section in the Terraform resource data.
 	return d.Set("general", []any{gen})
 }
 
@@ -259,10 +235,8 @@ func setDiskEncryptionSection(d *schema.ResourceData, diskEncryption jamfpro.Com
 	fileVaultUserNames := make([]string, len(diskEncryption.FileVault2EnabledUserNames))
 	copy(fileVaultUserNames, diskEncryption.FileVault2EnabledUserNames)
 
-	// Set 'fileVault2EnabledUserNames' in the 'diskEnc' map.
 	diskEnc["file_vault2_enabled_user_names"] = fileVaultUserNames
 
-	// Set the 'diskEncryption' section in the Terraform resource data.
 	return d.Set("disk_encryption", []any{diskEnc})
 }
 
@@ -303,7 +277,6 @@ func setPurchasingSection(d *schema.ResourceData, purchasing jamfpro.ComputerInv
 	}
 	purchasingMap["extension_attributes"] = extAttrs
 
-	// Set the 'purchasing' section in the Terraform resource data.
 	return d.Set("purchasing", []any{purchasingMap})
 }
 
@@ -330,7 +303,6 @@ func setApplicationsSection(d *schema.ResourceData, applications []jamfpro.Compu
 		apps[i] = appMap
 	}
 
-	// Set the 'applications' section in the Terraform resource data.
 	return d.Set("applications", apps)
 }
 
@@ -373,7 +345,6 @@ func setStorageSection(d *schema.ResourceData, storage jamfpro.ComputerInventory
 	}
 	storageMap["disks"] = disks
 
-	// Set the 'storage' section in the Terraform resource data.
 	return d.Set("storage", []any{storageMap})
 }
 
@@ -411,7 +382,6 @@ func setUserAndLocationSection(d *schema.ResourceData, userAndLocation jamfpro.C
 		userLocationMap["extension_attributes"] = extAttrs
 	}
 
-	// Set the 'userAndLocation' section in the Terraform resource data
 	return d.Set("user_and_location", []any{userLocationMap})
 }
 
@@ -466,7 +436,6 @@ func setHardwareSection(d *schema.ResourceData, hardware jamfpro.ComputerInvento
 		hardwareMap["extension_attributes"] = extAttrs
 	}
 
-	// Set the 'hardware' section in the Terraform resource data
 	return d.Set("hardware", []any{hardwareMap})
 }
 
