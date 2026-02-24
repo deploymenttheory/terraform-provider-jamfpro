@@ -14,6 +14,9 @@ import (
 // then 'serial_number', then 'id' for fetching details. If none are provided, it returns an error.
 // Once the details are fetched, they are set in the data source's state.
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	var diags diag.Diagnostics
+	var ident string
+
 	client, ok := meta.(*jamfpro.Client)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.client")
@@ -24,33 +27,31 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	allow_not_found := d.Get("allow_not_found").(bool)
 
-	if v, ok := d.GetOk("name"); ok {
-		attrName, ok := v.(string)
-		if !ok {
-			return diag.Errorf("error asserting 'name' as string")
-		}
+	if val, ok := d.GetOk("name"); ok {
+		ident = val.(string)
+		computer, err = client.GetComputerInventoryByName(ident)
 
-		computer, err = client.GetComputerInventoryByName(attrName)
-	} else if v, ok := d.GetOk("serial_number"); ok {
+	} else if val, ok := d.GetOk("serial_number"); ok {
+		ident = val.(string)
+		computer, err = client.GetComputerInventoryBySerialNumber(ident)
 
-		serialNumber, ok := v.(string)
-		if !ok {
-			return diag.Errorf("error asserting 'serial_number' as string")
-		}
-		computer, err = client.GetComputerInventoryBySerialNumber(serialNumber)
-
-	} else if v, ok := d.GetOk("id"); ok {
-		profileID, ok := v.(string)
-		if !ok {
-			return diag.Errorf("error asserting 'id' as string")
-		}
-		computer, err = client.GetComputerInventoryByID(profileID)
+	} else if val, ok := d.GetOk("id"); ok {
+		ident = val.(string)
+		computer, err = client.GetComputerInventoryByID(ident)
 
 	} else {
 		return diag.Errorf("Either 'name', 'serial_number', or 'id' must be provided")
 	}
 
 	if err != nil {
+		if allow_not_found {
+			return append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  fmt.Sprintf("Computer at %s not found", ident),
+				Detail:   fmt.Sprintf("Not erroring due to allow_not_found enabled\nerr: %v", err),
+			})
+		}
+
 		return diag.FromErr(fmt.Errorf("failed to fetch computer inventory: %v", err))
 	}
 
