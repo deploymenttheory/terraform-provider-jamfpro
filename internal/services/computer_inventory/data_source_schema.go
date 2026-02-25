@@ -14,6 +14,12 @@ func DataSourceJamfProComputerInventory() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"warn_if_not_found": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Enabling this setting will cause the provider to only WARN if a computer is not found. By default the provider will ERROR.",
+			},
 			"name": {
 				Type:     schema.TypeString,
 				Optional: true,
