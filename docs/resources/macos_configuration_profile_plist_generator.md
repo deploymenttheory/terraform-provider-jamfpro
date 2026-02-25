@@ -211,6 +211,13 @@ resource "jamfpro_macos_configuration_profile_plist_generator" "jamfpro_macos_co
 - `description` (String) Description of the configuration profile.
 - `distribution_method` (String) The distribution method for the configuration profile. ['Make Available in Self Service','Install Automatically']
 - `level` (String) The deployment level of the configuration profile. Available options are: 'User' or 'System'. Note: 'System' is mapped to 'Computer Level' in the Jamf Pro GUI.
+- `payload_validate` (Boolean) Controls validation of the Mobile device  configuration profile plist. When enabled (default), performs the following validations:
+
+1. Payload State Normalization (normalizePayloadState):
+   - Normalizes the payload structure for consistent state management
+   - Ensures profile format matches Jamf Pro's expected structure
+
+Set to false when importing profiles from external sources that may not strictly conform to Jamf Pro's plist requirements. Disabling validation bypasses these checks but may result in deployment issues if the profile structure is incompatible with Jamf Pro, or triggers jamf pro plist processing not handled by 'payloads' diff suppression. Switch off at your own risk.
 - `self_service` (Block List, Max: 1) Self Service Configuration (see [below for nested schema](#nestedblock--self_service))
 - `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
