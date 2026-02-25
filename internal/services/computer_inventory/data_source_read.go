@@ -25,7 +25,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	var computer *jamfpro.ResourceComputerInventory
 	var err error
 
-	allow_not_found := d.Get("allow_not_found").(bool)
+	warn_if_not_found := d.Get("warn_if_not_found").(bool)
 
 	if val, ok := d.GetOk("name"); ok {
 		ident = val.(string)
@@ -44,11 +44,11 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if err != nil {
-		if allow_not_found {
+		if warn_if_not_found {
 			return append(diags, diag.Diagnostic{
 				Severity: diag.Warning,
 				Summary:  fmt.Sprintf("Computer at %s not found", ident),
-				Detail:   fmt.Sprintf("Not erroring due to allow_not_found enabled\nerr: %v", err),
+				Detail:   fmt.Sprintf("Not erroring due to warn_if_not_found enabled\nerr: %v", err),
 			})
 		}
 
