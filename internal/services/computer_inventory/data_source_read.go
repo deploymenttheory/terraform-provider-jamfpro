@@ -14,159 +14,148 @@ import (
 // then 'serial_number', then 'id' for fetching details. If none are provided, it returns an error.
 // Once the details are fetched, they are set in the data source's state.
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Asserts 'meta' as '*client.client'
+	var diags diag.Diagnostics
+	var ident string
+
 	client, ok := meta.(*jamfpro.Client)
 	if !ok {
 		return diag.Errorf("error asserting meta as *client.client")
 	}
 
-	var profile *jamfpro.ResourceComputerInventory
+	var computer *jamfpro.ResourceComputerInventory
 	var err error
 
-	// Fetch profile by 'name', 'serial_number', or 'id'
-	if v, ok := d.GetOk("name"); ok {
-		profileName, ok := v.(string)
-		if !ok {
-			return diag.Errorf("error asserting 'name' as string")
-		}
-		profile, err = client.GetComputerInventoryByName(profileName)
-	} else if v, ok := d.GetOk("serial_number"); ok {
-		serialNumber, ok := v.(string)
-		if !ok {
-			return diag.Errorf("error asserting 'serial_number' as string")
-		}
-		profile, err = client.GetComputerInventoryBySerialNumber(serialNumber)
-	} else if v, ok := d.GetOk("id"); ok {
-		profileID, ok := v.(string)
-		if !ok {
-			return diag.Errorf("error asserting 'id' as string")
-		}
-		profile, err = client.GetComputerInventoryByID(profileID)
+	warn_if_not_found := d.Get("warn_if_not_found").(bool)
+
+	if val, ok := d.GetOk("name"); ok {
+		ident = val.(string)
+		computer, err = client.GetComputerInventoryByName(ident)
+
+	} else if val, ok := d.GetOk("serial_number"); ok {
+		ident = val.(string)
+		computer, err = client.GetComputerInventoryBySerialNumber(ident)
+
+	} else if val, ok := d.GetOk("id"); ok {
+		ident = val.(string)
+		computer, err = client.GetComputerInventoryByID(ident)
+
 	} else {
 		return diag.Errorf("Either 'name', 'serial_number', or 'id' must be provided")
 	}
 
 	if err != nil {
+		if warn_if_not_found {
+			return append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  fmt.Sprintf("Computer at %s not found", ident),
+				Detail:   fmt.Sprintf("Not erroring due to warn_if_not_found enabled\nerr: %v", err),
+			})
+		}
+
 		return diag.FromErr(fmt.Errorf("failed to fetch computer inventory: %v", err))
 	}
 
-	// Set top-level attributes
-	d.SetId(profile.ID)
-	d.Set("id", profile.ID)
-	d.Set("udid", profile.UDID)
+	d.SetId(computer.ID)
 
-	// Set 'general' section
-	if err := setGeneralSection(d, profile.General); err != nil {
+	err = d.Set("id", computer.ID)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'diskEncryption' section
-	if err := setDiskEncryptionSection(d, profile.DiskEncryption); err != nil {
+	err = d.Set("udid", computer.UDID)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'purchasing' section
-	if err := setPurchasingSection(d, profile.Purchasing); err != nil {
+	if err := setGeneralSection(d, computer.General); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'applications' section
-	if err := setApplicationsSection(d, profile.Applications); err != nil {
+	if err := setDiskEncryptionSection(d, computer.DiskEncryption); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'storage' section
-	if err := setStorageSection(d, profile.Storage); err != nil {
+	if err := setPurchasingSection(d, computer.Purchasing); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'userAndLocation' section
-	if err := setUserAndLocationSection(d, profile.UserAndLocation); err != nil {
+	if err := setApplicationsSection(d, computer.Applications); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'hardware' section
-	if err := setHardwareSection(d, profile.Hardware); err != nil {
+	if err := setStorageSection(d, computer.Storage); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'localUserAccounts' section
-	if err := setLocalUserAccountsSection(d, profile.LocalUserAccounts); err != nil {
+	if err := setUserAndLocationSection(d, computer.UserAndLocation); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'certificates' section
-	if err := setCertificatesSection(d, profile.Certificates); err != nil {
+	if err := setHardwareSection(d, computer.Hardware); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'attachments' section
-	if err := setAttachmentsSection(d, profile.Attachments); err != nil {
+	if err := setLocalUserAccountsSection(d, computer.LocalUserAccounts); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'plugins' section
-	if err := setPluginsSection(d, profile.Plugins); err != nil {
+	if err := setCertificatesSection(d, computer.Certificates); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'packageReceipts' section
-	if err := setPackageReceiptsSection(d, profile.PackageReceipts); err != nil {
+	if err := setAttachmentsSection(d, computer.Attachments); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'fonts' section
-	if err := setFontsSection(d, profile.Fonts); err != nil {
+	if err := setPluginsSection(d, computer.Plugins); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'security' section
-	if err := setSecuritySection(d, profile.Security); err != nil {
+	if err := setPackageReceiptsSection(d, computer.PackageReceipts); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'operatingSystem' section
-	if err := setOperatingSystemSection(d, profile.OperatingSystem); err != nil {
+	if err := setFontsSection(d, computer.Fonts); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'licensedSoftware' section
-	if err := setLicensedSoftwareSection(d, profile.LicensedSoftware); err != nil {
+	if err := setSecuritySection(d, computer.Security); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'ibeacons' section
-	if err := setIBeaconsSection(d, profile.Ibeacons); err != nil {
+	if err := setOperatingSystemSection(d, computer.OperatingSystem); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'softwareUpdates' section
-	if err := setSoftwareUpdatesSection(d, profile.SoftwareUpdates); err != nil {
+	if err := setLicensedSoftwareSection(d, computer.LicensedSoftware); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'extensionAttributes' section
-	if err := setExtensionAttributesSection(d, profile.ExtensionAttributes); err != nil {
+	if err := setIBeaconsSection(d, computer.Ibeacons); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'groupMemberships' section
-	if err := setGroupMembershipsSection(d, profile.GroupMemberships); err != nil {
+	if err := setSoftwareUpdatesSection(d, computer.SoftwareUpdates); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'configurationProfiles' section
-	if err := setConfigurationProfilesSection(d, profile.ConfigurationProfiles); err != nil {
+	if err := setExtensionAttributesSection(d, computer.ExtensionAttributes); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'printers' section
-	if err := setPrintersSection(d, profile.Printers); err != nil {
+	if err := setGroupMembershipsSection(d, computer.GroupMemberships); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// Set 'services' section
-	if err := setServicesSection(d, profile.Services); err != nil {
+	if err := setConfigurationProfilesSection(d, computer.ConfigurationProfiles); err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err := setPrintersSection(d, computer.Printers); err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err := setServicesSection(d, computer.Services); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -207,13 +196,11 @@ func setGeneralSection(d *schema.ResourceData, general jamfpro.ComputerInventory
 	gen["declarative_device_management_enabled"] = general.DeclarativeDeviceManagementEnabled
 	gen["management_id"] = general.ManagementId
 
-	// Handle nested object 'remoteManagement'.
 	remoteManagement := make(map[string]any)
 	remoteManagement["managed"] = general.RemoteManagement.Managed
 	remoteManagement["management_username"] = general.RemoteManagement.ManagementUsername
 	gen["remote_management"] = []any{remoteManagement}
 
-	// Handle nested object 'site'.
 	if general.Site.ID != "" || general.Site.Name != "" {
 		site := make(map[string]any)
 		site["id"] = general.Site.ID
@@ -221,7 +208,6 @@ func setGeneralSection(d *schema.ResourceData, general jamfpro.ComputerInventory
 		gen["site_id"] = []any{site}
 	}
 
-	// Handle nested object 'enrollmentMethod'.
 	if general.EnrollmentMethod.ID != "" || general.EnrollmentMethod.ObjectName != "" || general.EnrollmentMethod.ObjectType != "" {
 		enrollmentMethod := make(map[string]any)
 		enrollmentMethod["id"] = general.EnrollmentMethod.ID
@@ -230,45 +216,36 @@ func setGeneralSection(d *schema.ResourceData, general jamfpro.ComputerInventory
 		gen["enrollment_method"] = []any{enrollmentMethod}
 	}
 
-	// Set the 'general' section in the Terraform resource data.
 	return d.Set("general", []any{gen})
 }
 
 // setDiskEncryptionSection maps the 'diskEncryption' section of the computer inventory response to the Terraform resource data and updates the state.
 func setDiskEncryptionSection(d *schema.ResourceData, diskEncryption jamfpro.ComputerInventorySubsetDiskEncryption) error {
-	// Initialize a map to hold the 'diskEncryption' section attributes.
 	diskEnc := make(map[string]any)
 
-	// Map each attribute of the 'diskEncryption' section from the API response to the corresponding Terraform schema attribute.
 	diskEnc["individual_recovery_key_validity_status"] = diskEncryption.IndividualRecoveryKeyValidityStatus
 	diskEnc["institutional_recovery_key_present"] = diskEncryption.InstitutionalRecoveryKeyPresent
 	diskEnc["disk_encryption_configuration_name"] = diskEncryption.DiskEncryptionConfigurationName
 	diskEnc["file_vault2_eligibility_message"] = diskEncryption.FileVault2EligibilityMessage
 
-	// Handle nested object 'bootPartitionEncryptionDetails'.
 	bootPartitionDetails := make(map[string]any)
 	bootPartitionDetails["partition_name"] = diskEncryption.BootPartitionEncryptionDetails.PartitionName
 	bootPartitionDetails["partition_file_vault2_state"] = diskEncryption.BootPartitionEncryptionDetails.PartitionFileVault2State
 	bootPartitionDetails["partition_file_vault2_percent"] = diskEncryption.BootPartitionEncryptionDetails.PartitionFileVault2Percent
 	diskEnc["boot_partition_encryption_details"] = []any{bootPartitionDetails}
 
-	// Map 'fileVault2EnabledUserNames' as a list of strings.
 	fileVaultUserNames := make([]string, len(diskEncryption.FileVault2EnabledUserNames))
 	copy(fileVaultUserNames, diskEncryption.FileVault2EnabledUserNames)
 
-	// Set 'fileVault2EnabledUserNames' in the 'diskEnc' map.
 	diskEnc["file_vault2_enabled_user_names"] = fileVaultUserNames
 
-	// Set the 'diskEncryption' section in the Terraform resource data.
 	return d.Set("disk_encryption", []any{diskEnc})
 }
 
 // setPurchasingSection maps the 'purchasing' section of the computer inventory response to the Terraform resource data and updates the state.
 func setPurchasingSection(d *schema.ResourceData, purchasing jamfpro.ComputerInventorySubsetPurchasing) error {
-	// Initialize a map to hold the 'purchasing' section attributes.
 	purchasingMap := make(map[string]any)
 
-	// Map each attribute of the 'purchasing' section from the API response to the corresponding Terraform schema attribute.
 	purchasingMap["leased"] = purchasing.Leased
 	purchasingMap["purchased"] = purchasing.Purchased
 	purchasingMap["po_number"] = purchasing.PoNumber
@@ -282,7 +259,6 @@ func setPurchasingSection(d *schema.ResourceData, purchasing jamfpro.ComputerInv
 	purchasingMap["purchasing_account"] = purchasing.PurchasingAccount
 	purchasingMap["purchasing_contact"] = purchasing.PurchasingContact
 
-	// Map 'extensionAttributes' as a list of maps.
 	extAttrs := make([]map[string]any, len(purchasing.ExtensionAttributes))
 	for i, attr := range purchasing.ExtensionAttributes {
 		attrMap := make(map[string]any)
@@ -300,20 +276,15 @@ func setPurchasingSection(d *schema.ResourceData, purchasing jamfpro.ComputerInv
 	}
 	purchasingMap["extension_attributes"] = extAttrs
 
-	// Set the 'purchasing' section in the Terraform resource data.
 	return d.Set("purchasing", []any{purchasingMap})
 }
 
 // setApplicationsSection maps the 'applications' section of the computer inventory response to the Terraform resource data and updates the state.
 func setApplicationsSection(d *schema.ResourceData, applications []jamfpro.ComputerInventorySubsetApplication) error {
-	// Create a slice to hold the application maps.
 	apps := make([]any, len(applications))
 
 	for i, app := range applications {
-		// Initialize a map for each application.
 		appMap := make(map[string]any)
-
-		// Map each attribute of the application from the API response to the corresponding Terraform schema attribute.
 		appMap["name"] = app.Name
 		appMap["path"] = app.Path
 		appMap["version"] = app.Version
@@ -323,11 +294,9 @@ func setApplicationsSection(d *schema.ResourceData, applications []jamfpro.Compu
 		appMap["update_available"] = app.UpdateAvailable
 		appMap["external_version_id"] = app.ExternalVersionId
 
-		// Add the application map to the slice.
 		apps[i] = appMap
 	}
 
-	// Set the 'applications' section in the Terraform resource data.
 	return d.Set("applications", apps)
 }
 
@@ -337,7 +306,6 @@ func setStorageSection(d *schema.ResourceData, storage jamfpro.ComputerInventory
 
 	storageMap["boot_drive_available_space_megabytes"] = storage.BootDriveAvailableSpaceMegabytes
 
-	// Mapping 'disks' array
 	disks := make([]any, len(storage.Disks))
 	for i, disk := range storage.Disks {
 		diskMap := make(map[string]any)
@@ -350,7 +318,6 @@ func setStorageSection(d *schema.ResourceData, storage jamfpro.ComputerInventory
 		diskMap["smart_status"] = disk.SmartStatus
 		diskMap["type"] = disk.Type
 
-		// Map 'partitions' if present
 		partitions := make([]any, len(disk.Partitions))
 		for j, partition := range disk.Partitions {
 			partitionMap := make(map[string]any)
@@ -370,7 +337,6 @@ func setStorageSection(d *schema.ResourceData, storage jamfpro.ComputerInventory
 	}
 	storageMap["disks"] = disks
 
-	// Set the 'storage' section in the Terraform resource data.
 	return d.Set("storage", []any{storageMap})
 }
 
@@ -378,7 +344,6 @@ func setStorageSection(d *schema.ResourceData, storage jamfpro.ComputerInventory
 func setUserAndLocationSection(d *schema.ResourceData, userAndLocation jamfpro.ComputerInventorySubsetUserAndLocation) error {
 	userLocationMap := make(map[string]any)
 
-	// Map each attribute from the 'userAndLocation' object to the corresponding schema attribute
 	userLocationMap["username"] = userAndLocation.Username
 	userLocationMap["realname"] = userAndLocation.Realname
 	userLocationMap["email"] = userAndLocation.Email
@@ -388,7 +353,6 @@ func setUserAndLocationSection(d *schema.ResourceData, userAndLocation jamfpro.C
 	userLocationMap["building_id"] = userAndLocation.BuildingId
 	userLocationMap["room"] = userAndLocation.Room
 
-	// Map extension attributes if present
 	if len(userAndLocation.ExtensionAttributes) > 0 {
 		extAttrs := make([]map[string]any, len(userAndLocation.ExtensionAttributes))
 		for i, attr := range userAndLocation.ExtensionAttributes {
@@ -408,7 +372,6 @@ func setUserAndLocationSection(d *schema.ResourceData, userAndLocation jamfpro.C
 		userLocationMap["extension_attributes"] = extAttrs
 	}
 
-	// Set the 'userAndLocation' section in the Terraform resource data
 	return d.Set("user_and_location", []any{userLocationMap})
 }
 
@@ -416,7 +379,6 @@ func setUserAndLocationSection(d *schema.ResourceData, userAndLocation jamfpro.C
 func setHardwareSection(d *schema.ResourceData, hardware jamfpro.ComputerInventorySubsetHardware) error {
 	hardwareMap := make(map[string]any)
 
-	// Map each attribute from the 'hardware' object to the corresponding schema attribute
 	hardwareMap["make"] = hardware.Make
 	hardwareMap["model"] = hardware.Model
 	hardwareMap["model_identifier"] = hardware.ModelIdentifier
@@ -443,7 +405,6 @@ func setHardwareSection(d *schema.ResourceData, hardware jamfpro.ComputerInvento
 	hardwareMap["supports_ios_app_installs"] = hardware.SupportsIosAppInstalls
 	hardwareMap["apple_silicon"] = hardware.AppleSilicon
 
-	// Map extension attributes if present
 	if len(hardware.ExtensionAttributes) > 0 {
 		extAttrs := make([]map[string]any, len(hardware.ExtensionAttributes))
 		for i, attr := range hardware.ExtensionAttributes {
@@ -463,7 +424,6 @@ func setHardwareSection(d *schema.ResourceData, hardware jamfpro.ComputerInvento
 		hardwareMap["extension_attributes"] = extAttrs
 	}
 
-	// Set the 'hardware' section in the Terraform resource data
 	return d.Set("hardware", []any{hardwareMap})
 }
 
@@ -591,7 +551,7 @@ func setOperatingSystemSection(d *schema.ResourceData, operatingSystem jamfpro.C
 	osMap["active_directory_status"] = operatingSystem.ActiveDirectoryStatus
 	osMap["filevault2_status"] = operatingSystem.FileVault2Status
 	osMap["software_update_device_id"] = operatingSystem.SoftwareUpdateDeviceId
-	// Map extension attributes if present
+
 	extAttrs := make([]map[string]any, len(operatingSystem.ExtensionAttributes))
 	for i, attr := range operatingSystem.ExtensionAttributes {
 		attrMap := make(map[string]any)
@@ -683,14 +643,14 @@ func setGroupMembershipsSection(d *schema.ResourceData, groupMemberships []jamfp
 // setConfigurationProfilesSection maps the 'configurationProfiles' section of the computer inventory response to the Terraform resource data and updates the state.
 func setConfigurationProfilesSection(d *schema.ResourceData, configurationProfiles []jamfpro.ComputerInventorySubsetConfigurationProfile) error {
 	profiles := make([]any, len(configurationProfiles))
-	for i, profile := range configurationProfiles {
+	for i, computer := range configurationProfiles {
 		profileMap := map[string]interface{}{
-			"id":                 profile.ID,
-			"username":           profile.Username,
-			"last_installed":     profile.LastInstalled,
-			"removable":          profile.Removable,
-			"display_name":       profile.DisplayName,
-			"profile_identifier": profile.ProfileIdentifier,
+			"id":                 computer.ID,
+			"username":           computer.Username,
+			"last_installed":     computer.LastInstalled,
+			"removable":          computer.Removable,
+			"display_name":       computer.DisplayName,
+			"profile_identifier": computer.ProfileIdentifier,
 		}
 		profiles[i] = profileMap
 	}
