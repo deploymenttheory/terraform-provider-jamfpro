@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.35.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.34.1...v0.35.0) (2026-02-25)
+
+
+### Features
+
+* Optionally allow computer data sources to not be found ([#1031](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1031)) ([bd8a1f9](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/bd8a1f915fa5f80da2a9cce6bb2a74dc87d478d4))
+
+
+### Bug Fixes
+
+* prevent false diff in self_service_description caused by whitespace normalization ([#1028](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1028)) ([35fa160](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/35fa160b642e9ac03fc1060d7675a9d0cc32e7d0))
+
 ## [0.34.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.34.0...v0.34.1) (2026-02-18)
 
 
