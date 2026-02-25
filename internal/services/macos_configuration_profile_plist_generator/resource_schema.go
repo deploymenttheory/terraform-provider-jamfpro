@@ -300,6 +300,21 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 					},
 				},
 			},
+			"payload_validate": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+				Description: "Controls validation of the Mobile device  configuration profile plist. When enabled (default), " +
+					"performs the following validations:\n\n" +
+					"1. Payload State Normalization (normalizePayloadState):\n" +
+					"   - Normalizes the payload structure for consistent state management\n" +
+					"   - Ensures profile format matches Jamf Pro's expected structure\n\n" +
+					"Set to false when importing profiles from external sources that may not " +
+					"strictly conform to Jamf Pro's plist requirements. Disabling validation " +
+					"bypasses these checks but may result in deployment issues if the profile " +
+					"structure is incompatible with Jamf Pro, or triggers jamf pro plist processing " +
+					"not handled by 'payloads' diff suppression. Switch off at your own risk.",
+			},
 			"redeploy_on_update": {
 				Type:     schema.TypeString,
 				Required: true,
