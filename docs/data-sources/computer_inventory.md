@@ -356,6 +356,7 @@ output "site_info" {
 
 - `name` (String)
 - `serial_number` (String)
+- `warn_if_not_found` (Boolean) Enabling this setting will cause the provider to only WARN if a computer is not found. By default the provider will ERROR.
 
 ### Read-Only
 
