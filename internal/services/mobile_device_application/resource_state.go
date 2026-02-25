@@ -13,7 +13,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceAppli
 
 	d.Set("name", resp.General.Name)
 	d.Set("display_name", resp.General.DisplayName)
-	d.Set("description", normalizeWhitespace(resp.General.Description))
+	d.Set("description", utils.NormalizeWhitespace(resp.General.Description))
 	d.Set("bundle_id", resp.General.BundleID)
 	d.Set("version", resp.General.Version)
 	d.Set("internal_app", resp.General.InternalApp)
@@ -62,7 +62,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceAppli
 	if resp.SelfService.SelfServiceDescription != "" || resp.SelfService.NotificationMessage != "" {
 		selfService := []map[string]any{
 			{
-				"self_service_description": normalizeWhitespace(resp.SelfService.SelfServiceDescription),
+				"self_service_description": utils.NormalizeWhitespace(resp.SelfService.SelfServiceDescription),
 				"feature_on_main_page":     resp.SelfService.FeatureOnMainPage,
 				"notification":             resp.SelfService.Notification,
 				"notification_subject":     resp.SelfService.NotificationSubject,
@@ -96,7 +96,7 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDeviceAppli
 	if resp.AppConfiguration.Preferences != "" {
 		appConfig := []map[string]any{
 			{
-				"preferences": normalizeWhitespace(resp.AppConfiguration.Preferences),
+				"preferences": utils.NormalizeWhitespace(resp.AppConfiguration.Preferences),
 			},
 		}
 		d.Set("app_configuration", appConfig)

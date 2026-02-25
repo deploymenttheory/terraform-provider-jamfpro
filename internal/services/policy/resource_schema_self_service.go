@@ -1,6 +1,7 @@
 package policy
 
 import (
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -36,6 +37,9 @@ func getPolicySchemaSelfService() *schema.Resource {
 				Optional:    true,
 				Description: "Description of the policy displayed in self-service.",
 				Default:     "",
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+				},
 			},
 			"force_users_to_view_description": {
 				Type:        schema.TypeBool,
