@@ -187,12 +187,12 @@ func setLimitations(limitations jamfpro.MobileDeviceApplicationSubsetLimitation)
 	}
 
 	if len(limitations.UserGroups) > 0 {
-		userGroupIDs := utils.FlattenSortIDs(
+		userGroupNames := utils.FlattenSortStrings(
 			limitations.UserGroups,
-			func(entity jamfpro.MobileDeviceApplicationSubsetScopeEntity) int { return entity.ID },
+			func(entity jamfpro.MobileDeviceApplicationSubsetScopeEntity) string { return entity.Name },
 		)
-		if len(userGroupIDs) > 0 {
-			result["directory_service_usergroup_ids"] = userGroupIDs
+		if len(userGroupNames) > 0 {
+			result["directory_service_usergroup_names"] = userGroupNames
 		}
 	}
 
@@ -288,12 +288,12 @@ func setExclusions(exclusions jamfpro.MobileDeviceApplicationSubsetExclusion) ([
 	}
 
 	if len(exclusions.UserGroups) > 0 {
-		userGroupIDs := utils.FlattenSortIDs(
+		userGroupNames := utils.FlattenSortStrings(
 			exclusions.UserGroups,
-			func(entity jamfpro.MobileDeviceApplicationSubsetScopeEntity) int { return entity.ID },
+			func(entity jamfpro.MobileDeviceApplicationSubsetScopeEntity) string { return entity.Name },
 		)
-		if len(userGroupIDs) > 0 {
-			result["directory_service_usergroup_ids"] = userGroupIDs
+		if len(userGroupNames) > 0 {
+			result["directory_service_usergroup_names"] = userGroupNames
 		}
 	}
 
