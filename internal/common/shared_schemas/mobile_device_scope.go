@@ -73,14 +73,14 @@ func GetSharedMobileDeviceSchemaScope() *schema.Resource {
 						"directory_service_or_local_usernames": {
 							Type:        schema.TypeSet,
 							Optional:    true,
-							Description: "A list of directory service / local usernames for scoping limitations.",
+							Description: "A list of directory service / local usernames for limitations.",
 							Elem:        &schema.Schema{Type: schema.TypeString},
 						},
-						"directory_service_usergroup_ids": {
+						"directory_service_usergroup_names": {
 							Type:        schema.TypeSet,
 							Optional:    true,
-							Description: "A list of directory service user group IDs for limitations.",
-							Elem:        &schema.Schema{Type: schema.TypeInt},
+							Description: "A list of directory service user group names for limitations.",
+							Elem:        &schema.Schema{Type: schema.TypeString},
 						},
 					},
 				},
@@ -137,14 +137,14 @@ func GetSharedMobileDeviceSchemaScope() *schema.Resource {
 						"directory_service_or_local_usernames": {
 							Type:        schema.TypeSet,
 							Optional:    true,
-							Description: "A list of directory service / local usernames for scoping limitations.",
+							Description: "A list of directory service / local usernames for exclusions.",
 							Elem:        &schema.Schema{Type: schema.TypeString},
 						},
-						"directory_service_usergroup_ids": {
+						"directory_service_usergroup_names": {
 							Type:        schema.TypeSet,
 							Optional:    true,
-							Description: "A list of directory service / local user group IDs for limitations.",
-							Elem:        &schema.Schema{Type: schema.TypeInt},
+							Description: "A list of directory service / local user group names for exclusions.",
+							Elem:        &schema.Schema{Type: schema.TypeString},
 						},
 						"ibeacon_ids": {
 							Type:        schema.TypeSet,

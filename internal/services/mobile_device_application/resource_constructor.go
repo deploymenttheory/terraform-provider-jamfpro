@@ -180,8 +180,8 @@ func constructLimitations(d *schema.ResourceData) jamfpro.MobileDeviceApplicatio
 	}
 
 	var userGroups []jamfpro.MobileDeviceApplicationSubsetScopeEntity
-	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceApplicationSubsetScopeEntity, int](
-		"scope.0.limitations.0.directory_service_usergroup_ids", "ID", d, &userGroups); err == nil {
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceApplicationSubsetScopeEntity, string](
+		"scope.0.limitations.0.directory_service_usergroup_names", "Name", d, &userGroups); err == nil {
 		limitations.UserGroups = userGroups
 	}
 
@@ -217,8 +217,8 @@ func constructExclusions(d *schema.ResourceData) jamfpro.MobileDeviceApplication
 	}
 
 	var userGroups []jamfpro.MobileDeviceApplicationSubsetScopeEntity
-	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceApplicationSubsetScopeEntity, int](
-		"scope.0.exclusions.0.directory_service_usergroup_ids", "ID", d, &userGroups); err == nil {
+	if err := constructors.MapSetToStructs[jamfpro.MobileDeviceApplicationSubsetScopeEntity, string](
+		"scope.0.exclusions.0.directory_service_usergroup_names", "Name", d, &userGroups); err == nil {
 		exclusions.UserGroups = userGroups
 	}
 

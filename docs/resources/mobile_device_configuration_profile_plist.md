@@ -39,7 +39,7 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_device_conf
       network_segment_ids                  = [701, 702]
       ibeacon_ids                          = [801]
       directory_service_or_local_usernames = ["Jane Smith", "John Doe"]
-      directory_service_usergroup_ids      = [1001, 1002]
+      directory_service_usergroup_names    = ["Marketing", "Sales"]
     }
 
     exclusions {
@@ -51,7 +51,7 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_device_conf
       jss_user_ids                         = [1601, 1602]
       jss_user_group_ids                   = [1701]
       directory_service_or_local_usernames = ["Jane Smith", "John Doe"]
-      directory_service_usergroup_ids      = [1001, 1002]
+      directory_service_usergroup_names    = ["Engineering"]
       ibeacon_ids                          = [1801]
     }
   }
@@ -169,8 +169,8 @@ Optional:
 
 - `building_ids` (Set of Number) A list of building IDs for exclusions.
 - `department_ids` (Set of Number) A list of department IDs for exclusions.
-- `directory_service_or_local_usernames` (Set of String) A list of directory service / local usernames for scoping limitations.
-- `directory_service_usergroup_ids` (Set of Number) A list of directory service / local user group IDs for limitations.
+- `directory_service_or_local_usernames` (Set of String) A list of directory service / local usernames for exclusions.
+- `directory_service_usergroup_names` (Set of String) A list of directory service / local user group names for exclusions.
 - `ibeacon_ids` (Set of Number) A list of iBeacon IDs for exclusions.
 - `jss_user_group_ids` (Set of Number) A list of JSS user group IDs for exclusions.
 - `jss_user_ids` (Set of Number) A list of user names for exclusions.
@@ -184,8 +184,8 @@ Optional:
 
 Optional:
 
-- `directory_service_or_local_usernames` (Set of String) A list of directory service / local usernames for scoping limitations.
-- `directory_service_usergroup_ids` (Set of Number) A list of directory service user group IDs for limitations.
+- `directory_service_or_local_usernames` (Set of String) A list of directory service / local usernames for limitations.
+- `directory_service_usergroup_names` (Set of String) A list of directory service user group names for limitations.
 - `ibeacon_ids` (Set of Number) A list of iBeacon IDs for limitations.
 - `network_segment_ids` (Set of Number) A list of network segment IDs for limitations.
 
