@@ -143,7 +143,7 @@ func GetSharedMobileDeviceSchemaScope() *schema.Resource {
 						"directory_service_usergroup_names": {
 							Type:        schema.TypeSet,
 							Optional:    true,
-							Description: "A list of directory service / local user group names for exclusions.",
+							Description: "A list of directory service user group names for exclusions.",
 							Elem:        &schema.Schema{Type: schema.TypeString},
 						},
 						"ibeacon_ids": {

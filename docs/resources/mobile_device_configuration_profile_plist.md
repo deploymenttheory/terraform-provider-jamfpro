@@ -170,7 +170,7 @@ Optional:
 - `building_ids` (Set of Number) A list of building IDs for exclusions.
 - `department_ids` (Set of Number) A list of department IDs for exclusions.
 - `directory_service_or_local_usernames` (Set of String) A list of directory service / local usernames for exclusions.
-- `directory_service_usergroup_names` (Set of String) A list of directory service / local user group names for exclusions.
+- `directory_service_usergroup_names` (Set of String) A list of directory service user group names for exclusions.
 - `ibeacon_ids` (Set of Number) A list of iBeacon IDs for exclusions.
 - `jss_user_group_ids` (Set of Number) A list of JSS user group IDs for exclusions.
 - `jss_user_ids` (Set of Number) A list of user names for exclusions.
