@@ -64,6 +64,7 @@ resource "jamfpro_package" "jamfpro_package_002" {
 - `manifest_file_name` (String) The manifest file name.
 - `notes` (String) Notes to display about the package (e.g., who built it and when it was built)
 - `os_requirements` (String) The OS requirements for the Jamf Pro package. The package can only be deployed to computers with these operating system versions. Each version must be separated by a comma (e.g., '10.6.8, 10.7.x, 10.8')
+- `package_file_source_checksum` (String) An optional checksum value for the package file source. Used to trigger a re-upload when the file content changes at an HTTP/HTTPS URL without the URL itself changing. For local files, content changes are detected automatically via SHA-256. Set this to any value that changes when the remote file changes (e.g., a SHA-256 hash, version string, or build number).
 - `parent_package_id` (String) The parent package ID. Defaults to -1 if not specified.
 - `self_heal_notify` (Boolean) Whether to notify for self-heal.
 - `self_healing_action` (String) The self-healing action for the package. Defaults to 'nothing' if not specified.
@@ -83,10 +84,10 @@ resource "jamfpro_package" "jamfpro_package_002" {
 - `indexed` (Boolean) Whether the package has completed indexing within the jamf content delivery service.
 - `install_language` (String) The install language of the package.
 - `md5` (String) The MD5 hash of the package.
-- `md5_file_hash` (String) md5 hash of the package file for integrity comparison.
 - `os_installer_version` (String) The OS installer version.
 - `package_uri` (String) The URI of the package in the Jamf Cloud Distribution Service (JCDS).
 - `sha256` (String) The SHA256 hash of the package.
+- `sha3512` (String) The SHA3512 hash of the package.
 - `size` (String) The size of the package.
 
 <a id="nestedblock--timeouts"></a>

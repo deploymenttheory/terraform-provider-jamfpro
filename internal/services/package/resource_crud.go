@@ -47,6 +47,15 @@ func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to calculate SHA3-512: %v", err))
 	}
+	resource.SHA3512 = initialHash
+	resource.HashType = "SHA3_512"
+	resource.HashValue = initialHash
+
+	sha256Hash, err := jamfpro.CalculateSHA256(localFilePath)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to calculate SHA-256: %v", err))
+	}
+	resource.SHA256 = sha256Hash
 
 	md5Hash, err := jamfpro.CalculateMD5(localFilePath)
 	if err != nil {
@@ -101,7 +110,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 	}
 
 	if err := verifyPackageUpload(ctx, client, packageID, resource.FileName, initialHash,
-		d.Timeout(schema.TimeoutCreate)); err != nil {
+		d.Timeout(schema.TimeoutCreate), true, false); err != nil {
 		return diag.FromErr(fmt.Errorf("failed to verify Jamf Pro Package '%s': %v", resource.PackageName, err))
 	}
 
@@ -148,29 +157,69 @@ func readNoCleanup(ctx context.Context, d *schema.ResourceData, meta any) diag.D
 
 // update handles the updating of a Jamf Pro package resource:
 //  1. Constructs the updated attribute data from the Terraform configuration.
-//  2. Calculates SHA3-512 hash of the new package file.
-//  3. Calculates the MD5 hash of the package file.
-//  4. Updates the package metadata in Jamf Pro.
-//  5. If the file hash differs from current:
-//     a. Uploads the new package file.
-//     b. Verifies the uploaded package hash matches.
-//     c. If verification fails, attempts to revert metadata changes.
-//  6. Performs cleanup of downloaded package if it was from an HTTP(s) source.
-//  7. Reads the updated package to ensure the Terraform state is up-to-date.
+//  2. If the file has changed, calculates SHA3-512, SHA-256, and MD5 hashes of the new package file.
+//  3. If the file was changed, uploads the new package file to JCDS.
+//  4. Updates the package metadata in Jamf Pro (with new hashes if file changed).
+//  5. Refreshes the JCDS inventory for the package file to trigger reprocessing.
+//  6. Verifies the uploaded package hash matches the expected hash.
+//  7. Performs cleanup of downloaded package if it was from an HTTP(s) source.
+//  8. Reads the updated package to ensure the Terraform state is up-to-date.
 func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
 	// Check if this is a file-related update or metadata-only update
-	fileChanged := d.HasChange("package_file_source")
+	fileChanged := d.HasChange("package_file_source") || d.HasChange("hash_value") || d.HasChange("package_file_source_checksum")
 
 	resource, localFilePath, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package for update: %v", err))
 	}
 
-	// Handle metadata update
+	// Compute new hashes if file changed
+	if fileChanged {
+		newSHA3512, err := jamfpro.CalculateSHA3_512(localFilePath)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("failed to calculate SHA3-512 hash for %s: %v", localFilePath, err))
+		}
+		resource.SHA3512 = newSHA3512
+		resource.HashType = "SHA3_512"
+		resource.HashValue = newSHA3512
+
+		newSHA256, err := jamfpro.CalculateSHA256(localFilePath)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("failed to calculate SHA-256: %v", err))
+		}
+		resource.SHA256 = newSHA256
+
+		newMD5, err := jamfpro.CalculateMD5(localFilePath)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("failed to calculate MD5: %v", err))
+		}
+		resource.MD5 = newMD5
+	}
+
+	// Upload package file first
+	if fileChanged {
+		client.HTTP.ModifyHttpTimeout(d.Timeout(schema.TimeoutUpdate))
+		defer client.HTTP.ResetTimeout()
+
+		err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+			_, err := client.UploadPackage(resourceID, []string{localFilePath})
+			if err != nil {
+				return retry.RetryableError(fmt.Errorf("failed to upload package file: %v", err))
+			}
+			log.Printf("[INFO] Package file uploaded successfully")
+			return nil
+		})
+
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("failed to upload Jamf Pro Package '%s': %v", resource.PackageName, err))
+		}
+	}
+
+	// Metadata PUT — sends new hashes and any other metadata changes
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		_, err := client.UpdatePackageByID(resourceID, *resource)
 		if err != nil {
@@ -185,35 +234,10 @@ func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 			resource.PackageName, resourceID, err))
 	}
 
-	// Only handle file operations if the package file has changed
+	// Verify upload (refresh is called inside the verify retry loop)
 	if fileChanged {
-		newFileHash, err := jamfpro.CalculateSHA3_512(localFilePath)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to calculate SHA3-512 hash for %s: %v", localFilePath, err))
-		}
-
-		md5Hash, err := jamfpro.CalculateMD5(localFilePath)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to calculate MD5: %v", err))
-		}
-		resource.MD5 = md5Hash
-
-		err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-			_, err := client.UploadPackage(resourceID, []string{localFilePath})
-			if err != nil {
-				return retry.RetryableError(fmt.Errorf("failed to upload package file: %v", err))
-			}
-
-			log.Printf("[INFO] Package file uploaded successfully")
-			return nil
-		})
-
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to upload new package file: %v", err))
-		}
-
-		if err := verifyPackageUpload(ctx, client, resourceID, resource.FileName, newFileHash,
-			d.Timeout(schema.TimeoutUpdate)); err != nil {
+		if err := verifyPackageUpload(ctx, client, resourceID, resource.FileName, resource.SHA3512,
+			d.Timeout(schema.TimeoutUpdate), false, true); err != nil {
 			return diag.FromErr(fmt.Errorf("failed to verify updated package file: %v", err))
 		}
 

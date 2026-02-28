@@ -20,7 +20,7 @@ func ResourceJamfProPackages() *schema.Resource {
 			Update: schema.DefaultTimeout(45 * time.Minute),
 			Delete: schema.DefaultTimeout(15 * time.Second),
 		},
-		CustomizeDiff: customValidateFilePath,
+		CustomizeDiff: mainCustomDiffFunc,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -44,6 +44,11 @@ func ResourceJamfProPackages() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The file path or the URL source of the Jamf Pro package to be uploaded. Supports HTTP/HTTPS URLs, and local filepaths.",
+			},
+			"package_file_source_checksum": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "An optional checksum value for the package file source. Used to trigger a re-upload when the file content changes at an HTTP/HTTPS URL without the URL itself changing. For local files, content changes are detected automatically via SHA-256. Set this to any value that changes when the remote file changes (e.g., a SHA-256 hash, version string, or build number).",
 			},
 			"category_id": {
 				Type:        schema.TypeString,
@@ -173,6 +178,11 @@ func ResourceJamfProPackages() *schema.Resource {
 				Computed:    true,
 				Description: "The SHA256 hash of the package.",
 			},
+			"sha3512": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The SHA3512 hash of the package.",
+			},
 			"hash_type": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -213,11 +223,6 @@ func ResourceJamfProPackages() *schema.Resource {
 				Computed:    true,
 				Description: "The URI of the package in the Jamf Cloud Distribution Service (JCDS).",
 			},
-			"md5_file_hash": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "md5 hash of the package file for integrity comparison.",
 			},
-		},
 	}
 }
