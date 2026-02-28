@@ -200,7 +200,22 @@ func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 		resource.MD5 = newMD5
 	}
 
-	// Upload package file first
+	// Metadata PUT — sends new hashes and any other metadata changes
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
+		_, err := client.UpdatePackageByID(resourceID, *resource)
+		if err != nil {
+			return retry.RetryableError(fmt.Errorf("failed to update package metadata: %v", err))
+		}
+		log.Printf("[INFO] Package metadata updated successfully")
+		return nil
+	})
+
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Package metadata '%s' (ID: %s): %v",
+			resource.PackageName, resourceID, err))
+	}
+
+	// Upload package file
 	if fileChanged {
 		client.HTTP.ModifyHttpTimeout(d.Timeout(schema.TimeoutUpdate))
 		defer client.HTTP.ResetTimeout()
@@ -217,21 +232,6 @@ func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to upload Jamf Pro Package '%s': %v", resource.PackageName, err))
 		}
-	}
-
-	// Metadata PUT — sends new hashes and any other metadata changes
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, err := client.UpdatePackageByID(resourceID, *resource)
-		if err != nil {
-			return retry.RetryableError(fmt.Errorf("failed to update package metadata: %v", err))
-		}
-		log.Printf("[INFO] Package metadata updated successfully")
-		return nil
-	})
-
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to update Jamf Pro Package metadata '%s' (ID: %s): %v",
-			resource.PackageName, resourceID, err))
 	}
 
 	// Verify upload (refresh is called inside the verify retry loop)
