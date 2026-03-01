@@ -23,17 +23,22 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourcePackage, string, error)
 	var localFilePath string
 	var err error
 
-	if strings.HasPrefix(fullPath, "http") {
-		log.Printf("[INFO] URL detected: %s. Attempting to download.", fullPath)
-		localFilePath, err = files.DownloadFile(fullPath)
-		if err != nil {
-			return nil, "", fmt.Errorf("failed to download file: %v", err)
+	if fullPath != "" {
+		if strings.HasPrefix(fullPath, "http") {
+			log.Printf("[INFO] URL detected: %s. Attempting to download.", fullPath)
+			localFilePath, err = files.DownloadFile(fullPath)
+			if err != nil {
+				return nil, "", fmt.Errorf("failed to download file: %v", err)
+			}
+			fileName = filepath.Base(localFilePath)
+			log.Printf("[INFO] Successfully downloaded file from URL: %s", fullPath)
+		} else {
+			fileName = filepath.Base(fullPath)
+			localFilePath = fullPath
 		}
-		fileName = filepath.Base(localFilePath)
-		log.Printf("[INFO] Successfully downloaded file from URL: %s", fullPath)
 	} else {
-		fileName = filepath.Base(fullPath)
-		localFilePath = fullPath
+		fileName = d.Get("filename").(string)
+		log.Printf("[INFO] No package_file_source specified, creating metadata-only package with filename: %s", fileName)
 	}
 
 	// Construct the ResourcePackage struct from the Terraform schema data
@@ -65,6 +70,15 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourcePackage, string, error)
 		OSInstallerVersion:   d.Get("os_installer_version").(string),
 		Manifest:             d.Get("manifest").(string),
 		ManifestFileName:     d.Get("manifest_file_name").(string),
+	}
+
+	// When no file source is provided, populate hash fields from user-supplied schema values
+	if fullPath == "" {
+		resource.MD5 = d.Get("md5").(string)
+		resource.SHA256 = d.Get("sha256").(string)
+		resource.SHA3512 = d.Get("sha3512").(string)
+		resource.HashType = d.Get("hash_type").(string)
+		resource.HashValue = d.Get("hash_value").(string)
 	}
 
 	resourceJSON, err := json.MarshalIndent(resource, "", "  ")

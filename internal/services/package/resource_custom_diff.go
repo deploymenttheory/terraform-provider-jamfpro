@@ -12,6 +12,10 @@ import (
 
 // mainCustomDiffFunc orchestrates all custom diff validations for packages.
 func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, meta any) error {
+	if err := validateFilenameRequired(ctx, diff, meta); err != nil {
+		return err
+	}
+
 	if err := customValidateFilePath(ctx, diff, meta); err != nil {
 		return err
 	}
@@ -19,12 +23,27 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, meta any
 	return computeFileHash(ctx, diff, meta)
 }
 
+// validateFilenameRequired ensures that filename is set when package_file_source is not provided.
+func validateFilenameRequired(_ context.Context, d *schema.ResourceDiff, _ any) error {
+	fileSource := d.Get("package_file_source").(string)
+	if fileSource != "" {
+		return nil
+	}
+
+	filename := d.Get("filename").(string)
+	if filename == "" {
+		return fmt.Errorf("filename is required when package_file_source is not set")
+	}
+
+	return nil
+}
+
 // customValidateFilePath is a custom validation function for the package_file_source field.
 // It ensures that the package_file_source field ends with .dmg if fill_user_template or fill_existing_users are set to true.
 func customValidateFilePath(_ context.Context, d *schema.ResourceDiff, _ any) error {
 	filePath, ok := d.Get("package_file_source").(string)
-	if !ok {
-		return fmt.Errorf("invalid type for package_file_source")
+	if !ok || filePath == "" {
+		return nil
 	}
 
 	if strings.HasSuffix(filePath, ".dmg") {

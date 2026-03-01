@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"path/filepath"
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -41,27 +40,27 @@ func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package: %v", err))
 	}
 
-	resource.FileName = filepath.Base(localFilePath)
+	if localFilePath != "" {
+		initialHash, err := jamfpro.CalculateSHA3_512(localFilePath)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("failed to calculate SHA3-512: %v", err))
+		}
+		resource.SHA3512 = initialHash
+		resource.HashType = "SHA3_512"
+		resource.HashValue = initialHash
 
-	initialHash, err := jamfpro.CalculateSHA3_512(localFilePath)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to calculate SHA3-512: %v", err))
-	}
-	resource.SHA3512 = initialHash
-	resource.HashType = "SHA3_512"
-	resource.HashValue = initialHash
+		sha256Hash, err := jamfpro.CalculateSHA256(localFilePath)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("failed to calculate SHA-256: %v", err))
+		}
+		resource.SHA256 = sha256Hash
 
-	sha256Hash, err := jamfpro.CalculateSHA256(localFilePath)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to calculate SHA-256: %v", err))
+		md5Hash, err := jamfpro.CalculateMD5(localFilePath)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("failed to calculate MD5: %v", err))
+		}
+		resource.MD5 = md5Hash
 	}
-	resource.SHA256 = sha256Hash
-
-	md5Hash, err := jamfpro.CalculateMD5(localFilePath)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to calculate MD5: %v", err))
-	}
-	resource.MD5 = md5Hash
 
 	// Meta
 	err = retry.RetryContext(ctx, PackagesMetaTimeout, func() *retry.RetryError {
@@ -82,41 +81,43 @@ func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 		return diag.FromErr(fmt.Errorf("failed to make the metadata, exiting: %v", err))
 	}
 
-	// Package
-	client.HTTP.ModifyHttpTimeout(d.Timeout(schema.TimeoutCreate))
-	defer client.HTTP.ResetTimeout()
+	// Package file upload (skipped for metadata-only packages)
+	if localFilePath != "" {
+		client.HTTP.ModifyHttpTimeout(d.Timeout(schema.TimeoutCreate))
+		defer client.HTTP.ResetTimeout()
 
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		_, err = client.UploadPackage(packageID, []string{localFilePath})
+		err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+			_, err = client.UploadPackage(packageID, []string{localFilePath})
+
+			if err != nil {
+				log.Printf("[ERROR] Failed to upload package file '%s': %v", resource.FileName, err)
+				return retry.NonRetryableError(fmt.Errorf("failed to upload package file: %v", err))
+			}
+
+			log.Printf("[INFO] Package %s file uploaded successfully", resource.FileName)
+
+			return nil
+		})
 
 		if err != nil {
-			log.Printf("[ERROR] Failed to upload package file '%s': %v", resource.FileName, err)
-			return retry.NonRetryableError(fmt.Errorf("failed to upload package file: %v", err))
+			// Cleans up the metadata so the next run doesn't hit an error trying to remake it, duplicate names are not allowed
+			cleanupErr := client.DeletePackageByID(packageID)
+
+			if cleanupErr != nil {
+				return diag.FromErr(fmt.Errorf("failed to upload package: %v and failed to delete metadata: %v", err, cleanupErr))
+			}
+			return diag.FromErr(fmt.Errorf("failed to upload Jamf Pro Package '%s': %v", resource.PackageName, err))
 		}
 
-		log.Printf("[INFO] Package %s file uploaded successfully", resource.FileName)
-
-		return nil
-	})
-
-	if err != nil {
-		// Cleans up the metadata so the next run doesn't hit an error trying to remake it, duplicate names are not allowed
-		cleanupErr := client.DeletePackageByID(packageID)
-
-		if cleanupErr != nil {
-			return diag.FromErr(fmt.Errorf("failed to upload package: %v and failed to delete metadata: %v", err, cleanupErr))
+		if err := verifyPackageUpload(ctx, client, packageID, resource.FileName, resource.SHA3512,
+			d.Timeout(schema.TimeoutCreate), true, false); err != nil {
+			return diag.FromErr(fmt.Errorf("failed to verify Jamf Pro Package '%s': %v", resource.PackageName, err))
 		}
-		return diag.FromErr(fmt.Errorf("failed to upload Jamf Pro Package '%s': %v", resource.PackageName, err))
-	}
 
-	if err := verifyPackageUpload(ctx, client, packageID, resource.FileName, initialHash,
-		d.Timeout(schema.TimeoutCreate), true, false); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to verify Jamf Pro Package '%s': %v", resource.PackageName, err))
+		files.CleanupDownloadedPackage(d.Get("package_file_source").(string), localFilePath)
 	}
 
 	d.SetId(packageID)
-
-	files.CleanupDownloadedPackage(d.Get("package_file_source").(string), localFilePath)
 
 	return append(diags, readNoCleanup(ctx, d, meta)...)
 }
@@ -169,13 +170,13 @@ func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 	var diags diag.Diagnostics
 	resourceID := d.Id()
 
-	// Check if this is a file-related update or metadata-only update
-	fileChanged := d.HasChange("package_file_source") || d.HasChange("hash_value") || d.HasChange("package_file_source_checksum")
-
 	resource, localFilePath, err := construct(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro Package for update: %v", err))
 	}
+
+	// Check if this is a file-related update or metadata-only update
+	fileChanged := localFilePath != "" && (d.HasChange("package_file_source") || d.HasChange("hash_value") || d.HasChange("package_file_source_checksum"))
 
 	// Compute new hashes if file changed
 	if fileChanged {
