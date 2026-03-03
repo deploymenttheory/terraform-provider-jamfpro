@@ -25,7 +25,8 @@ provider "jamfpro" {
   jamfpro_instance_fqdn                = var.jamfpro_instance_fqdn
   auth_method                          = var.jamfpro_auth_method
   platform_base_url                    = var.jamfpro_platform_base_url
-  jamfpro_tenant_id                    = var.jamfpro_tenant_id
+  platform_scope                       = var.jamfpro_platform_scope
+  platform_scope_id                    = var.jamfpro_platform_scope_id
   client_id                            = var.jamfpro_client_id
   client_secret                        = var.jamfpro_client_secret
   basic_auth_username                  = var.jamfpro_basic_auth_username
@@ -56,8 +57,14 @@ variable "jamfpro_platform_base_url" {
   default     = ""
 }
 
-variable "jamfpro_tenant_id" {
-  description = "The Jamf Pro instance UUID (tenant ID) when auth_method is 'platform'."
+variable "jamfpro_platform_scope" {
+  description = "The platform gateway scope type when auth_method is 'platform'. Valid values are 'environment' or 'tenant'."
+  type        = string
+  default     = ""
+}
+
+variable "jamfpro_platform_scope_id" {
+  description = "The platform gateway scope identifier (UUID) when auth_method is 'platform'."
   sensitive   = true
   type        = string
   default     = ""
@@ -143,9 +150,10 @@ variable "jamfpro_mandatory_request_delay_milliseconds" {
 - `jamfpro_instance_fqdn` (String) The Jamf Pro FQDN (fully qualified domain name). example: https://mycompany.jamfcloud.com
 - `jamfpro_load_balancer_lock` (Boolean) Programatically determines all available web app members in the load balancer and locks all instances of httpclient to the app for faster executions. 
 TEMP SOLUTION UNTIL JAMF PROVIDES SOLUTION
-- `jamfpro_tenant_id` (String, Sensitive) The Jamf Pro instance UUID (tenant ID) required when auth_method is 'platform'. Found on the Client Details page in Jamf Account.
 - `mandatory_request_delay_milliseconds` (Number) A mandatory delay after each request before returning to reduce high volume of requests in a short time
 - `platform_base_url` (String) The Jamf platform gateway base URL for authentication when auth_method is 'platform'. Example: https://us.api.platform.jamf.com
+- `platform_scope` (String) The platform gateway scope type required when auth_method is 'platform'. Valid values are 'environment' or 'tenant'.
+- `platform_scope_id` (String, Sensitive) The platform gateway scope identifier required when auth_method is 'platform'. This is the UUID that identifies the target environment or tenant.
 - `token_refresh_buffer_period_seconds` (Number) The buffer period in seconds for token refresh.
 
 <a id="nestedblock--custom_cookies"></a>

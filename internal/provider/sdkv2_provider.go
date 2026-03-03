@@ -104,7 +104,8 @@ const (
 	envVarJamfProFQDN                 = "JAMFPRO_INSTANCE_FQDN"
 	envVarJamfProAuthMethod           = "JAMFPRO_AUTH_METHOD"
 	envVarPlatformBaseURL             = "JAMFPRO_PLATFORM_BASE_URL"
-	envVarPlatformTenantID            = "JAMFPRO_TENANT_ID"
+	envVarPlatformScope               = "JAMFPRO_PLATFORM_SCOPE"
+	envVarPlatformScopeID             = "JAMFPRO_PLATFORM_SCOPE_ID"
 	jamfLoadBalancerCookieName        = "jpro-ingress"
 )
 
@@ -329,12 +330,19 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc(envVarPlatformBaseURL, ""),
 				Description: "The Jamf platform gateway base URL for authentication when auth_method is 'platform'. Example: https://us.api.platform.jamf.com",
 			},
-			"jamfpro_tenant_id": {
+			"platform_scope": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				DefaultFunc:  schema.EnvDefaultFunc(envVarPlatformScope, ""),
+				Description:  "The platform gateway scope type required when auth_method is 'platform'. Valid values are 'environment' or 'tenant'.",
+				ValidateFunc: validation.StringInSlice([]string{"environment", "tenant"}, false),
+			},
+			"platform_scope_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
-				DefaultFunc: schema.EnvDefaultFunc(envVarPlatformTenantID, ""),
-				Description: "The Jamf Pro instance UUID (tenant ID) required when auth_method is 'platform'. Found on the Client Details page in Jamf Account.",
+				DefaultFunc: schema.EnvDefaultFunc(envVarPlatformScopeID, ""),
+				Description: "The platform gateway scope identifier required when auth_method is 'platform'. This is the UUID that identifies the target environment or tenant.",
 			},
 			"enable_client_sdk_logs": {
 				Type:        schema.TypeBool,
@@ -607,12 +615,20 @@ func Provider() *schema.Provider {
 					Detail:   "platform_base_url must be provided either as an environment variable (JAMFPRO_PLATFORM_BASE_URL) or in the Terraform configuration when using platform auth method",
 				})
 			}
-			tenantID := d.Get("jamfpro_tenant_id").(string)
-			if tenantID == "" {
+			platformScope := d.Get("platform_scope").(string)
+			if platformScope == "" {
 				return nil, append(diags, diag.Diagnostic{
 					Severity: diag.Error,
-					Summary:  "Error getting tenant ID",
-					Detail:   "jamfpro_tenant_id must be provided either as an environment variable (JAMFPRO_TENANT_ID) or in the Terraform configuration when using platform auth method",
+					Summary:  "Error getting platform scope",
+					Detail:   "platform_scope must be provided either as an environment variable (JAMFPRO_PLATFORM_SCOPE) or in the Terraform configuration when using platform auth method",
+				})
+			}
+			platformScopeID := d.Get("platform_scope_id").(string)
+			if platformScopeID == "" {
+				return nil, append(diags, diag.Diagnostic{
+					Severity: diag.Error,
+					Summary:  "Error getting platform scope ID",
+					Detail:   "platform_scope_id must be provided either as an environment variable (JAMFPRO_PLATFORM_SCOPE_ID) or in the Terraform configuration when using platform auth method",
 				})
 			}
 			clientId = GetClientID(d, &diags)
@@ -623,7 +639,8 @@ func Provider() *schema.Provider {
 				tokenRefrshBufferPeriod,
 				clientId,
 				clientSecret,
-				tenantID,
+				platformScope,
+				platformScopeID,
 				hide_sensitive_data,
 				bootstrapClient,
 			)
