@@ -331,10 +331,10 @@ func Provider() *schema.Provider {
 				Description: "The Jamf platform gateway base URL for authentication when auth_method is 'platform'. Example: https://us.api.platform.jamf.com",
 			},
 			"platform_scope": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				DefaultFunc:  schema.EnvDefaultFunc(envVarPlatformScope, ""),
-				Description:  "The platform gateway scope type required when auth_method is 'platform'. Valid values are 'environment' or 'tenant'.",
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc(envVarPlatformScope, nil),
+				Description: "The platform gateway scope type required when auth_method is 'platform'. Valid values are 'environment' or 'tenant'.",
 				ValidateFunc: validation.StringInSlice([]string{"environment", "tenant"}, false),
 			},
 			"platform_scope_id": {
