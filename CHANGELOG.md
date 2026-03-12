@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.35.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.35.0...v0.35.1) (2026-03-12)
+
+
+### Bug Fixes
+
+* Add new valid version to Computer Prestage validation ([#1050](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1050)) ([d1372b4](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/d1372b49b134e8c47a27158f7ef6cf8c9fde486c))
+
 ## [0.35.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.34.1...v0.35.0) (2026-02-25)
 
 
