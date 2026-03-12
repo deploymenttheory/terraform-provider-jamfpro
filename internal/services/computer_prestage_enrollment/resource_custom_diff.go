@@ -18,9 +18,9 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i any) e
 		return err
 	}
 
-	if err := validateMinimumOSSpecificVersion(ctx, diff, i); err != nil {
-		return err
-	}
+	// if err := validateMinimumOSSpecificVersion(ctx, diff, i); err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
