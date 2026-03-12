@@ -18,9 +18,9 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i any) e
 		return err
 	}
 
-	// if err := validateMinimumOSSpecificVersion(ctx, diff, i); err != nil {
-	// 	return err
-	// }
+	if err := validateMinimumOSSpecificVersion(ctx, diff, i); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -130,6 +130,7 @@ func validateMinimumOSSpecificVersion(_ context.Context, diff *schema.ResourceDi
 			"14.5":   true,
 			"14.6":   true,
 			"14.6.1": true,
+			"26.3.1": true,
 		}
 
 		if !validVersions[specificVersion] {
