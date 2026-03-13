@@ -109,7 +109,6 @@ resource "jamfpro_policy" "firefox_install" {
 - `manifest` (String) The manifest of the package.
 - `manifest_file_name` (String) The manifest file name.
 - `md5` (String) The MD5 hash of the package.
-- `md5_file_hash` (String) md5 hash of the package file for integrity comparison.
 - `notes` (String) Notes to display about the package (e.g., who built it and when it was built)
 - `os_install` (Boolean) Whether the package is an OS install.
 - `os_installer_version` (String) The OS installer version.
@@ -123,6 +122,7 @@ resource "jamfpro_policy" "firefox_install" {
 - `self_healing_action` (String) The self-healing action for the package. Defaults to 'nothing' if not specified.
 - `serial_number` (String) The serial number of the package.
 - `sha256` (String) The SHA256 hash of the package.
+- `sha3512` (String) The SHA3512 hash of the package.
 - `size` (String) The size of the package.
 - `suppress_eula` (Boolean) Whether to suppress EULA.
 - `suppress_from_dock` (Boolean) Whether to suppress from dock.

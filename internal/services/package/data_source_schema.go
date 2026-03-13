@@ -156,6 +156,11 @@ func DataSourceJamfProPackages() *schema.Resource {
 				Computed:    true,
 				Description: "The SHA256 hash of the package.",
 			},
+			"sha3512": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The SHA3512 hash of the package.",
+			},
 			"hash_type": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -195,11 +200,6 @@ func DataSourceJamfProPackages() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The URI of the package in the Jamf Cloud Distribution Service (JCDS).",
-			},
-			"md5_file_hash": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "md5 hash of the package file for integrity comparison.",
 			},
 		},
 	}
