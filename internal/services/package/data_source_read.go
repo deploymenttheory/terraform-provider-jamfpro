@@ -12,6 +12,7 @@ import (
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*jamfpro.Client)
+	var diags diag.Diagnostics
 
 	resourceID := d.Get("id").(string)
 	name := d.Get("package_name").(string)
@@ -36,6 +37,8 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return nil
 	})
 
+	warnIfNotfound := d.Get("warn_if_not_found").(bool)
+
 	if err != nil {
 		lookupMethod := "ID"
 		lookupValue := resourceID
@@ -43,6 +46,15 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			lookupMethod = "name"
 			lookupValue = name
 		}
+
+		if warnIfNotfound {
+			return append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  fmt.Sprintf("Package at %v not found", lookupValue),
+				Detail:   fmt.Sprintf("Not erroring due to warn_if_not_found enabled\nerr: %v", err),
+			})
+		}
+
 		return diag.FromErr(fmt.Errorf("failed to read Jamf Pro Package with %s '%s' after retries: %v", lookupMethod, lookupValue, err))
 	}
 
