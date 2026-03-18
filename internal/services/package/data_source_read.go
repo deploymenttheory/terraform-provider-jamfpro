@@ -3,6 +3,7 @@ package packages
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -22,7 +23,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	var resource *jamfpro.ResourcePackage
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
+	err := retry.RetryContext(ctx, 10*time.Second, func() *retry.RetryError {
 		var apiErr error
 
 		if name != "" {
