@@ -15,6 +15,7 @@ func ResourceJamfProMobileDeviceApplication() *schema.Resource {
 		ReadContext:   readWithCleanup,
 		UpdateContext: update,
 		DeleteContext: delete,
+		CustomizeDiff: mainCustomDiffFunc,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(70 * time.Second),
 			Read:   schema.DefaultTimeout(70 * time.Second),
