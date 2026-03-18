@@ -201,6 +201,12 @@ func DataSourceJamfProPackages() *schema.Resource {
 				Computed:    true,
 				Description: "md5 hash of the package file for integrity comparison.",
 			},
+			"warn_if_not_found": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Only warn if the package can not be found, do not error",
+				Default:     false,
+			},
 		},
 	}
 }
