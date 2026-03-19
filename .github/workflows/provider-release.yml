@@ -21,7 +21,7 @@ jobs:
     steps:
 
     - name: Harden Runner
-      uses: step-security/harden-runner@v2.14.2
+      uses: step-security/harden-runner@v2.16.0
       with:
         egress-policy: audit
 
@@ -39,7 +39,7 @@ jobs:
       id: go
 
     - name: Set up Terraform
-      uses: hashicorp/setup-terraform@v3.1.2
+      uses: hashicorp/setup-terraform@v4.0.0
       with:
         terraform_version: '1.12.1'
         terraform_wrapper: false
@@ -81,7 +81,7 @@ jobs:
     steps:
 
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.14.2
+        uses: step-security/harden-runner@v2.16.0
         with:
           egress-policy: audit
 
@@ -92,7 +92,7 @@ jobs:
 
       - name: Generate Release Notes
         run: sed -n -e "1{/# /d;}" -e "2{/^$/d;}" -e "/# $(git describe --abbrev=0 --exclude="$(git describe --abbrev=0 --match='v*.*.*' --tags)" --match='v*.*.*' --tags | tr -d v)/q;p" CHANGELOG.md > release-notes.txt
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: release-notes
           path: release-notes.txt

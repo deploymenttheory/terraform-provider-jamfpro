@@ -201,6 +201,12 @@ func DataSourceJamfProPackages() *schema.Resource {
 				Computed:    true,
 				Description: "The URI of the package in the Jamf Cloud Distribution Service (JCDS).",
 			},
+			"warn_if_not_found": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Only warn if the package can not be found, do not error",
+				Default:     false,
+			},
 		},
 	}
 }

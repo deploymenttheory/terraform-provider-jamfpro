@@ -130,6 +130,7 @@ func validateMinimumOSSpecificVersion(_ context.Context, diff *schema.ResourceDi
 			"14.5":   true,
 			"14.6":   true,
 			"14.6.1": true,
+			"26.3.1": true,
 		}
 
 		if !validVersions[specificVersion] {

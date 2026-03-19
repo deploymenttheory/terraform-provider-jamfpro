@@ -90,6 +90,7 @@ resource "jamfpro_policy" "firefox_install" {
 
 - `id` (String) The unique identifier of the package metadata.
 - `package_name` (String) The unique name of the Jamf Pro package.This doesn't have to match the filename of the package.
+- `warn_if_not_found` (Boolean) Only warn if the package can not be found, do not error
 
 ### Read-Only
 

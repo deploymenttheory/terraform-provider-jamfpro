@@ -21,7 +21,7 @@ jobs:
     steps:
     
     - name: Harden Runner
-      uses: step-security/harden-runner@v2.14.2
+      uses: step-security/harden-runner@v2.16.0
       with:
         egress-policy: audit
     - uses: actions/checkout@v6
@@ -33,7 +33,7 @@ jobs:
         cache: false
         go-version-file: 'go.mod'
 
-    - uses: hashicorp/setup-terraform@v3.1.2
+    - uses: hashicorp/setup-terraform@v4.0.0
       with:
         terraform_version: '1.12.1'
         terraform_wrapper: true

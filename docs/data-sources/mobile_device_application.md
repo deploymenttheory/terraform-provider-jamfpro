@@ -55,7 +55,7 @@ Read-Only:
 - `building_ids` (Set of Number)
 - `department_ids` (Set of Number)
 - `directory_service_or_local_usernames` (Set of String)
-- `directory_service_usergroup_ids` (Set of Number)
+- `directory_service_usergroup_names` (Set of String)
 - `ibeacon_ids` (Set of Number)
 - `jss_user_group_ids` (Set of Number)
 - `jss_user_ids` (Set of Number)
@@ -70,6 +70,6 @@ Read-Only:
 Read-Only:
 
 - `directory_service_or_local_usernames` (Set of String)
-- `directory_service_usergroup_ids` (Set of Number)
+- `directory_service_usergroup_names` (Set of String)
 - `ibeacon_ids` (Set of Number)
 - `network_segment_ids` (Set of Number)
