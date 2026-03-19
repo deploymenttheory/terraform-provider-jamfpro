@@ -92,6 +92,9 @@ func updateState(d *schema.ResourceData, resource *jamfpro.ResourcePackage) diag
 	if err := d.Set("sha256", resource.SHA256); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+	if err := d.Set("sha3512", resource.SHA3512); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 	if err := d.Set("hash_type", resource.HashType); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
