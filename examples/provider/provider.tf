@@ -11,8 +11,7 @@ provider "jamfpro" {
   jamfpro_instance_fqdn                = var.jamfpro_instance_fqdn
   auth_method                          = var.jamfpro_auth_method
   platform_base_url                    = var.jamfpro_platform_base_url
-  platform_scope                       = var.jamfpro_platform_scope
-  platform_scope_id                    = var.jamfpro_platform_scope_id
+  platform_tenant_id                   = var.jamfpro_platform_tenant_id
   client_id                            = var.jamfpro_client_id
   client_secret                        = var.jamfpro_client_secret
   basic_auth_username                  = var.jamfpro_basic_auth_username
@@ -43,14 +42,8 @@ variable "jamfpro_platform_base_url" {
   default     = ""
 }
 
-variable "jamfpro_platform_scope" {
-  description = "The platform gateway scope type when auth_method is 'platform'. Valid values are 'environment' or 'tenant'."
-  type        = string
-  default     = ""
-}
-
-variable "jamfpro_platform_scope_id" {
-  description = "The platform gateway scope identifier (UUID) when auth_method is 'platform'."
+variable "jamfpro_platform_tenant_id" {
+  description = "The platform gateway tenant identifier (UUID) when auth_method is 'platform'."
   sensitive   = true
   type        = string
   default     = ""
