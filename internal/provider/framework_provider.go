@@ -80,17 +80,10 @@ func (p *frameworkProvider) Schema(ctx context.Context, req provider.SchemaReque
 				Optional:    true,
 				Description: "The Jamf platform gateway base URL for authentication when auth_method is 'platform'. Example: https://us.api.platform.jamf.com",
 			},
-			"platform_scope": schema.StringAttribute{
-				Optional:    true,
-				Description: "The platform gateway scope type required when auth_method is 'platform'. Valid values are 'environment' or 'tenant'.",
-				Validators: []validator.String{
-					stringvalidator.OneOf("environment", "tenant"),
-				},
-			},
-			"platform_scope_id": schema.StringAttribute{
+			"platform_tenant_id": schema.StringAttribute{
 				Optional:    true,
 				Sensitive:   true,
-				Description: "The platform gateway scope identifier required when auth_method is 'platform'. This is the UUID that identifies the target environment or tenant.",
+				Description: "The platform gateway tenant identifier (UUID) required when auth_method is 'platform'. This identifies the target Jamf Pro tenant.",
 			},
 			"enable_client_sdk_logs": schema.BoolAttribute{
 				Optional:    true,
@@ -153,8 +146,7 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 	basicUsername := getStringValueWithEnvFallback(config.BasicAuthUsername, "JAMFPRO_BASIC_USERNAME")
 	basicPassword := getStringValueWithEnvFallback(config.BasicAuthPassword, "JAMFPRO_BASIC_PASSWORD")
 	platformBaseURL := getStringValueWithEnvFallback(config.PlatformBaseURL, "JAMFPRO_PLATFORM_BASE_URL")
-	platformScope := getStringValueWithEnvFallback(config.PlatformScope, "JAMFPRO_PLATFORM_SCOPE")
-	platformScopeID := getStringValueWithEnvFallback(config.PlatformScopeID, "JAMFPRO_PLATFORM_SCOPE_ID")
+	platformTenantID := getStringValueWithEnvFallback(config.PlatformTenantID, "JAMFPRO_PLATFORM_TENANT_ID")
 
 	if authMethod == "" {
 		resp.Diagnostics.AddError(
@@ -241,17 +233,10 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 			)
 			return
 		}
-		if platformScope == "" {
+		if platformTenantID == "" {
 			resp.Diagnostics.AddError(
-				"Error getting platform scope",
-				"platform_scope must be provided either as an environment variable (JAMFPRO_PLATFORM_SCOPE) or in the Terraform configuration when using platform auth method",
-			)
-			return
-		}
-		if platformScopeID == "" {
-			resp.Diagnostics.AddError(
-				"Error getting platform scope ID",
-				"platform_scope_id must be provided either as an environment variable (JAMFPRO_PLATFORM_SCOPE_ID) or in the Terraform configuration when using platform auth method",
+				"Error getting platform tenant ID",
+				"platform_tenant_id must be provided either as an environment variable (JAMFPRO_PLATFORM_TENANT_ID) or in the Terraform configuration when using platform auth method",
 			)
 			return
 		}
@@ -334,8 +319,7 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 			tokenRefreshBuffer,
 			clientID,
 			clientSecret,
-			platformScope,
-			platformScopeID,
+			platformTenantID,
 			hideSensitiveData,
 			bootstrapClient,
 		)
