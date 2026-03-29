@@ -53,19 +53,19 @@ func (p *frameworkProvider) Schema(ctx context.Context, req provider.SchemaReque
 			},
 			"auth_method": schema.StringAttribute{
 				Optional:    true,
-				Description: "The auth method chosen for interacting with Jamf Pro. Options are 'basic' for username/password or 'oauth2' for client id/secret.",
+				Description: "The auth method chosen for interacting with Jamf Pro. Options are 'basic' for username/password, 'oauth2' for client id/secret, or 'platform' for Jamf platform gateway authentication.",
 				Validators: []validator.String{
-					stringvalidator.OneOf("basic", "oauth2"),
+					stringvalidator.OneOf("basic", "oauth2", "platform"),
 				},
 			},
 			"client_id": schema.StringAttribute{
 				Optional:    true,
-				Description: "The Jamf Pro Client ID for authentication when auth_method is 'oauth2'.",
+				Description: "The client ID for authentication. When auth_method is 'oauth2', this is the Jamf Pro API Client ID. When auth_method is 'platform', this is the Jamf Platform Client ID from Jamf Account.",
 			},
 			"client_secret": schema.StringAttribute{
 				Optional:    true,
 				Sensitive:   true,
-				Description: "The Jamf Pro Client secret for authentication when auth_method is 'oauth2'.",
+				Description: "The client secret for authentication. When auth_method is 'oauth2', this is the Jamf Pro API Client secret. When auth_method is 'platform', this is the Jamf Platform Client secret from Jamf Account.",
 			},
 			"basic_auth_username": schema.StringAttribute{
 				Optional:    true,
@@ -75,6 +75,15 @@ func (p *frameworkProvider) Schema(ctx context.Context, req provider.SchemaReque
 				Optional:    true,
 				Sensitive:   true,
 				Description: "The Jamf Pro password used for authentication when auth_method is 'basic'.",
+			},
+			"platform_base_url": schema.StringAttribute{
+				Optional:    true,
+				Description: "The Jamf platform gateway base URL for authentication when auth_method is 'platform'. Example: https://us.api.platform.jamf.com",
+			},
+			"platform_tenant_id": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				Description: "The platform gateway tenant identifier (UUID) required when auth_method is 'platform'. This identifies the target Jamf Pro tenant.",
 			},
 			"enable_client_sdk_logs": schema.BoolAttribute{
 				Optional:    true,
@@ -136,15 +145,8 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 	clientSecret := getStringValueWithEnvFallback(config.ClientSecret, "JAMFPRO_CLIENT_SECRET")
 	basicUsername := getStringValueWithEnvFallback(config.BasicAuthUsername, "JAMFPRO_BASIC_USERNAME")
 	basicPassword := getStringValueWithEnvFallback(config.BasicAuthPassword, "JAMFPRO_BASIC_PASSWORD")
-
-	// Validation - matching SDKv2 provider logic
-	if instanceFQDN == "" {
-		resp.Diagnostics.AddError(
-			"Error getting instance name",
-			"instance_name must be provided either as an environment variable (JAMFPRO_INSTANCE_FQDN) or in the Terraform configuration",
-		)
-		return
-	}
+	platformBaseURL := getStringValueWithEnvFallback(config.PlatformBaseURL, "JAMFPRO_PLATFORM_BASE_URL")
+	platformTenantID := getStringValueWithEnvFallback(config.PlatformTenantID, "JAMFPRO_PLATFORM_TENANT_ID")
 
 	if authMethod == "" {
 		resp.Diagnostics.AddError(
@@ -155,10 +157,10 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 	}
 
 	// Validate auth method
-	if authMethod != "basic" && authMethod != "oauth2" {
+	if authMethod != "basic" && authMethod != "oauth2" && authMethod != "platform" {
 		resp.Diagnostics.AddError(
 			"invalid auth method supplied",
-			"Auth method must be 'basic' or 'oauth2'",
+			"Auth method must be 'basic', 'oauth2', or 'platform'",
 		)
 		return
 	}
@@ -166,6 +168,13 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 	// Auth method specific validation
 	switch authMethod {
 	case "oauth2":
+		if instanceFQDN == "" {
+			resp.Diagnostics.AddError(
+				"Error getting instance FQDN",
+				"jamfpro_instance_fqdn must be provided either as an environment variable (JAMFPRO_INSTANCE_FQDN) or in the Terraform configuration when using oauth2 auth method",
+			)
+			return
+		}
 		if clientID == "" {
 			resp.Diagnostics.AddError(
 				"Error getting client ID",
@@ -181,6 +190,13 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 			return
 		}
 	case "basic":
+		if instanceFQDN == "" {
+			resp.Diagnostics.AddError(
+				"Error getting instance FQDN",
+				"jamfpro_instance_fqdn must be provided either as an environment variable (JAMFPRO_INSTANCE_FQDN) or in the Terraform configuration when using basic auth method",
+			)
+			return
+		}
 		if basicUsername == "" {
 			resp.Diagnostics.AddError(
 				"Error getting basic auth username",
@@ -192,6 +208,35 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 			resp.Diagnostics.AddError(
 				"Error getting basic auth password",
 				"basic_auth_password must be provided either as an environment variable (JAMFPRO_BASIC_PASSWORD) or in the Terraform configuration when using basic auth method",
+			)
+			return
+		}
+	case "platform":
+		if platformBaseURL == "" {
+			resp.Diagnostics.AddError(
+				"Error getting platform base URL",
+				"platform_base_url must be provided either as an environment variable (JAMFPRO_PLATFORM_BASE_URL) or in the Terraform configuration when using platform auth method",
+			)
+			return
+		}
+		if clientID == "" {
+			resp.Diagnostics.AddError(
+				"Error getting client ID",
+				"client_id must be provided either as an environment variable (JAMFPRO_CLIENT_ID) or in the Terraform configuration when using platform auth method",
+			)
+			return
+		}
+		if clientSecret == "" {
+			resp.Diagnostics.AddError(
+				"Error getting client secret",
+				"client_secret must be provided either as an environment variable (JAMFPRO_CLIENT_SECRET) or in the Terraform configuration when using platform auth method",
+			)
+			return
+		}
+		if platformTenantID == "" {
+			resp.Diagnostics.AddError(
+				"Error getting platform tenant ID",
+				"platform_tenant_id must be provided either as an environment variable (JAMFPRO_PLATFORM_TENANT_ID) or in the Terraform configuration when using platform auth method",
 			)
 			return
 		}
@@ -264,6 +309,17 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 			tokenRefreshBuffer,
 			basicUsername,
 			basicPassword,
+			hideSensitiveData,
+			bootstrapClient,
+		)
+	case "platform":
+		jamfIntegration, err = jamfprointegration.BuildWithPlatformGatewayOAuth(
+			platformBaseURL,
+			sugaredLogger,
+			tokenRefreshBuffer,
+			clientID,
+			clientSecret,
+			platformTenantID,
 			hideSensitiveData,
 			bootstrapClient,
 		)
