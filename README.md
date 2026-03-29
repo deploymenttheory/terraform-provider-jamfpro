@@ -55,6 +55,18 @@ Its primary goal is to enhance the efficiency of managing, deploying, and mainta
 - **Guardrailed Deployments**  
   Implement automated checks and guardrails in CI/CD pipelines to prevent misconfiguration and enforce best practices, reducing risk and improving governance for Jamf Pro administration.
 
+## Authentication
+
+The provider supports three authentication methods:
+
+| Method | Description | Required Fields |
+|--------|-------------|-----------------|
+| `oauth2` | OAuth2 client credentials against a Jamf Pro instance | `jamfpro_instance_fqdn`, `client_id`, `client_secret` |
+| `basic` | Username/password against a Jamf Pro instance | `jamfpro_instance_fqdn`, `basic_auth_username`, `basic_auth_password` |
+| `platform` | OAuth2 via the Jamf platform gateway | `platform_base_url`, `platform_tenant_id`, `client_id`, `client_secret` |
+
+All fields can also be set via environment variables (e.g. `JAMFPRO_AUTH_METHOD`, `JAMFPRO_CLIENT_ID`, `JAMFPRO_PLATFORM_TENANT_ID`). See the [provider documentation](https://registry.terraform.io/providers/deploymenttheory/jamfpro/latest/docs) for full details.
+
 ## Getting Started
 
 Please refer to the [Getting Started](https://registry.terraform.io/providers/deploymenttheory/jamfpro/latest/docs) guide in the terraform registry for more information on how to get started.
