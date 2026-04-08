@@ -1,4 +1,4 @@
-// Definition a Jamf Pro Package Resource
+// Example with package_file_source from URL or local file (package is uploaded to Cloud Distribution Point) 
 resource "jamfpro_package" "jamfpro_package_002" {
   package_name          = "your-package-name"                                                   // Required
   package_file_source   = "/path/to/your/package/file/.pkg or .dmg , or http(s)://path/to/file" // Required
@@ -24,4 +24,26 @@ resource "jamfpro_package" "jamfpro_package_002" {
   timeouts {
     create = "90m" // Optional / Useful for large packages uploads
   }
+}
+
+// Example without package_file_source (when package exists on File Share Distribution Point only)
+// Package metadata only is created
+resource "jamfpro_package" "jamfpro_package_003" {
+  package_name          = "your-package-name"
+  filename              = "your-package-name.pkg"
+  priority              = 10
+  fill_user_template    = false
+  reboot_required       = false
+  os_install            = false
+  suppress_updates      = false
+  suppress_from_dock    = false
+  suppress_eula         = false
+  suppress_registration = false
+
+  // Optional: supply known hashes for package validation
+  md5        = "d41d8cd98f00b204e9800998ecf8427e"
+  sha256     = "e3b0c44298fc1c149afbf4c8996fb924..."
+  sha3512    = "6b86b273ff34fce19d6b804eff5a3f57..."
+  hash_type  = "SHA3_512"
+  hash_value = "6b86b273ff34fce19d6b804eff5a3f57..."
 }
