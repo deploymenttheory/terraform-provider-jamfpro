@@ -48,16 +48,17 @@ func construct(d *schema.ResourceData, client *jamfpro.Client) (*jamfpro.Resourc
 
 	// Construct notification settings
 	if v, ok := d.GetOk("notification_settings"); ok && len(v.([]any)) > 0 {
-		ns := v.([]any)[0].(map[string]any)
-		resource.NotificationSettings = jamfpro.JamfAppCatalogDeploymentSubsetNotificationSettings{
-			NotificationMessage:  ns["notification_message"].(string),
-			NotificationInterval: ns["notification_interval"].(int),
-			DeadlineMessage:      ns["deadline_message"].(string),
-			Deadline:             ns["deadline"].(int),
-			QuitDelay:            ns["quit_delay"].(int),
-			CompleteMessage:      ns["complete_message"].(string),
-			Relaunch:             jamfpro.BoolPtr(ns["relaunch"].(bool)),
-			Suppress:             jamfpro.BoolPtr(ns["suppress"].(bool)),
+		if ns, ok := v.([]any)[0].(map[string]any); ok {
+			resource.NotificationSettings = jamfpro.JamfAppCatalogDeploymentSubsetNotificationSettings{
+				NotificationMessage:  ns["notification_message"].(string),
+				NotificationInterval: ns["notification_interval"].(int),
+				DeadlineMessage:      ns["deadline_message"].(string),
+				Deadline:             ns["deadline"].(int),
+				QuitDelay:            ns["quit_delay"].(int),
+				CompleteMessage:      ns["complete_message"].(string),
+				Relaunch:             jamfpro.BoolPtr(ns["relaunch"].(bool)),
+				Suppress:             jamfpro.BoolPtr(ns["suppress"].(bool)),
+			}
 		}
 	}
 

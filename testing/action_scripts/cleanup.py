@@ -36,7 +36,7 @@ else:
     logger.warning(f"Cleaning tf-testing-{TESTING_ID}* If this is running in a pipeline, this script is being called incorrectly.")
 
 
-TENTANT_FQDN = "https://lbgsandbox.jamfcloud.com"
+TENTANT_FQDN = os.environ.get("CLIENT_FQDN")
 CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SEC = os.environ.get("CLIENT_SEC")
 
