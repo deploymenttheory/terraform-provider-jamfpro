@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.36.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.36.0...v0.36.1) (2026-04-08)
+
+
+### Bug Fixes
+
+* Correctly handle empty notification_settings block if empty in app_installers ([#1067](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1067)) ([857ae04](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/857ae04c72ad3c147570e16da46289fa92bea7a2))
+
 ## [0.36.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.35.1...v0.36.0) (2026-03-18)
 
 
