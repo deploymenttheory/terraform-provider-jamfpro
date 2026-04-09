@@ -135,7 +135,7 @@ func validateMinimumOSSpecificVersion(_ context.Context, diff *schema.ResourceDi
 		}
 
 		if !validVersions[specificVersion] {
-			return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'minimum_os_specific_version' must be one of the supported macOS versions, got: %s", resourceName, specificVersion)
+			return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'minimum_os_specific_version' must be one of '14.5', '14.6', or '14.6.1', got: %s", resourceName, specificVersion)
 		}
 	}
 
