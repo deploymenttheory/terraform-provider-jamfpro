@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.37.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.36.1...v0.37.0) (2026-04-09)
+
+
+### Features
+
+* add macOS 26.4 to prestage enrollment minimum OS version list ([#1070](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1070)) ([69b1ebc](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/69b1ebc1f819be0b6ec59b99de0d0ab7a273828d))
+
 ## [0.36.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.36.0...v0.36.1) (2026-04-08)
 
 
