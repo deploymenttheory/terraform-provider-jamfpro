@@ -71,21 +71,21 @@ func mapSchemaToProfile(d *schema.ResourceData) *ConfigurationProfile {
 			PayloadVersion:      val["payload_version"].(int),
 		}
 
-		settings := val["setting"].([]any)
-		if len(settings) == 0 {
-			return out
+		settings, ok := val["setting"].([]any)
+		if !ok || len(settings) == 0 {
+			out.PayloadContent = append(out.PayloadContent, payloadContentStruct)
+			continue
 		}
 
 		payloadContentStruct.ConfigurationItems = make(map[string]any, 0)
 		for _, s := range settings {
 			settingMap := s.(map[string]any)
 			dictionary := parseNestedDictionary(settingMap["dictionary"])
-			payloadContent := map[string]any{
-				"key":        settingMap["key"].(string),
-				"value":      GetTypedValue(settingMap["value"]),
-				"dictionary": dictionary,
+			if dictionary != nil && len(dictionary) > 0 {
+				payloadContentStruct.ConfigurationItems[settingMap["key"].(string)] = dictionary
+			} else {
+				payloadContentStruct.ConfigurationItems[settingMap["key"].(string)] = GetTypedValue(settingMap["value"])
 			}
-			payloadContentStruct.ConfigurationItems[settingMap["key"].(string)] = payloadContent
 		}
 
 		out.PayloadContent = append(out.PayloadContent, payloadContentStruct)
@@ -103,8 +103,14 @@ func parseNestedDictionary(dict any) map[string]any {
 	result := make(map[string]any)
 	dictionary := dict.([]any)
 	for _, item := range dictionary {
-		entry := item.(map[string]any)
-		key := entry["key"].(string)
+		entry, ok := item.(map[string]any)
+		if !ok {
+			continue
+		}
+		key, ok := entry["key"].(string)
+		if !ok {
+			continue
+		}
 		value := GetTypedValue(entry["value"])
 		if nestedDict, ok := entry["dictionary"].([]any); ok {
 			value = parseNestedDictionary(nestedDict)
