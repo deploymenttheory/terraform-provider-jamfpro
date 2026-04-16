@@ -28,7 +28,7 @@ func ResourceJamfProMacOSOnboardingSettings() *schema.Resource {
 				Description: "Enable or disable macOS onboarding",
 			},
 			"onboarding_items": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "List of onboarding items to display during device setup",
 				Elem: &schema.Resource{
