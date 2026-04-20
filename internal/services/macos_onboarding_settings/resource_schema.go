@@ -15,6 +15,14 @@ func ResourceJamfProMacOSOnboardingSettings() *schema.Resource {
 		ReadContext:   readWithCleanup,
 		UpdateContext: update,
 		DeleteContext: delete,
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    resourceMacOSOnboardingSettingsV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: upgradeMacOSOnboardingSettingsV0toV1,
+				Version: 0,
+			},
+		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(1 * time.Minute),
 			Read:   schema.DefaultTimeout(1 * time.Minute),
