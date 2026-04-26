@@ -126,15 +126,9 @@ func validateMinimumOSSpecificVersion(_ context.Context, diff *schema.ResourceDi
 			return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'minimum_os_specific_version' must be set when 'prestate_minimum_os_target_version_type' is MINIMUM_OS_SPECIFIC_VERSION", resourceName)
 		}
 
-		validVersions := map[string]bool{
-			"14.5":   true,
-			"14.6":   true,
-			"14.6.1": true,
-			"26.3.1": true,
-		}
-
-		if !validVersions[specificVersion] {
-			return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'minimum_os_specific_version' must be one of '14.5', '14.6', or '14.6.1', got: %s", resourceName, specificVersion)
+		versionPattern := regexp.MustCompile(`^\d+\.\d+(\.\d+)?$`)
+		if !versionPattern.MatchString(specificVersion) {
+			return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'minimum_os_specific_version' must be a valid version format (e.g. '26.4' or '26.4.1'), got: %s", resourceName, specificVersion)
 		}
 	}
 
