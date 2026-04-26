@@ -85,7 +85,7 @@ func (p *frameworkProvider) Schema(ctx context.Context, req provider.SchemaReque
 			},
 			"platform_base_url": schema.StringAttribute{
 				Optional:    true,
-				Description: "The Jamf Platform gateway base URL. Required when auth_provider is 'platform'. Example: https://us.api.platform.jamf.com",
+				Description: "The Jamf Platform gateway base URL. Required when auth_provider is 'platform'. Example: https://us.apigw.jamf.com",
 			},
 			"platform_tenant_id": schema.StringAttribute{
 				Optional:    true,

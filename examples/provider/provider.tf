@@ -44,7 +44,7 @@ variable "jamfpro_auth_provider" {
 }
 
 variable "jamfpro_platform_base_url" {
-  description = "The Jamf Platform gateway base URL. Required when auth_provider is 'platform'. Example: https://us.api.platform.jamf.com"
+  description = "The Jamf Platform gateway base URL. Required when auth_provider is 'platform'. Example: https://us.apigw.jamf.com"
   type        = string
   default     = ""
 }

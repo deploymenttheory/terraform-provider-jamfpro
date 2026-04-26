@@ -337,7 +337,7 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc(envVarPlatformBaseURL, ""),
-				Description: "The Jamf Platform gateway base URL. Required when auth_provider is 'platform'. Example: https://us.api.platform.jamf.com",
+				Description: "The Jamf Platform gateway base URL. Required when auth_provider is 'platform'. Example: https://us.apigw.jamf.com",
 			},
 			"platform_tenant_id": {
 				Type:        schema.TypeString,

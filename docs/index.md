@@ -58,7 +58,7 @@ variable "jamfpro_auth_provider" {
 }
 
 variable "jamfpro_platform_base_url" {
-  description = "The Jamf Platform gateway base URL. Required when auth_provider is 'platform'. Example: https://us.api.platform.jamf.com"
+  description = "The Jamf Platform gateway base URL. Required when auth_provider is 'platform'. Example: https://us.apigw.jamf.com"
   type        = string
   default     = ""
 }
@@ -152,7 +152,7 @@ variable "jamfpro_mandatory_request_delay_milliseconds" {
 - `jamfpro_load_balancer_lock` (Boolean) Programatically determines all available web app members in the load balancer and locks all instances of httpclient to the app for faster executions. 
 TEMP SOLUTION UNTIL JAMF PROVIDES SOLUTION
 - `mandatory_request_delay_milliseconds` (Number) A mandatory delay after each request before returning to reduce high volume of requests in a short time
-- `platform_base_url` (String) The Jamf Platform gateway base URL. Required when auth_provider is 'platform'. Example: https://us.api.platform.jamf.com
+- `platform_base_url` (String) The Jamf Platform gateway base URL. Required when auth_provider is 'platform'. Example: https://us.apigw.jamf.com
 - `platform_tenant_id` (String, Sensitive) The Jamf Platform gateway tenant identifier (UUID). Required when auth_provider is 'platform'.
 - `token_refresh_buffer_period_seconds` (Number) The buffer period in seconds for token refresh.
 
