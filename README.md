@@ -57,15 +57,25 @@ Its primary goal is to enhance the efficiency of managing, deploying, and mainta
 
 ## Authentication
 
-The provider supports three authentication methods:
+The provider uses two fields to configure authentication: `auth_method` (how you authenticate) and `auth_provider` (where you authenticate).
+
+### Auth Methods (`auth_method`)
 
 | Method | Description | Required Fields |
 |--------|-------------|-----------------|
-| `oauth2` | OAuth2 client credentials against a Jamf Pro instance | `jamfpro_instance_fqdn`, `client_id`, `client_secret` |
-| `basic` | Username/password against a Jamf Pro instance | `jamfpro_instance_fqdn`, `basic_auth_username`, `basic_auth_password` |
-| `platform` | OAuth2 via the Jamf platform gateway | `platform_base_url`, `platform_tenant_id`, `client_id`, `client_secret` |
+| `oauth2` | OAuth2 client credentials | `client_id`, `client_secret` |
+| `basic` | Username/password | `basic_auth_username`, `basic_auth_password` |
 
-All fields can also be set via environment variables (e.g. `JAMFPRO_AUTH_METHOD`, `JAMFPRO_CLIENT_ID`, `JAMFPRO_PLATFORM_TENANT_ID`). See the [provider documentation](https://registry.terraform.io/providers/deploymenttheory/jamfpro/latest/docs) for full details.
+### Auth Providers (`auth_provider`)
+
+| Provider | Description | Additional Required Fields |
+|----------|-------------|---------------------------|
+| `direct` (default) | Authenticates directly against the Jamf Pro instance | `jamfpro_instance_fqdn` |
+| `platform` | Authenticates via the Jamf Platform gateway (oauth2 only) | `platform_base_url`, `platform_tenant_id` |
+
+> **Note:** Platform gateway authentication requires credentials from Jamf Account, not Jamf Pro. See the [Getting Started with Platform API](https://developer.jamf.com/platform-api/reference/getting-started-with-platform-api) guide for setup instructions.
+
+All fields can also be set via environment variables (e.g. `JAMFPRO_AUTH_METHOD`, `JAMFPRO_AUTH_PROVIDER`, `JAMFPRO_CLIENT_ID`, `JAMFPRO_PLATFORM_TENANT_ID`). See the [provider documentation](https://registry.terraform.io/providers/deploymenttheory/jamfpro/latest/docs) for full details.
 
 ## Getting Started
 

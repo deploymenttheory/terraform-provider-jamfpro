@@ -10,6 +10,7 @@ terraform {
 provider "jamfpro" {
   jamfpro_instance_fqdn                = var.jamfpro_instance_fqdn
   auth_method                          = var.jamfpro_auth_method
+  auth_provider                        = var.jamfpro_auth_provider
   platform_base_url                    = var.jamfpro_platform_base_url
   platform_tenant_id                   = var.jamfpro_platform_tenant_id
   client_id                            = var.jamfpro_client_id
@@ -25,38 +26,44 @@ provider "jamfpro" {
 }
 
 variable "jamfpro_instance_fqdn" {
-  description = "The Jamf Pro FQDN (fully qualified domain name). Example: https://mycompany.jamfcloud.com"
+  description = "The Jamf Pro FQDN (fully qualified domain name). Required when auth_provider is 'direct'. Example: https://mycompany.jamfcloud.com"
   sensitive   = true
   default     = ""
 }
 
 variable "jamfpro_auth_method" {
-  description = "The auth method chosen for interacting with Jamf Pro. Options are 'basic', 'oauth2', or 'platform'."
+  description = "The authentication mechanism. Options are 'basic' or 'oauth2'."
   sensitive   = true
   default     = ""
 }
 
+variable "jamfpro_auth_provider" {
+  description = "The authentication provider. 'direct' authenticates against Jamf Pro directly, 'platform' authenticates via the Jamf Platform gateway. Defaults to 'direct'."
+  type        = string
+  default     = "direct"
+}
+
 variable "jamfpro_platform_base_url" {
-  description = "The Jamf platform gateway base URL when auth_method is 'platform'. Example: https://us.api.platform.jamf.com"
+  description = "The Jamf Platform gateway base URL. Required when auth_provider is 'platform'. Example: https://us.api.platform.jamf.com"
   type        = string
   default     = ""
 }
 
 variable "jamfpro_platform_tenant_id" {
-  description = "The platform gateway tenant identifier (UUID) when auth_method is 'platform'."
+  description = "The Jamf Platform gateway tenant identifier (UUID). Required when auth_provider is 'platform'."
   sensitive   = true
   type        = string
   default     = ""
 }
 
 variable "jamfpro_client_id" {
-  description = "The client ID for authentication. For 'oauth2' this is the Jamf Pro API Client ID. For 'platform' this is the Jamf Platform Client ID from Jamf Account."
+  description = "The client ID for OAuth2 authentication."
   sensitive   = true
   default     = ""
 }
 
 variable "jamfpro_client_secret" {
-  description = "The client secret for authentication. For 'oauth2' this is the Jamf Pro API Client secret. For 'platform' this is the Jamf Platform Client secret from Jamf Account."
+  description = "The client secret for OAuth2 authentication."
   sensitive   = true
   default     = ""
 }
