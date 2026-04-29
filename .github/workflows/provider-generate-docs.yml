@@ -70,7 +70,7 @@ jobs:
 
     - name: Create Pull Request with documentation updates
       if: steps.go-gen-check.outputs.changes == 'true'
-      uses: peter-evans/create-pull-request@v8.1.0
+      uses: peter-evans/create-pull-request@v8.1.1
       with:
         commit-message: 'chore: update go documentation, provider documentation and format terraform files'
         committer: GitHub Actions Bot <github-actions[bot]@users.noreply.github.com>
