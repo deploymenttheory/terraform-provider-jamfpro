@@ -103,6 +103,9 @@ const (
 	envVarBasicAuthPassword           = "JAMFPRO_BASIC_PASSWORD"
 	envVarJamfProFQDN                 = "JAMFPRO_INSTANCE_FQDN"
 	envVarJamfProAuthMethod           = "JAMFPRO_AUTH_METHOD"
+	envVarJamfProAuthProvider         = "JAMFPRO_AUTH_PROVIDER"
+	envVarPlatformBaseURL             = "JAMFPRO_PLATFORM_BASE_URL"
+	envVarPlatformTenantID            = "JAMFPRO_PLATFORM_TENANT_ID"
 	jamfLoadBalancerCookieName        = "jpro-ingress"
 )
 
@@ -282,31 +285,40 @@ func Provider() *schema.Provider {
 		Schema: map[string]*schema.Schema{
 			"jamfpro_instance_fqdn": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc(envVarJamfProFQDN, ""),
-				Description: "The Jamf Pro FQDN (fully qualified domain name). example: https://mycompany.jamfcloud.com",
+				Description: "The Jamf Pro FQDN (fully qualified domain name). Required when auth_provider is 'direct'. Example: https://mycompany.jamfcloud.com",
 			},
 			"auth_method": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc(envVarJamfProAuthMethod, ""),
-				Description: "The auth method chosen for interacting with Jamf Pro. Options are 'basic' for username/password or 'oauth2' for client id/secret.",
+				Description: "The authentication mechanism. Options are 'basic' for username/password or 'oauth2' for client credentials.",
 				ValidateFunc: validation.StringInSlice([]string{
 					"basic", "oauth2",
+				}, true),
+			},
+			"auth_provider": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc(envVarJamfProAuthProvider, "direct"),
+				Description: "The authentication provider. 'direct' authenticates against the Jamf Pro instance directly. 'platform' authenticates via the Jamf Platform gateway. Defaults to 'direct'.",
+				ValidateFunc: validation.StringInSlice([]string{
+					"direct", "platform",
 				}, true),
 			},
 			"client_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc(envVarOAuthClientId, ""),
-				Description: "The Jamf Pro Client ID for authentication when auth_method is 'oauth2'.",
+				Description: "The client ID for OAuth2 authentication.",
 			},
 			"client_secret": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
 				DefaultFunc: schema.EnvDefaultFunc(envVarOAuthClientSecret, ""),
-				Description: "The Jamf Pro Client secret for authentication when auth_method is 'oauth2'.",
+				Description: "The client secret for OAuth2 authentication.",
 			},
 			"basic_auth_username": {
 				Type:        schema.TypeString,
@@ -320,6 +332,19 @@ func Provider() *schema.Provider {
 				Sensitive:   true,
 				DefaultFunc: schema.EnvDefaultFunc(envVarBasicAuthPassword, ""),
 				Description: "The Jamf Pro password used for authentication when auth_method is 'basic'.",
+			},
+			"platform_base_url": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc(envVarPlatformBaseURL, ""),
+				Description: "The Jamf Platform gateway base URL. Required when auth_provider is 'platform'. Example: https://us.apigw.jamf.com",
+			},
+			"platform_tenant_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Sensitive:   true,
+				DefaultFunc: schema.EnvDefaultFunc(envVarPlatformTenantID, ""),
+				Description: "The Jamf Platform gateway tenant identifier (UUID). Required when auth_provider is 'platform'.",
 			},
 			"enable_client_sdk_logs": {
 				Type:        schema.TypeBool,
@@ -549,44 +574,99 @@ func Provider() *schema.Provider {
 		sugaredLogger := defaultLogger.Sugar()
 
 		// Auth
-		jamfFQDN = GetJamfFqdn(d, &diags)
 		authMethod := GetAuthMethod(d, &diags)
+		authProvider := d.Get("auth_provider").(string)
+		if authProvider == "" {
+			authProvider = "direct"
+		}
 		tokenRefrshBufferPeriod := time.Duration(d.Get("token_refresh_buffer_period_seconds").(int)) * time.Second
+
+		// Platform provider only supports oauth2
+		if authProvider == "platform" && authMethod != "oauth2" {
+			return nil, append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Invalid auth configuration",
+				Detail:   "auth_provider 'platform' requires auth_method 'oauth2'. Basic authentication is not supported via the Jamf Platform gateway.",
+			})
+		}
 
 		hide_sensitive_data := d.Get("hide_sensitive_data").(bool)
 		bootstrapClient := http.Client{}
-		switch authMethod {
-		case "oauth2":
+
+		switch authProvider {
+		case "platform":
+			platformBaseURL := d.Get("platform_base_url").(string)
+			if platformBaseURL == "" {
+				return nil, append(diags, diag.Diagnostic{
+					Severity: diag.Error,
+					Summary:  "Error getting platform base URL",
+					Detail:   "platform_base_url must be provided either as an environment variable (JAMFPRO_PLATFORM_BASE_URL) or in the Terraform configuration when auth_provider is 'platform'",
+				})
+			}
+			platformTenantID := d.Get("platform_tenant_id").(string)
+			if platformTenantID == "" {
+				return nil, append(diags, diag.Diagnostic{
+					Severity: diag.Error,
+					Summary:  "Error getting platform tenant ID",
+					Detail:   "platform_tenant_id must be provided either as an environment variable (JAMFPRO_PLATFORM_TENANT_ID) or in the Terraform configuration when auth_provider is 'platform'",
+				})
+			}
 			clientId = GetClientID(d, &diags)
 			clientSecret = GetClientSecret(d, &diags)
-			jamfIntegration, err = jamfprointegration.BuildWithOAuth(
-				jamfFQDN,
+			jamfIntegration, err = jamfprointegration.BuildWithPlatformGatewayOAuth(
+				platformBaseURL,
 				sugaredLogger,
 				tokenRefrshBufferPeriod,
 				clientId,
 				clientSecret,
+				platformTenantID,
 				hide_sensitive_data,
 				bootstrapClient,
 			)
 
-		case "basic":
-			basicAuthUsername = GetBasicAuthUsername(d, &diags)
-			basicAuthPassword = GetBasicAuthPassword(d, &diags)
-			jamfIntegration, err = jamfprointegration.BuildWithBasicAuth(
-				jamfFQDN,
-				sugaredLogger,
-				tokenRefrshBufferPeriod,
-				basicAuthUsername,
-				basicAuthPassword,
-				hide_sensitive_data,
-				bootstrapClient,
-			)
+		case "direct":
+			switch authMethod {
+			case "oauth2":
+				jamfFQDN = GetJamfFqdn(d, &diags)
+				clientId = GetClientID(d, &diags)
+				clientSecret = GetClientSecret(d, &diags)
+				jamfIntegration, err = jamfprointegration.BuildWithOAuth(
+					jamfFQDN,
+					sugaredLogger,
+					tokenRefrshBufferPeriod,
+					clientId,
+					clientSecret,
+					hide_sensitive_data,
+					bootstrapClient,
+				)
+
+			case "basic":
+				jamfFQDN = GetJamfFqdn(d, &diags)
+				basicAuthUsername = GetBasicAuthUsername(d, &diags)
+				basicAuthPassword = GetBasicAuthPassword(d, &diags)
+				jamfIntegration, err = jamfprointegration.BuildWithBasicAuth(
+					jamfFQDN,
+					sugaredLogger,
+					tokenRefrshBufferPeriod,
+					basicAuthUsername,
+					basicAuthPassword,
+					hide_sensitive_data,
+					bootstrapClient,
+				)
+
+			default:
+				return nil, append(diags, diag.Diagnostic{
+					Severity: diag.Error,
+					Summary:  "Invalid auth method supplied",
+					Detail:   "auth_method must be 'basic' or 'oauth2'",
+				})
+			}
 
 		default:
 			return nil, append(diags, diag.Diagnostic{
 				Severity: diag.Error,
-				Summary:  "invalid auth method supplied",
-				Detail:   "You should not be able to find this error. If you have, please raise an issue with the schema.",
+				Summary:  "Invalid auth provider supplied",
+				Detail:   "auth_provider must be 'direct' or 'platform'",
 			})
 
 		}
