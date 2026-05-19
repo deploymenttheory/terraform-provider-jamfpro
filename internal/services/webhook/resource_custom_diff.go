@@ -59,6 +59,10 @@ func validateSmartGroupIDRequirement(_ context.Context, diff *schema.ResourceDif
 	// Check if the current event is in the list of required events
 	for _, reqEvent := range requiredEvents {
 		if event.(string) == reqEvent {
+			if !diff.NewValueKnown("smart_group_id") {
+				break
+			}
+
 			smartGroupID, smartGroupIDOk := diff.GetOk("smart_group_id")
 			if !smartGroupIDOk || smartGroupID == 0 {
 				return fmt.Errorf("in 'jamfpro_webhook.%s': when 'event' is set to '%s', 'smart_group_id' must be provided and must be a valid non-zero integer", resourceName, event)
