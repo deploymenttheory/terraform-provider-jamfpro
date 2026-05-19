@@ -12,7 +12,7 @@ import (
 
 // mainCustomDiffFunc orchestrates all custom diff validations for macOS config profiles.
 func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i any) error {
-	if diff.Get("payload_validate").(bool) {
+	if pv, ok := diff.Get("payload_validate").(bool); ok && pv {
 		if err := validatePayloadIdentifers(ctx, diff, i); err != nil {
 			return err
 		}
@@ -156,7 +156,7 @@ func validateAllComputersScope(_ context.Context, diff *schema.ResourceDiff, _ a
 	}
 
 	scope := scopeRaw.([]any)[0].(map[string]any)
-	allComputers := scope["all_computers"].(bool)
+	allComputers, _ := scope["all_computers"].(bool)
 
 	if allComputers {
 		fieldsToCheck := []string{"computer_ids", "computer_group_ids"}
@@ -180,7 +180,7 @@ func validateAllUsersScope(_ context.Context, diff *schema.ResourceDiff, _ any) 
 	}
 
 	scope := scopeRaw.([]any)[0].(map[string]any)
-	allJssUsers := scope["all_jss_users"].(bool)
+	allJssUsers, _ := scope["all_jss_users"].(bool)
 
 	if allJssUsers {
 		fieldsToCheck := []string{"jss_user_ids", "jss_user_group_ids", "building_ids", "department_ids"}

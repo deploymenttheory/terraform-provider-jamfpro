@@ -106,18 +106,32 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 			"account_driven_device_enrollment":               enrollment.AccountDrivenDeviceMacosEnrollmentEnabled,
 		}
 
-		// Handle managed admin account
-		if enrollment.CreateManagementAccount {
-			log.Printf("[DEBUG] updateState: managed_local_administrator_account is enabled in API response.")
+		// Handle managed admin account.
+		// Write the sub-block whenever CreateManagementAccount is true OR when the block is already
+		// present in d (config/prior state). Without this, a config with create=false causes a
+		// perpetual diff: the block is dropped from state after each apply but still declared in config.
+		managedAdminBlockPresent := false
+		if vComp, okComp := d.GetOk("user_initiated_enrollment_for_computers"); okComp {
+			if compSet, okSet := vComp.(*schema.Set); okSet && compSet.Len() > 0 {
+				if compMap, okMap := compSet.List()[0].(map[string]any); okMap {
+					if adminSet, ok := compMap["managed_local_administrator_account"].(*schema.Set); ok && adminSet.Len() > 0 {
+						managedAdminBlockPresent = true
+					}
+				}
+			}
+		}
+
+		if enrollment.CreateManagementAccount || managedAdminBlockPresent {
+			log.Printf("[DEBUG] updateState: persisting managed_local_administrator_account to state.")
 			adminAccountMap := map[string]any{
 				"create_managed_local_administrator_account":                    enrollment.CreateManagementAccount,
 				"management_account_username":                                   enrollment.ManagementUsername,
 				"hide_managed_local_administrator_account":                      enrollment.HideManagementAccount,
 				"allow_ssh_access_for_managed_local_administrator_account_only": enrollment.AllowSshOnlyManagementAccount,
 			}
-			computerSettings["managed_local_administrator_account"] = []any{adminAccountMap} // List for TypeSet
+			computerSettings["managed_local_administrator_account"] = []any{adminAccountMap}
 		} else {
-			log.Printf("[DEBUG] updateState: managed_local_administrator_account is disabled in API response. Clearing sub-block state.")
+			log.Printf("[DEBUG] updateState: managed_local_administrator_account not in config or API, clearing state.")
 			computerSettings["managed_local_administrator_account"] = nil
 		}
 

@@ -1,3 +1,25 @@
+// Covers issue #1084: managed_local_administrator_account with create=false must not cause a
+// perpetual diff. The block is intentionally declared with create=false to reproduce the scenario
+// where state previously dropped the sub-block after each apply.
+resource "jamfpro_user_initiated_enrollment_settings" "create_false_no_drift" {
+  restrict_reenrollment_to_authorized_users_only  = false
+  skip_certificate_installation_during_enrollment = false
+
+  user_initiated_enrollment_for_computers {
+    enable_user_initiated_enrollment_for_computers = true
+    ensure_ssh_is_enabled                          = false
+    launch_self_service_when_done                  = true
+    account_driven_device_enrollment               = false
+
+    managed_local_administrator_account {
+      create_managed_local_administrator_account                    = false
+      management_account_username                                   = ""
+      hide_managed_local_administrator_account                      = true
+      allow_ssh_access_for_managed_local_administrator_account_only = false
+    }
+  }
+}
+
 resource "jamfpro_user_initiated_enrollment_settings" "user_initiated_enrollment_settings" {
   restrict_reenrollment_to_authorized_users_only  = false
   skip_certificate_installation_during_enrollment = true

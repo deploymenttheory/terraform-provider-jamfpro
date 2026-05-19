@@ -176,6 +176,14 @@ func Read[sdkResponseType any](
 		return append(diags, errors.HandleResourceNotFoundError(err, d, removeDeleteResourcesFromState)...)
 	}
 
+	if response == nil {
+		return append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "API returned nil response",
+			Detail:   fmt.Sprintf("API returned a nil response without an error for resource ID: %s. This is likely a transient server-side error (e.g. 500). Please retry.", resourceID),
+		})
+	}
+
 	return append(diags, providerStateFunc(d, response)...)
 }
 

@@ -4,6 +4,7 @@ package policy
 // TODO maybe review error handling here too?
 
 import (
+	"fmt"
 	"log"
 	"reflect"
 
@@ -24,7 +25,7 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 	prepStatePayloadPackages(&out, resp)
 
 	// Scripts
-	prepStatePayloadScripts(&out, resp)
+	prepStatePayloadScripts(&out, resp, d)
 
 	// Printers
 	prepStatePayloadPrinters(&out, resp)
@@ -109,17 +110,56 @@ func prepStatePayloadPackages(out *[]map[string]any, resp *jamfpro.ResourcePolic
 	(*out)[0]["packages"] = []map[string]any{packagesMap}
 }
 
-// Reads response and preps script payload items
-func prepStatePayloadScripts(out *[]map[string]any, resp *jamfpro.ResourcePolicy) {
+// Reads response and preps script payload items.
+// Scripts are reordered to match the config order (by ID) so that the API returning scripts
+// in a different sequence does not produce a perpetual diff in a TypeList.
+func prepStatePayloadScripts(out *[]map[string]any, resp *jamfpro.ResourcePolicy, d *schema.ResourceData) {
 	if resp.Scripts == nil {
 		log.Println("No scripts found")
 		return
 	}
 
+	// Build a map of string ID → script from the API response.
+	apiByID := make(map[string]jamfpro.PolicySubsetScript, len(resp.Scripts))
+	for _, s := range resp.Scripts {
+		apiByID[fmt.Sprintf("%v", s.ID)] = s
+	}
+
+	// Derive the config-declared order from the existing state/plan.
+	var orderedScripts []jamfpro.PolicySubsetScript
+	if v, ok := d.GetOk("payloads"); ok {
+		payloads := v.([]any)
+		if len(payloads) > 0 {
+			if pm, ok := payloads[0].(map[string]any); ok {
+				if scriptList, ok := pm["scripts"].([]any); ok {
+					used := make(map[string]bool)
+					for _, raw := range scriptList {
+						sm := raw.(map[string]any)
+						id := fmt.Sprintf("%v", sm["id"])
+						if s, found := apiByID[id]; found {
+							orderedScripts = append(orderedScripts, s)
+							used[id] = true
+						}
+					}
+							// Append any scripts the API returned that aren't in config yet.
+					for _, s := range resp.Scripts {
+						id := fmt.Sprintf("%v", s.ID)
+						if !used[id] {
+							orderedScripts = append(orderedScripts, s)
+						}
+					}
+				}
+			}
+		}
+	}
+	if len(orderedScripts) == 0 {
+		orderedScripts = resp.Scripts
+	}
+
 	log.Println("Initializing scripts in state")
 	(*out)[0]["scripts"] = make([]map[string]any, 0)
 
-	for _, v := range resp.Scripts {
+	for _, v := range orderedScripts {
 		outMap := make(map[string]any)
 		outMap["id"] = v.ID
 		outMap["priority"] = v.Priority

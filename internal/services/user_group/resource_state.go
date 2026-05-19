@@ -27,20 +27,26 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceUserGroup) diag.D
 
 	d.Set("site_id", resp.Site.ID)
 
-	criteria := make([]any, len(resp.Criteria))
-	for i, criterion := range resp.Criteria {
-		criteria[i] = map[string]any{
-			"name":          criterion.Name,
-			"priority":      criterion.Priority,
-			"and_or":        criterion.AndOr,
-			"search_type":   criterion.SearchType,
-			"value":         criterion.Value,
-			"opening_paren": criterion.OpeningParen,
-			"closing_paren": criterion.ClosingParen,
+	// Criteria only exist on smart groups. Explicitly clear them for static groups so that
+	// converting from smart→static removes the criteria block from state rather than leaving
+	// a perpetual diff (Jamf Pro retains the criteria rows in the DB even after conversion).
+	if resp.IsSmart {
+		criteria := make([]any, len(resp.Criteria))
+		for i, criterion := range resp.Criteria {
+			criteria[i] = map[string]any{
+				"name":          criterion.Name,
+				"priority":      criterion.Priority,
+				"and_or":        criterion.AndOr,
+				"search_type":   criterion.SearchType,
+				"value":         criterion.Value,
+				"opening_paren": criterion.OpeningParen,
+				"closing_paren": criterion.ClosingParen,
+			}
 		}
+		d.Set("criteria", criteria)
+	} else {
+		d.Set("criteria", []any{})
 	}
-
-	d.Set("criteria", criteria)
 
 	if !resp.IsSmart {
 		var userIDStrList []int

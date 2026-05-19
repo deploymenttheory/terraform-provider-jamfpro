@@ -102,9 +102,14 @@ func getPolicySchemaSelfService() *schema.Resource {
 				}, false),
 			},
 			"notification_subject": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     "",
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "",
+				// Jamf Pro defaults notification_subject to the policy name when left blank.
+				// Suppress the diff when config is empty and the API returns the policy name.
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return new == "" && old == d.Get("name").(string)
+				},
 				Description: "The subject of the notification message.",
 			},
 			"notification_message": {

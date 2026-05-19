@@ -7,6 +7,7 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/errors"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -22,6 +23,9 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		var apiErr error
 		resource, apiErr = client.GetComputerPrestageByID(resourceID)
 		if apiErr != nil {
+			if errors.IsNotFoundError(apiErr) {
+				return retry.NonRetryableError(apiErr)
+			}
 			return retry.RetryableError(apiErr)
 		}
 		return nil
