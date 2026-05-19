@@ -44,10 +44,6 @@ func validateIsSmartAttribute(_ context.Context, diff *schema.ResourceDiff, _ an
 		return fmt.Errorf("in 'jamfpro_user_group.%s': 'criteria' block is required when 'is_smart' is set to true", resourceName)
 	}
 
-	if !isSmart.(bool) && !usersBlockExists {
-		return fmt.Errorf("in 'jamfpro_user_group.%s': 'users' block is required when 'is_smart' is set to false", resourceName)
-	}
-
 	return nil
 }
 
