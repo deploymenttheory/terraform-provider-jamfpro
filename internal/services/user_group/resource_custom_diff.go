@@ -29,6 +29,7 @@ func validateIsSmartAttribute(_ context.Context, diff *schema.ResourceDiff, _ an
 		return nil
 	}
 
+	_, assignedUserIDsConfigured := diff.GetOkExists("assigned_user_ids")
 	usersBlockExists := len(diff.Get("assigned_user_ids").([]any)) > 0
 	criteriaBlockExists := len(diff.Get("criteria").([]any)) > 0
 
@@ -42,6 +43,10 @@ func validateIsSmartAttribute(_ context.Context, diff *schema.ResourceDiff, _ an
 
 	if isSmart.(bool) && !criteriaBlockExists {
 		return fmt.Errorf("in 'jamfpro_user_group.%s': 'criteria' block is required when 'is_smart' is set to true", resourceName)
+	}
+
+	if !isSmart.(bool) && !assignedUserIDsConfigured {
+		return fmt.Errorf("in 'jamfpro_user_group.%s': 'users' block is required when 'is_smart' is set to false", resourceName)
 	}
 
 	return nil
