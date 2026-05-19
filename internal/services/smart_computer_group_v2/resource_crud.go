@@ -3,8 +3,10 @@ package smart_computer_group_v2
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	frameworkCrud "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/framework_crud"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -40,11 +42,43 @@ func (r *smartComputerGroupV2FrameworkResource) Create(ctx context.Context, req 
 
 	createdGroup, err := r.client.CreateSmartComputerGroupV2(*smartGroup)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Creating Smart Computer Group",
-			fmt.Sprintf("Could not create smart computer group: %s: %s", ResourceName, err.Error()),
-		)
-		return
+		if shouldRetrySmartComputerGroupCreateWithoutCriteria(err, smartGroup) {
+			tflog.Debug(ctx, fmt.Sprintf("Retrying %s create without criteria before applying criteria with update", ResourceName))
+
+			createPayload := smartComputerGroupWithoutCriteria(*smartGroup)
+			createdGroup, err = r.client.CreateSmartComputerGroupV2(createPayload)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Error Creating Smart Computer Group",
+					fmt.Sprintf("Could not create smart computer group without criteria after Jamf Pro rejected criteria during create: %s: %s", ResourceName, err.Error()),
+				)
+				return
+			}
+
+			_, err = r.client.UpdateSmartComputerGroupByIDV2(createdGroup.ID, *smartGroup)
+			if err != nil {
+				cleanupErr := r.client.DeleteSmartComputerGroupByIDV2(createdGroup.ID)
+				detail := fmt.Sprintf(
+					"Created smart computer group %s without criteria after Jamf Pro rejected criteria during create, but failed to apply criteria: %s",
+					createdGroup.ID,
+					err.Error(),
+				)
+				if cleanupErr != nil {
+					detail = fmt.Sprintf("%s. Cleanup also failed: %s", detail, cleanupErr.Error())
+				} else {
+					detail = fmt.Sprintf("%s. The interim smart computer group was deleted.", detail)
+				}
+
+				resp.Diagnostics.AddError("Error Applying Smart Computer Group Criteria", detail)
+				return
+			}
+		} else {
+			resp.Diagnostics.AddError(
+				"Error Creating Smart Computer Group",
+				fmt.Sprintf("Could not create smart computer group: %s: %s", ResourceName, err.Error()),
+			)
+			return
+		}
 	}
 
 	object.ID = types.StringValue(createdGroup.ID)
@@ -211,4 +245,30 @@ func (r *smartComputerGroupV2FrameworkResource) Delete(ctx context.Context, req 
 	resp.State.RemoveResource(ctx)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
+}
+
+func shouldRetrySmartComputerGroupCreateWithoutCriteria(err error, smartGroup *jamfpro.ResourceSmartComputerGroupV2) bool {
+	if err == nil || smartGroup == nil || len(smartGroup.Criteria) == 0 {
+		return false
+	}
+
+	errorMessage := strings.ToLower(err.Error())
+	if !strings.Contains(errorMessage, "not valid for extension attribute") {
+		return false
+	}
+
+	for _, criterion := range smartGroup.Criteria {
+		searchType := strings.ToLower(criterion.SearchType)
+		operatorError := fmt.Sprintf("operator %s is not valid", searchType)
+		if (searchType == "has" || searchType == "does not have") && strings.Contains(errorMessage, operatorError) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func smartComputerGroupWithoutCriteria(smartGroup jamfpro.ResourceSmartComputerGroupV2) jamfpro.ResourceSmartComputerGroupV2 {
+	smartGroup.Criteria = nil
+	return smartGroup
 }
