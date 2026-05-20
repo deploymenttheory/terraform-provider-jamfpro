@@ -1,6 +1,6 @@
 module github.com/deploymenttheory/terraform-provider-jamfpro
 
-go 1.25.8
+go 1.26.3
 
 // Direct
 
