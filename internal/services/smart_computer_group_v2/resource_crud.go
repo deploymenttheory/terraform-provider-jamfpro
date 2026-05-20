@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	frameworkCrud "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/framework_crud"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -42,10 +41,17 @@ func (r *smartComputerGroupV2FrameworkResource) Create(ctx context.Context, req 
 
 	createdGroup, err := r.client.CreateSmartComputerGroupV2(*smartGroup)
 	if err != nil {
-		if shouldRetrySmartComputerGroupCreateWithoutCriteria(err, smartGroup) {
+		errorMessage := strings.ToLower(err.Error())
+		shouldRetryWithoutCriteria := len(smartGroup.Criteria) > 0 &&
+			strings.Contains(errorMessage, "not valid for extension attribute") &&
+			(strings.Contains(errorMessage, "operator has is not valid") ||
+				strings.Contains(errorMessage, "operator does not have is not valid"))
+
+		if shouldRetryWithoutCriteria {
 			tflog.Debug(ctx, fmt.Sprintf("Retrying %s create without criteria before applying criteria with update", ResourceName))
 
-			createPayload := smartComputerGroupWithoutCriteria(*smartGroup)
+			createPayload := *smartGroup
+			createPayload.Criteria = nil
 			createdGroup, err = r.client.CreateSmartComputerGroupV2(createPayload)
 			if err != nil {
 				resp.Diagnostics.AddError(
@@ -245,30 +251,4 @@ func (r *smartComputerGroupV2FrameworkResource) Delete(ctx context.Context, req 
 	resp.State.RemoveResource(ctx)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
-}
-
-func shouldRetrySmartComputerGroupCreateWithoutCriteria(err error, smartGroup *jamfpro.ResourceSmartComputerGroupV2) bool {
-	if err == nil || smartGroup == nil || len(smartGroup.Criteria) == 0 {
-		return false
-	}
-
-	errorMessage := strings.ToLower(err.Error())
-	if !strings.Contains(errorMessage, "not valid for extension attribute") {
-		return false
-	}
-
-	for _, criterion := range smartGroup.Criteria {
-		searchType := strings.ToLower(criterion.SearchType)
-		operatorError := fmt.Sprintf("operator %s is not valid", searchType)
-		if (searchType == "has" || searchType == "does not have") && strings.Contains(errorMessage, operatorError) {
-			return true
-		}
-	}
-
-	return false
-}
-
-func smartComputerGroupWithoutCriteria(smartGroup jamfpro.ResourceSmartComputerGroupV2) jamfpro.ResourceSmartComputerGroupV2 {
-	smartGroup.Criteria = nil
-	return smartGroup
 }
