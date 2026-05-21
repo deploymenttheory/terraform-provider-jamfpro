@@ -4,7 +4,6 @@ package macos_configuration_profile_plist_generator
 import (
 	"encoding/xml"
 	"fmt"
-	"html"
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -32,7 +31,10 @@ func constructJamfProMacOSConfigurationProfilesPlistGenerator(d *schema.Resource
 			Level:              d.Get("level").(string),
 			UUID:               d.Get("uuid").(string),
 			RedeployOnUpdate:   d.Get("redeploy_on_update").(string),
-			Payloads:           html.EscapeString(plistXML),
+			// Pass the plist XML through unescaped — encoding/xml escapes element
+			// text on outer-envelope marshalling. See macos_configuration_profile_plist
+			// constructor for the full rationale.
+			Payloads: plistXML,
 		},
 	}
 

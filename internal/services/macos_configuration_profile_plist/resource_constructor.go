@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
-	"html"
 	"log"
 	"strings"
 
@@ -81,7 +80,13 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 	}
 
 	if mode != "update" {
-		resource.General.Payloads = html.EscapeString(d.Get("payloads").(string))
+		// encoding/xml escapes element text for us (& < > ' " → entities) when
+		// the outer request envelope is marshalled. Don't pre-escape — doing
+		// so causes inner-plist entities like &gt; to be doubled to &amp;gt;,
+		// which Jamf decodes only once on receive, leaving literal &gt;
+		// characters in the value that reach the device. See PR #627 / commit
+		// a02b2a29 for the original fix that was reverted in bb5238a9.
+		resource.General.Payloads = d.Get("payloads").(string)
 
 	} else if mode == "update" {
 		var existingPlist map[string]any
@@ -134,11 +139,14 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 			return nil, fmt.Errorf("failed to encode plist payload with injected PayloadUUID and PayloadIdentifier: %v", err)
 		}
 
-		// Since we're embedding a Plist (which is XML) inside another XML document (the request),
-		// we need to properly correctly normalize the XML for the xml.MarshalIndent and also for jamf pro.
+		// The re-encoded plist is well-formed XML with entities like &gt; / &amp;
+		// already correctly representing their literal characters. encoding/xml
+		// will escape this string as element text when marshalling the outer
+		// request, producing the one and only level of XML escaping needed on
+		// the wire. Pre-escaping here would double-encode and survive Jamf's
+		// receive-side decode.
 		if buf.Len() > 0 {
-			unquotedContent := preMarshallingXMLPayloadUnescaping(buf.String())
-			resource.General.Payloads = preMarshallingXMLPayloadEscaping(unquotedContent)
+			resource.General.Payloads = buf.String()
 		}
 	}
 
@@ -150,19 +158,6 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 	log.Printf("[DEBUG] Constructed Jamf Pro macOS Configuration Profile XML:\n%s\n", resourceXML)
 
 	return resource, nil
-}
-
-// preMarshallingXMLPayloadUnescaping unescapes content ready for jamf pro based on plist reqs
-func preMarshallingXMLPayloadUnescaping(input string) string {
-	input = strings.ReplaceAll(input, "&#34;", "\"")
-	return input
-}
-
-// preMarshallingXMLPayloadEscaping ensures that the XML marshaller (used in xml.MarshalIndent)
-// doesn't choke on special XML characters (&) inside the payload
-func preMarshallingXMLPayloadEscaping(input string) string {
-	input = strings.ReplaceAll(input, "&", "&amp;")
-	return input
 }
 
 // constructMacOSConfigurationProfileSubsetScope reads the scope map and calls helpers

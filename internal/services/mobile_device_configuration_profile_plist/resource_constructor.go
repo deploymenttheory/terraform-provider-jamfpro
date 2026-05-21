@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
-	"html"
 	"log"
 	"strings"
 
@@ -64,7 +63,13 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 
 	// Handle Payloads based on mode
 	if mode != "update" {
-		resource.General.Payloads = html.EscapeString(d.Get("payloads").(string))
+		// encoding/xml escapes element text (& < > ' " → entities) when the
+		// outer request envelope is marshalled. Don't pre-escape — doing so
+		// double-encodes inner-plist entities like &gt; to &amp;gt;, which
+		// Jamf decodes only once on receive, leaving literal &gt; characters
+		// in the value that reach the device. See PR #627 / commit a02b2a29
+		// for the original fix that was reverted in bb5238a9.
+		resource.General.Payloads = d.Get("payloads").(string)
 	} else if mode == "update" {
 		var existingPlist map[string]any
 		var newPlist map[string]any
@@ -77,8 +82,10 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 			return nil, fmt.Errorf("failed to get existing mobile device configuration profile by ID %s for update: %v", resourceID, err)
 		}
 
+		// Jamf returns the inner plist single-escaped (encoding/xml-level only)
+		// once we stop double-escaping on the write side, so no html.UnescapeString
+		// is needed here — howett.net/plist's decoder handles standard XML entities.
 		existingPayload := existingProfile.General.Payloads
-		existingPayload = html.UnescapeString(existingPayload)
 		if err := plist.NewDecoder(strings.NewReader(existingPayload)).Decode(&existingPlist); err != nil {
 			return nil, fmt.Errorf("failed to decode existing plist payload from Jamf Pro for update (ID: %s): %v\nPayload attempted:\n%s", resourceID, err, existingPayload)
 		}
@@ -114,11 +121,11 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 			return nil, fmt.Errorf("failed to encode updated plist payload: %v", err)
 		}
 
-		// Since we're embedding a Plist (which is XML) inside another XML document (the request),
-		// we need to properly correctly normalize the XML for the xml.MarshalIndent and also for jamf pro.
+		// The re-encoded plist is well-formed XML; let encoding/xml escape it
+		// as element text when marshalling the outer envelope. See create-mode
+		// note above for why we don't pre-escape.
 		if buf.Len() > 0 {
-			unquotedContent := preMarshallingXMLPayloadUnescaping(buf.String())
-			resource.General.Payloads = preMarshallingXMLPayloadEscaping(unquotedContent)
+			resource.General.Payloads = buf.String()
 		}
 	}
 
@@ -130,19 +137,6 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 	log.Printf("[DEBUG] Constructed Jamf Pro Mobile Device Configuration Profile XML:\n%s\n", string(resourceXML))
 
 	return resource, nil
-}
-
-// preMarshallingXMLPayloadUnescaping unescapes content ready for jamf pro based on plist reqs
-func preMarshallingXMLPayloadUnescaping(input string) string {
-	input = strings.ReplaceAll(input, "&#34;", "\"")
-	return input
-}
-
-// preMarshallingXMLPayloadEscaping ensures that the XML marshaller (used in xml.MarshalIndent)
-// doesn't choke on special XML characters (&) inside the payload
-func preMarshallingXMLPayloadEscaping(input string) string {
-	input = strings.ReplaceAll(input, "&", "&amp;")
-	return input
 }
 
 // constructMobileDeviceConfigurationProfileSubsetScope constructs the scope using TypeSet from schema.

@@ -44,3 +44,4 @@ website/vendor
 testing/data_sources/*
 .terraform.lock.hcl
 golangci-lint-report.sarif
+terraform-provider-jamfpro
