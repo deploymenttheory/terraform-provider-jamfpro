@@ -41,7 +41,7 @@ resource "jamfpro_macos_onboarding_settings" "example" {
 
 ### Optional
 
-- `onboarding_items` (Block Set) List of onboarding items to display during device setup (see [below for nested schema](#nestedblock--onboarding_items))
+- `onboarding_items` (Block List) List of onboarding items to display during device setup (see [below for nested schema](#nestedblock--onboarding_items))
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
