@@ -21,7 +21,7 @@ jobs:
     steps:
     
     - name: Harden Runner
-      uses: step-security/harden-runner@v2.16.1
+      uses: step-security/harden-runner@v2.19.4
       with:
         egress-policy: audit
     - uses: actions/checkout@v6
@@ -33,7 +33,7 @@ jobs:
         cache: false
         go-version-file: 'go.mod'
 
-    - uses: hashicorp/setup-terraform@v4.0.0
+    - uses: hashicorp/setup-terraform@v4.0.1
       with:
         terraform_version: '1.12.1'
         terraform_wrapper: true
@@ -70,7 +70,7 @@ jobs:
 
     - name: Create Pull Request with documentation updates
       if: steps.go-gen-check.outputs.changes == 'true'
-      uses: peter-evans/create-pull-request@v8.1.0
+      uses: peter-evans/create-pull-request@v8.1.1
       with:
         commit-message: 'chore: update go documentation, provider documentation and format terraform files'
         committer: GitHub Actions Bot <github-actions[bot]@users.noreply.github.com>

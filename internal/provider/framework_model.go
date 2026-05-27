@@ -6,10 +6,13 @@ import "github.com/hashicorp/terraform-plugin-framework/types"
 type frameworkProviderModel struct {
 	InstanceFQDN                      types.String `tfsdk:"jamfpro_instance_fqdn"`
 	AuthMethod                        types.String `tfsdk:"auth_method"`
+	AuthProvider                      types.String `tfsdk:"auth_provider"`
 	ClientID                          types.String `tfsdk:"client_id"`
 	ClientSecret                      types.String `tfsdk:"client_secret"`
 	BasicAuthUsername                 types.String `tfsdk:"basic_auth_username"`
 	BasicAuthPassword                 types.String `tfsdk:"basic_auth_password"`
+	PlatformBaseURL                   types.String `tfsdk:"platform_base_url"`
+	PlatformTenantID                  types.String `tfsdk:"platform_tenant_id"`
 	EnableClientSDKLogs               types.Bool   `tfsdk:"enable_client_sdk_logs"`
 	ClientSDKLogExportPath            types.String `tfsdk:"client_sdk_log_export_path"`
 	HideSensitiveData                 types.Bool   `tfsdk:"hide_sensitive_data"`

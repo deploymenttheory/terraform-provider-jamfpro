@@ -21,7 +21,7 @@ jobs:
     steps:
 
     - name: Harden Runner
-      uses: step-security/harden-runner@v2.16.1
+      uses: step-security/harden-runner@v2.19.4
       with:
         egress-policy: audit
 
@@ -39,7 +39,7 @@ jobs:
       id: go
 
     - name: Set up Terraform
-      uses: hashicorp/setup-terraform@v4.0.0
+      uses: hashicorp/setup-terraform@v4.0.1
       with:
         terraform_version: '1.12.1'
         terraform_wrapper: false
@@ -81,7 +81,7 @@ jobs:
     steps:
 
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.16.1
+        uses: step-security/harden-runner@v2.19.4
         with:
           egress-policy: audit
 

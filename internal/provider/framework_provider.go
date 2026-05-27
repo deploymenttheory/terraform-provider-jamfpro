@@ -49,23 +49,30 @@ func (p *frameworkProvider) Schema(ctx context.Context, req provider.SchemaReque
 		Attributes: map[string]schema.Attribute{
 			"jamfpro_instance_fqdn": schema.StringAttribute{
 				Optional:    true,
-				Description: "The Jamf Pro FQDN (fully qualified domain name). example: https://mycompany.jamfcloud.com",
+				Description: "The Jamf Pro FQDN (fully qualified domain name). Required when auth_provider is 'direct'. Example: https://mycompany.jamfcloud.com",
 			},
 			"auth_method": schema.StringAttribute{
 				Optional:    true,
-				Description: "The auth method chosen for interacting with Jamf Pro. Options are 'basic' for username/password or 'oauth2' for client id/secret.",
+				Description: "The authentication mechanism. Options are 'basic' for username/password or 'oauth2' for client credentials.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("basic", "oauth2"),
 				},
 			},
+			"auth_provider": schema.StringAttribute{
+				Optional:    true,
+				Description: "The authentication provider. 'direct' authenticates against the Jamf Pro instance directly. 'platform' authenticates via the Jamf Platform gateway. Defaults to 'direct'.",
+				Validators: []validator.String{
+					stringvalidator.OneOf("direct", "platform"),
+				},
+			},
 			"client_id": schema.StringAttribute{
 				Optional:    true,
-				Description: "The Jamf Pro Client ID for authentication when auth_method is 'oauth2'.",
+				Description: "The client ID for OAuth2 authentication.",
 			},
 			"client_secret": schema.StringAttribute{
 				Optional:    true,
 				Sensitive:   true,
-				Description: "The Jamf Pro Client secret for authentication when auth_method is 'oauth2'.",
+				Description: "The client secret for OAuth2 authentication.",
 			},
 			"basic_auth_username": schema.StringAttribute{
 				Optional:    true,
@@ -75,6 +82,15 @@ func (p *frameworkProvider) Schema(ctx context.Context, req provider.SchemaReque
 				Optional:    true,
 				Sensitive:   true,
 				Description: "The Jamf Pro password used for authentication when auth_method is 'basic'.",
+			},
+			"platform_base_url": schema.StringAttribute{
+				Optional:    true,
+				Description: "The Jamf Platform gateway base URL. Required when auth_provider is 'platform'. Example: https://us.apigw.jamf.com",
+			},
+			"platform_tenant_id": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				Description: "The Jamf Platform gateway tenant identifier (UUID). Required when auth_provider is 'platform'.",
 			},
 			"enable_client_sdk_logs": schema.BoolAttribute{
 				Optional:    true,
@@ -129,21 +145,20 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 		return
 	}
 
-	// Get values with environment variable fallbacks - matching SDKv2 behavior exactly
+	// Get values with environment variable fallbacks
 	instanceFQDN := getStringValueWithEnvFallback(config.InstanceFQDN, "JAMFPRO_INSTANCE_FQDN")
 	authMethod := getStringValueWithEnvFallback(config.AuthMethod, "JAMFPRO_AUTH_METHOD")
+	authProvider := getStringValueWithEnvFallback(config.AuthProvider, "JAMFPRO_AUTH_PROVIDER")
 	clientID := getStringValueWithEnvFallback(config.ClientID, "JAMFPRO_CLIENT_ID")
 	clientSecret := getStringValueWithEnvFallback(config.ClientSecret, "JAMFPRO_CLIENT_SECRET")
 	basicUsername := getStringValueWithEnvFallback(config.BasicAuthUsername, "JAMFPRO_BASIC_USERNAME")
 	basicPassword := getStringValueWithEnvFallback(config.BasicAuthPassword, "JAMFPRO_BASIC_PASSWORD")
+	platformBaseURL := getStringValueWithEnvFallback(config.PlatformBaseURL, "JAMFPRO_PLATFORM_BASE_URL")
+	platformTenantID := getStringValueWithEnvFallback(config.PlatformTenantID, "JAMFPRO_PLATFORM_TENANT_ID")
 
-	// Validation - matching SDKv2 provider logic
-	if instanceFQDN == "" {
-		resp.Diagnostics.AddError(
-			"Error getting instance name",
-			"instance_name must be provided either as an environment variable (JAMFPRO_INSTANCE_FQDN) or in the Terraform configuration",
-		)
-		return
+	// Default auth_provider to "direct" if not set
+	if authProvider == "" {
+		authProvider = "direct"
 	}
 
 	if authMethod == "" {
@@ -157,44 +172,96 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 	// Validate auth method
 	if authMethod != "basic" && authMethod != "oauth2" {
 		resp.Diagnostics.AddError(
-			"invalid auth method supplied",
-			"Auth method must be 'basic' or 'oauth2'",
+			"Invalid auth method supplied",
+			"auth_method must be 'basic' or 'oauth2'",
 		)
 		return
 	}
 
-	// Auth method specific validation
-	switch authMethod {
-	case "oauth2":
+	// Validate auth provider
+	if authProvider != "direct" && authProvider != "platform" {
+		resp.Diagnostics.AddError(
+			"Invalid auth provider supplied",
+			"auth_provider must be 'direct' or 'platform'",
+		)
+		return
+	}
+
+	// Platform provider only supports oauth2
+	if authProvider == "platform" && authMethod != "oauth2" {
+		resp.Diagnostics.AddError(
+			"Invalid auth configuration",
+			"auth_provider 'platform' requires auth_method 'oauth2'. Basic authentication is not supported via the Jamf Platform gateway.",
+		)
+		return
+	}
+
+	// Validate required fields based on auth_provider and auth_method
+	switch authProvider {
+	case "platform":
+		if platformBaseURL == "" {
+			resp.Diagnostics.AddError(
+				"Error getting platform base URL",
+				"platform_base_url must be provided either as an environment variable (JAMFPRO_PLATFORM_BASE_URL) or in the Terraform configuration when auth_provider is 'platform'",
+			)
+		}
 		if clientID == "" {
 			resp.Diagnostics.AddError(
 				"Error getting client ID",
-				"client_id must be provided either as an environment variable (JAMFPRO_CLIENT_ID) or in the Terraform configuration when using oauth2 auth method",
+				"client_id must be provided either as an environment variable (JAMFPRO_CLIENT_ID) or in the Terraform configuration when auth_provider is 'platform'",
 			)
-			return
 		}
 		if clientSecret == "" {
 			resp.Diagnostics.AddError(
 				"Error getting client secret",
-				"client_secret must be provided either as an environment variable (JAMFPRO_CLIENT_SECRET) or in the Terraform configuration when using oauth2 auth method",
+				"client_secret must be provided either as an environment variable (JAMFPRO_CLIENT_SECRET) or in the Terraform configuration when auth_provider is 'platform'",
 			)
-			return
 		}
-	case "basic":
-		if basicUsername == "" {
+		if platformTenantID == "" {
 			resp.Diagnostics.AddError(
-				"Error getting basic auth username",
-				"basic_auth_username must be provided either as an environment variable (JAMFPRO_BASIC_USERNAME) or in the Terraform configuration when using basic auth method",
+				"Error getting platform tenant ID",
+				"platform_tenant_id must be provided either as an environment variable (JAMFPRO_PLATFORM_TENANT_ID) or in the Terraform configuration when auth_provider is 'platform'",
 			)
-			return
 		}
-		if basicPassword == "" {
+	case "direct":
+		if instanceFQDN == "" {
 			resp.Diagnostics.AddError(
-				"Error getting basic auth password",
-				"basic_auth_password must be provided either as an environment variable (JAMFPRO_BASIC_PASSWORD) or in the Terraform configuration when using basic auth method",
+				"Error getting instance FQDN",
+				"jamfpro_instance_fqdn must be provided either as an environment variable (JAMFPRO_INSTANCE_FQDN) or in the Terraform configuration when auth_provider is 'direct'",
 			)
-			return
 		}
+		switch authMethod {
+		case "oauth2":
+			if clientID == "" {
+				resp.Diagnostics.AddError(
+					"Error getting client ID",
+					"client_id must be provided either as an environment variable (JAMFPRO_CLIENT_ID) or in the Terraform configuration when using oauth2 auth method",
+				)
+			}
+			if clientSecret == "" {
+				resp.Diagnostics.AddError(
+					"Error getting client secret",
+					"client_secret must be provided either as an environment variable (JAMFPRO_CLIENT_SECRET) or in the Terraform configuration when using oauth2 auth method",
+				)
+			}
+		case "basic":
+			if basicUsername == "" {
+				resp.Diagnostics.AddError(
+					"Error getting basic auth username",
+					"basic_auth_username must be provided either as an environment variable (JAMFPRO_BASIC_USERNAME) or in the Terraform configuration when using basic auth method",
+				)
+			}
+			if basicPassword == "" {
+				resp.Diagnostics.AddError(
+					"Error getting basic auth password",
+					"basic_auth_password must be provided either as an environment variable (JAMFPRO_BASIC_PASSWORD) or in the Terraform configuration when using basic auth method",
+				)
+			}
+		}
+	}
+
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	// Get configuration values with proper defaults
@@ -242,31 +309,45 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 		Timeout: 60 * time.Second,
 	}
 
-	// Create Jamf Pro integration based on auth method
+	// Create Jamf Pro integration based on auth_provider and auth_method
 	var jamfIntegration *jamfprointegration.Integration
 	var err error
 
-	switch authMethod {
-	case "oauth2":
-		jamfIntegration, err = jamfprointegration.BuildWithOAuth(
-			instanceFQDN,
+	switch authProvider {
+	case "platform":
+		jamfIntegration, err = jamfprointegration.BuildWithPlatformGatewayOAuth(
+			platformBaseURL,
 			sugaredLogger,
 			tokenRefreshBuffer,
 			clientID,
 			clientSecret,
+			platformTenantID,
 			hideSensitiveData,
 			bootstrapClient,
 		)
-	case "basic":
-		jamfIntegration, err = jamfprointegration.BuildWithBasicAuth(
-			instanceFQDN,
-			sugaredLogger,
-			tokenRefreshBuffer,
-			basicUsername,
-			basicPassword,
-			hideSensitiveData,
-			bootstrapClient,
-		)
+	case "direct":
+		switch authMethod {
+		case "oauth2":
+			jamfIntegration, err = jamfprointegration.BuildWithOAuth(
+				instanceFQDN,
+				sugaredLogger,
+				tokenRefreshBuffer,
+				clientID,
+				clientSecret,
+				hideSensitiveData,
+				bootstrapClient,
+			)
+		case "basic":
+			jamfIntegration, err = jamfprointegration.BuildWithBasicAuth(
+				instanceFQDN,
+				sugaredLogger,
+				tokenRefreshBuffer,
+				basicUsername,
+				basicPassword,
+				hideSensitiveData,
+				bootstrapClient,
+			)
+		}
 	}
 
 	if err != nil {
