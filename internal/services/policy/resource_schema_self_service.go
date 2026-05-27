@@ -1,6 +1,8 @@
 package policy
 
 import (
+	"strings"
+
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -97,24 +99,51 @@ func getPolicySchemaSelfService() *schema.Resource {
 				Default:     "Self Service",
 				Description: "The type of notification. Valid values are 'Self Service' and 'Self Service and Notification Center'.",
 				ValidateFunc: validation.StringInSlice([]string{
+					"",
 					"Self Service",
 					"Self Service and Notification Center",
 				}, false),
+				DiffSuppressFunc: suppressInactiveSelfServiceNotificationDiff,
 			},
 			"notification_subject": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     "",
-				Description: "The subject of the notification message.",
+				Type:             schema.TypeString,
+				Optional:         true,
+				Default:          "",
+				Description:      "The subject of the notification message.",
+				DiffSuppressFunc: suppressInactiveSelfServiceNotificationDiff,
 			},
 			"notification_message": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     "",
-				Description: "The body of the notification message.",
+				Type:             schema.TypeString,
+				Optional:         true,
+				Default:          "",
+				Description:      "The body of the notification message.",
+				DiffSuppressFunc: suppressInactiveSelfServiceNotificationDiff,
 			},
 		},
 	}
 
 	return selfServiceSchema
+}
+
+func suppressInactiveSelfServiceNotificationDiff(k, old, new string, d *schema.ResourceData) bool {
+	notificationKey := siblingSelfServiceFieldKey(k, "notification")
+	if notificationKey == "" {
+		return false
+	}
+
+	notificationEnabled, ok := d.Get(notificationKey).(bool)
+	if !ok {
+		return false
+	}
+
+	return !notificationEnabled
+}
+
+func siblingSelfServiceFieldKey(k, field string) string {
+	fieldSeparator := strings.LastIndex(k, ".")
+	if fieldSeparator == -1 {
+		return ""
+	}
+
+	return k[:fieldSeparator+1] + field
 }
