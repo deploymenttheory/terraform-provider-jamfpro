@@ -1,8 +1,6 @@
 package policy
 
 import (
-	"strings"
-
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -123,27 +121,4 @@ func getPolicySchemaSelfService() *schema.Resource {
 	}
 
 	return selfServiceSchema
-}
-
-func suppressInactiveSelfServiceNotificationDiff(k, old, new string, d *schema.ResourceData) bool {
-	notificationKey := siblingSelfServiceFieldKey(k, "notification")
-	if notificationKey == "" {
-		return false
-	}
-
-	notificationEnabled, ok := d.Get(notificationKey).(bool)
-	if !ok {
-		return false
-	}
-
-	return !notificationEnabled
-}
-
-func siblingSelfServiceFieldKey(k, field string) string {
-	fieldSeparator := strings.LastIndex(k, ".")
-	if fieldSeparator == -1 {
-		return ""
-	}
-
-	return k[:fieldSeparator+1] + field
 }
