@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.38.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.37.0...v0.38.0) (2026-05-27)
+
+
+### Features
+
+* Add enable_maid_username_merge option for user initiated enrollment settings ([92f5918](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/92f59189b769ca6990c8546095b01757355a3912))
+* add support for Platform API authentication ([#1061](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1061)) ([92f5918](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/92f59189b769ca6990c8546095b01757355a3912))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([92f5918](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/92f59189b769ca6990c8546095b01757355a3912))
+
+
+### Bug Fixes
+
+* Infinite diff in Policy self-service ([#1108](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1108)) ([a472cfc](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/a472cfca93e7849b1d2d60dd524708207f86f5c0))
+* Issue 1095 ([#1097](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1097)) ([3351ce2](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/3351ce24c730dc3b08bd15ccbaaaa3b0677d8207))
+* **webhook:** defer smart_group_id validation when value is unknown ([#1086](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1086)) ([c96080e](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/c96080e111f1f436226cc6865faa257e5073b37a))
+
 ## [0.37.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.36.1...v0.37.0) (2026-04-09)
 
 
