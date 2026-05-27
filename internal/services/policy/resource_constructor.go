@@ -288,6 +288,7 @@ func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 	}
 
 	useForSelfService := d.Get("self_service.0.use_for_self_service").(bool)
+	notification := d.Get("self_service.0.notification").(bool)
 
 	out.SelfService = jamfpro.PolicySubsetSelfService{
 		UseForSelfService:           useForSelfService,
@@ -299,11 +300,19 @@ func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 		SelfServiceIcon: &jamfpro.SharedResourceSelfServiceIcon{
 			ID: d.Get("self_service.0.self_service_icon_id").(int),
 		},
-		FeatureOnMainPage:   d.Get("self_service.0.feature_on_main_page").(bool),
-		Notification:        d.Get("self_service.0.notification").(bool),
-		NotificationType:    d.Get("self_service.0.notification_type").(string),
-		NotificationSubject: d.Get("self_service.0.notification_subject").(string),
-		NotificationMessage: d.Get("self_service.0.notification_message").(string),
+		FeatureOnMainPage: d.Get("self_service.0.feature_on_main_page").(bool),
+		Notification:      notification,
+	}
+
+	if notification {
+		notificationType := d.Get("self_service.0.notification_type").(string)
+		if notificationType == "" {
+			notificationType = "Self Service"
+		}
+
+		out.SelfService.NotificationType = notificationType
+		out.SelfService.NotificationSubject = d.Get("self_service.0.notification_subject").(string)
+		out.SelfService.NotificationMessage = d.Get("self_service.0.notification_message").(string)
 	}
 
 	categories := d.Get("self_service.0.self_service_category")
