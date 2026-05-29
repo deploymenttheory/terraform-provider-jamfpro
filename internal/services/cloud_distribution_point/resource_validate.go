@@ -36,7 +36,16 @@ func (cloudDistributionPointConfigValidator) ValidateResource(ctx context.Contex
 func validateCloudDistributionPointPlan(data *cloudDistributionPointResourceModel) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if data.CdnType.IsNull() || data.CdnType.IsUnknown() {
+	// Config-time validation runs via ValidateResourceConfig, where Terraform
+	// passes unknown values for any attribute sourced from a variable, for_each,
+	// count, or another resource. Unknown means "not resolvable yet", not
+	// "missing", so defer cross-attribute validation to plan/apply rather than
+	// erroring here. Only a truly null (omitted) value is a config error.
+	if data.CdnType.IsUnknown() || data.Master.IsUnknown() {
+		return diags
+	}
+
+	if data.CdnType.IsNull() {
 		diags.AddError(
 			"Missing CDN Type",
 			"Attribute cdn_type must be provided to manage the cloud distribution point.",
@@ -44,7 +53,7 @@ func validateCloudDistributionPointPlan(data *cloudDistributionPointResourceMode
 		return diags
 	}
 
-	if data.Master.IsNull() || data.Master.IsUnknown() {
+	if data.Master.IsNull() {
 		diags.AddError(
 			"Missing Master Flag",
 			"Attribute master must be provided to manage the cloud distribution point.",
@@ -101,11 +110,19 @@ func validateCloudDistributionPointPlan(data *cloudDistributionPointResourceMode
 	}
 
 	return diags
-} // requireStringAttribute checks that a string attribute is set when required.
+}
+
+// requireStringAttribute checks that a string attribute is set when required.
+// Unknown values are deferred (not an error): the validator runs at config time
+// where variable/for_each-driven values are unknown and resolved later.
 func requireStringAttribute(name string, value types.String, cdnType string) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if value.IsNull() || value.IsUnknown() || value.ValueString() == "" {
+	if value.IsUnknown() {
+		return diags
+	}
+
+	if value.IsNull() || value.ValueString() == "" {
 		diags.AddError(
 			fmt.Sprintf("Missing %s", name),
 			fmt.Sprintf("Attribute %s must be set when cdn_type is %s.", name, cdnType),
@@ -116,10 +133,15 @@ func requireStringAttribute(name string, value types.String, cdnType string) dia
 }
 
 // requireBoolAttribute checks that a bool attribute is set when required.
+// Unknown values are deferred (not an error); see requireStringAttribute.
 func requireBoolAttribute(name string, value types.Bool, cdnType string) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if value.IsNull() || value.IsUnknown() {
+	if value.IsUnknown() {
+		return diags
+	}
+
+	if value.IsNull() {
 		diags.AddError(
 			fmt.Sprintf("Missing %s", name),
 			fmt.Sprintf("Attribute %s must be explicitly set when cdn_type is %s.", name, cdnType),
@@ -130,10 +152,15 @@ func requireBoolAttribute(name string, value types.Bool, cdnType string) diag.Di
 }
 
 // requireIntAttribute checks that an int attribute is set when required.
+// Unknown values are deferred (not an error); see requireStringAttribute.
 func requireIntAttribute(name string, value types.Int64, cdnType string) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if value.IsNull() || value.IsUnknown() {
+	if value.IsUnknown() {
+		return diags
+	}
+
+	if value.IsNull() {
 		diags.AddError(
 			fmt.Sprintf("Missing %s", name),
 			fmt.Sprintf("Attribute %s must be provided when cdn_type is %s.", name, cdnType),
