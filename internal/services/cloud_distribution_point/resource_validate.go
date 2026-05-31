@@ -32,15 +32,15 @@ func (cloudDistributionPointConfigValidator) ValidateResource(ctx context.Contex
 	resp.Diagnostics.Append(validateCloudDistributionPointPlan(&data)...)
 }
 
-// validateCloudDistributionPointPlan validates the provided cloud distribution point resource model.
+// validateCloudDistributionPointPlan validates the provided cloud distribution
+// point resource model. It runs at config time via ValidateResourceConfig, where
+// Terraform passes unknown values for any attribute sourced from a variable,
+// for_each, count, or another resource. Unknown means "not resolvable yet", not
+// "missing", so unknown values are deferred to plan/apply; only a truly null
+// (omitted) value is a config error.
 func validateCloudDistributionPointPlan(data *cloudDistributionPointResourceModel) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// Config-time validation runs via ValidateResourceConfig, where Terraform
-	// passes unknown values for any attribute sourced from a variable, for_each,
-	// count, or another resource. Unknown means "not resolvable yet", not
-	// "missing", so defer cross-attribute validation to plan/apply rather than
-	// erroring here. Only a truly null (omitted) value is a config error.
 	if data.CdnType.IsUnknown() || data.Master.IsUnknown() {
 		return diags
 	}
