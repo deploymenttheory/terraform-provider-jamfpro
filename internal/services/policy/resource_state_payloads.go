@@ -221,6 +221,7 @@ func prepStatePayloadAccountMaintenance(out *[]map[string]any, resp *jamfpro.Res
 			accountMap["picture"] = v.Picture
 			accountMap["admin"] = v.Admin
 			accountMap["filevault_enabled"] = v.FilevaultEnabled
+			accountMap["secure_token_allowed"] = v.SecureTokenAllowed
 
 			localAccounts = append(localAccounts, accountMap)
 		}

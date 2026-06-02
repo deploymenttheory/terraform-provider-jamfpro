@@ -332,6 +332,7 @@ Optional:
 - `password` (String) Set a new account password. This does not update the account's login keychain password or FileVault 2 password.
 - `picture` (String) Full path to the account picture (e.g. /Library/User Pictures/Animals/Butterfly.tif )
 - `realname` (String) Real name associated with the account.
+- `secure_token_allowed` (Boolean) Allow user to be granted the first secure token on the computer.
 - `username` (String) Username/short name for the account
 
 

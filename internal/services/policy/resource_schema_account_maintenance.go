@@ -106,6 +106,11 @@ func getPolicySchemaAccount() *schema.Resource {
 				Optional:    true,
 				Description: "Allow the user to unlock the FileVault 2-encrypted drive",
 			},
+			"secure_token_allowed": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Allow user to be granted the first secure token on the computer.",
+			},
 		},
 	}
 
