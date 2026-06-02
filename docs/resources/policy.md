@@ -329,7 +329,7 @@ Optional:
 - `filevault_enabled` (Boolean) Allow the user to unlock the FileVault 2-encrypted drive
 - `hint` (String) Hint to help the user remember the password
 - `home` (String) Full path in which to create the home directory (e.g. /Users/username/ or /private/var/username/)
-- `password` (String) Set a new account password. This does not update the account's login keychain password or FileVault 2 password.
+- `password` (String, Sensitive) Set a new account password. This does not update the account's login keychain password or FileVault 2 password.
 - `picture` (String) Full path to the account picture (e.g. /Library/User Pictures/Animals/Butterfly.tif )
 - `realname` (String) Real name associated with the account.
 - `secure_token_allowed` (Boolean) Allow user to be granted the first secure token on the computer.

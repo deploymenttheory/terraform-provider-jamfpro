@@ -4,6 +4,7 @@ package policy
 // TODO maybe review error handling here too?
 
 import (
+	"fmt"
 	"log"
 	"reflect"
 
@@ -33,7 +34,7 @@ func statePayloads(d *schema.ResourceData, resp *jamfpro.ResourcePolicy, diags *
 	prepStatePayloadDockItems(&out, resp)
 
 	// Account Maintenance
-	prepStatePayloadAccountMaintenance(&out, resp)
+	prepStatePayloadAccountMaintenance(&out, resp, d)
 
 	// Files Processes
 	prepStatePayloadFilesProcesses(&out, resp)
@@ -203,17 +204,16 @@ func prepStatePayloadDockItems(out *[]map[string]any, resp *jamfpro.ResourcePoli
 
 // prepStatePayloadAccountMaintenance reads response and preps account maintenance payload items.
 // If all values are default, do not set the account_maintenance block
-func prepStatePayloadAccountMaintenance(out *[]map[string]any, resp *jamfpro.ResourcePolicy) {
+func prepStatePayloadAccountMaintenance(out *[]map[string]any, resp *jamfpro.ResourcePolicy, d *schema.ResourceData) {
 	accountMaintenanceMap := make(map[string]any)
 
 	if resp.AccountMaintenance.Accounts != nil {
 		localAccounts := make([]map[string]any, 0)
-		for _, v := range *resp.AccountMaintenance.Accounts {
+		for i, v := range *resp.AccountMaintenance.Accounts {
 			accountMap := make(map[string]any)
 			accountMap["action"] = v.Action
 			accountMap["username"] = v.Username
 			accountMap["realname"] = v.Realname
-			accountMap["password"] = v.Password
 			accountMap["archive_home_directory"] = v.ArchiveHomeDirectory
 			accountMap["archive_home_directory_to"] = v.ArchiveHomeDirectoryTo
 			accountMap["home"] = v.Home
@@ -222,6 +222,10 @@ func prepStatePayloadAccountMaintenance(out *[]map[string]any, resp *jamfpro.Res
 			accountMap["admin"] = v.Admin
 			accountMap["filevault_enabled"] = v.FilevaultEnabled
 			accountMap["secure_token_allowed"] = v.SecureTokenAllowed
+
+			if pw, ok := d.GetOk(fmt.Sprintf("payloads.0.account_maintenance.0.local_accounts.0.account.%d.password", i)); ok {
+				accountMap["password"] = pw
+			}
 
 			localAccounts = append(localAccounts, accountMap)
 		}
