@@ -58,9 +58,8 @@ func ResourceJamfProMobileDeviceApplication() *schema.Resource {
 			},
 			"internal_app": {
 				Type:        schema.TypeBool,
-				Optional:    true,
 				Computed:    true,
-				Description: "Indicates if this is an internal application.",
+				Description: "Indicates if this is an internal application. Server-derived: set to true when itunes_store_url is omitted; cannot be set directly via POST/PUT.",
 			},
 			"ipa": {
 				Type:     schema.TypeList,
