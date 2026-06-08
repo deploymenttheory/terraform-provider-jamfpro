@@ -12,7 +12,7 @@ import (
 
 // mainCustomDiffFunc orchestrates all custom diff validations for macOS config profiles.
 func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i any) error {
-	if diff.Get("payload_validate").(bool) {
+	if v, ok := diff.GetOk("payload_validate"); ok && v.(bool) {
 		if err := validatePayloadIdentifers(ctx, diff, i); err != nil {
 			return err
 		}
@@ -50,7 +50,11 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i any) e
 }
 
 func normalizePayloadState(_ context.Context, diff *schema.ResourceDiff, _ any) error {
-	diff.SetNew("payloads", plist.NormalizePayloadState(diff.Get("payloads").(string)))
+	payloads, ok := diff.GetOk("payloads")
+	if !ok {
+		return nil
+	}
+	diff.SetNew("payloads", plist.NormalizePayloadState(payloads.(string)))
 	return nil
 }
 
@@ -156,7 +160,10 @@ func validateAllComputersScope(_ context.Context, diff *schema.ResourceDiff, _ a
 	}
 
 	scope := scopeRaw.([]any)[0].(map[string]any)
-	allComputers := scope["all_computers"].(bool)
+	allComputers, ok := scope["all_computers"].(bool)
+	if !ok {
+		return nil
+	}
 
 	if allComputers {
 		fieldsToCheck := []string{"computer_ids", "computer_group_ids"}
@@ -180,7 +187,10 @@ func validateAllUsersScope(_ context.Context, diff *schema.ResourceDiff, _ any) 
 	}
 
 	scope := scopeRaw.([]any)[0].(map[string]any)
-	allJssUsers := scope["all_jss_users"].(bool)
+	allJssUsers, ok := scope["all_jss_users"].(bool)
+	if !ok {
+		return nil
+	}
 
 	if allJssUsers {
 		fieldsToCheck := []string{"jss_user_ids", "jss_user_group_ids", "building_ids", "department_ids"}
