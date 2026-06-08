@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.39.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.38.0...v0.39.0) (2026-06-08)
+
+
+### Features
+
+* Add enable_maid_username_merge option for user initiated enrollment settings ([bca2b01](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/bca2b01ee19e92fd7609af4856a38453da55a957))
+* add secure token support to account maintenance policy payload ([#1115](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1115)) ([bca2b01](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/bca2b01ee19e92fd7609af4856a38453da55a957))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([bca2b01](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/bca2b01ee19e92fd7609af4856a38453da55a957))
+
+
+### Bug Fixes
+
+* defer cloud_distribution_point config validation on unknown values ([#1111](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1111)) ([b03a6db](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/b03a6dba7f9f858d8ae1f443e9b2ea83ea4a5e7b))
+
 ## [0.38.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.37.0...v0.38.0) (2026-05-27)
 
 
