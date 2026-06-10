@@ -58,9 +58,8 @@ func ResourceJamfProMobileDeviceApplication() *schema.Resource {
 			},
 			"internal_app": {
 				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Indicates if this is an internal application.",
+				Computed:    true,
+				Description: "Indicates if this is an internal application. Server-derived: set to true when itunes_store_url is omitted; cannot be set directly via POST/PUT.",
 			},
 			"ipa": {
 				Type:     schema.TypeList,
@@ -128,6 +127,7 @@ func ResourceJamfProMobileDeviceApplication() *schema.Resource {
 			"itunes_country_region": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Computed:    true,
 				Description: "The iTunes country/region for the application.",
 			},
 			"itunes_sync_time": {
@@ -204,12 +204,13 @@ func ResourceJamfProMobileDeviceApplication() *schema.Resource {
 			"host_externally": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Default:     false,
+				Computed:    true,
 				Description: "Host the application externally.",
 			},
 			"external_url": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Computed:    true,
 				Description: "The external URL for the application.",
 			},
 			"site_id":     sharedschemas.GetSharedSchemaSite(),
