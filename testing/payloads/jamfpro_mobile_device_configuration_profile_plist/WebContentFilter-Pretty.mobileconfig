@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>PayloadContent</key>
+	<array>
+		<dict>
+			<key>AutoFilterEnabled</key>
+			<true/>
+			<key>BlacklistedURLs</key>
+			<array>
+				<string>https://blocked.example.net</string>
+				<string>https://ads.example.net</string>
+			</array>
+			<key>DenyListURLs</key>
+			<array>
+				<string>https://blocked.example.net</string>
+				<string>https://ads.example.net</string>
+			</array>
+			<key>FilterType</key>
+			<string>BuiltIn</string>
+			<key>PayloadDisplayName</key>
+			<string>Web Content Filter Payload</string>
+			<key>PayloadIdentifier</key>
+			<string>709DF4E5-2DE4-4EF1-9385-338D05DE88B1</string>
+			<key>PayloadOrganization</key>
+			<string>Deployment Theory</string>
+			<key>PayloadType</key>
+			<string>com.apple.webcontent-filter</string>
+			<key>PayloadUUID</key>
+			<string>709DF4E5-2DE4-4EF1-9385-338D05DE88B1</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+			<key>PermittedURLs</key>
+			<array>
+				<string>https://example.com</string>
+				<string>https://docs.example.com</string>
+				<string>https://support.example.com</string>
+			</array>
+			<key>UserDefinedName</key>
+			<string>Test</string>
+		</dict>
+	</array>
+	<key>PayloadDescription</key>
+	<string></string>
+	<key>PayloadDisplayName</key>
+	<string>Web Content Filter (integration test)</string>
+	<key>PayloadEnabled</key>
+	<true/>
+	<key>PayloadIdentifier</key>
+	<string>241A1316-D52C-42A0-9723-93F868C51D84</string>
+	<key>PayloadOrganization</key>
+	<string>JAMF Software</string>
+	<key>PayloadRemovalDisallowed</key>
+	<true/>
+	<key>PayloadScope</key>
+	<string>System</string>
+	<key>PayloadType</key>
+	<string>Configuration</string>
+	<key>PayloadUUID</key>
+	<string>241A1316-D52C-42A0-9723-93F868C51D84</string>
+	<key>PayloadVersion</key>
+	<integer>1</integer>
+</dict>
+</plist>
