@@ -1,5 +1,5 @@
 resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuration_profile_064" {
-  name                = "test-profile"
+  name                = "tf-testing-${var.testing_id}-profile-screen-recording-pppc-${random_id.rng.hex}"
   description         = "An example mobile device configuration profile."
   level               = "System"
   distribution_method = "Install Automatically"
@@ -20,7 +20,7 @@ resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuratio
 # arrays-of-strings (whitespace between the <string> children is the same class
 # the Classic API mis-parses). Compaction must leave the panes lists intact.
 resource "jamfpro_macos_configuration_profile_plist" "system_preferences_pretty" {
-  name                = "test-system-preferences-pretty"
+  name                = "tf-testing-${var.testing_id}-profile-system-preferences-${random_id.rng.hex}"
   description         = "Pretty-printed System Preferences profile (structural-whitespace compaction regression test)"
   level               = "System"
   distribution_method = "Install Automatically"
@@ -37,10 +37,10 @@ resource "jamfpro_macos_configuration_profile_plist" "system_preferences_pretty"
 
 # The remaining pretty-printed payloads exercise structural-whitespace
 # compaction across a variety of payload types: dock (deeply nested tile-data
-# dicts inside an array), login window (entity references and multi-byte UTF-8
-# in leaf strings), and screensaver (scalar booleans/integers).
+# dicts inside an array), login window (multi-byte UTF-8 in leaf
+# strings), and screensaver (scalar booleans/integers).
 resource "jamfpro_macos_configuration_profile_plist" "dock_pretty" {
-  name                = "test-dock-pretty"
+  name                = "tf-testing-${var.testing_id}-profile-dock-${random_id.rng.hex}"
   description         = "Pretty-printed Dock profile (structural-whitespace compaction regression test)"
   level               = "System"
   distribution_method = "Install Automatically"
@@ -56,7 +56,7 @@ resource "jamfpro_macos_configuration_profile_plist" "dock_pretty" {
 }
 
 resource "jamfpro_macos_configuration_profile_plist" "login_window_pretty" {
-  name                = "test-login-window-pretty"
+  name                = "tf-testing-${var.testing_id}-profile-login-window-${random_id.rng.hex}"
   description         = "Pretty-printed Login Window profile (structural-whitespace compaction regression test)"
   level               = "System"
   distribution_method = "Install Automatically"
@@ -72,7 +72,7 @@ resource "jamfpro_macos_configuration_profile_plist" "login_window_pretty" {
 }
 
 resource "jamfpro_macos_configuration_profile_plist" "screensaver_pretty" {
-  name                = "test-screensaver-pretty"
+  name                = "tf-testing-${var.testing_id}-profile-screensaver-${random_id.rng.hex}"
   description         = "Pretty-printed Screensaver profile (structural-whitespace compaction regression test)"
   level               = "System"
   distribution_method = "Install Automatically"
