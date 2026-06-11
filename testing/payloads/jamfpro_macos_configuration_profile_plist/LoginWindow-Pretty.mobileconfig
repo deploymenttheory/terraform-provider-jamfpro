@@ -42,7 +42,7 @@
         <key>PayloadEnabled</key>
         <true/>
         <key>LoginwindowText</key>
-        <string>Managed device — IT &amp; Security, Müller GmbH (test banner)</string>
+        <string>Managed device — IT and Security, Müller GmbH (test banner)</string>
         <key>SHOWFULLNAME</key>
         <true/>
         <key>DisableConsoleAccess</key>
