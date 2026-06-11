@@ -1,5 +1,5 @@
 resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_device_configuration_profile_002" {
-  name = "test-profile"
+  name = "tf-testing-${var.testing_id}-profile-restrictions-${random_id.rng.hex}"
   // Regression test for issue #1145 - heredoc strings in HCL always include
   // a trailing newline before EOT, but the API strips it server-side.
   description        = <<-EOT
@@ -22,7 +22,7 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_device_conf
 # <array> tags). The provider must compact that structural whitespace before
 # sending so the Classic API does not inject a blank leading home-screen page.
 resource "jamfpro_mobile_device_configuration_profile_plist" "home_screen_layout_pretty" {
-  name               = "test-home-screen-layout-pretty"
+  name               = "tf-testing-${var.testing_id}-profile-home-screen-layout-${random_id.rng.hex}"
   description        = "Pretty-printed home screen layout (structural-whitespace compaction regression test)"
   level              = "Device Level"
   deployment_method  = "Make Available in Self Service"
@@ -42,7 +42,7 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "home_screen_layout
 # UserDefinedName for the server-side content-filter record), managed
 # domains (sibling string arrays), and WiFi (scalar-heavy single dict).
 resource "jamfpro_mobile_device_configuration_profile_plist" "web_content_filter_pretty" {
-  name               = "test-web-content-filter-pretty"
+  name               = "tf-testing-${var.testing_id}-profile-web-content-filter-${random_id.rng.hex}"
   description        = "Web content filter payload (structural-whitespace compaction regression test)"
   level              = "Device Level"
   deployment_method  = "Make Available in Self Service"
@@ -56,7 +56,7 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "web_content_filter
 }
 
 resource "jamfpro_mobile_device_configuration_profile_plist" "certificate_pretty" {
-  name               = "test-certificate-pretty"
+  name               = "tf-testing-${var.testing_id}-profile-certificate-${random_id.rng.hex}"
   description        = "Pretty-printed certificate payload (structural-whitespace compaction regression test)"
   level              = "Device Level"
   deployment_method  = "Make Available in Self Service"
@@ -70,7 +70,7 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "certificate_pretty
 }
 
 resource "jamfpro_mobile_device_configuration_profile_plist" "wifi_pretty" {
-  name               = "test-wifi-pretty"
+  name               = "tf-testing-${var.testing_id}-profile-wifi-${random_id.rng.hex}"
   description        = "Pretty-printed WiFi payload (structural-whitespace compaction regression test)"
   level              = "Device Level"
   deployment_method  = "Make Available in Self Service"
@@ -84,7 +84,7 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "wifi_pretty" {
 }
 
 resource "jamfpro_mobile_device_configuration_profile_plist" "domains_pretty" {
-  name               = "test-domains-pretty"
+  name               = "tf-testing-${var.testing_id}-profile-domains-${random_id.rng.hex}"
   description        = "Pretty-printed managed domains payload (structural-whitespace compaction regression test)"
   level              = "Device Level"
   deployment_method  = "Make Available in Self Service"
