@@ -64,10 +64,6 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 
 	// Handle Payloads based on mode
 	if mode != "update" {
-		// Compact inter-element whitespace before sending: the Classic API
-		// mis-parses whitespace between sibling <array> tags into phantom empty
-		// <array/> entries (e.g. a blank leading home-screen page). Best-effort —
-		// on malformed XML send the original bytes and let the server report it.
 		raw := []byte(d.Get("payloads").(string))
 		if compacted, err := helpers.CompactStructuralWhitespace(raw); err == nil {
 			raw = compacted
@@ -128,9 +124,6 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 		// we need to properly correctly normalize the XML for the xml.MarshalIndent and also for jamf pro.
 		if buf.Len() > 0 {
 			unquotedContent := preMarshallingXMLPayloadUnescaping(buf.String())
-			// The encoder above pretty-prints (Indent), reintroducing the
-			// inter-<array> whitespace the Classic API mis-parses; compact it
-			// back out before sending. Best-effort.
 			if compacted, err := helpers.CompactStructuralWhitespace([]byte(unquotedContent)); err == nil {
 				unquotedContent = string(compacted)
 			} else {
