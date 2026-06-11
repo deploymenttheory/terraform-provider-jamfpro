@@ -31,15 +31,17 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "home_screen_layout
 }
 
 # The remaining pretty-printed payloads exercise structural-whitespace
-# compaction across a variety of payload types: web content filter and managed
-# domains (sibling string arrays), and WiFi (scalar-heavy single dict).
-resource "jamfpro_mobile_device_configuration_profile_plist" "web_content_filter_pretty" {
-  name               = "test-web-content-filter-pretty"
-  description        = "Pretty-printed web content filter (structural-whitespace compaction regression test)"
+# compaction across a variety of payload types: a certificate (multi-line
+# indented base64 inside <data> — non-structural whitespace the compactor
+# must leave intact), managed domains (sibling string arrays), and WiFi
+# (scalar-heavy single dict).
+resource "jamfpro_mobile_device_configuration_profile_plist" "certificate_pretty" {
+  name               = "test-certificate-pretty"
+  description        = "Pretty-printed certificate payload (structural-whitespace compaction regression test)"
   level              = "Device Level"
   deployment_method  = "Make Available in Self Service"
   redeploy_on_update = "All"
-  payloads           = file("${path.module}/WebContentFilter-Pretty.mobileconfig")
+  payloads           = file("${path.module}/Certificate-Pretty.mobileconfig")
 
   scope {
     all_mobile_devices = true

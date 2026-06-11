@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>PayloadUUID</key>
+    <string>3A0FB9E1-58C4-4F2A-B6F1-7B8E2D4C9A10</string>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadOrganization</key>
+    <string>Deployment Theory</string>
+    <key>PayloadIdentifier</key>
+    <string>3A0FB9E1-58C4-4F2A-B6F1-7B8E2D4C9A10</string>
+    <key>PayloadDisplayName</key>
+    <string>Certificate (integration test)</string>
+    <key>PayloadDescription</key>
+    <string/>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+    <key>PayloadEnabled</key>
+    <true/>
+    <key>PayloadRemovalDisallowed</key>
+    <true/>
+    <key>PayloadScope</key>
+    <string>System</string>
+    <key>PayloadContent</key>
+    <array>
+      <dict>
+        <key>PayloadUUID</key>
+        <string>C1D2E3F4-0A1B-4C2D-8E3F-5A6B7C8D9E00</string>
+        <key>PayloadType</key>
+        <string>com.apple.security.root</string>
+        <key>PayloadOrganization</key>
+        <string>Deployment Theory</string>
+        <key>PayloadIdentifier</key>
+        <string>C1D2E3F4-0A1B-4C2D-8E3F-5A6B7C8D9E00</string>
+        <key>PayloadDisplayName</key>
+        <string>Throwaway Test Root Certificate</string>
+        <key>PayloadDescription</key>
+        <string/>
+        <key>PayloadVersion</key>
+        <integer>1</integer>
+        <key>PayloadEnabled</key>
+        <true/>
+        <key>PayloadCertificateFileName</key>
+        <string>throwaway-test-root.cer</string>
+        <key>PayloadContent</key>
+        <data>
+        MIIDfTCCAmWgAwIBAgIUEEs93k2/iWjxjjTcwow3EEQU
+        yb0wDQYJKoZIhvcNAQELBQAwTjEwMC4GA1UEAwwnRGVw
+        bG95bWVudCBUaGVvcnkgSW50ZWdyYXRpb24gVGVzdCBS
+        b290MRowGAYDVQQKDBFEZXBsb3ltZW50IFRoZW9yeTAe
+        Fw0yNjA2MTExOTAzMDNaFw0zNjA2MDgxOTAzMDNaME4x
+        MDAuBgNVBAMMJ0RlcGxveW1lbnQgVGhlb3J5IEludGVn
+        cmF0aW9uIFRlc3QgUm9vdDEaMBgGA1UECgwRRGVwbG95
+        bWVudCBUaGVvcnkwggEiMA0GCSqGSIb3DQEBAQUAA4IB
+        DwAwggEKAoIBAQDdS8qV8buE9ZCwfO6mUMINSWMOZC0N
+        WYsh3Z0SMt5IBdcUBKfdorO+Lv+XAfGyLp4miRpsyAMX
+        hL2S8T2z0WayoRjmYbLECTl6qDyxYHxZ9M6716gJg0Si
+        k7w/OlSzFEFdJs69s40cPAti+ttwmkamJDZccGkj/YF4
+        P9qrCh0C6Q6ypNgfzEqIZeiLCdlyuUqIhW4ZWxFVLii2
+        GQXH05ClL1MHqyDRwcsrlTZZ4YR7lTqsS51Wfvjm9rrp
+        FxE0PV4cilslMqQjN8kzGTsy4grgrVg6WL/FD+CbF3BI
+        9ACzY4+F7eN+KwkUvMQKkiwry4GLfj3xTKIOdSCamBSs
+        shL3AgMBAAGjUzBRMB0GA1UdDgQWBBRzb4Q/lAziyWEM
+        JJ89XJJBn8v0JjAfBgNVHSMEGDAWgBRzb4Q/lAziyWEM
+        JJ89XJJBn8v0JjAPBgNVHRMBAf8EBTADAQH/MA0GCSqG
+        SIb3DQEBCwUAA4IBAQBtY5gK9abCVu483lAqo/ZA0aD3
+        beTRqgMLjWqeaciW2vmVflmqRInEbz4ryUc2XmAiiquA
+        bMK4UBSAnabYrVWAjnykYIb/T9I8IkVlLqg21dX7sbwG
+        Firfhr3V7/HyaoSeWdNLktU2QvvYD8Kw4y6fC96hIe9+
+        1P7MZsKzUCE3EazBVX6lQjl56c8K5TiNsyYg73GCdVvT
+        PtVB0+sipSDcKCHScK0cFpY9DU/tRfpGfeaR3T4HlPGq
+        IyPX+tRGSNHna3EET0mpm7hCP7F24Ueckqtm/ANxhTC7
+        eHArVMZ1Pljx+Tx9iJlkoNqB/Ocyj/btMUNzkmACPiEA
+        QfohW85k
+        </data>
+      </dict>
+    </array>
+  </dict>
+</plist>
