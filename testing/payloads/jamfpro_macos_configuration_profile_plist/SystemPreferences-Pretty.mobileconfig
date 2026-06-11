@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>PayloadContent</key>
+	<array>
+		<dict>
+			<key>PayloadDescription</key>
+			<string>Restrict System Settings panes</string>
+			<key>PayloadDisplayName</key>
+			<string>System Preferences (integration test)</string>
+			<key>PayloadIdentifier</key>
+			<string>9D4B7E61-2A0F-4C3D-9E2A-5B6C7D8E9F01</string>
+			<key>PayloadOrganization</key>
+			<string>Deployment Theory</string>
+			<key>PayloadType</key>
+			<string>com.apple.systempreferences</string>
+			<key>PayloadUUID</key>
+			<string>9D4B7E61-2A0F-4C3D-9E2A-5B6C7D8E9F01</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+			<key>DisabledPreferencePanes</key>
+			<array>
+				<string>com.apple.preferences.softwareupdate</string>
+				<string>com.apple.preferences.sharing</string>
+				<string>com.apple.preference.security</string>
+			</array>
+			<key>HiddenPreferencePanes</key>
+			<array>
+				<string>com.apple.preferences.icloud</string>
+				<string>com.apple.preferences.AppleIDPrefPane</string>
+			</array>
+		</dict>
+	</array>
+	<key>PayloadDescription</key>
+	<string>Restrict System Settings panes (structural-whitespace compaction regression test)</string>
+	<key>PayloadDisplayName</key>
+	<string>System Preferences (integration test)</string>
+	<key>PayloadIdentifier</key>
+	<string>A1C2E3F4-5061-4273-8495-A6B7C8D9E0F1</string>
+	<key>PayloadOrganization</key>
+	<string>Deployment Theory</string>
+	<key>PayloadScope</key>
+	<string>System</string>
+	<key>PayloadType</key>
+	<string>Configuration</string>
+	<key>PayloadUUID</key>
+	<string>A1C2E3F4-5061-4273-8495-A6B7C8D9E0F1</string>
+	<key>PayloadVersion</key>
+	<integer>1</integer>
+</dict>
+</plist>
