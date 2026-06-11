@@ -81,7 +81,17 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 	}
 
 	if mode != "update" {
-		resource.General.Payloads = html.EscapeString(d.Get("payloads").(string))
+		// Compact inter-element whitespace before sending: the Classic API
+		// mis-parses whitespace between sibling <array> tags into phantom empty
+		// <array/> entries. Best-effort — on malformed XML send the original
+		// bytes and let the server report it.
+		raw := []byte(d.Get("payloads").(string))
+		if compacted, err := helpers.CompactStructuralWhitespace(raw); err == nil {
+			raw = compacted
+		} else {
+			log.Printf("[WARN] constructJamfProMacOSConfigurationProfilePlist: could not compact payload whitespace, sending as-is: %v", err)
+		}
+		resource.General.Payloads = html.EscapeString(string(raw))
 
 	} else if mode == "update" {
 		var existingPlist map[string]any
@@ -138,6 +148,13 @@ func constructJamfProMacOSConfigurationProfilePlist(d *schema.ResourceData, mode
 		// we need to properly correctly normalize the XML for the xml.MarshalIndent and also for jamf pro.
 		if buf.Len() > 0 {
 			unquotedContent := preMarshallingXMLPayloadUnescaping(buf.String())
+			// Compact any inter-<array> whitespace the encoder may have emitted
+			// before sending; the Classic API mis-parses it. Best-effort.
+			if compacted, err := helpers.CompactStructuralWhitespace([]byte(unquotedContent)); err == nil {
+				unquotedContent = string(compacted)
+			} else {
+				log.Printf("[WARN] constructJamfProMacOSConfigurationProfilePlist: could not compact payload whitespace, sending as-is: %v", err)
+			}
 			resource.General.Payloads = preMarshallingXMLPayloadEscaping(unquotedContent)
 		}
 	}
