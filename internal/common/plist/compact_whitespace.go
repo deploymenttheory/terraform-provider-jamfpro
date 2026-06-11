@@ -66,14 +66,9 @@ func CompactStructuralWhitespace(raw []byte) ([]byte, error) {
 				stack = stack[:len(stack)-1]
 			}
 		case xml.CharData:
-			// Inside a leaf element (anything that is not a structural
-			// container) the text is content — leave it alone.
 			if len(stack) > 0 && !structuralPlistElements[stack[len(stack)-1]] {
 				continue
 			}
-			// Cut only when the raw source bytes are themselves whitespace: a
-			// whitespace CharData token backed by a CDATA section or a
-			// character reference (e.g. &#x20;) must survive verbatim.
 			if start < end && isXMLWhitespace(raw[start:end]) {
 				cuts = append(cuts, span{start: start, end: end})
 			}

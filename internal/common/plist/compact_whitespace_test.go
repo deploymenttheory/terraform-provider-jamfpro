@@ -29,8 +29,6 @@ func TestCompactStructuralWhitespace_RemovesInterArrayWhitespace(t *testing.T) {
 	require.NoError(t, err)
 	got := string(out)
 
-	// No whitespace may remain between structural tags — this is the exact
-	// pattern the Classic API mis-parses into a phantom empty <array/>.
 	for _, bad := range []string{">\n", ">  <", "<array>\n", "<array>  "} {
 		assert.NotContains(t, got, bad, "compacted output still contains inter-tag whitespace")
 	}
@@ -90,17 +88,16 @@ func TestCompactStructuralWhitespace_Idempotent(t *testing.T) {
 }
 
 func TestCompactStructuralWhitespace_MalformedReturnsInputAndError(t *testing.T) {
-	in := []byte(`<plist><dict><key>oops</dict></plist>`) // unbalanced
+	in := []byte(`<plist><dict><key>oops</dict></plist>`)
 	out, err := CompactStructuralWhitespace(in)
 	assert.Error(t, err, "expected an error for malformed XML")
 	assert.Equal(t, string(in), string(out), "malformed input must be returned unchanged")
 }
 
-// The decisive test: a realistic, pretty-printed com.apple.homescreenlayout
-// payload must parse to the exact same plist structure after compaction — i.e.
-// compaction removes formatting only and never changes semantics. The pretty
-// form is what triggers the phantom empty page; the compacted form is what we
-// send.
+// A realistic, pretty-printed com.apple.homescreenlayout payload must parse to
+// the exact same plist structure after compaction: compaction removes
+// formatting only and never changes semantics, and the compacted Pages array
+// must not gain a phantom empty leading page.
 func TestCompactStructuralWhitespace_HomeScreenLayoutRoundTripsEqual(t *testing.T) {
 	pretty := `<?xml version="1.0" encoding="UTF-8"?>
 <plist version="1.0">
@@ -132,8 +129,6 @@ func TestCompactStructuralWhitespace_HomeScreenLayoutRoundTripsEqual(t *testing.
 
 	compacted, err := CompactStructuralWhitespace([]byte(pretty))
 	require.NoError(t, err)
-
-	// Sanity: it really did compact.
 	require.NotContains(t, string(compacted), "</array>\n", "expected inter-array whitespace removed")
 
 	var prettyTree, compactTree map[string]any
@@ -142,8 +137,6 @@ func TestCompactStructuralWhitespace_HomeScreenLayoutRoundTripsEqual(t *testing.
 	_, err = plist.Unmarshal(compacted, &compactTree)
 	require.NoError(t, err, "compacted payload must parse")
 
-	// Crucially: the compacted Pages array must NOT have gained an empty
-	// leading element, and the whole tree must be byte-for-byte equivalent.
 	assert.True(t, reflect.DeepEqual(prettyTree, compactTree),
 		"compaction changed the parsed plist structure:\npretty:   %#v\ncompacted:%#v", prettyTree, compactTree)
 
