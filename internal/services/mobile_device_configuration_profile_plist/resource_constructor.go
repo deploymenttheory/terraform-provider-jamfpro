@@ -115,7 +115,6 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 		// Encode the plist with injections
 
 		encoder := plist.NewEncoder(&buf)
-		encoder.Indent("    ")
 		if err := encoder.Encode(newPlist); err != nil {
 			return nil, fmt.Errorf("failed to encode updated plist payload: %v", err)
 		}

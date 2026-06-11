@@ -1,7 +1,9 @@
 package plist
 
 import (
+	"bytes"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -92,6 +94,41 @@ func TestCompactStructuralWhitespace_MalformedReturnsInputAndError(t *testing.T)
 	out, err := CompactStructuralWhitespace(in)
 	assert.Error(t, err, "expected an error for malformed XML")
 	assert.Equal(t, string(in), string(out), "malformed input must be returned unchanged")
+}
+
+// The configuration-profile update path feeds compaction the output of a
+// howett.net/plist encode (pretty-printed with Indent) followed by the
+// constructors' "&#34;" -> `"` unescape. That shape — raw double quotes in
+// character data alongside howett's entity escaping — must stay well-formed
+// XML so compaction succeeds (no silent fallback) and must round-trip to the
+// identical plist structure.
+func TestCompactStructuralWhitespace_UpdatePathEncodedPayloadCompacts(t *testing.T) {
+	payload := map[string]any{
+		"PayloadType": "com.apple.homescreenlayout",
+		"Quoted":      `identifier "com.example.app" and anchor apple`,
+		"Ampersand":   "a & b < c",
+		"Literal":     "keep &#34; verbatim",
+		"Pages":       []any{[]any{map[string]any{"Type": "Folder", "DisplayName": "Apps"}}},
+	}
+
+	var buf bytes.Buffer
+	encoder := plist.NewEncoder(&buf)
+	encoder.Indent("    ")
+	require.NoError(t, encoder.Encode(payload))
+
+	unescaped := strings.ReplaceAll(buf.String(), "&#34;", "\"")
+
+	compacted, err := CompactStructuralWhitespace([]byte(unescaped))
+	require.NoError(t, err, "update-path payload must compact, not fall back")
+	assert.NotContains(t, string(compacted), ">\n", "compacted update-path payload must be single-line")
+
+	var originalTree, compactTree map[string]any
+	_, err = plist.Unmarshal([]byte(unescaped), &originalTree)
+	require.NoError(t, err, "unescaped update-path payload must parse")
+	_, err = plist.Unmarshal(compacted, &compactTree)
+	require.NoError(t, err, "compacted update-path payload must parse")
+	assert.True(t, reflect.DeepEqual(originalTree, compactTree),
+		"compaction changed the parsed update-path plist:\noriginal: %#v\ncompacted:%#v", originalTree, compactTree)
 }
 
 // A realistic, pretty-printed com.apple.homescreenlayout payload must parse to

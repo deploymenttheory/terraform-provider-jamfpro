@@ -52,11 +52,6 @@
             <string>Safari</string>
           </dict>
         </array>
-        <!-- Page 1 is a single folder. Pretty-printed on purpose: the
-             whitespace between these <array> tags is exactly what the Classic
-             API used to materialise into a phantom empty leading page. With the
-             provider's structural-whitespace compaction the icons must stay on
-             page 1. -->
         <key>Pages</key>
         <array>
           <array>
