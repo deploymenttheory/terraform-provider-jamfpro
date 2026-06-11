@@ -83,6 +83,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/sso_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/static_computer_group"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/static_mobile_device_group"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/user"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/user_group"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/user_initiated_enrollment_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/volume_purchasing_locations"
@@ -450,6 +451,7 @@ func Provider() *schema.Provider {
 			"jamfpro_static_mobile_device_group":                static_mobile_device_group.DataSourceJamfProStaticMobileDeviceGroups(),
 			"jamfpro_restricted_software":                       restricted_software.DataSourceJamfProRestrictedSoftwares(),
 			"jamfpro_group":                                     group.DataSourceJamfProGroups(),
+			"jamfpro_user":                                      user.DataSourceJamfProUsers(),
 			"jamfpro_user_group":                                user_group.DataSourceJamfProUserGroups(),
 			"jamfpro_volume_purchasing_locations":               volume_purchasing_locations.DataSourceJamfProVolumePurchasingLocations(),
 			"jamfpro_webhook":                                   webhook.DataSourceJamfProWebhooks(),
