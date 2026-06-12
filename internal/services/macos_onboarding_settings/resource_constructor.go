@@ -15,7 +15,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceUpdateOnboardingSetting
 	var onboardingItems []jamfpro.SubsetOnboardingItemRequest
 
 	if v, ok := d.GetOk("onboarding_items"); ok {
-		itemsList := v.([]any)
+		itemsList := v.(*schema.Set).List()
 		onboardingItems = make([]jamfpro.SubsetOnboardingItemRequest, 0, len(itemsList))
 
 		for _, item := range itemsList {
