@@ -3,13 +3,13 @@
 <plist version="1.0">
   <dict>
     <key>PayloadUUID</key>
-    <string>5A2B3C4D-0001-4A1B-9C2D-500000000001</string>
+    <string>5C0E401C-74C4-405E-87DF-839D0083C10D</string>
     <key>PayloadType</key>
     <string>Configuration</string>
     <key>PayloadOrganization</key>
     <string>Deployment Theory</string>
     <key>PayloadIdentifier</key>
-    <string>5A2B3C4D-0001-4A1B-9C2D-500000000001</string>
+    <string>5C0E401C-74C4-405E-87DF-839D0083C10D</string>
     <key>PayloadDisplayName</key>
     <string>Notification Settings (integration test)</string>
     <key>PayloadDescription</key>
@@ -26,13 +26,13 @@
     <array>
       <dict>
         <key>PayloadUUID</key>
-        <string>5A2B3C4D-0002-4A1B-9C2D-500000000002</string>
+        <string>B5B0694A-AE53-4F29-9816-47FCD4DB566A</string>
         <key>PayloadType</key>
         <string>com.apple.notificationsettings</string>
         <key>PayloadOrganization</key>
         <string>Deployment Theory</string>
         <key>PayloadIdentifier</key>
-        <string>5A2B3C4D-0002-4A1B-9C2D-500000000002</string>
+        <string>B5B0694A-AE53-4F29-9816-47FCD4DB566A</string>
         <key>PayloadDisplayName</key>
         <string>Notifications</string>
         <key>PayloadDescription</key>
