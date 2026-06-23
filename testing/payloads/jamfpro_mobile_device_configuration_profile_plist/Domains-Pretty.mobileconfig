@@ -3,13 +3,13 @@
 <plist version="1.0">
   <dict>
     <key>PayloadUUID</key>
-    <string>3A2B3C4D-0001-4A1B-9C2D-300000000001</string>
+    <string>3F4CA88A-3CF3-4157-B04A-62C6D9FFD1B8</string>
     <key>PayloadType</key>
     <string>Configuration</string>
     <key>PayloadOrganization</key>
     <string>Deployment Theory</string>
     <key>PayloadIdentifier</key>
-    <string>3A2B3C4D-0001-4A1B-9C2D-300000000001</string>
+    <string>3F4CA88A-3CF3-4157-B04A-62C6D9FFD1B8</string>
     <key>PayloadDisplayName</key>
     <string>Managed Domains (integration test)</string>
     <key>PayloadDescription</key>
@@ -26,13 +26,13 @@
     <array>
       <dict>
         <key>PayloadUUID</key>
-        <string>3A2B3C4D-0002-4A1B-9C2D-300000000002</string>
+        <string>FA978ADD-0A4A-4A20-B247-3B95B562E512</string>
         <key>PayloadType</key>
         <string>com.apple.domains</string>
         <key>PayloadOrganization</key>
         <string>Deployment Theory</string>
         <key>PayloadIdentifier</key>
-        <string>3A2B3C4D-0002-4A1B-9C2D-300000000002</string>
+        <string>FA978ADD-0A4A-4A20-B247-3B95B562E512</string>
         <key>PayloadDisplayName</key>
         <string>Domains</string>
         <key>PayloadDescription</key>

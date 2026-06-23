@@ -3,13 +3,13 @@
 <plist version="1.0">
   <dict>
     <key>PayloadUUID</key>
-    <string>4A2B3C4D-0001-4A1B-9C2D-400000000001</string>
+    <string>0954AED6-B4E7-411F-BBE8-ECC54BE43A74</string>
     <key>PayloadType</key>
     <string>Configuration</string>
     <key>PayloadOrganization</key>
     <string>Deployment Theory</string>
     <key>PayloadIdentifier</key>
-    <string>4A2B3C4D-0001-4A1B-9C2D-400000000001</string>
+    <string>0954AED6-B4E7-411F-BBE8-ECC54BE43A74</string>
     <key>PayloadDisplayName</key>
     <string>Root CA Certificate (integration test)</string>
     <key>PayloadDescription</key>
@@ -26,13 +26,13 @@
     <array>
       <dict>
         <key>PayloadUUID</key>
-        <string>4A2B3C4D-0002-4A1B-9C2D-400000000002</string>
+        <string>53696F34-E52B-4199-838D-00B1B09AB69B</string>
         <key>PayloadType</key>
         <string>com.apple.security.root</string>
         <key>PayloadOrganization</key>
         <string>Deployment Theory</string>
         <key>PayloadIdentifier</key>
-        <string>4A2B3C4D-0002-4A1B-9C2D-400000000002</string>
+        <string>53696F34-E52B-4199-838D-00B1B09AB69B</string>
         <key>PayloadDisplayName</key>
         <string>Deployment Theory Test Root CA</string>
         <key>PayloadDescription</key>
