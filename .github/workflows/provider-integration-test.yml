@@ -44,6 +44,9 @@ jobs:
           ref: ${{ env.REF_TO_CHECKOUT }}
           # Required by actions/checkout@v7 to check out fork PR code under
           # pull_request_target. See https://gh.io/securely-using-pull_request_target
+          # This means this workflow will run with the base repository's GITHUB_TOKEN
+          # By fetching and executing a fork's code, we must validate carefully the pr
+          # because this can lead to "pwn request" vulnerabilities.
           allow-unsafe-pr-checkout: true
 
 
