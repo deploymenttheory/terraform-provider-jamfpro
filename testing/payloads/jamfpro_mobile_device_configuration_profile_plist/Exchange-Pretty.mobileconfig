@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>PayloadUUID</key>
+    <string>6A2B3C4D-0001-4A1B-9C2D-600000000001</string>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadOrganization</key>
+    <string>Deployment Theory</string>
+    <key>PayloadIdentifier</key>
+    <string>6A2B3C4D-0001-4A1B-9C2D-600000000001</string>
+    <key>PayloadDisplayName</key>
+    <string>Exchange ActiveSync (integration test)</string>
+    <key>PayloadDescription</key>
+    <string/>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+    <key>PayloadEnabled</key>
+    <true/>
+    <key>PayloadRemovalDisallowed</key>
+    <true/>
+    <key>PayloadScope</key>
+    <string>System</string>
+    <key>PayloadContent</key>
+    <array>
+      <dict>
+        <key>PayloadUUID</key>
+        <string>6A2B3C4D-0002-4A1B-9C2D-600000000002</string>
+        <key>PayloadType</key>
+        <string>com.apple.eas.account</string>
+        <key>PayloadOrganization</key>
+        <string>Deployment Theory</string>
+        <key>PayloadIdentifier</key>
+        <string>6A2B3C4D-0002-4A1B-9C2D-600000000002</string>
+        <key>PayloadDisplayName</key>
+        <string>Corporate Mail</string>
+        <key>PayloadDescription</key>
+        <string/>
+        <key>PayloadVersion</key>
+        <integer>1</integer>
+        <key>EmailAddress</key>
+        <string></string>
+        <key>Host</key>
+        <string>mail.deploymenttheory.com</string>
+        <key>SSL</key>
+        <true/>
+        <key>UserName</key>
+        <string></string>
+        <key>PreventMove</key>
+        <true/>
+        <key>PreventAppSheet</key>
+        <true/>
+        <key>SMIMEEnabled</key>
+        <false/>
+        <key>disableMailRecentsSyncing</key>
+        <false/>
+      </dict>
+    </array>
+  </dict>
+</plist>

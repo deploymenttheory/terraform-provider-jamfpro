@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>PayloadUUID</key>
+    <string>3A2B3C4D-0001-4A1B-9C2D-300000000001</string>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadOrganization</key>
+    <string>Deployment Theory</string>
+    <key>PayloadIdentifier</key>
+    <string>3A2B3C4D-0001-4A1B-9C2D-300000000001</string>
+    <key>PayloadDisplayName</key>
+    <string>Managed Domains (integration test)</string>
+    <key>PayloadDescription</key>
+    <string/>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+    <key>PayloadEnabled</key>
+    <true/>
+    <key>PayloadRemovalDisallowed</key>
+    <true/>
+    <key>PayloadScope</key>
+    <string>System</string>
+    <key>PayloadContent</key>
+    <array>
+      <dict>
+        <key>PayloadUUID</key>
+        <string>3A2B3C4D-0002-4A1B-9C2D-300000000002</string>
+        <key>PayloadType</key>
+        <string>com.apple.domains</string>
+        <key>PayloadOrganization</key>
+        <string>Deployment Theory</string>
+        <key>PayloadIdentifier</key>
+        <string>3A2B3C4D-0002-4A1B-9C2D-300000000002</string>
+        <key>PayloadDisplayName</key>
+        <string>Domains</string>
+        <key>PayloadDescription</key>
+        <string/>
+        <key>PayloadVersion</key>
+        <integer>1</integer>
+        <key>WebDomains</key>
+        <array>
+          <string>deploymenttheory.com</string>
+          <string>intranet.deploymenttheory.com</string>
+          <string>mail.deploymenttheory.com</string>
+        </array>
+        <key>SafariPasswordAutoFillDomains</key>
+        <array>
+          <string>login.deploymenttheory.com</string>
+          <string>sso.deploymenttheory.com</string>
+        </array>
+      </dict>
+    </array>
+  </dict>
+</plist>
