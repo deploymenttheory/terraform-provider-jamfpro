@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>PayloadUUID</key>
+    <string>2A2B3C4D-0001-4A1B-9C2D-200000000001</string>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadOrganization</key>
+    <string>Deployment Theory</string>
+    <key>PayloadIdentifier</key>
+    <string>2A2B3C4D-0001-4A1B-9C2D-200000000001</string>
+    <key>PayloadDisplayName</key>
+    <string>Web Content Filter - Allowlist (integration test)</string>
+    <key>PayloadDescription</key>
+    <string/>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+    <key>PayloadEnabled</key>
+    <true/>
+    <key>PayloadRemovalDisallowed</key>
+    <true/>
+    <key>PayloadScope</key>
+    <string>System</string>
+    <key>PayloadContent</key>
+    <array>
+      <dict>
+        <key>PayloadUUID</key>
+        <string>2A2B3C4D-0002-4A1B-9C2D-200000000002</string>
+        <key>PayloadType</key>
+        <string>com.apple.webcontent-filter</string>
+        <key>PayloadOrganization</key>
+        <string>Deployment Theory</string>
+        <key>PayloadIdentifier</key>
+        <string>2A2B3C4D-0002-4A1B-9C2D-200000000002</string>
+        <key>PayloadDisplayName</key>
+        <string>Web Content Filter</string>
+        <key>PayloadDescription</key>
+        <string/>
+        <key>PayloadVersion</key>
+        <integer>1</integer>
+        <key>FilterType</key>
+        <string>BuiltIn</string>
+        <key>AutoFilterEnabled</key>
+        <false/>
+        <key>PermittedURLs</key>
+        <array>
+          <string>https://docs.deploymenttheory.com</string>
+          <string>https://support.deploymenttheory.com</string>
+        </array>
+        <key>WhitelistedBookmarks</key>
+        <array>
+          <dict>
+            <key>URL</key>
+            <string>https://intranet.deploymenttheory.com</string>
+            <key>Title</key>
+            <string>Intranet</string>
+          </dict>
+          <dict>
+            <key>URL</key>
+            <string>https://learning.deploymenttheory.com</string>
+            <key>Title</key>
+            <string>Learning</string>
+          </dict>
+          <dict>
+            <key>URL</key>
+            <string>https://status.deploymenttheory.com</string>
+            <key>Title</key>
+            <string>Status</string>
+          </dict>
+        </array>
+      </dict>
+    </array>
+  </dict>
+</plist>
