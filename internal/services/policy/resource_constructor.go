@@ -491,6 +491,7 @@ func constructPayloadAccountMaintenance(d *schema.ResourceData, resource *jamfpr
 						Picture:                accountData["picture"].(string),
 						Admin:                  accountData["admin"].(bool),
 						FilevaultEnabled:       accountData["filevault_enabled"].(bool),
+						SecureTokenAllowed:     accountData["secure_token_allowed"].(bool),
 					})
 				}
 				outBlock.Accounts = &accounts

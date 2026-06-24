@@ -25,7 +25,7 @@ resource "jamfpro_policy" "jamfpro_policy_self_service_maximal" {
   scope {
     all_computers      = false
     all_jss_users      = false
-    computer_group_ids = [266]
+    computer_group_ids = [1]
   }
 
   self_service {

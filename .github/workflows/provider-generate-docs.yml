@@ -24,9 +24,12 @@ jobs:
       uses: step-security/harden-runner@v2.19.4
       with:
         egress-policy: audit
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.ref }}
+        # Required by actions/checkout@v7 to check out fork PR code under
+        # pull_request_target. See https://gh.io/securely-using-pull_request_target
+        allow-unsafe-pr-checkout: true
 
     - uses: actions/setup-go@v6
       with:

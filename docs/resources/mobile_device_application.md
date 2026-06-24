@@ -124,7 +124,6 @@ Minimum Requirements:
 - `external_url` (String) The external URL for the application.
 - `free` (Boolean) Indicates if the application is free.
 - `host_externally` (Boolean) Host the application externally.
-- `internal_app` (Boolean) Indicates if this is an internal application.
 - `ipa` (Block List, Max: 1) (see [below for nested schema](#nestedblock--ipa))
 - `itunes_country_region` (String) The iTunes country/region for the application.
 - `itunes_store_url` (String) The iTunes Store URL for the application.
@@ -148,6 +147,7 @@ Minimum Requirements:
 - `description` (String) Description of the mobile device application.
 - `icon` (List of Object) (see [below for nested schema](#nestedatt--icon))
 - `id` (String) The unique identifier of the mobile device application.
+- `internal_app` (Boolean) Indicates if this is an internal application. Server-derived: set to true when itunes_store_url is omitted; cannot be set directly via POST/PUT.
 
 <a id="nestedblock--scope"></a>
 ### Nested Schema for `scope`
