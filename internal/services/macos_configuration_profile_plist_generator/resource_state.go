@@ -35,8 +35,10 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMacOSConfiguratio
 
 	d.Set("site_id", resp.General.Site.ID)
 
-	profile := plist.NormalizePayloadState(resp.General.Payloads)
-	if err := d.Set("payloads", profile); err != nil {
+	payloadsHCL, err := plist.ConvertPlistToHCL(resp.General.Payloads)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	} else if err := d.Set("payloads", payloadsHCL); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 

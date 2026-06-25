@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.39.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.38.0...v0.39.0) (2026-06-23)
+
+
+### Features
+
+* Add enable_maid_username_merge option for user initiated enrollment settings ([bca2b01](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/bca2b01ee19e92fd7609af4856a38453da55a957))
+* add secure token support to account maintenance policy payload ([#1115](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1115)) ([bca2b01](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/bca2b01ee19e92fd7609af4856a38453da55a957))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([bca2b01](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/bca2b01ee19e92fd7609af4856a38453da55a957))
+* added datasource 'user' with ([ce862db](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/ce862db3c05af77b9434a78a2c70c7742073441f))
+* added datasource 'user' with examples and test fixtures ([#1129](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1129)) ([ce862db](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/ce862db3c05af77b9434a78a2c70c7742073441f))
+
+
+### Bug Fixes
+
+* add defensive type assertions and improve error handling in maco… ([#1076](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1076)) ([6f0d687](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/6f0d68756ad721d92d1cd541b4027426b6e2520c))
+* add defensive type assertions and improve error handling in macos_configuration_profile_plist_generator ([6f0d687](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/6f0d68756ad721d92d1cd541b4027426b6e2520c))
+* change onboarding_items from TypeList to TypeSet to eliminate spurious diffs ([#1077](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1077)) ([d78abbe](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/d78abbe96f78ae6c63da7ee5834370c4ecfff54d))
+* defer cloud_distribution_point config validation on unknown values ([#1111](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1111)) ([b03a6db](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/b03a6dba7f9f858d8ae1f443e9b2ea83ea4a5e7b))
+* **mobile_device_application:** mark server-derived metadata fields as optional+computed ([#1113](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1113)) ([548862f](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/548862f3a943312a228ed8b3d8a3a632e9cbacd1))
+
 ## [0.38.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.37.0...v0.38.0) (2026-05-27)
 
 

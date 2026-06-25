@@ -68,8 +68,8 @@ func getPolicySchemaAccount() *schema.Resource {
 			"password": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Sensitive:   true,
 				Description: "Set a new account password. This does not update the account's login keychain password or FileVault 2 password.",
-				//Sensitive:   true,
 			},
 			"archive_home_directory": {
 				Type:        schema.TypeBool,
@@ -105,6 +105,11 @@ func getPolicySchemaAccount() *schema.Resource {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Description: "Allow the user to unlock the FileVault 2-encrypted drive",
+			},
+			"secure_token_allowed": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Allow user to be granted the first secure token on the computer.",
 			},
 		},
 	}
