@@ -8,6 +8,13 @@ updates:
     schedule:
       # Check for updates to GitHub Actions every week
       interval: "weekly"
+    commit-message:
+      # Prefix commit messages with "chore"; include: scope appends the
+      # dependency scope automatically -> "chore(deps): " / "chore(deps-dev): "
+      # This follows conventional commits and works with release-please
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
 
   # Maintain dependencies for Go modules
   - package-ecosystem: "gomod"
@@ -15,3 +22,10 @@ updates:
     schedule:
       # Check for updates to Go modules every week
       interval: "weekly"
+    commit-message:
+      # Prefix commit messages with "chore"; include: scope appends the
+      # dependency scope automatically -> "chore(deps): " / "chore(deps-dev): "
+      # This follows conventional commits and works with release-please
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
