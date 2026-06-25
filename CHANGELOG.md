@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.40.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.39.0...v0.40.0) (2026-06-25)
+
+
+### Features
+
+* Add enable_maid_username_merge option for user initiated enrollment settings ([62bc70b](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/62bc70bf797c1caad9c0beaf7639f66ba7201111))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([62bc70b](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/62bc70bf797c1caad9c0beaf7639f66ba7201111))
+* **computer_prestage_enrollment:** model attended/unattended Platform SSO ([#1132](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1132)) ([62bc70b](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/62bc70bf797c1caad9c0beaf7639f66ba7201111))
+
+
+### Bug Fixes
+
+* Site & account_group data sources to support finding by name ([#1122](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1122)) ([45334da](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/45334dac07e0a6aedbde420037cd089fc9869600))
+* update dependabot configuration for commit messages ([#1134](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1134)) ([92e10f3](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/92e10f3b41ee492a10bbd724e3749d6186145a85))
+
 ## [0.39.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.38.0...v0.39.0) (2026-06-23)
 
 
