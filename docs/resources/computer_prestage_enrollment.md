@@ -224,7 +224,6 @@ resource "jamfpro_computer_prestage_enrollment" "configured_example_1" {
 - `display_name` (String) The display name of the computer prestage enrollment.
 - `enable_device_based_activation_lock` (Boolean) Indicates if device-based activation lock should be enabled.
 - `enable_recovery_lock` (Boolean) Configure how the Recovery Lock password is set on computers with macOS 11.5 or later.
-- `enrollment_customization_id` (String) The enrollment customization ID. Set to 0 if unused.
 - `enrollment_site_id` (String) The jamf pro Site ID that computers will be added to during enrollment. Should be set to -1, if not used.
 - `install_profiles_during_setup` (Boolean) Indicates if profiles should be installed during setup.
 - `keep_existing_location_information` (Boolean) Indicates if enrolled should use existing location information, if applicable
@@ -249,15 +248,19 @@ resource "jamfpro_computer_prestage_enrollment" "configured_example_1" {
 ### Optional
 
 - `anchor_certificates` (List of String) List of Base64 encoded PEM Certificates.
+- `enrollment_customization_id` (String) The enrollment customization ID. Defaults to "0" (none) when unset. Cannot be combined with 'platform_sso_enabled'.
 - `minimum_os_specific_version` (String) The minimum macOS version to enforce for the prestage enrollment. Only used if prestate_minimum_os_target_version_type is set to MINIMUM_OS_SPECIFIC_VERSION.
-- `platform_sso_app_bundle_id` (String) The app bundle ID for used for platform SSO.
+- `platform_sso_app_bundle_id` (String) The app bundle ID of the unattended Platform SSO application (e.g. "com.okta.mobile"). Mutually exclusive with 'psso_config_profile_id'.
 - `platform_sso_enabled` (Boolean) Indicates if platform single sign-on (SSO) is enabled.
+- `psso_config_profile_id` (String) Configuration profile ID for attended Platform SSO. Defaults to "-1" (none) when unset. Mutually exclusive with 'platform_sso_app_bundle_id', and incompatible with 'enrollment_customization_id'.
 - `recovery_lock_password` (String) Generate new Recovery Lock password 60 minutes after the password is viewed in Jamf Pro. Can be left blank.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
 
 - `id` (String) The unique identifier of the computer prestage.
+- `manifest_url` (String) Returned by Jamf Pro for the Platform SSO workflow; not user-settable.
+- `profile_url` (String) Returned by Jamf Pro for the Platform SSO workflow; not user-settable.
 - `profile_uuid` (String) The profile UUID of the Automated Device Enrollment instance to associate with the PreStage enrollment. Devices associated with the selected Automated Device Enrollment instance can be assigned the PreStage enrollment
 - `version_lock` (Number) The version lock value of the purchasing_information. Optimistic lockingis a mechanism that prevents concurrent operations from taking place on a givenresource. Jamf Pro does this to safeguard resources and workflows that aresensitive to frequent updates, ensuring that one update has completed beforeany additional requests can be processed. Valid request handling is managed bythe construct function.
 

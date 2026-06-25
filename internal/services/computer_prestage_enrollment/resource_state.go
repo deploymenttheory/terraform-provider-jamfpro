@@ -48,6 +48,9 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceComputerPrestage)
 		"site_id":                                 resp.SiteId,
 		"platform_sso_enabled":                    resp.PssoEnabled,
 		"platform_sso_app_bundle_id":              resp.PlatformSsoAppBundleId,
+		"psso_config_profile_id":                  resp.PssoConfigProfileId,
+		"manifest_url":                            resp.ManifestUrl,
+		"profile_url":                             resp.ProfileUrl,
 	}
 
 	if locationInformation := resp.LocationInformation; locationInformation != (jamfpro.ComputerPrestageSubsetLocationInformation{}) {

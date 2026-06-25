@@ -22,6 +22,35 @@ func mainCustomDiffFunc(ctx context.Context, diff *schema.ResourceDiff, i any) e
 		return err
 	}
 
+	if err := validatePlatformSSOMode(ctx, diff, i); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validatePlatformSSOMode enforces the Platform SSO constraints that Jamf Pro rejects with an
+// HTTP 400, surfacing them at plan time instead. Attended Platform SSO ('psso_config_profile_id')
+// is mutually exclusive with unattended Platform SSO ('platform_sso_app_bundle_id') and cannot be
+// combined with an enrollment customization. Unattended Platform SSO is left to the server, since
+// it only conflicts with an enrollment customization that itself has SSO configured.
+func validatePlatformSSOMode(_ context.Context, diff *schema.ResourceDiff, _ any) error {
+	resourceName := diff.Get("display_name").(string)
+
+	configProfileID := diff.Get("psso_config_profile_id").(string)
+	attended := configProfileID != "" && configProfileID != "-1"
+	if !attended {
+		return nil
+	}
+
+	if bundleID := diff.Get("platform_sso_app_bundle_id").(string); bundleID != "" {
+		return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'psso_config_profile_id' (attended Platform SSO) and 'platform_sso_app_bundle_id' (unattended Platform SSO) are mutually exclusive; set only one", resourceName)
+	}
+
+	if customizationID := diff.Get("enrollment_customization_id").(string); customizationID != "" && customizationID != "0" {
+		return fmt.Errorf("in 'jamfpro_computer_prestage_enrollment.%s': 'enrollment_customization_id' cannot be set when attended Platform SSO ('psso_config_profile_id') is used; set 'enrollment_customization_id' to \"0\" (none) or switch to unattended Platform SSO ('platform_sso_app_bundle_id')", resourceName)
+	}
+
 	return nil
 }
 
