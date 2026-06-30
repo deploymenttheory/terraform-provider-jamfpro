@@ -64,7 +64,13 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 
 	// Handle Payloads based on mode
 	if mode != "update" {
-		resource.General.Payloads = html.EscapeString(d.Get("payloads").(string))
+		raw := []byte(d.Get("payloads").(string))
+		if compacted, err := helpers.CompactStructuralWhitespace(raw); err == nil {
+			raw = compacted
+		} else {
+			log.Printf("[WARN] constructJamfProMobileDeviceConfigurationProfilePlist: could not compact payload whitespace, sending as-is: %v", err)
+		}
+		resource.General.Payloads = html.EscapeString(string(raw))
 	} else if mode == "update" {
 		var existingPlist map[string]any
 		var newPlist map[string]any
@@ -109,7 +115,6 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 		// Encode the plist with injections
 
 		encoder := plist.NewEncoder(&buf)
-		encoder.Indent("    ")
 		if err := encoder.Encode(newPlist); err != nil {
 			return nil, fmt.Errorf("failed to encode updated plist payload: %v", err)
 		}
@@ -118,6 +123,11 @@ func constructJamfProMobileDeviceConfigurationProfilePlist(d *schema.ResourceDat
 		// we need to properly correctly normalize the XML for the xml.MarshalIndent and also for jamf pro.
 		if buf.Len() > 0 {
 			unquotedContent := preMarshallingXMLPayloadUnescaping(buf.String())
+			if compacted, err := helpers.CompactStructuralWhitespace([]byte(unquotedContent)); err == nil {
+				unquotedContent = string(compacted)
+			} else {
+				log.Printf("[WARN] constructJamfProMobileDeviceConfigurationProfilePlist: could not compact payload whitespace, sending as-is: %v", err)
+			}
 			resource.General.Payloads = preMarshallingXMLPayloadEscaping(unquotedContent)
 		}
 	}

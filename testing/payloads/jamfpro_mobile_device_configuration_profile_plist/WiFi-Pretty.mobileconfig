@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>PayloadUUID</key>
+    <string>4031E313-147E-407D-B2E6-86BEE9B6C6E9</string>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadOrganization</key>
+    <string>Deployment Theory</string>
+    <key>PayloadIdentifier</key>
+    <string>4031E313-147E-407D-B2E6-86BEE9B6C6E9</string>
+    <key>PayloadDisplayName</key>
+    <string>WiFi - WPA2 Enterprise (integration test)</string>
+    <key>PayloadDescription</key>
+    <string/>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+    <key>PayloadEnabled</key>
+    <true/>
+    <key>PayloadRemovalDisallowed</key>
+    <true/>
+    <key>PayloadScope</key>
+    <string>System</string>
+    <key>PayloadContent</key>
+    <array>
+      <dict>
+        <key>PayloadUUID</key>
+        <string>8D484F29-1485-4435-A197-4E14D1AD9E62</string>
+        <key>PayloadType</key>
+        <string>com.apple.wifi.managed</string>
+        <key>PayloadOrganization</key>
+        <string>Deployment Theory</string>
+        <key>PayloadIdentifier</key>
+        <string>8D484F29-1485-4435-A197-4E14D1AD9E62</string>
+        <key>PayloadDisplayName</key>
+        <string>WiFi (DT-Corp)</string>
+        <key>PayloadDescription</key>
+        <string/>
+        <key>PayloadVersion</key>
+        <integer>1</integer>
+        <key>SSID_STR</key>
+        <string>DT-Corp</string>
+        <key>HIDDEN_NETWORK</key>
+        <false/>
+        <key>AutoJoin</key>
+        <true/>
+        <key>EncryptionType</key>
+        <string>WPA2</string>
+        <key>ProxyType</key>
+        <string>None</string>
+        <key>EAPClientConfiguration</key>
+        <dict>
+          <key>AcceptEAPTypes</key>
+          <array>
+            <integer>25</integer>
+          </array>
+          <key>TTLSInnerAuthentication</key>
+          <string>MSCHAPv2</string>
+          <key>OneTimePassword</key>
+          <false/>
+        </dict>
+      </dict>
+    </array>
+  </dict>
+</plist>

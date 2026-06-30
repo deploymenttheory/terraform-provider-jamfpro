@@ -12,4 +12,4 @@ fi
 terraform init
 terraform fmt
 terraform validate
-terraform test
+terraform test -parallelism=1
