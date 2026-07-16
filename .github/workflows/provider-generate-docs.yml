@@ -31,7 +31,7 @@ jobs:
         # pull_request_target. See https://gh.io/securely-using-pull_request_target
         allow-unsafe-pr-checkout: true
 
-    - uses: actions/setup-go@v6
+    - uses: actions/setup-go@v7
       with:
         cache: false
         go-version-file: 'go.mod'
