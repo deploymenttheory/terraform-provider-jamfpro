@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	enrollmentlock "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/enrollment_lock"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/errors"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -17,6 +19,48 @@ const (
 	ResourceIDSingleton = "jamfpro_user_initiated_enrollment_settings_singleton"
 )
 
+// applyEnrollmentSettings performs a locked GET-merge-PUT of the base enrollment
+// settings against /api/v4/enrollment. The GET-then-PUT window is serialized
+// against jamfpro_reenrollment's /api/v1/reenrollment writes via
+// enrollmentlock.Mu - see that package's doc comment for why.
+func applyEnrollmentSettings(ctx context.Context, d *schema.ResourceData, client *jamfpro.Client, timeout time.Duration) error {
+	enrollmentlock.Mu.Lock()
+	defer enrollmentlock.Mu.Unlock()
+
+	var current *jamfpro.ResourceEnrollment
+	err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
+		var apiErr error
+		current, apiErr = client.GetEnrollment()
+		if apiErr != nil {
+			log.Printf("[ERROR] Failed attempt to get current jamf pro enrollment settings: %v", apiErr)
+			return retry.RetryableError(apiErr)
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to read current enrollment settings: %v", err)
+	}
+
+	enrollmentSettings, err := constructEnrollmentSettings(d, current)
+	if err != nil {
+		return fmt.Errorf("failed to construct enrollment settings: %v", err)
+	}
+
+	err = retry.RetryContext(ctx, timeout, func() *retry.RetryError {
+		_, apiErr := client.UpdateEnrollment(enrollmentSettings)
+		if apiErr != nil {
+			log.Printf("[ERROR] Failed attempt to update enrollment settings: %v", apiErr)
+			return retry.RetryableError(apiErr)
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to update enrollment settings: %v", err)
+	}
+
+	return nil
+}
+
 // create is responsible for creating jamf pro User-initiated enrollment base settings, enrollment languages
 // and ldap groups. It performs multiple api calls and therefore doesn't follow the function pattern
 // of simpler resource types.
@@ -25,20 +69,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 	var diags diag.Diagnostics
 
 	// Step 1: Update main enrollment settings (API doesn't have a true "create" operation)
-	enrollmentSettings, err := constructEnrollmentSettings(d)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct enrollment settings: %v", err))
-	}
-
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		_, apiErr := client.UpdateEnrollment(enrollmentSettings)
-		if apiErr != nil {
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	if err != nil {
+	if err := applyEnrollmentSettings(ctx, d, client, d.Timeout(schema.TimeoutCreate)); err != nil {
 		return diag.FromErr(fmt.Errorf("failed to update enrollment settings: %v", err))
 	}
 
@@ -206,21 +237,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 	var diags diag.Diagnostics
 
 	// Step 1: Update main enrollment settings
-	enrollmentSettings, err := constructEnrollmentSettings(d)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("failed to construct updated enrollment settings: %v", err))
-	}
-
-	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
-		_, apiErr := client.UpdateEnrollment(enrollmentSettings)
-		if apiErr != nil {
-			log.Printf("[ERROR] Failed to update base enrollment settings: %v", apiErr)
-			return retry.RetryableError(apiErr)
-		}
-		return nil
-	})
-
-	if err != nil {
+	if err := applyEnrollmentSettings(ctx, d, client, d.Timeout(schema.TimeoutUpdate)); err != nil {
 		return diag.FromErr(fmt.Errorf("failed to update base enrollment settings: %v", err))
 	}
 

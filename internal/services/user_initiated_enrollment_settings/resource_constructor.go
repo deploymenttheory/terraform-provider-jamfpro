@@ -10,12 +10,32 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// constructEnrollmentSettings builds the ResourceEnrollment object from schema data
-func constructEnrollmentSettings(d *schema.ResourceData) (*jamfpro.ResourceEnrollment, error) {
+// constructEnrollmentSettings builds the ResourceEnrollment object from schema data.
+//
+// current is the live /api/v4/enrollment settings (a fresh GET taken under
+// enrollmentlock.Mu by the caller). /api/v4/enrollment is a full-replace PUT
+// and shares its backing store with jamfpro_reenrollment's /api/v1/reenrollment
+// for six fields this resource does not own (the "flush on re-enrollment"
+// toggles and the MDM command queue flush enum). Those fields are copied from
+// current below instead of being derived from schema data, so this PUT
+// round-trips jamfpro_reenrollment's last-written values instead of resetting
+// them to the Go zero value. current may be nil only when the GET itself
+// failed to return a value; callers are expected to have already errored out
+// in that case.
+func constructEnrollmentSettings(d *schema.ResourceData, current *jamfpro.ResourceEnrollment) (*jamfpro.ResourceEnrollment, error) {
 	resource := &jamfpro.ResourceEnrollment{
 		// General settings
 		InstallSingleProfile: d.Get("skip_certificate_installation_during_enrollment").(bool),
 		RestrictReenrollment: d.Get("restrict_reenrollment_to_authorized_users_only").(bool),
+	}
+
+	if current != nil {
+		resource.FlushLocationInformation = current.FlushLocationInformation
+		resource.FlushLocationHistoryInformation = current.FlushLocationHistoryInformation
+		resource.FlushPolicyHistory = current.FlushPolicyHistory
+		resource.FlushExtensionAttributes = current.FlushExtensionAttributes
+		resource.FlushSoftwareUpdatePlans = current.FlushSoftwareUpdatePlans
+		resource.FlushMdmCommandsOnReenroll = current.FlushMdmCommandsOnReenroll
 	}
 
 	// Set third-party signing certificate

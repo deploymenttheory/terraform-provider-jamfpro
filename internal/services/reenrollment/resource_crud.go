@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	enrollmentlock "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/enrollment_lock"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/errors"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -21,6 +22,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro re-enrollment Settings for update: %v", err))
 	}
 
+	enrollmentlock.Mu.Lock()
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		_, apiErr := client.UpdateReenrollmentSettings(*resource)
 		if apiErr != nil {
@@ -28,6 +30,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 		}
 		return nil
 	})
+	enrollmentlock.Mu.Unlock()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro re-enrollment Settings configuration after retries: %v", err))
@@ -82,6 +85,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 		return diag.FromErr(fmt.Errorf("failed to construct Jamf Pro re-enrollment Settings for update: %v", err))
 	}
 
+	enrollmentlock.Mu.Lock()
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 		_, apiErr := client.UpdateReenrollmentSettings(*reenrollmentSettingsConfig)
 		if apiErr != nil {
@@ -89,6 +93,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 		}
 		return nil
 	})
+	enrollmentlock.Mu.Unlock()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to apply Jamf Pro re-enrollment Settings configuration after retries: %v", err))
