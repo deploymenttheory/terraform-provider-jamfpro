@@ -43,6 +43,20 @@ resource "jamfpro_computer_extension_attribute" "jamfpro_computer_extension_attr
   input_type = "TEXT"
 }
 
+// Regression test for issue #1145 - heredoc strings in HCL always include a
+// trailing newline before EOT, but the API strips it server-side. Without a
+// DiffSuppressFunc on description, this produced perpetual drift on every
+// plan after apply.
+resource "jamfpro_computer_extension_attribute" "jamfpro_computer_extension_attribute_heredoc_description" {
+  name        = "tf-testing-${var.testing_id}-heredoc-${random_id.rng.hex}"
+  enabled     = true
+  input_type  = "TEXT"
+  description = <<-EOT
+    Multi-line description used to verify no drift is
+    reported after apply due to the heredoc trailing newline.
+  EOT
+}
+
 // ========================================================================== //
 // Multiple extension attributes
 

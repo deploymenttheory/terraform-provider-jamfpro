@@ -28,9 +28,20 @@ resource "jamfpro_user_initiated_enrollment_settings" "user_initiated_enrollment
     }
   }
   messaging {
-    language_code                                   = "en"
-    language_name                                   = "English"
-    page_title                                      = "Enroll Your Device"
+    language_code = "en"
+    language_name = "English"
+    page_title    = "Enroll Your Device"
+    // Regression test for issue #1145 - heredoc strings in HCL always
+    // include a trailing newline before EOT, but the API strips it
+    // server-side.
+    login_page_text                                 = <<-EOT
+      Multi-line login page text used to verify no drift is
+      reported after apply due to the heredoc trailing newline.
+    EOT
+    eula_personal_devices                           = <<-EOT
+      Multi-line EULA text used to verify no drift is
+      reported after apply due to the heredoc trailing newline.
+    EOT
     username_text                                   = "Username"
     password_text                                   = "Password"
     login_button_text                               = "Log In"

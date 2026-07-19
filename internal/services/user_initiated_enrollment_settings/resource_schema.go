@@ -3,6 +3,7 @@ package user_initiated_enrollment_settings
 import (
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -146,6 +147,10 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Text to display below the title on the login page during enrollment. Maps to request field 'loginDescription'",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+							},
+							DiffSuppressOnRefresh: true,
 						},
 						"username_text": {
 							Type:        schema.TypeString,
@@ -166,6 +171,10 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Text to display during enrollment that prompts the user to specify the device ownership type. Maps to request field 'deviceClassDescription'",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+							},
+							DiffSuppressOnRefresh: true,
 						},
 						"personal_device_button_name": {
 							Type:        schema.TypeString,
@@ -181,11 +190,19 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Description to display for personal device management when users enroll a personally owned device. Maps to request field 'deviceClassPersonalDescription'",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+							},
+							DiffSuppressOnRefresh: true,
 						},
 						"institutional_device_management_description": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Description to display for institutional device management when users enroll an institutionally owned device. Maps to request field 'deviceClassEnterpriseDescription'",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+							},
+							DiffSuppressOnRefresh: true,
 						},
 						"enroll_device_button_name": {
 							Type:        schema.TypeString,
@@ -196,11 +213,19 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "End User License Agreement to display during enrollment of personally owned devices. Maps to request field 'enterpriseEula'",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+							},
+							DiffSuppressOnRefresh: true,
 						},
 						"eula_institutional_devices": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "End User License Agreement to display during enrollment of institutionally owned devices and computers. Maps to request field 'personalEula'",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+							},
+							DiffSuppressOnRefresh: true,
 						},
 						"accept_button_text": {
 							Type:        schema.TypeString,
@@ -211,11 +236,19 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Text to display that prompts the user to select a site if the user has more than one site to choose from during enrollment. Maps to request field 'siteDescription'",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+							},
+							DiffSuppressOnRefresh: true,
 						},
 						"ca_certificate_installation_text": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Text to display when installing the CA certificate during enrollment. Maps to request field 'certificateText'",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+							},
+							DiffSuppressOnRefresh: true,
 						},
 						"ca_certificate_name": {
 							Type:        schema.TypeString,
@@ -226,6 +259,10 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Description to display for the CA certificate during enrollment. Maps to request field 'certificateProfileDescription'",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+							},
+							DiffSuppressOnRefresh: true,
 						},
 						"ca_certificate_install_button_name": {
 							Type:        schema.TypeString,
@@ -236,6 +273,10 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Text to display when installing the MDM profile during enrollment of a institutionally owned device. Maps to request field 'enterpriseText'",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+							},
+							DiffSuppressOnRefresh: true,
 						},
 						"institutional_mdm_profile_name": {
 							Type:        schema.TypeString,
@@ -246,11 +287,19 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Description to display for the MDM profile during enrollment of a institutionally owned device. Maps to request field 'enterpriseProfileDescription'",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+							},
+							DiffSuppressOnRefresh: true,
 						},
 						"institutional_mdm_profile_pending_text": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Text to display when the user is installing the MDM profile on their computer. Maps to request field 'enterprisePending'",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+							},
+							DiffSuppressOnRefresh: true,
 						},
 						"institutional_mdm_profile_install_button_name": {
 							Type:        schema.TypeString,
@@ -261,6 +310,10 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Text to display when installing the MDM profile during enrollment of a personally owned device. Maps to request field 'personalText'",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+							},
+							DiffSuppressOnRefresh: true,
 						},
 						"personal_mdm_profile_name": {
 							Type:        schema.TypeString,
@@ -271,6 +324,10 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Description to display for the MDM profile during enrollment of a personally owned device. Maps to request field 'personalProfileDescription'",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+							},
+							DiffSuppressOnRefresh: true,
 						},
 						"personal_mdm_profile_install_button_name": {
 							Type:        schema.TypeString,
@@ -281,6 +338,10 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Text to display when prompting to install the MDM profile. Maps to request field 'userEnrollmentText'",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+							},
+							DiffSuppressOnRefresh: true,
 						},
 						"user_enrollment_mdm_profile_name": {
 							Type:        schema.TypeString,
@@ -291,6 +352,10 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Description to display for the MDM profile. Maps to request field 'userEnrollmentProfileDescription'",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+							},
+							DiffSuppressOnRefresh: true,
 						},
 						"user_enrollment_mdm_profile_install_button_name": {
 							Type:        schema.TypeString,
@@ -301,6 +366,10 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Text to display when installing the QuickAdd package during enrollment. Maps to request field 'quickAddText'",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+							},
+							DiffSuppressOnRefresh: true,
 						},
 						"quickadd_package_name": {
 							Type:        schema.TypeString,
@@ -311,6 +380,10 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Text to display when the QuickAdd package is downloading. Maps to request field 'quickAddPending'",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+							},
+							DiffSuppressOnRefresh: true,
 						},
 						"quickadd_package_install_button_name": {
 							Type:        schema.TypeString,
@@ -321,11 +394,19 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Text to display when enrollment is complete. Maps to request field 'completeMessage'",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+							},
+							DiffSuppressOnRefresh: true,
 						},
 						"enrollment_failed_text": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Text to display when enrollment fails. Maps to request field 'failedMessage'",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+							},
+							DiffSuppressOnRefresh: true,
 						},
 						"try_again_button_name": {
 							Type:        schema.TypeString,
@@ -341,6 +422,10 @@ func ResourceJamfProUserInitatedEnrollmentSettings() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Text to display during enrollment that prompts the user to view the enrollment status for the device. Maps to request field 'checkEnrollmentMessage'",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+							},
+							DiffSuppressOnRefresh: true,
 						},
 						"log_out_button_name": {
 							Type:        schema.TypeString,

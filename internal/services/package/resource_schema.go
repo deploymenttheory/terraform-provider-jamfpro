@@ -4,6 +4,7 @@ package packages
 import (
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -63,11 +64,19 @@ func ResourceJamfProPackages() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Information to display to the administrator when the package is deployed or uninstalled.",
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+				},
+				DiffSuppressOnRefresh: true,
 			},
 			"notes": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Notes to display about the package (e.g., who built it and when it was built)",
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+				},
+				DiffSuppressOnRefresh: true,
 			},
 			"priority": {
 				Type:        schema.TypeInt,

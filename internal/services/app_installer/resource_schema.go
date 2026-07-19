@@ -3,6 +3,7 @@ package app_installer
 import (
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -174,6 +175,10 @@ func ResourceJamfProAppInstallers() *schema.Resource {
 							Optional:    true,
 							Description: "Description (up to 4000 characters) to display for the app in Self Service.",
 							Default:     "",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+							},
+							DiffSuppressOnRefresh: true,
 						},
 						"categories": {
 							Type:        schema.TypeSet,

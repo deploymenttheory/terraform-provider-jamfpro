@@ -4,6 +4,7 @@ package printer
 import (
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -65,11 +66,19 @@ func ResourceJamfProPrinters() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Additional information about the printer.",
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+				},
+				DiffSuppressOnRefresh: true,
 			},
 			"notes": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Notes about the printer.",
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+				},
+				DiffSuppressOnRefresh: true,
 			},
 			"make_default": {
 				Type:        schema.TypeBool,

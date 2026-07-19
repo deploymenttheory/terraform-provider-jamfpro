@@ -81,6 +81,7 @@ func ResourceJamfProMacApplication() *schema.Resource {
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
 							},
+							DiffSuppressOnRefresh: true,
 						},
 						"install_button_text": {
 							Type:        schema.TypeString,

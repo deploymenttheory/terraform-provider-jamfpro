@@ -111,11 +111,15 @@ func getPolicySchemaSelfService() *schema.Resource {
 				DiffSuppressFunc: suppressInactiveSelfServiceNotificationDiff,
 			},
 			"notification_message": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Default:          "",
-				Description:      "The body of the notification message.",
-				DiffSuppressFunc: suppressInactiveSelfServiceNotificationDiff,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "",
+				Description: "The body of the notification message.",
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return suppressInactiveSelfServiceNotificationDiff(k, old, new, d) ||
+						utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+				},
+				DiffSuppressOnRefresh: true,
 			},
 		},
 	}

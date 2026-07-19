@@ -60,7 +60,13 @@ resource "jamfpro_app_installer" "jamfpro_app_installer_test_002" {
     include_in_featured_category   = true
     include_in_compliance_category = false
     force_view_description         = true
-    description                    = "This is an example  cheese app deployment"
+    // Regression test for issue #1145 - heredoc strings in HCL always
+    // include a trailing newline before EOT, but the API strips it
+    // server-side.
+    description = <<-EOT
+      This is an example cheese app deployment used to verify
+      no drift is reported after apply due to the heredoc trailing newline.
+    EOT
   }
 
 

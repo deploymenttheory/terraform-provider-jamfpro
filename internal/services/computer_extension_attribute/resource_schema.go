@@ -4,6 +4,7 @@ package computer_extension_attribute
 import (
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -49,6 +50,10 @@ func ResourceJamfProComputerExtensionAttributes() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Description of the computer extension attribute.",
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+				},
+				DiffSuppressOnRefresh: true,
 			},
 			"data_type": {
 				Type:         schema.TypeString,

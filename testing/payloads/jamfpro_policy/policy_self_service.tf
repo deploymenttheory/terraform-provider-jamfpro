@@ -47,7 +47,13 @@ resource "jamfpro_policy" "jamfpro_policy_self_service_maximal" {
     notification         = true
     notification_type    = "Self Service"
     notification_subject = "Microsoft Excel Opened"
-    notification_message = "Microsoft Excel has been successfully opened on your computer."
+    // Regression test for issue #1145 - heredoc strings in HCL always
+    // include a trailing newline before EOT, but the API strips it
+    // server-side.
+    notification_message = <<-EOT
+      Microsoft Excel has been successfully opened
+      on your computer.
+    EOT
   }
 
   payloads {
@@ -63,7 +69,11 @@ resource "jamfpro_policy" "jamfpro_policy_self_service_maximal" {
     }
 
     reboot {
-      message                        = "This computer will restart in 5 minutes. Please save anything you are working on and log out by choosing Log Out from the bottom of the Apple menu."
+      message                        = <<-EOT
+        This computer will restart in 5 minutes. Please save anything
+        you are working on and log out by choosing Log Out from the
+        bottom of the Apple menu.
+      EOT
       specify_startup                = "Standard Restart"
       startup_disk                   = "Current Startup Disk"
       no_user_logged_in              = "Do not restart"

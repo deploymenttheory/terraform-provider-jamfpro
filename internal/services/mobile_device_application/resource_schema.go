@@ -228,6 +228,7 @@ func ResourceJamfProMobileDeviceApplication() *schema.Resource {
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
 							},
+							DiffSuppressOnRefresh: true,
 						},
 						"self_service_install_button_text": {
 							Type:        schema.TypeString,
@@ -316,6 +317,7 @@ func ResourceJamfProMobileDeviceApplication() *schema.Resource {
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
 							},
+							DiffSuppressOnRefresh: true,
 						},
 					},
 				},

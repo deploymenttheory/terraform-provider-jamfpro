@@ -6,6 +6,7 @@ import (
 	"time"
 
 	sharedschemas "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/shared_schemas"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -144,6 +145,10 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Description of the configuration profile.",
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+				},
+				DiffSuppressOnRefresh: true,
 			},
 			"uuid": {
 				Type:        schema.TypeString,
@@ -349,6 +354,10 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "Description to display for the profile in Self Service",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+							},
+							DiffSuppressOnRefresh: true,
 						},
 						"force_users_to_view_description": {
 							Type:        schema.TypeBool,
