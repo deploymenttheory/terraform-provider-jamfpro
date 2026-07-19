@@ -3,6 +3,7 @@ package site
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -27,13 +28,22 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	var diags diag.Diagnostics
 	resourceID := d.Get("id").(string)
+	resourceName := d.Get("name").(string)
 
 	var resource *jamfpro.SharedResourceSite
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
-		resource, apiErr = client.GetSiteByID(resourceID)
-		if apiErr != nil {
-			return retry.RetryableError(apiErr)
+		if resourceID != "" {
+			resource, apiErr = client.GetSiteByID(resourceID)
+			if apiErr != nil {
+				return retry.RetryableError(apiErr)
+			}
+		}
+		if resourceName != "" {
+			resource, apiErr = client.GetSiteByName(resourceName)
+			if apiErr != nil {
+				return retry.RetryableError(apiErr)
+			}
 		}
 		return nil
 	})
@@ -43,7 +53,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if resource != nil {
-		d.SetId(resourceID)
+		d.SetId(strconv.Itoa(resource.ID))
 		if err := d.Set("name", resource.Name); err != nil {
 			diags = append(diags, diag.FromErr(fmt.Errorf("error setting 'name' for Jamf Pro Site with ID '%s': %v", resourceID, err))...)
 		}

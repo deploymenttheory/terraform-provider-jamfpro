@@ -113,7 +113,23 @@ func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 			"platform_sso_app_bundle_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The app bundle ID for used for platform SSO.",
+				Description: "The app bundle ID of the unattended Platform SSO application (e.g. \"com.okta.mobile\"). Mutually exclusive with 'psso_config_profile_id'.",
+			},
+			"psso_config_profile_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "Configuration profile ID for attended Platform SSO. Defaults to \"-1\" (none) when unset. Mutually exclusive with 'platform_sso_app_bundle_id', and incompatible with 'enrollment_customization_id'.",
+			},
+			"manifest_url": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Returned by Jamf Pro for the Platform SSO workflow; not user-settable.",
+			},
+			"profile_url": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Returned by Jamf Pro for the Platform SSO workflow; not user-settable.",
 			},
 			"skip_setup_items": {
 				Type:        schema.TypeList,
@@ -409,8 +425,9 @@ func ResourceJamfProComputerPrestageEnrollment() *schema.Resource {
 			},
 			"enrollment_customization_id": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The enrollment customization ID. Set to 0 if unused.",
+				Optional:    true,
+				Computed:    true,
+				Description: "The enrollment customization ID. Defaults to \"0\" (none) when unset. Cannot be combined with 'platform_sso_enabled'.",
 			},
 			"language": {
 				Type:        schema.TypeString,

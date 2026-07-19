@@ -17,11 +17,13 @@ func DataSourceJamfProSites() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
+				Computed:    true,
 				Description: "The unique identifier of the Jamf Pro site.",
 			},
 			"name": {
 				Type:        schema.TypeString,
+				Optional:    true,
 				Computed:    true,
 				Description: "The unique name of the Jamf Pro site.",
 			},

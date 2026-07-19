@@ -1,3 +1,7 @@
+data "jamfpro_device_enrollments" "sentinel" {
+  name = "Apple Business Manager - Sentinel [DO NOT DELETE]"
+}
+
 resource "jamfpro_computer_prestage_enrollment" "minimum_example" {
   display_name                          = "tf-testing-${var.testing_id}-${random_id.rng.hex}"
   mandatory                             = true
@@ -13,9 +17,9 @@ resource "jamfpro_computer_prestage_enrollment" "minimum_example" {
   authentication_prompt                 = "hello welcome to your enterprise managed macOS device"
   prevent_activation_lock               = false
   enable_device_based_activation_lock   = false
-  device_enrollment_program_instance_id = "1"
-  platform_sso_enabled                  = true
-  platform_sso_app_bundle_id            = "com.example.app"
+  device_enrollment_program_instance_id = data.jamfpro_device_enrollments.sentinel.id
+  platform_sso_enabled                  = false
+  platform_sso_app_bundle_id            = ""
   skip_setup_items {
     biometric                   = false
     terms_of_address            = false

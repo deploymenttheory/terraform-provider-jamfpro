@@ -39,13 +39,25 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 		ProfileUuid:                        d.Get("profile_uuid").(string),
 		SiteId:                             d.Get("site_id").(string),
 		CustomPackageDistributionPointId:   constructors.GetHCLStringOrDefaultInteger(d, "custom_package_distribution_point_id"),
-		EnrollmentCustomizationId:          d.Get("enrollment_customization_id").(string),
 		Language:                           d.Get("language").(string),
 		Region:                             d.Get("region").(string),
 		AutoAdvanceSetup:                   jamfpro.BoolPtr(d.Get("auto_advance_setup").(bool)),
 		InstallProfilesDuringSetup:         jamfpro.BoolPtr(d.Get("install_profiles_during_setup").(bool)),
-		PssoEnabled:                        jamfpro.BoolPtr(d.Get("platform_sso_enabled").(bool)),
 		PlatformSsoAppBundleId:             d.Get("platform_sso_app_bundle_id").(string),
+	}
+
+	if customizationID := d.Get("enrollment_customization_id").(string); customizationID != "" && customizationID != "0" {
+		resource.EnrollmentCustomizationId = customizationID
+	}
+
+	if configProfileID := d.Get("psso_config_profile_id").(string); configProfileID != "" && configProfileID != "-1" {
+		resource.PssoConfigProfileId = configProfileID
+	}
+
+	if rawConfig := d.GetRawConfig(); !rawConfig.IsNull() {
+		if raw := rawConfig.GetAttr("platform_sso_enabled"); !raw.IsNull() {
+			resource.PssoEnabled = jamfpro.BoolPtr(d.Get("platform_sso_enabled").(bool))
+		}
 	}
 
 	if v, ok := d.GetOk("skip_setup_items"); ok && len(v.([]any)) > 0 {
