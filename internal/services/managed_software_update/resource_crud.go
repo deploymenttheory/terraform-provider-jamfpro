@@ -48,22 +48,14 @@ func create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Managed Software Update after retries: %v", err))
 	}
 
-	if len(creationResponse.Plans) > 0 {
-		planUUID := creationResponse.Plans[0].PlanID
-		d.SetId(planUUID)
-		if err := d.Set("plan_uuid", planUUID); err != nil {
-			return diag.FromErr(fmt.Errorf("error setting planID as plan_uuid: %v", err))
-		}
+	if len(creationResponse.Plans) == 0 {
+		return diag.FromErr(fmt.Errorf("failed to create Jamf Pro Managed Software Update: the target group or device has no members, so no plan was created"))
+	}
 
-		// Set group and object_type
-		if resource.Group.GroupId != "" {
-			if err := d.Set("group_id", resource.Group.GroupId); err != nil {
-				return diag.FromErr(fmt.Errorf("error setting group_id: %v", err))
-			}
-			if err := d.Set("object_type", resource.Group.ObjectType); err != nil {
-				return diag.FromErr(fmt.Errorf("error setting object_type: %v", err))
-			}
-		}
+	planUUID := creationResponse.Plans[0].PlanID
+	d.SetId(planUUID)
+	if err := d.Set("plan_uuid", planUUID); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting planID as plan_uuid: %v", err))
 	}
 
 	return append(diags, readNoCleanup(ctx, d, meta)...)
