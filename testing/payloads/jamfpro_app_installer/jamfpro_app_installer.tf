@@ -1,6 +1,6 @@
 resource "jamfpro_app_installer" "jamfpro_app_installer_test_001" {
-  app_title_name  = "010 Editor"
-  name            = "010 Editor"
+  app_title_name  = "Jamf Connect"
+  name            = "Jamf Connect"
   enabled         = true
   deployment_type = "INSTALL_AUTOMATICALLY"
   update_behavior = "AUTOMATIC"
@@ -33,8 +33,8 @@ resource "jamfpro_app_installer" "jamfpro_app_installer_test_001" {
 }
 
 resource "jamfpro_app_installer" "jamfpro_app_installer_test_002" {
-  app_title_name  = "010 Editor"
-  name            = "010 Editor"
+  app_title_name  = "Jamf Connect"
+  name            = "Jamf Connect"
   enabled         = true
   deployment_type = "SELF_SERVICE"
   update_behavior = "AUTOMATIC"
