@@ -12,7 +12,7 @@ import (
 // constructReenrollmentSettings constructs a ResourceReenrollment object from the provided schema data and logs its XML representation.
 func construct(d *schema.ResourceData) (*jamfpro.ResourceReenrollmentSettings, error) {
 	resource := &jamfpro.ResourceReenrollmentSettings{
-		FlushLocationInformation:        d.Get("flush_location_information").(bool), 
+		FlushLocationInformation:        d.Get("flush_location_information").(bool),
 		FlushLocationInformationHistory: d.Get("flush_location_information_history").(bool),
 		FlushPolicyHistory:              d.Get("flush_policy_history").(bool),
 		FlushExtensionAttributes:        d.Get("flush_extension_attributes").(bool),

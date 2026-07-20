@@ -54,9 +54,9 @@ func ResourceReenrollmentSettings() *schema.Resource {
 				Description: "Clears all values for software update plans from computer and mobile device inventory information during re-enrollment.",
 			},
 			"flush_mdm_queue": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Clears computer and mobile device information from the Management History category on the History tab in inventory information during re-enrollment. Valid values are DELETE_NOTHING, DELETE_ERRORS, DELETE_EVERYTHING_EXCEPT_ACKNOWLEDGED, or DELETE_EVERYTHING.",
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "Clears computer and mobile device information from the Management History category on the History tab in inventory information during re-enrollment. Valid values are DELETE_NOTHING, DELETE_ERRORS, DELETE_EVERYTHING_EXCEPT_ACKNOWLEDGED, or DELETE_EVERYTHING.",
 				ValidateFunc: validation.StringInSlice([]string{"DELETE_NOTHING", "DELETE_ERRORS", "DELETE_EVERYTHING_EXCEPT_ACKNOWLEDGED", "DELETE_EVERYTHING"}, false),
 			},
 		},

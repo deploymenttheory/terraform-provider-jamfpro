@@ -245,6 +245,6 @@ func ResourceJamfProPackages() *schema.Resource {
 				Computed:    true,
 				Description: "The URI of the package in the Jamf Cloud Distribution Service (JCDS).",
 			},
-			},
+		},
 	}
 }
