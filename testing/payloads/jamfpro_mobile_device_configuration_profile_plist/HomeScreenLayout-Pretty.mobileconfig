@@ -3,13 +3,13 @@
 <plist version="1.0">
   <dict>
     <key>PayloadUUID</key>
-    <string>B6E9F2A0-0C2E-4E8A-9E3B-7F1D2C4A5B60</string>
+    <string>${uuid_0}</string>
     <key>PayloadType</key>
     <string>Configuration</string>
     <key>PayloadOrganization</key>
     <string>Deployment Theory</string>
     <key>PayloadIdentifier</key>
-    <string>B6E9F2A0-0C2E-4E8A-9E3B-7F1D2C4A5B60</string>
+    <string>${uuid_0}</string>
     <key>PayloadDisplayName</key>
     <string>Home Screen Layout (integration test)</string>
     <key>PayloadDescription</key>
@@ -26,13 +26,13 @@
     <array>
       <dict>
         <key>PayloadUUID</key>
-        <string>C7FA03B1-1D3F-4F9B-AF4C-801E3D5B6C71</string>
+        <string>${uuid_1}</string>
         <key>PayloadType</key>
         <string>com.apple.homescreenlayout</string>
         <key>PayloadOrganization</key>
         <string>Deployment Theory</string>
         <key>PayloadIdentifier</key>
-        <string>C7FA03B1-1D3F-4F9B-AF4C-801E3D5B6C71</string>
+        <string>${uuid_1}</string>
         <key>PayloadDisplayName</key>
         <string>com.apple.homescreenlayout</string>
         <key>PayloadDescription</key>

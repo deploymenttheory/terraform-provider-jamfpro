@@ -24,13 +24,13 @@
 				<key>PayloadDisplayName</key>
 				<string>Single Sign-On Extensions Payload</string>
 				<key>PayloadIdentifier</key>
-				<string>5ED6AC50-6F84-43B8-BBBE-19105C83980B</string>
+				<string>${uuid_0}</string>
 				<key>PayloadOrganization</key>
 				<string>JAMF Software</string>
 				<key>PayloadType</key>
 				<string>com.apple.extensiblesso</string>
 				<key>PayloadUUID</key>
-				<string>5ED6AC50-6F84-43B8-BBBE-19105C83980B</string>
+				<string>${uuid_0}</string>
 				<key>PayloadVersion</key>
 				<integer>1</integer>
 				<key>PlatformSSO</key>
@@ -82,7 +82,7 @@
 		<key>PayloadEnabled</key>
 		<true/>
 		<key>PayloadIdentifier</key>
-		<string>63982F26-7B87-4058-B984-39F1A18A4986</string>
+		<string>${uuid_1}</string>
 		<key>PayloadOrganization</key>
 		<string>Deployment Theory</string>
 		<key>PayloadRemovalDisallowed</key>
@@ -92,7 +92,7 @@
 		<key>PayloadType</key>
 		<string>Configuration</string>
 		<key>PayloadUUID</key>
-		<string>63982F26-7B87-4058-B984-39F1A18A4986</string>
+		<string>${uuid_1}</string>
 		<key>PayloadVersion</key>
 		<integer>1</integer>
 	</dict>

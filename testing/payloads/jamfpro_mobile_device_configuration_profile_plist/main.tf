@@ -1,3 +1,10 @@
+# PayloadUUID/PayloadIdentifier values are derived per run from var.testing_id
+# via uuidv5. The fixtures' static UUIDs collided with profiles orphaned on the
+# shared sandbox by earlier failed runs, which the Classic API rejects with
+# 409 Duplicate payload uuid. uuidv5 is used rather than random_uuid because it
+# is deterministic and known at plan time — an unknown payloads value makes the
+# provider's CustomizeDiff plist validators see an empty string and fail.
+
 resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_device_configuration_profile_002" {
   name = "tf-testing-${var.testing_id}-profile-restrictions-${random_id.rng.hex}"
   // Regression test for issue #1145 - heredoc strings in HCL always include
@@ -9,7 +16,10 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_device_conf
   level              = "Device Level"
   deployment_method  = "Make Available in Self Service"
   redeploy_on_update = "All"
-  payloads           = file("${path.module}/Restrictions-Baseline.mobileconfig")
+  payloads = templatefile("${path.module}/Restrictions-Baseline.mobileconfig", {
+    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-mobile_device_configuration_profile_002-0"))
+    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-mobile_device_configuration_profile_002-1"))
+  })
 
   scope {
     all_mobile_devices = true
@@ -27,7 +37,10 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "home_screen_layout
   level              = "Device Level"
   deployment_method  = "Make Available in Self Service"
   redeploy_on_update = "All"
-  payloads           = file("${path.module}/HomeScreenLayout-Pretty.mobileconfig")
+  payloads = templatefile("${path.module}/HomeScreenLayout-Pretty.mobileconfig", {
+    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-home_screen_layout_pretty-0"))
+    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-home_screen_layout_pretty-1"))
+  })
 
   scope {
     all_mobile_devices = true
@@ -55,8 +68,11 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_wifi_wpa2_e
   level              = "Device Level"
   deployment_method  = "Make Available in Self Service"
   redeploy_on_update = "All"
-  payloads           = file("${path.module}/WiFi-Pretty.mobileconfig")
-  payload_validate   = false
+  payloads = templatefile("${path.module}/WiFi-Pretty.mobileconfig", {
+    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-mobile_wifi_wpa2_enterprise-0"))
+    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-mobile_wifi_wpa2_enterprise-1"))
+  })
+  payload_validate = false
 
   scope {
     all_mobile_devices = true
@@ -73,8 +89,11 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_web_content
   level              = "Device Level"
   deployment_method  = "Make Available in Self Service"
   redeploy_on_update = "All"
-  payloads           = file("${path.module}/WebContentFilter-Pretty.mobileconfig")
-  payload_validate   = false
+  payloads = templatefile("${path.module}/WebContentFilter-Pretty.mobileconfig", {
+    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-mobile_web_content_filter-0"))
+    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-mobile_web_content_filter-1"))
+  })
+  payload_validate = false
 
   scope {
     all_mobile_devices = true
@@ -89,8 +108,11 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_domains" {
   level              = "Device Level"
   deployment_method  = "Make Available in Self Service"
   redeploy_on_update = "All"
-  payloads           = file("${path.module}/Domains-Pretty.mobileconfig")
-  payload_validate   = false
+  payloads = templatefile("${path.module}/Domains-Pretty.mobileconfig", {
+    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-mobile_domains-0"))
+    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-mobile_domains-1"))
+  })
+  payload_validate = false
 
   scope {
     all_mobile_devices = true
@@ -105,8 +127,11 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_certificate
   level              = "Device Level"
   deployment_method  = "Make Available in Self Service"
   redeploy_on_update = "All"
-  payloads           = file("${path.module}/Certificate-Pretty.mobileconfig")
-  payload_validate   = false
+  payloads = templatefile("${path.module}/Certificate-Pretty.mobileconfig", {
+    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-mobile_certificate_root-0"))
+    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-mobile_certificate_root-1"))
+  })
+  payload_validate = false
 
   scope {
     all_mobile_devices = true
@@ -122,8 +147,11 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_notificatio
   level              = "Device Level"
   deployment_method  = "Make Available in Self Service"
   redeploy_on_update = "All"
-  payloads           = file("${path.module}/Notifications-Pretty.mobileconfig")
-  payload_validate   = false
+  payloads = templatefile("${path.module}/Notifications-Pretty.mobileconfig", {
+    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-mobile_notifications-0"))
+    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-mobile_notifications-1"))
+  })
+  payload_validate = false
 
   scope {
     all_mobile_devices = true
@@ -138,8 +166,11 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_exchange" {
   level              = "Device Level"
   deployment_method  = "Make Available in Self Service"
   redeploy_on_update = "All"
-  payloads           = file("${path.module}/Exchange-Pretty.mobileconfig")
-  payload_validate   = false
+  payloads = templatefile("${path.module}/Exchange-Pretty.mobileconfig", {
+    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-mobile_exchange-0"))
+    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-mobile_exchange-1"))
+  })
+  payload_validate = false
 
   scope {
     all_mobile_devices = true

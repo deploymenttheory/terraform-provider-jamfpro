@@ -3,13 +3,13 @@
 <plist version="1.0">
   <dict>
     <key>PayloadUUID</key>
-    <string>EBE61179-9214-4220-A4B2-4C1925D6B29D</string>
+    <string>${uuid_0}</string>
     <key>PayloadType</key>
     <string>Configuration</string>
     <key>PayloadOrganization</key>
     <string>Deployment Theory</string>
     <key>PayloadIdentifier</key>
-    <string>EBE61179-9214-4220-A4B2-4C1925D6B29D</string>
+    <string>${uuid_0}</string>
     <key>PayloadDisplayName</key>
     <string>Exchange ActiveSync (integration test)</string>
     <key>PayloadDescription</key>
@@ -26,13 +26,13 @@
     <array>
       <dict>
         <key>PayloadUUID</key>
-        <string>49477915-D157-4AE3-8BE0-6CE091E459A5</string>
+        <string>${uuid_1}</string>
         <key>PayloadType</key>
         <string>com.apple.eas.account</string>
         <key>PayloadOrganization</key>
         <string>Deployment Theory</string>
         <key>PayloadIdentifier</key>
-        <string>49477915-D157-4AE3-8BE0-6CE091E459A5</string>
+        <string>${uuid_1}</string>
         <key>PayloadDisplayName</key>
         <string>Corporate Mail</string>
         <key>PayloadDescription</key>

@@ -3,13 +3,13 @@
 <plist version="1.0">
   <dict>
     <key>PayloadUUID</key>
-    <string>09EC32B2-24EC-41D9-B1BD-6AA6A95E96F8</string>
+    <string>${uuid_0}</string>
     <key>PayloadType</key>
     <string>Configuration</string>
     <key>PayloadOrganization</key>
     <string>Deployment Theory</string>
     <key>PayloadIdentifier</key>
-    <string>09EC32B2-24EC-41D9-B1BD-6AA6A95E96F8</string>
+    <string>${uuid_0}</string>
     <key>PayloadDisplayName</key>
     <string>Dock (integration test)</string>
     <key>PayloadDescription</key>
@@ -26,13 +26,13 @@
     <array>
       <dict>
         <key>PayloadUUID</key>
-        <string>66853892-1D88-456B-85C6-052BFD2AFA70</string>
+        <string>${uuid_1}</string>
         <key>PayloadType</key>
         <string>com.apple.dock</string>
         <key>PayloadOrganization</key>
         <string>Deployment Theory</string>
         <key>PayloadIdentifier</key>
-        <string>66853892-1D88-456B-85C6-052BFD2AFA70</string>
+        <string>${uuid_1}</string>
         <key>PayloadDisplayName</key>
         <string>Dock</string>
         <key>PayloadDescription</key>

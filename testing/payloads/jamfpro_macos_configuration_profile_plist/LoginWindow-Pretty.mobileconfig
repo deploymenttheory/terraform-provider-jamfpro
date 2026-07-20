@@ -3,13 +3,13 @@
 <plist version="1.0">
   <dict>
     <key>PayloadUUID</key>
-    <string>72578284-2F62-4941-8E9C-4AB9E020FA90</string>
+    <string>${uuid_0}</string>
     <key>PayloadType</key>
     <string>Configuration</string>
     <key>PayloadOrganization</key>
     <string>Deployment Theory</string>
     <key>PayloadIdentifier</key>
-    <string>72578284-2F62-4941-8E9C-4AB9E020FA90</string>
+    <string>${uuid_0}</string>
     <key>PayloadDisplayName</key>
     <string>Login Window (integration test)</string>
     <key>PayloadDescription</key>
@@ -26,13 +26,13 @@
     <array>
       <dict>
         <key>PayloadUUID</key>
-        <string>41458C6D-86EA-4DD9-9320-B9A542519466</string>
+        <string>${uuid_1}</string>
         <key>PayloadType</key>
         <string>com.apple.loginwindow</string>
         <key>PayloadOrganization</key>
         <string>Deployment Theory</string>
         <key>PayloadIdentifier</key>
-        <string>41458C6D-86EA-4DD9-9320-B9A542519466</string>
+        <string>${uuid_1}</string>
         <key>PayloadDisplayName</key>
         <string>Login Window</string>
         <key>PayloadDescription</key>

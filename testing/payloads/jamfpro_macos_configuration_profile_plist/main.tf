@@ -1,3 +1,10 @@
+# PayloadUUID/PayloadIdentifier values are derived per run from var.testing_id
+# via uuidv5. The fixtures' static UUIDs collided with profiles orphaned on the
+# shared sandbox by earlier failed runs, which the Classic API rejects with
+# 409 Duplicate payload uuid. uuidv5 is used rather than random_uuid because it
+# is deterministic and known at plan time — an unknown payloads value makes the
+# provider's CustomizeDiff plist validators see an empty string and fail.
+
 resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuration_profile_064" {
   name = "tf-testing-${var.testing_id}-profile-screen-recording-pppc-${random_id.rng.hex}"
   // Regression test for issue #1145 - heredoc strings in HCL always include
@@ -9,9 +16,13 @@ resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuratio
   level               = "System"
   distribution_method = "Install Automatically"
   redeploy_on_update  = "Newly Assigned"
-  payloads            = file("${path.module}/Screen Recording - Allow Microsoft Teams.mobileconfig")
-  payload_validate    = false
-  user_removable      = false
+  payloads = templatefile("${path.module}/Screen Recording - Allow Microsoft Teams.mobileconfig", {
+    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-jamfpro_macos_configuration_profile_064-0"))
+    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-jamfpro_macos_configuration_profile_064-1"))
+    uuid_2 = upper(uuidv5("dns", "${var.testing_id}-jamfpro_macos_configuration_profile_064-2"))
+  })
+  payload_validate = false
+  user_removable   = false
 
   scope {
     all_computers = true
@@ -30,9 +41,12 @@ resource "jamfpro_macos_configuration_profile_plist" "system_preferences_pretty"
   level               = "System"
   distribution_method = "Install Automatically"
   redeploy_on_update  = "Newly Assigned"
-  payloads            = file("${path.module}/SystemPreferences-Pretty.mobileconfig")
-  payload_validate    = false
-  user_removable      = false
+  payloads = templatefile("${path.module}/SystemPreferences-Pretty.mobileconfig", {
+    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-system_preferences_pretty-0"))
+    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-system_preferences_pretty-1"))
+  })
+  payload_validate = false
+  user_removable   = false
 
   scope {
     all_computers = true
@@ -50,9 +64,12 @@ resource "jamfpro_macos_configuration_profile_plist" "dock_pretty" {
   level               = "System"
   distribution_method = "Install Automatically"
   redeploy_on_update  = "Newly Assigned"
-  payloads            = file("${path.module}/Dock-Pretty.mobileconfig")
-  payload_validate    = false
-  user_removable      = false
+  payloads = templatefile("${path.module}/Dock-Pretty.mobileconfig", {
+    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-dock_pretty-0"))
+    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-dock_pretty-1"))
+  })
+  payload_validate = false
+  user_removable   = false
 
   scope {
     all_computers = true
@@ -66,9 +83,12 @@ resource "jamfpro_macos_configuration_profile_plist" "login_window_pretty" {
   level               = "System"
   distribution_method = "Install Automatically"
   redeploy_on_update  = "Newly Assigned"
-  payloads            = file("${path.module}/LoginWindow-Pretty.mobileconfig")
-  payload_validate    = false
-  user_removable      = false
+  payloads = templatefile("${path.module}/LoginWindow-Pretty.mobileconfig", {
+    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-login_window_pretty-0"))
+    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-login_window_pretty-1"))
+  })
+  payload_validate = false
+  user_removable   = false
 
   scope {
     all_computers = true
@@ -82,9 +102,12 @@ resource "jamfpro_macos_configuration_profile_plist" "screensaver_pretty" {
   level               = "System"
   distribution_method = "Install Automatically"
   redeploy_on_update  = "Newly Assigned"
-  payloads            = file("${path.module}/Screensaver-Pretty.mobileconfig")
-  payload_validate    = false
-  user_removable      = false
+  payloads = templatefile("${path.module}/Screensaver-Pretty.mobileconfig", {
+    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-screensaver_pretty-0"))
+    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-screensaver_pretty-1"))
+  })
+  payload_validate = false
+  user_removable   = false
 
   scope {
     all_computers = true
@@ -110,9 +133,12 @@ resource "jamfpro_macos_configuration_profile_plist" "macos_cis_compliance" {
   level               = "System"
   distribution_method = "Install Automatically"
   redeploy_on_update  = "Newly Assigned"
-  payloads            = file("${path.module}/DT-CIS-Compliance-ManagedPreferences.mobileconfig")
-  payload_validate    = false
-  user_removable      = false
+  payloads = templatefile("${path.module}/DT-CIS-Compliance-ManagedPreferences.mobileconfig", {
+    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-macos_cis_compliance-0"))
+    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-macos_cis_compliance-1"))
+  })
+  payload_validate = false
+  user_removable   = false
 
   scope {
     all_computers = true
@@ -127,9 +153,12 @@ resource "jamfpro_macos_configuration_profile_plist" "macos_chrome_restrictions"
   level               = "System"
   distribution_method = "Install Automatically"
   redeploy_on_update  = "Newly Assigned"
-  payloads            = file("${path.module}/DT-GoogleChrome-Restrictions.mobileconfig")
-  payload_validate    = false
-  user_removable      = false
+  payloads = templatefile("${path.module}/DT-GoogleChrome-Restrictions.mobileconfig", {
+    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-macos_chrome_restrictions-0"))
+    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-macos_chrome_restrictions-1"))
+  })
+  payload_validate = false
+  user_removable   = false
 
   scope {
     all_computers = true
@@ -144,9 +173,13 @@ resource "jamfpro_macos_configuration_profile_plist" "macos_notifications" {
   level               = "System"
   distribution_method = "Install Automatically"
   redeploy_on_update  = "Newly Assigned"
-  payloads            = file("${path.module}/DT-Notifications-LockScreen.mobileconfig")
-  payload_validate    = false
-  user_removable      = false
+  payloads = templatefile("${path.module}/DT-Notifications-LockScreen.mobileconfig", {
+    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-macos_notifications-0"))
+    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-macos_notifications-1"))
+    uuid_2 = upper(uuidv5("dns", "${var.testing_id}-macos_notifications-2"))
+  })
+  payload_validate = false
+  user_removable   = false
 
   scope {
     all_computers = true
@@ -161,9 +194,13 @@ resource "jamfpro_macos_configuration_profile_plist" "macos_wss_vpn" {
   level               = "System"
   distribution_method = "Install Automatically"
   redeploy_on_update  = "Newly Assigned"
-  payloads            = file("${path.module}/DT-Symantec-WSS-VPN.mobileconfig")
-  payload_validate    = false
-  user_removable      = false
+  payloads = templatefile("${path.module}/DT-Symantec-WSS-VPN.mobileconfig", {
+    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-macos_wss_vpn-0"))
+    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-macos_wss_vpn-1"))
+    uuid_2 = upper(uuidv5("dns", "${var.testing_id}-macos_wss_vpn-2"))
+  })
+  payload_validate = false
+  user_removable   = false
 
   scope {
     all_computers = true
@@ -178,9 +215,12 @@ resource "jamfpro_macos_configuration_profile_plist" "macos_teams_pppc" {
   level               = "System"
   distribution_method = "Install Automatically"
   redeploy_on_update  = "Newly Assigned"
-  payloads            = file("${path.module}/DT-MicrosoftTeams-PPPC.mobileconfig")
-  payload_validate    = false
-  user_removable      = false
+  payloads = templatefile("${path.module}/DT-MicrosoftTeams-PPPC.mobileconfig", {
+    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-macos_teams_pppc-0"))
+    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-macos_teams_pppc-1"))
+  })
+  payload_validate = false
+  user_removable   = false
 
   scope {
     all_computers = true
@@ -195,9 +235,12 @@ resource "jamfpro_macos_configuration_profile_plist" "macos_accessibility_zoom" 
   level               = "System"
   distribution_method = "Install Automatically"
   redeploy_on_update  = "Newly Assigned"
-  payloads            = file("${path.module}/DT-Accessibility-Zoom.mobileconfig")
-  payload_validate    = false
-  user_removable      = false
+  payloads = templatefile("${path.module}/DT-Accessibility-Zoom.mobileconfig", {
+    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-macos_accessibility_zoom-0"))
+    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-macos_accessibility_zoom-1"))
+  })
+  payload_validate = false
+  user_removable   = false
 
   scope {
     all_computers = true
@@ -212,9 +255,16 @@ resource "jamfpro_macos_configuration_profile_plist" "macos_filevault" {
   level               = "System"
   distribution_method = "Install Automatically"
   redeploy_on_update  = "Newly Assigned"
-  payloads            = file("${path.module}/DT-FileVault-DiskEncryption.mobileconfig")
-  payload_validate    = false
-  user_removable      = false
+  payloads = templatefile("${path.module}/DT-FileVault-DiskEncryption.mobileconfig", {
+    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-macos_filevault-0"))
+    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-macos_filevault-1"))
+    uuid_2 = upper(uuidv5("dns", "${var.testing_id}-macos_filevault-2"))
+    uuid_3 = upper(uuidv5("dns", "${var.testing_id}-macos_filevault-3"))
+    uuid_4 = upper(uuidv5("dns", "${var.testing_id}-macos_filevault-4"))
+    uuid_5 = upper(uuidv5("dns", "${var.testing_id}-macos_filevault-5"))
+  })
+  payload_validate = false
+  user_removable   = false
 
   scope {
     all_computers = true
@@ -229,9 +279,12 @@ resource "jamfpro_macos_configuration_profile_plist" "macos_login_items" {
   level               = "System"
   distribution_method = "Install Automatically"
   redeploy_on_update  = "Newly Assigned"
-  payloads            = file("${path.module}/DT-Managed-LoginItems.mobileconfig")
-  payload_validate    = false
-  user_removable      = false
+  payloads = templatefile("${path.module}/DT-Managed-LoginItems.mobileconfig", {
+    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-macos_login_items-0"))
+    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-macos_login_items-1"))
+  })
+  payload_validate = false
+  user_removable   = false
 
   scope {
     all_computers = true
@@ -246,9 +299,12 @@ resource "jamfpro_macos_configuration_profile_plist" "macos_platform_sso" {
   level               = "System"
   distribution_method = "Install Automatically"
   redeploy_on_update  = "Newly Assigned"
-  payloads            = file("${path.module}/DT-Microsoft-PlatformSSO.mobileconfig")
-  payload_validate    = false
-  user_removable      = false
+  payloads = templatefile("${path.module}/DT-Microsoft-PlatformSSO.mobileconfig", {
+    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-macos_platform_sso-0"))
+    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-macos_platform_sso-1"))
+  })
+  payload_validate = false
+  user_removable   = false
 
   scope {
     all_computers = true
@@ -263,9 +319,12 @@ resource "jamfpro_macos_configuration_profile_plist" "macos_system_extensions" {
   level               = "System"
   distribution_method = "Install Automatically"
   redeploy_on_update  = "Newly Assigned"
-  payloads            = file("${path.module}/DT-System-Extensions.mobileconfig")
-  payload_validate    = false
-  user_removable      = false
+  payloads = templatefile("${path.module}/DT-System-Extensions.mobileconfig", {
+    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-macos_system_extensions-0"))
+    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-macos_system_extensions-1"))
+  })
+  payload_validate = false
+  user_removable   = false
 
   scope {
     all_computers = true

@@ -26,13 +26,13 @@
 				<key>PayloadEnabled</key>
 				<true/>
 				<key>PayloadIdentifier</key>
-				<string>3F63DD89-4654-45BA-933B-9D152FF36EFF</string>
+				<string>${uuid_0}</string>
 				<key>PayloadOrganization</key>
 				<string>Deployment Theory</string>
 				<key>PayloadType</key>
 				<string>com.apple.vpn.managed</string>
 				<key>PayloadUUID</key>
-				<string>3F63DD89-4654-45BA-933B-9D152FF36EFF</string>
+				<string>${uuid_0}</string>
 				<key>PayloadVersion</key>
 				<integer>1</integer>
 				<key>Proxies</key>
@@ -91,13 +91,13 @@
 				<key>PayloadEnabled</key>
 				<true/>
 				<key>PayloadIdentifier</key>
-				<string>9D992E58-4E47-4B48-8BD1-B954C6D9828A</string>
+				<string>${uuid_1}</string>
 				<key>PayloadOrganization</key>
 				<string>Deployment Theory</string>
 				<key>PayloadType</key>
 				<string>com.apple.vpn.managed</string>
 				<key>PayloadUUID</key>
-				<string>9D992E58-4E47-4B48-8BD1-B954C6D9828A</string>
+				<string>${uuid_1}</string>
 				<key>PayloadVersion</key>
 				<integer>1</integer>
 				<key>Proxies</key>
@@ -142,7 +142,7 @@
 		<key>PayloadEnabled</key>
 		<true/>
 		<key>PayloadIdentifier</key>
-		<string>76875acb-651a-4156-8124-82e503dc1a57</string>
+		<string>${uuid_2}</string>
 		<key>PayloadOrganization</key>
 		<string>Deployment Theory</string>
 		<key>PayloadRemovalDisallowed</key>
@@ -152,7 +152,7 @@
 		<key>PayloadType</key>
 		<string>Configuration</string>
 		<key>PayloadUUID</key>
-		<string>76875acb-651a-4156-8124-82e503dc1a57</string>
+		<string>${uuid_2}</string>
 		<key>PayloadVersion</key>
 		<integer>1</integer>
 	</dict>

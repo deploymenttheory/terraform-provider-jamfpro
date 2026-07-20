@@ -8,13 +8,13 @@
 				<key>PayloadDisplayName</key>
 				<string>Managed Login Items</string>
 				<key>PayloadIdentifier</key>
-				<string>989BD547-023E-4BB0-96C0-A0F8B6B48D9D</string>
+				<string>${uuid_0}</string>
 				<key>PayloadOrganization</key>
 				<string>JAMF Software</string>
 				<key>PayloadType</key>
 				<string>com.apple.servicemanagement</string>
 				<key>PayloadUUID</key>
-				<string>989BD547-023E-4BB0-96C0-A0F8B6B48D9D</string>
+				<string>${uuid_0}</string>
 				<key>PayloadVersion</key>
 				<integer>1</integer>
 				<key>Rules</key>
@@ -93,7 +93,7 @@
 		<key>PayloadEnabled</key>
 		<true/>
 		<key>PayloadIdentifier</key>
-		<string>64F903B7-535A-4A83-B14C-2B9EC427E2CB</string>
+		<string>${uuid_1}</string>
 		<key>PayloadOrganization</key>
 		<string>Deployment Theory</string>
 		<key>PayloadRemovalDisallowed</key>
@@ -103,7 +103,7 @@
 		<key>PayloadType</key>
 		<string>Configuration</string>
 		<key>PayloadUUID</key>
-		<string>64F903B7-535A-4A83-B14C-2B9EC427E2CB</string>
+		<string>${uuid_1}</string>
 		<key>PayloadVersion</key>
 		<integer>1</integer>
 	</dict>

@@ -12,13 +12,13 @@
 				<key>PayloadEnabled</key>
 				<true/>
 				<key>PayloadIdentifier</key>
-				<string>EFCB1B4F-0310-4B93-B0E0-18DCCEF72A58</string>
+				<string>${uuid_0}</string>
 				<key>PayloadOrganization</key>
 				<string>Deployment Theory</string>
 				<key>PayloadType</key>
 				<string>com.apple.TCC.configuration-profile-policy</string>
 				<key>PayloadUUID</key>
-				<string>EFCB1B4F-0310-4B93-B0E0-18DCCEF72A58</string>
+				<string>${uuid_0}</string>
 				<key>PayloadVersion</key>
 				<integer>1</integer>
 				<key>Services</key>
@@ -123,7 +123,7 @@
 		<key>PayloadEnabled</key>
 		<true/>
 		<key>PayloadIdentifier</key>
-		<string>49a8c96a-395a-4c6b-8793-838f8878dbc2</string>
+		<string>${uuid_1}</string>
 		<key>PayloadOrganization</key>
 		<string>Deployment Theory</string>
 		<key>PayloadRemovalDisallowed</key>
@@ -133,7 +133,7 @@
 		<key>PayloadType</key>
 		<string>Configuration</string>
 		<key>PayloadUUID</key>
-		<string>49a8c96a-395a-4c6b-8793-838f8878dbc2</string>
+		<string>${uuid_1}</string>
 		<key>PayloadVersion</key>
 		<integer>1</integer>
 	</dict>

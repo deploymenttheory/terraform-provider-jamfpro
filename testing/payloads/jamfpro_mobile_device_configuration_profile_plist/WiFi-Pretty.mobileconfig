@@ -3,13 +3,13 @@
 <plist version="1.0">
   <dict>
     <key>PayloadUUID</key>
-    <string>4031E313-147E-407D-B2E6-86BEE9B6C6E9</string>
+    <string>${uuid_0}</string>
     <key>PayloadType</key>
     <string>Configuration</string>
     <key>PayloadOrganization</key>
     <string>Deployment Theory</string>
     <key>PayloadIdentifier</key>
-    <string>4031E313-147E-407D-B2E6-86BEE9B6C6E9</string>
+    <string>${uuid_0}</string>
     <key>PayloadDisplayName</key>
     <string>WiFi - WPA2 Enterprise (integration test)</string>
     <key>PayloadDescription</key>
@@ -26,13 +26,13 @@
     <array>
       <dict>
         <key>PayloadUUID</key>
-        <string>8D484F29-1485-4435-A197-4E14D1AD9E62</string>
+        <string>${uuid_1}</string>
         <key>PayloadType</key>
         <string>com.apple.wifi.managed</string>
         <key>PayloadOrganization</key>
         <string>Deployment Theory</string>
         <key>PayloadIdentifier</key>
-        <string>8D484F29-1485-4435-A197-4E14D1AD9E62</string>
+        <string>${uuid_1}</string>
         <key>PayloadDisplayName</key>
         <string>WiFi (DT-Corp)</string>
         <key>PayloadDescription</key>

@@ -21,13 +21,13 @@
 				<key>PayloadEnabled</key>
 				<true/>
 				<key>PayloadIdentifier</key>
-				<string>4D97261E-C2EC-4806-86A7-1BAE25889890</string>
+				<string>${uuid_0}</string>
 				<key>PayloadOrganization</key>
 				<string>Deployment Theory</string>
 				<key>PayloadType</key>
 				<string>com.apple.system-extension-policy</string>
 				<key>PayloadUUID</key>
-				<string>4D97261E-C2EC-4806-86A7-1BAE25889890</string>
+				<string>${uuid_0}</string>
 				<key>PayloadVersion</key>
 				<integer>1</integer>
 			</dict>
@@ -39,7 +39,7 @@
 		<key>PayloadEnabled</key>
 		<true/>
 		<key>PayloadIdentifier</key>
-		<string>f18da630-f483-4fce-a4a3-3e5c4e699fcf</string>
+		<string>${uuid_1}</string>
 		<key>PayloadOrganization</key>
 		<string>Deployment Theory</string>
 		<key>PayloadRemovalDisallowed</key>
@@ -49,7 +49,7 @@
 		<key>PayloadType</key>
 		<string>Configuration</string>
 		<key>PayloadUUID</key>
-		<string>f18da630-f483-4fce-a4a3-3e5c4e699fcf</string>
+		<string>${uuid_1}</string>
 		<key>PayloadVersion</key>
 		<integer>1</integer>
 	</dict>

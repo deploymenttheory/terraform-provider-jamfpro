@@ -3,13 +3,13 @@
 <plist version="1.0">
   <dict>
     <key>PayloadUUID</key>
-    <string>5A583A02-67D4-4D55-B759-FDBF01B5C2BB</string>
+    <string>${uuid_0}</string>
     <key>PayloadType</key>
     <string>Configuration</string>
     <key>PayloadOrganization</key>
     <string>Deployment Theory</string>
     <key>PayloadIdentifier</key>
-    <string>5A583A02-67D4-4D55-B759-FDBF01B5C2BB</string>
+    <string>${uuid_0}</string>
     <key>PayloadDisplayName</key>
     <string>Web Content Filter - Allowlist (integration test)</string>
     <key>PayloadDescription</key>
@@ -26,13 +26,13 @@
     <array>
       <dict>
         <key>PayloadUUID</key>
-        <string>DE9BA3AE-C388-49EB-80ED-5AB3EB7738C6</string>
+        <string>${uuid_1}</string>
         <key>PayloadType</key>
         <string>com.apple.webcontent-filter</string>
         <key>PayloadOrganization</key>
         <string>Deployment Theory</string>
         <key>PayloadIdentifier</key>
-        <string>DE9BA3AE-C388-49EB-80ED-5AB3EB7738C6</string>
+        <string>${uuid_1}</string>
         <key>PayloadDisplayName</key>
         <string>Web Content Filter</string>
         <key>PayloadDescription</key>

@@ -12,13 +12,13 @@
 				<key>PayloadEnabled</key>
 				<true/>
 				<key>PayloadIdentifier</key>
-				<string>F2D592F8-F28D-40CC-90F0-2053D585C183</string>
+				<string>${uuid_0}</string>
 				<key>PayloadOrganization</key>
 				<string>Deployment Theory</string>
 				<key>PayloadType</key>
 				<string>com.apple.universalaccess</string>
 				<key>PayloadUUID</key>
-				<string>F2D592F8-F28D-40CC-90F0-2053D585C183</string>
+				<string>${uuid_0}</string>
 				<key>PayloadVersion</key>
 				<integer>1</integer>
 				<key>closeViewFarPoint</key>
@@ -76,7 +76,7 @@
 		<key>PayloadEnabled</key>
 		<true/>
 		<key>PayloadIdentifier</key>
-		<string>8f3dc577-659a-48df-8e5d-93f0614f2e3e</string>
+		<string>${uuid_1}</string>
 		<key>PayloadOrganization</key>
 		<string>Deployment Theory</string>
 		<key>PayloadRemovalDisallowed</key>
@@ -86,7 +86,7 @@
 		<key>PayloadType</key>
 		<string>Configuration</string>
 		<key>PayloadUUID</key>
-		<string>8f3dc577-659a-48df-8e5d-93f0614f2e3e</string>
+		<string>${uuid_1}</string>
 		<key>PayloadVersion</key>
 		<integer>1</integer>
 	</dict>

@@ -10,13 +10,13 @@
 			<key>PayloadDisplayName</key>
 			<string>System Preferences (integration test)</string>
 			<key>PayloadIdentifier</key>
-			<string>9D4B7E61-2A0F-4C3D-9E2A-5B6C7D8E9F01</string>
+			<string>${uuid_0}</string>
 			<key>PayloadOrganization</key>
 			<string>Deployment Theory</string>
 			<key>PayloadType</key>
 			<string>com.apple.systempreferences</string>
 			<key>PayloadUUID</key>
-			<string>9D4B7E61-2A0F-4C3D-9E2A-5B6C7D8E9F01</string>
+			<string>${uuid_0}</string>
 			<key>PayloadVersion</key>
 			<integer>1</integer>
 			<key>DisabledPreferencePanes</key>
@@ -37,7 +37,7 @@
 	<key>PayloadDisplayName</key>
 	<string>System Preferences (integration test)</string>
 	<key>PayloadIdentifier</key>
-	<string>A1C2E3F4-5061-4273-8495-A6B7C8D9E0F1</string>
+	<string>${uuid_1}</string>
 	<key>PayloadOrganization</key>
 	<string>Deployment Theory</string>
 	<key>PayloadScope</key>
@@ -45,7 +45,7 @@
 	<key>PayloadType</key>
 	<string>Configuration</string>
 	<key>PayloadUUID</key>
-	<string>A1C2E3F4-5061-4273-8495-A6B7C8D9E0F1</string>
+	<string>${uuid_1}</string>
 	<key>PayloadVersion</key>
 	<integer>1</integer>
 </dict>

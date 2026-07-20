@@ -10,13 +10,13 @@
 			<key>PayloadDisplayName</key>
 			<string>Screen Recording - Allow Microsoft Teams</string>
 			<key>PayloadIdentifier</key>
-			<string>B0FDCF57-CD83-48BC-8250-805B9B82E356</string>
+			<string>${uuid_0}</string>
 			<key>PayloadOrganization</key>
 			<string>dataJAR Ltd</string>
 			<key>PayloadType</key>
 			<string>com.apple.TCC.configuration-profile-policy</string>
 			<key>PayloadUUID</key>
-			<string>F2F99141-3DDE-42BC-8C61-9BE9D2D209F6</string>
+			<string>${uuid_1}</string>
 			<key>PayloadVersion</key>
 			<integer>1</integer>
 			<key>Services</key>
@@ -56,7 +56,7 @@
 	<key>PayloadDisplayName</key>
 	<string>Screen Recording - Allow Microsoft Teams</string>
 	<key>PayloadIdentifier</key>
-	<string>B0FDCF57-CD83-48BC-8250-805B9B82E356</string>
+	<string>${uuid_0}</string>
 	<key>PayloadOrganization</key>
 	<string>dataJAR Ltd</string>
 	<key>PayloadScope</key>
@@ -64,7 +64,7 @@
 	<key>PayloadType</key>
 	<string>Configuration</string>
 	<key>PayloadUUID</key>
-	<string>C5B01095-BA42-4C86-A04A-41C9C9760463</string>
+	<string>${uuid_2}</string>
 	<key>PayloadVersion</key>
 	<integer>1</integer>
 </dict>

@@ -3,13 +3,13 @@
 <plist version="1.0">
   <dict>
     <key>PayloadUUID</key>
-    <string>D002F37B-84C0-4CEB-B4C2-88B698CECDD5</string>
+    <string>${uuid_0}</string>
     <key>PayloadType</key>
     <string>Configuration</string>
     <key>PayloadOrganization</key>
     <string>Deployment Theory</string>
     <key>PayloadIdentifier</key>
-    <string>D002F37B-84C0-4CEB-B4C2-88B698CECDD5</string>
+    <string>${uuid_0}</string>
     <key>PayloadDisplayName</key>
     <string>Screensaver (integration test)</string>
     <key>PayloadDescription</key>
@@ -26,13 +26,13 @@
     <array>
       <dict>
         <key>PayloadUUID</key>
-        <string>55D7F369-B0B7-4932-A6FE-826B12322EC7</string>
+        <string>${uuid_1}</string>
         <key>PayloadType</key>
         <string>com.apple.screensaver</string>
         <key>PayloadOrganization</key>
         <string>Deployment Theory</string>
         <key>PayloadIdentifier</key>
-        <string>55D7F369-B0B7-4932-A6FE-826B12322EC7</string>
+        <string>${uuid_1}</string>
         <key>PayloadDisplayName</key>
         <string>Screensaver</string>
         <key>PayloadDescription</key>

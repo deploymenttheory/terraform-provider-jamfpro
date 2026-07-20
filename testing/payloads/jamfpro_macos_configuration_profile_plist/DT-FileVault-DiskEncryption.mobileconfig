@@ -20,13 +20,13 @@
 				<key>PayloadEnabled</key>
 				<true/>
 				<key>PayloadIdentifier</key>
-				<string>0529DABA-F06A-4837-A2F3-8DE90DCA0C29</string>
+				<string>${uuid_0}</string>
 				<key>PayloadOrganization</key>
 				<string>Deployment Theory</string>
 				<key>PayloadType</key>
 				<string>com.apple.security.pkcs1</string>
 				<key>PayloadUUID</key>
-				<string>515851b2-9b26-4739-9801-0675a7584316</string>
+				<string>${uuid_1}</string>
 				<key>PayloadVersion</key>
 				<integer>1</integer>
 			</dict>
@@ -38,13 +38,13 @@
 				<key>PayloadDisplayName</key>
 				<string>FileVault</string>
 				<key>PayloadIdentifier</key>
-				<string>40CF4F93-2B02-4F5F-84AC-65613318B8E2</string>
+				<string>${uuid_2}</string>
 				<key>PayloadOrganization</key>
 				<string>JAMF Software</string>
 				<key>PayloadType</key>
 				<string>com.apple.MCX.FileVault2</string>
 				<key>PayloadUUID</key>
-				<string>40CF4F93-2B02-4F5F-84AC-65613318B8E2</string>
+				<string>${uuid_2}</string>
 				<key>PayloadVersion</key>
 				<integer>1</integer>
 				<key>ShowRecoveryKey</key>
@@ -54,19 +54,19 @@
 			</dict>
 			<dict>
 				<key>EncryptCertPayloadUUID</key>
-				<string>515851b2-9b26-4739-9801-0675a7584316</string>
+				<string>${uuid_1}</string>
 				<key>Location</key>
 				<string>JAMF - Deployment Theory</string>
 				<key>PayloadDisplayName</key>
 				<string>FileVault Recovery Key Escrow</string>
 				<key>PayloadIdentifier</key>
-				<string>E4415E98-431C-4A98-96CC-EE8E0F4D07AE</string>
+				<string>${uuid_3}</string>
 				<key>PayloadOrganization</key>
 				<string>JAMF Software</string>
 				<key>PayloadType</key>
 				<string>com.apple.security.FDERecoveryKeyEscrow</string>
 				<key>PayloadUUID</key>
-				<string>E4415E98-431C-4A98-96CC-EE8E0F4D07AE</string>
+				<string>${uuid_3}</string>
 				<key>PayloadVersion</key>
 				<integer>1</integer>
 			</dict>
@@ -76,13 +76,13 @@
 				<key>PayloadDisplayName</key>
 				<string>MCX</string>
 				<key>PayloadIdentifier</key>
-				<string>7D2619F6-5698-478A-9ECB-F9AE38A42B3B</string>
+				<string>${uuid_4}</string>
 				<key>PayloadOrganization</key>
 				<string>JAMF Software</string>
 				<key>PayloadType</key>
 				<string>com.apple.MCX</string>
 				<key>PayloadUUID</key>
-				<string>7D2619F6-5698-478A-9ECB-F9AE38A42B3B</string>
+				<string>${uuid_4}</string>
 				<key>PayloadVersion</key>
 				<integer>1</integer>
 				<key>dontAllowFDEDisable</key>
@@ -96,7 +96,7 @@
 		<key>PayloadEnabled</key>
 		<true/>
 		<key>PayloadIdentifier</key>
-		<string>D9310535-F1D8-489A-9E77-1A350E107D51</string>
+		<string>${uuid_5}</string>
 		<key>PayloadOrganization</key>
 		<string>Deployment Theory</string>
 		<key>PayloadRemovalDisallowed</key>
@@ -106,7 +106,7 @@
 		<key>PayloadType</key>
 		<string>Configuration</string>
 		<key>PayloadUUID</key>
-		<string>D9310535-F1D8-489A-9E77-1A350E107D51</string>
+		<string>${uuid_5}</string>
 		<key>PayloadVersion</key>
 		<integer>1</integer>
 	</dict>

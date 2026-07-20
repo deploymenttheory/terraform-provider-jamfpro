@@ -183,13 +183,13 @@
 				<key>PayloadDisplayName</key>
 				<string>Notifications Payload</string>
 				<key>PayloadIdentifier</key>
-				<string>47FB4897-ED57-4910-BED7-60FD3879AA85</string>
+				<string>${uuid_0}</string>
 				<key>PayloadOrganization</key>
 				<string>JAMF Software</string>
 				<key>PayloadType</key>
 				<string>com.apple.notificationsettings</string>
 				<key>PayloadUUID</key>
-				<string>632FA24E-0217-440E-A5BE-1FC1EEC69EFA</string>
+				<string>${uuid_1}</string>
 				<key>PayloadVersion</key>
 				<integer>1</integer>
 			</dict>
@@ -201,7 +201,7 @@
 		<key>PayloadEnabled</key>
 		<true/>
 		<key>PayloadIdentifier</key>
-		<string>24B7CAF7-5670-451F-93B3-28D0FE40CE04</string>
+		<string>${uuid_2}</string>
 		<key>PayloadOrganization</key>
 		<string>Deployment Theory</string>
 		<key>PayloadRemovalDisallowed</key>
@@ -211,7 +211,7 @@
 		<key>PayloadType</key>
 		<string>Configuration</string>
 		<key>PayloadUUID</key>
-		<string>24B7CAF7-5670-451F-93B3-28D0FE40CE04</string>
+		<string>${uuid_2}</string>
 		<key>PayloadVersion</key>
 		<integer>1</integer>
 	</dict>
