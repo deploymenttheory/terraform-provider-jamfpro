@@ -129,11 +129,16 @@ jobs:
 
 
       - name: 5s Delay to Allow Jamf API to Settle
+        if: always() && env.TARGETS != 'compileonly'
         run: sleep 5
 
 
+      # always(): a bare `if:` still implies success(), so a failed test run
+      # used to skip cleanup entirely. Every red run then leaked its objects
+      # into the shared sandbox, and those orphans collided with the next run
+      # (409 Duplicate payload uuid) — a failure loop that sustains itself.
       - name: Cleanup
-        if: env.TARGETS != 'compileonly'
+        if: always() && env.TARGETS != 'compileonly'
         id: cleanup
         working-directory: ./testing
         run: |

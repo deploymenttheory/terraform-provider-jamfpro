@@ -2,6 +2,7 @@ import os
 import sys
 from optparse import OptionParser
 import jamfpy
+from jamfpy.endpoints.models import ClassicEndpoint
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 load_dotenv()
@@ -94,6 +95,20 @@ def purge_classic_test_resources(resource_instance, resource_type_string):
             logger.warning(f"FAILED to DELETE {resource_type_string} id:{res_id}\n Reason: {error_response}")
 
 
+# STOPGAP: jamfpy ships an endpoint for macOS configuration profiles but not
+# for mobile device ones, so it is defined here rather than pulled off
+# instance.classic like every other entry below. Added upstream in
+# thejoeker12/jamfpy-python-sdk-jamfpro#54 — once that is released, delete this
+# class and use instance.classic.mobile_device_configuration_profiles instead.
+#
+# Note the JSON list-wrapper key is "configuration_profiles"; it is the macOS
+# endpoint that carries the os_x_ prefix.
+class MobileDeviceConfigurationProfiles(ClassicEndpoint):
+    """Classic API endpoint for mobile device configuration profiles."""
+    _uri = "/mobiledeviceconfigurationprofiles"
+    _name = "configuration_profiles"
+
+
 # ============================================================================ #
 # Add resources to be deleted below
 purge_classic_test_resources(instance.classic.scripts, "scripts")
@@ -105,3 +120,5 @@ purge_classic_test_resources(instance.classic.mobile_device_groups, "mobile_devi
 purge_classic_test_resources(instance.classic.sites, "sites")
 purge_classic_test_resources(instance.classic.computers, "computers")
 purge_classic_test_resources(instance.classic.departments, "departments")
+purge_classic_test_resources(instance.classic.configuration_profiles, "os_x_configuration_profiles")
+purge_classic_test_resources(MobileDeviceConfigurationProfiles(instance.classic), "configuration_profiles")
