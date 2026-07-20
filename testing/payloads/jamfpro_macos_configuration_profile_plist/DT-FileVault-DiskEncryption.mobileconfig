@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<key>PayloadContent</key>
+		<array>
+			<dict>
+				<key>AllowAllAppsAccess</key>
+				<false/>
+				<key>KeyIsExtractable</key>
+				<true/>
+				<key>PayloadCertificateFileName</key>
+				<string>FileVault2Comm.cer</string>
+				<key>PayloadContent</key>
+				<data>MIIDhzCCAm+gAwIBAgIUQMcS6k1IHtnVRJNnR2jbBPFvAhAwDQYJKoZIhvcNAQELBQAwUzEXMBUGA1UECwwORklMRVZBVUxUMkNPTU0xODA2BgNVBAMML0RlcGxveW1lbnQgVGhlb3J5IEZpbGVWYXVsdCBSZWNvdmVyeSBLZXkgRXNjcm93MB4XDTI2MDYyMzA2MzU0MloXDTM2MDYyMDA2MzU0MlowUzEXMBUGA1UECwwORklMRVZBVUxUMkNPTU0xODA2BgNVBAMML0RlcGxveW1lbnQgVGhlb3J5IEZpbGVWYXVsdCBSZWNvdmVyeSBLZXkgRXNjcm93MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAraOtoflSr5GMm0sA3+ijr6XzL0q6lzgVemguR7m2sYHk9GAqYZEUgDk5fXEY10P0eb/LL5yDCUpw0JNNfAVPf81/zyUUQMRwv3mb7lHnbvK9V1KOS52VecFthw0xJPm7XazqHxwUgSZVtWDKiofQD/MdhxVQUKS05dAB/Bh9raFLi4uL0tLQ1uSABaZ2UJlX2UREnilei1UEkq8+VvxB1Qx95Vdu2ZDswO9kZpCkVmvTugJIJbwhYFwQ6Q8MMgoHXZvEMxfQTWDGh4XTURWAs3imHLLJqhDWdP4ZXZPJ9DABt5uX7WTluu1ifaBhCOoEERpXz73tf2DMoX6q39iuJwIDAQABo1MwUTAdBgNVHQ4EFgQUAEGwyb/d7YwFdpx4WzL5lLDxlZowHwYDVR0jBBgwFoAUAEGwyb/d7YwFdpx4WzL5lLDxlZowDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAHZ7hMlJ0BD9FPqOvHO1SNSQwTK1FvCyxFSHeizH6RPKDV1ypCHDbSIfup3F7Rawc9uAz4P0J9AAqq5dSXUd/uNo530qdEkM+TOnQWUZCsKXU+ekVpx3/VqHiEN/ONPd39DWh3flCUzKvtdoq60yCSOJXE4XrKSs4Q+zspdBmb1PyrI7RO+vQQF+Ya4Cs96k0piNckMm9H8Qlx5uW79lcryD5Ht4hANrZdTkgHffV2yeJAHvZh3XbzR3ufKsR2eebY3w3gNrV3/A5iMs3nbAoA7j49EJvKGxILJKR1wBS56G3dOuJ/BhRfIZ99B5Ryy0EHVNsnJ2zuAjKnKlBzuhryg==</data>
+				<key>PayloadDescription</key>
+				<string/>
+				<key>PayloadDisplayName</key>
+				<string>JSS FileVault Recovery Key Escrow Certificate</string>
+				<key>PayloadEnabled</key>
+				<true/>
+				<key>PayloadIdentifier</key>
+				<string>${uuid_0}</string>
+				<key>PayloadOrganization</key>
+				<string>Deployment Theory</string>
+				<key>PayloadType</key>
+				<string>com.apple.security.pkcs1</string>
+				<key>PayloadUUID</key>
+				<string>${uuid_1}</string>
+				<key>PayloadVersion</key>
+				<integer>1</integer>
+			</dict>
+			<dict>
+				<key>Defer</key>
+				<true/>
+				<key>Enable</key>
+				<string>On</string>
+				<key>PayloadDisplayName</key>
+				<string>FileVault</string>
+				<key>PayloadIdentifier</key>
+				<string>${uuid_2}</string>
+				<key>PayloadOrganization</key>
+				<string>JAMF Software</string>
+				<key>PayloadType</key>
+				<string>com.apple.MCX.FileVault2</string>
+				<key>PayloadUUID</key>
+				<string>${uuid_2}</string>
+				<key>PayloadVersion</key>
+				<integer>1</integer>
+				<key>ShowRecoveryKey</key>
+				<false/>
+				<key>UseRecoveryKey</key>
+				<true/>
+			</dict>
+			<dict>
+				<key>EncryptCertPayloadUUID</key>
+				<string>${uuid_1}</string>
+				<key>Location</key>
+				<string>JAMF - Deployment Theory</string>
+				<key>PayloadDisplayName</key>
+				<string>FileVault Recovery Key Escrow</string>
+				<key>PayloadIdentifier</key>
+				<string>${uuid_3}</string>
+				<key>PayloadOrganization</key>
+				<string>JAMF Software</string>
+				<key>PayloadType</key>
+				<string>com.apple.security.FDERecoveryKeyEscrow</string>
+				<key>PayloadUUID</key>
+				<string>${uuid_3}</string>
+				<key>PayloadVersion</key>
+				<integer>1</integer>
+			</dict>
+			<dict>
+				<key>DestroyFVKeyOnStandby</key>
+				<true/>
+				<key>PayloadDisplayName</key>
+				<string>MCX</string>
+				<key>PayloadIdentifier</key>
+				<string>${uuid_4}</string>
+				<key>PayloadOrganization</key>
+				<string>JAMF Software</string>
+				<key>PayloadType</key>
+				<string>com.apple.MCX</string>
+				<key>PayloadUUID</key>
+				<string>${uuid_4}</string>
+				<key>PayloadVersion</key>
+				<integer>1</integer>
+				<key>dontAllowFDEDisable</key>
+				<true/>
+			</dict>
+		</array>
+		<key>PayloadDescription</key>
+		<string/>
+		<key>PayloadDisplayName</key>
+		<string>Deployment Theory - FileVault Disk Encryption</string>
+		<key>PayloadEnabled</key>
+		<true/>
+		<key>PayloadIdentifier</key>
+		<string>${uuid_5}</string>
+		<key>PayloadOrganization</key>
+		<string>Deployment Theory</string>
+		<key>PayloadRemovalDisallowed</key>
+		<true/>
+		<key>PayloadScope</key>
+		<string>System</string>
+		<key>PayloadType</key>
+		<string>Configuration</string>
+		<key>PayloadUUID</key>
+		<string>${uuid_5}</string>
+		<key>PayloadVersion</key>
+		<integer>1</integer>
+	</dict>
+</plist>

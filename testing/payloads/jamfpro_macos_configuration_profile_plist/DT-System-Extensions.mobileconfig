@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<key>PayloadContent</key>
+		<array>
+			<dict>
+				<key>AllowUserOverrides</key>
+				<true/>
+				<key>AllowedSystemExtensions</key>
+				<dict>
+					<key>Y2CCP3S9W7</key>
+					<array>
+						<string>com.symantec.wssa.wssax</string>
+					</array>
+				</dict>
+				<key>PayloadDescription</key>
+				<string/>
+				<key>PayloadDisplayName</key>
+				<string>System Extensions</string>
+				<key>PayloadEnabled</key>
+				<true/>
+				<key>PayloadIdentifier</key>
+				<string>${uuid_0}</string>
+				<key>PayloadOrganization</key>
+				<string>Deployment Theory</string>
+				<key>PayloadType</key>
+				<string>com.apple.system-extension-policy</string>
+				<key>PayloadUUID</key>
+				<string>${uuid_0}</string>
+				<key>PayloadVersion</key>
+				<integer>1</integer>
+			</dict>
+		</array>
+		<key>PayloadDescription</key>
+		<string/>
+		<key>PayloadDisplayName</key>
+		<string>Deployment\ Theory\ \-\ System\ Extensions</string>
+		<key>PayloadEnabled</key>
+		<true/>
+		<key>PayloadIdentifier</key>
+		<string>${uuid_1}</string>
+		<key>PayloadOrganization</key>
+		<string>Deployment Theory</string>
+		<key>PayloadRemovalDisallowed</key>
+		<true/>
+		<key>PayloadScope</key>
+		<string>System</string>
+		<key>PayloadType</key>
+		<string>Configuration</string>
+		<key>PayloadUUID</key>
+		<string>${uuid_1}</string>
+		<key>PayloadVersion</key>
+		<integer>1</integer>
+	</dict>
+</plist>

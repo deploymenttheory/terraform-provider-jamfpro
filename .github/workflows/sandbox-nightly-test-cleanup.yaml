@@ -14,9 +14,10 @@ jobs:
     container:
       image: ghcr.io/${{ github.repository }}/provider_testing:latest
 
-    env: 
+    env:
       CLIENT_ID: ${{ secrets.TESTING_CLIENT_ID }}
       CLIENT_SEC: ${{ secrets.TESTING_CLIENT_SECRET }}
+      CLIENT_FQDN: ${{ secrets.TESTING_JAMFPRO_INSTANCE_FQDN }}
 
     steps:
       - name: Checkout Terraform Repository
@@ -31,7 +32,7 @@ jobs:
         
       - name: Set up Python Environment
         run: |
-          pip install -r ./terraform-provider-jamfpro/testing/requirements.txt
+          pip install -r ./terraform-provider-jamfpro/testing/action_scripts/requirements.txt
 
       - name: Run full cleanup
         run: |

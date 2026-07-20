@@ -3,13 +3,13 @@
 <plist version="1">
 <dict>
     <key>PayloadUUID</key>
-    <string>E5AE277A-BE9C-4FB1-86BB-1D9945948CAD</string>
+    <string>${uuid_0}</string>
     <key>PayloadType</key>
     <string>Configuration</string>
     <key>PayloadOrganization</key>
     <string>JAMF Software</string>
     <key>PayloadIdentifier</key>
-    <string>E5AE277A-BE9C-4FB1-86BB-1D9945948CAD</string>
+    <string>${uuid_0}</string>
     <key>PayloadDisplayName</key>
     <string>Restrictions - Baseline</string>
     <key>PayloadDescription</key>
@@ -28,13 +28,13 @@
             <key>PayloadDisplayName</key>
             <string>Restrictions Payload</string>
             <key>PayloadIdentifier</key>
-            <string>70714D64-03CE-442D-8207-482194A6917F</string>
+            <string>${uuid_1}</string>
             <key>PayloadOrganization</key>
             <string>JAMF Software</string>
             <key>PayloadType</key>
             <string>com.apple.applicationaccess</string>
             <key>PayloadUUID</key>
-            <string>70714D64-03CE-442D-8207-482194A6917F</string>
+            <string>${uuid_1}</string>
             <key>PayloadVersion</key>
             <integer>1</integer>
             <key>allowDeviceNameModification</key>

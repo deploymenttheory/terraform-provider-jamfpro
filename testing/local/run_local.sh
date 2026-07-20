@@ -5,6 +5,6 @@
 (cd ./setup && bash ./scaffolding.sh)
 # Run tests
 terraform init
-terraform test
+terraform test -parallelism=1
 # Post run cleanup
 (cd ./setup && bash ./cleanup.sh)
