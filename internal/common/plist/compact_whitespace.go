@@ -42,6 +42,12 @@ var structuralPlistElements = map[string]bool{
 // report the malformation with its own error.
 func CompactStructuralWhitespace(raw []byte) ([]byte, error) {
 	dec := xml.NewDecoder(bytes.NewReader(raw))
+	// The decoder knows only the five predefined XML entities by default, and
+	// it never fetches the DTD referenced by the plist DOCTYPE. Without this a
+	// payload containing a named entity (&nbsp;, &copy;, …) fails to tokenise,
+	// compaction bails out, and the profile silently ships uncompacted — i.e.
+	// the phantom <array/> bug reappears with only a [WARN] to show for it.
+	dec.Entity = xml.HTMLEntity
 
 	var stack []string
 	type span struct{ start, end int64 }
@@ -66,7 +72,10 @@ func CompactStructuralWhitespace(raw []byte) ([]byte, error) {
 				stack = stack[:len(stack)-1]
 			}
 		case xml.CharData:
-			if len(stack) > 0 && !structuralPlistElements[stack[len(stack)-1]] {
+			// An empty stack means the prolog or epilog — text there is
+			// insignificant, so it is compacted like any structural context.
+			structural := len(stack) == 0 || structuralPlistElements[stack[len(stack)-1]]
+			if !structural {
 				continue
 			}
 			if start < end && isXMLWhitespace(raw[start:end]) {

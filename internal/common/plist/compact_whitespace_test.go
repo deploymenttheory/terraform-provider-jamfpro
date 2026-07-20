@@ -180,3 +180,31 @@ func TestCompactStructuralWhitespace_HomeScreenLayoutRoundTripsEqual(t *testing.
 	pages, _ := compactTree["Pages"].([]any)
 	require.Len(t, pages, 1, "Pages must still have exactly one page (no phantom empty page)")
 }
+
+// A payload carrying an HTML named entity must still compact. encoding/xml
+// knows only the five predefined XML entities and never fetches the DTD the
+// plist DOCTYPE points at, so without an entity table a single &nbsp; makes
+// tokenising fail, compaction falls back to the original bytes and the
+// phantom <array/> bug silently returns for that profile.
+func TestCompactStructuralWhitespace_NamedEntityStillCompacts(t *testing.T) {
+	pretty := `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>PayloadOrganization</key>
+    <string>Caf&nbsp;e &copy; Deployment Theory</string>
+    <key>Pages</key>
+    <array>
+      <array>
+        <string>com.apple.mobilesafari</string>
+      </array>
+    </array>
+  </dict>
+</plist>`
+
+	compacted, err := CompactStructuralWhitespace([]byte(pretty))
+	require.NoError(t, err, "named entities must not defeat compaction")
+	assert.NotContains(t, string(compacted), "</array>\n", "inter-array whitespace must be removed")
+	assert.Contains(t, string(compacted), "&nbsp;", "the entity reference itself must survive byte-for-byte")
+	assert.Contains(t, string(compacted), "&copy;", "the entity reference itself must survive byte-for-byte")
+}

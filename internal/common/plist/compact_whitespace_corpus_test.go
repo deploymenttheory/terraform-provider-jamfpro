@@ -323,6 +323,9 @@ func TestCompactStructuralWhitespace_RepoMobileconfigCorpus(t *testing.T) {
 		if d.IsDir() || !strings.HasSuffix(d.Name(), ".mobileconfig") {
 			return nil
 		}
+		// #nosec G304,G122 -- path comes from a WalkDir over the repo's own
+		// checked-in testing/payloads tree, not from user input, so neither
+		// file inclusion nor symlink TOCTOU is reachable here.
 		raw, readErr := os.ReadFile(path)
 		require.NoError(t, readErr)
 		compactAndRequireSemanticEquality(t, d.Name(), raw)
