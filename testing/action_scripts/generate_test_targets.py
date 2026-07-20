@@ -31,7 +31,6 @@ Output (`targets.txt`):
   `user,group`
 '''
 
-import sys
 import argparse
 import requests
 
@@ -93,9 +92,14 @@ def main():
 
     targets = list(set(targets))
 
+    # No targets is a legitimate outcome, not an error: the workflow triggers on
+    # any change under internal/, but only internal/services/<resource>/ maps to
+    # a payload project. A change to internal/common/ or a shared helper has
+    # nothing to integration test. Write an empty targets file and let the
+    # workflow skip the test steps -- exiting non-zero here failed the job for
+    # every such PR, and writing no file at all would fall through to "all".
     if not targets:
-        print("no targets found")
-        sys.exit(1)
+        print("no targets found - no integration tests apply to this change")
 
     save_targets_to_file(targets)
 

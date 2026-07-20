@@ -76,6 +76,9 @@ jobs:
         if: env.TARGETS != 'compileonly'
         working-directory: .
         run: |
+          # targets.txt is authoritative when present, including when empty:
+          # an empty file means the PR touched internal/ but no payload project
+          # maps to it, so there is nothing to integration test.
           if [ -f "targets.txt" ]; then
             targets=$(cat targets.txt)
           elif [ "$TARGETS" != "all" ] && [ ! -z "$TARGETS" ]; then
@@ -83,13 +86,19 @@ jobs:
           else
             targets="all"
           fi
-          echo $targets
           echo "targets=$targets" >> $GITHUB_OUTPUT
+          if [ -z "$targets" ]; then
+            echo "No payload projects map to this change - skipping integration tests."
+            echo "has_targets=false" >> $GITHUB_OUTPUT
+          else
+            echo "$targets"
+            echo "has_targets=true" >> $GITHUB_OUTPUT
+          fi
 
 
       - name: Generate UUID
         id: generate-uuid
-        if: env.TARGETS != 'compileonly'
+        if: env.TARGETS != 'compileonly' && steps.set-targets.outputs.has_targets != 'false'
         run: |
           generated_uuid=$(uuidgen)
           echo "uuid=$generated_uuid" >> $GITHUB_OUTPUT
@@ -98,14 +107,14 @@ jobs:
 
       - name: Populate Testing Directory
         id: generate-test-dir
-        if: env.TARGETS != 'compileonly'
+        if: env.TARGETS != 'compileonly' && steps.set-targets.outputs.has_targets != 'false'
         working-directory: .
         run: |
           python3 testing/action_scripts/generate_test_directory.py "${{ steps.set-targets.outputs.targets }}"
 
 
       - name: Build TFVARS File
-        if: env.TARGETS != 'compileonly'
+        if: env.TARGETS != 'compileonly' && steps.set-targets.outputs.has_targets != 'false'
         id: build-tfvars
         working-directory: ./testing
         run: |
@@ -121,6 +130,7 @@ jobs:
 
 
       - name: Run Tests
+        if: env.TARGETS != 'compileonly' && steps.set-targets.outputs.has_targets != 'false'
         working-directory: ./testing
         id: run-tests
         run: |
@@ -129,7 +139,7 @@ jobs:
 
 
       - name: 5s Delay to Allow Jamf API to Settle
-        if: always() && env.TARGETS != 'compileonly'
+        if: always() && env.TARGETS != 'compileonly' && steps.generate-uuid.outputs.uuid != ''
         run: sleep 5
 
 
@@ -137,10 +147,14 @@ jobs:
       # used to skip cleanup entirely. Every red run then leaked its objects
       # into the shared sandbox, and those orphans collided with the next run
       # (409 Duplicate payload uuid) — a failure loop that sustains itself.
+      #
+      # The uuid guard matters precisely because of always(): if the job fails
+      # before Generate UUID runs, there is nothing to clean and the run id
+      # would expand to an empty string, which cleanup.py rejects.
       - name: Cleanup
-        if: always() && env.TARGETS != 'compileonly'
+        if: always() && env.TARGETS != 'compileonly' && steps.generate-uuid.outputs.uuid != ''
         id: cleanup
         working-directory: ./testing
         run: |
           if [ -d "./data_sources" ]; then rm -rf ./data_sources; fi
-          python3 action_scripts/cleanup.py -r ${{ steps.generate-uuid.outputs.uuid }}
+          python3 action_scripts/cleanup.py -r "${{ steps.generate-uuid.outputs.uuid }}"
