@@ -58,6 +58,8 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceMobileDe
 		RTSConfigProfileId:                     d.Get("rts_config_profile_id").(string),
 		MinimumOsSpecificVersionIpad:           d.Get("minimum_os_specific_version_ipad").(string),
 		PreserveManagedApps:                    jamfpro.BoolPtr(d.Get("preserve_managed_apps").(bool)),
+		InstallAppsDuringEnrollment:            jamfpro.BoolPtr(d.Get("install_apps_during_enrollment").(bool)),
+		DoNotUseProfileFromBackup:              jamfpro.BoolPtr(d.Get("do_not_use_profile_from_backup").(bool)),
 	}
 
 	if v, ok := d.GetOk("skip_setup_items"); ok && len(v.([]any)) > 0 {

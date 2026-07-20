@@ -162,9 +162,11 @@ resource "jamfpro_mobile_device_prestage_enrollment" "example_prestage" {
 ### Optional
 
 - `anchor_certificates` (List of String) List of Base64 encoded PEM Certificates.
+- `do_not_use_profile_from_backup` (Boolean) Prevent the device from restoring a configuration profile from a backup during enrollment. Defaults to false when not set.
 - `enforce_temporary_session_timeout` (Boolean) Indicates if temporary session timeout should be enforced.
 - `enforce_user_session_timeout` (Boolean) Indicates if user session timeout should be enforced.
 - `enrollment_site_id` (String) Site ID for device enrollment.
+- `install_apps_during_enrollment` (Boolean) Install apps scoped to the device during the enrollment process. Defaults to false when not set.
 - `minimum_os_specific_version_ios` (String) The specific minimum OS version required for iOS devices when using MINIMUM_OS_SPECIFIC_VERSION type.
 - `minimum_os_specific_version_ipad` (String) The specific minimum OS version required for iPadOS devices when using MINIMUM_OS_SPECIFIC_VERSION type.
 - `preserve_managed_apps` (Boolean) Preserve managed apps during the enrollment process.

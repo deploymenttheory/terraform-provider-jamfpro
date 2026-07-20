@@ -58,6 +58,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceMobileDevicePrest
 		"rts_enabled":                                  resp.RTSEnabled,
 		"rts_config_profile_id":                        resp.RTSConfigProfileId,
 		"preserve_managed_apps":                        resp.PreserveManagedApps,
+		"install_apps_during_enrollment":               resp.InstallAppsDuringEnrollment,
+		"do_not_use_profile_from_backup":               resp.DoNotUseProfileFromBackup,
 	}
 
 	if locationInformation := resp.LocationInformation; locationInformation != (jamfpro.MobileDevicePrestageSubsetLocationInformation{}) {
