@@ -9,6 +9,10 @@ description: |-
 
 ## Example Usage
 ```terraform
+# SSO settings is a singleton configuration that always exists in Jamf Pro.
+# Import the current configuration into Terraform state with:
+# terraform import jamfpro_sso_settings.google_example jamfpro_sso_settings_singleton
+
 resource "jamfpro_sso_settings" "google_example" {
   sso_enabled                                          = true
   configuration_type                                   = "SAML"
