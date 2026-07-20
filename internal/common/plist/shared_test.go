@@ -1,10 +1,15 @@
 package plist
 
 import (
+	"encoding/xml"
+	"errors"
+	"io"
 	"sort"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSortPlistKeys(t *testing.T) {
@@ -99,21 +104,79 @@ func TestSortPlistKeys(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := SortPlistKeys(tt.input)
 			assert.Equal(t, tt.want, got, "unexpected sorted output")
-
-			// Extra check only for array-of-maps case
-			if tt.name == "Dictionary with array of dictionaries" {
-				if arr, ok := got["array"].([]any); ok {
-					for i, item := range arr {
-						if m, ok := item.(map[string]any); ok {
-							keys := make([]string, 0, len(m))
-							for k := range m {
-								keys = append(keys, k)
-							}
-							assert.True(t, sort.StringsAreSorted(keys), "map at array[%d] keys not sorted", i)
-						}
-					}
-				}
-			}
 		})
+	}
+}
+
+// assertDictKeysSorted walks an encoded plist and asserts that every <dict>
+// lists its own keys in sorted order. Sortedness is per dictionary, not global:
+// in document order a nested dict's keys are interleaved between its parent's,
+// so a flat scan of the whole document is not expected to be sorted.
+func assertDictKeysSorted(t *testing.T, encoded string) {
+	t.Helper()
+
+	dec := xml.NewDecoder(strings.NewReader(encoded))
+	var stack [][]string
+
+	for {
+		tok, err := dec.Token()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		require.NoError(t, err, "encoded plist must be well-formed XML")
+
+		switch t2 := tok.(type) {
+		case xml.StartElement:
+			switch t2.Name.Local {
+			case "dict":
+				stack = append(stack, nil)
+			case "key":
+				var name string
+				require.NoError(t, dec.DecodeElement(&name, &t2))
+				require.NotEmpty(t, stack, "<key> outside of a <dict>")
+				stack[len(stack)-1] = append(stack[len(stack)-1], name)
+			}
+		case xml.EndElement:
+			if t2.Name.Local == "dict" {
+				keys := stack[len(stack)-1]
+				stack = stack[:len(stack)-1]
+				assert.True(t, sort.StringsAreSorted(keys),
+					"dict keys must be sorted, got %v", keys)
+			}
+		}
+	}
+	assert.Empty(t, stack, "unbalanced <dict> elements")
+}
+
+// SortPlistKeys exists so that two structurally equal profiles serialise to the
+// same bytes, which is what makes payload diff suppression work. That ordering
+// is not observable on the returned map — Go randomises map iteration order, so
+// asserting over `for k := range m` is a coin flip rather than a test. It
+// becomes observable only once the map is encoded, so assert it there.
+func TestSortPlistKeysEncodesDeterministically(t *testing.T) {
+	input := map[string]any{
+		"zebra": "last",
+		"apple": "first",
+		"nested": map[string]any{
+			"inner_z": 2,
+			"inner_a": 1,
+		},
+		"array": []any{
+			map[string]any{"d": 4, "c": 3},
+			map[string]any{"b": 2, "a": 1},
+		},
+	}
+
+	first, err := EncodePlist(SortPlistKeys(input))
+	require.NoError(t, err)
+	assertDictKeysSorted(t, first)
+
+	// Repeat: one pass can look correct by luck if the maps happen to be
+	// iterated favourably. Byte-identical output across runs is the guarantee
+	// diff suppression actually relies on.
+	for i := range 20 {
+		again, err := EncodePlist(SortPlistKeys(input))
+		require.NoError(t, err)
+		require.Equal(t, first, again, "encoding must be identical on run %d", i+1)
 	}
 }
