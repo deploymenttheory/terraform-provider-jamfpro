@@ -13,10 +13,18 @@ resource "jamfpro_script" "min_script" {
 }
 
 resource "jamfpro_script" "max_script" {
-  name            = "tf-testing-${var.testing_id}-max-${random_id.rng.hex}"
-  category_id     = "9"
-  info            = "info_field"
-  notes           = "notes_field"
+  name        = "tf-testing-${var.testing_id}-max-${random_id.rng.hex}"
+  category_id = "9"
+  // Regression test for issue #1145 - heredoc strings in HCL always include
+  // a trailing newline before EOT, but the API strips it server-side.
+  info            = <<-EOT
+    Multi-line info field used to verify no drift is
+    reported after apply due to the heredoc trailing newline.
+  EOT
+  notes           = <<-EOT
+    Multi-line notes field used to verify no drift is
+    reported after apply due to the heredoc trailing newline.
+  EOT
   os_requirements = "os_requirements_field"
   priority        = "BEFORE"
   script_contents = "script_contents_field"

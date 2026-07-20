@@ -11,6 +11,16 @@ resource "jamfpro_package" "google_chrome_enterprise" {
   suppress_from_dock    = false                                              // Required
   suppress_eula         = false                                              // Required
   suppress_registration = false                                              // Required
+  // Regression test for issue #1145 - heredoc strings in HCL always include
+  // a trailing newline before EOT, but the API strips it server-side.
+  info  = <<-EOT
+    Multi-line info field used to verify no drift is
+    reported after apply due to the heredoc trailing newline.
+  EOT
+  notes = <<-EOT
+    Multi-line notes field used to verify no drift is
+    reported after apply due to the heredoc trailing newline.
+  EOT
   timeouts {
     create = "5m"
   }

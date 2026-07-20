@@ -3,6 +3,7 @@ package policy
 import (
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -14,6 +15,10 @@ func getPolicySchemaReboot() *schema.Resource {
 				Optional:    true,
 				Description: "The reboot message displayed to the user.",
 				// Default:     "This computer will restart in 5 minutes. Please save anything you are working on and log out by choosing Log Out from the bottom of the Apple menu.",
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+				},
+				DiffSuppressOnRefresh: true,
 			},
 			"specify_startup": {
 				Type:        schema.TypeString,

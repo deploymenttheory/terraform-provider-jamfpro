@@ -5,6 +5,7 @@ import (
 	"time"
 
 	sharedschemas "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/shared_schemas"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -64,6 +65,10 @@ func ResourceJamfProRestrictedSoftwares() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The message to display when the software is restricted.",
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
+				},
+				DiffSuppressOnRefresh: true,
 			},
 			"site_id": sharedschemas.GetSharedSchemaSite(),
 			"scope": {

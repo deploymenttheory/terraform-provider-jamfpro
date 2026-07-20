@@ -1,6 +1,11 @@
 resource "jamfpro_macos_configuration_profile_plist" "jamfpro_macos_configuration_profile_064" {
-  name                = "test-profile"
-  description         = "An example mobile device configuration profile."
+  name = "test-profile"
+  // Regression test for issue #1145 - heredoc strings in HCL always include
+  // a trailing newline before EOT, but the API strips it server-side.
+  description         = <<-EOT
+    Multi-line description used to verify no drift is
+    reported after apply due to the heredoc trailing newline.
+  EOT
   level               = "System"
   distribution_method = "Install Automatically"
   redeploy_on_update  = "Newly Assigned"

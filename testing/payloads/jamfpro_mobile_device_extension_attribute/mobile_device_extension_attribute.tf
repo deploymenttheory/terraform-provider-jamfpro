@@ -33,6 +33,19 @@ resource "jamfpro_mobile_device_extension_attribute" "jamfpro_mobile_device_exte
   inventory_display_type = "GENERAL"
 }
 
+// Regression test for issue #1145 - heredoc strings in HCL always include a
+// trailing newline before EOT, but the API strips it server-side.
+resource "jamfpro_mobile_device_extension_attribute" "jamfpro_mobile_device_extension_attribute_heredoc_description" {
+  name                   = "tf-testing-${var.testing_id}-heredoc-${random_id.rng.hex}"
+  data_type              = "STRING"
+  inventory_display_type = "GENERAL"
+  input_type             = "TEXT"
+  description            = <<-EOT
+    Multi-line description used to verify no drift is
+    reported after apply due to the heredoc trailing newline.
+  EOT
+}
+
 // ========================================================================== //
 // Multiple extension attributes
 
