@@ -22,6 +22,9 @@ func ResourceJamfProSsoSettings() *schema.Resource {
 			Update: schema.DefaultTimeout(1 * time.Minute),
 			Delete: schema.DefaultTimeout(1 * time.Minute),
 		},
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 		Schema: map[string]*schema.Schema{
 			"sso_enabled": {
 				Type:        schema.TypeBool,
