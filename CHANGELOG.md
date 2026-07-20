@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.41.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.40.0...v0.41.0) (2026-07-20)
+
+
+### Features
+
+* Add enable_maid_username_merge option for user initiated enrollment settings ([c8563ad](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/c8563ad310cbd7e8cb627fbf061873b3b014d629))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([0f93bf3](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/0f93bf37e68c07b8aafe7af0a2306de915052290))
+* Add enable_maid_username_merge option for user initiated enrollment settings ([3fcd179](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/3fcd1797d7009984fa28dcb68b27f0c9f61468ad))
+* add new options for mobile device prestage enrollment ([#1153](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1153)) ([522fbe4](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/522fbe49a482a25e5afea46875628c4acd4a2823))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([c8563ad](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/c8563ad310cbd7e8cb627fbf061873b3b014d629))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([0f93bf3](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/0f93bf37e68c07b8aafe7af0a2306de915052290))
+* Add username attribute claim mapping to jamfpro_sso_settings for 11.19 ([3fcd179](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/3fcd1797d7009984fa28dcb68b27f0c9f61468ad))
+* **sso_settings:** add importer to support terraform import ([#1143](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1143)) ([3ec000b](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/3ec000b2d78b2ee79e7bda9a8a1f5540ef1ff24f))
+
+
+### Bug Fixes
+
+* compact structural whitespace in config profile plist payloads (phantom &lt;array/&gt;) ([#1125](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1125)) ([5ed2cf9](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/5ed2cf9a365de14786ce0a62078e2318acfe3f33))
+* moved optimstic lock logic to sdk ([d08ca67](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/d08ca67216169b93c36d68cf3f14f23e533b811c))
+* moved optimstic lock logic to sdk + gofmt ([#1154](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1154)) ([d08ca67](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/d08ca67216169b93c36d68cf3f14f23e533b811c))
+* resolve CustomizeDiff panic and state drift in jamfpro_managed_software_update ([#1151](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1151)) ([c8563ad](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/c8563ad310cbd7e8cb627fbf061873b3b014d629))
+* suppress heredoc trailing-newline drift on multiline text fields ([#1149](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1149)) ([3fcd179](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/3fcd1797d7009984fa28dcb68b27f0c9f61468ad))
+* **user_initiated_enrollment_settings:** stop resetting re-enrollment flush fields on apply ([#1150](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1150)) ([0f93bf3](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/0f93bf37e68c07b8aafe7af0a2306de915052290))
+
 ## [0.40.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.39.0...v0.40.0) (2026-06-25)
 
 
