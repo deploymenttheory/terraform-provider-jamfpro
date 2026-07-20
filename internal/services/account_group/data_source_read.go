@@ -27,16 +27,16 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutRead), func() *retry.RetryError {
 		var apiErr error
 		if resourceID != "" {
-				resource, apiErr = client.GetAccountGroupByID(resourceID)
-				if apiErr != nil {
-					return retry.RetryableError(apiErr)
-				}
+			resource, apiErr = client.GetAccountGroupByID(resourceID)
+			if apiErr != nil {
+				return retry.RetryableError(apiErr)
+			}
 		}
 		if resourceName != "" {
-				resource, apiErr = client.GetAccountGroupByName(resourceName)
-				if apiErr != nil {
-					return retry.RetryableError(apiErr)
-				}
+			resource, apiErr = client.GetAccountGroupByName(resourceName)
+			if apiErr != nil {
+				return retry.RetryableError(apiErr)
+			}
 		}
 		return nil
 	})

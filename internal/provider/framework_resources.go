@@ -6,9 +6,9 @@ import (
 	jamfProAdcsSettings "github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/adcs_settings"
 	jamfProCloudDistributionPoint "github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/cloud_distribution_point"
 	jamfProDockItem "github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/dock_item"
+	jamfProServiceDiscoveryEnrollmentWellKnownSettings "github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/service_discovery_enrollment_well_known_settings"
 	jamfProSmartComputerGroupV2 "github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/smart_computer_group_v2"
 	jamfProSmartMobileDeviceGroupV1 "github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/smart_mobile_device_group_v1"
-	jamfProServiceDiscoveryEnrollmentWellKnownSettings "github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/service_discovery_enrollment_well_known_settings"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 

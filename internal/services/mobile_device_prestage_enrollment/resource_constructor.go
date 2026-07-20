@@ -7,12 +7,10 @@ import (
 	"log"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
-	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/constructors"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceMobileDevicePrestage, error) {
-	versionLock := constructors.HandleVersionLock(d.Get("version_lock"), isUpdate)
 
 	resource := &jamfpro.ResourceMobileDevicePrestage{
 		DisplayName:                            d.Get("display_name").(string),
@@ -50,7 +48,6 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceMobileDe
 		UserSessionTimeout:                     jamfpro.IntPtr(d.Get("user_session_timeout").(int)),
 		ProfileUuid:                            d.Get("profile_uuid").(string),
 		SiteId:                                 d.Get("site_id").(string),
-		VersionLock:                            d.Get("version_lock").(int),
 		PrestageMinimumOsTargetVersionTypeIos:  d.Get("prestage_minimum_os_target_version_type_ios").(string),
 		MinimumOsSpecificVersionIos:            d.Get("minimum_os_specific_version_ios").(string),
 		PrestageMinimumOsTargetVersionTypeIpad: d.Get("prestage_minimum_os_target_version_type_ipad").(string),
@@ -69,12 +66,12 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceMobileDe
 
 	if v, ok := d.GetOk("location_information"); ok && len(v.([]any)) > 0 {
 		locationData := v.([]any)[0].(map[string]any)
-		resource.LocationInformation = constructLocationInformation(locationData, isUpdate, versionLock)
+		resource.LocationInformation = constructLocationInformation(locationData, isUpdate)
 	}
 
 	if v, ok := d.GetOk("purchasing_information"); ok && len(v.([]any)) > 0 {
 		purchasingData := v.([]any)[0].(map[string]any)
-		resource.PurchasingInformation = constructPurchasingInformation(purchasingData, isUpdate, versionLock)
+		resource.PurchasingInformation = constructPurchasingInformation(purchasingData, isUpdate)
 	}
 
 	if v, ok := d.GetOk("names"); ok && len(v.([]any)) > 0 {
@@ -153,7 +150,7 @@ func constructSkipSetupItems(data map[string]any) jamfpro.MobileDevicePrestageSu
 }
 
 // constructLocationInformation constructs the LocationInformation subset of a Mobile Device Prestage resource.
-func constructLocationInformation(data map[string]any, isUpdate bool, versionLock int) jamfpro.MobileDevicePrestageSubsetLocationInformation {
+func constructLocationInformation(data map[string]any, isUpdate bool) jamfpro.MobileDevicePrestageSubsetLocationInformation {
 	return jamfpro.MobileDevicePrestageSubsetLocationInformation{
 		Username:     data["username"].(string),
 		Realname:     data["realname"].(string),
@@ -164,12 +161,11 @@ func constructLocationInformation(data map[string]any, isUpdate bool, versionLoc
 		DepartmentId: data["department_id"].(string),
 		BuildingId:   data["building_id"].(string),
 		ID:           "-1",
-		VersionLock:  versionLock,
 	}
 }
 
 // constructPurchasingInformation constructs the PurchasingInformation subset of a Mobile Device Prestage resource.
-func constructPurchasingInformation(data map[string]any, isUpdate bool, versionLock int) jamfpro.MobileDevicePrestageSubsetPurchasingInformation {
+func constructPurchasingInformation(data map[string]any, isUpdate bool) jamfpro.MobileDevicePrestageSubsetPurchasingInformation {
 	return jamfpro.MobileDevicePrestageSubsetPurchasingInformation{
 		ID:                "-1",
 		Leased:            jamfpro.BoolPtr(data["leased"].(bool)),
@@ -184,7 +180,6 @@ func constructPurchasingInformation(data map[string]any, isUpdate bool, versionL
 		LeaseDate:         data["lease_date"].(string),
 		PoDate:            data["po_date"].(string),
 		WarrantyDate:      data["warranty_date"].(string),
-		VersionLock:       versionLock,
 	}
 }
 

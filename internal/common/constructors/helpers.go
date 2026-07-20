@@ -107,48 +107,8 @@ func GetDateOrDefaultDate(d *schema.ResourceData, key string) string {
 	return "1970-01-01"
 }
 
-// HandleVersionLock manages the VersionLock field for Jamf Pro Prestage resources during update operations.
-//
-// https://developer.jamf.com/jamf-pro/docs/optimistic-locking
-//
-// Parameters:
-//   - currentVersionLock: The current version lock value as an any.
-//   - isUpdate: A boolean flag indicating whether this is an update operation.
-//
-// Returns:
-//   - An integer representing the version lock to be used in the API request.
-//     For create operations (isUpdate == false), this will be 0.
-//     For update operations (isUpdate == true), this will be the incremented version lock.
-//
-// Behavior:
-//   - Create operations (isUpdate == false):
-//   - Returns 0, as version lock is not needed for create operations.
-//   - Update operations (isUpdate == true):
-//   - Attempts to convert the currentVersionLock to an integer and increment it by 1.
-//   - If conversion fails, logs a warning and returns 0.
-//
-// Error Handling:
-//   - If the currentVersionLock cannot be converted to an integer during an update operation,
-//     the function logs a warning and returns 0.
-//
-// Usage:
-//   - This function should be called for each structure within a resource that requires
-//     version lock handling.
-func HandleVersionLock(currentVersionLock any, isUpdate bool) int {
-	if !isUpdate {
-		log.Printf("[DEBUG] Create operation: Version lock not required, using 0")
-		return 0
-	}
-
-	log.Printf("[DEBUG] Update operation: Current version lock is '%v'", currentVersionLock)
-
-	versionLock, ok := currentVersionLock.(int)
-	if !ok {
-		log.Printf("[WARN] Failed to convert version lock '%v' to integer. Using 0.", currentVersionLock)
-		return 0
-	}
-
-	newVersionLock := versionLock + 1
-	log.Printf("[DEBUG] Update operation: Incrementing version lock from '%d' to '%d'", versionLock, newVersionLock)
-	return newVersionLock
-}
+// Optimistic locking (versionLock) is handled entirely by go-api-sdk-jamfpro.
+// The SDK reads current server state before each write and copies every
+// versionLock — the resource's own and those of its nested subsets — onto the
+// request, so resources must not set or derive those values themselves.
+// See shared_version_lock.go in the SDK.

@@ -11,10 +11,8 @@ import (
 )
 
 func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputerPrestage, error) {
-	versionLock := constructors.HandleVersionLock(d.Get("version_lock"), isUpdate)
 
 	resource := &jamfpro.ResourceComputerPrestage{
-		VersionLock:                        d.Get("version_lock").(int), // for some reason, this is not incremented. weird.
 		DisplayName:                        d.Get("display_name").(string),
 		Mandatory:                          jamfpro.BoolPtr(d.Get("mandatory").(bool)),
 		MDMRemovable:                       jamfpro.BoolPtr(d.Get("mdm_removable").(bool)),
@@ -67,17 +65,17 @@ func construct(d *schema.ResourceData, isUpdate bool) (*jamfpro.ResourceComputer
 
 	if v, ok := d.GetOk("location_information"); ok && len(v.([]any)) > 0 {
 		locationData := v.([]any)[0].(map[string]any)
-		resource.LocationInformation = constructLocationInformation(locationData, isUpdate, versionLock)
+		resource.LocationInformation = constructLocationInformation(locationData, isUpdate)
 	}
 
 	if v, ok := d.GetOk("purchasing_information"); ok && len(v.([]any)) > 0 {
 		purchasingData := v.([]any)[0].(map[string]any)
-		resource.PurchasingInformation = constructPurchasingInformation(purchasingData, isUpdate, versionLock)
+		resource.PurchasingInformation = constructPurchasingInformation(purchasingData, isUpdate)
 	}
 
 	if v, ok := d.GetOk("account_settings"); ok && len(v.([]any)) > 0 {
 		accountData := v.([]any)[0].(map[string]any)
-		resource.AccountSettings = constructAccountSettings(accountData, isUpdate, versionLock)
+		resource.AccountSettings = constructAccountSettings(accountData, isUpdate)
 	}
 
 	if v, ok := d.GetOk("anchor_certificates"); ok {
@@ -161,7 +159,7 @@ func constructSkipSetupItems(data map[string]any) jamfpro.ComputerPrestageSubset
 }
 
 // constructLocationInformation constructs the LocationInformation subset of a Computer Prestage resource.
-func constructLocationInformation(data map[string]any, isUpdate bool, versionLock int) jamfpro.ComputerPrestageSubsetLocationInformation {
+func constructLocationInformation(data map[string]any, isUpdate bool) jamfpro.ComputerPrestageSubsetLocationInformation {
 	d := &schema.ResourceData{}
 	for k, v := range data {
 		d.Set(k, v)
@@ -169,7 +167,6 @@ func constructLocationInformation(data map[string]any, isUpdate bool, versionLoc
 
 	return jamfpro.ComputerPrestageSubsetLocationInformation{
 		ID:           "-1",
-		VersionLock:  versionLock,
 		Username:     data["username"].(string),
 		Realname:     data["realname"].(string),
 		Phone:        data["phone"].(string),
@@ -182,7 +179,7 @@ func constructLocationInformation(data map[string]any, isUpdate bool, versionLoc
 }
 
 // constructPurchasingInformation constructs the PurchasingInformation subset of a Computer Prestage resource.
-func constructPurchasingInformation(data map[string]any, isUpdate bool, versionLock int) jamfpro.ComputerPrestageSubsetPurchasingInformation {
+func constructPurchasingInformation(data map[string]any, isUpdate bool) jamfpro.ComputerPrestageSubsetPurchasingInformation {
 	d := &schema.ResourceData{}
 	for k, v := range data {
 		d.Set(k, v)
@@ -190,7 +187,6 @@ func constructPurchasingInformation(data map[string]any, isUpdate bool, versionL
 
 	return jamfpro.ComputerPrestageSubsetPurchasingInformation{
 		ID:                "-1",
-		VersionLock:       versionLock,
 		Leased:            jamfpro.BoolPtr(data["leased"].(bool)),
 		Purchased:         jamfpro.BoolPtr(data["purchased"].(bool)),
 		AppleCareId:       data["apple_care_id"].(string),
@@ -207,10 +203,9 @@ func constructPurchasingInformation(data map[string]any, isUpdate bool, versionL
 }
 
 // constructAccountSettings constructs the AccountSettings subset of a Computer Prestage resource.
-func constructAccountSettings(data map[string]any, isUpdate bool, versionLock int) jamfpro.ComputerPrestageSubsetAccountSettings {
+func constructAccountSettings(data map[string]any, isUpdate bool) jamfpro.ComputerPrestageSubsetAccountSettings {
 	return jamfpro.ComputerPrestageSubsetAccountSettings{
 		ID:                                      "-1",
-		VersionLock:                             versionLock,
 		PayloadConfigured:                       jamfpro.BoolPtr(data["payload_configured"].(bool)),
 		LocalAdminAccountEnabled:                jamfpro.BoolPtr(data["local_admin_account_enabled"].(bool)),
 		AdminUsername:                           data["admin_username"].(string),
