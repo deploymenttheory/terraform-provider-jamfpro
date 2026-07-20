@@ -748,6 +748,16 @@ func ResourceJamfProMobileDevicePrestageEnrollment() *schema.Resource {
 				Optional:    true,
 				Description: "Preserve managed apps during the enrollment process.",
 			},
+			"install_apps_during_enrollment": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Install apps scoped to the device during the enrollment process. Defaults to false when not set.",
+			},
+			"do_not_use_profile_from_backup": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Prevent the device from restoring a configuration profile from a backup during enrollment. Defaults to false when not set.",
+			},
 		},
 	}
 }

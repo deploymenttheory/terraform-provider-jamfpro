@@ -1,5 +1,9 @@
+data "jamfpro_device_enrollments" "sentinel" {
+  name = "Apple Business Manager - Sentinel [DO NOT DELETE]"
+}
+
 resource "jamfpro_mobile_device_prestage_enrollment" "example_prestage" {
-  display_name                            = "iOS Device Prestage"
+  display_name                            = "tf-testing-${var.testing_id}-${random_id.rng.hex}"
   mandatory                               = true
   mdm_removable                           = false
   support_phone_number                    = "+44-1234-567890"
@@ -12,7 +16,7 @@ resource "jamfpro_mobile_device_prestage_enrollment" "example_prestage" {
   authentication_prompt                   = ""
   prevent_activation_lock                 = true
   enable_device_based_activation_lock     = false
-  device_enrollment_program_instance_id   = "1"
+  device_enrollment_program_instance_id   = data.jamfpro_device_enrollments.sentinel.id
   enrollment_customization_id             = "0"
   language                                = ""
   region                                  = ""
@@ -24,6 +28,8 @@ resource "jamfpro_mobile_device_prestage_enrollment" "example_prestage" {
   configure_device_before_setup_assistant = true
   anchor_certificates                     = []
   preserve_managed_apps                   = true
+  install_apps_during_enrollment          = true
+  do_not_use_profile_from_backup          = true
 
   skip_setup_items {
     location                = false
