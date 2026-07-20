@@ -80,26 +80,17 @@ resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_wifi_wpa2_e
   }
 }
 
-# com.apple.webcontent-filter — array-heavy allowlist (PermittedURLs +
-# WhitelistedBookmarks array of dicts); same inter-<array> whitespace class as
-# the home-screen-layout regression.
-resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_web_content_filter" {
-  name               = "tf-testing-${var.testing_id}-mobile-web-content-filter-${random_id.rng.hex}"
-  description        = "Web content filter allowlist (array of bookmark dicts)."
-  level              = "Device Level"
-  deployment_method  = "Make Available in Self Service"
-  redeploy_on_update = "All"
-  payloads = templatefile("${path.module}/WebContentFilter-Pretty.mobileconfig", {
-    uuid_0 = upper(uuidv5("dns", "${var.testing_id}-mobile_web_content_filter-0"))
-    uuid_1 = upper(uuidv5("dns", "${var.testing_id}-mobile_web_content_filter-1"))
-  })
-  payload_validate = false
-
-  scope {
-    all_mobile_devices = true
-    all_jss_users      = false
-  }
-}
+# NOTE: there is deliberately no com.apple.webcontent-filter fixture here.
+# Jamf Pro rejects such a payload over the Classic API with
+# 409 "Unable to update the database" as soon as it carries FilterType,
+# PermittedURLs or WhitelistedBookmarks — i.e. any key that makes it a
+# functioning filter. Bisected against a live instance: a webcontent-filter
+# payload with only the required Payload* keys is accepted, and the identical
+# profile with PayloadType swapped to com.apple.applicationaccess is accepted
+# with those keys present. This is a server-side limitation unrelated to
+# whitespace compaction, so the fixture would fail the suite permanently.
+# The array-of-dicts and sibling-array shapes it covered are exercised by the
+# notifications, domains and home-screen-layout fixtures instead.
 
 # com.apple.domains — managed domains; multiple <array> of <string>.
 resource "jamfpro_mobile_device_configuration_profile_plist" "mobile_domains" {
