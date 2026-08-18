@@ -61,6 +61,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/mobile_device_application"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/mobile_device_configuration_profile_plist"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/mobile_device_extension_attribute"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/mobile_device_inventory"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/mobile_device_prestage_enrollment"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/network_segment"
 	packages "github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/package"
@@ -421,6 +422,7 @@ func Provider() *schema.Provider {
 			"jamfpro_computer_extension_attribute":              computer_extension_attribute.DataSourceJamfProComputerExtensionAttributes(),
 			"jamfpro_computer_inventory":                        computer_inventory.DataSourceJamfProComputerInventory(),
 			"jamfpro_computer_prestage_enrollment":              computer_prestage_enrollment.DataSourceJamfProComputerPrestageEnrollment(),
+			"jamfpro_mobile_device_inventory":                   mobile_device_inventory.DataSourceJamfProMobileDeviceInventory(),
 			"jamfpro_department":                                department.DataSourceJamfProDepartments(),
 			"jamfpro_device_enrollments":                        device_enrollments.DataSourceJamfProDeviceEnrollments(),
 			"jamfpro_device_enrollments_public_key":             device_enrollments_public_key.DataSourceJamfProDeviceEnrollmentsPublicKey(),
