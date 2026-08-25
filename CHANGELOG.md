@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.42.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.41.0...v0.42.0) (2026-08-25)
+
+
+### Features
+
+* add mobile device inventory data source ([12ebdfc](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/12ebdfc7d8b1804f36e3d37099881ed9af903694))
+* Add mobile device inventory data source ([#1159](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1159)) ([12ebdfc](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/12ebdfc7d8b1804f36e3d37099881ed9af903694))
+
 ## [0.41.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.40.0...v0.41.0) (2026-07-20)
 
 
