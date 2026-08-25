@@ -14,7 +14,36 @@ jobs:
     name: '🔖 Release Please'
     runs-on: ubuntu-latest
     steps:
+    # The org's release-please GitHub App rather than a personal token: the
+    # token is minted per run and expires in an hour, and it belongs to the
+    # org rather than to whoever created the PAT — a PAT dies with its
+    # owner's access and takes every repo's releases with it.
+    #
+    # actions:write is the load-bearing permission. Tags pushed with the
+    # default GITHUB_TOKEN deliberately do not trigger workflows, which
+    # would leave every release tagged and unbuilt; the App can.
+    #
+    # continue-on-error keeps releases working where the App is not yet
+    # installed or its key is not provisioned: the next step falls back to
+    # the PAT and says so, because a silent fallback is how a repo ends up
+    # believing it uses the App when it never has.
+    - uses: actions/create-github-app-token@v2
+      id: app-token
+      if: ${{ vars.RP_APP_ID != '' }}
+      continue-on-error: true
+      with:
+        app-id: ${{ vars.RP_APP_ID }}
+        private-key: ${{ secrets.RP_APP_PRIVATE_KEY }}
+
+    - name: Which credential
+      run: |
+        if [ -n "${{ steps.app-token.outputs.token }}" ]; then
+          echo "release-please is using the org's release-please App"
+        else
+          echo "::warning::App token unavailable (RP_APP_ID/RP_APP_PRIVATE_KEY unset, or the App is not installed here) — falling back to the repo PAT"
+        fi
+
     - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
       with:
         release-type: terraform-module
-        token: ${{ secrets.PAT_TOKEN }}
+        token: ${{ steps.app-token.outputs.token || secrets.PAT_TOKEN }}
