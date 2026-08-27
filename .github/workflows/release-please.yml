@@ -27,7 +27,7 @@ jobs:
     # installed or its key is not provisioned: the next step falls back to
     # the PAT and says so, because a silent fallback is how a repo ends up
     # believing it uses the App when it never has.
-    - uses: actions/create-github-app-token@v2
+    - uses: actions/create-github-app-token@v3
       id: app-token
       if: ${{ vars.RP_APP_ID != '' }}
       continue-on-error: true
