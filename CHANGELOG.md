@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.42.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.41.0...v0.42.0) (2026-08-25)
+## [0.42.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.41.0...v0.42.0) (2026-08-31)
 
 
 ### Features
