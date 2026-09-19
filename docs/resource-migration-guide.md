@@ -147,3 +147,19 @@ Once the migration is complete, simplify the policy to reference only `jamfpro_s
 - `terraform plan` shows no destroy actions for smart computer groups.
 - State contains `jamfpro_smart_computer_group_v2` addresses only.
 - Old `jamfpro_smart_computer_group` addresses are gone from state.
+
+## `jamfpro_mac_application`: unordered collections (v0 to v1)
+
+Schema version 1 automatically upgrades existing version 0 state. The collections
+listed below are unordered sets; repeated identical elements are deduplicated.
+HCL block syntax is unchanged, but numeric indexing into these collections is no
+longer supported. Select by ID/key with a `for` expression instead.
+
+`self_service_category`.
+
+Back up state before upgrading. Do not use upgraded state with an older provider;
+restore the pre-upgrade state and provider together if a rollback is necessary.
+
+The upgrader retains the complete v0 schema, including unrelated nested values,
+and accepts JSON and legacy flatmap state. No resource replacement, state removal,
+or import is required. Other ordered lists and singleton blocks are unchanged.

@@ -1,0 +1,58 @@
+
+Warning: Provider development overrides are in effect
+
+The following provider development overrides are set in the CLI
+configuration:
+ - deploymenttheory/jamfpro in <test-workspace>/bin-old
+
+The behavior may therefore not match any released version of the provider and
+applying changes may cause the state to become incompatible with published
+releases.
+jamfpro_category.alpha: Refreshing state... [id=4]
+jamfpro_category.bravo: Refreshing state... [id=5]
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # jamfpro_mac_application.test will be created
+  + resource "jamfpro_mac_application" "test" {
+      + bundle_id       = "com.tinyspeck.slackmacgap"
+      + category_id     = -1
+      + deployment_type = "Make Available in Self Service"
+      + id              = (known after apply)
+      + is_free         = true
+      + name            = "tf-sets-mac-application-20260919"
+      + site_id         = -1
+      + url             = "https://apps.apple.com/gb/app/slack-for-desktop/id803453959?mt=12"
+      + version         = "1.0"
+
+      + scope {
+          + all_computers = false
+          + all_jss_users = false
+        }
+
+      + self_service {
+          + feature_on_main_page            = false
+          + force_users_to_view_description = false
+          + install_button_text             = "Install"
+          + self_service_description        = "Temporary unscoped set migration test"
+
+          + self_service_category {
+              + display_in = true
+              + feature_in = false
+              + id         = 5
+              + name       = "tf-sets-mac-bravo-20260919"
+            }
+          + self_service_category {
+              + display_in = true
+              + feature_in = false
+              + id         = 4
+              + name       = "tf-sets-mac-alpha-20260919"
+            }
+        }
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.
