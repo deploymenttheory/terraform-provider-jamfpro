@@ -22,9 +22,12 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 // optional array representation while preserving every pre-existing value.
 func upgradeV0ToV1(_ context.Context, state map[string]any, _ any) (map[string]any, error) {
 	payloads, _ := state["payloads"].([]any)
-	for _, payload := range payloads {
-		for _, content := range payload.(map[string]any)["payload_content"].([]any) {
-			initializeArrayState(content.(map[string]any)["setting"])
+	for _, rawPayload := range payloads {
+		payload, _ := rawPayload.(map[string]any)
+		contents, _ := payload["payload_content"].([]any)
+		for _, rawContent := range contents {
+			content, _ := rawContent.(map[string]any)
+			initializeArrayState(content["setting"])
 		}
 	}
 	return state, nil
@@ -33,7 +36,10 @@ func upgradeV0ToV1(_ context.Context, state map[string]any, _ any) (map[string]a
 func initializeArrayState(value any) {
 	entries, _ := value.([]any)
 	for _, item := range entries {
-		entry := item.(map[string]any)
+		entry, ok := item.(map[string]any)
+		if !ok || entry == nil {
+			continue
+		}
 		entry["array_json"] = ""
 		initializeArrayState(entry["dictionary"])
 	}

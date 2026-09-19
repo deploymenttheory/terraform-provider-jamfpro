@@ -187,3 +187,10 @@ or import is required. Other ordered lists and singleton blocks are unchanged.
 Arrays containing plist dates or binary data are rejected with an explicit error;
 they are not coerced to JSON strings. Use the raw plist profile resource for
 those payload types.
+
+Array JSON numbers are normalized without reordering or deduplicating elements.
+Integers retain their signed/unsigned 64-bit values; real numbers use the plist
+64-bit floating-point representation and retain a decimal/exponent marker when
+read back (for example, `1.0` remains a real). JSON `null`, integers outside the
+supported 64-bit range, and non-finite/out-of-range real values are rejected
+before apply rather than silently removed or coerced.

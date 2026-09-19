@@ -4,7 +4,6 @@
 package plist
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"html"
@@ -125,13 +124,7 @@ func settingValue(entry map[string]any) (any, error) {
 		if value, _ := entry["value"].(string); value != "" || dictionaryPresent {
 			return nil, fmt.Errorf("setting %q: array_json cannot be combined with value or dictionary", entry["key"])
 		}
-		var array []any
-		decoder := json.NewDecoder(bytes.NewBufferString(raw))
-		decoder.UseNumber()
-		if err := decoder.Decode(&array); err != nil || array == nil {
-			return nil, fmt.Errorf("setting %q: array_json must contain a JSON array", entry["key"])
-		}
-		return normalizeJSONNumbers(array), nil
+		return ParseJSONArray(raw)
 	}
 	if leaf, ok := entry["dictionary"].(map[string]any); ok && len(leaf) > 0 {
 		result := make(map[string]any, len(leaf))
@@ -280,14 +273,11 @@ func extractNestedConfigurationSettings(items map[string]any, settingsList *[]an
 			}
 		case []any:
 			// Arrays are ordered values, including duplicate items and dictionary elements.
-			if err := validateJSONArrayValue(v); err != nil {
-				return fmt.Errorf("setting %q: %w", key, err)
-			}
-			encoded, err := json.Marshal(v)
+			encoded, err := EncodeJSONArray(v)
 			if err != nil {
 				return fmt.Errorf("setting %q: %w", key, err)
 			}
-			settingMap["array_json"] = string(encoded)
+			settingMap["array_json"] = encoded
 		case bool, int, float64, string:
 			settingMap["value"] = fmt.Sprintf("%v", v)
 		default:
@@ -384,55 +374,4 @@ func MergeConfigurationPayloadFieldsIntoMap(payload *PayloadContent) map[string]
 	}
 
 	return merged
-}
-
-// JSON numbers retain their integer/real distinction when written to plist.
-func normalizeJSONNumbers(value any) any {
-	switch v := value.(type) {
-	case json.Number:
-		if n, err := v.Int64(); err == nil {
-			return n
-		}
-		if n, err := strconv.ParseUint(string(v), 10, 64); err == nil {
-			return n
-		}
-		n, _ := v.Float64()
-		return n
-	case []any:
-		for i, child := range v {
-			v[i] = normalizeJSONNumbers(child)
-		}
-		return v
-	case map[string]any:
-		for k, child := range v {
-			v[k] = normalizeJSONNumbers(child)
-		}
-		return v
-	default:
-		return v
-	}
-}
-
-// Refuse unsupported plist scalar types rather than silently converting dates
-// or binary data to JSON strings and changing their type on the next apply.
-func validateJSONArrayValue(value any) error {
-	switch v := value.(type) {
-	case string, bool, int, int64, uint64, float64, float32, json.Number:
-		return nil
-	case []any:
-		for _, child := range v {
-			if err := validateJSONArrayValue(child); err != nil {
-				return err
-			}
-		}
-	case map[string]any:
-		for _, child := range v {
-			if err := validateJSONArrayValue(child); err != nil {
-				return err
-			}
-		}
-	default:
-		return fmt.Errorf("plist array contains unsupported JSON value type %T", value)
-	}
-	return nil
 }
