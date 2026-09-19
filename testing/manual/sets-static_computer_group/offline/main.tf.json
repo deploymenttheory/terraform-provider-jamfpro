@@ -1,0 +1,15 @@
+{
+  "resource": {
+    "jamfpro_static_computer_group": {
+      "test": {
+        "assigned_computer_ids": [
+          2,
+          1,
+          3
+        ],
+        "name": "set-test",
+        "site_id": -1
+      }
+    }
+  }
+}

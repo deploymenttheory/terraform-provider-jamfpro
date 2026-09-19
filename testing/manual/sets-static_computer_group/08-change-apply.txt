@@ -1,0 +1,14 @@
+
+Warning: Provider development overrides are in effect
+
+The following provider development overrides are set in the CLI
+configuration:
+ - deploymenttheory/jamfpro in <test-workspace>/bin-static_computer_group
+
+The behavior may therefore not match any released version of the provider and
+applying changes may cause the state to become incompatible with published
+releases.
+jamfpro_static_computer_group.test: Modifying... [id=3]
+jamfpro_static_computer_group.test: Modifications complete after 1s [id=3]
+
+Apply complete! Resources: 0 added, 1 changed, 0 destroyed.

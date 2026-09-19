@@ -1,0 +1,2 @@
+$ go test ./internal/services/static_computer_group
+ok  	github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/static_computer_group	(cached)
