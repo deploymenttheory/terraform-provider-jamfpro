@@ -1,0 +1,15 @@
+{
+  "resource": {
+    "jamfpro_static_mobile_device_group": {
+      "test": {
+        "assigned_mobile_device_ids": [
+          2,
+          1,
+          3
+        ],
+        "name": "set-test",
+        "site_id": -1
+      }
+    }
+  }
+}
