@@ -109,19 +109,26 @@ HCL formatting, validation, generated policy docs, and `git diff --check` pass.
 (`expected: false`, `actual: true`). The integration checkbox is unchecked because
 the live fixture was run manually, outside the automated integration harness.
 
-### Live HCL and results
+### Live Terraform lifecycle verification
 
-Tested September 19, 2026 (JST), using separate baseline and PR provider development
-overrides. The policy stayed **disabled with no scoped computers** throughout.
+Verified September 19, 2026 (JST), against `https://onishidev.jamfcloud.com`, using
+Terraform 1.14.6 and separate baseline (`f8efc66a`) and PR provider binaries.
+The policy remained **disabled with no scoped computers**. All test objects were
+removed afterward.
 
-<details>
-<summary>Baseline policy HCL — literal values, no variables or dynamic blocks</summary>
+HCL below expands the recorded runner's inputs into literal values; it is not a
+separate execution. Only the relevant policy resource/blocks are shown, with
+actual dependency IDs. Provider setup, credentials, refresh messages, and
+expected development-override warnings are omitted. The original runner is in
+`testing/manual/policy-block-sets/`.
 
-The policy below expands the recorded fixture's inputs into their actual values;
-it is not a separate run. Script IDs 1/2/3 are charlie/alpha/bravo, and category
-IDs 2/3/1 are charlie/alpha/bravo. Dependencies were created first; provider and
-credential setup are omitted. Archive paths match Jamf's defaults to exclude
-unrelated drift.
+#### 1. Apply the baseline policy with the old provider
+
+Three scripts and three categories had been created by Terraform, followed by
+policy ID `12`. The following HCL was then applied with schema version 1.
+Archive paths explicitly match Jamf's defaults, excluding unrelated drift.
+
+HCL applied:
 
 ```hcl
 resource "jamfpro_policy" "test" {
@@ -201,45 +208,273 @@ resource "jamfpro_policy" "test" {
 }
 ```
 
-</details>
+Plan (summary; the script-order diff is shown in Motivation and Context):
 
-| Step | Actual result |
-| --- | --- |
-| Baseline apply | Policy ID `12` created; schema version `1`; three scripts, accounts, and categories. Reapplying still produces the drift shown above. |
-| Same-state migration plan/apply | `No changes`; exit `0`; `0 added, 0 changed, 0 destroyed`. Schema version becomes `2`; ID and all attribute values are preserved. |
-| Add printers and Dock items | Three of each created and attached: `6 added, 1 changed, 0 destroyed`. |
-| Reorder all five populated collections | charlie/alpha/bravo → bravo/alpha/charlie, with identical field values: `No changes`; exit `0`. |
-| Change script parameters | `alpha-original`, `bravo-original`, `charlie-original` → corresponding `*-updated` values: `0 added, 1 changed, 0 destroyed`; policy ID stays `12`, with exactly three scripts. |
-| Final unchanged-config plan | `No changes`; exit `0`. |
-| Cleanup | `0 added, 0 changed, 13 destroyed`; final state contains zero resources. |
+```text
+Plan: 0 to add, 1 to change, 0 to destroy.
+```
 
-Selected output from migration, content update, final plan, and cleanup
-(refresh messages and development-override warnings omitted):
+Apply (`baseline-normalized.tfplan`):
 
-```console
-$ terraform plan -detailed-exitcode -input=false -no-color -out=migration.tfplan -var-file=<credentials>
-No changes. Your infrastructure matches the configuration.
-
-$ terraform apply -input=false -no-color migration.tfplan
-Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
-
-$ terraform apply -input=false -no-color content-change-fixed.tfplan
+```text
 jamfpro_policy.test: Modifying... [id=12]
 jamfpro_policy.test: Modifications complete after 0s [id=12]
 Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
+```
 
-$ terraform plan -detailed-exitcode -input=false -no-color -var-file=<credentials> -var=include_printers_and_dock_items=true -var='item_order=["bravo","alpha","charlie"]' -var=script_parameter=updated
+Replanning **without editing this HCL** still produced the script-order diff
+shown above, with exit code **2**. This established the v1 state used below.
+
+#### 2. Migrate the same state using the PR provider
+
+HCL: **unchanged from step 1**. Only the provider binary changed; no import or
+state removal was used.
+
+Plan (`migration.tfplan`, exit **0**):
+
+```text
 No changes. Your infrastructure matches the configuration.
+```
 
-$ terraform apply -input=false -no-color cleanup.tfplan
+Apply:
+
+```text
+Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
+```
+
+State assertions:
+
+```text
+Policy ID: 12
+Schema version: 1 -> 2
+All policy attribute values preserved (ignoring collection order).
+Scripts: 3
+Local accounts: 3
+Self Service categories: 3
+```
+
+#### 3. Add printers and Dock items
+
+Three printers and three Dock items were created and attached to the same policy.
+HCL added inside `payloads` (all step 1 blocks remain):
+
+```hcl
+printers {
+  id           = 2
+  name         = "tf-policy-sets-20260919-charlie"
+  action       = "uninstall"
+  make_default = false
+}
+printers {
+  id           = 1
+  name         = "tf-policy-sets-20260919-alpha"
+  action       = "uninstall"
+  make_default = false
+}
+printers {
+  id           = 3
+  name         = "tf-policy-sets-20260919-bravo"
+  action       = "uninstall"
+  make_default = false
+}
+
+dock_items {
+  id     = 2
+  name   = "tf-policy-sets-20260919-charlie"
+  action = "Remove"
+}
+dock_items {
+  id     = 3
+  name   = "tf-policy-sets-20260919-alpha"
+  action = "Remove"
+}
+dock_items {
+  id     = 1
+  name   = "tf-policy-sets-20260919-bravo"
+  action = "Remove"
+}
+```
+
+Plan (`expanded.tfplan`):
+
+```text
+Plan: 6 to add, 1 to change, 0 to destroy.
+```
+
+Apply (dependency creation messages omitted):
+
+```text
+jamfpro_policy.test: Modifying... [id=12]
+jamfpro_policy.test: Modifications complete after 1s [id=12]
+Apply complete! Resources: 6 added, 1 changed, 0 destroyed.
+```
+
+#### 4. Reorder the blocks without changing their values
+
+All five populated collections were reordered from charlie → alpha → bravo to
+bravo → alpha → charlie. For example, the `scripts` blocks inside `payloads`
+became the following; accounts, categories, printers, and Dock items were reordered
+in the same way. No field values changed.
+
+HCL planned:
+
+```hcl
+scripts {
+  id         = "3"
+  priority   = "After"
+  parameter4 = "bravo-original"
+}
+scripts {
+  id         = "2"
+  priority   = "After"
+  parameter4 = "alpha-original"
+}
+scripts {
+  id         = "1"
+  priority   = "After"
+  parameter4 = "charlie-original"
+}
+```
+
+Plan (`reordered.tfplan`, exit **0**):
+
+```text
+No changes. Your infrastructure matches the configuration.
+```
+
+Apply: not run for this ordering-only check.
+
+#### 5. Update script parameters in place
+
+Keep the step 4 order and all other settings. Change only the three `parameter4`
+values:
+
+HCL applied inside `payloads`:
+
+```hcl
+scripts {
+  id         = "3"
+  priority   = "After"
+  parameter4 = "bravo-updated"
+}
+scripts {
+  id         = "2"
+  priority   = "After"
+  parameter4 = "alpha-updated"
+}
+scripts {
+  id         = "1"
+  priority   = "After"
+  parameter4 = "charlie-updated"
+}
+```
+
+Plan (`content-change-fixed.tfplan`):
+
+```text
+  # jamfpro_policy.test will be updated in-place
+  ~ resource "jamfpro_policy" "test" {
+        id                            = "12"
+        name                          = "tf-policy-sets-20260919"
+        # (17 unchanged attributes hidden)
+
+      ~ payloads {
+            # (1 unchanged attribute hidden)
+
+          - scripts {
+              - id          = "1" -> null
+              - parameter4  = "charlie-original" -> null
+              - priority    = "After" -> null
+                # (7 unchanged attributes hidden)
+            }
+          - scripts {
+              - id          = "2" -> null
+              - parameter4  = "alpha-original" -> null
+              - priority    = "After" -> null
+                # (7 unchanged attributes hidden)
+            }
+          - scripts {
+              - id          = "3" -> null
+              - parameter4  = "bravo-original" -> null
+              - priority    = "After" -> null
+                # (7 unchanged attributes hidden)
+            }
+          + scripts {
+              + id          = "1"
+              + parameter4  = "charlie-updated"
+              + priority    = "After"
+                # (7 unchanged attributes hidden)
+            }
+          + scripts {
+              + id          = "2"
+              + parameter4  = "alpha-updated"
+              + priority    = "After"
+                # (7 unchanged attributes hidden)
+            }
+          + scripts {
+              + id          = "3"
+              + parameter4  = "bravo-updated"
+              + priority    = "After"
+                # (7 unchanged attributes hidden)
+            }
+
+            # (7 unchanged blocks hidden)
+        }
+
+        # (3 unchanged blocks hidden)
+    }
+
+Plan: 0 to add, 1 to change, 0 to destroy.
+```
+
+Apply:
+
+```text
+jamfpro_policy.test: Modifying... [id=12]
+jamfpro_policy.test: Modifications complete after 0s [id=12]
+Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
+```
+
+Assertions confirmed policy ID `12`, exactly three scripts, and the three
+`*-updated` parameters. Nested remove/add entries represent changed set elements;
+the policy and script resources were not recreated.
+
+#### 6. Verify the final no-op plan
+
+HCL: **unchanged from step 5**.
+
+Plan after refresh (exit **0**):
+
+```text
+No changes. Your infrastructure matches the configuration.
+```
+
+Apply: not run; the preceding apply had already persisted these values.
+
+#### 7. Destroy the temporary resources
+
+HCL: **unchanged from step 5**. Run `terraform plan -destroy`, then apply the
+saved plan (`cleanup.tfplan`).
+
+Plan:
+
+```text
+Plan: 0 to add, 0 to change, 13 to destroy.
+```
+
+Apply (dependency deletion messages omitted):
+
+```text
+jamfpro_policy.test: Destroying... [id=12]
+jamfpro_policy.test: Destruction complete after 0s
 Apply complete! Resources: 0 added, 0 changed, 13 destroyed.
 ```
 
+All 13 resources reported successful deletion; the final Terraform state was empty.
+
 **Coverage:** Live v1 → v2 migration covers scripts, accounts, and categories.
-Printers and Dock items were added with the PR provider and included in the
-reordering check. Packages, directory bindings, and v0 migration are covered by
-unit tests. The original runner and reproduction steps are in
-`testing/manual/policy-block-sets/`.
+Printers and Dock items were added afterward and included in the reordering check.
+Packages, directory bindings, and v0 migration are covered by unit tests.
 
 ## Quality Checklist
 
