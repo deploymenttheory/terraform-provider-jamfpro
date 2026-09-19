@@ -1,0 +1,40 @@
+{
+  "resource": {
+    "jamfpro_enrollment_customization": {
+      "test": {
+        "branding_settings": [
+          {
+            "background_color": "FFFFFF",
+            "button_color": "000000",
+            "button_text_color": "FFFFFF",
+            "text_color": "000000"
+          }
+        ],
+        "description": "Preserve description",
+        "display_name": "set-test",
+        "enrollment_customization_image_source": "",
+        "ldap_pane": [
+          {
+            "back_button_text": "Back",
+            "continue_button_text": "Continue",
+            "display_name": "LDAP",
+            "ldap_group_access": [
+              {
+                "group_name": "alpha",
+                "ldap_server_id": 1
+              },
+              {
+                "group_name": "bravo",
+                "ldap_server_id": 2
+              }
+            ],
+            "password_label": "Password",
+            "rank": 1,
+            "title": "Sign in",
+            "username_label": "Username"
+          }
+        ]
+      }
+    }
+  }
+}

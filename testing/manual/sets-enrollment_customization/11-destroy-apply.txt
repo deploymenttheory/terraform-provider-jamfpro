@@ -1,0 +1,14 @@
+
+Warning: Provider development overrides are in effect
+
+The following provider development overrides are set in the CLI
+configuration:
+ - deploymenttheory/jamfpro in <test-workspace>/bin-enrollment_customization
+
+The behavior may therefore not match any released version of the provider and
+applying changes may cause the state to become incompatible with published
+releases.
+jamfpro_enrollment_customization.test: Destroying... [id=1]
+jamfpro_enrollment_customization.test: Destruction complete after 1s
+
+Apply complete! Resources: 0 added, 0 changed, 1 destroyed.

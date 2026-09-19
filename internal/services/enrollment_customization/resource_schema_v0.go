@@ -7,8 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// resourceSchema defines the schema and CRUD operations for managing Jamf Pro Enrollment Customizations in Terraform.
-func resourceSchema() *schema.Resource {
+// resourceV0 preserves the complete schema before collection sets were introduced.
+func resourceV0() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,
 		ReadContext:   readWithCleanup,
@@ -191,7 +191,7 @@ func resourceSchema() *schema.Resource {
 							Description: "The text for the continue button.",
 						},
 						"ldap_group_access": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
