@@ -208,9 +208,40 @@ resource "jamfpro_policy" "test" {
 }
 ```
 
-Plan (summary; the script-order diff is shown in Motivation and Context):
+Plan (`baseline-normalized.tfplan`):
 
 ```text
+  # jamfpro_policy.test will be updated in-place
+  ~ resource "jamfpro_policy" "test" {
+        id                            = "12"
+        name                          = "tf-policy-sets-20260919"
+        # (17 unchanged attributes hidden)
+
+      ~ payloads {
+            # (1 unchanged attribute hidden)
+
+          ~ scripts {
+              ~ id          = "2" -> "1"
+              ~ parameter4  = "alpha-original" -> "charlie-original"
+                # (8 unchanged attributes hidden)
+            }
+          ~ scripts {
+              ~ id          = "3" -> "2"
+              ~ parameter4  = "bravo-original" -> "alpha-original"
+                # (8 unchanged attributes hidden)
+            }
+          ~ scripts {
+              ~ id          = "1" -> "3"
+              ~ parameter4  = "charlie-original" -> "bravo-original"
+                # (8 unchanged attributes hidden)
+            }
+
+            # (1 unchanged block hidden)
+        }
+
+        # (3 unchanged blocks hidden)
+    }
+
 Plan: 0 to add, 1 to change, 0 to destroy.
 ```
 
@@ -298,6 +329,116 @@ dock_items {
 Plan (`expanded.tfplan`):
 
 ```text
+  # jamfpro_dock_item.test["alpha"] will be created
+  + resource "jamfpro_dock_item" "test" {
+      + contents = (known after apply)
+      + id       = (known after apply)
+      + name     = "tf-policy-sets-20260919-alpha"
+      + path     = "file://localhost/Applications/alpha.app"
+      + type     = "App"
+    }
+
+  # jamfpro_dock_item.test["bravo"] will be created
+  + resource "jamfpro_dock_item" "test" {
+      + contents = (known after apply)
+      + id       = (known after apply)
+      + name     = "tf-policy-sets-20260919-bravo"
+      + path     = "file://localhost/Applications/bravo.app"
+      + type     = "App"
+    }
+
+  # jamfpro_dock_item.test["charlie"] will be created
+  + resource "jamfpro_dock_item" "test" {
+      + contents = (known after apply)
+      + id       = (known after apply)
+      + name     = "tf-policy-sets-20260919-charlie"
+      + path     = "file://localhost/Applications/charlie.app"
+      + type     = "App"
+    }
+
+  # jamfpro_policy.test will be updated in-place
+  ~ resource "jamfpro_policy" "test" {
+        id                            = "12"
+        name                          = "tf-policy-sets-20260919"
+        # (17 unchanged attributes hidden)
+
+      ~ payloads {
+            # (1 unchanged attribute hidden)
+
+          + dock_items {
+              + action = "Remove"
+              + id     = (known after apply)
+              + name   = "tf-policy-sets-20260919-alpha"
+            }
+          + dock_items {
+              + action = "Remove"
+              + id     = (known after apply)
+              + name   = "tf-policy-sets-20260919-bravo"
+            }
+          + dock_items {
+              + action = "Remove"
+              + id     = (known after apply)
+              + name   = "tf-policy-sets-20260919-charlie"
+            }
+
+          + printers {
+              + action       = "uninstall"
+              + id           = (known after apply)
+              + make_default = false
+              + name         = "tf-policy-sets-20260919-alpha"
+            }
+          + printers {
+              + action       = "uninstall"
+              + id           = (known after apply)
+              + make_default = false
+              + name         = "tf-policy-sets-20260919-bravo"
+            }
+          + printers {
+              + action       = "uninstall"
+              + id           = (known after apply)
+              + make_default = false
+              + name         = "tf-policy-sets-20260919-charlie"
+            }
+
+            # (4 unchanged blocks hidden)
+        }
+
+        # (3 unchanged blocks hidden)
+    }
+
+  # jamfpro_printer.test["alpha"] will be created
+  + resource "jamfpro_printer" "test" {
+      + category_name = "No category assigned"
+      + cups_name     = "tf_alpha"
+      + id            = (known after apply)
+      + name          = "tf-policy-sets-20260919-alpha"
+      + ppd_path      = "/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/PrintCore.framework/Resources/Generic.ppd"
+      + uri           = "ipp://192.0.2.1/alpha"
+      + use_generic   = true
+    }
+
+  # jamfpro_printer.test["bravo"] will be created
+  + resource "jamfpro_printer" "test" {
+      + category_name = "No category assigned"
+      + cups_name     = "tf_bravo"
+      + id            = (known after apply)
+      + name          = "tf-policy-sets-20260919-bravo"
+      + ppd_path      = "/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/PrintCore.framework/Resources/Generic.ppd"
+      + uri           = "ipp://192.0.2.1/bravo"
+      + use_generic   = true
+    }
+
+  # jamfpro_printer.test["charlie"] will be created
+  + resource "jamfpro_printer" "test" {
+      + category_name = "No category assigned"
+      + cups_name     = "tf_charlie"
+      + id            = (known after apply)
+      + name          = "tf-policy-sets-20260919-charlie"
+      + ppd_path      = "/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/PrintCore.framework/Resources/Generic.ppd"
+      + uri           = "ipp://192.0.2.1/charlie"
+      + use_generic   = true
+    }
+
 Plan: 6 to add, 1 to change, 0 to destroy.
 ```
 
@@ -458,9 +599,282 @@ saved plan (`cleanup.tfplan`).
 
 Plan:
 
+<details>
+<summary>Full destroy diff: all 13 temporary resources</summary>
+
 ```text
+  # jamfpro_category.test["alpha"] will be destroyed
+  - resource "jamfpro_category" "test" {
+      - id       = "3" -> null
+      - name     = "tf-policy-sets-20260919-alpha" -> null
+      - priority = 9 -> null
+    }
+
+  # jamfpro_category.test["bravo"] will be destroyed
+  - resource "jamfpro_category" "test" {
+      - id       = "1" -> null
+      - name     = "tf-policy-sets-20260919-bravo" -> null
+      - priority = 9 -> null
+    }
+
+  # jamfpro_category.test["charlie"] will be destroyed
+  - resource "jamfpro_category" "test" {
+      - id       = "2" -> null
+      - name     = "tf-policy-sets-20260919-charlie" -> null
+      - priority = 9 -> null
+    }
+
+  # jamfpro_dock_item.test["alpha"] will be destroyed
+  - resource "jamfpro_dock_item" "test" {
+      - contents = "<dict><key>GUID</key><integer>-91117049</integer><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>file://localhost/Applications/alpha.app</string><key>_CFURLStringType</key><integer>15</integer></dict><key>file-label</key><string>tf-policy-sets-20260919-alpha</string></dict><key>tile-type</key><string>file-tile</string></dict>" -> null
+      - id       = "3" -> null
+      - name     = "tf-policy-sets-20260919-alpha" -> null
+      - path     = "file://localhost/Applications/alpha.app" -> null
+      - type     = "App" -> null
+    }
+
+  # jamfpro_dock_item.test["bravo"] will be destroyed
+  - resource "jamfpro_dock_item" "test" {
+      - contents = "<dict><key>GUID</key><integer>-91117049</integer><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>file://localhost/Applications/bravo.app</string><key>_CFURLStringType</key><integer>15</integer></dict><key>file-label</key><string>tf-policy-sets-20260919-bravo</string></dict><key>tile-type</key><string>file-tile</string></dict>" -> null
+      - id       = "1" -> null
+      - name     = "tf-policy-sets-20260919-bravo" -> null
+      - path     = "file://localhost/Applications/bravo.app" -> null
+      - type     = "App" -> null
+    }
+
+  # jamfpro_dock_item.test["charlie"] will be destroyed
+  - resource "jamfpro_dock_item" "test" {
+      - contents = "<dict><key>GUID</key><integer>-91117049</integer><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>file://localhost/Applications/charlie.app</string><key>_CFURLStringType</key><integer>15</integer></dict><key>file-label</key><string>tf-policy-sets-20260919-charlie</string></dict><key>tile-type</key><string>file-tile</string></dict>" -> null
+      - id       = "2" -> null
+      - name     = "tf-policy-sets-20260919-charlie" -> null
+      - path     = "file://localhost/Applications/charlie.app" -> null
+      - type     = "App" -> null
+    }
+
+  # jamfpro_policy.test will be destroyed
+  - resource "jamfpro_policy" "test" {
+      - category_id                   = -1 -> null
+      - enabled                       = false -> null
+      - frequency                     = "Ongoing" -> null
+      - id                            = "12" -> null
+      - name                          = "tf-policy-sets-20260919" -> null
+      - network_requirements          = "Any" -> null
+      - notify_on_each_failed_retry   = false -> null
+      - offline                       = false -> null
+      - package_distribution_point    = "default" -> null
+      - retry_attempts                = -1 -> null
+      - retry_event                   = "none" -> null
+      - site_id                       = -1 -> null
+      - target_drive                  = "/" -> null
+      - trigger_checkin               = false -> null
+      - trigger_enrollment_complete   = false -> null
+      - trigger_login                 = false -> null
+      - trigger_network_state_changed = false -> null
+      - trigger_other                 = "tf-policy-sets-20260919-never-run" -> null
+      - trigger_startup               = false -> null
+
+      - network_limitations {
+          - any_ip_address             = false -> null
+          - minimum_network_connection = "No Minimum" -> null
+        }
+
+      - payloads {
+            # (1 unchanged attribute hidden)
+
+          - account_maintenance {
+              - local_accounts {
+                  - account {
+                      # At least one attribute in this block is (or was) sensitive,
+                      # so its contents will not be displayed.
+                    }
+                  - account {
+                      # At least one attribute in this block is (or was) sensitive,
+                      # so its contents will not be displayed.
+                    }
+                  - account {
+                      # At least one attribute in this block is (or was) sensitive,
+                      # so its contents will not be displayed.
+                    }
+                }
+            }
+
+          - dock_items {
+              - action = "Remove" -> null
+              - id     = 1 -> null
+              - name   = "tf-policy-sets-20260919-bravo" -> null
+            }
+          - dock_items {
+              - action = "Remove" -> null
+              - id     = 2 -> null
+              - name   = "tf-policy-sets-20260919-charlie" -> null
+            }
+          - dock_items {
+              - action = "Remove" -> null
+              - id     = 3 -> null
+              - name   = "tf-policy-sets-20260919-alpha" -> null
+            }
+
+          - printers {
+              - action       = "uninstall" -> null
+              - id           = 1 -> null
+              - make_default = false -> null
+              - name         = "tf-policy-sets-20260919-alpha" -> null
+            }
+          - printers {
+              - action       = "uninstall" -> null
+              - id           = 2 -> null
+              - make_default = false -> null
+              - name         = "tf-policy-sets-20260919-charlie" -> null
+            }
+          - printers {
+              - action       = "uninstall" -> null
+              - id           = 3 -> null
+              - make_default = false -> null
+              - name         = "tf-policy-sets-20260919-bravo" -> null
+            }
+
+          - scripts {
+              - id          = "1" -> null
+              - parameter4  = "charlie-updated" -> null
+              - priority    = "After" -> null
+                # (7 unchanged attributes hidden)
+            }
+          - scripts {
+              - id          = "2" -> null
+              - parameter4  = "alpha-updated" -> null
+              - priority    = "After" -> null
+                # (7 unchanged attributes hidden)
+            }
+          - scripts {
+              - id          = "3" -> null
+              - parameter4  = "bravo-updated" -> null
+              - priority    = "After" -> null
+                # (7 unchanged attributes hidden)
+            }
+        }
+
+      - scope {
+          - all_computers      = false -> null
+          - all_jss_users      = false -> null
+          - building_ids       = [] -> null
+          - computer_group_ids = [] -> null
+          - computer_ids       = [] -> null
+          - department_ids     = [] -> null
+          - jss_user_group_ids = [] -> null
+          - jss_user_ids       = [] -> null
+        }
+
+      - self_service {
+          - feature_on_main_page            = false -> null
+          - force_users_to_view_description = false -> null
+          - install_button_text             = "Install" -> null
+          - notification                    = false -> null
+          - reinstall_button_text           = "REINSTALL" -> null
+          - self_service_display_name       = "Terraform policy set migration test" -> null
+          - self_service_icon_id            = 0 -> null
+          - use_for_self_service            = false -> null
+            # (4 unchanged attributes hidden)
+
+          - self_service_category {
+              - display_in = true -> null
+              - feature_in = false -> null
+              - id         = 1 -> null
+            }
+          - self_service_category {
+              - display_in = true -> null
+              - feature_in = false -> null
+              - id         = 2 -> null
+            }
+          - self_service_category {
+              - display_in = true -> null
+              - feature_in = false -> null
+              - id         = 3 -> null
+            }
+        }
+    }
+
+  # jamfpro_printer.test["alpha"] will be destroyed
+  - resource "jamfpro_printer" "test" {
+      - category_name = "No category assigned" -> null
+      - cups_name     = "tf_alpha" -> null
+      - id            = "1" -> null
+      - make_default  = false -> null
+      - name          = "tf-policy-sets-20260919-alpha" -> null
+      - ppd_path      = "/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/PrintCore.framework/Resources/Generic.ppd" -> null
+      - uri           = "ipp://192.0.2.1/alpha" -> null
+      - use_generic   = true -> null
+        # (6 unchanged attributes hidden)
+    }
+
+  # jamfpro_printer.test["bravo"] will be destroyed
+  - resource "jamfpro_printer" "test" {
+      - category_name = "No category assigned" -> null
+      - cups_name     = "tf_bravo" -> null
+      - id            = "3" -> null
+      - make_default  = false -> null
+      - name          = "tf-policy-sets-20260919-bravo" -> null
+      - ppd_path      = "/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/PrintCore.framework/Resources/Generic.ppd" -> null
+      - uri           = "ipp://192.0.2.1/bravo" -> null
+      - use_generic   = true -> null
+        # (6 unchanged attributes hidden)
+    }
+
+  # jamfpro_printer.test["charlie"] will be destroyed
+  - resource "jamfpro_printer" "test" {
+      - category_name = "No category assigned" -> null
+      - cups_name     = "tf_charlie" -> null
+      - id            = "2" -> null
+      - make_default  = false -> null
+      - name          = "tf-policy-sets-20260919-charlie" -> null
+      - ppd_path      = "/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/PrintCore.framework/Resources/Generic.ppd" -> null
+      - uri           = "ipp://192.0.2.1/charlie" -> null
+      - use_generic   = true -> null
+        # (6 unchanged attributes hidden)
+    }
+
+  # jamfpro_script.test["alpha"] will be destroyed
+  - resource "jamfpro_script" "test" {
+      - category_id     = "-1" -> null
+      - id              = "2" -> null
+      - name            = "tf-policy-sets-20260919-alpha" -> null
+      - priority        = "AFTER" -> null
+      - script_contents = <<-EOT
+            #!/bin/sh
+            exit 0
+        EOT -> null
+        # (11 unchanged attributes hidden)
+    }
+
+  # jamfpro_script.test["bravo"] will be destroyed
+  - resource "jamfpro_script" "test" {
+      - category_id     = "-1" -> null
+      - id              = "3" -> null
+      - name            = "tf-policy-sets-20260919-bravo" -> null
+      - priority        = "AFTER" -> null
+      - script_contents = <<-EOT
+            #!/bin/sh
+            exit 0
+        EOT -> null
+        # (11 unchanged attributes hidden)
+    }
+
+  # jamfpro_script.test["charlie"] will be destroyed
+  - resource "jamfpro_script" "test" {
+      - category_id     = "-1" -> null
+      - id              = "1" -> null
+      - name            = "tf-policy-sets-20260919-charlie" -> null
+      - priority        = "AFTER" -> null
+      - script_contents = <<-EOT
+            #!/bin/sh
+            exit 0
+        EOT -> null
+        # (11 unchanged attributes hidden)
+    }
+
 Plan: 0 to add, 0 to change, 13 to destroy.
 ```
+
+</details>
 
 Apply (dependency deletion messages omitted):
 
