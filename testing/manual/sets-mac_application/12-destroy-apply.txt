@@ -1,0 +1,18 @@
+
+Warning: Provider development overrides are in effect
+
+The following provider development overrides are set in the CLI
+configuration:
+ - deploymenttheory/jamfpro in <test-workspace>/bin-mac_application
+
+The behavior may therefore not match any released version of the provider and
+applying changes may cause the state to become incompatible with published
+releases.
+jamfpro_mac_application.test: Destroying... [id=1]
+jamfpro_mac_application.test: Destruction complete after 0s
+jamfpro_category.bravo: Destroying... [id=5]
+jamfpro_category.alpha: Destroying... [id=4]
+jamfpro_category.alpha: Destruction complete after 0s
+jamfpro_category.bravo: Destruction complete after 0s
+
+Apply complete! Resources: 0 added, 0 changed, 3 destroyed.
