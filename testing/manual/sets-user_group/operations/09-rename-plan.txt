@@ -1,0 +1,28 @@
+
+Warning: Provider development overrides are in effect
+
+The following provider development overrides are set in the CLI
+configuration:
+ - deploymenttheory/jamfpro in <test-workspace>/bin-user_group
+
+The behavior may therefore not match any released version of the provider and
+applying changes may cause the state to become incompatible with published
+releases.
+jamfpro_user_group.operations: Refreshing state... [id=2]
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  ~ update in-place
+
+Terraform will perform the following actions:
+
+  # jamfpro_user_group.operations will be updated in-place
+  ~ resource "jamfpro_user_group" "operations" {
+        id                  = "2"
+      ~ name                = "tf-sets-user-operations-20260919" -> "tf-sets-user-operations-20260919-renamed"
+        # (3 unchanged attributes hidden)
+
+        # (5 unchanged blocks hidden)
+    }
+
+Plan: 0 to add, 1 to change, 0 to destroy.

@@ -9,23 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-const (
-	And                    UserGroupAndOr = "and"
-	Or                     UserGroupAndOr = "or"
-	SearchTypeIs                          = "is"
-	SearchTypeIsNot                       = "is not"
-	SearchTypeLike                        = "like"
-	SearchTypeNotLike                     = "not like"
-	SearchTypeMatchesRegex                = "matches regex"
-	SearchTypeDoesNotMatch                = "does not match regex"
-	SearchTypeMemberOf                    = "member of"
-	SearchTypeNotMemberOf                 = "not member of"
-)
-
-type UserGroupAndOr string
-
-// resourceSchema defines the schema and CRUD operations for managing Jamf Pro User Groups in Terraform.
-func resourceSchema() *schema.Resource {
+// resourceV0 preserves the complete schema before collection sets were introduced.
+func resourceV0() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,
 		ReadContext:   readWithCleanup,
@@ -122,35 +107,34 @@ func resourceSchema() *schema.Resource {
 				},
 			},
 			"assigned_user_ids": {
-				Type:        schema.TypeSet,
+				Type:        schema.TypeList,
 				Optional:    true,
-				Computed:    true,
-				Description: "Complete user membership by ID. When omitted, membership is read from the API; use operation blocks for incremental changes.",
+				Description: "assigned computer by ids",
 				Elem: &schema.Schema{
 					Type: schema.TypeInt,
 				},
 			},
 			"user_additions": {
-				Type:        schema.TypeSet,
+				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Users added to the user group.",
 				Elem: &schema.Resource{
-					Schema: userGroupSubsetUserItemSchema(),
+					Schema: userGroupSubsetUserItemSchemaV0(),
 				},
 			},
 			"user_deletions": {
-				Type:        schema.TypeSet,
+				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Users removed from the user group.",
 				Elem: &schema.Resource{
-					Schema: userGroupSubsetUserItemSchema(),
+					Schema: userGroupSubsetUserItemSchemaV0(),
 				},
 			},
 		},
 	}
 }
 
-func userGroupSubsetUserItemSchema() map[string]*schema.Schema {
+func userGroupSubsetUserItemSchemaV0() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"id": {
 			Type:        schema.TypeString,

@@ -1,0 +1,3 @@
+$ go test ./internal/services/user_group ./internal/provider
+ok  	github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/user_group	(cached)
+?   	github.com/deploymenttheory/terraform-provider-jamfpro/internal/provider	[no test files]
