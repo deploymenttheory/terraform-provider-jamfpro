@@ -1,4 +1,4 @@
-# Fix order-sensitive policy blocks with automatic state migration
+# Pull Request Description
 
 ## Summary
 
@@ -30,7 +30,56 @@ but expressions indexing these collections numerically must select by identity.
 Identical elements are deduplicated. No import, state removal, or policy
 recreation is required.
 
-## Automated verification
+
+### Issue Reference
+
+N/A. This follows the state migration approach in [PR #1077](https://github.com/deploymenttheory/terraform-provider-jamfpro/pull/1077).
+
+### Motivation and Context
+
+The Jamf Pro API returns policy scripts in a different order from HCL declaration
+order. With list-backed blocks, an unchanged configuration continues to plan
+in-place updates after apply. Sets remove these order-only differences while
+still detecting additions, removals, and actual field changes. The Testing
+section below includes the reproduced drift and the same-state migration result.
+
+### Dependencies
+
+- No Go module or provider dependency updates.
+- Live verification uses Terraform 1.14.6 and API client privileges for Create,
+  Read, and Delete on Scripts, Categories, Printers, and Dock Items, plus Create,
+  Read, Update, and Delete on Policies.
+- Existing block syntax remains valid; numeric-index expressions for the changed
+  collections must be updated to select elements by identity.
+
+## Type of Change
+
+Please mark the relevant option with an `x`:
+
+- [ ] 🐛 Bug fix (non-breaking change which fixes an issue)
+- [ ] ✨ New feature (non-breaking change which adds functionality)
+- [x] 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [x] 📝 Documentation update (Wiki/README/Code comments)
+- [ ] ♻️ Refactor (code improvement without functional changes)
+- [ ] 🎨 Style update (formatting, renaming)
+- [ ] 🔧 Configuration change
+- [ ] 📦 Dependency update
+
+Marked as a breaking change because numeric indexing into the changed collections
+is no longer supported, despite automatic state migration preserving resources.
+
+## Testing
+
+- [x] I have added unit tests that prove my fix is effective or that my feature works
+- [ ] New and existing unit tests pass locally with my changes
+- [ ] I have added integration tests following the [testing implementation guide](../docs/testing-implementation.md)
+- [x] I have tested this code in the following browsers/environments: Terraform 1.14.6 on darwin/arm64 against a live Jamf Pro tenant
+
+The full-unit-suite checkbox remains unchecked because of the existing failure
+listed below. The live fixture is a manual Terraform verification, not an
+integration test added to the repository's automated integration harness.
+
+### Automated verification
 
 - `go test ./internal/services/policy ./internal/services/macos_onboarding_settings` passes.
 - Protocol tests cover JSON and legacy flatmap migration from v0 and v1,
@@ -45,7 +94,8 @@ recreation is required.
   `macos_configuration_profile_plist/TestDiffSuppressEquivalentPayloads/Validation_disabled_should_not_suppress`
   test (`expected: false`, `actual: true`).
 
-## Real tenant verification
+
+### Real tenant verification
 
 Verified against `https://onishidev.jamfcloud.com` on September 19, 2026 (JST),
 using Terraform 1.14.6 on darwin/arm64, a baseline provider built from `f8efc66a`,
@@ -56,7 +106,7 @@ The policy remained disabled with no scoped computers throughout. The fixture
 uses three elements per collection. HCL declares them in `charlie → alpha → bravo`
 order; the API returned scripts in `alpha → bravo → charlie` order.
 
-### HCL
+#### HCL
 
 The complete reproducible fixture is committed as
 `testing/manual/policy-block-sets/main.tf`:
@@ -215,7 +265,7 @@ is explicit because Jamf fills in that default even when omitted, which would
 otherwise introduce an unrelated diff. The five-second token refresh buffer
 supports the API client's short token lifetime.
 
-### 1. Create and apply baseline state
+#### 1. Create and apply baseline state
 
 Three scripts and three categories were created by Terraform first. The baseline
 then planned `1 to add, 0 to change, 0 to destroy` for the policy:
@@ -240,7 +290,7 @@ jamfpro_policy.test: Modifications complete after 0s [id=12]
 Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
 ```
 
-### 2. Reproduce the original drift after apply, with unchanged HCL
+#### 2. Reproduce the original drift after apply, with unchanged HCL
 
 ```console
 $ TF_CLI_CONFIG_FILE=baseline.tfrc terraform plan -detailed-exitcode -input=false -no-color -out=baseline-drift.tfplan -var-file=<credentials>
@@ -284,7 +334,7 @@ Exit code: **2**. This is an unchanged-HCL replan after apply, not a deliberate
 configuration reorder. The same three scripts retain their IDs and parameter
 values; only list position differs. Applying the old plan does not eliminate it.
 
-### 3. Upgrade the same state with the modified provider
+#### 3. Upgrade the same state with the modified provider
 
 No HCL edits, import, or state removal occurred between the preceding drift plan
 and this migration plan:
@@ -323,7 +373,7 @@ Local accounts: 3
 Self Service categories: 3
 ```
 
-### 4. Extend live coverage to printers and Dock items
+#### 4. Extend live coverage to printers and Dock items
 
 After the API role permissions were available, plan with
 `-var=include_printers_and_dock_items=true` produced
@@ -349,7 +399,7 @@ jamfpro_policy.test: Modifications complete after 1s [id=12]
 Apply complete! Resources: 6 added, 1 changed, 0 destroyed.
 ```
 
-### 5. Reorder all five populated collections
+#### 5. Reorder all five populated collections
 
 Keep `include_printers_and_dock_items=true`, and change only the order variable:
 
@@ -378,7 +428,7 @@ and found no differences, so no changes are needed.
 Exit code: **0**. Scripts, local accounts, Self Service categories, printers, and
 Dock items each contain three entries, and declaration order causes no diff.
 
-### 6. Change actual script parameters
+#### 6. Change actual script parameters
 
 With the phase 5 variables, add `-var=script_parameter=updated`:
 
@@ -455,7 +505,7 @@ Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
 Assertions confirmed policy ID `12`, exactly three scripts, and parameters
 `alpha-updated`, `bravo-updated`, and `charlie-updated`; the policy stayed disabled.
 
-### 7. Final unchanged-config refresh and plan
+#### 7. Final unchanged-config refresh and plan
 
 ```console
 $ TF_CLI_CONFIG_FILE=current.tfrc terraform plan -detailed-exitcode -input=false -no-color -var-file=<credentials> -var=include_printers_and_dock_items=true -var='item_order=["bravo","alpha","charlie"]' -var=script_parameter=updated
@@ -481,7 +531,7 @@ and found no differences, so no changes are needed.
 
 Exit code: **0**.
 
-### 8. Cleanup
+#### 8. Cleanup
 
 Using the same phase 7 variables, the saved destroy plan contained only the
 13 temporary resources created for this test:
@@ -524,7 +574,7 @@ Apply complete! Resources: 0 added, 0 changed, 13 destroyed.
 The final Terraform state contains **zero resources**. All 13 temporary
 resources reported successful deletion.
 
-### Verification scope
+#### Verification scope
 
 Live v1 → v2 migration covered scripts, local accounts, and Self Service
 categories. Printers and Dock items were subsequently created and exercised
@@ -532,7 +582,27 @@ with the new provider; all five populated collections passed the ordering-only
 plan. Package and directory-binding collections, and the v0 migration path,
 are covered by automated tests rather than live provisioning.
 
-## Compatibility
+## Quality Checklist
+
+- [x] I have reviewed my own code before requesting review
+- [ ] I have verified there are no other open Pull Requests for the same update/change
+- [ ] All CI/CD pipelines pass without errors or warnings
+- [x] My code follows the established style guidelines of this project
+- [x] My comments are used only when necessary, ideally where the codes purpose is not self explanatory (eg: necessary magic numbers)
+- [x] I have added necessary documentation (if appropriate)
+- [x] I have made corresponding changes to the README and other relevant documentation
+- [ ] My changes generate no new warnings
+
+The fixture README, migration guide, and generated policy reference are updated.
+The local Terraform runs display the expected development-override warning;
+CI completion and absence of all warnings are not claimed.
+
+## Screenshots/Recordings (if appropriate)
+
+Not applicable. The Testing section contains the actual HCL, pre-change drift
+plan, post-change plan/apply output, and cleanup results.
+
+## Additional Notes
 
 The migration retains resource identity and automatically persists schema version
 2 when applied. Users must update numeric-index expressions for changed
