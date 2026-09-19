@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	sharedschemas "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/shared_schemas"
@@ -35,7 +36,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceUserGroup, error) {
 	}
 
 	if !resource.IsSmart {
-		assignedUsers := d.Get("assigned_user_ids").([]any)
+		assignedUsers := d.Get("assigned_user_ids").(*schema.Set).List()
 		if len(assignedUsers) > 0 {
 			for _, v := range assignedUsers {
 				resource.Users = append(resource.Users, jamfpro.UserGroupSubsetUserItem{
@@ -45,8 +46,15 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceUserGroup, error) {
 		}
 	}
 
-	resource.UserAdditions = extractUsers(d.Get("user_additions").([]any))
-	resource.UserDeletions = extractUsers(d.Get("user_deletions").([]any))
+	var err error
+	resource.UserAdditions, err = extractUsers(newUserOperations(d, "user_additions"))
+	if err != nil {
+		return resource, err
+	}
+	resource.UserDeletions, err = extractUsers(newUserOperations(d, "user_deletions"))
+	if err != nil {
+		return resource, err
+	}
 
 	resourceXML, err := xml.MarshalIndent(resource, "", "  ")
 	if err != nil {
@@ -63,12 +71,23 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceUserGroup, error) {
 // slice, extracts the relevant fields, and constructs a UserGroupSubsetUserItem for
 // each user. The resulting slice of UserGroupSubsetUserItem is suitable for use in
 // constructing a jamfpro.ResourceUserGroup object.
-func extractUsers(usersInterface []any) []jamfpro.UserGroupSubsetUserItem {
+func extractUsers(usersInterface []any) ([]jamfpro.UserGroupSubsetUserItem, error) {
 	var users []jamfpro.UserGroupSubsetUserItem
 	for _, user := range usersInterface {
 		u := user.(map[string]any)
+		id := 0
+		if raw := u["id"].(string); raw != "" {
+			var err error
+			id, err = strconv.Atoi(raw)
+			if err != nil || id <= 0 {
+				return nil, fmt.Errorf("user ID must be a positive integer: %q", raw)
+			}
+		}
+		if id == 0 && u["username"].(string) == "" {
+			return nil, fmt.Errorf("user operation requires id or username")
+		}
 		userItem := jamfpro.UserGroupSubsetUserItem{
-			ID:           u["id"].(int),
+			ID:           id,
 			Username:     u["username"].(string),
 			FullName:     u["full_name"].(string),
 			PhoneNumber:  u["phone_number"].(string),
@@ -76,5 +95,14 @@ func extractUsers(usersInterface []any) []jamfpro.UserGroupSubsetUserItem {
 		}
 		users = append(users, userItem)
 	}
-	return users
+	return users, nil
+}
+
+// Operation blocks record submitted commands. Removing a block does not invert it.
+func newUserOperations(d *schema.ResourceData, key string) []any {
+	if !d.HasChange(key) {
+		return nil
+	}
+	old, next := d.GetChange(key)
+	return next.(*schema.Set).Difference(old.(*schema.Set)).List()
 }

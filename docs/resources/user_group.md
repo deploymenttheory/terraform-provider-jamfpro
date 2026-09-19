@@ -75,14 +75,14 @@ resource "jamfpro_user_group" "jamfpro_user_group_003" {
 
 ### Optional
 
-- `assigned_user_ids` (List of Number) assigned computer by ids
+- `assigned_user_ids` (Set of Number) Complete user membership by ID. When omitted, membership is read from the API; use operation blocks for incremental changes.
 - `criteria` (Block List) The criteria used for defining the smart user group. (see [below for nested schema](#nestedblock--criteria))
 - `is_notify_on_change` (Boolean) Indicates if notifications are sent on change.
 - `is_smart` (Boolean) Indicates if the user group is a smart group.
 - `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
-- `user_additions` (Block List) Users added to the user group. (see [below for nested schema](#nestedblock--user_additions))
-- `user_deletions` (Block List) Users removed from the user group. (see [below for nested schema](#nestedblock--user_deletions))
+- `user_additions` (Block Set) Users added to the user group. (see [below for nested schema](#nestedblock--user_additions))
+- `user_deletions` (Block Set) Users removed from the user group. (see [below for nested schema](#nestedblock--user_deletions))
 
 ### Read-Only
 
@@ -141,3 +141,28 @@ Read-Only:
 - `email_address` (String) The email address of the user.
 - `full_name` (String) The full name of the user.
 - `phone_number` (String) The phone number of the user.
+## Collection state migration
+
+Schema version 1 automatically upgrades existing version 0 state. The collections
+listed below are unordered sets; repeated identical elements are deduplicated.
+HCL block syntax is unchanged, but numeric indexing into these collections is no
+longer supported. Select by ID/key with a `for` expression instead.
+
+`assigned_user_ids`, `user_additions`, `user_deletions`.
+
+Back up state before upgrading. Do not use upgraded state with an older provider;
+restore the pre-upgrade state and provider together if a rollback is necessary.
+See the [resource migration guide](../resource-migration-guide.md).
+
+`user_additions` and `user_deletions` are command sets, not desired membership.
+Only newly added or changed commands are submitted. Removing a command does not
+undo it, and refresh does not erase it when the API omits command fields.
+Computed contact fields do not participate in command identity. Use
+`assigned_user_ids` to manage complete membership; do not combine it (including an explicitly empty set)
+with operation sets. A metadata-only update preserves current
+membership and does not replay prior deletions. The constructor accepts numeric
+string IDs without a type assertion panic.
+
+When `assigned_user_ids` is omitted, the provider reports the observed membership
+as a computed set. Changes to operation blocks recompute that set. An explicit
+empty set still manages the group as empty.

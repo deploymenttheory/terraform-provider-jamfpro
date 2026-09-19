@@ -56,31 +56,14 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceUserGroup) diag.D
 		}
 	}
 
-	if err := d.Set("user_additions", setUserItem(resp.UserAdditions)); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("user_deletions", setUserItem(resp.UserDeletions)); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	// Addition and deletion blocks are request operations, not response membership.
+	// Keep their submitted state: GET does not echo these operations.
+	for _, key := range []string{"user_additions", "user_deletions"} {
+		if err := d.Set(key, d.Get(key)); err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	return diags
 
-}
-
-// setUserItem converts a slice of jamfpro.UserGroupSubsetUserItem structs into a slice of map[string]any for Terraform.
-func setUserItem(userItems []jamfpro.UserGroupSubsetUserItem) []any {
-	var tfUserItems []any
-
-	for _, userItem := range userItems {
-		tfUserItem := make(map[string]any)
-		tfUserItem["id"] = userItem.ID
-		tfUserItem["username"] = userItem.Username
-		tfUserItem["full_name"] = userItem.FullName
-		tfUserItem["phone_number"] = userItem.PhoneNumber
-		tfUserItem["email_address"] = userItem.EmailAddress
-
-		tfUserItems = append(tfUserItems, tfUserItem)
-	}
-
-	return tfUserItems
 }

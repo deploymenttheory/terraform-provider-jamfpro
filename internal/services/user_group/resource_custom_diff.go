@@ -29,8 +29,17 @@ func validateIsSmartAttribute(_ context.Context, diff *schema.ResourceDiff, _ an
 		return nil
 	}
 
-	_, assignedUserIDsConfigured := diff.GetOkExists("assigned_user_ids")
-	usersBlockExists := len(diff.Get("assigned_user_ids").([]any)) > 0
+	// Only raw configuration distinguishes an explicit membership set from
+	// the computed API membership in command mode.
+	assignedUserIDsConfigured := false
+	if config := diff.GetRawConfig(); !config.IsNull() {
+		assignedUserIDsConfigured = !config.GetAttr("assigned_user_ids").IsNull()
+	}
+	usersBlockExists := len(diff.Get("assigned_user_ids").(*schema.Set).List()) > 0
+	operationsExist := diff.Get("user_additions").(*schema.Set).Len() > 0 || diff.Get("user_deletions").(*schema.Set).Len() > 0
+	if assignedUserIDsConfigured && operationsExist {
+		return fmt.Errorf("assigned_user_ids cannot be combined with user_additions or user_deletions; choose membership or operation management")
+	}
 	criteriaBlockExists := len(diff.Get("criteria").([]any)) > 0
 
 	if isSmart.(bool) && usersBlockExists {
@@ -45,10 +54,9 @@ func validateIsSmartAttribute(_ context.Context, diff *schema.ResourceDiff, _ an
 		return fmt.Errorf("in 'jamfpro_user_group.%s': 'criteria' block is required when 'is_smart' is set to true", resourceName)
 	}
 
-	if !isSmart.(bool) && !assignedUserIDsConfigured {
-		return fmt.Errorf("in 'jamfpro_user_group.%s': 'users' block is required when 'is_smart' is set to false", resourceName)
+	if !assignedUserIDsConfigured && (diff.HasChange("user_additions") || diff.HasChange("user_deletions")) {
+		return diff.SetNewComputed("assigned_user_ids")
 	}
-
 	return nil
 }
 
