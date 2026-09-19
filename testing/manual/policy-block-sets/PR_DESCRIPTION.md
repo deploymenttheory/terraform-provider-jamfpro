@@ -106,93 +106,18 @@ The policy remained disabled with no scoped computers throughout. The fixture
 uses three elements per collection. HCL declares them in `charlie → alpha → bravo`
 order; the API returned scripts in `alpha → bravo → charlie` order.
 
-#### HCL
+#### HCL: policy used for the drift and migration comparison
 
-The complete reproducible fixture is committed as
-`testing/manual/policy-block-sets/main.tf`:
+Only the policy resource is shown below, with the actual IDs and values from the
+recorded run. Script IDs `1`, `2`, `3` correspond to charlie, alpha, bravo;
+category IDs `2`, `3`, `1` correspond to the same names. These dependencies were
+created before the policy. Provider and credential setup are omitted.
 
 ```hcl
-terraform {
-  required_providers {
-    jamfpro = {
-      source = "deploymenttheory/jamfpro"
-    }
-  }
-}
-
-variable "jamfpro_client_id" {
-  type      = string
-  sensitive = true
-}
-
-variable "jamfpro_client_secret" {
-  type      = string
-  sensitive = true
-}
-
-variable "suffix" {
-  type    = string
-  default = "policy-sets-20260919"
-}
-
-variable "item_order" {
-  type    = list(string)
-  default = ["charlie", "alpha", "bravo"]
-}
-
-variable "script_parameter" {
-  type    = string
-  default = "original"
-}
-
-variable "include_printers_and_dock_items" {
-  type    = bool
-  default = false
-}
-
-provider "jamfpro" {
-  jamfpro_instance_fqdn                = "https://onishidev.jamfcloud.com"
-  auth_method                          = "oauth2"
-  client_id                            = var.jamfpro_client_id
-  client_secret                        = var.jamfpro_client_secret
-  token_refresh_buffer_period_seconds  = 5
-  hide_sensitive_data                  = true
-  jamfpro_load_balancer_lock           = true
-  mandatory_request_delay_milliseconds = 100
-}
-
-resource "jamfpro_script" "test" {
-  for_each        = toset(var.item_order)
-  name            = "tf-${var.suffix}-${each.key}"
-  priority        = "AFTER"
-  script_contents = "#!/bin/sh\nexit 0\n"
-}
-
-resource "jamfpro_category" "test" {
-  for_each = toset(var.item_order)
-  name     = "tf-${var.suffix}-${each.key}"
-  priority = 9
-}
-
-resource "jamfpro_dock_item" "test" {
-  for_each = var.include_printers_and_dock_items ? toset(var.item_order) : toset([])
-  name     = "tf-${var.suffix}-${each.key}"
-  type     = "App"
-  path     = "file://localhost/Applications/${each.key}.app"
-}
-
-resource "jamfpro_printer" "test" {
-  for_each    = var.include_printers_and_dock_items ? toset(var.item_order) : toset([])
-  name        = "tf-${var.suffix}-${each.key}"
-  cups_name   = "tf_${each.key}"
-  uri         = "ipp://192.0.2.1/${each.key}"
-  use_generic = true
-}
-
 resource "jamfpro_policy" "test" {
-  name          = "tf-${var.suffix}"
+  name          = "tf-policy-sets-20260919"
   enabled       = false
-  trigger_other = "tf-${var.suffix}-never-run"
+  trigger_other = "tf-policy-sets-20260919-never-run"
   frequency     = "Ongoing"
 
   network_limitations {
@@ -208,51 +133,57 @@ resource "jamfpro_policy" "test" {
   self_service {
     use_for_self_service      = false
     self_service_display_name = "Terraform policy set migration test"
-    dynamic "self_service_category" {
-      for_each = var.item_order
-      content {
-        id         = jamfpro_category.test[self_service_category.value].id
-        display_in = true
-        feature_in = false
-      }
+
+    self_service_category {
+      id         = 2 # charlie
+      display_in = true
+      feature_in = false
+    }
+    self_service_category {
+      id         = 3 # alpha
+      display_in = true
+      feature_in = false
+    }
+    self_service_category {
+      id         = 1 # bravo
+      display_in = true
+      feature_in = false
     }
   }
 
   payloads {
-    dynamic "scripts" {
-      for_each = var.item_order
-      content {
-        id         = jamfpro_script.test[scripts.value].id
-        priority   = "After"
-        parameter4 = "${scripts.value}-${var.script_parameter}"
-      }
+    scripts {
+      id         = "1"
+      priority   = "After"
+      parameter4 = "charlie-original"
     }
-    dynamic "printers" {
-      for_each = var.include_printers_and_dock_items ? var.item_order : []
-      content {
-        id           = jamfpro_printer.test[printers.value].id
-        name         = jamfpro_printer.test[printers.value].name
-        action       = "uninstall"
-        make_default = false
-      }
+    scripts {
+      id         = "2"
+      priority   = "After"
+      parameter4 = "alpha-original"
     }
-    dynamic "dock_items" {
-      for_each = var.include_printers_and_dock_items ? var.item_order : []
-      content {
-        id     = jamfpro_dock_item.test[dock_items.value].id
-        name   = jamfpro_dock_item.test[dock_items.value].name
-        action = "Remove"
-      }
+    scripts {
+      id         = "3"
+      priority   = "After"
+      parameter4 = "bravo-original"
     }
+
     account_maintenance {
       local_accounts {
-        dynamic "account" {
-          for_each = var.item_order
-          content {
-            action                    = "Delete"
-            username                  = "tf_${account.value}"
-            archive_home_directory_to = "/tf_${account.value}.dmg"
-          }
+        account {
+          action                    = "Delete"
+          username                  = "tf_charlie"
+          archive_home_directory_to = "/tf_charlie.dmg"
+        }
+        account {
+          action                    = "Delete"
+          username                  = "tf_alpha"
+          archive_home_directory_to = "/tf_alpha.dmg"
+        }
+        account {
+          action                    = "Delete"
+          username                  = "tf_bravo"
+          archive_home_directory_to = "/tf_bravo.dmg"
         }
       }
     }
@@ -260,10 +191,10 @@ resource "jamfpro_policy" "test" {
 }
 ```
 
-Default variables are used for baseline creation and migration. The archive path
-is explicit because Jamf fills in that default even when omitted, which would
-otherwise introduce an unrelated diff. The five-second token refresh buffer
-supports the API client's short token lifetime.
+This is the original test configuration with its inputs expanded into literal
+values, not a separate execution. The original parameterized runner remains in
+`testing/manual/policy-block-sets/main.tf`; console commands below are preserved
+as executed. The archive paths match Jamf's defaults to avoid unrelated drift.
 
 #### 1. Create and apply baseline state
 
@@ -375,9 +306,48 @@ Self Service categories: 3
 
 #### 4. Extend live coverage to printers and Dock items
 
-After the API role permissions were available, plan with
-`-var=include_printers_and_dock_items=true` produced
-`6 to add, 1 to change, 0 to destroy`. Apply:
+Three printers and three Dock items were created, and the following blocks were
+added inside the existing policy's `payloads` block. Existing scripts and local
+accounts remained unchanged. IDs below are the actual IDs from this run.
+
+```hcl
+printers {
+  id           = 2
+  name         = "tf-policy-sets-20260919-charlie"
+  action       = "uninstall"
+  make_default = false
+}
+printers {
+  id           = 1
+  name         = "tf-policy-sets-20260919-alpha"
+  action       = "uninstall"
+  make_default = false
+}
+printers {
+  id           = 3
+  name         = "tf-policy-sets-20260919-bravo"
+  action       = "uninstall"
+  make_default = false
+}
+
+dock_items {
+  id     = 2
+  name   = "tf-policy-sets-20260919-charlie"
+  action = "Remove"
+}
+dock_items {
+  id     = 3
+  name   = "tf-policy-sets-20260919-alpha"
+  action = "Remove"
+}
+dock_items {
+  id     = 1
+  name   = "tf-policy-sets-20260919-bravo"
+  action = "Remove"
+}
+```
+
+The plan was `6 to add, 1 to change, 0 to destroy`. Apply:
 
 ```console
 $ TF_CLI_CONFIG_FILE=current.tfrc terraform apply -input=false -no-color expanded.tfplan
@@ -401,7 +371,30 @@ Apply complete! Resources: 6 added, 1 changed, 0 destroyed.
 
 #### 5. Reorder all five populated collections
 
-Keep `include_printers_and_dock_items=true`, and change only the order variable:
+Move the existing blocks in each of the five collections from
+`charlie → alpha → bravo` to `bravo → alpha → charlie`. No field values change.
+For example, the three `scripts` blocks inside `payloads` become:
+
+```hcl
+scripts {
+  id         = "3"
+  priority   = "After"
+  parameter4 = "bravo-original"
+}
+scripts {
+  id         = "2"
+  priority   = "After"
+  parameter4 = "alpha-original"
+}
+scripts {
+  id         = "1"
+  priority   = "After"
+  parameter4 = "charlie-original"
+}
+```
+
+The same block reordering was applied to accounts, categories, printers, and
+Dock items. Recorded plan:
 
 ```console
 $ TF_CLI_CONFIG_FILE=current.tfrc terraform plan -detailed-exitcode -input=false -no-color -var-file=<credentials> -var=include_printers_and_dock_items=true -var='item_order=["bravo","alpha","charlie"]'
@@ -430,7 +423,27 @@ Dock items each contain three entries, and declaration order causes no diff.
 
 #### 6. Change actual script parameters
 
-With the phase 5 variables, add `-var=script_parameter=updated`:
+Keep the reordered blocks and change only the three script parameter values:
+
+```hcl
+scripts {
+  id         = "3"
+  priority   = "After"
+  parameter4 = "bravo-updated"
+}
+scripts {
+  id         = "2"
+  priority   = "After"
+  parameter4 = "alpha-updated"
+}
+scripts {
+  id         = "1"
+  priority   = "After"
+  parameter4 = "charlie-updated"
+}
+```
+
+All other policy settings remain unchanged. Recorded plan:
 
 ```console
 $ TF_CLI_CONFIG_FILE=current.tfrc terraform plan -input=false -no-color -out=content-change-fixed.tfplan -var-file=<credentials> -var=include_printers_and_dock_items=true -var='item_order=["bravo","alpha","charlie"]' -var=script_parameter=updated
@@ -533,7 +546,7 @@ Exit code: **0**.
 
 #### 8. Cleanup
 
-Using the same phase 7 variables, the saved destroy plan contained only the
+Using the unchanged phase 7 configuration, the saved destroy plan contained only the
 13 temporary resources created for this test:
 
 ```console
