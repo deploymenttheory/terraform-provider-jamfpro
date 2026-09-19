@@ -31,7 +31,7 @@ func construct(d *schema.ResourceData, meta any) (*jamfpro.ResourceAccountGroup,
 	resource.Site = sharedschemas.ConstructSharedResourceSite(d.Get("site_id").(int))
 	resource.Privileges = constructAccountSubsetPrivileges(d)
 
-	members_ids := d.Get("member_ids").([]any)
+	members_ids := d.Get("member_ids").(*schema.Set).List()
 	if len(members_ids) > 0 {
 		for _, v := range members_ids {
 			resource.Members = append(resource.Members, jamfpro.MemberUser{ID: v.(int)})

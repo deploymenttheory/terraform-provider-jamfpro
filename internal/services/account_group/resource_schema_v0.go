@@ -1,4 +1,3 @@
-// accountgroups_resource.go
 package account_group
 
 import (
@@ -10,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// resourceSchema defines the schema and CRUD operations for managing account groups in Terraform.
-func resourceSchema() *schema.Resource {
+// resourceV0 preserves the complete schema before collection sets were introduced.
+func resourceV0() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,
 		ReadContext:   readWithCleanup,
@@ -103,7 +102,7 @@ func resourceSchema() *schema.Resource {
 				},
 			},
 			"member_ids": {
-				Type:        schema.TypeSet,
+				Type:        schema.TypeList,
 				Description: "Accounts which should be a member of this group by ID",
 				Optional:    true,
 				Elem: &schema.Schema{
