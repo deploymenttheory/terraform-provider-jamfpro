@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
-	"strings"
 	"time"
 
+	plistutil "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/plist"
 	sharedschemas "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/shared_schemas"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -493,25 +493,19 @@ func arrayJSONSchema() *schema.Schema {
 		Description: "An ordered plist array encoded as JSON. Preserves duplicate elements. Use instead of value or dictionary.",
 		StateFunc: func(value any) string {
 			raw := value.(string)
-			if !json.Valid([]byte(raw)) {
-				return raw
-			}
-			decoder := json.NewDecoder(strings.NewReader(raw))
-			decoder.UseNumber()
-			var array []any
-			if err := decoder.Decode(&array); err != nil || array == nil {
-				return raw
-			}
-			canonical, err := json.Marshal(array)
+			array, err := plistutil.ParseJSONArray(raw)
 			if err != nil {
 				return raw
 			}
-			return string(canonical)
+			canonical, err := plistutil.EncodeJSONArray(array)
+			if err != nil {
+				return raw
+			}
+			return canonical
 		},
 		ValidateFunc: func(v any, key string) ([]string, []error) {
-			var array []any
-			if err := json.Unmarshal([]byte(v.(string)), &array); err != nil || array == nil {
-				return nil, []error{fmt.Errorf("%s must be a JSON array", key)}
+			if _, err := plistutil.ParseJSONArray(v.(string)); err != nil {
+				return nil, []error{fmt.Errorf("%s: %w", key, err)}
 			}
 			return nil, nil
 		},
