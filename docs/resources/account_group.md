@@ -140,7 +140,7 @@ resource "jamfpro_account_group" "jamf_pro_account_group_004" {
 - `jss_actions_privileges` (Set of String) Privileges related to JSS Actions.
 - `jss_objects_privileges` (Set of String) Privileges related to JSS Objects.
 - `jss_settings_privileges` (Set of String) Privileges related to JSS Settings.
-- `member_ids` (List of Number) Accounts which should be a member of this group by ID
+- `member_ids` (Set of Number) Accounts which should be a member of this group by ID
 - `privilege_set` (String) The privilege set assigned to the account.
 - `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
@@ -158,3 +158,15 @@ Optional:
 - `delete` (String)
 - `read` (String)
 - `update` (String)
+## Collection state migration
+
+Schema version 1 automatically upgrades existing version 0 state. The collections
+listed below are unordered sets; repeated identical elements are deduplicated.
+HCL block syntax is unchanged, but numeric indexing into these collections is no
+longer supported. Select by ID/key with a `for` expression instead.
+
+`member_ids`.
+
+Back up state before upgrading. Do not use upgraded state with an older provider;
+restore the pre-upgrade state and provider together if a rollback is necessary.
+See the [resource migration guide](../resource-migration-guide.md).
