@@ -1,0 +1,47 @@
+
+Warning: Provider development overrides are in effect
+
+The following provider development overrides are set in the CLI
+configuration:
+ - deploymenttheory/jamfpro in <test-workspace>/bin-enrollment_customization
+
+The behavior may therefore not match any released version of the provider and
+applying changes may cause the state to become incompatible with published
+releases.
+jamfpro_enrollment_customization.test: Refreshing state... [id=1]
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  - destroy
+
+Terraform will perform the following actions:
+
+  # jamfpro_enrollment_customization.test will be destroyed
+  - resource "jamfpro_enrollment_customization" "test" {
+      - description                           = "Temporary unattached set migration test" -> null
+      - display_name                          = "tf-sets-enrollment-20260919" -> null
+      - id                                    = "1" -> null
+      - site_id                               = "-1" -> null
+        # (1 unchanged attribute hidden)
+
+      - branding_settings {
+          - background_color  = "FFFFFF" -> null
+          - button_color      = "000000" -> null
+          - button_text_color = "FFFFFF" -> null
+          - text_color        = "000000" -> null
+            # (1 unchanged attribute hidden)
+        }
+
+      - ldap_pane {
+          - back_button_text     = "Back" -> null
+          - continue_button_text = "Continue" -> null
+          - display_name         = "Temporary LDAP pane" -> null
+          - id                   = 0 -> null
+          - password_label       = "Password" -> null
+          - rank                 = 1 -> null
+          - title                = "Sign in" -> null
+          - username_label       = "Username" -> null
+        }
+    }
+
+Plan: 0 to add, 0 to change, 1 to destroy.

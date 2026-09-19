@@ -116,8 +116,8 @@ func constructLDAPPane(data map[string]any) (*jamfpro.ResourceEnrollmentCustomiz
 	}
 
 	// Process LDAP group access settings if present
-	if groupsData, ok := data["ldap_group_access"].([]any); ok && len(groupsData) > 0 {
-		for _, groupData := range groupsData {
+	if groupsData, ok := data["ldap_group_access"].(*schema.Set); ok && groupsData.Len() > 0 {
+		for _, groupData := range groupsData.List() {
 			group := groupData.(map[string]any)
 			ldapGroupAccess := jamfpro.EnrollmentCustomizationLDAPGroupAccess{
 				GroupName:    group["group_name"].(string),
