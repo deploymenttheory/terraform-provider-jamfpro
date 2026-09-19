@@ -60,7 +60,7 @@ func getPolicySchemaSelfService() *schema.Resource {
 				Default:     false,
 			},
 			"self_service_category": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Category settings for the policy in self-service. Multiple categories can be specified.",
 				Elem: &schema.Resource{
