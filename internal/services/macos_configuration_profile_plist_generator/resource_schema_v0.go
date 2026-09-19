@@ -1,11 +1,7 @@
-// macosconfigurationprofilesplistgenerator_resource.go
 package macos_configuration_profile_plist_generator
 
 import (
-	"encoding/json"
 	"fmt"
-	"sort"
-	"strings"
 	"time"
 
 	sharedschemas "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/shared_schemas"
@@ -14,109 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-/* --------- A mapping of how terraform schema correlates to plist structure ---------
-
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-    <dict>
-        <!-- PayloadContent corresponds to payload_content in the schema -->
-        <key>PayloadContent</key>
-        <array>
-            <dict>
-                <!-- Example payload 1 -->
-                <key>AllowUserOverrides</key> <!-- hcl schema: payload_content.setting.key -->
-                <true/> <!-- hcl schema: payload_content.setting.value -->
-                <key>AllowedSystemExtensions</key> <!-- hcl schema: payload_content.setting.key -->
-                <dict> <!-- hcl schema: payload_content.setting.dictionary -->
-                    <key>H8P3P53Q9W</key> <!-- hcl schema: payload_content.setting.key -->
-                    <array>
-                        <string>com.axissecurity.client.com-axissecurity-client-SystemNetworkExtension</string> <!-- hcl schema: payload_content.setting.value -->
-                    </array>
-                </dict>
-                <!-- Payload-level metadata fields in the plist -->
-                <key>PayloadDescription</key> <!-- hcl schema: payload_description -->
-                <string/>
-                <key>PayloadDisplayName</key> <!-- hcl schema: payload_display_name -->
-                <string>System Extension Policy</string>
-                <key>PayloadEnabled</key> <!-- hcl schema: payload_enabled -->
-                <true/>
-                <key>PayloadIdentifier</key> <!-- hcl schema: payload_identifier -->
-                <string>com.apple.system-extension-policy.70B93937-265D-431B-9DF6-A7E031A368EF</string>
-                <key>PayloadOrganization</key> <!-- hcl schema: payload_organization -->
-                <string>Deployment Theory</string>
-                <key>PayloadType</key> <!-- hcl schema: payload_type -->
-                <string>com.apple.system-extension-policy</string>
-                <key>PayloadUUID</key> <!-- hcl schema: payload_uuid -->
-                <string>EF513BF0-9C22-4FBE-9559-7EE838CE7AFC</string>
-                <key>PayloadVersion</key> <!-- hcl schema: payload_version -->
-                <integer>1</integer>
-            </dict>
-            <dict>
-                <!-- Example payload 2 -->
-                <key>NotificationSettings</key> <!-- hcl schema: payload_content.setting.key -->
-                <array>
-                    <dict>
-                        <key>AlertType</key> <!-- hcl schema: payload_content.setting.key -->
-                        <integer>2</integer> <!-- hcl schema: payload_content.setting.value -->
-                        <key>BadgesEnabled</key> <!-- hcl schema: payload_content.setting.key -->
-                        <true/> <!-- hcl schema: payload_content.setting.value -->
-                        <key>BundleIdentifier</key> <!-- hcl schema: payload_content.setting.key -->
-                        <string>com.axissecurity.client.ui</string> <!-- hcl schema: payload_content.setting.value -->
-                        <key>CriticalAlertEnabled</key> <!-- hcl schema: payload_content.setting.key -->
-                        <true/> <!-- hcl schema: payload_content.setting.value -->
-                        <key>NotificationsEnabled</key> <!-- hcl schema: payload_content.setting.key -->
-                        <true/> <!-- hcl schema: payload_content.setting.value -->
-                        <key>ShowInLockScreen</key> <!-- hcl schema: payload_content.setting.key -->
-                        <true/> <!-- hcl schema: payload_content.setting.value -->
-                        <key>ShowInNotificationCenter</key> <!-- hcl schema: payload_content.setting.key -->
-                        <true/> <!-- hcl schema: payload_content.setting.value -->
-                        <key>SoundsEnabled</key> <!-- hcl schema: payload_content.setting.key -->
-                        <true/> <!-- hcl schema: payload_content.setting.value -->
-                    </dict>
-                </array>
-                <!-- Payload-level metadata fields in the plist -->
-                <key>PayloadDisplayName</key> <!-- hcl schema: payload_display_name -->
-                <string>Notifications Payload</string>
-                <key>PayloadIdentifier</key> <!-- hcl schema: payload_identifier -->
-                <string>BFA5BB51-886B-4DB9-9A3C-AF67FB627F7A</string>
-                <key>PayloadOrganization</key> <!-- hcl schema: payload_organization -->
-                <string>JAMF Software</string>
-                <key>PayloadType</key> <!-- hcl schema: payload_type -->
-                <string>com.apple.notificationsettings</string>
-                <key>PayloadUUID</key> <!-- hcl schema: payload_uuid -->
-                <string>531AC0A1-87CE-498B-8AFC-14898BEC84B3</string>
-                <key>PayloadVersion</key> <!-- hcl schema: payload_version -->
-                <integer>1</integer>
-            </dict>
-        </array>
-        <!-- Root-level 'header' metadata fields in the plist -->
-        <key>PayloadDescription</key> <!-- hcl schema: payload_description_header -->
-        <string/>
-        <key>PayloadDisplayName</key> <!-- hcl schema: payload_display_name_header -->
-        <string>dt-mcp-axis_security_ext-0.0.1-prod-eu-0-0</string>
-        <key>PayloadEnabled</key> <!-- hcl schema: payload_enabled_header -->
-        <true/>
-        <key>PayloadIdentifier</key> <!-- hcl schema: payload_identifier_header -->
-        <string>com.axissecurity.client.profile</string>
-        <key>PayloadOrganization</key> <!-- hcl schema: payload_organization_header -->
-        <string>Deployment Theory</string>
-        <key>PayloadRemovalDisallowed</key> <!-- hcl schema: payload_removal_disallowed_header -->
-        <true/>
-        <key>PayloadScope</key> <!-- hcl schema: payload_scope_header -->
-        <string>System</string>
-        <key>PayloadType</key> <!-- hcl schema: payload_type_header -->
-        <string>Configuration</string>
-        <key>PayloadUUID</key> <!-- hcl schema: payload_uuid_header -->
-        <string>1A803CC7-58DB-43DC-A783-D20C4D9A033A</string>
-        <key>PayloadVersion</key> <!-- hcl schema: payload_version_header -->
-        <integer>1</integer>
-    </dict>
-</plist>
-*/
-
-// resourceSchema defines the schema and CRUD operations for managing Jamf Pro macOS Configuration Profiles in Terraform.
-func resourceSchema() *schema.Resource {
+// resourceV0 preserves the complete schema before collection sets were introduced.
+func resourceV0() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProMacOSConfigurationProfilesPlistGeneratorCreate,
 		ReadContext:   resourceJamfProMacOSConfigurationProfilesPlistGeneratorReadWithCleanup,
@@ -245,12 +140,11 @@ func resourceSchema() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"setting": {
-										Set:         hashPlistEntry,
-										Type:        schema.TypeSet,
+										Type:        schema.TypeList,
 										Optional:    true,
 										Description: "The key and value setting items of the macOS configuration profile plist",
 										Elem: &schema.Resource{
-											Schema: payloadContentSchema().Schema,
+											Schema: payloadContentSchemaV0().Schema,
 										},
 									},
 									"payload_description": {
@@ -433,7 +327,7 @@ func resourceSchema() *schema.Resource {
 }
 
 // Define a finite level of nested dictionaries
-func nestedDictionarySchema(level int) *schema.Schema {
+func nestedDictionarySchemaV0(level int) *schema.Schema {
 	if level <= 0 {
 		return &schema.Schema{
 			Type:        schema.TypeMap,
@@ -443,8 +337,7 @@ func nestedDictionarySchema(level int) *schema.Schema {
 		}
 	}
 	return &schema.Schema{
-		Set:         hashPlistEntry,
-		Type:        schema.TypeSet,
+		Type:        schema.TypeList,
 		Optional:    true,
 		Description: "A nested dictionary structure.",
 		Elem: &schema.Resource{
@@ -459,15 +352,14 @@ func nestedDictionarySchema(level int) *schema.Schema {
 					Optional:    true,
 					Description: "The value for the dictionary entry.",
 				},
-				"array_json": arrayJSONSchema(),
-				"dictionary": nestedDictionarySchema(level - 1),
+				"dictionary": nestedDictionarySchemaV0(level - 1),
 			},
 		},
 	}
 }
 
 // Define the payload content schema with limited depth
-func payloadContentSchema() *schema.Resource {
+func payloadContentSchemaV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"key": {
@@ -480,77 +372,7 @@ func payloadContentSchema() *schema.Resource {
 				Optional:    true,
 				Description: "The value for the xml plist entry.",
 			},
-			"array_json": arrayJSONSchema(),
-			"dictionary": nestedDictionarySchema(6),
+			"dictionary": nestedDictionarySchemaV0(6),
 		},
 	}
-}
-
-// arrayJSONSchema keeps plist array order and duplicates outside dictionary sets.
-func arrayJSONSchema() *schema.Schema {
-	return &schema.Schema{
-		Type: schema.TypeString, Optional: true,
-		Description: "An ordered plist array encoded as JSON. Preserves duplicate elements. Use instead of value or dictionary.",
-		StateFunc: func(value any) string {
-			raw := value.(string)
-			if !json.Valid([]byte(raw)) {
-				return raw
-			}
-			decoder := json.NewDecoder(strings.NewReader(raw))
-			decoder.UseNumber()
-			var array []any
-			if err := decoder.Decode(&array); err != nil || array == nil {
-				return raw
-			}
-			canonical, err := json.Marshal(array)
-			if err != nil {
-				return raw
-			}
-			return string(canonical)
-		},
-		ValidateFunc: func(v any, key string) ([]string, []error) {
-			var array []any
-			if err := json.Unmarshal([]byte(v.(string)), &array); err != nil || array == nil {
-				return nil, []error{fmt.Errorf("%s must be a JSON array", key)}
-			}
-			return nil, nil
-		},
-	}
-}
-
-// Canonicalize omitted optional fields and nested dictionary sets consistently
-// during planning and refresh. Array values remain ordered JSON arrays.
-func hashPlistEntry(value any) int {
-	return schema.HashString(canonicalPlistEntry(value.(map[string]any)))
-}
-
-func canonicalPlistEntry(entry map[string]any) string {
-	key, _ := entry["key"].(string)
-	value, _ := entry["value"].(string)
-	array, _ := entry["array_json"].(string)
-	if array != "" {
-		array = arrayJSONSchema().StateFunc(array)
-	}
-	var children []any
-	var dictionary any = []string{}
-	switch v := entry["dictionary"].(type) {
-	case *schema.Set:
-		children = v.List()
-	case []any:
-		children = v
-	case map[string]any:
-		if len(v) > 0 {
-			dictionary = v
-		}
-	}
-	if len(children) > 0 {
-		canonical := make([]string, 0, len(children))
-		for _, child := range children {
-			canonical = append(canonical, canonicalPlistEntry(child.(map[string]any)))
-		}
-		sort.Strings(canonical)
-		dictionary = canonical
-	}
-	encoded, _ := json.Marshal([]any{key, value, array, dictionary})
-	return string(encoded)
 }
