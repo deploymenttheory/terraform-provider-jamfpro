@@ -6,50 +6,42 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// resourcePolicyV0 defines the v0 schema for the user interaction block in the policy resource.
-func resourcePolicyV0() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"payloads": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"user_interaction": {
-							Type:     schema.TypeList,
-							MaxItems: 1,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"message_start": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"allow_user_to_defer": { // Old field name
-										Type:     schema.TypeBool,
-										Optional: true,
-									},
-									"allow_deferral_until_utc": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"allow_deferral_minutes": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"message_finish": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
+// resourcePolicyV1 preserves the complete schema before repeated blocks became sets.
+// Keep these historical collection types when extending the current schema.
+func resourcePolicyV1() *schema.Resource {
+	r := resourcePolicy()
+	payloads := r.Schema["payloads"].Elem.(*schema.Resource)
+	for _, name := range []string{"scripts", "printers", "dock_items"} {
+		payloads.Schema[name].Type = schema.TypeList
 	}
+	payloads.Schema["packages"].Elem.(*schema.Resource).Schema["package"].Type = schema.TypeList
+	maintenance := payloads.Schema["account_maintenance"].Elem.(*schema.Resource)
+	maintenance.Schema["local_accounts"].Elem.(*schema.Resource).Schema["account"].Type = schema.TypeList
+	maintenance.Schema["directory_bindings"].Elem.(*schema.Resource).Schema["binding"].Type = schema.TypeList
+	r.Schema["self_service"].Elem.(*schema.Resource).Schema["self_service_category"].Type = schema.TypeList
+	return r
+}
+
+// resourcePolicyV0 preserves all policy fields while restoring the old deferral name.
+func resourcePolicyV0() *schema.Resource {
+	r := resourcePolicyV1()
+	payloads := r.Schema["payloads"].Elem.(*schema.Resource)
+	interaction := payloads.Schema["user_interaction"].Elem.(*schema.Resource)
+	fields := make(map[string]*schema.Schema, len(interaction.Schema))
+	for name, field := range interaction.Schema {
+		if name == "allow_users_to_defer" {
+			name = "allow_user_to_defer"
+		}
+		fields[name] = field
+	}
+	interaction.Schema = fields
+	return r
+}
+
+// Lists and sets use the same JSON array representation. Terraform re-encodes
+// these values with the V2 set schema without dropping existing policy fields.
+func upgradePolicyV1toV2(_ context.Context, rawState map[string]any, _ any) (map[string]any, error) {
+	return rawState, nil
 }
 
 func upgradePolicyUserInteractionV0toV1(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {

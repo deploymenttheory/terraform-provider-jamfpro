@@ -12,6 +12,25 @@ import (
 
 // ResourceJamfProPolicies defines the schema and CRUD operations for managing Jamf Pro Policy in Terraform.
 func ResourceJamfProPolicies() *schema.Resource {
+	r := resourcePolicy()
+	r.SchemaVersion = 2
+	r.StateUpgraders = []schema.StateUpgrader{
+		{
+			Type:    resourcePolicyV0().CoreConfigSchema().ImpliedType(),
+			Upgrade: upgradePolicyUserInteractionV0toV1,
+			Version: 0,
+		},
+		{
+			Type:    resourcePolicyV1().CoreConfigSchema().ImpliedType(),
+			Upgrade: upgradePolicyV1toV2,
+			Version: 1,
+		},
+	}
+	return r
+}
+
+// resourcePolicy builds the current schema without recursively registering migrations.
+func resourcePolicy() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,
 		ReadContext:   readWithCleanup,
@@ -26,14 +45,6 @@ func ResourceJamfProPolicies() *schema.Resource {
 			Read:   schema.DefaultTimeout(70 * time.Second),
 			Update: schema.DefaultTimeout(70 * time.Second),
 			Delete: schema.DefaultTimeout(70 * time.Second),
-		},
-		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    resourcePolicyV0().CoreConfigSchema().ImpliedType(),
-				Upgrade: upgradePolicyUserInteractionV0toV1,
-				Version: 0,
-			},
 		},
 		Schema: map[string]*schema.Schema{
 			"id": {
