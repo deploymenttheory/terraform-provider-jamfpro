@@ -7,32 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-const (
-	And                          string = "and"
-	Or                           string = "or"
-	SearchTypeIs                 string = "is"
-	SearchTypeIsNot              string = "is not"
-	SearchTypeHas                string = "has"
-	SearchTypeDoesNotHave        string = "does not have"
-	SearchTypeMemberOf           string = "member of"
-	SearchTypeNotMemberOf        string = "not member of"
-	SearchTypeBeforeYYYYMMDD     string = "before (yyyy-mm-dd)"
-	SearchTypeAfterYYYYMMDD      string = "after (yyyy-mm-dd)"
-	SearchTypeMoreThanXDaysAgo   string = "more than x days ago"
-	SearchTypeLessThanXDaysAgo   string = "less than x days ago"
-	SearchTypeLike               string = "like"
-	SearchTypeNotLike            string = "not like"
-	SearchTypeGreaterThan        string = "greater than"
-	SearchTypeMoreThan           string = "more than"
-	SearchTypeLessThan           string = "less than"
-	SearchTypeGreaterThanOrEqual string = "greater than or equal"
-	SearchTypeLessThanOrEqual    string = "less than or equal"
-	SearchTypeMatchesRegex       string = "matches regex"
-	SearchTypeDoesNotMatch       string = "does not match regex"
-)
-
-// resourceSchema defines the schema and CRUD operations for managing Jamf Pro static Mobile Device Groups in Terraform.
-func resourceSchema() *schema.Resource {
+// resourceV0 preserves the complete schema before collection sets were introduced.
+func resourceV0() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,
 		ReadContext:   readWithCleanup,
@@ -65,7 +41,7 @@ func resourceSchema() *schema.Resource {
 			},
 			"site_id": sharedschemas.GetSharedSchemaSite(),
 			"assigned_mobile_device_ids": {
-				Type:        schema.TypeSet,
+				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "assigned mobile device by ids",
 				Elem: &schema.Schema{
