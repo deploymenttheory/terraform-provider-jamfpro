@@ -276,7 +276,8 @@ Required:
 
 Optional:
 
-- `dictionary` (Block List) A nested dictionary structure. (see [below for nested schema](#nestedblock--payloads--payload_content--setting--dictionary))
+- `array_json` (String) An ordered plist array encoded as JSON. Preserves duplicate elements. Use instead of value or dictionary.
+- `dictionary` (Block Set) A nested dictionary structure. (see [below for nested schema](#nestedblock--payloads--payload_content--setting--dictionary))
 - `value` (String) The value for the xml plist entry.
 
 <a id="nestedblock--payloads--payload_content--setting--dictionary"></a>
@@ -288,7 +289,8 @@ Required:
 
 Optional:
 
-- `dictionary` (Block List) A nested dictionary structure. (see [below for nested schema](#nestedblock--payloads--payload_content--setting--dictionary--dictionary))
+- `array_json` (String) An ordered plist array encoded as JSON. Preserves duplicate elements. Use instead of value or dictionary.
+- `dictionary` (Block Set) A nested dictionary structure. (see [below for nested schema](#nestedblock--payloads--payload_content--setting--dictionary--dictionary))
 - `value` (String) The value for the dictionary entry.
 
 <a id="nestedblock--payloads--payload_content--setting--dictionary--dictionary"></a>
@@ -300,7 +302,8 @@ Required:
 
 Optional:
 
-- `dictionary` (Block List) A nested dictionary structure. (see [below for nested schema](#nestedblock--payloads--payload_content--setting--dictionary--dictionary--dictionary))
+- `array_json` (String) An ordered plist array encoded as JSON. Preserves duplicate elements. Use instead of value or dictionary.
+- `dictionary` (Block Set) A nested dictionary structure. (see [below for nested schema](#nestedblock--payloads--payload_content--setting--dictionary--dictionary--dictionary))
 - `value` (String) The value for the dictionary entry.
 
 <a id="nestedblock--payloads--payload_content--setting--dictionary--dictionary--dictionary"></a>
@@ -312,7 +315,8 @@ Required:
 
 Optional:
 
-- `dictionary` (Block List) A nested dictionary structure. (see [below for nested schema](#nestedblock--payloads--payload_content--setting--dictionary--dictionary--dictionary--dictionary))
+- `array_json` (String) An ordered plist array encoded as JSON. Preserves duplicate elements. Use instead of value or dictionary.
+- `dictionary` (Block Set) A nested dictionary structure. (see [below for nested schema](#nestedblock--payloads--payload_content--setting--dictionary--dictionary--dictionary--dictionary))
 - `value` (String) The value for the dictionary entry.
 
 <a id="nestedblock--payloads--payload_content--setting--dictionary--dictionary--dictionary--dictionary"></a>
@@ -324,7 +328,8 @@ Required:
 
 Optional:
 
-- `dictionary` (Block List) A nested dictionary structure. (see [below for nested schema](#nestedblock--payloads--payload_content--setting--dictionary--dictionary--dictionary--dictionary--dictionary))
+- `array_json` (String) An ordered plist array encoded as JSON. Preserves duplicate elements. Use instead of value or dictionary.
+- `dictionary` (Block Set) A nested dictionary structure. (see [below for nested schema](#nestedblock--payloads--payload_content--setting--dictionary--dictionary--dictionary--dictionary--dictionary))
 - `value` (String) The value for the dictionary entry.
 
 <a id="nestedblock--payloads--payload_content--setting--dictionary--dictionary--dictionary--dictionary--dictionary"></a>
@@ -336,7 +341,8 @@ Required:
 
 Optional:
 
-- `dictionary` (Block List) A nested dictionary structure. (see [below for nested schema](#nestedblock--payloads--payload_content--setting--dictionary--dictionary--dictionary--dictionary--dictionary--dictionary))
+- `array_json` (String) An ordered plist array encoded as JSON. Preserves duplicate elements. Use instead of value or dictionary.
+- `dictionary` (Block Set) A nested dictionary structure. (see [below for nested schema](#nestedblock--payloads--payload_content--setting--dictionary--dictionary--dictionary--dictionary--dictionary--dictionary))
 - `value` (String) The value for the dictionary entry.
 
 <a id="nestedblock--payloads--payload_content--setting--dictionary--dictionary--dictionary--dictionary--dictionary--dictionary"></a>
@@ -348,6 +354,7 @@ Required:
 
 Optional:
 
+- `array_json` (String) An ordered plist array encoded as JSON. Preserves duplicate elements. Use instead of value or dictionary.
 - `dictionary` (Map of String) A nested dictionary structure for xml plist definition.
 - `value` (String) The value for the dictionary entry.
 
