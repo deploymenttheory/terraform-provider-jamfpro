@@ -424,9 +424,12 @@ func DataSourceJamfProMobileDeviceInventory() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"value": {
-							Type:     schema.TypeString,
+						"values": {
+							Type:     schema.TypeList,
 							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 					},
 				},

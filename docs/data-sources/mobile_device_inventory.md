@@ -155,4 +155,4 @@ output "device_info" {
 Read-Only:
 
 - `display_name` (String) Extension attribute display name
-- `value` (String) Extension attribute value
+- `values` (List of String) Extension attribute values

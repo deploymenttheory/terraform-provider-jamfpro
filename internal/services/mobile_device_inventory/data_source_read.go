@@ -171,7 +171,7 @@ func setMobileDeviceInventoryData(d *schema.ResourceData, device *jamfpro.Resour
 		for i, attr := range device.ExtensionAttributes {
 			extAttrs[i] = map[string]interface{}{
 				"display_name": attr.DisplayName,
-				"value":        attr.Value,
+				"values":       attr.Value,
 			}
 		}
 		if err := d.Set("extension_attributes", extAttrs); err != nil {
