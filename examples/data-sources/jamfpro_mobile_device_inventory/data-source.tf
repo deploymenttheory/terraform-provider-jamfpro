@@ -193,7 +193,7 @@ output "extension_attributes" {
   value = [
     for attr in data.jamfpro_mobile_device_inventory.extension_attrs.extension_attributes : {
       display_name = attr.display_name
-      value        = attr.value
+      values       = attr.values
     }
   ]
   description = "Extension attributes (custom inventory fields)"
