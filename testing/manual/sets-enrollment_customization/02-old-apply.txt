@@ -1,0 +1,18 @@
+
+Warning: Provider development overrides are in effect
+
+The following provider development overrides are set in the CLI
+configuration:
+ - deploymenttheory/jamfpro in <test-workspace>/bin-old
+
+The behavior may therefore not match any released version of the provider and
+applying changes may cause the state to become incompatible with published
+releases.
+jamfpro_enrollment_customization.test: Creating...
+jamfpro_enrollment_customization.test: Still creating... [00m10s elapsed]
+
+Error: failed to create LDAP pane: failed to create LDAP prestage pane for enrollment customization 1: {"status_code":400,"method":"POST","url":"https://onishidev.jamfcloud.com/api/v1/enrollment-customization/1/ldap","httpStatus":400,"errors":[{"code":"INVALID_FIELD","field":"ldapGroupAccess","description":"Cannot invoke \"java.util.Collection.size()\" because \"c\" is null","id":"0"}],"message":"API Error Response","raw_response":""}
+
+  with jamfpro_enrollment_customization.test,
+  on main.tf line 1, in resource "jamfpro_enrollment_customization" "test":
+   1: resource "jamfpro_enrollment_customization" "test" {

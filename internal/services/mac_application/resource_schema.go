@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-// ResourceJamfProMacApplication defines the schema and CRUD operations for managing Jamf Pro Mac Applications in Terraform
-func ResourceJamfProMacApplication() *schema.Resource {
+// resourceSchema defines the schema and CRUD operations for managing Jamf Pro Mac Applications in Terraform
+func resourceSchema() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,
 		ReadContext:   readWithCleanup,
@@ -116,7 +116,7 @@ func ResourceJamfProMacApplication() *schema.Resource {
 							Description: "The message of the notification.",
 						},
 						"self_service_category": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
