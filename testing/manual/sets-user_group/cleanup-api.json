@@ -1,0 +1,10 @@
+[
+  {
+    "endpoint": "/JSSResource/usergroups/id/1",
+    "status": 404
+  },
+  {
+    "endpoint": "/JSSResource/usergroups/id/2",
+    "status": 404
+  }
+]
