@@ -22,7 +22,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMobileDeviceGroup, erro
 
 	if resourceConfig := d.GetRawConfig(); !resourceConfig.IsNull() {
 		if raw := resourceConfig.GetAttr("assigned_mobile_device_ids"); !raw.IsNull() {
-			assignedMobileDevices := d.Get("assigned_mobile_device_ids").([]any)
+			assignedMobileDevices := d.Get("assigned_mobile_device_ids").(*schema.Set).List()
 			mobile_devices := []jamfpro.MobileDeviceGroupSubsetDeviceItem{}
 			for _, id := range assignedMobileDevices {
 				mobile_devices = append(mobile_devices, jamfpro.MobileDeviceGroupSubsetDeviceItem{
