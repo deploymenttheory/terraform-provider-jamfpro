@@ -317,7 +317,7 @@ func constructSelfService(d *schema.ResourceData, out *jamfpro.ResourcePolicy) {
 
 	categories := d.Get("self_service.0.self_service_category")
 	if categories != nil {
-		for _, v := range categories.([]any) {
+		for _, v := range categories.(*schema.Set).List() {
 			out.SelfService.SelfServiceCategories = append(out.SelfService.SelfServiceCategories, jamfpro.PolicySubsetSelfServiceCategory{
 				ID:        v.(map[string]any)["id"].(int),
 				FeatureIn: v.(map[string]any)["feature_in"].(bool),
@@ -350,7 +350,7 @@ func constructPayloadPackages(d *schema.ResourceData, resource *jamfpro.Resource
 	}
 	var payload jamfpro.PolicySubsetPackageConfiguration
 	payload.DistributionPoint = hcl.(map[string]any)["distribution_point"].(string)
-	packageList := hcl.(map[string]any)["package"].([]any)
+	packageList := hcl.(map[string]any)["package"].(*schema.Set).List()
 
 	for _, v := range packageList {
 		payload.Packages = append(payload.Packages, jamfpro.PolicySubsetPackageConfigurationPackage{
@@ -367,12 +367,12 @@ func constructPayloadPackages(d *schema.ResourceData, resource *jamfpro.Resource
 // Pulls "script" settings from HCL and packages them into the resource.
 func constructPayloadScripts(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
 	hcl := d.Get("payloads.0.scripts")
-	if hcl == nil || len(hcl.([]any)) == 0 {
+	if hcl == nil || hcl.(*schema.Set).Len() == 0 {
 		return
 	}
 
 	var payloads []jamfpro.PolicySubsetScript
-	for _, v := range hcl.([]any) {
+	for _, v := range hcl.(*schema.Set).List() {
 		payloads = append(payloads, jamfpro.PolicySubsetScript{
 			ID:          v.(map[string]any)["id"].(string),
 			Priority:    v.(map[string]any)["priority"].(string),
@@ -416,14 +416,14 @@ func constructPayloadDiskEncryption(d *schema.ResourceData, resource *jamfpro.Re
 // Pulls "printers" settings from HCL and packages them into the resource.
 func constructPayloadPrinters(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
 	hcl := d.Get("payloads.0.printers")
-	if hcl == nil || len(hcl.([]any)) == 0 {
+	if hcl == nil || hcl.(*schema.Set).Len() == 0 {
 		return
 	}
 
 	outBlock := new(jamfpro.PolicySubsetPrinters)
 	outBlock.Printer = []jamfpro.PolicySubsetPrinter{}
 	payload := outBlock.Printer
-	for _, v := range hcl.([]any) {
+	for _, v := range hcl.(*schema.Set).List() {
 		payload = append(payload, jamfpro.PolicySubsetPrinter{
 			ID:          v.(map[string]any)["id"].(int),
 			Name:        v.(map[string]any)["name"].(string),
@@ -440,13 +440,13 @@ func constructPayloadPrinters(d *schema.ResourceData, resource *jamfpro.Resource
 // constructPayloadDockItems builds the dock items payload settings of the policy.
 func constructPayloadDockItems(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
 	hcl := d.Get("payloads.0.dock_items")
-	if hcl == nil || len(hcl.([]any)) == 0 {
+	if hcl == nil || hcl.(*schema.Set).Len() == 0 {
 		return
 	}
 
 	var payload []jamfpro.PolicySubsetDockItem
 
-	for _, v := range hcl.([]any) {
+	for _, v := range hcl.(*schema.Set).List() {
 		newObj := jamfpro.PolicySubsetDockItem{
 			ID:     v.(map[string]any)["id"].(int),
 			Name:   v.(map[string]any)["name"].(string),
@@ -475,7 +475,7 @@ func constructPayloadAccountMaintenance(d *schema.ResourceData, resource *jamfpr
 		if localAccounts, ok := data["local_accounts"]; ok && len(localAccounts.([]any)) > 0 {
 			localAccountsList := localAccounts.([]any)
 			if len(localAccountsList) > 0 {
-				accountsData := localAccountsList[0].(map[string]any)["account"].([]any)
+				accountsData := localAccountsList[0].(map[string]any)["account"].(*schema.Set).List()
 				accounts := []jamfpro.PolicySubsetAccountMaintenanceAccount{}
 				for _, account := range accountsData {
 					accountData := account.(map[string]any)
@@ -503,7 +503,7 @@ func constructPayloadAccountMaintenance(d *schema.ResourceData, resource *jamfpr
 			bindings := []jamfpro.PolicySubsetAccountMaintenanceDirectoryBindings{}
 			for _, bindingGroup := range directoryBindings.([]any) {
 				bindingGroupData := bindingGroup.(map[string]any)
-				bindingItems, _ := bindingGroupData["binding"].([]any)
+				bindingItems := bindingGroupData["binding"].(*schema.Set).List()
 				for _, binding := range bindingItems {
 					bindingData := binding.(map[string]any)
 					bindings = append(bindings, jamfpro.PolicySubsetAccountMaintenanceDirectoryBindings{
