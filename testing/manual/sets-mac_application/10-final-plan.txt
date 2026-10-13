@@ -1,0 +1,18 @@
+
+Warning: Provider development overrides are in effect
+
+The following provider development overrides are set in the CLI
+configuration:
+ - deploymenttheory/jamfpro in <test-workspace>/bin-mac_application
+
+The behavior may therefore not match any released version of the provider and
+applying changes may cause the state to become incompatible with published
+releases.
+jamfpro_category.bravo: Refreshing state... [id=5]
+jamfpro_category.alpha: Refreshing state... [id=4]
+jamfpro_mac_application.test: Refreshing state... [id=1]
+
+No changes. Your infrastructure matches the configuration.
+
+Terraform has compared your real infrastructure against your configuration
+and found no differences, so no changes are needed.
