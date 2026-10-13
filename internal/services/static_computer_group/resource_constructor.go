@@ -22,7 +22,7 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceComputerGroup, error) {
 
 	if rawConfig := d.GetRawConfig(); !rawConfig.IsNull() {
 		if raw := rawConfig.GetAttr("assigned_computer_ids"); !raw.IsNull() {
-			assignedComputers := d.Get("assigned_computer_ids").([]any)
+			assignedComputers := d.Get("assigned_computer_ids").(*schema.Set).List()
 			computers := []jamfpro.ComputerGroupSubsetComputer{}
 			for _, id := range assignedComputers {
 				computers = append(computers, jamfpro.ComputerGroupSubsetComputer{
