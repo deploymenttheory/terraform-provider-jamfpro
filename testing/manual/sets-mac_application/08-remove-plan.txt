@@ -1,0 +1,43 @@
+
+Warning: Provider development overrides are in effect
+
+The following provider development overrides are set in the CLI
+configuration:
+ - deploymenttheory/jamfpro in <test-workspace>/bin-mac_application
+
+The behavior may therefore not match any released version of the provider and
+applying changes may cause the state to become incompatible with published
+releases.
+jamfpro_category.bravo: Refreshing state... [id=5]
+jamfpro_category.alpha: Refreshing state... [id=4]
+jamfpro_mac_application.test: Refreshing state... [id=1]
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  ~ update in-place
+
+Terraform will perform the following actions:
+
+  # jamfpro_mac_application.test will be updated in-place
+  ~ resource "jamfpro_mac_application" "test" {
+        id              = "1"
+        name            = "tf-sets-mac-application-20260919"
+        # (7 unchanged attributes hidden)
+
+      ~ self_service {
+            # (7 unchanged attributes hidden)
+
+          - self_service_category {
+              - display_in = true -> null
+              - feature_in = true -> null
+              - id         = 4 -> null
+              - name       = "tf-sets-mac-alpha-20260919" -> null
+            }
+
+            # (1 unchanged block hidden)
+        }
+
+        # (1 unchanged block hidden)
+    }
+
+Plan: 0 to add, 1 to change, 0 to destroy.

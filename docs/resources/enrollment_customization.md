@@ -223,7 +223,7 @@ Required:
 
 Optional:
 
-- `ldap_group_access` (Block List) (see [below for nested schema](#nestedblock--ldap_pane--ldap_group_access))
+- `ldap_group_access` (Block Set) (see [below for nested schema](#nestedblock--ldap_pane--ldap_group_access))
 
 Read-Only:
 
@@ -290,3 +290,15 @@ Optional:
 - `delete` (String)
 - `read` (String)
 - `update` (String)
+## Collection state migration
+
+Schema version 1 automatically upgrades existing version 0 state. The collections
+listed below are unordered sets; repeated identical elements are deduplicated.
+HCL block syntax is unchanged, but numeric indexing into these collections is no
+longer supported. Select by ID/key with a `for` expression instead.
+
+`ldap_group_access`.
+
+Back up state before upgrading. Do not use upgraded state with an older provider;
+restore the pre-upgrade state and provider together if a rollback is necessary.
+See the [resource migration guide](../resource-migration-guide.md).

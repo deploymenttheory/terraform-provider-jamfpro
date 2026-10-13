@@ -1,0 +1,28 @@
+
+Warning: Provider development overrides are in effect
+
+The following provider development overrides are set in the CLI
+configuration:
+ - deploymenttheory/jamfpro in <test-workspace>/bin-static_computer_group
+
+The behavior may therefore not match any released version of the provider and
+applying changes may cause the state to become incompatible with published
+releases.
+jamfpro_static_computer_group.test: Refreshing state... [id=3]
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  - destroy
+
+Terraform will perform the following actions:
+
+  # jamfpro_static_computer_group.test will be destroyed
+  - resource "jamfpro_static_computer_group" "test" {
+      - assigned_computer_ids = [] -> null
+      - id                    = "3" -> null
+      - is_smart              = false -> null
+      - name                  = "tf-sets-static_computer_group-20260919-updated" -> null
+      - site_id               = -1 -> null
+    }
+
+Plan: 0 to add, 0 to change, 1 to destroy.
