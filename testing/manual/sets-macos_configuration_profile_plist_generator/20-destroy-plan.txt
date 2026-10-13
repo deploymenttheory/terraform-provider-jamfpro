@@ -1,0 +1,109 @@
+
+Warning: Provider development overrides are in effect
+
+The following provider development overrides are set in the CLI
+configuration:
+ - deploymenttheory/jamfpro in <test-workspace>/bin-macos_configuration_profile_plist_generator
+
+The behavior may therefore not match any released version of the provider and
+applying changes may cause the state to become incompatible with published
+releases.
+jamfpro_macos_configuration_profile_plist_generator.test: Refreshing state... [id=1]
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  - destroy
+
+Terraform will perform the following actions:
+
+  # jamfpro_macos_configuration_profile_plist_generator.test will be destroyed
+  - resource "jamfpro_macos_configuration_profile_plist_generator" "test" {
+      - category_id         = -1 -> null
+      - description         = "Temporary unscoped set migration test" -> null
+      - distribution_method = "Make Available in Self Service" -> null
+      - id                  = "1" -> null
+      - level               = "System" -> null
+      - name                = "tf-sets-plist-20260919" -> null
+      - redeploy_on_update  = "Newly Assigned" -> null
+      - site_id             = -1 -> null
+      - user_removable      = false -> null
+      - uuid                = "ecfbae59-4080-420a-97b1-a6d235c7340c" -> null
+
+      - payloads {
+          - payload_description_header        = "Temporary unscoped set migration test" -> null
+          - payload_display_name_header       = "tf-sets-plist-20260919" -> null
+          - payload_enabled_header            = true -> null
+          - payload_identifier_header         = "ecfbae59-4080-420a-97b1-a6d235c7340c" -> null
+          - payload_organization_header       = "Terraform test" -> null
+          - payload_removal_disallowed_header = false -> null
+          - payload_scope_header              = "System" -> null
+          - payload_type_header               = "Configuration" -> null
+          - payload_uuid_header               = "ecfbae59-4080-420a-97b1-a6d235c7340c" -> null
+          - payload_version_header            = 1 -> null
+
+          - payload_content {
+              - payload_enabled            = true -> null
+              - payload_organization       = "Terraform test" -> null
+              - payload_removal_disallowed = false -> null
+              - payload_type               = "com.example.terraform.set-test" -> null
+              - payload_version            = 1 -> null
+                # (5 unchanged attributes hidden)
+
+              - setting {
+                  - key        = "Nested" -> null
+                    # (2 unchanged attributes hidden)
+
+                  - dictionary {
+                      - key        = "Alpha" -> null
+                      - value      = "first" -> null
+                        # (1 unchanged attribute hidden)
+                    }
+                  - dictionary {
+                      - key        = "Zulu" -> null
+                      - value      = "last" -> null
+                        # (1 unchanged attribute hidden)
+                    }
+                }
+              - setting {
+                  - key        = "Zulu" -> null
+                  - value      = "changed" -> null
+                    # (1 unchanged attribute hidden)
+                }
+              - setting {
+                  - array_json = jsonencode(
+                        [
+                          - "b",
+                          - "a",
+                          - "b",
+                        ]
+                    ) -> null
+                  - key        = "Ordered" -> null
+                    # (1 unchanged attribute hidden)
+                }
+            }
+        }
+
+      - scope {
+          - all_computers      = false -> null
+          - all_jss_users      = false -> null
+          - building_ids       = [] -> null
+          - computer_group_ids = [] -> null
+          - computer_ids       = [] -> null
+          - department_ids     = [] -> null
+          - jss_user_group_ids = [] -> null
+          - jss_user_ids       = [] -> null
+        }
+
+      - self_service {
+          - feature_on_main_page            = false -> null
+          - force_users_to_view_description = false -> null
+          - install_button_text             = "Install" -> null
+          - notification                    = false -> null
+          - self_service_description        = "Temporary unscoped set migration test" -> null
+          - self_service_display_name       = "Temporary profile" -> null
+          - self_service_icon_id            = 0 -> null
+            # (2 unchanged attributes hidden)
+        }
+    }
+
+Plan: 0 to add, 0 to change, 1 to destroy.

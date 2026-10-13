@@ -1,0 +1,12 @@
+{
+  "status": 200,
+  "Ordered": [
+    "a",
+    "b",
+    "b"
+  ],
+  "Nested": {
+    "Alpha": "first",
+    "Zulu": "last"
+  }
+}

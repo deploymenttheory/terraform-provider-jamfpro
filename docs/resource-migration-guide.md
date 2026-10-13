@@ -147,3 +147,50 @@ Once the migration is complete, simplify the policy to reference only `jamfpro_s
 - `terraform plan` shows no destroy actions for smart computer groups.
 - State contains `jamfpro_smart_computer_group_v2` addresses only.
 - Old `jamfpro_smart_computer_group` addresses are gone from state.
+
+## `jamfpro_macos_configuration_profile_plist_generator`: unordered collections (v0 to v1)
+
+Schema version 1 automatically upgrades existing version 0 state. The collections
+listed below are unordered sets; repeated identical elements are deduplicated.
+HCL block syntax is unchanged, but numeric indexing into these collections is no
+longer supported. Select by ID/key with a `for` expression instead.
+
+`setting`, `dictionary`.
+
+Back up state before upgrading. Do not use upgraded state with an older provider;
+restore the pre-upgrade state and provider together if a rollback is necessary.
+
+Only `payloads.payload_content.setting` and its nested dictionary entry blocks
+are sets. `payloads`, `payload_content`, and all plist arrays keep their existing
+order semantics. Dictionary keys must be unique.
+
+Use `array_json` instead of `value` or `dictionary` for an ordered array:
+
+```hcl
+setting {
+  key        = "OrderedValues"
+  array_json = jsonencode(["second", "first", "second"])
+}
+```
+
+`array_json` is an optional string on settings and dictionary entries (up to the
+existing six nested block levels). It supports JSON-compatible plist array
+values and preserves element order and duplicates. Nested dictionaries inside
+an array remain array elements. Reordering an array is a real configuration
+change. The legacy string value conversion continues to recognize booleans and
+integers. The terminal dictionary remains a string map.
+
+The upgrader retains the complete v0 schema, including unrelated nested values,
+and accepts JSON and legacy flatmap state. No resource replacement, state removal,
+or import is required. Other ordered lists and singleton blocks are unchanged.
+
+Arrays containing plist dates or binary data are rejected with an explicit error;
+they are not coerced to JSON strings. Use the raw plist profile resource for
+those payload types.
+
+Array JSON numbers are normalized without reordering or deduplicating elements.
+Integers retain their signed/unsigned 64-bit values; real numbers use the plist
+64-bit floating-point representation and retain a decimal/exponent marker when
+read back (for example, `1.0` remains a real). JSON `null`, integers outside the
+supported 64-bit range, and non-finite/out-of-range real values are rejected
+before apply rather than silently removed or coerced.

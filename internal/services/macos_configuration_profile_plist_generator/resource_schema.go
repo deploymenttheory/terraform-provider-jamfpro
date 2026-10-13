@@ -2,9 +2,12 @@
 package macos_configuration_profile_plist_generator
 
 import (
+	"encoding/json"
 	"fmt"
+	"sort"
 	"time"
 
+	plistutil "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/plist"
 	sharedschemas "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/shared_schemas"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -112,8 +115,8 @@ import (
 </plist>
 */
 
-// resourceJamfProMacOSConfigurationProfilesPlistGenerator defines the schema and CRUD operations for managing Jamf Pro macOS Configuration Profiles in Terraform.
-func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource {
+// resourceSchema defines the schema and CRUD operations for managing Jamf Pro macOS Configuration Profiles in Terraform.
+func resourceSchema() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceJamfProMacOSConfigurationProfilesPlistGeneratorCreate,
 		ReadContext:   resourceJamfProMacOSConfigurationProfilesPlistGeneratorReadWithCleanup,
@@ -242,7 +245,8 @@ func ResourceJamfProMacOSConfigurationProfilesPlistGenerator() *schema.Resource 
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"setting": {
-										Type:        schema.TypeList,
+										Set:         hashPlistEntry,
+										Type:        schema.TypeSet,
 										Optional:    true,
 										Description: "The key and value setting items of the macOS configuration profile plist",
 										Elem: &schema.Resource{
@@ -439,7 +443,8 @@ func nestedDictionarySchema(level int) *schema.Schema {
 		}
 	}
 	return &schema.Schema{
-		Type:        schema.TypeList,
+		Set:         hashPlistEntry,
+		Type:        schema.TypeSet,
 		Optional:    true,
 		Description: "A nested dictionary structure.",
 		Elem: &schema.Resource{
@@ -454,6 +459,7 @@ func nestedDictionarySchema(level int) *schema.Schema {
 					Optional:    true,
 					Description: "The value for the dictionary entry.",
 				},
+				"array_json": arrayJSONSchema(),
 				"dictionary": nestedDictionarySchema(level - 1),
 			},
 		},
@@ -474,7 +480,71 @@ func payloadContentSchema() *schema.Resource {
 				Optional:    true,
 				Description: "The value for the xml plist entry.",
 			},
+			"array_json": arrayJSONSchema(),
 			"dictionary": nestedDictionarySchema(6),
 		},
 	}
+}
+
+// arrayJSONSchema keeps plist array order and duplicates outside dictionary sets.
+func arrayJSONSchema() *schema.Schema {
+	return &schema.Schema{
+		Type: schema.TypeString, Optional: true,
+		Description: "An ordered plist array encoded as JSON. Preserves duplicate elements. Use instead of value or dictionary.",
+		StateFunc: func(value any) string {
+			raw := value.(string)
+			array, err := plistutil.ParseJSONArray(raw)
+			if err != nil {
+				return raw
+			}
+			canonical, err := plistutil.EncodeJSONArray(array)
+			if err != nil {
+				return raw
+			}
+			return canonical
+		},
+		ValidateFunc: func(v any, key string) ([]string, []error) {
+			if _, err := plistutil.ParseJSONArray(v.(string)); err != nil {
+				return nil, []error{fmt.Errorf("%s: %w", key, err)}
+			}
+			return nil, nil
+		},
+	}
+}
+
+// Canonicalize omitted optional fields and nested dictionary sets consistently
+// during planning and refresh. Array values remain ordered JSON arrays.
+func hashPlistEntry(value any) int {
+	return schema.HashString(canonicalPlistEntry(value.(map[string]any)))
+}
+
+func canonicalPlistEntry(entry map[string]any) string {
+	key, _ := entry["key"].(string)
+	value, _ := entry["value"].(string)
+	array, _ := entry["array_json"].(string)
+	if array != "" {
+		array = arrayJSONSchema().StateFunc(array)
+	}
+	var children []any
+	var dictionary any = []string{}
+	switch v := entry["dictionary"].(type) {
+	case *schema.Set:
+		children = v.List()
+	case []any:
+		children = v
+	case map[string]any:
+		if len(v) > 0 {
+			dictionary = v
+		}
+	}
+	if len(children) > 0 {
+		canonical := make([]string, 0, len(children))
+		for _, child := range children {
+			canonical = append(canonical, canonicalPlistEntry(child.(map[string]any)))
+		}
+		sort.Strings(canonical)
+		dictionary = canonical
+	}
+	encoded, _ := json.Marshal([]any{key, value, array, dictionary})
+	return string(encoded)
 }

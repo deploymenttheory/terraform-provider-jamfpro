@@ -1,0 +1,74 @@
+
+Warning: Provider development overrides are in effect
+
+The following provider development overrides are set in the CLI
+configuration:
+ - deploymenttheory/jamfpro in <test-workspace>/bin-old
+
+The behavior may therefore not match any released version of the provider and
+applying changes may cause the state to become incompatible with published
+releases.
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # jamfpro_macos_configuration_profile_plist_generator.test will be created
+  + resource "jamfpro_macos_configuration_profile_plist_generator" "test" {
+      + category_id         = -1
+      + description         = "Temporary unscoped set migration test"
+      + distribution_method = "Make Available in Self Service"
+      + id                  = (known after apply)
+      + level               = "System"
+      + name                = "tf-sets-plist-20260919"
+      + redeploy_on_update  = "Newly Assigned"
+      + site_id             = -1
+      + user_removable      = false
+      + uuid                = (known after apply)
+
+      + payloads {
+          + payload_description_header  = "Temporary unscoped set migration test"
+          + payload_display_name_header = "tf-sets-plist-20260919"
+          + payload_enabled_header      = true
+          + payload_identifier_header   = (known after apply)
+          + payload_organization_header = "Terraform test"
+          + payload_scope_header        = "System"
+          + payload_type_header         = "Configuration"
+          + payload_uuid_header         = (known after apply)
+          + payload_version_header      = 1
+
+          + payload_content {
+              + payload_enabled      = true
+              + payload_identifier   = (known after apply)
+              + payload_organization = "Terraform test"
+              + payload_type         = "com.example.terraform.set-test"
+              + payload_uuid         = (known after apply)
+              + payload_version      = 1
+
+              + setting {
+                  + key   = "Zulu"
+                  + value = "last"
+                }
+              + setting {
+                  + key   = "Alpha"
+                  + value = "first"
+                }
+            }
+        }
+
+      + scope {
+          + all_computers = false
+          + all_jss_users = false
+        }
+
+      + self_service {
+          + notification_subject      = "no message subject set"
+          + self_service_description  = "Temporary unscoped set migration test"
+          + self_service_display_name = "Temporary profile"
+          + self_service_icon_id      = 0
+        }
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.
