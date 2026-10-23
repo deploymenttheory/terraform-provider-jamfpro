@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.42.1](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.42.0...v0.42.1) (2026-10-23)
+
+
+### Bug Fixes
+
+* migrate account group collections to sets ([#1196](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1196)) ([4912260](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/4912260ba140d551c99173223fda2ccfa56735b6))
+* migrate enrollment customization collections to sets ([#1191](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1191)) ([1db7dc3](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/1db7dc34e6edb378a3b9d9daf88daee0236b4793))
+* migrate mac application collections to sets ([#1190](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1190)) ([ce28696](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/ce28696b73e0df07135845a7f271f71a5109b9eb))
+* migrate static computer group collections to sets ([#1194](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1194)) ([01744f9](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/01744f9abfb05f6d22034e070682cf6342520f36))
+* migrate static mobile device group collections to sets ([#1195](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1195)) ([4e5a692](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/4e5a692984da661284a6dee7c84be3855a93df23))
+* Mobile Device Extension Attribute Value Type ([#1198](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1198)) ([5810d63](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/5810d634daf90e0b7f3212c15ce4280a3dfcb84e))
+
 ## [0.42.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.41.0...v0.42.0) (2026-08-25)
 
 
