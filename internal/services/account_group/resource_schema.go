@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceJamfProAccountGroups defines the schema and CRUD operations for managing account groups in Terraform.
-func ResourceJamfProAccountGroups() *schema.Resource {
+// resourceSchema defines the schema and CRUD operations for managing account groups in Terraform.
+func resourceSchema() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,
 		ReadContext:   readWithCleanup,
@@ -103,7 +103,7 @@ func ResourceJamfProAccountGroups() *schema.Resource {
 				},
 			},
 			"member_ids": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Description: "Accounts which should be a member of this group by ID",
 				Optional:    true,
 				Elem: &schema.Schema{

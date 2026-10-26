@@ -50,9 +50,9 @@ func construct(d *schema.ResourceData) (*jamfpro.ResourceMacApplications, error)
 			NotificationMessage:         selfServiceMap["notification_message"].(string),
 		}
 
-		if categories, ok := selfServiceMap["self_service_category"].([]any); ok {
+		if categories, ok := selfServiceMap["self_service_category"].(*schema.Set); ok {
 			var selfServiceCategories []jamfpro.MacAppSubsetSelfServiceCategories
-			for _, cat := range categories {
+			for _, cat := range categories.List() {
 				category := cat.(map[string]any)
 				selfServiceCategories = append(selfServiceCategories, jamfpro.MacAppSubsetSelfServiceCategories{
 					ID:        category["id"].(int),

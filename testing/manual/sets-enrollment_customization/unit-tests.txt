@@ -1,0 +1,2 @@
+$ go test ./internal/services/enrollment_customization
+ok  	github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/enrollment_customization	(cached)
