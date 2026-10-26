@@ -7,8 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// resourceJamfProEnrollmentCustomization defines the schema and CRUD operations for managing Jamf Pro Enrollment Customizations in Terraform.
-func ResourceJamfProEnrollmentCustomization() *schema.Resource {
+// resourceSchema defines the schema and CRUD operations for managing Jamf Pro Enrollment Customizations in Terraform.
+func resourceSchema() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,
 		ReadContext:   readWithCleanup,
@@ -191,7 +191,7 @@ func ResourceJamfProEnrollmentCustomization() *schema.Resource {
 							Description: "The text for the continue button.",
 						},
 						"ldap_group_access": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
