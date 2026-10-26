@@ -255,4 +255,5 @@ or import is required. Other ordered lists and singleton blocks are unchanged.
 
 When `assigned_user_ids` is omitted, the provider reports the observed membership
 as a computed set. Changes to operation blocks recompute that set. An explicit
-empty set still manages the group as empty.
+empty set still manages the group as empty. Smart groups report an empty set,
+because their membership is derived from `criteria`.
