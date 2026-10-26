@@ -30,7 +30,7 @@ resource "jamfpro_static_computer_group" "jamfpro_static_computer_group_001" {
 
 ### Optional
 
-- `assigned_computer_ids` (List of Number) assigned computer by ids
+- `assigned_computer_ids` (Set of Number) assigned computer by ids
 - `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
@@ -48,3 +48,15 @@ Optional:
 - `delete` (String)
 - `read` (String)
 - `update` (String)
+## Collection state migration
+
+Schema version 1 automatically upgrades existing version 0 state. The collections
+listed below are unordered sets; repeated identical elements are deduplicated.
+HCL block syntax is unchanged, but numeric indexing into these collections is no
+longer supported. Select by ID/key with a `for` expression instead.
+
+`assigned_computer_ids`.
+
+Back up state before upgrading. Do not use upgraded state with an older provider;
+restore the pre-upgrade state and provider together if a rollback is necessary.
+See the [resource migration guide](../resource-migration-guide.md).

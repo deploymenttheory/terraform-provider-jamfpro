@@ -1,0 +1,80 @@
+
+Warning: Provider development overrides are in effect
+
+The following provider development overrides are set in the CLI
+configuration:
+ - deploymenttheory/jamfpro in <test-workspace>/bin-mac_application
+
+The behavior may therefore not match any released version of the provider and
+applying changes may cause the state to become incompatible with published
+releases.
+jamfpro_category.bravo: Refreshing state... [id=5]
+jamfpro_category.alpha: Refreshing state... [id=4]
+jamfpro_mac_application.test: Refreshing state... [id=1]
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  - destroy
+
+Terraform will perform the following actions:
+
+  # jamfpro_category.alpha will be destroyed
+  - resource "jamfpro_category" "alpha" {
+      - id       = "4" -> null
+      - name     = "tf-sets-mac-alpha-20260919" -> null
+      - priority = 9 -> null
+    }
+
+  # jamfpro_category.bravo will be destroyed
+  - resource "jamfpro_category" "bravo" {
+      - id       = "5" -> null
+      - name     = "tf-sets-mac-bravo-20260919" -> null
+      - priority = 9 -> null
+    }
+
+  # jamfpro_mac_application.test will be destroyed
+  - resource "jamfpro_mac_application" "test" {
+      - bundle_id       = "com.tinyspeck.slackmacgap" -> null
+      - category_id     = -1 -> null
+      - deployment_type = "Make Available in Self Service" -> null
+      - id              = "1" -> null
+      - is_free         = true -> null
+      - name            = "tf-sets-mac-application-20260919" -> null
+      - site_id         = -1 -> null
+      - url             = "https://apps.apple.com/gb/app/slack-for-desktop/id803453959?mt=12" -> null
+      - version         = "1.0" -> null
+
+      - scope {
+          - all_computers      = false -> null
+          - all_jss_users      = false -> null
+          - building_ids       = [] -> null
+          - computer_group_ids = [] -> null
+          - computer_ids       = [] -> null
+          - department_ids     = [] -> null
+          - jss_user_group_ids = [] -> null
+          - jss_user_ids       = [] -> null
+        }
+
+      - self_service {
+          - feature_on_main_page            = false -> null
+          - force_users_to_view_description = false -> null
+          - install_button_text             = "Install" -> null
+          - self_service_description        = "Temporary unscoped set migration test" -> null
+            # (3 unchanged attributes hidden)
+
+          - self_service_category {
+              - display_in = true -> null
+              - feature_in = false -> null
+              - id         = 5 -> null
+              - name       = "tf-sets-mac-bravo-20260919" -> null
+            }
+          - self_service_category {
+              - display_in = true -> null
+              - feature_in = true -> null
+              - id         = 4 -> null
+              - name       = "tf-sets-mac-alpha-20260919" -> null
+            }
+        }
+    }
+
+Plan: 0 to add, 0 to change, 3 to destroy.
